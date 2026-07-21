@@ -186,6 +186,29 @@ class TerminalConsumer(ChannelEventsMixin, AsyncWebsocketConsumer):
             return
 
         await self.accept()
+        await self._run_post_accept_setup()
+
+    async def _run_post_accept_setup(self):
+        """Run the post-accept setup pipeline, declining LOUDLY on failure.
+
+        An unhandled exception between accept() and the first send used to
+        close the socket with a bare 1011 and ZERO frames — the visitor saw
+        nothing. Instead: log the full traceback (prod daphne logs name the
+        real exception), send a visible ❌ frame naming the failed stage,
+        and close with a specific 4xxx code. Fail-closed: no fallback
+        execution path is ever taken here.
+        """
+        from .decline import send_decline
+
+        try:
+            await self._post_accept_setup()
+        except Exception as exc:
+            stage = getattr(self, "_setup_stage", "setup")
+            await send_decline(self, stage, exc, code=4010)
+
+    async def _post_accept_setup(self):
+        """Post-accept setup: channel groups, then session dispatch."""
+        self._setup_stage = "channel groups"
 
         # Join speech channel group so TTS relay can push to this browser
         if self.user.is_authenticated:
@@ -200,6 +223,8 @@ class TerminalConsumer(ChannelEventsMixin, AsyncWebsocketConsumer):
             await self.channel_layer.group_add(self.capture_group, self.channel_name)
         else:
             self.capture_group = None
+
+        self._setup_stage = "session dispatch"
 
         # Remote: dispatch based on connection_mode
         if self.project.project_type == "remote":
@@ -232,6 +257,8 @@ class TerminalConsumer(ChannelEventsMixin, AsyncWebsocketConsumer):
 
                 await spawn_remote_ssh(self)
             return
+
+        self._setup_stage = "terminal spawn"
 
         # Try broker first, fall back to direct mode
         if await _check_broker():
