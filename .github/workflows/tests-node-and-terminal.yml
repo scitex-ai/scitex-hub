@@ -1,0 +1,94 @@
+name: tests-node-and-terminal
+
+# Repo-specific coverage the canonical `ci.yml` caller does not provide:
+# TypeScript/Vite build, Vitest unit tests, and the terminal broker
+# pytest slice (Django + websocket). Split out of the retired tests.yml
+# when it was replaced by the canonical org-reusable caller (wave-4 CI
+# unification, 2026-07-22). Runs on the self-hosted pool (PS-169) with
+# PEP-668-safe uv venv installs; the previously hardcoded Django secret
+# key is replaced by an inline dummy value (tests only need a non-empty
+# key).
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+concurrency:
+  group: tests-node-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  typescript-check:
+    name: TypeScript Compilation & Linting
+    runs-on: ${{ fromJSON(vars.CI_RUNS_ON || '["self-hosted","Linux","X64","scitex-ci"]') }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v7
+
+      - name: Install workspace apps
+        run: |
+          uv venv --python 3.11 .venv
+          uv pip install --python .venv/bin/python "scitex-ui>=0.2.0"
+          . .venv/bin/activate && bash scripts/apps/install_apps.sh
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build with Vite
+        run: npm run build
+
+  vitest:
+    name: Vitest Unit Tests
+    runs-on: ${{ fromJSON(vars.CI_RUNS_ON || '["self-hosted","Linux","X64","scitex-ci"]') }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm run test:run
+
+  terminal-tests:
+    name: "Terminal Broker & Session Tests (Python)"
+    runs-on: ${{ fromJSON(vars.CI_RUNS_ON || '["self-hosted","Linux","X64","scitex-ci"]') }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          cache-dependency-glob: pyproject.toml
+
+      - name: Install dependencies
+        run: |
+          uv venv --python 3.11 .venv
+          uv pip install --python .venv/bin/python -e ".[all,dev]" \
+            || uv pip install --python .venv/bin/python -e ".[dev]" \
+            || uv pip install --python .venv/bin/python -e .
+
+      - name: Run terminal tests
+        env:
+          SCITEX_HUB_DJANGO_SECRET_KEY: test-secret-key-for-ci  # pragma: allowlist secret
+          SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
+        run: |
+          .venv/bin/python -m pytest \
+            tests/custom/apps/console_app/views/terminal/ \
+            tests/custom/apps/console_app/services/terminal_broker/ \
+            -v --tb=short -p no:playwright -o "addopts="

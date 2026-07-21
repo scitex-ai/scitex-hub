@@ -1,5 +1,13 @@
 name: Security Audit
 
+# Repo-specific workflow, kept — but on the self-hosted pool (PS-169:
+# GitHub-hosted runners are forbidden fleet-wide) and PEP-668-safe
+# (uv venv instead of bare `pip install` into the runner's Python).
+# The old jobs referenced requirements.txt, which no longer exists in
+# this repo (deps live in pyproject.toml) — those steps were silently
+# no-ops; they now scan the actually-installed environment. All three
+# jobs remain ADVISORY (non-blocking), as before.
+
 on:
   schedule:
     - cron: '0 0 * * 0'  # Weekly on Sunday at midnight
@@ -7,49 +15,45 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'requirements.txt'
-      - 'requirements/*.txt'
+      - 'pyproject.toml'
 
 jobs:
   safety-check:
     name: Python Dependency Security Check
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(vars.CI_RUNS_ON || '["self-hosted","Linux","X64","scitex-ci"]') }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v7
         with:
-          python-version: '3.11'
+          cache-dependency-glob: pyproject.toml
 
-      - name: Install safety
-        run: pip install safety
-
-      - name: Run safety check
+      - name: Install package + safety
         run: |
-          if [ -f requirements.txt ]; then
-            safety check --file requirements.txt --json || true
-          fi
+          uv venv --python 3.11 .venv
+          uv pip install --python .venv/bin/python -e . safety
+
+      - name: Run safety check (advisory)
+        run: .venv/bin/safety check --json || true
 
   bandit:
     name: Python Security Linting
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(vars.CI_RUNS_ON || '["self-hosted","Linux","X64","scitex-ci"]') }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+      - uses: astral-sh/setup-uv@v7
 
       - name: Install bandit
-        run: pip install bandit
-
-      - name: Run bandit
         run: |
-          bandit -r apps/ config/ -f json -o bandit-report.json || true
+          uv venv --python 3.11 .venv
+          uv pip install --python .venv/bin/python bandit
+
+      - name: Run bandit (advisory)
+        run: |
+          .venv/bin/bandit -r apps/ config/ -f json -o bandit-report.json || true
           cat bandit-report.json
 
       - name: Upload bandit results
@@ -60,23 +64,23 @@ jobs:
 
   django-check:
     name: Django Security Check
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(vars.CI_RUNS_ON || '["self-hosted","Linux","X64","scitex-ci"]') }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v7
         with:
-          python-version: '3.11'
+          cache-dependency-glob: pyproject.toml
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt || true
+          uv venv --python 3.11 .venv
+          uv pip install --python .venv/bin/python -e ".[all]" \
+            || uv pip install --python .venv/bin/python -e .
 
-      - name: Run Django security checks
+      - name: Run Django security checks (advisory)
         env:
           SCITEX_HUB_DJANGO_SECRET_KEY: 'test-secret-key-for-ci'
           SCITEX_HUB_DJANGO_SETTINGS_MODULE: 'config.settings.settings_dev'
-        run: |
-          python manage.py check --deploy || true
+        run: .venv/bin/python manage.py check --deploy || true

@@ -11,7 +11,9 @@ on:
 jobs:
   analyze:
     name: Analyze Code
-    runs-on: ubuntu-latest
+    # Repo-specific workflow, kept — but on the self-hosted pool
+    # (PS-169: GitHub-hosted runners are forbidden fleet-wide).
+    runs-on: ${{ fromJSON(vars.CI_RUNS_ON || '["self-hosted","Linux","X64","scitex-ci"]') }}
     permissions:
       actions: read
       contents: read

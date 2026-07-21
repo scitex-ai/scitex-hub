@@ -9,6 +9,13 @@ on:
 jobs:
   playwright-mobile:
     name: Playwright Mobile E2E
+    # RUNNER EXCEPTION (justified, wave-4 CI unification 2026-07-22):
+    # this job uses GitHub Actions `services:` containers (postgres:16,
+    # redis:7) plus `playwright install --with-deps` (root apt). Both
+    # require a Docker daemon / root on the runner, which the
+    # self-hosted scitex-ci pool (Spartan HPC, apptainer-based,
+    # unprivileged) does not provide. Stays on a hosted runner until a
+    # Docker-capable pool runner exists; revisit then.
     runs-on: ubuntu-latest
     timeout-minutes: 30
 

@@ -16,7 +16,8 @@ on:
 jobs:
   check-absolute-symlinks:
     name: No absolute-target tracked symlinks
-    runs-on: ubuntu-latest
+    # Pool runner (PS-169): pure-shell job, no hosted-runner dependency.
+    runs-on: ${{ fromJSON(vars.CI_RUNS_ON || '["self-hosted","Linux","X64","scitex-ci"]') }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
