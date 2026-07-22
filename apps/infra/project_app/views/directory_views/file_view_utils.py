@@ -17,6 +17,10 @@ import subprocess
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 
+from apps.infra.project_app.services.filesystem.permissions import (
+    validate_path_in_project,
+)
+
 from ...models import Project
 
 logger = logging.getLogger(__name__)
@@ -47,7 +51,7 @@ def get_file_context(request, username, slug, file_path):
     # Security check
     try:
         full_file_path = full_file_path.resolve()
-        if not str(full_file_path).startswith(str(project_path.resolve())):
+        if not validate_path_in_project(project_path, full_file_path):
             return None
     except Exception:
         return None

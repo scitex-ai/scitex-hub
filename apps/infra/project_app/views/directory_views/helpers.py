@@ -27,6 +27,10 @@ from datetime import datetime
 from django.shortcuts import redirect
 from django.contrib import messages
 
+from apps.infra.project_app.services.filesystem.permissions import (
+    validate_path_in_project,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -102,7 +106,7 @@ def _validate_path_security(full_path, project_path, username, slug):
     """
     try:
         resolved_path = full_path.resolve()
-        if not str(resolved_path).startswith(str(project_path.resolve())):
+        if not validate_path_in_project(project_path, resolved_path):
             messages.error(None, "Invalid directory path.")
             return redirect("project_app:detail", username=username, slug=slug)
         return resolved_path

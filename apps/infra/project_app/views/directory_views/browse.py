@@ -21,6 +21,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.models import User
 
+from apps.infra.project_app.services.filesystem.permissions import (
+    validate_path_in_project,
+)
+
 from ...models import Project
 from ..repository.api.permissions import check_project_read_access
 
@@ -70,7 +74,7 @@ def project_directory_dynamic(request, username, slug, directory_path):
     # Security check: ensure path is within project directory
     try:
         full_directory_path = full_directory_path.resolve()
-        if not str(full_directory_path).startswith(str(project_path.resolve())):
+        if not validate_path_in_project(project_path, full_directory_path):
             messages.error(request, "Invalid directory path.")
             return redirect("project_app:detail", username=username, slug=slug)
     except Exception:
@@ -222,7 +226,7 @@ def project_directory(request, username, slug, directory, subpath=None):
     # Security check: ensure path is within project directory
     try:
         directory_path = directory_path.resolve()
-        if not str(directory_path).startswith(str(project_path.resolve())):
+        if not validate_path_in_project(project_path, directory_path):
             messages.error(request, "Invalid directory path.")
             return redirect("project_app:detail", username=username, slug=slug)
     except Exception:

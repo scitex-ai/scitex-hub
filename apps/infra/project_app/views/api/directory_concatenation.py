@@ -18,6 +18,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 
+from apps.infra.project_app.services.filesystem.permissions import (
+    validate_path_in_project,
+)
+
 from ...models import Project
 
 logger = logging.getLogger(__name__)
@@ -62,7 +66,7 @@ def api_concatenate_directory(request, username, slug, directory_path=""):
     # Security check
     try:
         dir_path = dir_path.resolve()
-        if not str(dir_path).startswith(str(project_path.resolve())):
+        if not validate_path_in_project(project_path, dir_path):
             return JsonResponse({"success": False, "error": "Invalid path"})
     except (ValueError, OSError, RuntimeError) as e:
         logger.warning(f"Path resolution failed: {e}")
