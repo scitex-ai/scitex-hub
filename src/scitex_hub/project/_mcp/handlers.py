@@ -21,6 +21,25 @@ from typing import Any
 ALLOWED_DATA_ROOT = os.environ.get("SCITEX_PROJECT_DATA_ROOT", "/app/data/users")
 
 
+def _is_within(root: Path, target: Path) -> bool:
+    """Return True when ``target`` is ``root`` itself or lives inside it.
+
+    Containment is decided COMPONENT-WISE via ``Path.relative_to``, not by
+    string prefix. ``str.startswith`` is not path containment: a sibling whose
+    name merely EXTENDS the root satisfies it, so root ``/data/u/proj`` would
+    admit ``/data/u/proj-other/x.py`` (reachable as ``../proj-other/x.py``).
+
+    Mirrors ``validate_path_in_project()`` in the Django tree
+    (apps/infra/project_app/services/filesystem/permissions.py); it is
+    re-stated here because the package must not import from the Django app.
+    """
+    try:
+        target.resolve().relative_to(root.resolve())
+        return True
+    except ValueError:
+        return False
+
+
 def _resolve_safe(root_path: str, relative_path: str = "") -> Path:
     """
     Resolve a path within root_path, raising ValueError on any violation.
@@ -32,7 +51,7 @@ def _resolve_safe(root_path: str, relative_path: str = "") -> Path:
     root = Path(root_path).resolve()
     allowed = Path(ALLOWED_DATA_ROOT).resolve()
 
-    if not str(root).startswith(str(allowed)):
+    if not _is_within(allowed, root):
         raise ValueError(
             f"root_path '{root}' is not under allowed data root '{allowed}'. "
             "Project paths must be within the configured data directory."
@@ -43,7 +62,7 @@ def _resolve_safe(root_path: str, relative_path: str = "") -> Path:
     else:
         target = root
 
-    if not str(target).startswith(str(root)):
+    if not _is_within(root, target):
         raise ValueError(
             f"Path traversal detected: '{relative_path}' escapes project root."
         )
