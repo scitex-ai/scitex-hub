@@ -249,3 +249,38 @@
 .apps-empty-description {
   font-size: 0.88rem;
 }
+
+/* ─── Mobile (<=640px): fit the store to the phone viewport ─────── */
+/* Root cause of the 390px overflow: the horizontal card row (icon +
+   info + owner + stats + link buttons + actions) has a large min/max
+   content width, and the module pane that hosts the store is not width-
+   pinned to the viewport, so that wide row stretched the whole content
+   column. The stretched column then (a) pushed card right borders and
+   descriptions off-screen (past the ellipsis, so text was clipped mid-
+   word) and (b) laid the category-tab row out wider than the screen, so
+   `flex-wrap` never engaged and tabs like "Reference" were cut off.
+
+   Capping the container at the viewport width defeats that stretch: the
+   grid, cards and tab row are all bounded to 100vw, so the existing
+   `flex-wrap` on the tabs wraps correctly and the per-card reflow in
+   cards.css can take effect. `overflow-x: hidden` is the final safety
+   net against a sub-pixel residual causing a horizontal page scroll.
+   Desktop (>640px) is untouched. */
+@media (max-width: 640px) {
+  .apps-container {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  .apps-grid {
+    max-width: 100%;
+  }
+
+  /* Tabs wrap onto multiple lines instead of clipping off the right
+     edge (flex-wrap is already set above; it only works once the row is
+     bounded to the viewport by the container cap). */
+  .apps-category-tabs {
+    flex-wrap: wrap;
+  }
+}
