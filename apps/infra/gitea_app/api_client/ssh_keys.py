@@ -7,7 +7,7 @@ This module provides SSH key-related operations for the Gitea REST API.
 """
 
 from typing import Dict, List
-from .base import BaseGiteaClient, path_segment
+from .base import path_segment
 
 
 class SSHKeyOperationsMixin:
