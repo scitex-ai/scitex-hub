@@ -230,7 +230,7 @@ Skill files provide context-aware guidance to AI agents working within the SciTe
 scitex-dev skills export --package scitex-hub
 
 # List available skills
-scitex-hub skills list
+scitex-hub dev skills list
 ```
 
 Skills are stored in `src/scitex_hub/_skills/scitex-hub/` and cover deployment, development, testing, and more.

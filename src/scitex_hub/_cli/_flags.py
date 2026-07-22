@@ -15,14 +15,14 @@ keyword-only ``json_output``, ``dry_run``, ``yes`` parameters that Click
 already injects.
 
 No silent fallback: every helper either does the thing or surfaces a real
-error. Confirmation prompts only fire when stdin is an interactive TTY so
-non-interactive invocations are deterministic.
+error. Confirmation is flag-driven only (§2: never prompt): a mutating verb
+without ``--yes/-y`` refuses with exit code 2 so every invocation is
+deterministic, interactive or not.
 """
 
 from __future__ import annotations
 
 import json as _json
-import sys
 from typing import Any, Callable
 
 import click
@@ -66,7 +66,7 @@ def yes_flag() -> Callable[[Callable[..., Any]], Callable[..., Any]]:
         "-y",
         "--yes/--no-yes",
         default=False,
-        help="Skip the interactive confirmation prompt.",
+        help="Confirm the action (required for mutating verbs; never prompts).",
     )
 
 
@@ -92,25 +92,26 @@ def emit_json(payload: Any) -> None:
 def confirm_or_abort(message: str, *, yes: bool, dry_run: bool = False) -> bool:
     """Return True iff the caller is cleared to perform the mutation.
 
-    Semantics:
-      * If ``dry_run`` — never prompt, return ``False`` (caller should print
-        the plan and exit cleanly).
-      * If ``yes`` — return ``True`` immediately, no prompt.
-      * If stdin is not a TTY — return ``True`` (non-interactive caller; the
-        absence of ``--yes`` shouldn't deadlock a pipeline).
-      * Otherwise prompt; abort with exit code 1 if user declines.
+    Semantics (§2 — never prompt):
+      * If ``dry_run`` — return ``False`` (caller should print the plan and
+        exit cleanly).
+      * If ``yes`` — return ``True`` immediately.
+      * Otherwise refuse: print an error explaining that confirmation is
+        flag-driven and exit ``2``. There is no interactive prompt — the
+        same invocation behaves identically on a TTY and in a pipeline.
     """
 
     if dry_run:
         return False
     if yes:
         return True
-    if not sys.stdin.isatty():
-        return True
-    if not click.confirm(message, default=False):
-        click.echo("Aborted.", err=True)
-        raise SystemExit(1)
-    return True
+    click.echo(
+        f"error: confirmation required: {message}\n"
+        "This command never prompts — re-run with --yes/-y to proceed, "
+        "or --dry-run to preview.",
+        err=True,
+    )
+    raise SystemExit(2)
 
 
 def print_dry_run(action: str) -> None:

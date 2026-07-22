@@ -12,6 +12,7 @@ from ._click_compat import (
     HAS_CLI_HELPERS,
     register_error_redirect,
     register_warn_alias,
+    spec_command_kwargs,
     spec_group_kwargs,
 )
 from .app import app  # noqa: F401
@@ -50,7 +51,7 @@ _ROOT_CATEGORIES = [
     ("Data & Sync", ["push-project", "pull-project", "gitea"]),
     ("Service", ["docker", "mcp", "sdk"]),
     ("Diagnostics", ["status", "logs"]),
-    ("Introspection", ["list-python-apis", "skills", "docs", "dev"]),
+    ("Introspection", ["list-python-apis", "docs", "dev"]),
     (
         "Shell",
         ["completion", "install-shell-completion", "print-shell-completion"],
@@ -184,7 +185,14 @@ main.add_command(project)
 register_sync_commands(main)
 
 
-@main.command("list-python-apis", context_settings=CONTEXT_SETTINGS)
+@main.command(
+    "list-python-apis",
+    context_settings=CONTEXT_SETTINGS,
+    **spec_command_kwargs(
+        summary="List Python APIs (alias for: scitex introspect api scitex_hub).",
+        examples=(("{prog} list-python-apis -v", "List APIs with signatures."),),
+    ),
+)
 @click.option(
     "-v", "--verbose", count=True, help="Verbosity: -v sig, -vv +doc, -vvv full"
 )
@@ -237,10 +245,28 @@ except ImportError:
 
 
 # audit-cli §1a — packages with _skills/ MUST expose
-# `<cli> skills {list,get,install}`.
+# `<cli> skills {list,get,install}`; §13 — self-maintenance surfaces
+# nest under `dev`, so the canonical spelling is `scitex-hub dev skills`
+# and the old top-level `skills` becomes a warn-phase alias.
 from ._skills import skills_group as _skills_group
 
-main.add_command(_skills_group, name="skills")
+
+@main.group(
+    "dev",
+    **spec_group_kwargs(summary="Self-maintenance commands (skills, tooling)."),
+)
+def dev():
+    """Self-maintenance commands (skills, tooling)."""
+
+
+dev.add_command(_skills_group, name="skills")
+register_warn_alias(
+    main,
+    "skills",
+    target=_skills_group,
+    remove_in="0.20",
+    target_name="dev skills",
+)
 
 if __name__ == "__main__":
     main()

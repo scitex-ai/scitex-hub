@@ -13,11 +13,20 @@ from pathlib import Path
 
 import click
 
+from .._click_compat import spec_command_kwargs
 from .._flags import confirm_or_abort, mutating_flags, print_dry_run
 from ._group import app, console
 
 
-@app.command("init")
+@app.command(
+    "init",
+    **spec_command_kwargs(
+        summary="Scaffold a complete SciTeX app in a directory.",
+        examples=(
+            ("{prog} app init . -n demo_app --yes", "Scaffold an app in CWD."),
+        ),
+    ),
+)
 @click.argument("target_dir", default=".", type=click.Path())
 @click.option("--name", "-n", default=None, help="App module name (must end with _app)")
 @click.option("--label", "-l", default=None, help="Human-readable label")
@@ -95,7 +104,15 @@ def app_init(
         console.print(f"\n[green]Done![/green] Created {len(created)} files.")
 
 
-@app.command("install-dev")
+@app.command(
+    "install-dev",
+    **spec_command_kwargs(
+        summary="Show instructions for local app development.",
+        examples=(
+            ("{prog} app install-dev . --port 8001 --yes", "Dev instructions."),
+        ),
+    ),
+)
 @click.argument("app_dir", default=".", type=click.Path(exists=True))
 @click.option("--port", "-p", default=8000, type=int, help="Dev server port")
 @mutating_flags()
@@ -122,7 +139,13 @@ def app_dev(app_dir, port, dry_run, yes) -> None:
     dev_server(app_dir, port=port)
 
 
-@app.command("validate")
+@app.command(
+    "validate",
+    **spec_command_kwargs(
+        summary="Validate a SciTeX app for submission readiness.",
+        examples=(("{prog} app validate .", "Validate the app in CWD."),),
+    ),
+)
 @click.argument("app_dir", default=".", type=click.Path(exists=True))
 def app_validate(app_dir) -> None:
     """Validate a SciTeX app for submission readiness.
@@ -147,7 +170,13 @@ def app_validate(app_dir) -> None:
         raise SystemExit(1)
 
 
-@app.command("submit")
+@app.command(
+    "submit",
+    **spec_command_kwargs(
+        summary="Validate and submit an app for publication review.",
+        examples=(("{prog} app submit .", "Submit the app in CWD."),),
+    ),
+)
 @click.argument("app_dir", default=".", type=click.Path(exists=True))
 @click.option(
     "--server",
@@ -192,7 +221,13 @@ def app_submit(app_dir, server) -> None:
         raise SystemExit(1)
 
 
-@app.command("switch")
+@app.command(
+    "switch",
+    **spec_command_kwargs(
+        summary="Switch the active app.",
+        examples=(("{prog} app switch writer", "Activate the writer app."),),
+    ),
+)
 @click.argument("app_name")
 def app_switch(app_name) -> None:
     """Switch the active app.

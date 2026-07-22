@@ -39,7 +39,7 @@ scitex-hub sdk files delete   <app> <remote_path> [--project ID]
 scitex-hub sdk jobs submit <app> <job_name> [--params '{"fmt":"xlsx"}'] [--project ID]
 scitex-hub sdk jobs status <app> <job_id>
 scitex-hub sdk jobs list   <app>
-scitex-hub sdk jobs cancel <app> <job_id>
+scitex-hub sdk jobs close  <app> <job_id>   # was `cancel`, deprecated
 ```
 
 ## Python API

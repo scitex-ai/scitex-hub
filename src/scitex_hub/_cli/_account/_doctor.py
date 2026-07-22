@@ -15,11 +15,18 @@ import sys
 import click
 import requests
 
+from .._click_compat import spec_command_kwargs
 from ._group import account, console
 from ._token import _read_cached_token, _resolve_server, _token_cache_path
 
 
-@account.command("doctor")
+@account.command(
+    "doctor",
+    **spec_command_kwargs(
+        summary="Report cached-token presence, file mode, and reachability.",
+        examples=(("{prog} account doctor", "Check cached-credential health."),),
+    ),
+)
 @click.option(
     "--server",
     "-s",

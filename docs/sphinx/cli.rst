@@ -115,9 +115,9 @@ App Management
    scitex-hub app info <name>           # App details
    scitex-hub app current               # Active app
    scitex-hub app init . --name my_app  # Scaffold new app
-   scitex-hub app check-deps <name>     # Check dependencies
+   scitex-hub app validate-deps <name>  # Validate dependencies
    scitex-hub app submit <path>         # Submit for review
-   scitex-hub app prefs get/set         # User preferences
+   scitex-hub app prefs get/update      # User preferences
 
 Cloud SDK
 ---------
@@ -163,5 +163,5 @@ Utilities
 
    scitex-hub completion                # Set up shell completion
    scitex-hub list-python-apis          # List all available Python APIs
-   scitex-hub skills list               # List available skills
-   scitex-hub skills get <name>         # Show a skill
+   scitex-hub dev skills list           # List available skills
+   scitex-hub dev skills get <name>     # Show a skill

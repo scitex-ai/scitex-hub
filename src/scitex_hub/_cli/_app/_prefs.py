@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""``app prefs`` sub-group: get / set / delete / list per-user app prefs."""
+"""``app prefs`` sub-group: get / update / delete / list per-user app prefs."""
 
 from __future__ import annotations
 
@@ -8,6 +8,11 @@ import json as _json
 
 import click
 
+from .._click_compat import (
+    register_warn_alias,
+    spec_command_kwargs,
+    spec_group_kwargs,
+)
 from .._flags import (
     confirm_or_abort,
     emit_json,
@@ -18,12 +23,18 @@ from .._flags import (
 from ._group import app, console
 
 
-@app.group("prefs")
+@app.group("prefs", **spec_group_kwargs(summary="Manage per-user app preferences."))
 def app_prefs() -> None:
     """Manage per-user app preferences."""
 
 
-@app_prefs.command("get")
+@app_prefs.command(
+    "get",
+    **spec_command_kwargs(
+        summary="Show preferences for an app.",
+        examples=(("{prog} app prefs get writer", "Show prefs for one app."),),
+    ),
+)
 @click.argument("app_name")
 @json_flag()
 def prefs_get(app_name, json_output) -> None:
@@ -49,16 +60,24 @@ def prefs_get(app_name, json_output) -> None:
     console.print(_json.dumps(prefs, indent=2))
 
 
-@app_prefs.command("set")
+@app_prefs.command(
+    "update",
+    **spec_command_kwargs(
+        summary="Update preferences for an app as key=value pairs.",
+        examples=(
+            ("{prog} app prefs update writer theme=dark", "Update one pref."),
+        ),
+    ),
+)
 @click.argument("app_name")
 @click.argument("key_values", nargs=-1)
 def prefs_set(app_name, key_values) -> None:
-    """Set preferences for an app as key=value pairs.
+    """Update preferences for an app as key=value pairs.
 
     \b
     Example:
-        scitex-hub app prefs set writer theme=dark font_size=14
-        scitex-hub app prefs set scholar engine=crossref
+        scitex-hub app prefs update writer theme=dark font_size=14
+        scitex-hub app prefs update scholar engine=crossref
     """
     from scitex_hub.appmaker import set_prefs
 
@@ -77,7 +96,17 @@ def prefs_set(app_name, key_values) -> None:
     console.print(f"[green]Saved preferences for {app_name}[/green]")
 
 
-@app_prefs.command("delete")
+# §1f verb rename: `prefs set` -> `prefs update` (warn-phase alias).
+register_warn_alias(app_prefs, "set", target="update", remove_in="0.20")
+
+
+@app_prefs.command(
+    "delete",
+    **spec_command_kwargs(
+        summary="Delete all preferences for an app.",
+        examples=(("{prog} app prefs delete writer --yes", "Delete an app's prefs."),),
+    ),
+)
 @click.argument("app_name")
 @mutating_flags()
 def prefs_delete(app_name, dry_run, yes) -> None:
@@ -104,7 +133,13 @@ def prefs_delete(app_name, dry_run, yes) -> None:
         console.print(f"[yellow]No preferences found for {app_name}[/yellow]")
 
 
-@app_prefs.command("list")
+@app_prefs.command(
+    "list",
+    **spec_command_kwargs(
+        summary="List all saved app preferences.",
+        examples=(("{prog} app prefs list", "List all prefs."),),
+    ),
+)
 @json_flag()
 def prefs_list(json_output) -> None:
     """List all saved app preferences.

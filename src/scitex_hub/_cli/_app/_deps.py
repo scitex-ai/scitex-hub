@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""``app check-deps`` / ``app install-deps`` / ``app build-container`` verbs."""
+"""``app validate-deps`` / ``app install-deps`` / ``app build-container`` verbs."""
 
 from __future__ import annotations
 
@@ -9,19 +9,26 @@ from pathlib import Path
 
 import click
 
+from .._click_compat import register_warn_alias, spec_command_kwargs
 from .._flags import confirm_or_abort, mutating_flags, print_dry_run
 from ._group import app, console
 
 
-@app.command("check-deps")
+@app.command(
+    "validate-deps",
+    **spec_command_kwargs(
+        summary="Validate app dependencies from manifest.json.",
+        examples=(("{prog} app validate-deps .", "Validate deps of the app in CWD."),),
+    ),
+)
 @click.argument("app_dir", default=".", type=click.Path(exists=True))
 def app_check_deps(app_dir) -> None:
-    """Check app dependencies from manifest.json.
+    """Validate app dependencies from manifest.json.
 
     \b
     Example:
-        scitex-hub app check-deps .
-        scitex-hub app check-deps /path/to/my_app
+        scitex-hub app validate-deps .
+        scitex-hub app validate-deps /path/to/my_app
     """
     from scitex_hub.appmaker import check_deps_from_manifest, format_missing_report
 
@@ -39,7 +46,22 @@ def app_check_deps(app_dir) -> None:
         console.print(f"[green]{report}[/green]")
 
 
-@app.command("install-deps")
+# §1f verb rename: `check-deps` -> `validate-deps` (warn-phase alias).
+register_warn_alias(app, "check-deps", target="validate-deps", remove_in="0.20")
+
+
+@app.command(
+    "install-deps",
+    **spec_command_kwargs(
+        summary="Install app dependencies of a specific type.",
+        examples=(
+            (
+                "{prog} app install-deps . --type python --yes",
+                "Install Python deps.",
+            ),
+        ),
+    ),
+)
 @click.argument("app_dir", default=".", type=click.Path(exists=True))
 @click.option(
     "--type",
@@ -93,7 +115,18 @@ def app_install_deps(app_dir, dep_type, dry_run, yes) -> None:
         raise SystemExit(1)
 
 
-@app.command("build-container")
+@app.command(
+    "build-container",
+    **spec_command_kwargs(
+        summary="Build an Apptainer container from an app's .def file.",
+        examples=(
+            (
+                "{prog} app build-container . --yes",
+                "Build a .sif from the app in CWD.",
+            ),
+        ),
+    ),
+)
 @click.argument("app_dir", default=".", type=click.Path(exists=True))
 @click.option(
     "--output",

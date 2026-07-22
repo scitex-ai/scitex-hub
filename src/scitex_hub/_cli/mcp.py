@@ -7,6 +7,7 @@ import sys
 
 import click
 
+from ._click_compat import spec_command_kwargs, spec_group_kwargs
 from ._flags import (
     confirm_or_abort,
     emit_json,
@@ -18,7 +19,10 @@ from ._flags import (
 CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
 
 
-@click.group(context_settings=CONTEXT_SETTINGS)
+@click.group(
+    context_settings=CONTEXT_SETTINGS,
+    **spec_group_kwargs(summary="MCP (Model Context Protocol) server commands."),
+)
 def mcp():
     """MCP (Model Context Protocol) server commands.
 
@@ -32,7 +36,16 @@ def mcp():
     pass
 
 
-@mcp.command("start", context_settings=CONTEXT_SETTINGS)
+@mcp.command(
+    "start",
+    context_settings=CONTEXT_SETTINGS,
+    **spec_command_kwargs(
+        summary="Start the MCP server.",
+        examples=(
+            ("{prog} mcp start -t http --port 8086 --yes", "Serve over HTTP."),
+        ),
+    ),
+)
 @click.option(
     "-t",
     "--transport",
@@ -108,7 +121,14 @@ def mcp_start(transport: str, host: str, port: int, dry_run: bool, yes: bool):
     run_mcp_server(transport, host, port)
 
 
-@mcp.command("doctor", context_settings=CONTEXT_SETTINGS)
+@mcp.command(
+    "doctor",
+    context_settings=CONTEXT_SETTINGS,
+    **spec_command_kwargs(
+        summary="Diagnose MCP server setup and dependencies.",
+        examples=(("{prog} mcp doctor", "Run the MCP diagnostics."),),
+    ),
+)
 def mcp_doctor():
     """Diagnose MCP server setup and dependencies.
 
@@ -229,7 +249,14 @@ def mcp_show_installation_deprecated(ctx):
     ctx.exit(2)
 
 
-@mcp.command("install", context_settings=CONTEXT_SETTINGS)
+@mcp.command(
+    "install",
+    context_settings=CONTEXT_SETTINGS,
+    **spec_command_kwargs(
+        summary="Show MCP client installation instructions.",
+        examples=(("{prog} mcp install --yes", "Print client config snippets."),),
+    ),
+)
 @mutating_flags()
 def mcp_install(dry_run: bool, yes: bool):
     """Show MCP client installation instructions.
@@ -311,7 +338,14 @@ def _format_signature(tool_obj, indent: str = "  ") -> str:
     return f"{indent}{name_s}({', '.join(params)})"
 
 
-@mcp.command("list-tools", context_settings=CONTEXT_SETTINGS)
+@mcp.command(
+    "list-tools",
+    context_settings=CONTEXT_SETTINGS,
+    **spec_command_kwargs(
+        summary="List available MCP tools.",
+        examples=(("{prog} mcp list-tools -v", "List tools with signatures."),),
+    ),
+)
 @click.option(
     "-v", "--verbose", count=True, help="Verbosity: -v sig, -vv +desc, -vvv full"
 )

@@ -12,15 +12,24 @@ from __future__ import annotations
 import click
 from rich.console import Console
 
+from .._click_compat import spec_group_kwargs
+
 console = Console()
 
 
-@click.group()
+@click.group(
+    **spec_group_kwargs(
+        summary="Manage your SciTeX Hub account (tokens, identity, health)."
+    )
+)
 def account() -> None:
     """Manage your SciTeX Hub account (tokens, identity, health)."""
 
 
-@account.group("token")
+@account.group(
+    "token",
+    **spec_group_kwargs(summary="Create, list, and revoke API tokens for the CLI."),
+)
 def token() -> None:
     """Create, list, and revoke API tokens for the CLI."""
 

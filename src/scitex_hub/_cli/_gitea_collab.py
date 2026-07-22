@@ -10,6 +10,7 @@ import time
 import click
 import requests
 
+from ._click_compat import spec_command_kwargs, spec_group_kwargs
 from ._flags import (
     confirm_or_abort,
     dry_run_flag,
@@ -25,13 +26,31 @@ from ._gitea_utils import ensure_gitea_remote, ensure_not_in_workspace, run_tea
 # ---------------------------------------------------------------------------
 
 
-@click.group()
+@click.group(
+    **spec_group_kwargs(
+        summary="Pull request operations.",
+        examples=(
+            ("{prog} gitea pr create --title Fix --base develop --yes", ""),
+            ("{prog} gitea pr list --json", "List PRs as JSON"),
+        ),
+        command_categories=[("Core", ["create", "list"])],
+    )
+)
 def pr():
     """Pull request operations"""
     pass
 
 
-@pr.command(name="create")
+@pr.command(
+    name="create",
+    **spec_command_kwargs(
+        summary="Create a pull request.",
+        examples=(
+            ("{prog} gitea pr create --title 'Fix audit' --base develop --yes", ""),
+            ("{prog} gitea pr create -t WIP --dry-run", "Preview only"),
+        ),
+    ),
+)
 @click.option("--title", "-t", help="PR title")
 @click.option("--description", "-d", help="PR description")
 @click.option("--base", "-b", default="main", help="Base branch")
@@ -66,7 +85,16 @@ def pr_create(title, description, base, head, dry_run, yes):
     run_tea(*args)
 
 
-@pr.command(name="list")
+@pr.command(
+    name="list",
+    **spec_command_kwargs(
+        summary="List pull requests.",
+        examples=(
+            ("{prog} gitea pr list", "List open PRs"),
+            ("{prog} gitea pr list --json", "Machine-readable output"),
+        ),
+    ),
+)
 @json_flag()
 def pr_list(json_output):
     """List pull requests.
@@ -106,13 +134,31 @@ def pr_list(json_output):
 # ---------------------------------------------------------------------------
 
 
-@click.group()
+@click.group(
+    **spec_group_kwargs(
+        summary="Issue operations.",
+        examples=(
+            ("{prog} gitea issue create --title 'Bug X' --yes", "Open an issue"),
+            ("{prog} gitea issue list --json", "List issues as JSON"),
+        ),
+        command_categories=[("Core", ["create", "list"])],
+    )
+)
 def issue():
     """Issue operations"""
     pass
 
 
-@issue.command(name="create")
+@issue.command(
+    name="create",
+    **spec_command_kwargs(
+        summary="Create an issue.",
+        examples=(
+            ("{prog} gitea issue create --title 'Bug X' --yes", ""),
+            ("{prog} gitea issue create -t 'Audit follow-up' --dry-run", "Preview"),
+        ),
+    ),
+)
 @click.option("--title", "-t", required=True, help="Issue title")
 @click.option("--body", "-b", help="Issue body")
 @mutating_flags()
@@ -134,7 +180,16 @@ def issue_create(title, body, dry_run, yes):
     run_tea(*args)
 
 
-@issue.command(name="list")
+@issue.command(
+    name="list",
+    **spec_command_kwargs(
+        summary="List issues.",
+        examples=(
+            ("{prog} gitea issue list", "List open issues"),
+            ("{prog} gitea issue list --json", "Machine-readable output"),
+        ),
+    ),
+)
 @json_flag()
 def issue_list(json_output):
     """List issues.
@@ -174,7 +229,21 @@ def issue_list(json_output):
 # ---------------------------------------------------------------------------
 
 
-@click.command()
+@click.command(
+    "push",
+    **spec_command_kwargs(
+        summary="Push local changes to Gitea.",
+        description=(
+            "Sets up the Gitea remote with token authentication if it "
+            "does not exist, then pushes the specified (or current) "
+            "branch.",
+        ),
+        examples=(
+            ("{prog} gitea push --yes", "Push current branch"),
+            ("{prog} gitea push --branch develop --dry-run", "Preview a push"),
+        ),
+    ),
+)
 @click.option("--remote", default="scitex", help="Remote name (default: scitex)")
 @click.option(
     "--branch", "branch_opt", default=None, help="Branch to push (default: current)"
@@ -227,7 +296,16 @@ def push(remote, branch_opt, repo, login, dry_run, yes):
         sys.exit(1)
 
 
-@click.command()
+@click.command(
+    "pull",
+    **spec_command_kwargs(
+        summary="Pull workspace changes to local machine.",
+        examples=(
+            ("{prog} gitea pull --yes", "Pull the current branch"),
+            ("{prog} gitea pull --dry-run", "Preview the git-pull command"),
+        ),
+    ),
+)
 @mutating_flags()
 def pull(dry_run, yes):
     """Pull workspace changes to local machine.
@@ -263,15 +341,24 @@ def pull(dry_run, yes):
         sys.exit(1)
 
 
-@click.command("show-status")
+@click.command(
+    "status",
+    **spec_command_kwargs(
+        summary="Show repository status.",
+        examples=(
+            ("{prog} gitea status", "Human-readable git status"),
+            ("{prog} gitea status --json", "Machine-readable output"),
+        ),
+    ),
+)
 @json_flag()
 def status(json_output):
     """Show repository status.
 
     \b
     Example:
-      $ scitex-hub gitea show-status
-      $ scitex-hub gitea show-status --json
+      $ scitex-hub gitea status
+      $ scitex-hub gitea status --json
     """
     ensure_not_in_workspace()
     if json_output:
@@ -304,7 +391,15 @@ def status(json_output):
 # ---------------------------------------------------------------------------
 
 
-@click.command()
+@click.command(
+    "enrich",
+    **spec_command_kwargs(
+        summary="Enrich BibTeX file with metadata.",
+        examples=(
+            ("{prog} gitea enrich -i refs.bib -o refs.enriched.bib", ""),
+        ),
+    ),
+)
 @click.option(
     "-i",
     "--input",

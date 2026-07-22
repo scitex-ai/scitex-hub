@@ -15,11 +15,18 @@ import sys
 import click
 import requests
 
+from .._click_compat import spec_command_kwargs
 from ._group import account, console
 from ._token import _read_cached_token, _resolve_server
 
 
-@account.command("whoami")
+@account.command(
+    "whoami",
+    **spec_command_kwargs(
+        summary="Print the username + email the cached token authenticates as.",
+        examples=(("{prog} account whoami", "Show the authenticated identity."),),
+    ),
+)
 @click.option(
     "--server",
     "-s",

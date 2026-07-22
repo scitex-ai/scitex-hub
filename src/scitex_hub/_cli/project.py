@@ -3,12 +3,11 @@
 # File: src/scitex_hub/_cli/project.py
 """Project CRUD CLI commands."""
 
-import sys
-
 import click
 from rich.console import Console
 from rich.table import Table
 
+from ._click_compat import spec_command_kwargs, spec_group_kwargs
 from ._flags import (
     confirm_or_abort,
     emit_json,
@@ -20,7 +19,7 @@ from ._flags import (
 console = Console()
 
 
-@click.group()
+@click.group(**spec_group_kwargs(summary="Manage SciTeX Hub projects."))
 def project():
     """Manage SciTeX Hub projects.
 
@@ -35,7 +34,13 @@ def project():
     """
 
 
-@project.command("list")
+@project.command(
+    "list",
+    **spec_command_kwargs(
+        summary="List all your projects.",
+        examples=(("{prog} project list", "List your projects."),),
+    ),
+)
 @json_flag()
 def project_list(json_output):
     """List all your projects.
@@ -77,7 +82,13 @@ def project_list(json_output):
     console.print(table)
 
 
-@project.command("create")
+@project.command(
+    "create",
+    **spec_command_kwargs(
+        summary="Create a new project.",
+        examples=(("{prog} project create my-research --yes", "Create a project."),),
+    ),
+)
 @click.argument("name")
 @click.option("-d", "--description", default="", help="Project description")
 @click.option("-t", "--template", default="scitex_minimal", help="Template ID")
@@ -111,14 +122,19 @@ def project_create(name, description, template, dry_run, yes):
         raise SystemExit(1)
 
 
-@project.command("delete")
+@project.command(
+    "delete",
+    **spec_command_kwargs(
+        summary="Delete a project by slug.",
+        examples=(("{prog} project delete my-research --yes", "Delete a project."),),
+    ),
+)
 @click.argument("slug")
 @mutating_flags()
 def project_delete(slug, dry_run, yes):
     """Delete a project by slug.
 
-    Destructive — requires --yes/-y in non-interactive contexts (no TTY)
-    and prompts otherwise.
+    Destructive — requires --yes/-y (never prompts).
 
     \b
     Example:
@@ -128,13 +144,6 @@ def project_delete(slug, dry_run, yes):
     if dry_run:
         print_dry_run(f"delete project '{slug}'")
         return
-
-    if not yes and not sys.stdin.isatty():
-        click.echo(
-            f"error: pass --yes/-y to confirm destructive action: delete project '{slug}'",
-            err=True,
-        )
-        sys.exit(2)
 
     confirm_or_abort(
         f"Delete project '{slug}'? This is irreversible.",
@@ -152,7 +161,15 @@ def project_delete(slug, dry_run, yes):
         raise SystemExit(1)
 
 
-@project.command("rename")
+@project.command(
+    "rename",
+    **spec_command_kwargs(
+        summary="Rename a project.",
+        examples=(
+            ("{prog} project rename my-research new-name --yes", "Rename a project."),
+        ),
+    ),
+)
 @click.argument("slug")
 @click.argument("new_name")
 @mutating_flags()

@@ -3,7 +3,7 @@
 # File: src/scitex_hub/_mcp_tools/skills.py
 """Skills MCP tools — required §5 skills-integration surface.
 
-Mirrors `scitex-hub skills list` / `scitex-hub skills get`: walks the
+Mirrors `scitex-hub dev skills list` / `scitex-hub dev skills get`: walks the
 package's own bundled `_skills/scitex-hub/` directory (no scitex-dev
 runtime dependency), so any MCP consumer can discover and read the
 agent-facing skills this package ships.
@@ -39,7 +39,7 @@ def register_skills_tools(mcp) -> None:
 
     @mcp.tool()
     async def hub_skills_list() -> str:
-        """Use when an agent needs to discover the skill files bundled with scitex-hub; mirrors `scitex-hub skills list --json` (name + path per skill, SKILL.md excluded)."""
+        """Use when an agent needs to discover the skill files bundled with scitex-hub; mirrors `scitex-hub dev skills list --json` (name + path per skill, SKILL.md excluded)."""
         root = _skills_root()
         files = _list_skill_files(root)
         return _json(
@@ -55,7 +55,7 @@ def register_skills_tools(mcp) -> None:
 
     @mcp.tool()
     async def hub_skills_get(name: str) -> str:
-        """Use when an agent needs the full text of one bundled scitex-hub skill file by stem name (e.g. "01_installation"); mirrors `scitex-hub skills get <name> --json`.
+        """Use when an agent needs the full text of one bundled scitex-hub skill file by stem name (e.g. "01_installation"); mirrors `scitex-hub dev skills get <name> --json`.
 
         Args:
             name: Skill stem name, with or without the `.md` extension.

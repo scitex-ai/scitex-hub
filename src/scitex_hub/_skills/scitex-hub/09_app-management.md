@@ -67,21 +67,21 @@ scitex-hub app switch <app_name>      # switch active app
 ## Preferences
 
 ```bash
-scitex-hub app prefs get <app_name>               # show saved prefs
-scitex-hub app prefs set <app_name> key=val ...   # set prefs
-scitex-hub app prefs delete <app_name>            # clear prefs
-scitex-hub app prefs list                         # list all saved prefs
+scitex-hub app prefs get <app_name>                # show saved prefs
+scitex-hub app prefs update <app_name> key=val ... # update prefs
+scitex-hub app prefs delete <app_name>             # clear prefs
+scitex-hub app prefs list                          # list all saved prefs
 ```
 
 ```bash
-scitex-hub app prefs set writer theme=dark font_size=14
-scitex-hub app prefs set scholar engine=crossref
+scitex-hub app prefs update writer theme=dark font_size=14
+scitex-hub app prefs update scholar engine=crossref
 ```
 
 ## Dependencies
 
 ```bash
-scitex-hub app check-deps [app_dir]                    # check deps from manifest.json
+scitex-hub app validate-deps [app_dir]                 # validate deps from manifest.json
 scitex-hub app install-deps [app_dir] -t python        # install python deps
 scitex-hub app install-deps [app_dir] -t system        # install system deps
 scitex-hub app install-deps [app_dir] -t node          # install node deps

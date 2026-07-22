@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""``auth login`` — interactive browser-free PAT mint + cache.
+"""``auth login`` — browser-free PAT mint + cache.
 
 Phase-1 PR-5 / card #2 of lead's 7-card backlog. Thin shell over PR #273's
 ``POST /api/me/token/`` mint endpoint; the heavy lifting (allowlist,
 per-IP/per-user rate limit, constant-time error path) lives server-side.
 
-The verb prompts for ``username`` and ``password`` (echo hidden),
-posts them to ``/api/me/token/``, persists the returned ``scitex_xxxx``
+The verb takes ``--user`` and ``--password`` as options (§2: never
+prompts — a missing option is a hard error, exit 2), posts them to
+``/api/me/token/``, persists the returned ``scitex_xxxx``
 PAT to the SAME canonical cache that ``scitex-hub account token *``
 uses so subsequent CLI calls (whoami / doctor / publish) pick it up
 automatically with zero extra config.
@@ -29,6 +30,7 @@ import click
 import requests
 
 from .._account._token import _read_cached_token, _resolve_server, _token_cache_path
+from .._click_compat import spec_command_kwargs
 from ._group import auth, console
 
 
@@ -93,19 +95,30 @@ def _persist_token(server_url: str, token_value: str) -> Path:
 DEFAULT_LOGIN_SCOPES: tuple[str, ...] = ("publish",)
 
 
-@auth.command("login")
+@auth.command(
+    "login",
+    **spec_command_kwargs(
+        summary="Browser-free login: mint a PAT and cache it (mode 0600).",
+        examples=(
+            (
+                "{prog} auth login --user alice --password '...'",
+                "Mint + cache a PAT.",
+            ),
+        ),
+    ),
+)
 @click.option(
     "--user",
     "-u",
     "username",
     default=None,
-    help="Your hub username (prompted if omitted).",
+    help="Your hub username (required; never prompted).",
 )
 @click.option(
     "--password",
     "-p",
     default=None,
-    help="Your hub password (prompted if omitted; -p is escape hatch for unattended scripts).",
+    help="Your hub password (required; never prompted).",
 )
 @click.option(
     "--scope",
@@ -130,9 +143,9 @@ DEFAULT_LOGIN_SCOPES: tuple[str, ...] = ("publish",)
     help="SciTeX Hub server URL. Defaults to cached token's server or scitex.ai.",
 )
 def auth_login(username, password, scopes, name, server):
-    """Interactive browser-free login — mint a PAT and cache it 0600.
+    """Browser-free login — mint a PAT and cache it 0600.
 
-    Prompts for username + password if not supplied, POSTs them to
+    Takes username + password as options (never prompts), POSTs them to
     ``/api/me/token/`` (PR #273), persists the returned PAT to
     ``~/.scitex/cloud/runtime/token.json`` (mode 0600), and prints a
     confirmation line + a hint to export ``$SCITEX_HUB_TOKEN`` for
@@ -140,17 +153,24 @@ def auth_login(username, password, scopes, name, server):
 
     \b
     Examples:
-        scitex-hub auth login
-        scitex-hub auth login --user ywatanabe
-        scitex-hub auth login -u ywatanabe -s https://staging.scitex.ai
+        scitex-hub auth login -u ywatanabe -p '...'
+        scitex-hub auth login -u ywatanabe -p '...' -s https://staging.scitex.ai
     """
     server_url = _resolve_server(server)
 
-    # Prompt only the missing pieces — keeps -u/-p escape hatch clean.
+    # §2: never prompt — a missing credential option is a hard error.
     if not username:
-        username = click.prompt("Username", type=str)
+        console.print(
+            "[red]error[/red]: --user/-u is required "
+            "(interactive prompts are not supported)."
+        )
+        sys.exit(2)
     if not password:
-        password = click.prompt("Password", type=str, hide_input=True)
+        console.print(
+            "[red]error[/red]: --password/-p is required "
+            "(interactive prompts are not supported)."
+        )
+        sys.exit(2)
 
     try:
         data = _post_mint(server_url, username, password, tuple(scopes), name)

@@ -17,11 +17,18 @@ from __future__ import annotations
 
 import click
 
+from .._click_compat import spec_command_kwargs
 from .._flags import confirm_or_abort, mutating_flags, print_dry_run
 from ._group import app, console
 
 
-@app.command("create")
+@app.command(
+    "create",
+    **spec_command_kwargs(
+        summary="Create a new SciTeX Hub app project.",
+        examples=(("{prog} app create my-tool --yes", "Create an app project."),),
+    ),
+)
 @click.argument("name")
 @click.option("-d", "--description", default="", help="App project description")
 @click.option(

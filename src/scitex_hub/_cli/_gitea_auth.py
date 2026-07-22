@@ -9,6 +9,7 @@ import click
 import requests
 
 from .._config import get_config_value
+from ._click_compat import spec_command_kwargs
 from ._gitea_utils import get_tea_config, run_tea
 
 # ---------------------------------------------------------------------------
@@ -84,7 +85,21 @@ def _create_or_get_gitea_token(url, user, password):
 # ---------------------------------------------------------------------------
 
 
-@click.command()
+@click.command(
+    "login",
+    **spec_command_kwargs(
+        summary="Login to SciTeX Hub (Gitea).",
+        description=(
+            "Non-interactive. Credentials resolve CLI flag -> "
+            "SCITEX_HUB_GITEA_{TOKEN,USER,PASSWORD} env var -> config "
+            "file; missing credentials fail fast with exit code 2.",
+        ),
+        examples=(
+            ("{prog} gitea login --token $SCITEX_HUB_GITEA_TOKEN", "Token login"),
+            ("{prog} gitea login --user alice --password $PW", "Password login"),
+        ),
+    ),
+)
 @click.option(
     "--url",
     default=None,
@@ -163,7 +178,20 @@ def login(url, token, user, password, name):
     click.echo(f"Logged in to {url} as login '{name}'")
 
 
-@click.command()
+@click.command(
+    "logout",
+    **spec_command_kwargs(
+        summary="Logout from SciTeX Hub (Gitea).",
+        description=(
+            "Removes the local tea login entry. Use --delete-token to "
+            "also revoke the API token on the Gitea server.",
+        ),
+        examples=(
+            ("{prog} gitea logout", "Remove the local tea login"),
+            ("{prog} gitea logout --delete-token --user alice", "Also revoke token"),
+        ),
+    ),
+)
 @click.option(
     "--name",
     default="scitex-dev",

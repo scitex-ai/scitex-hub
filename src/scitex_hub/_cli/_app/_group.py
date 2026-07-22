@@ -12,10 +12,12 @@ from __future__ import annotations
 import click
 from rich.console import Console
 
+from .._click_compat import spec_group_kwargs
+
 console = Console()
 
 
-@click.group()
+@click.group(**spec_group_kwargs(summary="Manage SciTeX app plugins."))
 def app() -> None:
     """Manage SciTeX app plugins."""
 

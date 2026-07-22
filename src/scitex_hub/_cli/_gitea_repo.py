@@ -9,6 +9,7 @@ from pathlib import Path
 
 import click
 
+from ._click_compat import spec_command_kwargs
 from ._flags import (
     confirm_or_abort,
     dry_run_flag,
@@ -21,7 +22,16 @@ from ._flags import (
 from ._gitea_utils import get_gitea_http_url, get_tea_config, run_tea
 
 
-@click.command()
+@click.command(
+    "clone",
+    **spec_command_kwargs(
+        summary="Clone a repository from SciTeX Hub.",
+        examples=(
+            ("{prog} gitea clone scitex-hub", "Clone by name (owner inferred)"),
+            ("{prog} gitea clone scitex-dev/scitex-hub ./hub --yes", "Explicit"),
+        ),
+    ),
+)
 @click.argument("repository")
 @click.argument("destination", required=False)
 @click.option("--login", "-l", default="scitex-dev", help="Tea login to use")
@@ -77,7 +87,21 @@ def clone(repository, destination, login, dry_run, yes):
     run_tea(*args)
 
 
-@click.command()
+@click.command(
+    "create",
+    **spec_command_kwargs(
+        summary="Create a new repository on Gitea.",
+        description=(
+            "Also adds a Gitea remote to the current git repo (if in "
+            "one) and prints the clone URL. Use --push to immediately "
+            "push the current branch.",
+        ),
+        examples=(
+            ("{prog} gitea create my-new-repo --description demo --yes", ""),
+            ("{prog} gitea create my-new-repo --private --push", "Private + push"),
+        ),
+    ),
+)
 @click.argument("name")
 @click.option("--description", "-d", help="Repository description")
 @click.option("--private", is_flag=True, help="Make repository private")
@@ -156,7 +180,16 @@ def _in_git_repo():
     return result.returncode == 0
 
 
-@click.command(name="list")
+@click.command(
+    "list",
+    **spec_command_kwargs(
+        summary="List repositories.",
+        examples=(
+            ("{prog} gitea list", "List repos for the current login"),
+            ("{prog} gitea list --user scitex-dev --json", "Filter + JSON"),
+        ),
+    ),
+)
 @click.option("--user", "-u", help="List repos for specific user")
 @click.option("--login", "-l", default="scitex-dev", help="Tea login to use")
 @click.option("--starred", "-s", is_flag=True, help="List starred repos")
@@ -203,7 +236,16 @@ def list_repos(user, login, starred, watched, json_output):
     run_tea(*args)
 
 
-@click.command()
+@click.command(
+    "search",
+    **spec_command_kwargs(
+        summary="Search for repositories.",
+        examples=(
+            ("{prog} gitea search scholar", "Search by keyword"),
+            ("{prog} gitea search scholar --limit 5 --json", "Limit + JSON"),
+        ),
+    ),
+)
 @click.argument("query")
 @click.option("--login", "-l", default="scitex-dev", help="Tea login to use")
 @click.option("--limit", type=int, default=10, help="Maximum results")
@@ -240,7 +282,16 @@ def search(query, login, limit, json_output):
     run_tea(*args)
 
 
-@click.command()
+@click.command(
+    "delete",
+    **spec_command_kwargs(
+        summary="Delete a repository (DANGEROUS). Requires --yes/-y.",
+        examples=(
+            ("{prog} gitea delete scitex-dev/old-repo --yes", "Confirmed delete"),
+            ("{prog} gitea delete scitex-dev/old-repo --dry-run", "Preview only"),
+        ),
+    ),
+)
 @click.argument("repository")
 @click.option("--login", "-l", default="scitex-dev", help="Tea login to use")
 @click.option(
@@ -313,7 +364,13 @@ def delete(repository, login, yes, dry_run):
         sys.exit(1)
 
 
-@click.command()
+@click.command(
+    "fork",
+    **spec_command_kwargs(
+        summary="Fork a repository.",
+        examples=(("{prog} gitea fork scitex-dev/scitex-hub", "Fork a repo"),),
+    ),
+)
 @click.argument("repository")
 def fork(repository):
     """Fork a repository.

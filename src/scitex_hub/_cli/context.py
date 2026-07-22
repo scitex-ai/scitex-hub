@@ -7,6 +7,7 @@ import json
 
 import click
 
+from ._click_compat import spec_command_kwargs, spec_group_kwargs
 from ._flags import (
     confirm_or_abort,
     emit_json,
@@ -16,7 +17,7 @@ from ._flags import (
 )
 
 
-@click.group()
+@click.group(**spec_group_kwargs(summary="Web app context for AI agents."))
 def context():
     """Web app context for AI agents.
 
@@ -32,7 +33,13 @@ def context():
     """
 
 
-@context.command("get")
+@context.command(
+    "get",
+    **spec_command_kwargs(
+        summary="Get web app context: username, page, skills, actions.",
+        examples=(("{prog} context get --page /writer/", "Context for a page."),),
+    ),
+)
 @click.option("--page", default="", help="Current page URL (e.g. /writer/)")
 @json_flag()
 def context_get(page, json_output):
@@ -76,7 +83,15 @@ def context_get(page, json_output):
         click.echo(f"  Media: {', '.join(media)}")
 
 
-@context.command("eval")
+@context.command(
+    "eval",
+    **spec_command_kwargs(
+        summary="Evaluate JavaScript in the user's browser.",
+        examples=(
+            ('{prog} context eval "document.title" --yes', "Evaluate a JS snippet."),
+        ),
+    ),
+)
 @click.argument("code")
 @click.option("--timeout", type=int, default=10, help="Timeout in seconds (max 30)")
 @mutating_flags()
@@ -114,7 +129,18 @@ def context_eval(code, timeout, dry_run, yes):
         click.echo(click.style(f"Error: {result.get('error')}", fg="red"), err=True)
 
 
-@context.command("trigger-action")
+@context.command(
+    "trigger-action",
+    **spec_command_kwargs(
+        summary="Send UI action steps to the browser.",
+        examples=(
+            (
+                '{prog} context trigger-action \'[{"action":"click","selector":"#go"}]\' --yes',
+                "Click an element.",
+            ),
+        ),
+    ),
+)
 @click.argument("steps_json")
 @click.option("--delay", type=int, default=900, help="Delay between steps (ms)")
 @mutating_flags()

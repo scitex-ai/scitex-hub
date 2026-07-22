@@ -11,6 +11,8 @@ from pathlib import Path
 
 import click
 
+from ._click_compat import spec_command_kwargs, spec_group_kwargs
+
 PKG = "scitex-hub"
 
 
@@ -29,23 +31,33 @@ def _list_skill_files(root: Path) -> list[Path]:
     return sorted(p for p in root.rglob("*.md") if p.is_file() and p.name != "SKILL.md")
 
 
-@click.group(name="skills", invoke_without_command=True)
+@click.group(
+    name="skills",
+    invoke_without_command=True,
+    **spec_group_kwargs(summary="Agent-facing skills bundled with scitex-hub."),
+)
 @click.pass_context
 def skills_group(ctx) -> None:
     """Agent-facing skills bundled with scitex-hub.
 
     \b
     Examples:
-      $ scitex-hub skills list
-      $ scitex-hub skills get 01_installation
-      $ scitex-hub skills install                  # → ~/.scitex/dev/skills/scitex-hub/
-      $ scitex-hub skills install --claude-symlink # also expose to ~/.claude/skills/scitex/
+      $ scitex-hub dev skills list
+      $ scitex-hub dev skills get 01_installation
+      $ scitex-hub dev skills install                  # → ~/.scitex/dev/skills/scitex-hub/
+      $ scitex-hub dev skills install --claude-symlink # also expose to ~/.claude/skills/scitex/
     """
     if ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
 
 
-@skills_group.command(name="list")
+@skills_group.command(
+    name="list",
+    **spec_command_kwargs(
+        summary="List skill files bundled with this package.",
+        examples=(("{prog} dev skills list", "List bundled skills."),),
+    ),
+)
 @click.option("--json", "as_json", is_flag=True, help="Emit machine-readable JSON.")
 def skills_list(as_json: bool) -> None:
     """List skill files bundled with this package.
@@ -75,7 +87,13 @@ def skills_list(as_json: bool) -> None:
         click.echo(f"{p.stem:36s}  {rel}")
 
 
-@skills_group.command(name="get")
+@skills_group.command(
+    name="get",
+    **spec_command_kwargs(
+        summary="Print the contents of a skill file by name.",
+        examples=(("{prog} dev skills get 01_installation", "Print one skill."),),
+    ),
+)
 @click.argument("name")
 @click.option("--json", "as_json", is_flag=True, help="Emit machine-readable JSON.")
 def skills_get(name: str, as_json: bool) -> None:
@@ -111,7 +129,13 @@ def skills_get(name: str, as_json: bool) -> None:
     click.echo(match.read_text(encoding="utf-8"))
 
 
-@skills_group.command(name="install")
+@skills_group.command(
+    name="install",
+    **spec_command_kwargs(
+        summary="Install this package's skills into a target directory.",
+        examples=(("{prog} dev skills install", "Symlink skills into place."),),
+    ),
+)
 @click.option(
     "--dest",
     type=click.Path(),

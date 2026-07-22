@@ -55,7 +55,7 @@ def register_app_tools(mcp) -> None:
 
     @mcp.tool()
     async def app_check_deps(app_dir: str = ".") -> str:
-        """Use when the user asks to verify an app's dependencies, check if python/node/system/R packages are installed, or diagnose a missing-dependency error for a SciTeX app; replaces `scitex-hub app check-deps` CLI invocations.
+        """Use when the user asks to verify an app's dependencies, check if python/node/system/R packages are installed, or diagnose a missing-dependency error for a SciTeX app; replaces `scitex-hub app validate-deps` CLI invocations.
 
         Args:
             app_dir: Path to the app directory containing manifest.json.
@@ -95,7 +95,7 @@ def register_app_tools(mcp) -> None:
 
     @mcp.tool()
     async def app_set_prefs(app_name: str, prefs_json: str) -> str:
-        """Use when the user asks to save/update/merge preferences or settings for a SciTeX app; replaces `scitex-hub app prefs set <name> <json>` CLI invocations (merges with existing prefs; does not replace).
+        """Use when the user asks to save/update/merge preferences or settings for a SciTeX app; replaces `scitex-hub app prefs update <name> <json>` CLI invocations (merges with existing prefs; does not replace).
 
         Args:
             app_name: Name of the app (e.g. "writer", "scholar").

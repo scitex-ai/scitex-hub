@@ -12,6 +12,7 @@ from pathlib import Path
 import click
 import requests
 
+from ._click_compat import spec_command_kwargs
 from ._flags import (
     confirm_or_abort,
     emit_json,
@@ -114,7 +115,23 @@ def _setup_remote_and_push(server_url, username, project_name, remote_name):
 # ---------------------------------------------------------------------------
 
 
-@click.command("upload")
+@click.command(
+    "upload",
+    **spec_command_kwargs(
+        summary="Upload current directory as a new workspace project.",
+        description=(
+            "Creates a project record on the SciTeX server, which "
+            "auto-creates a Gitea repository. The local git repo is "
+            "then configured with the new remote and pushed. Similar "
+            "to: gh repo create --push.",
+        ),
+        examples=(
+            ("{prog} workspace upload --name my-project", "Create + push"),
+            ("{prog} workspace upload -n my-project --visibility public --yes", ""),
+            ("{prog} workspace upload --dry-run", "Preview only"),
+        ),
+    ),
+)
 @click.option(
     "--name", "-n", default=None, help="Project name (default: directory name)"
 )
@@ -232,7 +249,16 @@ def upload(name, description, server, visibility, remote, push, dry_run, yes):
     _setup_remote_and_push(server, username, slug, remote)
 
 
-@click.command("list")
+@click.command(
+    "list",
+    **spec_command_kwargs(
+        summary="List your projects on the SciTeX workspace.",
+        examples=(
+            ("{prog} workspace list", "Human-readable table"),
+            ("{prog} workspace list --json", "Machine-readable output"),
+        ),
+    ),
+)
 @click.option(
     "--server",
     "-s",
@@ -303,7 +329,21 @@ def list_projects(server, json_output):
         )
 
 
-@click.command("sync")
+@click.command(
+    "sync",
+    **spec_command_kwargs(
+        summary="Sync local repo with workspace (pull and/or push).",
+        description=(
+            "Similar to: git pull origin <branch> && git push origin "
+            "<branch>.",
+        ),
+        examples=(
+            ("{prog} workspace sync", "Pull then push"),
+            ("{prog} workspace sync --direction push --yes", "Push only"),
+            ("{prog} workspace sync --dry-run", "Preview only"),
+        ),
+    ),
+)
 @click.option(
     "--remote",
     default="scitex",
@@ -381,7 +421,17 @@ def sync(remote, direction, dry_run, yes):
     click.echo("Sync complete.")
 
 
-@click.command("logout")
+@click.command(
+    "logout",
+    **spec_command_kwargs(
+        summary="Clear the cached JWT token for the given server.",
+        examples=(
+            ("{prog} workspace logout", "Clear the cached token"),
+            ("{prog} workspace logout --yes", "Skip confirmation"),
+            ("{prog} workspace logout --dry-run", "Preview only"),
+        ),
+    ),
+)
 @click.option(
     "--server",
     "-s",

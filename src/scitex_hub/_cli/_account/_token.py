@@ -18,6 +18,7 @@ from typing import Any
 import click
 import requests
 
+from .._click_compat import spec_command_kwargs
 from .._flags import confirm_or_abort, mutating_flags, print_dry_run
 from ._group import console, token
 
@@ -67,7 +68,15 @@ def _resolve_server(server: str | None) -> str:
     return "https://scitex.ai"
 
 
-@token.command("create")
+@token.command(
+    "create",
+    **spec_command_kwargs(
+        summary="Mint a new scitex_xxxx API token from your username+password.",
+        examples=(
+            ("{prog} account token create -u ywatanabe --yes", "Mint + cache."),
+        ),
+    ),
+)
 @click.option("--user", "-u", required=True, help="Your hub username.")
 @click.option(
     "--password",
@@ -192,7 +201,13 @@ def token_create(user, password, scopes, name, server, save, dry_run, yes):
     sys.exit(1)
 
 
-@token.command("list")
+@token.command(
+    "list",
+    **spec_command_kwargs(
+        summary="List your existing API tokens (never re-shows the secret).",
+        examples=(("{prog} account token list", "List your tokens."),),
+    ),
+)
 @click.option(
     "--server",
     "-s",
@@ -268,7 +283,13 @@ def token_list(server, as_json):
     console.print(table)
 
 
-@token.command("revoke")
+@token.command(
+    "revoke",
+    **spec_command_kwargs(
+        summary="Revoke a single API token by id (requires --yes).",
+        examples=(("{prog} account token revoke 42 --yes", "Revoke token 42."),),
+    ),
+)
 @click.argument("token_id", type=int)
 @click.option(
     "--server",

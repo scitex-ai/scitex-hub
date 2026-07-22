@@ -14,6 +14,7 @@ import click
 
 from .._config._environments import ENVIRONMENTS, get_environment
 from .._utils._docker import DockerManager
+from ._click_compat import spec_command_kwargs, spec_group_kwargs
 from ._flags import (
     confirm_or_abort,
     emit_json,
@@ -23,7 +24,11 @@ from ._flags import (
 )
 
 
-@click.group()
+@click.group(
+    **spec_group_kwargs(
+        summary="Docker container management for the hub deployment."
+    )
+)
 @click.option(
     "--env",
     type=click.Choice(list(ENVIRONMENTS.keys())),
@@ -50,7 +55,12 @@ def docker(ctx, env):
     ctx.obj["docker"] = DockerManager(ctx.obj["env"])
 
 
-@docker.command()
+@docker.command(
+    **spec_command_kwargs(
+        summary="Build Docker containers.",
+        examples=(("{prog} docker build --yes", "Build containers."),),
+    )
+)
 @click.option("--no-cache", is_flag=True, help="Build without cache")
 @mutating_flags()
 @click.pass_context
@@ -83,7 +93,12 @@ def build(ctx, no_cache, dry_run, yes):
         raise click.ClickException("Build failed")
 
 
-@docker.command()
+@docker.command(
+    **spec_command_kwargs(
+        summary="Start Docker containers.",
+        examples=(("{prog} docker up --yes", "Start containers."),),
+    )
+)
 @click.option("-d", "--detach", is_flag=True, default=True, help="Run in background")
 @mutating_flags()
 @click.pass_context
@@ -118,7 +133,12 @@ def up(ctx, detach, dry_run, yes):
         raise click.ClickException("Failed to start containers")
 
 
-@docker.command()
+@docker.command(
+    **spec_command_kwargs(
+        summary="Stop Docker containers.",
+        examples=(("{prog} docker down --yes", "Stop containers."),),
+    )
+)
 @click.option("-v", "--volumes", is_flag=True, help="Remove volumes")
 @mutating_flags()
 @click.pass_context
@@ -151,7 +171,12 @@ def down(ctx, volumes, dry_run, yes):
         raise click.ClickException("Failed to stop containers")
 
 
-@docker.command()
+@docker.command(
+    **spec_command_kwargs(
+        summary="Restart Docker containers.",
+        examples=(("{prog} docker restart --yes", "Restart containers."),),
+    )
+)
 @mutating_flags()
 @click.pass_context
 def restart(ctx, dry_run, yes):
@@ -182,7 +207,12 @@ def restart(ctx, dry_run, yes):
         raise click.ClickException("Failed to restart containers")
 
 
-@docker.command()
+@docker.command(
+    **spec_command_kwargs(
+        summary="Show container status.",
+        examples=(("{prog} docker ps", "Show container status."),),
+    )
+)
 @json_flag()
 @click.pass_context
 def ps(ctx, json_output):

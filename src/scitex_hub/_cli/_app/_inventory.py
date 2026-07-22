@@ -9,11 +9,18 @@ from __future__ import annotations
 
 import click
 
+from .._click_compat import spec_command_kwargs
 from .._flags import emit_json, json_flag
 from ._group import app, console
 
 
-@app.command("list")
+@app.command(
+    "list",
+    **spec_command_kwargs(
+        summary="List available apps.",
+        examples=(("{prog} app list", "List apps."),),
+    ),
+)
 @click.option(
     "--server",
     "-s",
@@ -62,7 +69,13 @@ def app_list(server, json_output) -> None:
     console.print(table)
 
 
-@app.command("show-current")
+@app.command(
+    "show-current",
+    **spec_command_kwargs(
+        summary="Show the currently active app.",
+        examples=(("{prog} app show-current", "Show the active app."),),
+    ),
+)
 @json_flag()
 def app_current(json_output) -> None:
     """Show the currently active app.
@@ -84,7 +97,13 @@ def app_current(json_output) -> None:
         console.print("[yellow]No active app (SCITEX_CURRENT_APP not set)[/yellow]")
 
 
-@app.command("show-info")
+@app.command(
+    "show-info",
+    **spec_command_kwargs(
+        summary="Show detailed info for an app.",
+        examples=(("{prog} app show-info writer", "Show info for one app."),),
+    ),
+)
 @click.argument("app_name")
 @json_flag()
 def app_info(app_name, json_output) -> None:
