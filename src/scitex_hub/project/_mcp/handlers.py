@@ -21,6 +21,28 @@ from typing import Any
 ALLOWED_DATA_ROOT = os.environ.get("SCITEX_PROJECT_DATA_ROOT", "/app/data/users")
 
 
+def _is_within(root: Path, target: Path) -> bool:
+    """
+    True iff `target` is contained within `root` (component-wise).
+
+    A string prefix match is NOT containment: root "/app/data/users"
+    string-prefix-matches a sibling "/app/data/users-evil/x", which escapes
+    the jail. This uses Path.relative_to for genuine component-wise
+    containment, returning False only on ValueError.
+
+    Deliberate Django-free duplicate of the canonical Django-side twin
+    apps/infra/project_app/services/filesystem/permissions.py:36
+    (validate_path_in_project). scitex_hub must NOT import apps.infra.* --
+    permissions.py imports django.conf.settings and Project at module scope,
+    which would pull a hard Django dependency into this MCP entrypoint.
+    """
+    try:
+        target.resolve().relative_to(root.resolve())
+        return True
+    except ValueError:
+        return False
+
+
 def _resolve_safe(root_path: str, relative_path: str = "") -> Path:
     """
     Resolve a path within root_path, raising ValueError on any violation.
@@ -32,7 +54,7 @@ def _resolve_safe(root_path: str, relative_path: str = "") -> Path:
     root = Path(root_path).resolve()
     allowed = Path(ALLOWED_DATA_ROOT).resolve()
 
-    if not str(root).startswith(str(allowed)):
+    if not _is_within(allowed, root):
         raise ValueError(
             f"root_path '{root}' is not under allowed data root '{allowed}'. "
             "Project paths must be within the configured data directory."
@@ -43,7 +65,7 @@ def _resolve_safe(root_path: str, relative_path: str = "") -> Path:
     else:
         target = root
 
-    if not str(target).startswith(str(root)):
+    if not _is_within(root, target):
         raise ValueError(
             f"Path traversal detected: '{relative_path}' escapes project root."
         )

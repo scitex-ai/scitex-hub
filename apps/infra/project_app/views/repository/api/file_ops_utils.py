@@ -12,6 +12,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 
 from ....models import Project
+from ....services.filesystem.permissions import validate_path_in_project
 from .permissions import check_project_write_access
 
 logger = logging.getLogger(__name__)
@@ -62,15 +63,23 @@ def validate_path(project_path: Path, file_path: str) -> Path | None:
     Validate that file_path is within project_path.
 
     Returns resolved path or None if invalid.
+
+    Uses component-wise containment (validate_path_in_project), NOT a string
+    prefix match: `project_path / "../proj-other/secret"` string-prefix-matches
+    project_path and would otherwise escape into a sibling tenant's project.
+
+    This is the sole containment validator for the file_ops_crud and
+    file_ops_transfer endpoints (create/delete/rename/copy/move/upload), whose
+    sinks include Path.unlink, shutil.move and shutil.rmtree. Ownership is
+    enforced separately by get_project_context() above.
     """
     try:
         full_path = (project_path / file_path).resolve()
-        project_resolved = project_path.resolve()
-        if not str(full_path).startswith(str(project_resolved)):
-            return None
-        return full_path
     except (ValueError, OSError, RuntimeError):
         return None
+    if not validate_path_in_project(project_path, full_path):
+        return None
+    return full_path
 
 
 def git_auto_commit(project, project_path, file_path, action):

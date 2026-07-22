@@ -10,6 +10,9 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
 from apps.infra.project_app.models import Project
+from apps.infra.project_app.services.filesystem.permissions import (
+    validate_path_in_project,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -64,8 +67,8 @@ def api_create_file(request):
 
         file_full_path = project_path / file_path
 
-        # Security check
-        if not str(file_full_path.resolve()).startswith(str(project_path.resolve())):
+        # Security check: component-wise containment, not a string prefix.
+        if not validate_path_in_project(project_path, file_full_path):
             return JsonResponse({"error": "Invalid file path"}, status=400)
 
         # Check if file already exists
@@ -145,8 +148,10 @@ def api_delete_file(request):
 
         file_full_path = project_path / file_path
 
-        # Security check
-        if not str(file_full_path.resolve()).startswith(str(project_path.resolve())):
+        # Security check: component-wise containment, not a string prefix.
+        # Sinks below are shutil.rmtree / Path.unlink -- a prefix match would
+        # let an authorized-for-project-A caller DELETE another tenant's tree.
+        if not validate_path_in_project(project_path, file_full_path):
             return JsonResponse({"error": "Invalid file path"}, status=400)
 
         if not file_full_path.exists():
