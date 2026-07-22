@@ -8,6 +8,9 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
 from apps.infra.project_app.models import Project
+from apps.infra.project_app.services.filesystem.permissions import (
+    validate_path_in_project,
+)
 from apps.infra.project_app.services.visitor_pool import (
     is_readonly_visitor,
     readonly_write_rejection,
@@ -48,8 +51,12 @@ def api_save_file(request):
 
         file_full_path = project_path / file_path
 
-        # Security check: prevent path traversal
-        if not str(file_full_path.resolve()).startswith(str(project_path.resolve())):
+        # Security check: prevent path traversal.
+        # Component-wise containment, NOT a string prefix — `startswith` admits
+        # any sibling directory whose name merely extends the project path, so
+        # root ".../proj" would accept "../proj-other/x.py" (write into another
+        # project's tree).
+        if not validate_path_in_project(project_path, file_full_path):
             return JsonResponse({"error": "Invalid file path"}, status=400)
 
         file_full_path.parent.mkdir(parents=True, exist_ok=True)
