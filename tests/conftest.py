@@ -61,6 +61,27 @@ def _ensure_subprocess_coverage_shim() -> None:
 
 _ensure_subprocess_coverage_shim()
 
+
+def pytest_configure(config) -> None:
+    """CI-only: give THIS pytest session a private basetemp.
+
+    Pooled CI runners share one TMPDIR, so concurrent jobs interleave in
+    the same ``pytest-of-<user>/pytest-N`` sequence and pytest's
+    keep-last-3 numbered-dir garbage collection can delete a SIBLING
+    session's live ``tmp_path`` mid-test (observed: run 29881636448,
+    test_pip_install_user_app_lands_package_dir_at_target — pip exited 0,
+    the target dir was gone by the assertion). A per-session mkdtemp
+    basetemp opts this session out of the shared numbered-dir scheme.
+    Local runs keep pytest's default tmp_path behavior.
+    """
+    import tempfile
+
+    if os.environ.get("CI") and config.option.basetemp is None:
+        config.option.basetemp = Path(
+            tempfile.mkdtemp(prefix="scitex-hub-pytest-basetemp-")
+        )
+
+
 # Ensure log directory exists. Mirrors config.settings.settings_shared:
 # LOG_DIR defaults to GITIGNORED/logs/ so PS-102 (no top-level forbidden
 # dirs) stays clean — operators can override with SCITEX_HUB_LOG_DIR.

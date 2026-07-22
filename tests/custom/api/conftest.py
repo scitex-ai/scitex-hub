@@ -50,7 +50,7 @@ def pytest_collection_modifyitems(config, items):  # noqa: D401
         reason=f"requires running Django server at {BASE_URL} (set SCITEX_BASE_URL or start `manage.py runserver`)"
     )
     for item in items:
-        if "/tests/api/" in str(item.fspath):
+        if "/tests/custom/api/" in str(item.fspath):
             item.add_marker(skip_no_server)
 
 

@@ -31,10 +31,16 @@ from config import branding
 # SQLite instead of a live postgres, and the dev SSH port constant.
 # Outside CI the loud require_env behavior is unchanged.
 if os.environ.get("CI"):
-    os.environ.setdefault(
-        "SCITEX_HUB_DJANGO_SECRET_KEY",
-        "insecure-ci-only-test-key",  # pragma: allowlist secret
-    )
+    # Secret default only when NEITHER the canonical key NOR the legacy
+    # SCITEX_CLOUD_* alias is present — settings_shared resolves the
+    # alias itself, and an unconditional default would mask it (the
+    # env-legacy-alias regression test exercises exactly that path).
+    if not os.environ.get("SCITEX_HUB_DJANGO_SECRET_KEY") and not os.environ.get(
+        "SCITEX_CLOUD_DJANGO_SECRET_KEY"
+    ):
+        os.environ["SCITEX_HUB_DJANGO_SECRET_KEY"] = (
+            "insecure-ci-only-test-key"  # pragma: allowlist secret
+        )
     os.environ.setdefault("SCITEX_HUB_GITEA_SSH_PORT_DEV", "2222")
     # SQLite fallback ONLY when no explicit DB is configured: e2e-mobile
     # provisions a real postgres service and passes SCITEX_HUB_DB_*_DEV,

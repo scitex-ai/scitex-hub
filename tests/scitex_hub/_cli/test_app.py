@@ -122,10 +122,13 @@ ALL_LEAF_VERBS = [
     ["switch", "--help"],
     ["show-info", "--help"],
     ["prefs", "get", "--help"],
-    ["prefs", "set", "--help"],
+    # §1f renames: `prefs set` -> `prefs update`, `check-deps` ->
+    # `validate-deps` (old spellings live on as hidden warn aliases whose
+    # --help is a forward notice, not a spec-built page).
+    ["prefs", "update", "--help"],
     ["prefs", "delete", "--help"],
     ["prefs", "list", "--help"],
-    ["check-deps", "--help"],
+    ["validate-deps", "--help"],
     ["install-deps", "--help"],
     ["build-container", "--help"],
 ]
