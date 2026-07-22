@@ -12,6 +12,10 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
+from apps.infra.project_app.services.filesystem.permissions import (
+    validate_path_in_project,
+)
+
 
 def _get_downloads_dir(user) -> Path:
     """Get (and create) the user's downloads directory."""
@@ -81,8 +85,11 @@ def api_copy_project_files(request):
         # Resolve relative to user base (proj/ or downloads/)
         src = (user_base / "proj" / rel_path).resolve()
 
-        # Security: ensure the resolved path is under user's data directory
-        if not str(src).startswith(str(user_base.resolve())):
+        # Security: the resolved path must be under THIS user's data directory.
+        # Component-wise containment, NOT a string prefix — `startswith` admits
+        # any sibling whose name merely extends this username, so user "bob"
+        # could reach "/data/users/bob123/..." (cross-tenant file read).
+        if not validate_path_in_project(user_base, src):
             continue
         if not src.is_file():
             continue
