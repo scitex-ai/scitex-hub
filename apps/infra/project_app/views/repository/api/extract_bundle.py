@@ -17,6 +17,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
 from ....models import Project
+from ....services.filesystem.permissions import validate_path_in_project
 from .permissions import check_project_write_access
 
 logger = logging.getLogger(__name__)
@@ -81,10 +82,13 @@ def api_extract_bundle(request, username, slug):
     bundle_full = (project_root / bundle_path).resolve()
     output_full = (project_root / output_path).resolve()
 
-    # Security check: both paths must be within project root
+    # Security check: both paths must be within project root.
+    # Component-wise containment, NOT a string prefix: `startswith` would accept
+    # a sibling directory that merely shares the prefix (project "/data/u/proj"
+    # would admit "/data/u/proj-other/x").
     if not (
-        str(bundle_full).startswith(str(project_root.resolve()))
-        and str(output_full).startswith(str(project_root.resolve()))
+        validate_path_in_project(project_root, bundle_full)
+        and validate_path_in_project(project_root, output_full)
     ):
         return JsonResponse(
             {"success": False, "error": "Paths must be within project directory"},

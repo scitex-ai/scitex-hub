@@ -18,6 +18,7 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 
 from ....models import Project
+from ....services.filesystem.permissions import validate_path_in_project
 from .permissions import check_project_write_access
 
 logger = logging.getLogger(__name__)
@@ -80,7 +81,10 @@ def api_concatenate_directory(request, username, slug, directory_path=""):
     # Security check
     try:
         dir_path = dir_path.resolve()
-        if not str(dir_path).startswith(str(project_path.resolve())):
+        # Component-wise containment, NOT a string prefix: `startswith` would
+        # accept a sibling directory that merely shares the prefix (project
+        # "/data/u/proj" would admit "/data/u/proj-other/x").
+        if not validate_path_in_project(project_path, dir_path):
             return JsonResponse({"success": False, "error": "Invalid path"})
     except (ValueError, OSError, RuntimeError) as e:
         logger.warning(f"Path resolution failed: {e}")

@@ -25,6 +25,9 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_http_methods
 
 from apps.infra.project_app.models import Project
+from apps.infra.project_app.services.filesystem.permissions import (
+    validate_path_in_project,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -224,7 +227,10 @@ def api_load_file_from_repo(request, username, slug):
         try:
             full_path = full_path.resolve()
             project_path = project_path.resolve()
-            if not str(full_path).startswith(str(project_path)):
+            # Component-wise containment, NOT a string prefix: `startswith`
+            # would accept a sibling directory that merely shares the prefix
+            # (project "/data/u/proj" would admit "/data/u/proj-other/x").
+            if not validate_path_in_project(project_path, full_path):
                 return JsonResponse(
                     {"error": "Access denied: path outside project"}, status=403
                 )

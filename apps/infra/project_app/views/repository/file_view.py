@@ -20,6 +20,9 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.infra.project_app.models import Project
+from apps.infra.project_app.services.filesystem.permissions import (
+    validate_path_in_project,
+)
 from apps.infra.project_app.services.syntax_highlighting import detect_language
 
 from .api.permissions import check_project_read_access
@@ -84,7 +87,10 @@ def project_file_view(request, username, slug, file_path):
     # Security check
     try:
         full_file_path = full_file_path.resolve()
-        if not str(full_file_path).startswith(str(project_path.resolve())):
+        # Component-wise containment, NOT a string prefix: `startswith` would
+        # accept a sibling directory that merely shares the prefix (project
+        # "/data/u/proj" would admit "/data/u/proj-other/x.py").
+        if not validate_path_in_project(project_path, full_file_path):
             if mode in ("raw", "download"):
                 raise Http404("Invalid file path")
             messages.error(request, "Invalid file path.")

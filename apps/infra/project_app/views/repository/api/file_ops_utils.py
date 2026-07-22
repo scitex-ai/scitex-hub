@@ -12,6 +12,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 
 from ....models import Project
+from ....services.filesystem.permissions import validate_path_in_project
 from .permissions import check_project_write_access
 
 logger = logging.getLogger(__name__)
@@ -65,8 +66,10 @@ def validate_path(project_path: Path, file_path: str) -> Path | None:
     """
     try:
         full_path = (project_path / file_path).resolve()
-        project_resolved = project_path.resolve()
-        if not str(full_path).startswith(str(project_resolved)):
+        # Component-wise containment, NOT a string prefix: `startswith` would
+        # accept a sibling directory that merely shares the prefix (project
+        # "/data/u/proj" would admit "/data/u/proj-other/x").
+        if not validate_path_in_project(project_path, full_path):
             return None
         return full_path
     except (ValueError, OSError, RuntimeError):
