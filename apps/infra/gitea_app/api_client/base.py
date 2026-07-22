@@ -8,10 +8,39 @@ for interacting with the Gitea REST API.
 """
 
 import re
+from urllib.parse import quote
+
 import requests
 from typing import Dict
 from django.conf import settings
 from ..exceptions import GiteaAPIError
+
+
+def path_segment(value) -> str:
+    """Percent-encode ONE URL path segment (SSRF guard, py/partial-ssrf).
+
+    Caller-supplied values (org/repo/usernames, ids) are interpolated
+    into API endpoints; without encoding, a crafted segment
+    ("../admin/...", "?", "#") reaches arbitrary Gitea API endpoints
+    with the server's token. safe="" also encodes "/", so no separator
+    survives. Empty and dot-only segments fail loud.
+    """
+    text = str(value)
+    if not text or text in (".", ".."):
+        raise GiteaAPIError(f"Invalid URL path segment: {text!r}")
+    return quote(text, safe="")
+
+
+def repo_path(value) -> str:
+    """Percent-encode an in-repository file path, keeping "/" separators.
+
+    Each segment goes through path_segment, so empty, "." and ".."
+    segments (traversal) fail loud instead of escaping the repo route.
+    """
+    text = str(value)
+    if not text:
+        raise GiteaAPIError("Empty repository file path")
+    return "/".join(path_segment(seg) for seg in text.split("/"))
 
 
 def convert_git_url_to_https(git_url: str) -> str:
@@ -97,6 +126,20 @@ class BaseGiteaClient:
         Raises:
             GiteaAPIError: If request fails
         """
+        # Choke-point SSRF guard (CodeQL py/partial-ssrf): every mixin
+        # funnels through here and endpoint segments carry caller data.
+        # Only a root-relative API path may pass — absolute URLs,
+        # scheme-relative "//", traversal and query/fragment smuggling
+        # all fail loud BEFORE any network I/O.
+        if (
+            not endpoint.startswith("/")
+            or "://" in endpoint
+            or "?" in endpoint
+            or "#" in endpoint
+            or any(seg in ("", ".", "..") for seg in endpoint[1:].split("/"))
+        ):
+            raise GiteaAPIError(f"Refusing unsafe Gitea API endpoint: {endpoint!r}")
+
         url = f"{self.api_url}{endpoint}"
         headers = self._get_headers(kwargs.pop("headers", None))
         # A wedged Gitea must not hang callers forever; an explicit

@@ -7,7 +7,7 @@ This module provides SSH key-related operations for the Gitea REST API.
 """
 
 from typing import Dict, List
-from .base import BaseGiteaClient
+from .base import BaseGiteaClient, path_segment
 
 
 class SSHKeyOperationsMixin:
@@ -24,7 +24,7 @@ class SSHKeyOperationsMixin:
             List of SSH key objects
         """
         if username:
-            endpoint = f"/users/{username}/keys"
+            endpoint = f"/users/{path_segment(username)}/keys"
         else:
             endpoint = "/user/keys"
 
@@ -50,7 +50,7 @@ class SSHKeyOperationsMixin:
 
         # Use admin endpoint to add key for specific user
         if username:
-            endpoint = f"/admin/users/{username}/keys"
+            endpoint = f"/admin/users/{path_segment(username)}/keys"
         else:
             endpoint = "/user/keys"
 
@@ -70,9 +70,9 @@ class SSHKeyOperationsMixin:
         """
         # Use admin endpoint to delete key for specific user
         if username:
-            endpoint = f"/admin/users/{username}/keys/{key_id}"
+            endpoint = f"/admin/users/{path_segment(username)}/keys/{path_segment(key_id)}"
         else:
-            endpoint = f"/user/keys/{key_id}"
+            endpoint = f"/user/keys/{path_segment(key_id)}"
 
         self._request("DELETE", endpoint)
         return True
