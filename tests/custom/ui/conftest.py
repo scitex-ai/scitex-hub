@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-# Skip every Playwright-backed ``tests/ui/*`` test when ``playwright``
+# Skip every Playwright-backed ``tests/custom/ui/*`` test when ``playwright``
 # isn't installed (PA-303). Without this guard, ``from playwright...``
 # below aborts collection and tanks the full suite on minimal envs.
 pytest.importorskip(
@@ -26,7 +26,7 @@ pytest.importorskip(
 
 
 def pytest_collection_modifyitems(config, items):
-    """Mark the whole ``tests/ui/`` tree as ``e2e``.
+    """Mark the whole ``tests/custom/ui/`` tree as ``e2e``.
 
     These are browser-driven Playwright tests (they use the ``page: Page``
     fixture and a real Chromium binary). They cannot run in the headless
@@ -39,14 +39,14 @@ def pytest_collection_modifyitems(config, items):
     automatically. Mirrors tests/e2e/conftest.py.
     """
     for item in items:
-        if "tests/ui/" in item.nodeid or item.nodeid.startswith("tests/ui/"):
+        if "tests/custom/ui/" in item.nodeid or item.nodeid.startswith("tests/custom/ui/"):
             item.add_marker(pytest.mark.e2e)
 
 
 from playwright.sync_api import BrowserContext, Page, expect  # noqa: E402
 
 # Project paths
-PROJECT_ROOT = Path(__file__).parent.parent.parent
+PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 ARTIFACTS_DIR = Path(__file__).parent / "artifacts"
 ARTIFACTS_DIR.mkdir(exist_ok=True)
 

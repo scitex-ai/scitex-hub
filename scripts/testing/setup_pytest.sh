@@ -136,7 +136,7 @@ show_status() {
 
     # Test counts
     local unit_count e2e_count
-    unit_count=$(find "$PROJECT_ROOT/tests/apps" -name "test_*.py" 2>/dev/null | wc -l)
+    unit_count=$(find "$PROJECT_ROOT/tests/custom/apps" -name "test_*.py" 2>/dev/null | wc -l)
     e2e_count=$(find "$PROJECT_ROOT/tests/e2e" -name "test_*.py" 2>/dev/null | wc -l)
     echo ""
     echo -e "  Unit test files:    ${CYAN}$unit_count${NC}"
@@ -193,7 +193,7 @@ main() {
     echo -e "${GREEN}╚═══════════════════════════════════════════════════════╝${NC}"
     echo ""
     echo -e "${CYAN}Available commands:${NC}"
-    echo -e "  pytest tests/apps/                 # Unit tests"
+    echo -e "  pytest tests/custom/apps/                 # Unit tests"
     echo -e "  pytest tests/e2e/                  # E2E tests"
     echo -e "  pytest tests/e2e/ --headed         # E2E with visible browser"
     echo -e "  pytest -n 4                        # Parallel execution"

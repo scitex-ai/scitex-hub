@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: tests/scitex_hub/test_project_package.py
+# File: tests/scitex_hub/project/_mcp/test_handlers_package.py
 
 """Tests that ``scitex_hub.project`` is a package exposing CRUD plus the
 sandboxed MCP file-operation handlers.

@@ -31,7 +31,11 @@ class TestVideoCatalogStructure:
     def setup_path(self):
         """Add project root to path for imports."""
         project_root = os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+            os.path.dirname(
+                os.path.dirname(
+                    os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+                )
+            )
         )
         if project_root not in sys.path:
             sys.path.insert(0, project_root)
@@ -45,7 +49,7 @@ class TestVideoCatalogStructure:
             "pages_data",
             os.path.join(
                 os.path.dirname(__file__),
-                "../../../../apps/infra/public_app/views/pages_data.py",
+                "../../../../../apps/infra/public_app/views/pages_data.py",
             ),
         )
         # We need to mock the pages_shortcuts import
@@ -61,7 +65,7 @@ class TestVideoCatalogStructure:
         # Now manually parse the file to extract OG_BASE_URL
         pages_data_path = os.path.join(
             os.path.dirname(__file__),
-            "../../../../apps/infra/public_app/views/pages_data.py",
+            "../../../../../apps/infra/public_app/views/pages_data.py",
         )
         pages_data_path = os.path.abspath(pages_data_path)
 
@@ -87,7 +91,7 @@ class TestVideoCatalogStructure:
         # Parse the file to extract VIDEO_CATALOG structure
         pages_data_path = os.path.join(
             os.path.dirname(__file__),
-            "../../../../apps/infra/public_app/views/pages_data.py",
+            "../../../../../apps/infra/public_app/views/pages_data.py",
         )
         pages_data_path = os.path.abspath(pages_data_path)
 
@@ -118,7 +122,7 @@ class TestVideoCatalogStructure:
         """Thumbnails should be PNG files."""
         pages_data_path = os.path.join(
             os.path.dirname(__file__),
-            "../../../../apps/infra/public_app/views/pages_data.py",
+            "../../../../../apps/infra/public_app/views/pages_data.py",
         )
         pages_data_path = os.path.abspath(pages_data_path)
 

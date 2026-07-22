@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: tests/scitex_hub/test_cli.py
+# File: tests/scitex_hub/_cli/test_main_cli.py
 
 """Tests for scitex_hub CLI commands.
 
 Slice 6a of the CLI-standardization plan renamed the pilot verbs to
 their canonical short forms (doctrine §1d): ``init``, ``deploy``,
 ``status``, ``logs``. The deprecated old spellings are covered in
-``tests/scitex_hub/_cli/test_verb_renames.py``.
+``tests/scitex_hub/_cli/test_main_verb_renames.py``.
 """
 
 import pytest

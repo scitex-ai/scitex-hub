@@ -347,7 +347,10 @@ class TestSDKCLI:
         runner = CliRunner()
         result = runner.invoke(jobs, ["--help"])
         assert result.exit_code == 0
-        for cmd in ["submit", "status", "cancel", "list"]:
+        # `cancel` was renamed to `close` (§1f verb catalog); the old
+        # spelling survives only as a hidden warn alias, which does not
+        # render in --help.
+        for cmd in ["submit", "status", "close", "list"]:
             assert cmd in result.output
 
 

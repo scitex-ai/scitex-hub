@@ -11,16 +11,16 @@ Tests the documented API endpoints:
 - /api/v1/scholar/search/
 - /api/token/ (JWT authentication)
 
-Run with: pytest tests/api/scholar/test_public_api.py -v
+Run with: pytest tests/custom/api/scholar/test_public_api.py -v
 
-These tests hit a real running dev server (via tests/api/conftest.py's
+These tests hit a real running dev server (via tests/custom/api/conftest.py's
 server-reachable skip). No mocks involved — each assertion checks one
 behaviour of the real HTTP contract.
 """
 
 import pytest
 
-from tests.api.conftest import assert_json_response
+from tests.custom.api.conftest import assert_json_response
 from tests.conftest import TEST_USER_PASSWORD, TEST_USER_USERNAME
 
 

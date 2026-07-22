@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: tests/scitex_hub/test_docker.py
+# File: tests/scitex_hub/_utils/test__docker.py
 
 """Tests for scitex_hub Docker utilities."""
 

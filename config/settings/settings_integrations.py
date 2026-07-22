@@ -126,7 +126,7 @@ REST_FRAMEWORK = {
         #    first puts its `Bearer realm="api"` header at the head of
         #    the list, so failed-auth responses are correctly 401 for
         #    the bad-credentials contract the tests in
-        #    `tests/apps/accounts_app/test_apikey_authentication.py`
+        #    `tests/custom/apps/accounts_app/test_apikey_authentication.py`
         #    pin (see lead 2026-06-13 msg 9c96b9d5 + PR #274 root-cause).
         "apps.infra.accounts_app.authentication.APIKeyAuthentication",
         "rest_framework_simplejwt.authentication.JWTAuthentication",

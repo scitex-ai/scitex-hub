@@ -74,7 +74,7 @@ def test_audit_all_clean():
             "PS-207",
             # PS-204 — orphan tests under tests/scitex_hub/ predate the
             # mirror-dir convention. Resolving means relocating files
-            # like tests/scitex_hub/test_docker.py to
+            # like tests/scitex_hub/_utils/test__docker.py to
             # tests/scitex_hub/_cli/test_docker.py, which conflicts with
             # the in-flight CLI noun-verb migration (Group C). Defer
             # until the noun-verb structure stabilises, then relocate.
@@ -147,7 +147,7 @@ def test_audit_all_clean():
             # predates these rules; the noun-verb migration is a large
             # separate campaign (see GROUP C in the audit-restoration
             # PR). The CLI itself works and is exercised by
-            # tests/scitex_hub/test_cli.py — these rules cover its
+            # tests/scitex_hub/_cli/test_main_cli.py — these rules cover its
             # shape, not its correctness.
             "§2",
             "§4",

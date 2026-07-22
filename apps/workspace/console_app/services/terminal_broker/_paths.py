@@ -3,7 +3,7 @@
 Defined here, not re-imported from ``apps/workspace/console_app/views/
 terminal/config``, because the views.terminal.config module gets a
 sys.modules stub installed by
-``tests/apps/console_app/views/terminal/test_execution.py`` (sibling
+``tests/custom/apps/console_app/views/terminal/test_execution.py`` (sibling
 tests leave that stub in place across the whole session). A function-
 local import of ``USER_DATA_ROOT`` from views/terminal/config in
 ``_handlers_shared.handle_spawn_shared`` therefore hit ImportError under

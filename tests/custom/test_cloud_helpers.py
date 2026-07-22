@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: tests/scitex_hub/test_cloud_helpers.py
+# File: tests/custom/test_cloud_helpers.py
 
 """Tests for the module-level cloud helpers on ``scitex_hub``.
 

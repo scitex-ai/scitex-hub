@@ -206,12 +206,12 @@ make test-all                 # Everything (Python + TypeScript)
 
 ```bash
 # By directory
-pytest tests/unit/apps/scholar_app/ -v
-pytest tests/api/apps/figrecipe_app/ -v
-pytest tests/ui/apps/writer/ -v
+pytest tests/custom/unit/apps/scholar_app/ -v
+pytest tests/custom/api/apps/figrecipe_app/ -v
+pytest tests/custom/ui/apps/writer/ -v
 
 # By file
-pytest tests/ui/components/panel_resizer/test_toggle.py -v
+pytest tests/custom/ui/components/panel_resizer/test_toggle.py -v
 
 # By test name
 pytest -k "test_login" -v
@@ -221,15 +221,15 @@ pytest -m "slow" -v           # Only slow tests
 pytest -m "not slow" -v       # Skip slow tests
 
 # TypeScript specific
-npm run test:run -- tests/ts/figrecipe_app/
+npm run test:run -- tests/custom/ts/figrecipe_app/
 ```
 
 ### Parallel Execution
 
 ```bash
 # Python (pytest-xdist)
-pytest tests/unit/ -n 4       # 4 parallel workers
-pytest tests/ui/ -n 8         # 8 browser instances
+pytest tests/custom/unit/ -n 4       # 4 parallel workers
+pytest tests/custom/ui/ -n 8         # 8 browser instances
 
 # TypeScript (Vitest - parallel by default)
 npm run test:run
@@ -242,7 +242,7 @@ npm run test:run
 ### Python Unit Test
 
 ```python
-# tests/unit/apps/scholar_app/utils/test_bibtex_parser.py
+# tests/custom/unit/apps/scholar_app/utils/test_bibtex_parser.py
 
 import pytest
 from apps.scholar_app.utils.bibtex import parse_bibtex, ParseError
@@ -274,7 +274,7 @@ class TestBibtexParser:
 ### Python DB Test
 
 ```python
-# tests/db/apps/project_app/test_project_model.py
+# tests/custom/db/apps/project_app/test_project_model.py
 
 import pytest
 from django.db import IntegrityError
@@ -310,7 +310,7 @@ class TestProjectModel:
 ### Python API Test
 
 ```python
-# tests/api/apps/project_app/test_project_crud.py
+# tests/custom/api/apps/project_app/test_project_crud.py
 
 import pytest
 from django.urls import reverse
@@ -350,7 +350,7 @@ class TestProjectAPI:
 ### Python UI Test
 
 ```python
-# tests/ui/apps/figrecipe/test_create_plot.py
+# tests/custom/ui/apps/figrecipe/test_create_plot.py
 
 import pytest
 from playwright.sync_api import Page
@@ -397,7 +397,7 @@ class TestCreatePlot:
 ### TypeScript Unit Test
 
 ```typescript
-// tests/ts/figrecipe_app/vis/CanvasManager.test.ts
+// tests/custom/ts/figrecipe_app/vis/CanvasManager.test.ts
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { CanvasManager } from '@figrecipe_app/vis/CanvasManager';
@@ -490,7 +490,7 @@ On test failure, automatically captured:
 - Console logs
 - Page HTML
 
-Location: `tests/ui/artifacts/{timestamp}/`
+Location: `tests/custom/ui/artifacts/{timestamp}/`
 
 ### Test File Size Limits
 
@@ -528,7 +528,7 @@ def project(user):
 ```
 
 ```python
-# tests/ui/conftest.py - UI tests only
+# tests/custom/ui/conftest.py - UI tests only
 
 @pytest.fixture
 def base_url():
@@ -591,7 +591,7 @@ pytest -m "django_db"         # Only DB tests
 
 ```bash
 # Python coverage
-pytest tests/unit/ tests/db/ tests/api/ --cov=apps --cov-report=html
+pytest tests/custom/unit/ tests/custom/db/ tests/custom/api/ --cov=apps --cov-report=html
 open htmlcov/index.html
 
 # TypeScript coverage
@@ -626,11 +626,11 @@ Tests run in order (fail-fast):
 Keep test files synchronized with source:
 
 ```bash
-# Python: Sync tests/unit/ and tests/db/ with apps/
+# Python: Sync tests/custom/unit/ and tests/custom/db/ with apps/
 make sync-tests               # Create missing test stubs
 make sync-tests-move          # Also move stale tests to .stale/
 
-# TypeScript: Sync tests/ts/ with apps/*/static/*/ts/
+# TypeScript: Sync tests/custom/ts/ with apps/*/static/*/ts/
 make sync-ts-tests            # Create missing test stubs
 make sync-ts-tests-move       # Also move stale tests to .stale/
 ```
@@ -664,7 +664,7 @@ make ENV=dev migrate
 ### UI tests timing out
 ```bash
 # Run with visible browser to debug
-pytest tests/ui/path/to/test.py --headed --slowmo=500
+pytest tests/custom/ui/path/to/test.py --headed --slowmo=500
 ```
 
 ### Test credentials not found

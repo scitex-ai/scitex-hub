@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# File: tests/config/test_env_legacy_alias.py
+# File: tests/custom/config/test_env_legacy_alias.py
 """Tests for the SCITEX_CLOUD_* -> SCITEX_HUB_* env-var alias layer.
 
 Background: ADR-0001 renamed the operator-facing env-var prefix from
@@ -207,7 +207,7 @@ class TestSettingsModulesHonorTheAlias:
         import sys
         from pathlib import Path
 
-        repo_root = Path(__file__).resolve().parents[2]
+        repo_root = Path(__file__).resolve().parents[3]
         result = subprocess.run(
             [
                 sys.executable,

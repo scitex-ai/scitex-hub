@@ -13,7 +13,7 @@ from pathlib import Path
 import django
 import pytest
 
-PROJECT_ROOT = Path(__file__).parent.parent.parent.parent.parent
+PROJECT_ROOT = Path(__file__).parent.parent.parent.parent.parent.parent
 
 
 def setup_django():

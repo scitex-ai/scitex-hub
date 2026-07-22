@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: tests/scitex_hub/_cli/test_verb_renames.py
+# File: tests/scitex_hub/_cli/test_main_verb_renames.py
 
 """Slice 6a pilot verb renames — canonical names + deprecation ladder.
 

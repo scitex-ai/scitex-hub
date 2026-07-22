@@ -14,7 +14,7 @@ Provides:
 
 import pytest
 
-# Skip the whole ``tests/api/`` tree when ``requests`` isn't installed
+# Skip the whole ``tests/custom/api/`` tree when ``requests`` isn't installed
 # (PA-303) — collection-safety on minimal envs.
 requests = pytest.importorskip(
     "requests",
@@ -37,7 +37,7 @@ def _is_server_reachable(url: str, timeout: float = 1.5) -> bool:
         return False
 
 
-# Skip the whole `tests/api/` tree when no Django dev server is running at
+# Skip the whole `tests/custom/api/` tree when no Django dev server is running at
 # BASE_URL. These are integration tests against a live HTTP surface, not
 # unit tests; CI can't run them without spinning up the server.
 collect_ignore_marker = "scitex-hub-api-server-unreachable"

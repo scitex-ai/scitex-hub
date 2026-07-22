@@ -4,7 +4,7 @@
 """Unit tests for ``scitex_hub.account.token`` Python parity.
 
 Mirrors the hand-rolled fake-server pattern from
-``tests/scitex_hub/test_project_create_category.py``: no mocks, no
+``tests/custom/test_project_create_category.py``: no mocks, no
 ``monkeypatch`` — production code exposes a ``request_fn`` /
 transport-injection seam and tests pass a tiny ``_FakePost`` recording
 the calls. Env vars are handled by ``yield``-based fixtures in

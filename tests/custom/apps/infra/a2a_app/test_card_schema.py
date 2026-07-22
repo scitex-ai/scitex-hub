@@ -12,7 +12,7 @@ Two layers of validation:
    the schema test is skipped (the structural test still runs).
 
 To refresh the schema:
-   curl -fsSL <url> -o tests/fixtures/a2a_schema/agent_card.schema.json
+   curl -fsSL <url> -o tests/custom/fixtures/a2a_schema/agent_card.schema.json
 
 The structural test is the contract that fails the build on projection
 regressions; the schema test catches everything else.

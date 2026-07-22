@@ -7,10 +7,10 @@ tests/
 ├── conftest.py              # Root pytest config (shared fixtures)
 ├── pytest.ini               # Pytest settings (already exists at root)
 │
-├── unit/                    # Fast tests (no DB, no browser, no network)
-│   ├── apps/                # Python unit tests (moved from tests/apps/)
+├── custom/unit/             # Fast tests (no DB, no browser, no network)
+│   ├── apps/                # Python unit tests (moved from tests/custom/apps/)
 │   │   └── <app_name>/      # Mirrors apps/<app_name>/ structure
-│   └── ts/                  # TypeScript unit tests (moved from tests/ts/)
+│   └── ts/                  # TypeScript unit tests (moved from tests/custom/ts/)
 │       └── <app_name>/      # Mirrors apps/<app>/static/<app>/ts/
 │
 ├── integration/             # Tests requiring DB/services (no browser)
@@ -28,7 +28,7 @@ tests/
 │   ├── vis/                 # Vis app
 │   └── shared/              # Cross-app components (panel_resizer, etc.)
 │
-├── fixtures/                # Shared test data
+├── custom/fixtures/         # Shared test data
 │   ├── users.json           # Test user configurations
 │   ├── projects/            # Sample project data
 │   └── files/               # Sample files for upload tests

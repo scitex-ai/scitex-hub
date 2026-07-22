@@ -71,7 +71,7 @@ logger = logging.getLogger(__name__)
 # .ensure_workspace`` create dot-prefixed ``.scitex/writer`` +
 # ``.scitex/scholar``, so verification never passed and every slot was
 # quarantined). Verified against scitex-writer 2.17.5 and 2.26.1.
-# tests/apps/project_app/services/visitor_pool/
+# tests/custom/apps/project_app/services/visitor_pool/
 # test_template_marker_reality.py locks this against the real packages.
 TEMPLATE_MARKER_RELPATH = ".scitex/writer"
 

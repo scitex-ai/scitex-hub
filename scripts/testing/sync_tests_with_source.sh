@@ -13,9 +13,9 @@
 #   code for reference.
 #
 # BEHAVIOR:
-#   1. Mirrors apps/ directory structure to tests/apps/
+#   1. Mirrors apps/ directory structure to tests/custom/apps/
 #   2. For each source file (e.g., apps/auth_app/views/login.py):
-#      - Creates/updates tests/apps/auth_app/views/test_login.py
+#      - Creates/updates tests/custom/apps/auth_app/views/test_login.py
 #      - Preserves existing test code (before source block)
 #      - Updates commented source code block at file end
 #   3. Identifies "stale" tests (tests without matching source files)
@@ -61,7 +61,7 @@ cd "$GIT_ROOT"
 ########################################
 DO_MOVE=false
 SRC_DIR="$GIT_ROOT/apps"
-TESTS_DIR="$GIT_ROOT/tests/apps"
+TESTS_DIR="$GIT_ROOT/tests/custom/apps"
 
 # Use half of available CPU cores by default (minimum 1)
 CPU_COUNT=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
@@ -158,7 +158,7 @@ should_skip_file() {
 prepare_tests_structure() {
     [ ! -d "$SRC_DIR" ] && echo_error "Source directory not found: $SRC_DIR" && exit 1
 
-    # Create tests/apps directory if it doesn't exist
+    # Create tests/custom/apps directory if it doesn't exist
     mkdir -p "$TESTS_DIR"
 
     # Mirror directory structure (excluding specified directories)

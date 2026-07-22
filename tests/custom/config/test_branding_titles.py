@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# File: tests/config/test_branding_titles.py
+# File: tests/custom/config/test_branding_titles.py
 """The browser tab TITLE (config/branding.py).
 
 Operator contract -- one pattern everywhere:

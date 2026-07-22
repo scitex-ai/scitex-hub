@@ -90,7 +90,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    include: ['tests/ts/**/*.test.ts'],
+    include: ['tests/custom/ts/**/*.test.ts'],
     exclude: ['node_modules', 'GITIGNORED/**'],
     coverage: {
       provider: 'v8',
@@ -186,8 +186,8 @@ show_status() {
 
     # Check test files
     local test_count
-    test_count=$(find "$PROJECT_ROOT/tests/ts" -name "*.test.ts" 2>/dev/null | wc -l)
-    echo -e "  Test files:       ${CYAN}$test_count files in tests/ts/${NC}"
+    test_count=$(find "$PROJECT_ROOT/tests/custom/ts" -name "*.test.ts" 2>/dev/null | wc -l)
+    echo -e "  Test files:       ${CYAN}$test_count files in tests/custom/ts/${NC}"
 
     echo ""
 }

@@ -10,7 +10,7 @@ Catches issues like:
 - Unregistered template tags
 - Invalid template syntax
 
-Run with: pytest tests/unit/templates/test_template_syntax.py -v
+Run with: pytest tests/custom/unit/templates/test_template_syntax.py -v
 """
 
 from pathlib import Path
@@ -26,7 +26,7 @@ from django.template.exceptions import TemplateSyntaxError
 
 def get_all_template_files():
     """Find all HTML template files in the project."""
-    project_root = Path(__file__).parent.parent.parent.parent
+    project_root = Path(__file__).parent.parent.parent.parent.parent
     template_dirs = [
         project_root / "templates",
         project_root / "apps",
@@ -80,7 +80,7 @@ class TestTemplateSyntax:
     def setup(self):
         """Setup Django template engine."""
         self.engine = engines["django"]
-        self.project_root = Path(__file__).parent.parent.parent.parent
+        self.project_root = Path(__file__).parent.parent.parent.parent.parent
 
     def test_all_templates_compile(self):
         """Validate all templates compile without syntax errors."""

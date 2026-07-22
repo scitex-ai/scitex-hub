@@ -770,7 +770,7 @@ test-e2e-specific: validate
 	@echo -e "$(CYAN)🎭 Running specific E2E test: $(TEST) ($(ENV))...$(NC)"
 	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) exec django python -m pytest $(TEST) -v
 
-# Test Synchronization (mirrors apps/ -> tests/apps/)
+# Test Synchronization (mirrors apps/ -> tests/custom/apps/)
 sync-tests:
 	@echo -e "$(CYAN)🔄 Synchronizing test files with source...$(NC)"
 	@./scripts/testing/sync_tests_with_source.sh $(if $(MOVE),-m,)
@@ -781,7 +781,7 @@ sync-tests-move:
 	@./scripts/testing/sync_tests_with_source.sh -m
 	@echo -e "$(GREEN)✅ Test sync complete (stale files moved)$(NC)"
 
-# TypeScript Test Synchronization (mirrors apps/*/static/*/ts/ -> tests/ts/)
+# TypeScript Test Synchronization (mirrors apps/*/static/*/ts/ -> tests/custom/ts/)
 sync-ts-tests:
 	@echo -e "$(CYAN)🔄 Synchronizing TypeScript test files with source...$(NC)"
 	@./scripts/testing/sync_ts_tests_with_source.sh $(if $(MOVE),-m,)

@@ -13,10 +13,10 @@
 #   for reference.
 #
 # BEHAVIOR:
-#   1. Mirrors apps/<app>/static/<app>/ts/ → tests/ts/<app>/
-#   2. Mirrors static/shared/ts/ → tests/ts/shared/
+#   1. Mirrors apps/<app>/static/<app>/ts/ → tests/custom/ts/<app>/
+#   2. Mirrors static/shared/ts/ → tests/custom/ts/shared/
 #   3. For each source file (e.g., apps/code_app/static/code_app/ts/workspace.ts):
-#      - Creates/updates tests/ts/code_app/workspace.test.ts
+#      - Creates/updates tests/custom/ts/code_app/workspace.test.ts
 #      - Preserves existing test code (before source block)
 #      - Updates commented source code block at file end
 #   4. Identifies "stale" tests (tests without matching source files)
@@ -62,7 +62,7 @@ cd "$GIT_ROOT"
 # Usage & Argument Parser
 ########################################
 DO_MOVE=false
-TESTS_DIR="$GIT_ROOT/tests/ts"
+TESTS_DIR="$GIT_ROOT/tests/custom/ts"
 
 # Use half of available CPU cores by default (minimum 1)
 CPU_COUNT=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)

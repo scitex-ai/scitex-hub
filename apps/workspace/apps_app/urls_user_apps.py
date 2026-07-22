@@ -36,7 +36,7 @@ agreed in proj-scitex-hub msg b450c456:
 The translation layer is small (one ``try / except``) and lives here
 rather than each user-app re-implementing the same try-blocks.
 
-Tests live at ``tests/scitex_hub/apps/apps_app/test_urls_user_apps.py``
+Tests live at ``tests/custom/apps/apps_app/test_urls_user_apps.py``
 + exercise the real Django ``Client`` against a fixture user-app —
 no mocks per STX-NM.
 """

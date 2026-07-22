@@ -22,7 +22,7 @@ import json
 import re
 from pathlib import Path
 
-_REPO_ROOT = Path(__file__).resolve().parents[3]
+_REPO_ROOT = Path(__file__).resolve().parents[4]
 _COLORS_CSS = _REPO_ROOT / "static" / "shared" / "css" / "primitives" / "colors.css"
 _STORAGE_MANIFEST = (
     _REPO_ROOT / "apps" / "workspace" / "storage_app" / "manifest.json"

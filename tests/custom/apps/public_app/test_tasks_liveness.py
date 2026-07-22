@@ -41,7 +41,7 @@ from apps.infra.public_app.tasks import (
     write_liveness_stamp,
 )
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+REPO_ROOT = Path(__file__).resolve().parents[4]
 HEALTHCHECK_SCRIPT = (
     REPO_ROOT / "deployment" / "docker" / "common" / "scripts"
     / "check_queue_liveness.sh"

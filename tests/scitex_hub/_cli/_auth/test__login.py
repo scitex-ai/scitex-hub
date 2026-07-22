@@ -11,7 +11,7 @@ Phase-1 PR-5 / card #2. Pins:
 Per repo STX-NM rule: NO ``unittest.mock``. We use a hand-rolled fake
 :class:`requests.Session` stand-in that records the call and returns a
 canned :class:`requests.Response`. That matches the no-mocks pattern
-used by ``tests/scitex_hub/test_account_cli_grammar.py``.
+used by ``tests/scitex_hub/_cli/test_main_account_grammar.py``.
 """
 
 from __future__ import annotations

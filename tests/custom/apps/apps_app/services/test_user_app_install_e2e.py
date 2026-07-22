@@ -4,7 +4,7 @@
 
 The M4 done-gate positive half (lead msg a2b21da8 + 0530f1c4). Uses the
 ACTUAL operator-handoff scaffolds copied into
-``tests/scitex_hub/apps/apps_app/_fixtures/m4_wrappers/`` (NOT a
+``tests/custom/apps/apps_app/_fixtures/m4_wrappers/`` (NOT a
 synthetic minimal app) so the same artifacts the operator submits are
 the artifacts under test. No mocks.
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: tests/scitex_hub/test_no_interactive_prompts.py
+# File: tests/scitex_hub/_cli/test__gitea_auth_no_interactive_prompts.py
 
 """CLI spec §2 compliance — no interactive prompts.
 

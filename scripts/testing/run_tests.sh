@@ -90,7 +90,7 @@ run_unit_tests() {
 
     cd "$PROJECT_ROOT"
 
-    local test_dir="tests/unit"
+    local test_dir="tests/custom/unit"
     local test_count
     test_count=$(find "$test_dir" -name "test_*.py" 2>/dev/null | wc -l)
 
@@ -119,7 +119,7 @@ run_db_tests() {
 
     cd "$PROJECT_ROOT"
 
-    local test_dir="tests/db"
+    local test_dir="tests/custom/db"
     local test_count
     test_count=$(find "$test_dir" -name "test_*.py" 2>/dev/null | wc -l)
 
@@ -148,7 +148,7 @@ run_api_tests() {
 
     cd "$PROJECT_ROOT"
 
-    local test_dir="tests/api"
+    local test_dir="tests/custom/api"
     local test_count
     test_count=$(find "$test_dir" -name "test_*.py" 2>/dev/null | wc -l)
 
@@ -176,7 +176,7 @@ run_restful_api_tests() {
 
     cd "$PROJECT_ROOT"
 
-    local test_file="tests/api/scholar/test_public_api.py"
+    local test_file="tests/custom/api/scholar/test_public_api.py"
 
     if [ ! -f "$test_file" ]; then
         echo -e "${RED}❌ RESTful API test file not found: ${test_file}${NC}"
@@ -204,7 +204,7 @@ run_ui_tests() {
 
     cd "$PROJECT_ROOT"
 
-    local test_dir="tests/ui"
+    local test_dir="tests/custom/ui"
     local test_count
     test_count=$(find "$test_dir" -name "test_*.py" 2>/dev/null | wc -l)
 
@@ -254,7 +254,7 @@ run_ts_tests() {
 
     cd "$PROJECT_ROOT"
 
-    local test_dir="tests/ts"
+    local test_dir="tests/custom/ts"
     local test_count
     test_count=$(find "$test_dir" -name "*.test.ts" 2>/dev/null | wc -l)
 
@@ -341,25 +341,25 @@ show_status() {
     # Test counts - explicit paths only
     echo -e "${CYAN}Test Files (explicit paths):${NC}"
     local unit_count db_count api_count ui_count ts_count
-    unit_count=$(find "$PROJECT_ROOT/tests/unit" -name "test_*.py" 2>/dev/null | wc -l)
-    db_count=$(find "$PROJECT_ROOT/tests/db" -name "test_*.py" 2>/dev/null | wc -l)
-    api_count=$(find "$PROJECT_ROOT/tests/api" -name "test_*.py" 2>/dev/null | wc -l)
-    ui_count=$(find "$PROJECT_ROOT/tests/ui" -name "test_*.py" 2>/dev/null | wc -l)
-    ts_count=$(find "$PROJECT_ROOT/tests/ts" -name "*.test.ts" 2>/dev/null | wc -l)
+    unit_count=$(find "$PROJECT_ROOT/tests/custom/unit" -name "test_*.py" 2>/dev/null | wc -l)
+    db_count=$(find "$PROJECT_ROOT/tests/custom/db" -name "test_*.py" 2>/dev/null | wc -l)
+    api_count=$(find "$PROJECT_ROOT/tests/custom/api" -name "test_*.py" 2>/dev/null | wc -l)
+    ui_count=$(find "$PROJECT_ROOT/tests/custom/ui" -name "test_*.py" 2>/dev/null | wc -l)
+    ts_count=$(find "$PROJECT_ROOT/tests/custom/ts" -name "*.test.ts" 2>/dev/null | wc -l)
 
-    echo -e "  tests/unit/:      ${CYAN}$unit_count${NC} files"
-    echo -e "  tests/db/:        ${CYAN}$db_count${NC} files"
-    echo -e "  tests/api/:       ${CYAN}$api_count${NC} files"
-    echo -e "  tests/ui/:        ${CYAN}$ui_count${NC} files"
-    echo -e "  tests/ts/:        ${CYAN}$ts_count${NC} files"
+    echo -e "  tests/custom/unit/:      ${CYAN}$unit_count${NC} files"
+    echo -e "  tests/custom/db/:        ${CYAN}$db_count${NC} files"
+    echo -e "  tests/custom/api/:       ${CYAN}$api_count${NC} files"
+    echo -e "  tests/custom/ui/:        ${CYAN}$ui_count${NC} files"
+    echo -e "  tests/custom/ts/:        ${CYAN}$ts_count${NC} files"
 
     # Legacy locations warning
     local apps_count
-    apps_count=$(find "$PROJECT_ROOT/tests/apps" -name "test_*.py" 2>/dev/null | wc -l)
+    apps_count=$(find "$PROJECT_ROOT/tests/custom/apps" -name "test_*.py" 2>/dev/null | wc -l)
     if [ "$apps_count" -gt 0 ]; then
         echo ""
         echo -e "${YELLOW}⚠️  Legacy tests found:${NC}"
-        echo -e "  tests/apps/:      ${YELLOW}$apps_count${NC} files (not run by default)"
+        echo -e "  tests/custom/apps/:      ${YELLOW}$apps_count${NC} files (not run by default)"
         echo -e "  ${YELLOW}Consider migrating to tests/{unit,db,api,ui}/${NC}"
     fi
 
@@ -379,13 +379,13 @@ usage() {
     echo "Usage: $0 <category> [options]"
     echo ""
     echo "Categories:"
-    echo "  unit         Run Python unit tests (tests/unit/)"
-    echo "  db           Run Python database tests (tests/db/)"
-    echo "  api          Run Python API tests (tests/api/)"
+    echo "  unit         Run Python unit tests (tests/custom/unit/)"
+    echo "  db           Run Python database tests (tests/custom/db/)"
+    echo "  api          Run Python API tests (tests/custom/api/)"
     echo "  restful-apis Run Public RESTful API tests (/api/v1/*)"
-    echo "  ui           Run UI tests - Playwright (tests/ui/)"
+    echo "  ui           Run UI tests - Playwright (tests/custom/ui/)"
     echo "  python       Run all Python tests"
-    echo "  ts           Run TypeScript tests (tests/ts/)"
+    echo "  ts           Run TypeScript tests (tests/custom/ts/)"
     echo "  all          Run all tests"
     echo ""
     echo "Options:"

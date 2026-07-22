@@ -170,6 +170,16 @@ all = [
     "myst-parser>=2.0",
     "sphinx-copybutton>=0.5",
     "sphinx-autodoc-typehints>=1.25",
+    # --- [dev] closure (PS-221: every public [dev] member must also be
+    # reachable from [all]; listed explicitly because [all] deliberately
+    # avoids recursive `scitex-hub[...]` self-references — see the
+    # flattening note at the top of this table) ---
+    "black>=23.0",
+    "ruff>=0.1.0",
+    "figrecipe>=0.13.0",
+    "joblib",
+    "flask",
+    "scitex-dev>=0.16.1",
 ]
 dev = [
     "black>=23.0",
@@ -311,7 +321,7 @@ exclude_lines = [
     "if __name__ == .__main__.:",
 ]
 
-[tool.scitex-linter]
+[tool.scitex-dev.linter]
 # Django project: standard library `logging` is used throughout.
 # STX-I007 warns to use @stx.session-injected `logger` instead, which
 # does not apply to Django views/services that have no @stx.session context.

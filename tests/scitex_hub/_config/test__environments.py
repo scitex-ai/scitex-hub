@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: tests/scitex_hub/test_config.py
+# File: tests/scitex_hub/_config/test__environments.py
 
 """Tests for scitex_hub configuration."""
 

@@ -1,7 +1,7 @@
-"""Skip every Django-dependent ``tests/apps/*`` subsuite when Django
+"""Skip every Django-dependent ``tests/custom/apps/*`` subsuite when Django
 (4.2+) isn't available.
 
-The whole ``tests/apps/`` tree transitively imports
+The whole ``tests/custom/apps/`` tree transitively imports
 ``django.conf.STATICFILES_STORAGE_ALIAS`` (introduced in Django 4.2).
 When CI installs only the base ``[dev]`` extras (no ``[django]`` /
 ``[apps]``), or when Django < 4.2 is present, those imports raise

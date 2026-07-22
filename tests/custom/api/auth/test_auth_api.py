@@ -14,7 +14,7 @@ Tests:
 """
 
 import pytest
-from tests.api.conftest import assert_json_response, assert_error_response
+from tests.custom.api.conftest import assert_json_response, assert_error_response
 
 
 class TestUsernameCheck:

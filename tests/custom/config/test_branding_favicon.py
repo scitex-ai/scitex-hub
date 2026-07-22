@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# File: tests/config/test_branding_favicon.py
+# File: tests/custom/config/test_branding_favicon.py
 """The favicon COLOUR encodes the ENVIRONMENT (config/branding.py).
 
 Operator contract: prod / staging / dev must be distinguishable from the tab

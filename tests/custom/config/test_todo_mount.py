@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Guards for the upstream scitex-todo board mount (phase 1: read-only).
 
-Mirrors tests/config/test_writer_mount.py: when the ``scitex_todo``
+Mirrors tests/custom/config/test_writer_mount.py: when the ``scitex_todo``
 package is importable, its contract-compliant ``_django`` app must be
 installed under the explicit ``ScitexTodoConfig`` path (a bare module
 entry falls back to app label ``_django`` and collides with

@@ -247,7 +247,7 @@ def cleanup_test_users():
 # pytest-playwright provides ``page``/``browser``/``context``/``browser_context``
 # etc.; ``live_server`` (pytest-django) spins up a live HTTP server that these
 # browser tests target. Detecting the fixture names lets us catch browser tests
-# that live OUTSIDE ``tests/e2e/`` (e.g. ``tests/ui/...``) without having to mark
+# that live OUTSIDE ``tests/e2e/`` (e.g. ``tests/custom/ui/...``) without having to mark
 # every file by hand.
 _BROWSER_FIXTURES = frozenset(
     {
@@ -273,7 +273,7 @@ def pytest_collection_modifyitems(config, items):
     it lives under ``tests/e2e/``, is marked ``@pytest.mark.e2e``, OR requests a
     Playwright/live-server fixture (``page``, ``browser``, ``live_server``, …).
     The fixture check is what keeps a plain ``pytest tests/`` from launching a
-    browser for the browser-driven tests under ``tests/ui/``.
+    browser for the browser-driven tests under ``tests/custom/ui/``.
     """
     browser_requested = False
     try:

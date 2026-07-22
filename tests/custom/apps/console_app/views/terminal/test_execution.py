@@ -137,7 +137,7 @@ def _install_django_stubs_fixture():
 # `django.conf` stub leaked into every later test file and broke the lazy
 # `from django.conf import STATICFILES_STORAGE_ALIAS` that Django's
 # `storages_changed` signal runs, producing ~1000 spurious errors across
-# tests/apps/*.
+# tests/custom/apps/*.
 #
 # NOTE: we deliberately restore ONLY the `django` keys. The local
 # `apps.workspace.console_app.views.terminal.{config,_command_builder}`
@@ -200,7 +200,7 @@ from apps.workspace.console_app.views.terminal.config import (  # noqa: E402
 # import-time stubs — especially the MagicMock `django.conf` — from leaking
 # into every later test module, which would otherwise break Django's lazy
 # `from django.conf import STATICFILES_STORAGE_ALIAS` (via the
-# storages_changed signal) and cascade ~1000 errors across tests/apps/*.
+# storages_changed signal) and cascade ~1000 errors across tests/custom/apps/*.
 # The autouse module-scoped fixture re-installs the stubs only for the
 # duration of THIS module's own tests.
 for _k, _v in _ORIGINAL_MODULES.items():

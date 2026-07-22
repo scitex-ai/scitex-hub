@@ -50,11 +50,11 @@ self-describe correctly without config.
 
 ```bash
 docker exec scitex-hub-prod-django-1 \
-  python -m pytest /app/tests/apps/infra/a2a_app/ -v
+  python -m pytest /app/tests/custom/apps/infra/a2a_app/ -v
 ```
 
 5 structural tests run against every projected AgentCard. 2 schema
-tests skip until `tests/fixtures/a2a_schema/agent_card.schema.json`
+tests skip until `tests/custom/fixtures/a2a_schema/agent_card.schema.json`
 is bundled.
 
 ## Deploy

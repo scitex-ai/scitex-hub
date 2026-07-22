@@ -29,7 +29,7 @@ pytest.importorskip(
 from playwright.sync_api import Page  # noqa: E402
 
 # Project paths
-PROJECT_ROOT = Path(__file__).parent.parent.parent.parent.parent
+PROJECT_ROOT = Path(__file__).parent.parent.parent.parent.parent.parent
 ENV_FILE = PROJECT_ROOT / "SECRET" / ".env.dev"
 ARTIFACTS_DIR = PROJECT_ROOT / "tests" / "e2e" / "artifacts"
 

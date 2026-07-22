@@ -1,6 +1,6 @@
 /**
  * Jest Configuration for SciTeX-Cloud JavaScript/TypeScript Unit Tests
- * Located in tests/unit/js/ for tree component testing
+ * Located in tests/custom/unit/js/ for tree component testing
  */
 
 module.exports = {
@@ -15,7 +15,7 @@ module.exports = {
 
   // Coverage configuration
   collectCoverage: false,
-  coverageDirectory: '../../../coverage/js',
+  coverageDirectory: '../../../../coverage/js',
   coverageReporters: ['text', 'lcov'],
 
   // Clear mocks between tests

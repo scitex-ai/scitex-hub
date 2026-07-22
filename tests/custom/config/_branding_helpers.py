@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# File: tests/config/_branding_helpers.py
+# File: tests/custom/config/_branding_helpers.py
 """Shared helpers for the branding tests.
 
 Underscore-prefixed so pytest does not collect it as a test module. Split out

@@ -513,7 +513,7 @@ RUN pdflatex --version && \
 # github.com/ywatanabe1989/scitex-writer at call time, so it would make
 # the build depend on GitHub availability. The marker-layout contract
 # (.scitex/writer, TEMPLATE_MARKER_RELPATH) is instead reality-locked in
-# tests/apps/project_app/services/visitor_pool/
+# tests/custom/apps/project_app/services/visitor_pool/
 # test_template_marker_reality.py.
 RUN python -c "import scitex_writer.writer" && \
     python -c "from scitex.template import clone_template" && \

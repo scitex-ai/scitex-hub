@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: tests/scitex_hub/test_project_create_category.py
+# File: tests/custom/test_project_create_category.py
 
 """Unit tests for ``scitex_hub.project.project_create`` category/app surface.
 
