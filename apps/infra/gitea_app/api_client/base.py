@@ -54,17 +54,20 @@ class BaseGiteaClient:
     Documentation: https://docs.gitea.io/en-us/api-usage/
     """
 
-    def __init__(self, base_url: str = None, token: str = None):
+    def __init__(self, base_url: str = None, token: str = None, transport=None):
         """
         Initialize Gitea client
 
         Args:
             base_url: Gitea instance URL (defaults to settings.GITEA_URL)
             token: API token (defaults to settings.GITEA_TOKEN)
+            transport: HTTP callable with the requests.request signature
+                (injectable for tests; defaults to requests.request)
         """
         self.base_url = base_url or settings.GITEA_URL
         self.api_url = f"{self.base_url}/api/v1"
         self.token = token or settings.GITEA_TOKEN
+        self._transport = transport
 
         if not self.token:
             raise GiteaAPIError("Gitea API token not configured")
@@ -96,11 +99,15 @@ class BaseGiteaClient:
         """
         url = f"{self.api_url}{endpoint}"
         headers = self._get_headers(kwargs.pop("headers", None))
+        # A wedged Gitea must not hang callers forever; an explicit
+        # caller timeout still wins over this default.
+        kwargs.setdefault("timeout", 10)
+        # Resolved at call time so an injected transport wins and the
+        # default stays the live requests.request.
+        transport = self._transport if self._transport is not None else requests.request
 
         try:
-            response = requests.request(
-                method=method, url=url, headers=headers, **kwargs
-            )
+            response = transport(method=method, url=url, headers=headers, **kwargs)
             response.raise_for_status()
             return response
         except requests.HTTPError:
