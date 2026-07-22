@@ -5,10 +5,16 @@
       content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="description"
       content="{% block meta_description %}{{ META_DESCRIPTION_DEFAULT }}{% endblock %}" />
-<!-- Inline theme application - Prevents flash of unstyled content -->
+<!-- Inline theme application - Prevents flash of unstyled content.
+     Base default is DARK (operator mandate, card
+     hub-theme-default-must-be-dark): first visits render dark on every
+     viewport; only an explicit stored choice or a registered user's
+     saved preference (applied later by theme-switcher.ts) may differ.
+     prefers-color-scheme is deliberately not consulted — an OS light
+     preference must never flip a first visit to light. -->
 <script>
     (function() {
-        const theme = localStorage.getItem("scitex-theme-preference") || "light";
+        const theme = localStorage.getItem("scitex-theme-preference") || "dark";
         if (theme === "dark") {
             document.documentElement.setAttribute("data-theme", "dark");
             document.documentElement.setAttribute("data-color-mode", "dark");
