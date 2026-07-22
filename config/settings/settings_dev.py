@@ -35,8 +35,13 @@ if os.environ.get("CI"):
         "SCITEX_HUB_DJANGO_SECRET_KEY",
         "insecure-ci-only-test-key",  # pragma: allowlist secret
     )
-    os.environ.setdefault("SCITEX_HUB_USE_SQLITE_DEV", "1")
     os.environ.setdefault("SCITEX_HUB_GITEA_SSH_PORT_DEV", "2222")
+    # SQLite fallback ONLY when no explicit DB is configured: e2e-mobile
+    # provisions a real postgres service and passes SCITEX_HUB_DB_*_DEV,
+    # which an unconditional sqlite default would silently hijack
+    # (observed: run 29881636198, sqlite3 "unable to open database file").
+    if not os.environ.get("SCITEX_HUB_DB_NAME_DEV"):
+        os.environ.setdefault("SCITEX_HUB_USE_SQLITE_DEV", "1")
 
 from .settings_shared import *
 

@@ -30,7 +30,6 @@ CROSS_PACKAGE_IMPORTS = [
     "scitex_config._ecosystem",
     "scitex_dev",
     "scitex_dev._cli._completion",
-    "scitex_dev.cli",
     "scitex_dev.ecosystem",
 ]
 # ===== END AUTO-GENERATED =====

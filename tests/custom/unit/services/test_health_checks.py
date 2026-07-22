@@ -69,8 +69,10 @@ class TestUserDataPermissions:
                 in status_data["user_data_permissions"]["broken_dirs"]
             )
         finally:
-            # Restore permissions for cleanup
-            os.chmod(proj_dir, 0o755)
+            # Restore permissions for cleanup (owner-only: the tmp_path
+            # teardown just needs to delete it; no 'others' access —
+            # keeps CodeQL py/overly-permissive-file quiet too)
+            os.chmod(proj_dir, 0o700)
 
     def test_nonexistent_directory(self, tmp_path):
         """Test that nonexistent user data directory reports healthy."""
@@ -115,7 +117,8 @@ class TestUserDataPermissions:
                 not in status_data["user_data_permissions"]["broken_dirs"]
             )
         finally:
-            os.chmod(visitor2_proj, 0o755)
+            # Owner-only restore for cleanup (see note above)
+            os.chmod(visitor2_proj, 0o700)
 
 
 def check_user_data_permissions_with_path(status_data: dict, user_data_path: Path):
