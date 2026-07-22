@@ -10,6 +10,9 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
 from apps.infra.project_app.models import Project
+from apps.infra.project_app.services.filesystem.permissions import (
+    validate_path_in_project,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -62,8 +65,9 @@ def api_save_file(request):
 
         file_full_path = project_path / file_path
 
-        # Security check
-        if not str(file_full_path.resolve()).startswith(str(project_path.resolve())):
+        # Security check — component-wise containment (a string prefix would
+        # admit a sibling directory whose name merely extends the project root)
+        if not validate_path_in_project(project_path, file_full_path):
             return JsonResponse({"error": "Invalid file path"}, status=400)
 
         file_full_path.parent.mkdir(parents=True, exist_ok=True)
