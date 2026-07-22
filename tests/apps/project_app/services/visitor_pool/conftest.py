@@ -15,14 +15,18 @@ and that pipeline writes to a path derived from the visitor's identity::
     settings.BASE_DIR / "data" / "users" / <username>          (home root)
     settings.MEDIA_ROOT / "user_containers" / <user id>        (SIF builds)
 
-Six modules here hardcode the SAME identity (``visitor-001``) and so the
-SAME absolute directory:
+FIVE modules here hardcode the SAME identity (``visitor-001``) and so
+the SAME absolute directory:
 
 * ``test_slot_recycling_security.py`` (``_base_path_for`` / ``visitor-001``)
 * ``test_container_wipe_security.py`` (``USERNAME = "visitor-001"``)
 * ``test_visitor_pool.py`` (``_cleanup_workspace`` / ``visitor-001``)
-* ``test_pool_manager.py``, ``test_reconcile_visitor_slots.py``,
-  ``test_home_skeleton_reality.py`` (same root, same identity)
+* ``test_pool_manager.py`` and ``test_reconcile_visitor_slots.py``
+  (same root, same identity, spelled inline)
+
+(``test_home_skeleton_reality.py`` shares the ROOT but uses its own
+identity, ``visitor-skeleton-reality``, so it was never part of the
+collision. It is isolated here too, harmlessly.)
 
 pytest-django gives each xdist worker its own DATABASE. It does NOT give
 each worker its own FILESYSTEM. With ``-n auto`` resolving to ~128
@@ -39,7 +43,7 @@ WHY NOT A GROUPING DIRECTIVE
 ----------------------------
 ``--dist loadfile`` / ``xdist_group`` / a serial marker were rejected.
 They would not even work — the collision is CROSS-MODULE, so
-``loadfile`` still lands six modules on six workers all hammering
+``loadfile`` still lands five modules on five workers all hammering
 ``data/users/visitor-001``. More importantly, these modules assert that
 a recycled slot leaks NOTHING to the next visitor
 (``test_zero_filesystem_residue_after_recycle``,
