@@ -28,6 +28,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        # The self-hosted pool has no system node; CodeQL's TypeScript
+        # extractor requires `node` on PATH.
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:

@@ -65,22 +65,21 @@ def prefs_get(app_name, json_output) -> None:
     **spec_command_kwargs(
         summary="Update preferences for an app as key=value pairs.",
         examples=(
-            ("{prog} app prefs update writer theme=dark", "Update one pref."),
+            ("{prog} app prefs update writer theme=dark --yes", "Update one pref."),
         ),
     ),
 )
 @click.argument("app_name")
 @click.argument("key_values", nargs=-1)
-def prefs_set(app_name, key_values) -> None:
+@mutating_flags()
+def prefs_set(app_name, key_values, dry_run, yes) -> None:
     """Update preferences for an app as key=value pairs.
 
     \b
     Example:
-        scitex-hub app prefs update writer theme=dark font_size=14
-        scitex-hub app prefs update scholar engine=crossref
+        scitex-hub app prefs update writer theme=dark font_size=14 --yes
+        scitex-hub app prefs update scholar engine=crossref --dry-run
     """
-    from scitex_hub.appmaker import set_prefs
-
     prefs: dict = {}
     for kv in key_values:
         if "=" not in kv:
@@ -91,6 +90,16 @@ def prefs_set(app_name, key_values) -> None:
             prefs[key] = _json.loads(val)
         except (_json.JSONDecodeError, ValueError):
             prefs[key] = val
+
+    if dry_run:
+        print_dry_run(f"would update preferences for {app_name}: {prefs}")
+        return
+
+    confirm_or_abort(
+        f"Update preferences for {app_name}: {prefs}?", yes=yes, dry_run=dry_run
+    )
+
+    from scitex_hub.appmaker import set_prefs
 
     set_prefs(app_name, prefs)
     console.print(f"[green]Saved preferences for {app_name}[/green]")

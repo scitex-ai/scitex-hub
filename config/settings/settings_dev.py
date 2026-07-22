@@ -21,6 +21,23 @@ from dotenv import load_dotenv
 
 from config import branding
 
+# --- CI defaults (dev settings only; MUST precede settings_shared) ---
+# The canonical org-reusable pytest workflow (ci.yml -> scitex-ai/.github
+# pytest-matrix body) cannot carry repo-specific env the way the retired
+# per-repo workflow did, and pytest-django imports this module BEFORE any
+# conftest.py can set defaults. On CI runners (GitHub Actions always sets
+# CI=true) fall back to the same throwaway values the old workflow
+# hardcoded: a dummy secret key (tests only need a non-empty value),
+# SQLite instead of a live postgres, and the dev SSH port constant.
+# Outside CI the loud require_env behavior is unchanged.
+if os.environ.get("CI"):
+    os.environ.setdefault(
+        "SCITEX_HUB_DJANGO_SECRET_KEY",
+        "insecure-ci-only-test-key",  # pragma: allowlist secret
+    )
+    os.environ.setdefault("SCITEX_HUB_USE_SQLITE_DEV", "1")
+    os.environ.setdefault("SCITEX_HUB_GITEA_SSH_PORT_DEV", "2222")
+
 from .settings_shared import *
 
 # Environment identity -- drives the tab title marker "(dev)" and the GREEN

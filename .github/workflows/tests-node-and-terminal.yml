@@ -31,8 +31,12 @@ jobs:
       - uses: astral-sh/setup-uv@v7
 
       - name: Install workspace apps
+        # --seed puts pip into the venv: install_apps.sh's `uv pip install
+        # --system` branch resolves against the runner's ancient system
+        # Python on the pool, so its `python3 -m pip` fallback must work
+        # inside the activated venv.
         run: |
-          uv venv --python 3.11 .venv
+          uv venv --seed --python 3.11 .venv
           uv pip install --python .venv/bin/python "scitex-ui>=0.2.0"
           . .venv/bin/activate && bash scripts/apps/install_apps.sh
 

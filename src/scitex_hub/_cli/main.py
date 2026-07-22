@@ -227,14 +227,6 @@ def list_python_apis(verbose, max_depth, as_json):
         click.echo("Or use: scitex introspect api scitex_hub")
 
 
-try:
-    from scitex_dev.cli import skills_click_group
-
-    main.add_command(skills_click_group(package="scitex-hub"))
-except ImportError:
-    pass
-
-
 # §1a: install-shell-completion + print-shell-completion (canonical leaves)
 try:
     from scitex_dev._cli._completion import attach_shell_completion
@@ -260,13 +252,42 @@ def dev():
 
 
 dev.add_command(_skills_group, name="skills")
-register_warn_alias(
-    main,
-    "skills",
-    target=_skills_group,
-    remove_in="0.20",
-    target_name="dev skills",
+
+
+class _DeprecatedSkillsGroupAlias(click.Group):
+    """Warn-phase GROUP alias: `scitex-hub skills ...` still works (all
+    subcommands shared with `dev skills`), is hidden from --help, and
+    warns on every use. A plain Command alias cannot satisfy §1a (which
+    requires a top-level `skills` *group* with list/get/install), while
+    a visible group violates §13 (self-maintenance nests under `dev`);
+    this hidden, metadata-carrying group is the shape both rules accept.
+    """
+
+    def invoke(self, ctx: click.Context):
+        click.echo(
+            "'scitex-hub skills' is deprecated — use 'scitex-hub dev "
+            "skills' (removed in v0.20)",
+            err=True,
+        )
+        return super().invoke(ctx)
+
+
+_skills_top_alias = _DeprecatedSkillsGroupAlias(
+    name="skills",
+    commands=dict(_skills_group.commands),
+    hidden=True,
+    short_help="(deprecated) Use 'dev skills'.",
+    help="(deprecated) Forwards to 'dev skills'. Removed in v0.20.",
 )
+# Static-audit metadata (same shape scitex_dev.ecosystem.deprecated_alias
+# stamps) so §13's already-migrated escape hatch and the §5 alias
+# validator both recognize this as a warn-phase forward.
+_skills_top_alias._deprecated_alias = {
+    "target": "dev skills",
+    "remove_in": "0.20",
+    "phase": "warn",
+}
+main.add_command(_skills_top_alias)
 
 if __name__ == "__main__":
     main()
