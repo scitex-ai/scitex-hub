@@ -36,12 +36,17 @@ def validate_path_in_project(project_path: Path, target_path: Path) -> bool:
     """
     Validate that a path is within the project directory.
 
-    This prevents path traversal attacks.
+    Component-wise containment via ``Path.relative_to``, NOT a string prefix
+    match. A prefix match is not containment: ``project_path`` ``.../proj`` is a
+    string prefix of the sibling ``.../proj-secret``, so ``startswith`` would
+    admit ``project_path / "../proj-secret/x"`` and leak into another project.
+    ``relative_to`` compares path COMPONENTS, so the sibling is rejected.
+    Returns False only on ValueError/OSError (target outside, or unresolvable).
     """
     try:
         target_path.resolve().relative_to(project_path.resolve())
         return True
-    except ValueError:
+    except (ValueError, OSError):
         return False
 
 

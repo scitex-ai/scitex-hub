@@ -75,11 +75,14 @@ def validate_path(project_path: Path, file_path: str) -> Path | None:
     """
     try:
         full_path = (project_path / file_path).resolve()
+        project_resolved = project_path.resolve()
+        # Component-wise containment: relative_to raises ValueError when
+        # full_path is not under project_resolved. A string startswith would
+        # admit a sibling whose name shares the prefix (proj vs proj-other).
+        full_path.relative_to(project_resolved)
+        return full_path
     except (ValueError, OSError, RuntimeError):
         return None
-    if not validate_path_in_project(project_path, full_path):
-        return None
-    return full_path
 
 
 def git_auto_commit(project, project_path, file_path, action):
