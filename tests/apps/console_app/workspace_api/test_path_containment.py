@@ -9,11 +9,11 @@ Targets:
   ``api_create_file`` (sink: ``open(..., "w")``) and ``api_delete_file``
   (DESTRUCTIVE sinks: ``shutil.rmtree`` / ``Path.unlink``)
 - ``apps/workspace/console_app/workspace_api/execution.py`` ->
-  ``api_execute_script`` (sink: ``subprocess.run(["python", file_full_path])``
-  -- a path escape here is arbitrary-code execution). This view was MISSED by
-  the original containment sweep: its three siblings above were converted to
-  ``validate_path_in_project`` while ``api_execute_script`` kept the prefix
-  guard AND resolved from the (often-empty) ``git_clone_path``.
+  ``api_execute_script`` (sink: ``subprocess.run([... "python", file])`` under
+  setpriv -- a path escape here is code execution). After the host-RCE
+  hardening it resolves from a jail-validated ``git_clone_path`` and gates the
+  sink on the same component-wise ``validate_path_in_project``; the two execute
+  tests below drive it through that model (the fixture sets ``git_clone_path``).
 
 Each view builds ``file_full_path = project_path / file_path`` from an
 untrusted ``path`` and gates the sink on
@@ -146,6 +146,13 @@ def owner_project_with_sibling(db):
     project_dir = base / slug
     project_dir.mkdir(parents=True, exist_ok=True)
     (project_dir / "keep.txt").write_text("IN-PROJECT")
+
+    # api_execute_script resolves from git_clone_path (jail-validated), unlike
+    # the read/write/create views which use get_project_path(); point it at the
+    # real project dir so the execution containment tests exercise the guard
+    # (harmless to the other views, which ignore git_clone_path).
+    project.git_clone_path = str(project_dir)
+    project.save(update_fields=["git_clone_path"])
 
     sibling_dir = base / f"{slug}-secret"
     sibling_dir.mkdir(parents=True, exist_ok=True)
