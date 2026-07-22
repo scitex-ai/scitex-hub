@@ -68,6 +68,10 @@ def main():
                     help="post-commit settle before screenshot (dev's unminified JS needs ~12000)")
     ap.add_argument("--strict", action="store_true",
                     help="exit 1 if any pane/boot wait ended in a TIMEOUT or WAIT-ERROR")
+    ap.add_argument("--color-scheme", default="dark",
+                    choices=["dark", "light", "no-preference"],
+                    help="prefers-color-scheme for both contexts; the product "
+                         "is dark-by-default, so DEFAULT is dark")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
     only = [s.strip().lower() for s in args.only.split(",") if s.strip()]
@@ -77,7 +81,8 @@ def main():
         b = p.chromium.launch(headless=True)
         # discover app links once (mobile ctx)
         w, h, dsf = VIEWPORTS["mobile"]
-        disc = b.new_context(viewport={"width": w, "height": h}, device_scale_factor=dsf)
+        disc = b.new_context(viewport={"width": w, "height": h}, device_scale_factor=dsf,
+                             color_scheme=args.color_scheme)
         dp = disc.new_page()
         links = collect_app_links(dp, args.base, args.settle_ms)
         disc.close()
@@ -89,7 +94,8 @@ def main():
         results = []  # (viewport, label, pane_outcome, boot_outcome, captured)
         for vpname in vps:
             w, h, dsf = VIEWPORTS[vpname]
-            ctx = b.new_context(viewport={"width": w, "height": h}, device_scale_factor=dsf)
+            ctx = b.new_context(viewport={"width": w, "height": h}, device_scale_factor=dsf,
+                                color_scheme=args.color_scheme)
             for label, url in targets:
                 pg = ctx.new_page()
                 status, pane, boot = "?", "n/a", "n/a"
