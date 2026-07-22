@@ -284,7 +284,7 @@ markers = [
     "user: User management tests",
     "integration: Integration tests",
     "django_db: Tests requiring database access (pytest-django)",
-    "security: Exploit-regression tests — reproduce a confirmed vulnerability and assert it is blocked",
+    "security: Exploit-regression tests for confirmed security findings",
 ]
 filterwarnings = [
     "ignore::DeprecationWarning",
