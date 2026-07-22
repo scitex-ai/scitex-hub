@@ -12,6 +12,10 @@ from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.shortcuts import render
 
+from apps.infra.project_app.services.filesystem.permissions import (
+    validate_path_in_project,
+)
+
 # Repo-name → pip-name mapping for packages where they differ.
 _REPO_TO_PIP = {
     "scitex-python": "scitex",
@@ -76,8 +80,10 @@ def sphinx_raw(request, module, page="index.html"):
 
     try:
         doc_file = doc_file.resolve()
-        doc_base_resolved = doc_base.resolve()
-        if not str(doc_file).startswith(str(doc_base_resolved)):
+        # Component-wise containment, NOT a string prefix — `startswith` admits
+        # any sibling directory whose name merely extends the doc root, so
+        # page="../html-extra/x" would escape a root ending in ".../html".
+        if not validate_path_in_project(doc_base, doc_file):
             raise Http404("Invalid documentation path")
     except (ValueError, OSError):
         raise Http404("Invalid documentation path")
@@ -107,7 +113,8 @@ def serve_sphinx_docs(request, module, page="index.html"):
     try:
         doc_file = doc_file.resolve()
         doc_base = doc_base.resolve()
-        if not str(doc_file).startswith(str(doc_base)):
+        # Component-wise containment, NOT a string prefix (see sphinx_raw).
+        if not validate_path_in_project(doc_base, doc_file):
             raise Http404("Invalid documentation path")
     except (ValueError, OSError):
         raise Http404("Invalid documentation path")

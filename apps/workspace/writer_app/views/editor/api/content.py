@@ -11,6 +11,10 @@ import logging
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
+from apps.infra.project_app.services.filesystem.permissions import (
+    validate_path_in_project,
+)
+
 from ..auth_utils import api_login_optional, get_user_for_request
 
 logger = logging.getLogger(__name__)
@@ -282,11 +286,13 @@ def read_tex_file_view(request, project_id):
             )
         full_path = workspace_path / file_path
 
-        # Security: Ensure path is within workspace
+        # Security: Ensure path is within workspace.
+        # Component-wise containment, NOT a string prefix — `startswith` admits
+        # any sibling whose name merely extends the workspace root, so
+        # path="../<project>-other/secret.tex" would read another project's file.
         try:
             full_path = full_path.resolve()
-            workspace_resolved = workspace_path.resolve()
-            if not str(full_path).startswith(str(workspace_resolved)):
+            if not validate_path_in_project(workspace_path, full_path):
                 return JsonResponse(
                     {"success": False, "error": "Path outside workspace"}, status=403
                 )
