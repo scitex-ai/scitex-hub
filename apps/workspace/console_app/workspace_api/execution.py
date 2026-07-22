@@ -61,6 +61,7 @@ def api_execute_script(request):
         )
         from apps.infra.project_app.services.filesystem.permissions import (
             get_user_data_root,
+            validate_path_in_project,
             validate_path_in_user_jail,
         )
 
@@ -80,10 +81,11 @@ def api_execute_script(request):
 
         file_full_path = project_dir / file_path
 
-        # Path-traversal check — resolved file must stay within the project dir
-        if not str(file_full_path.resolve()).startswith(
-            str(project_dir.resolve())
-        ):
+        # Path-traversal check — resolved file must stay within the project dir.
+        # Component-wise containment, NOT a string prefix: `startswith` would
+        # accept a sibling directory that merely shares the prefix (project
+        # "/data/u/proj" would admit "/data/u/proj-other/x.py").
+        if not validate_path_in_project(project_dir, file_full_path):
             return JsonResponse({"error": "Invalid file path"}, status=400)
 
         # Defence in depth — resolved file must also stay within the user's jail

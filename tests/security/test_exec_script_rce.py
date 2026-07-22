@@ -320,6 +320,30 @@ def traversal_run(rf, owner, spawns, tmp_path):
 
 
 @pytest.fixture
+def sibling_prefix_run(rf, owner, spawns, tmp_path):
+    """Owner escapes into a SIBLING dir whose name shares the project prefix.
+
+    A string ``startswith`` containment check accepts this — "/…/proj-other"
+    does start with "/…/proj" — while component-wise containment rejects it.
+    """
+    jail = _jail_dir(tmp_path, owner.username)
+    project_dir = jail / "proj"
+    project_dir.mkdir(parents=True)
+    sibling = jail / "proj-other"
+    sibling.mkdir(parents=True)
+    (sibling / "secret.py").write_text("print('escaped')\n")
+    project = _StubProject(7, owner, project_dir)
+    resp = _call(
+        rf,
+        tmp_path,
+        project,
+        owner,
+        {"project_id": 7, "path": "../proj-other/secret.py"},
+    )
+    return types.SimpleNamespace(resp=resp, spawns=spawns)
+
+
+@pytest.fixture
 def non_python_run(rf, owner, spawns, tmp_path):
     """Owner requests a non-``.py`` file inside the jail."""
     project_dir = _jail_dir(tmp_path, owner.username) / "proj"
@@ -505,6 +529,24 @@ def test_path_traversal_returns_4xx(traversal_run):
 def test_path_traversal_spawns_no_child(traversal_run):
     # Arrange
     spawns = traversal_run.spawns
+    # Act
+    spawned = bool(spawns.calls)
+    # Assert
+    assert spawned is False
+
+
+def test_sibling_prefix_escape_returns_4xx(sibling_prefix_run):
+    # Arrange
+    resp = sibling_prefix_run.resp
+    # Act
+    status = resp.status_code
+    # Assert
+    assert 400 <= status < 500, resp.content
+
+
+def test_sibling_prefix_escape_spawns_no_child(sibling_prefix_run):
+    # Arrange
+    spawns = sibling_prefix_run.spawns
     # Act
     spawned = bool(spawns.calls)
     # Assert
