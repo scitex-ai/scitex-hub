@@ -299,13 +299,24 @@ def test_pip_install_user_app_lands_package_dir_at_target(
     it importable).
     """
     # Arrange
-    target_dir, _result = pip_installed_wrapper
+    target_dir, result = pip_installed_wrapper
 
     # Act
     installed_pkg = target_dir / "scitex_live_paper_hub_app"
 
     # Assert
-    assert installed_pkg.exists()
+    assert installed_pkg.exists(), (
+        f"pip reported rc={result.returncode} but the package dir did not "
+        f"land at {installed_pkg}.\n"
+        f"--target dir exists--\n{target_dir.exists()}\n"
+        f"--target listing--\n"
+        + (
+            "\n".join(sorted(p.name for p in target_dir.iterdir()))
+            if target_dir.exists()
+            else "<target dir missing>"
+        )
+        + f"\n--pip stdout--\n{result.stdout}\n--pip stderr--\n{result.stderr}"
+    )
 
 
 def test_fixture_tarball_builds_and_serves_over_local_http(
