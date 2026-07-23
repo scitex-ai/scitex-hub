@@ -30,6 +30,16 @@ def project_edit(request, username, slug):
         description = request.POST.get("description", "").strip()
 
         if name:
+            # The name becomes a filesystem path component, so enforce the
+            # same containment validation as project creation (block '/' and
+            # '..') — otherwise a rename can escape the owner's jail. See
+            # sec-nonclass-pathinjection-triage.
+            is_valid, error_message = Project.validate_repository_name(name)
+            if not is_valid:
+                messages.error(request, error_message)
+                return redirect(
+                    "project_app:detail", username=username, slug=project.slug
+                )
             project.name = name
         if description:
             project.description = description
