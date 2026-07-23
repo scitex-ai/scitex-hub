@@ -11,7 +11,6 @@ Extracted from monolithic views.py for better modularity.
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
 import json
 from scitex import logging
 from ...models import UserPreference
@@ -43,7 +42,6 @@ def get_user_preferences(request):
 
 
 @login_required
-@csrf_exempt
 @require_http_methods(["POST"])
 def save_user_preferences(request):
     """Save user's search preferences"""
@@ -80,7 +78,6 @@ def save_user_preferences(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
 
-@csrf_exempt
 @require_http_methods(["POST"])
 def save_source_preferences(request):
     """Save source selection preferences (for both logged in and visitor users)"""

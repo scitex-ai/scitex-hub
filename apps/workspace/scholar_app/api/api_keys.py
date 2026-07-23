@@ -12,7 +12,6 @@ import logging
 from datetime import timedelta
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from apps.infra.accounts_app.models import APIKey
@@ -72,7 +71,6 @@ def list_api_keys(request):
 
 
 @login_required
-@csrf_exempt
 @require_http_methods(["POST"])
 def create_api_key(request):
     """Create a new API key for the current user."""
@@ -152,7 +150,6 @@ def create_api_key(request):
 
 
 @login_required
-@csrf_exempt
 @require_http_methods(["DELETE"])
 def delete_api_key(request, key_id):
     """Delete (revoke) an API key."""
@@ -180,7 +177,6 @@ def delete_api_key(request, key_id):
 
 
 @login_required
-@csrf_exempt
 @require_http_methods(["PATCH"])
 def update_api_key(request, key_id):
     """Update an API key (name, scopes, active status)."""
