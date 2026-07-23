@@ -64,6 +64,16 @@ describe("readonly-visitor-guard", () => {
     expect(toasts.length).toBe(1);
   });
 
+  it("suppresses the toast when a persistent inline read-only banner is present", () => {
+    const inline = document.createElement("div");
+    inline.setAttribute("data-readonly-inline-banner", "");
+    document.body.appendChild(inline);
+
+    showReadonlyVisitorToast({});
+
+    expect(document.getElementById("readonly-visitor-toast")).toBeNull();
+  });
+
   it("shows the toast when fetch resolves a structured readonly 403", async () => {
     window.fetch = vi
       .fn()
