@@ -37,6 +37,8 @@ urlpatterns = [
     path("pricing/", views.pricing, name="pricing"),
     # Services + inquiry (cash-runway entry point; JP-first)
     path("services/", views.services, name="services"),
+    # Public security / trust page (implemented protections + live test count)
+    path("security/", views.security, name="security"),
     # Reference pages
     path("keyboard-shortcuts/", views.keyboard_shortcuts, name="keyboard_shortcuts"),
     # Legal and contact pages
