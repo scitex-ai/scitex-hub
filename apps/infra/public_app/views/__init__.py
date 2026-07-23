@@ -49,6 +49,7 @@ from .pages import (
     pricing,
     publications,
     recruit,
+    services,
     setup_guide,
     video_player,
 )
@@ -95,6 +96,7 @@ __all__ = [
     "publications",
     "fundraising",
     "pricing",
+    "services",
     "contributors",
     "keyboard_shortcuts",
     "recruit",

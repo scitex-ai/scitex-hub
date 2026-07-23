@@ -12,10 +12,14 @@ Re-exports from specialized submodules:
 
 from __future__ import annotations
 
+import logging
+
 from django.http import Http404
 from django.shortcuts import render
 
 from .pages_data import KEYBOARD_SHORTCUTS_DATA, OG_BASE_URL, VIDEO_CATALOG
+
+logger = logging.getLogger(__name__)
 
 __all__ = [
     "about",
@@ -25,6 +29,7 @@ __all__ = [
     "publications",
     "fundraising",
     "pricing",
+    "services",
     "keyboard_shortcuts",
     "contributors",
     "recruit",
@@ -55,6 +60,90 @@ def recruit(request):
     items under "Coming next".
     """
     return render(request, "public_app/pages/recruit.html")
+
+
+def _notify_service_inquiry(inquiry):
+    """Best-effort email of a services inquiry — ONLY if an address is set.
+
+    Never falls back to recruit@ (the hiring inbox). The inquiry is already
+    persisted (ServiceInquiry) before this runs, so if no address is
+    configured, or if sending fails, nothing is lost — the DB (admin) is the
+    source of truth. A send failure is LOGGED loudly, never swallowed.
+    """
+    from django.conf import settings
+
+    to_addr = (getattr(settings, "SERVICES_INQUIRY_EMAIL", "") or "").strip()
+    if not to_addr:
+        return
+    from django.core.mail import send_mail
+
+    subject = f"[SciTeX services] お問い合わせ: {inquiry.name}"
+    body = (
+        f"お名前: {inquiry.name}\n"
+        f"ご所属: {inquiry.affiliation or '-'}\n"
+        f"ご予算感: {inquiry.budget or '-'}\n"
+        f"受付日時: {inquiry.created_at:%Y-%m-%d %H:%M}\n\n"
+        f"ご相談内容:\n{inquiry.request}\n"
+    )
+    try:
+        send_mail(
+            subject,
+            body,
+            settings.DEFAULT_FROM_EMAIL,
+            [to_addr],
+            fail_silently=False,
+        )
+    except Exception:  # noqa: BLE001 — email is best-effort; DB is the record
+        logger.warning(
+            "ServiceInquiry %s stored but email to %s failed",
+            inquiry.pk,
+            to_addr,
+            exc_info=True,
+        )
+
+
+def services(request):
+    """Services page (日本語) — services list + price bands + inquiry form.
+
+    Cash-runway entry point: makes "what can I hire them for" visible and
+    gives an inquiry path. Deliberately NOT a billing system — inquiries are
+    persisted (ServiceInquiry) and, only when settings.SERVICES_INQUIRY_EMAIL
+    is set, emailed (never to recruit@). The BYOK / 前受金 model stays a
+    design memo until demand is visible (資金決済法 exposure otherwise).
+    """
+    submitted = False
+    errors: dict[str, str] = {}
+    form = {"name": "", "affiliation": "", "request": "", "budget": ""}
+
+    if request.method == "POST":
+        form = {
+            "name": (request.POST.get("name") or "").strip(),
+            "affiliation": (request.POST.get("affiliation") or "").strip(),
+            "request": (request.POST.get("request") or "").strip(),
+            "budget": (request.POST.get("budget") or "").strip(),
+        }
+        if not form["name"]:
+            errors["name"] = "お名前をご記入ください。"
+        if not form["request"]:
+            errors["request"] = "ご相談内容をご記入ください。"
+        if not errors:
+            from ..models import ServiceInquiry
+
+            inquiry = ServiceInquiry.objects.create(
+                name=form["name"][:120],
+                affiliation=form["affiliation"][:200],
+                request=form["request"],
+                budget=form["budget"][:120],
+            )
+            _notify_service_inquiry(inquiry)
+            submitted = True
+            form = {"name": "", "affiliation": "", "request": "", "budget": ""}
+
+    return render(
+        request,
+        "public_app/pages/services.html",
+        {"submitted": submitted, "errors": errors, "form": form},
+    )
 
 
 def demos(request):

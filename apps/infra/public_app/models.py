@@ -442,3 +442,37 @@ class BillingEvent(models.Model):
 
     def __str__(self):
         return f"{self.event_type} ({self.event_id})"
+
+
+class ServiceInquiry(models.Model):
+    """A services-page inquiry (問い合わせ).
+
+    Every submission is PERSISTED here so nothing is lost regardless of
+    whether a dedicated inquiry email is configured yet (the operator is
+    still deciding the address; see settings.SERVICES_INQUIRY_EMAIL). The
+    view additionally emails the inquiry only when that address is set —
+    never to recruit@ (the hiring inbox). This is an inquiry entry point
+    only: no billing/前受金 anything is implemented here.
+    """
+
+    name = models.CharField(max_length=120, verbose_name="お名前")
+    affiliation = models.CharField(
+        max_length=200, blank=True, verbose_name="ご所属"
+    )
+    # The free-text 相談内容 — what the person wants to hire us for.
+    request = models.TextField(verbose_name="ご相談内容")
+    # Optional 予算感 kept as free text (bands, "未定" etc.), never a hard number.
+    budget = models.CharField(max_length=120, blank=True, verbose_name="ご予算感")
+    handled = models.BooleanField(
+        default=False, verbose_name="対応済み"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Service Inquiry"
+        verbose_name_plural = "Service Inquiries"
+
+    def __str__(self):
+        who = self.affiliation or "-"
+        return f"{self.name} ({who}) {self.created_at:%Y-%m-%d}"
