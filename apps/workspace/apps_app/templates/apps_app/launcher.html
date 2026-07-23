@@ -9,7 +9,11 @@
 {% block content %}
     <div class="launcher" id="app-launcher" data-max-pins="{{ max_pins }}">
         {% if is_guest_launcher %}
-            <div class="launcher-guest-cta" id="launcher-guest-cta" role="region" aria-label="Guest session">
+            {# data-readonly-inline-banner marks this as the page's single, #}
+            {# in-flow read-only/guest notice. readonly-visitor-guard.ts   #}
+            {# sees the marker and suppresses its floating toast here, so a #}
+            {# visitor sees ONE banner, not two stacked (operator, 07-21).  #}
+            <div class="launcher-guest-cta" id="launcher-guest-cta" data-readonly-inline-banner role="region" aria-label="Guest session">
                 <div class="launcher-guest-cta-text">
                     {% if guest_role == "visitor" %}
                         {# Identity slice matches the header badge (Visitor #NNN); the #}
