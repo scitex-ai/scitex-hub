@@ -8,6 +8,12 @@ Targets:
 - ``apps/workspace/console_app/workspace_api/file_create_delete.py`` ->
   ``api_create_file`` (sink: ``open(..., "w")``) and ``api_delete_file``
   (DESTRUCTIVE sinks: ``shutil.rmtree`` / ``Path.unlink``)
+- ``apps/workspace/console_app/workspace_api/execution.py`` ->
+  ``api_execute_script`` (sink: ``subprocess.run(["python", file_full_path])``
+  -- a path escape here is arbitrary-code execution). This view was MISSED by
+  the original containment sweep: its three siblings above were converted to
+  ``validate_path_in_project`` while ``api_execute_script`` kept the prefix
+  guard AND resolved from the (often-empty) ``git_clone_path``.
 
 Each view builds ``file_full_path = project_path / file_path`` from an
 untrusted ``path`` and gates the sink on
@@ -248,6 +254,48 @@ class TestDeleteSinkDoesNotRun:
         _json_post(api_save_file, user, payload)
         # Assert: the victim's content must be untouched (open("w") never ran).
         assert victim_file.read_text() == "TENANT-B-SECRET"
+
+    def test_execute_does_not_run_sibling_py_file(
+        self, owner_project_with_sibling
+    ):
+        # Arrange: a runnable .py in the sibling tenant dir that, IF executed,
+        # would write a marker -- so a passing guard is proven by its ABSENCE.
+        from apps.workspace.console_app.workspace_api.execution import (
+            api_execute_script,
+        )
+
+        user, project, _, sibling_dir, _ = owner_project_with_sibling
+        marker = sibling_dir / "pwned.txt"
+        (sibling_dir / "evil.py").write_text(
+            f"open({str(marker)!r}, 'w').write('RAN')\n"
+        )
+        payload = {
+            "project_id": project.id,
+            "path": f"../{project.slug}-secret/evil.py",
+        }
+        # Act
+        _json_post(api_execute_script, user, payload)
+        # Assert: the sibling script must NOT have run (no marker written).
+        assert not marker.exists()
+
+    def test_execute_of_sibling_returns_invalid_path(
+        self, owner_project_with_sibling
+    ):
+        # Arrange
+        from apps.workspace.console_app.workspace_api.execution import (
+            api_execute_script,
+        )
+
+        user, project, _, sibling_dir, _ = owner_project_with_sibling
+        (sibling_dir / "evil.py").write_text("print('x')\n")
+        payload = {
+            "project_id": project.id,
+            "path": f"../{project.slug}-secret/evil.py",
+        }
+        # Act
+        response = _json_post(api_execute_script, user, payload)
+        # Assert
+        assert response.status_code == 400
 
 
 if __name__ == "__main__":

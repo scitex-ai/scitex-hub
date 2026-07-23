@@ -12,6 +12,9 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
 from apps.infra.project_app.models import Project
+from apps.infra.project_app.services.filesystem.permissions import (
+    validate_path_in_project,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -45,12 +48,24 @@ def api_execute_script(request):
         if not has_access:
             return JsonResponse({"error": "Unauthorized"}, status=403)
 
-        file_full_path = Path(project.git_clone_path) / file_path
+        # Resolve the project path the same way the file read/write/create
+        # views do (get_project_path), so an executed script is found where
+        # the editor saved it -- not from the frequently-empty git_clone_path.
+        from apps.infra.project_app.services.project_service_manager import (
+            ProjectServiceManager,
+        )
 
-        # Security checks
-        if not str(file_full_path.resolve()).startswith(
-            str(Path(project.git_clone_path).resolve())
-        ):
+        project_path = ProjectServiceManager(project).get_project_path()
+        file_full_path = project_path / file_path
+
+        # Security check
+        # Component-wise containment, NOT a string prefix match. The old guard
+        # (``str(...resolve()).startswith(...)``) admits a sibling dir
+        # (``<proj>-secret``) as "inside" the project; here the sink is
+        # ``subprocess python <file>``, so a path escape is arbitrary-code
+        # execution outside the project. Mirrors the file_read/file_write/
+        # file_create_delete siblings fixed in the containment sweep.
+        if not validate_path_in_project(project_path, file_full_path):
             return JsonResponse({"error": "Invalid file path"}, status=400)
 
         if not file_full_path.exists():
