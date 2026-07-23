@@ -9,94 +9,26 @@ did not, so an authenticated owner could rename to '../../users/victim/proj' and
 escape their jail (cross-tenant path traversal). See
 sec-nonclass-pathinjection-triage.
 
-These tests assert both rename endpoints now reject such a name and leave
-project.name unchanged, and that a legitimate rename still succeeds (the guard is
-not over-broad).
+DB-FREE by design: the security-regression CI gate runs tests/security/ WITHOUT
+a Postgres service, so this file must not touch the DB (no @pytest.mark.django_db)
+and — per the no-mock rule — must not fake the ORM either. Instead it exercises
+the REAL validator (a pure classmethod, no DB) directly, and statically asserts
+both rename endpoints wire it in. The full DB-backed endpoint behaviour is covered
+by the pytest-matrix (Postgres) suite, not this gate.
 """
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
-from django.contrib.messages.storage.fallback import FallbackStorage
-from django.contrib.sessions.middleware import SessionMiddleware
-from django.test import RequestFactory
 
 pytestmark = pytest.mark.security
 
 TRAVERSAL_NAME = "../../users/victim/victimproj"
-SAFE_NAME = "Safe Name"
 
-
-def _make_owner():
-    from django.contrib.auth import get_user_model
-
-    User = get_user_model()
-    return User.objects.create_user(
-        username="renameowner", email="ro@example.com", password="TestPassword123!"
-    )
-
-
-def _make_project(owner):
-    from apps.infra.project_app.models import Project
-
-    return Project.objects.create(owner=owner, name=SAFE_NAME, slug="safe-name")
-
-
-def _post_request(data, user):
-    request = RequestFactory().post("/rename", data)
-    request.user = user
-    SessionMiddleware(lambda r: None).process_request(request)
-    request.session.save()
-    setattr(request, "_messages", FallbackStorage(request))
-    return request
-
-
-@pytest.mark.django_db
-def test_settings_update_general_rejects_path_traversal_name():
-    # Arrange
-    from apps.infra.project_app.views.settings_views import project_settings
-
-    owner = _make_owner()
-    project = _make_project(owner)
-    request = _post_request(
-        {"action": "update_general", "name": TRAVERSAL_NAME, "description": "d"}, owner
-    )
-    # Act
-    project_settings(request, username=owner.username, slug=project.slug)
-    project.refresh_from_db()
-    # Assert
-    assert project.name == SAFE_NAME
-
-
-@pytest.mark.django_db
-def test_project_edit_rejects_path_traversal_name():
-    # Arrange
-    from apps.infra.project_app.views.projects.edit import project_edit
-
-    owner = _make_owner()
-    project = _make_project(owner)
-    request = _post_request({"name": TRAVERSAL_NAME, "description": "d"}, owner)
-    # Act
-    project_edit(request, username=owner.username, slug=project.slug)
-    project.refresh_from_db()
-    # Assert
-    assert project.name == SAFE_NAME
-
-
-@pytest.mark.django_db
-def test_settings_update_general_accepts_a_valid_rename():
-    # Arrange
-    from apps.infra.project_app.views.settings_views import project_settings
-
-    owner = _make_owner()
-    project = _make_project(owner)
-    request = _post_request(
-        {"action": "update_general", "name": "new-valid-name", "description": "d"}, owner
-    )
-    # Act
-    project_settings(request, username=owner.username, slug=project.slug)
-    project.refresh_from_db()
-    # Assert
-    assert project.name == "new-valid-name"
+_VIEWS = Path(__file__).resolve().parents[2] / "apps" / "infra" / "project_app" / "views"
+_SETTINGS_VIEW = _VIEWS / "settings_views.py"
+_EDIT_VIEW = _VIEWS / "projects" / "edit.py"
 
 
 def test_validate_repository_name_rejects_parent_traversal():
@@ -107,3 +39,47 @@ def test_validate_repository_name_rejects_parent_traversal():
     is_valid, _error = Project.validate_repository_name(TRAVERSAL_NAME)
     # Assert
     assert is_valid is False
+
+
+def test_validate_repository_name_rejects_a_slash():
+    # Arrange
+    from apps.infra.project_app.models import Project
+
+    # Act
+    is_valid, _error = Project.validate_repository_name("a/b/c")
+    # Assert
+    assert is_valid is False
+
+
+def test_validate_repository_name_accepts_a_normal_name():
+    # Arrange
+    from apps.infra.project_app.models import Project
+
+    # Act
+    is_valid, _error = Project.validate_repository_name("my-project_1.0")
+    # Assert
+    assert is_valid is True
+
+
+def test_settings_rename_endpoint_wires_the_name_validator():
+    # Arrange
+    source = _SETTINGS_VIEW.read_text(encoding="utf-8")
+    # Act
+    wired = "validate_repository_name" in source
+    # Assert
+    assert wired, (
+        "settings_views.update_general must call Project.validate_repository_name "
+        "on rename (else project.name can traverse)"
+    )
+
+
+def test_project_edit_endpoint_wires_the_name_validator():
+    # Arrange
+    source = _EDIT_VIEW.read_text(encoding="utf-8")
+    # Act
+    wired = "validate_repository_name" in source
+    # Assert
+    assert wired, (
+        "projects/edit.py project_edit must call Project.validate_repository_name "
+        "on rename (else project.name can traverse)"
+    )
