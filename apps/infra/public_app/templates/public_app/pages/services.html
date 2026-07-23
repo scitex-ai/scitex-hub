@@ -3,8 +3,9 @@
 
 {% block title %}サービス・料金 | Services - SciTeX{% endblock %}
 {% block meta_description %}
-    SciTeX のサービス一覧と料金の目安、お問い合わせ。研究DX相談・解析代行・環境構築・AI導入など、
-    研究の「困った」を有償でお引き受けします。まずはお気軽にご相談ください。
+    SciTeX の研究支援サービスと料金の目安。ベンダーに依存せず、既存の PC・NAS・HPC を
+    活かしながら、解析・環境構築・データ管理・自動化・再現性の確保など、時間のかかる部分だけを
+    お手伝いします。外部利用料は原則実費、データは囲い込みません。まずは無料相談から。
 {% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'public_app/css/about/00-about.css' %}" />
@@ -17,66 +18,148 @@
 {% block content %}
     <div class="about-container" lang="ja">
         <header class="minimal-hero">
-            <h1 class="minimal-hero-title">研究の「困った」を、一緒に片づけます</h1>
+            <h1 class="minimal-hero-title">研究の面倒を、仕組みに変えます</h1>
         </header>
 
         <article class="about-narrative">
             <section class="about-section">
                 <p>
-                    SciTeX は、研究の自動化ツールキットを開発・運営しています。
-                    そのツールを作る過程で身につけた技術を、研究者・研究室・企業のみなさまに
-                    サービスとしてご提供します。
+                    SciTeX は、研究者が文献、解析、Figure、執筆、データ管理、計算環境に費やす時間を
+                    減らすための、オープンな研究基盤を開発しています。
                 </p>
                 <p>
-                    自分で用意できるものは、自分で用意すれば安く済みます。
-                    難しいところ、時間がかかるところだけ、私たちが有償でお引き受けします。
+                    既存の PC、NAS、サーバー、HPC を活かしながら、ローカル環境、クラウド、生成 AI を
+                    必要な範囲だけ組み合わせます。
+                </p>
+                <p>
+                    自分でできるところまで有料サービスにすることはありません。難しい接続、移行、
+                    自動化、再現性の確保など、時間のかかる部分だけを SciTeX が支援します。
+                </p>
+                <p>
+                    特定の AI、クラウド、ファイル形式への囲い込みを前提とせず、支援後も研究者自身が
+                    使い続けられる環境を目指します。
                 </p>
             </section>
 
             <!-- ============================================================ -->
-            <!-- 1. サービス一覧 ＋ 2. 料金（帯表示）                          -->
+            <!-- お手伝いできること（4カテゴリ・具体例つき）                   -->
             <!-- ============================================================ -->
             <section class="about-section">
-                <h2>研究者・研究室向け</h2>
-                <ul class="svc-list">
-                    <li><span class="svc-name">研究DX 相談（60分）</span><span class="svc-price">3万円</span></li>
-                    <li><span class="svc-name">Python 解析代行</span><span class="svc-price">10万円〜</span></li>
-                    <li><span class="svc-name">コードベース整理</span><span class="svc-price">5万円〜</span></li>
-                    <li><span class="svc-name">再現可能な解析環境の構築</span><span class="svc-price">10万円〜</span></li>
-                    <li><span class="svc-name">論文用 Figure 作成</span><span class="svc-price">1〜5万円</span></li>
-                </ul>
+                <h2>お手伝いできること</h2>
+
+                <h3 class="svc-cat-head">研究ワークフロー・解析</h3>
+                <div class="svc-offer">
+                    <p class="svc-offer-name">解析相談・コードレビュー</p>
+                    <p class="svc-offer-desc">既存の Python／R コード、解析手順、再現性、処理速度などを確認します。</p>
+                </div>
+                <div class="svc-offer">
+                    <p class="svc-offer-name">定型解析の自動化</p>
+                    <p class="svc-offer-desc">繰り返している前処理、集計、統計解析、レポート生成を自動化します。</p>
+                </div>
+                <div class="svc-offer">
+                    <p class="svc-offer-name">再現可能な Figure 作成</p>
+                    <p class="svc-offer-desc">元データとコードから、修正可能で再生成できる論文用 Figure を構築します。</p>
+                </div>
+                <div class="svc-offer">
+                    <p class="svc-offer-name">文献・執筆環境の整備</p>
+                    <p class="svc-offer-desc">文献検索、収集、引用管理、原稿作成、共同編集までの流れを整理します。</p>
+                </div>
+
+                <h3 class="svc-cat-head">研究用 IT・計算環境</h3>
+                <div class="svc-offer">
+                    <p class="svc-offer-name">Linux・Docker・Apptainer 環境構築</p>
+                    <p class="svc-offer-desc">研究コードを再現可能な環境にまとめ、別の PC やサーバーでも動かせるようにします。</p>
+                </div>
+                <div class="svc-offer">
+                    <p class="svc-offer-name">SSH・HPC・リモート計算環境の整備</p>
+                    <p class="svc-offer-desc">大学や研究機関の計算資源、研究室サーバー、手元の PC を安全につなぎます。</p>
+                </div>
+                <div class="svc-offer">
+                    <p class="svc-offer-name">NAS・ストレージ・バックアップ構築</p>
+                    <p class="svc-offer-desc">研究データの保存先、バックアップ、移行、整理、監視方法を設計します。</p>
+                </div>
+                <div class="svc-offer">
+                    <p class="svc-offer-name">ローカル・オンプレミス AI 導入</p>
+                    <p class="svc-offer-desc">機密データを外部へ出さずに利用できる生成 AI や、既存 API と組み合わせた環境を構築します。生成 AI・コーディングエージェント（ChatGPT、Claude Code、Codex、ローカルモデルなど）の導入もここに含みます。</p>
+                </div>
+                <div class="svc-offer">
+                    <p class="svc-offer-name">研究用 Mini PC・SciTeX Station 構築</p>
+                    <p class="svc-offer-desc">必要なソフトウェアを導入した小型計算機を、研究室ですぐ使える状態に整えます。</p>
+                </div>
+
+                <h3 class="svc-cat-head">デジタル化・物品管理</h3>
+                <div class="svc-offer">
+                    <p class="svc-offer-name">紙資料のデジタル化・OCR・自動整理</p>
+                    <p class="svc-offer-desc">スキャンした書類を読み取り、分類、命名、保存まで自動化します。</p>
+                </div>
+                <div class="svc-offer">
+                    <p class="svc-offer-name">研究データ・ファイル整理</p>
+                    <p class="svc-offer-desc">使用頻度、容量、更新日、重複などをもとに、保存場所やアーカイブ方法を整理します。</p>
+                </div>
+                <div class="svc-offer">
+                    <p class="svc-offer-name">研究室物品管理・AIラベリング <span class="svc-tag">開発中・実証協力募集</span></p>
+                    <p class="svc-offer-desc">カメラで物品を認識し、重量や保管場所を記録して、QRラベルをその場で発行する仕組みを開発しています。共同実証にご協力いただける研究室を募集しています。</p>
+                </div>
+
+                <h3 class="svc-cat-head">研究室・組織向け</h3>
+                <div class="svc-offer">
+                    <p class="svc-offer-name">SciTeX 導入・小規模実証</p>
+                    <p class="svc-offer-desc">まず一つの研究工程だけを対象に、試験導入と効果確認を行います。</p>
+                </div>
+                <div class="svc-offer">
+                    <p class="svc-offer-name">研究室専用ツール・プラグイン開発</p>
+                    <p class="svc-offer-desc">既存の研究手順に合わせた小規模アプリ、連携機能、自動化処理を開発します。SciTeX Scholar・Writer・FigRecipe・Storage・Tasks の導入もお手伝いします。</p>
+                </div>
+                <div class="svc-offer">
+                    <p class="svc-offer-name">オンサイト・NDA対応</p>
+                    <p class="svc-offer-desc">機密データや研究設備を扱う場合は、秘密保持契約の上で現地環境への導入にも対応します。</p>
+                </div>
+                <div class="svc-offer">
+                    <p class="svc-offer-name">継続的な技術支援</p>
+                    <p class="svc-offer-desc">研究室内に専任の技術者を置くほどではないものの、継続して相談できる相手が必要な場合に伴走します。</p>
+                </div>
             </section>
 
+            <!-- ============================================================ -->
+            <!-- 料金の目安（階段式）                                          -->
+            <!-- ============================================================ -->
             <section class="about-section">
-                <h2>IT・環境構築</h2>
-                <ul class="svc-list">
-                    <li><span class="svc-name">AI・ChatGPT 導入</span><span class="svc-price">3万円〜</span></li>
-                    <li><span class="svc-name">Claude Code 導入</span><span class="svc-price">5万円〜</span></li>
-                    <li><span class="svc-name">Linux・Docker 環境構築</span><span class="svc-price">5万円〜</span></li>
-                    <li><span class="svc-name">Mini PC セットアップ</span><span class="svc-price">3万円〜</span></li>
-                    <li><span class="svc-name">NAS・バックアップ構築</span><span class="svc-price">10万円〜</span></li>
-                </ul>
-            </section>
-
-            <section class="about-section">
-                <h2>継続支援</h2>
-                <ul class="svc-list">
-                    <li><span class="svc-name">SciTeX 導入支援</span><span class="svc-price">5万円〜</span></li>
-                    <li><span class="svc-name">AI・技術顧問</span><span class="svc-price">月 5〜10万円</span></li>
-                </ul>
+                <h2>料金の目安</h2>
+                <table class="svc-price-table">
+                    <thead>
+                        <tr><th scope="col">内容</th><th scope="col">料金の目安</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>初回相談・課題の整理（30分）</td><td class="svc-price-cell">無料</td></tr>
+                        <tr><td>技術相談・設計相談（60分）</td><td class="svc-price-cell">11,000円</td></tr>
+                        <tr><td>小さな設定・修正・調査</td><td class="svc-price-cell">11,000円〜</td></tr>
+                        <tr><td>コードレビュー・環境診断</td><td class="svc-price-cell">33,000円〜</td></tr>
+                        <tr><td>環境構築・データ移行・自動化</td><td class="svc-price-cell">55,000円〜</td></tr>
+                        <tr><td>研究室向け試験導入・PoC</td><td class="svc-price-cell">55,000円〜</td></tr>
+                        <tr><td>個別開発・本格導入</td><td class="svc-price-cell">110,000円〜</td></tr>
+                        <tr><td>継続的な技術支援</td><td class="svc-price-cell">月額33,000円〜</td></tr>
+                        <tr><td>技術顧問・組織的な導入支援</td><td class="svc-price-cell">月額55,000円〜</td></tr>
+                    </tbody>
+                </table>
                 <p class="svc-price-note">
-                    表示金額は目安です。すべての価格は、利益の最大化ではなく、
-                    継続して運営できることを目安に決めています。詳しいお見積もりは
-                    ご相談内容に応じて個別にご案内します。「なぜこの価格なのか」は
-                    下の「料金について」からご覧いただけます。
+                    作業内容、既存環境、納期によって料金は変わります。正式な作業を始める前に、
+                    対応範囲と金額をご提示します。
+                </p>
+                <p class="svc-price-note">
+                    ソフトウェア、ハードウェア、クラウド、生成 AI API などの外部利用料は、
+                    原則として実費です。お客様自身の契約をそのまま使用することもできます。
+                </p>
+                <p class="svc-price-note">
+                    大きな契約を最初からお願いするのではなく、可能な限り小さな相談や試験導入から
+                    始めます。
                 </p>
             </section>
 
             <!-- ============================================================ -->
-            <!-- 3. お問い合わせフォーム                                       -->
+            <!-- ご相談・お問い合わせ（フォーム）                              -->
             <!-- ============================================================ -->
             <section class="about-section" id="inquiry">
-                <h2>ご相談・お問い合わせ</h2>
+                <h2>ご相談ください</h2>
                 {% if submitted %}
                     <div class="svc-form-success" role="status">
                         お問い合わせを受け付けました。ありがとうございます。
@@ -84,8 +167,17 @@
                     </div>
                 {% endif %}
                 <p>
-                    「これは頼めますか？」というご相談だけでも歓迎です。
-                    下記フォームからお送りください。
+                    「何を頼めばよいのか分からない」という段階でも問題ありません。現在の作業方法や
+                    困っていることを伺い、
+                </p>
+                <ul class="recruit-list">
+                    <li>SciTeX が対応できること</li>
+                    <li>ご自身で無料でできること</li>
+                    <li>別のサービスを利用した方がよいこと</li>
+                </ul>
+                <p>
+                    を分けてお伝えします。ご相談いただいたからといって、契約を前提に話を進めることは
+                    ありません。
                 </p>
                 <form class="svc-form" method="post" action="{% url 'public_app:services' %}#inquiry">
                     {% csrf_token %}
@@ -104,7 +196,7 @@
                     <div class="svc-field">
                         <label for="svc-request">ご相談内容 <span class="svc-req">必須</span></label>
                         <textarea id="svc-request" name="request" rows="6" required
-                                  placeholder="どんなことでお困りか、お聞かせください。">{{ form.request }}</textarea>
+                                  placeholder="いま困っていること、やりたいことをお聞かせください。">{{ form.request }}</textarea>
                         {% if errors.request %}<p class="svc-error">{{ errors.request }}</p>{% endif %}
                     </div>
                     <div class="svc-field">
@@ -117,44 +209,23 @@
             </section>
 
             <!-- ============================================================ -->
-            <!-- 4. なぜこの価格か（透明性）                                    -->
+            <!-- 料金について（約束）                                          -->
             <!-- ============================================================ -->
             <section class="about-section">
                 <h2>料金について</h2>
-                <p>
-                    研究では「なぜこの手法か」を説明します。私たちも、価格の考え方を
-                    できるだけ透明にしたいと考えています（内訳を細かく約束するものではありません）。
-                </p>
-                <details class="svc-why">
-                    <summary>ストレージ・保管について</summary>
-                    <p>
-                        主にストレージの維持・バックアップ・監視・運営にかかるコストを反映しています。
-                        利益の最大化ではなく、継続して運営するための価格です。
-                    </p>
-                </details>
-                <details class="svc-why">
-                    <summary>計算（Compute）について</summary>
-                    <p>
-                        ローカルでの計算は無料です。SciTeX Cloud を使う場合のみ、
-                        実際に使った計算資源に応じてご負担いただきます。
-                    </p>
-                </details>
-                <details class="svc-why">
-                    <summary>LLM（生成AI）の利用料について</summary>
-                    <p>
-                        ご自身の API 契約を使う場合、SciTeX からの上乗せは0円です。
-                        お支払いを代行する場合も、実費と管理の実費のみをいただきます。
-                    </p>
-                </details>
-
-                <h3>料金の考え方</h3>
-                <ul class="recruit-list">
-                    <li>自分で用意できるものは、無料で使えるようにします。</li>
-                    <li>囲い込み（ロックイン）を目的にした価格設定はしません。</li>
-                    <li>API の利用料は、できるかぎり実費にします。</li>
-                    <li>継続して運営できる価格を目指します。</li>
-                    <li>値上げする場合は、その理由を公開します。</li>
+                <p>SciTeX は、次の方針で料金を設定します。</p>
+                <ul class="svc-promises">
+                    <li>既存の設備や契約を、できる限り活用します。</li>
+                    <li>無料・オープンソースで解決できる部分は、その方法をご案内します。</li>
+                    <li>外部サービスの利用料には、原則として不要な上乗せをしません。</li>
+                    <li>データ、コード、設定ファイルは、支援終了後もお客様が保持できます。</li>
+                    <li>特定ベンダーへのロックインを前提としません。</li>
+                    <li>作業開始前に、対応範囲と料金を確認します。</li>
                 </ul>
+                <p class="svc-price-note">
+                    SciTeX Cloud のストレージ・計算・API などの従量課金については、料金が固まりしだい
+                    別ページでご案内します。それまでの外部利用料は、原則として実費です。
+                </p>
             </section>
         </article>
     </div>

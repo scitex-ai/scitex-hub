@@ -66,7 +66,7 @@ class TestServicesGet:
         # Act
         resp = client.get(services_url)
         # Assert
-        assert "研究DX 相談" in resp.content.decode()
+        assert "解析相談・コードレビュー" in resp.content.decode()
 
     def test_get_shows_transparency_section(self, client, services_url):
         # Arrange
@@ -74,6 +74,27 @@ class TestServicesGet:
         resp = client.get(services_url)
         # Assert
         assert "料金について" in resp.content.decode()
+
+    def test_get_shows_pricing_ladder(self, client, services_url):
+        # Arrange
+        # Act
+        resp = client.get(services_url)
+        # Assert
+        assert "料金の目安" in resp.content.decode()
+
+    def test_get_offers_a_free_first_consult(self, client, services_url):
+        # Arrange
+        # Act
+        resp = client.get(services_url)
+        # Assert
+        assert "無料" in resp.content.decode()
+
+    def test_get_leads_with_no_lock_in_positioning(self, client, services_url):
+        # Arrange
+        # Act
+        resp = client.get(services_url)
+        # Assert
+        assert "囲い込" in resp.content.decode()
 
 
 @pytest.mark.django_db
