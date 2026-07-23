@@ -349,14 +349,75 @@
   }
 }
 
-/* Narrow screens: let the 2-column pricing table shrink to fit. The service
-   matrix stays scrollable in its own wrapper (mobile stacking is a follow-up). */
+/* Narrow screens: let the 2-column pricing table shrink, and restack the
+   service matrix into one card per service (no horizontal scroll). The plan
+   labels are injected by nth-of-type, so no HTML/data-label changes are needed
+   and the restack survives any later change to the matrix rows. */
 @media (max-width: 640px) {
   .svc-price-table {
     min-width: 0;
   }
 
   .svc-matrix {
-    min-width: 560px;
+    min-width: 0;
+    border: none;
+    border-radius: 0;
+  }
+
+  .svc-matrix thead {
+    display: none;
+  }
+
+  .svc-matrix tbody,
+  .svc-matrix tr,
+  .svc-matrix th,
+  .svc-matrix td {
+    display: block;
+    border: none;
+  }
+
+  .svc-matrix tr {
+    border: 1px solid var(--svc-border);
+    border-radius: var(--svc-radius);
+    margin-bottom: 0.8rem;
+    padding: 0.6rem 0.9rem;
+    background: var(--svc-surface);
+  }
+
+  .svc-matrix tbody th[scope="row"] {
+    background: transparent;
+    white-space: normal;
+    font-size: 0.92rem;
+    padding: 0 0 0.5rem;
+    margin-bottom: 0.4rem;
+    border-bottom: 1px solid var(--svc-border);
+  }
+
+  .svc-matrix td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: right;
+    padding: 0.3rem 0;
+  }
+
+  .svc-matrix td::before {
+    opacity: 0.72;
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+
+  .svc-matrix td:nth-of-type(1)::before {
+    content: "Individual";
+  }
+  .svc-matrix td:nth-of-type(2)::before {
+    content: "Lab";
+  }
+  .svc-matrix td:nth-of-type(3)::before {
+    content: "Enterprise";
+  }
+
+  .svc-matrix-price th[scope="row"] {
+    border-bottom-color: var(--svc-border-strong);
   }
 }
