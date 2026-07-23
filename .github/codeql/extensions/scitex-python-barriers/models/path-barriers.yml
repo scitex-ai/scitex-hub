@@ -1,0 +1,32 @@
+# Teach CodeQL that the project's component-wise path-containment validators are
+# sanitizer barriers for py/path-injection.
+#
+# validate_path_in_project / validate_path_in_user_jail
+# (apps/infra/project_app/services/filesystem/permissions.py) both enforce
+# `target.resolve().relative_to(root.resolve())` and return a bool; every caller
+# gates the filesystem sink on them via `if not validate(...): return <error>`.
+#
+# CodeQL already models the inline `str(target.resolve()).startswith(str(root.resolve()))`
+# form as a path-injection barrier, but NOT these helper functions. So replacing a
+# buggy prefix check with the CORRECT component-wise check removes the modelled
+# barrier and re-reports a FALSE positive (the "penalized for the correct fix"
+# regression on the path-containment sweep). This encodes the TRUE containment
+# fact, scoped to the exact function + guarded argument — it is NOT a rule-wide or
+# path-wide suppression, and it does not weaken the check anywhere else.
+#
+# NOTE: validate_remote_path_in_root is INTENTIONALLY NOT modelled — its docstring
+# records an accepted residual symlink-escape risk (an operator decision), so
+# modelling it as a full barrier would permanently hide that channel from CodeQL.
+# The SSH validators (ssh_destination / ssh_remote_target) use a raise-and-return
+# shape and belong in a barrierModel(ReturnValue, ...) — deferred until those
+# functions land on develop.
+extensions:
+  - addsTo:
+      pack: codeql/python-all
+      extensible: barrierGuardModel
+    data:
+      # validate_path_in_project(project_path, target_path) -> bool
+      # target_path (Argument[1]) is contained in project_path when this returns True.
+      - ["apps", "Member[infra].Member[project_app].Member[services].Member[filesystem].Member[permissions].Member[validate_path_in_project].Argument[1,target_path:]", "true", "path-injection"]
+      # validate_path_in_user_jail(user, target_path) -> bool  (delegates to the above)
+      - ["apps", "Member[infra].Member[project_app].Member[services].Member[filesystem].Member[permissions].Member[validate_path_in_user_jail].Argument[1,target_path:]", "true", "path-injection"]
