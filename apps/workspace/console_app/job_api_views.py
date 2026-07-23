@@ -18,7 +18,6 @@ from pathlib import Path
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from .services import SlurmManager
@@ -39,7 +38,6 @@ def get_slurm_manager():
 
 
 @login_required
-@csrf_exempt
 @require_http_methods(["POST"])
 def api_submit_job(request):
     """
@@ -166,7 +164,6 @@ def api_job_status(request, job_id):
 
 
 @login_required
-@csrf_exempt
 @require_http_methods(["POST"])
 def api_cancel_job(request, job_id):
     """
