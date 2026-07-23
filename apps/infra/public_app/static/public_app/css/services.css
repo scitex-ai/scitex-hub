@@ -307,3 +307,54 @@
 .svc-muted {
   opacity: 0.7;
 }
+
+/* Mobile plan cards — shown in place of the wide table on narrow screens
+   (toggled in services-detail.css @media) so there is no horizontal scroll. */
+.svc-plan-cards {
+  display: none;
+}
+
+.svc-plan-card {
+  padding: 1.2rem;
+  border: 1px solid var(--svc-border);
+  border-radius: var(--svc-radius);
+  background: var(--svc-surface);
+  margin-bottom: 0.9rem;
+}
+
+.svc-plan-card-featured {
+  border-color: var(--svc-accent);
+  background: color-mix(in srgb, var(--svc-accent) 10%, transparent);
+}
+
+.svc-plan-card-name {
+  margin: 0 0 0.7rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.svc-plan-card-sub {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  opacity: 0.72;
+}
+
+.svc-plan-card dl {
+  display: grid;
+  grid-template-columns: 6.5rem 1fr;
+  gap: 0.4rem 0.8rem;
+  margin: 0;
+}
+
+.svc-plan-card dt {
+  font-size: 0.78rem;
+  font-weight: 700;
+  opacity: 0.72;
+}
+
+.svc-plan-card dd {
+  margin: 0;
+  font-size: 0.88rem;
+}

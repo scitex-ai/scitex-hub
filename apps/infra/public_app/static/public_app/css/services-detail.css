@@ -342,3 +342,19 @@
     padding: 1.2rem;
   }
 }
+
+/* Narrow screens: swap the wide plans table for stacked cards and let the
+   2-column pricing table shrink, so nothing needs horizontal scrolling. */
+@media (max-width: 640px) {
+  .svc-plan-wrap {
+    display: none;
+  }
+
+  .svc-plan-cards {
+    display: block;
+  }
+
+  .svc-price-table {
+    min-width: 0;
+  }
+}
