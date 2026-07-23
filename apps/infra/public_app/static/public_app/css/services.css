@@ -147,8 +147,87 @@
   opacity: 0.9;
 }
 
+/* ── Service offers: category head + item (name + description) ────────────── */
+.svc-cat-head {
+  margin: 1.6rem 0 0.6rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 2px solid var(--svc-border);
+}
+
+.svc-offer {
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--svc-border);
+}
+
+.svc-offer-name {
+  margin: 0 0 0.2rem;
+  font-weight: 600;
+}
+
+.svc-offer-desc {
+  margin: 0;
+  font-size: 0.92rem;
+  opacity: 0.88;
+}
+
+.svc-tag {
+  display: inline-block;
+  margin-left: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--svc-accent);
+  border: 1px solid var(--svc-accent);
+  border-radius: 4px;
+  padding: 0 0.35rem;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* ── Pricing table (料金の目安) ───────────────────────────────────────────── */
+.svc-price-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5rem 0 0;
+}
+
+.svc-price-table th,
+.svc-price-table td {
+  text-align: left;
+  padding: 0.6rem 0.5rem;
+  border-bottom: 1px solid var(--svc-border);
+  vertical-align: baseline;
+}
+
+.svc-price-table thead th {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  border-bottom: 2px solid var(--svc-border);
+}
+
+.svc-price-cell {
+  text-align: right;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--svc-accent);
+}
+
+/* ── Pricing promises ─────────────────────────────────────────────────────── */
+.svc-promises {
+  margin: 0.5rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.svc-promises li {
+  margin: 0.35rem 0;
+}
+
 @media (max-width: 640px) {
   .svc-list li {
     gap: 0.5rem;
+  }
+
+  .svc-price-table th,
+  .svc-price-table td {
+    padding: 0.55rem 0.3rem;
   }
 }
