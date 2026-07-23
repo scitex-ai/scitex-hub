@@ -8,123 +8,249 @@
     お手伝いします。外部利用料は原則実費、データは囲い込みません。まずは無料相談から。
 {% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'public_app/css/about/00-about.css' %}" />
-    <link rel="stylesheet" href="{% static 'public_app/css/about/02-context.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'public_app/css/about/07-section-styling.css' %}" />
-    <link rel="stylesheet" href="{% static 'public_app/css/about/16-responsive.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/services.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/services-detail.css' %}" />
 {% endblock %}
 {% block content %}
-    <div class="about-container" lang="ja">
-        <header class="minimal-hero">
-            <h1 class="minimal-hero-title">研究の面倒を、仕組みに変えます</h1>
-        </header>
+    <div class="svc-page" lang="ja">
 
-        <article class="about-narrative">
-            <section class="about-section">
-                <p>
-                    SciTeX は、研究者が文献、解析、Figure、執筆、データ管理、計算環境に費やす時間を
-                    減らすための、オープンな研究基盤を開発しています。
+        <!-- ============================================================ -->
+        <!-- Hero + workflow panel                                        -->
+        <!-- ============================================================ -->
+        <section class="svc-hero">
+            <div class="svc-hero-main">
+                <span class="svc-eyebrow">Open Research Infrastructure</span>
+                <h1 class="svc-hero-title">研究の面倒を、<span class="svc-accent-text">仕組みに変えます</span></h1>
+                <p class="svc-hero-copy">
+                    SciTeX は、文献、解析、Figure、執筆、データ管理、計算環境を横断して、
+                    研究者と研究組織のワークフローを整えるオープンな研究基盤です。既存の PC、NAS、
+                    サーバー、HPC を活かしながら、必要な部分だけを接続・自動化します。
                 </p>
-                <p>
-                    既存の PC、NAS、サーバー、HPC を活かしながら、ローカル環境、クラウド、生成 AI を
-                    必要な範囲だけ組み合わせます。
+                <div class="svc-hero-actions">
+                    <a href="#inquiry" class="svc-btn svc-btn-primary">相談内容を整理する</a>
+                    <a href="#plans" class="svc-btn svc-btn-ghost">プランを見る</a>
+                </div>
+                <p class="svc-hero-note">
+                    初回相談 30 分無料。契約を前提とせず、自分でできること・SciTeX が支援できることを
+                    分けてご案内します。
                 </p>
-                <p>
-                    自分でできるところまで有料サービスにすることはありません。難しい接続、移行、
-                    自動化、再現性の確保など、時間のかかる部分だけを SciTeX が支援します。
-                </p>
-                <p>
-                    特定の AI、クラウド、ファイル形式への囲い込みを前提とせず、支援後も研究者自身が
-                    使い続けられる環境を目指します。
-                </p>
-            </section>
+            </div>
+            <aside class="svc-hero-panel" aria-label="SciTeX 導入フロー">
+                <p class="svc-panel-title">From fragmented work to reproducible workflow</p>
+                <div class="svc-flow">
+                    <div class="svc-flow-item">
+                        <span class="svc-flow-num">01</span>
+                        <div>
+                            <strong>現状を整理</strong>
+                            <span>コード、データ、設備、運用上の制約を確認します。</span>
+                        </div>
+                    </div>
+                    <div class="svc-flow-item">
+                        <span class="svc-flow-num">02</span>
+                        <div>
+                            <strong>小さく接続</strong>
+                            <span>一つの作業や研究工程から試験導入します。</span>
+                        </div>
+                    </div>
+                    <div class="svc-flow-item">
+                        <span class="svc-flow-num">03</span>
+                        <div>
+                            <strong>再現可能にする</strong>
+                            <span>環境、コード、データ、Figure を再生成できる形に整えます。</span>
+                        </div>
+                    </div>
+                    <div class="svc-flow-item">
+                        <span class="svc-flow-num">04</span>
+                        <div>
+                            <strong>研究者に残す</strong>
+                            <span>データや設定は手元に残り、支援後も継続利用できます。</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </section>
 
-            <!-- ============================================================ -->
-            <!-- お手伝いできること（4カテゴリ・具体例つき）                   -->
-            <!-- ============================================================ -->
-            <section class="about-section">
-                <h2>お手伝いできること</h2>
+        <!-- Trust strip -->
+        <div class="svc-trust">
+            <span class="svc-trust-item">Open Source First</span>
+            <span class="svc-trust-item">Local / Cloud / HPC</span>
+            <span class="svc-trust-item">Vendor Neutral</span>
+            <span class="svc-trust-item">NDA / On-site Ready</span>
+        </div>
 
-                <h3 class="svc-cat-head">研究ワークフロー・解析</h3>
-                <div class="svc-offer">
-                    <p class="svc-offer-name">解析相談・コードレビュー</p>
-                    <p class="svc-offer-desc">既存の Python／R コード、解析手順、再現性、処理速度などを確認します。</p>
-                </div>
-                <div class="svc-offer">
-                    <p class="svc-offer-name">定型解析の自動化</p>
-                    <p class="svc-offer-desc">繰り返している前処理、集計、統計解析、レポート生成を自動化します。</p>
-                </div>
-                <div class="svc-offer">
-                    <p class="svc-offer-name">再現可能な Figure 作成</p>
-                    <p class="svc-offer-desc">元データとコードから、修正可能で再生成できる論文用 Figure を構築します。</p>
-                </div>
-                <div class="svc-offer">
-                    <p class="svc-offer-name">文献・執筆環境の整備</p>
-                    <p class="svc-offer-desc">文献検索、収集、引用管理、原稿作成、共同編集までの流れを整理します。</p>
-                </div>
+        <!-- ============================================================ -->
+        <!-- 対象別プラン (Individual / Lab / Enterprise)                  -->
+        <!-- ============================================================ -->
+        <section class="svc-section" id="plans">
+            <p class="svc-kicker">Plans</p>
+            <h2>個人から研究組織まで、必要な範囲だけ。</h2>
+            <p class="svc-section-desc">
+                最初から大規模な導入を前提にせず、課題の大きさと組織の状況に合わせて支援範囲を
+                設計します。
+            </p>
+            <div class="svc-plan-wrap">
+                <table class="svc-plan-table">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="svc-plan-axis">Plan</th>
+                            <th scope="col">
+                                <span class="svc-plan-name">Individual</span>
+                                <span class="svc-plan-sub">個人研究者・大学院生</span>
+                            </th>
+                            <th scope="col" class="svc-plan-featured">
+                                <span class="svc-plan-badge">おすすめ</span>
+                                <span class="svc-plan-name">Lab</span>
+                                <span class="svc-plan-sub">研究室・共同研究チーム</span>
+                            </th>
+                            <th scope="col">
+                                <span class="svc-plan-name">Enterprise</span>
+                                <span class="svc-plan-sub">大学・研究機関・企業 R&amp;D</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th scope="row">主な課題</th>
+                            <td>解析、コード、Figure、個人環境の整備</td>
+                            <td>データ共有、自動化、計算資源、属人化</td>
+                            <td>組織導入、標準化、セキュリティ、継続運用</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">導入方法</th>
+                            <td>スポット相談・個別支援</td>
+                            <td>一工程からの小規模 PoC</td>
+                            <td>要件整理・試験導入・段階展開</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">対応環境</th>
+                            <td>PC、WSL、クラウド、HPC</td>
+                            <td>研究室サーバー、NAS、HPC</td>
+                            <td>オンプレミス、閉域環境、クラウド</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">支援内容</th>
+                            <td>レビュー、環境構築、自動化</td>
+                            <td>共有基盤、データ管理、専用ツール</td>
+                            <td>ガバナンス、導入設計、継続支援</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">NDA・オンサイト</th>
+                            <td class="svc-muted">必要に応じて対応</td>
+                            <td>対応</td>
+                            <td>対応</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">料金の目安</th>
+                            <td class="svc-plan-price">11,000円〜</td>
+                            <td class="svc-plan-price">55,000円〜</td>
+                            <td class="svc-plan-price">110,000円〜／要見積もり</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-                <h3 class="svc-cat-head">研究用 IT・計算環境</h3>
-                <div class="svc-offer">
-                    <p class="svc-offer-name">Linux・Docker・Apptainer 環境構築</p>
-                    <p class="svc-offer-desc">研究コードを再現可能な環境にまとめ、別の PC やサーバーでも動かせるようにします。</p>
-                </div>
-                <div class="svc-offer">
-                    <p class="svc-offer-name">SSH・HPC・リモート計算環境の整備</p>
-                    <p class="svc-offer-desc">大学や研究機関の計算資源、研究室サーバー、手元の PC を安全につなぎます。</p>
-                </div>
-                <div class="svc-offer">
-                    <p class="svc-offer-name">NAS・ストレージ・バックアップ構築</p>
-                    <p class="svc-offer-desc">研究データの保存先、バックアップ、移行、整理、監視方法を設計します。</p>
-                </div>
-                <div class="svc-offer">
-                    <p class="svc-offer-name">ローカル・オンプレミス AI 導入</p>
-                    <p class="svc-offer-desc">機密データを外部へ出さずに利用できる生成 AI や、既存 API と組み合わせた環境を構築します。生成 AI・コーディングエージェント（ChatGPT、Claude Code、Codex、ローカルモデルなど）の導入もここに含みます。</p>
-                </div>
-                <div class="svc-offer">
-                    <p class="svc-offer-name">研究用 Mini PC・SciTeX Station 構築</p>
-                    <p class="svc-offer-desc">必要なソフトウェアを導入した小型計算機を、研究室ですぐ使える状態に整えます。</p>
-                </div>
+        <!-- ============================================================ -->
+        <!-- お手伝いできること (4カテゴリ・カード)                        -->
+        <!-- ============================================================ -->
+        <section class="svc-section" id="services">
+            <p class="svc-kicker">Services</p>
+            <h2>研究ワークフローを、部分ではなく流れで整える。</h2>
+            <p class="svc-section-desc">
+                単発のコード修正から、研究室全体のデータ・計算環境まで。既存資産を活かしながら、
+                必要な部分だけを支援します。
+            </p>
+            <div class="svc-cards">
+                <article class="svc-card">
+                    <div class="svc-card-icon">01</div>
+                    <h3>研究ワークフロー・解析</h3>
+                    <ul class="svc-card-list">
+                        <li><strong>解析相談・コードレビュー</strong><span>既存の Python／R コード、解析手順、再現性、処理速度などを確認します。</span></li>
+                        <li><strong>定型解析の自動化</strong><span>繰り返している前処理、集計、統計解析、レポート生成を自動化します。</span></li>
+                        <li><strong>再現可能な Figure 作成</strong><span>元データとコードから、修正可能で再生成できる論文用 Figure を構築します。</span></li>
+                        <li><strong>文献・執筆環境の整備</strong><span>文献検索、収集、引用管理、原稿作成、共同編集までの流れを整理します。</span></li>
+                    </ul>
+                </article>
+                <article class="svc-card">
+                    <div class="svc-card-icon">02</div>
+                    <h3>研究用 IT・計算環境</h3>
+                    <ul class="svc-card-list">
+                        <li><strong>Linux・Docker・Apptainer 環境構築</strong><span>研究コードを再現可能な環境にまとめ、別の PC やサーバーでも動かせるようにします。</span></li>
+                        <li><strong>SSH・HPC・リモート計算環境の整備</strong><span>大学や研究機関の計算資源、研究室サーバー、手元の PC を安全につなぎます。</span></li>
+                        <li><strong>NAS・ストレージ・バックアップ構築</strong><span>研究データの保存先、バックアップ、移行、整理、監視方法を設計します。</span></li>
+                        <li><strong>ローカル・オンプレミス AI 導入</strong><span>機密データを外部へ出さずに使える生成 AI や、既存 API と組み合わせた環境を構築します（ChatGPT、Claude Code、Codex、ローカルモデルなど）。</span></li>
+                        <li><strong>研究用 Mini PC・SciTeX Station 構築</strong><span>必要なソフトウェアを導入した小型計算機を、研究室ですぐ使える状態に整えます。</span></li>
+                    </ul>
+                </article>
+                <article class="svc-card">
+                    <div class="svc-card-icon">03</div>
+                    <h3>デジタル化・物品管理</h3>
+                    <ul class="svc-card-list">
+                        <li><strong>紙資料のデジタル化・OCR・自動整理</strong><span>スキャンした書類を読み取り、分類、命名、保存まで自動化します。</span></li>
+                        <li><strong>研究データ・ファイル整理</strong><span>使用頻度、容量、更新日、重複などをもとに、保存場所やアーカイブ方法を整理します。</span></li>
+                        <li><strong>研究室物品管理・AIラベリング <span class="svc-tag">開発中・実証協力募集</span></strong><span>カメラで物品を認識し、重量や保管場所を記録して、QR ラベルをその場で発行する仕組みを開発しています。共同実証にご協力いただける研究室を募集しています。</span></li>
+                    </ul>
+                </article>
+                <article class="svc-card">
+                    <div class="svc-card-icon">04</div>
+                    <h3>研究室・組織向け</h3>
+                    <ul class="svc-card-list">
+                        <li><strong>SciTeX 導入・小規模実証</strong><span>まず一つの研究工程だけを対象に、試験導入と効果確認を行います。</span></li>
+                        <li><strong>研究室専用ツール・プラグイン開発</strong><span>既存の研究手順に合わせた小規模アプリ、連携機能、自動化処理を開発します（Scholar・Writer・FigRecipe・Storage・Tasks の導入も対応）。</span></li>
+                        <li><strong>オンサイト・NDA対応</strong><span>機密データや研究設備を扱う場合は、秘密保持契約の上で現地環境への導入にも対応します。</span></li>
+                        <li><strong>継続的な技術支援</strong><span>専任の技術者を置くほどではないものの、継続して相談できる相手が必要な場合に伴走します。</span></li>
+                    </ul>
+                </article>
+            </div>
+        </section>
 
-                <h3 class="svc-cat-head">デジタル化・物品管理</h3>
-                <div class="svc-offer">
-                    <p class="svc-offer-name">紙資料のデジタル化・OCR・自動整理</p>
-                    <p class="svc-offer-desc">スキャンした書類を読み取り、分類、命名、保存まで自動化します。</p>
+        <!-- ============================================================ -->
+        <!-- 料金・運用の考え方 (Principles)                               -->
+        <!-- ============================================================ -->
+        <section class="svc-section svc-principles-section">
+            <p class="svc-kicker">Principles</p>
+            <h2>支援後も、研究者の手元に残る。</h2>
+            <p class="svc-section-desc">
+                SciTeX は、特定ベンダーへの囲い込みや、不透明な外部利用料を前提にしません。
+            </p>
+            <div class="svc-principles">
+                <div class="svc-principle">
+                    <strong>既存資産を活かす</strong>
+                    <p>新しい契約や機器を増やす前に、現在の PC、NAS、サーバー、HPC を活用します。</p>
                 </div>
-                <div class="svc-offer">
-                    <p class="svc-offer-name">研究データ・ファイル整理</p>
-                    <p class="svc-offer-desc">使用頻度、容量、更新日、重複などをもとに、保存場所やアーカイブ方法を整理します。</p>
+                <div class="svc-principle">
+                    <strong>Open Source First</strong>
+                    <p>無料・オープンソースで解決できる部分は、その方法を明確にお伝えします。</p>
                 </div>
-                <div class="svc-offer">
-                    <p class="svc-offer-name">研究室物品管理・AIラベリング <span class="svc-tag">開発中・実証協力募集</span></p>
-                    <p class="svc-offer-desc">カメラで物品を認識し、重量や保管場所を記録して、QRラベルをその場で発行する仕組みを開発しています。共同実証にご協力いただける研究室を募集しています。</p>
+                <div class="svc-principle">
+                    <strong>Vendor Neutral</strong>
+                    <p>特定の AI、クラウド、ファイル形式へのロックインを前提にしません。</p>
                 </div>
+                <div class="svc-principle">
+                    <strong>データはお客様のもの</strong>
+                    <p>データ、コード、設定ファイルは、支援終了後もお客様が保持できます。</p>
+                </div>
+                <div class="svc-principle">
+                    <strong>小さく始める</strong>
+                    <p>大規模契約ではなく、小さな相談や一工程の試験導入から始めます。</p>
+                </div>
+                <div class="svc-principle">
+                    <strong>事前に範囲を明確化</strong>
+                    <p>正式な作業開始前に、対応範囲、費用、外部利用料を確認します。</p>
+                </div>
+            </div>
+        </section>
 
-                <h3 class="svc-cat-head">研究室・組織向け</h3>
-                <div class="svc-offer">
-                    <p class="svc-offer-name">SciTeX 導入・小規模実証</p>
-                    <p class="svc-offer-desc">まず一つの研究工程だけを対象に、試験導入と効果確認を行います。</p>
-                </div>
-                <div class="svc-offer">
-                    <p class="svc-offer-name">研究室専用ツール・プラグイン開発</p>
-                    <p class="svc-offer-desc">既存の研究手順に合わせた小規模アプリ、連携機能、自動化処理を開発します。SciTeX Scholar・Writer・FigRecipe・Storage・Tasks の導入もお手伝いします。</p>
-                </div>
-                <div class="svc-offer">
-                    <p class="svc-offer-name">オンサイト・NDA対応</p>
-                    <p class="svc-offer-desc">機密データや研究設備を扱う場合は、秘密保持契約の上で現地環境への導入にも対応します。</p>
-                </div>
-                <div class="svc-offer">
-                    <p class="svc-offer-name">継続的な技術支援</p>
-                    <p class="svc-offer-desc">研究室内に専任の技術者を置くほどではないものの、継続して相談できる相手が必要な場合に伴走します。</p>
-                </div>
-            </section>
-
-            <!-- ============================================================ -->
-            <!-- 料金の目安（階段式）                                          -->
-            <!-- ============================================================ -->
-            <section class="about-section">
-                <h2>料金の目安</h2>
+        <!-- ============================================================ -->
+        <!-- 料金の目安 (階段式)                                           -->
+        <!-- ============================================================ -->
+        <section class="svc-section" id="pricing">
+            <p class="svc-kicker">Pricing</p>
+            <h2>料金の目安</h2>
+            <p class="svc-section-desc">
+                作業内容、既存環境、納期によって変動します。正式な作業前に対応範囲と金額をご提示します。
+            </p>
+            <div class="svc-price-wrap">
                 <table class="svc-price-table">
                     <thead>
                         <tr><th scope="col">内容</th><th scope="col">料金の目安</th></tr>
@@ -141,44 +267,42 @@
                         <tr><td>技術顧問・組織的な導入支援</td><td class="svc-price-cell">月額55,000円〜</td></tr>
                     </tbody>
                 </table>
+            </div>
+            <div class="svc-price-notes">
                 <p class="svc-price-note">
-                    作業内容、既存環境、納期によって料金は変わります。正式な作業を始める前に、
-                    対応範囲と金額をご提示します。
+                    ソフトウェア、ハードウェア、クラウド、生成 AI API などの外部利用料は、原則として
+                    実費です。お客様自身の既存契約や計算資源を、そのまま利用できる構成を優先します。
                 </p>
                 <p class="svc-price-note">
-                    ソフトウェア、ハードウェア、クラウド、生成 AI API などの外部利用料は、
-                    原則として実費です。お客様自身の契約をそのまま使用することもできます。
+                    SciTeX Cloud のストレージ・計算・API などの従量課金は、料金が固まりしだい別ページで
+                    ご案内します。
                 </p>
-                <p class="svc-price-note">
-                    大きな契約を最初からお願いするのではなく、可能な限り小さな相談や試験導入から
-                    始めます。
-                </p>
-            </section>
+            </div>
+        </section>
 
-            <!-- ============================================================ -->
-            <!-- ご相談・お問い合わせ（フォーム）                              -->
-            <!-- ============================================================ -->
-            <section class="about-section" id="inquiry">
-                <h2>ご相談ください</h2>
-                {% if submitted %}
-                    <div class="svc-form-success" role="status">
-                        お問い合わせを受け付けました。ありがとうございます。
-                        担当より折り返しご連絡します。
-                    </div>
-                {% endif %}
-                <p>
-                    「何を頼めばよいのか分からない」という段階でも問題ありません。現在の作業方法や
-                    困っていることを伺い、
-                </p>
-                <ul class="recruit-list">
-                    <li>SciTeX が対応できること</li>
-                    <li>ご自身で無料でできること</li>
-                    <li>別のサービスを利用した方がよいこと</li>
-                </ul>
-                <p>
-                    を分けてお伝えします。ご相談いただいたからといって、契約を前提に話を進めることは
-                    ありません。
-                </p>
+        <!-- ============================================================ -->
+        <!-- ご相談・お問い合わせ (フォーム)                               -->
+        <!-- ============================================================ -->
+        <section class="svc-section" id="inquiry">
+            <p class="svc-kicker">Contact</p>
+            <h2>何を頼めばよいのか分からない段階でも大丈夫です。</h2>
+            {% if submitted %}
+                <div class="svc-form-success" role="status">
+                    お問い合わせを受け付けました。ありがとうございます。担当より折り返しご連絡します。
+                </div>
+            {% endif %}
+            <div class="svc-contact">
+                <div class="svc-contact-lead">
+                    <p>
+                        現在の作業方法や困っていることを伺い、SciTeX が対応できること、ご自身で無料でできること、
+                        別のサービスを利用した方がよいことを分けてお伝えします。
+                    </p>
+                    <ul class="svc-checklist">
+                        <li>初回相談 30 分無料</li>
+                        <li>契約を前提としない課題整理</li>
+                        <li>作業開始前に料金と対応範囲を提示</li>
+                    </ul>
+                </div>
                 <form class="svc-form" method="post" action="{% url 'public_app:services' %}#inquiry">
                     {% csrf_token %}
                     <div class="svc-field">
@@ -194,39 +318,22 @@
                                placeholder="例：〇〇大学 △△研究室 / 株式会社□□" />
                     </div>
                     <div class="svc-field">
+                        <label for="svc-budget">ご予算感（任意）</label>
+                        <input type="text" id="svc-budget" name="budget" value="{{ form.budget }}"
+                               maxlength="120" placeholder="例：未定 / 3万円未満 / 3〜10万円 / 10〜50万円" />
+                    </div>
+                    <div class="svc-field">
                         <label for="svc-request">ご相談内容 <span class="svc-req">必須</span></label>
                         <textarea id="svc-request" name="request" rows="6" required
                                   placeholder="いま困っていること、やりたいことをお聞かせください。">{{ form.request }}</textarea>
                         {% if errors.request %}<p class="svc-error">{{ errors.request }}</p>{% endif %}
                     </div>
-                    <div class="svc-field">
-                        <label for="svc-budget">ご予算感（任意）</label>
-                        <input type="text" id="svc-budget" name="budget" value="{{ form.budget }}"
-                               maxlength="120" placeholder="例：3万円くらい / 未定" />
-                    </div>
-                    <button type="submit" class="svc-submit">送信する</button>
+                    <button type="submit" class="svc-submit">相談を送信する</button>
+                    <p class="svc-form-note">
+                        ご相談いただいたからといって、契約を前提に話を進めることはありません。
+                    </p>
                 </form>
-            </section>
-
-            <!-- ============================================================ -->
-            <!-- 料金について（約束）                                          -->
-            <!-- ============================================================ -->
-            <section class="about-section">
-                <h2>料金について</h2>
-                <p>SciTeX は、次の方針で料金を設定します。</p>
-                <ul class="svc-promises">
-                    <li>既存の設備や契約を、できる限り活用します。</li>
-                    <li>無料・オープンソースで解決できる部分は、その方法をご案内します。</li>
-                    <li>外部サービスの利用料には、原則として不要な上乗せをしません。</li>
-                    <li>データ、コード、設定ファイルは、支援終了後もお客様が保持できます。</li>
-                    <li>特定ベンダーへのロックインを前提としません。</li>
-                    <li>作業開始前に、対応範囲と料金を確認します。</li>
-                </ul>
-                <p class="svc-price-note">
-                    SciTeX Cloud のストレージ・計算・API などの従量課金については、料金が固まりしだい
-                    別ページでご案内します。それまでの外部利用料は、原則として実費です。
-                </p>
-            </section>
-        </article>
+            </div>
+        </section>
     </div>
 {% endblock %}

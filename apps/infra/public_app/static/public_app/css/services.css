@@ -1,233 +1,309 @@
 /* =============================================================================
- * services.css — Services + pricing + inquiry page (/services)
+ * services.css — /services page: tokens, hero, trust, sections, plans table.
  * -----------------------------------------------------------------------------
- * Theme-adaptive on purpose: colours inherit from the surrounding about-page
- * theme (currentColor + translucent borders) rather than hardcoded hex, so the
- * page tracks light/dark instead of drifting from it. One accent variable with
- * a fallback keeps prices/CTA legible in either theme.
+ * SciTeX brand: teal-green accent (--accent, #4a9b7e) on the site's dark shell.
+ * Surfaces/borders are built from currentColor so the page tracks the light /
+ * dark toggle instead of hardcoding a palette; only the accent is fixed.
+ * Cards / principles / pricing / contact / responsive live in services-detail.css.
  * ========================================================================== */
 
 :root {
-  --svc-accent: var(--accent, #7c5cff);
-  --svc-border: color-mix(in srgb, currentColor 18%, transparent);
-  --svc-surface: color-mix(in srgb, currentColor 5%, transparent);
+  --svc-accent: var(--accent, #4a9b7e);
+  --svc-accent-2: #5bb894;
+  --svc-border: color-mix(in srgb, currentColor 15%, transparent);
+  --svc-border-strong: color-mix(in srgb, currentColor 26%, transparent);
+  --svc-surface: color-mix(in srgb, currentColor 4%, transparent);
+  --svc-surface-2: color-mix(in srgb, currentColor 7%, transparent);
+  --svc-radius: 16px;
+  --svc-radius-sm: 10px;
+  --svc-max: 1120px;
 }
 
-/* ── Services list: name on the left, price band on the right ────────────── */
-.svc-list {
-  list-style: none;
-  margin: 0.5rem 0 0;
-  padding: 0;
+.svc-page {
+  width: min(calc(100% - 2.5rem), var(--svc-max));
+  margin-inline: auto;
+  padding: 1rem 0 4rem;
 }
 
-.svc-list li {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.6rem 0;
-  border-bottom: 1px solid var(--svc-border);
+/* ── Hero ─────────────────────────────────────────────────────────────────── */
+.svc-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  gap: 2.75rem;
+  align-items: center;
+  padding: 2.5rem 0 1.5rem;
 }
 
-.svc-name {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.svc-price {
-  flex: 0 0 auto;
-  font-weight: 600;
-  white-space: nowrap;
-  color: var(--svc-accent);
-}
-
-.svc-price-note {
-  margin-top: 1rem;
-  font-size: 0.92rem;
-  opacity: 0.85;
-}
-
-/* ── Inquiry form ─────────────────────────────────────────────────────────── */
-.svc-form {
-  margin-top: 1rem;
-  max-width: 40rem;
-}
-
-.svc-field {
-  margin-bottom: 1rem;
-}
-
-.svc-field label {
-  display: block;
-  margin-bottom: 0.35rem;
-  font-weight: 600;
-}
-
-.svc-req {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--svc-accent);
-  border: 1px solid var(--svc-accent);
-  border-radius: 4px;
-  padding: 0 0.3rem;
-  margin-left: 0.4rem;
-  vertical-align: middle;
-}
-
-.svc-field input[type="text"],
-.svc-field textarea {
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  padding: 0.55rem 0.7rem;
-  font: inherit;
-  color: inherit;
-  background: var(--svc-surface);
-  border: 1px solid var(--svc-border);
-  border-radius: 6px;
-}
-
-.svc-field textarea {
-  resize: vertical;
-}
-
-.svc-field input:focus,
-.svc-field textarea:focus {
-  outline: 2px solid var(--svc-accent);
-  outline-offset: 1px;
-}
-
-.svc-error {
-  margin: 0.35rem 0 0;
-  font-size: 0.85rem;
-  color: #e5534b;
-}
-
-.svc-form-success {
-  margin: 0 0 1rem;
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--svc-accent);
-  border-radius: 6px;
-  background: color-mix(in srgb, var(--svc-accent) 12%, transparent);
-}
-
-.svc-submit {
+.svc-eyebrow {
   display: inline-block;
-  padding: 0.6rem 1.6rem;
-  font: inherit;
-  font-weight: 600;
-  color: #fff;
-  background: var(--svc-accent);
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+  color: var(--svc-accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
-.svc-submit:hover {
-  filter: brightness(1.08);
+.svc-hero-title {
+  margin: 0.6rem 0 1rem;
+  font-size: clamp(2rem, 4.6vw, 3.4rem);
+  line-height: 1.18;
+  letter-spacing: -0.02em;
 }
 
-/* ── "Why this price?" transparency (native <details>, no JS) ─────────────── */
-.svc-why {
-  margin: 0.5rem 0;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--svc-border);
-  border-radius: 6px;
-  background: var(--svc-surface);
+.svc-accent-text {
+  background: var(--accent-gradient, linear-gradient(135deg, #4a9b7e, #5bb894));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
-.svc-why > summary {
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.svc-why > p {
-  margin: 0.6rem 0 0.2rem;
-  font-size: 0.92rem;
+.svc-hero-copy {
+  margin: 0;
+  max-width: 40rem;
+  font-size: 1.02rem;
   opacity: 0.9;
 }
 
-/* ── Service offers: category head + item (name + description) ────────────── */
-.svc-cat-head {
-  margin: 1.6rem 0 0.6rem;
-  padding-bottom: 0.3rem;
-  border-bottom: 2px solid var(--svc-border);
+.svc-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 1.5rem;
 }
 
-.svc-offer {
-  padding: 0.7rem 0;
-  border-bottom: 1px solid var(--svc-border);
+.svc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.9rem;
+  padding: 0 1.4rem;
+  border-radius: 999px;
+  font-weight: 700;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    filter 160ms ease,
+    background 160ms ease;
 }
 
-.svc-offer-name {
-  margin: 0 0 0.2rem;
-  font-weight: 600;
+.svc-btn-primary {
+  color: #fff;
+  background: var(--svc-accent);
 }
 
-.svc-offer-desc {
-  margin: 0;
-  font-size: 0.92rem;
-  opacity: 0.88;
+.svc-btn-primary:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
 }
 
-.svc-tag {
-  display: inline-block;
-  margin-left: 0.4rem;
+.svc-btn-ghost {
+  color: inherit;
+  background: var(--svc-surface);
+  border-color: var(--svc-border-strong);
+}
+
+.svc-btn-ghost:hover {
+  background: var(--svc-surface-2);
+  transform: translateY(-2px);
+}
+
+.svc-hero-note {
+  margin-top: 1rem;
+  font-size: 0.86rem;
+  opacity: 0.75;
+}
+
+/* Hero workflow panel */
+.svc-hero-panel {
+  padding: 1.4rem;
+  border: 1px solid var(--svc-border);
+  border-radius: var(--svc-radius);
+  background: var(--svc-surface);
+}
+
+.svc-panel-title {
+  margin: 0 0 1rem;
+  color: var(--svc-accent);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.svc-flow {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.svc-flow-item {
+  display: flex;
+  gap: 0.8rem;
+  align-items: flex-start;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--svc-border);
+  border-radius: var(--svc-radius-sm);
+  background: var(--svc-surface);
+}
+
+.svc-flow-num {
+  flex: 0 0 1.7rem;
+  width: 1.7rem;
+  height: 1.7rem;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  color: #fff;
   font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--svc-accent);
-  border: 1px solid var(--svc-accent);
-  border-radius: 4px;
-  padding: 0 0.35rem;
-  vertical-align: middle;
-  white-space: nowrap;
+  font-weight: 800;
+  background: var(--accent-gradient, linear-gradient(135deg, #4a9b7e, #5bb894));
 }
 
-/* ── Pricing table (料金の目安) ───────────────────────────────────────────── */
-.svc-price-table {
+.svc-flow-item strong {
+  display: block;
+  font-size: 0.92rem;
+}
+
+.svc-flow-item span {
+  font-size: 0.82rem;
+  opacity: 0.82;
+}
+
+/* ── Trust strip ──────────────────────────────────────────────────────────── */
+.svc-trust {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.7rem;
+  margin: 1.5rem 0 0.5rem;
+}
+
+.svc-trust-item {
+  padding: 0.8rem;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  opacity: 0.85;
+  border: 1px solid var(--svc-border);
+  border-radius: var(--svc-radius-sm);
+  background: var(--svc-surface);
+}
+
+/* ── Sections ─────────────────────────────────────────────────────────────── */
+.svc-section {
+  padding: 3rem 0 1rem;
+}
+
+.svc-kicker {
+  margin: 0 0 0.4rem;
+  color: var(--svc-accent);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.svc-section h2 {
+  margin: 0;
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  letter-spacing: -0.02em;
+}
+
+.svc-section-desc {
+  margin: 0.8rem 0 1.6rem;
+  max-width: 46rem;
+  opacity: 0.85;
+}
+
+/* ── Plans table (対象別プラン) ───────────────────────────────────────────── */
+.svc-plan-wrap {
+  overflow-x: auto;
+}
+
+.svc-plan-table {
   width: 100%;
-  border-collapse: collapse;
-  margin: 0.5rem 0 0;
+  min-width: 720px;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--svc-border);
+  border-radius: var(--svc-radius);
+  overflow: hidden;
 }
 
-.svc-price-table th,
-.svc-price-table td {
+.svc-plan-table th,
+.svc-plan-table td {
+  padding: 1rem 1.1rem;
   text-align: left;
-  padding: 0.6rem 0.5rem;
+  vertical-align: top;
+  border-right: 1px solid var(--svc-border);
   border-bottom: 1px solid var(--svc-border);
-  vertical-align: baseline;
+  font-size: 0.92rem;
 }
 
-.svc-price-table thead th {
-  font-size: 0.85rem;
-  opacity: 0.7;
-  border-bottom: 2px solid var(--svc-border);
+.svc-plan-table th:last-child,
+.svc-plan-table td:last-child {
+  border-right: 0;
 }
 
-.svc-price-cell {
-  text-align: right;
-  font-weight: 600;
-  white-space: nowrap;
+.svc-plan-table tr:last-child th,
+.svc-plan-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.svc-plan-table thead th {
+  background: var(--svc-surface-2);
+  vertical-align: bottom;
+}
+
+.svc-plan-axis {
   color: var(--svc-accent);
+  font-size: 0.72rem !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-/* ── Pricing promises ─────────────────────────────────────────────────────── */
-.svc-promises {
-  margin: 0.5rem 0 0;
-  padding-left: 1.2rem;
+.svc-plan-table tbody th {
+  background: var(--svc-surface);
+  white-space: nowrap;
+  font-size: 0.86rem;
 }
 
-.svc-promises li {
-  margin: 0.35rem 0;
+.svc-plan-featured {
+  position: relative;
+  background: color-mix(in srgb, var(--svc-accent) 12%, transparent) !important;
 }
 
-@media (max-width: 640px) {
-  .svc-list li {
-    gap: 0.5rem;
-  }
+.svc-plan-badge {
+  display: inline-block;
+  margin-bottom: 0.3rem;
+  padding: 0.05rem 0.5rem;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 0.66rem;
+  font-weight: 800;
+  background: var(--svc-accent);
+}
 
-  .svc-price-table th,
-  .svc-price-table td {
-    padding: 0.55rem 0.3rem;
-  }
+.svc-plan-name {
+  display: block;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.svc-plan-sub {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  opacity: 0.72;
+  font-weight: 500;
+}
+
+.svc-plan-price {
+  color: var(--svc-accent);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.svc-muted {
+  opacity: 0.7;
 }
