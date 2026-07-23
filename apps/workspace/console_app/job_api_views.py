@@ -12,6 +12,7 @@ through SLURM and Apptainer containers.
 
 import json
 import logging
+import re
 from pathlib import Path
 
 from django.conf import settings
@@ -21,6 +22,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from .services import SlurmManager
+from .services.job_ownership import job_belongs_to_user
 
 logger = logging.getLogger(__name__)
 
@@ -75,13 +77,24 @@ def api_submit_job(request):
 
         container_path = Path(SLURM_CONTAINER_PATH)
 
+        # SECURITY: the SLURM job NAME is the only ownership signal we have
+        # (no DB record maps job_id -> user). The status/cancel/output
+        # endpoints authorize via job_belongs_to_user, which keys on the
+        # "scitex_<username>_" prefix. So every submitted job MUST carry that
+        # prefix -- otherwise the owner is locked out of their OWN job and
+        # api_user_jobs will not list it. The user-supplied label is
+        # sanitized to a safe charset and length-capped before use.
+        raw_label = data.get("job_name", "job")
+        safe_label = re.sub(r"[^A-Za-z0-9._-]", "_", str(raw_label))[:64] or "job"
+        job_name = f"scitex_{request.user.username}_{safe_label}"
+
         # Submit job
         result = get_slurm_manager().submit_job(
             user_id=str(request.user.id),
             script_path=Path(data.get("script_path")),
             container_path=container_path,
             workspace=user_workspace,
-            job_name=data.get("job_name", "scitex_job"),
+            job_name=job_name,
             partition=data.get("partition", "normal"),
             cpus=data.get("cpus", 1),
             memory_gb=data.get("memory_gb", 4),
@@ -133,7 +146,17 @@ def api_job_status(request, job_id):
         }
     """
     try:
-        status = get_slurm_manager().get_job_status(int(job_id))
+        job_id = int(job_id)
+        # SECURITY (IDOR): only the owner may read a job's state. 404 (not
+        # 403) so a job owned by someone else is indistinguishable from a
+        # nonexistent one -- no existence disclosure.
+        if not job_belongs_to_user(
+            get_slurm_manager(), job_id, request.user.username
+        ):
+            return JsonResponse(
+                {"success": False, "message": "Not found"}, status=404
+            )
+        status = get_slurm_manager().get_job_status(job_id)
         return JsonResponse(status)
     except Exception as e:
         logger.error(f"Error getting job {job_id} status: {str(e)}", exc_info=True)
@@ -158,7 +181,17 @@ def api_cancel_job(request, job_id):
         }
     """
     try:
-        result = get_slurm_manager().cancel_job(int(job_id))
+        job_id = int(job_id)
+        # SECURITY (IDOR): without this check any authenticated user could
+        # cancel ANY user's job by numeric id. 404 (not 403) so a job owned
+        # by someone else is indistinguishable from a nonexistent one.
+        if not job_belongs_to_user(
+            get_slurm_manager(), job_id, request.user.username
+        ):
+            return JsonResponse(
+                {"success": False, "message": "Not found"}, status=404
+            )
+        result = get_slurm_manager().cancel_job(job_id)
         if result["success"]:
             logger.info(f"Job {job_id} cancelled by user {request.user.username}")
         return JsonResponse(result)
@@ -185,11 +218,23 @@ def api_job_output(request, job_id):
         }
     """
     try:
+        job_id = int(job_id)
+        # SECURITY (IDOR): defense-in-depth. This endpoint is already
+        # workspace-scoped (it only reads .../user_{id}/slurm_outputs/), so
+        # it is not an active cross-tenant leak, but the ownership gate is
+        # applied here too for consistency. 404 (not 403): no existence
+        # disclosure.
+        if not job_belongs_to_user(
+            get_slurm_manager(), job_id, request.user.username
+        ):
+            return JsonResponse(
+                {"success": False, "message": "Not found"}, status=404
+            )
         tail_lines = int(request.GET.get("tail", 100))
         user_workspace = get_user_workspace(request.user)
 
         output = get_slurm_manager().get_job_output(
-            job_id=int(job_id), workspace=user_workspace, tail_lines=tail_lines
+            job_id=job_id, workspace=user_workspace, tail_lines=tail_lines
         )
 
         return JsonResponse(output)
