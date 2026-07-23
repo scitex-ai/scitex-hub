@@ -72,8 +72,8 @@ class TestServicesGet:
         # Arrange
         # Act
         resp = client.get(services_url)
-        # Assert
-        assert "料金について" in resp.content.decode()
+        # Assert: external usage fees are billed at cost (pricing transparency)
+        assert "外部利用料" in resp.content.decode()
 
     def test_get_shows_pricing_ladder(self, client, services_url):
         # Arrange
