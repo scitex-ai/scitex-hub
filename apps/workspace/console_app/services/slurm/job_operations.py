@@ -46,19 +46,25 @@ def submit_job(
     Returns:
         Dict with success, job_id, partition, and message keys
     """
-    # Create batch script
-    batch_script = create_batch_script(
-        user_id=user_id,
-        script_path=script_path,
-        container_path=container_path,
-        workspace=workspace,
-        job_name=job_name,
-        partition=partition,
-        cpus=cpus,
-        memory_gb=memory_gb,
-        time_limit=time_limit,
-        env_vars=env_vars or {},
-    )
+    # Create batch script. create_batch_script rejects tenant-controlled
+    # fields containing shell/SLURM metacharacters (CWE-78) — fail closed
+    # (do NOT submit) with the validation message rather than raising.
+    try:
+        batch_script = create_batch_script(
+            user_id=user_id,
+            script_path=script_path,
+            container_path=container_path,
+            workspace=workspace,
+            job_name=job_name,
+            partition=partition,
+            cpus=cpus,
+            memory_gb=memory_gb,
+            time_limit=time_limit,
+            env_vars=env_vars or {},
+        )
+    except ValueError as e:
+        logger.warning(f"Rejected job submission for user {user_id}: {e}")
+        return {"success": False, "message": str(e)}
 
     # Save batch file
     batch_file = job_scripts_dir / f"job_{user_id}_{job_name}.sh"
