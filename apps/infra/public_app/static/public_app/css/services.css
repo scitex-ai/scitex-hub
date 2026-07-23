@@ -1,0 +1,154 @@
+/* =============================================================================
+ * services.css — Services + pricing + inquiry page (/services)
+ * -----------------------------------------------------------------------------
+ * Theme-adaptive on purpose: colours inherit from the surrounding about-page
+ * theme (currentColor + translucent borders) rather than hardcoded hex, so the
+ * page tracks light/dark instead of drifting from it. One accent variable with
+ * a fallback keeps prices/CTA legible in either theme.
+ * ========================================================================== */
+
+:root {
+  --svc-accent: var(--accent, #7c5cff);
+  --svc-border: color-mix(in srgb, currentColor 18%, transparent);
+  --svc-surface: color-mix(in srgb, currentColor 5%, transparent);
+}
+
+/* ── Services list: name on the left, price band on the right ────────────── */
+.svc-list {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+
+.svc-list li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--svc-border);
+}
+
+.svc-name {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.svc-price {
+  flex: 0 0 auto;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--svc-accent);
+}
+
+.svc-price-note {
+  margin-top: 1rem;
+  font-size: 0.92rem;
+  opacity: 0.85;
+}
+
+/* ── Inquiry form ─────────────────────────────────────────────────────────── */
+.svc-form {
+  margin-top: 1rem;
+  max-width: 40rem;
+}
+
+.svc-field {
+  margin-bottom: 1rem;
+}
+
+.svc-field label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-weight: 600;
+}
+
+.svc-req {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--svc-accent);
+  border: 1px solid var(--svc-accent);
+  border-radius: 4px;
+  padding: 0 0.3rem;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
+.svc-field input[type="text"],
+.svc-field textarea {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0.55rem 0.7rem;
+  font: inherit;
+  color: inherit;
+  background: var(--svc-surface);
+  border: 1px solid var(--svc-border);
+  border-radius: 6px;
+}
+
+.svc-field textarea {
+  resize: vertical;
+}
+
+.svc-field input:focus,
+.svc-field textarea:focus {
+  outline: 2px solid var(--svc-accent);
+  outline-offset: 1px;
+}
+
+.svc-error {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  color: #e5534b;
+}
+
+.svc-form-success {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--svc-accent);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--svc-accent) 12%, transparent);
+}
+
+.svc-submit {
+  display: inline-block;
+  padding: 0.6rem 1.6rem;
+  font: inherit;
+  font-weight: 600;
+  color: #fff;
+  background: var(--svc-accent);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.svc-submit:hover {
+  filter: brightness(1.08);
+}
+
+/* ── "Why this price?" transparency (native <details>, no JS) ─────────────── */
+.svc-why {
+  margin: 0.5rem 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--svc-border);
+  border-radius: 6px;
+  background: var(--svc-surface);
+}
+
+.svc-why > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.svc-why > p {
+  margin: 0.6rem 0 0.2rem;
+  font-size: 0.92rem;
+  opacity: 0.9;
+}
+
+@media (max-width: 640px) {
+  .svc-list li {
+    gap: 0.5rem;
+  }
+}

@@ -1,0 +1,161 @@
+{% extends "global_base.html" %}
+{% load static %}
+
+{% block title %}サービス・料金 | Services - SciTeX{% endblock %}
+{% block meta_description %}
+    SciTeX のサービス一覧と料金の目安、お問い合わせ。研究DX相談・解析代行・環境構築・AI導入など、
+    研究の「困った」を有償でお引き受けします。まずはお気軽にご相談ください。
+{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'public_app/css/about/00-about.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/about/02-context.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'public_app/css/about/07-section-styling.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/about/16-responsive.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/services.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="about-container" lang="ja">
+        <header class="minimal-hero">
+            <h1 class="minimal-hero-title">研究の「困った」を、一緒に片づけます</h1>
+        </header>
+
+        <article class="about-narrative">
+            <section class="about-section">
+                <p>
+                    SciTeX は、研究の自動化ツールキットを開発・運営しています。
+                    そのツールを作る過程で身につけた技術を、研究者・研究室・企業のみなさまに
+                    サービスとしてご提供します。
+                </p>
+                <p>
+                    自分で用意できるものは、自分で用意すれば安く済みます。
+                    難しいところ、時間がかかるところだけ、私たちが有償でお引き受けします。
+                </p>
+            </section>
+
+            <!-- ============================================================ -->
+            <!-- 1. サービス一覧 ＋ 2. 料金（帯表示）                          -->
+            <!-- ============================================================ -->
+            <section class="about-section">
+                <h2>研究者・研究室向け</h2>
+                <ul class="svc-list">
+                    <li><span class="svc-name">研究DX 相談（60分）</span><span class="svc-price">3万円</span></li>
+                    <li><span class="svc-name">Python 解析代行</span><span class="svc-price">10万円〜</span></li>
+                    <li><span class="svc-name">コードベース整理</span><span class="svc-price">5万円〜</span></li>
+                    <li><span class="svc-name">再現可能な解析環境の構築</span><span class="svc-price">10万円〜</span></li>
+                    <li><span class="svc-name">論文用 Figure 作成</span><span class="svc-price">1〜5万円</span></li>
+                </ul>
+            </section>
+
+            <section class="about-section">
+                <h2>IT・環境構築</h2>
+                <ul class="svc-list">
+                    <li><span class="svc-name">AI・ChatGPT 導入</span><span class="svc-price">3万円〜</span></li>
+                    <li><span class="svc-name">Claude Code 導入</span><span class="svc-price">5万円〜</span></li>
+                    <li><span class="svc-name">Linux・Docker 環境構築</span><span class="svc-price">5万円〜</span></li>
+                    <li><span class="svc-name">Mini PC セットアップ</span><span class="svc-price">3万円〜</span></li>
+                    <li><span class="svc-name">NAS・バックアップ構築</span><span class="svc-price">10万円〜</span></li>
+                </ul>
+            </section>
+
+            <section class="about-section">
+                <h2>継続支援</h2>
+                <ul class="svc-list">
+                    <li><span class="svc-name">SciTeX 導入支援</span><span class="svc-price">5万円〜</span></li>
+                    <li><span class="svc-name">AI・技術顧問</span><span class="svc-price">月 5〜10万円</span></li>
+                </ul>
+                <p class="svc-price-note">
+                    表示金額は目安です。すべての価格は、利益の最大化ではなく、
+                    継続して運営できることを目安に決めています。詳しいお見積もりは
+                    ご相談内容に応じて個別にご案内します。「なぜこの価格なのか」は
+                    下の「料金について」からご覧いただけます。
+                </p>
+            </section>
+
+            <!-- ============================================================ -->
+            <!-- 3. お問い合わせフォーム                                       -->
+            <!-- ============================================================ -->
+            <section class="about-section" id="inquiry">
+                <h2>ご相談・お問い合わせ</h2>
+                {% if submitted %}
+                    <div class="svc-form-success" role="status">
+                        お問い合わせを受け付けました。ありがとうございます。
+                        担当より折り返しご連絡します。
+                    </div>
+                {% endif %}
+                <p>
+                    「これは頼めますか？」というご相談だけでも歓迎です。
+                    下記フォームからお送りください。
+                </p>
+                <form class="svc-form" method="post" action="{% url 'public_app:services' %}#inquiry">
+                    {% csrf_token %}
+                    <div class="svc-field">
+                        <label for="svc-name">お名前 <span class="svc-req">必須</span></label>
+                        <input type="text" id="svc-name" name="name" value="{{ form.name }}"
+                               maxlength="120" required />
+                        {% if errors.name %}<p class="svc-error">{{ errors.name }}</p>{% endif %}
+                    </div>
+                    <div class="svc-field">
+                        <label for="svc-affil">ご所属（任意）</label>
+                        <input type="text" id="svc-affil" name="affiliation"
+                               value="{{ form.affiliation }}" maxlength="200"
+                               placeholder="例：〇〇大学 △△研究室 / 株式会社□□" />
+                    </div>
+                    <div class="svc-field">
+                        <label for="svc-request">ご相談内容 <span class="svc-req">必須</span></label>
+                        <textarea id="svc-request" name="request" rows="6" required
+                                  placeholder="どんなことでお困りか、お聞かせください。">{{ form.request }}</textarea>
+                        {% if errors.request %}<p class="svc-error">{{ errors.request }}</p>{% endif %}
+                    </div>
+                    <div class="svc-field">
+                        <label for="svc-budget">ご予算感（任意）</label>
+                        <input type="text" id="svc-budget" name="budget" value="{{ form.budget }}"
+                               maxlength="120" placeholder="例：3万円くらい / 未定" />
+                    </div>
+                    <button type="submit" class="svc-submit">送信する</button>
+                </form>
+            </section>
+
+            <!-- ============================================================ -->
+            <!-- 4. なぜこの価格か（透明性）                                    -->
+            <!-- ============================================================ -->
+            <section class="about-section">
+                <h2>料金について</h2>
+                <p>
+                    研究では「なぜこの手法か」を説明します。私たちも、価格の考え方を
+                    できるだけ透明にしたいと考えています（内訳を細かく約束するものではありません）。
+                </p>
+                <details class="svc-why">
+                    <summary>ストレージ・保管について</summary>
+                    <p>
+                        主にストレージの維持・バックアップ・監視・運営にかかるコストを反映しています。
+                        利益の最大化ではなく、継続して運営するための価格です。
+                    </p>
+                </details>
+                <details class="svc-why">
+                    <summary>計算（Compute）について</summary>
+                    <p>
+                        ローカルでの計算は無料です。SciTeX Cloud を使う場合のみ、
+                        実際に使った計算資源に応じてご負担いただきます。
+                    </p>
+                </details>
+                <details class="svc-why">
+                    <summary>LLM（生成AI）の利用料について</summary>
+                    <p>
+                        ご自身の API 契約を使う場合、SciTeX からの上乗せは0円です。
+                        お支払いを代行する場合も、実費と管理の実費のみをいただきます。
+                    </p>
+                </details>
+
+                <h3>料金の考え方</h3>
+                <ul class="recruit-list">
+                    <li>自分で用意できるものは、無料で使えるようにします。</li>
+                    <li>囲い込み（ロックイン）を目的にした価格設定はしません。</li>
+                    <li>API の利用料は、できるかぎり実費にします。</li>
+                    <li>継続して運営できる価格を目指します。</li>
+                    <li>値上げする場合は、その理由を公開します。</li>
+                </ul>
+            </section>
+        </article>
+    </div>
+{% endblock %}
