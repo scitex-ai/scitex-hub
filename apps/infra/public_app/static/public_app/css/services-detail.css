@@ -349,18 +349,14 @@
   }
 }
 
-/* Narrow screens: swap the wide plans table for stacked cards and let the
-   2-column pricing table shrink, so nothing needs horizontal scrolling. */
+/* Narrow screens: let the 2-column pricing table shrink to fit. The service
+   matrix stays scrollable in its own wrapper (mobile stacking is a follow-up). */
 @media (max-width: 640px) {
-  .svc-plan-wrap {
-    display: none;
-  }
-
-  .svc-plan-cards {
-    display: block;
-  }
-
   .svc-price-table {
     min-width: 0;
+  }
+
+  .svc-matrix {
+    min-width: 560px;
   }
 }

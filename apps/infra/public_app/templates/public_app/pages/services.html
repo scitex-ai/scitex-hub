@@ -3,9 +3,9 @@
 
 {% block title %}サービス・料金 | Services - SciTeX{% endblock %}
 {% block meta_description %}
-    SciTeX は、文献、解析、Figure、執筆、データ管理、計算環境を横断して、研究者と研究組織の
-    ワークフローを整えるオープンな研究基盤です。既存の PC・NAS・サーバー・HPC を活かしながら、
-    必要な部分だけを接続・自動化します。まずは初回相談 30 分無料から。
+    SciTeX は、文献調査、データ解析、図表作製、論文執筆、データ管理、計算環境を横断して、
+    研究者と研究組織のワークフローを支えるオープンな研究基盤です。完全なオンプレミス・ローカル運用も可能。
+    お手持ちの計算資源を活かし、必要な部分だけを接続・自動化します。まずは初回相談 30 分無料から。
 {% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'public_app/css/services.css' %}" />
@@ -20,18 +20,19 @@
         <section class="svc-hero">
             <div class="svc-hero-main">
                 <span class="svc-eyebrow">Open Research Infrastructure</span>
-                <h1 class="svc-hero-title">研究に集中できる環境を、<span class="svc-accent-text">仕組みから。</span></h1>
+                <h1 class="svc-hero-title">研究に集中できる環境を、<br /><span class="svc-accent-text">仕組みから。</span></h1>
                 <p class="svc-hero-copy">
-                    SciTeX は、文献、解析、Figure、執筆、データ管理、計算環境を横断して、
-                    研究者と研究組織のワークフローを整えるオープンな研究基盤です。既存の PC、NAS、
-                    サーバー、HPC を活かしながら、必要な部分だけを接続・自動化します。
+                    SciTeX は、文献調査、データ解析、図表作製、論文執筆、データ管理、計算環境を横断して、
+                    研究者と研究組織のワークフローを支えるオープンな研究基盤です。完全なオンプレミス・
+                    ローカル運用も可能です。既にお持ちの計算資源を有効活用するなど、必要に応じた柔軟な
+                    カスタマイズが可能です。
                 </p>
                 <div class="svc-hero-actions">
                     <a href="#inquiry" class="svc-btn svc-btn-primary">相談内容を整理する</a>
                     <a href="#plans" class="svc-btn svc-btn-ghost">プランを見る</a>
                 </div>
                 <p class="svc-hero-note">
-                    初回相談 30 分無料。契約を前提とせず、自分でできること・SciTeX が支援できることを
+                    初回相談 30 分無料。契約を前提とせず、自分でできること・SciTeX にご相談いただくことを
                     分けてご案内します。
                 </p>
             </div>
@@ -62,8 +63,8 @@
                     <div class="svc-flow-item">
                         <span class="svc-flow-num">04</span>
                         <div>
-                            <strong>研究者に残す</strong>
-                            <span>データや設定は手元に残り、支援後も継続利用できます。</span>
+                            <strong>研究者主権</strong>
+                            <span>データや設定は構造化テキストなどで保持し、SciTeX 以外でも活用できます。</span>
                         </div>
                     </div>
                 </div>
@@ -73,32 +74,31 @@
         <!-- Trust strip -->
         <div class="svc-trust">
             <span class="svc-trust-item">Open Source First</span>
-            <span class="svc-trust-item">Local / Cloud / HPC</span>
+            <span class="svc-trust-item">お手持ちの PC / NAS / HPC</span>
             <span class="svc-trust-item">Vendor Neutral</span>
             <span class="svc-trust-item">NDA / On-site Ready</span>
         </div>
 
         <!-- ============================================================ -->
-        <!-- 対象別プラン (Individual / Lab / Enterprise)                  -->
+        <!-- 対象別プラン — サービス比較マトリクス                         -->
         <!-- ============================================================ -->
         <section class="svc-section" id="plans">
             <p class="svc-kicker">Plans</p>
             <h2>個人から研究組織まで、必要な範囲だけ。</h2>
             <p class="svc-section-desc">
-                最初から大規模な導入を前提にせず、課題の大きさと組織の状況に合わせて支援範囲を
-                設計します。
+                お手持ちの環境を前提に、課題の大きさと組織の状況へ合わせてサービス範囲を設計します。
+                個人研究者から利益を得ることは目的とせず、研究室・組織向けの導入で事業を持続させます。
             </p>
             <div class="svc-plan-wrap">
-                <table class="svc-plan-table">
+                <table class="svc-plan-table svc-matrix">
                     <thead>
                         <tr>
-                            <th scope="col" class="svc-plan-axis">Plan</th>
+                            <th scope="col" class="svc-plan-axis">サービス</th>
                             <th scope="col">
                                 <span class="svc-plan-name">Individual</span>
                                 <span class="svc-plan-sub">個人研究者・大学院生</span>
                             </th>
-                            <th scope="col" class="svc-plan-featured">
-                                <span class="svc-plan-badge">おすすめ</span>
+                            <th scope="col">
                                 <span class="svc-plan-name">Lab</span>
                                 <span class="svc-plan-sub">研究室・共同研究チーム</span>
                             </th>
@@ -110,80 +110,58 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <th scope="row">主な課題</th>
-                            <td>解析、コード、Figure、個人環境の整備</td>
-                            <td>データ共有、自動化、計算資源、属人化</td>
-                            <td>組織導入、標準化、セキュリティ、継続運用</td>
+                            <th scope="row">SciTeX ソフトウェア（Scholar / Writer / FigRecipe ほか）</th>
+                            <td class="svc-yes">✓</td><td class="svc-yes">✓</td><td class="svc-yes">✓</td>
                         </tr>
                         <tr>
-                            <th scope="row">導入方法</th>
-                            <td>スポット相談・個別支援</td>
-                            <td>一工程からの小規模 PoC</td>
-                            <td>要件整理・試験導入・段階展開</td>
+                            <th scope="row">解析相談・コードレビュー・再現性確認</th>
+                            <td class="svc-yes">✓</td><td class="svc-yes">✓</td><td class="svc-yes">✓</td>
                         </tr>
                         <tr>
-                            <th scope="row">対応環境</th>
-                            <td>PC、WSL、クラウド、HPC</td>
-                            <td>研究室サーバー、NAS、HPC</td>
-                            <td>オンプレミス、閉域環境、クラウド</td>
+                            <th scope="row">再現可能な Figure・論文執筆環境の整備</th>
+                            <td class="svc-yes">✓</td><td class="svc-yes">✓</td><td class="svc-yes">✓</td>
                         </tr>
                         <tr>
-                            <th scope="row">支援内容</th>
-                            <td>レビュー、環境構築、自動化</td>
-                            <td>共有基盤、データ管理、専用ツール</td>
-                            <td>ガバナンス、導入設計、継続支援</td>
+                            <th scope="row">定型解析・レポートの自動化</th>
+                            <td class="svc-ask">要相談</td><td class="svc-yes">✓</td><td class="svc-yes">✓</td>
                         </tr>
                         <tr>
-                            <th scope="row">NDA・オンサイト</th>
-                            <td class="svc-muted">必要に応じて対応</td>
-                            <td>対応</td>
-                            <td>対応</td>
+                            <th scope="row">Linux・Docker・HPC 計算環境の構築</th>
+                            <td class="svc-ask">要相談</td><td class="svc-yes">✓</td><td class="svc-yes">✓</td>
                         </tr>
                         <tr>
+                            <th scope="row">NAS・ストレージ・バックアップ設計</th>
+                            <td class="svc-no">×</td><td class="svc-yes">✓</td><td class="svc-yes">✓</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">ローカル・オンプレミス AI 導入</th>
+                            <td class="svc-ask">要相談</td><td class="svc-yes">✓</td><td class="svc-yes">✓</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">研究室専用ツール・プラグイン開発</th>
+                            <td class="svc-no">×</td><td class="svc-yes">✓</td><td class="svc-yes">✓</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">NDA・オンサイト対応</th>
+                            <td class="svc-no">×</td><td class="svc-yes">✓</td><td class="svc-yes">✓</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">標準化・ガバナンス・継続運用</th>
+                            <td class="svc-no">×</td><td class="svc-ask">要相談</td><td class="svc-yes">✓</td>
+                        </tr>
+                        <tr class="svc-matrix-price">
                             <th scope="row">料金の目安</th>
-                            <td class="svc-plan-price">11,000円〜</td>
-                            <td class="svc-plan-price">55,000円〜</td>
-                            <td class="svc-plan-price">110,000円〜／要見積もり</td>
+                            <td class="svc-plan-price">0 円〜</td>
+                            <td class="svc-plan-price">55,000 円〜</td>
+                            <td class="svc-plan-price">110,000 円〜／要見積もり</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <!-- Mobile: same plans as stacked cards (no horizontal scroll) -->
-            <div class="svc-plan-cards">
-                <article class="svc-plan-card">
-                    <p class="svc-plan-card-name">Individual<span class="svc-plan-card-sub">個人研究者・大学院生</span></p>
-                    <dl>
-                        <dt>主な課題</dt><dd>解析、コード、Figure、個人環境の整備</dd>
-                        <dt>導入方法</dt><dd>スポット相談・個別支援</dd>
-                        <dt>対応環境</dt><dd>PC、WSL、クラウド、HPC</dd>
-                        <dt>支援内容</dt><dd>レビュー、環境構築、自動化</dd>
-                        <dt>NDA・オンサイト</dt><dd>必要に応じて対応</dd>
-                        <dt>料金の目安</dt><dd class="svc-plan-price">11,000円〜</dd>
-                    </dl>
-                </article>
-                <article class="svc-plan-card svc-plan-card-featured">
-                    <p class="svc-plan-card-name"><span class="svc-plan-badge">おすすめ</span>Lab<span class="svc-plan-card-sub">研究室・共同研究チーム</span></p>
-                    <dl>
-                        <dt>主な課題</dt><dd>データ共有、自動化、計算資源、属人化</dd>
-                        <dt>導入方法</dt><dd>一工程からの小規模 PoC</dd>
-                        <dt>対応環境</dt><dd>研究室サーバー、NAS、HPC</dd>
-                        <dt>支援内容</dt><dd>共有基盤、データ管理、専用ツール</dd>
-                        <dt>NDA・オンサイト</dt><dd>対応</dd>
-                        <dt>料金の目安</dt><dd class="svc-plan-price">55,000円〜</dd>
-                    </dl>
-                </article>
-                <article class="svc-plan-card">
-                    <p class="svc-plan-card-name">Enterprise<span class="svc-plan-card-sub">大学・研究機関・企業 R&amp;D</span></p>
-                    <dl>
-                        <dt>主な課題</dt><dd>組織導入、標準化、セキュリティ、継続運用</dd>
-                        <dt>導入方法</dt><dd>要件整理・試験導入・段階展開</dd>
-                        <dt>対応環境</dt><dd>オンプレミス、閉域環境、クラウド</dd>
-                        <dt>支援内容</dt><dd>ガバナンス、導入設計、継続支援</dd>
-                        <dt>NDA・オンサイト</dt><dd>対応</dd>
-                        <dt>料金の目安</dt><dd class="svc-plan-price">110,000円〜／要見積もり</dd>
-                    </dl>
-                </article>
-            </div>
+            <p class="svc-matrix-note">
+                ✓ 対応　／　要相談 内容により対応　／　× 現在は範囲外。ソフトウェア自体は個人でも無料で
+                お使いいただけます。計算資源の実費や、込み入った導入・開発・運用のみを有料とします。
+            </p>
         </section>
 
         <!-- ============================================================ -->
@@ -193,8 +171,8 @@
             <p class="svc-kicker">Services</p>
             <h2>研究ワークフローを、部分ではなく流れで整える。</h2>
             <p class="svc-section-desc">
-                単発のコード修正から、研究室全体のデータ・計算環境まで。既存資産を活かしながら、
-                必要な部分だけを支援します。
+                単発のコード修正から、研究室全体のデータ・計算環境まで。お手持ちの資産を活かしながら、
+                必要な部分だけをサービスとして提供します。
             </p>
             <div class="svc-cards">
                 <article class="svc-card">
@@ -211,7 +189,7 @@
                 <article class="svc-card">
                     <div class="svc-card-icon">02</div>
                     <h3>Research Computing</h3>
-                    <p class="svc-card-lead">手元の PC から HPC まで、安全で再現可能な計算環境を構築します。</p>
+                    <p class="svc-card-lead">お手持ちの PC から HPC まで、安全で再現可能な計算環境を構築します。</p>
                     <ul class="svc-card-list">
                         <li><strong>Linux・Docker・Apptainer</strong><span>研究コードを別の PC やサーバーでも動かせる環境にまとめます。</span></li>
                         <li><strong>SSH・HPC・リモート計算</strong><span>大学の計算資源、研究室サーバー、手元の PC を安全につなぎます。</span></li>
@@ -238,7 +216,7 @@
                         <li><strong>小規模実証・PoC</strong><span>まず一つの研究工程を対象に、効果と運用負荷を確認します。</span></li>
                         <li><strong>専用ツール・プラグイン開発</strong><span>Scholar、Writer、FigRecipe、Storage、Tasks 等を組み合わせます。</span></li>
                         <li><strong>NDA・オンサイト対応</strong><span>機密データや研究設備を扱う場合は、現地導入にも対応します。</span></li>
-                        <li><strong>継続的な技術支援</strong><span>専任技術者を置くほどではない組織に、相談先として伴走します。</span></li>
+                        <li><strong>継続的な技術サービス</strong><span>専任技術者を置くほどではない組織に、相談先として伴走します。</span></li>
                     </ul>
                 </article>
             </div>
@@ -249,13 +227,13 @@
         <!-- ============================================================ -->
         <section class="svc-section svc-principles-section">
             <p class="svc-kicker">Principles</p>
-            <h2>支援後も、研究者の手元に残る。</h2>
+            <h2>サービス後も、研究者の手元に残る。</h2>
             <p class="svc-section-desc">
                 SciTeX は、特定ベンダーへの囲い込みや、不透明な外部利用料を前提にしません。
             </p>
             <div class="svc-principles">
                 <div class="svc-principle">
-                    <strong>既存資産を活かす</strong>
+                    <strong>お手持ちの資産を活かす</strong>
                     <p>新しい契約や機器を増やす前に、現在の PC、NAS、サーバー、HPC を活用します。</p>
                 </div>
                 <div class="svc-principle">
@@ -267,8 +245,8 @@
                     <p>特定の AI、クラウド、ファイル形式へのロックインを前提にしません。</p>
                 </div>
                 <div class="svc-principle">
-                    <strong>データはお客様のもの</strong>
-                    <p>データ、コード、設定ファイルは、支援終了後もお客様が保持できます。</p>
+                    <strong>研究者主権（データはお客様のもの）</strong>
+                    <p>データ、コード、設定は構造化テキストなどで保持し、SciTeX 以外でも活用できます。</p>
                 </div>
                 <div class="svc-principle">
                     <strong>小さく始める</strong>
@@ -303,8 +281,8 @@
                         <tr><td>環境構築・データ移行・自動化</td><td class="svc-price-cell">55,000円〜</td></tr>
                         <tr><td>研究室向け試験導入・PoC</td><td class="svc-price-cell">55,000円〜</td></tr>
                         <tr><td>個別開発・本格導入</td><td class="svc-price-cell">110,000円〜</td></tr>
-                        <tr><td>継続的な技術支援</td><td class="svc-price-cell">月額 33,000円〜</td></tr>
-                        <tr><td>技術顧問・組織的な導入支援</td><td class="svc-price-cell">月額 55,000円〜</td></tr>
+                        <tr><td>継続的な技術サービス</td><td class="svc-price-cell">月額 33,000円〜</td></tr>
+                        <tr><td>技術顧問・組織的な導入</td><td class="svc-price-cell">月額 55,000円〜</td></tr>
                     </tbody>
                 </table>
             </div>
