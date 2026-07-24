@@ -335,21 +335,25 @@ LOGGING.update(
 # ---------------------------------------
 # Celery Beat Schedule Override for Development
 # ---------------------------------------
+# expire_seconds, NOT "expires": DatabaseScheduler's ModelEntry silently
+# drops unknown option keys — see the schedule header in settings_celery.py
+# (2026-07-21 50k-backlog incident).
 # Chart generation dispatches 48 child tasks; use 60s to avoid queue flooding
 CELERY_BEAT_SCHEDULE["generate-status-charts"] = {
     "task": "apps.infra.public_app.tasks.generate_status_charts",
     "schedule": 60.0,
     "options": {
-        "expires": 55.0,
+        "expire_seconds": 55,
     },
 }
 
-# Re-enable metrics collection in dev (runs as Celery task, not in Daphne)
+# Re-enable metrics collection in dev at a 10s cadence (prod runs the
+# settings_celery.py entry at 60s; runs as Celery task, not in Daphne)
 CELERY_BEAT_SCHEDULE["collect-server-metrics"] = {
     "task": "apps.infra.public_app.tasks.collect_server_metrics",
     "schedule": 10.0,
     "options": {
-        "expires": 9.0,
+        "expire_seconds": 9,
     },
 }
 

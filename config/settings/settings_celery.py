@@ -89,13 +89,25 @@ CELERY_WORKER_MAX_MEMORY_PER_CHILD = (
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 # Periodic task schedule
+#
+# Expiry MUST be spelled "expire_seconds" here, NOT celery's producer-side
+# "expires" keyword: beat runs django_celery_beat's DatabaseScheduler (see
+# CELERY_BEAT_SCHEDULER above), whose ModelEntry._unpack_options() maps ONLY
+# expire_seconds onto the seeded PeriodicTask row — an "expires" key falls
+# into **kwargs and is SILENTLY DISCARDED, so every periodic message ships
+# immortal. That exact spelling let the default queue backlog to 50,199
+# messages on prod (~6,000 copies of each minute-ly task ≈ 4 days), which
+# starved the queue-liveness beacon, tripped the container healthcheck and
+# put autoheal into a restart loop. See incident
+# hub-default-queue-immortal-beat-backlog (2026-07-21); regression gate:
+# tests/apps/public_app/test_beat_schedule_expiry.py.
 CELERY_BEAT_SCHEDULE = {
     # Clean up expired visitor allocations every 5 minutes
     "cleanup-expired-visitor-allocations": {
         "task": "apps.infra.public_app.tasks.cleanup_expired_visitor_allocations",
         "schedule": 300.0,  # Every 5 minutes (in seconds)
         "options": {
-            "expires": 270.0,  # Expire after 4.5 minutes if not started
+            "expire_seconds": 270,  # Expire after 4.5 minutes if not started
         },
     },
     # Generate server status charts every 1 minute
@@ -103,7 +115,7 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.infra.public_app.tasks.generate_status_charts",
         "schedule": 60.0,  # Every 1 minute
         "options": {
-            "expires": 55.0,  # Expire after 55 seconds if not started
+            "expire_seconds": 55,  # Expire after 55 seconds if not started
         },
     },
     # Check site health every 1 minute and notify on failures
@@ -111,7 +123,7 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.infra.public_app.tasks.check_site_health",
         "schedule": 60.0,  # Every 1 minute
         "options": {
-            "expires": 55.0,  # Expire after 55 seconds if not started
+            "expire_seconds": 55,  # Expire after 55 seconds if not started
         },
     },
     # Check for request flood patterns every 1 minute
@@ -119,7 +131,7 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.infra.public_app.tasks.check_request_flood",
         "schedule": 60.0,  # Every 1 minute
         "options": {
-            "expires": 55.0,  # Expire after 55 seconds if not started
+            "expire_seconds": 55,  # Expire after 55 seconds if not started
         },
     },
     # Warm /status page cache every 1 minute so user-facing visitors
@@ -128,7 +140,19 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.infra.public_app.tasks.warm_public_status_cache",
         "schedule": 60.0,  # Every 1 minute
         "options": {
-            "expires": 55.0,
+            "expire_seconds": 55,
+        },
+    },
+    # Collect server metrics every 1 minute. Owned HERE, by settings, not by
+    # a hand-made PeriodicTask row: prod ran this minute-ly ONLY via an
+    # unmanaged DB row that no settings file declared (SSoT violation
+    # surfaced by the 2026-07-21 backlog incident). settings_dev.py
+    # overrides the cadence to 10s for development.
+    "collect-server-metrics": {
+        "task": "apps.infra.public_app.tasks.collect_server_metrics",
+        "schedule": 60.0,  # Every 1 minute
+        "options": {
+            "expire_seconds": 55,  # Expire after 55 seconds if not started
         },
     },
     # End-to-end queue-liveness beacons — the watchdog for wedged workers.
@@ -147,11 +171,11 @@ CELERY_BEAT_SCHEDULE = {
     # name (update_or_create) at each beat boot — same idempotent mechanism
     # that seeds all the entries above; no data migration needed.
     #
-    # Deliberately NO "expires" option, unlike the entries above: a LATE
-    # beacon still proves the worker dispatches (it stamps execution time),
-    # whereas expiring beacons on a merely-slow queue would silently shrink
-    # the healthcheck's 600s budget to this 120s interval and restart busy
-    # -but-healthy workers.
+    # Deliberately NO expiry (no expire_seconds), unlike the entries above:
+    # a LATE beacon still proves the worker dispatches (it stamps execution
+    # time), whereas expiring beacons on a merely-slow queue would silently
+    # shrink the healthcheck's 600s budget to this 120s interval and restart
+    # busy-but-healthy workers.
     "queue-liveness-beacon-celery": {
         "task": "apps.infra.public_app.tasks.queue_liveness_beacon",
         "schedule": 120.0,  # Every 2 minutes
