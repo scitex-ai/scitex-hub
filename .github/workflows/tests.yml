@@ -189,18 +189,25 @@ jobs:
           echo "Terminal Tests: $TERMINAL_RESULT"
           echo "Security Regression: $SECURITY_RESULT"
 
-          if [ "$TS_RESULT" == "failure" ]; then
-            echo "TypeScript checks failed"
+          # Every leg below uses `!= "success"`, never `== "failure"`.
+          # A job result is one of success / failure / cancelled /
+          # skipped, so `== "failure"` lets a cancelled or skipped job
+          # pass the summary — a gate that cannot fail. None of these
+          # three jobs carries an `if:` condition or a paths filter, so
+          # there is no legitimate skip to tolerate: anything other than
+          # success means the check did not actually run green.
+          if [ "$TS_RESULT" != "success" ]; then
+            echo "TypeScript checks did not pass (result: $TS_RESULT)"
             exit 1
           fi
 
-          if [ "$TEST_RESULT" == "failure" ]; then
-            echo "Vitest tests failed"
+          if [ "$TEST_RESULT" != "success" ]; then
+            echo "Vitest tests did not pass (result: $TEST_RESULT)"
             exit 1
           fi
 
-          if [ "$TERMINAL_RESULT" == "failure" ]; then
-            echo "Terminal tests failed"
+          if [ "$TERMINAL_RESULT" != "success" ]; then
+            echo "Terminal tests did not pass (result: $TERMINAL_RESULT)"
             exit 1
           fi
 

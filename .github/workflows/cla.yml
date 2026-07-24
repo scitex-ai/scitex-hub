@@ -7,7 +7,7 @@ name: CLA Assistant
 # this repo's prior hardcoded values, so no `with:` overrides are needed.
 # NOTE (judgment call): the prior local file read
 # secrets.CLA_PERSONAL_ACCESS_TOKEN, which does not appear in this repo's
-# secret list (`gh secret list --repo ywatanabe1989/scitex-hub`) — already
+# secret list (`gh secret list --repo scitex-ai/scitex-hub`) — already
 # stale/broken before this migration. The reusable workflow instead reads
 # secrets.GH_PERSONAL_ACCESS_TOKEN (confirmed present on this repo), so
 # `secrets: inherit` should fix CLA-signature posting rather than change

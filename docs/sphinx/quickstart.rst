@@ -8,7 +8,7 @@ Deployment
 
 .. code-block:: bash
 
-   git clone https://github.com/ywatanabe1989/scitex-hub.git
+   git clone https://github.com/scitex-ai/scitex-hub.git
    cd scitex-hub
    make start
 

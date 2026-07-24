@@ -78,13 +78,19 @@ chmod -R 755 /app/data/slurm 2>/dev/null || true
 # ============================================
 # Always create .scitex/logs directory (required by scitex package)
 mkdir -p /app/.scitex/logs
-# Always create .scitex/hub/runtime directory (LOG_DIR default for the
-# Django/Celery app itself -- config/settings/settings_logging.py resolves
-# LOG_DIR here via scitex_config's runtime-state-db-layout convention.
-# A fallback default must NEVER again point at a directory nothing
-# guarantees exists -- see incident hub-prod-outage-celery-log-permission
-# (2026-07-09/10, ~90min prod outage from celery_file PermissionError).
-mkdir -p /app/.scitex/hub/runtime
+# Always create the FULL LOG_DIR leaf .scitex/hub/runtime/logs (not just
+# runtime/) -- config/settings/settings_logging.py resolves LOG_DIR here via
+# scitex_config's runtime-state-db-layout convention, and the celery_file
+# RotatingFileHandler is configured in the same django.setup() that would
+# otherwise lazily create it. Pre-creating (and chowning, below) the leaf as
+# root BEFORE any Python process starts removes the first-boot dependency on
+# that lazy mkdir: on a volume that has never seen this path (a long-lived
+# prod .scitex volume before the first release carrying the new default), the
+# handler could be configured before the leaf existed -> "Unable to configure
+# handler 'celery_file'" -> crash loop. This mirrors how /app/logs is always
+# pre-created above. See incident hub-prod-outage-celery-log-permission
+# (2026-07-09/10 outage; 2026-07-11 prod first-boot crash on the new default).
+mkdir -p /app/.scitex/hub/runtime/logs
 chown -R scitex:scitex /app/.scitex 2>/dev/null || true
 chmod -R 755 /app/.scitex 2>/dev/null || true
 echo "✅ .scitex directory permissions fixed"
@@ -126,9 +132,33 @@ fi
 # root:root before anything has written to it. install_apps.sh runs as
 # the scitex user (after this script gosu's down) and needs to clone into
 # and create subdirectories here (2026-07-10, hub-postboot-warmup-window).
+#
+# PROBE RECURSIVELY, not by the top-level owner (2026-07-13). This block used to
+# `stat` /app/.apps itself and skip the chown when that came back "scitex". But
+# the volume PERSISTS across rebuilds, and a root-context boot (celery ran
+# install_apps.sh as root before the entrypoint's celery guard landed) left
+# root-owned files INSIDE an already-scitex-owned directory:
+#     drwxr-xr-x root root  .install-state/
+#     -rw-r--r-- root root  .install_apps.lock
+#     drwxr-xr-x root root  figrecipe/  scitex-todo/  scitex-ui/  scitex-writer/
+# The top-level stat passed, the chown was skipped, and install_apps.sh then died
+# as the scitex user:
+#     could not open /app/.apps/.install_apps.lock for locking
+#     /app/.apps/.install-state/scitex-storage.sha: Permission denied
+# which (under `set -euo pipefail`) aborted the whole install — so the workspace
+# apps never installed and /apps/storage/ 404'd. Measured on live prod: 26,487
+# root-owned files under a scitex-owned /app/.apps.
+#
+# This is the SAME defect as the site-packages block below: "the directory is
+# owned by X" does not imply "its contents are". Probe for any foreign file and
+# repair recursively — the identical idiom the uv-cache and staticfiles blocks
+# already use. `find -print -quit` stops at the first hit, so the clean case is
+# cheap. (No -xdev needed: /app/.apps is a plain named volume with no read-only
+# sub-mounts, unlike site-packages.)
 mkdir -p /app/.apps
-if [ "$(stat -c '%U' /app/.apps 2>/dev/null)" != "scitex" ]; then
-    echo "🔧 Fixing /app/.apps ownership (root -> scitex)..."
+FOREIGN_APPS=$(find /app/.apps ! -user scitex -print -quit 2>/dev/null)
+if [ -n "$FOREIGN_APPS" ]; then
+    echo "🔧 Fixing /app/.apps ownership (found non-scitex file: $FOREIGN_APPS)..."
     chown -R scitex:scitex /app/.apps
     echo "✅ /app/.apps ownership fixed"
 else
