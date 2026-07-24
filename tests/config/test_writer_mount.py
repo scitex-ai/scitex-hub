@@ -68,19 +68,25 @@ def test_no_urlpattern_includes_the_raw_scitex_writer_urlconf():
     from django.urls import get_resolver
 
     def _module_names(patterns):
+        # ``urlconf_name`` is a module for ``include("a.b.urls")``, a plain str
+        # in some paths, and a LIST of patterns for ``include([...])`` or a
+        # namespace tuple. Only the first two name a module; a list is not
+        # hashable and has no __name__, so yield nothing for it and rely on the
+        # recursion below to walk what it contains.
         for entry in patterns:
             nested = getattr(entry, "url_patterns", None)
             if nested is None:
                 continue
-            yield getattr(entry, "urlconf_name", None)
+            raw = getattr(entry, "urlconf_name", None)
+            name = getattr(raw, "__name__", None)
+            if isinstance(name, str):
+                yield name
+            elif isinstance(raw, str):
+                yield raw
             yield from _module_names(nested)
 
     # Act
-    mounted = {
-        getattr(mod, "__name__", mod)
-        for mod in _module_names(get_resolver().url_patterns)
-        if mod is not None
-    }
+    mounted = set(_module_names(get_resolver().url_patterns))
 
     # Assert
     assert "scitex_writer._django.urls" not in mounted
