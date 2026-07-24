@@ -24,17 +24,25 @@ argument (dependency injection), so the guard is exercised with a
 hand-rolled fake in tests without running a real ``fd`` scan. It reuses the
 SAME upstream view for the happy path (so the real-data scan and the hub
 template override keep working) and the SAME upstream ``healthz`` probe.
+
+IMPORT SAFETY (optional upstream)
+---------------------------------
+``scitex_storage`` is an OPTIONAL upstream package — the hub mounts this
+wrapper only when ``_scitex_storage_installed()`` (see ``config/urls.py``),
+exactly like writer/figrecipe are conditionally imported. So this module
+must NOT hard-fail at import when the package is absent (a module-level
+``from scitex_storage... import`` aborts test COLLECTION with
+``ModuleNotFoundError``). Both upstream symbols are therefore imported
+LAZILY, inside the call that needs them.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Optional
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
-from scitex_storage._django.views import healthz  # noqa: F401  (re-exported)
-from scitex_storage._django.views import index as _raw_index
 
 
 def _rejected(requested_path: str) -> HttpResponseForbidden:
@@ -45,15 +53,41 @@ def _rejected(requested_path: str) -> HttpResponseForbidden:
     )
 
 
+def _raw_index(request):
+    """Lazily import + call the upstream storage scan view.
+
+    Imported inside the call so this module stays import-safe when the
+    optional ``scitex_storage`` package is absent (the mount is gated on
+    ``_scitex_storage_installed()`` upstream, so this only ever runs when
+    the package IS present).
+    """
+    from scitex_storage._django.views import index as _upstream_index
+
+    return _upstream_index(request)
+
+
+def healthz(request):
+    """Lazy delegate to the upstream storage ``healthz`` probe.
+
+    Kept as a module-level name so ``storage_app/urls.py`` can route
+    ``views.healthz`` without importing the optional package at import time.
+    """
+    from scitex_storage._django.views import healthz as _upstream_healthz
+
+    return _upstream_healthz(request)
+
+
 class JailScopedScanView:
     """Delegate to a storage scan view only for paths inside the user jail.
 
     ``downstream(request) -> HttpResponse`` is injected so the containment
-    guard is testable without a real filesystem scan.
+    guard is testable without a real filesystem scan. It defaults to the
+    lazily-resolved upstream scan view (:func:`_raw_index`), so constructing
+    this object never imports the optional ``scitex_storage`` package.
     """
 
-    def __init__(self, downstream: Callable):
-        self.downstream = downstream
+    def __init__(self, downstream: Optional[Callable] = None):
+        self.downstream = downstream or _raw_index
 
     def __call__(self, request):
         from apps.infra.project_app.services.filesystem.permissions import (
@@ -68,7 +102,7 @@ class JailScopedScanView:
         return self.downstream(request)
 
 
-_scan_view = JailScopedScanView(_raw_index)
+_scan_view = JailScopedScanView()
 
 
 @login_required
