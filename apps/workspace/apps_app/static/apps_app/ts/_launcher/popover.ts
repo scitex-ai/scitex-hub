@@ -42,16 +42,22 @@ export class LauncherPopover {
     pop.className = "launcher-popover";
     pop.setAttribute("role", "menu");
 
-    pop.appendChild(
-      this.item(
-        "fas fa-arrow-right",
-        "Open",
-        () => {
-          window.location.href = tile.getAttribute("href") || "/";
-        },
-        true,
-      ),
-    );
+    // Coming-soon tiles have no href and must not navigate (availability
+    // field, operator Telegram 1483) — offering "Open" here would be the
+    // same dishonest tap the grid just removed. Details stays: the store
+    // page is a truthful destination.
+    if (tile.dataset.availability !== "coming_soon") {
+      pop.appendChild(
+        this.item(
+          "fas fa-arrow-right",
+          "Open",
+          () => {
+            window.location.href = tile.getAttribute("href") || "/";
+          },
+          true,
+        ),
+      );
+    }
     pop.appendChild(
       this.item(
         "fas fa-thumbtack",

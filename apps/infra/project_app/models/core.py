@@ -5,6 +5,7 @@ Contains: ProjectPermission, VisitorAllocation
 """
 
 from django.db import models
+from django.utils import timezone
 
 
 class ProjectPermission(models.Model):
@@ -57,7 +58,11 @@ class VisitorAllocation(models.Model):
     allocation_token = models.CharField(
         max_length=64, unique=True, help_text="Security token"
     )
-    allocated_at = models.DateTimeField(auto_now_add=True)
+    # NOT auto_now_add: slot rows are created once and REUSED across
+    # visitors, so an insert-time stamp records row creation, not the
+    # current allocation (on prod every row still read February). The
+    # allocator overwrites this on every handoff.
+    allocated_at = models.DateTimeField(default=timezone.now)
     expires_at = models.DateTimeField(help_text="Allocation expiry time")
     is_active = models.BooleanField(default=True, help_text="Active allocation")
     last_activity = models.DateTimeField(

@@ -20,6 +20,9 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.infra.project_app.models import Project
+from apps.infra.project_app.services.filesystem.permissions import (
+    validate_path_in_project,
+)
 from apps.infra.project_app.services.syntax_highlighting import detect_language
 
 from .api.permissions import check_project_read_access
@@ -81,15 +84,17 @@ def project_file_view(request, username, slug, file_path):
 
     full_file_path = project_path / file_path
 
-    # Security check
+    # Security check: component-wise containment (UNROUTED shadowed duplicate).
     try:
         full_file_path = full_file_path.resolve()
-        if not str(full_file_path).startswith(str(project_path.resolve())):
+        if not validate_path_in_project(project_path, full_file_path):
             if mode in ("raw", "download"):
                 raise Http404("Invalid file path")
             messages.error(request, "Invalid file path.")
             return redirect("project_app:detail", username=username, slug=slug)
-    except Exception:
+    except Http404:
+        raise
+    except (OSError, RuntimeError):
         if mode in ("raw", "download"):
             raise Http404("Invalid file path")
         messages.error(request, "Invalid file path.")

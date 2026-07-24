@@ -22,6 +22,14 @@ from typing import Any, Callable, Optional
 
 logger = logging.getLogger(__name__)
 
+# Tile availability states (card hub-launcher-tile-availability-states).
+# Honest can/cannot signalling AT the home icon, operator directive
+# (Telegram 1483): "available" launches everywhere; "coming_soon" renders
+# a badge and never navigates; "desktop_only" launches on desktop but is
+# badged + blocked on a phone. The manifest is the SSoT for built-ins;
+# the AppsModule catalog row carries it for store-published apps.
+AVAILABILITY_STATES = ("available", "coming_soon", "desktop_only")
+
 
 @dataclass
 class ModuleConfig:
@@ -63,6 +71,11 @@ class ModuleConfig:
 
     # Visibility defaults
     default_enabled: bool = True  # Show in tab bar for new users (no installations)
+
+    # Tile availability (see AVAILABILITY_STATES above). "" means the
+    # manifest declared nothing — readers fall back to the AppsModule
+    # catalog row, then to "available". Never invented in a template.
+    availability: str = ""
 
     # Launcher-grid visibility. Some registered modules are workspace
     # panes / nav items, not standalone launcher apps — e.g. Clew (opens
@@ -262,6 +275,23 @@ def _resolve_version(data: dict) -> str:
         return ""
 
 
+def _resolve_availability(data: dict) -> str:
+    """Validate the manifest's ``availability`` declaration.
+
+    Raises ValueError on an unknown state so a typo fails LOUDLY at
+    registry build time (the module is dropped with a logged error, same
+    as an unsupported schema version) instead of silently rendering as a
+    launchable tile — the exact dishonesty this field exists to remove.
+    """
+    availability = data.get("availability", "")
+    if availability and availability not in AVAILABILITY_STATES:
+        raise ValueError(
+            f"Unknown availability {availability!r} in manifest for "
+            f"{data.get('name')!r}; expected one of {AVAILABILITY_STATES}"
+        )
+    return availability
+
+
 def _manifest_to_module_config(data: dict) -> ModuleConfig:
     """Convert a manifest dict to a ModuleConfig dataclass."""
     name = data["name"]
@@ -280,6 +310,7 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
         keyboard_shortcut=data.get("keyboard_shortcut", ""),
         order=data.get("order", 50),
         category=data.get("category", ""),
+        availability=_resolve_availability(data),
         default_enabled=data.get("default_enabled", True),
         show_in_launcher=data.get("show_in_launcher", True),
         ai_hint=data.get("ai_hint", ""),
@@ -388,6 +419,24 @@ def register_module(config: ModuleConfig) -> None:
     _registry.append(config)
     _registry_by_name[config.name] = config
     logger.info(f"[registry] Registered external module: {config.name}")
+
+
+def unregister_module(name: str) -> None:
+    """Remove a runtime-registered module. No-op when absent.
+
+    The symmetric partner of register_module — the registry is
+    process-global, so anything that registers transiently (a
+    deactivated dev-install, a test fixture) must be able to leave the
+    registry exactly as it found it.
+    """
+    config = _registry_by_name.pop(name, None)
+    if config is None:
+        return
+    try:
+        _registry.remove(config)
+    except ValueError:
+        pass
+    logger.info(f"[registry] Unregistered module: {name}")
 
 
 def discover_external_modules() -> None:

@@ -19,6 +19,9 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 
 from apps.infra.project_app.models import Project
+from apps.infra.project_app.services.filesystem.permissions import (
+    validate_path_in_project,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -52,13 +55,13 @@ def project_file_edit(request, username, slug, file_path):
 
     full_file_path = project_path / file_path
 
-    # Security check
+    # Security check: component-wise containment (UNROUTED shadowed duplicate).
     try:
         full_file_path = full_file_path.resolve()
-        if not str(full_file_path).startswith(str(project_path.resolve())):
+        if not validate_path_in_project(project_path, full_file_path):
             messages.error(request, "Invalid file path.")
             return redirect("project_app:detail", username=username, slug=slug)
-    except Exception:
+    except (OSError, RuntimeError):
         messages.error(request, "Invalid file path.")
         return redirect("project_app:detail", username=username, slug=slug)
 

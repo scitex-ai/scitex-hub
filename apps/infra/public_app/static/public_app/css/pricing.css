@@ -2,8 +2,7 @@
 /* Matches SciTeX dark theme design system */
 
 /* Hide stray Django template tags from linter-reformatted base template */
-body
-  > :first-child:not(.mobile-notice-banner):not(header):not(main):not(footer) {
+body > :first-child:not(header):not(main):not(footer) {
   display: none !important;
 }
 body

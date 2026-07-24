@@ -9,6 +9,7 @@
   "pip_package": "figrecipe",
   "license": "AGPL-3.0",
   "keyboard_shortcut": "F",
+  "availability": "desktop_only",
   "order": 45,
   "accent_color": "figrecipe",
   "body_class": "figrecipe-page",

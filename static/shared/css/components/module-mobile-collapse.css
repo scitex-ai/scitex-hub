@@ -1,0 +1,41 @@
+/* ============================================================================
+ * Module Interior Mobile Collapse
+ * ============================================================================
+ * Shared ≤767px primitives for module interiors (Console, Tools, Docs).
+ * The workspace shell already collapses to a single pane on mobile
+ * (workspace-shell.css); this file stacks the multi-column flex layouts
+ * INSIDE that pane. Modules opt in by adding .module-mobile-stack to their
+ * split container; per-module sizing (panel heights, borders) stays in each
+ * module's own responsive CSS. Breakpoint matches workspace-shell.css /
+ * workspace-layout.css (767px). Desktop is untouched — every rule lives
+ * inside the media query.
+ * ========================================================================== */
+
+@media (max-width: 767px) {
+  /* Drag handles are pointer affordances — useless on touch/narrow */
+  .panel-resizer,
+  .split-resizer {
+    display: none !important;
+  }
+
+  /* Stack a desktop side-by-side split container into a column */
+  .module-mobile-stack {
+    flex-direction: column !important;
+  }
+
+  /* Panels lose their fixed desktop widths and span the full column */
+  .module-mobile-stack > * {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  /* Collapsed panels: the shared 48px-wide strip (collapsible-panel.css)
+     becomes a 48px-tall full-width strip in a column layout */
+  .module-mobile-stack > .collapsible-panel.collapsed {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: var(--ui-collapsed-pane-width, 48px) !important;
+    flex: 0 0 auto !important;
+  }
+}

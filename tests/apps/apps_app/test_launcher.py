@@ -14,7 +14,13 @@ from apps.workspace.apps_app.models import (
     AppsModule,
     ModuleInstallation,
 )
-from apps.workspace.apps_app.views.launcher import MAX_PINNED_MODULES
+from apps.workspace.apps_app.views.launcher import (
+    DEFAULT_LAUNCHER_ORDER,
+    MAX_PINNED_MODULES,
+    _MI_DEFAULT_TAB_ORDER,
+    get_pinned_module_names,
+    seed_default_pins,
+)
 
 
 class LauncherHomeTest(TestCase):
@@ -284,6 +290,195 @@ class VersionLabelHelperTest(TestCase):
         label = _version_label("v1.2")
         # Assert
         assert label == "v1.2"
+
+
+class DefaultPinSeedTest(TestCase):
+    """A user who has never pinned anything still gets a populated sidebar.
+
+    Regression (commit 458412b1, 2026-07-07): the sidebar switched from listing
+    every module to listing only PINNED ones, but nothing ever set a pin — so
+    every user's sidebar collapsed to Home + All apps, and Scholar (which owns
+    the Search tab), Writer, FigRecipe, Console and the rest vanished at once.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user(
+            username="unpinned-user",
+            password="TestPass123!",  # pragma: allowlist secret
+        )
+
+    def setUp(self):
+        self.client.login(
+            username="unpinned-user",
+            password="TestPass123!",  # pragma: allowlist secret
+        )
+
+    def test_fresh_user_gets_a_non_empty_pin_set(self):
+        # Arrange
+        user = self.user
+        # Act
+        pinned = get_pinned_module_names(user)
+        # Assert
+        assert pinned != []
+
+    def test_default_pins_include_scholar(self):
+        # Arrange — Scholar owns the Search tab the operator lost
+        user = self.user
+        # Act
+        pinned = get_pinned_module_names(user)
+        # Assert
+        assert "scholar" in pinned
+
+    def test_default_pins_respect_the_cap(self):
+        # Arrange
+        user = self.user
+        # Act
+        pinned = get_pinned_module_names(user)
+        # Assert
+        assert len(pinned) <= MAX_PINNED_MODULES
+
+    def test_default_pins_exclude_home_module(self):
+        # Arrange — the sidebar renders its own Home entry
+        user = self.user
+        # Act
+        pinned = get_pinned_module_names(user)
+        # Assert
+        assert "home" not in pinned
+
+    def test_default_pins_follow_the_curated_launcher_order(self):
+        # Arrange — sidebar and launcher grid must agree on which apps lead
+        expected = [
+            name
+            for name in DEFAULT_LAUNCHER_ORDER
+            if name != "home"
+        ][:MAX_PINNED_MODULES]
+        # Act
+        pinned = get_pinned_module_names(self.user)
+        # Assert
+        assert pinned == expected
+
+    def test_seeding_twice_returns_the_same_pins(self):
+        # Arrange
+        first = get_pinned_module_names(self.user)
+        # Act
+        second = get_pinned_module_names(self.user)
+        # Assert
+        assert second == first
+
+    def test_seeding_twice_creates_no_duplicate_rows(self):
+        # Arrange
+        pinned = get_pinned_module_names(self.user)
+        # Act
+        get_pinned_module_names(self.user)
+        # Assert
+        assert (
+            ModuleInstallation.objects.filter(
+                user=self.user, config__pinned=True
+            ).count()
+            == len(pinned)
+        )
+
+    def test_seeded_rows_keep_the_default_tab_order(self):
+        # Arrange — a seeded row is incidental, not an explicit drag-reorder
+        get_pinned_module_names(self.user)
+        # Act
+        orders = set(
+            ModuleInstallation.objects.filter(user=self.user).values_list(
+                "tab_order", flat=True
+            )
+        )
+        # Assert
+        assert orders == {_MI_DEFAULT_TAB_ORDER}
+
+    def test_unpinning_everything_is_not_resurrected(self):
+        # Arrange — seed, then let the user deliberately unpin every module
+        get_pinned_module_names(self.user)
+        for inst in ModuleInstallation.objects.filter(user=self.user):
+            inst.config = {}
+            inst.save(update_fields=["config"])
+        # Act
+        pinned = get_pinned_module_names(self.user)
+        # Assert — an empty sidebar the user chose must stay empty
+        assert pinned == []
+
+    def test_sidebar_context_exposes_scholar_for_fresh_user(self):
+        # Arrange
+        url = "/"
+        # Act
+        resp = self.client.get(url)
+        # Assert
+        assert "scholar" in [
+            mod.name for mod in resp.context["workspace_pinned_modules"]
+        ]
+
+
+class TestPoolAccountsAreNeverSeeded(TestCase):
+    """Visitor-pool accounts must not receive default pins.
+
+    Regression (operator report 2026-07-17, Telegram 1311 — "the sidebar
+    came back"): the default-pin self-heal above seeds ANY authenticated
+    user with zero pins, and the rotating visitor-NNN slot accounts are
+    users — so every anonymous visitor's sidebar filled with the five
+    default apps. Pool accounts are shared, recycled identities: a pin
+    seeded today renders for every future visitor of that slot. Visitors
+    get the minimal sidebar; apps are discovered via the launcher grid.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.visitor = User.objects.create_user(
+            username="visitor-001",
+            password="TestPass123!",  # pragma: allowlist secret
+        )
+        cls.readonly = User.objects.create_user(
+            username="readonly-visitor",
+            password="TestPass123!",  # pragma: allowlist secret
+        )
+
+    def test_visitor_account_is_not_seeded(self):
+        # Arrange
+        user = self.visitor
+        # Act
+        created = seed_default_pins(user)
+        # Assert
+        assert created is False
+
+    def test_visitor_account_gets_no_pin_rows(self):
+        # Arrange
+        user = self.visitor
+        # Act
+        seed_default_pins(user)
+        rows = ModuleInstallation.objects.filter(user=user).count()
+        # Assert
+        assert rows == 0
+
+    def test_visitor_pinned_names_stay_empty(self):
+        # Arrange — the auto-seeding read path must not seed pool accounts
+        user = self.visitor
+        # Act
+        pinned = get_pinned_module_names(user)
+        # Assert
+        assert pinned == []
+
+    def test_readonly_visitor_is_not_seeded(self):
+        # Arrange
+        user = self.readonly
+        # Act
+        created = seed_default_pins(user)
+        # Assert
+        assert created is False
+
+    def test_regular_user_seeding_is_unaffected(self):
+        # Arrange — the guard must not break the self-heal for real users
+        user = User.objects.create_user(
+            username="real-user",
+            password="TestPass123!",  # pragma: allowlist secret
+        )
+        # Act
+        pinned = get_pinned_module_names(user)
+        # Assert
+        assert pinned != []
 
 
 # EOF

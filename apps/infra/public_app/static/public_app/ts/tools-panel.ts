@@ -16,16 +16,17 @@ function getElements() {
 }
 
 // --- Tool loading ---
-function loadTool(toolUrl: string, toolName: string): void {
+function loadTool(navItem: HTMLElement): void {
   const el = getElements();
-  if (!el.iframe) return;
+  const toolUrl = navItem.dataset.toolUrl;
+  if (!el.iframe || !toolUrl) return;
 
   // Show iframe, hide placeholder
   el.placeholder?.setAttribute("hidden", "");
   el.iframe.removeAttribute("hidden");
   el.iframe.src = toolUrl;
 
-  // Update active state in nav
+  // Update active state in nav (every listing of the same tool)
   document.querySelectorAll(".tools-nav-item").forEach((item) => {
     item.classList.toggle(
       "active",
@@ -33,13 +34,11 @@ function loadTool(toolUrl: string, toolName: string): void {
     );
   });
 
-  // Update URL hash
-  const slug =
-    toolUrl
-      .split("/apps/tools/")[1]
-      ?.replace(/\/?\?embed=1$/, "")
-      .replace(/\/$/, "") || "";
-  if (slug) history.replaceState(null, "", `/apps/tools/#${slug}`);
+  // Reflect the current tool in the URL hash (noun-form slug) so the view
+  // is directly shareable, e.g. /apps/tools/#mermaid-renderer. Only the
+  // fragment is updated so the page path is preserved on either tools route.
+  const slug = navItem.dataset.toolSlug || "";
+  if (slug) history.replaceState(null, "", `#${slug}`);
 }
 
 function closeTool(): void {
@@ -53,7 +52,11 @@ function closeTool(): void {
   document
     .querySelectorAll(".tools-nav-item")
     .forEach((item) => item.classList.remove("active"));
-  history.replaceState(null, "", "/apps/tools/");
+  history.replaceState(
+    null,
+    "",
+    window.location.pathname + window.location.search,
+  );
 }
 
 // --- Sidebar domain expand/collapse ---
@@ -74,10 +77,7 @@ function initToolClicks(): void {
   document.querySelectorAll(".tools-nav-item").forEach((item) => {
     item.addEventListener("click", (e) => {
       e.preventDefault();
-      const el = item as HTMLElement;
-      const url = el.dataset.toolUrl;
-      const name = el.dataset.toolName;
-      if (url && name) loadTool(url, name);
+      loadTool(item as HTMLElement);
     });
   });
 
@@ -128,18 +128,43 @@ function initSearch(): void {
   });
 }
 
-// --- URL hash restore ---
+// --- URL hash deep-linking ---
+/** Legacy (pre-noun-form) anchor id for a tool: its route basename, e.g.
+ *  /apps/tools/render-mmd/?embed=1 -> "render-mmd". */
+function legacySlug(navItem: HTMLElement): string {
+  const url = navItem.dataset.toolUrl || "";
+  return url.replace(/\?.*$/, "").replace(/\/+$/, "").split("/").pop() || "";
+}
+
+/** Resolve a hash to a nav item: current noun-form slug first, then the
+ *  legacy verb-form slug so previously shared links keep resolving. */
+function findNavItemBySlug(slug: string): HTMLElement | null {
+  const items = Array.from(
+    document.querySelectorAll<HTMLElement>(".tools-nav-item"),
+  );
+  return (
+    items.find((it) => it.dataset.toolSlug === slug) ||
+    items.find((it) => legacySlug(it) === slug) ||
+    null
+  );
+}
+
+/** Expand the tool's domain group (if collapsed) and scroll it into view. */
+function revealNavItem(navItem: HTMLElement): void {
+  const items = navItem.closest(".tools-nav-items");
+  const header = items?.previousElementSibling;
+  items?.classList.add("expanded");
+  header?.classList.add("expanded");
+  navItem.scrollIntoView({ block: "nearest" });
+}
+
 function restoreFromHash(): void {
-  const hash = window.location.hash.slice(1);
+  const hash = decodeURIComponent(window.location.hash.slice(1));
   if (!hash) return;
-  // Match hash against tool slugs extracted from bookmarklet URLs
-  const navItem = document.querySelector(
-    `.tools-nav-item[data-tool-slug="/apps/tools/${hash}/"]`,
-  ) as HTMLElement | null;
+  const navItem = findNavItemBySlug(hash);
   if (navItem) {
-    const url = navItem.dataset.toolUrl;
-    const name = navItem.dataset.toolName;
-    if (url && name) loadTool(url, name);
+    revealNavItem(navItem);
+    loadTool(navItem);
   }
 }
 
@@ -266,6 +291,8 @@ function init(): void {
   initIframeCtrlK();
   initToolsDropZone();
   restoreFromHash();
+  // Re-open the matching tool on back/forward navigation or manual hash edits.
+  window.addEventListener("hashchange", restoreFromHash);
 }
 
 if (document.readyState === "loading") {

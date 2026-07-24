@@ -29,6 +29,14 @@ export function showReadonlyVisitorToast(
   // One toast at a time — repeated rejected writes must not stack.
   if (document.getElementById(TOAST_ID)) return;
 
+  // If the page already renders a persistent, in-flow read-only banner
+  // (e.g. the launcher guest CTA, tagged [data-readonly-inline-banner]),
+  // that banner is the single source of this message — do NOT stack a
+  // second floating toast on top of it. One banner, shown conditionally
+  // (operator, 2026-07-21). The toast still fires on pages that carry no
+  // such banner (Writer, Files, …), where it is the only read-only cue.
+  if (document.querySelector("[data-readonly-inline-banner]")) return;
+
   const signupUrl = payload.signup_url || "/auth/signup/";
   const loginUrl =
     payload.login_url ||

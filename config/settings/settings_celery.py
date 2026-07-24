@@ -131,6 +131,39 @@ CELERY_BEAT_SCHEDULE = {
             "expires": 55.0,
         },
     },
+    # End-to-end queue-liveness beacons — the watchdog for wedged workers.
+    #
+    # Prod workers intermittently stop dispatching while every control-plane
+    # probe stays green (measured 2026-07-14 / 2026-07-17: full `inspect
+    # reserved` window with time_start=None, empty `inspect active`, redis
+    # ping fine). Each beacon is routed ONTO the watched queue (`options.queue`
+    # → PeriodicTask.queue via django_celery_beat) and stamps
+    # `scitex:liveness:<queue>` at EXECUTION time; the container healthcheck
+    # (deployment/docker/common/scripts/check_queue_liveness.sh) fails when
+    # the stamp is missing or older than its budget (600s).
+    #
+    # Seeding: prod beat runs django_celery_beat's DatabaseScheduler, whose
+    # setup_schedule() upserts every entry here into a PeriodicTask row by
+    # name (update_or_create) at each beat boot — same idempotent mechanism
+    # that seeds all the entries above; no data migration needed.
+    #
+    # Deliberately NO "expires" option, unlike the entries above: a LATE
+    # beacon still proves the worker dispatches (it stamps execution time),
+    # whereas expiring beacons on a merely-slow queue would silently shrink
+    # the healthcheck's 600s budget to this 120s interval and restart busy
+    # -but-healthy workers.
+    "queue-liveness-beacon-celery": {
+        "task": "apps.infra.public_app.tasks.queue_liveness_beacon",
+        "schedule": 120.0,  # Every 2 minutes
+        "args": ["celery"],
+        "options": {"queue": "celery"},
+    },
+    "queue-liveness-beacon-vis-queue": {
+        "task": "apps.infra.public_app.tasks.queue_liveness_beacon",
+        "schedule": 120.0,  # Every 2 minutes
+        "args": ["vis_queue"],
+        "options": {"queue": "vis_queue"},
+    },
 }
 
 # EOF

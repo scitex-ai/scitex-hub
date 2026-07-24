@@ -137,7 +137,7 @@ DETAIL_SEPARATOR = " · "  # middle dot, between the detail and the app
 
 # URL prefix -> Capitalized app name. The single source of truth for how a
 # SciTeX app is spelled in a tab. Capitalization here is the contract:
-# "Todo", never "todo"; "FigRecipe", never "figrecipe".
+# "Cards", never "cards"; "FigRecipe", never "figrecipe".
 #
 # The prefixes must be the REAL mounted paths: app_for_path() matches with
 # str.startswith, so a bare "/scholar/" never matched the actual /apps/scholar/
@@ -152,7 +152,7 @@ APP_NAMES = {
     "/writer/": "Writer",
     "/apps/figrecipe/": "FigRecipe",
     "/apps/console/": "Console",
-    "/apps/todo/": "Todo",
+    "/apps/cards/": "Cards",
     "/apps/storage/": "Storage",
     "/apps/clew/": "Clew",
     "/apps/discovery/": "Explore",

@@ -47,6 +47,14 @@
     display: none !important;
   }
 
+  /* No "ALL APPS" head on a phone (operator, Telegram 1474: "見たらわかる
+     じゃんスペースもったいない") — the grid is self-evident and every
+     vertical pixel belongs to the icons. Desktop keeps the head: with
+     search + category chips above the grid it labels which set you see. */
+  .launcher-section-head {
+    display: none;
+  }
+
   /* The launcher scrolls inside #main-content (workspace-shell.css);
      keep programmatic scrolls/anchors clear of the dock too. */
   body:has(.launcher) #main-content {
@@ -139,6 +147,12 @@
     display: none;
   }
 
+  /* Pages are FULL-width — a page never shows a sliver of its neighbour.
+     The 88% "peek" affordance tried here first (Telegram 1402) clipped the
+     rightmost column mid-icon, which reads as a rendering bug, not a hint
+     (operator, Telegram 1453: "みきれてるとカッコ悪いのでiPhoneみたいに
+     きれいにして"). The dots pinned above the dock are the paging
+     affordance, exactly as on the iOS home screen. */
   .launcher-page {
     flex: 0 0 100%;
     scroll-snap-align: start;
@@ -152,14 +166,25 @@
   }
 
   /* Page dots. Hidden (via [hidden]) when there is only one page — a lone dot
-     communicates nothing and just eats vertical space we need for icons. */
+     communicates nothing and just eats vertical space we need for icons.
+     PINNED just above the dock (operator: the dots overlapped the dock when
+     left in flow — flow bottom vs the fixed dock depends on content height,
+     fixed-above-fixed does not). rowsThatFit() already reserves this band
+     (dotsRoom) when sizing pages, so the dots never sit on a tile row. */
   .launcher-dots {
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 7px;
-    padding: 10px 0 2px;
-    flex: 0 0 auto;
+    padding: 0;
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(
+      var(--launcher-dock-height) + 14px + 8px +
+        env(safe-area-inset-bottom, 0px)
+    );
+    z-index: 1100;
   }
 
   .launcher-dots[hidden] {
@@ -180,6 +205,31 @@
 
   .launcher-dot.active {
     opacity: 0.95;
+  }
+
+  /* ---------- Desktop-only apps on a phone (availability field) ----------
+     Same breakpoint as the dock/sidebar swap above, and as the
+     MOBILE_BREAKPOINT_QUERY matchMedia in launcher.ts that blocks the
+     launch — badge and behaviour can never disagree on where "mobile"
+     starts. The tile stays tappable: launcher.ts answers the tap with an
+     explanatory toast instead of a dead-end navigation. */
+  .launcher-badge-desktop-only {
+    display: inline-block;
+  }
+
+  /* Both badges would stack in the one badge slot; on a phone the
+     desktop-only warning outranks NEW (which stays desktop-visible). */
+  .launcher-badge-desktop-only + .launcher-badge-new {
+    display: none;
+  }
+
+  .launcher-tile[data-availability="desktop_only"] .launcher-tile-icon {
+    opacity: 0.55;
+    filter: saturate(0.5);
+  }
+
+  .launcher-tile[data-availability="desktop_only"] .launcher-tile-name {
+    opacity: 0.7;
   }
 
   /* One read-only notice, not two. The launcher already shows a full

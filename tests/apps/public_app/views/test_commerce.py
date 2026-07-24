@@ -3,9 +3,6 @@
 """Tests for the commerce/compliance pages (feat/tokushoho-stripe-pages).
 
 Covers:
-- 特定商取引法に基づく表記 (/tokushoho/): configured fields render;
-  missing fields render an explicit 準備中 notice (no fake data);
-  footer link present.
 - Pricing page: honest 準備中 empty state; config-driven plans are
   staff-only while billing is in testing and display 税込 prices.
 - Stripe scaffold: checkout/webhook return explicit 503 while
@@ -13,6 +10,9 @@ Covers:
   valid ones. Signature checks hand-roll Stripe's documented
   ``t=...,v1=HMAC_SHA256(secret, f"{t}.{payload}")`` scheme with a test
   secret — no mocks (STX-NM001).
+
+The 特定商取引法に基づく表記 page tests live in test_tokushoho.py
+(split for the 512-line file limit).
 """
 
 import hashlib
@@ -36,14 +36,6 @@ TEST_PLANS = [
         "stripe_price_id": "price_test_pro_monthly",
     }
 ]
-
-CONFIGURED_COMPANY = {
-    "COMPANY_NAME": "株式会社 SciTeX",
-    "COMPANY_REPRESENTATIVE": "渡邉 裕亮",
-    "COMPANY_ADDRESS": "静岡市葵区伝馬町1-2 テストビル301号室",
-    "COMPANY_PHONE": "050-0000-0000",
-    "COMPANY_CONTACT_EMAIL": "legal@scitex.ai",
-}
 
 
 def _stripe_signature(payload: bytes, secret: str, timestamp: int = None) -> str:
@@ -83,96 +75,6 @@ def regular_client(client, django_user_model):
     )
     client.login(username="regular-user", password="test-password-123")
     return client
-
-
-@pytest.mark.django_db
-class TestTokushohoPage:
-    """特定商取引法に基づく表記 page."""
-
-    def test_tokushoho_page_returns_http_200(self, client):
-        # Arrange
-        url = reverse("public_app:tokushoho")
-        # Act
-        response = client.get(url)
-        # Assert
-        assert response.status_code == 200
-
-    def test_tokushoho_page_shows_legal_heading(self, client):
-        # Arrange
-        url = reverse("public_app:tokushoho")
-        # Act
-        content = client.get(url).content.decode("utf-8")
-        # Assert
-        assert "特定商取引法に基づく表記" in content
-
-    @pytest.mark.parametrize("expected", list(CONFIGURED_COMPANY.values()))
-    def test_tokushoho_with_configured_fields_renders_each_value(
-        self, client, settings, expected
-    ):
-        # Arrange
-        for key, value in CONFIGURED_COMPANY.items():
-            setattr(settings, key, value)
-        # Act
-        content = client.get(reverse("public_app:tokushoho")).content.decode("utf-8")
-        # Assert
-        assert expected in content
-
-    def test_tokushoho_missing_fields_render_pending_notices(self, client, settings):
-        # Arrange: address / phone / email are NOT finalized
-        settings.COMPANY_ADDRESS = ""
-        settings.COMPANY_PHONE = ""
-        settings.COMPANY_CONTACT_EMAIL = ""
-        # Act
-        content = client.get(reverse("public_app:tokushoho")).content.decode("utf-8")
-        # Assert: one 準備中 notice per missing field, never a fake value
-        assert content.count("tokushoho-pending") >= 3
-
-    def test_tokushoho_without_plans_states_paid_plans_preparing(
-        self, client, settings
-    ):
-        # Arrange
-        settings.BILLING_PLANS = []
-        # Act
-        content = client.get(reverse("public_app:tokushoho")).content.decode("utf-8")
-        # Assert
-        assert "有料プランは現在準備中です" in content
-
-    @pytest.mark.parametrize("expected", ["Pro (Test)", "1100", "税込"])
-    def test_tokushoho_with_plans_lists_tax_inclusive_price_details(
-        self, client, settings, expected
-    ):
-        # Arrange
-        settings.BILLING_PLANS = TEST_PLANS
-        # Act
-        content = client.get(reverse("public_app:tokushoho")).content.decode("utf-8")
-        # Assert
-        assert expected in content
-
-    def test_tokushoho_includes_no_refund_after_delivery_clause(self, client):
-        # Arrange: 返品・キャンセル特約 (grant business/legal draft)
-        url = reverse("public_app:tokushoho")
-        # Act
-        content = client.get(url).content.decode("utf-8")
-        # Assert
-        assert (
-            "提供開始後のお客様都合による返品・返金はお受けいたしません" in content
-        )
-
-    def test_tokushoho_includes_operating_environment_row(self, client):
-        # Arrange
-        url = reverse("public_app:tokushoho")
-        # Act
-        content = client.get(url).content.decode("utf-8")
-        # Assert
-        assert "動作環境" in content
-
-    def test_terms_page_footer_links_to_tokushoho(self, client):
-        # Arrange: footer is global — a lightweight legal page carries it
-        url = reverse("public_app:terms")
-        # Act
-        content = client.get(url).content.decode("utf-8")
-        # Assert
-        assert reverse("public_app:tokushoho") in content
 
 
 @pytest.mark.django_db

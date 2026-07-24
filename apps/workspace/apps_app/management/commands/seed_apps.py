@@ -25,6 +25,7 @@ _CATEGORY_MAP = {
     "discovery": "social",
     "docs": "reference",
     "todo": "utility",
+    "storage": "data",
 }
 
 # Module descriptions
@@ -39,7 +40,8 @@ _DESCRIPTIONS = {
     "store": "Browse, install, and manage workspace modules.",
     "discovery": "Discover public repositories, researchers, and organizations across the SciTeX community.",
     "docs": "Documentation hub — Python packages, MCP tools, API reference, and self-hosting guide.",
-    "todo": "Read-only board view of your project's scitex-todo task store — kanban columns, dependency graph, and status colors.",
+    "todo": "Read-only board view of your project's task cards (scitex-todo store) — kanban columns, dependency graph, and status colors.",
+    "storage": "Browse your storage across the machines you can reach.",
 }
 
 # Modules under active development
@@ -53,7 +55,18 @@ def ensure_builtin_modules(author_username="ywatanabe"):
     Returns (created_count, updated_count).
     """
     author = User.objects.filter(username=author_username).first()
-    modules = get_all_modules()
+    # BUILTIN modules only. get_all_modules() also returns runtime
+    # registrations — user-published apps (app_loader.load_single_app)
+    # and dev apps — and seeding those stamped them is_builtin/verified
+    # AND copied their registry display label (the raw repo slug) into
+    # the catalog columns, where it then fed back into the registry on
+    # the next boot: a self-perpetuating garbage label. The loader's
+    # partial_template prefix is the runtime-registration signature.
+    modules = [
+        m
+        for m in get_all_modules()
+        if not (m.partial_template or "").startswith("apps_app/user_apps/")
+    ]
     created = 0
     updated = 0
 
@@ -64,6 +77,15 @@ def ensure_builtin_modules(author_username="ywatanabe"):
                 mod.name, f"{mod.label} workspace module."
             ),
             "category": _CATEGORY_MAP.get(mod.name, "other"),
+            # Display metadata straight from the app's manifest.json (the
+            # registry builds ModuleConfig from the manifests — SSoT). A
+            # manifest without an icon leaves the column blank; readers
+            # fall back to the generic puzzle icon.
+            "label": mod.label,
+            "icon": mod.icon_fa,
+            # Availability comes from the manifest too (SSoT for builtins).
+            # A manifest that declares nothing means fully available.
+            "availability": mod.availability or "available",
             "is_builtin": True,
             "is_verified": True,
             "visibility": "public",

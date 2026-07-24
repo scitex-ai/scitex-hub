@@ -19,6 +19,12 @@ from .health import (
     check_request_flood,
     warm_public_status_cache,
 )
+from .liveness import (
+    LIVENESS_KEY_PREFIX,
+    liveness_key,
+    queue_liveness_beacon,
+    write_liveness_stamp,
+)
 from .metrics import collect_server_metrics
 from .utils import check_port
 
@@ -38,6 +44,11 @@ __all__ = [
     "HEALTH_CHECK_LAST_NOTIFICATION_KEY",
     "FLOOD_DETECTION_PREFIX",
     "FLOOD_ALERT_LAST_SENT_KEY",
+    # Liveness (end-to-end queue watchdog)
+    "LIVENESS_KEY_PREFIX",
+    "liveness_key",
+    "queue_liveness_beacon",
+    "write_liveness_stamp",
     # Utils
     "check_port",
 ]

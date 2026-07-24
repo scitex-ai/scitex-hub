@@ -6,6 +6,12 @@ Supports TRAMP-like remote filesystem access via SSH/SSHFS
 from django.contrib.auth.models import User
 from django.db import models
 
+from apps.infra.project_app.ssh_safety import (
+    validate_remote_path,
+    validate_ssh_host,
+    validate_ssh_username,
+)
+
 
 class RemoteCredential(models.Model):
     """
@@ -46,6 +52,20 @@ class RemoteCredential(models.Model):
     class Meta:
         unique_together = [["user", "name"]]
         ordering = ["-last_used_at", "-created_at"]
+
+    def clean(self):
+        """Reject SSH-argument-injection-prone host/username values.
+
+        Runs on ``full_clean()`` only — and the add view uses
+        ``objects.create()``, which does NOT call it. So this is defense
+        in depth, not the enforcement point. The two layers that actually
+        run are the explicit ``validate_*`` calls in
+        ``handle_add_remote_credential`` (entry) and the validation inside
+        ``ssh_safety.ssh_destination`` (every argv build).
+        """
+        super().clean()
+        validate_ssh_username(self.ssh_username)
+        validate_ssh_host(self.ssh_host)
 
     def __str__(self):
         return (
@@ -127,6 +147,19 @@ class RemoteProjectConfig(models.Model):
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def clean(self):
+        """Reject SSH-argument/shell-injection-prone values.
+
+        RemoteProjectConfig copies ssh_username / ssh_host verbatim from
+        the RemoteCredential at project creation, so it is a SECOND
+        user-controlled source feeding the sshfs / rsync / probe sinks —
+        it needs the same validation as the credential itself.
+        """
+        super().clean()
+        validate_ssh_username(self.ssh_username)
+        validate_ssh_host(self.ssh_host)
+        validate_remote_path(self.remote_path)
 
     def __str__(self):
         status = "🟢 Mounted" if self.is_mounted else "⚫ Not mounted"

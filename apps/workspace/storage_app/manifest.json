@@ -12,7 +12,7 @@
   "order": 80,
   "category": "data",
   "default_enabled": false,
-  "accent_color": "",
+  "accent_color": "storage",
   "body_class": "",
   "partial_template": "",
   "context_builder": "",

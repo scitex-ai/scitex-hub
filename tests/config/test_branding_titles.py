@@ -40,7 +40,7 @@ def test_site_name_is_exactly_scitex():
 
 @pytest.mark.parametrize("app_name", sorted(set(branding.APP_NAMES.values())))
 def test_app_names_are_capitalized(app_name):
-    """Operator: "Todo", never "todo"; "FigRecipe", never "figrecipe"."""
+    """Operator: "Cards", never "cards"; "FigRecipe", never "figrecipe"."""
     # Arrange
     first_char = app_name[0]
 
@@ -54,7 +54,7 @@ def test_app_names_are_capitalized(app_name):
 def test_every_app_the_operator_named_has_a_title():
     # Arrange
     expected = {
-        "Todo",
+        "Cards",
         "Writer",
         "Scholar",
         "FigRecipe",
@@ -114,7 +114,7 @@ def test_every_app_prefix_is_a_path_that_actually_exists():
     ("path", "expected"),
     [
         ("/writer/", "Writer"),
-        ("/apps/todo/", "Todo"),
+        ("/apps/cards/", "Cards"),
         ("/apps/figrecipe/some/deep/page", "FigRecipe"),
         ("/social/explore/", "Explore"),  # longest prefix wins over /explore/
         ("/browse/", "Files"),
@@ -282,13 +282,13 @@ def test_template_tag_builds_the_title_from_the_request_path():
 @override_settings(SCITEX_ENV="development", SCITEX_APP_MODE=branding.MODE_HUB)
 def test_template_tag_marks_the_development_environment():
     # Arrange
-    context = {"request": FakeRequest("/apps/todo/")}
+    context = {"request": FakeRequest("/apps/cards/")}
 
     # Act
     title = branding_tags.page_title(context)
 
     # Assert
-    assert title == "Todo — SciTeX (dev)"
+    assert title == "Cards — SciTeX (dev)"
 
 
 @override_settings(SCITEX_ENV="production", SCITEX_APP_MODE=branding.MODE_STANDALONE)

@@ -51,9 +51,9 @@ def tokushoho(request):
     """特定商取引法に基づく表記 (Specified Commercial Transactions Act).
 
     All values are config-driven (config/settings/settings_commerce.py,
-    env keys SCITEX_HUB_COMPANY_*). Unfinalized values (address, phone,
-    public email) stay empty in the environment and the template renders
-    an explicit 準備中 notice — never a fake value.
+    env keys SCITEX_HUB_COMPANY_*). Unfinalized values (public email)
+    stay empty in the environment and the template renders an explicit
+    準備中 notice — never a fake value.
     """
     context = {
         "company_name": settings.COMPANY_NAME,

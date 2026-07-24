@@ -38,9 +38,13 @@ def workspace_context(request):
     if path.rstrip("/") == "/new" and request.user.is_authenticated:
         is_ws = True
 
-    # Core pane paths (/chat/, /console/, /files/) → workspace with panes
+    # Core pane paths (/chat/, /console/, /files/) → workspace with panes.
+    # /chat/ also covers the session deep-link /chat/<uuid>/, so match the
+    # whole /chat/ subtree — the chat pane must render there too, not just on
+    # the bare /chat/ path.
     _CORE_PANE_PATHS = {"/chat/", "/console/", "/files/"}
-    if path in _CORE_PANE_PATHS and request.user.is_authenticated:
+    is_core_pane_path = path in _CORE_PANE_PATHS or path.startswith("/chat/")
+    if is_core_pane_path and request.user.is_authenticated:
         is_ws = True
 
     # /ai-setup/ and /search/ paths → workspace with panes
@@ -59,7 +63,7 @@ def workspace_context(request):
         if request.user.is_authenticated and (
             _is_user_profile_path(path)
             or path.rstrip("/") == "/new"
-            or path in _CORE_PANE_PATHS
+            or is_core_pane_path
             or path.startswith("/accounts/")
         ):
             has_panes = True
@@ -263,7 +267,14 @@ def _pinned_modules_for_user(request, modules):
 
         pinned_names = get_pinned_module_names(request.user)
     except Exception:
-        # apps_app not migrated yet or other DB issue
+        # Degrade to an empty pin list — a context processor that raises would
+        # 500 every page — but never silently: an empty sidebar looks exactly
+        # like this failure from the outside, so the cause must reach the logs.
+        logger.exception(
+            "[workspace] Could not resolve pinned modules for %s — sidebar will "
+            "render with no app entries. Is apps_app migrated?",
+            request.user,
+        )
         return []
     by_name = {m.name: m for m in modules}
     return [by_name[name] for name in pinned_names if name in by_name]

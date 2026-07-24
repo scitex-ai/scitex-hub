@@ -59,17 +59,43 @@ fi
 # failure mode the quarantine fail-safe was built against).
 if [[ ! "$*" =~ "celery" ]]; then
     echo_info "Initializing visitor pool..."
-    python manage.py create_visitor_pool --verbosity 0 2>&1 | grep -v "ERRO\|WARN" || true
-    # Boot fail-safe: quarantine every slot as unverified (synchronous,
-    # DB-only), then ENQUEUE the per-slot wipe+verify re-clean to Celery via
-    # --async. This takes the multi-minute clone loop OFF the web-serving
-    # startup path so Django serves immediately (the old inline reconcile left
-    # django-1 "Up (unhealthy)" for minutes after a deploy). Slots stay
-    # quarantined (not allocatable) until a worker verifies each clean —
-    # visitors get the readonly-visitor fallback during the async window, so
-    # visitor-slot isolation is unchanged.
-    python manage.py reconcile_visitor_slots --async 2>&1 | grep -v "ERRO\|WARN" || true
-    echo_success "Visitor pool ready (re-clean dispatched async; only verified-clean slots distributable)"
+    # Every command below runs inside an `if` so a failure cannot abort boot
+    # (set -e): a read-only site beats a site that will not start. But it must
+    # never again fail QUIETLY — see the SLURM note below.
+    if ! python manage.py create_visitor_pool --verbosity 0; then
+        echo_error "create_visitor_pool FAILED — visitor slots may not exist"
+    fi
+
+    # Preflight the re-clean's hard dependency. Releasing a slot tears down the
+    # visitor's apptainer instance, CANCELS its SLURM job, and VERIFIES both are
+    # gone (container_teardown.py) — a reconnect otherwise ATTACHES to the still
+    # running job, landing visitor N+1 inside visitor N's live container. With no
+    # SLURM controller that verification is impossible, so every re-clean fails,
+    # every slot stays quarantined, and EVERY visitor silently drops to read-only.
+    # That is the fail-safe working correctly — but it is invisible from the
+    # outside, and it cost us >24h on 2026-07-13. Say it out loud.
+    if ! timeout 10 squeue -h > /dev/null 2>&1; then
+        echo_error "SLURM controller UNREACHABLE (squeue failed)"
+        echo_error "  -> every visitor-slot re-clean WILL fail and quarantine its slot"
+        echo_error "  -> so EVERY visitor gets a READ-ONLY workspace until this is fixed"
+        echo_error "  -> fix on the host: sudo systemctl start slurmctld slurmd && sinfo"
+    fi
+
+    # Boot fail-safe: quarantine every slot as unverified (synchronous, DB-only),
+    # then ENQUEUE the per-slot wipe+verify re-clean to Celery via --async. This
+    # keeps the multi-minute clone loop OFF the web-serving startup path so Django
+    # serves immediately (the old inline reconcile left django-1 "Up (unhealthy)"
+    # for minutes after a deploy). Slots stay quarantined (not allocatable) until
+    # a worker verifies each clean — visitors get the readonly-visitor fallback
+    # during the async window, so visitor-slot isolation is unchanged.
+    if python manage.py reconcile_visitor_slots --async; then
+        # NOT "pool ready" — nothing is allocatable yet. Each slot becomes
+        # distributable only when a worker proves it wiped clean.
+        echo_success "Visitor-slot re-clean DISPATCHED (slots become allocatable as each verifies clean)"
+    else
+        echo_error "reconcile_visitor_slots --async FAILED to dispatch"
+        echo_error "  -> slots stay quarantined and ALL visitors will be READ-ONLY"
+    fi
 else
     echo_info "Skipping visitor pool init (celery service)"
 fi

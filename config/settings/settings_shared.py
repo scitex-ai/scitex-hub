@@ -107,16 +107,13 @@ ROOT_URLCONF = "config.urls"
 # boot. Removed together with the GITIGNORED/logs fallback itself -- see
 # incident hub-prod-outage-celery-log-permission (2026-07-09/10).
 
-STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [BASE_DIR / "static", BASE_DIR / ".jsbuild"]
-STATICFILES_FINDERS = [
-    "django.contrib.staticfiles.finders.FileSystemFinder",
-    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-    "apps.workspace.apps_app.finders.DevAppStaticFinder",
-]
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+# Static/media config (incl. the content-hashing storage backend) lives in
+# settings_static.py — see the long note there on why the hashing is
+# load-bearing, not cosmetic.
+from .settings_static import *  # noqa: F401,F403,E402
+from .settings_static import configure as _configure_static  # noqa: E402
+
+globals().update(_configure_static(BASE_DIR))
 
 # Vite dev server port for dev app TypeScript (container Vite)
 VITE_DEV_APP_PORT = 5174
@@ -259,6 +256,15 @@ elif _scitex_hub_env in ("stag",):
 elif _scitex_hub_env in ("prod",):
     _scitex_hub_env = "production"
 SCITEX_UI_ELEMENT_INSPECTOR = _scitex_hub_env in ("development", "staging")
+
+# ── On-site agent auth (HMAC shared secret) ────────────────────────────
+# Shared with the MCP client running inside the user's agent container
+# (scitex_hub._mcp_tools.api.get_on_site_env injects the same value as
+# SCITEX_HUB_ONSITE_SECRET). OnSiteAuthMiddleware verifies an HMAC over
+# (username, timestamp) against it. Empty => on-site auth is DISABLED
+# (fail closed); it is never a "trusted network" fallback, because the
+# previous IP-based signal was client-forgeable (X-Forwarded-For).
+ONSITE_AUTH_SECRET = os.environ.get("SCITEX_HUB_ONSITE_SECRET", "")
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

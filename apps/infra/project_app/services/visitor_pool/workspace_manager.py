@@ -277,12 +277,25 @@ class WorkspaceManager:
 
         Raises WorkspaceResetError on any failure (including Gitea being
         unreachable) — an unverified repo deletion is a leak channel.
-        Skipped only when Gitea is not configured at all in this
-        deployment (no token) and no client was injected.
+        Skipped only when this deployment has no Gitea at all — provisioning
+        explicitly disabled (SCITEX_HUB_VISITOR_POOL_GITEA_ENABLED=false) or
+        no token configured — and no client was injected: with no Gitea
+        backend, visitors cannot own repos, so there is nothing to leak.
+        An injected client always wins over the env gate (explicit seam).
         """
         username = visitor_user.username
 
         if gitea_client is None:
+            from .gitea_integration import GiteaIntegration
+
+            if not GiteaIntegration._gitea_enabled():
+                logger.warning(
+                    f"[VisitorPool] Gitea provisioning disabled "
+                    f"(SCITEX_HUB_VISITOR_POOL_GITEA_ENABLED=false) — skipping "
+                    f"repo purge for {username}; a no-Gitea deployment has no "
+                    f"visitor repos to purge."
+                )
+                return
             if not getattr(settings, "GITEA_TOKEN", ""):
                 logger.warning(
                     f"[VisitorPool] Gitea not configured (no token) — skipping "

@@ -332,3 +332,24 @@
   color: var(--text-muted);
   font-size: 13px;
 }
+
+/* =============================================================================
+ * Mobile (≤767px): nav list stacks above the content panel. The column stack,
+ * resizer hiding and width normalization come from the shared
+ * module-mobile-collapse.css (.module-mobile-stack on .tools-workspace);
+ * only tools-specific sizing lives here. Breakpoint matches
+ * workspace-shell.css (767px).
+ * ============================================================================= */
+@media (max-width: 767px) {
+  .tools-nav-panel:not(.collapsed) {
+    flex: 0 0 auto;
+    max-height: 40vh;
+    border-right: none;
+    border-bottom: 1px solid var(--workspace-border-default);
+  }
+
+  .tools-content-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+}

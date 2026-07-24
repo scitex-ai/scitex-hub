@@ -16,6 +16,7 @@ with the Gitea client and template clone injected as tiny fakes through
 their seams — no mocks (STX-NM001).
 """
 
+import os
 import secrets
 import shutil
 from datetime import timedelta
@@ -25,7 +26,7 @@ from pathlib import Path
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.management import call_command
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from apps.infra.project_app.models import Project, VisitorAllocation
@@ -219,6 +220,49 @@ class TestReconcileFailedRecleanQuarantines(TestCase):
         status = VisitorPool.get_pool_status()
         # Assert: a quarantined slot is never distributable.
         assert status["ready"] == 0
+
+
+class TestRecleanWithGiteaDisabled(TestCase):
+    """A no-Gitea deployment (SCITEX_HUB_VISITOR_POOL_GITEA_ENABLED=false)
+    re-cleans slots WITHOUT touching Gitea — it must not quarantine them.
+
+    Dev-preview incident 2026-07-17: reconcile quarantined every slot
+    because the repo purge ran despite the allocation-side gate (#395) —
+    a configured GITEA_TOKEN with an unreachable backend raised inside
+    ``_purge_gitea_repos_verified``, so the pool could never heal
+    (``reason=no_ready_slot``; visitors stuck readonly forever).
+    """
+
+    def setUp(self):
+        self.user = _create_visitor_user_and_project()
+        VisitorAllocation.objects.filter(visitor_number=1).delete()
+        self.allocation = _stale_active_slot(1)
+        self._saved_gate = os.environ.get("SCITEX_HUB_VISITOR_POOL_GITEA_ENABLED")
+        os.environ["SCITEX_HUB_VISITOR_POOL_GITEA_ENABLED"] = "false"
+
+    def tearDown(self):
+        if self._saved_gate is None:
+            os.environ.pop("SCITEX_HUB_VISITOR_POOL_GITEA_ENABLED", None)
+        else:
+            os.environ["SCITEX_HUB_VISITOR_POOL_GITEA_ENABLED"] = self._saved_gate
+        base = Path(settings.BASE_DIR) / "data" / "users" / "visitor-001"
+        if base.exists():
+            shutil.rmtree(base, ignore_errors=True)
+
+    def test_reclean_succeeds_without_gitea_backend(self):
+        # Arrange: a token IS configured but the backend is unreachable —
+        # the dev-preview shape. No client is injected, so the purge path
+        # must consult the env gate and skip Gitea entirely.
+        with override_settings(GITEA_TOKEN="dummy-token"):  # pragma: allowlist secret
+            # Act
+            ok = reset_and_verify_slot(
+                self.allocation,
+                clone_fn=fake_clone,
+                run_cmd=NO_CONTAINER_HOST,
+            )
+        self.allocation.refresh_from_db()
+        # Assert: verified clean and distributable — never quarantined.
+        assert (ok, self.allocation.quarantined) == (True, False)
 
 
 class TestQuarantinedSlotNotServed(TestCase):

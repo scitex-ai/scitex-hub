@@ -43,8 +43,21 @@ def project_settings(request, username, slug):
         )
 
         if action == "update_general":
-            # Update basic project info
-            project.name = request.POST.get("name", "").strip()
+            # Update basic project info. The repository name becomes a
+            # filesystem path component (.../users/<user>/<name>), so it MUST
+            # pass the same containment validation as project creation —
+            # otherwise an owner can rename to '../../users/victim/proj' and
+            # escape their jail (path traversal / cross-tenant). The create
+            # paths call Project.validate_repository_name(); the rename path
+            # historically did not. See sec-nonclass-pathinjection-triage.
+            new_name = request.POST.get("name", "").strip()
+            is_valid, error_message = Project.validate_repository_name(new_name)
+            if not is_valid:
+                messages.error(request, error_message)
+                return redirect(
+                    "project_app:settings", username=username, slug=slug
+                )
+            project.name = new_name
             project.description = request.POST.get("description", "").strip()
             project.save()
             messages.success(request, "General settings updated successfully")

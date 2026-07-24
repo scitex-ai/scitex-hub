@@ -13,3 +13,26 @@
     width: 300px;
   }
 }
+
+/* Mobile: stack editor above a full-width terminal. The column stack,
+   resizer hiding and width normalization come from the shared
+   module-mobile-collapse.css (.module-mobile-stack on .code-workspace);
+   only console-specific sizing lives here. Breakpoint matches
+   workspace-shell.css (767px). */
+@media (max-width: 767px) {
+  .code-editor-area {
+    flex: 1 1 auto;
+    min-height: 0;
+    border-right: none;
+  }
+
+  .code-terminal-panel:not(.collapsed) {
+    height: 40vh;
+    flex: 0 0 40vh;
+  }
+
+  .code-terminal-panel {
+    border-left: none;
+    border-top: 1px solid var(--code-border);
+  }
+}

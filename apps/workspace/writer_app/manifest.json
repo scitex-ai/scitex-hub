@@ -9,6 +9,7 @@
   "pip_package": "scitex-writer",
   "license": "AGPL-3.0",
   "keyboard_shortcut": "W",
+  "availability": "desktop_only",
   "order": 20,
   "accent_color": "writer",
   "body_class": "writer-page",

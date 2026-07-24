@@ -8,6 +8,8 @@ This module provides organization-related operations for the Gitea REST API.
 
 from typing import Dict, List
 
+from .base import path_segment
+
 
 class OrganizationOperationsMixin:
     """Mixin class for organization-related operations"""
@@ -59,7 +61,7 @@ class OrganizationOperationsMixin:
         Returns:
             Organization object
         """
-        response = self._request("GET", f"/orgs/{org}")
+        response = self._request("GET", f"/orgs/{path_segment(org)}")
         return response.json()
 
     def list_org_repos(self, org: str) -> List[Dict]:
@@ -72,7 +74,7 @@ class OrganizationOperationsMixin:
         Returns:
             List of repository objects
         """
-        response = self._request("GET", f"/orgs/{org}/repos")
+        response = self._request("GET", f"/orgs/{path_segment(org)}/repos")
         return response.json()
 
     def list_org_teams(self, org: str) -> List[Dict]:
@@ -85,7 +87,7 @@ class OrganizationOperationsMixin:
         Returns:
             List of team objects
         """
-        response = self._request("GET", f"/orgs/{org}/teams")
+        response = self._request("GET", f"/orgs/{path_segment(org)}/teams")
         return response.json()
 
     def add_team_member(self, team_id: int, username: str) -> None:
@@ -96,7 +98,7 @@ class OrganizationOperationsMixin:
             team_id: Team ID
             username: Username to add
         """
-        self._request("PUT", f"/teams/{team_id}/members/{username}")
+        self._request("PUT", f"/teams/{path_segment(team_id)}/members/{path_segment(username)}")
 
     def create_org_repository(
         self,
@@ -125,7 +127,7 @@ class OrganizationOperationsMixin:
             "private": private,
             "auto_init": auto_init,
         }
-        response = self._request("POST", f"/orgs/{org}/repos", json=data)
+        response = self._request("POST", f"/orgs/{path_segment(org)}/repos", json=data)
         return response.json()
 
     def list_org_members(self, org: str) -> List[Dict]:
@@ -138,7 +140,7 @@ class OrganizationOperationsMixin:
         Returns:
             List of user objects
         """
-        response = self._request("GET", f"/orgs/{org}/members")
+        response = self._request("GET", f"/orgs/{path_segment(org)}/members")
         return response.json()
 
     def add_org_member(self, org: str, username: str, role: str = "member") -> None:
@@ -154,7 +156,7 @@ class OrganizationOperationsMixin:
             role: Role in the org ("owner" or "member")
         """
         # Gitea adds org members via team membership. Use admin API to directly set.
-        self._request("PUT", f"/orgs/{org}/members/{username}")
+        self._request("PUT", f"/orgs/{path_segment(org)}/members/{path_segment(username)}")
 
     def remove_org_member(self, org: str, username: str) -> None:
         """
@@ -164,7 +166,7 @@ class OrganizationOperationsMixin:
             org: Organization name
             username: Username to remove
         """
-        self._request("DELETE", f"/orgs/{org}/members/{username}")
+        self._request("DELETE", f"/orgs/{path_segment(org)}/members/{path_segment(username)}")
 
     def is_org_member(self, org: str, username: str) -> bool:
         """
@@ -180,7 +182,7 @@ class OrganizationOperationsMixin:
         from ..exceptions import GiteaAPIError
 
         try:
-            self._request("GET", f"/orgs/{org}/members/{username}")
+            self._request("GET", f"/orgs/{path_segment(org)}/members/{path_segment(username)}")
             return True
         except GiteaAPIError:
             return False

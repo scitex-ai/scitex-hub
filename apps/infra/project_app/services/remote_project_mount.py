@@ -11,6 +11,8 @@ from typing import TYPE_CHECKING, Optional, Tuple
 
 from django.utils import timezone
 
+from apps.infra.project_app.ssh_safety import minimal_ssh_env, ssh_remote_target
+
 if TYPE_CHECKING:
     from apps.infra.project_app.models import Project
 
@@ -62,8 +64,20 @@ class RemoteMountMixin:
 
         return is_mounted
 
-    def _mount(self) -> Tuple[bool, Optional[str]]:
-        """Mount remote filesystem via SSHFS."""
+    def _mount(self, runner=subprocess.run) -> Tuple[bool, Optional[str]]:
+        """Mount remote filesystem via SSHFS.
+
+        SECURITY: the sshfs target is built by ssh_remote_target, which
+        VALIDATES ssh_username / ssh_host / remote_path before they become
+        sshfs's FIRST POSITIONAL argument. sshfs offers no reliable ``--``
+        terminator there, so validation is the whole defense: an unchecked
+        ``-oProxyCommand=...`` username would be host RCE. This path is
+        reached on every remote-project file operation via
+        ProjectServiceManager.get_project_path() and from celery tasks.
+
+        ``runner`` is an injectable subprocess.run seam for the security
+        regression test.
+        """
         # Create mount point
         try:
             self.mount_point.mkdir(parents=True, exist_ok=True)
@@ -75,13 +89,24 @@ class RemoteMountMixin:
         if not Path(ssh_key_path).exists():
             return False, f"SSH key not found: {ssh_key_path}"
 
-        # SSHFS mount command
-        remote_target = f"{self.config.ssh_username}@{self.config.ssh_host}:{self.config.remote_path}"
+        # SSHFS mount command (validated target — see docstring)
+        remote_target = ssh_remote_target(
+            self.config.ssh_username,
+            self.config.ssh_host,
+            self.config.remote_path,
+        )
 
         cmd = self._build_sshfs_command(remote_target, ssh_key_path)
 
         try:
-            subprocess.run(cmd, capture_output=True, text=True, timeout=30, check=True)
+            runner(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=True,
+                env=minimal_ssh_env(),
+            )
             self._update_mount_state(remote_target)
             return True, None
 

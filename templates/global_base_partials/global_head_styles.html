@@ -96,6 +96,9 @@
               href="{% static 'shared/css/components/collapsible-panel.css' %}?v={{ build_id }}" />
         <link rel="stylesheet"
               href="{% static 'shared/css/components/collapsible-panel-compat.css' %}?v={{ build_id }}" />
+        <!-- Module Interior Mobile Collapse (≤767px: stack split panes, hide resizers) -->
+        <link rel="stylesheet"
+              href="{% static 'shared/css/components/module-mobile-collapse.css' %}?v={{ build_id }}" />
         <!-- Panel Resizer — now loaded from scitex-ui via Vite -->
         <!-- Zen Mode Styles (F11 for distraction-free writing) -->
         <link rel="stylesheet"
@@ -103,9 +106,6 @@
         <!-- Product Tour (step-by-step guided walkthrough) -->
         <link rel="stylesheet"
               href="{% static 'shared/css/components/product-tour.css' %}?v={{ build_id }}" />
-        <!-- Mobile Notice Banner -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/mobile-notice.css' %}?v={{ build_id }}" />
         <!-- Cookie Consent Banner -->
         <link rel="stylesheet"
               href="{% static 'shared/css/components/cookie-consent.css' %}?v={{ build_id }}" />

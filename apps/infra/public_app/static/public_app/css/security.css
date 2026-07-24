@@ -1,0 +1,225 @@
+/* =============================================================================
+ * security.css — /security/ trust page: hero, live metric, trust strip, and
+ * the "protections we implement" grid.
+ * -----------------------------------------------------------------------------
+ * Theme-aware by construction: surfaces and borders are mixed from
+ * `currentColor`, so the page tracks the site's light / dark toggle instead of
+ * hardcoding a palette; only the teal-green brand accent is fixed. Mirrors the
+ * token approach used by services.css so the two public pages feel consistent.
+ * ========================================================================== */
+
+:root {
+  --sec-accent: var(--accent, #4a9b7e);
+  --sec-border: color-mix(in srgb, currentColor 15%, transparent);
+  --sec-border-strong: color-mix(in srgb, currentColor 26%, transparent);
+  --sec-surface: color-mix(in srgb, currentColor 4%, transparent);
+  --sec-surface-2: color-mix(in srgb, currentColor 7%, transparent);
+  --sec-radius: 16px;
+  --sec-radius-sm: 10px;
+  --sec-max: 1000px;
+}
+
+.sec-page {
+  width: min(calc(100% - 2.5rem), var(--sec-max));
+  margin-inline: auto;
+  padding: 1rem 0 4rem;
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────────────── */
+.sec-hero {
+  padding: 2.5rem 0 1rem;
+  max-width: 46rem;
+}
+
+.sec-eyebrow {
+  display: inline-block;
+  color: var(--sec-accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sec-hero-title {
+  margin: 0.6rem 0 1rem;
+  font-size: clamp(2rem, 4.6vw, 3.2rem);
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+}
+
+.sec-accent-text {
+  background: var(--accent-gradient, linear-gradient(135deg, #4a9b7e, #5bb894));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.sec-hero-copy {
+  margin: 0;
+  font-size: 1.02rem;
+  opacity: 0.9;
+}
+
+/* ── Live metric ──────────────────────────────────────────────────────────── */
+.sec-metric {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.85rem;
+  margin-top: 1.75rem;
+  padding: 1rem 1.2rem;
+  border: 1px solid var(--sec-border-strong);
+  border-radius: var(--sec-radius);
+  background: var(--sec-surface-2);
+}
+
+.sec-metric-num {
+  font-size: clamp(2.1rem, 5vw, 2.8rem);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--sec-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.sec-metric-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  opacity: 0.92;
+}
+
+.sec-metric-stamp {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.sec-metric-stamp code {
+  font-size: 0.8rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: 5px;
+  background: var(--sec-surface);
+  border: 1px solid var(--sec-border);
+}
+
+/* ── Trust strip ──────────────────────────────────────────────────────────── */
+.sec-trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin: 2rem 0 0.5rem;
+  padding: 0.9rem 0;
+  border-top: 1px solid var(--sec-border);
+  border-bottom: 1px solid var(--sec-border);
+}
+
+.sec-trust-item {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  opacity: 0.8;
+}
+
+.sec-trust-item::before {
+  content: "\2713";
+  color: var(--sec-accent);
+  margin-right: 0.4rem;
+  font-weight: 900;
+}
+
+/* ── Sections ─────────────────────────────────────────────────────────────── */
+.sec-section {
+  padding: 2.75rem 0 0;
+}
+
+.sec-kicker {
+  margin: 0 0 0.25rem;
+  color: var(--sec-accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sec-section h2 {
+  margin: 0 0 0.6rem;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  letter-spacing: -0.01em;
+}
+
+.sec-section-desc {
+  margin: 0 0 1.5rem;
+  max-width: 44rem;
+  opacity: 0.85;
+}
+
+/* ── Measures grid ────────────────────────────────────────────────────────── */
+.sec-measures {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.9rem;
+}
+
+.sec-measure {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1.1rem 1.2rem;
+  border: 1px solid var(--sec-border);
+  border-radius: var(--sec-radius-sm);
+  background: var(--sec-surface);
+}
+
+.sec-measure-check {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--sec-accent) 18%, transparent);
+  color: var(--sec-accent);
+  font-weight: 900;
+  font-size: 0.85rem;
+}
+
+.sec-measure-name {
+  margin: 0.1rem 0 0.3rem;
+  font-size: 1.02rem;
+  font-weight: 700;
+}
+
+.sec-measure-desc {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  opacity: 0.85;
+}
+
+/* ── Closing note ─────────────────────────────────────────────────────────── */
+.sec-note-section {
+  padding-top: 2.25rem;
+}
+
+.sec-note {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.75;
+  max-width: 44rem;
+}
+
+.sec-note a {
+  color: var(--sec-accent);
+  font-weight: 600;
+}
+
+/* ── Mobile ───────────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .sec-hero {
+    padding-top: 1.75rem;
+  }
+
+  .sec-measures {
+    grid-template-columns: 1fr;
+  }
+}
