@@ -26,27 +26,49 @@ from scitex_writer._django.views import viewer_page as _raw_viewer_page
 logger = logging.getLogger(__name__)
 
 
+def _strip_working_dir(request) -> None:
+    """Remove any caller-supplied working_dir so the request fails closed."""
+    if "working_dir" in request.GET:
+        mutable = request.GET.copy()
+        mutable.pop("working_dir", None)
+        request.GET = mutable
+
+
 def _inject_project_context(request) -> None:
-    """Ensure request.GET carries working_dir from the user's current project."""
+    """Set working_dir from the authenticated user's current project,
+    ALWAYS OVERRIDING any caller-supplied value.
+
+    SECURITY (P0): a caller-supplied ``working_dir`` is an arbitrary-path,
+    cross-tenant read/WRITE vector — the writer package resolves files under
+    whatever ``working_dir`` it is handed. The previous version returned early
+    when the caller already supplied one, so ``?working_dir=<victim path>``
+    passed through unvalidated to an authenticated (incl. visitor-pool)
+    endpoint. This wrapper is the SOLE place that binds the request to the
+    caller's own project, so it must OVERRIDE, never defer to, a client value,
+    and FAIL CLOSED (strip working_dir) whenever no project resolves. No
+    frontend passes ``working_dir`` over HTTP, so overriding breaks nothing.
+    """
     if not request.user.is_authenticated:
-        return
-    if request.GET.get("working_dir"):
+        _strip_working_dir(request)
         return
     try:
         from apps.infra.project_app.services.project_utils import (
             get_current_project,
         )
     except Exception:
+        _strip_working_dir(request)
         return
 
     project = get_current_project(request, user=request.user)
     if not project:
+        _strip_working_dir(request)
         return
 
     try:
         working_dir = str(project.get_local_path())
     except Exception as exc:
         logger.warning("[writer.v2] project.get_local_path() failed: %s", exc)
+        _strip_working_dir(request)
         return
 
     mutable = request.GET.copy()
