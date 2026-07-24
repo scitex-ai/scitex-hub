@@ -38,7 +38,7 @@ Three commands to get running:
 
 .. code-block:: bash
 
-   git clone https://github.com/ywatanabe1989/scitex-hub.git
+   git clone https://github.com/scitex-ai/scitex-hub.git
    cd scitex-hub
    make start
 
@@ -57,7 +57,7 @@ Step-by-Step Development Setup
 
 .. code-block:: bash
 
-   git clone https://github.com/ywatanabe1989/scitex-hub.git
+   git clone https://github.com/scitex-ai/scitex-hub.git
    cd scitex-hub
 
 2. **Create environment file**
