@@ -1,6 +1,6 @@
 [Unit]
 Description=Ensure SLURM path permissions for SciTeX Hub
-Documentation=https://github.com/ywatanabe1989/scitex-hub
+Documentation=https://github.com/scitex-ai/scitex-hub
 # Run before Docker starts so containers have correct permissions
 Before=docker.service
 After=local-fs.target

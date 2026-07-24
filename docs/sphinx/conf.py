@@ -128,7 +128,7 @@ html_favicon = None  # Add path to favicon if available
 # Show "Edit on GitHub" links
 html_context = {
     "display_github": True,
-    "github_user": "ywatanabe1989",
+    "github_user": "scitex-ai",
     "github_repo": "scitex-hub",
     "github_version": "main",
     "conf_py_path": "/docs/sphinx/",
