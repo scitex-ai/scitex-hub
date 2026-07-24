@@ -83,9 +83,12 @@ class WorkingDirScopedView:
           defaults to :func:`resolve_user_working_dir`.
       ``on_missing(request) -> HttpResponse`` — fail-closed response used
           when ``resolver`` returns ``None`` and ``fail_closed`` is set.
-      ``guard(request) -> Optional[HttpResponse]`` — optional extra
+      ``guard(request, *args) -> Optional[HttpResponse]`` — optional extra
           per-site check run AFTER the override (e.g. reject an absolute
           ``?recipe=`` outside the jail); returning a response short-circuits.
+          It receives the SAME positional args as ``downstream`` — notably
+          the URL ``<path:endpoint>`` capture — so a guard can validate a
+          path that rides the URL segment, not only the query/body.
 
     This object holds NO authentication logic — ``@login_required`` is
     applied to the URL view that calls it, so an anonymous request never
@@ -129,7 +132,7 @@ class WorkingDirScopedView:
             return self.on_missing(request)
 
         if self.guard is not None:
-            blocked = self.guard(request)
+            blocked = self.guard(request, *args)
             if blocked is not None:
                 return blocked
 

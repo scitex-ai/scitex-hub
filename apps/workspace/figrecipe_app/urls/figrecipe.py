@@ -13,23 +13,47 @@ filesystem. Both routes are now ``@login_required``.
 and OVERWRITES any caller-supplied value (it used to early-return and pass
 a caller-chosen path through).
 
-The figrecipe dispatch additionally keys file resolution on SEVERAL
-caller-controlled path parameters, from BOTH the query string and the JSON
-body (enumerated from ``figrecipe/_django/{views.py,handlers/}``):
+figrecipe's dispatch reads a caller-controlled filesystem path from THREE
+distinct channels — the query string, the JSON body, AND the URL
+``<path:endpoint>`` SEGMENT (enumerated from
+``figrecipe/_django/{views.py,handlers/}``). The guard validates ALL three
+against the caller's OWN data jail and fails closed (403) on any escape:
 
-  * ``recipe`` / ``recipe_path`` — editor bootstrap opens the recipe
-    verbatim (``get_or_create_editor``).
-  * ``path`` — ``api/switch``/``new``/``delete``/``rename``/``duplicate``/
-    ``download`` join it to ``working_dir`` (``working_dir / path``).
-  * ``file_path`` — ``api/file-content`` joins it to the working dir.
+  CHANNEL 1+2 — query / body, joined to ``working_dir`` (or opened verbatim
+    when absolute):
+      * ``recipe`` / ``recipe_path`` — editor bootstrap opens the recipe
+        verbatim (``get_or_create_editor``).
+      * ``path`` — ``api/switch``/``new``/``delete``/``rename``/``duplicate``
+        / ``download`` join it to ``working_dir`` (``working_dir / path``).
+    pathlib's ``/`` DISCARDS the left operand when the right side is
+    ABSOLUTE, so an absolute value escapes the server-forced ``working_dir``;
+    and a RELATIVE ``../`` value climbs out. ``(working_dir / value)
+    .resolve()`` collapses ``..`` and lands an absolute value outside the
+    jail, so the single component-wise containment check closes both.
 
-pathlib's ``/`` DISCARDS the left operand when the right side is ABSOLUTE,
-so an absolute value escapes the server-forced ``working_dir`` entirely;
-and a RELATIVE ``../`` value climbs out of the jail. The guard therefore
-resolves the join for EVERY such parameter and requires component-wise
-containment in the caller's OWN data jail — ``(working_dir / value)
-.resolve()`` collapses ``..`` and lands an absolute value outside the jail,
-so the single check closes both escapes. Fails closed (403) on any escape.
+  CHANNEL 2 — body sinks whose base is NOT ``working_dir`` (endpoint-gated,
+    so a same-named key on another endpoint is never mis-validated):
+      * ``api/compose`` writes ``Path(working_dir) / f"{filename}.png"`` with
+        the BODY ``working_dir`` used VERBATIM — the GET override never
+        touches the JSON body, so an absolute/``..`` body value is an
+        arbitrary host-directory WRITE. The exact resolved out-path is
+        jailed.
+      * ``api/gallery/add`` reads ``_EXAMPLES_DIR / f"{template}.yaml"`` and
+        ``add_image_from_url`` fetches ``url`` via ``urllib`` (``file://`` is
+        a local-file READ). ``template`` is contained to a relative subtree;
+        ``url`` is restricted to ``http(s)``.
+
+  CHANNEL 3 — the URL ``<path:endpoint>`` segment (NEVER seen by a
+    query/body guard):
+      * ``api/file-content/<remainder>`` — resolved against
+        ``_find_default_working_dir()`` == the process cwd == ``BASE_DIR``
+        (``/app``) on the server; the package's own check is a
+        ``str.startswith(cwd)`` that CONTAINS every tenant
+        (``BASE_DIR/data/users/*``), so an absolute or ``../`` remainder
+        reads a VICTIM's file cross-tenant. Jailed to the caller's own root.
+      * ``api/gallery/thumbnail/<name>`` — reads ``_EXAMPLES_DIR /
+        f"{name}.png"`` (a ``../`` climb escapes that read-only package dir);
+        contained to a relative subtree.
 """
 
 from __future__ import annotations
@@ -37,7 +61,9 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
+from urllib.parse import urlparse
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.urls import path
@@ -51,63 +77,95 @@ from apps.infra.project_app.services.working_dir_resolver import (
 logger = logging.getLogger(__name__)
 
 
-# Every request parameter figrecipe's dispatch may interpret as a
-# filesystem path — from the query string OR the JSON body. Each one is a
-# containment sink (joined to working_dir and/or opened verbatim by the
-# package), so the guard validates the RESOLVED join of ALL of them, not
-# one hand-picked param. Enumerated from
-# figrecipe/_django/views.py (``recipe``/``recipe_path`` -> editor bootstrap)
-# and figrecipe/_django/handlers/files.py (``path`` -> switch/new/delete/
-# rename/duplicate/download; ``file_path`` -> file-content).
-_PATH_PARAMS = ("path", "recipe", "recipe_path", "file_path")
+# CHANNEL 1+2: query/body params figrecipe resolves RELATIVE TO working_dir
+# (or opens verbatim when absolute). Each is a containment sink validated by
+# the resolved-join + user-jail check.
+#
+# ``file_path`` is deliberately ABSENT: NO handler reads a GET/body key of
+# that name. ``api/file-content`` derives its path from the URL
+# ``<path:endpoint>`` SEGMENT (Channel 3), so the former ``file_path`` entry
+# was DEAD — it matched nothing the package reads. Channel 3 handles it.
+_PATH_PARAMS = ("path", "recipe", "recipe_path")
+
+# CHANNEL 3 URL-segment prefixes (mirrors the slicing in
+# figrecipe/_django/views.api_dispatch: ``endpoint[len(prefix):]``).
+_FILE_CONTENT_PREFIX = "api/file-content/"
+_THUMBNAIL_PREFIX = "api/gallery/thumbnail/"
 
 
-def _iter_candidate_path_values(request):
-    """Yield ``(key, value)`` for every path-bearing param in GET + body."""
+def _parse_body(request):
+    """Return the JSON body as a dict (``{}`` for GET / absent / non-JSON)."""
+    if request.method == "GET" or not getattr(request, "body", b""):
+        return {}
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError, TypeError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _iter_candidate_path_values(request, body):
+    """Yield ``(key, value)`` for every working_dir-relative path param."""
     seen = []
     for key in _PATH_PARAMS:
         val = request.GET.get(key)
         if isinstance(val, str) and val:
             seen.append((key, val))
-    if request.method != "GET" and getattr(request, "body", b""):
-        try:
-            data = json.loads(request.body)
-        except (json.JSONDecodeError, ValueError, TypeError):
-            data = {}
-        if isinstance(data, dict):
-            for key in _PATH_PARAMS:
-                val = data.get(key)
-                if isinstance(val, str) and val:
-                    seen.append((key, val))
+    for key in _PATH_PARAMS:
+        val = body.get(key)
+        if isinstance(val, str) and val:
+            seen.append((key, val))
     return seen
 
 
-def _reject_out_of_jail_paths(request):
-    """Return a 403 when ANY path-bearing param escapes the caller's jail.
+def _within_relative_subtree(value: str) -> bool:
+    """True iff ``value`` is a RELATIVE path with no ``..`` escape.
 
-    Generic and COMPLETE: for every path parameter the figrecipe dispatch
-    consumes (``path``/``recipe``/``recipe_path``/``file_path``), from BOTH
-    the query string and the JSON body, compute the RESOLVED join against
-    the server-forced ``working_dir`` and require component-wise containment
-    in the user's own data jail via ``validate_path_in_user_jail``.
-
-    ``.resolve()`` collapses ``..`` AND (because pathlib's ``/`` keeps an
-    absolute right-hand operand verbatim, discarding ``working_dir``) lands
-    an absolute value outside the jail — so this ONE check rejects both an
-    absolute path and a ``../`` traversal. Returns ``None`` (no block) only
-    when every candidate is contained. Fails closed.
+    Base-independent containment for the read-only package-directory read
+    sinks (``api/gallery/{thumbnail,add}``) whose base is figrecipe's
+    examples dir. That dir ships no symlinks, so "not absolute AND no ``..``
+    component" guarantees the resolved path stays within it — without this
+    Django wrapper importing the package's private ``_EXAMPLES_DIR``.
     """
-    candidates = _iter_candidate_path_values(request)
-    if not candidates:
-        return None
+    p = Path(value)
+    return not p.is_absolute() and ".." not in p.parts
 
+
+def _forbid(key, value, username):
+    """Log and return the canonical fail-closed 403 for an escape."""
+    logger.warning(
+        "[figrecipe] rejecting out-of-jail %s=%r from user %s",
+        key,
+        value,
+        username,
+    )
+    return JsonResponse({"error": "path is outside your workspace"}, status=403)
+
+
+def _reject_out_of_jail_paths(request, endpoint=None):
+    """Return a 403 when ANY caller-controlled path escapes the caller's jail.
+
+    Generic and COMPLETE: validates every path-bearing input across all
+    THREE channels figrecipe's dispatch consumes — the query string, the
+    JSON body, and the URL ``<path:endpoint>`` segment — via component-wise
+    containment in the user's own data jail (``validate_path_in_user_jail``).
+    Returns ``None`` (no block) ONLY when every candidate is contained; fails
+    closed on the first escape.
+
+    ``endpoint`` is the ``<path:endpoint>`` URL capture, forwarded by
+    ``WorkingDirScopedView`` alongside the request (``None`` when the guard
+    is invoked without it — defensive).
+    """
     from apps.infra.project_app.services.filesystem.permissions import (
         validate_path_in_user_jail,
     )
 
-    working_dir = request.GET.get("working_dir")
+    username = getattr(request.user, "username", "?")
+    body = _parse_body(request)
 
-    for key, value in candidates:
+    # -- CHANNEL 1+2: working_dir-relative params (join + resolve) --------
+    working_dir = request.GET.get("working_dir")
+    for key, value in _iter_candidate_path_values(request, body):
         if working_dir:
             candidate = (Path(working_dir) / value).resolve()
         else:
@@ -116,15 +174,54 @@ def _reject_out_of_jail_paths(request):
             # validating the raw value still fails closed on absolute / ``..``.
             candidate = Path(value).resolve()
         if not validate_path_in_user_jail(request.user, candidate):
-            logger.warning(
-                "[figrecipe] rejecting out-of-jail %s=%r from user %s",
-                key,
-                value,
-                getattr(request.user, "username", "?"),
-            )
-            return JsonResponse(
-                {"error": "path is outside your workspace"}, status=403
-            )
+            return _forbid(key, value, username)
+
+    # -- CHANNEL 2: endpoint-specific body sinks (base != working_dir) ----
+    if endpoint == "api/compose":
+        # handle_compose_save WRITES Path(working_dir) / f"{filename}.png"
+        # with the BODY working_dir used verbatim. Validate the EXACT
+        # resolved out-path so neither an absolute working_dir nor a ``..``
+        # in filename can land the write outside the jail.
+        body_wd = body.get("working_dir")
+        if isinstance(body_wd, str) and body_wd:
+            name = body.get("filename")
+            if not isinstance(name, str) or not name:
+                name = "composed"
+            out_path = (Path(body_wd) / f"{name}.png").resolve()
+            if not validate_path_in_user_jail(request.user, out_path):
+                return _forbid("working_dir", body_wd, username)
+    elif endpoint == "api/gallery/add":
+        template = body.get("template")
+        if (
+            isinstance(template, str)
+            and template
+            and not _within_relative_subtree(template)
+        ):
+            return _forbid("template", template, username)
+    elif endpoint == "add_image_from_url":
+        # urllib.urlopen SUPPORTS file:// (arbitrary local-file READ / SSRF).
+        # Inline images use the separate base64 ``add_image_panel`` endpoint,
+        # so remote fetch is legitimately http(s) only.
+        url = body.get("url")
+        if isinstance(url, str) and url:
+            if urlparse(url).scheme.lower() not in ("http", "https"):
+                return _forbid("url", url, username)
+
+    # -- CHANNEL 3: URL ``<path:endpoint>`` segment path sinks ------------
+    if endpoint and endpoint.startswith(_FILE_CONTENT_PREFIX):
+        remainder = endpoint[len(_FILE_CONTENT_PREFIX):]
+        # handle_api_file_content resolves against _find_default_working_dir()
+        # == process cwd == settings.BASE_DIR (/app) on the server. Its own
+        # jail is startswith(cwd) which CONTAINS every tenant; re-check
+        # against the caller's OWN data root instead.
+        candidate = (Path(settings.BASE_DIR) / remainder).resolve()
+        if not validate_path_in_user_jail(request.user, candidate):
+            return _forbid("api/file-content", remainder, username)
+    elif endpoint and endpoint.startswith(_THUMBNAIL_PREFIX):
+        remainder = endpoint[len(_THUMBNAIL_PREFIX):]
+        if remainder and not _within_relative_subtree(remainder):
+            return _forbid("api/gallery/thumbnail", remainder, username)
+
     return None
 
 
