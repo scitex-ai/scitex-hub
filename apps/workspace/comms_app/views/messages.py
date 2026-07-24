@@ -31,6 +31,23 @@ class MessageListView(generics.ListAPIView):
 
     def get_queryset(self):
         slug = self.kwargs["channel_slug"]
+
+        # Tenant scoping: only a MEMBER may read a channel's message history.
+        # Without this check any authenticated user could dump the full history
+        # of ANY channel by slug (including private/DM channels) -- a
+        # cross-tenant read IDOR. Mirrors the membership check the write-path
+        # (AgentSendMessageView.post) enforces before creating a message.
+        user = self.request.user
+        try:
+            participant = Participant.objects.get(user=user, participant_type="user")
+        except Participant.DoesNotExist:
+            return Message.objects.none()
+
+        if not ChannelMembership.objects.filter(
+            channel__slug=slug, participant=participant
+        ).exists():
+            return Message.objects.none()
+
         qs = (
             Message.objects.filter(channel__slug=slug, is_deleted=False)
             .select_related("sender")
