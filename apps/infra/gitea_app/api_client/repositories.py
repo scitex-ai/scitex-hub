@@ -8,7 +8,7 @@ This module provides repository-related operations for the Gitea REST API.
 
 from typing import Dict, List
 
-from .base import convert_git_url_to_https
+from .base import convert_git_url_to_https, path_segment
 
 
 class RepositoryOperationsMixin:
@@ -25,7 +25,7 @@ class RepositoryOperationsMixin:
             List of repository objects
         """
         if username:
-            endpoint = f"/users/{username}/repos"
+            endpoint = f"/users/{path_segment(username)}/repos"
         else:
             endpoint = "/user/repos"
 
@@ -75,7 +75,7 @@ class RepositoryOperationsMixin:
 
         # Use admin endpoint to create repo for specific user
         if owner:
-            endpoint = f"/admin/users/{owner}/repos"
+            endpoint = f"/admin/users/{path_segment(owner)}/repos"
         else:
             endpoint = "/user/repos"
 
@@ -93,7 +93,7 @@ class RepositoryOperationsMixin:
         Returns:
             Repository object
         """
-        response = self._request("GET", f"/repos/{owner}/{repo}")
+        response = self._request("GET", f"/repos/{path_segment(owner)}/{path_segment(repo)}")
         return response.json()
 
     def delete_repository(self, owner: str, repo: str) -> bool:
@@ -107,7 +107,7 @@ class RepositoryOperationsMixin:
         Returns:
             True if successful
         """
-        self._request("DELETE", f"/repos/{owner}/{repo}")
+        self._request("DELETE", f"/repos/{path_segment(owner)}/{path_segment(repo)}")
         return True
 
     def migrate_repository(
@@ -195,7 +195,7 @@ class RepositoryOperationsMixin:
         if organization:
             data["organization"] = organization
 
-        response = self._request("POST", f"/repos/{owner}/{repo}/forks", json=data)
+        response = self._request("POST", f"/repos/{path_segment(owner)}/{path_segment(repo)}/forks", json=data)
         return response.json()
 
     def update_repository(
@@ -215,7 +215,7 @@ class RepositoryOperationsMixin:
         Returns:
             Updated repository object
         """
-        response = self._request("PATCH", f"/repos/{owner}/{repo}", json=kwargs)
+        response = self._request("PATCH", f"/repos/{path_segment(owner)}/{path_segment(repo)}", json=kwargs)
         return response.json()
 
     def get_branch(self, owner: str, repo: str, branch: str) -> Dict:
@@ -230,7 +230,7 @@ class RepositoryOperationsMixin:
         Returns:
             Branch object
         """
-        response = self._request("GET", f"/repos/{owner}/{repo}/branches/{branch}")
+        response = self._request("GET", f"/repos/{path_segment(owner)}/{path_segment(repo)}/branches/{path_segment(branch)}")
         return response.json()
 
     def list_commits(
@@ -256,7 +256,7 @@ class RepositoryOperationsMixin:
         if sha:
             params["sha"] = sha
         response = self._request(
-            "GET", f"/repos/{owner}/{repo}/git/commits", params=params
+            "GET", f"/repos/{path_segment(owner)}/{path_segment(repo)}/git/commits", params=params
         )
         return response.json()
 
@@ -274,7 +274,7 @@ class RepositoryOperationsMixin:
         """
         self._request(
             "PUT",
-            f"/repos/{owner}/{repo}/collaborators/{username}",
+            f"/repos/{path_segment(owner)}/{path_segment(repo)}/collaborators/{path_segment(username)}",
             json={"permission": permission},
         )
 
@@ -295,7 +295,7 @@ class RepositoryOperationsMixin:
         try:
             self._request(
                 "GET",
-                f"/repos/{owner}/{repo}/collaborators/{username}",
+                f"/repos/{path_segment(owner)}/{path_segment(repo)}/collaborators/{path_segment(username)}",
             )
             return True
         except GiteaAPIError:
@@ -310,7 +310,7 @@ class RepositoryOperationsMixin:
             repo: Repository name
             username: Username to remove
         """
-        self._request("DELETE", f"/repos/{owner}/{repo}/collaborators/{username}")
+        self._request("DELETE", f"/repos/{path_segment(owner)}/{path_segment(repo)}/collaborators/{path_segment(username)}")
 
     def list_collaborators(self, owner: str, repo: str) -> List[Dict]:
         """
@@ -323,7 +323,7 @@ class RepositoryOperationsMixin:
         Returns:
             List of user objects
         """
-        response = self._request("GET", f"/repos/{owner}/{repo}/collaborators")
+        response = self._request("GET", f"/repos/{path_segment(owner)}/{path_segment(repo)}/collaborators")
         return response.json()
 
 

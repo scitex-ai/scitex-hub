@@ -74,6 +74,14 @@ class GuestModeLauncherTest(TestCase):
         # Assert
         assert b"launcher-guest-cta" in resp.content
 
+    def test_guest_launcher_cta_carries_inline_banner_marker(self):
+        # Arrange
+        self.client.force_login(self.readonly_visitor)
+        # Act
+        resp = self.client.get("/")
+        # Assert
+        assert b"data-readonly-inline-banner" in resp.content
+
     def test_guest_launcher_cta_links_to_signup(self):
         # Arrange
         self.client.force_login(self.readonly_visitor)

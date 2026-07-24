@@ -7,7 +7,6 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_exempt
 import json
 import logging
 
@@ -73,7 +72,6 @@ def api_key_management(request):
 
 @login_required
 @require_http_methods(["POST"])
-@csrf_exempt
 def test_api_key(request):
     """Test if an API key is valid"""
     try:

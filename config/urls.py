@@ -29,17 +29,6 @@ from apps.workspace.repo_app.views.index import current_project_view
 from config.urls_helpers import RESERVED_PATHS, dev_module_view  # noqa: F401
 
 
-def _scitex_writer_installed() -> bool:
-    """True when the upstream scitex-writer package is importable.
-
-    Mirrors the guarded THIRD_PARTY_APPS import in settings_shared.py so
-    the /writer/ mount and the installed app always agree.
-    """
-    from importlib.util import find_spec
-
-    return find_spec("scitex_writer") is not None
-
-
 def _scitex_todo_installed() -> bool:
     """True when the upstream scitex-todo package is importable.
 
@@ -139,14 +128,17 @@ urlpatterns = [
         include(("apps.workspace.figrecipe_app.urls", "figrecipe_app")),
     ),
     path("apps/writer/", include(("apps.workspace.writer_app.urls", "writer_app"))),
-    # Upstream scitex-writer's own contract-compliant Django app (card
-    # hub-mount-writer-django-app-20260707). Only mounted when the package
-    # is importable — mirror of the settings_shared.py guarded import.
-    *(
-        [path("writer/", include("scitex_writer._django.urls"))]
-        if _scitex_writer_installed()
-        else []
-    ),
+    # NOTE: the raw ``path("writer/", include("scitex_writer._django.urls"))``
+    # mount (card hub-mount-writer-django-app-20260707) was REMOVED as a P0
+    # security fix (card sec-working-dir-passthrough-family, SITE 3). It
+    # exposed the upstream writer handler set with NO login_required and a
+    # @csrf_exempt POST/write dispatcher, reading a caller-supplied
+    # ?working_dir= against ANY host directory — unauthenticated
+    # cross-tenant read AND write. The SAME app is already served, gated
+    # (login_required + server-side working_dir override), via the wrapper
+    # at /apps/writer/{editor-v2,viewer-v2,v2/<endpoint>} above. With the
+    # raw mount gone, /writer/ now falls through to the legacy 301 redirect
+    # to /apps/writer/ (config/urls_legacy_redirects.py).
     # Upstream plugin apps live under /apps/<name>/, exactly like every other
     # app on the launcher (operator, 2026-07-13: "他のアプリと同じようにして
     # ください"). They used to be mounted at the bare root (/todo/, /storage/)
@@ -179,9 +171,13 @@ urlpatterns = [
     ),
     # Upstream scitex-storage's own contract-compliant Django app. Only
     # mounted when the package is importable — mirror of the
-    # settings_shared.py guarded import.
+    # settings_shared.py guarded import. SECURITY: mounted through the
+    # hub-side wrapper (apps.workspace.storage_app.urls), NOT the raw
+    # upstream urls, so ?path= is login-gated and containment-validated to
+    # the requester's own jail (card sec-working-dir-passthrough-family,
+    # SITE 4 — the raw view scanned ANY host directory unauthenticated).
     *(
-        [path("apps/storage/", include("scitex_storage._django.urls"))]
+        [path("apps/storage/", include("apps.workspace.storage_app.urls"))]
         if _scitex_storage_installed()
         else []
     ),

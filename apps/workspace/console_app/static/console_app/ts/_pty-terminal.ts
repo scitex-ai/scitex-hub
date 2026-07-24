@@ -17,6 +17,7 @@ import {
   showTerminalReconnectPrompt,
   showTerminalRestartOverlay,
 } from "./_pty-ui-helpers";
+import { handleSessionStateMessage } from "./_pty-session-state";
 
 export class PTYTerminal {
   private term: any;
@@ -29,6 +30,7 @@ export class PTYTerminal {
   private imageContainer: HTMLElement | null = null;
   private readyPromise: Promise<void>;
   private readyResolve!: () => void;
+  private readyReject!: (err: Error) => void;
   private spinnerTimer: ReturnType<typeof setInterval> | null = null;
   private sessionState: string = "unknown";
   private _reconnectAttempt: number = 0;
@@ -45,12 +47,25 @@ export class PTYTerminal {
     this.provider = provider;
     this.containerEl = containerEl;
 
-    this.readyPromise = new Promise<void>((resolve) => {
+    this.readyPromise = new Promise<void>((resolve, reject) => {
       this.readyResolve = resolve;
+      this.readyReject = reject;
     });
 
-    this.initXterm(containerEl);
-    this.connect();
+    // Sequence: connect() only runs AFTER initXterm() resolves. initXterm
+    // always yields (await document.fonts.ready) before `this.term` exists,
+    // so an unawaited initXterm() + synchronous connect() used to hit
+    // startSpinner() -> this.term.write with this.term undefined — a
+    // deterministic TypeError inside the constructor that left the terminal
+    // container hidden for every user. On init failure, reject readyPromise
+    // so waitForReady() callers can surface a VISIBLE error state.
+    this.initXterm(containerEl)
+      .then(() => this.connect())
+      .catch((err: unknown) => {
+        const error = err instanceof Error ? err : new Error(String(err));
+        console.error("[PTY] Terminal initialization failed:", error);
+        this.readyReject(error);
+      });
   }
 
   public async waitForReady(): Promise<void> {
@@ -58,7 +73,16 @@ export class PTYTerminal {
   }
 
   private async initXterm(containerEl: HTMLElement): Promise<void> {
+    // Bounded wait for the xterm.js bundle: an unbounded poll left a
+    // hidden, never-ready terminal with no signal when assets failed to
+    // load. Fail loud instead so the tab manager can render the error.
+    const deadline = Date.now() + 20000;
     while (!(window as any).Terminal) {
+      if (Date.now() > deadline) {
+        throw new Error(
+          "xterm.js failed to load (window.Terminal still missing after 20s)",
+        );
+      }
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
@@ -167,7 +191,21 @@ export class PTYTerminal {
     this.readyResolve();
   }
 
+  /** Return the xterm instance, or throw a CLEAR ordering error. Guards
+   * the write paths so a future sequencing bug fails with an explicit
+   * message instead of a property-read TypeError on `undefined`. */
+  private requireTerm(): any {
+    if (!this.term) {
+      throw new Error(
+        "PTYTerminal: xterm not initialized yet — connect()/write paths " +
+          "must only run after initXterm() has resolved",
+      );
+    }
+    return this.term;
+  }
+
   private startSpinner(): void {
+    const term = this.requireTerm();
     const frames = [
       "\u28CB",
       "\u28D9",
@@ -181,10 +219,10 @@ export class PTYTerminal {
       "\u28CF",
     ];
     let i = 0;
-    this.term.write(`\x1b[0;36m${frames[0]} Connecting...\x1b[0m`);
+    term.write(`\x1b[0;36m${frames[0]} Connecting...\x1b[0m`);
     this.spinnerTimer = setInterval(() => {
       i = (i + 1) % frames.length;
-      this.term.write(`\r\x1b[0;36m${frames[i]} Connecting...\x1b[0m`);
+      term.write(`\r\x1b[0;36m${frames[i]} Connecting...\x1b[0m`);
     }, 80);
   }
 
@@ -196,89 +234,12 @@ export class PTYTerminal {
     }
   }
 
+  /** Delegate session-state control messages (see _pty-session-state.ts). */
   private handleSessionState(msg: any): void {
-    const state = msg.state;
-    this.sessionState = state;
-    console.log("[PTY] Session state:", state, msg);
-
-    const badge = document.getElementById("terminal-session-status");
-
-    switch (state) {
-      case "allocation_starting":
-        this.term.write(
-          "\r\n\x1b[1;36m Preparing your computing environment...\x1b[0m\r\n",
-        );
-        this.updateBadge(badge, "starting", "warning");
-        break;
-
-      case "allocation_expiring": {
-        const remaining = msg.remaining || 0;
-        const minutes = Math.ceil(remaining / 60);
-        const timeStr = minutes > 0 ? `${minutes} min` : `${remaining}s`;
-        this.term.write(
-          `\r\n\x1b[1;33m \u26a0 Session expires in ${timeStr}\x1b[0m\r\n`,
-        );
-        this.term.write(
-          "\x1b[0;33m   Save your work. A new session will start automatically.\x1b[0m\r\n",
-        );
-        this.updateBadge(badge, `expires ${timeStr}`, "warning");
-        this.notifyUser(`Terminal session expires in ${timeStr}`);
-        break;
-      }
-
-      case "allocation_dead": {
-        const reason = msg.reason || "Unknown reason";
-        this.term.write(
-          `\r\n\x1b[1;31m \u274c Session ended: ${reason}\x1b[0m\r\n`,
-        );
-        this.term.write(
-          "\x1b[0;36m   Reconnecting automatically...\x1b[0m\r\n",
-        );
-        this.updateBadge(badge, "reconnecting", "warning");
-        this.notifyUser(`Session ended: ${reason}. Reconnecting...`);
-        break;
-      }
-
-      case "allocation_recovering":
-        this.term.write(
-          "\r\n\x1b[1;36m Preparing your computing environment...\x1b[0m\r\n",
-        );
-        this.updateBadge(badge, "reconnecting", "warning");
-        break;
-
-      case "exited":
-      case "respawning":
-        this.term.write("\r\n\x1b[1;33m Restarting terminal...\x1b[0m\r\n");
-        this.updateBadge(badge, "restarting", "warning");
-        break;
-
-      case "running":
-        this.hideRestartOverlay();
-        this.updateBadge(badge, "", "");
-        break;
-
-      case "dead": {
-        const deadReason = msg.reason || "Terminal stopped";
-        this.term.write(`\r\n\x1b[1;31m \u274c ${deadReason}\x1b[0m\r\n`);
-        this.updateBadge(badge, "stopped", "error");
-        this.notifyUser(deadReason);
-        this.showRestartOverlay(deadReason);
-        break;
-      }
-    }
-  }
-
-  /** Update the status badge text and style */
-  private updateBadge(
-    badge: HTMLElement | null,
-    text: string,
-    level: string,
-  ): void {
-    if (!badge) return;
-    badge.textContent = text;
-    badge.className = level
-      ? `terminal-status-badge status-${level}`
-      : "terminal-status-badge";
+    this.sessionState = handleSessionStateMessage(msg, this.requireTerm(), {
+      hideRestartOverlay: () => this.hideRestartOverlay(),
+      showRestartOverlay: (reason: string) => this.showRestartOverlay(reason),
+    });
   }
 
   /** Show a prominent restart overlay over the terminal */
@@ -303,18 +264,10 @@ export class PTYTerminal {
     });
   }
 
-  /** Send browser notification for background tab awareness */
-  private notifyUser(message: string): void {
-    if (
-      document.hidden &&
-      "Notification" in window &&
-      Notification.permission === "granted"
-    ) {
-      new Notification("SciTeX Terminal", { body: message });
-    }
-  }
-
   private connect(): void {
+    // connect() writes to the terminal (spinner, close/error messages) —
+    // it must never run before initXterm() has created `this.term`.
+    this.requireTerm();
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const providerParam = this.provider
       ? `&provider=${encodeURIComponent(this.provider)}`

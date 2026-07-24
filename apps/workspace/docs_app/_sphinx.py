@@ -12,6 +12,10 @@ from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.shortcuts import render
 
+from apps.infra.project_app.services.filesystem.permissions import (
+    validate_path_in_project,
+)
+
 # Repo-name → pip-name mapping for packages where they differ.
 _REPO_TO_PIP = {
     "scitex-python": "scitex",
@@ -74,12 +78,9 @@ def sphinx_raw(request, module, page="index.html"):
 
     doc_file = doc_base / page
 
-    try:
-        doc_file = doc_file.resolve()
-        doc_base_resolved = doc_base.resolve()
-        if not str(doc_file).startswith(str(doc_base_resolved)):
-            raise Http404("Invalid documentation path")
-    except (ValueError, OSError):
+    # Component-wise containment, not a string prefix match. doc_base is a
+    # local Path (not a "project"), but the validator is root-agnostic.
+    if not validate_path_in_project(doc_base, doc_file):
         raise Http404("Invalid documentation path")
 
     if not doc_file.exists():
@@ -101,16 +102,13 @@ def serve_sphinx_docs(request, module, page="index.html"):
 
     doc_file = doc_base / page
 
+    # Containment BEFORE exists(): checking existence first leaks whether an
+    # escaped path exists on disk. Component-wise containment, not a prefix.
+    if not validate_path_in_project(doc_base, doc_file):
+        raise Http404("Invalid documentation path")
+
     if not doc_file.exists():
         raise Http404(f"Documentation page not found: {module}/{page}")
-
-    try:
-        doc_file = doc_file.resolve()
-        doc_base = doc_base.resolve()
-        if not str(doc_file).startswith(str(doc_base)):
-            raise Http404("Invalid documentation path")
-    except (ValueError, OSError):
-        raise Http404("Invalid documentation path")
 
     if doc_file.suffix == ".html":
         content = doc_file.read_text(encoding="utf-8")

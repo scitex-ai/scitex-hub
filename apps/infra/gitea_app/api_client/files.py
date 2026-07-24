@@ -8,6 +8,8 @@ This module provides file-related operations for the Gitea REST API.
 
 from typing import Dict, List
 
+from .base import path_segment, repo_path
+
 
 class FileOperationsMixin:
     """Mixin class for file-related operations"""
@@ -28,7 +30,7 @@ class FileOperationsMixin:
             File content object (base64 encoded)
         """
         response = self._request(
-            "GET", f"/repos/{owner}/{repo}/contents/{filepath}", params={"ref": ref}
+            "GET", f"/repos/{path_segment(owner)}/{path_segment(repo)}/contents/{repo_path(filepath)}", params={"ref": ref}
         )
         return response.json()
 
@@ -47,9 +49,9 @@ class FileOperationsMixin:
         Returns:
             List of file/directory objects
         """
-        endpoint = f"/repos/{owner}/{repo}/contents"
+        endpoint = f"/repos/{path_segment(owner)}/{path_segment(repo)}/contents"
         if path:
-            endpoint += f"/{path}"
+            endpoint += f"/{repo_path(path)}"
 
         response = self._request("GET", endpoint, params={"ref": ref})
         return response.json()
@@ -85,7 +87,7 @@ class FileOperationsMixin:
             "branch": branch,
         }
         response = self._request(
-            "POST", f"/repos/{owner}/{repo}/contents/{filepath}", json=data
+            "POST", f"/repos/{path_segment(owner)}/{path_segment(repo)}/contents/{repo_path(filepath)}", json=data
         )
         return response.json()
 
@@ -123,7 +125,7 @@ class FileOperationsMixin:
             "branch": branch,
         }
         response = self._request(
-            "PUT", f"/repos/{owner}/{repo}/contents/{filepath}", json=data
+            "PUT", f"/repos/{path_segment(owner)}/{path_segment(repo)}/contents/{repo_path(filepath)}", json=data
         )
         return response.json()
 

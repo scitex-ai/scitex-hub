@@ -77,6 +77,16 @@ COMPANY_PHONE = _getenv_alias("SCITEX_HUB_COMPANY_PHONE", "080-4022-3567") or ""
 # The tokushoho page renders 準備中 for empty values.
 COMPANY_CONTACT_EMAIL = _getenv_alias("SCITEX_HUB_COMPANY_CONTACT_EMAIL", "") or ""
 
+# Services-page inquiry destination. Deliberately SEPARATE from recruit@
+# (the hiring inbox) — mixing sales inquiries into hiring loses leads.
+# Left empty until the operator decides the address (contact@ / info@ /
+# form-only). While empty, /services stores every inquiry in the DB
+# (ServiceInquiry, readable in admin) and sends no email — never a fake
+# address, never recruit@.
+SERVICES_INQUIRY_EMAIL = (
+    _getenv_alias("SCITEX_HUB_SERVICES_INQUIRY_EMAIL", "") or ""
+)
+
 # ---------------------------------------
 # Billing plans (config-driven; empty = 準備中)
 # ---------------------------------------

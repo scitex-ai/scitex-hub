@@ -282,15 +282,22 @@ def read_tex_file_view(request, project_id):
             )
         full_path = workspace_path / file_path
 
-        # Security: Ensure path is within workspace
+        # Security: component-wise containment, not a string prefix match.
+        # CONTAINMENT ONLY -- this view is @api_login_optional, so an
+        # unauthenticated caller can reach it. Whether that anonymous access
+        # is intended sharing or an oversight is a product question left for
+        # the operator; this sweep only confines the path to the workspace.
+        from apps.infra.project_app.services.filesystem.permissions import (
+            validate_path_in_project,
+        )
+
         try:
             full_path = full_path.resolve()
-            workspace_resolved = workspace_path.resolve()
-            if not str(full_path).startswith(str(workspace_resolved)):
+            if not validate_path_in_project(workspace_path, full_path):
                 return JsonResponse(
                     {"success": False, "error": "Path outside workspace"}, status=403
                 )
-        except Exception as e:
+        except (OSError, RuntimeError) as e:
             return JsonResponse(
                 {"success": False, "error": f"Invalid path: {e}"}, status=400
             )

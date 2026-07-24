@@ -19,6 +19,9 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 
 from apps.infra.project_app.models import Project
+from apps.infra.project_app.services.filesystem.permissions import (
+    validate_path_in_project,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -67,13 +70,14 @@ def project_directory_dynamic(request, username, slug, directory_path):
     # Construct full directory path
     full_directory_path = project_path / directory_path
 
-    # Security check: ensure path is within project directory
+    # Security check: component-wise containment (UNROUTED shadowed duplicate
+    # of directory_views/browse.py -- fixed for defence in depth).
     try:
         full_directory_path = full_directory_path.resolve()
-        if not str(full_directory_path).startswith(str(project_path.resolve())):
+        if not validate_path_in_project(project_path, full_directory_path):
             messages.error(request, "Invalid directory path.")
             return redirect("project_app:detail", username=username, slug=slug)
-    except Exception:
+    except (OSError, RuntimeError):
         messages.error(request, "Invalid directory path.")
         return redirect("project_app:detail", username=username, slug=slug)
 
@@ -203,13 +207,13 @@ def project_directory(request, username, slug, directory, subpath=None):
         directory_path = project_path / directory
         breadcrumb_path = directory
 
-    # Security check: ensure path is within project directory
+    # Security check: component-wise containment (UNROUTED shadowed duplicate).
     try:
         directory_path = directory_path.resolve()
-        if not str(directory_path).startswith(str(project_path.resolve())):
+        if not validate_path_in_project(project_path, directory_path):
             messages.error(request, "Invalid directory path.")
             return redirect("project_app:detail", username=username, slug=slug)
-    except Exception:
+    except (OSError, RuntimeError):
         messages.error(request, "Invalid directory path.")
         return redirect("project_app:detail", username=username, slug=slug)
 
