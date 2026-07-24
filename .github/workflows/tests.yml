@@ -140,6 +140,13 @@ jobs:
         env:
           SCITEX_HUB_DJANGO_SECRET_KEY: ci-test-key  # pragma: allowlist secret
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
+          # Some regression tests are now BEHAVIOURAL (they build real
+          # tenants and execute the view against the DB — e.g.
+          # test_comms_participant_tenant_scope.py) rather than source-text
+          # gates. No Postgres runs in this job, so switch Django to an
+          # in-memory sqlite test DB, same as the pytest-matrix job. The
+          # DB-free tests here are unaffected (they never open a connection).
+          SCITEX_HUB_USE_SQLITE_DEV: "1"
         run: |
           python -m pytest \
             tests/security/ \
@@ -152,6 +159,7 @@ jobs:
         env:
           SCITEX_HUB_DJANGO_SECRET_KEY: ci-test-key  # pragma: allowlist secret
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
+          SCITEX_HUB_USE_SQLITE_DEV: "1"
         run: |
           COUNT=$(python -m pytest tests/security/ -m security \
             -p no:playwright -o "addopts=" --collect-only -q 2>/dev/null \
