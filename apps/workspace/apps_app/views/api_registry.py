@@ -74,7 +74,11 @@ def api_submit_jwt(request):
         # Fetch HEAD commit SHA from author's Gitea repo
         pinned_commit = _fetch_head_commit(request.user.username, project.slug)
 
-        # Create or update AppsModule
+        # Create or update AppsModule. Display metadata (label/icon) comes
+        # from the manifest — the SSoT; missing keys leave the columns
+        # blank and the launcher's prettified fallback applies.
+        from ..services.manifest_display import manifest_display_fields
+
         app_module, _created = AppsModule.objects.update_or_create(
             module_name=module_name,
             defaults={
@@ -84,6 +88,7 @@ def api_submit_jwt(request):
                 "category": manifest.get("category", "other"),
                 "visibility": "private",
                 "pinned_commit": pinned_commit,
+                **manifest_display_fields(manifest),
             },
         )
 
@@ -374,12 +379,17 @@ def _submit_app_pr(app_module, version: str) -> str:
 def _push_to_registry_branch(app_module, author: str, repo: str) -> None:
     """Push user's app code to a submit/<author> branch on scitex-apps/<repo>.
 
-    Uses git push via the Gitea admin token for authentication.
+    Uses the Gitea admin token for authentication, supplied per-op through the
+    git process ENVIRONMENT (``build_gitea_auth_env``) so the token is NEVER
+    written into the dev project's ``.git/config`` and never appears on argv
+    (sec-gitea-admin-token-plaintext-in-user-gitconfig — that project dir is
+    user-readable / sandbox-mounted).
     """
     import subprocess
 
     from django.conf import settings
 
+    from apps.infra.project_app.services.git_service import build_gitea_auth_env
     from apps.workspace.apps_app.services.dev_app_loader import resolve_dev_project_dir
 
     project_dir = resolve_dev_project_dir(author, repo)
@@ -387,11 +397,8 @@ def _push_to_registry_branch(app_module, author: str, repo: str) -> None:
         raise RuntimeError(f"Project directory not found for {author}/{repo}")
 
     gitea_url = settings.GITEA_URL
-    gitea_token = settings.GITEA_TOKEN
+    # Credential-less remote URL — auth is injected per-op below, not stored.
     remote_url = f"{gitea_url}/{APPS_ORG}/{repo}.git"
-    # Use token auth in URL for push
-    if gitea_token:
-        remote_url = remote_url.replace("://", f"://scitex-admin:{gitea_token}@")
 
     remote_name = "scitex-apps-registry"
     branch_name = f"submit/{author}"
@@ -403,7 +410,7 @@ def _push_to_registry_branch(app_module, author: str, repo: str) -> None:
         capture_output=True,
         timeout=10,
     )
-    # Update remote URL in case token changed
+    # Update remote URL in case it changed (keep it credential-less)
     subprocess.run(
         ["git", "remote", "set-url", remote_name, remote_url],
         cwd=str(project_dir),
@@ -411,13 +418,16 @@ def _push_to_registry_branch(app_module, author: str, repo: str) -> None:
         timeout=10,
     )
 
-    # Push user's main to submit/<author> branch on scitex-apps
+    # Push user's main to submit/<author> branch on scitex-apps. The admin
+    # token rides on a per-invocation, URL-scoped http.extraHeader passed
+    # through the environment — never the remote URL, never argv.
     result = subprocess.run(
         ["git", "push", "--force", remote_name, f"main:{branch_name}"],
         cwd=str(project_dir),
         capture_output=True,
         text=True,
         timeout=30,
+        env=build_gitea_auth_env(),
     )
     if result.returncode != 0:
         raise RuntimeError(

@@ -25,22 +25,17 @@
         <nav class="sidebar-inner" id="sidebar-inner">
             <!-- Top bar: logo + brand + toggle -->
             <div class="sidebar-header-toggle">
+                {# Same brand mark + per-environment colour as the favicon. #}
                 <a href="/" class="sidebar-logo" title="Home">
-                    {% if DEBUG %}
-                        <img src="{% static 'shared/images/favicons/favicon-dev.svg' %}"
-                             alt="SciTeX"
-                             class="sidebar-logo-icon" />
-                    {% elif IS_STAGING %}
-                        <img src="{% static 'shared/images/favicons/favicon-staging.svg' %}"
-                             alt="SciTeX"
-                             class="sidebar-logo-icon" />
-                    {% else %}
-                        <img src="{% static 'shared/images/scitex_logos/scitex-icons/scitex-icon-navy-inverted.svg' %}"
-                             alt="SciTeX"
-                             class="sidebar-logo-icon" />
-                    {% endif %}
+                    <img src="{% static SCITEX_FAVICON %}"
+                         alt="SciTeX{% if SCITEX_ENV_MARKER %} ({{ SCITEX_ENV_MARKER }}){% endif %}"
+                         class="sidebar-logo-icon" />
                 </a>
-                <span class="sidebar-brand sidebar-label">SciT<span class="brand-e">e</span>X <small class="sidebar-brand-version">v{{ SCITEX_HUB_VERSION }}</small></span>
+                {# Brand text is a link: the logo <a> above is display:none in #}
+                {# this header (brand text replaces it), so the visible brand + #}
+                {# version must itself navigate to the workspace home (nav-404 #}
+                {# batch #7). #}
+                <a href="/" class="sidebar-brand sidebar-label" title="Workspace home">SciT<span class="brand-e">e</span>X <small class="sidebar-brand-version">v{{ SCITEX_HUB_VERSION }}</small></a>
                 <button class="sidebar-toggle-btn" id="sidebar-toggle" title="Toggle sidebar">
                     <svg class="sidebar-toggle-icon"
                          width="18"
@@ -113,9 +108,15 @@
                 </button>
             </div>
             <hr class="sidebar-divider" />
-            <!-- Group 2: SciTeX Modules (scrollable) -->
+            <!-- Group 2: Home + pinned favorites + All apps (launcher design) -->
             <div class="sidebar-group sidebar-modules-scroll">
-                {% for mod in workspace_modules %}
+                <a href="/"
+                   class="sidebar-item sidebar-home-item{% if request.path == '/' %} active{% endif %}"
+                   title="Home">
+                    <i class="fas fa-house"></i>
+                    <span class="sidebar-label">Home</span>
+                </a>
+                {% for mod in workspace_pinned_modules %}
                     <a href="{{ mod.get_url }}"
                        class="sidebar-item{% if mod.is_active %} active{% endif %}"
                        data-pane="module"
@@ -123,9 +124,14 @@
                        data-app-accent="{{ mod.name }}"
                        title="{{ mod.label }}">
                         {% module_icon mod.name "nav" mod.version mod.icon_fa mod.is_dev %}
-                        <span class="sidebar-label">{{ mod.label }}</span>
+                        <span class="sidebar-label">{{ mod.label }}{% if mod.is_active and mod.version %} <small class="sidebar-item-version">v{{ mod.version }}</small>{% endif %}</span>
                     </a>
                 {% endfor %}
+                {# "All apps" removed (nav-404 batch #11): it pointed at "/" — #}
+                {# the exact same launcher the "Home" item above opens — so the #}
+                {# two items were indistinguishable duplicates. The launcher IS #}
+                {# the all-apps grid; visitors still stay inside the workspace #}
+                {# via Home (card hub-visitor-ux-allapps). #}
             </div>
             <!-- Bottom section: Search + AI Setup + User -->
             <div class="sidebar-bottom">
@@ -144,26 +150,47 @@
                     </a>
                 </div>
                 <div class="sidebar-footer">
-                    <a href="{% if user.username|slice:':8' == 'visitor-' or user.username == 'readonly-visitor' %}/auth/signin/{% else %}/accounts/settings/{% endif %}"
-                       class="sidebar-user"
-                       title="{{ user.username }}">
-                        <span class="sidebar-user-avatar">
-                            <i class="fas fa-user"></i>
-                        </span>
-                        <span class="sidebar-label sidebar-username">{{ user.username }}</span>
-                    </a>
-                    <a href="/auth/logout/"
-                       class="sidebar-action-btn sidebar-logout-btn"
-                       title="{% if user.username|slice:':8' == 'visitor-' or user.username == 'readonly-visitor' %}End Session{% else %}Sign Out{% endif %}">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span class="sidebar-label">
-                            {% if user.username|slice:':8' == 'visitor-' or user.username == 'readonly-visitor' %}
-                                End Session
-                            {% else %}
-                                Sign Out
-                            {% endif %}
-                        </span>
-                    </a>
+                    {% if is_visitor %}
+                        <!-- Visitor sessions: explicit Sign in / Sign up affordance
+                             (operator-confirmed 2026-07-07 — the login path must
+                             never be hidden behind the visitor username) -->
+                        {# Same structure as the sibling Sign up / End Session #}
+                        {# items — the old avatar-circle + 13px username style #}
+                        {# looked inconsistent next to them (nav-404 batch #8). #}
+                        <a href="/auth/signin/"
+                           class="sidebar-action-btn"
+                           title="Sign in to your account">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span class="sidebar-label">Sign in</span>
+                        </a>
+                        <a href="/auth/signup/"
+                           class="sidebar-action-btn"
+                           title="Create a free account">
+                            <i class="fas fa-user-plus"></i>
+                            <span class="sidebar-label">Sign up</span>
+                        </a>
+                        <a href="/auth/logout/"
+                           class="sidebar-action-btn sidebar-logout-btn"
+                           title="End Session">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span class="sidebar-label">End Session</span>
+                        </a>
+                    {% else %}
+                        <a href="/accounts/settings/"
+                           class="sidebar-user"
+                           title="{{ user.username }}">
+                            <span class="sidebar-user-avatar">
+                                <i class="fas fa-user"></i>
+                            </span>
+                            <span class="sidebar-label sidebar-username">{{ user.username }}</span>
+                        </a>
+                        <a href="/auth/logout/"
+                           class="sidebar-action-btn sidebar-logout-btn"
+                           title="Sign Out">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span class="sidebar-label">Sign Out</span>
+                        </a>
+                    {% endif %}
                 </div>
             </div>
             <!-- /sidebar-bottom -->

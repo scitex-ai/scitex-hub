@@ -2,7 +2,7 @@
   "$schema": "scitex-app-manifest",
   "$schema_version": "2.0.0",
   "name": "discovery",
-  "label": "Discovery",
+  "label": "Explore",
   "app_name": "discovery_app",
   "icon": "fas fa-compass",
   "description": "Discover public repositories, researchers, and organizations.",

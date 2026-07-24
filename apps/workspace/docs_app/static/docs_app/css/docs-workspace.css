@@ -341,3 +341,24 @@
 .docs-print-page-break {
   page-break-after: always;
 }
+
+/* ── Mobile (≤767px) ────────────────────────────────────── */
+/* Sidebar stacks above the content as a height-capped scrollable list.
+   The column stack and width normalization come from the shared
+   module-mobile-collapse.css (.module-mobile-stack on .docs-workspace);
+   only docs-specific sizing lives here. Breakpoint matches
+   workspace-shell.css (767px). */
+@media (max-width: 767px) {
+  .docs-sidebar {
+    flex: 0 0 auto;
+    height: auto;
+    max-height: 40vh;
+    border-right: none;
+    border-bottom: 1px solid var(--workspace-border-default, #30363d);
+  }
+
+  .docs-content {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+}

@@ -19,6 +19,7 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 
 from ...models import Project
+from ...services.filesystem.permissions import validate_path_in_project
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +63,11 @@ def api_concatenate_directory(request, username, slug, directory_path=""):
     # Security check
     try:
         dir_path = dir_path.resolve()
-        if not str(dir_path).startswith(str(project_path.resolve())):
+        # Component-wise containment, not a string prefix match. This view
+        # read_text()s EVERY file under dir_path into one response, so a
+        # prefix escape is a mass-exfiltration primitive.
+        if not validate_path_in_project(project_path, dir_path):
+            logger.warning("Rejected out-of-project directory: %s", dir_path)
             return JsonResponse({"success": False, "error": "Invalid path"})
     except (ValueError, OSError, RuntimeError) as e:
         logger.warning(f"Path resolution failed: {e}")

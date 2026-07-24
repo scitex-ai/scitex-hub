@@ -1,5 +1,5 @@
 /* Security alerts list page styles */
-@import url("shared/variables.css");
+@import url("../shared/variables.css");
 
 .alerts-container {
   padding: 2rem;

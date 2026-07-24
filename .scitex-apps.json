@@ -21,6 +21,20 @@
       "git_url": "https://github.com/ywatanabe1989/scitex-writer.git",
       "git_ref": "develop",
       "pip_package": "scitex-writer"
+    },
+    {
+      "name": "scitex-todo",
+      "source": "sibling",
+      "git_url": "https://github.com/ywatanabe1989/scitex-todo.git",
+      "git_ref": "develop",
+      "pip_package": "scitex-todo"
+    },
+    {
+      "name": "scitex-storage",
+      "source": "sibling",
+      "git_url": "https://github.com/scitex-ai/scitex-storage.git",
+      "git_ref": "develop",
+      "pip_package": "scitex-storage"
     }
   ]
 }

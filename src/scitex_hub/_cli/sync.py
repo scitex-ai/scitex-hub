@@ -6,11 +6,16 @@ Architecture:
     Local (dev machine) ←→ Gitea (source of truth) ←→ Workspace (server-side)
 
 Commands:
-    push        — git push to Gitea (committed changes)
-    pull        — git pull from Gitea (committed changes)
-    sync-to     — sync working files to workspace (Dropbox-style, conflict-aware)
-    sync-from   — sync working files from workspace (Dropbox-style, conflict-aware)
-    sync-status — show divergence across all three
+    push-project     — git push to Gitea (committed changes)
+    pull-project     — git pull from Gitea (committed changes)
+    workspace push   — sync working files to workspace (Dropbox-style)
+    workspace pull   — sync working files from workspace (Dropbox-style)
+    workspace status — show divergence across all three
+
+The Dropbox-style family is mounted on the ``workspace`` noun group
+(see workspace.py); doctrine §1d: directional transfer is push/pull
+(never sync-to/sync-from) and short aliases like ``ss`` are banned.
+The old root spellings survive as warn-phase deprecated aliases.
 """
 
 import subprocess
@@ -20,6 +25,11 @@ from pathlib import Path
 import click
 from rich.console import Console
 
+from ._click_compat import (
+    register_error_redirect,
+    register_warn_alias,
+    spec_command_kwargs,
+)
 from ._flags import (
     confirm_or_abort,
     dry_run_flag,
@@ -169,10 +179,26 @@ def pull(remote, branch, dry_run, yes):
         sys.exit(e.returncode)
 
 
-# ── sync-to / sync-from (Dropbox-style ↔ Workspace) ─────────────
+# ── workspace push / pull (Dropbox-style ↔ Workspace) ───────────
 
 
-@click.command("sync-to")
+@click.command(
+    "push",
+    **spec_command_kwargs(
+        summary="Sync working files to the workspace (Dropbox-style).",
+        description=(
+            "Detects conflicts when both sides changed since the last "
+            "sync. Conflicted files are kept as "
+            "file.conflict-<timestamp>.ext.",
+        ),
+        examples=(
+            ("{prog} workspace push", "Auto-detect repo"),
+            ("{prog} workspace push ywatanabe/my-proj", "Explicit repo"),
+            ("{prog} workspace push --dry-run", "Preview changes"),
+            ("{prog} workspace push ywatanabe/my-proj --yes", "Skip confirmation"),
+        ),
+    ),
+)
 @click.argument("repo", default="")
 @click.option("--env", "env_name", default="dev", help="Target environment")
 @dry_run_flag()
@@ -185,10 +211,10 @@ def sync_to(repo, env_name, dry_run, yes):
 
     \b
     Example:
-        scitex-hub sync-to                            # auto-detect repo
-        scitex-hub sync-to ywatanabe/my-proj          # explicit repo
-        scitex-hub sync-to --dry-run                  # preview changes
-        scitex-hub sync-to ywatanabe/my-proj --yes
+        scitex-hub workspace push                            # auto-detect repo
+        scitex-hub workspace push ywatanabe/my-proj          # explicit repo
+        scitex-hub workspace push --dry-run                  # preview changes
+        scitex-hub workspace push ywatanabe/my-proj --yes
     """
     if _is_on_workspace():
         console.print(
@@ -221,7 +247,23 @@ def sync_to(repo, env_name, dry_run, yes):
     _print_sync_result(result, dry_run)
 
 
-@click.command("sync-from")
+@click.command(
+    "pull",
+    **spec_command_kwargs(
+        summary="Sync working files from the workspace (Dropbox-style).",
+        description=(
+            "Detects conflicts when both sides changed since the last "
+            "sync. Conflicted files are kept as "
+            "file.conflict-<timestamp>.ext.",
+        ),
+        examples=(
+            ("{prog} workspace pull", "Auto-detect repo"),
+            ("{prog} workspace pull ywatanabe/my-proj", "Explicit repo"),
+            ("{prog} workspace pull --dry-run", "Preview changes"),
+            ("{prog} workspace pull ywatanabe/my-proj --yes", "Skip confirmation"),
+        ),
+    ),
+)
 @click.argument("repo", default="")
 @click.option("--env", "env_name", default="dev", help="Target environment")
 @dry_run_flag()
@@ -234,10 +276,10 @@ def sync_from(repo, env_name, dry_run, yes):
 
     \b
     Example:
-        scitex-hub sync-from                          # auto-detect repo
-        scitex-hub sync-from ywatanabe/my-proj        # explicit repo
-        scitex-hub sync-from --dry-run                # preview changes
-        scitex-hub sync-from ywatanabe/my-proj --yes
+        scitex-hub workspace pull                          # auto-detect repo
+        scitex-hub workspace pull ywatanabe/my-proj        # explicit repo
+        scitex-hub workspace pull --dry-run                # preview changes
+        scitex-hub workspace pull ywatanabe/my-proj --yes
     """
     if _is_on_workspace():
         console.print(
@@ -296,10 +338,27 @@ def _print_sync_result(result, dry_run: bool) -> None:
         console.print(f"{prefix}[green]Already in sync[/green]")
 
 
-# ── sync-status ──────────────────────────────────────────────────
+# ── workspace status ─────────────────────────────────────────────
 
 
-@click.command("sync-status")
+@click.command(
+    "status",
+    **spec_command_kwargs(
+        summary="Show sync state across Local, Gitea, and Workspace.",
+        description=(
+            "Read-only verb, but it fans out to `git fetch` plus an "
+            "SSH probe, so the mutating flag pair applies: --dry-run "
+            "short-circuits before any network call; --yes is a no-op "
+            "for the read path but kept for symmetry.",
+        ),
+        examples=(
+            ("{prog} workspace status", "Show 3-way sync state"),
+            ("{prog} workspace status ywatanabe/my-proj --env prod", ""),
+            ("{prog} workspace status --json", "Machine-readable output"),
+            ("{prog} workspace status --dry-run", "Preview the probes"),
+        ),
+    ),
+)
 @click.argument("repo", default="")
 @click.option("--env", "env_name", default="dev", help="Target environment")
 @json_flag()
@@ -309,16 +368,16 @@ def sync_status(repo, env_name, json_output, dry_run, yes):
 
     Read-only verb, but the audit's §2 universal-flag check expects the
     mutating-pair on any noun-leaf that COULD invoke a remote action
-    (sync-status fans out to ``git fetch`` + an SSH probe). ``--dry-run``
+    (it fans out to ``git fetch`` + an SSH probe). ``--dry-run``
     short-circuits before any network call; ``--yes`` is a no-op for the
-    read path but kept for symmetry across the sync-* family.
+    read path but kept for symmetry across the workspace family.
 
     \b
     Example:
-        scitex-hub sync-status
-        scitex-hub sync-status ywatanabe/my-proj --env prod
-        scitex-hub sync-status --json
-        scitex-hub sync-status --dry-run
+        scitex-hub workspace status
+        scitex-hub workspace status ywatanabe/my-proj --env prod
+        scitex-hub workspace status --json
+        scitex-hub workspace status --dry-run
     """
     if dry_run:
         print_dry_run(
@@ -398,35 +457,49 @@ def sync_status(repo, env_name, json_output, dry_run, yes):
 # ── Registration ─────────────────────────────────────────────────
 
 
-def _dep(old: str, new: str):
-    @click.pass_context
-    def _impl(ctx, **_):
-        click.echo(
-            f"error: `scitex-hub {old}` was renamed to `scitex-hub {new}`.\n"
-            f"Re-run with: scitex-hub {new} [...]",
-            err=True,
-        )
-        ctx.exit(2)
-
-    return click.command(
-        old,
-        hidden=True,
-        context_settings={"ignore_unknown_options": True, "allow_extra_args": True},
-    )(_impl)
-
-
 def register_sync_commands(group: click.Group) -> None:
-    """Register sync commands and aliases on a click Group."""
+    """Register sync commands and deprecation aliases on the root group.
+
+    The Dropbox-style leaves themselves (``sync_to``/``sync_from``/
+    ``sync_status``) are mounted on the ``workspace`` noun group in
+    workspace.py; here only their deprecated root spellings are kept as
+    warn-phase aliases (removed in v0.20). ``ss`` was a banned short
+    alias (doctrine §1d) and forwards to ``workspace status`` too.
+    """
     push.name = "push-project"
     pull.name = "pull-project"
     group.add_command(push)
     group.add_command(pull)
-    group.add_command(_dep("push", "push-project"))
-    group.add_command(_dep("pull", "pull-project"))
-    group.add_command(sync_to, "sync-to")
-    group.add_command(sync_from, "sync-from")
-    group.add_command(sync_status, "sync-status")
-    group.add_command(sync_status, "ss")
+    register_error_redirect(group, "push", target="push-project", remove_in="v0.20")
+    register_error_redirect(group, "pull", target="pull-project", remove_in="v0.20")
+    register_warn_alias(
+        group,
+        "sync-to",
+        target=sync_to,
+        remove_in="v0.20",
+        target_name="workspace push",
+    )
+    register_warn_alias(
+        group,
+        "sync-from",
+        target=sync_from,
+        remove_in="v0.20",
+        target_name="workspace pull",
+    )
+    register_warn_alias(
+        group,
+        "sync-status",
+        target=sync_status,
+        remove_in="v0.20",
+        target_name="workspace status",
+    )
+    register_warn_alias(
+        group,
+        "ss",
+        target=sync_status,
+        remove_in="v0.20",
+        target_name="workspace status",
+    )
 
 
 # EOF

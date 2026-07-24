@@ -27,13 +27,20 @@ class Shell(BasePTY):
         screen_session: str,
         command: list[str],
         project_dir: Optional[Path] = None,
+        provider: str = "anthropic-oauth",
+        provider_env: Optional[dict] = None,
     ):
         super().__init__(
             pty_id=shell_id,
             username=username,
             screen_session=screen_session,
             project_dir=project_dir,
+            provider_env=provider_env,
         )
+        # Registry-validated provider id this shell was spawned with —
+        # used to fail loud on a reattach that requests a DIFFERENT
+        # provider (env cannot change on a live PTY).
+        self.provider = provider
         self.shell_id = shell_id
         self.allocation_id = allocation_id
         self.command = command

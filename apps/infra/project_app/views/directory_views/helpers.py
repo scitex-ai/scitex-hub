@@ -100,13 +100,34 @@ def _validate_path_security(full_path, project_path, username, slug):
     Returns:
         Path object if valid, redirect response if invalid
     """
+    from ...services.filesystem.permissions import validate_path_in_project
+
     try:
         resolved_path = full_path.resolve()
-        if not str(resolved_path).startswith(str(project_path.resolve())):
+        # Component-wise containment, not a string prefix match.
+        # CONTAINMENT ONLY -- _check_project_access above permits
+        # visibility == "public", so adding a tenant-ownership check here
+        # would break anonymous browsing of public repositories. OPEN
+        # QUESTION for the operator: is anonymous read of every in-project
+        # file of a public project intended?
+        if not validate_path_in_project(project_path, resolved_path):
+            logger.warning(
+                "Rejected out-of-project directory path for %s/%s: %s",
+                username,
+                slug,
+                full_path,
+            )
             messages.error(None, "Invalid directory path.")
             return redirect("project_app:detail", username=username, slug=slug)
         return resolved_path
-    except Exception:
+    except (OSError, RuntimeError):
+        logger.warning(
+            "Failed to resolve directory path for %s/%s: %s",
+            username,
+            slug,
+            full_path,
+            exc_info=True,
+        )
         messages.error(None, "Invalid directory path.")
         return redirect("project_app:detail", username=username, slug=slug)
 

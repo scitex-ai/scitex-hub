@@ -1,6 +1,7 @@
 {% extends "global_base.html" %}
 
 {% load static %}
+{% load i18n %}
 
 {% block title %}
     Pricing -
@@ -34,6 +35,54 @@
                 </p>
             </div>
         </div>
+        {% if billing_plans and user.is_staff %}
+            <!-- Config-driven paid plans (SCITEX_HUB_BILLING_PLANS).
+                 STAFF-ONLY while billing is in testing (operator directive
+                 2026-07-08); prices are tax-inclusive 税込 per 総額表示義務. -->
+            <div class="pricing-alpha-notice pricing-paid-plans">
+                <i class="fas fa-credit-card"></i>
+                <div>
+                    <strong>{% trans "有料プラン(税込) — operator testing" %}</strong>
+                    <ul class="pricing-paid-plans-list">
+                        {% for plan in billing_plans %}
+                            <li>
+                                {{ plan.name }}: ¥{{ plan.price_tax_included }}{% trans "(税込)" %}
+                                {% if plan.interval == "month" %}
+                                    {% trans "/ 月" %}
+                                {% elif plan.interval == "year" %}
+                                    {% trans "/ 年" %}
+                                {% endif %}
+                                {% if stripe_configured %}
+                                    <form method="post"
+                                          action="{% url 'public_app:billing_checkout' %}"
+                                          class="pricing-checkout-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="price_id" value="{{ plan.stripe_price_id }}" />
+                                        <button type="submit" class="btn btn-sm btn-primary">Checkout</button>
+                                    </form>
+                                {% else %}
+                                    <span class="pricing-checkout-unconfigured">(Stripe keys not configured — checkout disabled)</span>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% elif not billing_plans %}
+            <!-- Honest empty state: no paid plans configured yet. -->
+            <div class="pricing-alpha-notice pricing-paid-plans-pending">
+                <i class="fas fa-yen-sign"></i>
+                <div>
+                    <strong>{% trans "有料プランは準備中です" %}</strong>
+                    <p>
+                        {% trans "提供開始時に税込(総額)価格をこのページに掲載します。" %}
+                        Paid plans are in preparation; tax-inclusive prices will be listed here.
+                        <a href="{% url 'public_app:contact' %}">{% trans "お問い合わせ" %}</a> /
+                        <a href="{% url 'public_app:tokushoho' %}">{% trans "特定商取引法に基づく表記" %}</a>
+                    </p>
+                </div>
+            </div>
+        {% endif %}
         <div class="pricing-cards-wrapper">
             <!-- Visitor -->
             <div class="pricing-card alpha-active">

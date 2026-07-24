@@ -2,7 +2,7 @@
 
 {% load static %}
 
-{% block title %}{{ app_module.module_name }} - Apps{% endblock %}
+{% block title %}{% if reg_module %}{{ reg_module.label }}{% else %}{{ app_module.module_name }}{% endif %} - Apps{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'apps_app/css/apps.css' %}" />
 {% endblock %}
@@ -23,6 +23,9 @@
                     <h1 class="ap-detail-title">
                         {% if skill %}
                             {{ skill.display_name }}
+                        {% elif reg_module %}
+                            {# Registry label ("Storage"), same precedence as the browse cards — never the raw slug #}
+                            {{ reg_module.label }}
                         {% else %}
                             {{ app_module.module_name }}
                         {% endif %}
@@ -137,12 +140,14 @@
                         </button>
                     {% endif %}
                 {% else %}
-                    <a href="/accounts/login/?next=/apps/{{ app_module.module_name }}/"
+                    {# /auth/login/ is the real login route (/accounts/login/ 404s); next returns here so Install is one click away #}
+                    <a href="/auth/login/?next=/apps/store/{{ app_module.module_name }}/"
                        class="ap-btn-action ap-btn-primary">
                         <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Login to install
                     </a>
                 {% endif %}
-                {% if app_module.author %}
+                {# Only user-submitted apps have a hub repo page — built-ins have an author but no project, so the link 404s for them #}
+                {% if app_module.author and app_module.project %}
                     <a href="/{{ app_module.author.username }}/{{ app_module.module_name }}/"
                        class="ap-btn-action ap-btn-secondary">
                         <i class="fas fa-external-link-alt" aria-hidden="true"></i> View in Hub

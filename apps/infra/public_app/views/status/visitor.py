@@ -132,6 +132,13 @@ def visitor_pool_full(request):
         "has_cookie_consent": has_cookie_consent,
     }
 
+    if reason == "no_cookies":
+        # Pre-consent visitors have no session: the header logo's default
+        # "/" would bounce straight back to this page (2026-07-08 iPhone
+        # field report: logo read as a dead touch target). Point it at the
+        # landing page, which always renders without a session.
+        context["header_logo_href"] = "/landing/"
+
     return render(request, "public_app/visitor_pool_full.html", context)
 
 
@@ -282,9 +289,12 @@ def visitor_heartbeat_api(request):
             allocation_token=allocation_token, is_active=True
         )
 
-        # Update last activity timestamp
-        allocation.last_activity = timezone.now()
-        allocation.save(update_fields=["last_activity"])
+        # Stamp activity AND extend the lease. Allocation only grants a
+        # short probation lease (bot defense — see PoolAllocator); this
+        # first heartbeat is what promotes a real browser to the full
+        # session, and later beats keep an active visitor from hitting a
+        # hard mid-work expiry.
+        VisitorPool.extend_session_on_activity(allocation)
 
         # Calculate remaining time
         remaining_seconds = max(

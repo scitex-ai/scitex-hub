@@ -1,0 +1,105 @@
+# Dev PREVIEW stack -- a hot-reload Django you can stand up next to a running
+# prod/staging stack on the SAME host, without building anything.
+#
+# Use the sibling docker-compose.yml for normal laptop development. Use THIS
+# file when the host already runs another SciTeX Hub stack -- e.g. the NAS,
+# which serves production. The stock dev stack cannot coexist there:
+#
+#   1. It publishes 2200 (workspace SSH gateway) and 6379 (redis). Prod already
+#      owns both on that host, so `up` fails on the port bind.
+#   2. It BUILDS a ~12GB dev image. On a box that is simultaneously serving
+#      production that is hours of avoidable load.
+#   3. Its entrypoint runs `npm install` and starts two Vite servers plus an SSH
+#      gateway on 2200 -- the very port that collides.
+#
+# This file instead REUSES the already-built prod image and bind-mounts the live
+# source over it. That is not a compromise: dev's value is instant source
+# reload, and the image only supplies dependencies -- so borrowing prod's costs
+# zero build AND guarantees dev runs the same dependency set as production.
+#
+# Trade-offs, stated plainly (no silent fallbacks):
+#   - sqlite, not postgres (SCITEX_HUB_USE_SQLITE_DEV=1) -- no second DB server.
+#   - no Gitea/Umami/Celery containers, so flows that need them fail loudly.
+#   - TypeScript is served from the image's pre-built bundle
+#     (SCITEX_HUB_VITE_USE_BUILD=true); TS edits need a build. Python, template
+#     and CSS edits hot-reload.
+#
+# Usage (from this directory):
+#   docker compose -f docker-compose.preview.yml up -d          # -> 127.0.0.1:8000
+#   SCITEX_HUB_HTTP_PORT_DEV=31295 \
+#     docker compose -f docker-compose.preview.yml up -d        # NAS preview port
+#
+# SECRET_KEY is NOT set here. It comes from .env (-> ../envs/.env.dev) and is
+# resolved by settings_shared through the ADR-0001 legacy alias, so this public
+# file carries no secret.
+name: scitex-hub-dev
+
+services:
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    # Deliberately NO published port: a co-hosted prod stack already owns 6379.
+    # django reaches this as `redis:6379` over the compose network.
+
+  django:
+    # Reuse an already-built image rather than building a dev one. Override with
+    # SCITEX_HUB_DEV_BASE_IMAGE if the local image is named differently.
+    image: ${SCITEX_HUB_DEV_BASE_IMAGE:-scitex-hub-prod-django:latest}
+    working_dir: /app
+
+    # Bypass the 420-line dev entrypoint (npm install + 2x Vite + SSH gateway on
+    # the colliding 2200). Preview only needs migrate + runserver.
+    entrypoint: [""]
+    command:
+      - bash
+      - -lc
+      - |
+        set -e
+        # sqlite will not create its parent directory, and a fresh checkout has
+        # no data/db/sqlite -- without this the container crash-loops on
+        # "unable to open database file".
+        mkdir -p /app/data/db/sqlite
+        python manage.py migrate --noinput
+        exec python manage.py runserver 0.0.0.0:8000 from_docker
+
+    env_file:
+      - .env
+
+    environment:
+      SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_dev
+      DJANGO_SETTINGS_MODULE: config.settings.settings_dev
+      SCITEX_HUB_USE_SQLITE_DEV: "1"
+      SCITEX_HUB_REDIS_URL: redis://redis:6379/1
+      SCITEX_HUB_VITE_USE_BUILD: "true"
+      SCITEX_HUB_DJANGO_DEBUG: "True"
+      DEBUG: "True"
+      PYTHONUNBUFFERED: "1"
+      WATCHFILES_FORCE_POLLING: "true"
+
+    volumes:
+      - ../../..:/app:cached
+      # Named volumes seeded from the image. Without these, the bind-mount above
+      # shadows the image's built Vite bundle and node_modules with the host's
+      # (typically absent) copies, and the app serves no JS.
+      - vite_build:/app/staticfiles/vite
+      - node_modules:/app/node_modules
+
+    ports:
+      # Loopback-only: reached over an SSH tunnel, never exposed on the LAN.
+      - "127.0.0.1:${SCITEX_HUB_HTTP_PORT_DEV:-8000}:8000"
+
+    depends_on:
+      redis:
+        condition: service_started
+
+    restart: unless-stopped
+
+volumes:
+  vite_build:
+  node_modules:

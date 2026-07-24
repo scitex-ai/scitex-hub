@@ -10,10 +10,28 @@ import click
 
 from .._config._environments import ENVIRONMENTS, get_environment
 from .._utils._docker import DockerManager
+from ._click_compat import spec_command_kwargs
 from ._flags import confirm_or_abort, mutating_flags, print_dry_run
 
 
-@click.command()
+@click.command(
+    "deploy",
+    **spec_command_kwargs(
+        summary="Deploy SciTeX Hub.",
+        description=(
+            "Deploy or update SciTeX Hub containers for the specified "
+            "environment. Automatically handles configuration and "
+            "container orchestration.",
+        ),
+        examples=(
+            ("{prog} deploy", "Deploy with current settings"),
+            ("{prog} deploy --env prod", "Deploy to production environment"),
+            ("{prog} deploy --build", "Rebuild and deploy"),
+            ("{prog} deploy --dry-run", "Show what would be deployed"),
+            ("{prog} deploy --env prod --yes", "Skip confirmation"),
+        ),
+    ),
+)
 @click.option(
     "--env",
     type=click.Choice(list(ENVIRONMENTS.keys())),
@@ -32,11 +50,11 @@ def deploy(env, build, no_cache, dry_run, yes):
 
     \b
     Example:
-        scitex-hub deploy-project              # Deploy with current settings
-        scitex-hub deploy-project --env prod   # Deploy to production environment
-        scitex-hub deploy-project --build      # Rebuild and deploy
-        scitex-hub deploy-project --dry-run    # Show what would be deployed
-        scitex-hub deploy-project --env prod --yes
+        scitex-hub deploy              # Deploy with current settings
+        scitex-hub deploy --env prod   # Deploy to production environment
+        scitex-hub deploy --build      # Rebuild and deploy
+        scitex-hub deploy --dry-run    # Show what would be deployed
+        scitex-hub deploy --env prod --yes
     """
     environment = get_environment(env)
 
@@ -110,7 +128,7 @@ def _validate_deployment(environment):
         for error in errors:
             click.echo(f"  - {error}")
         click.echo()
-        click.echo("Run 'scitex-hub setup' to configure the environment.")
+        click.echo("Run 'scitex-hub init' to configure the environment.")
         raise click.ClickException("Deployment validation failed")
 
     click.echo(f"  {click.style('✓', fg='green')} Configuration validated")

@@ -44,12 +44,18 @@ def get_file_context(request, username, slug, file_path):
 
     full_file_path = project_path / file_path
 
-    # Security check
+    # Security check: component-wise containment, not a string prefix match.
+    # CONTAINMENT ONLY -- the calling view permits visibility == "public", so
+    # a tenant-ownership check here would break public repository browsing.
+    from ...services.filesystem.permissions import validate_path_in_project
+
     try:
         full_file_path = full_file_path.resolve()
-        if not str(full_file_path).startswith(str(project_path.resolve())):
+        if not validate_path_in_project(project_path, full_file_path):
+            logger.warning("Rejected out-of-project file path: %s", full_file_path)
             return None
-    except Exception:
+    except (OSError, RuntimeError):
+        logger.warning("Failed to resolve file path: %s", full_file_path, exc_info=True)
         return None
 
     if not full_file_path.exists() or not full_file_path.is_file():

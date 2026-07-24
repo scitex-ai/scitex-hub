@@ -19,6 +19,10 @@ import {
   showAllocationSpinner,
   hideAllocationSpinner,
 } from "./console-allocation-spinner";
+// Shared xterm loader (single CDN pin — @xterm/xterm >= 5.5 fixes the
+// 50000px-wide font-measurement div that 5.3.0 leaked into document.body,
+// which caused the workspace-wide horizontal-overflow bug).
+import { loadXtermCSS, loadXtermModules } from "./console-terminal-factory";
 
 /** Adapter: WebcamCapture/SketchCanvas → upload image → type path into terminal */
 function makeImageSink(send: (t: string) => void) {
@@ -55,43 +59,6 @@ interface TerminalInstance {
   containerEl: HTMLElement;
 }
 
-const XTERM_JS_URL = "https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js";
-const XTERM_CSS_URL = "https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css";
-const FIT_ADDON_URL =
-  "https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js";
-
-/** Load xterm.js by fetching source text and executing with AMD disabled. */
-async function loadXtermModules(): Promise<{ Terminal: any; FitAddon: any }> {
-  const win = window as any;
-  const [xtermCode, fitCode] = await Promise.all([
-    fetch(XTERM_JS_URL).then((r) => r.text()),
-    fetch(FIT_ADDON_URL).then((r) => r.text()),
-  ]);
-  const savedDefine = win.define;
-  const savedRequire = win.require;
-  win.define = undefined;
-  win.require = undefined;
-  try {
-    new Function(xtermCode)();
-    new Function(fitCode)();
-  } finally {
-    win.define = savedDefine;
-    win.require = savedRequire;
-  }
-  return {
-    Terminal: win.Terminal?.Terminal || win.Terminal,
-    FitAddon: win.FitAddon?.FitAddon || win.FitAddon,
-  };
-}
-
-function loadCSS(href: string): void {
-  if (document.querySelector(`link[href="${href}"]`)) return;
-  const el = document.createElement("link");
-  el.rel = "stylesheet";
-  el.href = href;
-  document.head.appendChild(el);
-}
-
 export class AIPanelConsoleMode {
   private TerminalCtor: any = null;
   private FitAddonCtor: any = null;
@@ -116,7 +83,7 @@ export class AIPanelConsoleMode {
     this.statusEl = statusEl;
     this.toolbar = toolbar || null;
 
-    loadCSS(XTERM_CSS_URL);
+    loadXtermCSS();
 
     try {
       const modules = await loadXtermModules();

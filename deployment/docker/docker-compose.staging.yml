@@ -30,6 +30,18 @@ services:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
       - scitex_config_volume:/app/.scitex
+      # Sibling dev-install checkouts (scitex-ui, figrecipe, scitex-writer,
+      # scitex-todo — see .scitex-apps.json). Previously missing here
+      # entirely, so a staging rebuild (which recreates this container)
+      # wiped .apps/ every time and install_apps.sh re-cloned + reinstalled
+      # + npm-installed every sibling from scratch — the 10+ minute
+      # pre-daphne window observed live on 2026-07-09
+      # (hub-postboot-warmup-window).
+      - apps_volume:/app/.apps
+      # uv/npm download caches — reused even when a (re)install genuinely
+      # is needed, so it doesn't re-fetch from the network every time.
+      - uv_cache_volume:/app/.cache/uv
+      - npm_cache_volume:/app/.cache/npm
       # User workspace
       - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
       # Singularity container
@@ -61,6 +73,10 @@ services:
       SCITEX_HUB_ENV: staging
       PYTHONPATH: /home/scitex/.local/lib/python3.11/site-packages:/app
       SCITEX_DIR: /app/.scitex
+      # install_apps.sh sibling dev-installs: reuse downloaded packages
+      # across boots instead of re-fetching from the network every time.
+      UV_CACHE_DIR: /app/.cache/uv
+      NPM_CONFIG_CACHE: /app/.cache/npm
     depends_on:
       pgbouncer:
         condition: service_healthy
@@ -113,6 +129,9 @@ services:
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
+      - apps_volume:/app/.apps
+      - uv_cache_volume:/app/.cache/uv
+      - npm_cache_volume:/app/.cache/npm
       - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
       - ../../deployment/singularity:/app/singularity:ro
       - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
@@ -134,6 +153,8 @@ services:
       SCITEX_HUB_ENV: staging
       PYTHONUNBUFFERED: 1
       SCITEX_DIR: /app/.scitex
+      UV_CACHE_DIR: /app/.cache/uv
+      NPM_CONFIG_CACHE: /app/.cache/npm
     depends_on:
       pgbouncer:
         condition: service_healthy
@@ -160,6 +181,9 @@ services:
     entrypoint: ["/entrypoint.sh"]
     command: celery -A config --broker=redis://redis:6379/1 beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
     volumes:
+      - apps_volume:/app/.apps
+      - uv_cache_volume:/app/.cache/uv
+      - npm_cache_volume:/app/.cache/npm
       - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
     env_file:
       - ./envs/.env.staging
@@ -169,6 +193,8 @@ services:
       SCITEX_HUB_ENV: staging
       PYTHONUNBUFFERED: 1
       SCITEX_DIR: /app/.scitex
+      UV_CACHE_DIR: /app/.cache/uv
+      NPM_CONFIG_CACHE: /app/.cache/npm
     depends_on:
       pgbouncer:
         condition: service_healthy
@@ -208,4 +234,17 @@ services:
 # ============================================
 volumes:
   scitex_config_volume:
+    driver: local
+  # New volumes (2026-07-10, hub-postboot-warmup-window). apps_volume
+  # persists sibling dev-install checkouts (scitex-ui, figrecipe,
+  # scitex-writer, scitex-todo) across a rebuild/recreate — without it,
+  # install_apps.sh's skip-logic can only ever help across simple
+  # restarts of the SAME container, not a real rebuild (which is exactly
+  # what was observed taking 10+ minutes on 2026-07-09). uv/npm cache
+  # volumes speed up the cases where a (re)install genuinely is needed.
+  apps_volume:
+    driver: local
+  uv_cache_volume:
+    driver: local
+  npm_cache_volume:
     driver: local

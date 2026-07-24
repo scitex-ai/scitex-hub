@@ -1,0 +1,40 @@
+{
+  "test_count": 109,
+  "test_files": 11,
+  "generated_at": "2026-07-23T15:45:04Z",
+  "commit": "4ec568b3f",
+  "categories": [
+    {
+      "name": "Tenant isolation",
+      "description": "Each user's projects and files are strictly separated; ownership is checked on every access."
+    },
+    {
+      "name": "Path containment",
+      "description": "Uploads and edits are jailed to the project; path-traversal attempts are rejected."
+    },
+    {
+      "name": "Command-injection hardening",
+      "description": "All shell, SSH, and SLURM arguments are safely quoted."
+    },
+    {
+      "name": "SSRF protection",
+      "description": "Server-side URL fetches are restricted to public hosts; internal and loopback addresses are blocked."
+    },
+    {
+      "name": "Deserialization safety",
+      "description": "No untrusted pickle or marshal; only safe YAML loaders are used."
+    },
+    {
+      "name": "Sandboxed compute",
+      "description": "Each visitor's terminal and compute run inside a per-user Apptainer sandbox, never a host shell."
+    },
+    {
+      "name": "Authentication boundaries",
+      "description": "Admin and onsite actions require real authentication; there are no bypass paths."
+    },
+    {
+      "name": "Automated regression gates",
+      "description": "Automated security tests run on every commit to keep these protections from regressing."
+    }
+  ]
+}

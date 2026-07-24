@@ -8,6 +8,12 @@ import click
 from rich.console import Console
 
 from .. import __version__
+from ._click_compat import (
+    HAS_CLI_HELPERS,
+    register_error_redirect,
+    register_warn_alias,
+    spec_group_kwargs,
+)
 from .app import app  # noqa: F401
 from .completion import completion_group as completion
 from .context import context as context_group
@@ -23,6 +29,33 @@ from .workspace import workspace  # noqa: F401
 console = Console()
 
 CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
+
+# Doctrine §4a — the canonical seven-category help order. `Other` is the
+# auto catch-all and must stay empty: every visible root command is
+# assigned explicitly below.
+_ROOT_CATEGORIES = [
+    (
+        "Core",
+        [
+            "init",
+            "deploy",
+            "project",
+            "app",
+            "workspace",
+            "account",
+            "auth",
+            "context",
+        ],
+    ),
+    ("Data & Sync", ["push-project", "pull-project", "gitea"]),
+    ("Service", ["docker", "mcp", "sdk"]),
+    ("Diagnostics", ["status", "logs"]),
+    ("Introspection", ["list-python-apis", "skills", "docs", "dev"]),
+    (
+        "Shell",
+        ["completion", "install-shell-completion", "print-shell-completion"],
+    ),
+]
 
 
 def _print_recursive_help(ctx, param, value):
@@ -51,7 +84,25 @@ def _print_recursive_help(ctx, param, value):
     ctx.exit(0)
 
 
-@click.group(context_settings=CONTEXT_SETTINGS)
+@click.group(
+    context_settings=CONTEXT_SETTINGS,
+    **spec_group_kwargs(
+        summary="Deployment and management CLI.",
+        version_of="scitex-hub",
+        description=(
+            "Config path resolution: config.yaml -> $SCITEX_HUB_CONFIG "
+            "-> ~/.scitex/hub/config.yaml -> defaults.",
+        ),
+        examples=(
+            ("{prog} init --env dev", "Initialize the dev environment"),
+            ("{prog} deploy", "Deploy with current settings"),
+            ("{prog} docker up", "Start containers"),
+            ("{prog} status", "Show deployment status"),
+            ("{prog} mcp start", "Start MCP server"),
+        ),
+        command_categories=_ROOT_CATEGORIES,
+    ),
+)
 @click.version_option(__version__, "-V", "--version", prog_name="scitex-hub")
 @click.option(
     "--help-recursive",
@@ -80,59 +131,43 @@ def main(ctx, json_output):
 
     \b
     Example:
-        scitex-hub setup --env dev     # Setup development environment
+        scitex-hub init --env dev      # Initialize development environment
         scitex-hub deploy              # Deploy with current settings
         scitex-hub docker up           # Start containers
-        scitex-hub show-status         # Show deployment status
+        scitex-hub status              # Show deployment status
         scitex-hub mcp start           # Start MCP server
     """
     ctx.ensure_object(dict)
     ctx.obj["json"] = json_output
 
 
-# ── Deprecation-redirect helper (noun-verb convention §5) ──
+# ── Command registration ──
+#
+# Slice 6a pilot verb renames (doctrine §1d; deprecation ladder §11):
+# the canonical short verbs are registered directly and every old
+# spelling becomes a warn-phase deprecated alias (removed in v0.20).
+# `setup` was already an error-phase redirect, so it stays on the error
+# rung, retargeted at `init`.
 
-
-def _dep(old: str, new: str):
-    @click.pass_context
-    def _impl(ctx, **_):
-        click.echo(
-            f"error: `scitex-hub {old}` was renamed to `scitex-hub {new}`.\n"
-            f"Re-run with: scitex-hub {new} [...]",
-            err=True,
-        )
-        ctx.exit(2)
-
-    return click.command(
-        old,
-        hidden=True,
-        context_settings={"ignore_unknown_options": True, "allow_extra_args": True},
-    )(_impl)
-
-
-# Register command groups (renamed to verb-noun compound leaves where bare)
 main.add_command(app)
 
-setup.name = "setup-environment"
-main.add_command(setup)
-main.add_command(_dep("setup", "setup-environment"))
+main.add_command(setup)  # canonical name: init (see setup.py)
+register_warn_alias(main, "setup-environment", target="init", remove_in="v0.20")
+register_error_redirect(main, "setup", target="init", remove_in="v0.20")
 
-deploy.name = "deploy-project"
 main.add_command(deploy)
-main.add_command(_dep("deploy", "deploy-project"))
+register_warn_alias(main, "deploy-project", target="deploy", remove_in="v0.20")
 
 main.add_command(docker)
 main.add_command(gitea)
 main.add_command(mcp)
 main.add_command(context_group, "context")
 
-status.name = "show-status"
 main.add_command(status)
-main.add_command(_dep("status", "show-status"))
+register_warn_alias(main, "show-status", target="status", remove_in="v0.20")
 
-logs.name = "show-logs"
 main.add_command(logs)
-main.add_command(_dep("logs", "show-logs"))
+register_warn_alias(main, "show-logs", target="logs", remove_in="v0.20")
 
 main.add_command(completion)
 main.add_command(workspace)
@@ -213,10 +248,14 @@ if __name__ == "__main__":
 # EOF
 
 
-# audit §4 — inject version into root --help
-try:
-    from importlib.metadata import version as _v
+# audit §4 — inject version into root --help. With the spec-built help
+# active (SpecGroup + CliHelp.version_of) the version already renders in
+# the summary line, so this fallback only applies on a released
+# scitex-dev that predates help_spec.
+if not HAS_CLI_HELPERS:
+    try:
+        from importlib.metadata import version as _v
 
-    main.help = f"scitex-hub (v{_v('scitex-hub')}) — " + (main.help or "").lstrip()
-except Exception:
-    pass
+        main.help = f"scitex-hub (v{_v('scitex-hub')}) — " + (main.help or "").lstrip()
+    except Exception:
+        pass

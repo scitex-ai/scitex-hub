@@ -36,10 +36,44 @@ def validate_path_in_project(project_path: Path, target_path: Path) -> bool:
     """
     Validate that a path is within the project directory.
 
-    This prevents path traversal attacks.
+    Component-wise containment via ``Path.relative_to``, NOT a string prefix
+    match. A prefix match is not containment: ``project_path`` ``.../proj`` is a
+    string prefix of the sibling ``.../proj-secret``, so ``startswith`` would
+    admit ``project_path / "../proj-secret/x"`` and leak into another project.
+    ``relative_to`` compares path COMPONENTS, so the sibling is rejected.
+    Returns False only on ValueError/OSError (target outside, or unresolvable).
     """
     try:
         target_path.resolve().relative_to(project_path.resolve())
+        return True
+    except (ValueError, OSError):
+        return False
+
+
+def validate_remote_path_in_root(remote_root: str, full_path: str) -> bool:
+    """
+    Validate that a REMOTE (SSH/SFTP) path is contained within remote_root.
+
+    Component-wise containment on POSIX path *syntax*, mirroring
+    validate_path_in_project's contract (returns False only on ValueError).
+
+    Deliberately does NOT call Path.resolve(): the path lives on a remote
+    host, so resolving it against the local container filesystem would be
+    meaningless and actively wrong.
+
+    LIMITATION: posixpath.normpath cannot collapse symlinks on the remote
+    host, so this confines path syntax only -- a symlink planted inside
+    remote_root that points elsewhere still escapes. Fully closing that
+    requires an SFTP-side realpath() per access (a round trip). Recorded as
+    an operator decision.
+    """
+    import posixpath
+    from pathlib import PurePosixPath
+
+    try:
+        PurePosixPath(posixpath.normpath(full_path)).relative_to(
+            PurePosixPath(posixpath.normpath(remote_root))
+        )
         return True
     except ValueError:
         return False

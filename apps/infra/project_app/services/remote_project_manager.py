@@ -25,6 +25,8 @@ from typing import Optional, Tuple
 
 from django.utils import timezone
 
+from apps.infra.project_app.ssh_safety import minimal_ssh_env, ssh_probe_argv
+
 from .remote_project_files import RemoteFilesMixin
 from .remote_project_mount import RemoteMountMixin
 
@@ -79,36 +81,41 @@ class RemoteProjectManager(RemoteMountMixin, RemoteFilesMixin):
         self.mount_base = Path("/tmp/scitex_remote")
         self.mount_point = self.mount_base / str(project.owner.id) / project.slug
 
-    def test_connection(self) -> Tuple[bool, Optional[str]]:
+    def test_connection(self, runner=subprocess.run) -> Tuple[bool, Optional[str]]:
         """
         Test SSH connection to remote system.
+
+        SECURITY: the argv is built by ssh_probe_argv, which VALIDATES
+        ssh_username / ssh_host (RemoteProjectConfig copies them verbatim
+        from the credential, so they are user-controlled) and inserts a
+        ``--`` end-of-options terminator before the destination. Without
+        that, a username of ``-oProxyCommand=...`` is host RCE. The
+        minimal env denies a stray ProxyCommand access to Django secrets.
+
+        ``runner`` is an injectable subprocess.run seam for the security
+        regression test.
 
         Returns:
             (success, error_message)
         """
         ssh_key_path = self.config.remote_credential.private_key_path
 
-        cmd = [
-            "ssh",
-            "-p",
-            str(self.config.ssh_port),
-            "-i",
-            ssh_key_path,
-            "-o",
-            "StrictHostKeyChecking=accept-new",
-            "-o",
-            "ConnectTimeout=10",
-            f"{self.config.ssh_username}@{self.config.ssh_host}",
-            "echo 'OK'",
-        ]
+        cmd = ssh_probe_argv(
+            ssh_port=self.config.ssh_port,
+            ssh_key=ssh_key_path,
+            ssh_user=self.config.ssh_username,
+            ssh_host=self.config.ssh_host,
+            remote_command="echo OK",
+        )
 
         try:
-            subprocess.run(
+            runner(
                 cmd,
                 capture_output=True,
                 text=True,
                 timeout=15,
                 check=True,
+                env=minimal_ssh_env(),
             )
             self._update_test_result(success=True)
             return True, None

@@ -8,6 +8,8 @@ This module provides pull-request-related operations for the Gitea REST API.
 
 from typing import Dict, List
 
+from .base import path_segment
+
 
 class PullRequestOperationsMixin:
     """Mixin class for pull-request-related operations"""
@@ -43,7 +45,7 @@ class PullRequestOperationsMixin:
             "head": head,
             "base": base,
         }
-        response = self._request("POST", f"/repos/{owner}/{repo}/pulls", json=data)
+        response = self._request("POST", f"/repos/{path_segment(owner)}/{path_segment(repo)}/pulls", json=data)
         return response.json()
 
     def get_pull_request(self, owner: str, repo: str, pr_number: int) -> Dict:
@@ -58,7 +60,7 @@ class PullRequestOperationsMixin:
         Returns:
             Pull request object
         """
-        response = self._request("GET", f"/repos/{owner}/{repo}/pulls/{pr_number}")
+        response = self._request("GET", f"/repos/{path_segment(owner)}/{path_segment(repo)}/pulls/{path_segment(pr_number)}")
         return response.json()
 
     def list_pull_requests(
@@ -80,7 +82,7 @@ class PullRequestOperationsMixin:
         """
         response = self._request(
             "GET",
-            f"/repos/{owner}/{repo}/pulls",
+            f"/repos/{path_segment(owner)}/{path_segment(repo)}/pulls",
             params={"state": state},
         )
         return response.json()
@@ -103,7 +105,7 @@ class PullRequestOperationsMixin:
         """
         self._request(
             "POST",
-            f"/repos/{owner}/{repo}/pulls/{pr_number}/merge",
+            f"/repos/{path_segment(owner)}/{path_segment(repo)}/pulls/{path_segment(pr_number)}/merge",
             json={"Do": method},
         )
 
@@ -118,7 +120,7 @@ class PullRequestOperationsMixin:
         """
         self._request(
             "PATCH",
-            f"/repos/{owner}/{repo}/pulls/{pr_number}",
+            f"/repos/{path_segment(owner)}/{path_segment(repo)}/pulls/{path_segment(pr_number)}",
             json={"state": "closed"},
         )
 
@@ -139,7 +141,7 @@ class PullRequestOperationsMixin:
         """
         response = self._request(
             "POST",
-            f"/repos/{owner}/{repo}/issues/{issue_number}/comments",
+            f"/repos/{path_segment(owner)}/{path_segment(repo)}/issues/{path_segment(issue_number)}/comments",
             json={"body": body},
         )
         return response.json()

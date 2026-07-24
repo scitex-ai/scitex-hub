@@ -6,13 +6,45 @@
 # Merged with `~/.scitex/dev/cli-audit-dict.yaml` (user-level) at audit
 # time. Project entries take precedence on collision.
 
-nouns:
-  # `scitex-hub account whoami` — polysemous-leaf identity check that
-  # follows the convention doctrine's "show-me-X" carve-out
-  # (_skills/general/03_interface/02_cli/02_subcommand-structure-noun-verb.md
-  # §"polysemous show-me-X"). Standard *nix utility name (POSIX-derived
-  # via `who am i`), but not in the bundled English catalog or Moby POS.
-  - whoami
+nouns: []
 
 transitive_verbs: []
-intransitive_verbs: []
+
+intransitive_verbs:
+  # audit-cli §1 escape hatch (the same mechanism `next`, scitex-ssh's
+  # `attach`, and figrecipe's `plot`/`crop` use). `scitex-hub account
+  # whoami` is the imperative the user types to ask the server "who am
+  # I?" — a universal Unix idiom (POSIX `who am i` → `whoami(1)`), like
+  # `id`, `pwd`, `hostname`. It is unambiguously a VERB in this CLI's
+  # grammar:
+  #   scitex-hub account whoami            — print the logged-in identity
+  #   scitex-hub account whoami --json     — same, machine-readable
+  # A rename to `<verb>-whoami` / `whoami show` would be worse UX and
+  # break the established *nix idiom. Declaring it an intransitive verb
+  # records that intent and clears §1 (the leaf-noun check). Previously
+  # this was (incorrectly) listed under `nouns:`, which CONFIRMED the
+  # §1 violation rather than clearing it.
+  - whoami
+  # why: CLI-standardization slice 6a (operator-confirmed 2026-07-07
+  # rename proposal + doctrine §1d/§4a). The four pilot renames put the
+  # canonical short verbs at the top level; their object is fixed and
+  # implicit — THE scitex-hub deployment — so surfacing it
+  # (`init-environment`, `deploy-project`) is exactly the compound noise
+  # the slice removes. Declaring them intransitive records that grammar:
+  #
+  # - `status` / `logs`: doctrine §4a's Diagnostics category is defined
+  #   as "`status`/`logs` leaves", and §1d's synonym table deprecates
+  #   `show-status`/`show-logs`/`sync-status`/`ss` in their favor. Moby
+  #   classifies both as noun+verb homonyms; in this CLI they are the
+  #   report-producing imperatives (`scitex-hub status`, like
+  #   `git status`, `docker logs`).
+  # - `init`: doctrine §1d — "create a brand-new project/config skeleton
+  #   where nothing existed"; no object to take (`git init`, `terraform
+  #   init` grammar). Replaces the banned `setup`.
+  # - `deploy`: doctrine §1d canonical verb ("install + activate onto a
+  #   target environment"); the target is the --env option, not a
+  #   positional object.
+  - status
+  - logs
+  - init
+  - deploy

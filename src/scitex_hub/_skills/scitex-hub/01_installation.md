@@ -34,5 +34,5 @@ without any extras.
 ```bash
 python -c "import scitex_hub; print(scitex_hub.__version__)"
 scitex-hub --help
-scitex-hub show-status
+scitex-hub status
 ```
