@@ -1,102 +1,77 @@
 """Thin wrapper that consumes `scitex_writer._django` as the canonical writer.
 
 Mirrors the `figrecipe_app/urls/figrecipe.py` pattern:
-- `editor_page` and `api_dispatch` come from the writer package
-- a small wrapper injects `working_dir` from the authenticated user's
-  current project
+- `editor_page`, `viewer_page` and `api_dispatch` come from the writer package
+- a small wrapper (WorkingDirScopedView) injects `working_dir` from the
+  authenticated user's current project
 
 This is the entry point for scitex-hub#146 — the gradual cut-over from
 the legacy in-repo writer UI to the shared `_django` implementation.
 
-Lives alongside (not replacing) the old `writer_app/urls/editor.py` so the
-switch can be flipped per-environment without destabilising production.
+SECURITY (card sec-working-dir-passthrough-family, SITE 1)
+----------------------------------------------------------
+`working_dir` is derived EXCLUSIVELY from the authenticated user's current
+project and OVERWRITES any caller-supplied value. It used to early-return
+when the caller already supplied `?working_dir=`, which passed an
+attacker-chosen absolute path straight through to
+`scitex_writer._django.services.get_or_create_project` — no ownership and
+no containment check downstream, so it read (and, via
+`ensure_scholar_library_link`, WROTE a symlink into) ANY existing host
+directory. Now the caller value is discarded and the request fails closed
+when no project resolves.
 """
 
 from __future__ import annotations
 
-import logging
-
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.shortcuts import redirect
 from django.urls import path
 from scitex_writer._django.views import api_dispatch as _raw_api_dispatch
 from scitex_writer._django.views import editor_page as _raw_editor_page
 from scitex_writer._django.views import viewer_page as _raw_viewer_page
 
-logger = logging.getLogger(__name__)
+from apps.infra.project_app.services.working_dir_resolver import (
+    WorkingDirScopedView,
+)
 
 
-def _strip_working_dir(request) -> None:
-    """Remove any caller-supplied working_dir so the request fails closed."""
-    if "working_dir" in request.GET:
-        mutable = request.GET.copy()
-        mutable.pop("working_dir", None)
-        request.GET = mutable
+def _no_project_json(request):
+    return JsonResponse(
+        {
+            "error": (
+                "No active project resolved for your account — the writer "
+                "operates on your project workspace. Create or open a "
+                "project first."
+            ),
+            "hint": "/new/",
+        },
+        status=404,
+    )
 
 
-def _inject_project_context(request) -> None:
-    """Set working_dir from the authenticated user's current project,
-    ALWAYS OVERRIDING any caller-supplied value.
+def _no_project_redirect(request):
+    return redirect("/new/")
 
-    SECURITY (P0): a caller-supplied ``working_dir`` is an arbitrary-path,
-    cross-tenant read/WRITE vector — the writer package resolves files under
-    whatever ``working_dir`` it is handed. The previous version returned early
-    when the caller already supplied one, so ``?working_dir=<victim path>``
-    passed through unvalidated to an authenticated (incl. visitor-pool)
-    endpoint. This wrapper is the SOLE place that binds the request to the
-    caller's own project, so it must OVERRIDE, never defer to, a client value,
-    and FAIL CLOSED (strip working_dir) whenever no project resolves. No
-    frontend passes ``working_dir`` over HTTP, so overriding breaks nothing.
-    """
-    if not request.user.is_authenticated:
-        _strip_working_dir(request)
-        return
-    try:
-        from apps.infra.project_app.services.project_utils import (
-            get_current_project,
-        )
-    except Exception:
-        _strip_working_dir(request)
-        return
 
-    project = get_current_project(request, user=request.user)
-    if not project:
-        _strip_working_dir(request)
-        return
-
-    try:
-        working_dir = str(project.get_local_path())
-    except Exception as exc:
-        logger.warning("[writer.v2] project.get_local_path() failed: %s", exc)
-        _strip_working_dir(request)
-        return
-
-    mutable = request.GET.copy()
-    mutable["working_dir"] = working_dir
-    request.GET = mutable
+_editor_view = WorkingDirScopedView(_raw_editor_page, on_missing=_no_project_redirect)
+_viewer_view = WorkingDirScopedView(_raw_viewer_page, on_missing=_no_project_redirect)
+_api_view = WorkingDirScopedView(_raw_api_dispatch, on_missing=_no_project_json)
 
 
 @login_required
 def editor_page(request):
-    _inject_project_context(request)
-    return _raw_editor_page(request)
+    return _editor_view(request)
 
 
 @login_required
 def viewer_page(request):
-    _inject_project_context(request)
-    return _raw_viewer_page(request)
+    return _viewer_view(request)
 
 
 @login_required
 def api_dispatch(request, endpoint):
-    _inject_project_context(request)
-    if not request.GET.get("working_dir"):
-        return JsonResponse(
-            {"error": "No working_dir resolved for the current user"},
-            status=400,
-        )
-    return _raw_api_dispatch(request, endpoint)
+    return _api_view(request, endpoint)
 
 
 urlpatterns = [
