@@ -257,6 +257,15 @@ elif _scitex_hub_env in ("prod",):
     _scitex_hub_env = "production"
 SCITEX_UI_ELEMENT_INSPECTOR = _scitex_hub_env in ("development", "staging")
 
+# ── On-site agent auth (HMAC shared secret) ────────────────────────────
+# Shared with the MCP client running inside the user's agent container
+# (scitex_hub._mcp_tools.api.get_on_site_env injects the same value as
+# SCITEX_HUB_ONSITE_SECRET). OnSiteAuthMiddleware verifies an HMAC over
+# (username, timestamp) against it. Empty => on-site auth is DISABLED
+# (fail closed); it is never a "trusted network" fallback, because the
+# previous IP-based signal was client-forgeable (X-Forwarded-For).
+ONSITE_AUTH_SECRET = os.environ.get("SCITEX_HUB_ONSITE_SECRET", "")
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",

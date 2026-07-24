@@ -5,7 +5,9 @@ REST API endpoints:
     /comms/api/channels/                       -- List/create channels
     /comms/api/channels/<slug>/                -- Channel detail/update
     /comms/api/channels/<slug>/messages/       -- Message history
-    /comms/api/participants/                   -- List/create participants
+    /comms/api/participants/                   -- List participants visible
+                                                  to the caller (read-only;
+                                                  membership-scoped)
     /comms/api/agent/send/                     -- Agent send message
 """
 
@@ -18,7 +20,7 @@ from .views import (
     ChannelDetailView,
     ChannelListCreateView,
     MessageListView,
-    ParticipantListCreateView,
+    ParticipantListView,
 )
 
 app_name = "comms_app"
@@ -42,11 +44,12 @@ urlpatterns = [
         MessageListView.as_view(),
         name="message-list",
     ),
-    # Participant endpoints
+    # Participant endpoints (read-only: rows are minted server-side only —
+    # see ParticipantListView's docstring for why POST was removed).
     path(
         "api/participants/",
-        ParticipantListCreateView.as_view(),
-        name="participant-list-create",
+        ParticipantListView.as_view(),
+        name="participant-list",
     ),
     # Agent endpoints
     path("api/agent/send/", AgentSendMessageView.as_view(), name="agent-send"),

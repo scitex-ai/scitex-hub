@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Tenancy + phase-1 read-only tests for the /todo/ board mount.
+"""Tenancy + phase-1 read-only tests for the /apps/cards/ board mount.
 
 Covers the hub-side contract of
 ``apps.workspace.todo_app.middleware.TodoBoardTenancyMiddleware``:
@@ -8,10 +8,13 @@ Covers the hub-side contract of
 - the injected ``store`` is the REQUESTING user's own workspace
   ``<project>/.scitex/todo/tasks.yaml`` (user A never sees user B's),
 - a client-supplied ``?store=`` is discarded (path-traversal seam),
-- every mutating method under /todo/ is rejected in phase 1 — readonly
-  visitors get the structured #308 payload, everyone else the explicit
-  ``todo-board-readonly-phase1`` 403,
-- non-/todo/ requests pass through untouched.
+- every mutating method under /apps/cards/ is rejected in phase 1 —
+  readonly visitors get the structured #308 payload, everyone else the
+  explicit ``todo-board-readonly-phase1`` 403,
+- anonymous PAGE navigations 302 to login, anonymous DATA fetches get
+  the shaped ``signed-out`` 401 JSON (the board JS renders a signed-out
+  panel from it instead of choking on login-page HTML),
+- non-board requests pass through untouched.
 
 Real Django test DB via django.test.TestCase — no mocks.
 """
@@ -48,7 +51,7 @@ def _run(request):
     return response, captured
 
 
-def _request(rf, user, path="/todo/", method="get", data=None):
+def _request(rf, user, path="/apps/cards/", method="get", data=None):
     request = getattr(rf, method)(path, data or {})
     request.user = user
     request.session = {}
@@ -151,8 +154,89 @@ class TodoTenancyStoreResolutionTest(TestCase):
         assert captured["store"] is None
 
 
+class TodoAnonymousResponseShapeTest(TestCase):
+    """Anonymous: page navigations 302 to login, data fetches get 401 JSON.
+
+    The board's JS follows a redirect and then chokes parsing the login
+    page's HTML as JSON — data endpoints must answer with the shaped
+    ``signed-out`` 401 payload the frontend turns into a signed-out panel.
+    """
+
+    def setUp(self):
+        self.rf = RequestFactory()
+
+    def test_anonymous_board_root_navigation_redirects_to_login(self):
+        # Arrange
+        request = _request(self.rf, AnonymousUser(), path="/apps/cards/")
+        # Act
+        response, _ = _run(request)
+        # Assert
+        assert (response.status_code, response["Location"]) == (
+            302,
+            "/auth/login/?next=/apps/cards/",
+        )
+
+    def test_anonymous_chat_page_navigation_redirects_to_login(self):
+        # Arrange
+        request = _request(self.rf, AnonymousUser(), path="/apps/cards/chat")
+        # Act
+        response, _ = _run(request)
+        # Assert
+        assert response.status_code == 302
+
+    def test_anonymous_data_fetch_gets_401(self):
+        # Arrange — /timeline is a named JSON endpoint upstream.
+        request = _request(
+            self.rf, AnonymousUser(), path="/apps/cards/timeline"
+        )
+        # Act
+        response, _ = _run(request)
+        # Assert
+        assert response.status_code == 401
+
+    def test_anonymous_data_fetch_payload_is_signed_out_shaped(self):
+        # Arrange
+        request = _request(
+            self.rf, AnonymousUser(), path="/apps/cards/timeline"
+        )
+        # Act
+        response, _ = _run(request)
+        # Assert
+        assert json.loads(response.content)["error"] == "signed-out"
+
+    def test_anonymous_data_fetch_payload_carries_login_url(self):
+        # Arrange
+        request = _request(
+            self.rf, AnonymousUser(), path="/apps/cards/timeline"
+        )
+        # Act
+        response, _ = _run(request)
+        # Assert
+        assert json.loads(response.content)["login_url"] == (
+            "/auth/login/?next=/apps/cards/"
+        )
+
+    def test_anonymous_api_dispatch_subpath_gets_401_json(self):
+        # Arrange — /graph rides the api_dispatch catch-all upstream.
+        request = _request(self.rf, AnonymousUser(), path="/apps/cards/graph")
+        # Act
+        response, _ = _run(request)
+        # Assert
+        assert response["Content-Type"].startswith("application/json")
+
+    def test_anonymous_data_fetch_never_reaches_the_board_view(self):
+        # Arrange
+        request = _request(
+            self.rf, AnonymousUser(), path="/apps/cards/timeline"
+        )
+        # Act
+        _, captured = _run(request)
+        # Assert
+        assert captured.get("called") is None
+
+
 class TodoPhase1ReadOnlyGateTest(TestCase):
-    """Every mutating method under /todo/ is rejected in phase 1."""
+    """Every mutating method under /apps/cards/ is rejected in phase 1."""
 
     @classmethod
     def setUpTestData(cls):
@@ -167,7 +251,7 @@ class TodoPhase1ReadOnlyGateTest(TestCase):
 
     def test_post_by_regular_user_is_rejected(self):
         # Arrange
-        request = _request(self.rf, self.alice, path="/todo/create", method="post")
+        request = _request(self.rf, self.alice, path="/apps/cards/create", method="post")
         # Act
         response, _ = _run(request)
         # Assert
@@ -175,7 +259,7 @@ class TodoPhase1ReadOnlyGateTest(TestCase):
 
     def test_post_rejection_carries_phase1_reason(self):
         # Arrange
-        request = _request(self.rf, self.alice, path="/todo/create", method="post")
+        request = _request(self.rf, self.alice, path="/apps/cards/create", method="post")
         # Act
         response, _ = _run(request)
         # Assert
@@ -185,7 +269,7 @@ class TodoPhase1ReadOnlyGateTest(TestCase):
 
     def test_post_never_reaches_the_board_view(self):
         # Arrange
-        request = _request(self.rf, self.alice, path="/todo/create", method="post")
+        request = _request(self.rf, self.alice, path="/apps/cards/create", method="post")
         # Act
         _, captured = _run(request)
         # Assert
@@ -194,7 +278,7 @@ class TodoPhase1ReadOnlyGateTest(TestCase):
     def test_readonly_visitor_post_gets_structured_308_rejection(self):
         # Arrange
         request = _request(
-            self.rf, self.readonly_visitor, path="/todo/resolve", method="post"
+            self.rf, self.readonly_visitor, path="/apps/cards/resolve", method="post"
         )
         # Act
         response, _ = _run(request)

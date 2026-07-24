@@ -10,6 +10,9 @@ from django.http import FileResponse, HttpResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
 
 from apps.infra.project_app.models import Project
+from apps.infra.project_app.services.filesystem.permissions import (
+    validate_path_in_project,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +66,13 @@ def api_get_file_content(request, file_path):
         file_full_path = project_path / file_path
 
         # Security check
-        if not str(file_full_path.resolve()).startswith(str(project_path.resolve())):
+        # Component-wise containment, not a string prefix match.
+        # CONTAINMENT ONLY -- this view has a public-visibility branch and no
+        # @login_required, so a tenant-ownership check would break anonymous
+        # browsing of public projects. OPEN QUESTION for the operator: this
+        # view is currently UNROUTED (console urls/api.py redirects to
+        # /api/workspace/file-content/) -- it may be better deleted than kept.
+        if not validate_path_in_project(project_path, file_full_path):
             return JsonResponse({"error": "Invalid file path"}, status=400)
 
         if not file_full_path.exists():
