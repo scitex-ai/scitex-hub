@@ -9,9 +9,10 @@ Covers:
 - Configured fields render; missing fields render an explicit 準備中
   notice (no fake data); footer link present.
 - Committed config defaults (config/settings/settings_commerce.py):
-  registered address 静岡県静岡市葵区鷹匠2-8-10 and representative
-  phone 080-4022-3567 (operator-confirmed 2026-07-18); public contact
-  email stays unset (準備中).
+  registered address 〒420-0839 静岡県静岡市葵区鷹匠2-8-10 and
+  representative phone 080-4022-3567 (operator-confirmed 2026-07-18;
+  〒 confirmed 2026-07-17 via grant); public contact email stays
+  unset (準備中).
 """
 
 import importlib
@@ -114,12 +115,12 @@ class TestTokushohoPage:
 
     def test_tokushoho_default_renders_registered_address(self, client):
         # Arrange: no overrides — the committed config default applies
-        # (operator-confirmed 2026-07-18; no room number, no 〒)
+        # (no room number; 〒420-0839 operator-confirmed 2026-07-17)
         url = reverse("public_app:tokushoho")
         # Act
         content = client.get(url).content.decode("utf-8")
         # Assert
-        assert "静岡県静岡市葵区鷹匠2-8-10" in content
+        assert "〒420-0839 静岡県静岡市葵区鷹匠2-8-10" in content
 
     def test_tokushoho_default_renders_representative_phone(self, client):
         # Arrange: no overrides — the committed config default applies
@@ -193,9 +194,9 @@ class TestCommerceSettingsDefaults:
         module = commerce_settings_clean_env
         # Act
         module = importlib.reload(module)
-        # Assert: registered address — no room number, no 〒 (matches the
-        # 2026-07-17 site-wide address; operator-confirmed 2026-07-18)
-        assert module.COMPANY_ADDRESS == "静岡県静岡市葵区鷹匠2-8-10"
+        # Assert: registered address — no room number; 〒420-0839
+        # operator-confirmed 2026-07-17 (grant, 日本郵便 lookup)
+        assert module.COMPANY_ADDRESS == "〒420-0839 静岡県静岡市葵区鷹匠2-8-10"
 
     def test_company_phone_defaults_to_representative_number(
         self, commerce_settings_clean_env
