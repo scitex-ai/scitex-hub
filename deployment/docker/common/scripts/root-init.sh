@@ -78,13 +78,19 @@ chmod -R 755 /app/data/slurm 2>/dev/null || true
 # ============================================
 # Always create .scitex/logs directory (required by scitex package)
 mkdir -p /app/.scitex/logs
-# Always create .scitex/hub/runtime directory (LOG_DIR default for the
-# Django/Celery app itself -- config/settings/settings_logging.py resolves
-# LOG_DIR here via scitex_config's runtime-state-db-layout convention.
-# A fallback default must NEVER again point at a directory nothing
-# guarantees exists -- see incident hub-prod-outage-celery-log-permission
-# (2026-07-09/10, ~90min prod outage from celery_file PermissionError).
-mkdir -p /app/.scitex/hub/runtime
+# Always create the FULL LOG_DIR leaf .scitex/hub/runtime/logs (not just
+# runtime/) -- config/settings/settings_logging.py resolves LOG_DIR here via
+# scitex_config's runtime-state-db-layout convention, and the celery_file
+# RotatingFileHandler is configured in the same django.setup() that would
+# otherwise lazily create it. Pre-creating (and chowning, below) the leaf as
+# root BEFORE any Python process starts removes the first-boot dependency on
+# that lazy mkdir: on a volume that has never seen this path (a long-lived
+# prod .scitex volume before the first release carrying the new default), the
+# handler could be configured before the leaf existed -> "Unable to configure
+# handler 'celery_file'" -> crash loop. This mirrors how /app/logs is always
+# pre-created above. See incident hub-prod-outage-celery-log-permission
+# (2026-07-09/10 outage; 2026-07-11 prod first-boot crash on the new default).
+mkdir -p /app/.scitex/hub/runtime/logs
 chown -R scitex:scitex /app/.scitex 2>/dev/null || true
 chmod -R 755 /app/.scitex 2>/dev/null || true
 echo "✅ .scitex directory permissions fixed"
