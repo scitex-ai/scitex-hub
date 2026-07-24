@@ -11,6 +11,7 @@ Provides endpoints for:
 from __future__ import annotations
 
 import logging
+import re
 
 from django.contrib.auth.models import User
 from django.http import JsonResponse
@@ -22,6 +23,31 @@ from .git_utils import get_project_path, run_git_command
 from .permissions import check_project_read_access
 
 logger = logging.getLogger(__name__)
+
+# A git revision (``from``/``to``) is placed in a git argv position that
+# PRECEDES the ``--`` path separator, so ``--`` cannot protect it — a value
+# beginning with ``-`` is parsed by git as an OPTION, not a ref. That is
+# argument injection even though the argv is a list and shell=False: e.g.
+# ``?from=--output=/path`` makes ``git diff`` write to an attacker-chosen
+# file. This endpoint is reachable UNAUTHENTICATED for any public project
+# (permissions.check_project_read_access returns True for anon on
+# visibility=="public"), so the ref must be validated, not merely quoted.
+#
+# The character set covers every legitimate rev this endpoint receives —
+# sha (hex), symbolic names (HEAD, main), ancestry (HEAD~1, HEAD^),
+# namespaced refs (feature/x, refs/tags/v1), reflog/upstream (@{...}). The
+# leading-char rule is the security-critical part: a ref may not begin with
+# ``-`` (option) or ``.`` (invalid in git and a foothold for ``..`` ranges).
+_GIT_REF_RE = re.compile(r"^[0-9A-Za-z_][0-9A-Za-z._/@{}~^-]{0,199}$")
+
+
+def _is_valid_git_ref(ref: str) -> bool:
+    """True if ``ref`` is a syntactically safe single git revision.
+
+    Empty string is treated as "not supplied" by the caller and is handled
+    there; it is not a valid ref and returns False here.
+    """
+    return bool(_GIT_REF_RE.match(ref))
 
 
 @require_http_methods(["GET"])
@@ -113,6 +139,16 @@ def api_git_diff(request, username, slug):
         commit1 = request.GET.get("from", "")  # e.g., "HEAD~1" or specific hash
         commit2 = request.GET.get("to", "")  # e.g., "HEAD" or specific hash
         staged = request.GET.get("staged", "false").lower() == "true"
+
+        # Reject any ref that could be parsed by git as an option (see
+        # _GIT_REF_RE). These land before the ``--`` separator, so validation
+        # — not the terminator — is what closes the argument injection.
+        for ref in (commit1, commit2):
+            if ref and not _is_valid_git_ref(ref):
+                return JsonResponse(
+                    {"success": False, "error": "Invalid commit reference"},
+                    status=400,
+                )
 
         project_path = get_project_path(project)
         if not project_path or not project_path.exists():
