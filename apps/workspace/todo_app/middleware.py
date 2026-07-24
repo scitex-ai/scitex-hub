@@ -43,9 +43,35 @@ from django.shortcuts import redirect
 
 logger = logging.getLogger(__name__)
 
-_TODO_ROOT = "/todo"
-_TODO_PREFIX = "/todo/"
+# Must track the mount in config/urls.py. The board moved from the bare /todo/
+# to /apps/todo/ and then to /apps/cards/ (Cards rebrand); if these drift, the
+# tenancy injection silently stops firing and the board would fall back to the
+# HOST store — i.e. one user seeing another's tasks. Keep them in lockstep.
+# The /apps/todo/ legacy path needs no entry here: urls.py 301-redirects it
+# to /apps/cards/ before any board view runs.
+_TODO_ROOT = "/apps/cards"
+_TODO_PREFIX = "/apps/cards/"
 _READ_METHODS = ("GET", "HEAD", "OPTIONS")
+
+# The upstream board routes that render HTML pages a browser NAVIGATES to
+# (board root, chat/DM page, legacy + board-v3 aliases); every other
+# subpath is a JS data endpoint (timeline, fleet/*, dm/*, chat/<id>, the
+# api_dispatch catch-all). Tracks scitex_cards._django.urls in lockstep,
+# same contract as _TODO_PREFIX above.
+# WHY path, not headers: the board's fetches send no JSON Accept header
+# and non-browser clients omit Sec-Fetch-Mode — the path is the only
+# discriminator present on every request.
+_PAGE_PATHS = frozenset(
+    {
+        _TODO_ROOT,
+        _TODO_PREFIX,
+        _TODO_PREFIX + "chat",
+        _TODO_PREFIX + "legacy",
+        _TODO_PREFIX + "legacy/",
+        _TODO_PREFIX + "board-v3",
+        _TODO_PREFIX + "board-v3/",
+    }
+)
 
 # Mirror of the guarded import in settings_shared.py / the URL guard in
 # config/urls.py — when the package is absent the mount does not exist
@@ -77,8 +103,20 @@ class TodoBoardTenancyMiddleware:
         user = getattr(request, "user", None)
         if user is None or not user.is_authenticated:
             # VisitorAutoLoginMiddleware normally leaves no anonymous
-            # sessions; if one still reaches us, send it to login.
-            return redirect(f"/auth/login/?next={path}")
+            # sessions; if one still reaches us, page navigations go to
+            # login, while data fetches get shaped 401 JSON — a redirect
+            # would hand the login page's HTML to the board JS's JSON
+            # parser (the board renders a signed-out panel from this
+            # payload instead).
+            if path in _PAGE_PATHS:
+                return redirect(f"/auth/login/?next={path}")
+            return JsonResponse(
+                {
+                    "error": "signed-out",
+                    "login_url": f"/auth/login/?next={_TODO_PREFIX}",
+                },
+                status=401,
+            )
 
         store = self._resolve_workspace_store(request)
         if store is None:

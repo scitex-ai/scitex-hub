@@ -1,0 +1,379 @@
+{% extends "global_base.html" %}
+{% load static %}
+
+{% block title %}サービス・料金 | Services - SciTeX{% endblock %}
+{% block meta_description %}
+    SciTeX は、文献、解析、Figure、執筆、データ管理、計算環境を横断して、研究者と研究組織の
+    ワークフローを整えるオープンな研究基盤です。既存の PC・NAS・サーバー・HPC を活かしながら、
+    必要な部分だけを接続・自動化します。まずは初回相談 30 分無料から。
+{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'public_app/css/services.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/services-detail.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="svc-page" lang="ja">
+
+        <!-- ============================================================ -->
+        <!-- Hero + workflow panel                                        -->
+        <!-- ============================================================ -->
+        <section class="svc-hero">
+            <div class="svc-hero-main">
+                <span class="svc-eyebrow">Open Research Infrastructure</span>
+                <h1 class="svc-hero-title">研究に集中できる環境を、<span class="svc-accent-text">仕組みから。</span></h1>
+                <p class="svc-hero-copy">
+                    SciTeX は、文献、解析、Figure、執筆、データ管理、計算環境を横断して、
+                    研究者と研究組織のワークフローを整えるオープンな研究基盤です。既存の PC、NAS、
+                    サーバー、HPC を活かしながら、必要な部分だけを接続・自動化します。
+                </p>
+                <div class="svc-hero-actions">
+                    <a href="#inquiry" class="svc-btn svc-btn-primary">相談内容を整理する</a>
+                    <a href="#plans" class="svc-btn svc-btn-ghost">プランを見る</a>
+                </div>
+                <p class="svc-hero-note">
+                    初回相談 30 分無料。契約を前提とせず、自分でできること・SciTeX が支援できることを
+                    分けてご案内します。
+                </p>
+            </div>
+            <aside class="svc-hero-panel" aria-label="SciTeX 導入フロー">
+                <p class="svc-panel-title">From fragmented work to reproducible workflow</p>
+                <div class="svc-flow">
+                    <div class="svc-flow-item">
+                        <span class="svc-flow-num">01</span>
+                        <div>
+                            <strong>現状を整理</strong>
+                            <span>コード、データ、設備、運用上の制約を確認します。</span>
+                        </div>
+                    </div>
+                    <div class="svc-flow-item">
+                        <span class="svc-flow-num">02</span>
+                        <div>
+                            <strong>小さく接続</strong>
+                            <span>一つの作業や研究工程から試験導入します。</span>
+                        </div>
+                    </div>
+                    <div class="svc-flow-item">
+                        <span class="svc-flow-num">03</span>
+                        <div>
+                            <strong>再現可能にする</strong>
+                            <span>環境、コード、データ、Figure を再生成できる形に整えます。</span>
+                        </div>
+                    </div>
+                    <div class="svc-flow-item">
+                        <span class="svc-flow-num">04</span>
+                        <div>
+                            <strong>研究者に残す</strong>
+                            <span>データや設定は手元に残り、支援後も継続利用できます。</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </section>
+
+        <!-- Trust strip -->
+        <div class="svc-trust">
+            <span class="svc-trust-item">Open Source First</span>
+            <span class="svc-trust-item">Local / Cloud / HPC</span>
+            <span class="svc-trust-item">Vendor Neutral</span>
+            <span class="svc-trust-item">NDA / On-site Ready</span>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 対象別プラン (Individual / Lab / Enterprise)                  -->
+        <!-- ============================================================ -->
+        <section class="svc-section" id="plans">
+            <p class="svc-kicker">Plans</p>
+            <h2>個人から研究組織まで、必要な範囲だけ。</h2>
+            <p class="svc-section-desc">
+                最初から大規模な導入を前提にせず、課題の大きさと組織の状況に合わせて支援範囲を
+                設計します。
+            </p>
+            <div class="svc-plan-wrap">
+                <table class="svc-plan-table">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="svc-plan-axis">Plan</th>
+                            <th scope="col">
+                                <span class="svc-plan-name">Individual</span>
+                                <span class="svc-plan-sub">個人研究者・大学院生</span>
+                            </th>
+                            <th scope="col" class="svc-plan-featured">
+                                <span class="svc-plan-badge">おすすめ</span>
+                                <span class="svc-plan-name">Lab</span>
+                                <span class="svc-plan-sub">研究室・共同研究チーム</span>
+                            </th>
+                            <th scope="col">
+                                <span class="svc-plan-name">Enterprise</span>
+                                <span class="svc-plan-sub">大学・研究機関・企業 R&amp;D</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th scope="row">主な課題</th>
+                            <td>解析、コード、Figure、個人環境の整備</td>
+                            <td>データ共有、自動化、計算資源、属人化</td>
+                            <td>組織導入、標準化、セキュリティ、継続運用</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">導入方法</th>
+                            <td>スポット相談・個別支援</td>
+                            <td>一工程からの小規模 PoC</td>
+                            <td>要件整理・試験導入・段階展開</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">対応環境</th>
+                            <td>PC、WSL、クラウド、HPC</td>
+                            <td>研究室サーバー、NAS、HPC</td>
+                            <td>オンプレミス、閉域環境、クラウド</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">支援内容</th>
+                            <td>レビュー、環境構築、自動化</td>
+                            <td>共有基盤、データ管理、専用ツール</td>
+                            <td>ガバナンス、導入設計、継続支援</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">NDA・オンサイト</th>
+                            <td class="svc-muted">必要に応じて対応</td>
+                            <td>対応</td>
+                            <td>対応</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">料金の目安</th>
+                            <td class="svc-plan-price">11,000円〜</td>
+                            <td class="svc-plan-price">55,000円〜</td>
+                            <td class="svc-plan-price">110,000円〜／要見積もり</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Mobile: same plans as stacked cards (no horizontal scroll) -->
+            <div class="svc-plan-cards">
+                <article class="svc-plan-card">
+                    <p class="svc-plan-card-name">Individual<span class="svc-plan-card-sub">個人研究者・大学院生</span></p>
+                    <dl>
+                        <dt>主な課題</dt><dd>解析、コード、Figure、個人環境の整備</dd>
+                        <dt>導入方法</dt><dd>スポット相談・個別支援</dd>
+                        <dt>対応環境</dt><dd>PC、WSL、クラウド、HPC</dd>
+                        <dt>支援内容</dt><dd>レビュー、環境構築、自動化</dd>
+                        <dt>NDA・オンサイト</dt><dd>必要に応じて対応</dd>
+                        <dt>料金の目安</dt><dd class="svc-plan-price">11,000円〜</dd>
+                    </dl>
+                </article>
+                <article class="svc-plan-card svc-plan-card-featured">
+                    <p class="svc-plan-card-name"><span class="svc-plan-badge">おすすめ</span>Lab<span class="svc-plan-card-sub">研究室・共同研究チーム</span></p>
+                    <dl>
+                        <dt>主な課題</dt><dd>データ共有、自動化、計算資源、属人化</dd>
+                        <dt>導入方法</dt><dd>一工程からの小規模 PoC</dd>
+                        <dt>対応環境</dt><dd>研究室サーバー、NAS、HPC</dd>
+                        <dt>支援内容</dt><dd>共有基盤、データ管理、専用ツール</dd>
+                        <dt>NDA・オンサイト</dt><dd>対応</dd>
+                        <dt>料金の目安</dt><dd class="svc-plan-price">55,000円〜</dd>
+                    </dl>
+                </article>
+                <article class="svc-plan-card">
+                    <p class="svc-plan-card-name">Enterprise<span class="svc-plan-card-sub">大学・研究機関・企業 R&amp;D</span></p>
+                    <dl>
+                        <dt>主な課題</dt><dd>組織導入、標準化、セキュリティ、継続運用</dd>
+                        <dt>導入方法</dt><dd>要件整理・試験導入・段階展開</dd>
+                        <dt>対応環境</dt><dd>オンプレミス、閉域環境、クラウド</dd>
+                        <dt>支援内容</dt><dd>ガバナンス、導入設計、継続支援</dd>
+                        <dt>NDA・オンサイト</dt><dd>対応</dd>
+                        <dt>料金の目安</dt><dd class="svc-plan-price">110,000円〜／要見積もり</dd>
+                    </dl>
+                </article>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- Services (4 cards)                                            -->
+        <!-- ============================================================ -->
+        <section class="svc-section" id="services">
+            <p class="svc-kicker">Services</p>
+            <h2>研究ワークフローを、部分ではなく流れで整える。</h2>
+            <p class="svc-section-desc">
+                単発のコード修正から、研究室全体のデータ・計算環境まで。既存資産を活かしながら、
+                必要な部分だけを支援します。
+            </p>
+            <div class="svc-cards">
+                <article class="svc-card">
+                    <div class="svc-card-icon">01</div>
+                    <h3>Research Workflow</h3>
+                    <p class="svc-card-lead">解析、Figure、文献、執筆を再現可能な流れにまとめます。</p>
+                    <ul class="svc-card-list">
+                        <li><strong>解析相談・コードレビュー</strong><span>Python／R コード、解析設計、再現性、処理速度を確認します。</span></li>
+                        <li><strong>定型解析の自動化</strong><span>前処理、集計、統計解析、レポート生成を自動化します。</span></li>
+                        <li><strong>再生成できる Figure</strong><span>元データとコードから修正・再生成できる論文用 Figure を構築します。</span></li>
+                        <li><strong>文献・執筆環境</strong><span>検索、引用管理、原稿作成、共同編集の流れを整えます。</span></li>
+                    </ul>
+                </article>
+                <article class="svc-card">
+                    <div class="svc-card-icon">02</div>
+                    <h3>Research Computing</h3>
+                    <p class="svc-card-lead">手元の PC から HPC まで、安全で再現可能な計算環境を構築します。</p>
+                    <ul class="svc-card-list">
+                        <li><strong>Linux・Docker・Apptainer</strong><span>研究コードを別の PC やサーバーでも動かせる環境にまとめます。</span></li>
+                        <li><strong>SSH・HPC・リモート計算</strong><span>大学の計算資源、研究室サーバー、手元の PC を安全につなぎます。</span></li>
+                        <li><strong>NAS・バックアップ</strong><span>研究データの保存、移行、監視、バックアップ方針を設計します。</span></li>
+                        <li><strong>SciTeX Station</strong><span>必要なソフトウェアを導入した小型計算機を、すぐ使える状態に整えます。</span></li>
+                    </ul>
+                </article>
+                <article class="svc-card">
+                    <div class="svc-card-icon">03</div>
+                    <h3>AI &amp; Automation</h3>
+                    <p class="svc-card-lead">機密性と運用コストを見ながら、生成 AI と自動化を導入します。</p>
+                    <ul class="svc-card-list">
+                        <li><strong>生成 AI・コーディングエージェント</strong><span>ChatGPT、Claude Code、Codex、ローカルモデル等を導入します。</span></li>
+                        <li><strong>ローカル・オンプレミス AI</strong><span>研究データを外部へ出さずに利用できる環境を構築します。</span></li>
+                        <li><strong>紙資料の OCR・自動整理</strong><span>スキャン、分類、命名、保存までを自動化します。</span></li>
+                        <li><strong>研究データ・ファイル整理</strong><span>容量、更新日、重複、使用頻度に応じて保存先を再設計します。</span></li>
+                    </ul>
+                </article>
+                <article class="svc-card">
+                    <div class="svc-card-icon">04</div>
+                    <h3>Lab &amp; Organization</h3>
+                    <p class="svc-card-lead">研究室や組織の実際の運用に合わせて、小さく導入し、継続できる形にします。</p>
+                    <ul class="svc-card-list">
+                        <li><strong>小規模実証・PoC</strong><span>まず一つの研究工程を対象に、効果と運用負荷を確認します。</span></li>
+                        <li><strong>専用ツール・プラグイン開発</strong><span>Scholar、Writer、FigRecipe、Storage、Tasks 等を組み合わせます。</span></li>
+                        <li><strong>NDA・オンサイト対応</strong><span>機密データや研究設備を扱う場合は、現地導入にも対応します。</span></li>
+                        <li><strong>継続的な技術支援</strong><span>専任技術者を置くほどではない組織に、相談先として伴走します。</span></li>
+                    </ul>
+                </article>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- Principles                                                   -->
+        <!-- ============================================================ -->
+        <section class="svc-section svc-principles-section">
+            <p class="svc-kicker">Principles</p>
+            <h2>支援後も、研究者の手元に残る。</h2>
+            <p class="svc-section-desc">
+                SciTeX は、特定ベンダーへの囲い込みや、不透明な外部利用料を前提にしません。
+            </p>
+            <div class="svc-principles">
+                <div class="svc-principle">
+                    <strong>既存資産を活かす</strong>
+                    <p>新しい契約や機器を増やす前に、現在の PC、NAS、サーバー、HPC を活用します。</p>
+                </div>
+                <div class="svc-principle">
+                    <strong>Open Source First</strong>
+                    <p>無料・オープンソースで解決できる部分は、その方法を明確にお伝えします。</p>
+                </div>
+                <div class="svc-principle">
+                    <strong>Vendor Neutral</strong>
+                    <p>特定の AI、クラウド、ファイル形式へのロックインを前提にしません。</p>
+                </div>
+                <div class="svc-principle">
+                    <strong>データはお客様のもの</strong>
+                    <p>データ、コード、設定ファイルは、支援終了後もお客様が保持できます。</p>
+                </div>
+                <div class="svc-principle">
+                    <strong>小さく始める</strong>
+                    <p>大規模契約ではなく、小さな相談や一工程の試験導入から始めます。</p>
+                </div>
+                <div class="svc-principle">
+                    <strong>事前に範囲を明確化</strong>
+                    <p>正式な作業開始前に、対応範囲、費用、外部利用料を確認します。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- Pricing                                                      -->
+        <!-- ============================================================ -->
+        <section class="svc-section" id="pricing">
+            <p class="svc-kicker">Pricing</p>
+            <h2>料金の目安</h2>
+            <p class="svc-section-desc">
+                作業内容、既存環境、納期によって変動します。正式な作業前に対応範囲と金額をご提示します。
+            </p>
+            <div class="svc-price-wrap">
+                <table class="svc-price-table">
+                    <thead>
+                        <tr><th scope="col">内容</th><th scope="col">料金の目安</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>初回相談・課題の整理（30分）</td><td class="svc-price-cell">無料</td></tr>
+                        <tr><td>技術相談・設計相談（60分）</td><td class="svc-price-cell">11,000円</td></tr>
+                        <tr><td>小さな設定・修正・調査</td><td class="svc-price-cell">11,000円〜</td></tr>
+                        <tr><td>コードレビュー・環境診断</td><td class="svc-price-cell">33,000円〜</td></tr>
+                        <tr><td>環境構築・データ移行・自動化</td><td class="svc-price-cell">55,000円〜</td></tr>
+                        <tr><td>研究室向け試験導入・PoC</td><td class="svc-price-cell">55,000円〜</td></tr>
+                        <tr><td>個別開発・本格導入</td><td class="svc-price-cell">110,000円〜</td></tr>
+                        <tr><td>継続的な技術支援</td><td class="svc-price-cell">月額 33,000円〜</td></tr>
+                        <tr><td>技術顧問・組織的な導入支援</td><td class="svc-price-cell">月額 55,000円〜</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="svc-price-notes">
+                <p class="svc-price-note">ソフトウェア、ハードウェア、クラウド、生成 AI API 等の外部利用料は原則実費です。</p>
+                <p class="svc-price-note">お客様自身の既存契約や計算資源を、そのまま利用できる構成を優先します。</p>
+                <p class="svc-price-note">SciTeX Cloud の従量課金は、料金確定後に別ページでご案内します。</p>
+            </div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- Contact                                                      -->
+        <!-- ============================================================ -->
+        <section class="svc-section" id="inquiry">
+            <p class="svc-kicker">Contact</p>
+            <h2>何を頼めばよいか分からない段階でも大丈夫です。</h2>
+            {% if submitted %}
+                <div class="svc-form-success" role="status">
+                    お問い合わせを受け付けました。ありがとうございます。担当より折り返しご連絡します。
+                </div>
+            {% endif %}
+            <div class="svc-contact">
+                <div class="svc-contact-lead">
+                    <p>
+                        現在の作業方法や困っていることを伺い、SciTeX が対応できること、ご自身で無料でできること、
+                        別のサービスを利用した方がよいことを分けてお伝えします。
+                    </p>
+                    <ul class="svc-checklist">
+                        <li>初回相談 30 分無料</li>
+                        <li>契約を前提としない課題整理</li>
+                        <li>作業開始前に料金と対応範囲を提示</li>
+                    </ul>
+                </div>
+                <form class="svc-form" method="post" action="{% url 'public_app:services' %}#inquiry">
+                    {% csrf_token %}
+                    <div class="svc-field">
+                        <label for="svc-name">お名前 <span class="svc-req">必須</span></label>
+                        <input type="text" id="svc-name" name="name" value="{{ form.name }}"
+                               maxlength="120" required placeholder="山田 太郎" />
+                        {% if errors.name %}<p class="svc-error">{{ errors.name }}</p>{% endif %}
+                    </div>
+                    <div class="svc-field">
+                        <label for="svc-affil">ご所属（任意）</label>
+                        <input type="text" id="svc-affil" name="affiliation"
+                               value="{{ form.affiliation }}" maxlength="200"
+                               placeholder="〇〇大学 △△研究室 / 株式会社□□" />
+                    </div>
+                    <div class="svc-field">
+                        <label for="svc-budget">ご予算感（任意）</label>
+                        <select id="svc-budget" name="budget">
+                            <option value="未定"{% if form.budget == "未定" or not form.budget %} selected{% endif %}>未定</option>
+                            <option value="3万円未満"{% if form.budget == "3万円未満" %} selected{% endif %}>3万円未満</option>
+                            <option value="3万円〜10万円"{% if form.budget == "3万円〜10万円" %} selected{% endif %}>3万円〜10万円</option>
+                            <option value="10万円〜50万円"{% if form.budget == "10万円〜50万円" %} selected{% endif %}>10万円〜50万円</option>
+                            <option value="50万円以上"{% if form.budget == "50万円以上" %} selected{% endif %}>50万円以上</option>
+                        </select>
+                    </div>
+                    <div class="svc-field">
+                        <label for="svc-request">ご相談内容 <span class="svc-req">必須</span></label>
+                        <textarea id="svc-request" name="request" rows="6" required
+                                  placeholder="いま困っていること、やりたいことをお聞かせください。">{{ form.request }}</textarea>
+                        {% if errors.request %}<p class="svc-error">{{ errors.request }}</p>{% endif %}
+                    </div>
+                    <button type="submit" class="svc-submit">相談を送信する</button>
+                    <p class="svc-form-note">
+                        ご相談いただいたからといって、契約を前提に話を進めることはありません。
+                    </p>
+                </form>
+            </div>
+        </section>
+    </div>
+{% endblock %}

@@ -19,6 +19,27 @@ logger = logging.getLogger(__name__)
 # Job name prefix for terminal allocations
 JOB_NAME_PREFIX = "scitex-hub-terminal"
 
+
+def terminal_job_name(username: str) -> str:
+    """The per-user terminal SLURM job name this broker matches on.
+
+    Single source of truth shared by :func:`find_existing_jobs` (the
+    attach/dedup path) and the visitor-pool container teardown
+    (``project_app.services.visitor_pool.container_teardown``) so the
+    two can never disagree about which job is "the user's terminal".
+    """
+    return f"{JOB_NAME_PREFIX}-{username}"
+
+
+def instance_name_for(username: str) -> str:
+    """The per-user apptainer instance name (one instance per user).
+
+    Mirrors ``Allocation.instance_name`` — kept here (stdlib-only
+    module) so the visitor-pool teardown can target exactly the
+    instance the broker attaches shells to.
+    """
+    return f"scitex-{username}"
+
 # Healthy SLURM node states
 _HEALTHY_STATES = frozenset(("idle", "mixed", "allocated", "alloc"))
 # Recoverable SLURM node states
@@ -404,7 +425,7 @@ def find_existing_jobs(username: str) -> list[str]:
 
     Returns list of SLURM job IDs (RUNNING or PENDING).
     """
-    job_name_for_user = f"{JOB_NAME_PREFIX}-{username}"
+    job_name_for_user = terminal_job_name(username)
     try:
         result = subprocess.run(
             ["squeue", "--noheader", "--format=%i %j"],

@@ -1,5 +1,18 @@
 name: CLA Assistant
 
+# PILOT: org-level reusable-workflow caller (scitex-ai/.github, 2026-07-10).
+# Triggers/permissions preserved verbatim from the prior local file.
+# Reusable workflow defaults (owner_login=ywatanabe1989,
+# owner_allowlist="bot*,ywatanabe1989", default_branch=main) already match
+# this repo's prior hardcoded values, so no `with:` overrides are needed.
+# NOTE (judgment call): the prior local file read
+# secrets.CLA_PERSONAL_ACCESS_TOKEN, which does not appear in this repo's
+# secret list (`gh secret list --repo ywatanabe1989/scitex-hub`) — already
+# stale/broken before this migration. The reusable workflow instead reads
+# secrets.GH_PERSONAL_ACCESS_TOKEN (confirmed present on this repo), so
+# `secrets: inherit` should fix CLA-signature posting rather than change
+# intended behavior.
+
 on:
   issue_comment:
     types: [created]
@@ -13,21 +26,6 @@ permissions:
   statuses: write
 
 jobs:
-  CLAssistant:
-    runs-on: ubuntu-latest
-    steps:
-      - name: CLA Assistant
-        uses: contributor-assistant/github-action@v2.6.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PERSONAL_ACCESS_TOKEN: ${{ secrets.CLA_PERSONAL_ACCESS_TOKEN }}
-        with:
-          path-to-signatures: "signatures/cla.json"
-          path-to-document: "https://github.com/ywatanabe1989/scitex-hub/blob/main/CLA.md"
-          branch: "cla-signatures"
-          allowlist: bot*,ywatanabe1989
-          custom-allsigned-prcomment: |
-            Thank you for signing the SciTeX CLA. Your contribution can now be reviewed.
-          custom-notsigned-prcomment: |
-            Please sign the [SciTeX CLA](https://github.com/ywatanabe1989/scitex-hub/blob/main/CLA.md) before your contribution can be merged.
-            Comment `I have read and agree to the SciTeX CLA.` to sign.
+  call:
+    uses: scitex-ai/.github/.github/workflows/cla.yml@main
+    secrets: inherit

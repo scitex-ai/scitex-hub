@@ -1,17 +1,49 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Timestamp: 2026-02-04
+# Timestamp: 2026-07-10
 # File: config/settings/settings_logging.py
 """Logging configuration for SciTeX Hub."""
 
 import os
 from pathlib import Path
 
+from scitex_config._ecosystem import local_state
+
 # Get BASE_DIR from parent - this will be set by the importing module
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-# Mirror settings_shared.LOG_DIR: GITIGNORED/logs/ by default (PS-102:
-# no runtime artifact at repo root); override with SCITEX_HUB_LOG_DIR.
-LOG_DIR = Path(os.environ.get("SCITEX_HUB_LOG_DIR", BASE_DIR / "GITIGNORED" / "logs"))
+
+# LOG_DIR: hub-wide (NOT per-visitor-project) operational runtime state for
+# this Django/Celery process. Resolved via the ecosystem's canonical
+# runtime-state-db-layout convention (scitex-dev skill
+# general/01_ecosystem/12_local-state-resolution.md +
+# 13_runtime-state-db-layout.md): logs are RUNTIME-nature data, so they
+# resolve through ``local_state.runtime_path()`` rather than a hand-rolled
+# precedence walk (PS-182 forbids the latter). This is deliberately NOT
+# the same pattern as the per-visitor ``.scitex/writer`` / ``.scitex/scholar``
+# paths (those live under each visitor's own project directory under
+# USER_DATA_ROOT) -- server-process logs belong to the hub deployment
+# itself, not to any one visitor's project.
+#
+# ``runtime_path("hub", "logs")`` resolves to
+# ``<repo-root>/.scitex/hub/runtime/logs`` when this checkout is a git
+# repo with ``.scitex/hub/`` present (dev: repo bind-mounted into /app,
+# .git included), else falls back to ``$SCITEX_DIR/hub/runtime/logs``
+# (prod/staging: SCITEX_DIR=/app/.scitex is set explicitly in
+# docker-compose.yml, so this resolves to the SAME physical path -- a
+# persistent named Docker volume that root-init.sh creates + chowns
+# unconditionally on every boot). Either way, the directory is also
+# created lazily by ``runtime_path()`` itself, so a fallback default can
+# never again silently point at a directory nothing prepared. See
+# incident hub-prod-outage-celery-log-permission (2026-07-09/10).
+#
+# SCITEX_HUB_LOG_DIR remains a legitimate operator override (e.g. to
+# redirect logs to a different mount); only the *default* changed.
+_log_dir_override = os.environ.get("SCITEX_HUB_LOG_DIR")
+LOG_DIR = (
+    Path(_log_dir_override)
+    if _log_dir_override
+    else local_state.runtime_path("hub", "logs")
+)
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 LOGGING = {

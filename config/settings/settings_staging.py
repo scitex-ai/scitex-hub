@@ -18,6 +18,7 @@ Uses daphne (ASGI) but without SSL/Cloudflare.
 
 from dotenv import load_dotenv
 
+from config import branding
 from config._env import (
     getenv_with_legacy_alias as _getenv_alias,
 )
@@ -26,6 +27,10 @@ from config._env import (
 )
 
 from .settings_shared import *
+
+# Environment identity -- drives the tab title marker "(staging)" and the
+# NAVY-ON-WHITE favicon. Literal: running settings_staging IS staging.
+SCITEX_ENV = branding.ENV_STAGING
 
 # ---------------------------------------
 # Env
@@ -199,5 +204,20 @@ LOGGING.update(
         },
     }
 )
+
+# EOF
+
+
+# ---------------------------------------------------------------------------
+# Content-hashed static URLs (opt-in, prod/staging only)
+# ---------------------------------------------------------------------------
+# Only the environments whose entrypoint runs collectstatic may use the manifest
+# backend — it resolves {% static %} through staticfiles.json, which does not
+# exist until collectstatic has run. See config/settings/settings_static.py for
+# why the hashing is load-bearing (stale CSS + fresh JS rendered the launcher as
+# two columns of stacked icons on a real phone).
+from .settings_static import hashed_storages  # noqa: E402
+
+STORAGES = hashed_storages(STORAGES)  # noqa: F405
 
 # EOF

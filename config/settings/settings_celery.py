@@ -6,8 +6,25 @@
 
 import os
 
-# Celery broker and result backend
-CELERY_BROKER_URL = os.getenv("SCITEX_HUB_REDIS_URL", "redis://localhost:6379/1")
+# Celery broker and result backend.
+#
+# The broker MUST be a DEDICATED redis DB, NOT the shared
+# SCITEX_HUB_REDIS_URL (which the cache + channel layer also read).
+# Reusing that shared var caused a silent producer/consumer DB mismatch:
+# SCITEX_HUB_REDIS_URL was set to redis://redis:6379/0 for the cache, which
+# moved the celery PRODUCER (this Django app, via .delay()) onto DB 0 --
+# while the celery_worker / celery_beat containers consume DB 1 (their
+# compose command hardcodes --broker=redis://redis:6379/1). Every enqueued
+# task (visitor-slot re-clean resets, etc.) landed in DB 0 where nothing
+# consumed it and piled up unrun (861 stranded on staging), leaving the
+# whole visitor pool permanently quarantined. Pinning celery to its own
+# DB 1 -- matching the worker/beat -- is what makes .delay() actually run.
+# See incident hub-visitor-pool-celery-broker-db-mismatch (2026-07-11).
+#
+# Dedicated override var; default DB 1 matches the worker/beat --broker.
+CELERY_BROKER_URL = os.getenv(
+    "SCITEX_HUB_CELERY_BROKER_URL", "redis://redis:6379/1"
+)
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_CACHE_BACKEND = "django-cache"
 CELERY_ACCEPT_CONTENT = ["json"]
@@ -37,6 +54,17 @@ CELERY_TASK_ROUTES = {
     "apps.workspace.writer_app.tasks.*": {"queue": "ai_queue"},
     "apps.workspace.scholar_app.tasks.*": {"queue": "search_queue"},
     "apps.workspace.console_app.tasks.*": {"queue": "compute_queue"},
+    # Visitor-pool slot maintenance (reset_visitor_slot, initialize_visitor_workspace)
+    # MUST run on the dedicated, near-empty vis_queue — NOT the default "celery"
+    # queue. The default queue periodically accumulates a large backlog of expired
+    # beat tasks (check_site_health / warm_public_status_cache / generate_status_charts,
+    # ~40k deep in the 2026-07-11 incident). A boot-time `reconcile_visitor_slots
+    # --async` re-clean enqueued behind that backlog never runs, so every idle slot
+    # stays QUARANTINED and every visitor is downgraded to the read-only fallback —
+    # the root cause of the pool-wide readonly outage. The worker already consumes
+    # vis_queue (compose `--queues=...,vis_queue`), so routing here makes the async
+    # re-clean process within seconds of boot regardless of default-queue depth.
+    "apps.infra.project_app.tasks.visitor_workspace_tasks.*": {"queue": "vis_queue"},
 }
 
 # Fair scheduling: Rate limits per task
@@ -102,6 +130,39 @@ CELERY_BEAT_SCHEDULE = {
         "options": {
             "expires": 55.0,
         },
+    },
+    # End-to-end queue-liveness beacons — the watchdog for wedged workers.
+    #
+    # Prod workers intermittently stop dispatching while every control-plane
+    # probe stays green (measured 2026-07-14 / 2026-07-17: full `inspect
+    # reserved` window with time_start=None, empty `inspect active`, redis
+    # ping fine). Each beacon is routed ONTO the watched queue (`options.queue`
+    # → PeriodicTask.queue via django_celery_beat) and stamps
+    # `scitex:liveness:<queue>` at EXECUTION time; the container healthcheck
+    # (deployment/docker/common/scripts/check_queue_liveness.sh) fails when
+    # the stamp is missing or older than its budget (600s).
+    #
+    # Seeding: prod beat runs django_celery_beat's DatabaseScheduler, whose
+    # setup_schedule() upserts every entry here into a PeriodicTask row by
+    # name (update_or_create) at each beat boot — same idempotent mechanism
+    # that seeds all the entries above; no data migration needed.
+    #
+    # Deliberately NO "expires" option, unlike the entries above: a LATE
+    # beacon still proves the worker dispatches (it stamps execution time),
+    # whereas expiring beacons on a merely-slow queue would silently shrink
+    # the healthcheck's 600s budget to this 120s interval and restart busy
+    # -but-healthy workers.
+    "queue-liveness-beacon-celery": {
+        "task": "apps.infra.public_app.tasks.queue_liveness_beacon",
+        "schedule": 120.0,  # Every 2 minutes
+        "args": ["celery"],
+        "options": {"queue": "celery"},
+    },
+    "queue-liveness-beacon-vis-queue": {
+        "task": "apps.infra.public_app.tasks.queue_liveness_beacon",
+        "schedule": 120.0,  # Every 2 minutes
+        "args": ["vis_queue"],
+        "options": {"queue": "vis_queue"},
     },
 }
 

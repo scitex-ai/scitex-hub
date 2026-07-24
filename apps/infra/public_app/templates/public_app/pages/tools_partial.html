@@ -39,10 +39,11 @@
                     <div class="tools-nav-items expanded">
                         {% for tool in domain.tools %}
                             <a class="tools-nav-item"
-                               href="#"
+                               id="tool-{{ domain.slug }}-{{ tool.slug }}"
+                               href="#{{ tool.slug }}"
                                data-tool-url="{{ tool.bookmarklet_url }}?embed=1"
                                data-tool-name="{{ tool.name }}"
-                               data-tool-slug="{{ tool.bookmarklet_url }}">
+                               data-tool-slug="{{ tool.slug }}">
                                 <span class="tools-nav-item-icon">{{ tool.icon }}</span>
                                 <span class="tools-nav-item-name">{{ tool.name }}</span>
                             </a>

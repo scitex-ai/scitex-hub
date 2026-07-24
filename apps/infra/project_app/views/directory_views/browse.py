@@ -22,6 +22,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 
 from ...models import Project
+from ...services.filesystem.permissions import validate_path_in_project
 from ..repository.api.permissions import check_project_read_access
 
 logger = logging.getLogger(__name__)
@@ -67,13 +68,21 @@ def project_directory_dynamic(request, username, slug, directory_path):
     # Construct full directory path
     full_directory_path = project_path / directory_path
 
-    # Security check: ensure path is within project directory
+    # Security check: component-wise containment, not a string prefix match.
+    # CONTAINMENT ONLY -- read access above permits visibility == "public", so
+    # a tenant-ownership check would break anonymous public repo browsing.
     try:
         full_directory_path = full_directory_path.resolve()
-        if not str(full_directory_path).startswith(str(project_path.resolve())):
+        if not validate_path_in_project(project_path, full_directory_path):
+            logger.warning(
+                "Rejected out-of-project directory: %s", full_directory_path
+            )
             messages.error(request, "Invalid directory path.")
             return redirect("project_app:detail", username=username, slug=slug)
-    except Exception:
+    except (OSError, RuntimeError):
+        logger.warning(
+            "Failed to resolve directory: %s", full_directory_path, exc_info=True
+        )
         messages.error(request, "Invalid directory path.")
         return redirect("project_app:detail", username=username, slug=slug)
 
@@ -219,13 +228,18 @@ def project_directory(request, username, slug, directory, subpath=None):
         directory_path = project_path / directory
         breadcrumb_path = directory
 
-    # Security check: ensure path is within project directory
+    # Security check: component-wise containment, not a string prefix match.
+    # CONTAINMENT ONLY -- see the note on project_directory_dynamic above.
     try:
         directory_path = directory_path.resolve()
-        if not str(directory_path).startswith(str(project_path.resolve())):
+        if not validate_path_in_project(project_path, directory_path):
+            logger.warning("Rejected out-of-project directory: %s", directory_path)
             messages.error(request, "Invalid directory path.")
             return redirect("project_app:detail", username=username, slug=slug)
-    except Exception:
+    except (OSError, RuntimeError):
+        logger.warning(
+            "Failed to resolve directory: %s", directory_path, exc_info=True
+        )
         messages.error(request, "Invalid directory path.")
         return redirect("project_app:detail", username=username, slug=slug)
 

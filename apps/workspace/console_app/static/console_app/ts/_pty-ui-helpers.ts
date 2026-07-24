@@ -107,6 +107,22 @@ export function showTerminalRestartOverlay(
   ]);
 }
 
+/** Show a VISIBLE start-failure state with a Retry affordance. Used when
+ * PTYTerminal construction/initialization throws — the container must
+ * never stay display:none with the failure only in the console. */
+export function showTerminalStartFailure(
+  containerEl: HTMLElement,
+  reason: string,
+  onRetry: () => void,
+): void {
+  buildOverlay(containerEl, "fas fa-exclamation-triangle", reason, [
+    overlayButton("terminal-restart-btn", "fas fa-redo", "Retry", () => {
+      hideTerminalOverlay(containerEl);
+      onRetry();
+    }),
+  ]);
+}
+
 /** Show a click-to-reconnect overlay over the terminal. */
 export function showTerminalReconnectPrompt(
   containerEl: HTMLElement,

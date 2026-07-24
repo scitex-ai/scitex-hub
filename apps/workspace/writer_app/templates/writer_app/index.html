@@ -225,24 +225,6 @@
       }
   });
         </script>
-        <!-- Import map for module resolution -->
-        <script type="importmap">
-  {
-    "imports": {
-      "@/types": "{% static 'shared/js/types/index.js' %}",
-      "@/types/": "{% static 'shared/js/types/' %}",
-      "@/utils/csrf": "{% static 'shared/js/utils/csrf.js' %}",
-      "@/utils/storage": "{% static 'shared/js/utils/storage.js' %}",
-      "@/utils/api": "{% static 'shared/js/utils/api.js' %}",
-      "@/utils/": "{% static 'shared/js/utils/' %}",
-      "@/utils": "{% static 'shared/js/utils/index.js' %}",
-      "@/writer/utils": "{% static 'writer_app/js/utils/index.js' %}",
-      "@/writer/utils/": "{% static 'writer_app/js/utils/' %}",
-      "@/writer/": "{% static 'writer_app/js/' %}",
-      "@/": "{% static 'shared/js/' %}"
-    }
-  }
-        </script>
         <!-- Writer Application Bundle (Vite) -->
         {% vite_hmr_client %}
         {% tree_preseed_script project %}

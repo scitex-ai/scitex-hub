@@ -14,6 +14,7 @@ from django.utils import timezone
 from django.utils.safestring import mark_safe
 
 from ...models import Project, RemoteCredential, RemoteProjectConfig
+from ...ssh_safety import validate_remote_path
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,19 @@ def create_remote_project(
     # Validate inputs
     if not all([name, remote_credential_id, remote_path]):
         messages.error(request, "All fields are required for remote projects")
+        return redirect("project_create")
+
+    # SECURITY: remote_path reaches a remote shell unquoted-enough to
+    # matter — `test -d "{remote_path}"` below (command substitution still
+    # fires inside double quotes), `cd {remote_path}` in the terminal
+    # spawns, and rsync's shell-expanded remote path. Reject shell
+    # metacharacters BEFORE any of that. Fail loud.
+    from django.core.exceptions import ValidationError
+
+    try:
+        validate_remote_path(remote_path)
+    except ValidationError as exc:
+        messages.error(request, "; ".join(exc.messages))
         return redirect("project_create")
 
     # Get remote credential

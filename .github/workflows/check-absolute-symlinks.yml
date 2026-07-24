@@ -1,0 +1,28 @@
+name: Symlink Guard
+
+# Fail the build if any TRACKED symlink points to an ABSOLUTE path. Such a
+# target is host-specific and breaks `git pull` / checkout on every other host
+# (NAS, CI, other agent containers). Motivating incidents: PR #409
+# (node_modules -> /home/.../node_modules) and the dotfiles P0 of 2026-07-12
+# (src/.scitex -> a Spartan-only absolute path). Root-cause guard.
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  check-absolute-symlinks:
+    name: No absolute-target tracked symlinks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Self-test the guard (red-before-green)
+        run: bash scripts/maintenance/check_absolute_symlinks.sh --self-test
+
+      - name: Run symlink guard against tracked files
+        run: bash scripts/maintenance/check_absolute_symlinks.sh

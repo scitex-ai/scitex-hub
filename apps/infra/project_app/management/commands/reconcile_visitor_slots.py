@@ -16,8 +16,19 @@ Invoked by the container entrypoints right after ``create_visitor_pool``
 automation command that releases quarantined slots after a re-clean
 (``manage.py reconcile_visitor_slots``).
 
+``--async`` (used by the container entrypoints) keeps Phase 1
+(quarantine — cheap, DB-only) synchronous but DISPATCHES Phase 2 (the
+per-slot wipe+clone+verify, ~10s each) to the existing
+``reset_visitor_slot`` Celery task instead of running it inline. This
+takes the multi-minute re-clean OFF the web-serving startup path so
+Django serves immediately after boot. The fail-safe is unchanged: every
+slot is quarantined synchronously first, so NOTHING is allocatable until
+a worker verifies it clean — visitors get the readonly-visitor fallback
+during the async window (same gate as a Celery outage).
+
 Usage:
-    python manage.py reconcile_visitor_slots                    # full: quarantine + re-clean
+    python manage.py reconcile_visitor_slots                    # full: quarantine + re-clean (inline)
+    python manage.py reconcile_visitor_slots --async            # quarantine now, enqueue re-clean to Celery
     python manage.py reconcile_visitor_slots --quarantine-only  # mark only, no re-clean
     python manage.py reconcile_visitor_slots --visitor 2        # single slot
 """
@@ -38,12 +49,30 @@ class Command(BaseCommand):
         "and re-clean quarantined slots; only verified-clean slots return to "
         "the distributable pool"
     )
+    # Kwarg-only test seam (never a CLI flag): lets tests inject a tiny real
+    # recording function for the Phase-2 dispatch instead of fighting
+    # Celery's process-global task_always_eager flag. Must be declared here
+    # or Django's call_command() rejects it with
+    # "Unknown option(s) for reconcile_visitor_slots command: enqueue_fn".
+    stealth_options = ("enqueue_fn",)
 
     def add_arguments(self, parser):
         parser.add_argument(
             "--quarantine-only",
             action="store_true",
             help="Only move unverified slots to quarantine; skip the re-clean",
+        )
+        parser.add_argument(
+            "--async",
+            dest="async_dispatch",
+            action="store_true",
+            help=(
+                "Quarantine synchronously (fast, DB-only) then ENQUEUE the "
+                "per-slot wipe+verify re-clean to Celery instead of running it "
+                "inline. Used by the container entrypoint so Django serves "
+                "immediately; slots stay quarantined (not allocatable) until a "
+                "worker verifies each clean."
+            ),
         )
         parser.add_argument(
             "--visitor",
@@ -85,6 +114,65 @@ class Command(BaseCommand):
                     "serve readonly-visitor until reconcile re-clean runs"
                 )
             )
+            return
+
+        # Phase 2 (async) — dispatch the expensive wipe+verify to Celery so
+        # the caller (the container entrypoint) returns immediately and
+        # Django serves without waiting on the per-slot clone. Every slot was
+        # already quarantined synchronously above, so the ready-gate fail-safe
+        # is unchanged: nothing is allocatable during the async window — a
+        # worker flips a slot back to distributable only after it verifies
+        # clean (identical guarantee to the release path, which enqueues the
+        # same task).
+        if options["async_dispatch"]:
+            # Real wiring: reset_visitor_slot.delay (the SAME task the
+            # release pipeline already enqueues — slot_lifecycle.release_slot
+            # / apps.infra.project_app.tasks.reset_visitor_slot). Tests may
+            # inject a tiny real recording function here (mirroring the
+            # existing gitea_client=/clone_fn= seams on reset_and_verify_slot)
+            # instead of fighting Celery's process-global eager-mode flag,
+            # which the SQLite/CI gate forces True and does not allow
+            # overriding mid-process.
+            enqueue_fn = options.get("enqueue_fn")
+            if enqueue_fn is None:
+                from apps.infra.project_app.tasks import reset_visitor_slot
+
+                enqueue_fn = reset_visitor_slot.delay
+
+            enqueued = 0
+            enqueue_failed = []
+            for number in numbers:
+                allocation = get_or_create_allocation(number)
+                if not allocation.quarantined:
+                    continue
+                try:
+                    enqueue_fn(allocation.id)
+                    enqueued += 1
+                except Exception as exc:
+                    # Broker unreachable at boot, etc. Safe direction: the
+                    # slot simply stays quarantined (not allocatable) until a
+                    # later reconcile / the periodic sweep retries. Never
+                    # silently return a dirty slot to circulation.
+                    enqueue_failed.append(number)
+                    self.stderr.write(
+                        f"Could not enqueue re-clean for visitor-{number:03d}: "
+                        f"{exc} — slot stays quarantined (safe)"
+                    )
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Enqueued {enqueued} async re-clean task(s); slots stay "
+                    f"quarantined (readonly-visitor fallback) until a worker "
+                    f"verifies each clean"
+                )
+            )
+            if enqueue_failed:
+                self.stdout.write(
+                    self.style.ERROR(
+                        f"✗ {len(enqueue_failed)} slot(s) could not be enqueued "
+                        f"{enqueue_failed} — they stay quarantined until "
+                        f"reconciliation retries"
+                    )
+                )
             return
 
         # Phase 2 — re-clean: wipe + verify each quarantined slot; only

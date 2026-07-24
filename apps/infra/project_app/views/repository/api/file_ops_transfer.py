@@ -155,19 +155,23 @@ def api_file_upload_url(request, username, slug):
                 {"success": False, "error": "URL is required"}, status=400
             )
 
-        if not url.startswith(("http://", "https://")):
-            return JsonResponse(
-                {"success": False, "error": "Invalid URL scheme"}, status=400
-            )
+        # SSRF protection: a bare requests.get on a tenant-supplied URL can reach
+        # internal services (127.0.0.1 Gitea, 169.254.169.254 cloud metadata,
+        # RFC1918 mgmt/DB). fetch_public_url resolves the host, rejects any
+        # non-public address, and re-validates each redirect hop. Scheme is
+        # checked inside it too. See apps/infra/project_app/url_safety.py.
+        from apps.infra.project_app.url_safety import fetch_public_url
 
         try:
-            resp = requests.get(
+            resp = fetch_public_url(
                 url,
-                timeout=30,
-                stream=True,
                 headers={"User-Agent": "Mozilla/5.0 (compatible; SciTeX/1.0)"},
             )
             resp.raise_for_status()
+        except ValueError as e:
+            return JsonResponse(
+                {"success": False, "error": str(e)}, status=400
+            )
         except requests.RequestException as e:
             return JsonResponse(
                 {"success": False, "error": f"Failed to download: {str(e)}"}, status=400

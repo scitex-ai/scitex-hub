@@ -301,7 +301,19 @@ RUN sed -i 's/main/main contrib/g' /etc/apt/sources.list.d/debian.sources 2>/dev
 # --------------------------------------------
 
 # Python packages + binaries (from python-builder)
-COPY --from=python-builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+#
+# --chown=1000:1000 is the scitex user (created with `useradd -u 1000` below;
+# numeric because the name does not exist yet at this point in the build).
+# install_apps.sh runs as scitex and REPLACES some of these packages with
+# editable checkouts of the sibling app repos. Replacing a package means
+# DELETING its directory tree, and unlinking site-packages/figrecipe/WHEEL
+# needs write on site-packages/figrecipe/ — the file's OWN containing
+# directory, not site-packages/. Left root-owned, uv dies with
+# "[Errno 13] Permission denied: 'WHEEL'" on every boot (2026-07-13).
+# Doing it here costs nothing: COPY writes these files anyway, so --chown
+# only sets the owner as they land. A later `chown -R` could not be used
+# instead — it would copy the whole ~10GB tree up into a new image layer.
+COPY --from=python-builder --chown=1000:1000 /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=python-builder /usr/local/bin /usr/local/bin
 COPY --from=python-builder /root/.cache/ms-playwright* /root/.cache/
 
@@ -350,7 +362,8 @@ RUN useradd -m -u 1000 scitex && \
     # Match host docker socket GID
     groupmod -g 121 docker && \
     usermod -aG docker scitex && \
-    mkdir -p /app/staticfiles /app/media /app/logs /app/run /app/.cache/containers && \
+    mkdir -p /app/staticfiles /app/media /app/logs /app/run /app/.cache/containers \
+        /app/.cache/uv /app/.cache/npm /app/.apps && \
     chown -R scitex:scitex /app && \
     # Apptainer fakeroot requires subuid/subgid mappings
     echo "scitex:100000:65536" >> /etc/subuid && \
@@ -415,14 +428,14 @@ RUN uv pip install --system --no-cache ".[all]"
 #   scitex_scholar.ensure_workspace submodule. Together with the hub-side
 #   marker-path fix (#319) and scitex-writer 2.26.1, visitor slots re-clean.
 RUN uv pip install --system --no-cache \
-    "figrecipe==0.27.0" \
+    "figrecipe==0.34.3" \
     "scitex-io==0.2.3" \
     "scitex-stats==0.2.6" \
     "scitex-plt==0.24.0" \
     "scitex-writer==2.26.1" \
     "scitex-template==0.6.8" \
     "scitex-linter==0.3.1" \
-    "scitex-ui==0.4.2" \
+    "scitex-ui==0.6.3" \
     "openalex-local==0.6.0" \
     "crossref-local==0.6.4"
 
@@ -443,6 +456,19 @@ RUN uv pip install --system --no-cache \
 # bump the C0 pin deliberately per release, and the smoke test below
 # will fail the build if the wheel is broken again. scitex-template is
 # likewise excluded — it stays on the deliberate C0 pin (==0.6.8).
+#
+# The trailing `find ... -exec chown` re-owns the root-owned DELTA: every
+# `uv pip install --system` layer above ran as ROOT, so the packages they wrote
+# are root-owned — unlike the bulk copied from python-builder, which the
+# COPY --chown already landed as scitex. install_apps.sh runs as the scitex
+# user and REPLACES several of these very packages (figrecipe, scitex-ui,
+# scitex-writer, ...) with editable sibling checkouts, which means DELETING
+# their directories — impossible while those directories are root-owned.
+# It lives inside this same RUN so it does not become an extra image layer, and
+# `! -user scitex` keeps that layer small: only this few-hundred-MB delta is
+# copied up, never the ~10GB already-correct torch/scipy tree. (No -xdev needed
+# — the read-only binds docker-compose mounts inside site-packages at runtime
+# do not exist at build time.)
 RUN uv pip install --system --no-cache --upgrade \
     "figrecipe" \
     "scitex-io" \
@@ -451,7 +477,9 @@ RUN uv pip install --system --no-cache --upgrade \
     "scitex-linter" \
     "scitex-ui" \
     "openalex-local" \
-    "crossref-local"
+    "crossref-local" && \
+    find /usr/local/lib/python3.11/site-packages ! -user scitex \
+        -exec chown scitex:scitex {} +
 
 # Note: Vite build runs at runtime (not here) because Docker volume mounts
 # for static_volume would shadow build-time output. npm deps are cached

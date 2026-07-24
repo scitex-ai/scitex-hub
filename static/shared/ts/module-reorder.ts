@@ -7,6 +7,16 @@
 
 import { API_URLS } from "./utils/api-urls";
 
+/**
+ * Touch reorder tuning. HTML5 drag-and-drop never fires from touch input
+ * (iOS Safari most notably), so touch devices get a long-press-to-pick-up
+ * gesture instead — see the touch branch in makeReorderable().
+ */
+/** Hold duration (ms) before a tile is "picked up" for reordering. */
+const TOUCH_LONGPRESS_MS = 350;
+/** Finger travel (px) before pickup that counts as scrolling, not a drag. */
+const TOUCH_SLOP = 8;
+
 /** CSRF token helper */
 function getCsrf(): string {
   const input = document.querySelector<HTMLInputElement>(
@@ -157,6 +167,60 @@ export function makeReorderable(
       });
   }
 
+  /**
+   * Mark `target` with the before/after drop indicator for a pointer at
+   * (x, y). Shared by the mouse (dragover) and touch (touchmove) paths so
+   * the midpoint rule lives in exactly one place.
+   */
+  function markDropSide(target: HTMLElement, x: number, y: number): void {
+    const rect = target.getBoundingClientRect();
+    clearClasses();
+    if (opts.axis === "horizontal") {
+      const midX = rect.left + rect.width / 2;
+      if (x < midX) {
+        target.classList.add(opts.beforeClass);
+        dropPosition = "before";
+      } else {
+        target.classList.add(opts.afterClass);
+        dropPosition = "after";
+      }
+    } else {
+      const midY = rect.top + rect.height / 2;
+      if (y < midY) {
+        target.classList.add(opts.beforeClass);
+        dropPosition = "before";
+      } else {
+        target.classList.add(opts.afterClass);
+        dropPosition = "after";
+      }
+    }
+  }
+
+  /**
+   * Move the dragged element relative to `target` (per dropPosition) and
+   * report the new order. Shared by the mouse (drop) and touch (touchend)
+   * paths.
+   */
+  function applyDrop(target: HTMLElement): void {
+    if (!draggedEl || draggedEl === target) return;
+
+    if (dropPosition === "after") {
+      container.insertBefore(draggedEl, target.nextSibling);
+    } else {
+      container.insertBefore(draggedEl, target);
+    }
+
+    const ordered: string[] = [];
+    items().forEach((el) => {
+      const name = opts.getModuleName(el);
+      if (name) ordered.push(name);
+    });
+
+    if (opts.onReorder) {
+      opts.onReorder(ordered);
+    }
+  }
+
   items().forEach((item) => {
     if (opts.isReorderable && !opts.isReorderable(item)) return;
     item.draggable = true;
@@ -195,29 +259,7 @@ export function makeReorderable(
       if (opts.isReorderable && !opts.isReorderable(item)) return;
       e.preventDefault();
       if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
-
-      const rect = item.getBoundingClientRect();
-      clearClasses();
-
-      if (opts.axis === "horizontal") {
-        const midX = rect.left + rect.width / 2;
-        if (e.clientX < midX) {
-          item.classList.add(opts.beforeClass);
-          dropPosition = "before";
-        } else {
-          item.classList.add(opts.afterClass);
-          dropPosition = "after";
-        }
-      } else {
-        const midY = rect.top + rect.height / 2;
-        if (e.clientY < midY) {
-          item.classList.add(opts.beforeClass);
-          dropPosition = "before";
-        } else {
-          item.classList.add(opts.afterClass);
-          dropPosition = "after";
-        }
-      }
+      markDropSide(item, e.clientX, e.clientY);
     });
 
     item.addEventListener("dragleave", (e: DragEvent) => {
@@ -229,25 +271,105 @@ export function makeReorderable(
     item.addEventListener("drop", (e: DragEvent) => {
       e.preventDefault();
       clearClasses();
-      if (!draggedEl || draggedEl === item) return;
-
-      if (dropPosition === "after") {
-        container.insertBefore(draggedEl, item.nextSibling);
-      } else {
-        container.insertBefore(draggedEl, item);
-      }
-
-      // Collect ordered module names
-      const ordered: string[] = [];
-      items().forEach((el) => {
-        const name = opts.getModuleName(el);
-        if (name) ordered.push(name);
-      });
-
-      if (opts.onReorder) {
-        opts.onReorder(ordered);
-      }
+      applyDrop(item);
     });
+
+    // ── Touch path ──────────────────────────────────────────
+    // iOS Safari (and mobile browsers generally) never dispatch HTML5
+    // drag events from touch input, so the mouse handlers above are dead
+    // on a phone. Give touch its own long-press-to-pick-up gesture, like
+    // reordering icons on the iOS home screen, and reuse markDropSide /
+    // applyDrop so the reorder rule stays single-sourced.
+    item.style.userSelect = "none";
+    (
+      item.style as CSSStyleDeclaration & { webkitTouchCallout?: string }
+    ).webkitTouchCallout = "none";
+
+    let lpTimer: number | null = null;
+    let startX = 0;
+    let startY = 0;
+    let touchTarget: HTMLElement | null = null;
+
+    const clearLongPress = (): void => {
+      if (lpTimer !== null) {
+        clearTimeout(lpTimer);
+        lpTimer = null;
+      }
+    };
+
+    item.addEventListener(
+      "touchstart",
+      (e: TouchEvent) => {
+        const t = e.touches[0];
+        if (!t) return;
+        startX = t.clientX;
+        startY = t.clientY;
+        clearLongPress();
+        lpTimer = window.setTimeout(() => {
+          lpTimer = null;
+          draggedEl = item;
+          didDrag = true;
+          item.classList.add(opts.dragClass);
+        }, TOUCH_LONGPRESS_MS);
+      },
+      { passive: true },
+    );
+
+    item.addEventListener(
+      "touchmove",
+      (e: TouchEvent) => {
+        const t = e.touches[0];
+        if (!t) return;
+        if (draggedEl !== item) {
+          // Not picked up yet: a real move before the long-press fires means
+          // the user is scrolling, not reordering — cancel the pickup and
+          // let the browser scroll normally.
+          if (
+            lpTimer !== null &&
+            Math.hypot(t.clientX - startX, t.clientY - startY) > TOUCH_SLOP
+          ) {
+            clearLongPress();
+          }
+          return;
+        }
+        // Picked up: we own the gesture, so stop the page scrolling under
+        // the finger (needs a non-passive listener to call preventDefault).
+        e.preventDefault();
+        const under = document.elementFromPoint(
+          t.clientX,
+          t.clientY,
+        ) as HTMLElement | null;
+        const over = under?.closest<HTMLElement>(opts.itemSelector) ?? null;
+        clearClasses();
+        if (!over || over === item || !container.contains(over)) {
+          touchTarget = null;
+          return;
+        }
+        if (opts.isReorderable && !opts.isReorderable(over)) {
+          touchTarget = null;
+          return;
+        }
+        touchTarget = over;
+        markDropSide(over, t.clientX, t.clientY);
+      },
+      { passive: false },
+    );
+
+    const endTouch = (): void => {
+      clearLongPress();
+      if (draggedEl !== item) return;
+      item.classList.remove(opts.dragClass);
+      if (touchTarget) applyDrop(touchTarget);
+      clearClasses();
+      draggedEl = null;
+      touchTarget = null;
+      // Reset didDrag after a tick so the click handler can catch it.
+      setTimeout(() => {
+        didDrag = false;
+      }, 0);
+    };
+    item.addEventListener("touchend", endTouch);
+    item.addEventListener("touchcancel", endTouch);
   });
 }
 

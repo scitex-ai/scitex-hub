@@ -8,6 +8,7 @@ import logging
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from .section_scanner import _scan_project_sections
+from ...auth_utils import user_can_access_project
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +55,25 @@ def sections_config_view(request, project_id=None):
                     "hierarchy": SECTION_HIERARCHY,
                     "message": "Using static configuration (no project found)",
                 }
+            )
+
+        # Access gate (IDOR fix): a caller-supplied project_id may point at
+        # ANOTHER tenant's project. WriterService resolves the project OWNER's
+        # writer_dir regardless of who is asking, so verify the caller may
+        # access THIS project before scanning its structure. Mirrors
+        # api_login_optional's owner/team/visitor rule; an unauthorized caller
+        # gets 403, never the victim's section tree.
+        try:
+            project = Project.objects.get(id=int(project_id))
+        except Project.DoesNotExist:
+            return JsonResponse(
+                {"success": False, "error": f"Project {project_id} not found"},
+                status=404,
+            )
+        if not user_can_access_project(request, project):
+            return JsonResponse(
+                {"success": False, "error": "You don't have access to this project"},
+                status=403,
             )
 
         # Get Writer service

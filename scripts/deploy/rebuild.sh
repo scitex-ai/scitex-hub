@@ -6,9 +6,9 @@
 #   env: dev, staging, or prod
 #
 # REBUILD_STEPS (single source of truth - used by 'make help-commands'):
-#   1. slurm-clean   - Cancel ALL SLURM jobs and reset node state
-#   2. build         - Build new images while the OLD stack keeps serving
-#   3. clear-vite    - Clear vite timestamp (forces TypeScript rebuild)
+#   1. build         - Build new images while the OLD stack keeps serving
+#   2. clear-vite    - Clear vite timestamp (forces TypeScript rebuild)
+#   3. slurm-clean   - Cancel ALL SLURM jobs and reset node state
 #   4. up            - Swap in new containers (recreate only changed services)
 #   5. apptainer     - Fix Apptainer sandbox permissions
 #   6. cache-purge   - Purge Cloudflare cache
@@ -73,22 +73,12 @@ if [[ ! "$ENV" =~ ^(dev|staging|prod)$ ]]; then
     exit 1
 fi
 
-# Set docker directory and compose command based on environment
-if [ "$ENV" = "staging" ]; then
-    DOCKER_DIR="$PROJECT_ROOT/deployment/docker"
-    export SCITEX_ENV=staging
-    COMPOSE_CMD="docker compose --env-file ./envs/.env.staging -f docker-compose.yml -f docker-compose.staging.yml"
-elif [ "$ENV" = "prod" ]; then
-    # --env-file ../envs/.env.prod feeds SCITEX_HUB_*_PROD vars at compose-time
-    # (cloudflared token, ports). Symmetric with staging COMPOSE_CMD above.
-    # Closes RC-6's compose-time-substitution sibling gap surfaced in the
-    # 2026-06-06 cutover (docs/incidents/2026-06-06-prod-cutover-cloud-to-hub.md).
-    DOCKER_DIR="$PROJECT_ROOT/deployment/docker/docker_prod"
-    COMPOSE_CMD="docker compose --env-file ../envs/.env.prod"
-else
-    DOCKER_DIR="$PROJECT_ROOT/deployment/docker/docker_${ENV}"
-    COMPOSE_CMD="docker compose"
-fi
+# Set docker directory and compose command based on environment.
+# The mapping itself lives in compose_env.sh so that manual operations
+# (scripts/deploy/compose.sh) and this script cannot drift apart.
+# shellcheck source=./compose_env.sh
+source "$SCRIPT_DIR/compose_env.sh"
+resolve_compose_env "$ENV" "$PROJECT_ROOT"
 
 # Check docker directory exists
 if [ ! -d "$DOCKER_DIR" ]; then
@@ -140,10 +130,56 @@ fi
 echo ""
 echo -e "${CYAN}🔄 Rebuilding ${ENV} environment...${NC}"
 
-# Step 1: Clean SLURM state (before swapping containers)
-echo -e "${CYAN}  1. Cleaning SLURM state...${NC}"
+# Compose must run from the environment's docker directory.
 cd "$DOCKER_DIR"
 DJANGO_CONTAINER="scitex-hub-${ENV}-django-1"
+
+# Step 1: Build images WHILE THE OLD STACK KEEPS SERVING.
+# CRITICAL (constitution §2 "no surprises"): we deliberately do NOT
+# 'docker compose down' before building. The previous containers — nginx,
+# cloudflared, django, postgres, redis, gitea — stay UP and keep serving
+# traffic for the entire ~10-min build. Only after the build succeeds does
+# Step 4 ('up -d') swap the app containers, so the site stays reachable during
+# a rebuild (prod: no more 530; staging: no connection-refused for the whole
+# build). 'docker compose build' touches images only, never the running
+# containers, so serving is unaffected here.
+echo -e "${CYAN}  1. Building Docker images (old stack still serving; CPU-limited to keep SSH alive)...${NC}"
+export DOCKER_BUILDKIT=1
+# nice -n 10: lower priority so SSH/system processes win CPU contention
+# shellcheck disable=SC2086  # COMPOSE_CMD intentionally word-splits (e.g. "docker compose")
+nice -n 10 $COMPOSE_CMD build
+
+# Step 2: Clear vite timestamp (forces TypeScript rebuild on the new container)
+echo -e "${CYAN}  2. Clearing vite timestamp (forces TypeScript rebuild)...${NC}"
+# Prod uses external volumes named scitex-hub-nas_* (per docker_prod/docker-compose.yml
+# `external: true, name: scitex-hub-nas_*` declarations); dev/staging use auto-created
+# project-namespaced scitex-hub-${ENV}_*. Without this branch, the prod path silently
+# no-op'd on a volume that doesn't exist — surfaced 2026-06-06 cutover postmortem.
+if [ "$ENV" = "prod" ]; then
+    STATIC_VOL="scitex-hub-nas_static_volume"
+else
+    STATIC_VOL="scitex-hub-${ENV}_static_volume"
+fi
+docker run --rm -v "${STATIC_VOL}:/staticfiles" alpine \
+    rm -f /staticfiles/vite/.build-timestamp 2>/dev/null || true
+
+# Step 3: Clean SLURM state — deliberately the LAST thing before the swap.
+#
+# ORDERING IS THE POINT (incident 2026-07-24, card
+# hub-rebuild-cancels-slurm-before-fragile-build): this block used to run FIRST,
+# before the build. Cancelling every running job is IRREVERSIBLE and destroys
+# users' in-flight compute; the build is the step most likely to FAIL (e.g. the
+# env-file interpolation failure in hub-make-rebuild-drops-env-file). Running the
+# irreversible step ahead of the fragile one meant every failed deploy attempt
+# cost users their running jobs for a deploy that never happened — and on
+# 2026-07-24 it did exactly that: `make ENV=prod YES=1 rebuild` cancelled all
+# SLURM jobs, then aborted in the build.
+#
+# The cancellation exists to prevent STALE JOB IDs surviving the container swap,
+# so its only real requirement is "before the swap". Moving it here preserves
+# that intent exactly while making a failed build cost nothing: if the build
+# aborts, `set -e` exits above this point and no job is ever cancelled.
+echo -e "${CYAN}  3. Cleaning SLURM state (build succeeded; safe to cancel now)...${NC}"
 if docker ps --format '{{.Names}}' | grep -q "^${DJANGO_CONTAINER}$"; then
     docker exec "$DJANGO_CONTAINER" bash -c '
         if command -v scancel &>/dev/null; then
@@ -164,35 +200,6 @@ if docker ps --format '{{.Names}}' | grep -q "^${DJANGO_CONTAINER}$"; then
 else
     echo -e "${YELLOW}   Django container not running — SLURM cleanup skipped${NC}"
 fi
-
-# Step 2: Build images WHILE THE OLD STACK KEEPS SERVING.
-# CRITICAL (constitution §2 "no surprises"): we deliberately do NOT
-# 'docker compose down' before building. The previous containers — nginx,
-# cloudflared, django, postgres, redis, gitea — stay UP and keep serving
-# traffic for the entire ~10-min build. Only after the build succeeds does
-# Step 4 ('up -d') swap the app containers, so the site stays reachable during
-# a rebuild (prod: no more 530; staging: no connection-refused for the whole
-# build). 'docker compose build' touches images only, never the running
-# containers, so serving is unaffected here.
-echo -e "${CYAN}  2. Building Docker images (old stack still serving; CPU-limited to keep SSH alive)...${NC}"
-export DOCKER_BUILDKIT=1
-# nice -n 10: lower priority so SSH/system processes win CPU contention
-# shellcheck disable=SC2086  # COMPOSE_CMD intentionally word-splits (e.g. "docker compose")
-nice -n 10 $COMPOSE_CMD build
-
-# Step 3: Clear vite timestamp (forces TypeScript rebuild on the new container)
-echo -e "${CYAN}  3. Clearing vite timestamp (forces TypeScript rebuild)...${NC}"
-# Prod uses external volumes named scitex-hub-nas_* (per docker_prod/docker-compose.yml
-# `external: true, name: scitex-hub-nas_*` declarations); dev/staging use auto-created
-# project-namespaced scitex-hub-${ENV}_*. Without this branch, the prod path silently
-# no-op'd on a volume that doesn't exist — surfaced 2026-06-06 cutover postmortem.
-if [ "$ENV" = "prod" ]; then
-    STATIC_VOL="scitex-hub-nas_static_volume"
-else
-    STATIC_VOL="scitex-hub-${ENV}_static_volume"
-fi
-docker run --rm -v "${STATIC_VOL}:/staticfiles" alpine \
-    rm -f /staticfiles/vite/.build-timestamp 2>/dev/null || true
 
 # Step 4: Swap in the new containers ("swap-last" half of build-first/swap-last).
 # 'up -d' recreates ONLY the services whose image or config changed — i.e. the
@@ -244,7 +251,14 @@ if [ -d "$SANDBOX_DIR" ]; then
         # is never read by the scitex user.
         # (2026-07-08 prod rebuild: those two benign cases aborted this
         # step with exit 1, which killed the remaining deploy steps.)
-        if ! apptainer exec \
+        #
+        # chmod's exit code is NOT the gate: apptainer bind-targets it
+        # cannot touch (/etc/hosts, /usr/share/zoneinfo/... — 2026-07-22
+        # prod rebuild) fail chmod with EPERM while already being a+rX,
+        # which is a false-negative. The gate below verifies the actual
+        # invariant instead: no file in the sandbox lacks world-read
+        # (files also need world-x when owner-x). chmod stays best-effort.
+        apptainer exec \
             --fakeroot --writable \
             --contain --no-home --no-mount home,tmp,cwd \
             "$CURRENT_SANDBOX" \
@@ -252,11 +266,23 @@ if [ -d "$SANDBOX_DIR" ]; then
             -not -path '/proc*' -not -path '/sys*' -not -path '/dev*' \
             -not -path '/.singularity.d*' \
             -not -type l \
-            -exec chmod a+rX {} + 2>&1; then
-            echo -e "${RED}   ❌ Sandbox permission fix failed (apptainer --fakeroot find/chmod).${NC}" >&2
+            -exec chmod a+rX {} + 2>&1 \
+            || echo -e "${YELLOW}   ⚠️ chmod reported errors; verifying the readability invariant directly...${NC}"
+        UNREADABLE=$(apptainer exec \
+            --contain --no-home --no-mount home,tmp,cwd \
+            "$CURRENT_SANDBOX" \
+            find / -xdev \
+            -not -path '/proc*' -not -path '/sys*' -not -path '/dev*' \
+            -not -path '/.singularity.d*' \
+            -not -type l \
+            '(' -not -perm -o=r -o '(' -perm -u=x -not -perm -o=x ')' ')' \
+            -print 2>/dev/null | head -20)
+        if [ -n "$UNREADABLE" ]; then
+            echo -e "${RED}   ❌ Sandbox has files the scitex user cannot read (first 20):${NC}" >&2
+            echo "$UNREADABLE" >&2
             exit 1
         fi
-        echo "   Sandbox permissions fixed"
+        echo "   Sandbox permissions verified (world-readable)"
     else
         echo -e "${YELLOW}   No sandbox directory found${NC}"
     fi

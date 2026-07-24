@@ -1,5 +1,5 @@
 /* User board page styles */
-@import url("shared/variables.css");
+@import url("../shared/variables.css");
 
 .user-board-container {
   padding: 2rem;

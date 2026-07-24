@@ -1,6 +1,6 @@
 [project]
 name = "scitex-hub"
-version = "0.18.1"
+version = "0.19.0"
 description = "SciTeX Hub - Deployment and management CLI for SciTeX"
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -87,7 +87,17 @@ all = [
     "daphne>=4.1",
     "channels>=4.3",
     "channels-redis>=4.3",
-    "celery[redis]>=5.4",
+    # <5.6: the floating pin let the 2026-07-13 image rebuild jump prod onto
+    # celery 5.6.3 / kombu 5.6.2, and from the next day every prefork worker
+    # on the redis broker stalled after ~2 prefetch windows (reserved full,
+    # children alive+idle, zero errors, restart re-wedges after one burst;
+    # measured repeatedly on prod 07-14..17). Matches the known upstream
+    # stops-consuming family (celery#8091/#8030/#10205) — pin below the 5.6
+    # line until a release is verified against the prod acceptance test
+    # (a queued vis_queue backlog must drain to zero without the worker
+    # going silent).
+    "celery[redis]>=5.4,<5.6",
+    "kombu<5.6",
     "whitenoise>=6.11",
     # --- HTTP / async server / API ---
     "fastapi>=0.109",
@@ -126,7 +136,10 @@ all = [
     # ResolutionImpossible — see scitex-python#282, resolved). Floor at
     # 2.29.3 to skip the broken 2.29.0/2.29.1 entirely.
     "scitex>=2.29.3",
-    "scitex-ui>=0.2.0",
+    # >=0.6.1: 0.6.0 never shipped middleware.py (merged after that release
+    # was cut) and anything older is sync-only, deadlocking daphne under
+    # ASGI. See scitex-ui PR #59 and settings_shared.py's MIDDLEWARE entry.
+    "scitex-ui>=0.6.1",
     # --- GUI (dearpygui-based modules) ---
     "dearpygui>=1.11",
     "cairosvg>=2.7",
@@ -271,6 +284,7 @@ markers = [
     "user: User management tests",
     "integration: Integration tests",
     "django_db: Tests requiring database access (pytest-django)",
+    "security: Exploit-regression tests for confirmed security findings",
 ]
 filterwarnings = [
     "ignore::DeprecationWarning",
