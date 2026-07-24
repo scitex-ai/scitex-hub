@@ -14,6 +14,12 @@ import os
 import pty
 import signal
 
+from apps.infra.project_app.ssh_safety import (
+    minimal_ssh_env,
+    ssh_login_argv,
+    validate_remote_path,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -43,6 +49,18 @@ async def spawn_remote_ssh(consumer):
     ssh_port = str(credential.ssh_port)
     remote_path = remote_config.remote_path
 
+    # SECURITY: remote_path is interpolated UNQUOTED into the remote
+    # command below ("cd {remote_path} ..."). Reject shell metacharacters
+    # before the fork, and fail CLOSED — never spawn a degraded session.
+    try:
+        validate_remote_path(remote_path)
+    except Exception as exc:
+        await consumer.send(
+            text_data=f"\x1b[1;31m❌ Invalid remote path: {exc}\x1b[0m\r\n"
+        )
+        await consumer.close(code=4003)
+        return
+
     logger.info(
         f"Remote SSH: {ssh_user}@{ssh_host}:{remote_path} "
         f"for {consumer.project.owner.username}/{consumer.project.slug}"
@@ -60,22 +78,21 @@ async def spawn_remote_ssh(consumer):
         if consumer.pid == 0:
             signal.pthread_sigmask(signal.SIG_SETMASK, old_mask)
             try:
-                os.execvp(
+                # SECURITY: ssh_login_argv inserts a "--" end-of-options
+                # terminator before the destination so a leading-dash
+                # username/host can never be parsed as an ssh option
+                # (arg-injection → host RCE). execvpe with minimal_ssh_env()
+                # denies a stray ProxyCommand access to Django secrets.
+                os.execvpe(
                     "ssh",
-                    [
-                        "ssh",
-                        "-t",
-                        "-p",
-                        ssh_port,
-                        "-i",
-                        ssh_key,
-                        "-o",
-                        "StrictHostKeyChecking=accept-new",
-                        "-o",
-                        "ServerAliveInterval=30",
-                        f"{ssh_user}@{ssh_host}",
-                        f"cd {remote_path} 2>/dev/null; exec bash -l",
-                    ],
+                    ssh_login_argv(
+                        ssh_port=ssh_port,
+                        ssh_key=ssh_key,
+                        ssh_user=ssh_user,
+                        ssh_host=ssh_host,
+                        remote_command=f"cd {remote_path} 2>/dev/null; exec bash -l",
+                    ),
+                    minimal_ssh_env(),
                 )
             except Exception as e:
                 import sys

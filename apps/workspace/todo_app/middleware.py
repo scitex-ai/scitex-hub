@@ -53,6 +53,26 @@ _TODO_ROOT = "/apps/cards"
 _TODO_PREFIX = "/apps/cards/"
 _READ_METHODS = ("GET", "HEAD", "OPTIONS")
 
+# The upstream board routes that render HTML pages a browser NAVIGATES to
+# (board root, chat/DM page, legacy + board-v3 aliases); every other
+# subpath is a JS data endpoint (timeline, fleet/*, dm/*, chat/<id>, the
+# api_dispatch catch-all). Tracks scitex_cards._django.urls in lockstep,
+# same contract as _TODO_PREFIX above.
+# WHY path, not headers: the board's fetches send no JSON Accept header
+# and non-browser clients omit Sec-Fetch-Mode — the path is the only
+# discriminator present on every request.
+_PAGE_PATHS = frozenset(
+    {
+        _TODO_ROOT,
+        _TODO_PREFIX,
+        _TODO_PREFIX + "chat",
+        _TODO_PREFIX + "legacy",
+        _TODO_PREFIX + "legacy/",
+        _TODO_PREFIX + "board-v3",
+        _TODO_PREFIX + "board-v3/",
+    }
+)
+
 # Mirror of the guarded import in settings_shared.py / the URL guard in
 # config/urls.py — when the package is absent the mount does not exist
 # and this middleware must not intercept the path (it falls through to
@@ -83,8 +103,20 @@ class TodoBoardTenancyMiddleware:
         user = getattr(request, "user", None)
         if user is None or not user.is_authenticated:
             # VisitorAutoLoginMiddleware normally leaves no anonymous
-            # sessions; if one still reaches us, send it to login.
-            return redirect(f"/auth/login/?next={path}")
+            # sessions; if one still reaches us, page navigations go to
+            # login, while data fetches get shaped 401 JSON — a redirect
+            # would hand the login page's HTML to the board JS's JSON
+            # parser (the board renders a signed-out panel from this
+            # payload instead).
+            if path in _PAGE_PATHS:
+                return redirect(f"/auth/login/?next={path}")
+            return JsonResponse(
+                {
+                    "error": "signed-out",
+                    "login_url": f"/auth/login/?next={_TODO_PREFIX}",
+                },
+                status=401,
+            )
 
         store = self._resolve_workspace_store(request)
         if store is None:

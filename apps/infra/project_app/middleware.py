@@ -19,6 +19,11 @@ import logging
 from asgiref.sync import iscoroutinefunction, markcoroutinefunction, sync_to_async
 from django.contrib.auth import login
 
+# Back-compat re-export: settings_shared.MIDDLEWARE references
+# "apps.infra.project_app.middleware.OnSiteAuthMiddleware". The class now
+# lives in its own module so the trust decision is small and auditable.
+from .middleware_onsite_auth import OnSiteAuthMiddleware  # noqa: F401
+
 logger = logging.getLogger(__name__)
 
 
@@ -374,63 +379,6 @@ class VisitorAppRedirectMiddleware:
         # Pass-through: in async mode Django sees markcoroutinefunction and
         # awaits the coroutine returned here; in sync mode this is the response.
         return self.get_response(request)
-
-
-class OnSiteAuthMiddleware:
-    """
-    Authenticate MCP tool requests from on-site agents (same container).
-
-    When the MCP server runs alongside Django (on-site), it sends
-    X-SciTeX-OnSite: <username> instead of Bearer token auth.
-    Only accepts requests from trusted Docker/localhost origins.
-    """
-
-    TRUSTED_PREFIXES = ("127.", "10.", "172.", "192.168.", "::1")
-
-    sync_capable = True
-    async_capable = True
-
-    def __init__(self, get_response):
-        self.get_response = get_response
-        if iscoroutinefunction(get_response):
-            markcoroutinefunction(self)
-
-    def __call__(self, request):
-        if iscoroutinefunction(self.get_response):
-            return self._acall(request)
-        self._sync_body(request)
-        return self.get_response(request)
-
-    async def _acall(self, request):
-        await sync_to_async(self._sync_body, thread_sensitive=True)(request)
-        return await self.get_response(request)
-
-    def _sync_body(self, request):
-        if request.user.is_authenticated:
-            return
-
-        username = request.META.get("HTTP_X_SCITEX_ONSITE")
-        if not username:
-            return
-
-        # Only trust internal network sources
-        remote_ip = request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip()
-        if not remote_ip:
-            remote_ip = request.META.get("REMOTE_ADDR", "")
-        if not any(remote_ip.startswith(p) for p in self.TRUSTED_PREFIXES):
-            logger.warning("OnSite auth rejected from untrusted IP: %s", remote_ip)
-            return
-
-        from django.contrib.auth.models import User
-
-        try:
-            user = User.objects.get(username=username)
-            request.user = user
-            request._on_site_auth = True
-            # Exempt from CSRF — MCP tools don't have CSRF tokens
-            request._dont_enforce_csrf_checks = True
-        except User.DoesNotExist:
-            logger.warning("OnSite auth: user %s not found", username)
 
 
 class GuestSessionMiddleware:
