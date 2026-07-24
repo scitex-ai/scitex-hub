@@ -10,6 +10,7 @@
   "license": "AGPL-3.0",
   "keyboard_shortcut": "M",
   "order": 80,
+  "show_in_launcher": false,
   "accent_color": "comms",
   "body_class": "comms-page",
   "partial_template": "comms_app/comms_partial.html",

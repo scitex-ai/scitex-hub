@@ -42,10 +42,16 @@ class BasePTY:
         username: str,
         screen_session: str = "scitex-0",
         project_dir: Optional[Path] = None,
+        provider_env: Optional[dict] = None,
     ):
         self.pty_id = pty_id
         self.username = username
         self.screen_session = screen_session
+        # Model-provider env override (ANTHROPIC_BASE_URL / _API_KEY / ...)
+        # composed SERVER-SIDE by services.terminal_provider — never from
+        # client input. Applied in _prepare_child_env. Contains the user's
+        # decrypted API key: never log it and never include it in reprs.
+        self.provider_env: dict = dict(provider_env or {})
         # When the PTY is launched from a workspace project, ``project_dir``
         # is the broker-visible (Docker-side) path to that project so the
         # parent ``os.chdir`` lands the pre-fork cwd on the project root.
@@ -157,6 +163,14 @@ class BasePTY:
         env["LOGNAME"] = self.username
         env["TERM"] = "xterm-256color"
         env["SHELL"] = "/bin/bash"
+        # Model-provider override (see services.terminal_provider). Set each
+        # var twice: plain (inherited by `apptainer exec instance://` in
+        # shared-allocation mode, which passes the caller env through) and
+        # APPTAINERENV_-prefixed (honored by apptainer even under
+        # --cleanenv, covering the legacy one-srun-per-tab exec path).
+        for key, value in self.provider_env.items():
+            env[key] = value
+            env[f"APPTAINERENV_{key}"] = value
         # chdir order (host-side bash PS1 \w, plus the cwd srun inherits):
         #   1. self.project_dir — the workspace project root, when set and
         #      reachable by the broker process. This makes the prompt land
@@ -283,10 +297,16 @@ class TerminalSession(BasePTY):
         container_path: str,
         project_slug: str,
         screen_session: str = "scitex-0",
+        provider: str = "anthropic-oauth",
+        provider_env: Optional[dict] = None,
     ):
         super().__init__(
-            pty_id=session_id, username=username, screen_session=screen_session
+            pty_id=session_id,
+            username=username,
+            screen_session=screen_session,
+            provider_env=provider_env,
         )
+        self.provider = provider
         self.session_id = session_id
         self.user_data_dir = user_data_dir
         self.project_dir = project_dir

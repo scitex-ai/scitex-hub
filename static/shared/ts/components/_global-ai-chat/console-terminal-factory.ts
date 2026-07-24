@@ -18,10 +18,17 @@ export interface TerminalInstance {
   resizeTimeout: ReturnType<typeof setTimeout> | null;
 }
 
-const XTERM_JS_URL = "https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js";
-const XTERM_CSS_URL = "https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css";
+// @xterm/xterm >= 5.5 keeps its font-measurement container inside the
+// terminal element. xterm@5.3.0's WidthCache appended a permanent
+// position:absolute; width:50000px div to document.body, which extended
+// document.scrollWidth to 50000px on every page with a terminal
+// (the workspace-wide horizontal-overflow bug).
+const XTERM_JS_URL =
+  "https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/lib/xterm.js";
+const XTERM_CSS_URL =
+  "https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.css";
 const FIT_ADDON_URL =
-  "https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js";
+  "https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.js";
 
 let cachedTerminal: any = null;
 let cachedFitAddon: any = null;

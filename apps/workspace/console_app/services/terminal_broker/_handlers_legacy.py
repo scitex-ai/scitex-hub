@@ -75,12 +75,43 @@ def handle_spawn_legacy(broker, msg: dict, client: socket.socket) -> dict:
     screen_session = msg.get("screen_session", "scitex-0")
     key = (username, screen_session)
 
+    # Resolve model provider SERVER-SIDE (registry validation + API-key
+    # lookup) before any PTY work. Fail-loud; error text never contains
+    # the key value. See services.terminal_provider.
+    from apps.workspace.console_app.services.terminal_provider import (
+        TerminalProviderError,
+        resolve_spawn_provider,
+    )
+
+    try:
+        provider, provider_env = resolve_spawn_provider(msg)
+    except TerminalProviderError as exc:
+        logger.warning(
+            "Legacy spawn rejected for %s: provider %r invalid or unusable",
+            username,
+            msg.get("provider"),
+        )
+        return {"status": "error", "error": str(exc)}
+
     with broker.lock:
         existing_id = broker.session_index.get(key)
         existing = broker.sessions.get(existing_id) if existing_id else None
 
         if existing:
             if existing.state == SessionState.RUNNING and existing.fd is not None:
+                # Env cannot change on a live PTY — reattaching with a
+                # DIFFERENT provider would silently keep the old backend.
+                running_provider = getattr(existing, "provider", provider)
+                if running_provider != provider:
+                    return {
+                        "status": "error",
+                        "error": (
+                            f"Terminal session '{screen_session}' is "
+                            f"already running with provider "
+                            f"'{running_provider}'. Open a new terminal "
+                            f"tab to use '{provider}'."
+                        ),
+                    }
                 # Replay scrollback before starting live output
                 import base64
 
@@ -131,6 +162,8 @@ def handle_spawn_legacy(broker, msg: dict, client: socket.socket) -> dict:
             container_path=msg["container_path"],
             project_slug=msg["project_slug"],
             screen_session=screen_session,
+            provider=provider,
+            provider_env=provider_env,
         )
         session.client_socket = client
 

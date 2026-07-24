@@ -18,6 +18,7 @@ class AppsModuleAdmin(admin.ModelAdmin):
     list_display = (
         "module_name",
         "category",
+        "availability",
         "author",
         "star_count",
         "install_count",
@@ -25,7 +26,14 @@ class AppsModuleAdmin(admin.ModelAdmin):
         "is_builtin",
         "is_verified",
     )
-    list_filter = ("category", "is_builtin", "is_featured", "is_verified", "visibility")
+    list_filter = (
+        "category",
+        "availability",
+        "is_builtin",
+        "is_featured",
+        "is_verified",
+        "visibility",
+    )
     search_fields = ("module_name", "short_description")
     readonly_fields = (
         "created_at",

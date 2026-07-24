@@ -24,6 +24,10 @@ import pytest
 # Project root
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
+# THIS checkout's src/ wins over any globally installed scitex_hub (the
+# editable .pth points at the primary clone) — a worktree must test its
+# own source, not another checkout's.
+sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 # ---------------------------------------------------------------------------
 # Module-import-time coverage wiring (parallel + subprocess support).

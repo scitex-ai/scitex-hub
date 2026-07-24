@@ -10,13 +10,85 @@ Provides helper functions for git operations on Django projects
 that are backed by Gitea repositories.
 """
 
-import subprocess
+import base64
 import logging
+import os
+import subprocess
 from pathlib import Path
 from typing import Optional, List, Tuple
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
+
+
+def strip_url_credentials(url: str) -> str:
+    """Return ``url`` with any ``user[:password]@`` userinfo removed.
+
+    ``http://alice:TOKEN@gitea:3000/a/b.git`` -> ``http://gitea:3000/a/b.git``
+    and ``http://TOKEN@gitea:3000/a/b.git`` -> ``http://gitea:3000/a/b.git``.
+    Non-``scheme://`` URLs (e.g. ``git@host:path`` SSH) are returned untouched.
+
+    Only the AUTHORITY component is examined — an ``@`` later in the path is
+    left alone, so ``http://gitea:3000/u/re@po.git`` survives intact instead
+    of being mangled into ``http://po.git``.
+    """
+    if "://" not in url:
+        return url
+    scheme, rest = url.split("://", 1)
+    authority, slash, path = rest.partition("/")
+    if "@" in authority:
+        # Last '@' wins: userinfo may legally contain an escaped '@', and this
+        # matches how git/curl split the authority.
+        authority = authority.rsplit("@", 1)[1]
+    return f"{scheme}://{authority}{slash}{path}"
+
+
+def build_gitea_auth_env(
+    token: Optional[str] = None,
+    gitea_url: Optional[str] = None,
+    base_env: Optional[dict] = None,
+) -> dict:
+    """Environment for a git invocation that must authenticate to Gitea.
+
+    SECURITY (sec-gitea-admin-token-plaintext-in-user-gitconfig): the platform
+    Gitea token must NEVER be written into a repo's ``.git/config`` (origin
+    URL) — that file is bind-mounted read/write into the user's Apptainer
+    console at ``/workspace``, so a token there leaks the platform ADMIN
+    credential across tenants.
+
+    The token is therefore supplied per-invocation, and via the ENVIRONMENT
+    (``GIT_CONFIG_COUNT`` / ``GIT_CONFIG_KEY_0`` / ``GIT_CONFIG_VALUE_0``,
+    git >= 2.31) rather than ``git -c ...`` on the command line: argv is
+    world-readable through ``/proc/<pid>/cmdline``, so the ``-c`` form would
+    merely move the leak from ``.git/config`` to the process table instead of
+    closing it. A process's environ is readable only by the same uid (or
+    root), which is the boundary we need.
+
+    The header is SCOPED to the Gitea origin (``http.<gitea-url>.extraHeader``)
+    so the admin credential is never attached to a request to another host
+    (e.g. after an HTTP redirect).
+
+    Always sets ``GIT_TERMINAL_PROMPT=0`` so a missing credential fails loud
+    instead of hanging on an interactive prompt.
+    """
+    env = dict(os.environ if base_env is None else base_env)
+    env["GIT_TERMINAL_PROMPT"] = "0"
+
+    token = token if token is not None else getattr(settings, "GITEA_TOKEN", "")
+    url = gitea_url if gitea_url is not None else getattr(settings, "GITEA_URL", "")
+    url = (url or "").rstrip("/")
+    if not token or not url:
+        # Nothing to inject — git runs unauthenticated and fails loud.
+        return env
+
+    # Gitea git-over-HTTP accepts the token as the Basic-auth username with an
+    # empty password (the same bytes the previously-working
+    # ``http://<token>@host`` clone URL sent).
+    basic = base64.b64encode(f"{token}:".encode()).decode()
+    env["GIT_CONFIG_COUNT"] = "1"
+    env["GIT_CONFIG_KEY_0"] = f"http.{url}.extraHeader"
+    env["GIT_CONFIG_VALUE_0"] = f"Authorization: Basic {basic}"
+    return env
 
 
 def git_commit_and_push(
@@ -88,7 +160,10 @@ def git_commit_and_push(
 
         commit_output = result.stdout
 
-        # Push to remote
+        # Push to remote. Credentials are supplied per-op through the
+        # environment (build_gitea_auth_env) — never persisted in origin and
+        # never on argv — so neither the sandbox-mounted .git/config nor
+        # /proc/<pid>/cmdline ever holds the token.
         if push:
             result = subprocess.run(
                 ["git", "push", "origin", branch],
@@ -96,6 +171,7 @@ def git_commit_and_push(
                 capture_output=True,
                 text=True,
                 timeout=30,
+                env=build_gitea_auth_env(),
             )
 
             if result.returncode != 0:
@@ -133,13 +209,15 @@ def git_pull(project_dir: Path, branch: str = "develop") -> Tuple[bool, str]:
         if not (project_dir / ".git").exists():
             return False, f"Not a git repository: {project_dir}"
 
-        # Fetch first
+        # Fetch first. Credentials are injected per-op via the environment
+        # (build_gitea_auth_env) so origin stays credential-less on disk.
         result = subprocess.run(
             ["git", "fetch", "origin"],
             cwd=project_dir,
             capture_output=True,
             text=True,
             timeout=30,
+            env=build_gitea_auth_env(),
         )
 
         if result.returncode != 0:
@@ -152,6 +230,7 @@ def git_pull(project_dir: Path, branch: str = "develop") -> Tuple[bool, str]:
             capture_output=True,
             text=True,
             timeout=30,
+            env=build_gitea_auth_env(),
         )
 
         if result.returncode != 0:
@@ -166,16 +245,29 @@ def git_pull(project_dir: Path, branch: str = "develop") -> Tuple[bool, str]:
         return False, str(e)
 
 
-def configure_git_credentials(project_dir: Path, username: str, token: str):
-    """
-    Configure git credentials for pushing to Gitea.
+def sanitize_origin_url(project_dir: Path) -> bool:
+    """Ensure the ``origin`` remote of ``project_dir`` is CREDENTIAL-LESS.
 
-    Sets up credential helper to use token authentication.
+    SECURITY (sec-gitea-admin-token-plaintext-in-user-gitconfig): the previous
+    ``configure_git_credentials()`` embedded ``http://<user>:<token>@host``
+    into origin, persisting the platform Gitea ADMIN token into
+    ``.git/config``. That file is bind-mounted read/write into the user's
+    Apptainer console at ``/workspace``, so any tenant could
+    ``cat /workspace/.git/config`` and recover the admin token — a
+    cross-tenant repo takeover. Credentials are now supplied per-operation
+    via :func:`build_gitea_auth_env` (never written to disk), so origin only
+    ever needs the bare URL.
+
+    This function therefore STRIPS any embedded credentials from origin (it
+    also de-poisons repos cloned before the fix) and is idempotent — a clean
+    origin is left untouched. It takes NO credential arguments by design: a
+    function that never receives the token cannot re-introduce the leak.
 
     Args:
-        project_dir: Path to project directory
-        username: Gitea username
-        token: Gitea API token
+        project_dir: Path to the project's git working tree.
+
+    Returns:
+        True when origin is (now) credential-less, False on failure.
     """
     try:
         project_dir = Path(project_dir)
@@ -194,33 +286,26 @@ def configure_git_credentials(project_dir: Path, username: str, token: str):
 
         origin_url = result.stdout.strip()
 
-        # Update URL to include credentials
-        if origin_url.startswith("http"):
-            # Extract base URL
-            if "@" in origin_url:
-                # Remove existing credentials
-                origin_url = "http://" + origin_url.split("@")[1]
+        if not origin_url.startswith("http"):
+            # SSH or other transport — no HTTP token to strip.
+            return True
 
-            # Add token authentication
-            gitea_url = settings.GITEA_URL.replace("http://", "")
-            auth_url = f"http://{username}:{token}@{gitea_url}"
-            new_url = origin_url.replace(f"http://{gitea_url}", auth_url).replace(
-                f"https://{gitea_url}", auth_url
-            )
-
-            # Set new remote URL
+        clean_url = strip_url_credentials(origin_url)
+        if clean_url != origin_url:
             subprocess.run(
-                ["git", "remote", "set-url", "origin", new_url],
+                ["git", "remote", "set-url", "origin", clean_url],
                 cwd=project_dir,
                 capture_output=True,
                 text=True,
             )
-
-            logger.info(f"✓ Configured git credentials for {project_dir}")
-            return True
+            logger.info(
+                "✓ Sanitized origin URL (removed embedded credentials) for %s",
+                project_dir,
+            )
+        return True
 
     except Exception as e:
-        logger.error(f"Failed to configure git credentials: {e}")
+        logger.error(f"Failed to sanitize git credentials: {e}")
         return False
 
 

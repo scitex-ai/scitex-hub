@@ -31,6 +31,7 @@ CROSS_PACKAGE_IMPORTS = [
     "scitex_dev",
     "scitex_dev._cli._completion",
     "scitex_dev.cli",
+    "scitex_dev.ecosystem",
 ]
 # ===== END AUTO-GENERATED =====
 
@@ -38,4 +39,9 @@ CROSS_PACKAGE_IMPORTS = [
 @pytest.mark.parametrize("module_name", CROSS_PACKAGE_IMPORTS)
 def test_cross_package_import(module_name):
     """Importing scitex-hub's declared cross-package dependency must succeed."""
-    pytest.importorskip(module_name)
+    # Arrange
+    # (module name provided by the parametrized gate list above)
+    # Act
+    module = pytest.importorskip(module_name)
+    # Assert
+    assert module.__name__ == module_name

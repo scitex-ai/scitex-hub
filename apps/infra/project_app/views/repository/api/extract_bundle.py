@@ -81,10 +81,14 @@ def api_extract_bundle(request, username, slug):
     bundle_full = (project_root / bundle_path).resolve()
     output_full = (project_root / output_path).resolve()
 
-    # Security check: both paths must be within project root
+    # Security check: component-wise containment for BOTH paths, not a string
+    # prefix match. The sink below includes shutil.rmtree(output_full), so a
+    # prefix escape is a cross-tenant DESTRUCTIVE primitive.
+    from ....services.filesystem.permissions import validate_path_in_project
+
     if not (
-        str(bundle_full).startswith(str(project_root.resolve()))
-        and str(output_full).startswith(str(project_root.resolve()))
+        validate_path_in_project(project_root, bundle_full)
+        and validate_path_in_project(project_root, output_full)
     ):
         return JsonResponse(
             {"success": False, "error": "Paths must be within project directory"},

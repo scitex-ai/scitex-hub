@@ -180,4 +180,72 @@ class TestRequireEnvWithLegacyAlias:
             require_env_with_legacy_alias("SCITEX_HUB_REQUIRED_BAR")
 
 
+class TestSettingsModulesHonorTheAlias:
+    """The alias layer only helps if the settings modules actually USE it.
+
+    Regression guard: settings_dev used to re-read the secret key with a
+    plain ``os.getenv("SCITEX_HUB_DJANGO_SECRET_KEY")`` AFTER star-importing
+    settings_shared. That bypassed the alias, so a deployment exporting only
+    the legacy ``SCITEX_CLOUD_DJANGO_SECRET_KEY`` (which is what the
+    checked-in dev env file does) had its correctly-resolved value silently
+    overwritten with ``None`` -- and Django refused to boot with
+    "The SECRET_KEY setting must not be empty."
+
+    The helper's own tests above all passed throughout; the defect was in the
+    consumer. Hence this test imports the real settings module rather than
+    the helper.
+    """
+
+    def _secret_key_from_settings(self, module: str, env: dict[str, str]) -> str:
+        """Import a settings module in a subprocess and echo its SECRET_KEY.
+
+        A subprocess is used because Django settings modules are import-time
+        side-effecting and process-global; importing one in-process would
+        leak into every later test.
+        """
+        import subprocess
+        import sys
+        from pathlib import Path
+
+        repo_root = Path(__file__).resolve().parents[2]
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                "import importlib;"
+                f"m = importlib.import_module('{module}');"
+                "print(m.SECRET_KEY)",
+            ],
+            env=env,
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        assert result.returncode == 0, (
+            f"{module} failed to import with only the legacy alias set.\n"
+            f"stderr:\n{result.stderr}"
+        )
+        # settings_dev prints diagnostics (e.g. the redis-unavailable notice) to
+        # stdout at import time, so the key is the LAST line, not the whole buffer.
+        lines = [ln for ln in result.stdout.splitlines() if ln.strip()]
+        assert lines, f"{module} printed nothing; stderr:\n{result.stderr}"
+        return lines[-1].strip()
+
+    def test_dev_settings_accept_the_legacy_secret_key_alias(self):
+        """settings_dev boots when ONLY SCITEX_CLOUD_DJANGO_SECRET_KEY is set."""
+        # Arrange
+        env = dict(os.environ)
+        env.pop("SCITEX_HUB_DJANGO_SECRET_KEY", None)
+        env["SCITEX_CLOUD_DJANGO_SECRET_KEY"] = "legacy-only-value"
+        env["SCITEX_HUB_USE_SQLITE_DEV"] = "1"
+        env["PYTHONWARNINGS"] = "ignore::DeprecationWarning"
+        # Act
+        secret_key = self._secret_key_from_settings(
+            "config.settings.settings_dev", env
+        )
+        # Assert
+        assert secret_key == "legacy-only-value"
+
+
 # EOF

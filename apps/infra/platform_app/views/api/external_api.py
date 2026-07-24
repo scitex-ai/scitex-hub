@@ -18,7 +18,6 @@ import logging
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from apps.infra.platform_app.services.external_api.proxy import (
@@ -51,7 +50,6 @@ def _resolve_app_name(request) -> str:
 
 @login_required
 @require_POST
-@csrf_exempt
 def external_proxy(request, api_name: str) -> JsonResponse:
     """
     Forward a request to a registered external API.

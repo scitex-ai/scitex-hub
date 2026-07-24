@@ -14,7 +14,8 @@ Template-serving views for the console application:
 """
 
 from django.urls import path
-from django.views.generic import RedirectView
+
+from apps.infra.workspace_app.views import workspace_shell
 
 from .. import default_workspace_views, views
 
@@ -25,8 +26,10 @@ urlpatterns = [
         default_workspace_views.user_default_workspace,
         name="user_default_workspace",
     ),
-    # Console has no standalone page — redirect to Writer
-    path("", RedirectView.as_view(url="/writer/", permanent=False), name="index"),
+    # Console index — workspace shell with the console module active
+    # (same pattern as discovery_app). The old RedirectView to /writer/
+    # sent the launcher's Console tile to the Writer app (nav-404 batch #1).
+    path("", workspace_shell, {"module": "console"}, name="index"),
     # Landing pages
     path("features/", views.features, name="features"),
     path("pricing/", views.pricing, name="pricing"),

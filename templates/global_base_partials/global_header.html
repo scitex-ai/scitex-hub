@@ -22,21 +22,17 @@
     <div class="global-header-inner">
         <!-- Left: Logo + Main Navigation -->
         <div class="header-left">
-            <!-- Logo (matches favicon: green=dev, orange=staging, standard=prod) -->
-            <a href="/" class="header-logo" title="Home">
-                {% if DEBUG %}
-                    <img src="{% static 'shared/images/favicons/favicon-dev.svg' %}"
-                         alt="SciTeX (Dev)"
-                         class="header-logo-icon" />
-                {% elif IS_STAGING %}
-                    <img src="{% static 'shared/images/favicons/favicon-staging.svg' %}"
-                         alt="SciTeX (Staging)"
-                         class="header-logo-icon" />
-                {% else %}
-                    <img src="{% static 'shared/images/scitex_logos/scitex-icons/scitex-icon-navy-inverted.svg' %}"
-                         alt="SciTeX"
-                         class="header-logo-icon" />
-                {% endif %}
+            {# Logo IS the favicon: same brand mark, same per-environment colour #}
+            {# (navy=prod, navy-on-white=staging, green=dev), resolved once from #}
+            {# settings.SCITEX_ENV. Chrome and tab icon can no longer disagree. #}
+            {# header_logo_href: pages stuck BEFORE a session exists (e.g. the #}
+            {# cookie-consent / pool-full page) override this to a page that #}
+            {# always renders (/landing/) — tapping the logo must never bounce #}
+            {# back to the same page and read as a dead touch target. #}
+            <a href="{{ header_logo_href|default:'/' }}" class="header-logo" title="Home">
+                <img src="{% static SCITEX_FAVICON %}"
+                     alt="SciTeX{% if SCITEX_ENV_MARKER %} ({{ SCITEX_ENV_MARKER }}){% endif %}"
+                     class="header-logo-icon" />
             </a>
             {% if user.is_authenticated %}
                 <!-- AI Assistant Toggle (right of logo) -->
@@ -384,10 +380,14 @@
                 </div>
             </div>
         </div>
-        <!-- Mobile-only Read-Only / Visitor badge (visible in compact mobile header bar) -->
+        <!-- Mobile-only Read-Only / Visitor badge (tappable: occupancy + sign-in prompt) -->
         {% if is_visitor %}
-            <span class="header-visitor-badge-mobile"
-                  {% if visitor_expires_at %}data-expires-at="{{ visitor_expires_at.isoformat }}"{% endif %}>
+            <button type="button"
+                    class="header-visitor-badge-mobile"
+                    id="header-visitor-badge-mobile"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                    {% if visitor_expires_at %}data-expires-at="{{ visitor_expires_at.isoformat }}"{% endif %}>
                 {% if is_readonly %}
                     <i class="fas fa-lock header-visitor-badge-mobile-icon"></i>Read-Only
                 {% elif visitor_username %}
@@ -395,13 +395,96 @@
                 {% else %}
                     <i class="fas fa-user-clock header-visitor-badge-mobile-icon"></i>Visitor
                 {% endif %}
+                {% if is_readonly and visitor_pool_status %}
+                    <span class="header-visitor-slots">{{ visitor_pool_status.allocated }}/{{ visitor_pool_status.total }}</span>
+                {% endif %}
                 {% if visitor_expires_at %}
                     <span class="header-visitor-badge-mobile-countdown"
                           id="mobile-header-visitor-countdown">⏰ --:--</span>
                 {% endif %}
-            </span>
+            </button>
+            {# Inline hidden attr is load-bearing: the popover is re-parented #}
+            {# to <body> by the script below, and its default-hidden state must #}
+            {# NOT depend on the external stylesheet — with a stale/failed CSS #}
+            {# bundle the popover otherwise renders as a raw text blob over the #}
+            {# header on every page (nav-404 batch #6, double-banner report). #}
+            <div class="header-visitor-badge-popover"
+                 id="header-visitor-badge-popover"
+                 hidden
+                 role="dialog"
+                 aria-label="Visitor session details">
+                {% if is_readonly %}
+                    <strong>Read-only session</strong>
+                    <div>{{ readonly_visitor_reason_detail }}</div>
+                {% else %}
+                    <strong>Visitor session</strong>
+                    <div>Your work lasts only for this session.</div>
+                {% endif %}
+                {% if visitor_pool_status %}
+                    <div class="header-visitor-badge-popover-muted">
+                        visitor slots {{ visitor_pool_status.allocated }}/{{ visitor_pool_status.total }} in use
+                    </div>
+                {% endif %}
+                <div class="header-visitor-badge-popover-actions">
+                    <a href="/auth/signup/" class="header-btn header-btn-primary">Sign up</a>
+                    <a href="/auth/login/?next={{ request.path }}" class="header-btn">Log in</a>
+                </div>
+            </div>
+            <!-- Inline handler: badge popover must work even if the JS bundle fails -->
+            <!-- hook-bypass: inline-script — visitor fail-loud UX must not depend on Vite -->
+            <script>
+            (function() {
+                var badge = document.getElementById('header-visitor-badge-mobile');
+                var pop = document.getElementById('header-visitor-badge-popover');
+                if (!badge || !pop) return;
+                // Escape the header's stacking context: .global-header is
+                // z-index:1000, BELOW the mobile sidebar rail (1010) and
+                // drawer (1100), so the popover rendered inside it was
+                // painted under the sidebar regardless of its own z-index.
+                // As a direct <body> child its z-index:10001 wins (same
+                // re-parenting fix as the launcher dock).
+                if (pop.parentElement !== document.body) {
+                    document.body.appendChild(pop);
+                }
+                function placePopover() {
+                    var rect = badge.getBoundingClientRect();
+                    var margin = 8;
+                    pop.style.top = (rect.bottom + 6) + 'px';
+                    // Shift horizontally to stay fully inside the viewport
+                    // on narrow screens (<=767px).
+                    var left = Math.max(
+                        margin,
+                        Math.min(rect.left, window.innerWidth - pop.offsetWidth - margin)
+                    );
+                    pop.style.left = left + 'px';
+                }
+                // The hidden attribute (set in the markup) is the CSS-free
+                // safety net: keep it in sync with .open so the popover can
+                // never sit visible-but-unstyled when the stylesheet is
+                // stale or fails to load.
+                badge.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var open = pop.classList.toggle('open');
+                    if (open) { pop.removeAttribute('hidden'); } else { pop.setAttribute('hidden', ''); }
+                    badge.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    if (open) placePopover();
+                });
+                window.addEventListener('resize', function() {
+                    if (pop.classList.contains('open')) placePopover();
+                });
+                document.addEventListener('click', function(e) {
+                    if (!badge.contains(e.target) && !pop.contains(e.target)) {
+                        pop.classList.remove('open');
+                        pop.setAttribute('hidden', '');
+                        badge.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            })();
+            </script>
         {% endif %}
-        <!-- Mobile Hamburger Button (visible only on mobile via CSS) -->
+        <!-- Mobile Hamburger Button (visible only on mobile via CSS).
+             Inline fail-safe wiring lives in global_header/hamburger_inline.html
+             (included after the menu markup below). -->
         <button class="mobile-hamburger" id="mobile-hamburger-btn" aria-label="Menu">
             <i class="fas fa-bars"></i>
         </button>
@@ -489,6 +572,9 @@
                                 Visitor Mode
                             {% endif %}
                         </span>
+                        {% if is_readonly and visitor_pool_status %}
+                            <span class="header-visitor-slots" id="visitor-pool-occupancy">visitor slots {{ visitor_pool_status.allocated }}/{{ visitor_pool_status.total }} in use</span>
+                        {% endif %}
                         {% if visitor_expires_at %}
                             <span id="visitor-countdown"
                                   style="margin-left: 6px;
@@ -530,7 +616,12 @@
                                 <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z" />
                             </svg>
                             {% if is_readonly %}
-                                Read-only mode. You can browse and navigate but editing is disabled. Sign up for full access.
+                                {{ readonly_visitor_reason_detail }} You can view everything; sign up or log in to make changes.
+                                {% if visitor_pool_status %}
+                                    <div class="header-visitor-badge-popover-muted">
+                                        visitor slots {{ visitor_pool_status.allocated }}/{{ visitor_pool_status.total }} in use
+                                    </div>
+                                {% endif %}
                             {% else %}
                                 Your work will be kept only during this session. To save to disk for future sessions, create an account.
                             {% endif %}
@@ -795,14 +886,19 @@
             <i class="fas fa-adjust"></i>
             <span>Toggle Theme</span>
         </button>
-        <a href="{% url 'public_app:server_status' %}" class="mobile-menu-item">
-            <i class="fas fa-server"></i>
-            <span>Server Status</span>
-        </a>
-        <a href="/keyboard-shortcuts/" class="mobile-menu-item">
-            <i class="fas fa-keyboard"></i>
-            <span>Keyboard Shortcuts</span>
-        </a>
+        {# Developer-facing entries: shown to staff (and in dev), hidden for #}
+        {# ordinary users/visitors so the menu stays focused (operator,      #}
+        {# 2026-07-21). Same gate as the header notification center.         #}
+        {% if DEBUG or user.is_staff %}
+            <a href="{% url 'public_app:server_status' %}" class="mobile-menu-item">
+                <i class="fas fa-server"></i>
+                <span>Server Status</span>
+            </a>
+            <a href="/keyboard-shortcuts/" class="mobile-menu-item">
+                <i class="fas fa-keyboard"></i>
+                <span>Keyboard Shortcuts</span>
+            </a>
+        {% endif %}
         <div class="mobile-menu-divider"></div>
         {% if is_visitor %}
             <div class="mobile-menu-item mobile-menu-item--muted">
@@ -831,32 +927,9 @@
                 </div>
             {% endif %}
             <div class="mobile-menu-divider"></div>
-            <a href="/workspace/" class="mobile-menu-item">
-                <i class="fas fa-th-large"></i>
-                <span>Workspace</span>
-            </a>
-            <a href="/workspace/chat/" class="mobile-menu-item mobile-menu-item--indent">
-                <i class="fas fa-comment"></i>
-                <span>Chat</span>
-            </a>
-            <a href="/workspace/console/" class="mobile-menu-item mobile-menu-item--indent">
-                <i class="fas fa-terminal"></i>
-                <span>Console</span>
-            </a>
-            <a href="/workspace/editor/" class="mobile-menu-item mobile-menu-item--indent">
-                <i class="fas fa-folder"></i>
-                <span>Files</span>
-            </a>
-            <a href="/accounts/profile/" class="mobile-menu-item">
-                <i class="fas fa-user"></i>
-                <span>Profile</span>
-            </a>
-            <a href="/accounts/settings/" class="mobile-menu-item">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
-            </a>
-            <div class="mobile-menu-divider"></div>
-            {% if user.username|slice:":8" == "visitor-" %}
+            {% if is_visitor %}
+                <!-- Visitor sessions: Sign In / Sign Up FIRST (operator-confirmed 2026-07-07:
+                     visitors must always see the login path, not account-holder items) -->
                 <a href="/auth/signin/" class="mobile-menu-item">
                     <i class="fas fa-sign-in-alt"></i>
                     <span>Sign In</span>
@@ -866,6 +939,40 @@
                     <span>Sign Up</span>
                 </a>
                 <div class="mobile-menu-divider"></div>
+            {% endif %}
+            <a href="/workspace/" class="mobile-menu-item">
+                <i class="fas fa-th-large"></i>
+                <span>Workspace</span>
+            </a>
+            <a href="/workspace/chat/" class="mobile-menu-item mobile-menu-item--indent">
+                <i class="fas fa-comment"></i>
+                <span>Chat</span>
+            </a>
+            {# Console (terminal) is a developer/power tool — staff/dev only, #}
+            {# consistent with Server Status + Keyboard Shortcuts above.       #}
+            {% if DEBUG or user.is_staff %}
+                <a href="/workspace/console/" class="mobile-menu-item mobile-menu-item--indent">
+                    <i class="fas fa-terminal"></i>
+                    <span>Console</span>
+                </a>
+            {% endif %}
+            <a href="/workspace/editor/" class="mobile-menu-item mobile-menu-item--indent">
+                <i class="fas fa-folder"></i>
+                <span>Files</span>
+            </a>
+            {% if not is_visitor %}
+                <!-- Account-holder items: hidden for visitor sessions -->
+                <a href="/accounts/profile/" class="mobile-menu-item">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                </a>
+                <a href="/accounts/settings/" class="mobile-menu-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            {% endif %}
+            <div class="mobile-menu-divider"></div>
+            {% if is_visitor %}
                 <a href="/auth/logout/" class="mobile-menu-item">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>End Visitor Session</span>
@@ -887,6 +994,7 @@
             </a>
         {% endif %}
     </div>
+    {% include 'global_base_partials/global_header/hamburger_inline.html' %}
 </header>
 <!-- JavaScript for dropdown menu -->
 {% comment %} JavaScript functionality extracted to separate partial {% endcomment %}

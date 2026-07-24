@@ -1,5 +1,5 @@
 /* File directory view styles */
-@import url("shared/variables.css");
+@import url("../shared/variables.css");
 
 .file-directory-container {
   padding: 1.5rem;

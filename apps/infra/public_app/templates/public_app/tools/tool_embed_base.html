@@ -1,12 +1,13 @@
-{% load static %}
+{% load static branding_tags %}
 
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {# Same tab-title policy as the hub shell: config/branding.py #}
         <title>
-            {% block title %}Tool{% endblock %}
+            {% block title %}{% page_title %}{% endblock %}
         </title>
         <!-- Fonts -->
         <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap"

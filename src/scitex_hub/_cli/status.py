@@ -8,10 +8,25 @@ import click
 
 from .._config._environments import ENVIRONMENTS, get_environment
 from .._utils._docker import DockerManager
+from ._click_compat import spec_command_kwargs
 from ._flags import emit_json, json_flag
 
 
-@click.command()
+@click.command(
+    "status",
+    **spec_command_kwargs(
+        summary="Show deployment status.",
+        description=(
+            "Display current status of the SciTeX Hub deployment "
+            "including container states and service URL.",
+        ),
+        examples=(
+            ("{prog} status", "Show current status"),
+            ("{prog} status --env prod", "Show production deployment status"),
+            ("{prog} status --json", "Emit machine-readable JSON"),
+        ),
+    ),
+)
 @click.option(
     "--env",
     type=click.Choice(list(ENVIRONMENTS.keys())),
@@ -28,9 +43,9 @@ def status(env, json_output):
 
     \b
     Example:
-        scitex-hub show-status                  # Show current status
-        scitex-hub show-status --env prod       # Show production deployment status
-        scitex-hub show-status --json           # Emit machine-readable JSON
+        scitex-hub status                  # Show current status
+        scitex-hub status --env prod       # Show production deployment status
+        scitex-hub status --json           # Emit machine-readable JSON
     """
     environment = get_environment(env)
     docker = DockerManager(environment)
@@ -64,7 +79,26 @@ def status(env, json_output):
     click.echo(f"URL: http://{environment.host}:{environment.port}")
 
 
-@click.command()
+@click.command(
+    "logs",
+    **spec_command_kwargs(
+        summary="Show container logs.",
+        description=(
+            "Display logs from SciTeX Hub containers. Default streams "
+            "the raw unstructured log text from `docker logs`. With "
+            "--json a single envelope describing the query is emitted "
+            "instead, since the underlying stream is not itself "
+            "structured.",
+        ),
+        examples=(
+            ("{prog} logs", "Show all logs"),
+            ("{prog} logs -f", "Follow logs"),
+            ("{prog} logs --tail 100", "Show last 100 lines"),
+            ("{prog} logs web", "Show web container logs"),
+            ("{prog} logs --json", "Emit machine-readable envelope"),
+        ),
+    ),
+)
 @click.option(
     "--env",
     type=click.Choice(list(ENVIRONMENTS.keys())),
@@ -87,11 +121,11 @@ def logs(env, follow, tail, service, json_output):
 
     \b
     Example:
-        scitex-hub show-logs                  # Show all logs
-        scitex-hub show-logs -f               # Follow logs
-        scitex-hub show-logs --tail 100       # Show last 100 lines
-        scitex-hub show-logs web              # Show web container logs
-        scitex-hub show-logs --json           # Emit machine-readable envelope
+        scitex-hub logs                  # Show all logs
+        scitex-hub logs -f               # Follow logs
+        scitex-hub logs --tail 100       # Show last 100 lines
+        scitex-hub logs web              # Show web container logs
+        scitex-hub logs --json           # Emit machine-readable envelope
     """
     environment = get_environment(env)
     if json_output:

@@ -20,6 +20,7 @@ from apps.workspace.console_app.services.terminal_broker._pipeline_status import
 )
 
 from .config import USER_DATA_ROOT
+from .decline import send_decline
 from .execution import (
     check_slurm_status,
     exec_slurm_shell,
@@ -98,15 +99,23 @@ async def spawn_via_broker(consumer):
     slurm_user_dir = SLURM_USER_DATA_ROOT / username
     slurm_project_dir = slurm_user_dir / "proj" / project_slug
 
-    await ensure_workspace(user_data_dir, username, project_slug)
+    stage = "workspace setup"
+    try:
+        await ensure_workspace(user_data_dir, username, project_slug)
 
-    await asyncio.to_thread(
-        consumer._setup_ai_configs,
-        user_data_dir,
-        project_dir,
-        consumer.project.name,
-        username,
-    )
+        stage = "AI config setup"
+        await asyncio.to_thread(
+            consumer._setup_ai_configs,
+            user_data_dir,
+            project_dir,
+            consumer.project.name,
+            username,
+        )
+    except Exception as exc:
+        # Fail-loud, fail-closed: previously this propagated up and closed
+        # the socket with a bare 1011 and zero frames.
+        await send_decline(consumer, stage, exc, code=4010)
+        return
 
     try:
         container_path = await asyncio.to_thread(
@@ -120,7 +129,8 @@ async def spawn_via_broker(consumer):
             await _send_pipeline_failure(consumer, pipeline)
             await consumer.close(code=4003)
             return
-        raise
+        await send_decline(consumer, "container selection", e, code=4010)
+        return
 
     # Check SLURM availability; try daemon recovery for transient states
     slurm_available, slurm_status = await asyncio.to_thread(check_slurm_status)
@@ -169,6 +179,7 @@ async def spawn_via_broker(consumer):
             container_path=SLURM_CONTAINER_PATH,
             project_slug=project_slug,
             tmux_session=consumer.screen_session,
+            provider=getattr(consumer, "provider", ""),
         )
 
         if not session_id:
@@ -200,21 +211,45 @@ async def spawn_direct(consumer):
     Args:
         consumer: TerminalConsumer instance.
     """
+    from apps.workspace.console_app.services.terminal_provider import (
+        DEFAULT_PROVIDER,
+    )
+
+    if getattr(consumer, "provider", DEFAULT_PROVIDER) != DEFAULT_PROVIDER:
+        # Provider env injection is broker-only (the broker resolves the
+        # user's key server-side). No silent fallback to the default
+        # backend in deprecated direct mode.
+        await consumer.send(
+            text_data=(
+                "\x1b[1;31m❌ Model-provider sessions need the terminal "
+                "broker, which is currently unavailable. Retry shortly or "
+                "open a default terminal.\x1b[0m\r\n"
+            )
+        )
+        await consumer.close(code=4010)
+        return
+
     username = consumer.project.owner.username
     project_slug = consumer.project.slug
     user_data_dir = USER_DATA_ROOT / username
     project_dir = user_data_dir / "proj" / project_slug
 
-    await ensure_workspace(user_data_dir, username, project_slug)
+    stage = "workspace setup"
+    try:
+        await ensure_workspace(user_data_dir, username, project_slug)
 
-    # Auto-generate AI tool configs (user-home defaults + project-level)
-    await asyncio.to_thread(
-        consumer._setup_ai_configs,
-        user_data_dir,
-        project_dir,
-        consumer.project.name,
-        username,
-    )
+        stage = "AI config setup"
+        # Auto-generate AI tool configs (user-home defaults + project-level)
+        await asyncio.to_thread(
+            consumer._setup_ai_configs,
+            user_data_dir,
+            project_dir,
+            consumer.project.name,
+            username,
+        )
+    except Exception as exc:
+        await send_decline(consumer, stage, exc, code=4010)
+        return
 
     try:
         container_path = await asyncio.to_thread(
@@ -227,12 +262,19 @@ async def spawn_direct(consumer):
             await consumer.send(text_data=f"\x1b[1;31m❌ {e}\x1b[0m\r\n")
             await consumer.close(code=4003)
             return
-        raise
+        await send_decline(consumer, "container selection", e, code=4010)
+        return
 
     slurm_available, slurm_status = await asyncio.to_thread(check_slurm_status)
     if not slurm_available:
-        logger.error(f"SLURM unavailable ({slurm_status})")
-        await consumer.close(code=4003)
+        # Permanent, fail-closed decline — previously closed 4003 with NO
+        # message frame (a mute decline; the visitor saw nothing).
+        await send_decline(
+            consumer,
+            "slurm",
+            code=4003,
+            detail=f"computing resources unavailable ({slurm_status})",
+        )
         return
 
     # Block signals during PTY fork to prevent "Interrupted system call"

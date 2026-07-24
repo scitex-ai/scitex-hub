@@ -3,7 +3,8 @@
 """
 Django settings for SciTeX Hub project.
 Base settings shared across all environments.
-Sub-modules: settings_celery, settings_logging, settings_auth, settings_integrations
+Sub-modules: settings_celery, settings_logging, settings_auth,
+settings_integrations, settings_commerce
 """
 
 import os
@@ -11,6 +12,7 @@ from pathlib import Path
 
 import scitex as stx
 
+from config import branding
 from config._env import (
     getenv_with_legacy_alias as _getenv_alias,
 )
@@ -74,28 +76,44 @@ def _get_version():
 
 
 # ---------------------------------------
+# Environment identity
+# ---------------------------------------
+# Drives the tab title marker AND the favicon colour, so an operator can tell
+# prod / staging / dev apart from the browser tab alone.
+#
+# Declared here so there is ALWAYS a value; each concrete settings module
+# (settings_dev / settings_staging / settings_prod) then OVERRIDES it with its
+# literal environment -- that override, not this env-var default, is the
+# source of truth. `normalize_env` raises on an unknown value, so a typo fails
+# fast at boot instead of silently serving the wrong environment's favicon.
+SCITEX_ENV = branding.normalize_env(os.environ.get("SCITEX_HUB_ENV", "development"))
+
+# The hub always renders apps EMBEDDED. A standalone SciTeX app (e.g.
+# `scitex-writer gui` on its own port) sets this to branding.MODE_STANDALONE
+# so its tab reads "Writer — SciTeX (standalone)" instead of "Writer — SciTeX".
+SCITEX_APP_MODE = branding.MODE_HUB
+
+# ---------------------------------------
 # Paths
 # ---------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 ROOT_URLCONF = "config.urls"
-# LOG_DIR lives under GITIGNORED/ (project convention for runtime
-# artifacts) — keeps the repo root clean and satisfies PS-102 (no
-# top-level forbidden dirs). The env var SCITEX_HUB_LOG_DIR lets
-# operators redirect logs in production without code changes.
-LOG_DIR = Path(os.environ.get("SCITEX_HUB_LOG_DIR", BASE_DIR / "GITIGNORED" / "logs"))
-if not os.path.exists(LOG_DIR):
-    os.makedirs(LOG_DIR, exist_ok=True)
+# NOTE: LOG_DIR is deliberately NOT computed here. It is owned by
+# settings_logging.py (the module that actually builds the
+# RotatingFileHandlers) and reaches this module's namespace via
+# `from .settings_logging import *` below. A duplicate computation used
+# to live here too; it was dead code (silently overwritten by that
+# import) that also created an unused GITIGNORED/logs directory on every
+# boot. Removed together with the GITIGNORED/logs fallback itself -- see
+# incident hub-prod-outage-celery-log-permission (2026-07-09/10).
 
-STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [BASE_DIR / "static", BASE_DIR / ".jsbuild"]
-STATICFILES_FINDERS = [
-    "django.contrib.staticfiles.finders.FileSystemFinder",
-    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-    "apps.workspace.apps_app.finders.DevAppStaticFinder",
-]
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+# Static/media config (incl. the content-hashing storage backend) lives in
+# settings_static.py — see the long note there on why the hashing is
+# load-bearing, not cosmetic.
+from .settings_static import *  # noqa: F401,F403,E402
+from .settings_static import configure as _configure_static  # noqa: E402
+
+globals().update(_configure_static(BASE_DIR))
 
 # Vite dev server port for dev app TypeScript (container Vite)
 VITE_DEV_APP_PORT = 5174
@@ -166,13 +184,97 @@ try:
 except ImportError:
     pass
 
+# Optional: upstream scitex-writer app (contract-compliant _django app;
+# URL-mounted under /writer/ in config/urls.py). The explicit AppConfig
+# path is required: writer's apps.py holds two AppConfig candidates (the
+# imported ScitexAppConfig base + WriterEditorConfig, no default=True),
+# so a bare module entry falls back to label "_django" and collides with
+# figrecipe._django's identical fallback.
+try:
+    import scitex_writer  # noqa: F401
+
+    THIRD_PARTY_APPS.append("scitex_writer._django.apps.WriterEditorConfig")
+except ImportError:
+    pass
+
+# Optional: upstream scitex-storage app (contract-compliant _django app;
+# URL-mounted under /apps/storage/ in config/urls.py). StorageConfig sets
+# default=True and a unique label ("scitex_storage_django"), so the mount
+# is collision-free; the explicit AppConfig path mirrors the writer/todo
+# entries above.
+#
+# Gate on the _django SUBMODULE (not just the top-level package): the
+# AppConfig we append lives in scitex_storage._django.apps, so a
+# scitex_storage installed WITHOUT its _django app (an older published
+# wheel, or a checkout from before its _django app merged) must skip
+# cleanly here rather than crash Django app-loading with
+# "ModuleNotFoundError: No module named 'scitex_storage._django'".
+try:
+    import scitex_storage._django  # noqa: F401
+
+    THIRD_PARTY_APPS.append("scitex_storage._django.apps.StorageConfig")
+except ImportError:
+    pass
+
+# Optional: upstream scitex-todo board app (contract-compliant _django app;
+# URL-mounted under /todo/ in config/urls.py). The explicit AppConfig
+# path mirrors the writer entry above: todo's apps.py holds two AppConfig
+# candidates (the imported ScitexAppConfig base + ScitexTodoConfig, no
+# default=True), so a bare module entry falls back to label "_django"
+# and collides with figrecipe._django's identical fallback.
+try:
+    import scitex_todo  # noqa: F401
+
+    THIRD_PARTY_APPS.append("scitex_todo._django.apps.ScitexTodoConfig")
+
+    # Tenancy: the board's service layer (scitex_todo._django.services)
+    # unions host-side per-project lanes (default glob
+    # ~/proj/*/.scitex/todo/tasks.yaml) into every board load. On the hub
+    # each request must see ONLY the requesting user's workspace store
+    # (injected by apps.workspace.todo_app.middleware), so lane discovery
+    # is explicitly disabled — an empty glob list is the documented
+    # opt-out seam in that module.
+    os.environ["SCITEX_TODO_LANE_GLOBS"] = ""
+except ImportError:
+    pass
+
 LOCAL_APPS = discover_local_apps()
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+
+# Mirrors config.context_processors.scitex_env's alias normalization.
+# Duplicated (not imported) because that module is only safe to import
+# once Django app-loading has finished; settings modules must not
+# depend on it. scitex-ui>=0.6.1 is required — 0.6.0 never shipped
+# middleware.py (merged after that release was cut), and anything
+# older than 0.6.1 is sync-only and deadlocks daphne under ASGI (see
+# scitex-ui PR #59).
+_scitex_hub_env = os.environ.get("SCITEX_HUB_ENV", "development").lower()
+if _scitex_hub_env in ("dev",):
+    _scitex_hub_env = "development"
+elif _scitex_hub_env in ("stag",):
+    _scitex_hub_env = "staging"
+elif _scitex_hub_env in ("prod",):
+    _scitex_hub_env = "production"
+SCITEX_UI_ELEMENT_INSPECTOR = _scitex_hub_env in ("development", "staging")
+
+# ── On-site agent auth (HMAC shared secret) ────────────────────────────
+# Shared with the MCP client running inside the user's agent container
+# (scitex_hub._mcp_tools.api.get_on_site_env injects the same value as
+# SCITEX_HUB_ONSITE_SECRET). OnSiteAuthMiddleware verifies an HMAC over
+# (username, timestamp) against it. Empty => on-site auth is DISABLED
+# (fail closed); it is never a "trusted network" fallback, because the
+# previous IP-based signal was client-forgeable (X-Forwarded-For).
+ONSITE_AUTH_SECRET = os.environ.get("SCITEX_HUB_ONSITE_SECRET", "")
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    # i18n rails (F: tokushoho/commerce pages). Locale resolution must sit
+    # after SessionMiddleware and before CommonMiddleware per Django docs.
+    # Scope decision: only legal/landing surfaces are authored in Japanese
+    # for now — the app interior stays untranslated.
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -187,9 +289,27 @@ MIDDLEWARE = [
     "apps.infra.project_app.middleware.VisitorAutoLoginMiddleware",
     "apps.infra.project_app.middleware.VisitorExpirationMiddleware",
     "apps.infra.project_app.middleware.VisitorAppRedirectMiddleware",
+    # Default-deny site-wide write guard for the shared readonly-visitor
+    # role (card hub-visitor-slot-isolation-audit — closes the exact gap
+    # that produced the field-found "Plaque" leak: per-view opt-in guards
+    # had missed project creation entirely). Must run AFTER
+    # VisitorAutoLoginMiddleware so request.user/session-role is final.
+    # Per-view guards (file_save.py, todo_app middleware below) still
+    # apply first for their richer error copy; this is the safety net.
+    "apps.infra.project_app.middleware_readonly_write_guard.ReadonlyVisitorWriteGuardMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.infra.project_app.middleware.GuestSessionMiddleware",
+    # Scope the mounted scitex-todo board (/todo/) to the requesting
+    # user's workspace store + enforce the phase-1 read-only gate. Must
+    # run AFTER Authentication + VisitorAutoLogin so request.user is
+    # final; no-ops in one prefix check for every other path (and when
+    # the scitex_todo package is not installed).
+    "apps.workspace.todo_app.middleware.TodoBoardTenancyMiddleware",
+    # Injects the Alt+I element inspector into HTML responses when
+    # SCITEX_UI_ELEMENT_INSPECTOR is on (see above). Async-capable as
+    # of scitex-ui 0.6.1 — do not downgrade below that pin.
+    "scitex_ui.middleware.ElementInspectorMiddleware",
 ]
 
 AUTHENTICATION_BACKENDS = [
@@ -314,6 +434,17 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
+# i18n rails — English default, Japanese for legal/landing pages
+# (特定商取引法に基づく表記 etc.). Message catalogs live in locale/;
+# regenerate with:
+#   python manage.py makemessages -l ja
+#   python manage.py compilemessages
+LANGUAGES = [
+    ("en", "English"),
+    ("ja", "日本語"),
+]
+LOCALE_PATHS = [BASE_DIR / "locale"]
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 EMAIL_BACKEND = _getenv_alias("SCITEX_HUB_EMAIL_BACKEND")
@@ -342,6 +473,7 @@ SCITEX_HUB_CAMPAIGN_DAILY_LIMIT = _getenv_alias("SCITEX_HUB_CAMPAIGN_DAILY_LIMIT
 # ---------------------------------------
 from .settings_auth import *  # noqa: E402, F401, F403
 from .settings_celery import *  # noqa: E402, F401, F403
+from .settings_commerce import *  # noqa: E402, F401, F403
 from .settings_integrations import *  # noqa: E402, F401, F403
 from .settings_logging import *  # noqa: E402, F401, F403
 

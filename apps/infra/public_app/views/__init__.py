@@ -25,8 +25,18 @@ from .api import (
 )
 from .landing import index, premium_subscription
 
+# Billing (Stripe scaffold)
+from .billing import billing_checkout, stripe_webhook
+
 # Legal pages
-from .legal import contact, cookie_policy, donate, privacy_policy, terms_of_use
+from .legal import (
+    contact,
+    cookie_policy,
+    donate,
+    privacy_policy,
+    terms_of_use,
+    tokushoho,
+)
 
 # Information pages
 from .pages import (
@@ -38,6 +48,9 @@ from .pages import (
     open_source,
     pricing,
     publications,
+    recruit,
+    security,
+    services,
     setup_guide,
     video_player,
 )
@@ -84,14 +97,21 @@ __all__ = [
     "publications",
     "fundraising",
     "pricing",
+    "services",
+    "security",
     "contributors",
     "keyboard_shortcuts",
+    "recruit",
     # Legal
     "contact",
     "donate",
     "privacy_policy",
     "terms_of_use",
     "cookie_policy",
+    "tokushoho",
+    # Billing
+    "billing_checkout",
+    "stripe_webhook",
     # Status
     "server_status",
     "server_status_api",

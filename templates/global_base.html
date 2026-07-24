@@ -1,9 +1,10 @@
-{% load static vite %}
+{% load static vite branding_tags %}
 
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>{% include 'global_base_partials/page_title.html' %}</title>
+        {# Single source of truth for tab titles: config/branding.py #}
+        <title>{% page_title %}</title>
         {% include 'global_base_partials/global_head_meta.html' %}
         {% include 'global_base_partials/global_head_styles.html' %}
         <!-- Umami Analytics (privacy-focused, no cookies) -->
@@ -17,12 +18,13 @@
         {% block extra_css %}{% endblock %}
     </head>
     <body data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}"
-          data-user-type="{% if user.is_authenticated and user.username == 'readonly-visitor' %}read-only{% elif user.is_authenticated and user.username|slice:':8' == 'visitor-' %}visitor{% elif user.is_authenticated %}registered{% else %}anonymous{% endif %}"
+          data-session-role="{{ session_role|default:'anonymous' }}"
+          data-user-type="{% if session_role == 'readonly_visitor' %}read-only{% elif session_role == 'visitor' %}visitor{% elif user.is_authenticated %}registered{% else %}anonymous{% endif %}"
           {% if user.is_authenticated %}data-current-username="{{ user.username }}"{% endif %}
           data-track-module="{% if active_module %}{{ active_module.get_track_module }}{% elif '/server-status' in request.path %}server_status{% elif '/explore/' in request.path %}explore{% elif '/workspace/' in request.path %}files{% endif %}"
           {% if request.initial_pane %}data-initial-pane="{{ request.initial_pane }}"{% endif %}
           {% if request.chat_session_token %}data-chat-session-token="{{ request.chat_session_token }}"{% endif %}
-          class="{% if request.path == '/' or request.path == '/landing/' %}workspace-page{% if not user.is_authenticated or user.username|slice:':8' == 'visitor-' or user.username == 'readonly-visitor' %} landing-page{% endif %}{% if user.is_authenticated %} no-transition{% endif %}{% elif active_module %}workspace-page {{ active_module.body_class }} no-transition{% elif '/workspace/' in request.path %}workspace-page no-transition{% elif '/explore/' in request.path %}workspace-page explore-page{% endif %}">
+          class="{% if request.path == '/' or request.path == '/landing/' %}workspace-page{% if not user.is_authenticated %} landing-page{% endif %}{% if user.is_authenticated %} no-transition{% endif %}{% elif active_module %}workspace-page {{ active_module.body_class }} no-transition{% elif '/workspace/' in request.path %}workspace-page no-transition{% elif '/explore/' in request.path %}workspace-page explore-page{% endif %}">
         <!-- Loading screen — hides FOUC until CSS/JS adds body.app-ready -->
         <!-- hook-bypass: inline-script -->
         <div id="app-loading-screen">
@@ -69,8 +71,11 @@
             <div id="workspace-layout" class="workspace-layout">
                 {% include 'global_base_partials/workspace_sidebar.html' %}
                 <div id="workspace-content" class="workspace-content">
-                    <!-- Chat pane: welcome overlay + AI panel (chat mode) -->
-                    <div class="workspace-pane" id="pane-chat" data-pane="chat">
+                    <!-- Chat pane: welcome overlay + AI panel (chat mode).
+                         Server-renders active on /chat/ (request.initial_pane
+                         == 'chat') so the snake welcome pane shows immediately,
+                         independent of the sidebar switch JS booting. -->
+                    <div class="workspace-pane{% if request.initial_pane == 'chat' %} active{% endif %}" id="pane-chat" data-pane="chat">
                         {% include 'global_base_partials/workspace_chat_pane.html' %}
                         <div id="ai-panel-container">{% include 'global_base_partials/workspace_ai_pane.html' %}</div>
                     </div>
@@ -87,8 +92,10 @@
                             <div class="editor-split-right">{% include 'global_base_partials/workspace_viewer_pane.html' %}</div>
                         </div>
                     </div>
-                    <!-- Module pane (active module content) -->
-                    <div class="workspace-pane active" id="pane-module" data-pane="module">
+                    <!-- Module pane (active module content). Default-active on
+                         every workspace page EXCEPT /chat/, where the chat pane
+                         above takes over. -->
+                    <div class="workspace-pane{% if request.initial_pane != 'chat' %} active{% endif %}" id="pane-module" data-pane="module">
                     {% else %}
                         <!-- Non-workspace pages: standard layout with header -->
                         {% if not workspace_has_panes or not user.is_authenticated %}

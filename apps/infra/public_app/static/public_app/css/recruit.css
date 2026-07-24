@@ -1,0 +1,55 @@
+/* Recruit page (/recruit/) — OSS contributor recruitment.
+ * Reuses the about-page layout (about-container / about-narrative /
+ * about-section); theme-variable driven so dark mode works untouched. */
+
+.repo-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.repo-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.repo-link:hover {
+  border-color: var(--color-accent-fg);
+  color: var(--color-accent-fg);
+  text-decoration: none;
+}
+
+.recruit-list {
+  list-style: disc;
+  padding-left: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.recruit-lang-divider {
+  border: 0;
+  border-top: 1px solid var(--border-default);
+  margin: 3rem 0;
+}
+
+.recruit-en-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+/* EOF */

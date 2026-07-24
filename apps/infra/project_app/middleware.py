@@ -19,6 +19,11 @@ import logging
 from asgiref.sync import iscoroutinefunction, markcoroutinefunction, sync_to_async
 from django.contrib.auth import login
 
+# Back-compat re-export: settings_shared.MIDDLEWARE references
+# "apps.infra.project_app.middleware.OnSiteAuthMiddleware". The class now
+# lives in its own module so the trust decision is small and auditable.
+from .middleware_onsite_auth import OnSiteAuthMiddleware  # noqa: F401
+
 logger = logging.getLogger(__name__)
 
 
@@ -138,8 +143,13 @@ class VisitorAutoLoginMiddleware:
                     f"[Middleware] Auto-logged in visitor: {visitor_user.username} for {path}"
                 )
             else:
-                # Pool full — fall back to shared readonly-visitor
+                # No writable slot — fall back to shared readonly-visitor
                 try:
+                    from apps.infra.project_app.services.visitor_pool import (
+                        SESSION_KEY_READONLY_NOTICE,
+                        get_readonly_reason,
+                    )
+
                     readonly_user = User.objects.get(
                         username=VisitorPool.READONLY_VISITOR_USERNAME
                     )
@@ -149,8 +159,16 @@ class VisitorAutoLoginMiddleware:
                         backend="django.contrib.auth.backends.ModelBackend",
                     )
                     request.session["is_readonly_visitor"] = True
+                    # Fail-loud UX (card hub-visitor-ux-allapps): the next
+                    # rendered page explains WHY the session is read-only,
+                    # using the structured reason allocate_visitor recorded
+                    # (pool_full vs no_ready_slot — NOT hardcoded pool-full).
+                    # Popped once by visitor_expiration_context.
+                    downgrade_reason = get_readonly_reason(request.session)
+                    request.session[SESSION_KEY_READONLY_NOTICE] = downgrade_reason
                     logger.info(
-                        f"[Middleware] Pool full, logged in as readonly-visitor for {path}"
+                        f"[Middleware] No writable slot ({downgrade_reason}), "
+                        f"logged in as readonly-visitor for {path}"
                     )
                 except User.DoesNotExist:
                     logger.error(
@@ -220,8 +238,14 @@ class VisitorExpirationMiddleware:
         if not request.user.is_authenticated:
             return None
 
-        # Skip if not a visitor user (readonly-visitor also skipped here)
-        if not request.user.username.startswith("visitor-"):
+        # Skip if not a writable pool visitor (canonical session-role model;
+        # readonly-visitor has no allocation to expire, so it is skipped too)
+        from apps.infra.project_app.services.visitor_pool import (
+            ROLE_VISITOR,
+            get_session_role,
+        )
+
+        if get_session_role(request) != ROLE_VISITOR:
             return None
 
         # Skip certain paths to avoid redirect loops and allow access to essential pages
@@ -274,7 +298,18 @@ class VisitorExpirationMiddleware:
                     f"[Middleware] Visitor {request.user.username} expired, auto-reallocating..."
                 )
 
-                # Clear visitor allocation from session
+                # Release the slot through the SAME pipeline as every
+                # other path (audit fix #3): marks the allocation
+                # inactive + workspace_ready=False, enqueues the async
+                # wipe+verify reset, and pops the session keys. The slot
+                # is NOT reusable until the reset verifies clean —
+                # previously this block only popped session keys, so the
+                # expired visitor's files stayed in place for the next
+                # allocation.
+                VisitorPool.deallocate_visitor(request.session)
+
+                # Defensive: ensure session keys are gone even if no
+                # allocation row matched the token.
                 request.session.pop(VisitorPool.SESSION_KEY_PROJECT_ID, None)
                 request.session.pop(VisitorPool.SESSION_KEY_VISITOR_ID, None)
                 request.session.pop(VisitorPool.SESSION_KEY_ALLOCATION_TOKEN, None)
@@ -344,63 +379,6 @@ class VisitorAppRedirectMiddleware:
         # Pass-through: in async mode Django sees markcoroutinefunction and
         # awaits the coroutine returned here; in sync mode this is the response.
         return self.get_response(request)
-
-
-class OnSiteAuthMiddleware:
-    """
-    Authenticate MCP tool requests from on-site agents (same container).
-
-    When the MCP server runs alongside Django (on-site), it sends
-    X-SciTeX-OnSite: <username> instead of Bearer token auth.
-    Only accepts requests from trusted Docker/localhost origins.
-    """
-
-    TRUSTED_PREFIXES = ("127.", "10.", "172.", "192.168.", "::1")
-
-    sync_capable = True
-    async_capable = True
-
-    def __init__(self, get_response):
-        self.get_response = get_response
-        if iscoroutinefunction(get_response):
-            markcoroutinefunction(self)
-
-    def __call__(self, request):
-        if iscoroutinefunction(self.get_response):
-            return self._acall(request)
-        self._sync_body(request)
-        return self.get_response(request)
-
-    async def _acall(self, request):
-        await sync_to_async(self._sync_body, thread_sensitive=True)(request)
-        return await self.get_response(request)
-
-    def _sync_body(self, request):
-        if request.user.is_authenticated:
-            return
-
-        username = request.META.get("HTTP_X_SCITEX_ONSITE")
-        if not username:
-            return
-
-        # Only trust internal network sources
-        remote_ip = request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip()
-        if not remote_ip:
-            remote_ip = request.META.get("REMOTE_ADDR", "")
-        if not any(remote_ip.startswith(p) for p in self.TRUSTED_PREFIXES):
-            logger.warning("OnSite auth rejected from untrusted IP: %s", remote_ip)
-            return
-
-        from django.contrib.auth.models import User
-
-        try:
-            user = User.objects.get(username=username)
-            request.user = user
-            request._on_site_auth = True
-            # Exempt from CSRF — MCP tools don't have CSRF tokens
-            request._dont_enforce_csrf_checks = True
-        except User.DoesNotExist:
-            logger.warning("OnSite auth: user %s not found", username)
 
 
 class GuestSessionMiddleware:

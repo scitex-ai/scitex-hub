@@ -33,7 +33,12 @@ urlpatterns = [
     # path("vision/", views.vision, name="vision"),
     path("publications/", views.publications, name="publications"),
     path("contributors/", views.contributors, name="contributors"),
+    path("recruit/", views.recruit, name="recruit"),
     path("pricing/", views.pricing, name="pricing"),
+    # Services + inquiry (cash-runway entry point; JP-first)
+    path("services/", views.services, name="services"),
+    # Public security / trust page (implemented protections + live test count)
+    path("security/", views.security, name="security"),
     # Reference pages
     path("keyboard-shortcuts/", views.keyboard_shortcuts, name="keyboard_shortcuts"),
     # Legal and contact pages
@@ -42,6 +47,12 @@ urlpatterns = [
     path("privacy/", views.privacy_policy, name="privacy"),
     path("terms/", views.terms_of_use, name="terms"),
     path("cookies/", views.cookie_policy, name="cookies"),
+    # 特定商取引法に基づく表記 (legally required before charging JP customers)
+    path("tokushoho/", views.tokushoho, name="tokushoho"),
+    # Billing (Stripe scaffold; checkout is staff-only while testing,
+    # webhook is CSRF-exempt but signature-verified)
+    path("billing/checkout/", views.billing_checkout, name="billing_checkout"),
+    path("billing/webhook/stripe/", views.stripe_webhook, name="stripe_webhook"),
     # Demo page
     path("demo/", views.demo, name="demo"),
     # Web API documentation
