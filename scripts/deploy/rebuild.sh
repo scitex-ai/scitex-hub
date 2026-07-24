@@ -6,9 +6,9 @@
 #   env: dev, staging, or prod
 #
 # REBUILD_STEPS (single source of truth - used by 'make help-commands'):
-#   1. slurm-clean   - Cancel ALL SLURM jobs and reset node state
-#   2. build         - Build new images while the OLD stack keeps serving
-#   3. clear-vite    - Clear vite timestamp (forces TypeScript rebuild)
+#   1. build         - Build new images while the OLD stack keeps serving
+#   2. clear-vite    - Clear vite timestamp (forces TypeScript rebuild)
+#   3. slurm-clean   - Cancel ALL SLURM jobs and reset node state
 #   4. up            - Swap in new containers (recreate only changed services)
 #   5. apptainer     - Fix Apptainer sandbox permissions
 #   6. cache-purge   - Purge Cloudflare cache
@@ -130,10 +130,56 @@ fi
 echo ""
 echo -e "${CYAN}🔄 Rebuilding ${ENV} environment...${NC}"
 
-# Step 1: Clean SLURM state (before swapping containers)
-echo -e "${CYAN}  1. Cleaning SLURM state...${NC}"
+# Compose must run from the environment's docker directory.
 cd "$DOCKER_DIR"
 DJANGO_CONTAINER="scitex-hub-${ENV}-django-1"
+
+# Step 1: Build images WHILE THE OLD STACK KEEPS SERVING.
+# CRITICAL (constitution §2 "no surprises"): we deliberately do NOT
+# 'docker compose down' before building. The previous containers — nginx,
+# cloudflared, django, postgres, redis, gitea — stay UP and keep serving
+# traffic for the entire ~10-min build. Only after the build succeeds does
+# Step 4 ('up -d') swap the app containers, so the site stays reachable during
+# a rebuild (prod: no more 530; staging: no connection-refused for the whole
+# build). 'docker compose build' touches images only, never the running
+# containers, so serving is unaffected here.
+echo -e "${CYAN}  1. Building Docker images (old stack still serving; CPU-limited to keep SSH alive)...${NC}"
+export DOCKER_BUILDKIT=1
+# nice -n 10: lower priority so SSH/system processes win CPU contention
+# shellcheck disable=SC2086  # COMPOSE_CMD intentionally word-splits (e.g. "docker compose")
+nice -n 10 $COMPOSE_CMD build
+
+# Step 2: Clear vite timestamp (forces TypeScript rebuild on the new container)
+echo -e "${CYAN}  2. Clearing vite timestamp (forces TypeScript rebuild)...${NC}"
+# Prod uses external volumes named scitex-hub-nas_* (per docker_prod/docker-compose.yml
+# `external: true, name: scitex-hub-nas_*` declarations); dev/staging use auto-created
+# project-namespaced scitex-hub-${ENV}_*. Without this branch, the prod path silently
+# no-op'd on a volume that doesn't exist — surfaced 2026-06-06 cutover postmortem.
+if [ "$ENV" = "prod" ]; then
+    STATIC_VOL="scitex-hub-nas_static_volume"
+else
+    STATIC_VOL="scitex-hub-${ENV}_static_volume"
+fi
+docker run --rm -v "${STATIC_VOL}:/staticfiles" alpine \
+    rm -f /staticfiles/vite/.build-timestamp 2>/dev/null || true
+
+# Step 3: Clean SLURM state — deliberately the LAST thing before the swap.
+#
+# ORDERING IS THE POINT (incident 2026-07-24, card
+# hub-rebuild-cancels-slurm-before-fragile-build): this block used to run FIRST,
+# before the build. Cancelling every running job is IRREVERSIBLE and destroys
+# users' in-flight compute; the build is the step most likely to FAIL (e.g. the
+# env-file interpolation failure in hub-make-rebuild-drops-env-file). Running the
+# irreversible step ahead of the fragile one meant every failed deploy attempt
+# cost users their running jobs for a deploy that never happened — and on
+# 2026-07-24 it did exactly that: `make ENV=prod YES=1 rebuild` cancelled all
+# SLURM jobs, then aborted in the build.
+#
+# The cancellation exists to prevent STALE JOB IDs surviving the container swap,
+# so its only real requirement is "before the swap". Moving it here preserves
+# that intent exactly while making a failed build cost nothing: if the build
+# aborts, `set -e` exits above this point and no job is ever cancelled.
+echo -e "${CYAN}  3. Cleaning SLURM state (build succeeded; safe to cancel now)...${NC}"
 if docker ps --format '{{.Names}}' | grep -q "^${DJANGO_CONTAINER}$"; then
     docker exec "$DJANGO_CONTAINER" bash -c '
         if command -v scancel &>/dev/null; then
@@ -154,35 +200,6 @@ if docker ps --format '{{.Names}}' | grep -q "^${DJANGO_CONTAINER}$"; then
 else
     echo -e "${YELLOW}   Django container not running — SLURM cleanup skipped${NC}"
 fi
-
-# Step 2: Build images WHILE THE OLD STACK KEEPS SERVING.
-# CRITICAL (constitution §2 "no surprises"): we deliberately do NOT
-# 'docker compose down' before building. The previous containers — nginx,
-# cloudflared, django, postgres, redis, gitea — stay UP and keep serving
-# traffic for the entire ~10-min build. Only after the build succeeds does
-# Step 4 ('up -d') swap the app containers, so the site stays reachable during
-# a rebuild (prod: no more 530; staging: no connection-refused for the whole
-# build). 'docker compose build' touches images only, never the running
-# containers, so serving is unaffected here.
-echo -e "${CYAN}  2. Building Docker images (old stack still serving; CPU-limited to keep SSH alive)...${NC}"
-export DOCKER_BUILDKIT=1
-# nice -n 10: lower priority so SSH/system processes win CPU contention
-# shellcheck disable=SC2086  # COMPOSE_CMD intentionally word-splits (e.g. "docker compose")
-nice -n 10 $COMPOSE_CMD build
-
-# Step 3: Clear vite timestamp (forces TypeScript rebuild on the new container)
-echo -e "${CYAN}  3. Clearing vite timestamp (forces TypeScript rebuild)...${NC}"
-# Prod uses external volumes named scitex-hub-nas_* (per docker_prod/docker-compose.yml
-# `external: true, name: scitex-hub-nas_*` declarations); dev/staging use auto-created
-# project-namespaced scitex-hub-${ENV}_*. Without this branch, the prod path silently
-# no-op'd on a volume that doesn't exist — surfaced 2026-06-06 cutover postmortem.
-if [ "$ENV" = "prod" ]; then
-    STATIC_VOL="scitex-hub-nas_static_volume"
-else
-    STATIC_VOL="scitex-hub-${ENV}_static_volume"
-fi
-docker run --rm -v "${STATIC_VOL}:/staticfiles" alpine \
-    rm -f /staticfiles/vite/.build-timestamp 2>/dev/null || true
 
 # Step 4: Swap in the new containers ("swap-last" half of build-first/swap-last).
 # 'up -d' recreates ONLY the services whose image or config changed — i.e. the
