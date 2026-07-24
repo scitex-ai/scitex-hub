@@ -75,10 +75,16 @@ def api_create_symlink(request, username, slug):
     source_full = (project_root / source_path).resolve()
     target_full = (project_root / target_path).resolve()
 
-    # Security check: both paths must be within project root
+    # Security check: component-wise containment for BOTH paths, not a string
+    # prefix match. A symlink is a PERSISTENT escape hatch that survives any
+    # later code fix, so this guard must be exact. Ownership is already
+    # enforced by get_object_or_404(Project, slug, owner=user) +
+    # check_project_write_access above.
+    from ....services.filesystem.permissions import validate_path_in_project
+
     if not (
-        str(source_full).startswith(str(project_root.resolve()))
-        and str(target_full).startswith(str(project_root.resolve()))
+        validate_path_in_project(project_root, source_full)
+        and validate_path_in_project(project_root, target_full)
     ):
         return JsonResponse(
             {"success": False, "error": "Paths must be within project directory"},

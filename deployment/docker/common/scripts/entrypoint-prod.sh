@@ -59,26 +59,107 @@ fi
 # failure mode the quarantine fail-safe was built against).
 if [[ ! "$*" =~ "celery" ]]; then
     echo_info "Initializing visitor pool..."
-    python manage.py create_visitor_pool --verbosity 0 2>&1 | grep -v "ERRO\|WARN" || true
-    # Boot fail-safe: quarantine every slot as unverified (synchronous,
-    # DB-only), then ENQUEUE the per-slot wipe+verify re-clean to Celery via
-    # --async. This takes the multi-minute clone loop OFF the web-serving
-    # startup path so Django serves immediately (the old inline reconcile left
-    # django-1 "Up (unhealthy)" for minutes after a deploy). Slots stay
-    # quarantined (not allocatable) until a worker verifies each clean —
-    # visitors get the readonly-visitor fallback during the async window, so
-    # visitor-slot isolation is unchanged.
-    python manage.py reconcile_visitor_slots --async 2>&1 | grep -v "ERRO\|WARN" || true
-    echo_success "Visitor pool ready (re-clean dispatched async; only verified-clean slots distributable)"
+    # Every command below runs inside an `if` so a failure cannot abort boot
+    # (set -e): a read-only site beats a site that will not start. But it must
+    # never again fail QUIETLY — see the SLURM note below.
+    if ! python manage.py create_visitor_pool --verbosity 0; then
+        echo_error "create_visitor_pool FAILED — visitor slots may not exist"
+    fi
+
+    # Preflight the re-clean's hard dependency. Releasing a slot tears down the
+    # visitor's apptainer instance, CANCELS its SLURM job, and VERIFIES both are
+    # gone (container_teardown.py) — a reconnect otherwise ATTACHES to the still
+    # running job, landing visitor N+1 inside visitor N's live container. With no
+    # SLURM controller that verification is impossible, so every re-clean fails,
+    # every slot stays quarantined, and EVERY visitor silently drops to read-only.
+    # That is the fail-safe working correctly — but it is invisible from the
+    # outside, and it cost us >24h on 2026-07-13. Say it out loud.
+    if ! timeout 10 squeue -h > /dev/null 2>&1; then
+        echo_error "SLURM controller UNREACHABLE (squeue failed)"
+        echo_error "  -> every visitor-slot re-clean WILL fail and quarantine its slot"
+        echo_error "  -> so EVERY visitor gets a READ-ONLY workspace until this is fixed"
+        echo_error "  -> fix on the host: sudo systemctl start slurmctld slurmd && sinfo"
+    fi
+
+    # Boot fail-safe: quarantine every slot as unverified (synchronous, DB-only),
+    # then ENQUEUE the per-slot wipe+verify re-clean to Celery via --async. This
+    # keeps the multi-minute clone loop OFF the web-serving startup path so Django
+    # serves immediately (the old inline reconcile left django-1 "Up (unhealthy)"
+    # for minutes after a deploy). Slots stay quarantined (not allocatable) until
+    # a worker verifies each clean — visitors get the readonly-visitor fallback
+    # during the async window, so visitor-slot isolation is unchanged.
+    if python manage.py reconcile_visitor_slots --async; then
+        # NOT "pool ready" — nothing is allocatable yet. Each slot becomes
+        # distributable only when a worker proves it wiped clean.
+        echo_success "Visitor-slot re-clean DISPATCHED (slots become allocatable as each verifies clean)"
+    else
+        echo_error "reconcile_visitor_slots --async FAILED to dispatch"
+        echo_error "  -> slots stay quarantined and ALL visitors will be READ-ONLY"
+    fi
 else
     echo_info "Skipping visitor pool init (celery service)"
 fi
 
 # ============================================
+# Workspace apps + npm/Vite build — web container ONLY
+# ============================================
+# Skip BOTH the workspace-app editable install AND the npm/Vite frontend
+# build in the celery services. One guard, two payoffs:
+#   1. Celery never serves the frontend, so the Vite bridge build + npm
+#      install are pure wasted work in celery_{worker,beat}.
+#   2. It removes the uv-cache CONTAMINATION AT ITS SOURCE. celery_{worker,
+#      beat} override the compose entrypoint to run THIS script directly
+#      (no /root-init.sh, hence no gosu drop) — i.e. AS ROOT. A root-run
+#      install_apps.sh `uv pip install` seeds the SHARED uv_cache_volume
+#      (UV_CACHE_DIR=/app/.cache/uv, mounted by django AND celery) with
+#      ROOT-OWNED files like .cache/uv/sdists-v9/.git. django runs as the
+#      scitex user, so its own boot-time `uv pip install -e scitex-ui`
+#      then dies with "Failed to initialize cache ... Permission denied",
+#      falls back to slow pip, exceeds the timeout, and the Vite build
+#      (now missing scitex_ui) fails → daphne never binds. root-init.sh
+#      chowns the cache at django boot, but celery re-seeds it CONCURRENTLY
+#      (shared volume + restart:always), so that point-in-time chown can
+#      never win the race — this is exactly why PR #346's chown alone did
+#      not fix it. Not running uv in celery at all makes django the cache's
+#      ONLY writer (as scitex), which is what lets uv initialize the cache
+#      cleanly. Same guard idiom as collectstatic / visitor-pool above and
+#      terminal-broker / SSH below.
+if [[ ! "$*" =~ "celery" ]]; then
+
+# ============================================
 # Install Workspace Apps (bridge resolution)
 # ============================================
+# install_apps.sh clones the sibling app repos into /app/.apps (the Vite
+# bridge build below scans them — see the .apps/*/_django/frontend/src check
+# in VITE_REBUILD_NEEDED) and editable-installs them. It sits on the CRITICAL
+# PATH to `exec daphne`, so it must never be able to block boot indefinitely.
+# Failure modes that leave daphne unbound and the container un-healthy forever
+# (the 2026-07 prod outage + staging crash-loop): a hung git clone / ls-remote,
+# a slow plain-pip editable fallback, a stalled npm install, or — because
+# django + celery_{worker,beat} share the /app/.apps volume — a peer wedged
+# under install_apps.sh's own `flock -w 600` (a 10-min wait).
+#
+# Two independent guards make daphne start regardless of outcome:
+#   * `|| echo_warning`  — a FAILED install is non-fatal (already present).
+#   * `timeout`          — a HUNG install is converted into a (caught) non-zero
+#                          exit, so the entrypoint always proceeds to daphne.
+# Killing the wrapper also closes fd 200, releasing install_apps.sh's flock so
+# a shared-volume peer is never left blocked on a dead lock holder.
+#
+# The bound (default 300s) is env-overridable (APP_INSTALL_TIMEOUT_SECONDS —
+# mirrors the BOOT_GRACE_SECONDS / RESTART_COOLDOWN_SECONDS pattern in
+# deployment/nas-stability/health-check.sh) and is deliberately well under the
+# watchdog boot-grace (BOOT_GRACE_SECONDS=720), so even a full timeout still
+# lets daphne bind and pass its health check on the SAME boot instead of being
+# blanket-restarted mid-install. --kill-after SIGKILLs a child that ignores the
+# initial SIGTERM. NOTE: the uv-cache / site-packages / .apps volume perms that
+# used to force the slow plain-pip fallback are fixed separately in
+# root-init.sh; this guard is the structural backstop for ANY residual hang.
 echo_info "Installing workspace apps for Vite bridge resolution..."
-bash /app/scripts/apps/install_apps.sh 2>&1 || echo_warning "App installation had issues — Vite build may fail"
+APP_INSTALL_TIMEOUT="${APP_INSTALL_TIMEOUT_SECONDS:-300}"
+timeout --kill-after=10s "${APP_INSTALL_TIMEOUT}" \
+    bash /app/scripts/apps/install_apps.sh 2>&1 \
+    || echo_warning "App install failed or exceeded ${APP_INSTALL_TIMEOUT}s — continuing to daphne (Vite build may miss some app bridges)"
 
 # ============================================
 # Conditional NPM Install & TypeScript Build
@@ -137,6 +218,14 @@ if [ "$VITE_REBUILD_NEEDED" = true ]; then
     echo_success "Static files collected"
 else
     echo_info "TypeScript build already up to date"
+fi
+
+# Close the web-container-only guard opened before "Install Workspace Apps"
+# above. celery_{worker,beat} land here and skip the whole frontend build +
+# uv/npm editable install (which, run as root, would seed the shared uv
+# cache with root-owned files that django's scitex-user uv can't read).
+else
+    echo_info "Skipping workspace app install + npm/Vite build (celery service — no frontend; keeps the shared uv cache single-owner so django's editable install succeeds)"
 fi
 
 # ============================================

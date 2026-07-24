@@ -289,9 +289,12 @@ def visitor_heartbeat_api(request):
             allocation_token=allocation_token, is_active=True
         )
 
-        # Update last activity timestamp
-        allocation.last_activity = timezone.now()
-        allocation.save(update_fields=["last_activity"])
+        # Stamp activity AND extend the lease. Allocation only grants a
+        # short probation lease (bot defense — see PoolAllocator); this
+        # first heartbeat is what promotes a real browser to the full
+        # session, and later beats keep an active visitor from hitting a
+        # hard mid-work expiry.
+        VisitorPool.extend_session_on_activity(allocation)
 
         # Calculate remaining time
         remaining_seconds = max(

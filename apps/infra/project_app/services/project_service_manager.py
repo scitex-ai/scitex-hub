@@ -30,6 +30,8 @@ from typing import Dict, Optional, Tuple
 
 from django.conf import settings
 
+from apps.infra.project_app.ssh_safety import minimal_ssh_env, ssh_remote_target
+
 logger = logging.getLogger(__name__)
 
 
@@ -205,9 +207,18 @@ class ProjectServiceManager:
             logger.error(f"Failed to initialize local structure: {e}")
             return False, {}, str(e)
 
-    def _initialize_remote(self) -> Tuple[bool, Dict, Optional[str]]:
+    def _initialize_remote(
+        self, runner=subprocess.run
+    ) -> Tuple[bool, Dict, Optional[str]]:
         """
         Sync SciTeX template structure to remote filesystem.
+
+        SECURITY: the rsync target is built by ssh_remote_target, which
+        VALIDATES ssh_username / ssh_host / remote_path. rsync takes the
+        target POSITIONALLY (no reliable ``--`` terminator) and expands
+        the remote path through a remote shell, so validation is the
+        whole defense here. ``runner`` is an injectable subprocess.run
+        seam for the security regression test.
 
         Uses rsync to sync template to remote, with --ignore-existing (non-destructive).
 
@@ -223,6 +234,23 @@ class ProjectServiceManager:
         Returns:
             (success, stats, error_message)
         """
+        # Get remote config
+        if not hasattr(self.project, "remote_config") or not self.project.remote_config:
+            return False, {}, "No remote configuration"
+
+        config = self.project.remote_config
+
+        # SECURITY FIRST: validate the attacker-controlled destination
+        # BEFORE any unrelated precondition. If the template happens to be
+        # missing we must still refuse a poisoned config loudly, rather
+        # than return a benign "Template not found" that hides it.
+        remote_target = (
+            ssh_remote_target(
+                config.ssh_username, config.ssh_host, config.remote_path
+            )
+            + "/scitex/"
+        )
+
         # Get template directory
         template_dir = (
             Path(settings.BASE_DIR) / "templates" / "research-master" / "scitex"
@@ -231,19 +259,8 @@ class ProjectServiceManager:
         if not template_dir.exists():
             return False, {}, f"Template not found: {template_dir}"
 
-        # Get remote config
-        if not hasattr(self.project, "remote_config") or not self.project.remote_config:
-            return False, {}, "No remote configuration"
-
-        config = self.project.remote_config
-
         # Get SSH key
         ssh_key_path = config.remote_credential.private_key_path
-
-        # Remote target
-        remote_target = (
-            f"{config.ssh_username}@{config.ssh_host}:{config.remote_path}/scitex/"
-        )
 
         # Rsync command - NON-DESTRUCTIVE
         cmd = [
@@ -264,12 +281,13 @@ class ProjectServiceManager:
                 f"{config.ssh_username}@{config.ssh_host}:{config.remote_path}"
             )
 
-            result = subprocess.run(
+            result = runner(
                 cmd,
                 capture_output=True,
                 text=True,
                 timeout=300,  # 5 minutes
                 check=True,
+                env=minimal_ssh_env(),
             )
 
             # Parse rsync stats from output

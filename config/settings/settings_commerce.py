@@ -7,10 +7,9 @@ Single source of truth for:
 
 1. Company information rendered on the 特定商取引法に基づく表記
    (Specified Commercial Transactions Act) page. Values that are not
-   finalized yet (office address, phone number, public contact email)
-   MUST stay unset in the environment — the page then renders an
-   explicit 「準備中」 notice instead of a fake value (no-fake-data
-   principle).
+   finalized yet (public contact email) MUST stay unset in the
+   environment — the page then renders an explicit 「準備中」 notice
+   instead of a fake value (no-fake-data principle).
 
 2. The config-driven paid-plan list for the pricing page. While no
    plans are configured (the default), the pricing page renders the
@@ -27,10 +26,13 @@ Environment keys (document in SECRET/.env.nas when finalized):
 
 - ``SCITEX_HUB_COMPANY_NAME``            販売業者 (default: 株式会社 SciTeX)
 - ``SCITEX_HUB_COMPANY_REPRESENTATIVE``  運営統括責任者 (default: 渡邉 裕亮)
-- ``SCITEX_HUB_COMPANY_ADDRESS``         所在地 — full address incl. room
-                                         number (unset until office is
-                                         finalized → 準備中)
-- ``SCITEX_HUB_COMPANY_PHONE``           電話番号 (unset → 準備中)
+- ``SCITEX_HUB_COMPANY_ADDRESS``         所在地 (default:
+                                         静岡県静岡市葵区鷹匠2-8-10 —
+                                         registered address; NO room
+                                         number, operator-confirmed
+                                         2026-07-18)
+- ``SCITEX_HUB_COMPANY_PHONE``           電話番号 (default: 080-4022-3567
+                                         — operator-confirmed 2026-07-18)
 - ``SCITEX_HUB_COMPANY_CONTACT_EMAIL``   公開メールアドレス (unset → 準備中)
 - ``SCITEX_HUB_BILLING_PLANS``           JSON list of plan objects, each:
                                          {"name": str,
@@ -55,11 +57,28 @@ COMPANY_NAME = _getenv_alias("SCITEX_HUB_COMPANY_NAME", "株式会社 SciTeX") o
 COMPANY_REPRESENTATIVE = (
     _getenv_alias("SCITEX_HUB_COMPANY_REPRESENTATIVE", "渡邉 裕亮") or ""
 )
-# NOT finalized — leave empty until the office / phone / public email are
-# decided. The tokushoho page renders 準備中 for empty values.
-COMPANY_ADDRESS = _getenv_alias("SCITEX_HUB_COMPANY_ADDRESS", "") or ""
-COMPANY_PHONE = _getenv_alias("SCITEX_HUB_COMPANY_PHONE", "") or ""
+# Registered address — operator-confirmed 2026-07-18 (Telegram 1530).
+# The registered address has NO room number; matches the site-wide
+# address change of 2026-07-17 (card scitex-ai-address-update-takajo),
+# which deliberately omits 〒 postal code and building/room.
+COMPANY_ADDRESS = (
+    _getenv_alias("SCITEX_HUB_COMPANY_ADDRESS", "静岡県静岡市葵区鷹匠2-8-10") or ""
+)
+# Representative phone — operator-confirmed 2026-07-18 (Telegram 1536).
+COMPANY_PHONE = _getenv_alias("SCITEX_HUB_COMPANY_PHONE", "080-4022-3567") or ""
+# NOT finalized — leave empty until the public email is decided.
+# The tokushoho page renders 準備中 for empty values.
 COMPANY_CONTACT_EMAIL = _getenv_alias("SCITEX_HUB_COMPANY_CONTACT_EMAIL", "") or ""
+
+# Services-page inquiry destination. Deliberately SEPARATE from recruit@
+# (the hiring inbox) — mixing sales inquiries into hiring loses leads.
+# Left empty until the operator decides the address (contact@ / info@ /
+# form-only). While empty, /services stores every inquiry in the DB
+# (ServiceInquiry, readable in admin) and sends no email — never a fake
+# address, never recruit@.
+SERVICES_INQUIRY_EMAIL = (
+    _getenv_alias("SCITEX_HUB_SERVICES_INQUIRY_EMAIL", "") or ""
+)
 
 # ---------------------------------------
 # Billing plans (config-driven; empty = 準備中)

@@ -79,7 +79,7 @@
   background: transparent;
   color: var(--text-primary, #d4e1e8);
   font-weight: 600;
-  border-bottom: 2px solid rgba(5, 150, 105, 0.6);
+  border-bottom: 2px solid var(--app-accent-scholar, #3d7a5e);
 }
 
 .scholar-tab i {
@@ -87,7 +87,7 @@
 }
 
 .scholar-tab.active i {
-  color: var(--workspace-icon-primary, #059669);
+  color: var(--app-accent-scholar, var(--workspace-icon-primary));
 }
 
 /* Light mode tab styles */
@@ -102,7 +102,7 @@
 
 [data-theme="light"] .scholar-tab.active {
   color: var(--text-primary, #1a2a40);
-  border-bottom: 2px solid rgba(16, 185, 129, 0.5);
+  border-bottom: 2px solid var(--app-accent-scholar, #3d7a5e);
 }
 
 /* Disabled tab state */

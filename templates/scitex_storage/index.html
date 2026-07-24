@@ -1,0 +1,82 @@
+{% extends "scitex_ui/standalone_shell.html" %}
+{% load static %}
+{% comment %}
+Hub-side presentation override for the upstream scitex-storage GUI plugin
+(scitex_storage/_django/templates/scitex_storage/index.html).
+
+WHY THIS FILE EXISTS
+--------------------
+Storage is an upstream-mounted plugin: config/urls.py mounts
+scitex_storage._django.urls at /apps/storage/, exactly like the Cards board
+(scitex_todo at /apps/cards/). Both extend scitex-ui's ALWAYS-DARK
+standalone_shell.html (it hardcodes <html data-theme="dark"> and
+<body class="dark-theme ...">).
+
+On the dark-theme prod mobile sweep Storage rendered UNSTYLED: a light content
+pane inside the dark shell chrome, with native bright-white form controls,
+while Cards renders fully dark. The base template is IDENTICAL; the difference
+is the CONTENT. Cards fills its pane with a React board that paints its own
+dark surfaces; Storage's upstream app_content is minimal server-rendered HTML
+that paints NO surface and leaves the <input>/<button> browser-native, so the
+shell module pane shows through. That pane background is
+var(--workspace-bg-primary) (scitex-ui workspace-three-col.css), whose dark
+value only applies under html[data-theme="dark"]; when a deploy leaves the
+shell HTML and workspace theme CSS out of sync the token falls back to its
+light default and the pane renders light.
+
+This override is resolved by the filesystem template loader, which
+settings_shared.TEMPLATES lists BEFORE the app_directories loader, so it
+deterministically shadows the upstream template while reusing the SAME view
+(scitex_storage._django.views.index) and the SAME context variables. It keeps
+the upstream app_content markup verbatim and adds only dark theming (external
+CSS — see storage_app/static/storage_app/index.css), so Storage participates
+in the dark shell like every sibling app. The durable home for this styling is
+upstream scitex-storage; this is the immediate hub fix for the shipped
+mobile-UX defect (card hub-mobile-storage-unstyled-20260723).
+{% endcomment %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'storage_app/index.css' %}">
+{% endblock %}
+{% block app_content %}
+    <div id="stx-storage-app" data-app-name="scitex_storage">
+        <h1>SciTeX Storage</h1>
+        <form class="stx-storage-path-form" method="get" action="">
+            <label for="stx-storage-path">Path</label>
+            <input type="text" id="stx-storage-path" name="path" value="{{ requested_path }}">
+            <button type="submit">Scan</button>
+        </form>
+
+        {% if error %}
+            <p class="stx-storage-error">{{ error }}</p>
+        {% elif root %}
+            <p class="stx-storage-summary">
+                {{ root }} &mdash; {{ total_size }} across {{ children|length }} top-level
+                {% if children|length == 1 %}entry{% else %}entries{% endif %}
+                ({{ total_files }} files total)
+            </p>
+            <table class="stx-storage-table">
+                <thead>
+                    <tr>
+                        <th>Child</th>
+                        <th class="size">Size</th>
+                        <th class="files">Files</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for child in children %}
+                        <tr>
+                            <td>{{ child.name }}{% if child.error %} <em>[{{ child.error }}]</em>{% endif %}</td>
+                            <td class="size">{{ child.size }}</td>
+                            <td class="files">{{ child.file_count }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="3">(empty)</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="stx-storage-summary">Enter a path above and click Scan.</p>
+        {% endif %}
+    </div>
+{% endblock %}
+{% block extra_js %}{% endblock %}

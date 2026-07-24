@@ -22,25 +22,17 @@
     <div class="global-header-inner">
         <!-- Left: Logo + Main Navigation -->
         <div class="header-left">
-            <!-- Logo (matches favicon: green=dev, orange=staging, standard=prod) -->
+            {# Logo IS the favicon: same brand mark, same per-environment colour #}
+            {# (navy=prod, navy-on-white=staging, green=dev), resolved once from #}
+            {# settings.SCITEX_ENV. Chrome and tab icon can no longer disagree. #}
             {# header_logo_href: pages stuck BEFORE a session exists (e.g. the #}
             {# cookie-consent / pool-full page) override this to a page that #}
             {# always renders (/landing/) — tapping the logo must never bounce #}
             {# back to the same page and read as a dead touch target. #}
             <a href="{{ header_logo_href|default:'/' }}" class="header-logo" title="Home">
-                {% if DEBUG %}
-                    <img src="{% static 'shared/images/favicons/favicon-dev.svg' %}"
-                         alt="SciTeX (Dev)"
-                         class="header-logo-icon" />
-                {% elif IS_STAGING %}
-                    <img src="{% static 'shared/images/favicons/favicon-staging.svg' %}"
-                         alt="SciTeX (Staging)"
-                         class="header-logo-icon" />
-                {% else %}
-                    <img src="{% static 'shared/images/scitex_logos/scitex-icons/scitex-icon-navy-inverted.svg' %}"
-                         alt="SciTeX"
-                         class="header-logo-icon" />
-                {% endif %}
+                <img src="{% static SCITEX_FAVICON %}"
+                     alt="SciTeX{% if SCITEX_ENV_MARKER %} ({{ SCITEX_ENV_MARKER }}){% endif %}"
+                     class="header-logo-icon" />
             </a>
             {% if user.is_authenticated %}
                 <!-- AI Assistant Toggle (right of logo) -->
@@ -894,14 +886,19 @@
             <i class="fas fa-adjust"></i>
             <span>Toggle Theme</span>
         </button>
-        <a href="{% url 'public_app:server_status' %}" class="mobile-menu-item">
-            <i class="fas fa-server"></i>
-            <span>Server Status</span>
-        </a>
-        <a href="/keyboard-shortcuts/" class="mobile-menu-item">
-            <i class="fas fa-keyboard"></i>
-            <span>Keyboard Shortcuts</span>
-        </a>
+        {# Developer-facing entries: shown to staff (and in dev), hidden for #}
+        {# ordinary users/visitors so the menu stays focused (operator,      #}
+        {# 2026-07-21). Same gate as the header notification center.         #}
+        {% if DEBUG or user.is_staff %}
+            <a href="{% url 'public_app:server_status' %}" class="mobile-menu-item">
+                <i class="fas fa-server"></i>
+                <span>Server Status</span>
+            </a>
+            <a href="/keyboard-shortcuts/" class="mobile-menu-item">
+                <i class="fas fa-keyboard"></i>
+                <span>Keyboard Shortcuts</span>
+            </a>
+        {% endif %}
         <div class="mobile-menu-divider"></div>
         {% if is_visitor %}
             <div class="mobile-menu-item mobile-menu-item--muted">
@@ -951,10 +948,14 @@
                 <i class="fas fa-comment"></i>
                 <span>Chat</span>
             </a>
-            <a href="/workspace/console/" class="mobile-menu-item mobile-menu-item--indent">
-                <i class="fas fa-terminal"></i>
-                <span>Console</span>
-            </a>
+            {# Console (terminal) is a developer/power tool — staff/dev only, #}
+            {# consistent with Server Status + Keyboard Shortcuts above.       #}
+            {% if DEBUG or user.is_staff %}
+                <a href="/workspace/console/" class="mobile-menu-item mobile-menu-item--indent">
+                    <i class="fas fa-terminal"></i>
+                    <span>Console</span>
+                </a>
+            {% endif %}
             <a href="/workspace/editor/" class="mobile-menu-item mobile-menu-item--indent">
                 <i class="fas fa-folder"></i>
                 <span>Files</span>

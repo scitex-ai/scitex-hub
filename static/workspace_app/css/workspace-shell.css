@@ -3,6 +3,55 @@
    Base pane layout, panel overrides, editor split
    ============================================================ */
 
+/* ── Shell base layout: three panes side by side ───────────── */
+/* .workspace-shell previously had NO base layout rule anywhere (hub or
+   scitex-ui): desktop fell back to display:block, stacking the three
+   panes vertically and pushing .ws-module-pane below the fold (probed
+   at y=954 in a 900px viewport, prod 2026-07-22), while on mobile the
+   percentage height chain collapsed so #monaco-editor measured 5px.
+   #main-content above the shell is a definite-height flex item, so
+   height:100% resolves here. Do NOT swap this for scitex-ui's
+   .workspace-three-col — its calc(100vh - 65px) is wrong inside the
+   pane system. The ≤767px block below flips flex-direction to column
+   and collapses to a single active pane. */
+.workspace-shell {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Desktop pane sizing: AI + worktree panes track their resizers'
+   default widths (shell.html data-default-width 300 / 250); the module
+   pane takes the remaining space. Scoped under .workspace-shell so the
+   identically named .ws-*-pane partials in the .workspace-pane system
+   (workspace-layout.css) keep their width:100% behavior. flex-basis
+   beats the panes' width:100% on the main axis; the ≤767px rules
+   override these with higher specificity. */
+.workspace-shell .ws-ai-pane {
+  flex: 0 0 300px;
+  min-width: 0;
+}
+
+.workspace-shell .ws-worktree-pane {
+  flex: 0 0 250px;
+  min-width: 0;
+}
+
+/* overflow-y:auto (not hidden): document-style modules (the launcher
+   home) scroll INSIDE the pane — body/#main-content are overflow:hidden
+   on workspace pages (global-base.css). Full-height modules (console)
+   size themselves to 100% and never overflow it. */
+.workspace-shell .ws-module-pane {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* ── Full-pane AI panel ────────────────────────────────────── */
 .ws-ai-pane {
   width: 100%;
@@ -228,6 +277,55 @@
 
   .editor-split-right {
     height: 60%;
+  }
+}
+
+/* ── Mobile: collapse the 3-pane shell to a single active pane ── */
+/* shell.html renders three persistent panes side by side — AI (chat /
+   console), worktree (file tree) and module. On phones there is no room
+   for three columns, so show ONLY the pane carrying the active route's
+   content and hide the rest. Mirrors the single-active-pane model
+   workspace-layout.css uses for the .workspace-pane system (its ~114-137
+   @media block); the 767px breakpoint matches that file. Every selector is
+   scoped to .workspace-shell — which only shell.html renders — so the
+   identically named .ws-*-pane partials in the other pane system are
+   untouched. Routes (config/urls.py): /chat/→chat, /console/→console,
+   /files/→editor. */
+@media (max-width: 767px) {
+  .workspace-shell {
+    flex-direction: column;
+  }
+
+  /* Default (module routes): the module pane is the single content pane. */
+  .workspace-shell .ws-ai-pane,
+  .workspace-shell .ws-worktree-pane {
+    display: none !important;
+  }
+
+  .workspace-shell .ws-module-pane {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  /* Only Chat lives in the AI panel. Console (xterm terminal + Monaco IDE
+     via console_partial.html) and Files/editor (the tree + viewer split that
+     already stacks vertically on mobile) render their REAL surface in the
+     MODULE pane, so they must fall through to the default above. Do NOT map
+     them to .ws-ai-pane / .ws-worktree-pane — that regression (PR #415)
+     showed the robot AI box on /console/ and an empty file tree on /files/. */
+  .workspace-shell[data-active-module="chat"] .ws-ai-pane {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .workspace-shell[data-active-module="chat"] .ws-module-pane {
+    display: none !important;
   }
 }
 

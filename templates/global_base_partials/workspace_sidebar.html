@@ -25,20 +25,11 @@
         <nav class="sidebar-inner" id="sidebar-inner">
             <!-- Top bar: logo + brand + toggle -->
             <div class="sidebar-header-toggle">
+                {# Same brand mark + per-environment colour as the favicon. #}
                 <a href="/" class="sidebar-logo" title="Home">
-                    {% if DEBUG %}
-                        <img src="{% static 'shared/images/favicons/favicon-dev.svg' %}"
-                             alt="SciTeX"
-                             class="sidebar-logo-icon" />
-                    {% elif IS_STAGING %}
-                        <img src="{% static 'shared/images/favicons/favicon-staging.svg' %}"
-                             alt="SciTeX"
-                             class="sidebar-logo-icon" />
-                    {% else %}
-                        <img src="{% static 'shared/images/scitex_logos/scitex-icons/scitex-icon-navy-inverted.svg' %}"
-                             alt="SciTeX"
-                             class="sidebar-logo-icon" />
-                    {% endif %}
+                    <img src="{% static SCITEX_FAVICON %}"
+                         alt="SciTeX{% if SCITEX_ENV_MARKER %} ({{ SCITEX_ENV_MARKER }}){% endif %}"
+                         class="sidebar-logo-icon" />
                 </a>
                 {# Brand text is a link: the logo <a> above is display:none in #}
                 {# this header (brand text replaces it), so the visible brand + #}
@@ -133,7 +124,7 @@
                        data-app-accent="{{ mod.name }}"
                        title="{{ mod.label }}">
                         {% module_icon mod.name "nav" mod.version mod.icon_fa mod.is_dev %}
-                        <span class="sidebar-label">{{ mod.label }}</span>
+                        <span class="sidebar-label">{{ mod.label }}{% if mod.is_active and mod.version %} <small class="sidebar-item-version">v{{ mod.version }}</small>{% endif %}</span>
                     </a>
                 {% endfor %}
                 {# "All apps" removed (nav-404 batch #11): it pointed at "/" — #}

@@ -19,6 +19,32 @@
         </header>
     </div>
     <div class="server-status-container">
+        {% comment %}Stalled Health Checks — three-valued UNKNOWN (deadline missed), never collapsed into up/down{% endcomment %}
+        {% if status_data.unknown_checks %}
+            <div class="status-section">
+                <h2 class="section-title has-tooltip"
+                    data-tooltip="These checks missed the page's hard deadline. Their state is UNKNOWN — neither healthy nor unhealthy. They may still be running or stuck.">
+                    <i class="fas fa-hourglass-half"></i> Stalled Health Checks
+                </h2>
+                <div class="services-grid">
+                    {% for check in status_data.unknown_checks %}
+                        <div class="service-card unknown">
+                            <div class="service-header">
+                                <div class="service-name">
+                                    <i class="fas fa-question-circle"></i> {{ check.name }}
+                                </div>
+                                <span class="status-badge unknown">
+                                    <i class="fas fa-circle"></i> UNKNOWN
+                                </span>
+                            </div>
+                            <div class="service-details">
+                                <div class="error-message">{{ check.message }}</div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
         <!-- Unified System Metrics -->
         <div class="status-section">
             <div class="section-title-wrapper">

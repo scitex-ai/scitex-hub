@@ -9,6 +9,8 @@ from pathlib import Path
 
 from django.conf import settings
 
+from config import branding
+
 # Cache the build_id to avoid repeated file system calls
 _cached_build_id = None
 _last_check_time = 0
@@ -159,19 +161,26 @@ def site_branding(request):
 
 def scitex_env(request):
     """
-    Expose SCITEX_HUB_ENV to templates for environment-specific rendering.
-    Values: 'development', 'staging', 'production'
+    Expose the deployment environment to templates.
+
+    The environment is read from ``settings.SCITEX_ENV``, which each concrete
+    settings module (settings_dev / settings_staging / settings_prod) declares
+    literally. It is deliberately NOT re-derived from the SCITEX_HUB_ENV
+    environment variable here: the settings module Django is actually running
+    under IS the environment, and reading it twice from two sources is how the
+    favicon and the deployment drift apart.
+
+    ``SCITEX_FAVICON`` is the static-relative path of the environment's tab
+    icon -- the same SciTeX brand mark in a per-environment colour, so prod /
+    staging / dev are distinguishable from the tab icon alone.
     """
-    env = os.environ.get("SCITEX_HUB_ENV", "development").lower()
-    # Normalize aliases
-    if env in ("dev",):
-        env = "development"
-    elif env in ("stag",):
-        env = "staging"
-    elif env in ("prod",):
-        env = "production"
+    env = branding.normalize_env(settings.SCITEX_ENV)
     return {
         "SCITEX_ENV": env,
-        "IS_STAGING": env == "staging",
-        "IS_PRODUCTION": env == "production",
+        "IS_STAGING": env == branding.ENV_STAGING,
+        "IS_PRODUCTION": env == branding.ENV_PRODUCTION,
+        "SCITEX_FAVICON": branding.favicon_for_env(env),
+        # "dev" / "staging" / "standalone", or None in hub production. Same
+        # marker the tab title uses, so chrome and tab never disagree.
+        "SCITEX_ENV_MARKER": branding.title_marker(env, settings.SCITEX_APP_MODE),
     }

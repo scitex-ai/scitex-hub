@@ -16,6 +16,7 @@ tags: [scitex-hub-env-vars]
 | `SCITEX_HUB_ROOT` | Root directory of the scitex-hub repo (dev). | repo-root | path |
 | `SCITEX_HUB_WORKSPACE` / `SCITEX_WORKSPACE` | Active workspace name. | `default` | string |
 | `SCITEX_HUB_IS_ON_SITE` | Mark the deployment as on-site (enables on-site tools only). | `false` | bool |
+| `SCITEX_HUB_ONSITE_SECRET` | Shared secret the on-site MCP client signs requests with (HMAC-SHA256 over `username:timestamp`) and Django's `OnSiteAuthMiddleware` verifies (as setting `ONSITE_AUTH_SECRET`). **Unset = on-site auth is disabled** — the middleware fails closed and the client raises rather than sending a forgeable plaintext header. | unset | string |
 | `SCITEX_HUB_COMPLETE` | Internal sentinel: standalone importable. | unset | bool (presence) |
 
 ## URLs / hosts

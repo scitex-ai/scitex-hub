@@ -10,6 +10,9 @@ from django.http import FileResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
 
 from apps.infra.project_app.models import Project
+from apps.infra.project_app.services.filesystem.permissions import (
+    validate_path_in_project,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -94,8 +97,20 @@ def api_get_file_content(request, file_path):
 
         file_full_path = project_path / file_path
 
-        # Security check
-        if not str(file_full_path.resolve()).startswith(str(project_path.resolve())):
+        # Security check: component-wise containment (a prefix match is NOT
+        # containment -- project_path/"../proj-other" string-prefix-matches
+        # project_path and would escape into another tenant's project).
+        #
+        # CONTAINMENT ONLY -- deliberately no tenant-ownership / user-jail
+        # check here. Authorization is already enforced per-project at the
+        # top of this view (owner OR collaborator OR visibility == "public").
+        # Adding a user-jail check would break anonymous browsing of PUBLIC
+        # projects, which is a real product feature.
+        # OPEN QUESTION for the operator: should an anonymous reader of a
+        # public project be able to read *any* in-project file (e.g. .env,
+        # .git/config)? A per-file denylist inside public projects is out of
+        # scope for this containment sweep.
+        if not validate_path_in_project(project_path, file_full_path):
             return JsonResponse({"error": "Invalid file path"}, status=400)
 
         if not file_full_path.exists():

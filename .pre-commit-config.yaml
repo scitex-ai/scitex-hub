@@ -47,6 +47,19 @@ repos:
         language_version: python3.11
         exclude: migrations/
 
+  # Block tracked symlinks with ABSOLUTE targets. A host-specific absolute
+  # symlink target breaks `git pull` / checkout on every other host (NAS, CI,
+  # other agent containers). See PR #409 (node_modules) and the dotfiles P0
+  # of 2026-07-12 (src/.scitex). Root-cause guard, not a per-incident cleanup.
+  - repo: local
+    hooks:
+      - id: check-absolute-symlinks
+        name: no absolute-target tracked symlinks
+        entry: scripts/maintenance/check_absolute_symlinks.sh
+        language: script
+        pass_filenames: false
+        always_run: true
+
   # Incremental testing (disabled: requires Docker for DB access)
   # Run inside Docker instead: make test-testmon
   # - repo: local

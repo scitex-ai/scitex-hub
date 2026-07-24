@@ -114,12 +114,36 @@ def falsy_clone(template_id, dest, git_strategy=None):
     return False
 
 
+class NoContainerToolchain:
+    """run_cmd fake: a host with no SLURM/apptainer binaries installed.
+
+    The container-teardown step treats a missing binary as "nothing to
+    tear down" (the dev/CI baseline). Injected through the reset
+    pipeline's ``run_cmd`` seam so tests never touch a real cluster.
+    """
+
+    def __call__(self, argv, timeout=None):
+        raise FileNotFoundError(argv[0])
+
+
+NO_CONTAINER_HOST = NoContainerToolchain()
+
+
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
 
 
 def _base_path_for(username: str) -> Path:
+    """The visitor's ``proj/`` root, under THIS test's private BASE_DIR.
+
+    The ``isolated_visitor_data_root`` autouse fixture in this
+    directory's conftest repoints ``settings.BASE_DIR`` at a per-test
+    ``tmp_path`` before every test here. That is what makes the
+    hardcoded ``visitor-001`` identity below safe under ``pytest-xdist
+    -n auto`` — without it, ~128 workers share this one absolute path
+    and delete each other's trees mid-reset (CI run 29918531942).
+    """
     return Path(settings.BASE_DIR) / "data" / "users" / username / "proj"
 
 
@@ -152,6 +176,7 @@ def _make_slot_ready(user, allocation, gitea_client=None):
         allocation,
         gitea_client=gitea_client or FakeGiteaClient(),
         clone_fn=fake_clone,
+        run_cmd=NO_CONTAINER_HOST,
     )
     if not ok:
         raise RuntimeError("fixture reset must succeed")
@@ -229,7 +254,10 @@ class TestGuardedWipe:
 def clone_failure_reset(visitor_slot):
     user, allocation = visitor_slot
     ok = reset_and_verify_slot(
-        allocation, gitea_client=FakeGiteaClient(), clone_fn=failing_clone
+        allocation,
+        gitea_client=FakeGiteaClient(),
+        clone_fn=failing_clone,
+           run_cmd=NO_CONTAINER_HOST,
     )
     allocation.refresh_from_db()
     return ok, allocation
@@ -240,7 +268,10 @@ def falsy_clone_reset(visitor_slot):
     """Reset over the 2026-07-08 prod failure: clone returns falsy."""
     user, allocation = visitor_slot
     ok = reset_and_verify_slot(
-        allocation, gitea_client=FakeGiteaClient(), clone_fn=falsy_clone
+        allocation,
+        gitea_client=FakeGiteaClient(),
+        clone_fn=falsy_clone,
+           run_cmd=NO_CONTAINER_HOST,
     )
     allocation.refresh_from_db()
     return ok, allocation
@@ -250,7 +281,12 @@ def falsy_clone_reset(visitor_slot):
 def gitea_delete_failure_reset(visitor_slot):
     user, allocation = visitor_slot
     client = FailingDeleteGiteaClient({"visitor-001": ["default-project"]})
-    ok = reset_and_verify_slot(allocation, gitea_client=client, clone_fn=fake_clone)
+    ok = reset_and_verify_slot(
+        allocation,
+        gitea_client=client,
+        clone_fn=fake_clone,
+           run_cmd=NO_CONTAINER_HOST,
+    )
     allocation.refresh_from_db()
     return ok, allocation
 
@@ -259,7 +295,10 @@ def gitea_delete_failure_reset(visitor_slot):
 def unreachable_gitea_reset(visitor_slot):
     user, allocation = visitor_slot
     ok = reset_and_verify_slot(
-        allocation, gitea_client=UnreachableGiteaClient(), clone_fn=fake_clone
+        allocation,
+        gitea_client=UnreachableGiteaClient(),
+        clone_fn=fake_clone,
+           run_cmd=NO_CONTAINER_HOST,
     )
     allocation.refresh_from_db()
     return ok, allocation
@@ -363,7 +402,10 @@ class TestQuarantineOnFailure:
         allocation.save()
         # Act
         ok = reset_and_verify_slot(
-            allocation, gitea_client=FakeGiteaClient(), clone_fn=fake_clone
+            allocation,
+            gitea_client=FakeGiteaClient(),
+            clone_fn=fake_clone,
+            run_cmd=NO_CONTAINER_HOST,
         )
         # Assert
         assert ok is False
@@ -614,7 +656,12 @@ class TestReleasePipeline:
 def gitea_purge_reset(visitor_slot):
     user, allocation = visitor_slot
     client = FakeGiteaClient({"visitor-001": ["default-project", "leftover-repo"]})
-    ok = reset_and_verify_slot(allocation, gitea_client=client, clone_fn=fake_clone)
+    ok = reset_and_verify_slot(
+        allocation,
+        gitea_client=client,
+        clone_fn=fake_clone,
+           run_cmd=NO_CONTAINER_HOST,
+    )
     return ok, client
 
 
@@ -646,7 +693,10 @@ def app_rows_reset(visitor_slot):
     ChatSession.objects.create(user=user)
 
     ok = reset_and_verify_slot(
-        allocation, gitea_client=FakeGiteaClient(), clone_fn=fake_clone
+        allocation,
+        gitea_client=FakeGiteaClient(),
+        clone_fn=fake_clone,
+           run_cmd=NO_CONTAINER_HOST,
     )
     if not ok:
         raise RuntimeError("fixture reset must succeed")
@@ -712,7 +762,10 @@ class TestExtendedResetScope:
         )
         # Act
         reset_and_verify_slot(
-            allocation, gitea_client=FakeGiteaClient(), clone_fn=fake_clone
+            allocation,
+            gitea_client=FakeGiteaClient(),
+            clone_fn=fake_clone,
+            run_cmd=NO_CONTAINER_HOST,
         )
         slugs = list(Project.objects.filter(owner=user).values_list("slug", flat=True))
         # Assert
@@ -724,7 +777,10 @@ class TestExtendedResetScope:
         user, allocation = ready_slot
         # Act: reset fails BEFORE the create step (unreachable Gitea)
         reset_and_verify_slot(
-            allocation, gitea_client=UnreachableGiteaClient(), clone_fn=fake_clone
+            allocation,
+            gitea_client=UnreachableGiteaClient(),
+            clone_fn=fake_clone,
+            run_cmd=NO_CONTAINER_HOST,
         )
         # Assert
         assert Project.objects.filter(owner=user).exists() is False
@@ -809,7 +865,10 @@ class TestBootReconciliation:
         quarantine_slot(allocation, "boot-reconcile: test")
         # Act
         reset_and_verify_slot(
-            allocation, gitea_client=FakeGiteaClient(), clone_fn=fake_clone
+            allocation,
+            gitea_client=FakeGiteaClient(),
+            clone_fn=fake_clone,
+            run_cmd=NO_CONTAINER_HOST,
         )
         project, served_user = PoolAllocator._try_allocate_slot(1, clean_session, 1)
         # Assert
@@ -863,7 +922,12 @@ def recycled_slot(ready_slot, clean_session):
 
     # The async reset runs (same code path as the Celery task body,
     # executed synchronously with the injected fakes).
-    reset_ok = reset_and_verify_slot(allocation, gitea_client=gitea, clone_fn=fake_clone)
+    reset_ok = reset_and_verify_slot(
+        allocation,
+        gitea_client=gitea,
+        clone_fn=fake_clone,
+           run_cmd=NO_CONTAINER_HOST,
+    )
 
     # Visitor B allocates the recycled slot.
     project_b, user_b = PoolAllocator._try_allocate_slot(1, session_b, 1)
@@ -916,7 +980,15 @@ class TestRecycleEndToEnd:
             obs["base_entries"],
         )
         # Assert
-        assert residue_state == (False, False, {"default-project"})
+        # The widened reset wipes the whole home root, then recreates
+        # proj/ via the same skeleton path terminal spawns use — so a
+        # fresh dotfiles repo + workspace metadata are EXPECTED next to
+        # the re-cloned project.
+        assert residue_state == (
+            False,
+            False,
+            {"default-project", "dotfiles", "workspace_info.json"},
+        )
 
     def test_recycled_workspace_has_fresh_template_marker(self, recycled_slot):
         # Arrange
@@ -966,7 +1038,10 @@ class TestResetPipelineFailLoud:
         # Assert
         with pytest.raises(WorkspaceResetError):
             WorkspaceManager.reset_visitor_workspace(
-                user, gitea_client=FakeGiteaClient(), clone_fn=failing_clone
+                user,
+                gitea_client=FakeGiteaClient(),
+                clone_fn=failing_clone,
+                run_cmd=NO_CONTAINER_HOST,
             )
 
 

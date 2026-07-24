@@ -32,13 +32,21 @@
 .spinner-ring:nth-child(2) {
   inset: 6px;
   animation-delay: 0.15s;
-  border-top-color: rgba(5, 150, 105, 0.6);
+  border-top-color: color-mix(
+    in srgb,
+    var(--app-accent-scholar, #3d7a5e) 60%,
+    transparent
+  );
 }
 
 .spinner-ring:nth-child(3) {
   inset: 12px;
   animation-delay: 0.3s;
-  border-top-color: rgba(5, 150, 105, 0.3);
+  border-top-color: color-mix(
+    in srgb,
+    var(--app-accent-scholar, #3d7a5e) 30%,
+    transparent
+  );
 }
 
 @keyframes spinnerRotate {

@@ -86,6 +86,14 @@
   font-weight: 400;
 }
 
+/* Deployed version next to the active app's name in the sidebar (dev-loop
+   aid). Muted so it reads as metadata; hidden with the label when collapsed. */
+.sidebar-item-version {
+  opacity: 0.55;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
 /* Distinctive tilted "e" in SciTeX branding (inspired by Google's inclined "e") */
 .brand-e {
   display: inline-block;

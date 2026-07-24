@@ -8,7 +8,12 @@ import importlib.metadata as _metadata
 import logging
 from typing import Any
 
-from apps.infra.workspace_app.registry import ModuleConfig, get_module, register_module
+from apps.infra.workspace_app.registry import (
+    AVAILABILITY_STATES,
+    ModuleConfig,
+    get_module,
+    register_module,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -103,10 +108,15 @@ def load_single_app(app_module):
         return
 
     project = app_module.project
-    label = app_module.module_name.replace("user_", "").replace("_", " ").title()
-    icon = "fas fa-puzzle-piece"
+    # Display metadata: the manifest-fed catalog columns win; the visible
+    # prettified fallback covers rows published before the columns existed.
+    # NEVER project.name — that is the raw repo slug (the exact string the
+    # operator saw on the grid three times: "scitex-agentic-journal-app").
+    from .manifest_display import prettify_module_name
+
+    label = app_module.label or prettify_module_name(app_module.module_name)
+    icon = app_module.icon or "fas fa-puzzle-piece"
     if project:
-        label = project.name
         icon = _read_manifest_icon(project) or icon
 
     config = ModuleConfig(
@@ -119,6 +129,12 @@ def load_single_app(app_module):
         order=90,  # After built-in modules
         default_enabled=False,  # User must install from app catalog
         ai_hint=app_module.short_description or "",
+        # availability is deliberately NOT baked in here: store-published
+        # apps have no local manifest, so their catalog row IS the SSoT
+        # (e.g. Live Paper / Agentic Journal marked coming_soon by
+        # migration 0017). The launcher reads the row live whenever the
+        # config declares nothing — an admin flip takes effect without a
+        # process restart, and there is exactly one read path.
         license=_get_license(app_module),
         # Explicit navigation URL. Without it ModuleConfig.get_url()
         # defaults to /apps/<module_name>/, which is NOT a mounted
@@ -231,6 +247,14 @@ def load_dev_apps(app_dirs):
             name = data.get("name", app_path.name)
             if get_module(name):
                 continue
+            availability = data.get("availability", "")
+            if availability and availability not in AVAILABILITY_STATES:
+                # Fail THIS app loudly (logged below) rather than render a
+                # typo'd state as a normal launchable tile.
+                raise ValueError(
+                    f"Unknown availability {availability!r} in {manifest}; "
+                    f"expected one of {AVAILABILITY_STATES}"
+                )
             config = ModuleConfig(
                 name=name,
                 label=data.get("label", name.replace("_", " ").title()),
@@ -241,7 +265,9 @@ def load_dev_apps(app_dirs):
                 order=90,
                 default_enabled=True,
                 status="wip",
+                availability=availability,
                 ai_hint=data.get("description", ""),
+                version=data.get("version", ""),
             )
             register_module(config)
             logger.info("[app_loader] Loaded dev app: %s from %s", name, app_dir)

@@ -12,6 +12,7 @@ from pathlib import Path
 
 import scitex as stx
 
+from config import branding
 from config._env import (
     getenv_with_legacy_alias as _getenv_alias,
 )
@@ -75,6 +76,24 @@ def _get_version():
 
 
 # ---------------------------------------
+# Environment identity
+# ---------------------------------------
+# Drives the tab title marker AND the favicon colour, so an operator can tell
+# prod / staging / dev apart from the browser tab alone.
+#
+# Declared here so there is ALWAYS a value; each concrete settings module
+# (settings_dev / settings_staging / settings_prod) then OVERRIDES it with its
+# literal environment -- that override, not this env-var default, is the
+# source of truth. `normalize_env` raises on an unknown value, so a typo fails
+# fast at boot instead of silently serving the wrong environment's favicon.
+SCITEX_ENV = branding.normalize_env(os.environ.get("SCITEX_HUB_ENV", "development"))
+
+# The hub always renders apps EMBEDDED. A standalone SciTeX app (e.g.
+# `scitex-writer gui` on its own port) sets this to branding.MODE_STANDALONE
+# so its tab reads "Writer — SciTeX (standalone)" instead of "Writer — SciTeX".
+SCITEX_APP_MODE = branding.MODE_HUB
+
+# ---------------------------------------
 # Paths
 # ---------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -88,16 +107,13 @@ ROOT_URLCONF = "config.urls"
 # boot. Removed together with the GITIGNORED/logs fallback itself -- see
 # incident hub-prod-outage-celery-log-permission (2026-07-09/10).
 
-STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [BASE_DIR / "static", BASE_DIR / ".jsbuild"]
-STATICFILES_FINDERS = [
-    "django.contrib.staticfiles.finders.FileSystemFinder",
-    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-    "apps.workspace.apps_app.finders.DevAppStaticFinder",
-]
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+# Static/media config (incl. the content-hashing storage backend) lives in
+# settings_static.py — see the long note there on why the hashing is
+# load-bearing, not cosmetic.
+from .settings_static import *  # noqa: F401,F403,E402
+from .settings_static import configure as _configure_static  # noqa: E402
+
+globals().update(_configure_static(BASE_DIR))
 
 # Vite dev server port for dev app TypeScript (container Vite)
 VITE_DEV_APP_PORT = 5174
@@ -181,6 +197,25 @@ try:
 except ImportError:
     pass
 
+# Optional: upstream scitex-storage app (contract-compliant _django app;
+# URL-mounted under /apps/storage/ in config/urls.py). StorageConfig sets
+# default=True and a unique label ("scitex_storage_django"), so the mount
+# is collision-free; the explicit AppConfig path mirrors the writer/todo
+# entries above.
+#
+# Gate on the _django SUBMODULE (not just the top-level package): the
+# AppConfig we append lives in scitex_storage._django.apps, so a
+# scitex_storage installed WITHOUT its _django app (an older published
+# wheel, or a checkout from before its _django app merged) must skip
+# cleanly here rather than crash Django app-loading with
+# "ModuleNotFoundError: No module named 'scitex_storage._django'".
+try:
+    import scitex_storage._django  # noqa: F401
+
+    THIRD_PARTY_APPS.append("scitex_storage._django.apps.StorageConfig")
+except ImportError:
+    pass
+
 # Optional: upstream scitex-todo board app (contract-compliant _django app;
 # URL-mounted under /todo/ in config/urls.py). The explicit AppConfig
 # path mirrors the writer entry above: todo's apps.py holds two AppConfig
@@ -221,6 +256,15 @@ elif _scitex_hub_env in ("stag",):
 elif _scitex_hub_env in ("prod",):
     _scitex_hub_env = "production"
 SCITEX_UI_ELEMENT_INSPECTOR = _scitex_hub_env in ("development", "staging")
+
+# ── On-site agent auth (HMAC shared secret) ────────────────────────────
+# Shared with the MCP client running inside the user's agent container
+# (scitex_hub._mcp_tools.api.get_on_site_env injects the same value as
+# SCITEX_HUB_ONSITE_SECRET). OnSiteAuthMiddleware verifies an HMAC over
+# (username, timestamp) against it. Empty => on-site auth is DISABLED
+# (fail closed); it is never a "trusted network" fallback, because the
+# previous IP-based signal was client-forgeable (X-Forwarded-For).
+ONSITE_AUTH_SECRET = os.environ.get("SCITEX_HUB_ONSITE_SECRET", "")
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

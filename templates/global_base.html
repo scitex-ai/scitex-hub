@@ -1,9 +1,10 @@
-{% load static vite %}
+{% load static vite branding_tags %}
 
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>{% include 'global_base_partials/page_title.html' %}</title>
+        {# Single source of truth for tab titles: config/branding.py #}
+        <title>{% page_title %}</title>
         {% include 'global_base_partials/global_head_meta.html' %}
         {% include 'global_base_partials/global_head_styles.html' %}
         <!-- Umami Analytics (privacy-focused, no cookies) -->
@@ -65,15 +66,16 @@
                 {% endfor %}
             </div>
         {% endif %}
-        <!-- Fail-loud readonly-visitor downgrade explanation (one-shot) -->
-        {% include 'global_base_partials/readonly_visitor_banner.html' %}
         {% if workspace_has_panes and user.is_authenticated %}
             <!-- ═══ Workspace Layout: Sidebar + Single Active Pane ═══ -->
             <div id="workspace-layout" class="workspace-layout">
                 {% include 'global_base_partials/workspace_sidebar.html' %}
                 <div id="workspace-content" class="workspace-content">
-                    <!-- Chat pane: welcome overlay + AI panel (chat mode) -->
-                    <div class="workspace-pane" id="pane-chat" data-pane="chat">
+                    <!-- Chat pane: welcome overlay + AI panel (chat mode).
+                         Server-renders active on /chat/ (request.initial_pane
+                         == 'chat') so the snake welcome pane shows immediately,
+                         independent of the sidebar switch JS booting. -->
+                    <div class="workspace-pane{% if request.initial_pane == 'chat' %} active{% endif %}" id="pane-chat" data-pane="chat">
                         {% include 'global_base_partials/workspace_chat_pane.html' %}
                         <div id="ai-panel-container">{% include 'global_base_partials/workspace_ai_pane.html' %}</div>
                     </div>
@@ -90,8 +92,10 @@
                             <div class="editor-split-right">{% include 'global_base_partials/workspace_viewer_pane.html' %}</div>
                         </div>
                     </div>
-                    <!-- Module pane (active module content) -->
-                    <div class="workspace-pane active" id="pane-module" data-pane="module">
+                    <!-- Module pane (active module content). Default-active on
+                         every workspace page EXCEPT /chat/, where the chat pane
+                         above takes over. -->
+                    <div class="workspace-pane{% if request.initial_pane != 'chat' %} active{% endif %}" id="pane-module" data-pane="module">
                     {% else %}
                         <!-- Non-workspace pages: standard layout with header -->
                         {% if not workspace_has_panes or not user.is_authenticated %}

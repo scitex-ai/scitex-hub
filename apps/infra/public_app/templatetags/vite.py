@@ -174,6 +174,24 @@ def _is_dev_app_entry(entry_name: str) -> bool:
     return app_prefix not in _PLATFORM_APPS
 
 
+def _manifest_miss(msg: str, entry_name: str) -> str:
+    """Fail LOUD on a manifest-lookup miss — never silently ship a page
+    with a missing script (the module pane would stay blank with zero
+    errors anywhere; observed as "Explore renders zero body").
+
+    DEBUG: raise so the dev sees the failure immediately.
+    Production: emit a console.error script tag so browser/QA console
+    capture records the miss (server-side log alone is invisible to QA).
+    """
+    import logging
+
+    logging.getLogger(__name__).error(msg)
+    if settings.DEBUG:
+        raise template.TemplateSyntaxError(msg)
+    payload = json.dumps(f"[vite] missing entry: {entry_name}")
+    return mark_safe(f"<script>console.error({payload});</script>")
+
+
 @register.simple_tag
 def vite_script(entry_name: str):
     """
@@ -239,12 +257,58 @@ def vite_script(entry_name: str):
             tags += f'<script type="module" src="{settings.STATIC_URL}vite/{js_file}"></script>'
             return mark_safe(tags)
         else:
-            import logging
-
-            logging.getLogger(__name__).error(
-                f"Vite entry '{entry_name}' not found in manifest (tried ts_path='{ts_path}' and name='{entry_name}')"
+            return _manifest_miss(
+                f"Vite entry '{entry_name}' not found in manifest "
+                f"(tried ts_path='{ts_path}' and name='{entry_name}')",
+                entry_name,
             )
-            return ""
+
+
+@register.simple_tag(takes_context=True)
+def vite_asset_url(context, entry_name: str) -> str:
+    """Resolve a Vite entry to its ABSOLUTE JS asset URL (no wrapped <script> tag).
+
+    ``vite_script`` always emits a full ``<script>``/``<link>`` tag, which is
+    the right shape for a normal page include but cannot be embedded as a
+    *value* — e.g. inside a ``javascript:`` bookmarklet href that injects the
+    script onto a THIRD-PARTY page, where a root-relative ``/static/...`` URL
+    would incorrectly resolve against that page's own origin. This tag
+    reuses the same manifest resolution as ``vite_script`` and returns an
+    absolute URL string, built via ``request.build_absolute_uri()`` so
+    scheme/host/port are always correct (dev and prod alike) instead of a
+    caller hand-assembling ``https://`` + host.
+
+    Dev app entries are not supported (they only make sense as an emitted
+    <script> tag against the container Vite dev server, not a bare URL).
+    """
+    if _is_dev_app_entry(entry_name):
+        raise ValueError(
+            f"vite_asset_url does not support dev app entries: {entry_name!r}"
+        )
+
+    if settings.DEBUG and not getattr(settings, "VITE_USE_BUILD", False):
+        ts_path = _entry_to_ts_path(entry_name)
+        port = getattr(settings, "VITE_HOST_PORT", 5173)
+        # Already a full URL (host Vite dev server) -- nothing to make absolute.
+        return f"http://localhost:{port}/{ts_path}"
+
+    manifest = get_manifest()
+    ts_path = _entry_to_ts_path(entry_name)
+    entry = manifest.get(ts_path) or _get_manifest_by_name(entry_name)
+
+    if not entry:
+        import logging
+
+        logging.getLogger(__name__).error(
+            f"vite_asset_url: entry '{entry_name}' not found in manifest (tried ts_path='{ts_path}' and name='{entry_name}')"
+        )
+        return ""
+
+    relative_url = f"{settings.STATIC_URL}vite/{entry['file']}"
+    request = context.get("request")
+    if request is not None:
+        return request.build_absolute_uri(relative_url)
+    return relative_url
 
 
 @register.simple_tag
@@ -268,12 +332,9 @@ def vite_preload(entry_name: str):
             f'<link rel="modulepreload" href="{settings.STATIC_URL}vite/{js_file}" />'
         )
 
-    import logging
-
-    logging.getLogger(__name__).error(
-        f"Vite preload entry '{entry_name}' not found in manifest"
+    return _manifest_miss(
+        f"Vite preload entry '{entry_name}' not found in manifest", entry_name
     )
-    return ""
 
 
 @register.simple_tag

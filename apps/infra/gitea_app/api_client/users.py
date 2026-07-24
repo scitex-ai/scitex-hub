@@ -8,6 +8,8 @@ This module provides user-related operations for the Gitea REST API.
 
 from typing import Dict
 
+from .base import path_segment
+
 
 class UserOperationsMixin:
     """Mixin class for user-related operations"""
@@ -27,7 +29,7 @@ class UserOperationsMixin:
         Returns:
             User object
         """
-        response = self._request("GET", f"/users/{username}")
+        response = self._request("GET", f"/users/{path_segment(username)}")
         return response.json()
 
     def create_user(
@@ -71,7 +73,7 @@ class UserOperationsMixin:
         from ..exceptions import GiteaAPIError
 
         try:
-            self._request("GET", f"/users/{username}")
+            self._request("GET", f"/users/{path_segment(username)}")
             return True
         except GiteaAPIError:
             return False
@@ -86,7 +88,7 @@ class UserOperationsMixin:
         Returns:
             True if successful
         """
-        self._request("DELETE", f"/admin/users/{username}")
+        self._request("DELETE", f"/admin/users/{path_segment(username)}")
         return True
 
 
