@@ -185,6 +185,10 @@ dev = [
     "channels>=4.3",
     "fastmcp>=2.0.0",
     "scitex>=2.29.3",
+    # django-celery-beat is in INSTALLED_APPS (settings_shared.py), so
+    # Django cannot even start without it — every Django test fails at
+    # setup, not at some optional import. Matching [all]'s spec.
+    "django-celery-beat>=2.8",
     # scitex-dev provides the `audit-all` corpus the release gate runs.
     # 0.16.1 is the first release where `audit_all_for_package`
     # honours the HYPHENATED rule-id format that tests/develop/
