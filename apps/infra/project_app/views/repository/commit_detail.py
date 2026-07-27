@@ -21,6 +21,10 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 
 from apps.infra.project_app.models import Project
+from apps.infra.project_app.services.git_ref_validation import (
+    END_OF_OPTIONS,
+    is_valid_git_ref,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +71,15 @@ def commit_detail(request, username, slug, commit_hash):
         messages.error(request, "Project directory not found.")
         return redirect("project_app:detail", username=username, slug=slug)
 
+    # ``commit_hash`` comes straight from the URL (``<str:commit_hash>`` =
+    # ``[^/]+``, which PERMITS a leading ``-``) and is handed to ``git show`` /
+    # ``git diff-tree`` in a rev position. A value such as
+    # ``--output=/abs/path`` would be parsed by git as an option and truncate
+    # an arbitrary host file. Reject anything that is not a plain revision.
+    if not is_valid_git_ref(commit_hash):
+        messages.error(request, "Invalid commit reference.")
+        return redirect("project_app:detail", username=username, slug=slug)
+
     # Fetch commit information using git
     commit_info = {}
     changed_files = []
@@ -79,6 +92,7 @@ def commit_detail(request, username, slug, commit_hash):
                 "show",
                 "--no-patch",
                 "--format=%an|%ae|%aI|%s|%b|%P|%H",
+                END_OF_OPTIONS,
                 commit_hash,
             ],
             cwd=project_path,
@@ -107,7 +121,15 @@ def commit_detail(request, username, slug, commit_hash):
 
         # Get list of changed files with stats
         stats_result = subprocess.run(
-            ["git", "diff-tree", "--no-commit-id", "--numstat", "-r", commit_hash],
+            [
+                "git",
+                "diff-tree",
+                "--no-commit-id",
+                "--numstat",
+                "-r",
+                END_OF_OPTIONS,
+                commit_hash,
+            ],
             cwd=project_path,
             capture_output=True,
             text=True,
@@ -126,7 +148,15 @@ def commit_detail(request, username, slug, commit_hash):
 
                     # Get the actual diff for this file
                     diff_result = subprocess.run(
-                        ["git", "show", "--format=", commit_hash, "--", filepath],
+                        [
+                            "git",
+                            "show",
+                            "--format=",
+                            END_OF_OPTIONS,
+                            commit_hash,
+                            "--",
+                            filepath,
+                        ],
                         cwd=project_path,
                         capture_output=True,
                         text=True,
