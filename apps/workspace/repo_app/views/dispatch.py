@@ -38,7 +38,7 @@ def root_dispatch(request, pane=None, session_token=None):
     # now exact-skips "/" and "/landing/", so it correctly reaches the marketing
     # landing (the bug this fixes). A session only becomes ROLE_VISITOR /
     # ROLE_READONLY_VISITOR after DELIBERATELY entering the workspace (the hero
-    # "Go to Workspace" CTA points at /apps/home/, which auto-allocates a slot);
+    # "Enter as visitor" CTA points at /apps/home/, which auto-allocates a slot);
     # once inside it must STAY inside — the workspace sidebar/dock "Home" links
     # to "/", so bouncing these roles back to marketing would eject an active
     # guest on every Home click (card hub-visitor-ux-allapps, operator-confirmed

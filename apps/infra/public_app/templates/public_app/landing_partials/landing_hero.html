@@ -23,7 +23,20 @@
                 <!-- Value proposition and CTA -->
                 <p class="hero-tagline">{{ SITE_TAGLINE }}</p>
                 <div class="hero-cta">
-                    <a href="/apps/home/" class="hero-cta-button">Go to Workspace <span class="hero-cta-arrow">&rarr;</span></a>
+                    <div class="hero-cta-container">
+                        {# Primary: explicitly START A VISITOR SESSION. Target /apps/home/ is the
+                           existing visitor-provisioning entry (NOT skip-listed by
+                           VisitorAutoLoginMiddleware), so choosing this allocates a slot and
+                           opens the workspace. Sign up / Sign in are the alternatives. #}
+                        <a href="/apps/home/" class="hero-cta-button">Enter as visitor <span class="hero-cta-arrow">&rarr;</span></a>
+                        <a href="/auth/signup/" class="hero-link-button">
+                            <i class="fas fa-user-plus"></i> Sign up
+                        </a>
+                        <a href="/auth/login/" class="hero-link-button">
+                            <i class="fas fa-sign-in-alt"></i> Sign in
+                        </a>
+                    </div>
+                    <p class="hero-cta-note">No sign-up needed — starts a temporary visitor workspace.</p>
                 </div>
                 <div class="hero-links">
                     <a href="/apps/" class="hero-link-button">
