@@ -11,7 +11,6 @@ Provides endpoints for:
 from __future__ import annotations
 
 import logging
-import re
 
 from django.contrib.auth.models import User
 from django.http import JsonResponse
@@ -19,35 +18,23 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
 
 from ....models import Project
+from ....services.git_ref_validation import END_OF_OPTIONS, is_valid_git_ref
 from .git_utils import get_project_path, run_git_command
 from .permissions import check_project_read_access
 
 logger = logging.getLogger(__name__)
 
-# A git revision (``from``/``to``) is placed in a git argv position that
-# PRECEDES the ``--`` path separator, so ``--`` cannot protect it — a value
-# beginning with ``-`` is parsed by git as an OPTION, not a ref. That is
-# argument injection even though the argv is a list and shell=False: e.g.
-# ``?from=--output=/path`` makes ``git diff`` write to an attacker-chosen
-# file. This endpoint is reachable UNAUTHENTICATED for any public project
-# (permissions.check_project_read_access returns True for anon on
-# visibility=="public"), so the ref must be validated, not merely quoted.
-#
-# The character set covers every legitimate rev this endpoint receives —
-# sha (hex), symbolic names (HEAD, main), ancestry (HEAD~1, HEAD^),
-# namespaced refs (feature/x, refs/tags/v1), reflog/upstream (@{...}). The
-# leading-char rule is the security-critical part: a ref may not begin with
-# ``-`` (option) or ``.`` (invalid in git and a foothold for ``..`` ranges).
-_GIT_REF_RE = re.compile(r"^[0-9A-Za-z_][0-9A-Za-z._/@{}~^-]{0,199}$")
-
-
-def _is_valid_git_ref(ref: str) -> bool:
-    """True if ``ref`` is a syntactically safe single git revision.
-
-    Empty string is treated as "not supplied" by the caller and is handled
-    there; it is not a valid ref and returns False here.
-    """
-    return bool(_GIT_REF_RE.match(ref))
+# Backwards-compatible alias. A git revision (``from``/``to``) is placed in a
+# git argv position that PRECEDES the ``--`` path separator, so ``--`` cannot
+# protect it — a value beginning with ``-`` is parsed by git as an OPTION, not
+# a ref. That is argument injection even though the argv is a list and
+# shell=False: e.g. ``?from=--output=/path`` makes ``git diff`` write to an
+# attacker-chosen file. This endpoint is reachable UNAUTHENTICATED for any
+# public project (permissions.check_project_read_access returns True for anon
+# on visibility=="public"), so the ref must be validated, not merely quoted.
+# The validator now lives in services.git_ref_validation and is shared across
+# every git view; ``--end-of-options`` is inserted before the refs as well.
+_is_valid_git_ref = is_valid_git_ref
 
 
 @require_http_methods(["GET"])
@@ -156,15 +143,17 @@ def api_git_diff(request, username, slug):
                 {"success": False, "error": "Project directory not found"}, status=404
             )
 
-        # Build diff command
+        # Build diff command. User-supplied revs are placed AFTER
+        # ``--end-of-options`` so git can never parse a ``-``-leading value as
+        # an option (belt to the validation braces above).
         args = ["diff"]
 
         if staged:
             args.append("--cached")
         elif commit1 and commit2:
-            args.extend([commit1, commit2])
+            args.extend([END_OF_OPTIONS, commit1, commit2])
         elif commit1:
-            args.append(commit1)
+            args.extend([END_OF_OPTIONS, commit1])
         # else: diff working tree vs index
 
         if path:
