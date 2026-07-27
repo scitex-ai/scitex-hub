@@ -43,6 +43,19 @@ from apps.infra.project_app.services.visitor_pool import (
 
 BROWSER_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Safari/605.1"
 
+# Visitor auto-login / readonly-downgrade is triggered by a browser hitting a
+# non-skip-listed path. As of card
+# hub-landing-page-for-logged-out-visitors-20260727, "/" and "/landing/" are
+# EXACT-skipped by VisitorAutoLoginMiddleware so a first-time browser stays
+# anonymous on the marketing pages (it must reach /landing/, not the launcher,
+# and must not burn a pool slot merely to view marketing). Provisioning — and
+# therefore the pool-full → readonly downgrade — now fires at the EXPLICIT
+# workspace-entry path the hero "Enter as visitor" CTA points at (/apps/home/,
+# not skip-listed). These downgrade tests exercise the trigger there; every
+# assertion (readonly login, session markers, banner copy, reason codes) is
+# unchanged — only the URL that fires the middleware moved.
+ENTRY_PATH = "/apps/home/"
+
 
 class SessionRoleModelTest(TestCase):
     """get_user_role maps every account shape to exactly one role."""
@@ -96,7 +109,7 @@ class ReadonlyDowngradeExplanationTest(TestCase):
     def test_downgrade_logs_session_in_as_readonly_visitor(self):
         # Arrange — anonymous browser request with an exhausted pool
         # Act
-        resp = self.client.get("/", HTTP_USER_AGENT=BROWSER_UA)
+        resp = self.client.get(ENTRY_PATH, HTTP_USER_AGENT=BROWSER_UA)
         # Assert
         assert resp.wsgi_request.user.username == "readonly-visitor"
 
@@ -106,7 +119,7 @@ class ReadonlyDowngradeExplanationTest(TestCase):
         # and hurt onboarding. Readonly state stays discoverable via the
         # header badge/popover (see the reason-threading tests), not a banner.
         # Act — the downgrade request itself is the next rendered page
-        resp = self.client.get("/", HTTP_USER_AGENT=BROWSER_UA)
+        resp = self.client.get(ENTRY_PATH, HTTP_USER_AGENT=BROWSER_UA)
         # Assert — the intrusive banner element must stay gone
         assert b"readonly-visitor-banner" not in resp.content
 
@@ -115,29 +128,29 @@ class ReadonlyDowngradeExplanationTest(TestCase):
         # fixture has no visitor-NNN slots at all → no_ready_slot), so
         # the banner must NOT claim the pool is full.
         # Act
-        resp = self.client.get("/", HTTP_USER_AGENT=BROWSER_UA)
+        resp = self.client.get(ENTRY_PATH, HTTP_USER_AGENT=BROWSER_UA)
         # Assert
         assert b"Visitor slots are being prepared" in resp.content
 
     def test_downgraded_page_does_not_claim_pool_full(self):
         # Arrange — 0 busy slots: "pool is full" would be a lie
         # Act
-        resp = self.client.get("/", HTTP_USER_AGENT=BROWSER_UA)
+        resp = self.client.get(ENTRY_PATH, HTTP_USER_AGENT=BROWSER_UA)
         # Assert
         assert b"All visitor slots are in use" not in resp.content
 
     def test_explanation_flag_is_one_shot(self):
         # Arrange — first request consumes the downgrade notice
-        self.client.get("/", HTTP_USER_AGENT=BROWSER_UA)
+        self.client.get(ENTRY_PATH, HTTP_USER_AGENT=BROWSER_UA)
         # Act — second page load must not repeat the banner
-        resp = self.client.get("/", HTTP_USER_AGENT=BROWSER_UA)
+        resp = self.client.get(ENTRY_PATH, HTTP_USER_AGENT=BROWSER_UA)
         # Assert
         assert b"readonly-visitor-banner" not in resp.content
 
     def test_downgrade_sets_readonly_session_marker(self):
         # Arrange — anonymous browser request with an exhausted pool
         # Act
-        self.client.get("/", HTTP_USER_AGENT=BROWSER_UA)
+        self.client.get(ENTRY_PATH, HTTP_USER_AGENT=BROWSER_UA)
         # Assert
         assert self.client.session.get("is_readonly_visitor") is True
 
@@ -166,7 +179,7 @@ class ReadonlyDowngradeReasonThreadingTest(TestCase):
     def test_no_ready_slot_reason_recorded_in_session(self):
         # Arrange — slots exist in no verified-clean state (none at all)
         # Act
-        self.client.get("/", HTTP_USER_AGENT=BROWSER_UA)
+        self.client.get(ENTRY_PATH, HTTP_USER_AGENT=BROWSER_UA)
         # Assert
         assert (
             self.client.session.get(SESSION_KEY_READONLY_REASON)
@@ -177,7 +190,7 @@ class ReadonlyDowngradeReasonThreadingTest(TestCase):
         # Arrange
         self._fill_pool()
         # Act
-        self.client.get("/", HTTP_USER_AGENT=BROWSER_UA)
+        self.client.get(ENTRY_PATH, HTTP_USER_AGENT=BROWSER_UA)
         # Assert
         assert (
             self.client.session.get(SESSION_KEY_READONLY_REASON)
@@ -188,15 +201,15 @@ class ReadonlyDowngradeReasonThreadingTest(TestCase):
         # Arrange
         self._fill_pool()
         # Act
-        resp = self.client.get("/", HTTP_USER_AGENT=BROWSER_UA)
+        resp = self.client.get(ENTRY_PATH, HTTP_USER_AGENT=BROWSER_UA)
         # Assert
         assert b"All visitor slots are in use" in resp.content
 
     def test_reason_detail_persists_after_one_shot_banner(self):
         # Arrange — first request consumes the banner notice
-        self.client.get("/", HTTP_USER_AGENT=BROWSER_UA)
+        self.client.get(ENTRY_PATH, HTTP_USER_AGENT=BROWSER_UA)
         # Act — the header popover still explains the persistent state
-        resp = self.client.get("/", HTTP_USER_AGENT=BROWSER_UA)
+        resp = self.client.get(ENTRY_PATH, HTTP_USER_AGENT=BROWSER_UA)
         # Assert
         assert b"Visitor slots are being prepared" in resp.content
 

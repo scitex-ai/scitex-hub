@@ -64,6 +64,24 @@ class VisitorAutoLoginMiddleware:
 
         # Skip static files, media, and paths that don't need visitor
         path = request.path
+
+        # First-time browsers must reach the marketing pages ANONYMOUSLY.
+        # Auto-allocating a visitor slot merely to VIEW the bare root or the
+        # marketing landing is wrong twice over: (a) a first-time visitor is
+        # made is_authenticated at "/" and root_dispatch then serves the app
+        # launcher instead of the marketing landing (the bug this fixes), and
+        # (b) it burns a scarce pool slot for a page that does no workspace
+        # work. A visitor still gets a slot the instant they CHOOSE to enter
+        # the workspace via the hero CTA (/apps/home/), which is deliberately
+        # NOT listed here.
+        #
+        # These MUST be EXACT matches, never a startswith prefix: "/" is a
+        # prefix of every URL, so a prefix rule here would silently disable
+        # visitor auto-login site-wide.
+        exact_public_paths = ("/", "/landing/")
+        if path in exact_public_paths:
+            return
+
         skip_paths = (
             # System paths
             "/static/",
