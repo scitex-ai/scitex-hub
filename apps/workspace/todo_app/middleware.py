@@ -19,6 +19,11 @@ This middleware makes the mount multi-tenant while keeping Django thin
    ``<workspace>/<project>/.scitex/todo/tasks.yaml`` — the file the
    existing three-way sync already maintains. The resolved path is
    validated to sit inside the owning workspace base before injection.
+   The store is published on ``request.scitex_store``. It is ALSO still
+   written into ``request.GET`` during the migration window — see the
+   comment at the injection site. The query channel is deprecated: it
+   makes our injected value indistinguishable from a hostile ``?store=``
+   for anything downstream, which is why rule 1 has to exist at all.
 3. **Phase 1 is read-only** — every non-GET/HEAD/OPTIONS request under
    ``/todo/`` is rejected: readonly visitors get the structured #308
    write-rejection payload; everyone else gets an explicit
@@ -138,6 +143,31 @@ class TodoBoardTenancyMiddleware:
                 "user %s (server-side tenancy only)",
                 user.username,
             )
+
+        # PRIMARY CHANNEL — a request ATTRIBUTE, not the query string.
+        #
+        # Injecting tenancy via ?store= put a security-critical value in the
+        # exact namespace the attacker controls, so downstream (upstream
+        # scitex-cards) our injected store and a hostile ?store= are
+        # byte-identical — indistinguishable by construction. That is why the
+        # discard above has to exist at all: it papers over a channel we
+        # should not be using. An attribute cannot be spoofed by a client,
+        # so the upstream can accept it unconditionally and reject query/body.
+        # Contract agreed with scitex-cards on card
+        # sec-p0-fleet-dm-board-reachable-from-prod-django-20260728.
+        request.scitex_store = store
+
+        # LEGACY CHANNEL — deliberately still set, and NOT yet removed.
+        # Removing it here before the upstream honours request.scitex_store
+        # would drop tenancy injection entirely for a release window, and the
+        # upstream then falls back to its ambient canonical store — one store
+        # for ALL tenants. On prod today that store is empty (/app/.scitex is
+        # an empty named volume) so it would merely look like "no data", which
+        # is exactly what makes it dangerous: it is one mount away from being
+        # a cross-tenant read, armed by configuration rather than prevented by
+        # code. Alias first, then remove.
+        # DELETE THIS BLOCK once scitex-cards ships attribute support — that
+        # is the step that lets the upstream reject query/body outright.
         params = request.GET.copy()
         params["store"] = str(store)
         request.GET = params

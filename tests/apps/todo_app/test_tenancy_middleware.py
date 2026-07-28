@@ -44,6 +44,11 @@ def _run(request):
 
     def get_response(req):
         captured["store"] = req.GET.get("store")
+        # The PRIMARY channel. Captured separately from the query so a test
+        # can prove the two agree — and, once the legacy query injection is
+        # removed, so the query-based assertions fail loudly instead of
+        # silently reading None.
+        captured["store_attr"] = getattr(req, "scitex_store", None)
         captured["called"] = True
         return HttpResponse("ok")
 
@@ -103,6 +108,54 @@ class TodoTenancyStoreResolutionTest(TestCase):
         response, captured = _run(request)
         # Assert
         assert "/users/alice/" not in captured["store"]
+
+    def test_store_is_published_on_the_request_attribute(self):
+        # Arrange — the attribute is the channel a client CANNOT forge, and
+        # is what upstream scitex-cards will honour instead of ?store=.
+        request = _request(self.rf, self.alice)
+        # Act
+        response, captured = _run(request)
+        # Assert
+        assert captured["store_attr"] is not None
+
+    def test_request_attribute_is_an_absolute_path(self):
+        # Arrange — upstream must not have to guess whether to resolve it.
+        request = _request(self.rf, self.alice)
+        # Act
+        response, captured = _run(request)
+        # Assert
+        assert Path(captured["store_attr"]).is_absolute()
+
+    def test_request_attribute_agrees_with_the_legacy_query_store(self):
+        # Arrange — during the migration window both channels are written;
+        # a divergence would mean the two consumers see different tenants.
+        request = _request(self.rf, self.alice)
+        # Act
+        response, captured = _run(request)
+        # Assert
+        assert str(captured["store_attr"]) == captured["store"]
+
+    def test_hostile_store_param_never_reaches_the_request_attribute(self):
+        # Arrange — the whole point of the attribute: a client-supplied
+        # ?store= must not be able to impersonate a server-resolved one.
+        request = _request(
+            self.rf, self.alice, data={"store": "/etc/passwd"}
+        )
+        # Act
+        response, captured = _run(request)
+        # Assert
+        assert "/etc/passwd" not in str(captured["store_attr"])
+
+    def test_request_attribute_stays_inside_the_requesting_users_workspace(self):
+        # Arrange
+        from django.conf import settings
+
+        request = _request(self.rf, self.bob)
+        bob_base = Path(settings.BASE_DIR) / "data" / "users" / "bob" / "proj"
+        # Act
+        response, captured = _run(request)
+        # Assert
+        assert Path(captured["store_attr"]).is_relative_to(bob_base)
 
     def test_client_supplied_store_param_is_discarded(self):
         # Arrange
