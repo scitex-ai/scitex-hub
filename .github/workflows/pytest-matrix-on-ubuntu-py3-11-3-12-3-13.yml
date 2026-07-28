@@ -12,24 +12,45 @@ on:
 jobs:
   test:
     name: pytest-matrix-on-ubuntu-py${{ matrix.python-version }}
-    runs-on: ubuntu-latest
+    # Spartan self-hosted, not paid GitHub-hosted runners (Spartan-first
+    # directive). Proven on the audit job first — see run 30329982563.
+    runs-on: [self-hosted, Linux, X64, spartan-cpu]
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      # uv, NOT setup-python + bare pip. The runner's toolcache Python is
+      # uv-managed, so pip into it dies with PEP 668
+      # "externally-managed-environment" (measured, run 30329643093).
+      # A venv — never --break-system-packages: these runners are ORG-POOLED
+      # and shared with every other repo's jobs.
+      # uv also removes the toolcache dependency this matrix would otherwise
+      # have: the runner only had 3.12 cached, and `uv venv --python 3.11`
+      # fetches a missing interpreter instead of failing.
+      - uses: astral-sh/setup-uv@v7
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
+          cache-dependency-glob: pyproject.toml
+      - name: Install dependencies (py${{ matrix.python-version }})
         run: |
-          python -m pip install --upgrade pip
+          set -euo pipefail
+          # --seed installs pip/setuptools into the venv. uv itself does not
+          # need pip, so a bare `uv venv` omits it — but tests/scitex_hub/apps/
+          # apps_app/services/test_user_app_install_e2e.py shells out to
+          # `python -m pip install` to exercise the REAL user-app install path,
+          # and died with "No module named pip" (measured, run 30331030951).
+          # setup-python always provided a pip, so nothing here depended on it
+          # explicitly. Seed the venv rather than rewriting those tests to use
+          # uv: they are correct as written — they exercise the same installer
+          # the product uses, with no mocks.
+          uv venv --seed --python ${{ matrix.python-version }} .venv
           # Fallback chain: prefer [all,dev] so optional-dep code paths
           # (yaml, fastmcp, textual) get exercised. Falls back to [dev] then
           # plain editable so a packaging hiccup doesn't strand CI.
-          pip install -e ".[all,dev]" || pip install -e ".[dev]" || pip install -e .
+          uv pip install --python .venv/bin/python -e ".[all,dev]" \
+            || uv pip install --python .venv/bin/python -e ".[dev]" \
+            || uv pip install --python .venv/bin/python -e .
       - name: Run tests
         # Django settings hard-fail (ValueError, per "no silent fallback")
         # if SCITEX_HUB_DJANGO_SECRET_KEY is unset. CI doesn't need a real
@@ -44,7 +65,12 @@ jobs:
           # focused on the wheel + import + unit-level behaviour.
           SCITEX_HUB_USE_SQLITE_DEV: "1"
         run: |
-          pytest tests/ --cov=src/scitex_hub --cov-report=xml --cov-report=term
+          set -euo pipefail
+          # .venv/bin on PATH so any tool the suite shells out to (e.g. the
+          # audit gate's scitex-dev subcommands) resolves to THIS venv rather
+          # than to whatever the shared runner happens to have installed.
+          export PATH="$PWD/.venv/bin:$PATH"
+          .venv/bin/python -m pytest tests/ --cov=src/scitex_hub --cov-report=xml --cov-report=term
       - name: Upload coverage to Codecov
         if: always() && matrix.python-version == '3.12'
         uses: codecov/codecov-action@v5
