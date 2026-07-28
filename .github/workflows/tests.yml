@@ -12,19 +12,44 @@ on:
 jobs:
   typescript-check:
     name: TypeScript Compilation & Linting
-    runs-on: ubuntu-latest
+    # Needs BOTH node and Python, which is why it waited: a failure here
+    # could not have told us which half was at fault. Both are now proven
+    # on this pool independently — vitest (node) and the pytest matrix
+    # (python) are green — so it can move.
+    runs-on: [self-hosted, Linux, X64, spartan-cpu]
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v7
         with:
-          python-version: '3.11'
+          cache-dependency-glob: pyproject.toml
 
       - name: Install workspace apps
-        run: pip install "scitex-ui>=0.2.0" && bash scripts/apps/install_apps.sh
+        run: |
+          set -euo pipefail
+          # uv venv, not bare pip: the pool's toolcache Python is uv-managed
+          # and refuses pip under PEP 668, and these runners are org-pooled
+          # so the shared interpreter must not be mutated.
+          #
+          # --seed is REQUIRED here, unlike the other migrated jobs. `uv venv`
+          # creates a venv with NO pip in it. That is fine when every install
+          # goes through `uv pip install --python .venv/bin/python`, but
+          # install_apps.sh shells plain `pip` as its documented fallback
+          # (scripts/apps/install_apps.sh: "Always fall back to plain pip").
+          # Without --seed there is no .venv/bin/pip for the PATH below to
+          # resolve, so that fallback escapes the venv and mutates whatever
+          # interpreter the shared pooled runner has — the exact thing the
+          # comment above says must not happen, failing silently rather than
+          # loudly. --seed puts pip in the venv so the fallback stays jailed.
+          uv venv --seed --python 3.11 .venv
+          uv pip install --python .venv/bin/python "scitex-ui>=0.2.0"
+          # install_apps.sh shells `pip`/`python` itself, so put the venv
+          # ahead of anything the shared runner has on PATH.
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+          export PATH="$PWD/.venv/bin:$PATH"
+          bash scripts/apps/install_apps.sh
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -67,16 +92,15 @@ jobs:
 
   terminal-tests:
     name: "Terminal Broker & Session Tests (Python)"
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, spartan-cpu]
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v7
         with:
-          python-version: '3.11'
+          cache-dependency-glob: pyproject.toml
 
       - name: Install dependencies
         # No silent degradation: these tests need the FULL dependency set
@@ -87,15 +111,22 @@ jobs:
         # failing collection with confusing ModuleNotFoundError /
         # AppRegistryNotReady errors. Retry the full install instead and
         # fail loudly if it never succeeds.
+        #
+        # GITHUB_PATH is written BEFORE the retry loop on purpose: the loop
+        # `exit 0`s the whole step on first success, so anything after it
+        # would never run. uv venv (not bare pip) because the pool's
+        # toolcache Python is uv-managed and refuses pip under PEP 668.
         run: |
+          uv venv --python 3.11 .venv
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
           for attempt in 1 2 3; do
-            if pip install -e ".[all,dev]"; then
+            if uv pip install --python .venv/bin/python -e ".[all,dev]"; then
               exit 0
             fi
-            echo "::warning::pip install -e .[all,dev] attempt ${attempt} failed; retrying in 15s"
+            echo "::warning::uv pip install -e .[all,dev] attempt ${attempt} failed; retrying in 15s"
             sleep 15
           done
-          echo "::error::pip install -e .[all,dev] failed after 3 attempts"
+          echo "::error::uv pip install -e .[all,dev] failed after 3 attempts"
           exit 1
 
       - name: Verify test environment is complete
@@ -113,30 +144,32 @@ jobs:
 
   security-regression:
     name: "Security Regression Gates (tests/security/)"
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, spartan-cpu]
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v7
         with:
-          python-version: '3.11'
+          cache-dependency-glob: pyproject.toml
 
       - name: Install dependencies
         # Same no-silent-degradation policy as terminal-tests: retry the
         # FULL install and fail loudly rather than run a security gate
         # against a half-installed environment.
+        # GITHUB_PATH before the loop — the loop `exit 0`s the step.
         run: |
+          uv venv --python 3.11 .venv
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
           for attempt in 1 2 3; do
-            if pip install -e ".[all,dev]"; then
+            if uv pip install --python .venv/bin/python -e ".[all,dev]"; then
               exit 0
             fi
-            echo "::warning::pip install -e .[all,dev] attempt ${attempt} failed; retrying in 15s"
+            echo "::warning::uv pip install -e .[all,dev] attempt ${attempt} failed; retrying in 15s"
             sleep 15
           done
-          echo "::error::pip install -e .[all,dev] failed after 3 attempts"
+          echo "::error::uv pip install -e .[all,dev] failed after 3 attempts"
           exit 1
 
       - name: Verify test environment is complete
@@ -181,7 +214,10 @@ jobs:
 
   test-summary:
     name: Test Summary
-    runs-on: ubuntu-latest
+    # Pure bash over `needs.*.result` — no checkout, no Python, no node, no
+    # network. Nothing here can depend on a hosted-runner preinstall, which
+    # is the whole class of surprise that made the other migrations careful.
+    runs-on: [self-hosted, Linux, X64, spartan-cpu]
     needs: [typescript-check, vitest, terminal-tests, security-regression]
     if: always()
 
