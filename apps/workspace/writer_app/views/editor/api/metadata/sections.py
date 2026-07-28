@@ -70,7 +70,30 @@ def sections_config_view(request, project_id=None):
                 {"success": False, "error": f"Project {project_id} not found"},
                 status=404,
             )
-        if not user_can_access_project(request, project):
+        # The authorization DECISION must not be swallowed by the blanket
+        # `except Exception` below. That handler degrades to a 200 with the
+        # static hierarchy, so an auth error there stops being a denial and
+        # becomes a silent success — which is exactly what happened while
+        # this called the non-existent `project.team_members`: every
+        # authenticated non-owner raised AttributeError, got caught, and was
+        # answered 200 "success": true. The 403 on the next line was
+        # unreachable. Re-raise as a dedicated type so the fallback cannot
+        # absorb an access-control failure again.
+        try:
+            allowed = user_can_access_project(request, project)
+        except Exception as exc:  # noqa: BLE001 - narrowed immediately below
+            logger.error(
+                "sections-config: authorization check FAILED to evaluate for "
+                "project %s; refusing access (fail closed). %s",
+                project_id,
+                exc,
+                exc_info=True,
+            )
+            return JsonResponse(
+                {"success": False, "error": "Authorization could not be evaluated"},
+                status=403,
+            )
+        if not allowed:
             return JsonResponse(
                 {"success": False, "error": "You don't have access to this project"},
                 status=403,
@@ -94,7 +117,13 @@ def sections_config_view(request, project_id=None):
             {
                 "success": True,
                 "hierarchy": SECTION_HIERARCHY,
-                "message": f"Using static configuration (error: {str(e)})",
+                # Do NOT echo str(e) to the client. It leaked internals
+                # verbatim — the live payload read "Using static
+                # configuration (error: 'Project' object has no attribute
+                # 'team_members')", handing a caller our model internals and
+                # a map of which auth branch is broken. The detail is in the
+                # server log above.
+                "message": "Using static configuration",
             }
         )
 

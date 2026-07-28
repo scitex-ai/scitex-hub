@@ -63,7 +63,9 @@ def api_login_optional(view_func):
                 # Regular authenticated user - verify ownership or access
                 if project.owner != request.user:
                     # Check if user has access through team/collaboration
-                    if not project.team_members.filter(id=request.user.id).exists():
+                    if not project.collaborators.filter(
+                        id=request.user.id
+                    ).exists():
                         return JsonResponse(
                             {
                                 "success": False,
@@ -137,10 +139,15 @@ def user_can_access_project(request, project):
             if visitor_project_id and int(visitor_project_id) == int(project.id):
                 return True
             return project.owner_id == request.user.id
-        # Regular authenticated user: owner or team member.
+        # Regular authenticated user: owner or collaborator.
         if project.owner_id == request.user.id:
             return True
-        return project.team_members.filter(id=request.user.id).exists()
+        # `collaborators` is the real M2M (Project.collaborators, through
+        # ProjectMembership). `team_members` NEVER existed on the model, so
+        # this line used to raise AttributeError for every authenticated
+        # non-owner — see the module note in the commit for why that was
+        # worse than a typo.
+        return project.collaborators.filter(id=request.user.id).exists()
 
     # Anonymous visitor: session must be bound to THIS project and its owner.
     visitor_project_id = request.session.get("visitor_project_id")
