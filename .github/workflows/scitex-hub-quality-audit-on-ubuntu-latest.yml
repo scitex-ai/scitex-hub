@@ -48,7 +48,16 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
-          pip install "scitex-dev[cli-audit]"
+          # PINNED DELIBERATELY. Unpinned, this line makes the gate
+          # non-reproducible: the rule corpus IS the definition of passing, so
+          # a scitex-dev release silently redefines it with no diff in this
+          # repo. Measured 2026-07-28 — develop @ fa16e8eb4 audited GREEN at
+          # 15:32Z on 07-27 and the identical tree audited RED (170 errors)
+          # at 04:17Z on 07-28, because 0.38.0 landed in between. You could
+          # not tell a regression from a corpus bump.
+          # Bump this pin as its own reviewable commit, so the new findings
+          # arrive attributable and someone owns them.
+          pip install "scitex-dev[cli-audit]==0.38.0"
 
       # Use the pytest wrapper so the documented `skip_rules` deferrals in
       # tests/develop/test_audit.py are honoured. Calling `scitex-dev
