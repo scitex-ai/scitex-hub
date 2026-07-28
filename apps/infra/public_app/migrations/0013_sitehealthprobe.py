@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('public_app', '0011_billingevent'),
+        ('public_app', '0012_serviceinquiry'),
     ]
 
     operations = [
