@@ -944,19 +944,19 @@
                 <i class="fas fa-th-large"></i>
                 <span>Workspace</span>
             </a>
-            <a href="/workspace/chat/" class="mobile-menu-item mobile-menu-item--indent">
+            <a href="/chat/" class="mobile-menu-item mobile-menu-item--indent">
                 <i class="fas fa-comment"></i>
                 <span>Chat</span>
             </a>
             {# Console (terminal) is a developer/power tool — staff/dev only, #}
             {# consistent with Server Status + Keyboard Shortcuts above.       #}
             {% if DEBUG or user.is_staff %}
-                <a href="/workspace/console/" class="mobile-menu-item mobile-menu-item--indent">
+                <a href="/console/" class="mobile-menu-item mobile-menu-item--indent">
                     <i class="fas fa-terminal"></i>
                     <span>Console</span>
                 </a>
             {% endif %}
-            <a href="/workspace/editor/" class="mobile-menu-item mobile-menu-item--indent">
+            <a href="/files/" class="mobile-menu-item mobile-menu-item--indent">
                 <i class="fas fa-folder"></i>
                 <span>Files</span>
             </a>
