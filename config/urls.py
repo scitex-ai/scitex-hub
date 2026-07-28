@@ -29,15 +29,30 @@ from apps.workspace.repo_app.views.index import current_project_view
 from config.urls_helpers import RESERVED_PATHS, dev_module_view  # noqa: F401
 
 
-def _scitex_todo_installed() -> bool:
-    """True when the upstream scitex-todo package is importable.
+def _scitex_cards_installed() -> bool:
+    """True when the upstream cards package is importable.
 
     Mirrors the guarded THIRD_PARTY_APPS import in settings_shared.py so
-    the /apps/todo/ mount and the installed app always agree.
+    the /apps/cards/ mount and the installed app always agree.
+
+    Checks the CANONICAL name first. ``scitex_todo`` is a deprecated alias
+    of ``scitex_cards`` (renamed 2026-07-16) whose own DeprecationWarning
+    says it "ships for one transition window only". Gating the mount on the
+    alias made the board's existence depend on a package the upstream has
+    already announced it will delete — and the failure is SILENT: when the
+    alias goes, find_spec returns None, the mount is skipped, and
+    /apps/cards/ quietly falls through to the username catch-all. No error,
+    no log, the board simply stops existing.
+
+    The alias is still accepted as a fallback so an environment pinned to
+    the pre-rename dist keeps working; drop that arm once nothing ships it.
     """
     from importlib.util import find_spec
 
-    return find_spec("scitex_todo") is not None
+    return (
+        find_spec("scitex_cards") is not None
+        or find_spec("scitex_todo") is not None
+    )
 
 
 def _scitex_storage_installed() -> bool:
@@ -155,7 +170,7 @@ urlpatterns = [
     # path prefix tracks this mount).
     *(
         [
-            path("apps/cards/", include("scitex_todo._django.urls")),
+            path("apps/cards/", include("scitex_cards._django.urls")),
             # Legacy mount: the board lived at /apps/todo/ before the Cards
             # rebrand (operator live review 2026-07-17). Permanent-redirect
             # the whole subtree so old links and pinned tiles keep working.
@@ -166,7 +181,7 @@ urlpatterns = [
                 ),
             ),
         ]
-        if _scitex_todo_installed()
+        if _scitex_cards_installed()
         else []
     ),
     # Upstream scitex-storage's own contract-compliant Django app. Only

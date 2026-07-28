@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Tenancy + phase-1 read-only guard for the mounted scitex-todo board.
 
-The upstream ``scitex_todo._django`` board resolves its task store through
+The upstream ``scitex_cards._django`` board resolves its task store through
 a per-request ``?store=`` seam (``views._tasks_path_from_request``); with
 no ``store`` param it falls back to the HOST store (``~/.scitex/todo/
 tasks.yaml``) — correct standalone, a cross-tenant leak on the hub.
@@ -82,7 +82,9 @@ _PAGE_PATHS = frozenset(
 # config/urls.py — when the package is absent the mount does not exist
 # and this middleware must not intercept the path (it falls through to
 # the GitHub-style username catch-all, same as /writer/).
-_TODO_INSTALLED = find_spec("scitex_todo") is not None
+_TODO_INSTALLED = (
+    find_spec("scitex_cards") is not None or find_spec("scitex_todo") is not None
+)
 
 
 class TodoBoardTenancyMiddleware:
