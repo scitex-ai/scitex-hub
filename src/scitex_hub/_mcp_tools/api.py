@@ -3,10 +3,110 @@
 # File: src/scitex_hub/_mcp_tools/api.py
 """Django API tools for FastMCP server."""
 
+import hashlib
+import hmac
 import json
 import os
+import time
 from pathlib import Path
 from typing import Optional
+
+# ── On-site auth (HMAC) ────────────────────────────────────────────────
+# Canonical, single-source signing AND verification primitives, used by
+# BOTH the MCP client (this module, the sender — see
+# ``_build_auth_headers``) and the Django ``OnSiteAuthMiddleware``
+# (the verifier, ``apps/infra/project_app/middleware_onsite_auth.py``,
+# which calls ``verify_onsite`` from here). Keeping signer and verifier
+# in one module is what makes them unable to drift.
+#
+# This replaces the previous plaintext-username-plus-internal-IP model,
+# in which any request could forge ``X-SciTeX-OnSite: <username>`` and be
+# authenticated as that user. That IP check was not a boundary at all:
+# the middleware derived the "client IP" from
+# ``X-Forwarded-For.split(",")[0]`` — the leftmost element, which is
+# exactly the part the CLIENT writes (nginx *appends* the real peer via
+# ``$proxy_add_x_forwarded_for``), so a public request carrying
+# ``X-Forwarded-For: 127.0.0.1`` passed it. Possession of the shared
+# secret is now the only trust signal.
+ONSITE_USER_HEADER = "X-SciTeX-OnSite"
+ONSITE_SIG_HEADER = "X-SciTeX-OnSite-Sig"
+ONSITE_TS_HEADER = "X-SciTeX-OnSite-Ts"
+
+# Env var carrying the shared secret on both sides (injected into the
+# agent container by ``get_on_site_env``; read into Django settings as
+# ``ONSITE_AUTH_SECRET``).
+ONSITE_SECRET_ENV = "SCITEX_HUB_ONSITE_SECRET"
+
+# Replay window, seconds. A captured signature is useless outside it.
+ONSITE_MAX_SKEW_SECONDS = 300
+
+
+def onsite_message(username: str, timestamp: str) -> str:
+    """Canonical signing payload for an on-site request."""
+    return f"{username}:{timestamp}"
+
+
+def sign_onsite(username: str, timestamp: str, secret: str) -> str:
+    """HMAC-SHA256 hex digest binding an on-site request to (username, ts).
+
+    ``timestamp`` is signed as the exact string transmitted on the wire so
+    the verifier can recompute it without any normalization ambiguity.
+    """
+    return hmac.new(
+        secret.encode("utf-8"),
+        onsite_message(username, timestamp).encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+
+
+def wsgi_meta_key(header: str) -> str:
+    """``X-SciTeX-OnSite-Sig`` -> ``HTTP_X_SCITEX_ONSITE_SIG``.
+
+    Derived from the header constants so the verifier can never read a
+    different header than the signer writes.
+    """
+    return "HTTP_" + header.upper().replace("-", "_")
+
+
+def verify_onsite(
+    meta,
+    secret: str,
+    now: Optional[float] = None,
+    max_skew: int = ONSITE_MAX_SKEW_SECONDS,
+) -> Optional[str]:
+    """Verify on-site auth headers; return the username, or ``None``.
+
+    ``meta`` is a WSGI/Django ``request.META``-style mapping. Returns the
+    authenticated username ONLY when the request carries a fresh,
+    correctly signed triple. Every failure path returns ``None`` — the
+    caller must treat that as "not authenticated" (fail closed).
+
+    Fails closed when ``secret`` is empty: without a shared secret there
+    is nothing to verify, so no request may be trusted.
+    """
+    if not secret:
+        return None
+
+    username = meta.get(wsgi_meta_key(ONSITE_USER_HEADER))
+    signature = meta.get(wsgi_meta_key(ONSITE_SIG_HEADER))
+    timestamp = meta.get(wsgi_meta_key(ONSITE_TS_HEADER))
+    if not username or not signature or not timestamp:
+        return None
+
+    try:
+        issued_at = float(timestamp)
+    except (TypeError, ValueError):
+        return None
+
+    reference = time.time() if now is None else now
+    if abs(reference - issued_at) > max_skew:
+        return None
+
+    expected = sign_onsite(username, timestamp, secret)
+    if not hmac.compare_digest(expected, signature):
+        return None
+
+    return username
 
 
 def _json(data: dict) -> str:
@@ -51,18 +151,27 @@ def _resolve_user_token() -> Optional[str]:
     return None
 
 
-def get_on_site_env(username: str = "", site_url: str = "") -> dict[str, str]:
+def get_on_site_env(
+    username: str = "", site_url: str = "", secret: str = ""
+) -> dict[str, str]:
     """Build env vars for on-site MCP auth (injected into .mcp.json).
 
     Args:
         username: The container user's Django username.
         site_url: Django server URL. Falls back to SCITEX_HUB_SITE_URL env
                   var, then to http://web:8000 (Docker internal).
+        secret: Shared on-site HMAC secret. Falls back to the server's own
+                ``SCITEX_HUB_ONSITE_SECRET`` env var. This is the
+                key-distribution half of the signed-header scheme: without
+                it the agent cannot sign, and the middleware rejects it.
     """
     url = site_url or os.environ.get("SCITEX_HUB_SITE_URL", "http://web:8000")
     env = {"SCITEX_HUB_IS_ON_SITE": "1", "SCITEX_HUB_URL": url}
     if username:
         env["SCITEX_HUB_USERNAME"] = username
+    shared = secret or os.environ.get(ONSITE_SECRET_ENV, "")
+    if shared:
+        env[ONSITE_SECRET_ENV] = shared
     return env
 
 
@@ -77,6 +186,17 @@ def _get_config() -> dict:
         ),
         "is_on_site": is_on_site,
         "username": os.environ.get("SCITEX_HUB_USERNAME", ""),
+        "onsite_secret": os.environ.get(ONSITE_SECRET_ENV, ""),
+    }
+
+
+def onsite_headers(username: str, secret: str, now: Optional[float] = None) -> dict:
+    """Signed on-site auth headers for one outbound request."""
+    timestamp = str(int(time.time() if now is None else now))
+    return {
+        ONSITE_USER_HEADER: username,
+        ONSITE_TS_HEADER: timestamp,
+        ONSITE_SIG_HEADER: sign_onsite(username, timestamp, secret),
     }
 
 
@@ -88,7 +208,10 @@ def _build_auth_headers(config: dict, auth_required: bool) -> dict[str, str]:
     asserts the chosen ``Authorization`` value, not the network call.
 
     Auth precedence (card #5):
-      1. On-site trusted-header (untouched, dev/cluster path).
+      1. On-site HMAC-signed headers (dev/cluster path). Requires the
+         shared secret — an unsigned on-site header is no longer an
+         authenticator, so a missing secret raises instead of silently
+         sending a forgeable plaintext username.
       2. User PAT — SCITEX_HUB_TOKEN env, then ~/.scitex/cloud/runtime/token.json.
       3. Back-compat: server-side TOOL_TOKEN exposed as SCITEX_HUB_API_KEY.
     If none of the above resolve, raise — never send anonymous when
@@ -98,8 +221,15 @@ def _build_auth_headers(config: dict, auth_required: bool) -> dict[str, str]:
     if not auth_required:
         return headers
     if config["is_on_site"] and config["username"]:
-        # On-site: authenticate via trusted header (no API key needed).
-        headers["X-SciTeX-OnSite"] = config["username"]
+        secret = config.get("onsite_secret") or ""
+        if not secret:
+            raise RuntimeError(
+                f"on-site auth requires {ONSITE_SECRET_ENV}; the plaintext "
+                f"{ONSITE_USER_HEADER} header is no longer accepted by the "
+                "server (it was forgeable). Set the same secret on the Django "
+                "side (ONSITE_AUTH_SECRET) and in this container."
+            )
+        headers.update(onsite_headers(config["username"], secret))
         return headers
     user_token = _resolve_user_token()
     if user_token:
@@ -288,19 +418,14 @@ def register_api_tools(mcp) -> None:
         config = _get_config()
         import requests
 
-        headers = {"X-Requested-With": "XMLHttpRequest"}
-        # Same precedence as _make_request (card #5).
-        if config["is_on_site"] and config["username"]:
-            headers["X-SciTeX-OnSite"] = config["username"]
-        else:
-            user_token = _resolve_user_token()
-            if user_token:
-                headers["Authorization"] = f"Bearer {user_token}"
-            elif config["api_key"]:
-                headers["Authorization"] = f"Bearer {config['api_key']}"
-
         max_attempts = 60
         for _ in range(max_attempts):
+            # Single source of auth-header truth — this used to be a
+            # second, hand-rolled copy that (like _build_auth_headers)
+            # sent the forgeable plaintext on-site header. Rebuilt every
+            # attempt so the on-site signature stays inside the replay
+            # window during a long poll.
+            headers = _build_auth_headers(config, auth_required=True)
             try:
                 response = requests.get(
                     f"{config['base_url']}/scholar/api/bibtex/job/{job_id}/status/",

@@ -71,4 +71,22 @@ class ChannelDetailView(generics.RetrieveUpdateAPIView):
     lookup_field = "slug"
 
     def get_queryset(self):
-        return Channel.objects.filter(is_archived=False).prefetch_related("memberships")
+        """Return only channels the current user is a member of.
+
+        Tenant scoping mirrors ChannelListCreateView.get_queryset above: without
+        it any authenticated user could GET/PATCH ANY channel by slug (including
+        private/direct channels) -- a cross-tenant read+write IDOR.
+        """
+        user = self.request.user
+        try:
+            participant = Participant.objects.get(user=user, participant_type="user")
+        except Participant.DoesNotExist:
+            return Channel.objects.none()
+
+        member_channel_ids = ChannelMembership.objects.filter(
+            participant=participant
+        ).values_list("channel_id", flat=True)
+
+        return Channel.objects.filter(
+            id__in=member_channel_ids, is_archived=False
+        ).prefetch_related("memberships")

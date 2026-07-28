@@ -1,21 +1,204 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Tests for apps/project_app/middleware.py"""
+"""Tests for apps/infra/project_app/middleware.py — VisitorAutoLoginMiddleware
+skip-list, and the first-time-visitor → marketing-landing routing it enables.
 
-import pytest
+Card hub-landing-page-for-logged-out-visitors-20260727 (routing fix):
 
-# from apps.infra.project_app.middleware import ...
+A first-time BROWSER visitor must reach the EXISTING marketing landing
+(/landing/) ANONYMOUSLY. Before this fix, VisitorAutoLoginMiddleware
+auto-allocated a visitor slot (or the shared readonly-visitor) for a browser
+GET "/", which made the session is_authenticated so root_dispatch served the
+app launcher instead of the marketing landing — and burned a scarce pool slot
+just to VIEW a marketing page.
+
+The fix EXACT-skips "/" and "/landing/" in the auto-login middleware (never a
+startswith prefix — "/" is a prefix of every URL). A visitor still gets a slot
+the instant they CHOOSE to enter the workspace via the hero CTA (/apps/home/),
+which is NOT skip-listed.
+
+A session that HAS entered the workspace is ROLE_VISITOR / ROLE_READONLY_VISITOR
+and must STAY in the workspace launcher (guest mode) — bouncing it to marketing
+on every Home ("/") click is the breakage card hub-visitor-ux-allapps
+(operator-confirmed 2026-07-07) forbids. That guest-mode behaviour is asserted
+here and in tests/apps/apps_app/test_launcher_guest_mode.py.
+
+No mocks — real Django test DB + RequestFactory / test client (same
+conventions as test_launcher_guest_mode.py). One assertion per test
+(STX-TQ007).
+"""
+
+from importlib import import_module
+
+from django.conf import settings
+from django.contrib.auth.models import AnonymousUser, User
+from django.test import RequestFactory, TestCase
+
+from apps.infra.project_app.middleware import VisitorAutoLoginMiddleware
+from apps.infra.project_app.models import VisitorAllocation
+
+# A real browser User-Agent — VisitorAutoLoginMiddleware only auto-logs-in
+# browser requests (curl/wget/empty-UA are skipped as non-browser).
+BROWSER_UA = (
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/120.0 Safari/537.36"
+)
+
+_SessionStore = import_module(settings.SESSION_ENGINE).SessionStore
 
 
-class TestPlaceholder:
-    """Placeholder test class - replace with actual tests."""
+def _noop_get_response(request):  # pragma: no cover - never invoked here
+    return None
 
-    def test_placeholder_pending_implementation(self):
-        """Placeholder test - implement actual tests."""
-        # Arrange
+
+class VisitorAutoLoginExactSkipTest(TestCase):
+    """`_sync_body` must NOT auto-login on "/" or "/landing/", but MUST still
+    auto-login on a real workspace-entry path (the hero CTA target)."""
+
+    @classmethod
+    def setUpTestData(cls):
+        # Only the shared readonly account exists (no writable slots). This is
+        # exactly what turned a browser hitting a non-skipped path into a
+        # logged-in readonly-visitor — the mechanism we assert "/" no longer
+        # triggers, and that /apps/home/ still does.
+        cls.readonly_visitor = User.objects.create_user(
+            username="readonly-visitor",
+            password="TestPass123!",  # pragma: allowlist secret
+        )
+
+    def _run(self, path):
+        request = RequestFactory().get(path, HTTP_USER_AGENT=BROWSER_UA)
+        request.user = AnonymousUser()
+        request.session = _SessionStore()
+        VisitorAutoLoginMiddleware(_noop_get_response)._sync_body(request)
+        return request
+
+    def test_root_browser_stays_anonymous(self):
+        # Arrange: a first-time browser GET of the bare root
         # Act
+        request = self._run("/")
+        # Assert — "/" is exact-skipped, so no auto-login happened
+        assert request.user.is_authenticated is False
+
+    def test_landing_browser_stays_anonymous(self):
+        # Arrange: a first-time browser GET of the marketing landing
+        # Act
+        request = self._run("/landing/")
         # Assert
-        pytest.skip("Not implemented yet")
+        assert request.user.is_authenticated is False
+
+    def test_root_browser_burns_no_visitor_slot(self):
+        # Arrange: a first-time browser GET of the bare root
+        # Act
+        self._run("/")
+        # Assert — merely viewing "/" allocates nothing (pool is near full)
+        assert VisitorAllocation.objects.count() == 0
+
+    def test_root_browser_sets_no_readonly_flag(self):
+        # Arrange: a first-time browser GET of the bare root
+        # Act
+        request = self._run("/")
+        # Assert
+        assert request.session.get("is_readonly_visitor") is None
+
+    def test_workspace_entry_path_still_auto_logs_in(self):
+        # Arrange: a browser that DELIBERATELY enters via the hero CTA target
+        # Act — /apps/home/ is deliberately NOT skip-listed, so a visitor who
+        # chooses to enter still gets logged in (readonly fallback here, since
+        # the writable pool is empty).
+        request = self._run("/apps/home/")
+        # Assert
+        assert request.user.is_authenticated is True
+
+
+class FirstTimeBrowserRoutingTest(TestCase):
+    """End-to-end: a first-time browser GET "/" reaches the marketing landing
+    (302 → /landing/), not the launcher, and allocates no slot."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.readonly_visitor = User.objects.create_user(
+            username="readonly-visitor",
+            password="TestPass123!",  # pragma: allowlist secret
+        )
+
+    def test_browser_root_redirects(self):
+        # Arrange: a first-time browser (no session)
+        # Act
+        resp = self.client.get("/", HTTP_USER_AGENT=BROWSER_UA)
+        # Assert — anonymous → redirect (pre-fix this was 200, the launcher)
+        assert resp.status_code == 302
+
+    def test_browser_root_redirect_target_is_landing(self):
+        # Arrange: a first-time browser (no session)
+        # Act
+        resp = self.client.get("/", HTTP_USER_AGENT=BROWSER_UA)
+        # Assert
+        assert resp.url == "/landing/"
+
+    def test_browser_root_does_not_authenticate(self):
+        # Arrange: a first-time browser (no session)
+        # Act
+        self.client.get("/", HTTP_USER_AGENT=BROWSER_UA)
+        # Assert — session carries no auth: the visitor stayed anonymous
+        assert "_auth_user_id" not in self.client.session
+
+    def test_browser_root_allocates_no_slot(self):
+        # Arrange: a first-time browser (no session)
+        # Act
+        self.client.get("/", HTTP_USER_AGENT=BROWSER_UA)
+        # Assert
+        assert VisitorAllocation.objects.count() == 0
+
+    def test_browser_landing_renders_for_anonymous(self):
+        # Arrange: a first-time browser (no session)
+        # Act
+        resp = self.client.get("/landing/", HTTP_USER_AGENT=BROWSER_UA)
+        # Assert
+        assert resp.status_code == 200
+
+    def test_browser_landing_does_not_authenticate(self):
+        # Arrange: a first-time browser (no session)
+        # Act
+        self.client.get("/landing/", HTTP_USER_AGENT=BROWSER_UA)
+        # Assert
+        assert "_auth_user_id" not in self.client.session
+
+
+class WorkspaceVisitorNotBouncedTest(TestCase):
+    """A visitor who HAS entered the workspace (holds a slot / is signed in as
+    a visitor role) must stay in the launcher at "/", NOT bounce to landing.
+
+    Guards against the literal-but-wrong reading "visitor → landing": the
+    sidebar/dock "Home" links to "/", so that reading would eject an active
+    guest on every Home click (card hub-visitor-ux-allapps)."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.pool_visitor = User.objects.create_user(
+            username="visitor-001",
+            password="TestPass123!",  # pragma: allowlist secret
+        )
+        cls.readonly_visitor = User.objects.create_user(
+            username="readonly-visitor",
+            password="TestPass123!",  # pragma: allowlist secret
+        )
+
+    def test_pool_visitor_at_root_stays_in_workspace(self):
+        # Arrange
+        self.client.force_login(self.pool_visitor)
+        # Act
+        resp = self.client.get("/")
+        # Assert — launcher renders (200), not a redirect to /landing/
+        assert resp.status_code == 200
+
+    def test_readonly_visitor_at_root_stays_in_workspace(self):
+        # Arrange
+        self.client.force_login(self.readonly_visitor)
+        # Act
+        resp = self.client.get("/")
+        # Assert
+        assert resp.status_code == 200
 
 
 if __name__ == "__main__":
@@ -25,204 +208,4 @@ if __name__ == "__main__":
 
     pytest.main([os.path.abspath(__file__)])
 
-# --------------------------------------------------------------------------------
-# Start of Source Code from: apps/project_app/middleware.py
-# --------------------------------------------------------------------------------
-# """
-# Middleware for SciTeX Hub.
-# """
-#
-# import logging
-# from django.contrib.auth import login
-#
-# logger = logging.getLogger(__name__)
-#
-#
-# class VisitorAutoLoginMiddleware:
-#     """
-#     Middleware that auto-logs in visitor users as visitors.
-#
-#     Works on any page - landing, /code/, /writer/, /scholar/, /vis/, etc.
-#     Skips non-browser requests (bots, health checks, automated scripts).
-#
-#     Uses User-Agent based browser detection (standard pattern):
-#     - Allocates visitor slot for real browsers (Chrome, Firefox, Safari, etc.)
-#     - Skips automated requests (curl, wget, empty UA, crawlers)
-#     """
-#
-#     def __init__(self, get_response):
-#         self.get_response = get_response
-#
-#     def __call__(self, request):
-#         # Skip if already authenticated
-#         if request.user.is_authenticated:
-#             return self.get_response(request)
-#
-#         # Skip static files, media, and paths that don't need visitor
-#         path = request.path
-#         skip_paths = (
-#             '/static/',
-#             '/media/',
-#             '/favicon.ico',
-#             '/robots.txt',
-#             '/sitemap.xml',
-#             '/api/server-status/',
-#             '/admin/',
-#             '/health/',
-#             '/__debug__/',
-#             '/visitor-pool-full/',  # Don't auto-allocate on pool-full page
-#             '/visitor-expired/',  # Don't auto-allocate on expired page
-#             '/visitor-restart/',  # Don't auto-allocate on restart page
-#         )
-#
-#         if any(path.startswith(p) for p in skip_paths):
-#             return self.get_response(request)
-#
-#         # Skip non-browser requests (bots, health checks, automated scripts)
-#         # Use User-Agent based detection (standard pattern)
-#         user_agent = request.META.get('HTTP_USER_AGENT', '')
-#
-#         # Check if it's a real browser
-#         is_browser = any(
-#             browser in user_agent
-#             for browser in ['Mozilla', 'Chrome', 'Safari', 'Firefox', 'Edge', 'Opera']
-#         )
-#
-#         # Skip if not a browser (includes curl, wget, empty UA, bots, crawlers)
-#         if not is_browser:
-#             return self.get_response(request)
-#
-#         # Auto-login as visitor for real browser requests
-#         try:
-#             from apps.infra.project_app.services.visitor_pool import VisitorPool
-#
-#             visitor_project, visitor_user = VisitorPool.allocate_visitor(request.session)
-#             if visitor_user:
-#                 login(request, visitor_user, backend='django.contrib.auth.backends.ModelBackend')
-#                 logger.info(f"[Middleware] Auto-logged in visitor: {visitor_user.username} for {path}")
-#         except Exception as e:
-#             logger.error(f"[Middleware] Visitor auto-login failed: {e}")
-#
-#         return self.get_response(request)
-#
-#
-# class VisitorExpirationMiddleware:
-#     """
-#     Redirect expired visitors to the expiration page.
-#
-#     Checks if authenticated visitor users have expired allocations
-#     and redirects them to /visitor-expired/ with clear messaging.
-#     """
-#
-#     def __init__(self, get_response):
-#         self.get_response = get_response
-#
-#     def __call__(self, request):
-#         # Only check for authenticated visitor users
-#         if not request.user.is_authenticated:
-#             return self.get_response(request)
-#
-#         # Skip if not a visitor user
-#         if not request.user.username.startswith('visitor-'):
-#             return self.get_response(request)
-#
-#         # Skip certain paths to avoid redirect loops and allow access to essential pages
-#         path = request.path
-#         skip_paths = (
-#             '/visitor-expired/',  # The expiration page itself
-#             '/visitor-restart/',  # Restart session flow
-#             '/visitor-pool-full/',  # Pool exhausted page
-#             '/static/',
-#             '/media/',
-#             '/favicon.ico',
-#             '/logout/',
-#             '/signup/',
-#             '/login/',
-#             '/auth/',  # All auth pages
-#             '/api/',
-#             '/__debug__/',
-#         )
-#
-#         if any(path.startswith(p) for p in skip_paths):
-#             return self.get_response(request)
-#
-#         # Check if visitor's allocation is expired
-#         try:
-#             from apps.infra.project_app.services.visitor_pool import VisitorPool
-#             from apps.infra.project_app.models import VisitorAllocation
-#             from django.utils import timezone
-#             from django.shortcuts import redirect
-#
-#             allocation_token = request.session.get(VisitorPool.SESSION_KEY_ALLOCATION_TOKEN)
-#             if allocation_token:
-#                 try:
-#                     allocation = VisitorAllocation.objects.get(
-#                         allocation_token=allocation_token,
-#                         is_active=True
-#                     )
-#
-#                     # Check if allocation is expired
-#                     if allocation.expires_at <= timezone.now():
-#                         logger.info(
-#                             f"[Middleware] Visitor {request.user.username} allocation expired, "
-#                             f"redirecting to expiration page"
-#                         )
-#                         return redirect('public_app:visitor_expired')
-#
-#                 except VisitorAllocation.DoesNotExist:
-#                     # No active allocation found - visitor is expired
-#                     logger.info(
-#                         f"[Middleware] Visitor {request.user.username} has no active allocation, "
-#                         f"redirecting to expiration page"
-#                     )
-#                     return redirect('public_app:visitor_expired')
-#
-#         except Exception as e:
-#             logger.error(f"[Middleware] Error checking visitor expiration: {e}")
-#
-#         return self.get_response(request)
-#
-#
-# class GuestSessionMiddleware:
-#     """
-#     Track user state including current/last accessed project.
-#
-#     For logged-in users:
-#     - Tracks current project in session
-#     - Used for smart module navigation
-#
-#     For visitor users (no longer used):
-#     - Previously generated guest session IDs
-#     """
-#
-#     def __init__(self, get_response):
-#         self.get_response = get_response
-#
-#     def __call__(self, request):
-#         # Track current project from URL for logged-in users
-#         if request.user.is_authenticated:
-#             # Check if URL matches /<username>/<project>/...
-#             import re
-#
-#             pattern = r"^/([^/]+)/([^/?]+)/"
-#             match = re.match(pattern, request.path)
-#
-#             if match:
-#                 username = match.group(1)
-#                 project_slug = match.group(2)
-#
-#                 # If this is a project page (not 'projects' or other reserved words)
-#                 if (
-#                     project_slug not in ["projects"]
-#                     and username == request.user.username
-#                 ):
-#                     # Update session with current project
-#                     request.session["current_project_slug"] = project_slug
-#                     request.session.modified = True
-#
-#         response = self.get_response(request)
-#         return response
-
-# --------------------------------------------------------------------------------
-# End of Source Code from: apps/project_app/middleware.py
-# --------------------------------------------------------------------------------
+# EOF

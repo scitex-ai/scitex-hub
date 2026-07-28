@@ -15,15 +15,21 @@ name: quality
 
 on:
   schedule:
-    - cron: "0 8 * * *"  # 08:00 UTC, after the 07:00 per-repo Test runs
+    - cron: "0 18 * * *"  # 18:00 UTC (~03:00 JST), after Test
   workflow_dispatch:
   push:
     branches: [develop]
-    paths:
-      - "src/**"
-      - "tests/**"
-      - "pyproject.toml"
-      - ".github/workflows/scitex-hub-quality-audit-on-ubuntu-latest.yml"
+    # NO `paths:` filter, deliberately. This previously listed only
+    # src/**, tests/**, pyproject.toml and this file — but scitex-hub is
+    # a Django app whose code lives almost entirely in apps/**, config/**,
+    # templates/** and scripts/**. None of those triggered the audit, so
+    # the gate's "green on develop" record was measured over a filtered
+    # sample that excluded nearly every real commit. A gate that does not
+    # run on the code is not a gate. The audit takes ~2 min; running it on
+    # every develop push is the correct trade.
+    # The filter also referenced this workflow BY FILENAME, so any rename
+    # would have silently stopped self-triggering — a second reason the
+    # list is gone rather than merely extended.
   pull_request:
     branches: [main, develop]
 

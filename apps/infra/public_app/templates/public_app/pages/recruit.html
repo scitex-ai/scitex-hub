@@ -1,0 +1,161 @@
+{% extends "global_base.html" %}
+
+{% block title %}採用・コントリビューター募集 | Recruit - SciTeX{% endblock %}
+{% block meta_description %}
+    SciTeX のオープンソース・コントリビューター募集（学生歓迎）。
+    Join SciTeX as an open-source contributor — students welcome, good first issues available.
+{% endblock %}
+{% block extra_css %}
+    {% load static %}
+
+    <link rel="stylesheet" href="{% static 'public_app/css/about/00-about.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/about/02-context.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'public_app/css/about/07-section-styling.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/about/16-responsive.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/recruit.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="about-container">
+        <!-- ============================================================ -->
+        <!-- 日本語 -->
+        <!-- ============================================================ -->
+        <header class="minimal-hero">
+            <h1 class="minimal-hero-title">一緒に、研究の速度を上げませんか</h1>
+        </header>
+        <article class="about-narrative" lang="ja">
+            <section class="about-section">
+                <p>
+                    SciTeX は、科学研究の自動化エコシステムを開発・運営しています。
+                    すべてオープンソースで、誰でも開発に参加できます。
+                </p>
+            </section>
+            <section class="about-section">
+                <h2>いま募集しているもの</h2>
+                <h3>オープンソース・コントリビューター（学生歓迎・随時）</h3>
+                <p>
+                    GitHub 上で公開している SciTeX の開発に参加していただける方を募集しています。
+                    経験の有無は問いません。はじめての方向けの Issue を用意しています。
+                </p>
+                <ul class="recruit-list">
+                    <li>
+                        参加方法: GitHub の <code>good first issue</code> から着手し、Pull Request を送る
+                    </li>
+                    <li>使用技術: Python / PyTorch / Django / TypeScript / Docker・Apptainer / LLM API</li>
+                    <li>ライセンス: AGPL-3.0（CLA へのご同意をお願いしています）</li>
+                </ul>
+                <h3>参加すると得られるもの</h3>
+                <ul class="recruit-list">
+                    <li>
+                        <strong>研究者かつ開発者からの技術指導</strong> — コードレビューと設計の議論を通じて、
+                        研究とソフトウェア開発の両方の作法をお伝えします。
+                    </li>
+                    <li>
+                        <strong>公開された実績</strong> — 貢献は GitHub にあなたの名前で残り、そのまま実績として示せます。
+                    </li>
+                    <li>
+                        <strong>実際に使われるものを作る経験</strong> — 研究者が日々使うソフトウェアです。
+                    </li>
+                </ul>
+            </section>
+            <section class="about-section">
+                <h2>これから始めるもの</h2>
+                <ul class="recruit-list">
+                    <li>
+                        <strong>有給での参加</strong>（アルバイト・業務委託）— 事業の成長に合わせて開始します。
+                    </li>
+                </ul>
+            </section>
+            <section class="about-section">
+                <p>ご関心のある方は、GitHub の Issue か、下記までご連絡ください。</p>
+                <div class="repo-links">
+                    <a href="https://github.com/scitex-ai"
+                       class="repo-link"
+                       target="_blank"
+                       rel="noopener">
+                        <i class="fab fa-github"></i> GitHub: github.com/scitex-ai
+                    </a>
+                    <a href="https://github.com/search?q=org%3Ascitex-ai+label%3A%22good+first+issue%22+state%3Aopen&amp;type=issues"
+                       class="repo-link"
+                       target="_blank"
+                       rel="noopener">
+                        <i class="fas fa-seedling"></i> good first issue 一覧
+                    </a>
+                </div>
+                <p>
+                    お問い合わせ: <a href="mailto:recruit@scitex.ai">recruit@scitex.ai</a>
+                </p>
+            </section>
+        </article>
+        <hr class="recruit-lang-divider" />
+        <!-- ============================================================ -->
+        <!-- English -->
+        <!-- ============================================================ -->
+        <article class="about-narrative" lang="en">
+            <section class="about-section">
+                <h2 class="recruit-en-title">Build the tools that speed up science</h2>
+                <p>
+                    SciTeX develops and operates an open-source automation ecosystem for scientific
+                    research. Everything we build is public, and anyone can take part.
+                </p>
+            </section>
+            <section class="about-section">
+                <h2>Open-source contributors (students welcome, rolling)</h2>
+                <p>
+                    We welcome contributors to SciTeX on GitHub. No prior experience required —
+                    we keep a set of <code>good first issue</code> tickets for newcomers.
+                </p>
+                <ul class="recruit-list">
+                    <li>
+                        How to start: pick a <code>good first issue</code> and open a pull request
+                    </li>
+                    <li>Stack: Python / PyTorch / Django / TypeScript / Docker &amp; Apptainer / LLM APIs</li>
+                    <li>License: AGPL-3.0 (we ask contributors to sign a CLA)</li>
+                </ul>
+            </section>
+            <section class="about-section">
+                <h2>What you get</h2>
+                <ul class="recruit-list">
+                    <li>
+                        <strong>Mentorship from a researcher-developer</strong> — code review and design discussion
+                        covering both research practice and software engineering.
+                    </li>
+                    <li>
+                        <strong>A public track record</strong> — your contributions stay under your own name on GitHub
+                        and travel with you.
+                    </li>
+                    <li>
+                        <strong>Real users</strong> — this is software scientists actually use, not a practice exercise.
+                    </li>
+                </ul>
+            </section>
+            <section class="about-section">
+                <h2>Coming next</h2>
+                <ul class="recruit-list">
+                    <li>
+                        <strong>Paid positions</strong> — as the business grows.
+                    </li>
+                </ul>
+            </section>
+            <section class="about-section">
+                <div class="repo-links">
+                    <a href="https://github.com/scitex-ai"
+                       class="repo-link"
+                       target="_blank"
+                       rel="noopener">
+                        <i class="fab fa-github"></i> GitHub: github.com/scitex-ai
+                    </a>
+                    <a href="https://github.com/search?q=org%3Ascitex-ai+label%3A%22good+first+issue%22+state%3Aopen&amp;type=issues"
+                       class="repo-link"
+                       target="_blank"
+                       rel="noopener">
+                        <i class="fas fa-seedling"></i> open good-first-issues
+                    </a>
+                </div>
+                <p>
+                    Contact: <a href="mailto:recruit@scitex.ai">recruit@scitex.ai</a>
+                </p>
+            </section>
+        </article>
+    </div>
+{% endblock %}

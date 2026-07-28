@@ -8,19 +8,29 @@ async function loadDiscoveryTab(tab: string): Promise<void> {
 
   tabContent.style.opacity = "0.5";
 
-  const resp = await fetch(
-    `/apps/discovery/api/explore/?tab=${encodeURIComponent(tab)}`,
-    {
-      headers: { "X-Requested-With": "XMLHttpRequest" },
-    },
-  );
-
-  if (resp.ok) {
+  try {
+    const resp = await fetch(
+      `/apps/discovery/api/explore/?tab=${encodeURIComponent(tab)}`,
+      {
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      },
+    );
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
-    if (data?.success) tabContent.innerHTML = data.html;
+    if (!data?.success) throw new Error("API reported success=false");
+    tabContent.innerHTML = data.html;
+  } catch (err) {
+    console.error("[discovery] Failed to load tab:", tab, err);
+    // Visible error state — never leave the container silently stale.
+    // textContent (not innerHTML): `tab` is DOM-attribute derived.
+    const msg = document.createElement("p");
+    msg.className = "discovery-empty";
+    msg.setAttribute("role", "alert");
+    msg.textContent = `Failed to load ${tab} (${String(err)}). Reload the page to retry.`;
+    tabContent.replaceChildren(msg);
+  } finally {
+    tabContent.style.opacity = "1";
   }
-
-  tabContent.style.opacity = "1";
 }
 
 function initDiscovery(): void {

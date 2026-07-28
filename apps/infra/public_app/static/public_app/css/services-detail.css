@@ -1,0 +1,366 @@
+/* =============================================================================
+ * services-detail.css — /services page: service cards, principles, pricing,
+ * contact/form, and responsive rules. Tokens + hero + plans are in services.css
+ * (both are linked from pages/services.html).
+ * ========================================================================== */
+
+/* ── Service cards ────────────────────────────────────────────────────────── */
+.svc-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.2rem;
+}
+
+.svc-card {
+  padding: 1.6rem;
+  border: 1px solid var(--svc-border);
+  border-radius: var(--svc-radius);
+  background: var(--svc-surface);
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.svc-card:hover {
+  border-color: var(--card-hover-border, var(--svc-accent));
+  transform: translateY(-2px);
+}
+
+.svc-card-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: grid;
+  place-items: center;
+  margin-bottom: 1rem;
+  border-radius: var(--svc-radius-sm);
+  color: var(--svc-accent);
+  font-weight: 800;
+  background: color-mix(in srgb, var(--svc-accent) 14%, transparent);
+}
+
+.svc-card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.2rem;
+  letter-spacing: -0.01em;
+}
+
+.svc-card-lead {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+
+.svc-card-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.svc-card-list li {
+  position: relative;
+  padding-left: 1.1rem;
+}
+
+.svc-card-list li::before {
+  content: "";
+  position: absolute;
+  left: 0.1rem;
+  top: 0.6em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--svc-accent);
+}
+
+.svc-card-list strong {
+  display: block;
+  font-size: 0.92rem;
+}
+
+.svc-card-list span {
+  font-size: 0.84rem;
+  opacity: 0.82;
+}
+
+.svc-tag {
+  display: inline-block;
+  margin-left: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--svc-accent);
+  border: 1px solid var(--svc-accent);
+  border-radius: 4px;
+  padding: 0 0.35rem;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* ── Principles ───────────────────────────────────────────────────────────── */
+.svc-principles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.svc-principle {
+  padding: 1.3rem;
+  border: 1px solid var(--svc-border);
+  border-radius: var(--svc-radius);
+  background: var(--svc-surface);
+}
+
+.svc-principle strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--svc-accent);
+}
+
+.svc-principle p {
+  margin: 0;
+  font-size: 0.88rem;
+  opacity: 0.85;
+}
+
+/* ── Pricing table (料金の目安) ───────────────────────────────────────────── */
+.svc-price-wrap {
+  overflow-x: auto;
+}
+
+.svc-price-table {
+  width: 100%;
+  min-width: 480px;
+  border-collapse: collapse;
+  border: 1px solid var(--svc-border);
+  border-radius: var(--svc-radius);
+  overflow: hidden;
+}
+
+.svc-price-table th,
+.svc-price-table td {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--svc-border);
+}
+
+.svc-price-table thead th {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  background: var(--svc-surface-2);
+}
+
+.svc-price-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.svc-price-cell {
+  text-align: right;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--svc-accent);
+}
+
+.svc-price-notes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.9rem;
+  margin-top: 1rem;
+}
+
+.svc-price-note {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  font-size: 0.85rem;
+  opacity: 0.85;
+  border: 1px solid var(--svc-border);
+  border-radius: var(--svc-radius-sm);
+  background: var(--svc-surface);
+}
+
+/* ── Contact ──────────────────────────────────────────────────────────────── */
+.svc-contact {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 1.4rem;
+  padding: 1.8rem;
+  border: 1px solid var(--svc-border);
+  border-radius: var(--svc-radius);
+  background: var(--svc-surface);
+}
+
+.svc-contact-lead p {
+  margin: 0 0 1rem;
+  opacity: 0.9;
+}
+
+.svc-checklist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.svc-checklist li {
+  position: relative;
+  padding-left: 1.7rem;
+  font-size: 0.92rem;
+  opacity: 0.9;
+}
+
+.svc-checklist li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--svc-accent);
+  font-size: 0.72rem;
+  font-weight: 900;
+  background: color-mix(in srgb, var(--svc-accent) 16%, transparent);
+}
+
+.svc-form {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.svc-field label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-weight: 700;
+  font-size: 0.86rem;
+}
+
+.svc-req {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--svc-accent);
+  border: 1px solid var(--svc-accent);
+  border-radius: 4px;
+  padding: 0 0.3rem;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
+.svc-field input[type="text"],
+.svc-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  color: inherit;
+  background: var(--svc-surface-2);
+  border: 1px solid var(--svc-border-strong);
+  border-radius: var(--svc-radius-sm);
+}
+
+.svc-field textarea {
+  resize: vertical;
+  min-height: 8rem;
+}
+
+.svc-field input:focus,
+.svc-field textarea:focus {
+  outline: none;
+  border-color: var(--svc-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--svc-accent) 22%, transparent);
+}
+
+.svc-error {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  color: #e5534b;
+}
+
+.svc-form-success {
+  margin: 1rem 0;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--svc-accent);
+  border-radius: var(--svc-radius-sm);
+  background: color-mix(in srgb, var(--svc-accent) 12%, transparent);
+}
+
+.svc-submit {
+  justify-self: start;
+  padding: 0.7rem 1.8rem;
+  font: inherit;
+  font-weight: 700;
+  color: #fff;
+  background: var(--svc-accent);
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    filter 160ms ease,
+    transform 160ms ease;
+}
+
+.svc-submit:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.svc-form-note {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.7;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 920px) {
+  .svc-hero,
+  .svc-contact {
+    grid-template-columns: 1fr;
+  }
+
+  .svc-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .svc-trust,
+  .svc-principles,
+  .svc-price-notes {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .svc-page {
+    width: min(calc(100% - 1.5rem), var(--svc-max));
+  }
+
+  .svc-trust,
+  .svc-principles,
+  .svc-price-notes {
+    grid-template-columns: 1fr;
+  }
+
+  .svc-contact {
+    padding: 1.2rem;
+  }
+}
+
+/* Narrow screens: swap the wide plans table for stacked cards and let the
+   2-column pricing table shrink, so nothing needs horizontal scrolling. */
+@media (max-width: 640px) {
+  .svc-plan-wrap {
+    display: none;
+  }
+
+  .svc-plan-cards {
+    display: block;
+  }
+
+  .svc-price-table {
+    min-width: 0;
+  }
+}

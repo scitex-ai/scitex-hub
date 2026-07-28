@@ -68,8 +68,11 @@ def generate_status_charts(self):
             for metric, minutes, theme in combinations
         )
 
-        # Execute all tasks in parallel
-        result = chart_tasks.apply_async()
+        # Execute all tasks in parallel. expires (correct producer-side
+        # keyword here, unlike beat's expire_seconds) keeps orphaned children
+        # from outliving the 60s beat cadence — 16,054 of the 50,199-message
+        # 2026-07-21 default-queue backlog were these charts.
+        result = chart_tasks.apply_async(expires=55)
         logger.info(
             f"[Charts] Dispatched {len(combinations)} chart generation tasks in parallel"
         )
