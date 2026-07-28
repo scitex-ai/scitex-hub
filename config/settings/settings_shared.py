@@ -223,9 +223,14 @@ except ImportError:
 # default=True), so a bare module entry falls back to label "_django"
 # and collides with figrecipe._django's identical fallback.
 try:
-    import scitex_todo  # noqa: F401
+    # CANONICAL name. `scitex_todo` is a deprecated alias of this package
+    # (renamed 2026-07-16) that warns it "ships for one transition window
+    # only" — importing the alias here made the whole board mount depend on
+    # a module the upstream has announced it will delete, and the failure
+    # is SILENT (the except arm below simply skips the app).
+    import scitex_cards  # noqa: F401
 
-    THIRD_PARTY_APPS.append("scitex_todo._django.apps.ScitexTodoConfig")
+    THIRD_PARTY_APPS.append("scitex_cards._django.apps.ScitexTodoConfig")
 
     # Tenancy: the board's service layer (scitex_todo._django.services)
     # unions host-side per-project lanes (default glob
