@@ -80,7 +80,7 @@ jobs:
           # NOTE: the org reusable quality-audit.yml installs scitex-dev
           # UNPINNED, so every other package in the fleet still has this
           # non-reproducibility. Worth fixing upstream.
-          uv pip install --python .venv/bin/python "scitex-dev[cli-audit]==0.38.0"
+          uv pip install --python .venv/bin/python "scitex-dev[cli-audit]==0.38.1"
 
       # Use the pytest wrapper so the documented `skip_rules` deferrals in
       # tests/develop/test_audit.py are honoured. Calling `scitex-dev

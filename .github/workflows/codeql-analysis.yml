@@ -35,6 +35,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # CodeQL's JS/TS extractor SHELLS OUT to `node` and does not ship one.
+      # On GitHub-hosted runners node is preinstalled, so nothing here ever
+      # had to declare it. Measured on spartan (run 30335621068): the python
+      # leg passed, the javascript leg died in
+      #   TypeScriptParser.verifyNodeInstallation
+      #   -> "Please install Node.js and ensure 'node' is on the PATH."
+      # This is a FIX, not grounds for an exemption: the dependency was
+      # always there, the old runner just supplied it invisibly. vitest
+      # already proved setup-node works on this pool.
+      - name: Set up Node.js (JS/TS extractor requires it)
+        if: matrix.language == 'javascript'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:

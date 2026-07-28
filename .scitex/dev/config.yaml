@@ -10,3 +10,27 @@ project-type:
   - pip
   - django
   - deferred
+
+# PS-224 (runner-destination-unregistered) exemptions.
+#
+# ONE entry, and it is the only job in this repo PROVEN unable to run on
+# the registered self-hosted runners. Everything else that used to target
+# ubuntu-latest was MIGRATED rather than exempted — an exemption I cannot
+# justify by measurement is just a skip_rules entry with better manners.
+#
+# The key is <workflow-path>::<job-id> and is copied from what the audit
+# PRINTS, not constructed from the filename. Job-qualified is deliberate:
+# a wrong job id fails OPEN (still flagged, loud), whereas a bare path
+# would silently exempt every job in the file — including the eight this
+# repo migrated honestly.
+audit:
+  exemptions:
+    - rule: PS-224
+      path: ".github/workflows/e2e-mobile.yml::playwright-mobile"
+      line: 0
+      reason: >-
+        playwright install --with-deps chromium is an apt-get invocation
+        requiring root. Measured on the Spartan pool 2026-07-28: uid 17107,
+        `sudo -n true` -> "sudo: refused — Spartan HPC is user-space only",
+        `command -v apt-get` -> absent. Structurally unrunnable there, not a
+        configuration gap. Revisit if a browser-capable runner joins the pool.
