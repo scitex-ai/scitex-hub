@@ -49,14 +49,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      # uv, not setup-python + bare pip. The spartan runner's toolcache
+      # Python is uv-managed, so `pip install` into it dies with PEP 668
+      # "error: externally-managed-environment ... managed by uv"
+      # (measured on run 30329643093, runner spartan-cpu-org-02). The fix
+      # is a venv, NOT --break-system-packages: these runners are ORG-POOLED,
+      # so mutating the shared interpreter would corrupt Python for every
+      # other repo's jobs on that host.
+      # This install shape is the fleet convention — copied from the org
+      # reusable workflows in scitex-ai/.github, which already run on these
+      # runners (hub's import-smoke calls one and is consistently green).
+      - uses: astral-sh/setup-uv@v7
         with:
-          python-version: "3.12"
+          cache-dependency-glob: pyproject.toml
 
       - name: Install package + audit tooling
         run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+          set -euo pipefail
+          uv venv --python 3.12 .venv
+          uv pip install --python .venv/bin/python -e ".[dev]"
           # PINNED DELIBERATELY. Unpinned, this line makes the gate
           # non-reproducible: the rule corpus IS the definition of passing, so
           # a scitex-dev release silently redefines it with no diff in this
@@ -66,7 +77,10 @@ jobs:
           # not tell a regression from a corpus bump.
           # Bump this pin as its own reviewable commit, so the new findings
           # arrive attributable and someone owns them.
-          pip install "scitex-dev[cli-audit]==0.38.0"
+          # NOTE: the org reusable quality-audit.yml installs scitex-dev
+          # UNPINNED, so every other package in the fleet still has this
+          # non-reproducibility. Worth fixing upstream.
+          uv pip install --python .venv/bin/python "scitex-dev[cli-audit]==0.38.0"
 
       # Use the pytest wrapper so the documented `skip_rules` deferrals in
       # tests/develop/test_audit.py are honoured. Calling `scitex-dev
@@ -75,5 +89,18 @@ jobs:
       # thinning) to land in one commit, which is not how this repo
       # schedules them. Unknown rules still SURFACE as failures because
       # `audit_all_for_package` raises on any unrecognised violation.
+      #
+      # This is also why hub does NOT call the org reusable quality-audit.yml
+      # even though one exists and targets these same runners: that workflow
+      # runs `scitex-dev ecosystem audit-all` DIRECTLY, which bypasses
+      # skip_rules entirely. Adopting it wholesale would fire every deferred
+      # campaign at once. We take its runner + install shape, not its
+      # invocation.
       - name: Run audit via pytest wrapper (honors skip_rules)
-        run: python -m pytest tests/develop/test_audit.py -q --no-header
+        run: |
+          set -euo pipefail
+          # .venv/bin on PATH so the `scitex-dev` subcommands that audit-all
+          # spawns resolve to the pinned one, not to anything on the shared
+          # runner's PATH.
+          export PATH="$PWD/.venv/bin:$PATH"
+          .venv/bin/python -m pytest tests/develop/test_audit.py -q --no-header
