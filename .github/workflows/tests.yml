@@ -39,7 +39,16 @@ jobs:
 
   vitest:
     name: Vitest Unit Tests
-    runs-on: ubuntu-latest
+    # NODE CANARY for the spartan migration. The Python path is proven on
+    # this pool (audit + the three pytest legs), but nothing here has run
+    # actions/setup-node on a self-hosted runner yet — it has to populate
+    # the runner's toolcache rather than use a preinstalled one. This job
+    # is the cheapest node-only probe in the repo (npm install + vitest, no
+    # Python, no browsers), so it answers "does node work here" without
+    # risking the four other tests.yml jobs at the same time.
+    # If this goes green, typescript-check can follow; if it fails, we learn
+    # what the runner image lacks from one job instead of five.
+    runs-on: [self-hosted, Linux, X64, spartan-cpu]
 
     steps:
       - name: Checkout code
