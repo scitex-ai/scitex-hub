@@ -31,7 +31,10 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # Plain Python, no privileged step — the same shape the push/PR pytest
+    # matrix already runs green on this pool, so this one is migrated rather
+    # than exempted.
+    runs-on: [self-hosted, Linux, X64, spartan-cpu]
     strategy:
       fail-fast: false
       matrix:
@@ -50,13 +53,21 @@ jobs:
         with:
           ref: ${{ steps.ver.outputs.version }}
           fetch-depth: 0
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v7
         with:
-          python-version: ${{ matrix.python-version }}
+          cache-dependency-glob: pyproject.toml
       - name: Install (best-effort fallback chain)
+        # uv venv, not bare pip: the pool's toolcache Python is uv-managed and
+        # refuses pip under PEP 668, and these runners are org-pooled so the
+        # shared interpreter must not be mutated. --seed so the venv carries a
+        # real pip for anything downstream that shells it.
         run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[all,dev]" || pip install -e ".[dev]" || pip install -e .
+          uv venv --seed --python ${{ matrix.python-version }} .venv
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+          P=.venv/bin/python
+          uv pip install --python $P -e ".[all,dev]" \
+            || uv pip install --python $P -e ".[dev]" \
+            || uv pip install --python $P -e .
       - name: Run pytest
         # Django settings hard-fail (ValueError, per "no silent fallback")
         # if SCITEX_HUB_DJANGO_SECRET_KEY is unset. CI doesn't need a real
@@ -82,7 +93,8 @@ jobs:
 
   build:
     needs: test
-    runs-on: ubuntu-latest
+    # Same reasoning as `test`: a pure `python -m build`, nothing privileged.
+    runs-on: [self-hosted, Linux, X64, spartan-cpu]
     outputs:
       version: ${{ steps.ver.outputs.version }}
     steps:
@@ -99,13 +111,17 @@ jobs:
         with:
           ref: ${{ steps.ver.outputs.version }}
           fetch-depth: 0
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v7
         with:
-          python-version: "3.12"
+          cache-dependency-glob: pyproject.toml
       - name: Install build tools
-        run: pip install build
+        # See `test` above for why this is uv-in-a-venv and not bare pip.
+        run: |
+          uv venv --seed --python 3.12 .venv
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+          uv pip install --python .venv/bin/python build
       - name: Build distribution
-        run: python -m build
+        run: .venv/bin/python -m build
       - uses: actions/upload-artifact@v4
         with:
           name: dist

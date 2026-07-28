@@ -13,18 +13,22 @@ on:
 jobs:
   safety-check:
     name: Python Dependency Security Check
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, spartan-cpu]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+      # uv venv, not setup-python + bare pip: the runner's toolcache Python
+      # is uv-managed and refuses pip under PEP 668, and these runners are
+      # org-pooled so the shared interpreter must not be mutated.
+      - uses: astral-sh/setup-uv@v7
 
       - name: Install safety
-        run: pip install safety
+        run: |
+          set -euo pipefail
+          uv venv --python 3.11 .venv
+          uv pip install --python .venv/bin/python safety
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
       - name: Run safety check
         run: |
@@ -34,18 +38,19 @@ jobs:
 
   bandit:
     name: Python Security Linting
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, spartan-cpu]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+      - uses: astral-sh/setup-uv@v7
 
       - name: Install bandit
-        run: pip install bandit
+        run: |
+          set -euo pipefail
+          uv venv --python 3.11 .venv
+          uv pip install --python .venv/bin/python bandit
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
       - name: Run bandit
         run: |
@@ -60,19 +65,19 @@ jobs:
 
   django-check:
     name: Django Security Check
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, spartan-cpu]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+      - uses: astral-sh/setup-uv@v7
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt || true
+          set -euo pipefail
+          uv venv --python 3.11 .venv
+          uv pip install --python .venv/bin/python -r requirements.txt || true
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
       - name: Run Django security checks
         env:

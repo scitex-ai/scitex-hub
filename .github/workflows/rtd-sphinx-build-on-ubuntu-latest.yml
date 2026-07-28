@@ -12,7 +12,7 @@ jobs:
     # suppress the tag-push and release workflows when the auto-commit
     # is the most recent commit on develop at release time.
     if: "!contains(github.event.head_commit.message, 'docs(sphinx_html): refresh from CI build')"
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, spartan-cpu]
     permissions:
       contents: write
     steps:
@@ -21,12 +21,22 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-python@v5
+      # uv venv, not setup-python + bare pip — the pool's toolcache Python is
+      # uv-managed and refuses pip under PEP 668, and these runners are shared
+      # org-wide so the interpreter must not be mutated.
+      - uses: astral-sh/setup-uv@v7
         with:
-          python-version: "3.11"
+          cache-dependency-glob: pyproject.toml
 
       - name: Install package + docs deps
-        run: pip install -e ".[all]" || pip install -e ".[dev]" || pip install -e .
+        run: |
+          set -euo pipefail
+          uv venv --python 3.11 .venv
+          uv pip install --python .venv/bin/python -e ".[all]" \
+            || uv pip install --python .venv/bin/python -e ".[dev]" \
+            || uv pip install --python .venv/bin/python -e .
+          # Later steps invoke sphinx-build bare, across several steps.
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
       - name: Build Sphinx HTML (warnings fail PRs only)
         run: |
