@@ -25,12 +25,17 @@ project-type:
 # repo migrated honestly.
 audit:
   exemptions:
-    - rule: PS-224
-      path: ".github/workflows/e2e-mobile.yml::playwright-mobile"
-      line: 0
-      reason: >-
-        playwright install --with-deps chromium is an apt-get invocation
-        requiring root. Measured on the Spartan pool 2026-07-28: uid 17107,
-        `sudo -n true` -> "sudo: refused — Spartan HPC is user-space only",
-        `command -v apt-get` -> absent. Structurally unrunnable there, not a
-        configuration gap. Revisit if a browser-capable runner joins the pool.
+    # Shape is {rule_code: [{path, line, reason}, ...]} — a mapping KEYED BY
+    # RULE whose value is a list. Verified against the parser
+    # (_cli/audit/_config/_loader.py:113-141), not from prose: a flat list of
+    # entries each carrying `rule:` is silently ignored, because
+    # _parse_exemptions returns ((), ()) for any non-dict block.
+    PS-224:
+      - path: ".github/workflows/e2e-mobile.yml::playwright-mobile"
+        line: 0
+        reason: >-
+          playwright install --with-deps chromium is an apt-get invocation
+          requiring root. Measured on the Spartan pool 2026-07-28: uid 17107,
+          `sudo -n true` -> "sudo: refused — Spartan HPC is user-space only",
+          `command -v apt-get` -> absent. Structurally unrunnable there, not a
+          configuration gap. Revisit if a browser-capable runner joins the pool.
