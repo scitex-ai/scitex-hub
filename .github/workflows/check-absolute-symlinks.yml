@@ -16,7 +16,9 @@ on:
 jobs:
   check-absolute-symlinks:
     name: No absolute-target tracked symlinks
-    runs-on: ubuntu-latest
+    # Pure bash + git, no Python at all — so unlike the other migrated jobs
+    # this one needs no uv/venv step, just the runner change.
+    runs-on: [self-hosted, Linux, X64, spartan-cpu]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
