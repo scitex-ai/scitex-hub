@@ -11,7 +11,16 @@ on:
 jobs:
   analyze:
     name: Analyze Code
-    runs-on: ubuntu-latest
+    # VERIFICATION, not an assumption. I claimed earlier that codeql "needs
+    # its toolcache" and had NOT measured it — this job is how that gets
+    # settled. CodeQL for python/javascript is interpreted (autobuild is a
+    # no-op for both), the action downloads its own bundle, and nothing here
+    # needs root, so it SHOULD run on the unprivileged pool. If it does not,
+    # revert this hunk and exempt with the measured reason.
+    # This is currently a GREEN check, so the risk is real and accepted
+    # deliberately: an exemption I cannot justify by measurement is just a
+    # skip_rules entry with better manners.
+    runs-on: [self-hosted, Linux, X64, spartan-cpu]
     permissions:
       actions: read
       contents: read
@@ -25,6 +34,21 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      # CodeQL's JS/TS extractor SHELLS OUT to `node` and does not ship one.
+      # On GitHub-hosted runners node is preinstalled, so nothing here ever
+      # had to declare it. Measured on spartan (run 30335621068): the python
+      # leg passed, the javascript leg died in
+      #   TypeScriptParser.verifyNodeInstallation
+      #   -> "Please install Node.js and ensure 'node' is on the PATH."
+      # This is a FIX, not grounds for an exemption: the dependency was
+      # always there, the old runner just supplied it invisibly. vitest
+      # already proved setup-node works on this pool.
+      - name: Set up Node.js (JS/TS extractor requires it)
+        if: matrix.language == 'javascript'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
