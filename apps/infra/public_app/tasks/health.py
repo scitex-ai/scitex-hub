@@ -14,6 +14,8 @@ from django.core.cache import cache
 from django.core.mail import send_mail
 from django.utils import timezone
 
+from apps.infra.public_app.models import SiteHealthProbe
+
 logger = logging.getLogger(__name__)
 
 # Health Monitoring Cache Keys
@@ -77,8 +79,13 @@ def _get_health_config() -> tuple[str, str, str | None, str]:
     return health_check_url, site_url, notification_recipient, notification_sender
 
 
-def _perform_health_check(url: str) -> tuple[bool, str | None, float | None]:
-    """Perform HTTP health check and return (is_healthy, error_message, response_time)."""
+def _perform_health_check(
+    url: str,
+) -> tuple[bool, str | None, float | None, int | None]:
+    """Perform HTTP health check.
+
+    Returns (is_healthy, error_message, response_time, status_code).
+    """
     try:
         response = requests.get(
             url, timeout=10, headers={"User-Agent": "SciTeX-HealthCheck/1.0"}
@@ -86,13 +93,13 @@ def _perform_health_check(url: str) -> tuple[bool, str | None, float | None]:
         response_time = response.elapsed.total_seconds()
         is_healthy = response.status_code == 200
         error_message = None if is_healthy else f"HTTP {response.status_code}"
-        return is_healthy, error_message, response_time
+        return is_healthy, error_message, response_time, response.status_code
     except requests.exceptions.Timeout:
-        return False, "Request timeout (>10s)", None
+        return False, "Request timeout (>10s)", None, None
     except requests.exceptions.ConnectionError as e:
-        return False, f"Connection error: {str(e)[:100]}", None
+        return False, f"Connection error: {str(e)[:100]}", None, None
     except Exception as e:
-        return False, f"Error: {str(e)[:100]}", None
+        return False, f"Error: {str(e)[:100]}", None, None
 
 
 def _send_recovery_notification(
@@ -173,7 +180,9 @@ def check_site_health(self):
             )
 
         # Perform check
-        is_healthy, error_message, response_time = _perform_health_check(url)
+        is_healthy, error_message, response_time, status_code = _perform_health_check(
+            url
+        )
 
         # Get previous state
         prev_status = cache.get(HEALTH_CHECK_CACHE_KEY, "unknown")
@@ -207,6 +216,19 @@ def check_site_health(self):
                 )
 
         cache.set(HEALTH_CHECK_CACHE_KEY, new_status, timeout=3600)
+
+        # Persist one probe row per run (success AND failure — a failed
+        # probe with response_time_ms=None is signal, not noise). History
+        # enables before/after comparisons (router swap 2026-07-21, NURO
+        # 10G). Retention: collect_server_metrics deletes rows >30 days.
+        SiteHealthProbe.objects.create(
+            timestamp=timezone.now(),
+            response_time_ms=(
+                response_time * 1000.0 if response_time is not None else None
+            ),
+            is_healthy=is_healthy,
+            status_code=status_code,
+        )
 
         return {
             "status": new_status,

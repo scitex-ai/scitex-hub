@@ -421,6 +421,44 @@ class ServerMetrics(models.Model):
         return f"Metrics at {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
 
 
+class SiteHealthProbe(models.Model):
+    """One row per external site health probe (check_site_health, every minute).
+
+    Persists the per-minute response time of https://scitex.ai/ so
+    before/after comparisons (router swap, NURO 10G line) are possible.
+    A failed probe is stored with ``response_time_ms=None`` — the gap
+    itself is signal, not noise.
+    """
+
+    # Probe time
+    timestamp = models.DateTimeField(db_index=True)
+
+    # Result
+    response_time_ms = models.FloatField(
+        null=True, help_text="Response time in milliseconds (null when probe failed)"
+    )
+    is_healthy = models.BooleanField(help_text="HTTP 200 within timeout")
+    status_code = models.IntegerField(
+        null=True, help_text="HTTP status code (null when no response)"
+    )
+
+    class Meta:
+        ordering = ["-timestamp"]
+        indexes = [
+            models.Index(fields=["-timestamp"]),
+        ]
+        verbose_name = "Site Health Probe"
+        verbose_name_plural = "Site Health Probes"
+
+    def __str__(self):
+        rt = (
+            f"{self.response_time_ms:.0f}ms"
+            if self.response_time_ms is not None
+            else "failed"
+        )
+        return f"Probe at {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')} ({rt})"
+
+
 class BillingEvent(models.Model):
     """Minimal record of signature-verified Stripe webhook events.
 
