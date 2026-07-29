@@ -132,11 +132,34 @@ def _clone_gitea_repo_to_data_dir(project):
             # Push/pull authenticate per-op via build_gitea_auth_env(), so the
             # token must never appear in this repo's .git/config (which is
             # bind-mounted into the user's sandbox).
+            #
+            # THE RESULT IS CHECKED. It used to be discarded, and that is how a
+            # live leak stayed invisible: in prod every git call returned
+            # rc=128 ("dubious ownership"), so the scrub reported failure for
+            # every repo and nobody heard it. 6 of 46 user .git/config files
+            # were still holding credentials -- 4 of them the live platform
+            # admin token -- while the function, its test and its card all said
+            # the leak was fixed. A security control whose failure is thrown
+            # away is not a control. See hub-git-safedir-durable.
             from apps.infra.project_app.services.git_service import (
                 sanitize_origin_url,
             )
 
-            sanitize_origin_url(project_dir)
+            scrub = sanitize_origin_url(project_dir)
+            if not scrub.is_safe:
+                # Loud, and actionable: name the repo, the outcome and the why.
+                # Deliberately NOT raising -- project creation must not fail
+                # because a scrub could not run -- but this must never again be
+                # a silent no-op.
+                logger.error(
+                    "SECURITY: origin credential scrub did not confirm %s is "
+                    "clean (status=%s): %s. This repo is bind-mounted into the "
+                    "user's sandbox; a credential in .git/config would be "
+                    "readable cross-tenant. Investigate before trusting it.",
+                    project_dir,
+                    scrub.status.value,
+                    scrub.detail or "no detail",
+                )
 
             # Update project model with clone path
             project.git_clone_path = str(project_dir)

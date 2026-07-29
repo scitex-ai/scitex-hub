@@ -18,29 +18,16 @@ from pathlib import Path
 from typing import Optional, List, Tuple
 from django.conf import settings
 
+# SECURITY: the origin-credential scrub lives in ONE module. Re-exported
+# here so existing import paths keep working unchanged.
+from .origin_scrub import (  # noqa: F401
+    OriginScrubResult,
+    OriginScrubStatus,
+    sanitize_origin_url,
+    strip_url_credentials,
+)
+
 logger = logging.getLogger(__name__)
-
-
-def strip_url_credentials(url: str) -> str:
-    """Return ``url`` with any ``user[:password]@`` userinfo removed.
-
-    ``http://alice:TOKEN@gitea:3000/a/b.git`` -> ``http://gitea:3000/a/b.git``
-    and ``http://TOKEN@gitea:3000/a/b.git`` -> ``http://gitea:3000/a/b.git``.
-    Non-``scheme://`` URLs (e.g. ``git@host:path`` SSH) are returned untouched.
-
-    Only the AUTHORITY component is examined — an ``@`` later in the path is
-    left alone, so ``http://gitea:3000/u/re@po.git`` survives intact instead
-    of being mangled into ``http://po.git``.
-    """
-    if "://" not in url:
-        return url
-    scheme, rest = url.split("://", 1)
-    authority, slash, path = rest.partition("/")
-    if "@" in authority:
-        # Last '@' wins: userinfo may legally contain an escaped '@', and this
-        # matches how git/curl split the authority.
-        authority = authority.rsplit("@", 1)[1]
-    return f"{scheme}://{authority}{slash}{path}"
 
 
 def build_gitea_auth_env(
@@ -243,70 +230,6 @@ def git_pull(project_dir: Path, branch: str = "develop") -> Tuple[bool, str]:
     except Exception as e:
         logger.exception(f"Git pull failed for {project_dir}")
         return False, str(e)
-
-
-def sanitize_origin_url(project_dir: Path) -> bool:
-    """Ensure the ``origin`` remote of ``project_dir`` is CREDENTIAL-LESS.
-
-    SECURITY (sec-gitea-admin-token-plaintext-in-user-gitconfig): the previous
-    ``configure_git_credentials()`` embedded ``http://<user>:<token>@host``
-    into origin, persisting the platform Gitea ADMIN token into
-    ``.git/config``. That file is bind-mounted read/write into the user's
-    Apptainer console at ``/workspace``, so any tenant could
-    ``cat /workspace/.git/config`` and recover the admin token — a
-    cross-tenant repo takeover. Credentials are now supplied per-operation
-    via :func:`build_gitea_auth_env` (never written to disk), so origin only
-    ever needs the bare URL.
-
-    This function therefore STRIPS any embedded credentials from origin (it
-    also de-poisons repos cloned before the fix) and is idempotent — a clean
-    origin is left untouched. It takes NO credential arguments by design: a
-    function that never receives the token cannot re-introduce the leak.
-
-    Args:
-        project_dir: Path to the project's git working tree.
-
-    Returns:
-        True when origin is (now) credential-less, False on failure.
-    """
-    try:
-        project_dir = Path(project_dir)
-
-        # Get current remote URL
-        result = subprocess.run(
-            ["git", "remote", "get-url", "origin"],
-            cwd=project_dir,
-            capture_output=True,
-            text=True,
-        )
-
-        if result.returncode != 0:
-            logger.error(f"Failed to get remote URL: {result.stderr}")
-            return False
-
-        origin_url = result.stdout.strip()
-
-        if not origin_url.startswith("http"):
-            # SSH or other transport — no HTTP token to strip.
-            return True
-
-        clean_url = strip_url_credentials(origin_url)
-        if clean_url != origin_url:
-            subprocess.run(
-                ["git", "remote", "set-url", "origin", clean_url],
-                cwd=project_dir,
-                capture_output=True,
-                text=True,
-            )
-            logger.info(
-                "✓ Sanitized origin URL (removed embedded credentials) for %s",
-                project_dir,
-            )
-        return True
-
-    except Exception as e:
-        logger.error(f"Failed to sanitize git credentials: {e}")
-        return False
 
 
 def auto_commit_file(
