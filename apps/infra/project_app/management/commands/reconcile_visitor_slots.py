@@ -118,15 +118,23 @@ class Command(BaseCommand):
         # i.e. boot context — there an "allocated" slot is stale by definition
         # and wiping it is the correct fail-safe, exactly as for a full
         # reconcile. The guard is for a HUMAN typing --visitor N against a
-        # running system. Scoping it this way was not my first attempt: the
-        # original guard fired on --visitor alone and broke 9 tests in
-        # TestReconcileAsyncDispatch, which use --visitor purely to scope an
-        # async-dispatch assertion to one slot. The suite was right and the
-        # guard was too broad.
+        # running system. Scoping it this way took THREE tries, each time the
+        # suite catching a too-broad guard:
+        #   - v1 fired on --visitor alone -> broke 9 TestReconcileAsyncDispatch
+        #     tests (they use --visitor only to scope an async assertion).
+        #   - v2 added `not async_dispatch` -> broke 2 TestReconcileQuarantineOnly
+        #     tests. --quarantine-only marks a slot quarantined and SKIPS the
+        #     re-clean (module docstring: "mark only, no re-clean"), so it never
+        #     reaches the wipe this guard exists to prevent. By the guard's own
+        #     rationale ("Re-cleaning it destroys that visitor's session") it
+        #     must not fire on a path that does not re-clean.
+        # The guard fires ONLY on the inline single-slot WIPE: a human typing
+        # --visitor N with no --force, no --async (boot), no --quarantine-only.
         if (
             options["visitor"]
             and not options["force"]
             and not options["async_dispatch"]
+            and not options["quarantine_only"]
         ):
             allocation = get_or_create_allocation(options["visitor"])
             if allocation.is_active:
