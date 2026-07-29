@@ -410,7 +410,15 @@ class PoolAllocator:
             pool_size: Size of the visitor pool
 
         Returns:
-            dict: {total, allocated, free, expired}
+            dict: {total, allocated, free, expired, quarantined, ready}
+
+            ``free`` and ``ready`` are NOT interchangeable, and ``ready`` is
+            the one that governs: allocation needs a slot that is unallocated
+            AND workspace_ready AND not quarantined. ``free`` is merely
+            total - occupied, so it counts slots that can never be handed out.
+            Report ``ready`` to anyone asking "can I get a slot?" — a UI that
+            showed ``free`` claimed spare capacity while every visitor was
+            correctly downgraded to read-only (prod 2026-07-30).
         """
         now = timezone.now()
         total = pool_size

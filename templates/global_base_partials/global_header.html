@@ -395,8 +395,11 @@
                 {% else %}
                     <i class="fas fa-user-clock header-visitor-badge-mobile-icon"></i>Visitor
                 {% endif %}
+                {# `ready`, not `allocated`: on a 390px badge a bare fraction has
+                   no room to explain itself, so it must be the number that
+                   governs. "14/16 in use" implied two spare while ready was 0. #}
                 {% if is_readonly and visitor_pool_status %}
-                    <span class="header-visitor-slots">{{ visitor_pool_status.allocated }}/{{ visitor_pool_status.total }}</span>
+                    <span class="header-visitor-badge-mobile-slots">{{ visitor_pool_status.ready }}/{{ visitor_pool_status.total }} free</span>
                 {% endif %}
                 {% if visitor_expires_at %}
                     <span class="header-visitor-badge-mobile-countdown"
@@ -420,10 +423,12 @@
                     <strong>Visitor session</strong>
                     <div>Your work lasts only for this session.</div>
                 {% endif %}
-                {% if visitor_pool_status %}
-                    <div class="header-visitor-badge-popover-muted">
-                        visitor slots {{ visitor_pool_status.allocated }}/{{ visitor_pool_status.total }} in use
-                    </div>
+                {# `ready`, not `allocated`: allocation needs a slot that is free
+                   AND workspace_ready AND not quarantined. Reporting occupancy
+                   here contradicted the reason copy above whenever free != ready
+                   — "2 spare" next to "no slot was ready for you". #}
+                {% if is_readonly and visitor_pool_status %}
+                    <div class="header-visitor-badge-popover-slots">{{ visitor_pool_status.ready }} of {{ visitor_pool_status.total }} visitor slots available</div>
                 {% endif %}
                 <div class="header-visitor-badge-popover-actions">
                     <a href="/auth/signup/" class="header-btn header-btn-primary">Sign up</a>
@@ -572,8 +577,24 @@
                                 Visitor Mode
                             {% endif %}
                         </span>
+                        {# Report the ALLOCATABLE count, not occupancy.
+                           `allocated/total` answered the wrong question:
+                           allocation needs a slot that is free AND
+                           workspace_ready AND not quarantined — which is
+                           exactly `visitor_pool_status.ready`. Measured on prod
+                           2026-07-30 the badge read "14/16 in use", implying two
+                           spare, while `ready` was 0; every visitor correctly
+                           fell through to read-only and the UI appeared to
+                           contradict itself. The number was never wrong, it
+                           just was not the one that governs.
+                           Exposing occupancy here is DELIBERATE (see
+                           PoolOccupancyContextTest, "Pool occupancy is exposed
+                           next to the Read-Only badge") — so this keeps the
+                           feature and fixes the quantity. The WHY is carried
+                           separately by readonly_visitor_reason_detail, already
+                           rendered in the popovers below. #}
                         {% if is_readonly and visitor_pool_status %}
-                            <span class="header-visitor-slots" id="visitor-pool-occupancy">visitor slots {{ visitor_pool_status.allocated }}/{{ visitor_pool_status.total }} in use</span>
+                            <span class="header-visitor-slots" id="visitor-pool-occupancy">{{ visitor_pool_status.ready }} of {{ visitor_pool_status.total }} visitor slots available</span>
                         {% endif %}
                         {% if visitor_expires_at %}
                             <span id="visitor-countdown"
@@ -617,10 +638,10 @@
                             </svg>
                             {% if is_readonly %}
                                 {{ readonly_visitor_reason_detail }} You can view everything; sign up or log in to make changes.
+                                {# `ready`, not `allocated` — see the note on the
+                                   other popover. #}
                                 {% if visitor_pool_status %}
-                                    <div class="header-visitor-badge-popover-muted">
-                                        visitor slots {{ visitor_pool_status.allocated }}/{{ visitor_pool_status.total }} in use
-                                    </div>
+                                    ({{ visitor_pool_status.ready }} of {{ visitor_pool_status.total }} visitor slots available.)
                                 {% endif %}
                             {% else %}
                                 Your work will be kept only during this session. To save to disk for future sessions, create an account.
