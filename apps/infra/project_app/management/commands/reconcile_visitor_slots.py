@@ -33,7 +33,7 @@ Usage:
     python manage.py reconcile_visitor_slots --visitor 2        # single slot
 """
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
 from apps.infra.project_app.services.visitor_pool import VisitorPool
 from apps.infra.project_app.services.visitor_pool.slot_lifecycle import (
@@ -79,6 +79,17 @@ class Command(BaseCommand):
             type=int,
             help="Reconcile a single visitor slot number",
         )
+        parser.add_argument(
+            "--force",
+            action="store_true",
+            help=(
+                "With --visitor, wipe the slot even if it is currently "
+                "ALLOCATED. Destroys that visitor's session. Only meaningful "
+                "for the single-slot operator path; the full boot reconcile "
+                "always wipes, because after a restart an 'allocated' slot is "
+                "stale by definition."
+            ),
+        )
 
     def handle(self, *args, **options):
         pool_size = VisitorPool.POOL_SIZE
@@ -86,6 +97,38 @@ class Command(BaseCommand):
             numbers = [options["visitor"]]
         else:
             numbers = list(range(1, pool_size + 1))
+
+        # GUARD — operator single-slot path only.
+        #
+        # `is_active` means two different things depending on who is calling:
+        #   - full boot reconcile: the process died holding this slot, so the
+        #     allocation is STALE and wiping it is exactly right.
+        #   - operator `--visitor N` on a RUNNING system: someone may be using
+        #     it right now, and the wipe destroys their session.
+        # Same field, opposite meaning, same code path.
+        #
+        # Incident 2026-07-30: an operator (me) read a slot table, decided two
+        # slots were "stuck unverified", and ran --visitor on each. In the
+        # interval the async pipeline had finished and both had been ALLOCATED.
+        # The command printed "slot was allocated" into its reason string and
+        # wiped them anyway. The check existed, was observed, and gated nothing
+        # -- which is the same defect shape this repo keeps finding elsewhere.
+        # Refusing is the fix; a reason string is not a guard.
+        if options["visitor"] and not options["force"]:
+            allocation = get_or_create_allocation(options["visitor"])
+            if allocation.is_active:
+                raise CommandError(
+                    f"REFUSING to wipe visitor slot #{options['visitor']}: it is "
+                    f"currently ALLOCATED (is_active=True, "
+                    f"workspace_ready={allocation.workspace_ready}, "
+                    f"last_activity={allocation.last_activity}). Re-cleaning it "
+                    f"destroys that visitor's session.\n"
+                    f"  - If the slot only LOOKS stuck, re-read it first: the "
+                    f"async wipe+verify pipeline takes ~10s per slot, so a "
+                    f"not-ready slot right after a deploy is usually mid-flight, "
+                    f"not broken.\n"
+                    f"  - If you really mean to destroy it, pass --force."
+                )
 
         # Phase 1 — quarantine: at boot no slot's on-disk state can be
         # trusted (a reset may have been interrupted mid-wipe), so every
