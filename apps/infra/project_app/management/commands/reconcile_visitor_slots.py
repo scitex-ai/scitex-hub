@@ -114,7 +114,20 @@ class Command(BaseCommand):
         # wiped them anyway. The check existed, was observed, and gated nothing
         # -- which is the same defect shape this repo keeps finding elsewhere.
         # Refusing is the fix; a reason string is not a guard.
-        if options["visitor"] and not options["force"]:
+        # `--async` is the CONTAINER ENTRYPOINT path (see the module docstring),
+        # i.e. boot context — there an "allocated" slot is stale by definition
+        # and wiping it is the correct fail-safe, exactly as for a full
+        # reconcile. The guard is for a HUMAN typing --visitor N against a
+        # running system. Scoping it this way was not my first attempt: the
+        # original guard fired on --visitor alone and broke 9 tests in
+        # TestReconcileAsyncDispatch, which use --visitor purely to scope an
+        # async-dispatch assertion to one slot. The suite was right and the
+        # guard was too broad.
+        if (
+            options["visitor"]
+            and not options["force"]
+            and not options["async_dispatch"]
+        ):
             allocation = get_or_create_allocation(options["visitor"])
             if allocation.is_active:
                 raise CommandError(
