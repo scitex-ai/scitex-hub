@@ -6,29 +6,33 @@
 
 WHY THIS FILE EXISTS
 --------------------
-``sanitize_origin_url`` had a passing unit test and had NEVER RUN IN
-PRODUCTION. Measured on the running prod container 2026-07-29::
+The scrub edits a remote URL, which lives in a plain INI file. It has no need
+of a git subprocess, and depending on one couples a security control to an
+external tool's environment assumptions -- assumptions a unit test does not
+see. These tests pin that independence: ``no_git_on_path`` empties PATH FOR
+REAL (it patches nothing), so if anyone reintroduces a shell-out, ``git`` will
+genuinely not be found and these go red.
 
-    git remote get-url origin -> rc=128
-    fatal: detected dubious ownership in repository at
-           '/app/data/users/<user>/proj/<repo>'
+CORRECTION (2026-07-30) -- an earlier version of this docstring said the scrub
+"had NEVER RUN IN PRODUCTION" because every in-container git call returned
+``rc=128`` (dubious ownership). **That was a measurement error.**
+``docker exec`` defaults to ROOT, while the Django process runs as uid 1000 and
+the user repo files are owned by uid 1000. Measured side by side::
 
-The container uid differs from the bind-mounted file owner, so git's
-``safe.directory`` guard rejected every user repo. The scrub shelled out to
-git, so it returned failure for every repo -- and its caller discarded that.
-6 of 46 user ``.git/config`` files still held credentials, 4 of them the live
-platform admin token, while the function, its test, and its card all reported
-the leak fixed.
+    docker exec -u 0    ... -> rc=128 (dubious ownership)
+    docker exec -u 1000 ... -> git works fine
 
-The old test passed because its fixture repo was owned by the test user. It
-exercised the function in an environment the function never actually ran in.
+The rc=128 described the PROBE, not production.
 
-So these tests remove git FOR REAL (``no_git_on_path`` empties PATH, it does
-not patch anything) and require the scrub to work anyway. If someone
-reintroduces a subprocess call, ``git`` will not be found and these go red.
-That is the barrier: the defect was never "git was configured wrong", it was
-"a security control depended on an external tool whose environment
-assumptions its test could not see".
+The 6-of-46 poisoned ``.git/config`` files were real; the likely cause is that
+the scrub runs at project CREATE time only, so repos predating the fix were
+never covered.
+
+That correction does not weaken these tests. Not needing git is a property
+worth holding regardless of why it was first noticed, and the defects the
+rewrite fixes are independent of the bad diagnosis: an unchecked write, a
+discarded result, a blanket ``except`` that collapsed every cause into one
+``False``, and a security control duplicated byte-for-byte across two modules.
 
 Card: hub-git-safedir-durable / sec-gitea-admin-token-plaintext-in-user-gitconfig
 """

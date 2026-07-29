@@ -122,27 +122,35 @@ def sanitize_origin_url(project_dir: Path) -> OriginScrubResult:
 
     WHY THIS EDITS THE FILE DIRECTLY INSTEAD OF SHELLING OUT TO GIT
     ---------------------------------------------------------------
-    The previous version ran ``git remote get-url`` / ``git remote set-url``.
-    Measured on the running prod container 2026-07-29, EVERY such call failed::
+    Fewer environment dependencies. A remote URL lives in a plain INI file this
+    process can already read and write, so the three ``git remote`` subprocesses
+    the previous version used bought nothing and coupled a security control to
+    an external tool's assumptions — assumptions a unit test does not see.
 
-        git remote get-url origin -> rc=128
-        fatal: detected dubious ownership in repository at
-               '/app/data/users/<user>/proj/<repo>'
+    CORRECTION (2026-07-30): an earlier version of this docstring claimed that
+    every in-container git call failed ``rc=128`` ("dubious ownership") and that
+    the scrub had therefore NEVER RUN IN PRODUCTION. **That was a measurement
+    error and it is not true.** ``docker exec`` defaults to ROOT; the Django
+    process runs as ``USER scitex`` (uid 1000) and the user repo files are owned
+    by uid 1000. Measured side by side on the prod container::
 
-    The container uid differs from the bind-mounted file owner, so git's
-    ``safe.directory`` guard rejected every user repo. This function therefore
-    returned False for every repo, and its caller discarded that — the scrub
-    had NEVER RUN IN PRODUCTION while its unit test passed, because the test
-    fixture repo is owned by the test user and so never met the production
-    condition. Result: 6 of 46 user ``.git/config`` files still held
-    credentials, 4 of them the live platform admin token.
+        docker exec -u 0    ... git remote get-url origin -> rc=128 (dubious ownership)
+        docker exec -u 1000 ... git remote get-url origin -> rc=0/2 (git works fine)
 
-    A remote URL lives in a plain INI file this process can already read and
-    write; git's ownership guard is irrelevant to that. Removing the subprocess
-    removes the whole class — a security control that shells out inherits the
-    external tool's environment assumptions, and its unit test will not see
-    them. This is the same technique used to contain the live incident, which
-    worked precisely BECAUSE git was unusable there.
+    The rc=128 described the PROBE, not production. git was never broken for the
+    process that runs this scrub.
+
+    The 6-of-46 poisoned ``.git/config`` files were real, but the likely cause is
+    simpler: the scrub is invoked from ``project_initialization`` at project
+    CREATE time, so repos created before the credential-less fix landed were
+    never covered and never would be. (Still worth confirming against those
+    repos' creation dates before relying on it.)
+
+    So this rewrite is a HARDENING, not a fix for a live outage. What it does fix
+    is real and independent of that wrong diagnosis: the old code never checked
+    whether its ``set-url`` succeeded, its caller discarded the result, a blanket
+    ``except Exception`` collapsed every cause into one ``False``, and the whole
+    function existed twice byte-identically in two modules.
 
     The file is rewritten IN PLACE rather than via temp-file+rename: rename
     would create a file owned by *this* process, changing ownership of a
