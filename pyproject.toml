@@ -46,7 +46,28 @@ dependencies = [
     # yet (latest v0.28.0 predates them). scitex_hub._cli._click_compat
     # guard-imports them (scitex-python#352 pattern); bump this floor to
     # the first release that ships them and drop the fallbacks there.
-    "scitex-dev>=0.16.1",
+    #
+    # CEILING (<0.39) added 2026-07-29. The comment above already knew this
+    # contract is version-sensitive, but bounded it on ONE side only, so any
+    # scitex-dev release could redefine hub's gate with no hub change — and
+    # one did. Measured, same tree, no diff between the two runs:
+    #     10:00  fix/skill-url-prefix-ssot   scitex-dev 0.38.1  -> audit GREEN
+    #     10:28  develop (that same code)    scitex-dev 0.40.0  -> audit RED
+    # 0.40.0 shells out to `scitex-dev ecosystem audit-all` WITHOUT
+    # forwarding skip_rules, so every documented deferral in
+    # tests/develop/test_audit.py is silently ignored ("0 declared") and the
+    # gate fails on rules we explicitly deferred — the exact failure the
+    # comment above predicted, from the other direction.
+    # <0.39 not <0.40 deliberately: 0.38.1 is PROVEN green and 0.40.0 PROVEN
+    # red, but 0.39.x is UNTESTED — a <0.40 bound would admit a version
+    # nobody has run, which is the same "whatever resolves" bug in a smaller
+    # box. Raise this ceiling only with a green run behind it.
+    # This is a STOPGAP. The durable fix is moving those deferrals into
+    # .scitex/dev/config.yaml's `audit.exemptions` block, which the CLI does
+    # honour (hub already uses it for PS-224). Until that lands, the next
+    # intentional bump re-breaks the lane.
+    # Tracked: ci-unpinned-scitex-dev-voids-skip-rules-20260729.
+    "scitex-dev>=0.16.1,<0.39",
     "gitpython>=3.1",
 ]
 
@@ -203,7 +224,10 @@ dev = [
     # test_audit.py uses (`[PA-307 …]` <- skip_rules=("PA-307",)).
     # Pinning to <0.16.1 silently lets every entry in `skip_rules`
     # leak through — the gate fails on rules we explicitly deferred.
-    "scitex-dev>=0.16.1",
+    # CEILING (<0.39) added 2026-07-29 — see the matching pin in
+    # [project.dependencies] for the measurement. Both sites must move
+    # together: this one is what CI actually installs for the audit gate.
+    "scitex-dev>=0.16.1,<0.39",
 ]
 
 [project.scripts]
