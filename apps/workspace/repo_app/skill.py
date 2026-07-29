@@ -14,8 +14,7 @@ register(
             "Quick-navigate to any module",
             "Create new projects",
         ],
-        page_patterns=["/"],
-        url_prefix="/",
+        url_route="repo_app:index",
         module_description=(
             "Home page showing all user projects, activity feed, and quick actions."
         ),

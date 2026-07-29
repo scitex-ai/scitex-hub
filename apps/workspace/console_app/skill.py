@@ -17,8 +17,7 @@ register(
             "Manage project templates",
             "Introspect Python modules and APIs",
         ],
-        page_patterns=["/console/"],
-        url_prefix="/console/",
+        url_route="console_app:index",
         module_description=(
             "Development environment: file browser, terminal (SLURM + Apptainer), "
             "code execution, Jupyter notebooks."

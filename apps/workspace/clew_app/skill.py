@@ -15,8 +15,7 @@ register(
             "View pipeline statistics and results",
             "Generate Mermaid DAG visualizations",
         ],
-        page_patterns=["/clew/"],
-        url_prefix="/clew/",
+        url_route="clew_app:clew_index",
         module_description=(
             "Pipeline DAG editor: create, chain, and run reproducible "
             "computational workflows with status tracking."

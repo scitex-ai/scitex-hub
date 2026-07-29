@@ -15,8 +15,7 @@ register(
             "Export publication-ready figures",
             "Manage figure recipes (pltz/figz formats)",
         ],
-        page_patterns=["/apps/figrecipe/"],
-        url_prefix="/apps/figrecipe/",
+        url_route="figrecipe_app:figure_editor",
         module_description=(
             "Data visualization and figure management: view plots, "
             "manage figure recipes, export publication-ready figures."
