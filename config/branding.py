@@ -14,7 +14,11 @@ in ``favicon_for_env``.
 
 # Core branding
 SITE_NAME = "SciTeX"
+# The tagline is TWO lines: the promise, then what SciTeX is. Both are shown
+# together wherever the brand introduces itself (the landing hero), so they are
+# defined together here rather than one in a template and one in Python.
 SITE_TAGLINE = "Research Automation for AI and Humans"
+SITE_TAGLINE_SECONDARY = "Open-source Scientific Research Automation Ecosystem"
 SITE_DESCRIPTION = (
     "Python toolkit + MCP server for literature search, "
     "statistics, visualization, and manuscript writing."
