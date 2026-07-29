@@ -395,9 +395,10 @@
                 {% else %}
                     <i class="fas fa-user-clock header-visitor-badge-mobile-icon"></i>Visitor
                 {% endif %}
-                {% if is_readonly and visitor_pool_status %}
-                    <span class="header-visitor-slots">{{ visitor_pool_status.allocated }}/{{ visitor_pool_status.total }}</span>
-                {% endif %}
+                {# Occupancy count removed: it read "14/16" while the number
+                   that governs allocation (ready slots) was 0. The badge says
+                   Read-Only; the popover explains why. A bare fraction on a
+                   390px badge could only mislead. #}
                 {% if visitor_expires_at %}
                     <span class="header-visitor-badge-mobile-countdown"
                           id="mobile-header-visitor-countdown">⏰ --:--</span>
@@ -420,11 +421,10 @@
                     <strong>Visitor session</strong>
                     <div>Your work lasts only for this session.</div>
                 {% endif %}
-                {% if visitor_pool_status %}
-                    <div class="header-visitor-badge-popover-muted">
-                        visitor slots {{ visitor_pool_status.allocated }}/{{ visitor_pool_status.total }} in use
-                    </div>
-                {% endif %}
+                {# Occupancy line removed — the reason copy above already says
+                   why this session is read-only, truthfully and per-reason.
+                   "N/M in use" was pool internals a visitor cannot act on, and
+                   it contradicted the reason copy whenever free != ready. #}
                 <div class="header-visitor-badge-popover-actions">
                     <a href="/auth/signup/" class="header-btn header-btn-primary">Sign up</a>
                     <a href="/auth/login/?next={{ request.path }}" class="header-btn">Log in</a>
@@ -572,8 +572,24 @@
                                 Visitor Mode
                             {% endif %}
                         </span>
-                        {% if is_readonly and visitor_pool_status %}
-                            <span class="header-visitor-slots" id="visitor-pool-occupancy">visitor slots {{ visitor_pool_status.allocated }}/{{ visitor_pool_status.total }} in use</span>
+                        {# Say WHY this session is read-only, not how full the
+                           pool is. `allocated/total` was OCCUPANCY, which is
+                           not the number that governs: allocation needs a slot
+                           that is free AND workspace_ready AND not quarantined
+                           (`visitor_pool_status.ready`). Measured on prod
+                           2026-07-30 the badge read "14/16 in use" — implying
+                           two spare — while `ready` was 0, so every visitor
+                           correctly fell through to read-only and the UI
+                           appeared to contradict itself. The number was never
+                           wrong; it answered a different question than the one
+                           anyone asked of it.
+                           `readonly_visitor_reason_detail` already carries
+                           truthful per-reason copy (pool_full vs
+                           no_ready_slot) from session_role.py — use it rather
+                           than exposing pool internals to someone who does not
+                           know what a slot is. #}
+                        {% if is_readonly and readonly_visitor_reason_detail %}
+                            <span class="header-visitor-slots" id="visitor-readonly-reason">{{ readonly_visitor_reason_detail }}</span>
                         {% endif %}
                         {% if visitor_expires_at %}
                             <span id="visitor-countdown"
@@ -617,11 +633,10 @@
                             </svg>
                             {% if is_readonly %}
                                 {{ readonly_visitor_reason_detail }} You can view everything; sign up or log in to make changes.
-                                {% if visitor_pool_status %}
-                                    <div class="header-visitor-badge-popover-muted">
-                                        visitor slots {{ visitor_pool_status.allocated }}/{{ visitor_pool_status.total }} in use
-                                    </div>
-                                {% endif %}
+                                {# Occupancy line removed — see the note on the
+                                   other popover. The reason copy above is the
+                                   truthful, per-reason explanation; the raw
+                                   fraction was occupancy, not allocatability. #}
                             {% else %}
                                 Your work will be kept only during this session. To save to disk for future sessions, create an account.
                             {% endif %}
