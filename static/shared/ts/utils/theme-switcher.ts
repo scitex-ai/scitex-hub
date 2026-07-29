@@ -39,7 +39,13 @@ declare global {
   }
 }
 
-const STORAGE_KEY = "scitex-theme-preference";
+// Canonical key converged with scitex-ui's ThemeProvider ("stx-theme").
+// The legacy hub key is a published contract: still read (one-time
+// migration) and written in sync for one release cycle — cached bundles
+// and tool embeds listen on it. Remove LEGACY_STORAGE_KEY after the
+// release that follows the one shipping this rename.
+const STORAGE_KEY = "stx-theme";
+const LEGACY_STORAGE_KEY = "scitex-theme-preference";
 const THEME_LIGHT: Theme = "light";
 const THEME_DARK: Theme = "dark";
 
@@ -47,7 +53,9 @@ const THEME_DARK: Theme = "dark";
  * Get the current theme preference from localStorage
  */
 function getThemePreference(): Theme {
-  const stored = localStorage.getItem(STORAGE_KEY);
+  const stored =
+    localStorage.getItem(STORAGE_KEY) ??
+    localStorage.getItem(LEGACY_STORAGE_KEY);
 
   // Migration: Clean up old 'auto' or 'system' values from previous
   // implementation. Those were never an explicit light choice, so they
@@ -59,6 +67,11 @@ function getThemePreference(): Theme {
   }
 
   if (stored && (stored === THEME_LIGHT || stored === THEME_DARK)) {
+    // One-time migration: a legacy-only value gets copied onto the
+    // canonical key so later reads never depend on the legacy key.
+    if (!localStorage.getItem(STORAGE_KEY)) {
+      localStorage.setItem(STORAGE_KEY, stored);
+    }
     return stored as Theme;
   }
 
@@ -168,6 +181,7 @@ function applyTheme(theme: Theme): void {
  */
 function setThemePreference(preference: Theme): void {
   localStorage.setItem(STORAGE_KEY, preference);
+  localStorage.setItem(LEGACY_STORAGE_KEY, preference);
   applyTheme(preference);
   // Save to database for authenticated users (async, don't wait)
   saveThemeToDatabase(preference);
@@ -236,6 +250,7 @@ async function initTheme(): Promise<void> {
   // a served default must not masquerade as an explicit choice.
   if (db && db.theme && db.source === "profile") {
     localStorage.setItem(STORAGE_KEY, db.theme);
+    localStorage.setItem(LEGACY_STORAGE_KEY, db.theme);
   }
 
   // Apply theme immediately to prevent flash

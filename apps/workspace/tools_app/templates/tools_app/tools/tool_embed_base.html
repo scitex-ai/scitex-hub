@@ -40,7 +40,11 @@
         <!-- Detect theme from parent page or localStorage -->
         <script>
             (function() {
-                var theme = localStorage.getItem('scitex-theme-preference') || 'dark';
+                // Canonical key "stx-theme" (converged with scitex-ui);
+                // legacy key read as fallback for one release cycle.
+                var theme = localStorage.getItem('stx-theme')
+                    || localStorage.getItem('scitex-theme-preference')
+                    || 'dark';
                 document.documentElement.setAttribute('data-theme', theme);
             })();
         </script>
@@ -58,7 +62,7 @@
         <!-- Listen for theme changes from parent -->
         <script>
             window.addEventListener('storage', function(e) {
-                if (e.key === 'scitex-theme-preference') {
+                if (e.key === 'stx-theme' || e.key === 'scitex-theme-preference') {
                     document.documentElement.setAttribute('data-theme', e.newValue || 'dark');
                 }
             });
