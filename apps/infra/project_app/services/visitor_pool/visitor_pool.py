@@ -130,7 +130,10 @@ class VisitorPool:
         Get current pool status.
 
         Returns:
-            dict: {total, allocated, free, expired}
+            dict: {total, allocated, free, expired, quarantined, ready}
+
+            ``ready`` — not ``free`` — is the allocatable count. See
+            PoolAllocator.get_pool_status for why the distinction matters.
         """
         return PoolAllocator.get_pool_status(cls.POOL_SIZE)
 
