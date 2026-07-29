@@ -235,16 +235,13 @@
    Four-Column Grid (from footer template)
    ========================= */
 
+/* Developers used to be a double-width column holding two sub-columns of
+   links; it is now a single column like Community and Legal, so all three
+   link columns are 1fr and only the brand column stays wide. */
 .footer-4-columns {
   display: grid;
-  grid-template-columns: 2fr 1fr 2fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
   gap: 40px;
-}
-
-.footer-links-2col {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0 20px;
 }
 
 /* =========================
@@ -368,10 +365,6 @@
 
   .footer-brand {
     grid-column: 1 / -1;
-  }
-
-  .footer-links-2col {
-    grid-template-columns: 1fr;
   }
 }
 

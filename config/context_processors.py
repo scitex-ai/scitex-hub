@@ -152,6 +152,7 @@ def site_branding(request):
     return {
         "SITE_NAME": branding.SITE_NAME,
         "SITE_TAGLINE": branding.SITE_TAGLINE,
+        "SITE_TAGLINE_SECONDARY": branding.SITE_TAGLINE_SECONDARY,
         "SITE_DESCRIPTION": branding.SITE_DESCRIPTION,
         "META_DESCRIPTION_DEFAULT": branding.META_DESCRIPTION_DEFAULT,
         "OG_TITLE": branding.OG_TITLE,

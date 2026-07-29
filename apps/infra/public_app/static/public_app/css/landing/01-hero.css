@@ -273,3 +273,24 @@
   opacity: 0.95;
   filter: drop-shadow(0 2px 12px rgba(0, 0, 0, 0.3));
 }
+
+/* Hero tagline, second line -- what SciTeX IS, under the promise on the first
+   line (.hero-tagline, in landing-hero-fix.css). The pair is one block: the
+   first line's bottom margin is tightened to 0.25rem there, and THIS rule
+   carries the gap down to the CTA.
+
+   Muted with opacity rather than a --text-secondary variable so it stays
+   quieter than the lead line in BOTH themes without depending on a token that
+   may not be defined -- an undefined var would silently fall back to the
+   literal and read identical to the primary line. */
+.hero-landing .hero-tagline-secondary {
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--text-primary, #1c1c1c);
+  opacity: 0.8;
+  margin: 0 0 1.5rem 0;
+}
+
+[data-theme="dark"] .hero-landing .hero-tagline-secondary {
+  color: #ffffff;
+}
