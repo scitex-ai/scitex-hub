@@ -58,6 +58,40 @@ def collect_app_links(page, base, settle_ms):
     return out
 
 
+def login(page, base, username, password):
+    """Authenticate before discovery. Returns True only if the launcher appears.
+
+    Anonymous sessions are routed to /landing/, which carries NO launcher grid.
+    An un-authenticated run therefore discovers 0 apps and silently degrades to
+    "home only" while still printing a captured N/N summary — which is how this
+    harness stopped covering every app without anyone noticing (2026-07-29).
+
+    The sign-in path is /auth/login/ (auth_app owns it); /accounts/login/ 404s.
+    """
+    page.goto(base.rstrip("/") + "/auth/login/", wait_until="commit", timeout=30000)
+    page.wait_for_timeout(1500)
+    try:
+        page.fill("input[name='login'], input[name='username']", username)
+        page.fill("input[name='password']", password)
+        page.click("button[type='submit'], input[type='submit']")
+    except Exception as exc:
+        print(f"LOGIN FAILED: could not drive the sign-in form: {exc}", file=sys.stderr)
+        return False
+    page.wait_for_timeout(3000)
+    # Verify by EFFECT, not by absence of an error banner: the launcher grid is
+    # what discovery needs, so that is what "logged in" has to mean here.
+    page.goto(base.rstrip("/") + "/", wait_until="commit", timeout=30000)
+    try:
+        page.wait_for_selector("#launcher-grid a[href], .launcher-grid a[href]",
+                               timeout=8000)
+        return True
+    except Exception:
+        print("LOGIN FAILED: submitted the form but / still has no launcher grid "
+              "— credentials rejected, or the landing/launcher routing changed.",
+              file=sys.stderr)
+        return False
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", default="https://scitex.ai")
@@ -72,6 +106,17 @@ def main():
                     choices=["dark", "light", "no-preference"],
                     help="prefers-color-scheme for both contexts; the product "
                          "is dark-by-default, so DEFAULT is dark")
+    ap.add_argument("--login-user", default="",
+                    help="sign in before discovery. WITHOUT this the run is "
+                         "anonymous, gets routed to /landing/, and discovers 0 "
+                         "apps — see --allow-empty.")
+    ap.add_argument("--login-password", default="")
+    ap.add_argument("--allow-empty", action="store_true",
+                    help="permit a run that discovered 0 app links. Without it "
+                         "zero discovery is a HARD ERROR, because per-app "
+                         "coverage is the entire point of this harness and "
+                         "'captured 1/1' after finding nothing is a green run "
+                         "that checked nothing.")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
     only = [s.strip().lower() for s in args.only.split(",") if s.strip()]
@@ -84,8 +129,27 @@ def main():
         disc = b.new_context(viewport={"width": w, "height": h}, device_scale_factor=dsf,
                              color_scheme=args.color_scheme)
         dp = disc.new_page()
+        if args.login_user:
+            if not login(dp, args.base, args.login_user, args.login_password):
+                disc.close()
+                b.close()
+                print("aborting: authentication was requested and failed, so any "
+                      "capture below would be an anonymous run masquerading as a "
+                      "signed-in one.", file=sys.stderr)
+                sys.exit(2)
         links = collect_app_links(dp, args.base, args.settle_ms)
         disc.close()
+        if not links and not args.allow_empty:
+            b.close()
+            hint = ("pass --login-user/--login-password: anonymous sessions are "
+                    "routed to /landing/, which has no launcher grid"
+                    if not args.login_user else
+                    "signed in, but the launcher rendered no tiles — that is "
+                    "itself the bug to report")
+            print(f"ERROR: discovered 0 app links, so this run would cover the "
+                  f"home page only. {hint}. Use --allow-empty to override.",
+                  file=sys.stderr)
+            sys.exit(3)
         # always include the home itself
         targets = [("home", args.base + "/")] + links
         if only:
