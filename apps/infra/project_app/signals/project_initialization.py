@@ -133,14 +133,19 @@ def _clone_gitea_repo_to_data_dir(project):
             # token must never appear in this repo's .git/config (which is
             # bind-mounted into the user's sandbox).
             #
-            # THE RESULT IS CHECKED. It used to be discarded, and that is how a
-            # live leak stayed invisible: in prod every git call returned
-            # rc=128 ("dubious ownership"), so the scrub reported failure for
-            # every repo and nobody heard it. 6 of 46 user .git/config files
-            # were still holding credentials -- 4 of them the live platform
-            # admin token -- while the function, its test and its card all said
-            # the leak was fixed. A security control whose failure is thrown
-            # away is not a control. See hub-git-safedir-durable.
+            # THE RESULT IS CHECKED. It used to be discarded, which means a
+            # scrub that could not run would have said nothing at all. A
+            # security control whose failure is thrown away is not a control.
+            #
+            # NOTE (2026-07-30): an earlier version of this comment blamed a
+            # prod-wide git rc=128 ("dubious ownership"). That was a
+            # MEASUREMENT ERROR -- docker exec defaults to root, while this
+            # process runs as uid 1000 and the repo files are owned by uid
+            # 1000, so git works fine here. The 6-of-46 poisoned .git/config
+            # files were real, but the likely cause is that this scrub only
+            # runs at project CREATE time, so repos predating the fix were
+            # never covered. Checking the result is still right; the reason
+            # given for it was wrong. See hub-git-safedir-durable.
             from apps.infra.project_app.services.git_service import (
                 sanitize_origin_url,
             )
