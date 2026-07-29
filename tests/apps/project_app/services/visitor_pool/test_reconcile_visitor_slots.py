@@ -23,9 +23,11 @@ from datetime import timedelta
 from io import StringIO
 from pathlib import Path
 
+import pytest
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
 from django.utils import timezone
 
@@ -117,6 +119,56 @@ def _stale_active_slot(number=1):
         last_activity=now - timedelta(days=7),
         workspace_ready=True,
     )
+
+
+def _live_active_slot(number=1):
+    """A slot a visitor is using RIGHT NOW (recent activity, not a zombie)."""
+    now = timezone.now()
+    return VisitorAllocation.objects.create(
+        visitor_number=number,
+        session_key="live-session",
+        allocation_token=secrets.token_hex(16),
+        expires_at=now + timedelta(hours=1),
+        is_active=True,
+        last_activity=now,
+        workspace_ready=True,
+    )
+
+
+class TestReconcileGuardsLiveSlot(TestCase):
+    """The operator single-slot wipe REFUSES an in-use slot (needs --force).
+
+    This is the positive companion to TestReconcileQuarantineOnly /
+    TestReconcileAsyncDispatch, which pin that the guard must NOT fire on the
+    safe paths. Without a test that the guard DOES fire on the dangerous path,
+    each narrowing of its condition could hollow it into a no-op unnoticed —
+    the exact defect the guard exists to catch (a check that gates nothing).
+    """
+
+    def setUp(self):
+        VisitorAllocation.objects.filter(visitor_number=1).delete()
+        self.allocation = _live_active_slot(1)
+
+    def test_plain_visitor_wipe_refuses_live_slot(self):
+        # Arrange: setUp created a slot a visitor is actively using.
+        argv = ("reconcile_visitor_slots",)
+        # Act
+        # Assert: the bare operator wipe must refuse it.
+        with pytest.raises(CommandError):
+            call_command(*argv, visitor=1)
+
+    def test_refused_slot_is_left_allocated(self):
+        # Arrange: setUp created a live in-use slot; the refusal is asserted
+        # in test_plain_visitor_wipe_refuses_live_slot, so here we only care
+        # about the post-state and swallow the expected CommandError.
+        try:
+            call_command("reconcile_visitor_slots", visitor=1)
+        except CommandError:
+            pass
+        # Act
+        self.allocation.refresh_from_db()
+        # Assert: the refusal actually PREVENTED the wipe (not just printed).
+        assert self.allocation.is_active is True
 
 
 class TestReconcileQuarantineOnly(TestCase):
