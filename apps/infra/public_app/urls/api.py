@@ -36,10 +36,14 @@ urlpatterns = [
         views.server_metrics_export_csv,
         name="server_metrics_export",
     ),
+    # Chart data for /server-status/. Replaces the old
+    # api/server-metrics/chart/<metric_type>/ PNG route, whose Celery
+    # pre-generation wrote into a non-shared container path and therefore
+    # answered 503 for its entire life (removed 2026-07-30).
     path(
-        "api/server-metrics/chart/<str:metric_type>/",
-        views.render_metric_chart,
-        name="server_metrics_chart",
+        "api/server-metrics/series/",
+        views.server_metrics_series_api,
+        name="server_metrics_series",
     ),
     # Visitor pool API
     path(

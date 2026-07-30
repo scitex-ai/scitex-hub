@@ -338,14 +338,13 @@ LOGGING.update(
 # expire_seconds, NOT "expires": DatabaseScheduler's ModelEntry silently
 # drops unknown option keys — see the schedule header in settings_celery.py
 # (2026-07-21 50k-backlog incident).
-# Chart generation dispatches 48 child tasks; use 60s to avoid queue flooding
-CELERY_BEAT_SCHEDULE["generate-status-charts"] = {
-    "task": "apps.infra.public_app.tasks.generate_status_charts",
-    "schedule": 60.0,
-    "options": {
-        "expire_seconds": 55,
-    },
-}
+#
+# The status-chart render override that used to live here was removed on
+# 2026-07-30: charts are drawn in the browser from /api/server-metrics/series/,
+# so there is no render task to schedule. It mattered that BOTH files were
+# cleaned — this override re-declared the entry via subscript assignment, so
+# deleting it from settings_celery.py alone would have left dev still fanning
+# out 48 tasks a minute.
 
 # Re-enable metrics collection in dev at a 10s cadence (prod runs the
 # settings_celery.py entry at 60s; runs as Celery task, not in Daphne)
