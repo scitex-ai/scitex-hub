@@ -78,6 +78,13 @@ def _scitex_storage_installed() -> bool:
 urlpatterns = [
     # A2A protocol surface — canonical host: a2a.scitex.ai
     path("", include("apps.infra.a2a_app.urls")),
+    # --- i18n: the language switcher's POST target (set_language) ---
+    # settings_shared already declares USE_I18N, LANGUAGES = [en, ja],
+    # LOCALE_PATHS and LocaleMiddleware (in the required slot, after
+    # SessionMiddleware and before CommonMiddleware). This include was the
+    # missing piece: without it there is no `set_language` URL, so a language
+    # switcher has nowhere to POST and cannot exist at all.
+    path("i18n/", include("django.conf.urls.i18n")),
     # --- PWA (must be served from root for scope) ---
     path(
         "manifest.json",
