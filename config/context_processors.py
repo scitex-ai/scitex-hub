@@ -166,6 +166,10 @@ def site_branding(request):
         "LEGAL_EMAIL": branding.LEGAL_EMAIL,
         "PRIVACY_EMAIL": branding.PRIVACY_EMAIL,
         "RECRUIT_EMAIL": branding.RECRUIT_EMAIL,
+        # branding.NOREPLY_EMAIL is deliberately NOT exported: it is a mail
+        # SENDER, never something a page invites a reader to write to. Its one
+        # use site (apps/infra/public_app/tasks/health.py) is Python and imports
+        # the constant directly.
     }
 
 

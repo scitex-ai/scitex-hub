@@ -15,6 +15,7 @@ from django.core.mail import send_mail
 from django.utils import timezone
 
 from apps.infra.public_app.models import SiteHealthProbe
+from config import branding
 
 logger = logging.getLogger(__name__)
 
@@ -73,8 +74,11 @@ def _get_health_config() -> tuple[str, str, str | None, str]:
     )
     health_check_url = f"{site_url}/"
     notification_recipient = os.getenv("SCITEX_HUB_HEALTH_NOTIFICATION_RECIPIENT")
+    # The default sender is the SSoT's noreply address (config/branding.py), not
+    # a literal: this module is plain Python, so there is no reason for it to
+    # carry its own copy of an address the rest of the site single-sources.
     notification_sender = os.getenv(
-        "SCITEX_HUB_HEALTH_NOTIFICATION_SENDER", "noreply@scitex.ai"
+        "SCITEX_HUB_HEALTH_NOTIFICATION_SENDER", branding.NOREPLY_EMAIL
     )
     return health_check_url, site_url, notification_recipient, notification_sender
 
