@@ -208,15 +208,44 @@ class TestCommerceSettingsDefaults:
         # Assert: operator-confirmed representative number (2026-07-18)
         assert module.COMPANY_PHONE == "080-4022-3567"
 
-    def test_company_contact_email_defaults_to_empty(
+    def test_company_contact_email_defaults_to_confirmed_address(
         self, commerce_settings_clean_env
     ):
         # Arrange: company env keys are unset (fixture)
         module = commerce_settings_clean_env
         # Act
         module = importlib.reload(module)
-        # Assert: still unconfirmed — stays 準備中 (no fake data)
-        assert module.COMPANY_CONTACT_EMAIL == ""
+        # Assert: operator-confirmed public contact (2026-07-30). This test
+        # previously asserted "" — the address was genuinely undecided, and the
+        # empty value rendered 準備中 rather than a guess. It is decided now, so
+        # the assertion moves with the decision instead of being deleted: a
+        # 特商法 contact is a statutory declaration, and an empty one shipping
+        # unnoticed is the failure this pins against.
+        assert module.COMPANY_CONTACT_EMAIL == "info@scitex.ai"
+
+    def test_branding_does_not_define_the_legal_contact(self):
+        """The legal contact must not become an alias of the general contact.
+
+        ``branding.CONTACT_EMAIL`` holds the same string as
+        ``COMPANY_CONTACT_EMAIL`` today, so a refactor that "deduplicated" them
+        would look correct and keep every other test here green. They are the
+        same value and not the same fact: this one is a 特定商取引法 declaration
+        that may only change by operator decision, the other is a product
+        choice. Keeping the legal contact out of branding is what stops a future
+        contact-address sweep from rewriting a statutory filing.
+        """
+        # Arrange
+        from config import branding
+
+        # Act
+        branding_names = dir(branding)
+
+        # Assert
+        assert "COMPANY_CONTACT_EMAIL" not in branding_names, (
+            "config.branding must not define COMPANY_CONTACT_EMAIL — the legal "
+            "contact lives in config/settings/settings_commerce.py so a "
+            "contact-address refactor cannot silently change a legal filing."
+        )
 
 
 if __name__ == "__main__":

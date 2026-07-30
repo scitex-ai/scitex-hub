@@ -35,7 +35,9 @@ Environment keys (document in SECRET/.env.nas when finalized):
                                          lookup 葵区鷹匠=420-0839)
 - ``SCITEX_HUB_COMPANY_PHONE``           電話番号 (default: 080-4022-3567
                                          — operator-confirmed 2026-07-18)
-- ``SCITEX_HUB_COMPANY_CONTACT_EMAIL``   公開メールアドレス (unset → 準備中)
+- ``SCITEX_HUB_COMPANY_CONTACT_EMAIL``   公開メールアドレス (default:
+                                         info@scitex.ai — operator-confirmed
+                                         2026-07-30)
 - ``SCITEX_HUB_BILLING_PLANS``           JSON list of plan objects, each:
                                          {"name": str,
                                           "price_tax_included": int,
@@ -73,9 +75,23 @@ COMPANY_ADDRESS = (
 )
 # Representative phone — operator-confirmed 2026-07-18 (Telegram 1536).
 COMPANY_PHONE = _getenv_alias("SCITEX_HUB_COMPANY_PHONE", "080-4022-3567") or ""
-# NOT finalized — leave empty until the public email is decided.
-# The tokushoho page renders 準備中 for empty values.
-COMPANY_CONTACT_EMAIL = _getenv_alias("SCITEX_HUB_COMPANY_CONTACT_EMAIL", "") or ""
+# Public contact for the 特定商取引法 disclosure — operator-confirmed
+# 2026-07-30 (「メールは info@scitex.ai で大丈夫です」), and they had already
+# confirmed the mailbox delivers (「info@scitex.ai はもちろん届きますよ」).
+# Both mattered: a 特商法 contact that bounces is a compliance defect, not a
+# broken link, so the address was left empty (→ 準備中) until delivery was
+# established rather than filled in with a plausible guess.
+#
+# Deliberately NOT read from ``config.branding.CONTACT_EMAIL``, which is the
+# general/product enquiry address and currently holds the same value. They are
+# the same string today and are NOT the same fact: this one is a statutory
+# declaration and may only change when the operator says so, while the other is
+# a product decision. Pointing this at branding would let a future contact
+# refactor silently rewrite a legal filing. See config/branding.py, which
+# carries the matching warning.
+COMPANY_CONTACT_EMAIL = (
+    _getenv_alias("SCITEX_HUB_COMPANY_CONTACT_EMAIL", "info@scitex.ai") or ""
+)
 
 # Services-page inquiry destination. Deliberately SEPARATE from recruit@
 # (the hiring inbox) — mixing sales inquiries into hiring loses leads.
