@@ -7,15 +7,22 @@ Card hub-landing-page-for-logged-out-visitors-20260727 (explicit-entry CTA):
 
 Entering a visitor session must be a DELIBERATE, clearly-labeled choice. The
 hero presents three options: an explicit "Enter as visitor" primary button
-(target /apps/home/, the existing visitor-provisioning entry) plus "Sign up"
-and "Sign in" as the alternatives. The rest of the marketing landing is
-unchanged (operator: keep the existing landing).
+(target /enter/, a visitor-provisioning entry) plus "Sign up" and "Sign in" as
+the alternatives. The rest of the marketing landing is unchanged (operator:
+keep the existing landing).
+
+The CTA target MOVED from /apps/home/ to /enter/ (card
+hub-visitor-funnel-first-impression-20260730). Both provision a slot, but
+/apps/home/ renders the Gitea repository browser — deliberately, per the
+approved 2026-07-07 design — so a visitor's first screen was a file listing.
+/enter/ provisions and then lands on the app launcher.
 
 No mocks — real Django test DB + test client. One assertion per test
 (STX-TQ007).
 """
 
 from django.test import TestCase
+from django.urls import reverse
 
 
 class LandingHeroCtaTest(TestCase):
@@ -37,11 +44,27 @@ class LandingHeroCtaTest(TestCase):
         assert b"Enter as visitor" in resp.content
 
     def test_hero_cta_targets_visitor_provisioning_entry(self):
-        # Arrange: an anonymous visitor
+        # Arrange — the entry path, reversed so a route rename cannot rot this
+        entry = reverse("public_app:visitor_enter").encode()
         # Act
         resp = self.client.get("/landing/")
-        # Assert — target is the existing provisioning entry (routing unchanged)
-        assert b'href="/apps/home/"' in resp.content
+        # Assert — target is a visitor-provisioning entry, now the dedicated
+        # /enter/ route rather than /apps/home/. The INVARIANT this test names
+        # is unchanged and still enforced; only the entry moved. /apps/home/
+        # also provisioned, but rendered the Gitea repository browser, so the
+        # first thing a visitor saw was dotfiles and "No commit message" x6.
+        assert b'href="' + entry + b'"' in resp.content
+
+    def test_hero_cta_no_longer_targets_repo_browser(self):
+        # Arrange — paired with the positive assertion above on the same marker,
+        # because a negative assertion alone would also pass if the CTA anchor
+        # disappeared entirely.
+        # Act
+        resp = self.client.get("/landing/")
+        # Assert — /apps/home/ keeps serving the repo browser by design
+        # (approved 2026-07-07, repo_app/views/dispatch.py:13-17), so the hero
+        # must not send a first-time visitor there.
+        assert b'href="/apps/home/" class="hero-cta-button"' not in resp.content
 
     def test_hero_cta_note_explains_no_signup(self):
         # Arrange: an anonymous visitor
