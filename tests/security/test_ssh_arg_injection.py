@@ -638,10 +638,20 @@ TRIP_CREDENTIAL_REJECTION = "Invalid remote credential selected"
 def _trip_message(remote_path):
     """Run create_trip_project and return the single message it produced.
 
-    Uses a credential id that cannot exist, so a path that PASSES the guard
-    is guaranteed to stop at the credential lookup rather than opening a
-    connection to anywhere.
+    Uses a REAL user row and a credential id that cannot exist, so a path
+    that PASSES the guard is guaranteed to stop at the credential lookup
+    rather than opening a connection to anywhere.
+
+    The user must be a real model instance, not a stand-in: the view does
+    ``RemoteCredential.objects.get(id=..., user=request.user)``, and the ORM
+    cannot adapt a non-model object into a query value — it raises TypeError
+    instead of DoesNotExist, so the view's ``except RemoteCredential
+    .DoesNotExist`` never catches it and the "Invalid remote credential
+    selected" branch is never reached. A fake user makes the positive
+    control impossible to satisfy for a reason that has nothing to do with
+    the guard under test.
     """
+    from django.contrib.auth import get_user_model
     from django.contrib.messages import get_messages
     from django.contrib.messages.storage.fallback import FallbackStorage
 
@@ -649,8 +659,11 @@ def _trip_message(remote_path):
         create_trip_project,
     )
 
+    user_model = get_user_model()
+    user, _ = user_model.objects.get_or_create(username="trip-guard-tester")
+
     request = RequestFactory().post("/projects/create/", {})
-    request.user = types.SimpleNamespace(username="tester", id=1, pk=1)
+    request.user = user
     setattr(request, "session", {})
     setattr(request, "_messages", FallbackStorage(request))
 
