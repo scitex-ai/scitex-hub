@@ -17,6 +17,28 @@
         {% block head_extra %}{% endblock %}
         {% block extra_css %}{% endblock %}
     </head>
+    {% comment %}
+        BODY CLASS — `landing-page` keys off the SESSION ROLE, not
+        user.is_authenticated. A visitor session is a real authenticated Django
+        user (username visitor-NNN), so user.is_authenticated is True for them
+        and the class was silently dropped — which hid the site footer, because
+        workspace-layout.css hides .site-footer globally and restores it ONLY
+        for body.landing-page. Reported as the missing footer, 2026-07-30.
+        Line data-user-type below already does this correctly via session_role;
+        the class attribute must not reach past it for a boolean that cannot
+        tell a visitor from a registered user.
+
+        THIS NOTE LIVES OUTSIDE THE <body> TAG ON PURPOSE, AND USES
+        {% comment %} RATHER THAN A {# #} PAIR. It was previously a MULTI-LINE
+        {# #} sitting between two body attributes. Django's {# #} is
+        SINGLE-LINE ONLY, so a multi-line one is never lexed as a comment and
+        renders VERBATIM. Rendered inside a tag, the browser then parsed every
+        word of it as a boolean attribute (`hides=""`, `globally=""`,
+        `body.landing-page.=""`, …) and the embedded double quotes swallowed
+        the real class attribute — so body carried NO landing-page class and
+        the footer stayed display:none. The comment explaining the footer fix
+        was what broke the footer fix. Keep explanations out of tag interiors.
+    {% endcomment %}
     <body data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}"
           data-session-role="{{ session_role|default:'anonymous' }}"
           data-user-type="{% if session_role == 'readonly_visitor' %}read-only{% elif session_role == 'visitor' %}visitor{% elif user.is_authenticated %}registered{% else %}anonymous{% endif %}"
@@ -24,16 +46,6 @@
           data-track-module="{% if active_module %}{{ active_module.get_track_module }}{% elif '/server-status' in request.path %}server_status{% elif '/explore/' in request.path %}explore{% elif '/workspace/' in request.path %}files{% endif %}"
           {% if request.initial_pane %}data-initial-pane="{{ request.initial_pane }}"{% endif %}
           {% if request.chat_session_token %}data-chat-session-token="{{ request.chat_session_token }}"{% endif %}
-          {# `landing-page` keys off the SESSION ROLE, not user.is_authenticated.
-             A visitor session is a real authenticated Django user
-             (username visitor-NNN), so `user.is_authenticated` is True for
-             them and this class was silently dropped — which hid the site
-             footer, because workspace-layout.css hides .site-footer globally
-             and restores it ONLY for body.landing-page. Reported as "footer
-             が表示されていない" 2026-07-30.
-             Note line 22 above already does this correctly via session_role;
-             this line reached past it for a boolean that cannot tell a
-             visitor from a registered user. #}
           class="{% if request.path == '/' or request.path == '/landing/' %}workspace-page{% if not user.is_authenticated or is_visitor %} landing-page{% endif %}{% if user.is_authenticated and not is_visitor %} no-transition{% endif %}{% elif active_module %}workspace-page {{ active_module.body_class }} no-transition{% elif '/workspace/' in request.path %}workspace-page no-transition{% elif '/explore/' in request.path %}workspace-page explore-page{% endif %}">
         <!-- Loading screen — hides FOUC until CSS/JS adds body.app-ready -->
         <!-- hook-bypass: inline-script -->

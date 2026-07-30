@@ -395,9 +395,9 @@
                 {% else %}
                     <i class="fas fa-user-clock header-visitor-badge-mobile-icon"></i>Visitor
                 {% endif %}
-                {# `ready`, not `allocated`: on a 390px badge a bare fraction has
+                {% comment %} `ready`, not `allocated`: on a 390px badge a bare fraction has
                    no room to explain itself, so it must be the number that
-                   governs. "14/16 in use" implied two spare while ready was 0. #}
+                   governs. "14/16 in use" implied two spare while ready was 0. {% endcomment %}
                 {% if is_readonly and visitor_pool_status %}
                     <span class="header-visitor-badge-mobile-slots">{{ visitor_pool_status.ready }}/{{ visitor_pool_status.total }} free</span>
                 {% endif %}
@@ -423,10 +423,10 @@
                     <strong>Visitor session</strong>
                     <div>Your work lasts only for this session.</div>
                 {% endif %}
-                {# `ready`, not `allocated`: allocation needs a slot that is free
+                {% comment %} `ready`, not `allocated`: allocation needs a slot that is free
                    AND workspace_ready AND not quarantined. Reporting occupancy
                    here contradicted the reason copy above whenever free != ready
-                   — "2 spare" next to "no slot was ready for you". #}
+                   — "2 spare" next to "no slot was ready for you". {% endcomment %}
                 {% if is_readonly and visitor_pool_status %}
                     <div class="header-visitor-badge-popover-slots">{{ visitor_pool_status.ready }} of {{ visitor_pool_status.total }} visitor slots available</div>
                 {% endif %}
@@ -577,7 +577,7 @@
                                 Visitor Mode
                             {% endif %}
                         </span>
-                        {# Report the ALLOCATABLE count, not occupancy.
+                        {% comment %} Report the ALLOCATABLE count, not occupancy.
                            `allocated/total` answered the wrong question:
                            allocation needs a slot that is free AND
                            workspace_ready AND not quarantined — which is
@@ -592,7 +592,7 @@
                            next to the Read-Only badge") — so this keeps the
                            feature and fixes the quantity. The WHY is carried
                            separately by readonly_visitor_reason_detail, already
-                           rendered in the popovers below. #}
+                           rendered in the popovers below. {% endcomment %}
                         {% if is_readonly and visitor_pool_status %}
                             <span class="header-visitor-slots" id="visitor-pool-occupancy">{{ visitor_pool_status.ready }} of {{ visitor_pool_status.total }} visitor slots available</span>
                         {% endif %}
@@ -638,8 +638,8 @@
                             </svg>
                             {% if is_readonly %}
                                 {{ readonly_visitor_reason_detail }} You can view everything; sign up or log in to make changes.
-                                {# `ready`, not `allocated` — see the note on the
-                                   other popover. #}
+                                {% comment %} `ready`, not `allocated` — see the note on the
+                                   other popover. {% endcomment %}
                                 {% if visitor_pool_status %}
                                     ({{ visitor_pool_status.ready }} of {{ visitor_pool_status.total }} visitor slots available.)
                                 {% endif %}
