@@ -76,6 +76,11 @@ urlpatterns = [
         lambda r, section: redirect("public_app:api_docs_section", section=section),
         name="api_docs_section_legacy",
     ),
+    # Visitor entry — the landing hero's "Enter as visitor" CTA target.
+    # MUST NOT be added to VisitorAutoLoginMiddleware's skip lists: being
+    # absent from them is exactly what makes this path allocate a slot.
+    # Guarded by tests/apps/public_app/views/test_visitor_entry_route.py.
+    path("enter/", views.visitor_enter, name="visitor_enter"),
     # Status pages
     path("status/", views.public_status_view, name="public-status"),
     path("server-status/", views.server_status, name="server_status"),

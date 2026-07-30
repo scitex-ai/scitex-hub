@@ -39,6 +39,48 @@ def visitor_status(request):
     return redirect("public_app:server_status", permanent=True)
 
 
+def visitor_enter(request):
+    """Visitor entry point — allocate a slot, then land on the app launcher.
+
+    This is the target of the landing hero's "Enter as visitor" CTA.
+
+    The slot is NOT allocated here. VisitorAutoLoginMiddleware does it, because
+    this path is deliberately absent from that middleware's skip lists — the
+    same mechanism that used to make /apps/home/ the entry. By the time this
+    view runs, the session is already a visitor, so all that remains is to send
+    them to "/", where root_dispatch renders the launcher for any non-anonymous
+    role.
+
+    Why a dedicated URL rather than repointing the CTA at an existing one:
+      - "/" cannot be the entry: it is EXACT-skipped by the middleware so that
+        first-time browsers reach the marketing landing anonymously without
+        burning a pool slot. Sending an anonymous visitor there just bounces
+        them back to the page they clicked from.
+      - /apps/home/ must keep serving the Gitea-style project view: that is the
+        approved 2026-07-07 design, stated in
+        apps/workspace/repo_app/views/dispatch.py:13-17.
+    Entering as a visitor is therefore its own named action, instead of a side
+    effect of visiting a repository URL — which is how a visitor came to be
+    shown a file browser as their first impression of the product.
+    """
+    # A slot is expected by now. If the pool was exhausted, the middleware has
+    # already redirected to /visitor-pool-full/ and this view never ran, so
+    # reaching here still anonymous means allocation did not happen for some
+    # OTHER reason. Log it at ERROR — a first impression that silently degrades
+    # to the marketing page would be indistinguishable from the visitor simply
+    # never clicking, and we would never learn the funnel was broken.
+    if not request.user.is_authenticated:
+        logger.error(
+            "[Visitor] /enter/ reached without an allocated visitor session; "
+            "VisitorAutoLoginMiddleware did not provision this request. "
+            "Check that '/enter/' has not been added to its skip lists."
+        )
+        return redirect("public_app:visitor_pool_full")
+
+    logger.info("[Visitor] Entered workspace via /enter/, routing to launcher")
+    return redirect("/")
+
+
 def visitor_restart_session(request):
     """
     Restart visitor session - logs out current expired visitor and redirects back.
