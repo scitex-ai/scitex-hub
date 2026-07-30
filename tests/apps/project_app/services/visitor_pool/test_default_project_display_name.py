@@ -364,14 +364,27 @@ class TestPoolInitializerNamesProjectForHumans:
 class TestHeaderTemplateFallback:
     """global_header.html renders ``project.name`` with a hardcoded default."""
 
-    def test_all_three_fallbacks_are_the_display_name(self, header_markup):
-        """Positive: three sites (incl. the CSS-hidden one) render human text."""
+    def test_both_fallbacks_are_the_display_name(self, header_markup):
+        """Positive: both live sites render human text, not the slug.
+
+        WAS THREE, NOW TWO — and this test caught the change, which is
+        exactly what it is for. #513 added the fallback at three sites; the
+        third lived inside the second, CSS-hidden copy of the project
+        selector (``.header-project-selector``, hidden by
+        ``header/02-layout.css:19-21``). This PR deletes that dead block, so
+        only the two LIVE sites remain.
+
+        Kept as ``== 2`` rather than ``>= 2``: an exact count fails at 1 and
+        at 3, so it is the presence assertion and the no-duplicate assertion
+        in one expression. ``>=`` would go quiet if a future edit
+        reintroduced the hidden copy.
+        """
         # Arrange
         human_fallback = f'|default:"{DISPLAY_NAME}"'
         # Act
         actual = header_markup.count(human_fallback)
         # Assert
-        assert actual == 3
+        assert actual == 2
 
     def test_no_fallback_renders_the_slug(self, header_markup):
         """Negative sibling, with the marker DERIVED from the live slug.
