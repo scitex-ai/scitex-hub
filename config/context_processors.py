@@ -170,6 +170,50 @@ def site_branding(request):
         # SENDER, never something a page invites a reader to write to. Its one
         # use site (apps/infra/public_app/tasks/health.py) is Python and imports
         # the constant directly.
+        #
+        # The registered company address and name, READ-ONLY here. These are the
+        # only two values in this function that come from Django settings rather
+        # than config/branding.py, and that asymmetry is deliberate:
+        # settings_commerce.py OWNS them because they are 特定商取引法
+        # legal-disclosure facts, env-driven and changeable only when the
+        # operator says so. This export WIDENS READ ACCESS so any template can
+        # show the real address; it does not relocate ownership. Do NOT move the
+        # definitions into config/branding.py, and do NOT point them at
+        # branding.CONTACT_EMAIL's neighbours -- config/branding.py carries the
+        # matching warning about exactly that class of refactor.
+        #
+        # WHY THIS EXISTS: /cookies/ published a FABRICATED US address
+        # ("123 Science Park, San Francisco, CA 94107") while the app already
+        # held the real one and rendered it correctly on /services/tokushoho/.
+        # The page contradicted a value the app owned. The tokushoho VIEW passes
+        # its own lowercase ``company_address`` for that page only, so a template
+        # outside that view had no way to read it -- writing
+        # ``{{ company_address }}`` into any other template renders EMPTY.
+        # Exported in SCREAMING_SNAKE to match this function's other keys and to
+        # stay textually distinct from the tokushoho view's lowercase context, so
+        # the two never silently shadow one another.
+        #
+        # The getattr default is NOT an unconsidered silent fallback. settings
+        # ALWAYS defines these (settings_commerce.py is star-imported by
+        # settings_shared, which every environment inherits), so the default is
+        # unreachable in practice. It is kept because this processor runs on EVERY
+        # template: raising here would 500 the entire site over one line of one
+        # legal page. The loudness lives in the test instead --
+        # tests/apps/public_app/views/test_legal_addresses.py asserts the setting
+        # is non-trivial AND that the real string reaches the rendered /cookies/
+        # body, so an empty value fails CI and can never ship quietly. Same
+        # "SSoT by ASSERTION where raising is the wrong tool" pattern as
+        # tests/config/test_contact_email_ssot.py.
+        "COMPANY_ADDRESS": getattr(settings, "COMPANY_ADDRESS", ""),
+        # COMPANY_NAME is "株式会社 SciTeX" -- the entity that does not legally
+        # exist until incorporation completes (2026-08-08). It is exported so the
+        # switch on that date is a one-token template edit rather than a
+        # context-processor change, but the general legal pages deliberately
+        # render SITE_NAME ("SciTeX") until then: the operator ruled that naming a
+        # company which does not yet exist replaces one false statement with
+        # another. /services/tokushoho/ is the ONE page that names the statutory
+        # entity, and it reads settings directly through its own view.
+        "COMPANY_NAME": getattr(settings, "COMPANY_NAME", ""),
     }
 
 
