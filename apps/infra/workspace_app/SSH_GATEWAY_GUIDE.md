@@ -344,7 +344,7 @@ For issues or questions:
 1. Check the troubleshooting section above
 2. Review logs in `/app/logs/`
 3. Open an issue on GitHub
-4. Contact support@scitex.ai
+4. Contact info@scitex.ai
 
 ---
 

@@ -8,7 +8,9 @@
 
 FROM python:3.11-slim
 
-LABEL maintainer="SciTeX Hub <support@scitex.ai>"
+# Literal by necessity — build metadata, evaluated with no Python. Pinned to
+# config/branding.py CONTACT_EMAIL by tests/config/test_contact_email_ssot.py.
+LABEL maintainer="SciTeX Hub <info@scitex.ai>"
 LABEL description="User computational workspace for SciTeX Hub"
 LABEL version="1.0.0"
 
