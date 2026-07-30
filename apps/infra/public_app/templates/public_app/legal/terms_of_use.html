@@ -338,9 +338,22 @@
                         ownership provisions, warranty disclaimers, indemnity, and limitations
                         of liability.
                     </p>
+                    {% comment %} No directors / employees / agents / subsidiaries /
+                       affiliates / partners are named in this clause or in the
+                       indemnity below, because none exist: SciTeX is operated by one
+                       person (operator ruling, 2026-07-30 — 「私1人会社です」). The US
+                       template this page was built from assumed a corporate group.
+                       Extending an indemnity to parties who do not exist is not
+                       harmless boilerplate — it describes a company we are not.
+
+                       These clauses are pinned by
+                       tests/apps/public_app/views/test_terms_fictitious_entities.py.
+                       When SciTeX incorporates (2026-08-08) and if it ever has
+                       officers or employees, reintroduce them DELIBERATELY, naming
+                       only the ones that exist. {% endcomment %}
                     <h2 id="limitation-of-liability">Limitation of Liability</h2>
                     <p>
-                        In no event will we or our directors, employees, or agents be liable
+                        In no event will we be liable
                         to you or any third party for any direct, indirect, consequential,
                         exemplary, incidental, special, or punitive damages, including lost
                         profit, lost revenue, loss of data, or other damages arising from your
@@ -349,9 +362,8 @@
                     </p>
                     <h2 id="indemnification">Indemnification</h2>
                     <p>
-                        You agree to defend, indemnify, and hold us harmless, including our
-                        subsidiaries, affiliates, and all of our respective officers, agents,
-                        partners, and employees, from and against any loss, damage, liability,
+                        You agree to defend, indemnify, and hold us harmless
+                        from and against any loss, damage, liability,
                         claim, or demand, including reasonable attorneys' fees and expenses,
                         made by any third party due to or arising out of: (1) your use of the
                         platform; (2) breach of these Terms of Use; (3) any breach of your
@@ -421,7 +433,7 @@
                         <br />
                         Email:
                         <a href="mailto:{{ LEGAL_EMAIL }}"
-                           aria-label="Email our Legal Department at {{ LEGAL_EMAIL }}">{{ LEGAL_EMAIL }}</a>
+                           aria-label="Email SciTeX at {{ LEGAL_EMAIL }}">{{ LEGAL_EMAIL }}</a>
                     </address>
                 </article>
             </div>
