@@ -37,6 +37,57 @@ OG_DESCRIPTION = META_DESCRIPTION_LONG
 
 
 # ---------------------------------------------------------------------------
+# Public contact addresses
+# ---------------------------------------------------------------------------
+# Every public @scitex.ai address is defined ONCE here. Before this, 13 distinct
+# addresses were hardcoded across 37+ use sites, so "change support@ to info@"
+# was a 20-file sweep in which any missed page would look deliberate rather than
+# stale. The duplication was the defect, not the value.
+#
+# The domain is factored out so a domain move is also one edit.
+CONTACT_DOMAIN = "scitex.ai"
+
+# General enquiries and the address shown in the footer, the landing banner, and
+# the legal pages. Was support@; the operator asked for info@ on 2026-07-30 and
+# confirmed it delivers to a read mailbox ("info@scitex.ai はもちろん届きますよ").
+CONTACT_EMAIL = f"info@{CONTACT_DOMAIN}"
+
+LEGAL_EMAIL = f"legal@{CONTACT_DOMAIN}"
+PRIVACY_EMAIL = f"privacy@{CONTACT_DOMAIN}"
+RECRUIT_EMAIL = f"recruit@{CONTACT_DOMAIN}"
+NOREPLY_EMAIL = f"noreply@{CONTACT_DOMAIN}"
+
+# ywatanabe@scitex.ai is DELIBERATELY ABSENT. It appears on 17 public sites and
+# the operator ruled it correct as their personal contact (2026-07-30), so it is
+# out of scope here — do not fold it into CONTACT_EMAIL.
+#
+# DO NOT MERGE THIS WITH ``settings.COMPANY_CONTACT_EMAIL``. They look alike and
+# are not the same thing:
+#   CONTACT_EMAIL (here)            general enquiries; a product/support address
+#                                   shown in the footer, banners, legal prose.
+#   COMPANY_CONTACT_EMAIL           the 特定商取引法 company contact — a LEGAL
+#   (settings_commerce.py:78)       declaration, env-driven, and deliberately
+#                                   EMPTY so the tokushoho page renders 準備中
+#                                   until the operator decides it.
+# Filling the commerce one is the operator's call, not a refactor: a Japanese
+# commerce-law contact is a filing, not a link.
+
+# Sites that CANNOT read this module, and so must repeat the literal:
+#   templates/500.html
+#       Django's default handler500 (django.views.defaults.server_error) renders
+#       without context processors — hub defines no handler500, and that file
+#       contains zero {{ VAR }} references of any kind. A {{ }} here would emit
+#       an EMPTY mailto: on the one page a stuck user needs most.
+#   deployment/docker/common/nginx/error-pages/502.html
+#       served BY NGINX, precisely when Django is down.
+#   deployment/docker/Dockerfile.user-workspace  (LABEL maintainer)
+#       build metadata, evaluated with no Python at all.
+# Those three keep their literal and are pinned to CONTACT_EMAIL by
+# tests/config/test_contact_email_ssot.py — SSoT by ASSERTION where SSoT by
+# injection is impossible. The duplication stays; silent DRIFT does not.
+
+
+# ---------------------------------------------------------------------------
 # Deployment environments
 # ---------------------------------------------------------------------------
 ENV_DEVELOPMENT = "development"

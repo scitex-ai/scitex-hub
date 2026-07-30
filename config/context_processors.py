@@ -157,6 +157,15 @@ def site_branding(request):
         "META_DESCRIPTION_DEFAULT": branding.META_DESCRIPTION_DEFAULT,
         "OG_TITLE": branding.OG_TITLE,
         "OG_DESCRIPTION": branding.OG_DESCRIPTION,
+        # Public contact addresses. Templates must use these rather than
+        # hardcoding an address, so changing one is a single edit and cannot go
+        # half-applied across pages. NOTE templates/500.html cannot use them —
+        # Django's default handler500 renders without context processors, so a
+        # {{ }} there would emit an empty mailto:. See config/branding.py.
+        "CONTACT_EMAIL": branding.CONTACT_EMAIL,
+        "LEGAL_EMAIL": branding.LEGAL_EMAIL,
+        "PRIVACY_EMAIL": branding.PRIVACY_EMAIL,
+        "RECRUIT_EMAIL": branding.RECRUIT_EMAIL,
     }
 
 

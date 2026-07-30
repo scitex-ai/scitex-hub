@@ -6,6 +6,8 @@ from __future__ import annotations
 
 import os
 
+from config import branding
+
 __FILE__ = "./apps/infra/public_app/views/billing.py"
 __DIR__ = os.path.dirname(__FILE__)
 # ----------------------------------------
@@ -116,7 +118,7 @@ def billing_checkout(request):
                 "error": "forbidden",
                 "detail": (
                     "Checkout is operator-only while billing is in "
-                    "testing. Contact support@scitex.ai."
+                    f"testing. Contact {branding.CONTACT_EMAIL}."
                 ),
             },
             status=403,
