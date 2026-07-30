@@ -110,7 +110,14 @@ def main():
                     help="sign in before discovery. WITHOUT this the run is "
                          "anonymous, gets routed to /landing/, and discovers 0 "
                          "apps — see --allow-empty.")
-    ap.add_argument("--login-password", default="")
+    ap.add_argument("--login-password", default="",
+                    help="PREFER the env var SCITEX_HUB_QA_PASSWORD. A password "
+                         "passed here lands on argv, and argv is world-readable "
+                         "through /proc/<pid>/cmdline — the same leak this "
+                         "codebase already closed for git credentials (see "
+                         "build_gitea_auth_env, which passes the Gitea token by "
+                         "environment for exactly this reason). It also lands in "
+                         "shell history and CI logs.")
     ap.add_argument("--allow-empty", action="store_true",
                     help="permit a run that discovered 0 app links. Without it "
                          "zero discovery is a HARD ERROR, because per-app "
@@ -118,6 +125,14 @@ def main():
                          "'captured 1/1' after finding nothing is a green run "
                          "that checked nothing.")
     args = ap.parse_args()
+
+    # Credentials from the ENVIRONMENT by preference. The flags remain for
+    # compatibility but are the leaky path: a process's environ is readable
+    # only by the same uid (or root), argv is readable by anyone.
+    args.login_user = args.login_user or os.environ.get("SCITEX_HUB_QA_USER", "")
+    args.login_password = args.login_password or os.environ.get(
+        "SCITEX_HUB_QA_PASSWORD", ""
+    )
     os.makedirs(args.out, exist_ok=True)
     only = [s.strip().lower() for s in args.only.split(",") if s.strip()]
     vps = [v.strip() for v in args.viewports.split(",") if v.strip()]
@@ -138,6 +153,14 @@ def main():
                       "signed-in one.", file=sys.stderr)
                 sys.exit(2)
         links = collect_app_links(dp, args.base, args.settle_ms)
+        # CARRY THE SESSION INTO THE CAPTURE CONTEXTS.
+        # Playwright contexts do NOT share cookies. Logging in on `disc` and
+        # then capturing from a fresh context produced AUTHENTICATED DISCOVERY
+        # AND ANONYMOUS CAPTURES: every screenshot showed the visitor
+        # "Read-Only" header while the run reported a signed-in sweep. That is
+        # the same "the harness is not the thing it claims to measure" failure
+        # this file's login guard exists to prevent, one layer deeper.
+        storage_state = disc.storage_state() if args.login_user else None
         disc.close()
         if not links and not args.allow_empty:
             b.close()
@@ -158,8 +181,13 @@ def main():
         results = []  # (viewport, label, pane_outcome, boot_outcome, captured)
         for vpname in vps:
             w, h, dsf = VIEWPORTS[vpname]
+            # storage_state is THE point of the capture: without it this context
+            # is anonymous no matter what happened during discovery, and every
+            # screenshot below would show the visitor shell while the run
+            # reported a signed-in sweep.
             ctx = b.new_context(viewport={"width": w, "height": h}, device_scale_factor=dsf,
-                                color_scheme=args.color_scheme)
+                                color_scheme=args.color_scheme,
+                                storage_state=storage_state)
             for label, url in targets:
                 pg = ctx.new_page()
                 status, pane, boot = "?", "n/a", "n/a"
