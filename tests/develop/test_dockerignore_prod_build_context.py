@@ -73,6 +73,37 @@ WORKTREE_PATHS = (
     ".worktrees/agent-deadbeef/.env.example",
 )
 
+# MEASURED inside the RUNNING prod container at /app/deployment/docker/envs/
+# on 2026-07-30 — `docker inspect` showed NO mount at `deployment` or `envs`,
+# so these are IMAGE LAYER bytes, not a runtime mount:
+#
+#   .env.dev                        12,481 B  -rwxrwxrwx  real file, baked in
+#   .env.prod.bak-20260729-rotation 15,540 B  -rw-------  real file, baked in,
+#                                                         231 KEY= lines
+#
+# The rotation backup is a full copy of the prod environment. It is the
+# PRE-rotation snapshot (its sha256 differs from the live .env.prod while the
+# key count is identical, so the 2026-07-29 rotation did happen) — but every
+# key that rotation did not change is still current, in cleartext, in the
+# image. `.env.prod` and `.env.staging` were NOT copied: both are symlinks to
+# host paths that do not exist in the container, so they are dangling.
+#
+# All of it entered through the SAME context-root anchoring as the worktrees
+# above: `.env.*` on line 62 matches ./.env.<x> only, never a nested copy.
+# Full evidence on card sec-prod-image-bakes-env-files-20260730.
+#
+# `**/.env*` excludes these from the BUILD CONTEXT while leaving them readable
+# on the HOST, which is what keeps the rule correct rather than a workaround:
+# the dev compose reads deployment/docker/envs/.env.dev from the host at
+# container-create time (via the docker_dev/.env symlink), and `env_file:` is
+# resolved by compose on the host, never from the build context.
+BAKED_ENV_FILES = (
+    "deployment/docker/envs/.env.dev",
+    "deployment/docker/envs/.env.prod.bak-20260729-rotation",
+    "deployment/docker/envs/.env.example",
+    "deployment/docker/docker_dev/.env",
+)
+
 # Paths that must keep reaching the image, so "excluded" cannot be free.
 CONTROL_INCLUDED_PATHS = (
     "manage.py",
@@ -283,6 +314,26 @@ def test_agent_worktrees_are_excluded_from_the_build_context(matcher, path):
         "/app/.worktrees measured 437 MiB inside the running container on "
         "2026-07-30, and a nested .env.example shipped with it because the "
         "anchored `.env.*` rule is context-root-only. Add '.worktrees/'."
+    )
+
+
+@pytest.mark.parametrize("path", BAKED_ENV_FILES)
+def test_nested_env_files_are_excluded_from_the_build_context(matcher, path):
+    """Measured leak: a full prod-env copy was baked into the image layer."""
+    # Arrange
+    reason = "231 KEY= lines of prod environment shipped in cleartext"
+
+    # Act
+    excluded = matcher.is_excluded(path)
+
+    # Assert
+    assert excluded, (
+        f"{path} still reaches the prod build context. On 2026-07-30 "
+        f"/app/deployment/docker/envs/.env.prod.bak-20260729-rotation was "
+        f"measured INSIDE the running prod container as a real 15,540-byte "
+        f"file with no mount over it ({reason}). The anchored `.env.*` rule "
+        "cannot see a nested copy, which is why `**/.env*` must stay. Removing "
+        "it re-opens a secret leak, not a size regression."
     )
 
 
