@@ -69,18 +69,35 @@ def _body_classes(html):
 
 
 def _multiline_django_comments():
-    """Return 'path:line' for every ``{#`` whose ``#}`` is on a LATER line."""
+    """Scan templates; return ``(hits, scanned)``.
+
+    ``hits`` is 'path:line' for every ``{#`` whose ``#}`` is on a LATER line.
+    ``scanned`` is how many files were actually examined -- returned so the
+    caller can assert the scan DID work. See the note on the exclusion below
+    for why that count is not optional.
+    """
     root = Path(settings.BASE_DIR)
     hits = []
+    scanned = 0
     for glob in TEMPLATE_GLOBS:
         for path in root.glob(glob):
-            if ".worktrees" in str(path) or "node_modules" in str(path):
+            # Exclusions are matched against the path RELATIVE to BASE_DIR, not
+            # the absolute path. Absolute matching was a silent, total failure:
+            # every agent works in a git worktree under `<repo>/.worktrees/<x>/`,
+            # so BASE_DIR itself contains ".worktrees" and an absolute substring
+            # test skipped EVERY file. Measured: scanned=0, hits=[], test green,
+            # while templates/global_base.html held the very defect this file
+            # exists to catch. It would still have worked in CI (which checks out
+            # at a plain path) -- i.e. inert exactly where a developer runs it.
+            rel = str(path.relative_to(root))
+            if ".worktrees" in rel or "node_modules" in rel:
                 continue
+            scanned += 1
             text = path.read_text(encoding="utf-8", errors="replace")
             for lineno, line in enumerate(text.splitlines(), 1):
                 if "{#" in line and "#}" not in line.split("{#", 1)[1]:
-                    hits.append("%s:%d" % (path.relative_to(root), lineno))
-    return hits
+                    hits.append("%s:%d" % (rel, lineno))
+    return hits, scanned
 
 
 class LandingBodyClassTest(TestCase):
@@ -105,8 +122,21 @@ class LandingBodyClassTest(TestCase):
         assert classes is not None, "no <body> start tag could be parsed"
 
     def test_body_carries_landing_page_class(self):
-        """The actual prod symptom. Substring-matching passes on the broken
-        output; parsing does not."""
+        """Asserts the class is set -- but do NOT read this as the guard.
+
+        MEASURED: this test PASSES on the broken template. Python's
+        ``html.parser`` is more forgiving than a browser: fed the leaked-comment
+        body tag it emits the junk words as attributes AND still reconstructs
+        ``class='workspace-page landing-page'``. Chrome does not -- there
+        ``document.body.className`` was ``'app-ready'`` alone.
+
+        So no Django-test-client assertion about the class being PRESENT can
+        detect this defect; the divergence is in the parser, not the bytes. The
+        real guard is test_body_has_no_garbage_attributes_from_a_leaked_comment,
+        which asserts junk is ABSENT and does fail on the broken template.
+        This test remains useful for the ordinary regression -- someone deleting
+        the class logic outright -- and for nothing subtler.
+        """
         # Arrange
         url = LANDING_URL
         # Act
@@ -151,22 +181,27 @@ class LandingBodyClassTest(TestCase):
 class TemplateCommentHygieneTest(TestCase):
     """Repo-wide barrier: no template may contain a multi-line ``{# #}``."""
 
-    def test_template_tree_is_non_empty(self):
-        """Presence half. Without this, a broken glob would make the sweep
-        below pass by scanning nothing -- the failure mode this whole file
-        exists to prevent."""
+    def test_sweep_actually_examined_template_files(self):
+        """Anti-vacuity guard, asserting on the SWEEP'S OWN counter.
+
+        The first version of this guard globbed separately and asserted ">50
+        files matched". That certified a sweep which had examined ZERO files,
+        because the guard and the sweep disagreed about exclusions -- the guard
+        applied none. A guard must measure the work the checked code did, not
+        recompute something adjacent and hope they agree.
+        """
         # Arrange
-        root = Path(settings.BASE_DIR)
+        minimum = 50
         # Act
-        found = [p for g in TEMPLATE_GLOBS for p in root.glob(g)]
+        _hits, scanned = _multiline_django_comments()
         # Assert
-        assert len(found) > 50, "template glob matched %d files" % len(found)
+        assert scanned > minimum, "sweep examined only %d files" % scanned
 
     def test_no_multiline_django_comments_anywhere(self):
         # Arrange
         expected = []
         # Act
-        actual = _multiline_django_comments()
+        actual, _scanned = _multiline_django_comments()
         # Assert
         assert actual == expected, (
             "multi-line {# #} renders VERBATIM to users -- use "
