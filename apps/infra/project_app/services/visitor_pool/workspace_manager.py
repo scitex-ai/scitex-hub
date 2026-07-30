@@ -98,7 +98,23 @@ class WorkspaceManager:
     """Manages visitor workspace lifecycle."""
 
     VISITOR_USER_PREFIX = "visitor-"
+    # LOAD-BEARING INFRASTRUCTURE — do NOT rename. This slug is the
+    # stable identity of a visitor's default project and is hardcoded by
+    # every consumer that has to find it without a DB lookup:
+    # pool_manager (slot allocation), pool_cleanup (what it may delete),
+    # home_state.EXPECTED_PROJ_ENTRIES (the recycled-home final gate),
+    # console_app terminal consumer, and the Gitea repo path
+    # ``visitor-NNN/default-project``. Renaming it breaks slot
+    # allocation, workspace paths and Gitea repos.
     DEFAULT_PROJECT_SLUG = "default-project"
+    # The HUMAN-FACING name — deliberately DIFFERENT from the slug, and
+    # the single source of truth for it. Both creation sites used to
+    # write the slug into ``name``, so a first-time visitor's first noun
+    # was the string "default-project" in the project switcher (operator
+    # complaint 2026-07-30: 「まずわかりにくい」). Do NOT "tidy" these two
+    # back together: the slug cannot change (see above), so the only way
+    # the UI reads like a product is for the name to diverge from it.
+    DEFAULT_PROJECT_DISPLAY_NAME = "My Project"
 
     @classmethod
     def ensure_manuscript_record(cls, project: Project, project_path: Path):
@@ -237,7 +253,7 @@ class WorkspaceManager:
         except HomeStateError as exc:
             raise WorkspaceResetError(str(exc)) from exc
         project = Project.objects.create(
-            name=project_slug,
+            name=cls.DEFAULT_PROJECT_DISPLAY_NAME,
             slug=project_slug,
             description="Try SciTeX features - sign up to save permanently!",
             owner=visitor_user,
