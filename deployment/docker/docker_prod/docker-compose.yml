@@ -208,7 +208,7 @@ services:
     image: scitex-hub-prod-django:latest
     # autoheal=true: the #382 liveness healthcheck marks this worker unhealthy
     # when its queue beacon goes stale (the prefork pool is known to wedge on
-    # this host — see celery_worker_vis header), and the autoheal service
+    # this host — see the POOL=THREADS note below), and the autoheal service
     # below is what acts on that: docker itself never restarts unhealthy
     # containers. Verified live 2026-07-17: worker sat "unhealthy" for 40+
     # minutes with no autoheal running.
@@ -228,32 +228,88 @@ services:
     # untouched for hours, while this queue drained. Slot re-cleans are a
     # SECURITY gate — a slot is not distributable until it is wiped and
     # verified — so they must never wait behind chart rendering.
-    # -O fair + --max-tasks-per-child: measured wedge signature on prod
-    # (2026-07-14 and again 2026-07-17, after tini was restored, so it is
-    # NOT an init/reaping problem): each worker processes roughly one
-    # prefetch window and then dispatch dies — `inspect reserved` shows a
-    # FULL window (time_start=None, worker_pid=None), `inspect active` is
-    # empty, the fork children exist and idle, the control channel still
-    # answers, and a container restart reproduces the wedge after the next
-    # burst. Default (non-fair) scheduling writes reserved tasks into a
-    # specific child's pipe; a task parked in a dead/replaced child's pipe
-    # is never re-dispatched, which matches exactly. `-O fair` hands a task
-    # only to a child that is actually free; max-tasks-per-child recycles
-    # children so a slow leak cannot accumulate.
-    # --without-gossip/mingle/heartbeat: the community-standard mitigation for
-    # the redis stops-consuming family (celery#8091/#8030) — these features
-    # each hold extra broker connections inside the kombu async hub and are
-    # pure overhead for our fixed two-worker deployment. Applied together
-    # with the celery<5.6 pin (pyproject.toml) after prod workers stalled
-    # after ~2 prefetch windows on celery 5.6.3/kombu 5.6.2.
+    # POOL=THREADS (2026-07-30). The prefork pool wedges on this host, and
+    # this worker was the last one still using it.
+    #
+    # Measured signature, now THREE times (2026-07-14, 2026-07-17 after tini
+    # was restored — so NOT an init/reaping problem — and again 2026-07-30):
+    # each worker processes roughly one prefetch window and then dispatch
+    # dies. `inspect reserved` shows a FULL window that never runs
+    # (worker_pid=None, time_start=None, acknowledged=false — 24 such tasks
+    # on 2026-07-30, matching redis HLEN unacked=24), `inspect active` is
+    # EMPTY, the fork children exist and idle, the control channel still
+    # answers, redis still pings, and the container reports (healthy)
+    # throughout. On 2026-07-30 ServerMetrics' newest row sat at 09:59 while
+    # collect_server_metrics was RECEIVED 12 times in 20 minutes and
+    # SUCCEEDED 0 times. Not memory and not pids: OOMKilled=false,
+    # RestartCount=0, worker RSS 591MB, 46GB host free, cgroup pids.max
+    # 76602 with 5 in use. A restart drains one burst and wedges again.
+    #
+    # FIVE fixes were tried against this signature and all five failed,
+    # which is why the next step is the POOL and not a sixth mitigation:
+    #   #379  tini restored as PID 1 (signal forwarding + zombie reaping)
+    #   #381  `-O fair` + `--max-tasks-per-child=50`, on the theory that
+    #         default (non-fair) scheduling writes reserved tasks into a
+    #         specific child's pipe, so a task parked in a dead/replaced
+    #         child's pipe is never re-dispatched
+    #   #384  the celery<5.6 pin (pyproject.toml) + --without-gossip/mingle/
+    #         heartbeat, the community-standard mitigation for the redis
+    #         stops-consuming family (celery#8091/#8030) — those features
+    #         each hold extra broker connections inside the kombu async hub
+    #         and are pure overhead for our fixed two-worker deployment
+    # Reproduced identically on celery 5.6.3/kombu 5.6.2 and on 5.5.3.
+    #
+    # The DIFFERENTIAL EXPERIMENT that settles it: an ad-hoc worker in the
+    # SAME container, same code, same broker, same queue, differing ONLY by
+    # `--pool=threads`, drains immediately. On THIS queue (2026-07-30),
+    # within 90s: collect_server_metrics succeeded in 0.131s,
+    # warm_public_status_cache in 0.078s, check_site_health in 0.224s, and
+    # ServerMetrics' newest row jumped from 09:59 to 12:25:41 — while the
+    # prefork worker beside it succeeded nothing. Same result on vis_queue
+    # (2026-07-17): threads drained 48 tasks in 200s where prefork never
+    # exceeded 6 total. The tasks are fine and fast; the POOL is the defect.
+    #
+    # WHY THREADS ARE SAFE HERE NOW, and were not before: matplotlib is not
+    # thread-safe, and views/status/chart_generator.py — reached ONLY from
+    # generate_status_charts / generate_single_status_chart — was the sole
+    # matplotlib importer on any of this worker's queues. Server-side chart
+    # rendering is being replaced by client-side SVG (operator direction,
+    # 2026-07-30), which removes that single constraint. Everything left on
+    # these four queues blocks on I/O with the GIL released: requests.get
+    # (check_site_health), subprocess.run (collect_server_metrics' df/free,
+    # check_request_flood), redis SETEX (queue_liveness_beacon), pdflatex
+    # (compile_latex), network search + PDF fetch (scholar_app).
+    #
+    # CONCURRENCY 8, not the vis worker's 3, and not by inertia: this worker
+    # serves FOUR queues, so head-of-line blocking ACROSS them is the real
+    # risk — a 45s compile_latex on ai_queue must not delay the 120s
+    # queue_liveness_beacon on `celery`, and that beacon is exactly what the
+    # healthcheck below reads, so concurrency here directly protects the
+    # watchdog. A thread blocked in subprocess/socket costs a stack, not one
+    # of this box's 4 cores, and 1 process + 8 threads uses materially LESS
+    # memory than the prefork parent + 8 forked children it replaces.
+    # celery_worker_vis uses 3 for the opposite reason (~35s of heavy disk
+    # I/O per reset, fighting the web container for CPU) — that does not
+    # transfer here.
+    #
+    # PREFORK-ONLY FLAGS DROPPED, not kept: `-O fair` is a prefork
+    # child-dispatch strategy and `--max-tasks-per-child` recycles fork
+    # children, of which a threads pool has none. Celery ignores both under
+    # --pool=threads, so leaving them behind would read as an active
+    # mitigation for the very wedge they failed to fix (#381). The one thing
+    # genuinely lost is the per-child memory-leak backstop, for which a
+    # threads pool has no equivalent; `restart: always`, the #382 queue-
+    # liveness healthcheck below and the host autoheal container (#386) are
+    # what cover it — as they have for celery_worker_vis since #385.
+    #
+    # Regression gate: tests/develop/test_celery_worker_pool.py
     command: >
       celery -A config --broker=redis://redis:6379/1 worker
       --loglevel=info
       --queues=celery,ai_queue,search_queue,compute_queue
+      --pool=threads
       --concurrency=8
       --prefetch-multiplier=1
-      -O fair
-      --max-tasks-per-child=50
       --without-gossip
       --without-mingle
       --without-heartbeat
@@ -303,7 +359,7 @@ services:
       - scitex-network
 
     # END-TO-END liveness, not a broker ping. The old redis-ping check
-    # stayed green through every measured wedge (see -O fair note above):
+    # stayed green through every measured wedge (see POOL=THREADS above):
     # dispatch dies while redis, the control channel and the children all
     # answer. Beat enqueues queue_liveness_beacon("celery") onto THIS
     # worker's `celery` queue every 120s; the task stamps
@@ -363,9 +419,15 @@ services:
   # Slot resets are I/O-bound (git/ssh/squeue subprocesses, Gitea HTTP,
   # file ops), so threads lose nothing to the GIL. Prefork-only flags
   # (-O fair, --max-tasks-per-child) dropped — meaningless for threads.
-  # The shared celery_worker stays prefork (matplotlib chart rendering is
-  # not thread-safe) under the #382 liveness watchdog, which auto-restarts
-  # it if it wedges.
+  #
+  # UPDATE 2026-07-30: this worker is no longer the exception. The shared
+  # celery_worker stayed prefork for ONE reason — matplotlib chart rendering
+  # is not thread-safe and ran on its queues — and once that server-side
+  # rendering was replaced by client-side SVG, it moved to threads too.
+  # BOTH prod workers now run --pool=threads; the #382 liveness watchdog
+  # still covers both. The 2026-07-30 measurements and the full five-failed-
+  # fixes history live in the POOL=THREADS note on celery_worker above.
+  # Regression gate for both: tests/develop/test_celery_worker_pool.py
   celery_worker_vis:
     image: scitex-hub-prod-django:latest
     labels:
