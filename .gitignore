@@ -916,3 +916,12 @@ deployment/docker/docker_prod/bin/
 
 .claude/
 GITIGNORE/
+
+# Agent git worktrees. This repo carries ~175 of them under .worktrees/, and
+# until now the rule lived ONLY in .git/info/exclude — a per-clone, untracked
+# file. So a machine that happened to have that line saw a clean tree while a
+# fresh clone or a CI checkout saw ~175 untracked directories. Tracking the rule
+# here is what makes it true for everyone.
+# Pinned by tests/develop/test_worktrees_are_ignored_by_tracked_rule.py, which
+# asserts the rule's SOURCE is this file rather than a local exclude.
+.worktrees/
