@@ -299,7 +299,103 @@ else
     echo -e "${YELLOW}   ⚠️ Cache purge script not found${NC}"
 fi
 
+# ==============================================================================
+# Step 7: VERIFY THE SERVICE IS ACTUALLY UP — this script must not be able to
+#         report success while the site is down.
+# ==============================================================================
+# WHY THIS EXISTS (incident 2026-07-30). Every step above could succeed and the
+# site still be dead. `docker compose up -d` is NOT atomic: if one container
+# refuses removal, compose ABORTS the remaining sequence. Measured that day:
+#
+#     Container scitex-hub-prod-django-1  Recreated     <- created, never STARTED
+#     Container scitex-hub-prod-ws_ssh_proxy-1  Recreate ...
+#     Error response from daemon: cannot remove container
+#       "/scitex-hub-prod-celery_worker-1": container is running
+#
+# django sat in state `Created` — built from the right commit and never started.
+# nginx had no backend, so scitex.ai served 503 for ~9 minutes, and this script
+# had already printed "rebuild complete" and exited 0. The same abort also left
+# celery_beat and celery_worker_vis in `Created` for about an hour, unnoticed,
+# and celery_worker_vis is the visitor-provisioning worker.
+#
+# NOTE ON wait-healthy.sh: it polls `docker ps`, which does NOT list `Created`
+# containers at all. Run alone it would have reported every container healthy
+# during that outage, because the broken one was invisible to it. Hence the
+# explicit `docker ps -a` check below — it is not redundant with the health wait.
 echo ""
-echo -e "${GREEN}✅ ${ENV} rebuild complete${NC}"
+echo -e "${CYAN}  7. Verifying the service is actually up...${NC}"
+
+VERIFY_FAILED=0
+
+# 7a. No container may be left in `Created` — that is the abort signature.
+STRANDED="$($COMPOSE_CMD ps -a --status=created --format '{{.Name}}' 2>/dev/null || true)"
+if [ -n "$STRANDED" ]; then
+    echo -e "${RED}   ❌ Container(s) CREATED but never STARTED:${NC}" >&2
+    echo "$STRANDED" >&2
+    echo -e "${YELLOW}      compose aborted mid-swap. Start them, or re-run this script.${NC}" >&2
+    echo -e "${YELLOW}      docker start $(echo "$STRANDED" | tr '\n' ' ')${NC}" >&2
+    VERIFY_FAILED=1
+else
+    echo "   No stranded (Created) containers"
+fi
+
+# 7b. Containers report healthy.
+WAIT_HEALTHY="$SCRIPT_DIR/wait-healthy.sh"
+if [ -x "$WAIT_HEALTHY" ]; then
+    if "$WAIT_HEALTHY" "$ENV" 420; then
+        echo "   Containers healthy"
+    else
+        echo -e "${RED}   ❌ Containers did not become healthy${NC}" >&2
+        VERIFY_FAILED=1
+    fi
+else
+    echo -e "${YELLOW}   ⚠️ wait-healthy.sh not executable — skipping health wait${NC}" >&2
+fi
+
+# 7c. THE ONE THAT MATTERS: does the site answer?
+# Deliberately explicit per environment rather than derived from an env var:
+# .env.prod carries no SITE_URL, and a missing variable must not silently
+# downgrade this into "no URL, nothing to check, success".
+case "$ENV" in
+    prod)    VERIFY_URL="https://scitex.ai/" ;;
+    staging) VERIFY_URL="http://127.0.0.1:31294/" ;;
+    dev)     VERIFY_URL="http://127.0.0.1:31295/" ;;
+    *)       VERIFY_URL="" ;;
+esac
+
+if [ -n "$VERIFY_URL" ]; then
+    # django rebuilds the TypeScript bundle and runs collectstatic AT CONTAINER
+    # START (~5 min), so the deadline must exceed that or this check fails a
+    # deploy that was merely still booting.
+    echo "   Polling $VERIFY_URL (deadline 8 min; django compiles assets on boot)"
+    SITE_OK=0
+    for _ in $(seq 1 48); do
+        CODE="$(curl -s -o /dev/null -w '%{http_code}' -m 10 "$VERIFY_URL" 2>/dev/null || echo 000)"
+        case "$CODE" in
+            200 | 301 | 302) SITE_OK=1; break ;;
+        esac
+        sleep 10
+    done
+    if [ "$SITE_OK" = "1" ]; then
+        echo -e "${GREEN}   Site answering ($VERIFY_URL -> $CODE)${NC}"
+    else
+        echo -e "${RED}   ❌ Site NOT answering after 8 min (last code: $CODE)${NC}" >&2
+        echo -e "${YELLOW}      Check for Created containers and django logs:${NC}" >&2
+        echo -e "${YELLOW}      docker ps -a --filter status=created${NC}" >&2
+        echo -e "${YELLOW}      docker logs --tail 50 scitex-hub-${ENV}-django-1${NC}" >&2
+        VERIFY_FAILED=1
+    fi
+else
+    echo -e "${YELLOW}   ⚠️ No verify URL for env '${ENV}' — service check SKIPPED${NC}" >&2
+fi
+
+echo ""
+if [ "$VERIFY_FAILED" != "0" ]; then
+    echo -e "${RED}❌ ${ENV} rebuild FAILED verification — the site may be DOWN.${NC}" >&2
+    echo -e "${RED}   Images were built; the swap did not fully land. See hints above.${NC}" >&2
+    exit 1
+fi
+
+echo -e "${GREEN}✅ ${ENV} rebuild complete — verified serving${NC}"
 echo ""
 echo -e "${CYAN}Check status with:${NC} make ENV=${ENV} status"

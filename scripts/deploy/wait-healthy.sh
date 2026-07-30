@@ -22,7 +22,21 @@ NC='\033[0m'
 PREFIX="scitex-hub-${ENV}-"
 
 get_status() {
-    docker ps --format '{{.Names}}\t{{.Status}}' 2>/dev/null |
+    # `docker ps -a`, NOT `docker ps`. Without -a, a container in state
+    # `Created` — built but never started — is NOT LISTED AT ALL, so this
+    # script reported "all healthy" while the site was down.
+    #
+    # Measured 2026-07-30: a compose swap aborted partway and left
+    # scitex-hub-prod-django-1 in `Created`. nginx had no backend, scitex.ai
+    # served 503 for ~9 minutes, and the containers that DID appear here were
+    # all genuinely healthy. Counting only what `docker ps` shows makes the
+    # broken container invisible and the count reassuring.
+    #
+    # The renamed leftovers docker creates while recreating (`<hash>_<name>`)
+    # are excluded: they are transient artifacts, not services, and matching
+    # them would make this never converge. The service-name anchor below does
+    # that, since those carry a hex prefix before the project prefix.
+    docker ps -a --format '{{.Names}}\t{{.Status}}' 2>/dev/null |
         grep "^${PREFIX}" |
         sed "s/^${PREFIX}//" |
         sort
