@@ -361,21 +361,44 @@
                         toward any other user of the platform with whom you connected via the
                         platform.
                     </p>
+                    {% comment %} 準拠法 (governing law) and 裁判管轄 (venue) are two
+                       DIFFERENT facts and stay in two separate clauses below. Both
+                       replace the US boilerplate this page originally shipped with,
+                       which named a US state's law and a US city's courts for a
+                       service operated from Japan for Japanese users.
+
+                       Venue: 静岡地方裁判所 — operator decision, 2026-07-30. It is the
+                       district court with jurisdiction over the registered office,
+                       which is held in config/settings/settings_commerce.py and is
+                       deliberately NOT repeated here: see the Contact Us note below
+                       on why no postal address belongs on this page yet. Naming the
+                       court is the standard Japanese drafting of
+                       本店所在地を管轄する裁判所.
+
+                       Governing law: 日本法, aligned to the chosen court — a Japanese
+                       district court applying a foreign state's law to a Japanese
+                       consumer contract is incoherent, so the two must move together.
+
+                       The court name is given in English AND in Japanese on purpose:
+                       an English-only rendering of a Japanese court name is not
+                       something a reader can act on.
+
+                       Do not "refresh" these two clauses from a US template. They are
+                       pinned by tests/apps/public_app/views/test_terms_jurisdiction.py,
+                       which fails if a US state or venue reappears here. {% endcomment %}
                     <h2 id="governing-law">Governing Law</h2>
                     <p>
                         These Terms of Use and your use of the platform are governed by and
-                        construed in accordance with the laws of the State of California
-                        applicable to agreements made and to be entirely performed within the
-                        State of California, without regard to its conflict of law principles.
+                        construed in accordance with the laws of Japan (日本法), without
+                        regard to its conflict of law principles.
                     </p>
                     <h2 id="dispute-resolution">Dispute Resolution</h2>
                     <p>
                         Any legal action of whatever nature brought by either you or us shall
-                        be commenced or prosecuted in the state and federal courts located in
-                        San Francisco, California, and you hereby consent to, and waive all
-                        defenses of lack of personal jurisdiction and forum non conveniens
-                        with respect to venue and jurisdiction in such state and federal
-                        courts.
+                        be commenced or prosecuted exclusively in the Shizuoka District Court
+                        (静岡地方裁判所) in Japan, which is the district court with jurisdiction
+                        over our registered office, and you hereby consent to that exclusive
+                        jurisdiction and waive any objection to it.
                     </p>
                     <h2 id="contact-us">Contact Us</h2>
                     <p>
