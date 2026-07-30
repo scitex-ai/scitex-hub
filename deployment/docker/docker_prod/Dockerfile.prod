@@ -482,8 +482,15 @@ RUN uv pip install --system --no-cache --upgrade \
         -exec chown scitex:scitex {} +
 
 # Note: Vite build runs at runtime (not here) because Docker volume mounts
-# for static_volume would shadow build-time output. npm deps are cached
-# above, so `vite build` at startup is fast (~10s).
+# for static_volume would shadow build-time output. npm deps are cached above
+# (and .dockerignore keeps `COPY . .` from clobbering them), so startup skips
+# `npm install` — but the Vite build itself is NOT fast.
+#
+# MEASURED 2026-07-30 on a full build: 2m14.9s wall / 2m26.3s CPU
+# (443 rollup entry points, 600 output files, 10.46 MB emitted).
+# The note here previously claimed "~10s", wrong by ~13x. Budget accordingly:
+# the NAS CPU is weaker than the machine that produced that figure, so the
+# real boot cost is >= 2m15s, not less.
 
 # Entrypoint scripts
 COPY deployment/docker/common/scripts/root-init.sh /root-init.sh
