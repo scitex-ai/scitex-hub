@@ -13,7 +13,7 @@ from django.contrib.auth.models import User
 
 from apps.infra.project_app.models import Project
 
-from .workspace_manager import TEMPLATE_MARKER_RELPATH
+from .workspace_manager import TEMPLATE_MARKER_RELPATH, WorkspaceManager
 
 logger = logging.getLogger(__name__)
 
@@ -132,12 +132,17 @@ class PoolInitializer:
 
     @classmethod
     def _create_default_project(cls, user: User, project_slug: str) -> tuple:
-        """Create default project if doesn't exist."""
+        """Create default project if doesn't exist.
+
+        ``name`` is the human-facing label and MUST NOT be the slug —
+        see WorkspaceManager.DEFAULT_PROJECT_DISPLAY_NAME for why the two
+        deliberately differ.
+        """
         project, project_created = Project.objects.get_or_create(
             slug=project_slug,
             owner=user,
             defaults={
-                "name": "default-project",
+                "name": WorkspaceManager.DEFAULT_PROJECT_DISPLAY_NAME,
                 "description": "Try SciTeX features - sign up to save permanently!",
                 "visibility": "private",
                 "data_location": f"{user.username}/{project_slug}",
@@ -159,8 +164,6 @@ class PoolInitializer:
         from apps.infra.project_app.services.project_filesystem import (
             get_project_filesystem_manager,
         )
-
-        from .workspace_manager import WorkspaceManager
 
         manager = get_project_filesystem_manager(user)
         project_root = manager.get_project_root_path(project)
@@ -283,8 +286,6 @@ class PoolInitializer:
                     project.save(update_fields=["git_clone_path", "directory_created"])
 
                     logger.info(f"[VisitorPool] Reset directory for {username}")
-
-                    from .workspace_manager import WorkspaceManager
 
                     WorkspaceManager.ensure_manuscript_record(project, project_path)
                 else:

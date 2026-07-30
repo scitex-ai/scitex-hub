@@ -76,7 +76,7 @@
                         {% if user.is_authenticated %}
                             {% with active=user.profile.get_active_project %}{{ active.name|default:"No Projects" }}{% endwith %}
                         {% elif visitor_username %}
-                            {{ project.name|default:"default-project" }}
+                            {{ project.name|default:"My Project" }}
                         {% else %}
                             SciTeX
                         {% endif %}
@@ -149,7 +149,7 @@
                         <div class="dropdown-section">
                             <div class="dropdown-section-title">Current Project</div>
                             <div class="dropdown-project-item" style="cursor: default; opacity: 0.9">
-                                <span class="project-item-name">{{ project.name|default:"default-project" }}</span>
+                                <span class="project-item-name">{{ project.name|default:"My Project" }}</span>
                             </div>
                         </div>
                         <div class="dropdown-divider"></div>
