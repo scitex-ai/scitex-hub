@@ -49,9 +49,10 @@ PROD_COMPOSE = (
     REPO_ROOT / "deployment" / "docker" / "docker_prod" / "docker-compose.yml"
 )
 
-# Flags that only mean something to the prefork pool. Celery silently
-# ignores them under --pool=threads, so they must not survive the switch.
-PREFORK_ONLY_FLAGS = ("-O fair", "--max-tasks-per-child")
+# Human-readable name for the two prefork-only options, for messages. The
+# actual detection is _prefork_only_tokens(), which matches every spelling
+# rather than one literal — see its docstring.
+PREFORK_ONLY_OPTIONS = ("-O/--optimization", "--max-tasks-per-child")
 
 # Flags that must survive the switch: the QoS window that keeps a worker
 # from hoarding the queue, and the three kombu-async-hub features that are
@@ -92,6 +93,28 @@ def _service_command(service: str) -> str:
     return " ".join(command.split())
 
 
+def _prefork_only_tokens(command: str) -> list[str]:
+    """Return every prefork-only option token present in ``command``.
+
+    Matched by SHAPE, not by one literal string, because a negative
+    assertion keyed on a single spelling passes vacuously the moment the
+    flag comes back under another one — and celery's worker CLI accepts
+    several for both options:
+
+    * ``-O fair``, ``-Ofair``, ``--optimization=fair``,
+      ``--optimization fair``
+    * ``--max-tasks-per-child=N``, ``--maxtasksperchild=N``
+
+    Any token beginning ``-O`` is the optimization flag (no other celery
+    worker short option starts with a capital O), and any token beginning
+    ``--optimization`` / ``--max-tasks-per-child`` / ``--maxtasksperchild``
+    is one of the two long forms.
+    """
+    prefixes = ("-O", "--optimization", "--max-tasks-per-child",
+                "--maxtasksperchild")
+    return [t for t in command.split() if t.startswith(prefixes)]
+
+
 @pytest.mark.parametrize("service", sorted(WORKER_QUEUE_MARKERS))
 def test_prod_celery_worker_asks_for_the_threads_pool(service):
     """Pass only if this service's OWN command asks for --pool=threads."""
@@ -122,7 +145,7 @@ def test_prod_celery_worker_drops_prefork_only_flags(service):
     queue_marker = WORKER_QUEUE_MARKERS[service]
     # Act
     command = _service_command(service)
-    leftover = [flag for flag in PREFORK_ONLY_FLAGS if flag in command]
+    leftover = _prefork_only_tokens(command)
     # Assert
     assert (
         queue_marker in command
@@ -130,7 +153,7 @@ def test_prod_celery_worker_drops_prefork_only_flags(service):
         and not leftover
     ), (
         f"{service} must carry {queue_marker!r} and --pool=threads, and must "
-        f"carry none of {list(PREFORK_ONLY_FLAGS)}; leftover={leftover!r}; "
+        f"carry none of {list(PREFORK_ONLY_OPTIONS)}; leftover={leftover!r}; "
         f"command={command!r}"
     )
 
@@ -176,6 +199,63 @@ def test_prod_celery_workers_do_not_share_one_command():
     ), (
         "each prod celery worker must own its OWN queue selector and not the "
         f"sibling's; celery_worker={shared!r}; celery_worker_vis={vis!r}"
+    )
+
+
+@pytest.mark.parametrize(
+    "spelling",
+    [
+        "-O fair",
+        "-Ofair",
+        "--optimization=fair",
+        "--optimization fair",
+        "--max-tasks-per-child=50",
+        "--maxtasksperchild=50",
+    ],
+)
+def test_prefork_flag_detector_catches_every_celery_spelling(spelling):
+    """Positive control on the DETECTOR, so the negative cannot go vacuous.
+
+    ``test_prod_celery_worker_drops_prefork_only_flags`` asserts an ABSENCE,
+    and an absence check keyed on one literal spelling silently stops
+    protecting anything the moment the flag returns under a different one —
+    celery's CLI accepts `-O fair`, `-Ofair`, `--optimization=fair`,
+    `--optimization fair`, `--max-tasks-per-child` and `--maxtasksperchild`.
+    Feeding each spelling to the detector proves it actually fires, rather
+    than trusting that a `not in` over the real file means what we hope.
+    """
+    # Arrange
+    command = f"celery -A config worker --queues=celery {spelling}"
+    # Act
+    detected = _prefork_only_tokens(command)
+    # Assert
+    assert detected, (
+        f"the prefork-flag detector missed {spelling!r} — the absence "
+        f"assertion it backs would pass vacuously for this spelling; "
+        f"command={command!r}"
+    )
+
+
+def test_prefork_flag_detector_ignores_the_flags_we_keep():
+    """Negative control on the detector: it must not cry wolf.
+
+    A detector that flags everything would make the absence assertion
+    unsatisfiable, and the obvious "fix" would be to weaken it back to a
+    single literal. Pin that it passes the flags this PR deliberately KEEPS.
+    """
+    # Arrange
+    command = (
+        "celery -A config --broker=redis://redis:6379/1 worker "
+        "--loglevel=info --queues=celery,ai_queue --pool=threads "
+        "--concurrency=8 --prefetch-multiplier=1 --without-gossip "
+        "--without-mingle --without-heartbeat"
+    )
+    # Act
+    detected = _prefork_only_tokens(command)
+    # Assert
+    assert not detected, (
+        f"the detector flagged {detected!r} in a command that carries only "
+        f"pool-agnostic flags; command={command!r}"
     )
 
 
