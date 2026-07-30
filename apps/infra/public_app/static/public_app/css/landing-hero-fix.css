@@ -423,8 +423,13 @@
     justify-content: center !important;
   }
 
+  /* COLUMN is required: .hero-cta holds the button container AND the
+     "No sign-up needed" note, so row flex starves the buttons to 106px
+     and wraps the primary CTA onto 3 lines. See commit message. */
   .hero-cta {
     display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
   }
 
