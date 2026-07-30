@@ -9,11 +9,16 @@ welcome). Copy is legally reviewed:
   phrased as unpaid work for the company (no 無給 / "unpaid" wording).
 - University-credit internships and paid roles appear ONLY as future
   items under これから始めるもの / Coming next.
-- Contact email: recruit@scitex.ai (operator-decided 2026-07-22).
+- Contact email: ``branding.RECRUIT_EMAIL`` (operator-decided 2026-07-22).
+  The template injects it via the ``site_branding`` context processor, so this
+  file reads the constant too — a test that repeated the literal would be one
+  more place to edit, and would keep passing against a stale page.
 """
 
 import pytest
 from django.urls import reverse
+
+from config import branding
 
 
 @pytest.mark.django_db
@@ -81,12 +86,14 @@ class TestRecruitPage:
         )
 
     def test_recruit_page_shows_contact_email(self, client):
-        # Arrange: operator-decided address (2026-07-22)
+        # Arrange: operator-decided address (2026-07-22), single-sourced in
+        # config/branding.py and injected by the site_branding context
+        # processor — the template holds no literal to fall back on.
         url = reverse("public_app:recruit")
         # Act
         content = client.get(url).content.decode("utf-8")
         # Assert
-        assert "recruit@scitex.ai" in content
+        assert branding.RECRUIT_EMAIL in content
 
     @pytest.mark.parametrize("heading", ["これから始めるもの", "Coming next"])
     def test_recruit_page_lists_future_items_section_heading(self, client, heading):
