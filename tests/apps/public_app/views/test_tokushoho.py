@@ -46,6 +46,11 @@ _COMPANY_ENV_KEYS = (
     "SCITEX_CLOUD_COMPANY_PHONE",
     "SCITEX_HUB_COMPANY_CONTACT_EMAIL",
     "SCITEX_CLOUD_COMPANY_CONTACT_EMAIL",
+    # Not a COMPANY_* key, but it must be popped for the same reason: without
+    # it, a default-value assertion would read whatever the ambient
+    # environment happens to set and pass for the wrong reason.
+    "SCITEX_HUB_SERVICES_INQUIRY_EMAIL",
+    "SCITEX_CLOUD_SERVICES_INQUIRY_EMAIL",
 )
 
 
@@ -222,6 +227,31 @@ class TestCommerceSettingsDefaults:
         # 特商法 contact is a statutory declaration, and an empty one shipping
         # unnoticed is the failure this pins against.
         assert module.COMPANY_CONTACT_EMAIL == "info@scitex.ai"
+
+    def test_services_inquiry_email_defaults_to_confirmed_address(
+        self, commerce_settings_clean_env
+    ):
+        """A /services lead must reach a human, not just a DB row.
+
+        Operator-confirmed 2026-07-30. This one is pinned because it is a
+        BEHAVIOUR switch, not a displayed string: empty means every inquiry is
+        persisted and nobody is notified, so a regression to "" would silently
+        stop lead notifications while the form kept reporting success and the
+        rows kept accumulating. Nothing would look broken.
+        """
+        # Arrange: company/services env keys are unset (fixture)
+        module = commerce_settings_clean_env
+
+        # Act
+        module = importlib.reload(module)
+
+        # Assert
+        assert module.SERVICES_INQUIRY_EMAIL == "info@scitex.ai", (
+            "SERVICES_INQUIRY_EMAIL drives whether /services inquiries are "
+            "emailed at all. Empty = persisted but nobody notified. If the "
+            "operator changed the destination, update this literal in the "
+            "same commit."
+        )
 
     def test_branding_does_not_define_the_legal_contact(self):
         """The legal contact must not become an alias of the general contact.

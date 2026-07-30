@@ -6,10 +6,13 @@
 Single source of truth for:
 
 1. Company information rendered on the 特定商取引法に基づく表記
-   (Specified Commercial Transactions Act) page. Values that are not
-   finalized yet (public contact email) MUST stay unset in the
-   environment — the page then renders an explicit 「準備中」 notice
-   instead of a fake value (no-fake-data principle).
+   (Specified Commercial Transactions Act) page. Any value that is not
+   finalized MUST stay unset — the page then renders an explicit
+   「準備中」 notice instead of a fake value (no-fake-data principle).
+   As of 2026-07-30 every field is operator-confirmed, so nothing here
+   renders 準備中; each default below cites the confirmation that
+   settled it, and a test in tests/apps/public_app/views/
+   test_tokushoho.py pins it.
 
 2. The config-driven paid-plan list for the pricing page. While no
    plans are configured (the default), the pricing page renders the
@@ -38,6 +41,10 @@ Environment keys (document in SECRET/.env.nas when finalized):
 - ``SCITEX_HUB_COMPANY_CONTACT_EMAIL``   公開メールアドレス (default:
                                          info@scitex.ai — operator-confirmed
                                          2026-07-30)
+- ``SCITEX_HUB_SERVICES_INQUIRY_EMAIL``  /services 問い合わせ通知先 (default:
+                                         info@scitex.ai — operator-confirmed
+                                         2026-07-30. Unset = persist to the DB
+                                         and notify nobody; never recruit@)
 - ``SCITEX_HUB_BILLING_PLANS``           JSON list of plan objects, each:
                                          {"name": str,
                                           "price_tax_included": int,
@@ -93,14 +100,21 @@ COMPANY_CONTACT_EMAIL = (
     _getenv_alias("SCITEX_HUB_COMPANY_CONTACT_EMAIL", "info@scitex.ai") or ""
 )
 
-# Services-page inquiry destination. Deliberately SEPARATE from recruit@
-# (the hiring inbox) — mixing sales inquiries into hiring loses leads.
-# Left empty until the operator decides the address (contact@ / info@ /
-# form-only). While empty, /services stores every inquiry in the DB
-# (ServiceInquiry, readable in admin) and sends no email — never a fake
-# address, never recruit@.
+# Services-page inquiry destination — operator-confirmed 2026-07-30
+# (「OK, がんがんいきましょう、info@scitex.ai です」, after being told this setting
+# was one of the two still empty). Deliberately SEPARATE from recruit@ (the
+# hiring inbox) — mixing sales inquiries into hiring loses leads.
+#
+# Setting this CHANGES BEHAVIOUR rather than a displayed string, so it is worth
+# being explicit about what it turns on. Empty meant /services persisted every
+# inquiry to the DB (ServiceInquiry, readable in admin) and notified NOBODY, so
+# a lead was only ever found by someone remembering to open the admin. With an
+# address set, the inquiry is still persisted FIRST and the mail is best-effort
+# on top: public_app/views/pages.py:110-137 returns early when unset, and logs
+# loudly (never swallows) when a send fails. The DB stays the record either way,
+# which is why enabling this can add a notification but cannot lose an inquiry.
 SERVICES_INQUIRY_EMAIL = (
-    _getenv_alias("SCITEX_HUB_SERVICES_INQUIRY_EMAIL", "") or ""
+    _getenv_alias("SCITEX_HUB_SERVICES_INQUIRY_EMAIL", "info@scitex.ai") or ""
 )
 
 # ---------------------------------------
