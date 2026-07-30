@@ -7,7 +7,6 @@ Re-exports all tasks for Celery autodiscovery.
 
 from __future__ import annotations
 
-from .charts import generate_single_status_chart, generate_status_charts
 from .health import (
     HEALTH_CHECK_CACHE_KEY,
     HEALTH_CHECK_FAILURE_COUNT_KEY,
@@ -31,9 +30,10 @@ from .utils import check_port
 __all__ = [
     # Metrics
     "collect_server_metrics",
-    # Charts
-    "generate_single_status_chart",
-    "generate_status_charts",
+    # NOTE: no chart-render tasks. The /server-status/ charts are drawn in the
+    # browser from /api/server-metrics/series/ (2026-07-30). The deleted
+    # dispatcher fanned out 48 matplotlib renders every 60s into a container
+    # path django could not read, so it never delivered a chart.
     # Health
     "cleanup_expired_visitor_allocations",
     "check_site_health",

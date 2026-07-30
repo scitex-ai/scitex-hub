@@ -1,5 +1,10 @@
 /**
  * Type Definitions for Server Status
+ *
+ * The `getChart()` window accessor and the `HistoricalDataResponse` shape that
+ * used to live here were removed on 2026-07-30 together with the Chart.js
+ * modules that consumed them: this page no longer loads any chart library. See
+ * ./series-client.ts for the payload types the inline-SVG renderer uses.
  */
 
 export interface ServerMetrics {
@@ -15,26 +20,4 @@ export interface ServerMetrics {
   visitor_pool_allocated: number | null;
   visitor_pool_total: number | null;
   active_users_count: number | null;
-}
-
-export interface HistoricalDataResponse {
-  metrics: Array<{
-    timestamp: number;
-    cpu_percent: number | null;
-    memory_percent: number | null;
-    disk_percent: number | null;
-    gpu_percent: number | null;
-    disk_read_mb: number | null;
-    disk_write_mb: number | null;
-    net_sent_mb: number | null;
-    net_recv_mb: number | null;
-    visitor_pool_allocated: number | null;
-    active_users_count: number | null;
-  }>;
-}
-
-// Chart.js is loaded via CDN as a UMD script and available on window.Chart
-// We access it via the global object rather than re-exporting
-export function getChart(): any {
-  return (window as any).Chart;
 }

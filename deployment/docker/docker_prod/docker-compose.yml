@@ -221,8 +221,9 @@ services:
     # with no init and no reaper. See the header note above `celery_worker_vis`.
     entrypoint: ["/usr/bin/tini", "--", "/entrypoint.sh"]
     # NOTE: vis_queue is deliberately NOT here — it has its own worker below.
-    # This worker's `celery` queue is a firehose (generate_status_charts alone
-    # fans out 48 subtasks every 60s on a 4-core N100), and it starved the
+    # This worker's `celery` queue is a firehose (the since-deleted status-chart
+    # renderer alone fanned out 48 subtasks every 60s on a 4-core N100 — removed
+    # 2026-07-30, ~89% of steady-state message volume), and it starved the
     # visitor-slot re-cleans out of existence: vis_queue sat at 16-36 messages,
     # untouched for hours, while this queue drained. Slot re-cleans are a
     # SECURITY gate — a slot is not distributable until it is wiped and

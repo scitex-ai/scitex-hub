@@ -57,8 +57,9 @@ CELERY_TASK_ROUTES = {
     # Visitor-pool slot maintenance (reset_visitor_slot, initialize_visitor_workspace)
     # MUST run on the dedicated, near-empty vis_queue — NOT the default "celery"
     # queue. The default queue periodically accumulates a large backlog of expired
-    # beat tasks (check_site_health / warm_public_status_cache / generate_status_charts,
-    # ~40k deep in the 2026-07-11 incident). A boot-time `reconcile_visitor_slots
+    # beat tasks (check_site_health / warm_public_status_cache, plus the
+    # since-deleted status-chart render fan-out, ~40k deep in the 2026-07-11
+    # incident). A boot-time `reconcile_visitor_slots
     # --async` re-clean enqueued behind that backlog never runs, so every idle slot
     # stays QUARANTINED and every visitor is downgraded to the read-only fallback —
     # the root cause of the pool-wide readonly outage. The worker already consumes
@@ -110,14 +111,20 @@ CELERY_BEAT_SCHEDULE = {
             "expire_seconds": 270,  # Expire after 4.5 minutes if not started
         },
     },
-    # Generate server status charts every 1 minute
-    "generate-status-charts": {
-        "task": "apps.infra.public_app.tasks.generate_status_charts",
-        "schedule": 60.0,  # Every 1 minute
-        "options": {
-            "expire_seconds": 55,  # Expire after 55 seconds if not started
-        },
-    },
+    # NOTE: there is deliberately no server-status chart-render entry here.
+    # It was removed on 2026-07-30 (operator decision) after measuring that it
+    # dispatched 48 child tasks EVERY 60 SECONDS (8 metrics x 3 windows x 2
+    # themes, ~69,120 matplotlib renders/day) and delivered NOTHING: the output
+    # dir /app/data/charts was never a shared volume, so the worker wrote PNGs
+    # into its own container filesystem while django read a different one — the
+    # PNG endpoint answered 503 the whole time. The children also carried
+    # expires=55 against a ~55-minute-deep queue, so most were discarded as
+    # revoked before any worker reached them, while the dispatcher logged
+    # "Dispatched 48" and succeeded every time. Charts are now drawn in the
+    # browser from /api/server-metrics/series/. THIS FILE IS THE SSoT: the prod
+    # PeriodicTask row was disabled by hand (enabled=False) on 2026-07-30, and
+    # removing the entry here is what stops a future deploy from reseeding and
+    # re-enabling it.
     # Check site health every 1 minute and notify on failures
     "check-site-health": {
         "task": "apps.infra.public_app.tasks.check_site_health",

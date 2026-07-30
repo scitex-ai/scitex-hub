@@ -19,11 +19,11 @@ from .api import (
     server_health_status_api,
     server_metrics_export_csv,
     server_metrics_history_api,
+    server_metrics_series_api,
     server_status_api,
     versions_api,
     visitor_resources_api,
 )
-from .charts import render_metric_chart
 from .public_status import public_status_api, public_status_view
 from .server import server_status
 from .visitor import (
@@ -47,6 +47,7 @@ __all__ = [
     "server_health_status_api",
     "server_metrics_history_api",
     "server_metrics_export_csv",
+    "server_metrics_series_api",
     "versions_api",
     "visitor_status",
     "visitor_enter",
@@ -58,7 +59,6 @@ __all__ = [
     "visitor_free_slots_api",
     "visitor_heartbeat_api",
     "visitor_resources_api",
-    "render_metric_chart",
 ]
 
 # EOF
