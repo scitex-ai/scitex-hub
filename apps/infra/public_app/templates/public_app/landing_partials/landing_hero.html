@@ -26,16 +26,25 @@
                 <div class="hero-cta">
                     <div class="hero-cta-container">
                         {% comment %}
-                           Primary: explicitly START A VISITOR SESSION. Target /apps/home/ is the
-                           existing visitor-provisioning entry (NOT skip-listed by
-                           VisitorAutoLoginMiddleware), so choosing this allocates a slot and
-                           opens the workspace. Sign up / Sign in are the alternatives.
+                           Primary: explicitly START A VISITOR SESSION. Target /enter/ is a
+                           visitor-provisioning entry (NOT skip-listed by
+                           VisitorAutoLoginMiddleware), so choosing this allocates a slot; the
+                           view then sends the visitor to "/", which renders the APP LAUNCHER.
+                           Sign up / Sign in are the alternatives.
+
+                           This used to point at /apps/home/, which also provisions but renders
+                           the Gitea-style REPOSITORY BROWSER — so the first thing a prospective
+                           user saw after clicking was dotfiles and "No commit message". Do not
+                           point it back there: /apps/home/ keeps that view on purpose (approved
+                           2026-07-07, see repo_app/views/dispatch.py:13-17), and "/" cannot be
+                           the target either because it is EXACT-skipped by the middleware, so an
+                           anonymous click would bounce straight back to this page.
 
                            MUST stay {% comment %}, not {# #}: Django's {# #} is SINGLE-LINE only,
                            so a multi-line one is not lexed as a comment and renders VERBATIM to
                            every visitor — which is exactly what shipped to prod here.
                         {% endcomment %}
-                        <a href="/apps/home/" class="hero-cta-button">Enter as visitor <span class="hero-cta-arrow">&rarr;</span></a>
+                        <a href="/enter/" class="hero-cta-button">Enter as visitor <span class="hero-cta-arrow">&rarr;</span></a>
                         <a href="/auth/signup/" class="hero-link-button">
                             <i class="fas fa-user-plus"></i> Sign up
                         </a>

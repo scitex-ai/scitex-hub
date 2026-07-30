@@ -27,6 +27,7 @@ from .charts import render_metric_chart
 from .public_status import public_status_api, public_status_view
 from .server import server_status
 from .visitor import (
+    visitor_enter,
     visitor_expired,
     visitor_fill_slots_api,
     visitor_free_slots_api,
@@ -48,6 +49,7 @@ __all__ = [
     "server_metrics_export_csv",
     "versions_api",
     "visitor_status",
+    "visitor_enter",
     "visitor_restart_session",
     "visitor_expired",
     "visitor_pool_full",
