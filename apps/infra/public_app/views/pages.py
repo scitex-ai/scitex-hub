@@ -174,10 +174,32 @@ def services(request):
             submitted = True
             form = {"name": "", "affiliation": "", "request": "", "budget": ""}
 
+    from ..pricing import load_pricing, plan_rows, pricing_rows
+
+    _plans = plan_rows()
+
     return render(
         request,
         "public_app/pages/services.html",
-        {"submitted": submitted, "errors": errors, "form": form},
+        {
+            "submitted": submitted,
+            "errors": errors,
+            "form": form,
+            # Prices come from data/pricing.json — the single source of truth.
+            # They were hand-written in the template until 2026-08-02, which is
+            # how /services/ and /landing/ drifted 2.7x apart on the same
+            # service. Do not put a literal amount back into the template;
+            # tests/apps/public_app/test_pricing_ssot.py fails if you do.
+            "pricing_rows": pricing_rows(),
+            "pricing_plans": _plans,
+            # Keyed by id as well as ordered: the mobile plan cards are three
+            # separate <article> blocks, and addressing them positionally
+            # (plans.0/.1/.2) would silently show the wrong plan's price if the
+            # JSON order ever changed — a swap the SSoT guard cannot detect,
+            # because every amount would still come from pricing.json.
+            "pricing_plan_by_id": {p["id"]: p for p in _plans},
+            "pricing_notes": load_pricing()["notes"],
+        },
     )
 
 
