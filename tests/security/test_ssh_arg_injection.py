@@ -614,6 +614,110 @@ def test_remote_project_config_clean_rejects_exploit_username():
 
 
 # ===========================================================================
+# (e) The TRIP creation sink.
+#
+# create_trip_project() was the LAST unguarded member of this class: it
+# interpolates remote_path into `test -d "{remote_path}"` and runs it on the
+# remote host via paramiko. Double quotes do not stop command substitution,
+# so `/tmp/$(...)` executes there. Its sibling create_remote.py has guarded
+# the identical sink since the ssh_safety rollout; TRIP was missed.
+#
+# HOW THIS IS TESTED WITHOUT PATCHING PRODUCTION INTERNALS: the guard runs
+# BEFORE the credential lookup, and the two exits emit DIFFERENT messages.
+# So the message text alone distinguishes "rejected by the path guard" from
+# "got past the guard and failed later", which is exactly the ordering claim
+# — and it exercises the real function with no fake paramiko in sight.
+#
+# The two tests are a PAIR. Alone, the exploit test would also pass if
+# create_trip_project rejected EVERY path (guard too strict, feature broken);
+# the legit test is what excludes that.
+# ===========================================================================
+TRIP_CREDENTIAL_REJECTION = "Invalid remote credential selected"
+
+
+def _trip_message(remote_path):
+    """Run create_trip_project and return the single message it produced.
+
+    Uses a REAL user row and a credential id that cannot exist, so a path
+    that PASSES the guard is guaranteed to stop at the credential lookup
+    rather than opening a connection to anywhere.
+
+    The user must be a real model instance, not a stand-in: the view does
+    ``RemoteCredential.objects.get(id=..., user=request.user)``, and the ORM
+    cannot adapt a non-model object into a query value — it raises TypeError
+    instead of DoesNotExist, so the view's ``except RemoteCredential
+    .DoesNotExist`` never catches it and the "Invalid remote credential
+    selected" branch is never reached. A fake user makes the positive
+    control impossible to satisfy for a reason that has nothing to do with
+    the guard under test.
+    """
+    from django.contrib.auth import get_user_model
+    from django.contrib.messages import get_messages
+    from django.contrib.messages.storage.fallback import FallbackStorage
+
+    from apps.infra.project_app.views.projects.create_trip import (
+        create_trip_project,
+    )
+
+    user_model = get_user_model()
+    user, _ = user_model.objects.get_or_create(username="trip-guard-tester")
+
+    request = RequestFactory().post("/projects/create/", {})
+    request.user = user
+    setattr(request, "session", {})
+    setattr(request, "_messages", FallbackStorage(request))
+
+    create_trip_project(
+        request,
+        name="trip-project",
+        description="",
+        remote_credential_id="999999",
+        remote_path=remote_path,
+    )
+    return " | ".join(str(m) for m in get_messages(request))
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("bad", EXPLOIT_PATHS)
+def test_trip_creation_rejects_exploit_path_before_credential_lookup(bad):
+    # Arrange: an exploit remote_path, which must be refused before the
+    # `test -d "{remote_path}"` command can be built.
+    payload = bad
+    # Act
+    message = _trip_message(payload)
+    # Assert
+    assert TRIP_CREDENTIAL_REJECTION not in message and message != "", (
+        f"create_trip_project got PAST the path guard for {payload!r} "
+        f"(message: {message!r}). Reaching the credential lookup means the "
+        "exploit would have been interpolated into the remote command. "
+        "validate_remote_path must run first."
+    )
+
+
+@pytest.mark.django_db
+def test_trip_creation_accepts_legit_path_and_proceeds():
+    """Positive control for the test above — it is not optional.
+
+    A legitimate absolute path must get PAST the guard and stop at the
+    credential lookup. If this fails, the exploit test is vacuous: it would
+    be reporting "not rejected by credential lookup" for a function that
+    rejects every path at the guard, and TRIP creation would be broken for
+    real users.
+    """
+    # Arrange
+    legit = "/home/ywatanabe/data"
+    # Act
+    message = _trip_message(legit)
+    # Assert
+    assert TRIP_CREDENTIAL_REJECTION in message, (
+        f"a legitimate path {legit!r} did not reach the credential lookup "
+        f"(message: {message!r}). Either the guard is too strict and TRIP "
+        "creation is broken, or the view returns earlier for some other "
+        "reason — in which case the exploit test above proves nothing."
+    )
+
+
+# ===========================================================================
 # (e) The subprocess environment carries no Django/DB secret.
 # ===========================================================================
 def test_minimal_env_excludes_secrets(secret_env):
