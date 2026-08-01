@@ -1,0 +1,120 @@
+/**
+ * Server Status - Chart theming
+ *
+ * The inline-SVG renderer (ts/_server-status/svg-chart.ts) reads every colour
+ * from these custom properties at draw time. That is the whole reason the old
+ * server-side render path could be deleted: a PNG cannot ask which theme it
+ * is being viewed in, so the backend had to render each chart TWICE (dark +
+ * light) — half of a 48-task-per-minute Celery fan-out existed only to pick
+ * a text colour. Here a theme flip is a re-draw of data already in the page.
+ *
+ * Dark is the default theme on this site and the palette is tuned for it:
+ * lower-saturation strokes, no bright fills, and a low fill opacity, because
+ * a status page is something an operator stares at for a long time.
+ */
+
+:root,
+[data-theme="light"] {
+  --chart-axis: #2a3f4d;
+  --chart-text: #1a2a35;
+  /* NOT --status-warning: that global is #b8956a in this theme, which is only
+   * 2.78:1 against the warm-white card surface — below the 4.5:1 AA threshold
+   * for text this size (the staleness caption renders at ~11-12px effective).
+   * #8a5a12 measures 5.9:1. Dark's value below measures 8.0:1 on #161b22. */
+  --chart-warning: #8a5a12;
+  --chart-fill-opacity: 0.14;
+
+  --chart-cpu: #1f7fc4;
+  --chart-memory: #d94466;
+  --chart-disk: #2b9c9c;
+  --chart-gpu: #7a4fd6;
+  --chart-disk-read: #2b9c9c;
+  --chart-disk-write: #d9812b;
+  --chart-net-sent: #d94466;
+  --chart-net-recv: #1f7fc4;
+  --chart-visitor-pool: #6b7280;
+  --chart-active-users: #2b9c9c;
+}
+
+[data-theme="dark"] {
+  --chart-axis: #7d909c;
+  --chart-text: #c4d2da;
+  /* 8.0:1 on --bg-surface (#161b22). A soft amber, not a saturated orange:
+   * dark is the default theme and this page gets stared at. */
+  --chart-warning: #d4a87a;
+  --chart-fill-opacity: 0.12;
+
+  --chart-cpu: #5aa9dd;
+  --chart-memory: #e0788f;
+  --chart-disk: #63b8b8;
+  --chart-gpu: #a189dd;
+  --chart-disk-read: #63b8b8;
+  --chart-disk-write: #dda05e;
+  --chart-net-sent: #e0788f;
+  --chart-net-recv: #5aa9dd;
+  --chart-visitor-pool: #a3adb8;
+  --chart-active-users: #63b8b8;
+}
+
+/* Chart host: a fixed-ratio box so the panel never collapses to 0 height
+ * while the JSON is in flight (a 0x0 container is invisible AND passes every
+ * "the element is in the DOM" check — see the 2026-07-30 launcher-tile bug). */
+.svg-chart {
+  display: block;
+  width: 100%;
+  aspect-ratio: 5 / 3;
+  min-height: 180px;
+  color: var(--chart-text);
+}
+
+.svg-chart-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.svg-chart-canvas text {
+  font-family: inherit;
+}
+
+.svg-chart-hover {
+  transition: opacity 0.08s linear;
+  pointer-events: none;
+}
+
+/* Pre-JS and error state. Visible text, never an empty box: a blank chart
+ * reads as "no load", which is a lie a status page must not tell. */
+.chart-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 180px;
+  padding: 0.75rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.chart-placeholder-error {
+  color: var(--status-error);
+}
+
+/* Page-level staleness banner, inserted above the metrics grid by
+ * chart-panels.ts when the newest sample is older than the collector's cadence
+ * allows. On prod today this is the DEFAULT state, not an edge case: the celery
+ * prefork pool wedges and executes nothing, so collect_server_metrics has not
+ * written a row in hours. The charts still show their real (old) data — this
+ * banner is what stops that reading as live monitoring. */
+.metrics-staleness {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--status-warning-border);
+  border-left: 3px solid var(--chart-warning);
+  border-radius: 4px;
+  background: var(--status-warning-bg);
+  color: var(--chart-warning);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}

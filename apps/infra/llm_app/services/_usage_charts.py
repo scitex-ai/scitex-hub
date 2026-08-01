@@ -14,7 +14,10 @@ from matplotlib.ticker import MaxNLocator
 
 logger = logging.getLogger("scitex")
 
-# Match dark theme from chart_generator.py
+# Dark-theme palette, originally copied from the server-status chart_generator
+# (deleted 2026-07-30 — those charts are now browser-rendered SVG). This one is
+# request-driven from the LLM usage admin view, not a Celery fan-out, so it was
+# left on matplotlib.
 _THEME = {
     "bg": "none",
     "axis": "#b5c7d1",

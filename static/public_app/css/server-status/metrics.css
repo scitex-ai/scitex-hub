@@ -5,145 +5,150 @@
 
 /* Metric Cards */
 .metric-card {
-    background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(54, 162, 235, 0.08) 100%);
-    border: 1px solid var(--border-default);
-    border-radius: 12px;
-    padding: 1.5rem;
-    text-align: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-    transition: all 0.3s ease;
-    min-height: 300px;
+  background: linear-gradient(
+    135deg,
+    var(--bg-surface) 0%,
+    rgba(54, 162, 235, 0.08) 100%
+  );
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transition: all 0.3s ease;
+  min-height: 300px;
 }
 
 .metric-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
 }
 
 .metric-value {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 0.5rem;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
 }
 
 .metric-label {
-    margin-bottom: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1rem;
 }
 
 /* Metric Icons */
 .metric-icon-cpu {
-    color: rgb(54, 162, 235);
+  color: rgb(54, 162, 235);
 }
 
 .metric-icon-memory {
-    color: rgb(255, 99, 132);
+  color: rgb(255, 99, 132);
 }
 
 .metric-icon-disk {
-    color: rgb(75, 192, 192);
+  color: rgb(75, 192, 192);
 }
 
 .metric-icon-gpu {
-    color: rgb(153, 102, 255);
+  color: rgb(153, 102, 255);
 }
 
 .metric-icon-disk-io {
-    color: rgb(255, 159, 64);
+  color: rgb(255, 159, 64);
 }
 
 .metric-icon-network {
-    color: rgb(255, 205, 86);
+  color: rgb(255, 205, 86);
 }
 
 .metric-icon-visitor-pool {
-    color: rgb(201, 203, 207);
+  color: rgb(201, 203, 207);
 }
 
 .metric-icon-users {
-    color: rgb(75, 192, 192);
+  color: rgb(75, 192, 192);
 }
 
 /* Metric Current Values */
 .metric-current-value {
-    font-size: 1.2rem;
-    font-weight: bold;
+  font-size: 1.2rem;
+  font-weight: bold;
 }
 
 .metric-current-value-cpu {
-    color: rgb(54, 162, 235);
+  color: rgb(54, 162, 235);
 }
 
 .metric-current-value-memory {
-    color: rgb(255, 99, 132);
+  color: rgb(255, 99, 132);
 }
 
 .metric-current-value-disk {
-    color: rgb(75, 192, 192);
+  color: rgb(75, 192, 192);
 }
 
 .metric-current-value-gpu {
-    color: rgb(153, 102, 255);
+  color: rgb(153, 102, 255);
 }
 
 .metric-current-value-disk-io {
-    color: rgb(255, 159, 64);
+  color: rgb(255, 159, 64);
 }
 
 .metric-current-value-network {
-    color: rgb(255, 205, 86);
+  color: rgb(255, 205, 86);
 }
 
 .metric-current-value-visitor-pool {
-    color: rgb(201, 203, 207);
+  color: rgb(201, 203, 207);
 }
 
 .metric-current-value-users {
-    color: rgb(75, 192, 192);
+  color: rgb(75, 192, 192);
 }
 
-/* Chart Styling */
+/* Chart Styling.
+ * NOTE: this repo-root static/ copy is the one the staticfiles finder actually
+ * serves (STATICFILES_DIRS precedes AppDirectoriesFinder) — verified
+ * 2026-07-30. The divergent app-dir copy at
+ * apps/infra/public_app/static/public_app/css/server-status/metrics.css is NOT
+ * served; edit this one.
+ * The .metric-chart.matplotlib-chart <img> rules were removed with the
+ * server-side PNG render path; charts are inline SVG now (see charts.css). */
 .metric-chart {
-    min-height: 200px;
-    width: 100%;
-}
-
-.metric-chart.matplotlib-chart {
-    max-width: 100%;
-    height: auto;
-    object-fit: contain;
+  min-height: 200px;
+  width: 100%;
 }
 
 .metric-info {
-    margin-top: 0.5rem;
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    text-align: center;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
 }
 
 /* Progress Bars */
 .progress-bar {
-    height: 8px;
-    background: var(--border-default);
-    border-radius: 4px;
-    overflow: hidden;
-    margin-top: 1rem;
+  height: 8px;
+  background: var(--border-default);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 1rem;
 }
 
 .progress-fill {
-    height: 100%;
-    background: var(--status-success);
-    transition: width 0.3s ease;
+  height: 100%;
+  background: var(--status-success);
+  transition: width 0.3s ease;
 }
 
 .progress-fill.warning {
-    background: var(--status-warning);
+  background: var(--status-warning);
 }
 
 .progress-fill.critical {
-    background: var(--status-error);
+  background: var(--status-error);
 }

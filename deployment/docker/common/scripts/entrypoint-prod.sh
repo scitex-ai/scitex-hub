@@ -214,7 +214,20 @@ if [ "$VITE_REBUILD_NEEDED" = true ]; then
     # Re-run collectstatic to pick up new vite output
     # NOTE: Do NOT use --clear here - it would delete the vite output!
     echo_info "Collecting static files (post-vite)..."
-    python manage.py collectstatic --noinput 2>&1 | tail -1
+    # `| tail -1` trims collectstatic's chatty output, but a pipeline's exit
+    # status is its LAST command's — and `tail` always succeeds. Without
+    # pipefail the `set -e` at the top of this script CANNOT see collectstatic
+    # fail here, so prod boots on regardless. That is not survivable under the
+    # hashed manifest backend (settings_prod.py: STORAGES = hashed_storages(...)):
+    # a partial run leaves a stale/incomplete staticfiles.json, and every
+    # {% static %} lookup for a missing entry raises at RENDER time — the site
+    # comes up and then 500s. The unpiped run earlier in this file
+    # (collect_static_files, django.src) already aborts on failure; this was a
+    # one-line inconsistency, not a design choice.
+    #
+    # Scoped to a subshell so the rest of the entrypoint keeps its current
+    # semantics (several blocks deliberately tolerate failure inside `if`).
+    ( set -o pipefail; python manage.py collectstatic --noinput 2>&1 | tail -1 )
     echo_success "Static files collected"
 else
     echo_info "TypeScript build already up to date"

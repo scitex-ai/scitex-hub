@@ -1,21 +1,30 @@
 /**
  * Server Status - Main Entry Point
  *
- * Pre-rendered charts are served from backend (generated every 1 min by Celery).
+ * Charts are drawn IN THE BROWSER as inline SVG from a single JSON read
+ * (/api/server-metrics/series/). The previous implementation asked the
+ * backend for eight pre-rendered matplotlib PNGs, which a Celery beat task
+ * regenerated 48 times a minute (8 metrics x 3 windows x 2 themes) — about
+ * 69,120 renders a day. That fan-out put the `celery` queue ~97,000 messages
+ * deep on prod and starved `cleanup_expired_visitor_allocations`, which broke
+ * the visitor pool. Operator decision, 2026-07-30: lightweight, web-native
+ * charts instead.
+ *
  * This module handles:
  * - Time span selection (1h, 6h, 24h)
- * - Theme-aware chart loading
+ * - Theme changes (re-draw from the payload in memory; no refetch)
  * - Real-time metric value updates
  * - Visitor countdown timers
  * - Session expiration detection (stops polling to prevent server overload)
  */
 
-import { updateMetrics } from './_server-status/metrics-updater';
-import { updateVisitorCountdowns } from './_server-status/visitor-countdown';
-
+import { ChartPanels } from "./_server-status/chart-panels";
+import { updateMetrics } from "./_server-status/metrics-updater";
+import { updateVisitorCountdowns } from "./_server-status/visitor-countdown";
 
 // State
 let currentTimeSpanMinutes = 60;
+let panels: ChartPanels | null = null;
 
 // Track intervals for cleanup on session expiration
 let chartIntervalId: number | null = null;
@@ -23,6 +32,12 @@ let metricsIntervalId: number | null = null;
 let countdownIntervalId: number | null = null;
 let consecutiveErrors = 0;
 const MAX_CONSECUTIVE_ERRORS = 5;
+
+// The series payload only changes when collect_server_metrics writes a new
+// row (every 60s in prod), so polling faster would just re-download the same
+// numbers.
+const CHART_REFRESH_MS = 60000;
+const METRICS_REFRESH_MS = 2000;
 
 /**
  * Stop all polling intervals (called when session expires or too many errors)
@@ -45,67 +60,54 @@ function stopAllPolling(reason: string): void {
 }
 
 // Expose stop function globally for other modules
-(window as unknown as Record<string, unknown>).stopServerStatusPolling = stopAllPolling;
+(window as unknown as Record<string, unknown>).stopServerStatusPolling =
+  stopAllPolling;
 
 /**
- * Get current theme from document
+ * Reload the chart data for the currently selected time span.
  */
-function getCurrentTheme(): string {
-  return document.documentElement.getAttribute('data-theme') || 'dark';
-}
-
-/**
- * Update all chart images with current time span and theme
- */
-function updateChartImages(): void {
-  const imgs = document.querySelectorAll('.matplotlib-chart') as NodeListOf<HTMLImageElement>;
-  const timestamp = Date.now(); // Cache buster
-  const theme = getCurrentTheme();
-
-  imgs.forEach(img => {
-    const metric = img.dataset.metric;
-    if (metric) {
-      img.src = `/api/server-metrics/chart/${metric}/?minutes=${currentTimeSpanMinutes}&theme=${theme}&t=${timestamp}`;
-    }
-  });
+function reloadCharts(): void {
+  if (!panels) return;
+  void panels.load(currentTimeSpanMinutes);
 }
 
 /**
  * Setup time span selector buttons
  */
 function setupTimeSpanSelector(): void {
-  const selector = document.getElementById('timeSpanSelector');
+  const selector = document.getElementById("timeSpanSelector");
   if (!selector) return;
 
-  selector.addEventListener('click', (e) => {
+  selector.addEventListener("click", (e) => {
     const target = e.target as HTMLElement;
-    if (!target.classList.contains('time-span-btn')) return;
+    if (!target.classList.contains("time-span-btn")) return;
 
-    const minutes = parseInt(target.dataset.minutes || '60', 10);
+    const minutes = parseInt(target.dataset.minutes || "60", 10);
     if (minutes === currentTimeSpanMinutes) return;
 
     // Update button states
-    selector.querySelectorAll('.time-span-btn').forEach(btn => {
-      btn.classList.remove('active');
+    selector.querySelectorAll(".time-span-btn").forEach((btn) => {
+      btn.classList.remove("active");
     });
-    target.classList.add('active');
+    target.classList.add("active");
 
-    // Update time span and refresh charts
     currentTimeSpanMinutes = minutes;
-    updateChartImages();
+    reloadCharts();
   });
 }
 
 /**
- * Setup theme change listener
+ * Setup theme change listener.
+ *
+ * Colours live in CSS custom properties that the SVG renderer reads at draw
+ * time, so a theme flip is a pure re-draw of data already in memory — no
+ * network round trip, and no second server-side render per theme.
  */
 function setupThemeListener(): void {
-  // Listen for theme changes
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
-      if (mutation.attributeName === 'data-theme') {
-        console.log('[server-status] Theme changed, updating charts...');
-        updateChartImages();
+      if (mutation.attributeName === "data-theme") {
+        panels?.redraw();
         break;
       }
     }
@@ -113,7 +115,7 @@ function setupThemeListener(): void {
 
   observer.observe(document.documentElement, {
     attributes: true,
-    attributeFilter: ['data-theme']
+    attributeFilter: ["data-theme"],
   });
 }
 
@@ -125,16 +127,18 @@ async function safeUpdateMetrics(): Promise<void> {
     const result = await updateMetrics();
     // Check if session expired (returned from metrics-updater)
     if (result && result.sessionExpired) {
-      stopAllPolling('Session expired');
-      window.location.replace('/visitor-expired/');
+      stopAllPolling("Session expired");
+      window.location.replace("/visitor-expired/");
       return;
     }
     consecutiveErrors = 0; // Reset on success
   } catch {
     consecutiveErrors++;
-    console.warn(`[server-status] Metrics error (${consecutiveErrors}/${MAX_CONSECUTIVE_ERRORS})`);
+    console.warn(
+      `[server-status] Metrics error (${consecutiveErrors}/${MAX_CONSECUTIVE_ERRORS})`,
+    );
     if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
-      stopAllPolling('Too many consecutive errors');
+      stopAllPolling("Too many consecutive errors");
     }
   }
 }
@@ -143,25 +147,31 @@ async function safeUpdateMetrics(): Promise<void> {
  * Initialize server status page
  */
 function initializeServerStatus(): void {
-  // Setup UI handlers
+  panels = new ChartPanels();
+  if (panels.panelCount === 0) {
+    console.error(
+      "[server-status] No .svg-chart[data-metric] containers found — " +
+        "the metric panels will stay empty.",
+    );
+  }
+
   setupTimeSpanSelector();
   setupThemeListener();
 
-  // Load charts immediately
-  updateChartImages();
-
-  // Refresh charts every 60 seconds (matches Celery generation interval)
-  chartIntervalId = window.setInterval(updateChartImages, 60000);
+  reloadCharts();
+  chartIntervalId = window.setInterval(reloadCharts, CHART_REFRESH_MS);
 
   // Update metric values every 2 seconds
   safeUpdateMetrics();
-  metricsIntervalId = window.setInterval(safeUpdateMetrics, 2000);
+  metricsIntervalId = window.setInterval(safeUpdateMetrics, METRICS_REFRESH_MS);
 
-  console.log('[server-status] Initialized - charts refresh every 60s, metrics every 2s');
+  console.log(
+    "[server-status] Initialized - SVG charts refresh every 60s, metrics every 2s",
+  );
 }
 
 // Initialize on page load
-window.addEventListener('load', function() {
+window.addEventListener("load", function () {
   initializeServerStatus();
 
   // Update visitor pool countdowns every second
