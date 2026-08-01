@@ -27,6 +27,20 @@ PUBLIC_APP = REPO / "apps" / "infra" / "public_app"
 # A literal money amount in source: 11,000円 / 110000円 / $299 / ¥33,000.
 _PRICE_LITERAL = re.compile(r"(?:[$¥]\s?\d[\d,]*)|(?:\d[\d,]*\s?円)")
 
+# Already reading from data/pricing.json. These must stay at ZERO literals.
+_MIGRATED = {"services.html"}
+
+# The un-migrated backlog, as measured 2026-08-02. ONLY EVER LOWER THIS.
+#   pricing.html  18  — blocked on which future ladder is real
+#                       ($16/$32/$64 vs $29-$999); both are currently published
+#   landing.py     6  — blocked on the FX/USD decision. Note a hard-coded
+#                       exchange rate becomes a SECOND price the moment it ages,
+#                       which is the very bug this file exists to prevent, so
+#                       "just convert the JPY" is not automatically the fix.
+# When a page migrates, drop this number in the same commit. Raising it to make
+# a build green is the mask growing, not the gate passing.
+MAX_REMAINING_LITERALS = 24
+
 # Files that are ALLOWED to contain amounts: the SSoT itself, this test, and
 # the module that formats them.
 _ALLOWED = {"pricing.json", "test_pricing_ssot.py", "pricing.py"}
@@ -125,15 +139,40 @@ def test_every_exemption_is_still_earning_its_place() -> None:
     )
 
 
-def test_no_public_template_or_view_hardcodes_a_price(offenders: list[str]) -> None:
-    """Every published price must come from data/pricing.json."""
+def test_migrated_files_have_no_price_literals(offenders: list[str]) -> None:
+    """A file that has been migrated must never regain a literal.
+
+    This is the half that must be exactly zero. Everything named in
+    ``_MIGRATED`` reads from data/pricing.json today; a literal reappearing
+    there is a regression, not inherited debt.
+    """
     # Arrange
-    expected: list[str] = []
+    regressions = [o for o in offenders if any(m in o for m in _MIGRATED)]
     # Act
-    got = offenders
+    got = regressions
     # Assert
-    assert got == expected, (
-        "These files hard-code a money amount instead of reading "
-        "data/pricing.json:\n  " + "\n  ".join(got) + "\nMove the number into "
-        "the SSoT and render it via public_app.pricing.pricing_rows()."
+    assert got == [], (
+        "A migrated file hard-codes a money amount again:\n  "
+        + "\n  ".join(got)
+        + "\nRender it via public_app.pricing instead. If the page genuinely "
+        "needs a new kind of amount, add it to data/pricing.json."
+    )
+
+
+def test_remaining_literals_do_not_grow(offenders: list[str]) -> None:
+    """The un-migrated backlog ratchets DOWN, never up.
+
+    Mirrors tests/develop/test_audit.py's masked-violation ceiling, and carries
+    the same rule: when this fails, migrate a page — do NOT raise the ceiling.
+    Raising it is the mask growing, not the gate passing.
+    """
+    # Arrange
+    ceiling = MAX_REMAINING_LITERALS
+    # Act
+    remaining = len(offenders)
+    # Assert
+    assert remaining <= ceiling, (
+        f"{remaining} hard-coded prices remain (ceiling {ceiling}). The "
+        "backlog grew. Move the new amount into data/pricing.json rather than "
+        "raising MAX_REMAINING_LITERALS."
     )

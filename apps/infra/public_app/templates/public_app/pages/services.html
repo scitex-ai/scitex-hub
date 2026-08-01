@@ -141,10 +141,12 @@
                         </tr>
                         <tr>
                             <th scope="row">料金の目安</th>
-                            {# Resolved from data/pricing.json via each plan's
-                               price_ref. These three bands also appear in the
-                               mobile cards below; before the SSoT they were
-                               hand-typed in both places and could disagree. #}
+                            {% comment %}
+                            Resolved from data/pricing.json via each plan's
+                            price_ref. These three bands also appear in the
+                            mobile cards below; before the SSoT they were
+                            hand-typed in both places and could disagree.
+                            {% endcomment %}
                             {% for plan in pricing_plans %}<td class="svc-plan-price">{{ plan.price }}</td>{% endfor %}
                         </tr>
                     </tbody>
@@ -297,9 +299,15 @@
                     <thead>
                         <tr><th scope="col">内容</th><th scope="col">料金の目安</th></tr>
                     </thead>
-                    {# Amounts come from data/pricing.json. Never write a literal
-                       price here — /services/ and /landing/ drifted 2.7x apart
-                       exactly because each page kept its own copy. #}
+                    {% comment %}
+                    Amounts come from data/pricing.json. Never write a literal
+                    price here — /services/ and /landing/ drifted 2.7x apart
+                    exactly because each page kept its own copy.
+                    MUST be {% comment %}, not a multi-line {# #}: Django's
+                    tag_re has no re.DOTALL, so a multi-line hash comment is not
+                    a comment at all — it renders as visible text AND
+                    interpolates the variables inside it.
+                    {% endcomment %}
                     <tbody>
                         {% for row in pricing_rows %}
                         <tr><td>{{ row.label }}</td><td class="svc-price-cell">{{ row.price }}</td></tr>
