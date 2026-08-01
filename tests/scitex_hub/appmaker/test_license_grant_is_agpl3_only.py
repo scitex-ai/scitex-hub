@@ -27,7 +27,7 @@ from pathlib import Path
 
 import pytest
 
-REPO = Path(__file__).resolve().parents[2]
+REPO = Path(__file__).resolve().parents[3]
 
 # Where the AGPL's own body ends and the copy-paste template begins.
 _HOWTO_HEADING = "How to Apply These Terms to Your New Programs"
