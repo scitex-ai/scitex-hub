@@ -189,7 +189,31 @@ def test_end_of_options_blocks_output_file_write(tmp_path):
 
 
 def test_end_of_options_makes_git_reject_bogus_rev(tmp_path):
-    """GREEN corollary: git errors on the ``--output=`` token instead of honouring it."""
+    """GREEN corollary: git REFUSES the ``--output=`` token instead of honouring it.
+
+    This asserted ``result.returncode != 0`` until 2026-07-30. That is a proxy
+    for refusal, and it is GIT-VERSION-DEPENDENT: on the version running on
+    `spartan-cpu-scitex-hub-01` git prints
+
+        fatal: option '--output=...' must come before non-option arguments
+
+    to stderr and still exits 0, so the assertion failed while git was in fact
+    refusing exactly as intended. That made this a GREEN-BY-MACHINE gate — it
+    passed or failed according to which runner picked up the job, blocking
+    unrelated PRs and telling us nothing about the security property.
+
+    The security property itself is asserted by
+    ``test_end_of_options_blocks_output_file_write`` above (the file is never
+    written) and was passing throughout. What this corollary uniquely adds is
+    that git *complained* rather than silently treating the token as a
+    pathspec, so it now asserts refusal in a version-stable way: a non-zero
+    exit OR a fatal on stderr, AND the file still absent.
+
+    Both halves are required. Without the "no file" half, a future git that
+    errored for some unrelated reason while still writing the file would pass.
+    Without the "refused" half, a git that silently ignored the token would
+    pass. Neither alone is the invariant.
+    """
     # Arrange
     repo = _init_repo(tmp_path)
     target = tmp_path / "pwned_rc.txt"
@@ -199,7 +223,13 @@ def test_end_of_options_makes_git_reject_bogus_rev(tmp_path):
         cwd=repo, capture_output=True, text=True,
     )
     # Assert
-    assert result.returncode != 0
+    refused = result.returncode != 0 or "fatal" in result.stderr.lower()
+    assert refused and not target.exists(), (
+        "git neither refused the --output= token nor left the file unwritten: "
+        f"returncode={result.returncode!r}, stderr={result.stderr.strip()!r}, "
+        f"target_exists={target.exists()}. After --end-of-options git must "
+        "treat --output= as a rev/pathspec and must never write that file."
+    )
 
 
 # EOF
