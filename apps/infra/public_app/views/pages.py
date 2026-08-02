@@ -293,12 +293,30 @@ def pricing(request):
     """
     from django.conf import settings
 
+    from ..pricing import format_amount, load_pricing
+
+    # The page showed twelve USD amounts while /services/ showed JPY -- two
+    # LIVE public pages quoting different currencies for the same product,
+    # measured on prod 2026-08-03 (/pricing/ 18 "$" and 0 "円"; /services/ 0
+    # "$" and 16 "円"). Operator directive, repeated: prices are JPY, from one
+    # source of truth. So the "free" label is rendered by the same function
+    # that renders every other price rather than typed into the template --
+    # format_amount() is the one place deciding that a zero amount reads as
+    # 無料 rather than as a zero with a currency symbol.
+    pricing_data = load_pricing()
+
     return render(
         request,
         "public_app/pages/pricing.html",
         {
             "billing_plans": settings.BILLING_PLANS,
             "stripe_configured": bool(settings.STRIPE_SECRET_KEY),
+            "free_price": format_amount(0),
+            # Not cosmetic: pricing.json's _subscription_status is the key that
+            # keeps this page, BILLING_PLANS (empty) and the 特商法 disclosure
+            # (「有料プランは現在準備中です」) saying the SAME thing. A site that
+            # both denies and advertises paid plans is the defect being fixed.
+            "subscription_state": pricing_data["_subscription_status"]["state"],
         },
     )
 

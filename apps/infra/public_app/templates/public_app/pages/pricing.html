@@ -92,7 +92,7 @@
                 <div class="pricing-header">
                     <h3 class="plan-name">Visitor</h3>
                     <div class="plan-price">
-                        <span class="price">$0</span>
+                        <span class="price">{{ free_price }}</span>
                     </div>
                     <p class="plan-description">No signup required</p>
                 </div>
@@ -124,7 +124,7 @@
                 <div class="pricing-header">
                     <h3 class="plan-name">Registered</h3>
                     <div class="plan-price">
-                        <span class="price">$0</span>
+                        <span class="price">{{ free_price }}</span>
                     </div>
                     <p class="plan-description">Free signup</p>
                 </div>
@@ -156,8 +156,7 @@
                 <div class="pricing-header">
                     <h3 class="plan-name">Pro</h3>
                     <div class="plan-price">
-                        <span class="price"><s>$16</s> $0</span>
-                        <span class="period">/ mo</span>
+                        <span class="price">{{ free_price }}</span>
                     </div>
                     <p class="plan-description">Individual researchers</p>
                 </div>
@@ -189,8 +188,7 @@
                 <div class="pricing-header">
                     <h3 class="plan-name">Team / Lab</h3>
                     <div class="plan-price">
-                        <span class="price"><s>$32</s> $0</span>
-                        <span class="period">/ user / mo</span>
+                        <span class="price">{{ free_price }}</span>
                     </div>
                     <p class="plan-description">Research teams</p>
                 </div>
@@ -222,8 +220,7 @@
                 <div class="pricing-header">
                     <h3 class="plan-name">Enterprise</h3>
                     <div class="plan-price">
-                        <span class="price"><s>$64</s> $0</span>
-                        <span class="period">/ mo</span>
+                        <span class="price">{{ free_price }}</span>
                     </div>
                     <p class="plan-description">Institutions</p>
                 </div>
@@ -272,17 +269,11 @@
                     </tr>
                     <tr>
                         <td>Price</td>
-                        <td>$0/mo</td>
-                        <td class="featured-col">$0/mo</td>
-                        <td>
-                            <s>$16</s> $0/mo
-                        </td>
-                        <td>
-                            <s>$32</s> $0/user/mo
-                        </td>
-                        <td>
-                            <s>$64</s> $0/mo
-                        </td>
+                        <td>{{ free_price }}</td>
+                        <td class="featured-col">{{ free_price }}</td>
+                        <td>{{ free_price }}</td>
+                        <td>{{ free_price }}</td>
+                        <td>{{ free_price }}</td>
                     </tr>
                     <!-- Resources -->
                     <tr class="section-header">
@@ -528,8 +519,27 @@
                         <td class="featured-col">
                             <i class="fas fa-times"></i>
                         </td>
-                        <td>$10/mo</td>
-                        <td>$20/user/mo</td>
+                        {% comment %}
+                        AI credit allowances were quoted here as monthly and per-user USD
+                        amounts -- an entitlement of paid tiers that pricing.json records
+                        as `not_offered` and that 特商法 states are 準備中. Quoting a price
+                        for a plan nobody can buy, in a currency the site no longer uses,
+                        is the same contradiction this page is being fixed for.
+
+                        The amounts are deliberately NOT restated in this comment: the
+                        SSoT guard scans every public template for price literals, and a
+                        literal inside a comment counts exactly the same as one inside a
+                        <td>. Naming them here would keep this file off the migrated list
+                        forever, for prose nobody renders.
+
+                        {% comment %}, NOT a multi-line {# #}: Django's tag_re has no
+                        re.DOTALL, so a {# #} spanning lines is NOT a comment -- it
+                        RENDERS as visible text and interpolates what is inside it. That
+                        has now happened three times in this repo, and I wrote a fourth
+                        one here before catching it.
+                        {% endcomment %}
+                        <td>{% trans "準備中" %}</td>
+                        <td>{% trans "準備中" %}</td>
                         <td>Custom</td>
                     </tr>
                     <!-- Collaboration -->

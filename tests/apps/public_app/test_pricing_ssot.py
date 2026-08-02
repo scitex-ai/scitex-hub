@@ -28,18 +28,31 @@ PUBLIC_APP = REPO / "apps" / "infra" / "public_app"
 _PRICE_LITERAL = re.compile(r"(?:[$¥]\s?\d[\d,]*)|(?:\d[\d,]*\s?円)")
 
 # Already reading from data/pricing.json. These must stay at ZERO literals.
-_MIGRATED = {"services.html"}
+_MIGRATED = {"services.html", "pricing.html"}
 
-# The un-migrated backlog, as measured 2026-08-02. ONLY EVER LOWER THIS.
-#   pricing.html  18  — blocked on which future ladder is real
-#                       ($16/$32/$64 vs $29-$999); both are currently published
-#   landing.py     6  — blocked on the FX/USD decision. Note a hard-coded
-#                       exchange rate becomes a SECOND price the moment it ages,
-#                       which is the very bug this file exists to prevent, so
-#                       "just convert the JPY" is not automatically the fix.
+# The un-migrated backlog, as measured 2026-08-03. ONLY EVER LOWER THIS.
+#   landing.py     6  — the add-on prices in premium_subscription(). MEASURED
+#                       2026-08-03: this view is NOT ROUTED. `git grep
+#                       premium_subscription` finds it exported in views/
+#                       __init__.py and named in two READMEs, and in no urlconf;
+#                       /premium-subscription/ and /premium/ both return 404 on
+#                       prod, against a control bogus path that also returns 404.
+#                       So these six are dead code, not a live contradiction —
+#                       which is why they are the LAST thing to fix, not the
+#                       first, and why the earlier framing of this as "/landing/
+#                       advertises USD tiers to the public" was wrong. The live
+#                       /landing/ serves zero price literals.
 # When a page migrates, drop this number in the same commit. Raising it to make
 # a build green is the mask growing, not the gate passing.
-MAX_REMAINING_LITERALS = 24
+#
+# WHY THIS DROPPED 24 -> 6: /pricing/ was the LIVE half of the currency split.
+# Measured on prod 2026-08-03, before the fix:
+#     https://scitex.ai/pricing/    18 "$" literals,  0 "円"
+#     https://scitex.ai/services/    0 "$" literals, 16 "円"
+# Two live public pages, two currencies, same product. /pricing/ now renders its
+# free label through pricing.format_amount(), so both pages answer in JPY from
+# one file.
+MAX_REMAINING_LITERALS = 6
 
 # Files that are ALLOWED to contain amounts: the SSoT itself, this test, and
 # the module that formats them.
