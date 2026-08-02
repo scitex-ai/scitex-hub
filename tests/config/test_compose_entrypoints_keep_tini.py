@@ -29,6 +29,19 @@ docker_prod/docker-compose.yml above celery_worker, in prose that explains the
 exact failure mode — and django in that same file still had the bug, as did all
 of staging. A rule that must be remembered is forgotten precisely when it
 matters, so this is a gate instead.
+
+WHY THIS FILE LIVES UNDER ``tests/config/`` AND NOT ``tests/deployment/``.
+It was written as ``tests/deployment/`` and CI rejected it — correctly. PS-302
+masks a FIXED list of legacy top-level ``tests/`` subdirectories, so a new one
+is a new violation, and the audit ratchet caught it: masked went 151 -> 152
+against a ceiling of 151. The ratchet's own message is the right instruction —
+"fix the violations, or trade an existing SKIP_RULES entry out so the total does
+not rise. Do not raise the ceiling — that is the mask growing, not the gate
+passing." Raising the ceiling by one would have been a two-character edit and
+would have widened the deferral permanently to spare me a file move.
+Compose files are configuration, ``tests/config/`` already holds the mount test,
+and the path depth is identical, so nothing here changes. Do not "tidy" this
+back into a deployment/ directory of its own without retiring PS-302 first.
 """
 
 from pathlib import Path
