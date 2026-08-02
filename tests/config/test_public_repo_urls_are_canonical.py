@@ -81,7 +81,29 @@ _FORBIDDEN = {
     "github.com/ywatanabe1989/scitex-dataset": "301 -> scitex-ai/scitex-dataset",
     "github.com/ywatanabe1989/scitex-todo": "301 -> scitex-ai/scitex-cards",
     "github.com/ywatanabe1989/scitex-ui": "301 -> scitex-ai/scitex-ui",
+    # Added after #532. It qualified under the same redirect-confirmed rule as
+    # every entry above, and #532 still missed it -- because this list was built
+    # from the strings a sweep happened to surface, while _SCAN_DIRS covers the
+    # whole public tree. The gate's FILE SCOPE was right and its STRING LIST was
+    # short, so it went green over a file it was reading. Found by auditing every
+    # distinct github URL in the corpus instead of trusting the earlier list.
+    "github.com/ywatanabe1989/emacs-claude-code": "301 -> scitex-ai/emacs-claude-code",
 }
+
+# KNOWN-DEAD, NOT PINNED, and this list is documentation rather than enforcement.
+# Each 404s with no measurable successor, so the fix is a product decision --
+# delete the row, or name what replaced it. Encoding a guess here would make the
+# guess permanent, which is the failure this whole file exists to prevent.
+# Measured anonymously 2026-08-03 (controls: anthropics 200, bogus repo 404):
+#     SciTex-AI/SciTeX-Engine   SciTex-AI/SciTeX-Doc    SciTex-AI/SciTeX-Viz
+#     SciTex-AI/SciTeX-Code     SciTex-AI/SciTeX-Search
+#     ywatanabe1989/scitex      ywatanabe1989/SciTeX-Vis
+#     scitex/local  <- products/local.html, a primary "View on GitHub" BUTTON;
+#                      the owner `scitex` does not exist, and neither
+#                      scitex-ai/local nor scitex-ai/scitex-local resolves.
+# NOT dead, deliberately untouched: ywatanabe1989/{SigMacro,mngs,scitex-linter}
+# are all 200 with no redirect -- separate live projects, not stale references.
+_KNOWN_DEAD_AWAITING_DECISION = 8
 
 
 def _targets():
