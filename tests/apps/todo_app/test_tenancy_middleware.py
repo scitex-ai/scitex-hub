@@ -23,8 +23,10 @@ import json
 from pathlib import Path
 
 import pytest
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, User
 from django.http import HttpResponse
+from django.middleware.csrf import get_token
 from django.test import RequestFactory, TestCase
 
 from apps.infra.project_app.models import Project
@@ -348,3 +350,241 @@ class TodoPhase1ReadOnlyGateTest(TestCase):
         response, _ = _run(request)
         # Assert
         assert response.status_code == 200
+
+
+def _csrf_post(rf, user, path, valid_token=True):
+    """A POST carrying a real CSRF token, as a browser would send it.
+
+    ``RequestFactory`` (unlike the test ``Client``) does not set
+    ``_dont_enforce_csrf_checks``, so the middleware's re-armed CSRF check
+    genuinely runs against these requests.
+
+    BOTH halves are required and it is easy to supply only one. Django takes
+    the SECRET from the ``csrftoken`` COOKIE and the presented token from the
+    ``X-CSRFToken`` HEADER, then compares them; a header alone fails with
+    "CSRF cookie not set" — which is what a browser that never received the
+    cookie would also hit, so the omission looks like a middleware bug rather
+    than a test bug. Writing the same masked token to both is valid:
+    ``CsrfViewMiddleware._get_secret`` unmasks a 64-char cookie back to the
+    secret, and the header unmasks to the same one.
+    """
+    request = rf.post(path, {})
+    request.user = user
+    request.session = {}
+    token = get_token(request)
+    request.COOKIES[settings.CSRF_COOKIE_NAME] = token
+    request.META["HTTP_X_CSRFTOKEN"] = token if valid_token else "x" * 64
+    return request
+
+
+class TodoOpenedWriteSubsetTest(TestCase):
+    """H1: DM send / react / upload are open; nothing else is.
+
+    The operator's acceptance test for phone parity is sending a DM with an
+    attachment, so these three routes must ADMIT an authenticated write —
+    and every other mutating route must still be refused.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.alice = User.objects.create_user(username="alice")
+        Project.objects.create(owner=cls.alice, name="Proj A", slug="proj-a")
+        cls.readonly_visitor = User.objects.create_user(
+            username="readonly-visitor"
+        )
+
+    def setUp(self):
+        self.rf = RequestFactory()
+
+    # --- the POSITIVE control: these three actually go through ---------
+    # Without these, every "is rejected" assertion below would also pass on
+    # a middleware that rejects EVERYTHING — the vacuous-green failure mode.
+
+    def test_dm_send_reaches_the_board(self):
+        # Arrange
+        request = _csrf_post(
+            self.rf, self.alice, "/apps/cards/dm/thread/operator"
+        )
+        # Act
+        _, captured = _run(request)
+        # Assert
+        assert captured.get("called") is True
+
+    def test_dm_send_is_not_rejected(self):
+        # Arrange
+        request = _csrf_post(
+            self.rf, self.alice, "/apps/cards/dm/thread/operator"
+        )
+        # Act
+        response, _ = _run(request)
+        # Assert
+        assert response.status_code == 200
+
+    def test_dm_reaction_reaches_the_board(self):
+        # Arrange
+        request = _csrf_post(
+            self.rf, self.alice, "/apps/cards/dm/thread/operator/reaction"
+        )
+        # Act
+        _, captured = _run(request)
+        # Assert
+        assert captured.get("called") is True
+
+    def test_dm_upload_reaches_the_board(self):
+        # Arrange
+        request = _csrf_post(self.rf, self.alice, "/apps/cards/dm/upload")
+        # Act
+        _, captured = _run(request)
+        # Assert
+        assert captured.get("called") is True
+
+    def test_opened_write_carries_the_server_resolved_store(self):
+        # Arrange — an admitted write must carry the store attribute: the
+        # upstream honours ONLY the attribute and would otherwise fail closed.
+        request = _csrf_post(
+            self.rf, self.alice, "/apps/cards/dm/thread/operator"
+        )
+        # Act
+        _, captured = _run(request)
+        # Assert
+        assert captured["store_attr"] is not None
+
+    def test_opened_write_is_scoped_to_the_writing_user(self):
+        # Arrange
+        request = _csrf_post(
+            self.rf, self.alice, "/apps/cards/dm/thread/operator"
+        )
+        # Act
+        _, captured = _run(request)
+        # Assert
+        assert "alice" in str(captured["store_attr"])
+
+    # --- the allowlist is an allowlist -------------------------------
+
+    def test_api_dispatch_catchall_stays_closed(self):
+        # Arrange — the upstream <path:endpoint> route would expose every
+        # board mutation at once; it must NOT be reachable.
+        request = _csrf_post(self.rf, self.alice, "/apps/cards/anything")
+        # Act
+        response, _ = _run(request)
+        # Assert
+        assert response.status_code == 403
+
+    def test_api_dispatch_catchall_never_reaches_the_board(self):
+        # Arrange
+        request = _csrf_post(self.rf, self.alice, "/apps/cards/anything")
+        # Act
+        _, captured = _run(request)
+        # Assert
+        assert captured.get("called") is None
+
+    def test_hooks_endpoints_stay_closed(self):
+        # Arrange
+        request = _csrf_post(self.rf, self.alice, "/apps/cards/hooks/push")
+        # Act
+        response, _ = _run(request)
+        # Assert
+        assert response.status_code == 403
+
+    def test_peer_segment_cannot_smuggle_a_second_route(self):
+        # Arrange — <str:peer> matches one segment; a nested path must not
+        # match the anchored pattern.
+        request = _csrf_post(
+            self.rf, self.alice, "/apps/cards/dm/thread/a/b/hooks/push"
+        )
+        # Act
+        response, _ = _run(request)
+        # Assert
+        assert response.status_code == 403
+
+    # --- an opened route is not an unguarded one ----------------------
+
+    def test_anonymous_cannot_write_to_an_opened_route(self):
+        # Arrange
+        request = _csrf_post(self.rf, AnonymousUser(), "/apps/cards/dm/upload")
+        # Act
+        response, _ = _run(request)
+        # Assert
+        assert response.status_code == 401
+
+    def test_anonymous_write_never_reaches_the_board(self):
+        # Arrange — an opened route is not an unauthenticated one.
+        request = _csrf_post(self.rf, AnonymousUser(), "/apps/cards/dm/upload")
+        # Act
+        _, captured = _run(request)
+        # Assert
+        assert captured.get("called") is None
+
+    def test_readonly_visitor_cannot_write_to_an_opened_route(self):
+        # Arrange
+        Project.objects.create(
+            owner=self.readonly_visitor, name="Tour", slug="tour"
+        )
+        request = _csrf_post(
+            self.rf, self.readonly_visitor, "/apps/cards/dm/thread/operator"
+        )
+        # Act
+        response, _ = _run(request)
+        # Assert
+        assert json.loads(response.content)["reason"] == "readonly-visitor"
+
+    def test_readonly_visitor_write_never_reaches_the_board(self):
+        # Arrange
+        Project.objects.create(
+            owner=self.readonly_visitor, name="Tour2", slug="tour2"
+        )
+        request = _csrf_post(
+            self.rf, self.readonly_visitor, "/apps/cards/dm/thread/operator"
+        )
+        # Act
+        _, captured = _run(request)
+        # Assert
+        assert captured.get("called") is None
+
+    def test_opened_route_without_csrf_token_is_refused(self):
+        # Arrange — the upstream dm_thread_view is @csrf_exempt and the hub
+        # authenticates by session cookie, so without this check any site
+        # the operator visits could post a DM as them.
+        request = self.rf.post("/apps/cards/dm/thread/operator", {})
+        request.user = self.alice
+        request.session = {}
+        # Act
+        response, _ = _run(request)
+        # Assert
+        assert response.status_code == 403
+
+    def test_opened_route_without_csrf_never_reaches_the_board(self):
+        # Arrange
+        request = self.rf.post("/apps/cards/dm/thread/operator", {})
+        request.user = self.alice
+        request.session = {}
+        # Act
+        _, captured = _run(request)
+        # Assert
+        assert captured.get("called") is None
+
+    def test_opened_route_with_wrong_csrf_token_is_refused(self):
+        # Arrange
+        request = _csrf_post(
+            self.rf,
+            self.alice,
+            "/apps/cards/dm/thread/operator",
+            valid_token=False,
+        )
+        # Act
+        response, _ = _run(request)
+        # Assert
+        assert response.status_code == 403
+
+    def test_opened_route_with_wrong_csrf_never_reaches_the_board(self):
+        # Arrange
+        request = _csrf_post(
+            self.rf,
+            self.alice,
+            "/apps/cards/dm/thread/operator",
+            valid_token=False,
+        )
+        # Act
+        _, captured = _run(request)
+        # Assert
+        assert captured.get("called") is None

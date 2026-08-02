@@ -40,10 +40,12 @@ non-``/todo/`` request.
 from __future__ import annotations
 
 import logging
+import re
 from importlib.util import find_spec
 from pathlib import Path
 
 from django.http import JsonResponse
+from django.middleware.csrf import CsrfViewMiddleware
 from django.shortcuts import redirect
 
 logger = logging.getLogger(__name__)
@@ -57,6 +59,34 @@ logger = logging.getLogger(__name__)
 _TODO_ROOT = "/apps/cards"
 _TODO_PREFIX = "/apps/cards/"
 _READ_METHODS = ("GET", "HEAD", "OPTIONS")
+
+# The ONLY mutating routes open on the hub. Everything else under the mount
+# keeps the phase-1 blanket rejection; this is an allowlist, never a
+# blocklist, so a new upstream write route is closed until someone adds it
+# here deliberately.
+#
+# WHY THESE THREE: the operator's acceptance test for phone parity is
+# "send a DM with an attachment" — 「読み書き送信、すべてローカルのブラウザで
+# できることと全く同一にしてください」. Send, react, upload is that test and
+# nothing more. Deliberately EXCLUDED: the api_dispatch catch-all
+# (<path:endpoint>), which would make every board mutation reachable in one
+# line, and hooks/* which are machine-to-machine and have their own callers.
+#
+# `<str:peer>` in scitex_cards._django.urls matches a single non-empty
+# segment (no "/"), so these patterns mirror the upstream routes exactly;
+# they are anchored on both ends so a suffix cannot smuggle in another route.
+# Tracks scitex_cards._django.urls:108-122 in lockstep, same contract as
+# _TODO_PREFIX above.
+_WRITABLE_PATHS = (
+    re.compile(r"^/apps/cards/dm/thread/[^/]+$"),
+    re.compile(r"^/apps/cards/dm/thread/[^/]+/reaction$"),
+    re.compile(r"^/apps/cards/dm/upload$"),
+)
+
+
+def _is_writable_path(path: str) -> bool:
+    """True only for the explicitly opened mutating routes."""
+    return any(pattern.match(path) for pattern in _WRITABLE_PATHS)
 
 # The upstream board routes that render HTML pages a browser NAVIGATES to
 # (board root, chat/DM page, legacy + board-v3 aliases); every other
@@ -102,8 +132,16 @@ class TodoBoardTenancyMiddleware:
         ):
             return self.get_response(request)
 
-        # --- Phase-1 write gate (read-only board) --------------------
-        if request.method not in _READ_METHODS:
+        # --- Write gate, part 1: reject everything not opened ---------
+        # ORDERING IS THE SAFETY PROPERTY HERE, so it is worth stating.
+        # This half only ever REJECTS, which is why it is safe before
+        # authentication. The half that ADMITS a write lives BELOW the auth
+        # and tenancy blocks — see part 2. Putting an allowlist here instead
+        # would admit the opened routes before anyone had been
+        # authenticated or scoped to a store, which is the exact inversion
+        # that makes an allowlist dangerous.
+        is_write = request.method not in _READ_METHODS
+        if is_write and not _is_writable_path(path):
             return self._write_rejection(request)
 
         # --- Tenancy: server-side store resolution -------------------
@@ -174,7 +212,66 @@ class TodoBoardTenancyMiddleware:
         params["store"] = str(store)
         request.GET = params
 
+        # --- Write gate, part 2: the opened routes, now authenticated ---
+        # Reached ONLY by _is_writable_path routes, and only after the user
+        # is authenticated (above) and the store is server-resolved (above).
+        if is_write:
+            rejection = self._reject_opened_write(request)
+            if rejection is not None:
+                return rejection
+
         return self.get_response(request)
+
+    # -----------------------------------------------------------------
+    @staticmethod
+    def _reject_opened_write(request):
+        """Guard an allowlisted write; ``None`` means let it through.
+
+        Two checks the blanket phase-1 rejection used to make unnecessary,
+        because nothing mutating ever got this far.
+
+        1. READONLY VISITOR. Shared-pool visitors must not send DMs as
+           themselves into someone else's store. Same structured #308
+           payload the rest of the site uses, so the shared frontend guard
+           renders the Sign up / Log in toast rather than a raw 403.
+
+        2. CSRF — and this one is load-bearing, not ceremony. The upstream
+           ``dm_thread_view`` is ``@csrf_exempt``
+           (scitex_cards._django.handlers.dm), and the hub authenticates
+           with a SESSION COOKIE. Cookie auth plus an exempt POST is a
+           textbook cross-site request forgery: any page the operator
+           visits could POST a DM as them, and the board would attribute it
+           to them correctly because they really were authenticated. The
+           mount's auth gate does NOT substitute for CSRF — it is precisely
+           what makes the forgery succeed.
+
+           So the exemption is re-armed here rather than accepted. Passing a
+           plain callable (no ``csrf_exempt`` attribute) makes
+           ``CsrfViewMiddleware.process_view`` enforce; ``CsrfViewMiddleware``
+           sits at settings_shared.py:284, ahead of this middleware, so
+           ``process_request`` has already populated the token and this call
+           is a check rather than a re-parse. Returns ``None`` when the
+           token is good.
+        """
+        from apps.infra.project_app.services.visitor_pool import (
+            is_readonly_visitor,
+            readonly_write_rejection,
+        )
+
+        if is_readonly_visitor(request):
+            return readonly_write_rejection("send messages", request=request)
+
+        csrf = CsrfViewMiddleware(lambda _req: None)
+        reason = csrf.process_view(request, lambda *a, **kw: None, (), {})
+        if reason is not None:
+            logger.warning(
+                "[todo-mount] CSRF rejection on opened write %s for user %s",
+                request.path,
+                getattr(getattr(request, "user", None), "username", "?"),
+            )
+            return reason
+
+        return None
 
     # -----------------------------------------------------------------
     @staticmethod
