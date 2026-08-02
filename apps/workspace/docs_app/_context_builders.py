@@ -107,6 +107,29 @@ def _get_packages_context() -> dict:
     }
 
 
+def _resolve_doc_page(doc_base, page_file: str):
+    """Resolve ``page_file`` inside ``doc_base``, or None if it escapes/is missing.
+
+    Containment is COMPONENT-WISE (``resolve()`` then ``relative_to()``), never a
+    string prefix match. A prefix match is not containment: ``/docs/pkg`` is a
+    string prefix of the sibling ``/docs/pkg-private``, so ``startswith()`` would
+    admit ``doc_base / "../pkg-private/secret"``. ``resolve()`` also collapses
+    symlinks, so a link planted inside doc_base cannot step outside it.
+
+    Returns None (never raises) so the caller falls back to index.html.
+    """
+    from pathlib import Path
+
+    if not page_file or page_file.startswith("/") or ".." in Path(page_file).parts:
+        return None
+    try:
+        target = (doc_base / page_file).resolve()
+        target.relative_to(doc_base.resolve())
+    except (ValueError, OSError, RuntimeError):
+        return None
+    return target if target.is_file() else None
+
+
 def _get_sphinx_package_context(slug: str, sphinx_page: str = None) -> dict:
     """Build context for an inline Sphinx package documentation page."""
     from ._sphinx import (
@@ -121,14 +144,21 @@ def _get_sphinx_package_context(slug: str, sphinx_page: str = None) -> dict:
     if doc_base is None:
         return {"doc_content": "<p>Documentation not available.</p>"}
 
-    # Determine which page to show
+    # Determine which page to show.
+    #
+    # SECURITY (card sec-docs-sphinx-page-traversal-latent-20260802): `sphinx_page`
+    # is `?page=` straight off the request, and docs_content() carries no
+    # @login_required — so it is attacker-controlled and unauthenticated. Joining it
+    # onto doc_base unchecked is CWE-22 path traversal.
+    # The old `.exists()` fallback was NOT a guard: it corrected an escape that
+    # MISSED and happily read one that LANDED.
     page_file = sphinx_page or "index.html"
-    target_path = doc_base / page_file
-    if not target_path.exists():
-        target_path = doc_base / "index.html"
+    target_path = _resolve_doc_page(doc_base, page_file)
+    if target_path is None:
         page_file = "index.html"
-    if not target_path.exists():
-        return {"doc_content": "<p>Documentation not built yet.</p>"}
+        target_path = doc_base / page_file
+        if not target_path.is_file():
+            return {"doc_content": "<p>Documentation not built yet.</p>"}
 
     html = target_path.read_text(encoding="utf-8")
     body = extract_sphinx_body(html, pip_name=pip_name)
