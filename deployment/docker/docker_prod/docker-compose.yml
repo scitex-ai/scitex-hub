@@ -31,7 +31,23 @@ services:
       args:
         BUILDKIT_INLINE_CACHE: 1
     image: scitex-hub-prod-django:latest
-    entrypoint: ["/root-init.sh", "/entrypoint.sh"]
+    # tini FIRST, for the same reason every other service here does it: an
+    # `entrypoint:` override REPLACES the image's ENTRYPOINT wholesale, so it
+    # silently drops the tini that Dockerfile.prod installs as PID 1. django
+    # was the one service that still had that gap — measured on prod
+    # 2026-08-03, `docker exec ... ps -p 1 -o comm=` returned `daphne`, while
+    # celery_worker correctly returned `tini`.
+    #
+    # WHY IT MATTERS HERE SPECIFICALLY: daphne installs no SIGCHLD handler, so
+    # children orphaned by the terminal path (pty.fork() + execvpe("srun", ...))
+    # accumulate as <defunct>. 95 zombies were observed in issue #148, leaking
+    # since 2026-04-15. `root-init.sh` ends in `exec gosu scitex "$@"`, so it
+    # REPLACES itself — which is precisely why PID 1 ended up as daphne with no
+    # reaper. Putting tini in front keeps it at PID 1 across that exec chain.
+    #
+    # This restores the intent of 67a02ef0f (`init: true`, on main only, never
+    # merged back to develop), in the form develop standardised on afterwards.
+    entrypoint: ["/usr/bin/tini", "--", "/root-init.sh", "/entrypoint.sh"]
     command: ["daphne", "-b", "0.0.0.0", "-p", "8000", "--access-log", "-", "--verbosity", "1", "config.asgi:application"]
     volumes:
       - static_volume:/app/staticfiles

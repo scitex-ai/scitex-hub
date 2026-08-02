@@ -24,7 +24,12 @@ services:
       args:
         BUILDKIT_INLINE_CACHE: 1
     image: scitex-hub-staging-django:latest
-    entrypoint: ["/root-init.sh", "/entrypoint.sh"]
+    # tini FIRST — an `entrypoint:` override REPLACES the image's ENTRYPOINT
+    # wholesale, silently dropping the tini Dockerfile.prod installs as PID 1.
+    # Measured on the running container 2026-08-03: PID 1 was `daphne`.
+    # `root-init.sh` ends in `exec gosu scitex "$@"`, replacing itself, which is
+    # why nothing was left to reap. Same fix and same reason as docker_prod.
+    entrypoint: ["/usr/bin/tini", "--", "/root-init.sh", "/entrypoint.sh"]
     command: ["daphne", "-b", "0.0.0.0", "-p", "8000", "--access-log", "-", "--verbosity", "1", "config.asgi:application"]
     volumes:
       - static_volume:/app/staticfiles
@@ -119,7 +124,9 @@ services:
   # ============================================
   celery_worker:
     image: scitex-hub-staging-django:latest
-    entrypoint: ["/entrypoint.sh"]
+    # tini FIRST — see the django service above. Measured 2026-08-03: PID 1 was
+    # `celery`, while the equivalent PROD worker correctly ran tini.
+    entrypoint: ["/usr/bin/tini", "--", "/entrypoint.sh"]
     command: >
       celery -A config --broker=redis://redis:6379/1 worker
       --loglevel=info
@@ -178,7 +185,9 @@ services:
   # ============================================
   celery_beat:
     image: scitex-hub-staging-django:latest
-    entrypoint: ["/entrypoint.sh"]
+    # tini FIRST — see the django service above. Measured 2026-08-03: PID 1 was
+    # `celery`, while the equivalent PROD beat correctly ran tini.
+    entrypoint: ["/usr/bin/tini", "--", "/entrypoint.sh"]
     command: celery -A config --broker=redis://redis:6379/1 beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
     volumes:
       - apps_volume:/app/.apps
