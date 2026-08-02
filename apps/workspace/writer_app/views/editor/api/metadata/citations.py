@@ -7,6 +7,11 @@ from __future__ import annotations
 import logging
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
+
+from apps.infra.project_app.services.writer_workspace_layout import (
+    get_writer_workspace_path,
+)
+
 from ...auth_utils import api_login_optional, get_user_for_request
 
 logger = logging.getLogger(__name__)
@@ -44,9 +49,9 @@ def citations_api(request, project_id):
                 return JsonResponse(
                     {"success": False, "error": "Project path not found"}, status=404
                 )
-            project_path = visitor_dir / "scitex" / "writer"
+            project_path = get_writer_workspace_path(visitor_dir)
         else:
-            project_path = Path(project.git_clone_path) / "scitex" / "writer"
+            project_path = get_writer_workspace_path(project.git_clone_path)
 
         # Path to bibliography - try multiple locations for v2.0.0-rc1
         # 1. Try manuscript bibliography (symlink to merged bibliography)

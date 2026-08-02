@@ -22,6 +22,9 @@ from django.shortcuts import redirect, render
 
 from apps.infra.project_app.models import Project
 from apps.infra.project_app.services import get_current_project
+from apps.infra.project_app.services.writer_workspace_layout import (
+    get_manuscript_path,
+)
 
 from ...models import Manuscript
 
@@ -75,7 +78,7 @@ def build_writer_context(request, current_project=None):
             manager = get_project_filesystem_manager(request.user)
             project_root = manager.get_project_root_path(current_project)
             if project_root:
-                manuscript_dir = project_root / "scitex" / "writer" / "01_manuscript"
+                manuscript_dir = get_manuscript_path(project_root)
                 if not manuscript_dir.exists():
                     # App projects: show init instruction instead of auto-creating
                     if getattr(current_project, "is_app", False):
@@ -89,7 +92,17 @@ def build_writer_context(request, current_project=None):
                                 f"Auto-initialized writer workspace for: {current_project.slug}"
                             )
                         except Exception as e:
-                            logger.warning(f"Failed to auto-initialize writer: {e}")
+                            # No silent fallback: a failed auto-init used to
+                            # be swallowed at WARNING, leaving a context that
+                            # claimed nothing was wrong while the editor
+                            # rendered empty. Surface it in BOTH rails — the
+                            # log and the template context.
+                            logger.error(
+                                "Failed to auto-initialize writer workspace for "
+                                f"{current_project.slug} at {project_root}: {e}",
+                                exc_info=True,
+                            )
+                            context["writer_init_error"] = str(e)
 
         context["manuscript"] = manuscript
         context["manuscript_id"] = manuscript.id
