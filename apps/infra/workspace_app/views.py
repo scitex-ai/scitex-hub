@@ -206,56 +206,65 @@ def _serve_dev_module(request, module):
     from django.http import HttpResponse, HttpResponseNotFound
     from django.template import engines
 
+    from scitex_app.paths import parse_dev_module_name
+
+    from apps.workspace.apps_app.models import DevInstallation
     from apps.workspace.apps_app.services.dev_app_loader import resolve_dev_template
+
+    # AUTHORISE BEFORE READING (card sec-dev-module-crosstenant-template-read-20260803).
+    # `module` comes straight off the URL, and dev apps are personal by contract —
+    # DevInstallation's own docstring: "only visible to the user who installed them".
+    # The ownership lookup below used to sit AFTER the template was resolved and
+    # gated only the context builder, so the read+render fell through for everyone:
+    # any logged-in user could render another tenant's index_partial.html.
+    #
+    # One parser, not two: this used to re-split with `split("__", 2)` while the
+    # package used `split("__")`, so the same name could parse two different ways.
+    parsed = parse_dev_module_name(module)
+    if not parsed:
+        return HttpResponseNotFound(f"Dev module '{module}' template not found")
+
+    owner, repo = parsed
+
+    # NOT wrapped in try/except: this must FAIL CLOSED. The previous code swallowed
+    # every exception, leaving dev_install None — which, before this change, still
+    # served the file. A lookup that cannot run must not degrade into "serve it".
+    dev_install = DevInstallation.objects.filter(
+        source_owner=owner,
+        source_repo=repo,
+        user=request.user,
+        is_enabled=True,
+    ).first()
+    if dev_install is None:
+        # Deliberately the SAME 404 as a missing template. A distinct "not yours"
+        # would turn this endpoint into an oracle for other users' installed apps.
+        return HttpResponseNotFound(f"Dev module '{module}' template not found")
 
     template_path = resolve_dev_template(module)
     if not template_path:
         return HttpResponseNotFound(f"Dev module '{module}' template not found")
 
-    # Parse owner/repo from dev__ prefix
-    parts = module.split("__", 2)
-    if len(parts) != 3:
-        from django.http import HttpResponseServerError
+    # Build context: run views.py context builder inside Apptainer (if available)
+    context = {"request": request}
 
-        return HttpResponseServerError(f"Invalid dev module name: {module}")
+    from apps.infra.project_app.services.project_utils import get_current_project
+    from apps.workspace.apps_app.services.dev_app_runner import run_dev_context
 
-    owner, repo = parts[1], parts[2]
-
-    # Get dev_install record
-    dev_install = None
+    current_project = None
     try:
-        from apps.workspace.apps_app.models import DevInstallation
-
-        dev_install = DevInstallation.objects.filter(
-            source_owner=owner,
-            source_repo=repo,
-            user=request.user,
-            is_enabled=True,
-        ).first()
+        current_project = get_current_project(request)
     except Exception:
         pass
 
-    # Build context: run views.py context builder inside Apptainer (if available)
-    context = {"request": request}
-    if dev_install is not None:
-        from apps.infra.project_app.services.project_utils import get_current_project
-        from apps.workspace.apps_app.services.dev_app_runner import run_dev_context
-
-        current_project = None
-        try:
-            current_project = get_current_project(request)
-        except Exception:
-            pass
-
-        extra_ctx = run_dev_context(
-            dev_install=dev_install,
-            username=request.user.username,
-            project_id=current_project.id if current_project else None,
-            project_slug=current_project.slug if current_project else "",
-            get_params=dict(request.GET),
-        )
-        context.update(extra_ctx)
-        context["current_project"] = current_project
+    extra_ctx = run_dev_context(
+        dev_install=dev_install,
+        username=request.user.username,
+        project_id=current_project.id if current_project else None,
+        project_slug=current_project.slug if current_project else "",
+        get_params=dict(request.GET),
+    )
+    context.update(extra_ctx)
+    context["current_project"] = current_project
 
     try:
         raw = template_path.read_text(encoding="utf-8")
