@@ -291,6 +291,6 @@ Reference
 ---------
 
 - `App Developer Guide <https://github.com/scitex-ai/scitex-hub/blob/main/docs/APP_DEVELOPER_GUIDE.md>`_ — full manifest schema, scaffold CLI, and frontend integration
-- `figrecipe <https://github.com/ywatanabe1989/figrecipe>`_ — reference implementation
+- `figrecipe <https://github.com/scitex-ai/figrecipe>`_ — reference implementation
 - `scitex-app <https://pypi.org/project/scitex-app/>`_ — developer CLI package
 - `scitex-ui <https://www.npmjs.com/package/@scitex/ui>`_ — shared UI components
