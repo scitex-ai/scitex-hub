@@ -62,18 +62,24 @@ from .home_state import (
     wipe_user_container_dir,
 )
 from .workspace_wipe import WorkspaceWipeError, wipe_directory_contents
+from ..writer_workspace_layout import WRITER_WORKSPACE_RELPATH
 
 logger = logging.getLogger(__name__)
 
-# Single source of truth for the template marker layout (2026-07-08
-# incident: this was ``scitex/writer`` — no dot — while the REAL
-# ``scitex_template.clone_scitex_minimal`` / ``scitex_writer
-# .ensure_workspace`` create dot-prefixed ``.scitex/writer`` +
-# ``.scitex/scholar``, so verification never passed and every slot was
-# quarantined). Verified against scitex-writer 2.17.5 and 2.26.1.
+# The template marker IS the Writer workspace directory, so it is no
+# longer spelled here — it is imported from the one module that owns
+# that path (2026-07-08 incident: this was ``scitex/writer`` — no dot —
+# while the REAL ``scitex_template.clone_scitex_minimal`` /
+# ``scitex_writer.ensure_workspace`` create dot-prefixed
+# ``.scitex/writer`` + ``.scitex/scholar``, so verification never
+# passed and every slot was quarantined; then 2026-08-02, writer_app
+# was found still carrying the undotted spelling in 8 places).
+# Verified against scitex-writer 2.17.5 and 2.26.1.
 # tests/apps/project_app/services/visitor_pool/
-# test_template_marker_reality.py locks this against the real packages.
-TEMPLATE_MARKER_RELPATH = ".scitex/writer"
+# test_template_marker_reality.py locks the VALUE against the real
+# packages, and now guards every consumer of it rather than this file
+# alone. Name kept for the pool's own vocabulary and its 8 importers.
+TEMPLATE_MARKER_RELPATH = WRITER_WORKSPACE_RELPATH
 
 
 class WorkspaceResetError(Exception):

@@ -5,6 +5,11 @@ from __future__ import annotations
 import logging
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
+
+from apps.infra.project_app.services.writer_workspace_layout import (
+    get_writer_workspace_path,
+)
+
 from ...auth_utils import api_login_optional, get_user_for_request
 
 logger = logging.getLogger(__name__)
@@ -187,8 +192,8 @@ def upload_tables(request, project_id):
             if not project_path:
                 raise ValueError(f"Project path not found for project {project.id}")
 
-        # Create upload directory: scitex/writer/uploads/tables/
-        upload_dir = project_path / "scitex" / "writer" / "uploads" / "tables"
+        # Create upload directory: .scitex/writer/uploads/tables/
+        upload_dir = get_writer_workspace_path(project_path) / "uploads" / "tables"
         upload_dir.mkdir(parents=True, exist_ok=True)
 
         # Save files

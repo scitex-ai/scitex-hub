@@ -28,6 +28,9 @@ Safety features:
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from apps.infra.project_app.models import Project
+from apps.infra.project_app.services.writer_workspace_layout import (
+    get_writer_workspace_path,
+)
 from apps.workspace.writer_app.models import Manuscript
 from apps.infra.gitea_app.api_client import GiteaClient
 import logging
@@ -206,7 +209,7 @@ class Command(BaseCommand):
                     if not project_dir.is_dir() or project_dir.name.startswith("."):
                         continue
 
-                    writer_dir = project_dir / "scitex" / "writer"
+                    writer_dir = get_writer_workspace_path(project_dir)
                     if writer_dir.exists():
                         # Check if writer directory is incomplete
                         # (has old bib_files/ structure OR missing required directories)
