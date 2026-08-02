@@ -181,7 +181,17 @@ def extract_sphinx_body(html: str, pip_name: str = "") -> str:
         # Fallback: look for just role="main"
         match = re.search(r'<div\s+role="main"[^>]*>', html)
         if not match:
-            return html  # Return full HTML if structure unrecognized
+            # Structure unrecognised. DEFENCE IN DEPTH
+            # (sec-docs-sphinx-page-traversal-latent-20260802): this function is
+            # handed whatever file the caller resolved, so returning the raw input
+            # is a disclosure primitive on its own — a plain-text file (.env, a
+            # key, /etc/passwd) would be echoed verbatim into the response.
+            # Pass through only content that actually looks like an HTML document,
+            # which preserves Sphinx themes that lack role="main"; anything else
+            # gets a placeholder rather than its contents.
+            if re.search(r"<\s*(html|body|div|section|article|h1)\b", html, re.I):
+                return html
+            return "<p>Documentation page could not be rendered.</p>"
 
     start = match.end()
     # Find the closing tags — count div nesting
