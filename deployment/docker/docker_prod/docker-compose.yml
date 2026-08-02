@@ -671,7 +671,19 @@ services:
   # Cloudflare Tunnel (replaces traditional port forwarding!)
   cloudflared:
     image: cloudflare/cloudflared:latest
-    command: tunnel --no-autoupdate run --token ${SCITEX_HUB_CLOUDFLARE_TUNNEL_TOKEN_PROD:?required — pass --env-file ../envs/.env.prod}
+    # The token goes in the ENVIRONMENT, never on the command line.
+    # `--token <secret>` placed it in argv, where a bare `ps aux` by any user on
+    # the host prints it in full -- which is how it landed in an agent transcript
+    # on 2026-08-03. Note what rotating the token would NOT have fixed: the
+    # disclosure rate is a property of the STORAGE LOCATION, so a fresh token in
+    # argv leaks again on the next `ps`. cloudflared reads TUNNEL_TOKEN from the
+    # environment for exactly this reason.
+    # Interpolation is unchanged -- ${...} still resolves at compose parse time
+    # from --env-file, so this moves WHERE the secret lands, not where it comes
+    # from.
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${SCITEX_HUB_CLOUDFLARE_TUNNEL_TOKEN_PROD:?required — pass --env-file ../envs/.env.prod}
     env_file:
       - ../envs/.env.prod
     restart: always

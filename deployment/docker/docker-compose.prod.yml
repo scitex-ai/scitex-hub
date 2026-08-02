@@ -372,7 +372,12 @@ services:
         limits:
           memory: 512M
           cpus: '0.5'
-    command: tunnel --no-autoupdate run --token ${SCITEX_HUB_CLOUDFLARE_TUNNEL_TOKEN}
+    # Token in the ENVIRONMENT, not argv -- see the long note in
+    # docker_prod/docker-compose.yml. Fixed here too even though this file
+    # launches nothing today: a dormant file is the one that gets copied.
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${SCITEX_HUB_CLOUDFLARE_TUNNEL_TOKEN}
     env_file:
       - ./envs/.env.prod
     restart: always
