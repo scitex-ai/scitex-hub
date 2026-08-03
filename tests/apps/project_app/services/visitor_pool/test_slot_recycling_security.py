@@ -135,15 +135,6 @@ NO_CONTAINER_HOST = NoContainerToolchain()
 
 
 def _base_path_for(username: str) -> Path:
-    """The visitor's ``proj/`` root, under THIS test's private BASE_DIR.
-
-    The ``isolated_visitor_data_root`` autouse fixture in this
-    directory's conftest repoints ``settings.BASE_DIR`` at a per-test
-    ``tmp_path`` before every test here. That is what makes the
-    hardcoded ``visitor-001`` identity below safe under ``pytest-xdist
-    -n auto`` — without it, ~128 workers share this one absolute path
-    and delete each other's trees mid-reset (CI run 29918531942).
-    """
     return Path(settings.BASE_DIR) / "data" / "users" / username / "proj"
 
 

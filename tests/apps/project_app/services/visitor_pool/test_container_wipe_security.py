@@ -160,14 +160,6 @@ class NoContainerToolchain:
 
 
 def _home_root_for(username: str) -> Path:
-    """The visitor's home root, under THIS test's private BASE_DIR.
-
-    The ``isolated_visitor_data_root`` autouse fixture in this
-    directory's conftest repoints ``settings.BASE_DIR`` at a per-test
-    ``tmp_path`` before every test here, so the module-level
-    ``USERNAME`` constant no longer names a directory shared by every
-    xdist worker (CI run 29918531942).
-    """
     return Path(settings.BASE_DIR) / "data" / "users" / username
 
 

@@ -103,15 +103,6 @@ def _make_slot_ready(visitor_number: int) -> VisitorAllocation:
 
 
 def _cleanup_workspace(username: str) -> None:
-    """Remove the visitor's home root from THIS test's private BASE_DIR.
-
-    The ``isolated_visitor_data_root`` autouse fixture in this
-    directory's conftest repoints ``settings.BASE_DIR`` at a per-test
-    ``tmp_path`` (autouse fixtures apply to ``django.test.TestCase``
-    classes too, and run before ``setUp``), so this ``rmtree`` can only
-    ever touch the current test's own tree — not a directory shared by
-    every xdist worker (CI run 29918531942).
-    """
     base = Path(settings.BASE_DIR) / "data" / "users" / username
     if base.exists():
         shutil.rmtree(base, ignore_errors=True)
