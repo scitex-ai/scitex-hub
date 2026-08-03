@@ -87,8 +87,28 @@ explicitly — `deploy.sh` does.
 Append to `TARGETS` in `worker.js` and redeploy. Keep the list short: this page
 answers "is SciTeX up", not "what is every component doing".
 
+## Why CrossRef is not listed
+
+CrossRef Local has no public hostname **by design**. It runs in-process inside
+django in `db` mode — the settings read the SQLite file at
+`/data/crossref/crossref.db` directly — so there is no HTTP service to probe, and
+`/server-status/` reporting it HEALTHY is correct.
+
+`crossref.scitex.ai` existed anyway, pointing at `http://crossref:3333`. Two
+things were wrong with it: no `crossref` container was ever declared by the live
+compose (`deployment/docker/docker_prod/docker-compose.yml`; it is declared only
+in the dormant `docker-compose.prod.yml`), and django expects port **31291**, not
+3333. The hostname returned 502 from the day it was created. DNS record and
+ingress rule were removed on 2026-08-03 rather than left as a permanently-red row.
+
+OpenAlex is the opposite case: the container was running and healthy on 31292 with
+no hostname at all, so `openalex.scitex.ai` was published.
+
 ## Related
 
-- Tunnel ingress carries a stale `status.sctiex.ai` rule (note the typo) pointing
-  at `http://nginx:80`. The Worker route matches ahead of the tunnel so it is
-  inert, but it should be deleted.
+- The stale `status.sctiex.ai` ingress rule (note the typo) was removed at the same
+  time. It never had a DNS record, and the Worker route matches ahead of the tunnel
+  regardless.
+- Two prod compose files have drifted; the dormant one is a copy source that
+  silently diverges. Card:
+  `hub-two-prod-compose-files-drift-crossref-never-deployed-20260803`.
