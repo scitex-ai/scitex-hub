@@ -23,7 +23,18 @@ the thing it monitors.
   have; every added component is another thing that can fail silently and make
   the status page lie.
 - **A table, not cards.** The operator asked for legibility over looks. The state
-  word (`稼働中` / `停止`) is the largest element on each row.
+  word is the largest element on each row.
+- **English by default; Japanese only via an explicit `?lang=ja`.** Deliberately
+  NOT negotiated from `Accept-Language`: this page is edge-cached, and a response
+  varying by request header is cached per-variant only if the CDN honours `Vary`,
+  which is not reliable for HTML. Measured 2026-08-03 — with negotiation in place,
+  a request carrying no `Accept-Language` was served `<html lang="ja">` from cache.
+  A status page showing the wrong language to whoever misses the cache is worse
+  than one needing a query parameter, so the URL is the single source of truth.
+- **Declared service list, filled by checks.** A failing check renders its row as
+  down; it never removes the row. A service that vanishes from the table would
+  make the page read as "no problems", which is the one failure mode a status
+  page must not have.
 - **Always HTTP 200**, including when services are down. A monitoring page that
   itself returns an error status is indistinguishable from a broken page.
 - **A redirect is healthy.** `scitex.ai/` 302s to `/landing/`; only 5xx and
@@ -44,7 +55,14 @@ the thing it monitors.
 | `/api/status` | JSON: `{ok, checked_at, services[]}`, CORS-open. |
 
 `/api/status` doubles as the independence check: it is a path only the Worker can
-serve, so a valid JSON response proves the page is not coming from the NAS.
+serve, so a valid JSON response proves the page is not coming from the NAS. It
+also reports `upstream_available`, i.e. whether the hub's own status API answered.
+
+`UPSTREAM_API` (`https://scitex.ai/api/status/`) does not exist yet. It is fetched
+optionally and the page renders fully without it, reporting its absence rather
+than hiding it — a stale internal reading presented as current is worse than none.
+When the hub ships that endpoint, its flat key/value pairs appear under Internal
+metrics with no change needed here.
 
 ## Deploying
 
