@@ -147,14 +147,40 @@ body.landing-page .mobile-top-bar {
   display: none;
 }
 
-/* ── Hide footer globally; show only on landing page ───────── */
-.global-footer,
-.site-footer {
+/* ── Hide the footer ONLY where the app shell renders ──────────
+   Deny-by-default was backwards. This used to read:
+       .global-footer, .site-footer      { display: none !important }
+       body.landing-page .site-footer    { display: block !important }
+   i.e. hide everywhere, restore on ONE allow-listed page. Every page
+   that is not /landing/ therefore shipped an invisible footer — and
+   silently, because the markup is present, so template tests, link
+   checkers and curl greps all PASS while the page is broken. Measured
+   on prod 2026-08-03: /pricing/ renders <body class=""> and its Terms,
+   Privacy, Cookies and 特定商取引法に基づく表記 links were in the DOM
+   and unreachable. That notice is a statutory disclosure for paid
+   services in Japan, on the page where the customer decides to pay.
+
+   Inverted: visible by default, hidden only where the app shell owns
+   the viewport. Keyed on `workspace-page` (which EVERY shell page
+   carries) rather than on `landing-page`, because `landing-page` means
+   two opposite things at once — "hide the app shell" AND "show the
+   footer" — and overloading it is what collapsed the launcher to 0x0
+   on 2026-07-30. See the note in templates/global_base.html, which
+   asked for exactly this fix. One class, one meaning.
+
+   Body classes as set by global_base.html:73 —
+       /landing/            workspace-page landing-page   -> shown (excluded)
+       / (anonymous)        workspace-page landing-page   -> shown (excluded)
+       / (authenticated)    workspace-page no-transition  -> hidden
+       active_module        workspace-page <module> …     -> hidden
+       /workspace/          workspace-page no-transition  -> hidden
+       /explore/            workspace-page explore-page   -> hidden
+       everything else      (empty)                       -> shown  <- the fix
+   So no app-shell page changes behaviour; only the empty-class public
+   pages flip from hidden to visible. */
+body.workspace-page:not(.landing-page) .global-footer,
+body.workspace-page:not(.landing-page) .site-footer {
   display: none !important;
-}
-body.landing-page .global-footer,
-body.landing-page .site-footer {
-  display: block !important;
 }
 
 /* ── Hide old layout remnants ──────────────────────────────── */
