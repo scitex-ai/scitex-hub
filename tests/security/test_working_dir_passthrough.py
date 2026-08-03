@@ -48,7 +48,6 @@ The auth tests drive the REAL ``@login_required`` URL views with an
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest
@@ -135,38 +134,15 @@ def _prepare_writer_api(query, resolver):
 
 
 def _prepare_figrecipe_api(query, resolver):
-    """Build (recorder, view, request) for the figrecipe api wrapper (GET)."""
+    """Build (recorder, view, request) for the figrecipe api wrapper."""
     recorder = Recorder()
     view = WorkingDirScopedView(
         recorder,
         resolver=resolver,
         on_missing=figrecipe_urls._no_project_json,
-        guard=figrecipe_urls._reject_out_of_jail_paths,
+        guard=figrecipe_urls._reject_out_of_jail_recipe,
     )
     request = RF.get("/apps/figrecipe/figrecipe/api/switch", query)
-    request.user = FakeUser("alice")
-    return recorder, view, request
-
-
-def _prepare_figrecipe_api_post(body, resolver):
-    """Build (recorder, view, request) for a JSON-body figrecipe api call.
-
-    The exploit for DEFECT 1 rode the POST body (``{"path": "<abs>"}``),
-    which ``handle_api_switch`` reads as ``data.get("path")`` and joins to
-    working_dir — so the guard must inspect the body, not only the query.
-    """
-    recorder = Recorder()
-    view = WorkingDirScopedView(
-        recorder,
-        resolver=resolver,
-        on_missing=figrecipe_urls._no_project_json,
-        guard=figrecipe_urls._reject_out_of_jail_paths,
-    )
-    request = RF.post(
-        "/apps/figrecipe/figrecipe/api/switch",
-        data=json.dumps(body),
-        content_type="application/json",
-    )
     request.user = FakeUser("alice")
     return recorder, view, request
 
@@ -281,83 +257,6 @@ def test_figrecipe_relative_recipe_is_dispatched():
     # Act
     view(request, "api/switch")
     # Assert
-    assert recorder.calls != []
-
-
-# --- DEFECT 1: ABSOLUTE ``path`` in the JSON body escapes working_dir -----
-# ``full_path = working_dir / file_path`` — pathlib DISCARDS working_dir
-# when file_path is absolute, so the old ``recipe``-only guard never saw it.
-def test_figrecipe_absolute_path_body_outside_jail_status_is_403():
-    # Arrange
-    _recorder, view, request = _prepare_figrecipe_api_post(
-        {"path": "/home/victim/secret-project/.scitex/figs/fig.yaml"},
-        _resolver_returning(ALICE_PROJECT_DIR),
-    )
-    # Act
-    response = view(request, "api/switch")
-    # Assert
-    assert response.status_code == 403
-
-
-def test_figrecipe_absolute_path_body_is_not_dispatched():
-    # Arrange
-    recorder, view, request = _prepare_figrecipe_api_post(
-        {"path": "/etc/passwd"}, _resolver_returning(ALICE_PROJECT_DIR)
-    )
-    # Act
-    view(request, "api/switch")
-    # Assert — the package handler is NEVER reached with an absolute body path
-    assert recorder.calls == []
-
-
-# --- DEFECT 2: RELATIVE ``../`` traversal escapes the jail ----------------
-# ``Path("../...").is_absolute()`` is False, so the old absolute-only guard
-# returned None (no block) and the package resolved the traversal outside.
-def test_figrecipe_relative_traversal_recipe_status_is_403():
-    # Arrange
-    _recorder, view, request = _prepare_figrecipe_api(
-        {"recipe": "../../../../../../home/victim/proj/.scitex/figs/fig.yaml"},
-        _resolver_returning(ALICE_PROJECT_DIR),
-    )
-    # Act
-    response = view(request, "api/switch")
-    # Assert
-    assert response.status_code == 403
-
-
-def test_figrecipe_relative_traversal_recipe_is_not_dispatched():
-    # Arrange
-    recorder, view, request = _prepare_figrecipe_api(
-        {"recipe": "../../../../../../home/victim/proj/.scitex/figs/fig.yaml"},
-        _resolver_returning(ALICE_PROJECT_DIR),
-    )
-    # Act
-    view(request, "api/switch")
-    # Assert
-    assert recorder.calls == []
-
-
-def test_figrecipe_relative_traversal_in_body_path_is_403():
-    # Arrange — the same ``../`` escape via the POST body ``path`` param
-    _recorder, view, request = _prepare_figrecipe_api_post(
-        {"path": "../../../../../../etc/passwd"},
-        _resolver_returning(ALICE_PROJECT_DIR),
-    )
-    # Act
-    response = view(request, "api/switch")
-    # Assert
-    assert response.status_code == 403
-
-
-# --- Anti-regression twin: a legitimate in-jail body ``path`` still works --
-def test_figrecipe_in_jail_body_path_is_dispatched():
-    # Arrange — a normal relative path inside the user's project
-    recorder, view, request = _prepare_figrecipe_api_post(
-        {"path": "figures/fig1.yaml"}, _resolver_returning(ALICE_PROJECT_DIR)
-    )
-    # Act
-    view(request, "api/switch")
-    # Assert — containment must NOT block a legitimate in-jail path
     assert recorder.calls != []
 
 

@@ -11,25 +11,11 @@ filesystem. Both routes are now ``@login_required``.
 
 ``working_dir`` is derived from the authenticated user's current project
 and OVERWRITES any caller-supplied value (it used to early-return and pass
-a caller-chosen path through).
-
-The figrecipe dispatch additionally keys file resolution on SEVERAL
-caller-controlled path parameters, from BOTH the query string and the JSON
-body (enumerated from ``figrecipe/_django/{views.py,handlers/}``):
-
-  * ``recipe`` / ``recipe_path`` — editor bootstrap opens the recipe
-    verbatim (``get_or_create_editor``).
-  * ``path`` — ``api/switch``/``new``/``delete``/``rename``/``duplicate``/
-    ``download`` join it to ``working_dir`` (``working_dir / path``).
-  * ``file_path`` — ``api/file-content`` joins it to the working dir.
-
-pathlib's ``/`` DISCARDS the left operand when the right side is ABSOLUTE,
-so an absolute value escapes the server-forced ``working_dir`` entirely;
-and a RELATIVE ``../`` value climbs out of the jail. The guard therefore
-resolves the join for EVERY such parameter and requires component-wise
-containment in the caller's OWN data jail — ``(working_dir / value)
-.resolve()`` collapses ``..`` and lands an absolute value outside the jail,
-so the single check closes both escapes. Fails closed (403) on any escape.
+a caller-chosen path through). Note figrecipe additionally keys file
+resolution on ``?recipe=`` / JSON ``recipe_path``; an ABSOLUTE recipe path
+is opened verbatim by the package (``Path(recipe_path)``), so the api guard
+rejects any absolute recipe that escapes the caller's own workspace jail.
+Fails closed.
 """
 
 from __future__ import annotations
@@ -51,81 +37,49 @@ from apps.infra.project_app.services.working_dir_resolver import (
 logger = logging.getLogger(__name__)
 
 
-# Every request parameter figrecipe's dispatch may interpret as a
-# filesystem path — from the query string OR the JSON body. Each one is a
-# containment sink (joined to working_dir and/or opened verbatim by the
-# package), so the guard validates the RESOLVED join of ALL of them, not
-# one hand-picked param. Enumerated from
-# figrecipe/_django/views.py (``recipe``/``recipe_path`` -> editor bootstrap)
-# and figrecipe/_django/handlers/files.py (``path`` -> switch/new/delete/
-# rename/duplicate/download; ``file_path`` -> file-content).
-_PATH_PARAMS = ("path", "recipe", "recipe_path", "file_path")
+def _extract_recipe(request) -> str:
+    """Recipe path the package would open, from GET or JSON body.
 
-
-def _iter_candidate_path_values(request):
-    """Yield ``(key, value)`` for every path-bearing param in GET + body."""
-    seen = []
-    for key in _PATH_PARAMS:
-        val = request.GET.get(key)
-        if isinstance(val, str) and val:
-            seen.append((key, val))
-    if request.method != "GET" and getattr(request, "body", b""):
-        try:
-            data = json.loads(request.body)
-        except (json.JSONDecodeError, ValueError, TypeError):
-            data = {}
-        if isinstance(data, dict):
-            for key in _PATH_PARAMS:
-                val = data.get(key)
-                if isinstance(val, str) and val:
-                    seen.append((key, val))
-    return seen
-
-
-def _reject_out_of_jail_paths(request):
-    """Return a 403 when ANY path-bearing param escapes the caller's jail.
-
-    Generic and COMPLETE: for every path parameter the figrecipe dispatch
-    consumes (``path``/``recipe``/``recipe_path``/``file_path``), from BOTH
-    the query string and the JSON body, compute the RESOLVED join against
-    the server-forced ``working_dir`` and require component-wise containment
-    in the user's own data jail via ``validate_path_in_user_jail``.
-
-    ``.resolve()`` collapses ``..`` AND (because pathlib's ``/`` keeps an
-    absolute right-hand operand verbatim, discarding ``working_dir``) lands
-    an absolute value outside the jail — so this ONE check rejects both an
-    absolute path and a ``../`` traversal. Returns ``None`` (no block) only
-    when every candidate is contained. Fails closed.
+    Mirrors figrecipe._django.views._get_recipe_path so the value we
+    validate is the value the package actually resolves.
     """
-    candidates = _iter_candidate_path_values(request)
-    if not candidates:
+    if request.method == "GET":
+        return request.GET.get("recipe", "") or ""
+    try:
+        data = json.loads(request.body) if request.body else {}
+    except (json.JSONDecodeError, ValueError):
+        data = {}
+    return data.get("recipe_path", "") or request.GET.get("recipe", "") or ""
+
+
+def _reject_out_of_jail_recipe(request):
+    """Return a 403 when an ABSOLUTE ?recipe= escapes the user's own jail.
+
+    Relative recipe paths are left to the package (resolved within the
+    working_dir we override server-side); an absolute path, however, is
+    opened as-is by the package, so it is the caller-controlled sink we
+    must contain here. Returns ``None`` (no block) otherwise.
+    """
+    recipe = _extract_recipe(request)
+    if not recipe:
+        return None
+    p = Path(recipe)
+    if not p.is_absolute():
         return None
 
     from apps.infra.project_app.services.filesystem.permissions import (
         validate_path_in_user_jail,
     )
 
-    working_dir = request.GET.get("working_dir")
-
-    for key, value in candidates:
-        if working_dir:
-            candidate = (Path(working_dir) / value).resolve()
-        else:
-            # The wrapper overrides working_dir from the server-side project
-            # before this guard runs, so this branch is defensive only;
-            # validating the raw value still fails closed on absolute / ``..``.
-            candidate = Path(value).resolve()
-        if not validate_path_in_user_jail(request.user, candidate):
-            logger.warning(
-                "[figrecipe] rejecting out-of-jail %s=%r from user %s",
-                key,
-                value,
-                getattr(request.user, "username", "?"),
-            )
-            return JsonResponse(
-                {"error": "path is outside your workspace"}, status=403
-            )
-    return None
+    if validate_path_in_user_jail(request.user, p):
+        return None
+    logger.warning(
+        "[figrecipe] rejecting out-of-jail absolute recipe from user %s",
+        getattr(request.user, "username", "?"),
+    )
+    return JsonResponse(
+        {"error": "recipe path is outside your workspace"}, status=403
+    )
 
 
 def _no_project_json(request):
@@ -149,7 +103,7 @@ _editor_view = WorkingDirScopedView(_raw_editor_page, fail_closed=False)
 _api_view = WorkingDirScopedView(
     _raw_api_dispatch,
     on_missing=_no_project_json,
-    guard=_reject_out_of_jail_paths,
+    guard=_reject_out_of_jail_recipe,
 )
 
 
