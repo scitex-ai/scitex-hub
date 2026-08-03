@@ -176,7 +176,7 @@ def mcp_doctor():
     import os
 
     api_key = os.environ.get("SCITEX_HUB_API_KEY")
-    base_url = os.environ.get("SCITEX_HUB_URL", "https://scitex.cloud")
+    base_url = os.environ.get("SCITEX_HUB_URL", "https://scitex.ai")
 
     if api_key:
         click.echo("  [OK] SCITEX_HUB_API_KEY configured")

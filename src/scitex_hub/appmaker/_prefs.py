@@ -1,6 +1,10 @@
-"""Per-user app preferences — stored as JSON at ~/.scitex/cloud/apps/prefs.json.
+"""Per-user app preferences — stored as JSON at ~/.scitex/hub/apps/prefs.json.
 
 No database needed. Each user has a single JSON file with per-app preferences.
+
+Path migrated from ~/.scitex/cloud/ to ~/.scitex/hub/ per ADR-0003 §A.2 (Q2=b).
+A compat symlink ~/.scitex/cloud -> ~/.scitex/hub stays for the deprecation
+window so external tooling that still hardcodes the old path keeps working.
 """
 
 from __future__ import annotations
@@ -16,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 def _default_prefs_path() -> Path:
-    return local_state.path("cloud", "apps", "prefs.json")
+    return local_state.path("hub", "apps", "prefs.json")
 
 
 def get_prefs(app_name: str, *, prefs_path: Optional[Path] = None) -> dict[str, Any]:

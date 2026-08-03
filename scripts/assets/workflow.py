@@ -114,7 +114,7 @@ def _add_output_boxes(d):
         "cloud_box",
         "Cloud",
         subtitle="Web Interface and collaboration",
-        content=["scitex.cloud", "https://scitex.ai", "self-host"],
+        content=["scitex.ai", "self-host"],
         bullet="circle",
         shape="stadium",
         emphasis="muted",
