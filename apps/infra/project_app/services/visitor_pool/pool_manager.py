@@ -124,11 +124,53 @@ class PoolAllocator:
             if result[0] is not None:
                 return result
 
-        # Find free visitor slot
-        for i in range(1, pool_size + 1):
-            result = cls._try_allocate_slot(i, session, pool_size)
-            if result[0] is not None:
-                return result
+        # Find a free visitor slot. Two passes at most: if the first finds
+        # nothing, reclaim expired leases and look again rather than degrading
+        # this visitor while dead slots sit waiting for the periodic beat.
+        #
+        # WHY (measured on prod 2026-08-03, card
+        # hub-visitor-pool-ua-gate-admits-crawlers-20260803): a fresh allocation
+        # is a PROBATION_SECONDS (120s) provisional lease, but
+        # `cleanup-expired-visitor-allocations` fires only every 300s. An expired
+        # slot therefore stayed dead-but-unavailable for up to 120+300+20 = 440s
+        # (one per 27.5s across 16 slots), against a measured demand of one
+        # allocation per 33.1s over a 57-minute window. A ~20% margin under a
+        # bursty arrival process does not fail steadily — it fails in bursts,
+        # which is what was observed: the pool hit 16/16 four times and `ready`
+        # was 0 in 16% of samples, so roughly one arrival in six was demoted to
+        # readonly. Reaping here deletes the 300s term (120+0+20 = 140s, one per
+        # 8.8s), giving ~3.8x headroom over measured demand.
+        #
+        # This does NOT rescue the CURRENT request, and that is by design.
+        # `release_slot` sets workspace_ready=False and defers an async
+        # wipe+verify via transaction.on_commit; that reset takes 17-21s, so the
+        # second pass below will usually still find nothing and this visitor
+        # still gets readonly. The benefit accrues to the arrivals that follow.
+        # Do NOT "fix" that by making the reset synchronous — it would put a 20s
+        # wipe on the request path, which is far worse than a readonly session.
+        #
+        # Reuses PoolCleanup instead of re-deriving the staleness predicate: it
+        # shares `stale_allocation_q` with get_pool_status and the allocator, and
+        # that shared predicate is what stopped the 2026-07-09 drift where a row
+        # was "free" to one reader and "busy" to another.
+        for reap_pass in (False, True):
+            if reap_pass:
+                from .pool_cleanup import PoolCleanup
+
+                freed = PoolCleanup.cleanup_expired_allocations()
+                if not freed:
+                    # Nothing was reclaimable, so a second scan would re-read the
+                    # identical rows. Stop rather than pay a pointless pass.
+                    break
+                logger.info(
+                    f"[VisitorPool] Reaped {freed} expired slot(s) on demand "
+                    f"rather than waiting up to 300s for the periodic cleanup; "
+                    f"rescanning"
+                )
+            for i in range(1, pool_size + 1):
+                result = cls._try_allocate_slot(i, session, pool_size)
+                if result[0] is not None:
+                    return result
 
         # No slot served. Distinguish "all busy" from "free slots exist
         # but none is verified clean yet" so the readonly-visitor
