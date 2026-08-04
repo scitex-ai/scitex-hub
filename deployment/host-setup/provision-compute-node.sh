@@ -53,10 +53,25 @@
 #    non-editable scitex_ui behind, so the build never starts. A writable python
 #    env is a real prerequisite, not a nicety — this is exactly where the first
 #    version of this script stopped, and the host looked provisioned but was not.
+# 5. `command -v python3 -m pip` DOES NOT TEST PIP — it is a gate that cannot
+#    fail. `command -v` takes command NAMES and ignores trailing arguments, so
+#    it reports on `python3` alone and returns 0 on every box that ships python3
+#    (i.e. all of them). Proven with a control: `command -v python3 -m
+#    NONEXISTENT_MODULE` also returns 0. The apt step it guarded was therefore
+#    skipped on a host with neither python3-pip nor python3-venv, and step 5
+#    then died on `python3 -m venv`. It survived review because scitex-01
+#    happened to have pip 24.0 preinstalled, so the guard was never exercised.
+#    Test a MODULE by importing/running it, never by naming it to `command -v`.
+#    Note `python3 -m venv --help` is the same non-gate: the venv module is in
+#    the stdlib while ensurepip — the part venv actually needs to create an env
+#    — is split into the python3-venv package on Debian/Ubuntu. Import ensurepip.
 set -uo pipefail
 
 DATA_VOL="${DATA_VOL:-/scratch}"
-NODE_USER="${NODE_USER:-${SUDO_USER:-$USER}}"
+# `id -un` last, not $USER: with `set -u` an unset USER aborts the whole script
+# on this line, before a single check runs. USER is unset in plenty of the
+# contexts this is meant for (cron, systemd, `docker exec`, some ssh setups).
+NODE_USER="${NODE_USER:-${SUDO_USER:-${USER:-$(id -un)}}}"
 NODE_MAJOR="${NODE_MAJOR:-20}"
 VENV="${VENV:-$HOME/.venv-hub}"
 DOCKER_ROOT="${DATA_VOL}/docker"
@@ -153,8 +168,18 @@ echo "== 5. python tooling + venv =="
 # stale non-editable scitex_ui behind — so the build never starts. A writable
 # env is the actual prerequisite, and provisioning that stops at docker+node
 # leaves the host unable to build anything.
-command -v python3 -m pip >/dev/null 2>&1 || \
-    s env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3-pip python3-venv
+# TRAP 5: test the MODULES by running them. `command -v python3 -m pip` returns
+# 0 whenever python3 exists, so it never once forced this install.
+NEED_PKGS=""
+python3 -m pip --version   >/dev/null 2>&1 || NEED_PKGS="${NEED_PKGS} python3-pip"
+python3 -c 'import ensurepip' >/dev/null 2>&1 || NEED_PKGS="${NEED_PKGS} python3-venv"
+if [ -n "$NEED_PKGS" ]; then
+    echo "  installing:${NEED_PKGS}"
+    s env DEBIAN_FRONTEND=noninteractive apt-get update -qq
+    s env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq $NEED_PKGS
+else
+    echo "  python3-pip and python3-venv already present"
+fi
 if command -v uv >/dev/null; then
     echo "  uv already present"
 else
@@ -163,7 +188,18 @@ else
     rm -f /tmp/uv.$$.sh
 fi
 export PATH="$HOME/.local/bin:$PATH"
-[ -d "$VENV" ] || python3 -m venv "$VENV"
+if [ ! -d "$VENV" ]; then
+    # Say WHAT to do, not just what broke: the failure here is almost always the
+    # ensurepip split, and the package name is interpreter-versioned on Ubuntu.
+    if ! python3 -m venv "$VENV"; then
+        printf '  \033[0;31mFAIL\033[0m could not create venv at %s\n' "$VENV" >&2
+        echo "        most likely ensurepip is missing (Debian/Ubuntu splits it out)" >&2
+        echo "        fix: sudo apt-get install -y python3-venv" >&2
+        echo "             or the versioned name, e.g. python3.12-venv" >&2
+        echo "        then re-run this script; verify with --check" >&2
+        RC=1
+    fi
+fi
 echo "  venv: ${VENV}"
 
 echo "== 6. restart docker so daemon.json takes effect =="
