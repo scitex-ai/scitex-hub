@@ -20,7 +20,7 @@ Usage:
     /opt/venv-sac/bin/python scripts/qa/screenshot_all.py \
         --base https://scitex.ai --out /tmp/qa_shots [--only writer,scholar]
 """
-import argparse, os, sys
+import argparse, os, subprocess, sys
 from playwright.sync_api import TimeoutError as PWTimeoutError, sync_playwright
 
 VIEWPORTS = {"mobile": (390, 844, 2), "desktop": (1440, 900, 1)}
@@ -41,6 +41,50 @@ PANE_WAIT_MS = 12000
 # Absence of one failure mode is not presence of success: assert the thing you
 # actually require.
 SIGNED_IN_SEL = "#user-menu-toggle"
+
+
+def _warn_if_no_symbol_font():
+    """Warn when this machine cannot draw the Unicode symbols the UI uses as icons.
+
+    MEASURED 2026-08-04, and it cost a false bug report to the operator. The
+    cards board uses BARE UNICODE CHARACTERS as its icons -- the template
+    carries the likes of U+2699 gear, U+25B8 triangle, U+23F1 stopwatch -- and
+    ships no icon font at all. This capture container has 22 fonts, none with
+    symbol coverage, so Chromium substituted the missing-glyph box and the
+    screenshots showed a row of squares. I read those squares as a product
+    defect and sent them to the operator. They were an artefact of the renderer.
+
+    The failure is silent by construction: a missing glyph raises nothing, the
+    page still "renders", the run still reports success, and the artefact looks
+    exactly like a broken UI. Nothing downstream can distinguish the two -- so
+    the check belongs HERE, once, at the only point that knows.
+
+    Deliberately does NOT fail the run. Missing fonts do not invalidate layout,
+    routing, http status or session findings, which is most of what this sweep
+    measures. It marks the one conclusion these artefacts cannot support.
+    """
+    try:
+        out = subprocess.run(["fc-list"], capture_output=True, text=True,
+                             timeout=10).stdout
+    except Exception:
+        # No fontconfig at all: coverage cannot be established either way. Say
+        # so, rather than staying silent and implying the captures are clean.
+        print("WARNING: fc-list unavailable — symbol-font coverage UNKNOWN. Do "
+              "not read missing-glyph boxes in these captures as UI defects.",
+              file=sys.stderr)
+        return
+    if not any(k in out.lower() for k in
+               ("emoji", "symbola", "symbols", "dejavu", "freeserif")):
+        print("!" * 72, file=sys.stderr)
+        print(f"!!! NO SYMBOL/EMOJI FONT on this machine "
+              f"({len(out.splitlines())} fonts installed).", file=sys.stderr)
+        print("!!! This UI draws icons as bare Unicode characters. Without "
+              "coverage they capture as □.", file=sys.stderr)
+        print("!!! Those boxes are an artefact of THIS CONTAINER, not a site "
+              "bug — do not report them.", file=sys.stderr)
+        print("!!! Fix: install fonts-noto-core + fonts-noto-color-emoji in the "
+              "image that runs this harness.", file=sys.stderr)
+        print("!" * 72, file=sys.stderr)
 
 
 def collect_app_links(page, base, settle_ms):
@@ -150,6 +194,7 @@ def main():
         "SCITEX_HUB_QA_PASSWORD", ""
     )
     os.makedirs(args.out, exist_ok=True)
+    _warn_if_no_symbol_font()
     only = [s.strip().lower() for s in args.only.split(",") if s.strip()]
     vps = [v.strip() for v in args.viewports.split(",") if v.strip()]
 
