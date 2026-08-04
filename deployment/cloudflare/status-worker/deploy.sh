@@ -10,10 +10,17 @@ set -uo pipefail
 MODE="${1:-}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 
+# The secret files live in the OPERATOR's home. An agent container runs as a
+# different user ($HOME=/home/agent) while bind-mounting the operator's home, so
+# $HOME alone finds nothing and the deploy dead-ends on "api key not loaded" even
+# though the files are right there and readable. SCITEX_SECRETS_HOME lets the
+# caller say where they are without editing this script or faking $HOME for the
+# whole process.
+SECRETS_HOME="${SCITEX_SECRETS_HOME:-$HOME}"
 # shellcheck disable=SC1091
-source "$HOME/.bash.d/secrets/000_ENV/api_keys/50_scitex_cloudflare.src" 2>/dev/null
+source "$SECRETS_HOME/.bash.d/secrets/000_ENV/api_keys/50_scitex_cloudflare.src" 2>/dev/null
 # shellcheck disable=SC1091
-source "$HOME/.bash.d/secrets/010_scitex/99_cloudflare.src" 2>/dev/null
+source "$SECRETS_HOME/.bash.d/secrets/010_scitex/99_cloudflare.src" 2>/dev/null
 
 # Credentials are required only to UPLOAD. The dry run prints the plan and runs
 # the renderer self-check, neither of which touches Cloudflare — so demanding a
@@ -21,8 +28,8 @@ source "$HOME/.bash.d/secrets/010_scitex/99_cloudflare.src" 2>/dev/null
 # (an agent container, CI), for a run that could never have called the API.
 # Checked at the point of use instead.
 if [ "$MODE" = "--apply" ]; then
-  : "${SCITEX_CLOUDFLARE_EMAIL:?cloudflare email not loaded — source ~/.bash.d/secrets/010_scitex/99_cloudflare.src}"
-  : "${SCITEX_CLOUDFLARE_API_KEY:?cloudflare api key not loaded — source ~/.bash.d/secrets/000_ENV/api_keys/50_scitex_cloudflare.src}"
+  : "${SCITEX_CLOUDFLARE_EMAIL:?cloudflare email not loaded from $SECRETS_HOME/.bash.d/secrets/010_scitex/99_cloudflare.src — if the operator home is elsewhere, set SCITEX_SECRETS_HOME=/home/<operator>}"
+  : "${SCITEX_CLOUDFLARE_API_KEY:?cloudflare api key not loaded from $SECRETS_HOME/.bash.d/secrets/000_ENV/api_keys/50_scitex_cloudflare.src — if the operator home is elsewhere, set SCITEX_SECRETS_HOME=/home/<operator>}"
 fi
 
 ACCOUNT_ID=d76d6c5622f131502fb01672fc5a9bb3
