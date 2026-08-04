@@ -44,8 +44,14 @@ the thing it monitors.
 
 | Path | Purpose |
 |------|---------|
-| `worker.js` | The entire Worker. Module syntax, `export default { fetch }`. |
-| `deploy.sh` | Uploads `worker.js` and ensures the route exists. Idempotent. |
+| `worker.js` | Entry module: probes, page shell, translations. `export default { fetch }`. |
+| `internals.js` | Renders the hub-reported half of the page from `/api/status/`. |
+| `selftest.mjs` | Renders a fixture and fails if a section or value stops appearing. |
+| `deploy.sh` | Runs the self-check, uploads both modules, ensures the route. Idempotent. |
+
+Two modules, still **no build step**: `deploy.sh` sends each file as its own
+multipart part in one `PUT` and Cloudflare resolves `./internals.js` from the
+part filenames. No bundler, no dependencies, nothing to install.
 
 ## Endpoints
 
@@ -58,17 +64,48 @@ the thing it monitors.
 serve, so a valid JSON response proves the page is not coming from the NAS. It
 also reports `upstream_available`, i.e. whether the hub's own status API answered.
 
-`UPSTREAM_API` (`https://scitex.ai/api/status/`) does not exist yet. It is fetched
-optionally and the page renders fully without it, reporting its absence rather
-than hiding it — a stale internal reading presented as current is worse than none.
-When the hub ships that endpoint, its flat key/value pairs appear under Internal
-metrics with no change needed here.
+## Internal metrics
+
+`UPSTREAM_API` (`https://scitex.ai/api/status/`) is the JSON twin of
+`/server-status/` — the *same* collector, the same 8 s deadline, the same
+three-valued UNKNOWNs. It is served by
+`apps/infra/public_app/views/status/api/aggregate.py`.
+
+The information set matches `/server-status/` **in full** — operator, 2026-08-04:
+*"こちらと同じ情報を見やすくお願いしますね！！！！減らさないでください！！！！
+書き方、見せ方は工夫してもらって結構ですが。"* Presentation is ours to design
+(tables here, charts there); the content is not to be reduced. `selftest.mjs`
+enforces that mechanically: it fails the deploy if a section stops rendering.
+
+It is still fetched **optionally**. The outside-in half of the page must keep
+rendering when the hub is unreachable — that is the incident this page exists for
+— so a missing upstream is reported, never hidden. Three degradations, each
+stated on the page rather than shown as blank:
+
+| Situation | What the page says |
+|-----------|--------------------|
+| Hub did not answer | Internal metrics unavailable; outside checks unaffected |
+| Answered in an unknown schema | Refuses to render, and names the schema it saw |
+| Answered, some checks timed out | Renders the rest; names the timed-out checks as UNKNOWN |
+
+**Exposure is unchanged by construction.** The payload is the same `status_data`
+the `/server-status/` template already renders, built from the same
+`_CHECK_PLACEMENTS` registry — and `/server-status/` is itself public and
+unauthenticated. Checks outside that registry (`check_citation_graph`,
+`check_user_data_permissions`) are called by neither the page nor the API.
 
 ## Deploying
 
 ```bash
-./deploy.sh          # dry run: shows what would be uploaded
-./deploy.sh --apply  # upload + ensure route
+./deploy.sh          # dry run: runs the self-check, shows what would be uploaded
+./deploy.sh --apply  # self-check, upload both modules, ensure route, verify live
+```
+
+The self-check runs in **both** modes and aborts the deploy on failure. Run it
+alone while editing:
+
+```bash
+node selftest.mjs
 ```
 
 Credentials come from the operator's shell secret files; `deploy.sh` sources them

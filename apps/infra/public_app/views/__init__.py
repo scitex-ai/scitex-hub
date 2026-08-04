@@ -69,6 +69,7 @@ from .status import (
     server_metrics_series_api,
     server_status,
     server_status_api,
+    status_api,
     versions_api,
     visitor_enter,
     visitor_expired,
@@ -116,6 +117,7 @@ __all__ = [
     # Status
     "server_status",
     "server_status_api",
+    "status_api",
     "healthz",
     "server_health_status_api",
     "server_metrics_history_api",

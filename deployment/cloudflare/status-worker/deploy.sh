@@ -14,19 +14,47 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 source "$HOME/.bash.d/secrets/000_ENV/api_keys/50_scitex_cloudflare.src" 2>/dev/null
 # shellcheck disable=SC1091
 source "$HOME/.bash.d/secrets/010_scitex/99_cloudflare.src" 2>/dev/null
-: "${SCITEX_CLOUDFLARE_EMAIL:?cloudflare email not loaded}"
-: "${SCITEX_CLOUDFLARE_API_KEY:?cloudflare api key not loaded}"
+
+# Credentials are required only to UPLOAD. The dry run prints the plan and runs
+# the renderer self-check, neither of which touches Cloudflare — so demanding a
+# key up front made `./deploy.sh` unusable anywhere the secrets are not mounted
+# (an agent container, CI), for a run that could never have called the API.
+# Checked at the point of use instead.
+if [ "$MODE" = "--apply" ]; then
+  : "${SCITEX_CLOUDFLARE_EMAIL:?cloudflare email not loaded — source ~/.bash.d/secrets/010_scitex/99_cloudflare.src}"
+  : "${SCITEX_CLOUDFLARE_API_KEY:?cloudflare api key not loaded — source ~/.bash.d/secrets/000_ENV/api_keys/50_scitex_cloudflare.src}"
+fi
 
 ACCOUNT_ID=d76d6c5622f131502fb01672fc5a9bb3
 ZONE_ID=d075a7ed6e3b3b00ec931124c4b09509
 SCRIPT_NAME=scitex-status
 ROUTE_PATTERN='status.scitex.ai/*'
 API=https://api.cloudflare.com/client/v4
-AUTH=(-H "X-Auth-Email: $SCITEX_CLOUDFLARE_EMAIL" -H "X-Auth-Key: $SCITEX_CLOUDFLARE_API_KEY")
+AUTH=(-H "X-Auth-Email: ${SCITEX_CLOUDFLARE_EMAIL:-}" -H "X-Auth-Key: ${SCITEX_CLOUDFLARE_API_KEY:-}")
 
 echo "script : $SCRIPT_NAME"
 echo "route  : $ROUTE_PATTERN"
 echo "source : $HERE/worker.js ($(wc -c < "$HERE/worker.js") bytes)"
+echo "         $HERE/internals.js ($(wc -c < "$HERE/internals.js") bytes)"
+
+# A GATE THAT CANNOT FAIL IS NOT A GATE. This one can: it renders a fixture
+# shaped like the real /api/status/ payload and fails the deploy if any section
+# vanishes, if a value stops appearing, or if HTML in a value is not escaped.
+# A status page that renders blank looks exactly like "nothing to report", so
+# this must run BEFORE the upload, not after.
+echo
+echo "self-check..."
+if ! node "$HERE/selftest.mjs" > /tmp/status-worker-selftest.$$ 2>&1; then
+  tail -30 /tmp/status-worker-selftest.$$
+  rm -f /tmp/status-worker-selftest.$$
+  echo
+  echo "ABORT: renderer self-check FAILED — nothing uploaded."
+  echo "Fix internals.js (or update the fixture in selftest.mjs if a hub check"
+  echo "renamed a field), then re-run. Full output: node $HERE/selftest.mjs"
+  exit 1
+fi
+echo "self-check passed ($(grep -c '^ok ' /tmp/status-worker-selftest.$$) checks)"
+rm -f /tmp/status-worker-selftest.$$
 
 if [ "$MODE" != "--apply" ]; then
   echo
@@ -40,13 +68,16 @@ printf '{"main_module":"worker.js","compatibility_date":"2025-01-01"}' > "$TMP_M
 
 echo
 echo "uploading..."
-# NOTE: ;filename=worker.js is REQUIRED. Cloudflare resolves the module by the
-# part's filename, not the form field name; without it the upload fails with
-# "No such module: worker.js".
+# NOTE: ;filename=<name> is REQUIRED on EVERY part. Cloudflare resolves modules by
+# the part's filename, not the form field name; without it the upload fails with
+# "No such module: worker.js". The same applies to each additional module —
+# worker.js imports "./internals.js", which resolves against these filenames.
+# Multiple parts is NOT a build step: no bundler, no dependencies, one PUT.
 curl -sS --max-time 60 "${AUTH[@]}" -X PUT \
   "$API/accounts/$ACCOUNT_ID/workers/scripts/$SCRIPT_NAME" \
   -F "metadata=@$TMP_META;type=application/json" \
   -F "worker.js=@$HERE/worker.js;filename=worker.js;type=application/javascript+module" \
+  -F "internals.js=@$HERE/internals.js;filename=internals.js;type=application/javascript+module" \
  | python3 -c 'import sys,json;d=json.load(sys.stdin);print("upload success=",d.get("success"));print("errors=",d.get("errors"))'
 
 echo
@@ -64,5 +95,17 @@ fi
 
 echo
 echo "verifying..."
+# upstream_available is the half that used to be missing: it reports whether the
+# hub's own /api/status/ answered, i.e. whether Internal metrics can render at
+# all. It is printed explicitly so a deploy that leaves the page half-blind is
+# visible here rather than discovered on the page.
 curl -sS --max-time 30 https://status.scitex.ai/api/status \
- | python3 -c 'import sys,json;d=json.load(sys.stdin);print("ok=",d.get("ok"));[print(" ",s["name"],s["up"],s["status"]) for s in d.get("services",[])]'
+ | python3 -c 'import sys,json
+d=json.load(sys.stdin)
+print("ok=", d.get("ok"))
+print("upstream_available=", d.get("upstream_available"))
+u=d.get("upstream") or {}
+print("upstream_schema=", u.get("schema"))
+print("upstream_complete=", u.get("complete"))
+for s in d.get("services", []):
+    print(" ", s["name"], s["up"], s["status"])'
