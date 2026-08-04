@@ -27,6 +27,7 @@
 #   DATA_VOL   volume for docker's data-root      (default: /scratch)
 #   NODE_USER  user to add to the docker group    (default: $SUDO_USER or $USER)
 #   NODE_MAJOR node major version to install      (default: 20 — MUST match CI)
+#   VENV       python venv to create              (default: ~/.venv-hub)
 #
 # TRAPS THIS ENCODES — each cost real time on scitex-01, 2026-08-04
 # -----------------------------------------------------------------
@@ -44,11 +45,20 @@
 # 3. Ubuntu 24.04 ships node 18.19; CI pins node 20 in every workflow. A node
 #    that does not match CI makes every local build result meaningless — a
 #    failure here must mean something about the code, not about version skew.
+# 4. DOCKER + NODE ALONE LEAVE THE HOST UNABLE TO BUILD. scripts/apps/install_apps.sh
+#    installs the sibling apps editable; `uv pip install --system` fails with
+#    Permission denied on /usr/local/lib/python3.12/dist-packages for a non-root
+#    user, and plain pip fails with externally-managed-environment (PEP 668).
+#    The script then correctly REFUSES to continue rather than leave a stale
+#    non-editable scitex_ui behind, so the build never starts. A writable python
+#    env is a real prerequisite, not a nicety — this is exactly where the first
+#    version of this script stopped, and the host looked provisioned but was not.
 set -uo pipefail
 
 DATA_VOL="${DATA_VOL:-/scratch}"
 NODE_USER="${NODE_USER:-${SUDO_USER:-$USER}}"
 NODE_MAJOR="${NODE_MAJOR:-20}"
+VENV="${VENV:-$HOME/.venv-hub}"
 DOCKER_ROOT="${DATA_VOL}/docker"
 MODE="${1:-}"
 
@@ -85,6 +95,12 @@ check() {
 
     id -nG "$NODE_USER" 2>/dev/null | tr ' ' '\n' | grep -qx docker \
         && ok "${NODE_USER} in docker group" || bad "${NODE_USER} not in docker group"
+
+    # Python side. scripts/apps/install_apps.sh needs a WRITABLE python env or
+    # it refuses to run — see TRAP 4.
+    command -v uv >/dev/null && ok "uv $(uv --version 2>/dev/null | awk '{print $2}')" \
+        || bad "uv missing (install_apps.sh prefers it)"
+    [ -x "${VENV}/bin/python" ] && ok "venv at ${VENV}" || bad "no venv at ${VENV}"
     return $RC
 }
 
@@ -127,10 +143,42 @@ id -nG "$NODE_USER" | tr ' ' '\n' | grep -qx docker \
     && echo "  ${NODE_USER} already in docker group" \
     || { s usermod -aG docker "$NODE_USER"; echo "  added ${NODE_USER} (effective next login)"; }
 
-echo "== 5. restart docker so daemon.json takes effect =="
+echo "== 5. python tooling + venv =="
+# WHY A VENV IS NOT OPTIONAL (TRAP 4): scripts/apps/install_apps.sh installs the
+# sibling apps editable. It tries `uv pip install --system` first, which on a
+# non-root user fails with "Permission denied" on
+# /usr/local/lib/python3.12/dist-packages, then falls back to plain pip, which
+# on Ubuntu 24.04 fails with "externally-managed-environment" (PEP 668). With
+# neither available the script correctly REFUSES to continue rather than leave a
+# stale non-editable scitex_ui behind — so the build never starts. A writable
+# env is the actual prerequisite, and provisioning that stops at docker+node
+# leaves the host unable to build anything.
+command -v python3 -m pip >/dev/null 2>&1 || \
+    s env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3-pip python3-venv
+if command -v uv >/dev/null; then
+    echo "  uv already present"
+else
+    # To a file, then run — never pipe a vendor installer straight into a shell.
+    curl -fsSL https://astral.sh/uv/install.sh -o /tmp/uv.$$.sh && sh /tmp/uv.$$.sh >/dev/null 2>&1
+    rm -f /tmp/uv.$$.sh
+fi
+export PATH="$HOME/.local/bin:$PATH"
+[ -d "$VENV" ] || python3 -m venv "$VENV"
+echo "  venv: ${VENV}"
+
+echo "== 6. restart docker so daemon.json takes effect =="
 s systemctl enable --now docker >/dev/null 2>&1
 s systemctl restart docker >/dev/null 2>&1
 sleep 4
 
 check
-exit $?
+rc=$?
+cat <<EOF
+
+NEXT (not done here — needs the repo checked out):
+  source ${VENV}/bin/activate
+  cd <repo> && bash scripts/apps/install_apps.sh && npm install && npx vite build
+Order matters: install_apps.sh BEFORE npm install, because package.json
+references file:../scitex-ui and file:../figrecipe/... as siblings.
+EOF
+exit $rc
