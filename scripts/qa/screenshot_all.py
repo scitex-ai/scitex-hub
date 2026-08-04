@@ -25,6 +25,11 @@ from playwright.sync_api import TimeoutError as PWTimeoutError, sync_playwright
 
 VIEWPORTS = {"mobile": (390, 844, 2), "desktop": (1440, 900, 1)}
 PANE_WAIT_MS = 12000
+# How long to wait for the app to actually PAINT text after it reports booted.
+# Generous on purpose: a slow paint wrongly captured is far more expensive than
+# a slow run -- it produced two false "this app is broken" reports on
+# 2026-08-04, both of which reached the operator.
+CONTENT_WAIT_MS = 15000
 
 # The DOM effect of being SIGNED IN. Emitted by
 # templates/global_base_partials/global_header.html inside
@@ -257,7 +262,7 @@ def main():
                                 storage_state=storage_state)
             for label, url in targets:
                 pg = ctx.new_page()
-                status, pane, boot = "?", "n/a", "n/a"
+                status, pane, boot, content = "?", "n/a", "n/a", "n/a"
                 full = url if url.startswith("http") else (args.base.rstrip("/") + "/" + url.lstrip("/"))
                 try:
                     resp = pg.goto(full, wait_until="commit", timeout=30000)
@@ -309,6 +314,51 @@ def main():
                             boot = f"BOOT-TIMEOUT({PANE_WAIT_MS // 1000}s)"
                         except Exception as we:
                             boot = f"WAIT-ERROR({type(we).__name__})"
+                    # WAIT FOR PAINT, NOT JUST FOR BOOT.
+                    # `body.app-ready` means the loading screen was DISMISSED;
+                    # it says nothing about whether the app drew anything. On
+                    # 2026-08-04 Scholar reported boot=ready and was then
+                    # photographed mid-paint: the PNG was blank while the DOM
+                    # already held 596 characters. I reported that blank frame
+                    # to the operator as "the content area is completely
+                    # empty". It was not empty; it was unpainted. A fixed
+                    # settle timer cannot tell those apart, and the artefact is
+                    # indistinguishable from a genuinely broken app.
+                    # So: poll the real content container until it has text,
+                    # and TRACK the outcome instead of silently proceeding.
+                    try:
+                        pg.wait_for_function(
+                            """() => {
+                              // VISIBLE PIXELS BELOW THE CHROME, not text in the DOM.
+                              // Text is the wrong signal: Scholar had 596 chars in
+                              // .library-tab-inner at 3s while the screenshot was still
+                              // blank, and a text probe also matches the tab bar, which
+                              // is always present -- so it passes on every page and
+                              // proves nothing. What actually differs is whether the
+                              // content region has been laid out with real geometry.
+                              const vh = window.innerHeight;
+                              const els = document.querySelectorAll(
+                                'main *, #ws-module-pane *, [class*="tab-content"] *');
+                              let painted = 0;
+                              for (const e of els) {
+                                const r = e.getBoundingClientRect();
+                                // Below the header band, on-screen, and big enough to
+                                // be something a user would see.
+                                if (r.top > 90 && r.top < vh && r.width > 80 && r.height > 20) {
+                                  const c = getComputedStyle(e);
+                                  if (c.visibility !== 'hidden' && c.display !== 'none' &&
+                                      parseFloat(c.opacity) > 0.1) painted++;
+                                }
+                                if (painted >= 3) return true;
+                              }
+                              return false;
+                            }""",
+                            timeout=CONTENT_WAIT_MS)
+                        content = "painted"
+                    except PWTimeoutError:
+                        content = f"NO-CONTENT({CONTENT_WAIT_MS // 1000}s)"
+                    except Exception as we:
+                        content = f"WAIT-ERROR({type(we).__name__})"
                     # VERIFY THE SESSION BY EFFECT, per captured page.
                     # The login guard above only proves the login POST
                     # succeeded once. It cannot see a session dropped later
@@ -329,11 +379,11 @@ def main():
                     fn = os.path.join(args.out, f"{vpname}__{safe}.png")
                     pg.screenshot(path=fn)
                     sess = "signed-in" if signed_in else "NOT-SIGNED-IN"
-                    print(f"[{vpname}] {label:24} {url:42} http={status}  pane={pane}  boot={boot}  session={sess}  -> {os.path.basename(fn)}")
-                    results.append((vpname, label, pane, boot, True, visitor))
+                    print(f"[{vpname}] {label:24} {url:42} http={status}  pane={pane}  boot={boot}  content={content}  session={sess}  -> {os.path.basename(fn)}")
+                    results.append((vpname, label, pane, boot, True, visitor, content))
                 except Exception as e:
-                    print(f"[{vpname}] {label:24} {url:42} http={status}  pane={pane}  boot={boot}  ERROR {type(e).__name__}: {str(e)[:80]}")
-                    results.append((vpname, label, pane, boot, False, False))
+                    print(f"[{vpname}] {label:24} {url:42} http={status}  pane={pane}  boot={boot}  content={content}  ERROR {type(e).__name__}: {str(e)[:80]}")
+                    results.append((vpname, label, pane, boot, False, False, content))
                 finally:
                     pg.close()
             ctx.close()
@@ -401,7 +451,7 @@ def main():
         print("!" * 72)
         print(f"!!! {len(bad)} capture(s) are NOT a rendered page "
               f"(spinner frame or wait failure):")
-        for vp, label, pane, boot, _, _v in bad:
+        for vp, label, pane, boot, _, _v, _c in bad:
             print(f"!!!   [{vp}] {label}  pane={pane}  boot={boot}")
         print("!" * 72)
         if args.strict:
@@ -418,7 +468,7 @@ def main():
         print("!" * 72, file=sys.stderr)
         print(f"!!! {len(leaked)} of {captured} capture(s) lack the signed-in marker "
               f"despite --login-user: the session did not hold.", file=sys.stderr)
-        for vp, label, _p, _b, _c, _v in leaked:
+        for vp, label, _p, _b, _c, _v, _ct in leaked:
             print(f"!!!   [{vp}] {label}", file=sys.stderr)
         print("!!! These screenshots are anonymous pages. Do NOT report them as a "
               "signed-in sweep, and do not grade UX from them.", file=sys.stderr)
