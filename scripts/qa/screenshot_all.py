@@ -26,6 +26,22 @@ from playwright.sync_api import TimeoutError as PWTimeoutError, sync_playwright
 VIEWPORTS = {"mobile": (390, 844, 2), "desktop": (1440, 900, 1)}
 PANE_WAIT_MS = 12000
 
+# The DOM effect of being SIGNED IN. Emitted by
+# templates/global_base_partials/global_header.html inside
+# `{% elif user.is_authenticated %}`, so it is absent for every
+# unauthenticated page kind.
+#
+# WHY A POSITIVE MARKER, NOT "the visitor badge is absent": the first version
+# of this check asserted absence of #header-visitor-badge-mobile, and it was
+# VACUOUS. That badge is gated on `is_visitor` -- a visitor-POOL session --
+# which is NOT the same state as "not logged in". A plain anonymous request is
+# routed to /landing/ and carries no badge at all, so the absence test passed
+# and the run cheerfully labelled an anonymous capture `session=signed-in`.
+# Measured against live scitex.ai before this comment was written.
+# Absence of one failure mode is not presence of success: assert the thing you
+# actually require.
+SIGNED_IN_SEL = "#user-menu-toggle"
+
 
 def collect_app_links(page, base, settle_ms):
     # "commit" not "domcontentloaded": on dev, media elements (landing
@@ -178,7 +194,13 @@ def main():
         if only:
             targets = [(l, u) for (l, u) in targets if l == "home" or any(s in l.lower() or s in u.lower() for s in only)]
         print(f"discovered {len(links)} app links; capturing {len(targets)} targets x {len(vps)} viewport(s)")
-        results = []  # (viewport, label, pane_outcome, boot_outcome, captured)
+        results = []  # (viewport, label, pane_outcome, boot_outcome, captured, is_visitor)
+        # Whether the visitor badge was observed ANYWHERE this run. Drives the
+        # control probe below: if authentication was requested and the badge
+        # never appeared, we must prove it was findable at all before reading
+        # that silence as "every page was signed in". A list so the capture
+        # loop can set it without a nonlocal declaration.
+        marker_ever_seen = [False]
         for vpname in vps:
             w, h, dsf = VIEWPORTS[vpname]
             # storage_state is THE point of the capture: without it this context
@@ -242,18 +264,78 @@ def main():
                             boot = f"BOOT-TIMEOUT({PANE_WAIT_MS // 1000}s)"
                         except Exception as we:
                             boot = f"WAIT-ERROR({type(we).__name__})"
+                    # VERIFY THE SESSION BY EFFECT, per captured page.
+                    # The login guard above only proves the login POST
+                    # succeeded once. It cannot see a session dropped later
+                    # (cookie expiry, a visitor-pool eviction, a redirect
+                    # through /landing/), and a dropped session still yields
+                    # a perfectly renderable screenshot -- of the visitor
+                    # shell. That run reports success while measuring the
+                    # wrong thing entirely.
+                    # VISITOR_BADGE_SEL is emitted inside {% if is_visitor %}
+                    # (global_header.html), so its PRESENCE is the effect of
+                    # being a visitor -- not a hidden element every page
+                    # carries.
+                    signed_in = bool(pg.query_selector(SIGNED_IN_SEL))
+                    if signed_in:
+                        marker_ever_seen[0] = True
+                    visitor = bool(args.login_user) and not signed_in
                     safe = "".join(c if c.isalnum() else "_" for c in label)[:32]
                     fn = os.path.join(args.out, f"{vpname}__{safe}.png")
                     pg.screenshot(path=fn)
-                    print(f"[{vpname}] {label:24} {url:42} http={status}  pane={pane}  boot={boot}  -> {os.path.basename(fn)}")
-                    results.append((vpname, label, pane, boot, True))
+                    sess = "signed-in" if signed_in else "NOT-SIGNED-IN"
+                    print(f"[{vpname}] {label:24} {url:42} http={status}  pane={pane}  boot={boot}  session={sess}  -> {os.path.basename(fn)}")
+                    results.append((vpname, label, pane, boot, True, visitor))
                 except Exception as e:
                     print(f"[{vpname}] {label:24} {url:42} http={status}  pane={pane}  boot={boot}  ERROR {type(e).__name__}: {str(e)[:80]}")
-                    results.append((vpname, label, pane, boot, False))
+                    results.append((vpname, label, pane, boot, False, False))
                 finally:
                     pg.close()
             ctx.close()
         b.close()
+
+    # DISCRIMINATION CONTROL for the signed-in assertion.
+    # "Every page showed the signed-in marker" is only meaningful if that
+    # marker can also be ABSENT. If the selector matched something every page
+    # carries regardless of session, the check would pass forever without
+    # measuring anything. So load the base URL with NO session and require
+    # the marker to be absent there. A marker present anonymously does not
+    # discriminate, and this run certifies nothing.
+    if args.login_user and marker_ever_seen[0]:
+        with sync_playwright() as p2:
+            b2 = p2.chromium.launch(headless=True)
+            w, h, dsf = VIEWPORTS["mobile"]
+            anon = b2.new_context(viewport={"width": w, "height": h},
+                                  device_scale_factor=dsf,
+                                  color_scheme=args.color_scheme)
+            cp = anon.new_page()
+            try:
+                cp.goto(args.base, wait_until="commit", timeout=30000)
+                cp.wait_for_timeout(args.settle_ms)
+                # Discriminates only if ABSENT without a session.
+                control_ok = not cp.query_selector(SIGNED_IN_SEL)
+            except Exception as ce:
+                control_ok = False
+                print(f"control probe errored: {type(ce).__name__}: {ce}",
+                      file=sys.stderr)
+            finally:
+                anon.close()
+                b2.close()
+        if not control_ok:
+            print("!" * 72, file=sys.stderr)
+            print(f"!!! ASSERTION IS VACUOUS: selector {SIGNED_IN_SEL} is present "
+                  f"even on an ANONYMOUS load of {args.base} (or the probe errored).",
+                  file=sys.stderr)
+            print("!!! It therefore does not distinguish signed-in from anonymous, so "
+                  "every 'signed-in' verdict above is unproven — a check that cannot "
+                  "fail is not a check.", file=sys.stderr)
+            print("!!! Fix the selector (see global_header.html, "
+                  "{% elif user.is_authenticated %}) before trusting this run.",
+                  file=sys.stderr)
+            print("!" * 72, file=sys.stderr)
+            sys.exit(4)
+        print(f"control ok: {SIGNED_IN_SEL} is absent anonymously and present on "
+              f"every capture, so 'signed-in' is a real measurement")
 
     def _bad(outcome):
         return outcome.startswith(("LOADING-TIMEOUT", "BOOT-TIMEOUT", "WAIT-ERROR"))
@@ -274,11 +356,29 @@ def main():
         print("!" * 72)
         print(f"!!! {len(bad)} capture(s) are NOT a rendered page "
               f"(spinner frame or wait failure):")
-        for vp, label, pane, boot, _ in bad:
+        for vp, label, pane, boot, _, _v in bad:
             print(f"!!!   [{vp}] {label}  pane={pane}  boot={boot}")
         print("!" * 72)
         if args.strict:
             sys.exit(1)
+
+    # A capture that shows the visitor badge while authentication was
+    # REQUESTED is an anonymous screenshot masquerading as a signed-in one.
+    # This is not a warning: it invalidates the artefact, because the whole
+    # point of --login-user is to see what a signed-in user sees. Fail
+    # regardless of --strict; --strict grades page rendering, this grades
+    # whether we measured the right session at all.
+    leaked = [r for r in results if r[4] and r[5]]
+    if args.login_user and leaked:
+        print("!" * 72, file=sys.stderr)
+        print(f"!!! {len(leaked)} of {captured} capture(s) lack the signed-in marker "
+              f"despite --login-user: the session did not hold.", file=sys.stderr)
+        for vp, label, _p, _b, _c, _v in leaked:
+            print(f"!!!   [{vp}] {label}", file=sys.stderr)
+        print("!!! These screenshots are anonymous pages. Do NOT report them as a "
+              "signed-in sweep, and do not grade UX from them.", file=sys.stderr)
+        print("!" * 72, file=sys.stderr)
+        sys.exit(5)
 
 
 if __name__ == "__main__":
