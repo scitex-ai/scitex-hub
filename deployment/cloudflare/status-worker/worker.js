@@ -21,6 +21,14 @@
 // "減らさないでください"); only the layout differs.
 
 import { renderInternals } from "./internals.js";
+import { T } from "./strings.js";
+import {
+  readHistory,
+  recordSample,
+  writeHistory,
+  renderTimeline,
+  TIMELINE_CSS,
+} from "./history.js";
 
 const UPSTREAM_API = "https://scitex.ai/api/status/";
 const PROBE_TIMEOUT_MS = 8000;
@@ -90,133 +98,6 @@ const GROUPS = [
     ],
   },
 ];
-
-const T = {
-  en: {
-    title: "SciTeX Status",
-    allUp: "All systems operational",
-    someDown: (n) => `${n} service${n === 1 ? "" : "s"} down`,
-    allDown: "All systems down",
-    colService: "Service",
-    colState: "State",
-    colResponse: "Response",
-    colTime: "Time",
-    up: "Operational",
-    down: "Down",
-    unreachable: "unreachable",
-    checked: "Last checked",
-    recheck: `re-checked every ${CACHE_SECONDS}s`,
-    edge: "This page runs on Cloudflare and stays available even when SciTeX servers are down.",
-    internals: "Internal metrics",
-    internalsMissing:
-      "The hub status API did not respond, so internal metrics are unavailable. The checks above are measured from outside and are unaffected.",
-    internalsSchema:
-      "The hub status API answered in a format this page does not know how to read, so nothing is shown rather than something wrong. Schema",
-    internalsEmpty:
-      "The hub status API answered but reported no readings at all.",
-    partial:
-      "Some hub checks did not answer within the deadline. They are shown as UNKNOWN below — not as working, and not as broken.",
-    measuredAt: "Internals measured at",
-    unavailable: "unavailable",
-    system: "System resources",
-    cpu: "CPU",
-    memory: "Memory",
-    disk: "Disk",
-    gpu: "GPU",
-    diskIo: "Disk I/O (total)",
-    netIo: "Network I/O (total)",
-    users: "Users",
-    registered: "registered (visitors excluded)",
-    cores: "cores",
-    logical: "logical",
-    available: "available",
-    used: "used",
-    none: "None available",
-    containers: "Containers",
-    apis: "Internal APIs",
-    ssh: "SSH services",
-    stores: "Data stores",
-    compute: "Compute",
-    orgs: "Git organisations",
-    packages: "Package versions",
-    visitors: "Visitor pool",
-    colDetail: "Detail",
-    colOrg: "Organisation",
-    colPackage: "Package",
-    colVersion: "Version",
-    colSlot: "Slot",
-    slot: "Slot",
-    allocated: "In use",
-    free: "Free",
-    expiresIn: "expires in",
-    minutes: "min",
-    slotsAllocated: "slots in use",
-    djangoRecordMissing: "Django record missing",
-    other: "日本語",
-  },
-  ja: {
-    title: "SciTeX ステータス",
-    allUp: "すべて稼働中",
-    someDown: (n) => `${n} 件が停止`,
-    allDown: "全システム停止",
-    colService: "サービス",
-    colState: "状態",
-    colResponse: "応答",
-    colTime: "時間",
-    up: "稼働中",
-    down: "停止",
-    unreachable: "到達不可",
-    checked: "最終確認",
-    recheck: `${CACHE_SECONDS} 秒ごとに再確認します`,
-    edge: "このページは Cloudflare 上で動作しており、SciTeX の各サーバーが停止していても表示され続けます。",
-    internals: "内部メトリクス",
-    internalsMissing:
-      "本体のステータス API が応答しなかったため、内部メトリクスは取得できていません。上の項目は外部から測定しているので影響を受けません。",
-    internalsSchema:
-      "本体のステータス API の応答形式をこのページが解釈できませんでした。誤った値を出すより何も出さない方が安全なため、表示していません。スキーマ",
-    internalsEmpty:
-      "本体のステータス API は応答しましたが、値がありませんでした。",
-    partial:
-      "一部のチェックが制限時間内に応答しませんでした。下では「不明」と表示しています（正常でも異常でもありません）。",
-    measuredAt: "内部測定時刻",
-    unavailable: "取得不可",
-    system: "システムリソース",
-    cpu: "CPU",
-    memory: "メモリ",
-    disk: "ディスク",
-    gpu: "GPU",
-    diskIo: "ディスク I/O（累計）",
-    netIo: "ネットワーク I/O（累計）",
-    users: "ユーザー",
-    registered: "登録済み（訪問者を除く）",
-    cores: "コア",
-    logical: "論理",
-    available: "利用可能",
-    used: "使用",
-    none: "なし",
-    containers: "コンテナ",
-    apis: "内部 API",
-    ssh: "SSH サービス",
-    stores: "データストア",
-    compute: "計算基盤",
-    orgs: "Git 組織",
-    packages: "パッケージ版数",
-    visitors: "訪問者スロット",
-    colDetail: "詳細",
-    colOrg: "組織",
-    colPackage: "パッケージ",
-    colVersion: "バージョン",
-    colSlot: "スロット",
-    slot: "スロット",
-    allocated: "使用中",
-    free: "空き",
-    expiresIn: "残り",
-    minutes: "分",
-    slotsAllocated: "スロット使用中",
-    djangoRecordMissing: "Django レコードなし",
-    other: "English",
-  },
-};
 
 function pickLang(request) {
   // English is the unconditional default; Japanese ONLY via an explicit ?lang=ja.
@@ -288,7 +169,19 @@ function esc(v) {
   );
 }
 
-function render(groups, upstream, checkedAt, lang) {
+// One probe round, shared by the request path and the cron recorder. They MUST
+// measure the same thing: a timeline built from a different check than the table
+// above it would let the page contradict its own history.
+async function runProbes() {
+  return Promise.all(
+    GROUPS.map(async (g) => ({
+      ...g,
+      results: await Promise.all(g.targets.map(probe)),
+    })),
+  );
+}
+
+function render(groups, upstream, checkedAt, lang, timelineHtml) {
   const t = T[lang];
   const all = groups.flatMap((g) => g.results);
   const downCount = all.filter((r) => !r.up).length;
@@ -372,6 +265,7 @@ function render(groups, upstream, checkedAt, lang) {
     body{padding:1.25rem .75rem}.headline{font-size:1.5rem}
     th,td{padding:.65rem .3rem}.num:last-child{display:none}
   }
+${TIMELINE_CSS}
 </style>
 </head>
 <body>
@@ -383,8 +277,9 @@ function render(groups, upstream, checkedAt, lang) {
   <p class="headline ${cls}">${esc(headline)}</p>
   ${sections}
   ${renderInternals(upstream, t)}
+  ${timelineHtml}
   <footer>
-    <p>${esc(t.checked)} ${esc(checkedAt)} UTC · ${esc(t.recheck)}</p>
+    <p>${esc(t.checked)} ${esc(checkedAt)} UTC · ${esc(t.recheck(CACHE_SECONDS))}</p>
     <p>${esc(t.edge)}</p>
   </footer>
 </main>
@@ -393,18 +288,44 @@ function render(groups, upstream, checkedAt, lang) {
 }
 
 export default {
-  async fetch(request) {
+  // Cron-driven recorder. This is the ONLY writer of the timeline.
+  //
+  // Recording here rather than on page views is deliberate: a traffic-driven
+  // history records when someone looked, not when things broke, and its gaps sit
+  // exactly where they matter — nobody visits a status page at 04:00 until
+  // something is already wrong.
+  //
+  // A failure here must not be swallowed. If the probe round or the KV write
+  // throws, the sample is simply missing, and a missing sample is rendered as
+  // "not measured" rather than as uptime — so the page degrades to admitting
+  // ignorance instead of inventing green.
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(
+      (async () => {
+        const groups = await runProbes();
+        const results = groups.flatMap((g) => g.results);
+        const read = await readHistory(env);
+        // A read that failed or came back in an unknown schema starts from an
+        // empty state rather than overwriting nothing — but it must never merge
+        // INTO a state it could not parse, which would silently discard history.
+        const next = recordSample(
+          read.state,
+          results,
+          new Date().toISOString(),
+        );
+        await writeHistory(env, next);
+      })(),
+    );
+  },
+
+  async fetch(request, env) {
     const url = new URL(request.url);
     const lang = pickLang(request);
 
-    const [groups, upstream] = await Promise.all([
-      Promise.all(
-        GROUPS.map(async (g) => ({
-          ...g,
-          results: await Promise.all(g.targets.map(probe)),
-        })),
-      ),
+    const [groups, upstream, history] = await Promise.all([
+      runProbes(),
       fetchUpstream(),
+      readHistory(env),
     ]);
 
     const checkedAt = new Date().toISOString().replace("T", " ").slice(0, 19);
@@ -427,6 +348,12 @@ export default {
               error,
             })),
             upstream,
+            // The timeline, machine-readable. `history_status` is reported
+            // alongside so a consumer can tell "no incidents recorded" from
+            // "history could not be read" — collapsing those two into an empty
+            // list would assert a clean record we do not have.
+            history_status: history.status,
+            incidents: history.status === "ok" ? history.state.incidents : null,
           },
           null,
           2,
@@ -441,16 +368,26 @@ export default {
       );
     }
 
-    return new Response(render(groups, upstream, checkedAt, lang), {
-      // Always 200: a monitoring page that itself returns an error status is
-      // indistinguishable from the page being broken.
-      status: 200,
-      headers: {
-        "content-type": "text/html; charset=utf-8",
-        "cache-control": `public, max-age=${CACHE_SECONDS}`,
-        "x-content-type-options": "nosniff",
-        "referrer-policy": "no-referrer",
+    const timelineHtml = renderTimeline(
+      history,
+      T[lang],
+      GROUPS,
+      checkedAt.slice(0, 10),
+    );
+
+    return new Response(
+      render(groups, upstream, checkedAt, lang, timelineHtml),
+      {
+        // Always 200: a monitoring page that itself returns an error status is
+        // indistinguishable from the page being broken.
+        status: 200,
+        headers: {
+          "content-type": "text/html; charset=utf-8",
+          "cache-control": `public, max-age=${CACHE_SECONDS}`,
+          "x-content-type-options": "nosniff",
+          "referrer-policy": "no-referrer",
+        },
       },
-    });
+    );
   },
 };

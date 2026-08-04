@@ -18,10 +18,20 @@ the thing it monitors.
 
 ## Design constraints, and why each one is here
 
-- **No KV, no cron, no build step, no dependencies.** Probes run per request and
-  are edge-cached for 60 s. One moving part is the maximum this is allowed to
-  have; every added component is another thing that can fail silently and make
-  the status page lie.
+- **No build step, no dependencies.** Probes run per request and are edge-cached
+  for 60 s. Every added component is another thing that can fail silently and
+  make the status page lie, so each one has to earn its place.
+  - **AMENDED 2026-08-05.** This bullet used to read "No KV, no cron". The
+    operator asked for a status.claude.com-style timeline, and history cannot be
+    served from a stateless Worker — so the page now uses **Workers KV** (one
+    key) and **one cron trigger** (every 5 min). The rule this amends was never
+    "no state"; it was *the status page must not die with the thing it reports
+    on*. Both additions are Cloudflare-side, so that invariant is untouched: the
+    page still answers when every SciTeX origin is unreachable.
+  - What the extra parts buy, and what they cost: they can now fail
+    independently, so both are **optional**. A missing binding, an unreadable
+    value, or an unknown schema each degrade to a stated message — never to a
+    blank section, and never to a green bar for a day nobody measured.
 - **A table, not cards.** The operator asked for legibility over looks. The state
   word is the largest element on each row.
 - **English by default; Japanese only via an explicit `?lang=ja`.** Deliberately

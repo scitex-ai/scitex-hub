@@ -216,5 +216,131 @@ try {
   check(`worker.js imports cleanly (${err && err.message})`, false);
 }
 
+// ---------------------------------------------------------------------------
+// Timeline (history.js)
+//
+// The timeline's failure mode is worse than a blank section: a bar strip that
+// shows green for days it never measured asserts uptime nobody observed. Most of
+// these checks exist to prove the renderer can tell "measured and fine" from
+// "not measured", in both directions.
+// ---------------------------------------------------------------------------
+
+const { recordSample, dayStrip, renderTimeline } = await import("./history.js");
+
+const TT = {
+  ...T,
+  timeline: "History",
+  timelineUnbound: "UNBOUND-MARKER",
+  timelineError: "HISTERR-MARKER",
+  timelineSchema: "HISTSCHEMA-MARKER",
+  timelineEmpty: "HISTEMPTY-MARKER",
+  noData: "no data",
+  samples: "samples",
+  ongoing: "ONGOING-MARKER",
+  resolved: "RESOLVED-MARKER",
+  noIncidents: "NOINCIDENT-MARKER",
+  colStarted: "Started (UTC)",
+  colDuration: "Duration",
+  colAffected: "Affected",
+  stripAria: "Daily availability",
+  overDays: (n) => `over ${n} measured days`,
+  unmeasured: (n) => `${n} days not measured`,
+  hours: "h",
+  minutes: "min",
+};
+
+const GROUPS_FIX = [
+  { targets: [{ url: "https://scitex.ai/", en: "Home" }, { url: "https://git.scitex.ai/", en: "Git hosting" }] },
+];
+const UP = [
+  { url: "https://scitex.ai/", up: true },
+  { url: "https://git.scitex.ai/", up: true },
+];
+const DOWN = [
+  { url: "https://scitex.ai/", up: false },
+  { url: "https://git.scitex.ai/", up: true },
+];
+
+// Drive a whole synthetic outage: fine, fine, down, down, recovered.
+let st = { days: {}, incidents: [], last: null };
+st = recordSample(st, UP, "2026-08-04T00:00:00.000Z");
+st = recordSample(st, UP, "2026-08-04T00:05:00.000Z");
+check("no incident opened while everything is up", st.incidents.length === 0);
+
+st = recordSample(st, DOWN, "2026-08-04T00:10:00.000Z");
+check("an incident opens on the first down sample", st.incidents.length === 1);
+check("open incident has no end", st.incidents[0].end === null);
+
+st = recordSample(st, DOWN, "2026-08-04T00:15:00.000Z");
+check(
+  "a second consecutive down sample does NOT open a second incident",
+  st.incidents.length === 1,
+);
+
+st = recordSample(st, UP, "2026-08-04T00:20:00.000Z");
+check("incident closes on recovery", st.incidents[0].end === "2026-08-04T00:20:00.000Z");
+check("incident names the affected service", st.incidents[0].services.includes("https://scitex.ai/"));
+check("recovery does not open a new incident", st.incidents.length === 1);
+
+const day = st.days["2026-08-04"];
+check("day counted every sample", day.n === 5);
+check("day counted only the down ones as down", day.down["https://scitex.ai/"] === 2);
+check("a service that stayed up has no down count", day.down["https://git.scitex.ai/"] === undefined);
+
+// THE HONESTY CHECK, and the reason most of this file exists: days we never
+// sampled must render as "nodata", never as uptime. Ask for a 3-day strip ending
+// the day AFTER the only recorded day, so one day is real and two are not.
+const strip = dayStrip(st.days, "2026-08-05", 3);
+check("strip spans the requested number of days", strip.length === 3);
+check("unmeasured days are nodata, not ok", strip.filter((d) => d.state === "nodata").length === 2);
+check("the measured day is not nodata", strip.some((d) => d.date === "2026-08-04" && d.state !== "nodata"));
+check(
+  "a day with downtime is not rendered as ok",
+  strip.find((d) => d.date === "2026-08-04").state === "down",
+);
+// NEGATIVE CONTROL for the line above: a clean day of the same shape MUST come
+// back ok, or "never ok" would pass the assertion for free.
+let clean = { days: {}, incidents: [], last: null };
+for (let i = 0; i < 3; i++) clean = recordSample(clean, UP, `2026-08-04T0${i}:00:00.000Z`);
+check(
+  "a clean day is NOT reported as down",
+  dayStrip(clean.days, "2026-08-04", 1)[0].state !== "down",
+);
+
+// Retention: a day older than the window must fall out.
+let old = { days: { "2026-01-01": { n: 288, down: {} } }, incidents: [], last: null };
+old = recordSample(old, UP, "2026-08-04T00:00:00.000Z");
+check("days beyond the retention window are pruned", old.days["2026-01-01"] === undefined);
+check("the current day survives pruning", old.days["2026-08-04"] !== undefined);
+
+// Rendering degradations — each states itself rather than showing a blank or
+// falsely-clean section.
+check("unbound storage says so", renderTimeline({ status: "unbound", state: {} }, TT, GROUPS_FIX, "2026-08-05").includes(TT.timelineUnbound));
+check("unreadable storage says so", renderTimeline({ status: "error", state: {}, detail: "boom" }, TT, GROUPS_FIX, "2026-08-05").includes(TT.timelineError));
+check("unknown history schema refuses to render", renderTimeline({ status: "schema", state: {}, detail: "v=9" }, TT, GROUPS_FIX, "2026-08-05").includes(TT.timelineSchema));
+check("empty history says so", renderTimeline({ status: "empty", state: {} }, TT, GROUPS_FIX, "2026-08-05").includes(TT.timelineEmpty));
+
+const rendered = renderTimeline({ status: "ok", state: st }, TT, GROUPS_FIX, "2026-08-05");
+check("rendered timeline labels the section", rendered.includes(TT.timeline));
+check("rendered timeline lists the incident as resolved", rendered.includes(TT.resolved));
+check("rendered timeline uses the service's display name", rendered.includes("Home"));
+check("rendered timeline reports how many days were measured", rendered.includes("measured day"));
+// Discrimination: with no incidents the table must say so and must NOT claim one.
+const noneRendered = renderTimeline({ status: "ok", state: clean }, TT, GROUPS_FIX, "2026-08-04");
+check("no-incident history says so", noneRendered.includes(TT.noIncidents));
+check("no-incident history does not render a resolved row", !noneRendered.includes(TT.resolved));
+
+// Escaping, same reason as the internals section: this page is public.
+const evil = recordSample({ days: {}, incidents: [], last: null }, [{ url: "https://x/<script>y</script>", up: false }], "2026-08-04T00:00:00.000Z");
+const evilHtml = renderTimeline({ status: "ok", state: evil }, TT, GROUPS_FIX, "2026-08-04");
+check("html in a service url is escaped in the timeline", !evilHtml.includes("<script>y</script>"));
+
+try {
+  const mod = await import("./worker.js");
+  check("worker.js exports the cron recorder", typeof mod.default?.scheduled === "function");
+} catch (err) {
+  check(`worker.js imports cleanly for the timeline check (${err && err.message})`, false);
+}
+
 console.log(failures === 0 ? "\nPASS" : `\nFAIL — ${failures} check(s)`);
 process.exit(failures === 0 ? 0 : 1);

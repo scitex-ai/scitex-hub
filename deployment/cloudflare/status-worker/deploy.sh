@@ -36,6 +36,18 @@ ACCOUNT_ID=d76d6c5622f131502fb01672fc5a9bb3
 ZONE_ID=d075a7ed6e3b3b00ec931124c4b09509
 SCRIPT_NAME=scitex-status
 ROUTE_PATTERN='status.scitex.ai/*'
+# Timeline storage. Bound into the Worker as `HISTORY` and written ONLY by the
+# cron recorder. Created 2026-08-05; `wrangler kv namespace list` or the API will
+# show it as "scitex-status-history". If this id is wrong the Worker still serves
+# — readHistory() reports the binding as missing on the page instead of throwing
+# — which is the whole reason the timeline is optional rather than required.
+KV_NAMESPACE_ID=c17c60a5302044c79eec499e171adcb0
+KV_BINDING=HISTORY
+# 5-minute sampling. The write budget is the constraint, not the resolution:
+# Workers KV allows 1000 writes/day on the free plan and one write per fire is
+# 288/day. Raising the cadence to 1 minute would be 1440/day and would silently
+# stop recording partway through each day.
+SAMPLE_CRON='*/5 * * * *'
 API=https://api.cloudflare.com/client/v4
 AUTH=(-H "X-Auth-Email: ${SCITEX_CLOUDFLARE_EMAIL:-}" -H "X-Auth-Key: ${SCITEX_CLOUDFLARE_API_KEY:-}")
 
@@ -43,6 +55,10 @@ echo "script : $SCRIPT_NAME"
 echo "route  : $ROUTE_PATTERN"
 echo "source : $HERE/worker.js ($(wc -c < "$HERE/worker.js") bytes)"
 echo "         $HERE/internals.js ($(wc -c < "$HERE/internals.js") bytes)"
+echo "         $HERE/strings.js ($(wc -c < "$HERE/strings.js") bytes)"
+echo "         $HERE/history.js ($(wc -c < "$HERE/history.js") bytes)"
+echo "kv     : $KV_BINDING -> $KV_NAMESPACE_ID"
+echo "cron   : $SAMPLE_CRON"
 
 # A GATE THAT CANNOT FAIL IS NOT A GATE. This one can: it renders a fixture
 # shaped like the real /api/status/ payload and fails the deploy if any section
@@ -71,7 +87,14 @@ fi
 
 TMP_META="$(mktemp)"
 trap 'rm -f "$TMP_META"' EXIT
-printf '{"main_module":"worker.js","compatibility_date":"2025-01-01"}' > "$TMP_META"
+# The KV binding MUST be re-declared on every upload. A Workers script upload
+# REPLACES its bindings with whatever this metadata lists — omit it once and the
+# next deploy silently unbinds HISTORY, after which the recorder writes nothing
+# and the page reports "history storage is not attached". That degradation is
+# stated rather than silent by design, but it is still a regression a deploy
+# should not be able to cause by accident.
+printf '{"main_module":"worker.js","compatibility_date":"2025-01-01","bindings":[{"type":"kv_namespace","name":"%s","namespace_id":"%s"}]}' \
+  "$KV_BINDING" "$KV_NAMESPACE_ID" > "$TMP_META"
 
 echo
 echo "uploading..."
@@ -85,7 +108,18 @@ curl -sS --max-time 60 "${AUTH[@]}" -X PUT \
   -F "metadata=@$TMP_META;type=application/json" \
   -F "worker.js=@$HERE/worker.js;filename=worker.js;type=application/javascript+module" \
   -F "internals.js=@$HERE/internals.js;filename=internals.js;type=application/javascript+module" \
+  -F "strings.js=@$HERE/strings.js;filename=strings.js;type=application/javascript+module" \
+  -F "history.js=@$HERE/history.js;filename=history.js;type=application/javascript+module" \
  | python3 -c 'import sys,json;d=json.load(sys.stdin);print("upload success=",d.get("success"));print("errors=",d.get("errors"))'
+
+echo
+echo "ensuring cron trigger..."
+# PUT replaces the whole schedule list, so this is idempotent and also removes
+# any stale cron someone added by hand in the dashboard.
+curl -sS --max-time 30 "${AUTH[@]}" -H "Content-Type: application/json" -X PUT \
+  "$API/accounts/$ACCOUNT_ID/workers/scripts/$SCRIPT_NAME/schedules" \
+  --data "[{\"cron\":\"$SAMPLE_CRON\"}]" \
+ | python3 -c 'import sys,json;d=json.load(sys.stdin);print("cron success=",d.get("success"));print("schedules=",[s.get("cron") for s in ((d.get("result") or {}).get("schedules") or [])]);print("errors=",d.get("errors"))'
 
 echo
 echo "ensuring route..."
@@ -111,6 +145,12 @@ curl -sS --max-time 30 https://status.scitex.ai/api/status \
 d=json.load(sys.stdin)
 print("ok=", d.get("ok"))
 print("upstream_available=", d.get("upstream_available"))
+# history_status: "unbound" means the KV binding did not survive this upload,
+# which is invisible on the page until someone goes looking for it.
+# NOTE: no apostrophes in this block. It lives inside a single-quoted shell
+# string, so one apostrophe ends the string and the rest becomes shell syntax --
+# which is exactly how this line broke the deploy on 2026-08-05.
+print("history_status=", d.get("history_status"))
 u=d.get("upstream") or {}
 print("upstream_schema=", u.get("schema"))
 print("upstream_complete=", u.get("complete"))
