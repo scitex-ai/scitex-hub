@@ -18,9 +18,23 @@
 #   ./provision-compute-node.sh                  # provision (asks for sudo)
 #
 #   # remote, password piped on STDIN (never on argv — /proc/<pid>/cmdline is
-#   # world-readable, environ is not):
-#   gpg -d ~/.pw/<node>-sudo.gpg | ssh <node> 'bash -s -- --stdin-pw' \
-#       < provision-compute-node.sh
+#   # world-readable, environ is not). The PROGRAM must arrive as a FILE on the
+#   # far side, so stdin is free to carry only the secret:
+#   scp provision-compute-node.sh <node>:/tmp/p.sh
+#   GNUPGHOME=/home/ywatanabe/.gnupg gpg -d ~/.pw/<node>.gpg \
+#       | ssh <node> 'bash /tmp/p.sh --stdin-pw'      # add --check to verify only
+#
+#   VERIFIED 2026-08-05 against scitex-02 (bare node): --check returned 8/8 FAIL,
+#   exit 1 — which proves `read -rs PW` consumed the PASSWORD, not script text.
+#
+#   THE OLD DOCUMENTED FORM COULD NEVER WORK, and is kept here as a warning:
+#       gpg -d ... | ssh <node> 'bash -s -- --stdin-pw' < provision-compute-node.sh
+#   (a) `<` REPLACES ssh's stdin, so the gpg pipe is discarded before ssh reads it;
+#   (b) `bash -s` takes the PROGRAM from stdin and `read -rs PW` reads the SAME
+#       stream, so they contend and read gets script text.
+#   It is TRAP 1 (stdin contention, below) reproduced in a usage example. It
+#   survived because scitex-01 was provisioned INTERACTIVELY, where s() falls
+#   through to a prompt — the --stdin-pw path had never once executed.
 #
 # TUNABLES (env)
 # --------------
@@ -119,6 +133,14 @@ check() {
     return $RC
 }
 
+# uv installs to ~/.local/bin, which is NOT on a non-interactive ssh PATH (.bashrc returns
+# early, .profile is login-only). Export it BEFORE the --check early-exit, or --check and the
+# post-provision check disagree: measured on scitex-02 2026-08-05, the provisioning run's own
+# final check reported `uv 0.12.1` PASS while `--check` moments later reported "uv missing" —
+# same machine, same binary present at ~/.local/bin/uv, different PATH. A checker that does not
+# share the consumer's environment reports a defect that is not there.
+export PATH="$HOME/.local/bin:$PATH"
+
 if [ "$MODE" = "--check" ]; then check; exit $?; fi
 
 echo "== 1. docker data-root on ${DATA_VOL} (BEFORE first pull) =="
@@ -148,9 +170,22 @@ if node --version 2>/dev/null | grep -q "^v${NODE_MAJOR}\."; then
 else
     # To a FILE, then run. Piping a vendor script straight into sudo hides what ran.
     curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR}.x" -o /tmp/nodesource.$$.sh
-    s bash /tmp/nodesource.$$.sh >/dev/null 2>&1
-    s env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nodejs
+    # DO NOT silence this. It was `>/dev/null 2>&1`, which hid whether the
+    # repository was configured at all — and when node came out wrong there was
+    # nothing to read. Keep stdout; a vendor script's output is the only evidence
+    # that the repo it claims to add actually got added.
+    s bash /tmp/nodesource.$$.sh
     rm -f /tmp/nodesource.$$.sh
+
+    # `apt-get install nodejs` DOES NOT upgrade an already-installed nodejs to a
+    # newer candidate from a just-added repo. Measured on scitex-02 2026-08-05:
+    # NodeSource reported "Repository configured successfully" and apt-cache
+    # policy showed Candidate 20.20.2-1nodesource1, yet Installed stayed at
+    # Ubuntu's 18.19.1 — so the run finished with a node that does not match CI.
+    # --only-upgrade handles the already-present case; the plain install handles
+    # the absent case. Run both, in that order.
+    s env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --only-upgrade nodejs || true
+    s env DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nodejs
 fi
 
 echo "== 4. docker group =="
