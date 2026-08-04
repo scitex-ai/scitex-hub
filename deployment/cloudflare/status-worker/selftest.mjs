@@ -279,7 +279,18 @@ check(
 
 st = recordSample(st, UP, "2026-08-04T00:20:00.000Z");
 check("incident closes on recovery", st.incidents[0].end === "2026-08-04T00:20:00.000Z");
-check("incident names the affected service", st.incidents[0].services.includes("https://scitex.ai/"));
+// Exact set, not membership. `services.includes(<a url literal>)` is what
+// CodeQL flags as js/incomplete-url-substring-sanitization (high severity): the
+// rule cannot tell Array.includes (exact equality) from String.includes
+// (substring), and a substring URL test is a real vulnerability pattern. It was
+// a false positive HERE — this is a test assertion over a fixture, not a
+// security control — but the fix is strictly better than a suppression: it
+// asserts WHICH services the incident names, so a second service leaking into
+// the list now fails instead of passing.
+check(
+  "incident names exactly the affected service",
+  JSON.stringify(st.incidents[0].services) === JSON.stringify(["https://scitex.ai/"]),
+);
 check("recovery does not open a new incident", st.incidents.length === 1);
 
 const day = st.days["2026-08-04"];
