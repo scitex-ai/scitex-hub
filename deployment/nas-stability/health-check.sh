@@ -89,13 +89,22 @@ log "Tier 1: Attempting SSH recovery (failure count: ${FAILURES})..."
 if SSH_HOST=$(pick_ssh_host); then
     log "Tier 1: NAS reachable via '${SSH_HOST}'"
 
-    # 1a: start EXITED prod containers. A manually-stopped container
-    # (e.g. cloudflared, incident 2026-07-06) has restart:always disabled
-    # and is invisible to `docker restart $(docker ps -q)`.
+    # 1a: start EXITED **and CREATED** prod containers. A manually-stopped
+    # container (e.g. cloudflared, incident 2026-07-06) has restart:always
+    # disabled and is invisible to `docker restart $(docker ps -q)`.
+    #
+    # `created` is a DISTINCT docker state, not a kind of `exited`: a container
+    # that was created but never started has no exit code and never appears
+    # under status=exited. Filtering on exited alone therefore skipped them at
+    # EVERY recovery tier. That is how 7 prod containers stayed dark after the
+    # host reboot on 2026-07-24 while this script reported nothing to do —
+    # invisible to the healer, and to anyone reading its log.
+    # Multiple --filter status= values are OR'd by docker, so this widens the
+    # set without disturbing the exited path.
     STARTED=$(ssh "${SSH_OPTS[@]}" "$SSH_HOST" \
-        "docker ps -a --filter status=exited --filter name=scitex-hub-prod --format '{{.Names}}' | xargs -r docker start" 2>/dev/null || true)
+        "docker ps -a --filter status=exited --filter status=created --filter name=scitex-hub-prod --format '{{.Names}}' | xargs -r docker start" 2>/dev/null || true)
     if [ -n "$STARTED" ]; then
-        log "Tier 1a: Started exited prod container(s): ${STARTED}. Waiting 30s..."
+        log "Tier 1a: Started stopped/created prod container(s): ${STARTED}. Waiting 30s..."
         sleep 30
         if site_up; then
             log "Tier 1a: RECOVERED. Site is back (HTTP ${HTTP_CODE})"
