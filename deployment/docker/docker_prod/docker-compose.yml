@@ -96,8 +96,21 @@ services:
       # CrossRef database for citation graph service (read-only)
       - /home/ywatanabe/proj/crossref-local/data:/data/crossref:ro
 
-      # OpenAlex database for local search (read-only)
-      - /home/ywatanabe/proj/openalex-local/data:/data/openalex:ro
+      # OpenAlex database for local search (read-only).
+      #
+      # MUST be the SAME source the openalex service mounts (see OPENALEX_LOCAL_DB_DIR
+      # below in that service). It previously pointed at .../openalex-local/data, which
+      # contains only a SYMLINK:
+      #     openalex.db -> /home/ywatanabe/proj/openalex-local.bak/data/openalex.db
+      # A symlink inside a bind mount resolves against the CONTAINER's filesystem, and
+      # /home/ywatanabe/... does not exist in the container — so the link dangled and
+      # django saw no database at all. Measured 2026-08-04 inside the running container:
+      #     test -r /data/openalex/openalex.db  -> NOT-READABLE
+      #     stat -c %s                          -> 56   (the link itself, not the 1.43 TB db)
+      # openalex_local.info() then raised FileNotFoundError and /server-status/ reported
+      # "OpenAlex Local — degraded — Database not configured" while the openalex
+      # CONTAINER was healthy, because that container mounts the real directory.
+      - ${OPENALEX_LOCAL_DB_DIR:-/home/ywatanabe/proj/openalex-local.bak/data}:/data/openalex:ro
 
       # Live-editable announcement banner (no rebuild needed)
       - ../../../apps/infra/public_app/templates/public_app/landing_partials/landing_announcement.html:/app/apps/infra/public_app/templates/public_app/landing_partials/landing_announcement.html:ro
