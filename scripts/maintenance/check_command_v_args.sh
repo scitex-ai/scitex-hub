@@ -44,6 +44,19 @@
 #   command -v foo || fallback         # operators are not arguments
 #   # command -v foo -m bar            # full-line comments (incl. this file's)
 #
+# Self-exemption:
+#   command-v-guard: self-exempt — THIS file must contain the bad form
+#   verbatim: its self-test fixture builds it and its help text quotes it, so
+#   without an exemption the guard fails on itself. Exemptions are per-file,
+#   written in the file, and greppable (`rg 'command-v-guard: self-exempt'`) —
+#   never a blanket flag that silences the whole run.
+#
+#   This was found the honest way: the first local run reported 0 violations
+#   across 1305 files while the script was still UNTRACKED, so the index-backed
+#   scan could not see it. Committing it made the corpus 1306 and the guard
+#   flagged four lines of itself. A clean result is only as good as the corpus
+#   it was measured over.
+#
 # Usage:
 #   ./scripts/maintenance/check_command_v_args.sh              # scan + report
 #   ./scripts/maintenance/check_command_v_args.sh --quiet      # exit code only
@@ -101,10 +114,24 @@ scan_repo() {
             *) [ "$mode" = "100755" ] || continue ;;
         esac
 
+        local content
+        # `tr -d '\000'` because the corpus includes tracked executables, and a
+        # BINARY one makes bash print "ignored null byte in input" once per file
+        # on the capture. Strip at the read: the pattern is text-only anyway.
+        content="$(git -C "$dir" cat-file -p "$sha" 2>/dev/null | tr -d '\000')"
+
+        # A file may exempt ITSELF, in the file, with a written reason — the
+        # constitution's "one at a time, greppable, individually revisitable"
+        # form, never a blanket flag that silences the whole run.
+        # Find every exemption with:  rg 'command-v-guard: self-exempt'
+        case "$content" in
+            *"command-v-guard: self-exempt"*) continue ;;
+        esac
+
         scanned=$((scanned + 1))
-        # Drop full-line comments BEFORE matching: this file, and the fix that
-        # motivated it, both document the bad form in prose.
-        git -C "$dir" cat-file -p "$sha" 2>/dev/null \
+        # Drop full-line comments BEFORE matching: the fix that motivated this
+        # guard documents the bad form in prose.
+        printf '%s\n' "$content" \
             | grep -nE "$PATTERN" \
             | grep -vE '^[0-9]+:[[:space:]]*#' \
             | while IFS= read -r hit; do printf '%s:%s\n' "$path" "$hit"; done
