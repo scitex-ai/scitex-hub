@@ -17,6 +17,7 @@ Server and visitor status monitoring.
 from .api import (
     healthz,
     server_health_status_api,
+    status_api,
     server_metrics_export_csv,
     server_metrics_history_api,
     server_metrics_series_api,
@@ -43,6 +44,7 @@ __all__ = [
     "public_status_api",
     "server_status",
     "server_status_api",
+    "status_api",
     "healthz",
     "server_health_status_api",
     "server_metrics_history_api",
