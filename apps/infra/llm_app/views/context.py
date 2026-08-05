@@ -87,10 +87,13 @@ async def api_eval_js(request):
     if not code:
         return JsonResponse({"success": False, "error": "code is required"}, status=400)
 
+    from ..relay_groups import relay_group_for
+
     timeout = min(data.get("timeout", 10), 30)  # Cap at 30s
     request_id = str(uuid.uuid4())[:8]
-    username = request.user.username
-    group_name = f"eval_js_{username}"
+    # MUST match EvalJSConsumer.connect exactly — a group_send to a group
+    # nobody joined is NOT an error, so any drift here fails silently.
+    group_name = relay_group_for(request.user)
     result_key = f"eval_js_result_{request_id}"
 
     try:
@@ -145,9 +148,13 @@ async def api_ui_action(request):
             {"success": False, "error": "steps is required"}, status=400
         )
 
+    from ..relay_groups import relay_group_for
+
     delay_ms = data.get("delay_ms", 900)
-    username = request.user.username
-    group_name = f"eval_js_{username}"
+    # Same group as api_eval_js and the consumer. CodeQL never flagged this
+    # path — `new Function()` is a recognisable sink and driving UI steps is
+    # not — but it rides the identical group and had the identical defect.
+    group_name = relay_group_for(request.user)
 
     try:
         channel_layer = get_channel_layer()
