@@ -1,0 +1,112 @@
+# Publish the first-party CodeQL MaD barrier pack to ghcr.
+#
+# WHY THIS EXISTS
+# ---------------
+# `.github/codeql/extensions/scitex-python-barriers` teaches CodeQL that our
+# own containment validators are sanitizer barriers, so that replacing a buggy
+# prefix check with the CORRECT component-wise check stops being reported as a
+# regression. That pack is currently DEAD CONFIGURATION: nothing loads it.
+#
+# Measured 2026-08-05 on develop: `codeql-analysis.yml` passes only
+# `languages:` and `queries:` to github/codeql-action/init. Searching the whole
+# .github tree for a loading mechanism
+#   rg -n "additional-packs|CODEQL_ACTION_EXTRA_OPTIONS|config-file|packs:" .github/
+# returns hits ONLY inside a comment block. No codeql-workspace.yml or
+# qlpack.yml exists either. So the two validate_path_in_project entries that
+# PR #558 repaired have never suppressed a single alert — #558 fixed an access
+# path inside a pack that is never loaded.
+#
+# WHY PUBLISHING IS THE ROUTE (and not a local path)
+# --------------------------------------------------
+# github/codeql-action/init has 23 inputs; NONE takes a local filesystem path
+# for packs. `packs:` accepts `scope/name[@version]` and resolves through a
+# container registry. Note `queries:` DOES accept in-repo paths — but that
+# loads QUERIES, and a data extension is only consumed when its PACK is
+# loaded, so the queries route cannot carry this pack either.
+#
+# Publishing to ghcr is therefore the supported mechanism, not a workaround.
+#
+# THIS WORKFLOW DOES NOT RUN ON PULL REQUESTS, DELIBERATELY.
+# Publishing a package to the org namespace is outward-facing and is not
+# something a PR should do as a side effect of being opened. It runs after the
+# change is merged, or on demand via workflow_dispatch.
+#
+# ORDERING — READ BEFORE ADDING `packs:` TO codeql-analysis.yml
+# -------------------------------------------------------------
+# codeql-analysis.yml currently carries a comment saying "do not re-add
+# `packs:`". That warning is CORRECT while the pack is unpublished. Adding
+# `packs:` before this workflow has successfully published will fail the python
+# leg outright at `database init`. The order is:
+#   1. merge this workflow + the scope rename, and let it publish
+#   2. confirm the package exists under the org
+#   3. THEN add `packs: scitex-ai/python-security-barriers` to the init step,
+#      and update that stale comment in the same change
+#
+# HOW TO TELL IT ACTUALLY WORKED (do not trust a green run)
+# ---------------------------------------------------------
+# A published pack that is loaded but whose entries do not bind looks exactly
+# like a working one — MaD silently ignores entries it cannot resolve. The
+# real test is red->green on alerts that sit on sites calling the modelled
+# validators. As of 2026-08-05 those are:
+#   project_app/views/repository/file_view.py:104
+#   project_app/views/repository/file_edit.py:69
+#   project_app/views/directory_views/file_view_utils.py:61
+#   project_app/views/api/directory_concatenation.py:76
+#   llm_app/views/upload.py:125
+#   figrecipe_app/urls/figrecipe.py:175, :190
+# If those alerts survive after step 3, the model is NOT bound — regardless of
+# what the run log says. A survivor still needs its call inspected first: the
+# model guards Argument[1,target_path:], so a site validating a DIFFERENT
+# variable than the one reaching the sink stays flagged legitimately.
+name: Publish CodeQL barrier pack
+
+on:
+  push:
+    branches: [develop, main]
+    paths:
+      - '.github/codeql/extensions/**'
+      - '.github/workflows/codeql-pack-publish.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    name: codeql pack publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The CodeQL CLI is not preinstalled on hosted runners, and
+      # github/codeql-action/init does not expose it as a reusable binary for
+      # a standalone publish. Take it from the pinned bundle release.
+      - name: Install CodeQL CLI
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release download --repo github/codeql-action \
+            --pattern 'codeql-bundle-linux64.tar.gz' --dir "$RUNNER_TEMP"
+          tar -xzf "$RUNNER_TEMP/codeql-bundle-linux64.tar.gz" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/codeql" >> "$GITHUB_PATH"
+
+      - name: Show CodeQL version
+        run: codeql --version
+
+      # Fail loud if the pack does not even parse, so a publish failure is
+      # never confused with a malformed pack.
+      - name: Validate pack metadata
+        run: |
+          set -euo pipefail
+          test -f .github/codeql/extensions/scitex-python-barriers/codeql-pack.yml
+          grep -q '^name: scitex-ai/python-security-barriers' \
+            .github/codeql/extensions/scitex-python-barriers/codeql-pack.yml
+
+      - name: Publish pack to ghcr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          codeql pack publish .github/codeql/extensions/scitex-python-barriers
