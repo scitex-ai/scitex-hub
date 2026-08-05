@@ -50,11 +50,23 @@ jobs:
         with:
           node-version: '20'
 
+      # The MaD barrier pack under .github/codeql/extensions/ is NOT auto-detected.
+      # It shipped in #461 and did nothing for two weeks because nothing referenced
+      # it: this step had no `packs:` and no `config-file:`, and the Python analysis
+      # log never mentioned the pack. (The only log hits were the JAVASCRIPT
+      # extractor reading the YAML as source, which reads like the pack loading and
+      # is the opposite.) `packs:` is what loads it; codeql-workspace.yml at the
+      # repo root is what lets a LOCAL, unpublished pack resolve by scope/name
+      # instead of by path.
+      #
+      # Scoped to python only: the pack's extensionTargets is codeql/python-all, so
+      # handing it to the javascript analysis would fail to resolve.
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
           queries: security-and-quality
+          packs: ${{ matrix.language == 'python' && 'scitex-hub/python-security-barriers' || '' }}
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v3
