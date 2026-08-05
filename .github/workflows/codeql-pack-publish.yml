@@ -81,7 +81,21 @@ jobs:
 
       # The CodeQL CLI is not preinstalled on hosted runners, and
       # github/codeql-action/init does not expose it as a reusable binary for
-      # a standalone publish. Take it from the pinned bundle release.
+      # a standalone publish, so fetch the bundle ourselves.
+      #
+      # This takes the LATEST bundle release, NOT a pinned one — `gh release
+      # download` with no tag resolves to latest. That is deliberate: the
+      # analysis side (codeql-action/init@v3 in codeql-analysis.yml) also
+      # resolves its own bundle at run time rather than pinning, so pinning the
+      # publishing CLI here would let the two drift apart in the one direction
+      # that matters — a pack published by a CLI newer than the analyzer that
+      # consumes it.
+      #
+      # UNVERIFIED, and the reason to watch this step: whether a
+      # newer-CLI-published pack can actually fail to load on an older
+      # analyzer bundle has NOT been tested. If a future analysis run reports
+      # the pack as unresolvable while this job is green, suspect this pairing
+      # first and pin BOTH sides together — never just one.
       - name: Install CodeQL CLI
         env:
           GH_TOKEN: ${{ github.token }}
