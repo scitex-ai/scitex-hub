@@ -2,7 +2,19 @@ name: docs
 
 on:
   push:
-    branches: [main, develop]
+    # develop ONLY — deliberately not main.
+    #
+    # This job commits generated docs and ends in a bare `git push`, which
+    # writes back to whatever branch triggered it. With `main` here, a push to
+    # main ran a job that pushed to main: two commits on the protected branch
+    # (`docs(sphinx_html): refresh from CI build`, github-actions[bot]) that
+    # passed no review and no required check. Branch protection held for every
+    # human path — 9 of the 11 main-only commits came through the PR merge
+    # button — so CI was the only writer bypassing it.
+    #
+    # Nothing is lost by dropping main: docs still refresh on develop, and
+    # reach main through the normal develop -> main release sync.
+    branches: [develop]
   pull_request:
 
 jobs:
