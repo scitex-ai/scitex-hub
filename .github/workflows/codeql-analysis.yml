@@ -25,6 +25,10 @@ jobs:
       actions: read
       contents: read
       security-events: write
+      # Needed to PULL the barrier pack from ghcr. The package is PRIVATE
+      # (measured: `gh api orgs/scitex-ai/packages/container/python-security-barriers`
+      # -> visibility=private), so an unauthenticated pull cannot see it.
+      packages: read
 
     strategy:
       fail-fast: false
@@ -50,40 +54,49 @@ jobs:
         with:
           node-version: '20'
 
-      # NO `packs:` HERE ON PURPOSE — measured, not assumed. See #558.
+      # THE BARRIER PACK IS LOADED HERE. It took three attempts to get this
+      # far, each of which LOOKED like it had worked, so the history is kept:
       #
-      # The MaD barrier pack under .github/codeql/extensions/ is NOT auto-detected;
-      # that claim cost two weeks. But `packs:` is NOT the way to load a LOCAL one:
-      # it resolves through the container registry. Adding
-      #   packs: scitex-hub/python-security-barriers
-      # failed the python leg outright at `database init`:
-      #   A fatal error occurred: 'scitex-hub/python-security-barriers' not found
-      #   in the registry 'https://ghcr.io/v2/'.
-      # A root codeql-workspace.yml does NOT change that — the workspace mechanism
-      # serves the CLI's own pack resolution, not this input.
+      #   1. `packs: scitex-hub/python-security-barriers` failed at `database
+      #      init` with "not found in the registry 'https://ghcr.io/v2/'".
+      #      Read at the time as "local packs cannot be loaded via packs:".
+      #      True, but not the whole story — `scitex-hub` is the REPOSITORY
+      #      name; the org is `scitex-ai`, so that coordinate never existed.
+      #   2. PR #558 repaired the access path INSIDE the pack. Correct fix,
+      #      wrong layer: nothing loaded the pack, so it suppressed nothing.
+      #   3. PR #561 published it to ghcr. The run went green and the package
+      #      exists — but PRIVATE, which is why `registries:` below is not
+      #      optional.
       #
-      # So loading an in-repo pack needs publishing it to ghcr. (`--additional-packs`
-      # was floated as the alternative; it is NOT reachable — init has 23 inputs and
-      # none takes a local filesystem path. `queries:` does accept in-repo paths, but
-      # that loads QUERIES; a data extension is only consumed when its PACK loads.)
+      # `packs:` is python-only ON PURPOSE. codeql-pack.yml declares
+      # `extensionTargets: {codeql/python-all: '*'}`, so handing this pack to
+      # the javascript leg asks CodeQL to load a python extension into a JS
+      # analysis. The matrix runs both languages, hence the conditional.
       #
-      # STATUS: publishing is now wired in .github/workflows/codeql-pack-publish.yml,
-      # which runs on push to develop/main (never on a PR — publishing to the org
-      # namespace should not be a side effect of opening one).
-      #
-      # DO NOT re-add `packs:` until that workflow has actually published and the
-      # package is visible under the scitex-ai org. Adding it against an unpublished
-      # pack fails the python leg outright at `database init`. Once published, the
-      # line to add is:
-      #   packs: scitex-ai/python-security-barriers
-      # Note the scope is the ORG (scitex-ai), not the repo (scitex-hub) — the
-      # original attempt used the repo name, which was never a resolvable ghcr
-      # coordinate. Delete this paragraph when the line lands.
+      # HOW TO TELL IT ACTUALLY BOUND — do NOT trust a green run. MaD silently
+      # ignores entries it cannot resolve, so "loaded but unbound" and
+      # "working" are indistinguishable in the log. The real test is red->green
+      # on alerts sitting on sites that call the modelled validators:
+      #   project_app/views/repository/file_view.py:104
+      #   project_app/views/repository/file_edit.py:69
+      #   project_app/views/directory_views/file_view_utils.py:61
+      #   project_app/views/api/directory_concatenation.py:76
+      #   llm_app/views/upload.py:125
+      #   figrecipe_app/urls/figrecipe.py:175, :190
+      # A survivor is not automatically a failure: the model guards
+      # `Argument[1,target_path:]`, so a site validating a DIFFERENT variable
+      # than the one reaching the sink stays flagged legitimately. Inspect the
+      # call before calling it a regression.
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
           queries: security-and-quality
+          packs: ${{ matrix.language == 'python' && 'scitex-ai/python-security-barriers' || '' }}
+          registries: |
+            - url: https://ghcr.io
+              packages: scitex-ai/*
+              token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v3
