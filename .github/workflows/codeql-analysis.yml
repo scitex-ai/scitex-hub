@@ -50,6 +50,21 @@ jobs:
         with:
           node-version: '20'
 
+      # NO `packs:` HERE ON PURPOSE — measured, not assumed. See #558.
+      #
+      # The MaD barrier pack under .github/codeql/extensions/ is NOT auto-detected;
+      # that claim cost two weeks. But `packs:` is NOT the way to load a LOCAL one:
+      # it resolves through the container registry. Adding
+      #   packs: scitex-hub/python-security-barriers
+      # failed the python leg outright at `database init`:
+      #   A fatal error occurred: 'scitex-hub/python-security-barriers' not found
+      #   in the registry 'https://ghcr.io/v2/'.
+      # A root codeql-workspace.yml does NOT change that — the workspace mechanism
+      # serves the CLI's own pack resolution, not this input.
+      #
+      # So loading an in-repo pack needs either publishing it to ghcr, or
+      # --additional-packs on `database init`. Neither is wired yet; do not re-add
+      # `packs:` pointing at an unpublished pack.
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
