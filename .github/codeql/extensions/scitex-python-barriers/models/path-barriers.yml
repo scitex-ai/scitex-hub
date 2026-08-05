@@ -25,8 +25,21 @@ extensions:
       pack: codeql/python-all
       extensible: barrierGuardModel
     data:
+      # ACCESS PATH: the first column is a TYPE, and the path is resolved from it.
+      # The previous form used ["apps", "Member[infra].Member[project_app]..."],
+      # which asks CodeQL to resolve a type literally named "apps" and walk members
+      # from it. No such type exists, the entry does not bind, and MaD silently
+      # IGNORES entries that do not resolve — so it looked installed and did nothing.
+      #
+      # A first-party MODULE is addressed with an empty type column and an explicit
+      # Module[<absolute.dotted.path>] head. The dotted path is authoritative here:
+      # every level (apps, infra, project_app, services, filesystem) carries an
+      # __init__.py, so this module IS importable as written. Callers reach it by
+      # RELATIVE import (`from ...services.filesystem.permissions import ...`), which
+      # resolves to the same absolute module.
+      #
       # validate_path_in_project(project_path, target_path) -> bool
       # target_path (Argument[1]) is contained in project_path when this returns True.
-      - ["apps", "Member[infra].Member[project_app].Member[services].Member[filesystem].Member[permissions].Member[validate_path_in_project].Argument[1,target_path:]", "true", "path-injection"]
+      - ["", "Module[apps.infra.project_app.services.filesystem.permissions].Member[validate_path_in_project].Argument[1,target_path:]", "true", "path-injection"]
       # validate_path_in_user_jail(user, target_path) -> bool  (delegates to the above)
-      - ["apps", "Member[infra].Member[project_app].Member[services].Member[filesystem].Member[permissions].Member[validate_path_in_user_jail].Argument[1,target_path:]", "true", "path-injection"]
+      - ["", "Module[apps.infra.project_app.services.filesystem.permissions].Member[validate_path_in_user_jail].Argument[1,target_path:]", "true", "path-injection"]
