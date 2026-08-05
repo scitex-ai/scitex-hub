@@ -93,25 +93,29 @@ jobs:
           languages: ${{ matrix.language }}
           queries: security-and-quality
           packs: ${{ matrix.language == 'python' && 'scitex-ai/python-security-barriers' || '' }}
-          # PERSONAL_ACCESS_TOKEN, not GITHUB_TOKEN — measured, not assumed.
-          # The package is PRIVATE and org-owned:
-          #   gh api orgs/scitex-ai/packages/container/python-security-barriers
-          #   -> visibility=private, repository=scitex-ai/scitex-hub
-          # A repo-scoped GITHUB_TOKEN with `packages: read` still could not
-          # resolve it — the run failed at `database init` with
-          #   'scitex-ai/python-security-barriers' not found in the registry
-          # even though `packs:` and `registries:` were both passed correctly
-          # (both are visible in that run's log). Being the LINKED repository is
-          # not the same as being granted Actions access to the package.
+          # NO `registries:` — the pack is PUBLIC, so it resolves anonymously.
           #
-          # Keeping the package private and authenticating is deliberate:
-          # publishing to ghcr is effectively irreversible (clones, forks and
-          # code-search indexes happen in minutes), so it is a disclosure
-          # decision rather than a settings change, and it is not needed here.
-          registries: |
-            - url: https://ghcr.io
-              packages: scitex-ai/*
-              token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          # Two credentialed attempts BOTH failed with the identical error
+          # ('scitex-ai/python-security-barriers' not found in the registry):
+          # first GITHUB_TOKEN with `packages: read`, then
+          # PERSONAL_ACCESS_TOKEN. Byte-identical failures from two different
+          # credentials is not an auth problem — that was my misdiagnosis twice.
+          #
+          # Measured directly against ghcr AFTER the package was made public,
+          # bypassing CodeQL entirely:
+          #   GET /token?scope=repository:scitex-ai/python-security-barriers:pull
+          #   GET /v2/scitex-ai/python-security-barriers/tags/list
+          #     -> {"name":"scitex-ai/python-security-barriers","tags":["0.0.1"]}
+          #   GET /v2/.../manifests/0.0.1  -> HTTP 200
+          #   control: codeql/python-all tags -> HTTP 200 (probe method works)
+          #
+          # So the coordinate resolves ANONYMOUSLY. Supplying a token that may
+          # lack `read:packages` can turn a working anonymous pull into a failed
+          # authenticated one, which is the remaining explanation consistent
+          # with all three observations. Omitting `registries:` removes the
+          # variable rather than adding a fourth guess.
+          #
+          # If this still fails, the next thing to check is NOT the credential.
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v3
