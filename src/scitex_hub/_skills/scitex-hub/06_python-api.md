@@ -14,7 +14,7 @@ import scitex_hub
 
 client = scitex_hub.CloudClient(
     api_key=None,    # or set SCITEX_HUB_API_KEY env var
-    base_url=None,   # or set SCITEX_HUB_URL env var (default: https://scitex.cloud)
+    base_url=None,   # or set SCITEX_HUB_URL env var (default: https://scitex.ai)
 )
 ```
 
@@ -89,7 +89,7 @@ version: str = scitex_hub.get_version()
 
 status: dict = scitex_hub.health_check(endpoint: str | None = None)
 # endpoint=None -> local package info only
-# endpoint="https://scitex.cloud/api/health/" -> HTTP probe
+# endpoint="https://scitex.ai/api/health/" -> HTTP probe
 
 env = scitex_hub.get_environment()          # current Environment object
 docker = scitex_hub.DockerManager(env)      # container management
@@ -100,7 +100,7 @@ docker = scitex_hub.DockerManager(env)      # container management
 | Variable | Purpose |
 |----------|---------|
 | `SCITEX_HUB_API_KEY` | API key for authenticated endpoints |
-| `SCITEX_HUB_URL` | Cloud server base URL (default: https://scitex.cloud) |
+| `SCITEX_HUB_URL` | Cloud server base URL (default: https://scitex.ai) |
 
 ## Examples
 

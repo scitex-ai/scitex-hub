@@ -186,9 +186,13 @@
            <div itemprop="articleBody">
              
   <h1>Source code for scitex_hub.appmaker._prefs</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Per-user app preferences — stored as JSON at ~/.scitex/cloud/apps/prefs.json.</span>
+<span></span><span class="sd">&quot;&quot;&quot;Per-user app preferences — stored as JSON at ~/.scitex/hub/apps/prefs.json.</span>
 
 <span class="sd">No database needed. Each user has a single JSON file with per-app preferences.</span>
+
+<span class="sd">Path migrated from ~/.scitex/cloud/ to ~/.scitex/hub/ per ADR-0003 §A.2 (Q2=b).</span>
+<span class="sd">A compat symlink ~/.scitex/cloud -&gt; ~/.scitex/hub stays for the deprecation</span>
+<span class="sd">window so external tooling that still hardcodes the old path keeps working.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -204,7 +208,7 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_default_prefs_path</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">local_state</span><span class="o">.</span><span class="n">path</span><span class="p">(</span><span class="s2">&quot;cloud&quot;</span><span class="p">,</span> <span class="s2">&quot;apps&quot;</span><span class="p">,</span> <span class="s2">&quot;prefs.json&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">local_state</span><span class="o">.</span><span class="n">path</span><span class="p">(</span><span class="s2">&quot;hub&quot;</span><span class="p">,</span> <span class="s2">&quot;apps&quot;</span><span class="p">,</span> <span class="s2">&quot;prefs.json&quot;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="get_prefs">

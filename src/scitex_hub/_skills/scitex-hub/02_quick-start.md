@@ -15,8 +15,8 @@ scitex-hub push-project           # push current dir to Gitea
 scitex-hub status
 ```
 
-Project state lives under `~/.scitex/cloud/projects/<name>/` and on the
-remote Gitea instance configured in `~/.scitex/cloud/config.yaml`.
+Project state lives under `~/.scitex/hub/projects/<name>/` and on the
+remote Gitea instance configured in `~/.scitex/hub/config.yaml`.
 
 ## Python: CloudClient
 

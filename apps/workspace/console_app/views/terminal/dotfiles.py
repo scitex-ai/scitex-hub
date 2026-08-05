@@ -144,7 +144,7 @@ silent! colorscheme desert
         f"""# SciTeX Hub - gitconfig
 [user]
     name = {username}
-    email = {username}@scitex.cloud
+    email = {username}@scitex.ai
 
 [core]
     editor = vim
@@ -305,9 +305,9 @@ Thumbs.db
             env={
                 **os.environ,
                 "GIT_AUTHOR_NAME": username,
-                "GIT_AUTHOR_EMAIL": f"{username}@scitex.cloud",
+                "GIT_AUTHOR_EMAIL": f"{username}@scitex.ai",
                 "GIT_COMMITTER_NAME": username,
-                "GIT_COMMITTER_EMAIL": f"{username}@scitex.cloud",
+                "GIT_COMMITTER_EMAIL": f"{username}@scitex.ai",
             },
         )
     except Exception as e:

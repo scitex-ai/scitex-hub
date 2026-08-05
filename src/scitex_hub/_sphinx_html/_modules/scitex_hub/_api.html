@@ -217,7 +217,7 @@
 <span class="sd">    api_key : str, optional</span>
 <span class="sd">        API key for authenticated endpoints. Falls back to SCITEX_HUB_API_KEY env var.</span>
 <span class="sd">    base_url : str, optional</span>
-<span class="sd">        Cloud server URL. Falls back to SCITEX_HUB_URL env var or https://scitex.cloud.</span>
+<span class="sd">        Cloud server URL. Falls back to SCITEX_HUB_URL env var or https://scitex.ai.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -235,7 +235,7 @@
     <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">api_key</span> <span class="o">=</span> <span class="n">api_key</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SCITEX_HUB_API_KEY&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">base_url</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">base_url</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SCITEX_HUB_URL&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;https://scitex.cloud&quot;</span>
+            <span class="n">base_url</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SCITEX_HUB_URL&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;https://scitex.ai&quot;</span>
         <span class="p">)</span></div>
 
 
