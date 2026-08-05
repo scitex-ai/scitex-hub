@@ -1,4 +1,15 @@
-name: scitex-hub/python-security-barriers
+# SCOPE MUST BE THE GITHUB ORG, NOT THE REPO NAME.
+#
+# This was `scitex-hub/python-security-barriers`. `scitex-hub` is the
+# REPOSITORY (this repo is scitex-ai/scitex-hub); the org is `scitex-ai`.
+# A CodeQL pack is addressed on ghcr as ghcr.io/<org>/<pack>, so the old
+# name was never a resolvable coordinate — which is why
+#   packs: scitex-hub/python-security-barriers
+# failed with "not found in the registry 'https://ghcr.io/v2/'". That error
+# was previously read as "local packs cannot be loaded via packs:" (true, but
+# not the whole story) rather than "this scope does not exist" (also true, and
+# the fixable half).
+name: scitex-ai/python-security-barriers
 version: 0.0.1
 library: true
 extensionTargets:

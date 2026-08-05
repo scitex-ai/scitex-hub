@@ -62,9 +62,23 @@ jobs:
       # A root codeql-workspace.yml does NOT change that — the workspace mechanism
       # serves the CLI's own pack resolution, not this input.
       #
-      # So loading an in-repo pack needs either publishing it to ghcr, or
-      # --additional-packs on `database init`. Neither is wired yet; do not re-add
-      # `packs:` pointing at an unpublished pack.
+      # So loading an in-repo pack needs publishing it to ghcr. (`--additional-packs`
+      # was floated as the alternative; it is NOT reachable — init has 23 inputs and
+      # none takes a local filesystem path. `queries:` does accept in-repo paths, but
+      # that loads QUERIES; a data extension is only consumed when its PACK loads.)
+      #
+      # STATUS: publishing is now wired in .github/workflows/codeql-pack-publish.yml,
+      # which runs on push to develop/main (never on a PR — publishing to the org
+      # namespace should not be a side effect of opening one).
+      #
+      # DO NOT re-add `packs:` until that workflow has actually published and the
+      # package is visible under the scitex-ai org. Adding it against an unpublished
+      # pack fails the python leg outright at `database init`. Once published, the
+      # line to add is:
+      #   packs: scitex-ai/python-security-barriers
+      # Note the scope is the ORG (scitex-ai), not the repo (scitex-hub) — the
+      # original attempt used the repo name, which was never a resolvable ghcr
+      # coordinate. Delete this paragraph when the line lands.
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
