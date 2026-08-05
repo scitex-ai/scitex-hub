@@ -75,7 +75,19 @@ permissions:
 jobs:
   publish:
     name: codeql pack publish
-    runs-on: ubuntu-latest
+    # Self-hosted, matching every other job in this repo — including
+    # codeql-analysis.yml, the workflow this pack exists to serve. The audit
+    # gate enforces this (PS-169 hosted-runner-forbidden, PS-224
+    # runner-destination-unregistered), and `.scitex/dev/config.yaml` records
+    # the policy behind it: everything that used to target ubuntu-latest was
+    # MIGRATED rather than exempted, because "an exemption I cannot justify by
+    # measurement is just a skip_rules entry with better manners".
+    #
+    # PS-224 is the sharper of the two: GitHub does not reject a job whose
+    # labels no machine serves — it queues it forever. A hosted-runner typo
+    # here would never fail, it would just silently never publish, which is
+    # the exact failure class this pack has already suffered twice.
+    runs-on: [self-hosted, Linux, X64, spartan-cpu]
     steps:
       - uses: actions/checkout@v4
 
