@@ -23,8 +23,8 @@ it stood at 98c1295.
 
 from __future__ import annotations
 
-import socket
 import threading
+import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
@@ -78,10 +78,16 @@ def _serve_on_a_port_in_range() -> ThreadingHTTPServer:
 
 
 def _probe(port: int) -> str:
-    """Talk to the victim directly, bypassing Django entirely."""
-    with socket.create_connection(("127.0.0.1", port), timeout=5) as sock:
-        sock.sendall(b"GET /probe HTTP/1.0\r\nHost: 127.0.0.1\r\n\r\n")
-        return sock.recv(4096).decode(errors="replace")
+    """Talk to the victim directly, bypassing Django entirely.
+
+    Reads the FULL body (urllib), not a single socket.recv() -- a raw recv can
+    return only the response headers when the body lands in a later TCP segment,
+    which is exactly what reddened this test in CI while passing on fast loopback.
+    """
+    with urllib.request.urlopen(
+        f"http://127.0.0.1:{port}/probe", timeout=5
+    ) as resp:
+        return resp.read().decode(errors="replace")
 
 
 class AnonymousPortProxySSRFTests(TestCase):
