@@ -93,10 +93,25 @@ jobs:
           languages: ${{ matrix.language }}
           queries: security-and-quality
           packs: ${{ matrix.language == 'python' && 'scitex-ai/python-security-barriers' || '' }}
+          # PERSONAL_ACCESS_TOKEN, not GITHUB_TOKEN — measured, not assumed.
+          # The package is PRIVATE and org-owned:
+          #   gh api orgs/scitex-ai/packages/container/python-security-barriers
+          #   -> visibility=private, repository=scitex-ai/scitex-hub
+          # A repo-scoped GITHUB_TOKEN with `packages: read` still could not
+          # resolve it — the run failed at `database init` with
+          #   'scitex-ai/python-security-barriers' not found in the registry
+          # even though `packs:` and `registries:` were both passed correctly
+          # (both are visible in that run's log). Being the LINKED repository is
+          # not the same as being granted Actions access to the package.
+          #
+          # Keeping the package private and authenticating is deliberate:
+          # publishing to ghcr is effectively irreversible (clones, forks and
+          # code-search indexes happen in minutes), so it is a disclosure
+          # decision rather than a settings change, and it is not needed here.
           registries: |
             - url: https://ghcr.io
               packages: scitex-ai/*
-              token: ${{ secrets.GITHUB_TOKEN }}
+              token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v3
