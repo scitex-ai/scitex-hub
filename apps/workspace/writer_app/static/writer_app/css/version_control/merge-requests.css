@@ -1,0 +1,66 @@
+/* Merge-request rows and their status badges */
+
+.merge-request-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid var(--scitex-color-06);
+  transition: background-color 0.2s ease;
+}
+
+.merge-request-item:hover {
+  background-color: var(--scitex-color-07);
+}
+
+.merge-request-item:last-child {
+  border-bottom: none;
+}
+
+.merge-request-info {
+  flex: 1;
+}
+
+.merge-request-title {
+  font-weight: 600;
+  color: var(--scitex-color-02);
+  margin-bottom: 0.25rem;
+}
+
+.merge-request-meta {
+  font-size: 0.9rem;
+  color: var(--scitex-color-03);
+}
+
+.merge-request-branches {
+  font-size: 0.85rem;
+  color: var(--scitex-color-04);
+  margin-top: 0.25rem;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.status-open {
+  background: var(--status-info-bg);
+  color: var(--color-cta);
+}
+
+.status-review {
+  background: var(--status-warning-bg);
+  color: var(--status-warning-text);
+}
+
+.status-approved {
+  background: var(--status-success-bg);
+  color: var(--status-success-text);
+}
+
+.status-conflict {
+  background: var(--status-error-bg);
+  color: var(--status-error-text);
+}

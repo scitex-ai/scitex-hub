@@ -1,0 +1,125 @@
+/* Version-control header bar and the branches / commits panel pair.
+ * Imported after branches.css: .branch-item.active and .branch-badge.current
+ * override the base rules defined there. */
+
+.vc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: var(--scitex-color-01, #1a2332);
+  color: var(--white, #fff);
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.vc-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.vc-header-left h2 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.vc-status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.vc-status-badge.clean {
+  background: var(--status-success-bg, rgba(46, 160, 67, 0.15));
+  color: var(--status-success, #2ea043);
+}
+
+.vc-status-badge.dirty {
+  background: var(--status-warning-bg, rgba(210, 153, 34, 0.15));
+  color: var(--status-warning, #d29922);
+}
+
+.vc-branch-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.vc-main {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 1.5rem;
+}
+
+.branches-panel,
+.commits-panel {
+  background: var(--white, #fff);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.branches-panel h3,
+.commits-panel h3 {
+  background: var(--scitex-color-02, #2d3748);
+  color: var(--white, #fff);
+  padding: 0.75rem 1rem;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.branch-item.active {
+  background: var(--scitex-color-07, #f0f2f5);
+}
+
+.branch-badge.current {
+  background: var(--scitex-color-02, #2d3748);
+  color: var(--white, #fff);
+}
+
+.commit-item {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--scitex-color-06, #e1e5ea);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.commit-item:hover {
+  background: var(--scitex-color-07, #f0f2f5);
+}
+
+.commit-item:last-child {
+  border-bottom: none;
+}
+
+.commit-message {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.commit-meta {
+  font-size: 0.8rem;
+  color: var(--scitex-color-04, #8b95a5);
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.commit-hash {
+  font-family: "Monaco", "Menlo", monospace;
+  background: var(--scitex-color-06, #e1e5ea);
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.75rem;
+}
+
+.commit-stats .stat-add {
+  color: var(--status-success, #2ea043);
+}
+
+.commit-stats .stat-del {
+  color: var(--status-error, #f85149);
+}

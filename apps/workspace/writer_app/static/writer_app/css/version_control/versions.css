@@ -1,0 +1,73 @@
+/* Version list rows in the "Versions" section */
+
+.version-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.version-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid var(--scitex-color-06);
+  transition: background-color 0.2s ease;
+}
+
+.version-item:hover {
+  background-color: var(--scitex-color-07);
+}
+
+.version-item:last-child {
+  border-bottom: none;
+}
+
+.version-info {
+  flex: 1;
+}
+
+.version-number {
+  font-weight: 600;
+  color: var(--scitex-color-02);
+  font-size: 1.1rem;
+}
+
+.version-meta {
+  font-size: 0.9rem;
+  color: var(--scitex-color-03);
+  margin-top: 0.25rem;
+}
+
+.version-message {
+  font-size: 0.85rem;
+  color: var(--scitex-color-04);
+  margin-top: 0.25rem;
+  font-style: italic;
+}
+
+.version-stats {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: var(--scitex-color-04);
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.stat-positive {
+  color: var(--status-success);
+}
+
+.stat-negative {
+  color: var(--status-error);
+}
+
+.version-actions {
+  display: flex;
+  gap: 0.5rem;
+}

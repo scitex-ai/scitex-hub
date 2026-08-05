@@ -1,0 +1,43 @@
+/* Diff viewer */
+
+.diff-viewer {
+  background: var(--white);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 2rem;
+  overflow: hidden;
+}
+
+.diff-header {
+  background: var(--scitex-color-02);
+  color: var(--white);
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.diff-content {
+  padding: 1.5rem;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  overflow-x: auto;
+}
+
+.diff-addition {
+  background: var(--status-success-bg);
+  color: var(--status-success-text);
+  padding: 0.1rem 0.3rem;
+}
+
+.diff-deletion {
+  background: var(--status-error-bg);
+  color: var(--status-error-text);
+  padding: 0.1rem 0.3rem;
+  text-decoration: line-through;
+}
+
+.diff-equal {
+  background: transparent;
+}
