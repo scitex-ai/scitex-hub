@@ -174,7 +174,29 @@ export default defineConfig(({ command }) => ({
     }),
     resolveStaticPaths(),
   ],
-  base: "/",
+  // A BUILT bundle must reference its siblings under STATIC_URL, not the site
+  // root. Output goes to staticfiles/vite/ (see build.outDir below) and Django
+  // serves that at /static/vite/, but base:"/" made every code-split import
+  // resolve to "/chunks/..." and "/shared/...". Nothing serves those paths, so
+  // the request falls through to Django's URL resolver, APPEND_SLASH 301s it to
+  // ".../file.js/", and that 404s.
+  //
+  // MEASURED on live scitex.ai, 2026-08-04 — same hashes, both prefixes:
+  //     /chunks/preload-helper-D7HrI6pR.js           404  (301 -> trailing slash first)
+  //     /static/vite/chunks/preload-helper-D7HrI6pR.js  200
+  //     /static/vite/chunks/NOPE-nosuchhash.js       404  (control: not a catch-all)
+  // The files were deployed correctly all along; only the URL prefix baked into
+  // the bundles was wrong.
+  //
+  // WHY ONLY THE CONSOLE APP LOOKED BROKEN: entry scripts are emitted by Django
+  // templates through {% static %}, which builds the right URL itself, so most
+  // apps never exercise `base`. It is DYNAMIC imports — code-split chunks — that
+  // use it, and Console is the app that dynamically imports (file tree, python
+  // chunk). Six of its modules 404'd and the pane never finished loading.
+  //
+  // Dev keeps "/": the Vite dev server serves from the root and does not go
+  // through Django staticfiles at all.
+  base: command === "build" ? "/static/vite/" : "/",
   root: ".",
   publicDir: false,
 

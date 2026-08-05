@@ -18,6 +18,12 @@ from .. import api_views, views
 
 urlpatterns = [
     # Status API endpoints
+    #
+    # api/status/ is the JSON twin of the /server-status/ PAGE — same collector,
+    # same deadline, same three-valued UNKNOWNs. It exists so status.scitex.ai
+    # (a Cloudflare Worker, deliberately not hosted on the NAS it monitors) can
+    # show the hub's internals, which no outside-in probe can see.
+    path("api/status/", views.status_api, name="status_api"),
     path("api/public-status/", views.public_status_api, name="public-status-api"),
     path("api/server-status/", views.server_status_api, name="server_status_api"),
     path(

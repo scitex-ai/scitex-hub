@@ -162,7 +162,31 @@ export class PDFViewer {
   }
 
   /**
-   * Display placeholder
+   * Display placeholder.
+   *
+   * WHY THIS NO LONGER SAYS "Loading PDF preview...": that line was a standing
+   * claim that something was in flight, and on a fresh project nothing is.
+   * ComponentInitializer.loadInitialPDF() HEAD-checks for an existing preview;
+   * if none exists AND the abstract is empty it takes neither branch — it does
+   * not compile and it does not update the panel — so this placeholder is the
+   * final state, not a transient one. A new user therefore saw "Loading PDF
+   * preview..." forever on a document that was never going to load.
+   *
+   * Measured on live scitex.ai 2026-08-04: HEAD
+   * /apps/writer/api/project/19/pdf/preview-abstract-light.pdf -> 404, and the
+   * panel still read "Loading PDF preview..". The 404 itself is CORRECT — the
+   * preview PDF is produced by compilation into writer_dir/.preview/, so its
+   * absence just means "never compiled". Only the wording was wrong.
+   *
+   * The panel already carried the right instruction on the next line ("Click
+   * Compile to generate PDF"); it was contradicted by the line above it. This
+   * keeps the instruction and drops the false one.
+   *
+   * TRADE-OFF, stated: while a preview genuinely IS loading, this now reads "No
+   * preview yet" for that moment instead of "Loading...". A brief understatement
+   * during a real load is a much smaller lie than a permanent "Loading..." on a
+   * document that will never load, and the real load replaces this markup on
+   * completion.
    */
   displayPlaceholder(): void {
     if (!this.container) return;
@@ -180,7 +204,7 @@ export class PDFViewer {
             ">
                 <i class="fas fa-file-pdf fa-3x" style="opacity: 0.3;"></i>
                 <h5 style="margin: 0;">PDF Preview</h5>
-                <p style="font-size: 0.9rem; margin: 0;">Loading PDF preview...</p>
+                <p style="font-size: 0.9rem; margin: 0;">No preview yet</p>
                 <p style="font-size: 0.75rem; opacity: 0.7; margin: 0;">Click Compile to generate PDF</p>
             </div>
         `;
