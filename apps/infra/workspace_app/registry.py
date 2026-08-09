@@ -48,6 +48,14 @@ class ModuleConfig:
     # Templates
     partial_template: str = ""  # e.g. "writer_app/writer_partial.html"
 
+    # Does this module render a surface in the workspace shell at all?
+    # Defaults to True, so a module that simply FORGOT its partial_template
+    # still fails the registry check. Only a module that explicitly declares
+    # `"renders_ui": false` in its manifest is exempt — an exemption that is
+    # greppable and individually revisitable, rather than an empty string
+    # that means both "no UI by design" and "not filled in yet".
+    renders_ui: bool = True
+
     # Context builder (dotted path or callable)
     context_builder: str = (
         ""  # e.g. "apps.workspace.writer_app.views.index.main.build_writer_context"
@@ -305,6 +313,7 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
         icon_svg_tab=overrides.get("icon_svg_tab", ""),
         icon_svg_nav=overrides.get("icon_svg_nav", ""),
         partial_template=data.get("partial_template", ""),
+        renders_ui=data.get("renders_ui", True),
         context_builder=data.get("context_builder", ""),
         body_class=data.get("body_class", ""),
         keyboard_shortcut=data.get("keyboard_shortcut", ""),

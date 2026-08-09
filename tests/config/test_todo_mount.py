@@ -27,8 +27,13 @@ def test_todo_app_installed_via_explicit_appconfig_path():
     from django.conf import settings
 
     # Act
+    # settings_shared.py:233 appends the CARDS package path; the AppConfig
+    # class kept its old name through the scitex-todo -> scitex-cards rename,
+    # so only the module path moved. This assertion tracked the pre-rename
+    # path and never failed, because the whole file skipped for want of the
+    # package — it has been stale since the rename.
     entry_present = (
-        "scitex_todo._django.apps.ScitexTodoConfig" in settings.INSTALLED_APPS
+        "scitex_cards._django.apps.ScitexTodoConfig" in settings.INSTALLED_APPS
     )
 
     # Assert
