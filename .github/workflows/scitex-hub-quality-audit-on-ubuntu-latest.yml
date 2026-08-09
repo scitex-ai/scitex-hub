@@ -96,11 +96,36 @@ jobs:
           # sit here was WRONG and is deleted rather than softened, because the
           # next person would have trusted it. What it claimed:
           #   - that the 3 §2 findings caused the failure          -> FALSE
-          #   - that CI reported "0 masked by skip-rules (0 declared)"
-          #                                                        -> NEVER EMITTED
           #   - that `path=` (PR #568) was the leading candidate   -> FALSIFIED
-          # That phrase appears in no scitex-dev source. It was written from
-          # memory, then reasoned from as if it were evidence.
+          #   - that CI reported "0 masked by skip-rules (0 declared)"
+          #                                                        -> MISATTRIBUTED,
+          #     see below. An earlier version of this block called that phrase
+          #     "NEVER EMITTED" and said it had been written from memory. THAT
+          #     CORRECTION WAS ITSELF WRONG, and is corrected here rather than
+          #     quietly dropped.
+          #
+          # The phrase is REAL auditor output. It is a format string:
+          #     scitex_dev/_cli/ecosystem/_cmds/_audit_masking.py:277
+          #     line += f", {masked} masked by skip-rules ({declared} declared)"
+          # and it appears verbatim in this repo's CI, e.g. PR #256's audit job
+          # on 2026-08-05:
+          #     summary: scitex-hub: 174 unmasked error(s) (+108 warning/info
+          #     finding(s)), 0 masked by skip-rules (0 declared); 309 line(s)
+          #     inspected, 12 UNREADABLE
+          #
+          # "(0 declared)" is the tell: it means that run passed NO skip_rules —
+          # i.e. it was `scitex-dev ecosystem audit-all` invoked DIRECTLY, the
+          # path the org reusable workflow takes and the reason this job uses the
+          # pytest wrapper instead (see the step below). It is NOT what the
+          # wrapper emits, and it is NOT what the 0.43.0 bump failure emitted.
+          #
+          # So the original error was reporting a real observation from ONE run as
+          # if it came from ANOTHER. Misattribution across runs, not invention.
+          # Why the retraction was wrong too: I searched only
+          # testing/_audit_conformance.py — the wrapper — concluded the string
+          # existed nowhere, and generalised "not in this module" to "not in the
+          # codebase". Searching the wrong file and calling it absence is the same
+          # class of error as the misattribution it was correcting.
           #
           # WHAT ACTUALLY FAILED, measured by replaying scitex-dev's classifier
           # over the failing run's real stdout (run 31331280283):
