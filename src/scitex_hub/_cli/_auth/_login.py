@@ -147,6 +147,26 @@ def auth_login(username, password, scopes, name, server):
     server_url = _resolve_server(server)
 
     # Prompt only the missing pieces — keeps -u/-p escape hatch clean.
+    #
+    # CLI spec §2: REFUSE BEFORE PROMPTING when stdin is not a terminal. A CLI
+    # that agents drive must fail with a message naming the missing flag rather
+    # than wait for input nobody is there to type. Neither default is
+    # acceptable: on a closed stdin `click.prompt` aborts with an EOF that names
+    # nothing, and under a pty-backed driver (which is how agents run CLIs) it
+    # blocks outright. An unattended caller should get exit 2 and a next step.
+    if not sys.stdin.isatty() and not (username and password):
+        missing = ", ".join(
+            flag
+            for flag, value in (("--user/-u", username), ("--password/-p", password))
+            if not value
+        )
+        raise click.UsageError(
+            f"{missing} must be supplied when stdin is not a terminal.\n"
+            "Fix: pass the flag(s), or run in an interactive terminal to be "
+            "prompted.\n"
+            "For unattended use prefer a pre-minted token in $SCITEX_HUB_TOKEN "
+            "over logging in at all."
+        )
     if not username:
         username = click.prompt("Username", type=str)
     if not password:
