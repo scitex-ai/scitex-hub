@@ -38,6 +38,7 @@ import os
 import re
 import shutil
 import warnings
+from pathlib import Path
 
 import pytest
 
@@ -229,7 +230,20 @@ def audit_masked_count():
         warnings.simplefilter("always")
         # audit-all walks every sub-auditor; cold CI runs (pip resolve
         # + corpus load) can exceed the 120 s default. Give headroom.
-        audit_all_for_package("scitex-hub", timeout=600.0, skip_rules=SKIP_RULES)
+        #
+        # `path=` is NOT optional here. Without it audit-all resolves its
+        # target from the CWD, and scitex-dev's own warning says that then
+        # "grades the WRONG tree and still reports a confident pass/fail".
+        # Hub's CI runs on shared self-hosted runners that can hold sibling
+        # checkouts, which is exactly the case that warning names. Anchor to
+        # this file instead: parents[2] is the repo root from
+        # tests/develop/test_audit.py (develop -> tests -> root).
+        audit_all_for_package(
+            "scitex-hub",
+            path=Path(__file__).resolve().parents[2],
+            timeout=600.0,
+            skip_rules=SKIP_RULES,
+        )
 
     for record in caught:
         match = _MASKED_COUNT_RE.search(str(record.message))
