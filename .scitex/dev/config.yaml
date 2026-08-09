@@ -13,9 +13,15 @@ project-type:
 
 # PS-224 (runner-destination-unregistered) exemptions.
 #
-# Four entries. Everything else that used to target ubuntu-latest was
+# Five entries. Everything else that used to target ubuntu-latest was
 # MIGRATED rather than exempted — an exemption I cannot justify by
 # measurement is just a skip_rules entry with better manners.
+#
+# The FIFTH entry (cla.yml, added 2026-08-09) is a different KIND of
+# exemption from the four below and should not be read as one more
+# capability gap: for that job a hosted runner is the SAFER destination,
+# and migrating it would be a security regression. Its reason field
+# carries the argument and the measurement.
 #
 # The first entry is measured. The other three are the tag-only release
 # jobs, and they are exempted on a DIFFERENT and weaker ground, stated
@@ -72,3 +78,31 @@ audit:
           `release` above, plus it pushes branches, so a wrong runner turns a
           release into a half-synced main. Migrate with `release`, together,
           behind the same canary.
+      - path: ".github/workflows/cla.yml::call"
+        line: 0
+        reason: >-
+          THE BLOCKER HERE IS SECURITY, NOT CAPABILITY, AND A HOSTED RUNNER IS
+          THE SAFER DESTINATION — moving this job to the self-hosted pool would
+          be a REGRESSION, not a fix. This entry is a decision, not a way to
+          clear the audit. Triggers: `pull_request_target` and `issue_comment`
+          are the two documented ways a workflow runs with the BASE repo's
+          secrets on input an outsider controls, and this caller passes
+          `secrets: inherit` with contents/actions/pull-requests/statuses
+          WRITE. Destination matters because our self-hosted runners are
+          PERSISTENT and share a real $HOME holding the live fleet credential:
+          a compromise there costs the credential, whereas an ephemeral hosted
+          VM is destroyed after the run and costs one disposable runner. Same
+          call sac made for its own CLA job, for the same stated reason.
+          MEASURED, not assumed (scitex-dev, 2026-08-09, reading the callee
+          scitex-ai/.github/.github/workflows/cla.yml:92-95): the callee does
+          NOT `actions/checkout` the PR head and its third-party action is
+          SHA-pinned, so fork code is not executed. Two things remain
+          unverified and are recorded rather than papered over — the pinned
+          action's contents, and whether a fork PR reaches this job at all.
+          WHY THE RULE FIRES ANYWAY: PS-224 asks "is this destination
+          registered", which for an outsider-triggerable workflow is the wrong
+          question — the right one is "is this destination EPHEMERAL", and the
+          two give opposite answers here. scitex-dev owns that gap and has
+          carded it; when PS-224 learns to recognise these triggers, revisit
+          this entry and delete it if the rule no longer fires.
+          DO NOT remove this exemption by re-pointing the job at `scitex-ci`.

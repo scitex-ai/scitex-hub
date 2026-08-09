@@ -80,7 +80,25 @@ jobs:
           # NOTE: the org reusable quality-audit.yml installs scitex-dev
           # UNPINNED, so every other package in the fleet still has this
           # non-reproducibility. Worth fixing upstream.
-          uv pip install --python .venv/bin/python "scitex-dev[cli-audit]==0.38.1"
+          #
+          # 0.38.1 -> 0.43.0 on 2026-08-09, as the reviewable commit this
+          # comment asks for. The new findings, owned rather than absorbed:
+          #   * PS-169 hosted-runner-forbidden became ADVISORY (flat W) in
+          #     0.43.0. The 2026-07-14 no-hosted-runners mandate it encoded is
+          #     superseded by the operator's 2026-08-05 directive. Under 0.38.1
+          #     it blocked the compliant migration while permitting the status
+          #     quo.
+          #   * PS-224 now fires on cla.yml::call. That one is NOT absorbed —
+          #     it has a written exemption in .scitex/dev/config.yaml stating
+          #     why a hosted runner is the SAFER destination for an
+          #     outsider-triggerable job. Read it before touching that file.
+          # Measured before bumping (both trees, PATH-correct, `packaging`
+          # present): develop 43 err @0.38.1 -> 44 @0.43.0, the one new error
+          # being that PS-224. Nothing else moved.
+          # 0.43.0 also fixes a gate-that-cannot-fail: 0.38.1 printed
+          # "0 unmasked error(s)" with four sub-audits dead on an import error,
+          # where 0.43.0 reports "1 UNREADABLE ... NOT counted as clean".
+          uv pip install --python .venv/bin/python "scitex-dev[cli-audit]==0.43.0"
 
       # Use the pytest wrapper so the documented `skip_rules` deferrals in
       # tests/develop/test_audit.py are honoured. Calling `scitex-dev
