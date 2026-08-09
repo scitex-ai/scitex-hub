@@ -81,24 +81,34 @@ jobs:
           # UNPINNED, so every other package in the fleet still has this
           # non-reproducibility. Worth fixing upstream.
           #
-          # 0.38.1 -> 0.43.0 on 2026-08-09, as the reviewable commit this
-          # comment asks for. The new findings, owned rather than absorbed:
-          #   * PS-169 hosted-runner-forbidden became ADVISORY (flat W) in
-          #     0.43.0. The 2026-07-14 no-hosted-runners mandate it encoded is
-          #     superseded by the operator's 2026-08-05 directive. Under 0.38.1
-          #     it blocked the compliant migration while permitting the status
-          #     quo.
-          #   * PS-224 now fires on cla.yml::call. That one is NOT absorbed —
-          #     it has a written exemption in .scitex/dev/config.yaml stating
-          #     why a hosted runner is the SAFER destination for an
-          #     outsider-triggerable job. Read it before touching that file.
-          # Measured before bumping (both trees, PATH-correct, `packaging`
-          # present): develop 43 err @0.38.1 -> 44 @0.43.0, the one new error
-          # being that PS-224. Nothing else moved.
-          # 0.43.0 also fixes a gate-that-cannot-fail: 0.38.1 printed
-          # "0 unmasked error(s)" with four sub-audits dead on an import error,
-          # where 0.43.0 reports "1 UNREADABLE ... NOT counted as clean".
-          uv pip install --python .venv/bin/python "scitex-dev[cli-audit]==0.43.0"
+          # BUMP TO 0.43.0 ATTEMPTED 2026-08-09 AND REVERTED — read before retrying.
+          # Failed twice, two different ways, and the second exposed something
+          # worth more than the bump itself:
+          #   attempt 1 (this pin + pyproject) -> pytest-matrix FAILED
+          #   attempt 2 (this pin only)        -> this `audit` job FAILED
+          # Both on the SAME finding:
+          #     ERRO: scitex-hub: CLI conventions: 3 error(s)
+          #       [§2] interactive prompt  _cli/_flags.py:110        click.confirm()
+          #       [§2] interactive prompt  _cli/_auth/_login.py:151  click.prompt()
+          #       [§2] interactive prompt  _cli/_auth/_login.py:153  click.prompt()
+          #
+          # THE FINDING: audit-cli only RUNS when its own dependencies happen to
+          # be importable. Change the pin, change the dependency closure, and
+          # this check flips between grading the CLI and reporting
+          # "not-auditable". Measured locally: with `rich` + `requests` absent it
+          # reports not-auditable; installed, it reports those same 3 errors.
+          # So those 3 are REAL pre-existing violations in hub's CLI that this
+          # gate has not been seeing. The bump did not cause them; it revealed
+          # them. Tracked: hub-audit-cli-runs-only-when-its-deps-happen-to-be-installed-20260809
+          #
+          # UNRESOLVED, and the thing to settle BEFORE moving this pin: §2 IS in
+          # SKIP_RULES, and masking demonstrably works locally (148 masked,
+          # PASSED, both 0.38.1 and 0.43.0 with audit-cli live) — yet CI reports
+          # "0 masked by skip-rules (0 declared)" and fails. Leading candidate,
+          # untested: the real fixture passes `path=` (PR #568) and my local
+          # probe did not, so the two may take different skip_rules paths.
+          # Do NOT "fix" this by widening SKIP_RULES — §2/§5/§6 are already in it.
+          uv pip install --python .venv/bin/python "scitex-dev[cli-audit]==0.38.1"
 
       # Use the pytest wrapper so the documented `skip_rules` deferrals in
       # tests/develop/test_audit.py are honoured. Calling `scitex-dev
