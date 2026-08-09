@@ -92,22 +92,63 @@ jobs:
           #       [§2] interactive prompt  _cli/_auth/_login.py:151  click.prompt()
           #       [§2] interactive prompt  _cli/_auth/_login.py:153  click.prompt()
           #
-          # THE FINDING: audit-cli only RUNS when its own dependencies happen to
-          # be importable. Change the pin, change the dependency closure, and
-          # this check flips between grading the CLI and reporting
-          # "not-auditable". Measured locally: with `rich` + `requests` absent it
-          # reports not-auditable; installed, it reports those same 3 errors.
-          # So those 3 are REAL pre-existing violations in hub's CLI that this
-          # gate has not been seeing. The bump did not cause them; it revealed
-          # them. Tracked: hub-audit-cli-runs-only-when-its-deps-happen-to-be-installed-20260809
+          # RESOLVED 2026-08-09, LATER THE SAME DAY. The paragraph that used to
+          # sit here was WRONG and is deleted rather than softened, because the
+          # next person would have trusted it. What it claimed:
+          #   - that the 3 §2 findings caused the failure          -> FALSE
+          #   - that CI reported "0 masked by skip-rules (0 declared)"
+          #                                                        -> NEVER EMITTED
+          #   - that `path=` (PR #568) was the leading candidate   -> FALSIFIED
+          # That phrase appears in no scitex-dev source. It was written from
+          # memory, then reasoned from as if it were evidence.
           #
-          # UNRESOLVED, and the thing to settle BEFORE moving this pin: §2 IS in
-          # SKIP_RULES, and masking demonstrably works locally (148 masked,
-          # PASSED, both 0.38.1 and 0.43.0 with audit-cli live) — yet CI reports
-          # "0 masked by skip-rules (0 declared)" and fails. Leading candidate,
-          # untested: the real fixture passes `path=` (PR #568) and my local
-          # probe did not, so the two may take different skip_rules paths.
-          # Do NOT "fix" this by widening SKIP_RULES — §2/§5/§6 are already in it.
+          # WHAT ACTUALLY FAILED, measured by replaying scitex-dev's classifier
+          # over the failing run's real stdout (run 31331280283):
+          #     205 violation lines classified
+          #     151 masked by SKIP_RULES
+          #       1 NON-SKIPPED   <- this alone made the gate raise
+          # The one line is a WARN-tier notice from a sub-auditor declining to
+          # give a verdict:
+          #     [§10w] §10 import-budget SKIPPED — COULD NOT MEASURE RELIABLY:
+          #     bare-interpreter baseline 112ms exceeds the 100ms sanity bound
+          # The guard is `if skipped and not non_skipped`, so ONE unmatched line
+          # discards the whole 151-line mask. The 3 §2 findings were masked
+          # correctly in CI the entire time.
+          #
+          # WHY THE BUMP TRIGGERED IT — a threshold, not the CLI:
+          #     v0.38.1  §10w fires when baseline exceeds the budget   (500ms)
+          #     v0.43.0  §10w fires when baseline exceeds a sanity bound (100ms)
+          # The runner measured 112ms: over the new bound, under the old. NOT a
+          # loaded-node effect — scitex-hpc measured the CI node at 17-18ms warm
+          # under load average 48-61, FASTER than an idle node. It is a
+          # first-launch penalty inside the container (cold 136/168/193ms across
+          # 3.11/3.12/3.13, warm 43-50ms), so any host running a SIF pays it.
+          #
+          # SEQUENCING — DO NOT BUMP TO 0.43.0 AS A STEPPING STONE. Each pin is
+          # broken where the other is not:
+          #     0.38.1  PS-169 ratchets W->E on a new hosted-runner line,
+          #             PS-224 rejects hosted labels        -> blocks #569
+          #     0.43.0  both of those fixed, but §10w's 100ms bound + the
+          #             notice-as-violation bug             -> reds a clean tree
+          # Jump straight to the release carrying scitex-dev's classifier fix
+          # (0.43.1+). Reported and fixed at source; they also found a sibling
+          # bug where an ERROR line with no rule bracket is counted as nothing
+          # at all (0.43.2).
+          #
+          # STILL TRUE, and still the reason the 3 §2 prompts went unseen:
+          # audit-cli reports "not-auditable" and lets the run go green when it
+          # cannot import the CLI it is grading. But the missing dependency is
+          # HUB'S, not scitex-dev's — audit-cli resolves and imports the TARGET
+          # package's entry point to walk its command tree, so `rich` failing to
+          # import is hub's own CLI dependency missing from THIS job's install.
+          # `scitex-dev[cli-audit]` cannot fix it: that extra is an empty no-op
+          # alias (pyproject.toml:100), installing zero packages.
+          # So `-e ".[dev]"` above may not cover what hub's CLI imports, while
+          # pytest-matrix installs `.[all,dev]` — the two legs can disagree about
+          # whether the CLI is graded at all. Tracked:
+          #   hub-audit-cli-runs-only-when-its-deps-happen-to-be-installed-20260809
+          # Do NOT "fix" any of this by widening SKIP_RULES — §2/§5/§6 are
+          # already in it, and §10w is a notice, not a violation to defer.
           uv pip install --python .venv/bin/python "scitex-dev[cli-audit]==0.38.1"
 
       # Use the pytest wrapper so the documented `skip_rules` deferrals in
