@@ -17,6 +17,19 @@ project-type:
 # MIGRATED rather than exempted — an exemption I cannot justify by
 # measurement is just a skip_rules entry with better manners.
 #
+# NOT-AN-ENTRY, recorded because the near-miss is instructive (2026-08-09):
+# bumping the audit corpus to 0.43.0 made PS-224 fire on cla.yml::call, and
+# a fifth exemption was written for it arguing that a hosted runner is the
+# safer destination for an outsider-triggerable job. That argument is
+# correct — and the exemption was still WRONG, because it assumed the job
+# was already on a hosted runner. Reading the callee showed the opposite:
+# `runs_on` defaults to the Spartan pool and hub passed no `with:`, so the
+# job was on the PERSISTENT, credential-holding runner the argument warns
+# against. The fix was to pin the destination (and stop `secrets: inherit`),
+# after which PS-224 stops firing on its own and no exemption is needed.
+# The rule was right, the exemption would have frozen the unsafe state with
+# a well-written justification on top of it.
+#
 # The first entry is measured. The other three are the tag-only release
 # jobs, and they are exempted on a DIFFERENT and weaker ground, stated
 # plainly rather than dressed up as measurement: a pull-request run can

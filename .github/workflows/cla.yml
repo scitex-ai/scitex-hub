@@ -28,4 +28,34 @@ permissions:
 jobs:
   call:
     uses: scitex-ai/.github/.github/workflows/cla.yml@main
-    secrets: inherit
+    with:
+      # PIN THE DESTINATION EXPLICITLY. Measured 2026-08-09 by reading the
+      # callee: `runs_on` defaults to
+      #     '["self-hosted","Linux","X64","spartan-cpu"]'
+      # and this caller passed no `with:`, so this job HAS BEEN RUNNING ON THE
+      # PERSISTENT POOL. That is the wrong destination for this job, and
+      # neither file showed it on its own — the caller names no runner and the
+      # callee's default is invisible from here.
+      #
+      # WHY EPHEMERAL IS THE SAFER DESTINATION HERE, specifically:
+      #   * the triggers are outsider-reachable — `pull_request_target` runs in
+      #     the BASE repo's context, and `issue_comment` is not gated at all;
+      #     these are the documented way AROUND the fork-PR approval gate
+      #   * our self-hosted runners are PERSISTENT and share a real $HOME
+      #     holding the live fleet credential, so a compromise there costs the
+      #     credential, not one machine
+      #   * a hosted VM is destroyed after the run: a compromise costs one
+      #     disposable runner
+      # This repo is public, so hosted minutes are free. sac made the same call
+      # for its own CLA job.
+      #
+      # NOT a general "move CI to hosted runners" position — this is about a
+      # job an outsider can trigger. Everything else here belongs on hardware
+      # we own.
+      runs_on: '["ubuntu-latest"]'
+    # ONE SECRET, NOT ALL OF THEM. `secrets: inherit` forwarded EVERY secret
+    # this repo holds into a job an outsider can start. The callee declares
+    # this single secret precisely so callers need not do that; it is the only
+    # one the CLA assistant uses.
+    secrets:
+      GH_PERSONAL_ACCESS_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
