@@ -21,3 +21,43 @@
   align-items: center;
   gap: 0.5rem;
 }
+
+/* ============================================================================= */
+/* MOBILE - primary navigation gets its own row                                  */
+/* ============================================================================= */
+
+/* THE BUG THIS FIXES (measured on live prod at viewport 390, 2026-08-05):
+     .repo-tabs-toolbar is a nowrap flex row holding two children, and at 352px
+     they shrink in proportion to their content. The result inverted the page's
+     priorities:
+
+       .scitex-tabs           Files/Issues/Pull requests/Settings   -> 143px
+       .repo-toolbar-buttons  Add file/Upload                       -> 209px
+
+     The PRIMARY navigation got 143px to show 403px of tabs, while the SECONDARY
+     action buttons took more of the row than the navigation did. Everything past
+     "Files" sat behind a horizontal scroll of a 143px-wide window -- reachable,
+     but only if you knew to look, and a repo's Issues and Pull requests are not
+     things a visitor should have to discover by swiping a stub.
+
+   Letting the toolbar wrap gives the tab strip the full row and drops the
+   buttons beneath it. Measured with the rule injected into the live page:
+   tab strip 143px -> 352px, hidden content 260px -> 51px, and 3 of the 4 tabs
+   became fully visible without scrolling (previously ~1).
+
+   The remaining 51px is ordinary tab-strip scroll -- .scitex-tabs already sets
+   overflow-x: auto with a styled 4px scrollbar in the shared component
+   (static/shared/css/components/tabs.css), so it is affordanced, not hidden. */
+
+@media (max-width: 768px) {
+  .repo-tabs-toolbar {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  /* flex-shrink: 0 is the point -- without it this is squeezed all over again. */
+  .repo-tabs-toolbar .scitex-tabs {
+    flex: 1 0 100%;
+    min-width: 0;
+  }
+}
