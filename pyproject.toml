@@ -228,6 +228,16 @@ dev = [
     # [project.dependencies] for the measurement. Both sites must move
     # together: this one is what CI actually installs for the audit gate.
     "scitex-dev>=0.16.1,<0.39",
+    # The board-tenancy suite is guarded by `_TODO_INSTALLED`
+    # (middleware.py:115, find_spec("scitex_cards")). Without this package
+    # installed, every one of those tests SKIPS and the job exits 0 — a
+    # green check over an unrun suite. Measured 2026-08-09: the whole
+    # tenancy contract suite reported "8 skipped", exit 0, in an
+    # environment where the middleware was byte-identical to prod's.
+    # Those tests exist to stop the ?store= tenancy channel being deleted;
+    # skipped, they protect nothing while reading as protection.
+    # Same rationale as the PS-210 block above.
+    "scitex-cards>=0.32.1",
 ]
 
 [project.scripts]
