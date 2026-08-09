@@ -14,6 +14,7 @@
   "accent_color": "",
   "body_class": "",
   "partial_template": "",
+  "renders_ui": false,
   "context_builder": "",
   "url": "/apps/cards/",
   "ai_hint": "Read-only board of the project's task cards (scitex-todo store, phase 1).",
