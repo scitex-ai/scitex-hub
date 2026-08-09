@@ -98,6 +98,13 @@ scitex-hub = "scitex_hub"
 # (formatters, linters, dev-only test plugins) and CI installs with
 # `pip install -e ".[all,dev]"`.
 all = [
+    # The board mounted at /apps/cards/ (config/urls.py:173) and the
+    # tenancy middleware's `_TODO_INSTALLED` guard both come from this
+    # package. Listed here as well as in [dev] because PS-221 §3 requires
+    # every requirement of the PUBLIC `dev` extra to be closed under
+    # `all` — and because a deployment installing `[all]` genuinely wants
+    # the board it mounts.
+    "scitex-cards>=0.32.1",
     # --- Django stack (web framework + DRF + auth + ORM + ASGI) ---
     "Django>=5.2",
     "djangorestframework>=3.16",
