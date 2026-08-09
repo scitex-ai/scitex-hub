@@ -22,8 +22,8 @@ SCOPE, precisely: these tests invoke SPECIFIC commands under
 ``CliRunner`` with ``input=""`` and assert they do not block. They do
 NOT enumerate prompt call sites, so a prompt in a command not invoked
 below is invisible to them. That complementary sweep is
-``tests/scitex_hub/_cli/test_interactive_prompt_call_sites.py``, which
-is static and repo-wide. Neither file can catch the other's misses;
+``tests/develop/test_interactive_prompt_call_sites.py``, which is
+static and repo-wide. Neither file can catch the other's misses;
 adding a command here without adding it there (or vice versa) leaves a
 hole.
 """

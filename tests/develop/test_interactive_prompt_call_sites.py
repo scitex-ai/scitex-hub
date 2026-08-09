@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: tests/scitex_hub/_cli/test_interactive_prompt_call_sites.py
+# File: tests/develop/test_interactive_prompt_call_sites.py
 
 """CLI spec §2 — STATIC scan for interactive-prompt call sites.
 
@@ -56,8 +56,17 @@ from pathlib import Path
 
 import pytest
 
-# tests/scitex_hub/_cli/<this file> -> repo root is 4 levels up.
-REPO_ROOT = Path(__file__).resolve().parents[3]
+# tests/develop/<this file> -> repo root is 3 levels up.
+#
+# Lives in tests/develop/ with the repo's other whole-tree gates
+# (test_audit.py, test_ci_bypasses_are_justified.py,
+# test_worktrees_are_ignored_by_tracked_rule.py) rather than under
+# tests/scitex_hub/, because it asserts a property of the TREE, not of
+# one source module. Placing it in the mirror tree also made it an
+# orphan-test-file (PS-204) with no source counterpart to mirror — a
+# measured +1 on the audit's masked-violation ceiling, which is the
+# structure convention telling the truth about where this belongs.
+REPO_ROOT = Path(__file__).resolve().parents[2]
 SRC_ROOT = REPO_ROOT / "src" / "scitex_hub"
 
 #: Callables that read from stdin and therefore can block an agent.
