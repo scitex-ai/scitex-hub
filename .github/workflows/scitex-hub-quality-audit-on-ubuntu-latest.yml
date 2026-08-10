@@ -189,6 +189,25 @@ jobs:
           # else, that is the cause — it is a notice, not a violation, so fix
           # it at the threshold and do NOT widen SKIP_RULES.
           #
+          # UPDATE 2026-08-10 — that risk is now CLOSED for the pytest gate,
+          # which is what both this job and pytest-matrix actually run. 0.43.1
+          # classifies §10w as a NON-violation at source
+          # (scitex_dev/testing/_audit_conformance.py: _NON_VIOLATION_RULES =
+          # {§10, §10w, TALLY, defer}, plus _NON_VIOLATION_LEVELS = {WARN,
+          # INFO, SUCC, NOTE}), so a cold-host §10w notice can no longer
+          # discard the skip mask. That bug — one notice voiding a 151-entry
+          # mask — is precisely what reddened the 0.43.0 attempt on this repo,
+          # and 0.43.1 names this repo's 2026-08-09 run as the case it fixes.
+          #
+          # ALSO 2026-08-10: pyproject now pins scitex-dev==0.43.1 in BOTH
+          # [project.dependencies] and [dev], so pytest-matrix (which installs
+          # `-e ".[all,dev]"`) grades with the same corpus as this job. Before
+          # that, this line pinned 0.43.1 while pytest-matrix still resolved
+          # 0.38.1 from the old `<0.39` ceiling — which is why this job passed
+          # in 38s while all three REQUIRED pytest-matrix legs stayed red for
+          # ~12 hours. This job is not a required check; those three are.
+          # Keep this pin and the two pyproject pins on the same version.
+          #
           # STILL TRUE, and still the reason the 3 §2 prompts went unseen:
           # audit-cli reports "not-auditable" and lets the run go green when it
           # cannot import the CLI it is grading. But the missing dependency is
