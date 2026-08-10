@@ -109,7 +109,10 @@ def _perform_health_check(
 def _send_recovery_notification(
     url: str, response_time: float, recipient: str, sender: str
 ):
-    """Send site recovery notification email."""
+    """Send site recovery notification email.
+
+    ``fail_silently=False`` is deliberate -- see ``_send_alert_notification``.
+    """
     try:
         send_mail(
             subject="[SciTeX] Site Recovered",
@@ -123,16 +126,33 @@ The site is now responding normally.
 """,
             from_email=sender,
             recipient_list=[recipient],
-            fail_silently=True,
+            fail_silently=False,
         )
     except Exception as e:
-        logger.error(f"[HealthCheck] Failed to send recovery email: {e}")
+        logger.error(
+            f"[HealthCheck] ALARM DELIVERY FAILED (recovery): {e}. "
+            f"recipient={recipient} sender={sender}. "
+            "Check EMAIL_HOST/EMAIL_HOST_USER credentials.",
+            exc_info=True,
+        )
 
 
 def _send_alert_notification(
     url: str, error: str, failure_count: int, recipient: str, sender: str
 ):
-    """Send site down alert notification email."""
+    """Send site down alert notification email.
+
+    ``fail_silently=False`` is deliberate, and is the whole point of this
+    function. With ``True`` -- what this shipped with -- Django's mail backend
+    swallows send failures, so the ``except`` below never fires and its
+    ``logger.error`` is dead code for the failure it exists to report. Stale
+    SMTP credentials would then produce an alarm that is silent about being
+    silent: configured, believed live, and incapable of saying otherwise.
+
+    The task keeps running either way -- the caller does not re-raise -- so
+    nothing is gained by discarding the error, and the one thing an alarm must
+    never do is fail quietly.
+    """
     try:
         send_mail(
             subject="[SciTeX] Site Down Alert",
@@ -152,10 +172,16 @@ Possible actions:
 """,
             from_email=sender,
             recipient_list=[recipient],
-            fail_silently=True,
+            fail_silently=False,
         )
     except Exception as e:
-        logger.error(f"[HealthCheck] Failed to send alert email: {e}")
+        logger.error(
+            f"[HealthCheck] ALARM DELIVERY FAILED (site down): {e}. "
+            f"recipient={recipient} sender={sender}. "
+            "The site-down alert did NOT reach anyone. "
+            "Check EMAIL_HOST/EMAIL_HOST_USER credentials.",
+            exc_info=True,
+        )
 
 
 @shared_task(
@@ -179,8 +205,15 @@ def check_site_health(self):
         url, _, recipient, sender = _get_health_config()
 
         if not recipient:
-            logger.debug(
-                "[HealthCheck] SCITEX_HUB_HEALTH_NOTIFICATION_RECIPIENT not set"
+            # WARNING, not DEBUG. This is the difference between "the alarm is
+            # armed" and "the alarm is running but can reach nobody", and at
+            # DEBUG that distinction was invisible in production -- emitted
+            # once a minute into a level nothing collects. An alarm that cannot
+            # notify must say so at a level someone sees.
+            logger.warning(
+                "[HealthCheck] SCITEX_HUB_HEALTH_NOTIFICATION_RECIPIENT is not "
+                "set, so site-down and recovery alerts will reach NOBODY. "
+                "Set it in deployment/docker/envs/.env.<env>."
             )
 
         # Perform check
@@ -337,7 +370,7 @@ Recommended actions:
 """,
                     from_email=sender,
                     recipient_list=[recipient],
-                    fail_silently=True,
+                    fail_silently=False,
                 )
 
                 # Rate limit alerts
