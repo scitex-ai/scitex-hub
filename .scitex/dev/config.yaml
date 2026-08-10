@@ -53,6 +53,15 @@ audit:
     # (_cli/audit/_config/_loader.py:113-141), not from prose: a flat list of
     # entries each carrying `rule:` is silently ignored, because
     # _parse_exemptions returns ((), ()) for any non-dict block.
+    # NOTE: a `tests.yml::test-summary` entry lived here from 2026-08-09 to
+    # 2026-08-10 and carried its own removal instruction — "scitex-dev 0.43.0+
+    # accepts hosted labels as a served destination (GITHUB_HOSTED_LABELS), so
+    # PS-224 stops firing here on its own once the corpus pytest-matrix
+    # installs is >= 0.43 … DELETE THIS ENTRY when the ceiling moves." The
+    # ceiling moved (pyproject now pins scitex-dev==0.43.1), so the entry is
+    # gone. Verified, not assumed: with it deleted and 0.43.1 installed, the
+    # audit reports no PS-224 finding for that job. An exemption kept past the
+    # condition that justified it is indistinguishable from one nobody checked.
     PS-224:
       - path: ".github/workflows/e2e-mobile.yml::playwright-mobile"
         line: 0

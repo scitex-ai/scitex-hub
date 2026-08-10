@@ -68,35 +68,62 @@ dependencies = [
     # intentional bump re-breaks the lane.
     # Tracked: ci-unpinned-scitex-dev-voids-skip-rules-20260729.
     #
-    # CEILING STAYS AT <0.39. I raised it to <0.44 on 2026-08-09 and CI
-    # falsified that in the one environment I could not reproduce locally.
-    # Keeping the failure recorded here, because the next person will be
-    # tempted by exactly the same reasoning I was.
+    # CEILING RAISED TO ==0.43.1 on 2026-08-10. The <0.39 ceiling above did
+    # its job and is now the thing blocking the work. Read the two paragraphs
+    # below before touching this line again.
     #
-    # WHY IT LOOKED SAFE: calling the gate's own entry point with the gate's
-    # own SKIP_RULES, same worktree, both versions back to back, gave
-    #     0.38.1  ->  44 violation(s) masked by skip_rules  ->  PASSED
-    #     0.43.0  ->  44 violation(s) masked by skip_rules  ->  PASSED
+    # WHAT THE 2026-08-09 REVERT LEFT UNEXPLAINED. That attempt raised the
+    # ceiling to <0.44 (resolving 0.43.0), pytest-matrix went red, and the
+    # revert recorded the cause as "not understood": §2/§5/§6 were all in
+    # SKIP_RULES and the fixture raised anyway. It is understood now, and it
+    # was never about §2/§5/§6. Under 0.43.0 the import-budget auditor emits
+    # `WARN: [§10w …]` — a warn-tier "COULD NOT MEASURE RELIABLY" notice, not
+    # a finding. 0.43.0's classifier counted any bracketed line as a
+    # violation, §10w matched no skip rule, and `audit_all_for_package`'s
+    # mask guard is `if skipped and not non_skipped` — so ONE notice
+    # discarded the entire 151-entry mask and reddened a green tree.
     #
-    # WHY IT WAS NOT: my venvs had no scitex_hub installed, so `audit-cli`
-    # reported not-auditable and never ran. THIS pin is what pytest-matrix
-    # installs, and that job installs `.[all,dev]` — a full app with a real
-    # CLI surface — so there audit-cli DOES run. Under 0.43.0 it emitted
-    #     ERRO: scitex-hub: CLI conventions: 3 error(s), 102 warning(s)
-    #     [§2] interactive prompt x3   [§5] missing skills tool x2   [§6] MCP/API
-    # and the fixture raised `audit-all reported violations (exit=1)` even
-    # though §2/§5/§6 are all IN SKIP_RULES. Measured, not inferred:
-    #     develop @ b5ea233f8  pytest-matrix  SUCCESS   (0.38.1, control)
-    #     this branch          pytest-matrix  FAILURE   (0.43.0)
-    #     both jobs on the same run installed 0.43.0, and the `audit` job
-    #     (which installs only `.[dev]`) PASSED — so it is the ENVIRONMENT,
-    #     not the version, that decides whether audit-cli finds anything.
+    # 0.43.1 IS THE FIX FOR THAT EXACT INCIDENT, and says so in its own
+    # source (scitex_dev/testing/_audit_conformance.py): "Measured 2026-08-09
+    # on scitex-hub: one such notice discarded a 151-line skip mask and
+    # reddened a green tree." It adds `_NON_VIOLATION_RULES` ({§10, §10w,
+    # TALLY, defer}) and `_NON_VIOLATION_LEVELS` ({WARN, INFO, SUCC, NOTE}).
+    # Diffed 0.38.1 -> 0.43.1: those two `continue` filters are the ONLY
+    # change to the classification loop, so 0.43.1 classifies a strict SUBSET
+    # of what 0.38.1 called a violation. It cannot newly redden this gate.
+    # The masked-count warning text is unchanged, so test_audit.py's
+    # _MASKED_COUNT_RE still parses it.
     #
-    # The audit-gate workflow pins 0.43.0 explicitly in its own install step,
-    # so the PS-169 fix this change exists for still lands without moving this
-    # ceiling. Raising it needs the skip_rules/audit-cli interaction understood
-    # first — tracked, not forgotten.
-    "scitex-dev>=0.16.1,<0.39",
+    # MEASURED HERE, in the environment the revert could not reproduce —
+    # `uv pip install -e ".[all,dev]"` exactly as pytest-matrix does, so
+    # scitex_hub is importable and audit-cli genuinely RUNS (the revert's
+    # venvs had no scitex_hub, audit-cli reported not-auditable, and that is
+    # why its numbers were wrong). Same tree, same gate, only the corpus
+    # differs:
+    #     0.38.1  audit-cli 104 error(s)  151 unmasked  -> FAILED on PS-169
+    #     0.43.1  audit-cli   3 error(s)   45 unmasked  -> PASSED, 45 masked
+    # The 0.38.1 line reproduces CI run 31348349271 byte-for-byte.
+    #
+    # WHY PS-169 WAS THE BLOCKER AND WHY THAT IS CORRECT TO RETIRE: in 0.38.1
+    # PS-169 is W with a baseline ratchet that escalates NEW violations to E.
+    # Every PR in the Spartan migration introduces a new hosted runner by
+    # construction, so the ratchet blocks precisely the PRs that comply with
+    # the operator's 2026-08-05 ruling
+    # (「スパルタンのCIは全面的にやめましょう」). 0.43.1 deletes the ratchet
+    # and makes PS-169 a flat advisory W — upstream's words: "A gate that
+    # permits the accumulated mess and blocks its correction is worse than no
+    # gate." There is no exemption path for PS-169 in any version
+    # (`audit.exemptions` is loaded per-check and PS-169 never loads it), so
+    # moving the corpus is the only fix that is not a lie.
+    #
+    # EXACT PIN, NOT A RANGE — deliberately, for the same reason the <0.39
+    # ceiling above chose <0.39 over <0.40: a range readmits releases nobody
+    # has run, which is the "whatever resolves redefines our gate" bug in a
+    # smaller box. 0.43.1 is measured; 0.43.2 is not. Move this pin only with
+    # a green pytest-matrix run behind it, and re-measure with `.[all,dev]`
+    # installed — a venv without scitex_hub silently skips audit-cli and will
+    # tell you everything is fine.
+    "scitex-dev==0.43.1",
     "gitpython>=3.1",
 ]
 
@@ -260,10 +287,11 @@ dev = [
     # test_audit.py uses (`[PA-307 …]` <- skip_rules=("PA-307",)).
     # Pinning to <0.16.1 silently lets every entry in `skip_rules`
     # leak through — the gate fails on rules we explicitly deferred.
-    # CEILING STAYS AT <0.39 — see the matching pin in [project.dependencies]
-    # for the measurement that reverted an attempt to raise it. This is the
-    # pin pytest-matrix installs, and it is the one that broke under 0.43.0.
-    "scitex-dev>=0.16.1,<0.39",
+    # PINNED ==0.43.1 — see the matching pin in [project.dependencies] for the
+    # measurement. THIS is the pin pytest-matrix installs (`-e ".[all,dev]"`),
+    # so this is the one that decides the three required checks; the audit
+    # workflow's own pin cannot substitute for it. Keep the two identical.
+    "scitex-dev==0.43.1",
     # The board-tenancy suite is guarded by `_TODO_INSTALLED`
     # (middleware.py:115, find_spec("scitex_cards")). Without this package
     # installed, every one of those tests SKIPS and the job exits 0 — a
