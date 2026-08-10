@@ -93,10 +93,19 @@
                         <li>
                             <a href="{% url 'public_app:tokushoho' %}">特定商取引法に基づく表記</a>
                         </li>
-                        {# The mailto: above is not a contact ROUTE: a visitor with no mail
-                           client configured cannot act on it, and it states no operator,
-                           address or response undertaking. The disclosure obligation is
-                           about being REACHABLE, so link the page as well. #}
+                        {% comment %}
+                            The mailto: above is not a contact ROUTE: a visitor with no mail
+                            client configured cannot act on it, and it states no operator,
+                            address or response undertaking. The disclosure obligation is
+                            about being REACHABLE, so link the page as well.
+
+                            {% comment %} rather than {# #}: Django's hash comment is
+                            SINGLE-LINE ONLY, so a multi-line one is never lexed and renders
+                            VERBATIM to visitors. global_base.html:55-65 documents that exact
+                            incident, and this comment was written as a multi-line {# #} and
+                            caught by CI -- the same bug, in the same file family, one session
+                            after reading the warning about it.
+                        {% endcomment %}
                         <li>
                             <a href="{% url 'public_app:contact' %}">Contact</a>
                         </li>
