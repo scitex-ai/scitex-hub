@@ -388,9 +388,16 @@
   }
 }
 
-/* Hide footer on mobile in workspace pages (collapsed by default) */
+/* Hide footer on mobile in workspace pages (collapsed by default).
+   `.app-home` is excluded for the same reason as in workspace-layout.css: the
+   launcher carries the only route to the 特定商取引法 disclosure, the policy
+   pages and contact, and that route must survive on a phone. The operator
+   allows the footer to be relocated or collapsed on mobile, but not removed.
+   Keep this exclusion in step with workspace-layout.css — they encode one
+   decision in two files, and fixing only one leaves the footer missing on
+   exactly the devices that report it. */
 @media (max-width: 768px) {
-  body.workspace-page:not(.landing-page) .site-footer {
+  body.workspace-page:not(.landing-page):not(.app-home) .site-footer {
     display: none;
   }
 }

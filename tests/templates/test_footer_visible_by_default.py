@@ -74,7 +74,7 @@ CSS_RULE_PATH = "static/shared/css/components/workspace-layout.css"
 # {% else %}, so they carry NO class at all.
 PUBLIC_PAGE_CLASSES = frozenset()
 LANDING_CLASSES = frozenset({"workspace-page", "landing-page"})
-AUTHED_ROOT_CLASSES = frozenset({"workspace-page", "no-transition"})
+AUTHED_ROOT_CLASSES = frozenset({"workspace-page", "no-transition", "app-home"})
 MODULE_CLASSES = frozenset({"workspace-page", "writer-module", "no-transition"})
 EXPLORE_CLASSES = frozenset({"workspace-page", "explore-page"})
 
@@ -176,10 +176,45 @@ def test_footer_is_visible_on_landing():
     assert not hidden
 
 
-def test_footer_is_hidden_in_the_authenticated_app_shell():
-    """Unchanged behaviour: the shell owns the viewport at `/` when signed in."""
+def test_footer_is_visible_on_the_app_home():
+    """CHANGED DELIBERATELY 2026-08-10, on the operator's report.
+
+    This previously asserted the footer was HIDDEN at `/` when signed in, on
+    the reasoning that the app shell owns the viewport. That reasoning holds
+    for workspace surfaces and still does -- see the module/workspace/explore
+    tests below, which are unchanged.
+
+    It does not hold for the launcher. The operator reported that without a
+    footer there is no route to the 特定商取引法 disclosure, the policy pages
+    or contact details:
+
+        「フッターがないとですね。あの特商法の表示がとか法律がとか
+          後は連絡先がとかってわかりにくいんで」
+
+    Those pages all exist (public_app/urls/pages.py:44-51); the footer was the
+    only thing linking them, and it was hidden on the one screen a signed-in
+    user lands on. Reachability of a statutory disclosure outranks giving the
+    launcher the whole viewport, so `.app-home` is excluded from the hide rule.
+
+    The signed-in launcher now carries `workspace-page no-transition app-home`.
+    """
     # Arrange
     classes = AUTHED_ROOT_CLASSES
+    # Act
+    hidden = _footer_hidden_for(classes)
+    # Assert
+    assert not hidden
+
+
+def test_footer_stays_hidden_on_a_workspace_page_without_the_app_home_marker():
+    """The exclusion must be the LAUNCHER, not `workspace-page` generally.
+
+    Guards the obvious over-correction: widening the escape hatch until every
+    app-shell surface shows the footer, which is the bug the sibling
+    `test_body_class_landing_page.py` records from the other direction.
+    """
+    # Arrange
+    classes = AUTHED_ROOT_CLASSES - {"app-home"}
     # Act
     hidden = _footer_hidden_for(classes)
     # Assert
