@@ -47,6 +47,17 @@ import pytest
 # growing. Lower it as the deferral campaigns below land; if a change
 # genuinely needs a new skip_rules entry, the ceiling stays put and
 # something else must come off the list first.
+#
+# SLACK NOTICE, 2026-08-10: the corpus pin moved to scitex-dev==0.43.1, which
+# demotes ~100 CLI-convention findings from error to warning and stops
+# counting warn-tier notices at all. The mask measured 49 here (py3.12, full
+# `.[all,dev]` install) against this ceiling of 151 — so the ratchet currently
+# has ~100 of slack and is not actually ratcheting anything. Deliberately NOT
+# tightened in the same change that moved the corpus: 49 is one measurement on
+# one interpreter, and pytest-matrix runs 3.11/3.12/3.13, where the audit-cli
+# leg depends on which optional imports succeed. Tighten this to just above the
+# highest of the THREE legs once a green matrix run has reported them — do not
+# guess it from this one number.
 MAX_MASKED_VIOLATIONS = 151
 
 _MASKED_COUNT_RE = re.compile(r"audit-all:\s*(\d+)\s+violation\(s\)\s+masked")

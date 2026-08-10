@@ -107,6 +107,7 @@ run_section "09-apptainer" "${SCRIPT_DIR}/check-apptainer.sh" &
 run_section "10-services" "${SCRIPT_DIR}/check-services.sh" &
 run_section "11-resources" "${SCRIPT_DIR}/check-resource-limits.sh" &
 run_section "12-portfwd" "${SCRIPT_DIR}/check-port-forwarding.sh" &
+run_section "13-app-drift" "${SCRIPT_DIR}/check-app-drift.sh" &
 
 wait
 

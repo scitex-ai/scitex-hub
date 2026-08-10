@@ -166,7 +166,55 @@ jobs:
           # Jump straight to the release carrying scitex-dev's classifier fix
           # (0.43.1+). Reported and fixed at source; they also found a sibling
           # bug where an ERROR line with no rule bracket is counted as nothing
-          # at all (0.43.2).
+          # at all (0.43.2, not yet released — 0.43.1 is latest on PyPI).
+          #
+          # DONE, 2026-08-10 — and MEASURED on THIS branch rather than assumed.
+          # Both versions run against the same tree with dependencies held
+          # identical, so the pin is the only variable:
+          #     0.38.1  [E] PS-169 hosted-runner-forbidden        <- blocks #569
+          #             [E] PS-224 on tests.yml::test-summary     <- blocks #569
+          #             45 errors / 621 warnings
+          #     0.43.1  PS-169 gone from the error tier (now advisory W)
+          #             PS-224 gone from tests.yml::test-summary
+          #             44 errors / 622 warnings
+          # The error/warning counts moving 45->44 and 621->622 in lockstep is
+          # PS-169 changing TIER, which is exactly what scitex-dev's rescope
+          # claimed. Both of #569's named blockers are cleared by this line.
+          #
+          # An earlier read of mine said "PS-224 still fires under 0.43.1, so
+          # the fix did not land". That was wrong and is recorded so nobody
+          # re-derives it: PS-224 still appears, but on a DIFFERENT job —
+          # cla.yml::call, the `secrets: inherit` exposure — which #570 already
+          # fixed on develop and which this branch was simply too old to have.
+          # Merging develop cleared it. Comparing RULE IDS instead of FINDINGS
+          # is what produced the wrong conclusion.
+          #
+          # RESIDUAL RISK, stated rather than discovered later: §10w did not
+          # fire under either pin here, but it keys off interpreter STARTUP
+          # TIME, and this measurement ran on a warm host. A cold container in
+          # CI pays the first-launch penalty documented above (136-193ms), so
+          # §10w can still fire there. If this job reds on §10w and nothing
+          # else, that is the cause — it is a notice, not a violation, so fix
+          # it at the threshold and do NOT widen SKIP_RULES.
+          #
+          # UPDATE 2026-08-10 — that risk is now CLOSED for the pytest gate,
+          # which is what both this job and pytest-matrix actually run. 0.43.1
+          # classifies §10w as a NON-violation at source
+          # (scitex_dev/testing/_audit_conformance.py: _NON_VIOLATION_RULES =
+          # {§10, §10w, TALLY, defer}, plus _NON_VIOLATION_LEVELS = {WARN,
+          # INFO, SUCC, NOTE}), so a cold-host §10w notice can no longer
+          # discard the skip mask. That bug — one notice voiding a 151-entry
+          # mask — is precisely what reddened the 0.43.0 attempt on this repo,
+          # and 0.43.1 names this repo's 2026-08-09 run as the case it fixes.
+          #
+          # ALSO 2026-08-10: pyproject now pins scitex-dev==0.43.1 in BOTH
+          # [project.dependencies] and [dev], so pytest-matrix (which installs
+          # `-e ".[all,dev]"`) grades with the same corpus as this job. Before
+          # that, this line pinned 0.43.1 while pytest-matrix still resolved
+          # 0.38.1 from the old `<0.39` ceiling — which is why this job passed
+          # in 38s while all three REQUIRED pytest-matrix legs stayed red for
+          # ~12 hours. This job is not a required check; those three are.
+          # Keep this pin and the two pyproject pins on the same version.
           #
           # STILL TRUE, and still the reason the 3 §2 prompts went unseen:
           # audit-cli reports "not-auditable" and lets the run go green when it
@@ -182,7 +230,7 @@ jobs:
           #   hub-audit-cli-runs-only-when-its-deps-happen-to-be-installed-20260809
           # Do NOT "fix" any of this by widening SKIP_RULES — §2/§5/§6 are
           # already in it, and §10w is a notice, not a violation to defer.
-          uv pip install --python .venv/bin/python "scitex-dev[cli-audit]==0.38.1"
+          uv pip install --python .venv/bin/python "scitex-dev[cli-audit]==0.43.1"
 
       # Use the pytest wrapper so the documented `skip_rules` deferrals in
       # tests/develop/test_audit.py are honoured. Calling `scitex-dev
