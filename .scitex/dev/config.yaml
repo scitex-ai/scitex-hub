@@ -54,6 +54,26 @@ audit:
     # entries each carrying `rule:` is silently ignored, because
     # _parse_exemptions returns ((), ()) for any non-dict block.
     PS-224:
+      - path: ".github/workflows/tests.yml::test-summary"
+        line: 0
+        reason: >-
+          Measured, and it is the one entry here whose cost is paid on EVERY
+          pull request rather than at a tag. `test-summary` is four lines of
+          bash that summarise the other tests.yml jobs, and it is `needs:`-last
+          by construction — so on the Spartan pool it queues behind the very
+          pool it is summarising. Measured 2026-08-09 on this repo: ONE
+          registered runner, busy, with 13 jobs queued behind it, which is the
+          latency this job would add to every PR twice over. It needs no
+          toolchain, no secrets and no hardware: `ubuntu-latest` starts it
+          immediately. This is also the direction of the operator's 2026-08-05
+          ruling (「スパルタンのCIは全面的にやめましょう」), so the exemption
+          records a deliberate destination, not a gap. NOTE for whoever reads
+          this next: scitex-dev 0.43.0+ accepts hosted labels as a served
+          destination (GITHUB_HOSTED_LABELS), so PS-224 stops firing here on
+          its own once the corpus pytest-matrix installs is >= 0.43. This
+          entry exists because that job resolves scitex-dev from pyproject's
+          `<0.39` ceiling, and that ceiling is pinned low for a separate,
+          documented reason. DELETE THIS ENTRY when the ceiling moves.
       - path: ".github/workflows/e2e-mobile.yml::playwright-mobile"
         line: 0
         reason: >-
