@@ -1,17 +1,31 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# File: tests/scitex_hub/test_no_interactive_prompts.py
+# File: tests/scitex_hub/test_cli_commands_fail_fast_without_input.py
 
-"""CLI spec §2 compliance — no interactive prompts.
+"""CLI spec §2 — THESE COMMANDS fail fast when driven with no input.
 
-Every refactored command must:
-- succeed (or fail for another reason) when value comes from flag / env;
+Renamed 2026-08-09 from ``test_no_interactive_prompts.py``. The old name
+read repo-wide; the file delivers something narrower, and the gap was
+not academic — three real ``click.prompt`` / ``click.confirm`` sites sat
+in ``_cli/_auth/_login.py`` and ``_cli/_flags.py`` the whole time this
+file was green, because it exercises ``_cli/_gitea_auth``, a different
+login path. Per the naming rule, if a name has to be explained as
+something narrower, the narrower thing is the name.
+
+Every command covered here must:
+- succeed (or fail for another reason) when the value comes from a
+  flag / env var;
 - exit with code 2 and a stderr guidance message when the value is
   missing everywhere, instead of blocking on stdin.
 
-These tests invoke CLI commands under ``CliRunner`` with
-``input=""`` so that any residual ``click.prompt`` / ``click.confirm``
-would block and surface as a test failure.
+SCOPE, precisely: these tests invoke SPECIFIC commands under
+``CliRunner`` with ``input=""`` and assert they do not block. They do
+NOT enumerate prompt call sites, so a prompt in a command not invoked
+below is invisible to them. That complementary sweep is
+``tests/develop/test_interactive_prompt_call_sites.py``, which is
+static and repo-wide. Neither file can catch the other's misses;
+adding a command here without adding it there (or vice versa) leaves a
+hole.
 """
 
 from unittest.mock import patch

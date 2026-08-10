@@ -91,7 +91,29 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
-          queries: security-and-quality
+          # `security-extended`, NOT `security-and-quality`. This is a SECURITY
+          # gate; `security-and-quality` additionally runs 224 code-quality
+          # queries, and those were drowning it: of 3550 open alerts measured
+          # 2026-08-05, 2538 (71%) carried NO security severity at all —
+          # py/commented-out-code alone was 1133 of them (32% of everything).
+          #
+          # The switch is LOSSLESS for security, and that is checkable rather
+          # than assumed. github/codeql's own suite definitions say so:
+          #   security-and-frozen-quality-selectors.yml
+          #     - apply: security-extended-selectors.yml   <-- verbatim
+          #     - exclude: {tags contain: [model-generator]}
+          # i.e. the security half of security-and-quality IS security-extended;
+          # everything else in that suite is a literal `include: id:` list of
+          # quality rule ids. Classifying all 3550 of our own open alerts
+          # against those lists left the "neither" bucket EMPTY (2538 quality /
+          # 1012 security / 0 unclassified), so no alert we actually have
+          # depends on that reading being right.
+          #
+          # Quality findings are not abandoned — they belong to the scitex-dev
+          # audit lane, which is where a lint regression should turn something
+          # red. Mixing them in here made every release-sync PR red for reasons
+          # that were never vulnerabilities (see PR #392: "386 new alerts").
+          queries: security-extended
           packs: ${{ matrix.language == 'python' && 'scitex-ai/python-security-barriers' || '' }}
           # NO `registries:` — the pack is PUBLIC, so it resolves anonymously.
           #

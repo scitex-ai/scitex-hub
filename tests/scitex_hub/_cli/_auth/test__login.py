@@ -217,4 +217,77 @@ def test_main_cli_registers_auth_group():
     assert actual is True
 
 
+# ---------------------------------------------------------------------
+# CLI spec §2 — the non-TTY refusal guard.
+#
+# These prove the guard that lets ``auth_login`` sit on the allowlist in
+# tests/scitex_hub/_cli/test_interactive_prompt_call_sites.py. That scan
+# only checks a prompt is DECLARED intentional; these check it actually
+# cannot block an unattended caller. An allowlist whose entries are never
+# proved is just a list of good intentions.
+#
+# CliRunner's stdin is not a terminal, so invoking with no credentials
+# reproduces exactly the agent/pipeline case: before the fix this reached
+# ``click.prompt`` and aborted on EOF naming nothing.
+# ---------------------------------------------------------------------
+
+
+def _invoke_login_without_credentials():
+    """Run ``auth login`` with no flags on a non-TTY stdin."""
+    from click.testing import CliRunner
+
+    from scitex_hub._cli._auth._login import auth_login
+
+    return CliRunner().invoke(auth_login, [], input="")
+
+
+def test_login_without_tty_refuses_instead_of_prompting():
+    """Exit 2 (usage error), not 1 (prompt aborted on EOF)."""
+    # Arrange
+    expected_exit_code = 2
+
+    # Act
+    result = _invoke_login_without_credentials()
+
+    # Assert
+    assert result.exit_code == expected_exit_code, (
+        "`auth login` with no credentials and no terminal should refuse with "
+        f"a usage error (exit 2), got exit {result.exit_code}. Exit 1 means it "
+        "reached click.prompt and aborted on EOF — the §2 hang, merely dressed "
+        f"as an error.\nOutput:\n{result.output}"
+    )
+
+
+def test_login_without_tty_never_emits_a_prompt():
+    """No prompt text reaches the caller — the §2 property itself."""
+    # Arrange
+    prompt_text = "Username"
+
+    # Act
+    result = _invoke_login_without_credentials()
+
+    # Assert
+    assert prompt_text not in result.output, (
+        "`auth login` emitted an interactive prompt with no terminal "
+        "attached. An unanswered prompt is a hang for any agent or pipeline "
+        f"driving this CLI.\nOutput:\n{result.output}"
+    )
+
+
+def test_login_without_tty_names_the_missing_flag():
+    """The refusal is actionable: it names the flag to pass."""
+    # Arrange
+    expected_hint = "--user/-u"
+
+    # Act
+    result = _invoke_login_without_credentials()
+
+    # Assert
+    assert expected_hint in result.output, (
+        "the refusal did not name the missing flag, so the caller is told "
+        "what broke but not what to do. An error that only states the failure "
+        f"is half-written.\nOutput:\n{result.output}"
+    )
+
+
 # EOF
