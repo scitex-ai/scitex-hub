@@ -20,7 +20,7 @@ jobs:
     # This is currently a GREEN check, so the risk is real and accepted
     # deliberately: an exemption I cannot justify by measurement is just a
     # skip_rules entry with better manners.
-    runs-on: [self-hosted, Linux, X64, spartan-cpu]
+    runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read

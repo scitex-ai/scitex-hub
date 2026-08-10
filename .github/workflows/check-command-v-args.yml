@@ -20,7 +20,7 @@ jobs:
   check-command-v-args:
     name: No command -v calls with trailing args
     # Pure bash + git, no Python — mirrors the symlink guard, so no uv/venv step.
-    runs-on: [self-hosted, Linux, X64, spartan-cpu]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

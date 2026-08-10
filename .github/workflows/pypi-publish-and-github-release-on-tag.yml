@@ -34,7 +34,7 @@ jobs:
     # Plain Python, no privileged step — the same shape the push/PR pytest
     # matrix already runs green on this pool, so this one is migrated rather
     # than exempted.
-    runs-on: [self-hosted, Linux, X64, spartan-cpu]
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -94,7 +94,7 @@ jobs:
   build:
     needs: test
     # Same reasoning as `test`: a pure `python -m build`, nothing privileged.
-    runs-on: [self-hosted, Linux, X64, spartan-cpu]
+    runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.ver.outputs.version }}
     steps:

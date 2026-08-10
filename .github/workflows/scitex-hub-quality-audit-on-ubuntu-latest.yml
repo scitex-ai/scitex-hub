@@ -35,16 +35,24 @@ on:
 
 jobs:
   audit:
-    # CANARY for the ubuntu-latest -> spartan migration (21 jobs across 10
-    # files still to move; card ci-hub-runs-22-jobs-on-paid-github-runners).
-    # This job goes FIRST deliberately because it is ALREADY RED — if the
-    # self-hosted runner lacks the setup-python toolcache, or anything else
-    # about the host differs, this job fails, which it is already doing, so
-    # the canary cannot make CI worse than it is. Migrating a currently-GREEN
-    # job first would risk turning a passing check red to learn the same fact.
-    # Verify this runs green here BEFORE moving the other 14 safe jobs, and
-    # especially before touching the tag-triggered release pipeline.
-    runs-on: [self-hosted, Linux, X64, spartan-cpu]
+    # MIGRATED BACK to GitHub-hosted, 2026-08-10. This comment used to
+    # describe the OPPOSITE migration (ubuntu-latest -> spartan, card
+    # ci-hub-runs-22-jobs-on-paid-github-runners) and is rewritten rather
+    # than deleted, because the reversal needs its reason recorded next to
+    # the line it changed.
+    #
+    # WHY REVERSED — the operator's ruling, 2026-08-05:
+    #     「スパルタンのCIは全面的にやめましょう」 — stop Spartan CI entirely.
+    # Its HPC scheduler is the wrong shape for CI: jobs queue behind other
+    # work. Measured on this repo 2026-08-09: ONE registered runner, busy,
+    # with 13 jobs queued behind it.
+    #
+    # WHY THE ORIGINAL REASON NO LONGER HOLDS — that card's premise was
+    # PAID runner minutes. scitex-ai/scitex-hub is PUBLIC (verified via the
+    # API, not assumed), and GitHub-hosted runners are free for public
+    # repositories. So the cost that justified moving here is not being
+    # re-incurred by moving back.
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4

@@ -87,7 +87,7 @@ jobs:
     # labels no machine serves — it queues it forever. A hosted-runner typo
     # here would never fail, it would just silently never publish, which is
     # the exact failure class this pack has already suffered twice.
-    runs-on: [self-hosted, Linux, X64, spartan-cpu]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 

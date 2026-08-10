@@ -16,7 +16,7 @@ jobs:
     # could not have told us which half was at fault. Both are now proven
     # on this pool independently — vitest (node) and the pytest matrix
     # (python) are green — so it can move.
-    runs-on: [self-hosted, Linux, X64, spartan-cpu]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -64,16 +64,16 @@ jobs:
 
   vitest:
     name: Vitest Unit Tests
-    # NODE CANARY for the spartan migration. The Python path is proven on
-    # this pool (audit + the three pytest legs), but nothing here has run
-    # actions/setup-node on a self-hosted runner yet — it has to populate
-    # the runner's toolcache rather than use a preinstalled one. This job
-    # is the cheapest node-only probe in the repo (npm install + vitest, no
-    # Python, no browsers), so it answers "does node work here" without
-    # risking the four other tests.yml jobs at the same time.
-    # If this goes green, typescript-check can follow; if it fails, we learn
-    # what the runner image lacks from one job instead of five.
-    runs-on: [self-hosted, Linux, X64, spartan-cpu]
+    # Was the NODE CANARY for the spartan migration — that migration is
+    # reversed as of 2026-08-10 (operator ruling 2026-08-05, "stop Spartan
+    # CI entirely"), so the canary framing no longer describes this job.
+    # Rewritten rather than deleted so the reversal is recorded where it
+    # happened; the full reasoning lives on the `audit` job in
+    # scitex-hub-quality-audit-on-ubuntu-latest.yml.
+    # Node on ubuntu-latest needs no toolcache probing — actions/setup-node
+    # uses the hosted image's preinstalled versions, which is the case the
+    # canary existed to establish for the self-hosted pool.
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -92,7 +92,7 @@ jobs:
 
   terminal-tests:
     name: "Terminal Broker & Session Tests (Python)"
-    runs-on: [self-hosted, Linux, X64, spartan-cpu]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -144,7 +144,7 @@ jobs:
 
   security-regression:
     name: "Security Regression Gates (tests/security/)"
-    runs-on: [self-hosted, Linux, X64, spartan-cpu]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -217,7 +217,7 @@ jobs:
     # Pure bash over `needs.*.result` — no checkout, no Python, no node, no
     # network. Nothing here can depend on a hosted-runner preinstall, which
     # is the whole class of surprise that made the other migrations careful.
-    runs-on: [self-hosted, Linux, X64, spartan-cpu]
+    runs-on: ubuntu-latest
     needs: [typescript-check, vitest, terminal-tests, security-regression]
     if: always()
 
