@@ -18,16 +18,38 @@
 #   necessary information to administrator's short-term memory". A full disk
 #   plainly qualifies, and was absent.
 #
+# THIS CHECK MUST SURVIVE THE CONDITION IT WATCHES.
+#   An earlier revision opened a `mktemp` scratch file to hold df's stderr.
+#   /tmp is the SAME filesystem this check watches on every host we run on, so
+#   at zero bytes free that mktemp got ENOSPC — and the alarm INVERTED: 100%
+#   full reported a yellow warning instead of a red critical, printed no
+#   numbers at all, and leaked raw bash errors into `make status`. A check that
+#   breaks exactly when its subject breaks is worse than no check. Nothing here
+#   may therefore create a file: stderr is captured into shell VARIABLES, and
+#   `<<<` here-strings are avoided because bash before 5.1 materialises those
+#   as temp files too (Synology DSM, the 'nas' deployment target, ships 4.x).
+#
 # BYTES AND INODES ARE REPORTED SEPARATELY AND ALARM INDEPENDENTLY.
 #   Inode exhaustion fails writes while bytes are still plentiful, and the
 #   reverse. A check that watched only bytes would have called 92% inodes
 #   healthy right up to the failure. Each volume therefore gets ONE LINE PER
-#   METRIC, each carrying its own severity token.
+#   METRIC, each carrying its own severity token — including when the other
+#   metric could not be measured. `df -P -k` and `df -P -i` are separate calls
+#   that fail independently, so one failing never suppresses the other.
 #
 # NO SILENT FALLBACK.
 #   During the incident `df` itself errored while measuring. A path that cannot
 #   be measured is reported [UNKNOWN] and counted as a WARNING — an
-#   unmeasurable volume must never read as a healthy one.
+#   unmeasurable volume must never read as a healthy one. Every [UNKNOWN]
+#   carries the real diagnostic, never a hollow "could not check".
+#
+# WHICH VOLUMES ARE WATCHED
+#   By default: this repo, $HOME, `/`, and Docker's data root when Docker is
+#   installed (this is a Docker-only project — the volume that actually fills
+#   is usually Docker's, not the repo's). Override with SCITEX_DISK_TARGETS,
+#   a colon- or whitespace-separated list whose entries are `label=path` or a
+#   bare `path`. Targets that turn out to share one filesystem are merged so a
+#   single pool alarms once.
 #
 # Exit codes (this check GATES, it does not merely print):
 #   0  every measured volume has headroom
@@ -61,54 +83,102 @@ CRIT_FREE_PCT=2
 WARN_X10=$((WARN_FREE_PCT * 10))
 CRIT_X10=$((CRIT_FREE_PCT * 10))
 
-ERRFILE=$(mktemp)
-trap 'rm -f "$ERRFILE"' EXIT
-
 critical=0
 warnings=0
+
+# Trim an arbitrary (possibly multi-line, possibly empty) diagnostic down to
+# one record-safe fragment. Never returns empty: a blank reason is the hollow
+# error the repo's rules forbid.
+sanitize() {
+    local text="$1" out
+    out=$(printf '%s' "$text" | tr '\n|' '  ' | cut -c1-160)
+    # shellcheck disable=SC2001
+    out=$(printf '%s' "$out" | sed 's/[[:space:]]\{1,\}$//')
+    if [ -z "$out" ]; then
+        printf '%s' "(command failed but printed no diagnostic)"
+    else
+        printf '%s' "$out"
+    fi
+}
 
 # Measure one path for one metric. Emits exactly ONE record:
 #   OK|<source>|<total>|<free>|<free_pct_x10>|<mount>
 #   SKIP|<reason>      filesystem keeps no fixed inode table (btrfs/zfs/…)
 #   UNKNOWN|<reason>   unmeasurable — the caller treats this as a WARNING
+#
+# stderr is captured into `out`, NOT into a temp file — see the header.
 probe() {
     local path="$1" metric="$2"
-    local flag out rc line
+    local flag out rc
     if [ "$metric" = "inodes" ]; then
         flag="-i"
     else
         flag="-k"
     fi
-    out=$(df -P "$flag" "$path" 2>"$ERRFILE")
+    out=$(df -P "$flag" "$path" 2>&1)
     rc=$?
     if [ "$rc" -ne 0 ]; then
         printf 'UNKNOWN|df -P %s %s exited %s: %s\n' "$flag" "$path" "$rc" \
-            "$(tr -d '|\n' < "$ERRFILE" | cut -c1-160)"
+            "$(sanitize "$out")"
         return
     fi
-    line=$(printf '%s\n' "$out" | awk 'NR > 1 && NF >= 6 { print; exit }')
-    if [ -z "$line" ]; then
-        printf 'UNKNOWN|df -P %s %s printed no data row\n' "$flag" "$path"
-        return
-    fi
-    printf '%s\n' "$line" | awk -v metric="$metric" '
+    # Column layout is located by SHAPE, not by position. `df -P` quotes
+    # nothing, so BOTH the Filesystem source and the mount point may contain
+    # spaces; counting from either end alone mis-parses one of them. The
+    # capacity column ("30%", or "-" where the metric does not apply) is the
+    # only self-identifying field, and it is preceded by exactly three numeric
+    # columns (total/used/free). Scanning from the RIGHT finds the real
+    # capacity column even when a source is literally "//host/50% share".
+    printf '%s\n' "$out" | awk -v metric="$metric" -v flag="$flag" -v path="$path" '
         {
-            src = $1; total = $2; free = $4; mount = $6
-            for (i = 7; i <= NF; i++) mount = mount " " $i
-            if (total == "-" && metric == "inodes") {
-                print "SKIP|" mount " keeps no fixed inode table"
+            cap = 0
+            for (i = NF - 1; i >= 5; i--) {
+                if ($i ~ /^([0-9]+%|-)$/ &&
+                    $(i - 1) ~ /^([0-9]+|-)$/ &&
+                    $(i - 2) ~ /^([0-9]+|-)$/ &&
+                    $(i - 3) ~ /^([0-9]+|-)$/) { cap = i; break }
+            }
+            if (cap == 0) next
+            total = $(cap - 3)
+            free = $(cap - 1)
+            src = $1
+            for (i = 2; i <= cap - 4; i++) src = src " " $i
+            mount = $(cap + 1)
+            for (i = cap + 2; i <= NF; i++) mount = mount " " $i
+
+            # A filesystem with no fixed inode table reports "-" on some
+            # kernels and a plain 0 on others (btrfs is the classic
+            # 0-reporter, and the nas target is a home NAS). Both mean the
+            # same thing: there is no inode budget to run out of. Treating 0
+            # as UNKNOWN made this a permanent yellow line and a permanent
+            # exit 2 on those hosts.
+            if (metric == "inodes" && (total == "-" || total + 0 == 0)) {
+                print "SKIP|" mount " keeps no fixed inode table (df reports total=" total ")"
+                emitted = 1
                 exit
             }
             if (total !~ /^[0-9]+$/ || free !~ /^[0-9]+$/) {
-                print "UNKNOWN|df returned non-numeric " metric " for " mount
+                print "UNKNOWN|df returned non-numeric " metric \
+                    " (total=" total " free=" free ") for " mount
+                emitted = 1
                 exit
             }
+            # Only bytes reach here with total == 0: a zero-byte filesystem is
+            # a real anomaly, not a missing budget.
             if (total + 0 == 0) {
                 print "UNKNOWN|df reports 0 total " metric " for " mount
+                emitted = 1
                 exit
             }
             printf "OK|%s|%s|%s|%d|%s\n", src, total, free,
                 int(free * 1000 / total), mount
+            emitted = 1
+            exit
+        }
+        END {
+            if (!emitted)
+                print "UNKNOWN|df -P " flag " " path \
+                    " printed no parsable data row"
         }'
 }
 
@@ -135,19 +205,28 @@ hint() {
 # emit_metric <metric> <where> <free_x10> <free_human> <total_human> <mount>
 emit_metric() {
     local metric="$1" where="$2" x10="$3" free_h="$4" total_h="$5" mount="$6"
-    local pct label
+    local pct label amount
     pct="$((x10 / 10)).$((x10 % 10))"
     printf -v label '%-6s' "$metric"
+    # df's Available column excludes the root reserve while its size column
+    # does not, so this percentage is deliberately smaller than the one implied
+    # by df's own Capacity column. Say so, rather than leave an operator
+    # reconciling two numbers at 3am. (Inode counts carry no reserve.)
+    if [ "$metric" = "inodes" ]; then
+        amount="${free_h} of ${total_h}"
+    else
+        amount="${free_h} available to non-root, of ${total_h} total"
+    fi
     if [ "$x10" -lt "$CRIT_X10" ]; then
-        echo -e "  ${RED}[FAIL] ${label} ${where}: ${pct}% free (${free_h} of ${total_h}) — CRITICAL, under ${CRIT_FREE_PCT}%${NC}"
+        echo -e "  ${RED}[FAIL] ${label} ${where}: ${pct}% free (${amount}) — CRITICAL, under ${CRIT_FREE_PCT}%${NC}"
         hint "$metric" "$mount"
         critical=$((critical + 1))
     elif [ "$x10" -lt "$WARN_X10" ]; then
-        echo -e "  ${YELLOW}[WARN] ${label} ${where}: ${pct}% free (${free_h} of ${total_h}) — under ${WARN_FREE_PCT}%${NC}"
+        echo -e "  ${YELLOW}[WARN] ${label} ${where}: ${pct}% free (${amount}) — under ${WARN_FREE_PCT}%${NC}"
         hint "$metric" "$mount"
         warnings=$((warnings + 1))
     else
-        echo -e "  ${GREEN}[OK]${NC} ${label} ${where}: ${pct}% free (${free_h} of ${total_h})"
+        echo -e "  ${GREEN}[OK]${NC} ${label} ${where}: ${pct}% free (${amount})"
     fi
 }
 
@@ -161,17 +240,63 @@ report_unknown() {
 
 echo "💾 Disk & Inodes:"
 
-# The two volumes that matter: the one backing this repo, and the one backing
-# the agent home.
-#
-# They are frequently THE SAME FILESYSTEM reached through two different mount
-# points (bind mounts inside a container: /home/ywatanabe and /home/agent are
-# both /dev/mapper/ubuntu--vg-ubuntu--lv here). One pool must alarm once, so
-# the dedupe key is the filesystem ID from stat(2) — not the mount point,
-# which bind mounts make non-unique, and not the df "Filesystem" column, which
-# is shared by every independent tmpfs.
-labels=("repo" "home")
-paths=("$PROJECT_ROOT" "${HOME:-}")
+# ── Which volumes to watch ─────────────────────────────────
+labels=()
+paths=()
+notes=()
+
+if [ -n "${SCITEX_DISK_TARGETS:-}" ]; then
+    # Colon- or whitespace-separated. Entries are `label=path` or a bare
+    # `path` (which then labels itself). Paths containing spaces cannot be
+    # expressed here by design — the separator set is the PATH convention.
+    _saved_ifs="$IFS"
+    IFS=$': \t\n'
+    for entry in ${SCITEX_DISK_TARGETS}; do
+        [ -z "$entry" ] && continue
+        if [[ "$entry" == *=* ]]; then
+            labels+=("${entry%%=*}")
+            paths+=("${entry#*=}")
+        else
+            labels+=("$entry")
+            paths+=("$entry")
+        fi
+    done
+    IFS="$_saved_ifs"
+    if [ "${#paths[@]}" -eq 0 ]; then
+        report_unknown "targets" \
+            "SCITEX_DISK_TARGETS is set but names no paths" ""
+    fi
+else
+    # The repo, the agent home, the root filesystem, and — because this is a
+    # Docker-only project — Docker's data root, which is where Postgres and
+    # the OpenAlex volumes actually live. Watching only the repo would have
+    # printed [OK] through the exact incident this file exists for whenever
+    # Docker's storage sits on another volume.
+    labels=("repo" "home" "root")
+    paths=("$PROJECT_ROOT" "${HOME:-}" "/")
+
+    docker_root=""
+    if command -v docker > /dev/null 2>&1; then
+        if command -v timeout > /dev/null 2>&1; then
+            docker_root=$(timeout 5 docker info --format '{{.DockerRootDir}}' 2> /dev/null)
+        else
+            docker_root=$(docker info --format '{{.DockerRootDir}}' 2> /dev/null)
+        fi
+        docker_root="${docker_root%%$'\n'*}"
+        if [ -n "$docker_root" ] && [ -d "$docker_root" ]; then
+            labels+=("docker")
+            paths+=("$docker_root")
+        else
+            notes+=("docker is installed but its data root could not be resolved ('docker info' gave no usable DockerRootDir) — Docker's volume is not measured below")
+        fi
+    else
+        notes+=("docker is not installed here, so there is no Docker data root to measure")
+    fi
+fi
+
+for note in ${notes[@]+"${notes[@]}"}; do
+    echo -e "  ${BLUE}note:${NC} ${note}"
+done
 
 rec_key=()
 rec_label=()
@@ -179,6 +304,17 @@ rec_path=()
 
 # Pass 1 — group the targets by filesystem, BEFORE measuring, so each pool is
 # measured (and can fail) exactly once.
+#
+# The dedupe key is stat(2)'s filesystem id. This is a HEURISTIC, not a
+# definition: it is right about the case that actually bites us — one pool
+# reached through several mount points (bind mounts inside a container put
+# /home/ywatanabe and /home/agent on one device) — where the mount point is
+# non-unique and df's "Filesystem" column is shared by every independent
+# tmpfs. It is known to OVER-SPLIT: measured on this host, `/` and `/tmp`
+# report byte-identical df figures from the same pool yet carry st_dev 106 vs
+# 64512, because fuse-overlayfs passes through to the underlying device. An
+# over-split costs a duplicate line; an under-split would hide a volume, so
+# this is the safe direction to be wrong in.
 for ((i = 0; i < ${#paths[@]}; i++)); do
     label="${labels[$i]}"
     path="${paths[$i]}"
@@ -186,10 +322,12 @@ for ((i = 0; i < ${#paths[@]}; i++)); do
         report_unknown "$label" "path is empty (is HOME set?)" ""
         continue
     fi
-    key=$(stat -c '%d' "$path" 2> "$ERRFILE")
-    if [ -z "$key" ]; then
+    # stderr into a VARIABLE, not a temp file: at 0 bytes free the temp file
+    # is exactly what fails, and it took the reason string with it.
+    key=$(stat -c '%d' "$path" 2>&1)
+    if [ -z "$key" ] || [ -n "${key//[0-9]/}" ]; then
         report_unknown "${label} (${path})" \
-            "cannot identify filesystem: $(tr -d '\n' < "$ERRFILE" | cut -c1-160)" "$path"
+            "cannot identify filesystem: $(sanitize "$key")" "$path"
         continue
     fi
     found=-1
@@ -206,21 +344,30 @@ for ((i = 0; i < ${#paths[@]}; i++)); do
 done
 
 # Pass 2 — measure each distinct filesystem: bytes and inodes, independently.
+# A failed bytes probe must NOT skip the inode probe: the header promises one
+# line per metric, and a reader who sees a single [UNKNOWN] for bytes would
+# otherwise conclude inodes are fine.
 for ((j = 0; j < ${#rec_key[@]}; j++)); do
+    where="[${rec_label[$j]}] (${rec_path[$j]})"
+    mount_for_hint="${rec_path[$j]}"
+
     rec=$(probe "${rec_path[$j]}" bytes)
-    if [ "${rec%%|*}" != "OK" ]; then
-        report_unknown "bytes [${rec_label[$j]}] (${rec_path[$j]})" "${rec#*|}" "${rec_path[$j]}"
-        continue
+    if [ "${rec%%|*}" = "OK" ]; then
+        IFS='|' read -r _ src total free x10 mount < <(printf '%s\n' "$rec")
+        where="${src} [${rec_label[$j]}] at ${mount}"
+        mount_for_hint="$mount"
+        emit_metric "bytes" "$where" "$x10" "$(human_kb "$free")" \
+            "$(human_kb "$total")" "$mount"
+    else
+        report_unknown "bytes ${where}" "${rec#*|}" "${rec_path[$j]}"
     fi
-    IFS='|' read -r _ src total free x10 mount <<< "$rec"
-    where="${src} [${rec_label[$j]}] at ${mount}"
-    emit_metric "bytes" "$where" "$x10" "$(human_kb "$free")" "$(human_kb "$total")" "$mount"
 
     irec=$(probe "${rec_path[$j]}" inodes)
     case "${irec%%|*}" in
         OK)
-            IFS='|' read -r _ _ itotal ifree ix10 _ <<< "$irec"
-            emit_metric "inodes" "$where" "$ix10" "$ifree" "$itotal" "$mount"
+            IFS='|' read -r _ _ itotal ifree ix10 imount < <(printf '%s\n' "$irec")
+            emit_metric "inodes" "$where" "$ix10" "$ifree" "$itotal" \
+                "${imount:-$mount_for_hint}"
             ;;
         SKIP)
             echo "  [SKIP] inodes ${where}: ${irec#*|}"

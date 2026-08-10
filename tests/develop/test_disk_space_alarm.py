@@ -30,6 +30,14 @@ reported as separate independently-triggering lines: inode exhaustion fails
 writes while bytes are still plentiful, so a bytes-only check would have called
 that volume healthy right up to the failure.
 
+Four more injected disks straddle the two thresholds themselves (10.0 / 9.9 /
+2.0 / 1.9 percent free), so the constants are pinned by the severity the script
+actually emits rather than by their spelling in the source.
+
+The script's robustness against its OWN subject — a full disk, a filesystem
+with no inode table, a half-failing df, a source name containing a space —
+lives next door in ``test_disk_space_alarm_robustness.py``.
+
 No Docker and no secrets required, so this runs in the headless pytest matrix.
 """
 
@@ -63,11 +71,21 @@ BYTES_1PCT="/dev/fake 412316860 408191860   4125000  99% /fake"
 INODES_HEALTHY="/dev/fake 26214400  1981572 24232828   8% /fake"
 INODES_92PCT="/dev/fake 26214400 24117248  2097152  92% /fake"
 
+# Threshold edges: `free` straddles WARN_FREE_PCT=10 and CRIT_FREE_PCT=2.
+BYTES_10_0PCT="/dev/fake 412316860 371085174  41231686  90% /fake"
+BYTES_9_9PCT="/dev/fake 412316860 371316860  41000000  91% /fake"
+BYTES_2_0PCT="/dev/fake 412316860 404016860   8300000  98% /fake"
+BYTES_1_9PCT="/dev/fake 412316860 404316860   8000000  99% /fake"
+
 case "$mode" in
     healthy)     bytes="$BYTES_HEALTHY"; inodes="$INODES_HEALTHY" ;;
     warn_bytes)  bytes="$BYTES_9PCT";    inodes="$INODES_HEALTHY" ;;
     crit_bytes)  bytes="$BYTES_1PCT";    inodes="$INODES_HEALTHY" ;;
     warn_inodes) bytes="$BYTES_HEALTHY"; inodes="$INODES_92PCT" ;;
+    edge_10_0)   bytes="$BYTES_10_0PCT"; inodes="$INODES_HEALTHY" ;;
+    edge_9_9)    bytes="$BYTES_9_9PCT";  inodes="$INODES_HEALTHY" ;;
+    edge_2_0)    bytes="$BYTES_2_0PCT";  inodes="$INODES_HEALTHY" ;;
+    edge_1_9)    bytes="$BYTES_1_9PCT";  inodes="$INODES_HEALTHY" ;;
     df_error)
         # What df actually did during the incident: errored while measuring.
         echo "df: cannot read table of mounted file systems: Input/output error" >&2
@@ -95,13 +113,22 @@ ALARM_TOKENS = ("[WARN]", "[FAIL]", "[UNKNOWN]")
 def _run_check(fake_df_dir, mode, home=None):
     """Run the shipped check against a synthetic disk. Returns (stdout, exit code).
 
-    ``HOME`` defaults to the repo root so repo and home always resolve to a
+    The watched volumes are PINNED to repo+home through ``SCITEX_DISK_TARGETS``.
+    The script's default list also covers ``/`` and Docker's data root — that
+    breadth is the whole point of the list, but it makes the row count depend
+    on the host running the suite, and the counts asserted here are about
+    parsing and deduping rather than about which volumes ship by default. The
+    default list is asserted in ``test_disk_space_alarm_robustness.py``.
+
+    ``home`` defaults to the repo root so repo and home always resolve to a
     single filesystem, making the row count deterministic on any host.
     """
     env = dict(os.environ)
     env["PATH"] = f"{fake_df_dir}{os.pathsep}{env['PATH']}"
     env["FAKE_DF_MODE"] = mode
-    env["HOME"] = home if home is not None else str(REPO_ROOT)
+    home = str(REPO_ROOT) if home is None else home
+    env["HOME"] = home
+    env["SCITEX_DISK_TARGETS"] = f"repo={REPO_ROOT} home={home}"
     proc = subprocess.run(
         ["bash", str(CHECK_SH)],
         env=env,
@@ -417,20 +444,45 @@ def test_check_is_executable():
     assert executable, f"chmod +x {path}"
 
 
-def test_warn_threshold_is_ten_percent():
-    """If this is renamed or retuned, the mutation cases above must be revisited."""
-    # Arrange
-    script = CHECK_SH.read_text(encoding="utf-8")
-    # Act
-    declared = "WARN_FREE_PCT=10" in script
-    # Assert
-    assert declared
+# ── Where the thresholds actually sit ──────────────────────
+#
+# These replace two earlier tests that asserted the strings "WARN_FREE_PCT=10"
+# and "CRIT_FREE_PCT=2" appeared in the source. Those passed for a script whose
+# arithmetic was broken and would have kept passing through any behavioural
+# regression, because grepping a constant proves only that somebody typed it.
+# Driving four disks across the two boundaries pins the same two numbers to the
+# severity the operator actually sees.
 
 
-def test_critical_threshold_is_two_percent():
+THRESHOLD_EDGES = [
+    ("edge_10_0", "[OK]", 0),  # exactly 10% free is still headroom
+    ("edge_9_9", "[WARN]", 2),  # a tenth under, and it warns
+    ("edge_2_0", "[WARN]", 2),  # exactly 2% free is not yet critical
+    ("edge_1_9", "[FAIL]", 1),  # a tenth under, and it gates
+]
+
+
+@pytest.mark.parametrize("mode, expected_token, _rc", THRESHOLD_EDGES)
+def test_threshold_boundary_picks_the_severity_token(
+    fake_df_dir, mode, expected_token, _rc
+):
+    """10% warns and 2% gates, asserted from the outside at the boundary."""
     # Arrange
-    script = CHECK_SH.read_text(encoding="utf-8")
+    out, _ = _run_check(fake_df_dir, mode)
     # Act
-    declared = "CRIT_FREE_PCT=2" in script
+    byte_lines = _metric_lines(out, "bytes")
     # Assert
-    assert declared
+    assert byte_lines and all(expected_token in ln for ln in byte_lines), out
+
+
+@pytest.mark.parametrize("mode, _token, expected_rc", THRESHOLD_EDGES)
+def test_threshold_boundary_picks_the_exit_code(
+    fake_df_dir, mode, _token, expected_rc
+):
+    """The same boundary, on the channel a cron job or deploy gate reads."""
+    # Arrange
+    out, rc = _run_check(fake_df_dir, mode)
+    # Act
+    observed = rc
+    # Assert
+    assert observed == expected_rc, out
