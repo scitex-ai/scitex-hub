@@ -35,6 +35,7 @@ No Docker and no secrets required, so this runs in the headless pytest matrix.
 
 import os
 import re
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -42,6 +43,12 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CHECK_SH = REPO_ROOT / "scripts" / "maintenance" / "check_disk_space.sh"
+
+# Resolved once, from the AMBIENT PATH, and invoked by absolute path. Cases
+# below hand `_run` a narrowed PATH to hide a tool from the script; resolving
+# the interpreter through that same narrowed PATH would let a case delete the
+# thing meant to run the script under test.
+BASH = shutil.which("bash") or "/bin/bash"
 
 # Synthetic df covering the degraded shapes. FAKE_DF_MODE picks one.
 FAKE_DF = r"""#!/bin/bash
@@ -144,7 +151,7 @@ def _run(path_dirs, mode, targets=None, extra_env=None):
     if extra_env:
         env.update(extra_env)
     proc = subprocess.run(
-        ["bash", str(CHECK_SH)],
+        [BASH, str(CHECK_SH)],
         env=env,
         capture_output=True,
         text=True,
@@ -415,24 +422,124 @@ def test_default_targets_include_the_docker_data_root(default_targets_with_docke
     assert "docker" in components, out
 
 
-@pytest.fixture(scope="module")
-def default_targets_without_docker(fake_bin):
-    """The same default list on a host with no Docker at all.
+def _path_hiding_docker(head, shadow, source_path=None):
+    """A PATH identical to ``source_path`` except that ``docker`` is absent.
 
-    PATH keeps every system directory except the ones actually holding a
-    ``docker`` binary, so this reproduces a Docker-less host without also
-    hiding bash's own tools from the script under test.
+    ``source_path`` defaults to the ambient ``PATH``; callers pass one
+    explicitly so the behaviour can be exercised against a directory shaped
+    like the host that broke, on a host that is not shaped that way.
+
+    Hiding Docker is a per-BINARY intent, and it must not be expressed by
+    dropping whole PATH directories. On Ubuntu ``docker`` and ``bash`` share
+    ``/usr/bin``, so dropping the directory that holds Docker also deletes the
+    interpreter -- which is exactly what happened: every case using this PATH
+    errored at setup with ``FileNotFoundError: 'bash'`` on all three matrix
+    legs, while passing locally where Docker lives elsewhere.
+
+    So each directory holding a ``docker`` is replaced by ``shadow``: symlinks
+    to everything in it except ``docker``. Nothing else the script needs -- df,
+    awk, sed, mktemp, bash -- disappears with it.
     """
-    kept = [str(fake_bin)]
-    for entry in os.environ.get("PATH", "").split(os.pathsep):
-        if entry and not os.path.exists(os.path.join(entry, "docker")):
-            kept.append(entry)
+    if source_path is None:
+        source_path = os.environ.get("PATH", "")
+    entries = [str(head), str(shadow)]
+    for entry in source_path.split(os.pathsep):
+        if not entry:
+            continue
+        if not os.path.exists(os.path.join(entry, "docker")):
+            entries.append(entry)
+            continue
+        try:
+            names = os.listdir(entry)
+        except OSError:
+            continue
+        for name in names:
+            if name == "docker":
+                continue
+            link = Path(shadow) / name
+            if link.exists() or link.is_symlink():
+                continue
+            try:
+                link.symlink_to(os.path.join(entry, name))
+            except OSError:
+                pass
+    return os.pathsep.join(entries)
+
+
+@pytest.fixture(scope="module")
+def path_without_docker(fake_bin, tmp_path_factory):
+    """PATH for a host with no Docker, with every other tool still present."""
+    return _path_hiding_docker(fake_bin, tmp_path_factory.mktemp("no-docker-bin"))
+
+
+@pytest.fixture(scope="module")
+def default_targets_without_docker(fake_bin, path_without_docker):
+    """The default target list on a host with no Docker at all."""
     return _run(
         [fake_bin],
         "healthy",
         targets=None,
-        extra_env={"PATH": os.pathsep.join(kept)},
+        extra_env={"PATH": path_without_docker},
     )
+
+
+@pytest.fixture
+def path_from_shared_bin(tmp_path):
+    """``_path_hiding_docker`` applied to one dir holding docker AND bash.
+
+    Real files in ``tmp_path``, passed in explicitly -- nothing is patched.
+    Built synthetically rather than read from the host because this container
+    has no ``docker`` on PATH at all, so an ambient-PATH check would drop
+    nothing, assert nothing, and pass on a machine that cannot reproduce the
+    bug. The directory below is the Ubuntu runner's ``/usr/bin`` shape -- the
+    one that broke CI -- so these guards fail on the old implementation
+    everywhere, not only where Docker happens to be installed.
+    """
+    shared = tmp_path / "usr-bin"
+    shared.mkdir()
+    for name in ("docker", "bash", "df"):
+        binary = shared / name
+        binary.write_text("#!/bin/sh\n")
+        binary.chmod(0o755)
+    head = tmp_path / "head"
+    head.mkdir()
+    shadow = tmp_path / "shadow"
+    shadow.mkdir()
+    return _path_hiding_docker(head, shadow, source_path=str(shared))
+
+
+def test_hiding_docker_keeps_the_interpreter(path_from_shared_bin):
+    """Removing Docker must not remove bash: they share /usr/bin on Ubuntu.
+
+    Regression guard for the 2026-08-10 CI outage, where the no-Docker PATH
+    dropped whole directories and took the interpreter with them.
+    """
+    # Arrange
+    path = path_from_shared_bin
+    # Act
+    observed = shutil.which("bash", path=path)
+    # Assert
+    assert observed is not None, path
+
+
+def test_hiding_docker_keeps_the_other_tools(path_from_shared_bin):
+    """The script under test still needs df/awk/mktemp from that directory."""
+    # Arrange
+    path = path_from_shared_bin
+    # Act
+    observed = shutil.which("df", path=path)
+    # Assert
+    assert observed is not None, path
+
+
+def test_hiding_docker_actually_hides_docker(path_from_shared_bin):
+    """The two guards above must not be satisfied by keeping everything."""
+    # Arrange
+    path = path_from_shared_bin
+    # Act
+    observed = shutil.which("docker", path=path)
+    # Assert
+    assert observed is None, observed
 
 
 def test_missing_docker_is_not_an_error(default_targets_without_docker):
