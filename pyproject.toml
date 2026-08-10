@@ -16,6 +16,25 @@ classifiers = [
 dependencies = [
     "rich",
     "click>=8.0",
+    # `requests` is a TOP-LEVEL import of the shipped CLI, so it is a runtime
+    # dependency, not an optional one. The console script is
+    # `scitex_hub._cli.main:main`, and importing it walks:
+    #     main.py:22 `from .gitea import gitea`
+    #       -> gitea.py:13 `from ._gitea_auth import login, logout`
+    #         -> _gitea_auth.py:9 `import requests`
+    # (also _gitea_collab, _workspace_auth, _workspace_cmds, _account/_whoami).
+    # It used to be declared ONLY in the `all` extra, which had two effects:
+    #   1. `pip install scitex-hub` + `scitex-hub --help` raised
+    #      ModuleNotFoundError — the CLI could not start from a plain install.
+    #   2. The quality-audit job installs `-e ".[dev]"` while pytest-matrix
+    #      installs `-e ".[all,dev]"`, so audit-cli could not import the CLI it
+    #      grades and reported `not-auditable` — the CLI silently went UNGRADED
+    #      on one leg and graded on the other, from the same tree.
+    # Measured 2026-08-11: blocking `requests` via a meta_path finder makes
+    # `import scitex_hub._cli.main` fail with exactly
+    # `ImportError: No module named 'requests'`.
+    # Card: hub-audit-cli-runs-only-when-its-deps-happen-to-be-installed-20260809
+    "requests>=2.31",
     # 0.2.10 is the first release where `scitex_app.appmaker.init_app`
     # emits the nested-package layout + `[tool.hatch.build.targets.wheel]
     # packages=["<name>"]` block in the generated pyproject (scitex-app
@@ -195,7 +214,8 @@ all = [
     "fastapi>=0.109",
     "uvicorn[standard]>=0.27",
     "python-multipart>=0.0.6",
-    "requests>=2.31",
+    # `requests` moved to [project.dependencies] — it is a top-level import of
+    # the shipped CLI, not an optional extra. See the comment there.
     "feedparser>=6.0",
     # --- Auth / crypto ---
     "PyJWT>=2.8",
