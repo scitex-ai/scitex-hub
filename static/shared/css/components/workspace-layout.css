@@ -178,8 +178,17 @@ body.landing-page .mobile-top-bar {
        everything else      (empty)                       -> shown  <- the fix
    So no app-shell page changes behaviour; only the empty-class public
    pages flip from hidden to visible. */
-body.workspace-page:not(.landing-page) .global-footer,
-body.workspace-page:not(.landing-page) .site-footer {
+/* `.app-home` is the signed-in launcher at `/`. It is an app-shell surface,
+   but it is also where a signed-in user is oriented rather than working, and
+   it must carry the statutory 特定商取引法 disclosure, the policy pages and a
+   contact route. Those are reachable only via the footer, so the launcher is
+   excluded here. Deeper workspace surfaces (modules, /workspace/, /explore/)
+   still hide it — they own the viewport.
+   NOTE: the same decision is duplicated in footer.css under a max-width:768px
+   media query. Both must exclude `.app-home`, or the footer returns on desktop
+   and stays missing on phones. */
+body.workspace-page:not(.landing-page):not(.app-home) .global-footer,
+body.workspace-page:not(.landing-page):not(.app-home) .site-footer {
   display: none !important;
 }
 
