@@ -13,7 +13,7 @@ on:
 jobs:
   safety-check:
     name: Python Dependency Security Check
-    runs-on: [self-hosted, Linux, X64, spartan-cpu]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -52,7 +52,7 @@ jobs:
 
   bandit:
     name: Python Security Linting
-    runs-on: [self-hosted, Linux, X64, spartan-cpu]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -113,7 +113,7 @@ jobs:
 
   django-check:
     name: Django Security Check
-    runs-on: [self-hosted, Linux, X64, spartan-cpu]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
