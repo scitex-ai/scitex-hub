@@ -186,7 +186,15 @@ body.landing-page .mobile-top-bar {
    still hide it — they own the viewport.
    NOTE: the same decision is duplicated in footer.css under a max-width:768px
    media query. Both must exclude `.app-home`, or the footer returns on desktop
-   and stays missing on phones. */
+   and stays missing on phones.
+
+   NOTE 2 (2026-08-11): showing the footer here has a LAYOUT consequence that is
+   not optional. `body.workspace-page` is pinned to 100vh with overflow:hidden and
+   the footer is flex-shrink:0, so a visible footer eats the app shell's height —
+   measured on prod, this collapsed `.workspace-layout` from 800px to 143px and
+   the launcher's 43 tiles vanished on iPhone. The release lives in
+   global-base.css under "App Home Override". If you make the footer visible on
+   another shell surface, that surface needs the same release. */
 body.workspace-page:not(.landing-page):not(.app-home) .global-footer,
 body.workspace-page:not(.landing-page):not(.app-home) .site-footer {
   display: none !important;
