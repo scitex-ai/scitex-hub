@@ -160,6 +160,43 @@ def test_legal_route_is_not_gated_behind_a_conditional(route):
     assert 0 in depths
 
 
+def test_the_mobile_menu_reserves_the_dock_band():
+    """The menu must pad its scroll end past the fixed dock.
+
+    The menu is `position: fixed; bottom: 0`, so it runs to the viewport edge,
+    and the launcher dock floats over its last ~78px at the SAME z-index (1100)
+    while sitting later in the DOM — so the dock paints on top and eats taps
+    there.
+
+    Measured on production at 390px with this branch's Legal section rendered:
+    scrolled fully down, `a[href="/contact/"]` sat at y 784..828 and
+    elementFromPoint at its centre returned `.launcher-dock`. The menu could
+    only scroll 21px — nowhere near enough to lift a 44px row clear of a 64px
+    dock — so the last legal entry was permanently untappable.
+
+    With the clearance the same measurement puts it at 698..742, clear of the
+    dock's 766 top, and the scroll range goes 21px -> 107px.
+
+    Without this rule the Legal section still PASSES every other test in this
+    file — present in the menu, at depth 0 — while its last entry cannot be
+    tapped. That is exactly the "renders but is unreachable" failure this whole
+    branch exists to remove, so it gets its own guard.
+    """
+    # Arrange
+    css = (
+        Path(settings.BASE_DIR)
+        / "static/shared/css/components/header/14-responsive.css"
+    ).read_text(encoding="utf-8")
+    without_comments = re.sub(r"/\*.*?\*/", "", css, flags=re.DOTALL)
+    # Act
+    reserves_band = re.search(
+        r":has\(\.launcher-dock\)[^{]*\.mobile-header-menu\s*\{[^}]*padding-bottom",
+        without_comments,
+    )
+    # Assert
+    assert reserves_band is not None
+
+
 def test_the_mobile_footer_hide_rule_still_covers_the_app_home():
     """The mobile hide rule must NOT exclude `.app-home`.
 
