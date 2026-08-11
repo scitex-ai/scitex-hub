@@ -80,6 +80,8 @@ REAL_TEST_DEF = re.compile(r"^\s*def (test_\w+)", re.MULTILINE)
 #   528  measured on develop at 4dc626470, 2026-08-11 — the starting debt
 #   527  2026-08-11, tests/apps/permissions_app/test_services.py replaced with
 #        18 real tests of PermissionService
+#   526  2026-08-11, tests/apps/.../security_scanning/test_tool_utils.py replaced
+#        with 21 real tests of the severity mappers
 #
 # A SECOND GENERATOR VARIANT EXISTS, and it is why the definition below no
 # longer keys on the function NAME. Five files in a local working copy carry
@@ -88,7 +90,7 @@ REAL_TEST_DEF = re.compile(r"^\s*def (test_\w+)", re.MULTILINE)
 # committed — so they are not part of this baseline and must not be counted
 # into it. But they prove the generator emits more than one shape, and a rule
 # keyed on one exact name cannot see a shape it was not told about.
-PLACEHOLDER_BASELINE = 527
+PLACEHOLDER_BASELINE = 526
 
 
 def _tests_root() -> Path:
