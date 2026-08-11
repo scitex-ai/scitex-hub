@@ -69,9 +69,14 @@ from django.conf import settings
 PLACEHOLDER_CLASS_MARKER = "Placeholder test class - " + "replace with actual tests"
 PLACEHOLDER_TEST_MARKER = "def test_placeholder" + "_pending_implementation"
 
-# Measured on develop at 4dc626470, 2026-08-11. Ratchet: this number may only
-# ever decrease. See the module docstring before changing it.
-PLACEHOLDER_BASELINE = 528
+# Ratchet: this number may only ever decrease. See the module docstring before
+# changing it.
+#
+#   528  measured on develop at 4dc626470, 2026-08-11 — the starting debt
+#   527  2026-08-11, tests/apps/permissions_app/test_services.py replaced with
+#        18 real tests of PermissionService (the app was 6/6 placeholders, the
+#        highest ratio in the codebase, and it decides who may do what)
+PLACEHOLDER_BASELINE = 527
 
 
 def _tests_root() -> Path:
