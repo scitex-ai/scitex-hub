@@ -864,6 +864,41 @@
                 <span>Sign Up</span>
             </a>
         {% endif %}
+        {% comment %}
+          Legal — the phone's counterpart to the footer's Legal column.
+
+          The footer stays hidden on mobile workspace pages (footer.css): on the
+          app home it would land under the fixed launcher dock, leaving 特商法
+          rendered but unclickable — measured on production at 390px. The
+          operator allowed the footer to be moved on a small screen
+          (2026-08-10:「小さいサイズモバイル版のときにはどこかに逃がしてもいい」)
+          but not removed, so the route lives here instead.
+
+          Deliberately OUTSIDE the auth branches above: a statutory disclosure
+          obligation does not depend on whether the reader is signed in, and a
+          visitor session is exactly who needs to read it before transacting.
+        {% endcomment %}
+        <div class="mobile-menu-divider"></div>
+        <a href="{% url 'public_app:terms' %}" class="mobile-menu-item">
+            <i class="fas fa-file-contract"></i>
+            <span>Terms</span>
+        </a>
+        <a href="{% url 'public_app:privacy' %}" class="mobile-menu-item">
+            <i class="fas fa-user-shield"></i>
+            <span>Privacy</span>
+        </a>
+        <a href="{% url 'public_app:cookies' %}" class="mobile-menu-item">
+            <i class="fas fa-cookie-bite"></i>
+            <span>Cookies</span>
+        </a>
+        <a href="{% url 'public_app:tokushoho' %}" class="mobile-menu-item">
+            <i class="fas fa-scale-balanced"></i>
+            <span>特定商取引法に基づく表記</span>
+        </a>
+        <a href="{% url 'public_app:contact' %}" class="mobile-menu-item">
+            <i class="fas fa-envelope"></i>
+            <span>Contact</span>
+        </a>
     </div>
     {% include 'global_base_partials/global_header/hamburger_inline.html' %}
 </header>
