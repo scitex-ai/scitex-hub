@@ -61,43 +61,25 @@ from .home_state import (
     verify_recycled_home,
     wipe_user_container_dir,
 )
+from .template_clone import (
+    TEMPLATE_MARKER_RELPATH as _TEMPLATE_MARKER_RELPATH,
+)
+from .template_clone import clone_template_into
+from .template_clone import verify_template_marker as _verify_template_marker
 from .workspace_wipe import WorkspaceWipeError, wipe_directory_contents
-from ..writer_workspace_layout import WRITER_WORKSPACE_RELPATH
 
 logger = logging.getLogger(__name__)
 
-# The template marker IS the Writer workspace directory, so it is no
-# longer spelled here — it is imported from the one module that owns
-# that path (2026-07-08 incident: this was ``scitex/writer`` — no dot —
-# while the REAL ``scitex_template.clone_scitex_minimal`` /
-# ``scitex_writer.ensure_workspace`` create dot-prefixed
-# ``.scitex/writer`` + ``.scitex/scholar``, so verification never
-# passed and every slot was quarantined; then 2026-08-02, writer_app
-# was found still carrying the undotted spelling in 8 places).
-# Verified against scitex-writer 2.17.5 and 2.26.1.
-# tests/apps/project_app/services/visitor_pool/
-# test_template_marker_reality.py locks the VALUE against the real
-# packages, and now guards every consumer of it rather than this file
-# alone. Name kept for the pool's own vocabulary and its 8 importers.
-TEMPLATE_MARKER_RELPATH = WRITER_WORKSPACE_RELPATH
+# Step 6 (clone + marker verification) lives in ``template_clone``, like every
+# other step of this orchestrator. Both names are RE-EXPORTED here because the
+# marker constant has 8 importers that spell it from this module; moving them
+# is not in scope for the change that prompted the split.
+TEMPLATE_MARKER_RELPATH = _TEMPLATE_MARKER_RELPATH
+verify_template_marker = _verify_template_marker
 
 
 class WorkspaceResetError(Exception):
     """A visitor workspace reset failed — the slot MUST be quarantined."""
-
-
-def verify_template_marker(project_path: Path) -> bool:
-    """True if the cloned template's marker content is present.
-
-    Marker = ``.scitex/writer/`` (:data:`TEMPLATE_MARKER_RELPATH`)
-    exists and is non-empty (same check the pool initializer uses for
-    readiness).
-    """
-    writer_dir = Path(project_path) / TEMPLATE_MARKER_RELPATH
-    try:
-        return writer_dir.is_dir() and any(writer_dir.iterdir())
-    except OSError:
-        return False
 
 
 class WorkspaceManager:
@@ -429,29 +411,25 @@ class WorkspaceManager:
                     f"Could not clear pre-clone path {project_path}: {exc}"
                 ) from exc
 
-        if clone_fn is None:
-            try:
-                from scitex.template import clone_template as clone_fn
-            except Exception as exc:
-                raise WorkspaceResetError(
-                    f"scitex.template unavailable for reset of {project_slug}: {exc}"
-                ) from exc
-
+        # Step 6. Whatever this raises becomes `quarantine_reason` verbatim, so
+        # the message must name a cause. See template_clone's module docstring
+        # for why that sentence is load-bearing.
         try:
-            success = clone_fn(
-                VISITOR_TEMPLATE_ID,
-                str(project_path),
-                git_strategy=None,
-            )
+            clone_template_into(project_path, VISITOR_TEMPLATE_ID, clone_fn)
+        except ImportError as exc:
+            raise WorkspaceResetError(
+                f"scitex.template.clone_template_result unavailable for reset of "
+                f"{project_slug}: {exc}. Needs scitex-template>=0.7.0, pinned in "
+                f"deployment/docker/docker_prod/Dockerfile.prod."
+            ) from exc
+        except RuntimeError as exc:
+            raise WorkspaceResetError(
+                f"Template clone failed for {project_slug}: {exc}"
+            ) from exc
         except Exception as exc:
             raise WorkspaceResetError(
                 f"Template clone error during reset of {project_slug}: {exc}"
             ) from exc
-
-        if not success:
-            raise WorkspaceResetError(
-                f"Template clone returned falsy for {project_slug}"
-            )
 
         # VERIFY: template marker must exist after the clone.
         if not verify_template_marker(project_path):
