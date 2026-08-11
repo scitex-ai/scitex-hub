@@ -389,15 +389,28 @@
 }
 
 /* Hide footer on mobile in workspace pages (collapsed by default).
-   `.app-home` is excluded for the same reason as in workspace-layout.css: the
-   launcher carries the only route to the 特定商取引法 disclosure, the policy
-   pages and contact, and that route must survive on a phone. The operator
-   allows the footer to be relocated or collapsed on mobile, but not removed.
-   Keep this exclusion in step with workspace-layout.css — they encode one
-   decision in two files, and fixing only one leaves the footer missing on
-   exactly the devices that report it. */
+   NOTE the deliberate asymmetry with workspace-layout.css: that file excludes
+   `.app-home` so the launcher shows the footer, and this file does NOT. The
+   app home shows it on a DESKTOP and hides it on a PHONE, on purpose.
+
+   Measured on production 2026-08-10 by rendering the post-fix state at 390px:
+   excluding `.app-home` here too un-hid a 627px footer inside the launcher's
+   fixed 100dvh shell, which (a) squeezed the icon grid into 217px and (b) left
+   the last two footer links — Cookies and 特定商取引法に基づく表記 — underneath
+   the position:fixed dock. elementFromPoint at each link's centre returned
+   `.launcher-dock-item`, not the link: rendered, and unclickable.
+
+   That is worse than the bug being fixed. The disclosure would LOOK present
+   while still being unreachable, so the defect would stop being visible to
+   anyone auditing it.
+
+   The phone route to the legal pages is the hamburger menu's Legal section
+   (global_header.html) — the operator permitted relocating the footer on a
+   small screen but not dropping it, so it moved rather than vanished. Anything
+   that makes the launcher scroll instead would have to re-tune the pager,
+   which sizes its pages against this same fixed viewport. */
 @media (max-width: 768px) {
-  body.workspace-page:not(.landing-page):not(.app-home) .site-footer {
+  body.workspace-page:not(.landing-page) .site-footer {
     display: none;
   }
 }
