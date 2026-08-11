@@ -427,13 +427,23 @@ RUN uv pip install --system --no-cache ".[all]"
 #   0.6.8 (published via the v0.6.8 tag) imports the callable from the
 #   scitex_scholar.ensure_workspace submodule. Together with the hub-side
 #   marker-path fix (#319) and scitex-writer 2.26.1, visitor slots re-clean.
+# 2026-08-11: 0.6.8 -> 0.7.0, and this pin is now LOAD-BEARING FOR CODE, not
+#   just for behaviour. 0.7.0 adds `clone_template_result() -> CloneOutcome`,
+#   which visitor_pool/template_clone.py imports UNCONDITIONALLY — there is no
+#   fallback to the bool-returning `clone_template`, deliberately, because a
+#   silent downgrade would restore exactly the blindness this change removes
+#   (0.6.8 could only answer True/False, so a failed visitor reset could only
+#   ever say "Template clone returned falsy" — 14 slots, five days, no cause).
+#   Verified present before pinning: PyPI scitex-template 0.7.0 published
+#   2026-08-11 by the v0.7.0 tag; lesson (1) above is what happens when a pin
+#   moves ahead of the artifact, so it was checked rather than assumed.
 RUN uv pip install --system --no-cache \
     "figrecipe==0.34.3" \
     "scitex-io==0.2.3" \
     "scitex-stats==0.2.6" \
     "scitex-plt==0.24.0" \
     "scitex-writer==2.26.1" \
-    "scitex-template==0.6.8" \
+    "scitex-template==0.7.0" \
     "scitex-linter==0.3.1" \
     "scitex-ui==0.6.3" \
     "openalex-local==0.6.0" \
