@@ -71,7 +71,10 @@ def create_gitea_repository(sender, instance, created, **kwargs):
                 f"Gitea unavailable during project creation for {instance.slug}: {e}"
             )
             logger.info(
-                "Project created without Gitea repository. Repository will be created when Gitea becomes available."
+                "Project created WITHOUT a Gitea repository, and NOTHING WILL RETRY: "
+                "there is no reconciler, no queued task and no backfill command, so "
+                "it stays repo-less until a human creates it. Find affected rows with "
+                "Project.objects.filter(gitea_repo_id__isnull=True)."
             )
             return
 
@@ -152,7 +155,10 @@ def create_gitea_repository(sender, instance, created, **kwargs):
         except GiteaConnectionError as e:
             logger.warning(f"Gitea unavailable when creating user: {e}")
             logger.info(
-                "Project created without Gitea repository. Repository will be created when Gitea becomes available."
+                "Project created WITHOUT a Gitea repository, and NOTHING WILL RETRY: "
+                "there is no reconciler, no queued task and no backfill command, so "
+                "it stays repo-less until a human creates it. Find affected rows with "
+                "Project.objects.filter(gitea_repo_id__isnull=True)."
             )
             return
         except GiteaUserCreationError as e:
@@ -205,11 +211,21 @@ def create_gitea_repository(sender, instance, created, **kwargs):
         # Gitea unavailable - log warning but don't fail project creation
         logger.warning(f"Gitea unavailable for {instance.slug}: Connection refused")
         logger.info(
-            "Project created without Gitea repository. Repository will be created when Gitea becomes available."
+            "Project created WITHOUT a Gitea repository, and NOTHING WILL RETRY: "
+            "there is no reconciler, no queued task and no backfill command, so "
+            "it stays repo-less until a human creates it. Find affected rows with "
+            "Project.objects.filter(gitea_repo_id__isnull=True)."
         )
     except Exception as e:
-        # Log error but don't fail project creation
-        logger.error(f"Failed to create Gitea repository for {instance.slug}: {e}")
+        # Project creation deliberately survives a Gitea failure, but the project
+        # is then INCOMPLETE and this line is the only place that says so.
+        # Recording the reason on the ROW is the real fix — see card
+        # hub-project-created-without-gitea-repo-is-silent-and-never-reconciled-20260811
+        logger.error(
+            f"Failed to create Gitea repository for {instance.slug}: {e}. "
+            f"The project row was SAVED and has no repository; nothing retries this. "
+            f"Find affected rows with Project.objects.filter(gitea_repo_id__isnull=True)."
+        )
         logger.exception("Full traceback:")
 
 
