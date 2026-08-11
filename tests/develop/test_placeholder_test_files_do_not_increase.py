@@ -67,15 +67,27 @@ from django.conf import settings
 # `_placeholder_files()` skips this file by name anyway, so the scan was already
 # correct; the concatenation is for every OTHER reader of this directory.
 PLACEHOLDER_CLASS_MARKER = "Placeholder test class - " + "replace with actual tests"
-PLACEHOLDER_TEST_MARKER = "def test_placeholder" + "_pending_implementation"
+
+# A test function whose NAME marks it as generated scaffolding rather than a
+# real assertion. Prefix, not exact match — see _placeholder_files().
+PLACEHOLDER_TEST_PREFIX = "test_placeholder"
+
+REAL_TEST_DEF = re.compile(r"^\s*def (test_\w+)", re.MULTILINE)
 
 # Ratchet: this number may only ever decrease. See the module docstring before
 # changing it.
 #
 #   528  measured on develop at 4dc626470, 2026-08-11 — the starting debt
 #   527  2026-08-11, tests/apps/permissions_app/test_services.py replaced with
-#        18 real tests of PermissionService (the app was 6/6 placeholders, the
-#        highest ratio in the codebase, and it decides who may do what)
+#        18 real tests of PermissionService
+#
+# A SECOND GENERATOR VARIANT EXISTS, and it is why the definition below no
+# longer keys on the function NAME. Five files in a local working copy carry
+# `def test_placeholder(self)` + `pytest.skip("Not implemented yet")` instead of
+# `test_placeholder_pending_implementation`. They are UNTRACKED — never
+# committed — so they are not part of this baseline and must not be counted
+# into it. But they prove the generator emits more than one shape, and a rule
+# keyed on one exact name cannot see a shape it was not told about.
 PLACEHOLDER_BASELINE = 527
 
 
@@ -84,23 +96,47 @@ def _tests_root() -> Path:
 
 
 def _placeholder_files() -> list:
-    """Test files whose only test is the generator's placeholder.
+    """Test files carrying the scaffold marker and asserting nothing.
 
-    Keyed on BOTH markers, because either alone is weaker than it looks: the
-    class docstring could legitimately be quoted in prose (this file quotes it,
-    which is why the scan skips itself), and the function name could survive a
-    partial hand-edit that added real tests beside it.
+    DEFINITION, and why it is not the obvious one. The first version keyed on
+    the class marker AND the exact function name
+    `test_placeholder_pending_implementation`. A second generator variant
+    exists — `def test_placeholder(self)` with
+    `pytest.skip("Not implemented yet")` — which that key cannot see. The five
+    known instances happen to be untracked, so the committed count was right;
+    it was right by luck, not by construction, and the next such file could as
+    easily be committed.
+
+    So the name is no longer part of the test. A file counts when it carries
+    the scaffold marker and has NO REAL TEST FUNCTION — every `def test_*` in
+    it is placeholder-named. That is variant-agnostic in both directions:
+
+      * a third generator variant, or a hand-renamed placeholder, still counts,
+        because the rule never asks what the function is called beyond the
+        `test_placeholder` prefix;
+      * a file that has genuinely gained assertions stops counting the moment
+        one non-placeholder test appears, which is the redeemability property
+        the ratchet needs — you get credit in the same commit that earns it.
+
+    The class marker alone would over-count: the pasted source block and this
+    module's own prose both mention it. Requiring "no real tests" is what keeps
+    that from producing false positives, and it is a property of the FILE's
+    behaviour rather than of its wording.
     """
     found = []
     for path in sorted(_tests_root().rglob("test_*.py")):
         if path.name == Path(__file__).name:
-            continue  # this file quotes both markers; counting itself is a bug
+            continue  # this file names the marker; counting itself is a bug
         try:
             text = path.read_text(encoding="utf-8", errors="replace")
         except OSError:
             continue
-        if PLACEHOLDER_CLASS_MARKER in text and PLACEHOLDER_TEST_MARKER in text:
-            found.append(path.relative_to(Path(settings.BASE_DIR)))
+        if PLACEHOLDER_CLASS_MARKER not in text:
+            continue
+        names = REAL_TEST_DEF.findall(text)
+        if any(not n.startswith(PLACEHOLDER_TEST_PREFIX) for n in names):
+            continue  # has at least one real assertion-bearing test
+        found.append(path.relative_to(Path(settings.BASE_DIR)))
     return found
 
 
