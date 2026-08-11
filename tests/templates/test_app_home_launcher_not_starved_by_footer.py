@@ -283,4 +283,95 @@ def test_no_surface_both_shows_the_footer_and_pins_the_body():
     assert not starved
 
 
+SHELL_ELEMENTS = re.compile(r"\.workspace-(?:layout|three-col)\b")
+
+# Every stylesheet under this root is scanned. Naming a fixed list here is what
+# failed the first time: the guard modelled global-base.css alone, passed, and
+# prod stayed broken because a THIRD file held the same decision.
+CSS_ROOT = "static/shared/css"
+
+
+def _all_css_files() -> list:
+    return sorted((Path(settings.BASE_DIR) / CSS_ROOT).rglob("*.css"))
+
+
+def _rules_collapsing_the_shell() -> list:
+    """Rules that force the app shell's height to 0.
+
+    `height: 0` on `.workspace-layout` hands its size entirely to flex
+    distribution. That is correct for a working surface that owns the viewport
+    and fatal for one that renders a non-shrinking footer, because the footer
+    takes its full height first and the shell absorbs the loss.
+    """
+    found = []
+    for path in _all_css_files():
+        css = re.sub(r"/\*.*?\*/", "", path.read_text(encoding="utf-8"), flags=re.DOTALL)
+        for block in re.finditer(r"([^{}]+)\{([^{}]*)\}", css):
+            selector, decls = block.group(1), block.group(2)
+            if not SHELL_ELEMENTS.search(selector):
+                continue
+            if not re.search(r"(^|;)\s*height\s*:\s*0\b", decls):
+                continue
+            for part in selector.split(","):
+                if SHELL_ELEMENTS.search(part):
+                    found.append((path.name, " ".join(part.split())))
+    return found
+
+
+def _targets_the_app_home(selector: str) -> bool:
+    """Does this descendant selector apply on a body carrying `app-home`?
+
+    Only the body-scoped prefix decides; the part after it names the element.
+    """
+    head = selector.split()[0]
+    required = set(re.findall(r"(?<!not\()\.([a-zA-Z0-9_-]+)", head))
+    excluded = set(re.findall(r":not\(\.([a-zA-Z0-9_-]+)\)", head))
+    required -= excluded
+    if not head.startswith("body") and not required:
+        return True  # unscoped: applies everywhere, app home included
+    return required <= APP_HOME_CLASSES and not (excluded & APP_HOME_CLASSES)
+
+
+def test_the_scan_finds_shell_collapsing_rules_at_all():
+    """POSITIVE CONTROL for the scan below.
+
+    footer-collapse.css legitimately collapses the shell on working surfaces.
+    If this returns nothing, the scan is broken or the CSS moved, and the
+    assertion below would pass while checking no files at all — which is
+    exactly how the first version of this guard reported green on a prod that
+    was still serving the bug.
+    """
+    # Arrange
+    scan = _rules_collapsing_the_shell
+    # Act
+    rules = scan()
+    # Assert
+    assert rules
+
+
+def test_no_rule_collapses_the_app_home_shell_to_zero_height():
+    """THE SECOND HALF OF THE BUG, and the reason #581 changed nothing.
+
+    Releasing the body's viewport lock in global-base.css is necessary and NOT
+    sufficient. footer-collapse.css sets
+
+        body.workspace-page:not(.landing-page) .workspace-layout { height: 0 !important }
+
+    which overrides the shell's own calc() height and hands its size to flex
+    distribution, where the non-shrinking footer wins. `:not(.landing-page)`
+    was there; `:not(.app-home)` was not.
+
+    Measured on prod 2026-08-11: disabling that one stylesheet took
+    #workspace-layout from 143px to 844px.
+    """
+    # Arrange
+    rules = _rules_collapsing_the_shell()
+    # Act
+    hitting_app_home = sorted(
+        f"{name}: {sel}" for name, sel in rules if _targets_the_app_home(sel)
+    )
+    # Assert
+    assert not hitting_app_home
+
+
 # EOF
