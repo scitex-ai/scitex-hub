@@ -125,8 +125,17 @@ class SlackService:
         # SSRF guard (fail-closed) at the true security boundary: this catches
         # rows created via admin / migration / direct ORM that never passed
         # through create_webhook. On a bad host we do NOT post (py/full-ssrf).
+        # Bind the RETURN value and post THAT. The validator returns the url
+        # unchanged precisely so callers can do this ("so callers can inline
+        # the check" — its docstring). Discarding it and posting
+        # `webhook.webhook_url` again made the checked expression and the sent
+        # expression two different reads of a mutable attribute: correct today,
+        # and silently wrong the moment anything reloads or mutates the row
+        # between the guard and the post. It also left the dataflow invisible
+        # to CodeQL, which is why py/full-ssrf #9058 stayed open on a finding
+        # that was genuinely fixed.
         try:
-            validate_slack_webhook_url(webhook.webhook_url)
+            safe_webhook_url = validate_slack_webhook_url(webhook.webhook_url)
         except ValidationError as exc:
             error_message = "; ".join(exc.messages)
             self._log_error(webhook.connection, "notify", error_message)
@@ -150,7 +159,7 @@ class SlackService:
 
             # Send request
             response = requests.post(
-                webhook.webhook_url,
+                safe_webhook_url,
                 data=json.dumps(message),
                 headers={"Content-Type": "application/json"},
                 timeout=10,
