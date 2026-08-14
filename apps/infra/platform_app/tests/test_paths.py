@@ -16,7 +16,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from apps.infra.platform_app.services.paths import resolve_within
+from apps.infra.platform_app.services.paths import is_within, resolve_within
 
 
 class ResolveWithinTests(unittest.TestCase):
@@ -142,6 +142,58 @@ class ResolveWithinTests(unittest.TestCase):
             resolve_within(self.root, "../outside/secret.txt"),
             resolve_within(self.root, "../outside/does-not-exist.txt"),
         )
+
+
+class IsWithinTests(unittest.TestCase):
+    """The bool containment predicate that resolve_within is built on.
+
+    Tested directly because it is what the CodeQL barrier model names: if its
+    behaviour drifts from the model's claim, the model becomes a lie that
+    silently hides real findings.
+    """
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name) / "proj"
+        (self.root / "sub").mkdir(parents=True)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_child_is_within(self):
+        self.assertTrue(is_within(self.root, self.root / "sub"))
+
+    def test_root_is_within_itself(self):
+        self.assertTrue(is_within(self.root, self.root))
+
+    def test_parent_is_not_within(self):
+        self.assertFalse(is_within(self.root, self.root.parent))
+
+    def test_sibling_sharing_a_string_prefix_is_not_within(self):
+        # The whole reason this is component-wise: "proj" is a string prefix of
+        # "proj-secret", so a startswith() guard would call this contained.
+        sibling = self.root.parent / (self.root.name + "-secret")
+        sibling.mkdir()
+        self.assertFalse(is_within(self.root, sibling))
+
+    def test_returns_false_instead_of_raising_on_symlink_loop(self):
+        a, b = self.root / "a", self.root / "b"
+        try:
+            a.symlink_to(b)
+            b.symlink_to(a)
+        except (OSError, NotImplementedError):
+            self.skipTest("symlinks unavailable on this platform")
+        self.assertFalse(is_within(self.root, a / "x"))
+
+    def test_agrees_with_resolve_within(self):
+        # The two must not drift: resolve_within delegates containment here, so
+        # a path it accepts must be one is_within calls contained, and vice
+        # versa. This is the property the barrier model depends on.
+        for frag in ("sub", "", "sub/../sub", "../outside", "../proj-secret/x"):
+            got = resolve_within(self.root, frag)
+            if got is None:
+                continue
+            self.assertTrue(is_within(self.root, got), frag)
 
 
 if __name__ == "__main__":  # pragma: no cover

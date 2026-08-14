@@ -50,7 +50,34 @@ from __future__ import annotations
 
 from pathlib import Path
 
-__all__ = ["resolve_within"]
+__all__ = ["is_within", "resolve_within"]
+
+
+def is_within(root: Path, target: Path) -> bool:
+    """True when ``target`` resolves to a location inside ``root``.
+
+    Component-wise containment, NOT a string prefix match: ``/srv/proj`` is a
+    string prefix of the sibling ``/srv/proj-secret``, so ``startswith`` admits
+    a path into another tenant's tree. Comparing components rejects it.
+
+    This is the project's containment FACT, factored out so there is one of it.
+    It has the same bool-returning shape as
+    ``project_app.services.filesystem.permissions.validate_path_in_project``,
+    which is deliberate: that shape is what the CodeQL barrier model in
+    ``.github/codeql/extensions/scitex-python-barriers`` can express, so a
+    caller gated on this function is recognised as sanitised rather than
+    re-reported. See that file for why the *correct* component-wise check would
+    otherwise score WORSE than a buggy prefix check.
+
+    Returns False rather than raising on an unresolvable path, so a caller
+    cannot turn a filesystem error into an unhandled 500.
+    """
+    try:
+        Path(target).resolve().relative_to(Path(root).resolve())
+        return True
+    except (ValueError, OSError, RuntimeError):
+        # RuntimeError: pathlib raises it on a symlink loop.
+        return False
 
 
 def resolve_within(root: Path, fragment: str | None) -> Path | None:
@@ -87,14 +114,15 @@ def resolve_within(root: Path, fragment: str | None) -> Path | None:
 
     try:
         root_resolved = Path(root).resolve()
-        candidate = (root_resolved / text).resolve() if text else root_resolved
+        candidate = (root_resolved / text) if text else root_resolved
     except (ValueError, OSError, RuntimeError):
-        # RuntimeError: pathlib raises it on a symlink loop.
         return None
 
-    # is_relative_to (3.9+) states the intent directly and, unlike
-    # relative_to(), does not use an exception for the ordinary "no" answer.
-    if not candidate.is_relative_to(root_resolved):
+    # Containment is delegated to is_within so there is ONE definition of it.
+    if not is_within(root_resolved, candidate):
         return None
 
-    return candidate
+    try:
+        return candidate.resolve()
+    except (ValueError, OSError, RuntimeError):
+        return None
