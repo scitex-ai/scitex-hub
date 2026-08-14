@@ -16,7 +16,7 @@ name: scitex-ai/python-security-barriers
 # version number is how a model change silently fails to reach the analysis.
 # That is the same "looked like it worked" failure this pack's own history
 # records three times.
-version: 0.1.0
+version: 0.2.0
 library: true
 extensionTargets:
   codeql/python-all: '*'
