@@ -59,38 +59,6 @@ extensions:
       extensible: barrierModel
     data:
       - ["apps", "Member[infra].Member[platform_app].Member[services].Member[paths].Member[resolve_within].ReturnValue", "path-injection"]
-      # validate_slack_webhook_url(url) -> str
-      # (apps/infra/integrations_app/services/webhook_security.py) returns the
-      # url UNCHANGED iff scheme is https and host is EXACTLY hooks.slack.com,
-      # and raises ValidationError otherwise. Same return-a-validated-value
-      # shape as resolve_within above, so barrierModel(ReturnValue), not
-      # barrierGuardModel(Argument) — and 'request-forgery', not
-      # 'path-injection', because the sink is requests.post (py/full-ssrf
-      # #9058).
-      #
-      # THIS ENTRY ONLY BINDS BECAUSE THE CALLER WAS CHANGED IN THE SAME PR.
-      # slack_service.py used to call the validator for its raise and then post
-      # `webhook.webhook_url` again — the validated value was DISCARDED, so no
-      # ReturnValue flowed to the sink and a ReturnValue barrier would have
-      # bound nothing. That is exactly the is_within mistake recorded above.
-      # It now binds `safe_webhook_url = validate_slack_webhook_url(...)` and
-      # posts that.
-      #
-      # *** UNMEASURED, AND SAID PLAINLY. *** Every other entry in this file
-      # carries a measured alert delta. This one does not: the CodeQL CLI is
-      # not installed on the host where it was written (`command -v codeql` ->
-      # absent), so I could not run the 90-second re-verify the header
-      # prescribes. Do NOT record it as working until someone runs, against a
-      # python db built from develop:
-      #   codeql database analyze <db> \
-      #     codeql/python-queries:Security/CWE-918/RequestForgery.ql \
-      #     --format=csv --output=X.csv --rerun \
-      #     --additional-packs=<dir> --model-packs=scitex-ai/python-security-barriers
-      # and diffs the row count against a no-pack run. Positive control:
-      # slack_service.py must be among the flagged files in the baseline, or a
-      # zero delta proves nothing. If it binds, #9058 closes; if it does not,
-      # DELETE this entry rather than leaving a decorative one.
-      - ["apps", "Member[infra].Member[integrations_app].Member[services].Member[webhook_security].Member[validate_slack_webhook_url].ReturnValue", "request-forgery"]
 
 # ---------------------------------------------------------------------------
 # HOW THESE WERE VERIFIED, and why the previous form was wrong.
@@ -123,6 +91,41 @@ extensions:
 #       --rerun --additional-packs=<dir> --model-packs=<pack-name>
 # and diff the row count against a run with no pack. Do this before believing
 # any future edit to this file — a green CI run does not prove an entry bound.
+#
+# ---------------------------------------------------------------------------
+# POST-MORTEM: THE request-forgery ENTRY THAT 0.3.0 SHIPPED AND 0.4.0 REMOVED.
+#
+# 0.3.0 added a barrierModel on validate_slack_webhook_url.ReturnValue, by
+# analogy with the resolve_within entry above. It was published UNMEASURED
+# (the authoring host had no codeql CLI) with a note promising to delete it if
+# it did not bind. It did not bind. Deleted.
+#
+# THE MEASUREMENT, on develop @4e76b661 (merge of #595):
+#   Two codeql-analysis runs fired on that one commit, and they loaded
+#   DIFFERENT pack versions — the publish race this pack keeps hitting:
+#       run 31848598098  started 22:57:29  installed 0.2.0   finished 22:59:45
+#       run 31848602786  started 22:57:34  installed 0.3.0   finished 23:00:52
+#   The 0.3.0 run finished LAST, so its SARIF is the authoritative upload. That
+#   is what makes this a real disproof rather than an untested guess: the alert
+#   list being read WAS produced by a run that had the entry loaded.
+#   Result: py/full-ssrf #14459 (slack_service.py:161) STILL OPEN. Open
+#   criticals on develop unchanged at 6.
+#
+# WHY IT LIKELY FAILED — a hypothesis, NOT a measured fact, flagged as such so
+# nobody spends 0.5.0 on it without checking: resolve_within's ReturnValue is
+# consumed as a PATH that flows onward into a filesystem sink, whereas
+# validate_slack_webhook_url returns its own ARGUMENT unchanged. A model that
+# marks the return value safe may simply not interrupt taint that CodeQL is
+# already tracking through the identical argument value. If so, this function
+# needs a barrierGuardModel-shaped treatment or a query-level change, not a
+# ReturnValue barrier — and that distinction can only be settled with the CLI.
+#
+# THE LESSON, which is the reusable part: DO NOT SHIP AN UNMEASURED MODEL.
+# Every entry above carries an alert delta. This one carried a promise instead,
+# and the promise cost a published version, a second published version to undo
+# it, and a develop analysis to find out. The file already said "a green CI run
+# does not prove an entry bound"; it now also says a plausible analogy to a
+# working entry does not either.
 #
 # STILL UNVERIFIED, deliberately stated: whether CI applies this pack at all.
 # The runs above passed --model-packs explicitly; codeql-analysis.yml relies on
