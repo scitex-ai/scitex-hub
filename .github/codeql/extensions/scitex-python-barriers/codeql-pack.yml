@@ -10,7 +10,13 @@
 # not the whole story) rather than "this scope does not exist" (also true, and
 # the fixable half).
 name: scitex-ai/python-security-barriers
-version: 0.0.1
+# 0.0.1 -> 0.1.0: adds the is_within barrier entry (a new model, so a minor
+# bump, not a patch). The bump is NOT cosmetic — consumers resolve `packs:
+# scitex-ai/python-security-barriers` from ghcr, and republishing an unchanged
+# version number is how a model change silently fails to reach the analysis.
+# That is the same "looked like it worked" failure this pack's own history
+# records three times.
+version: 0.1.0
 library: true
 extensionTargets:
   codeql/python-all: '*'

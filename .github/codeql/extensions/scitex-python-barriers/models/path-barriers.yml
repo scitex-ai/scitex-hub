@@ -43,3 +43,27 @@ extensions:
       - ["", "Module[apps.infra.project_app.services.filesystem.permissions].Member[validate_path_in_project].Argument[1,target_path:]", "true", "path-injection"]
       # validate_path_in_user_jail(user, target_path) -> bool  (delegates to the above)
       - ["", "Module[apps.infra.project_app.services.filesystem.permissions].Member[validate_path_in_user_jail].Argument[1,target_path:]", "true", "path-injection"]
+      # is_within(root, target) -> bool
+      # (apps/infra/platform_app/services/paths.py) — the SAME component-wise
+      # `target.resolve().relative_to(root.resolve())` fact as the two above,
+      # factored into a Django-free module so a2a_app and repo_app can gate on
+      # it without pulling in the app registry (permissions.py imports
+      # django.contrib.auth models and ...models.Project at module level, so a
+      # low-level path utility cannot depend on it).
+      #
+      # resolve_within() is built on this and is the form callers should use:
+      # it hands back the VALIDATED path, which removes the ordering bug this
+      # sweep was opened for — the old code called .exists()/.is_file() on the
+      # unvalidated join and checked containment only afterwards.
+      #
+      # Modelled on the ARGUMENT (bool-guard shape), NOT on resolve_within's
+      # return value, for the reason the header already records: a
+      # returns-the-sanitised-value function needs barrierModel(ReturnValue,...),
+      # which is still deferred. Keeping the containment fact in a bool
+      # predicate is what makes it expressible today.
+      #
+      # FOLLOW-UP, deliberately not in this change: validate_path_in_project
+      # should delegate to is_within so there is ONE containment implementation
+      # rather than two that agree today. Not done here because that module
+      # carries the barrier entries above and this change should not risk them.
+      - ["", "Module[apps.infra.platform_app.services.paths].Member[is_within].Argument[1,target:]", "true", "path-injection"]
