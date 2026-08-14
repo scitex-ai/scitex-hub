@@ -59,6 +59,38 @@ extensions:
       extensible: barrierModel
     data:
       - ["apps", "Member[infra].Member[platform_app].Member[services].Member[paths].Member[resolve_within].ReturnValue", "path-injection"]
+      # validate_slack_webhook_url(url) -> str
+      # (apps/infra/integrations_app/services/webhook_security.py) returns the
+      # url UNCHANGED iff scheme is https and host is EXACTLY hooks.slack.com,
+      # and raises ValidationError otherwise. Same return-a-validated-value
+      # shape as resolve_within above, so barrierModel(ReturnValue), not
+      # barrierGuardModel(Argument) — and 'request-forgery', not
+      # 'path-injection', because the sink is requests.post (py/full-ssrf
+      # #9058).
+      #
+      # THIS ENTRY ONLY BINDS BECAUSE THE CALLER WAS CHANGED IN THE SAME PR.
+      # slack_service.py used to call the validator for its raise and then post
+      # `webhook.webhook_url` again — the validated value was DISCARDED, so no
+      # ReturnValue flowed to the sink and a ReturnValue barrier would have
+      # bound nothing. That is exactly the is_within mistake recorded above.
+      # It now binds `safe_webhook_url = validate_slack_webhook_url(...)` and
+      # posts that.
+      #
+      # *** UNMEASURED, AND SAID PLAINLY. *** Every other entry in this file
+      # carries a measured alert delta. This one does not: the CodeQL CLI is
+      # not installed on the host where it was written (`command -v codeql` ->
+      # absent), so I could not run the 90-second re-verify the header
+      # prescribes. Do NOT record it as working until someone runs, against a
+      # python db built from develop:
+      #   codeql database analyze <db> \
+      #     codeql/python-queries:Security/CWE-918/RequestForgery.ql \
+      #     --format=csv --output=X.csv --rerun \
+      #     --additional-packs=<dir> --model-packs=scitex-ai/python-security-barriers
+      # and diffs the row count against a no-pack run. Positive control:
+      # slack_service.py must be among the flagged files in the baseline, or a
+      # zero delta proves nothing. If it binds, #9058 closes; if it does not,
+      # DELETE this entry rather than leaving a decorative one.
+      - ["apps", "Member[infra].Member[integrations_app].Member[services].Member[webhook_security].Member[validate_slack_webhook_url].ReturnValue", "request-forgery"]
 
 # ---------------------------------------------------------------------------
 # HOW THESE WERE VERIFIED, and why the previous form was wrong.
