@@ -26,13 +26,22 @@ runtime/model) live under the namespaced ``x-orochi`` extension block.
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
 from typing import Any
 
 import yaml
 
+from apps.infra.platform_app.services.paths import resolve_within
+
 DEFAULT_AGENTS_DIR = Path.home() / ".scitex" / "orochi" / "shared" / "agents"
 DEFAULT_BASE_URL = "https://a2a.scitex.ai"
+
+# An agent name is one directory segment: letters, digits, dot, underscore,
+# dash. It is NOT a path, so "." / ".." / anything with a separator is not a
+# name that could have been meant. Matches the charset the fleet already uses
+# for agent ids (scitex-hub, scitex-agent-container, clew-a-001-...).
+_AGENT_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 
 
 def _agents_dir() -> Path:
@@ -130,11 +139,22 @@ def list_agents() -> list[str]:
 
 
 def load_card(name: str, base_url: str = DEFAULT_BASE_URL) -> dict[str, Any] | None:
-    d = _agents_dir()
-    agent_dir = d / name
-    yaml_path = agent_dir / f"{name}.yaml"
-    if not yaml_path.exists():
+    # `name` arrives from the PUBLIC route /v1/agents/<name>, so it is
+    # untrusted. An agent name is a single directory segment by definition;
+    # anything that is not one cannot name an agent, so reject it before it
+    # reaches the filesystem rather than trying to sanitise it.
+    if not _AGENT_NAME_RE.match(name or ""):
         return None
+
+    d = _agents_dir()
+    agent_dir = resolve_within(d, name)
+    if agent_dir is None:
+        return None
+
+    yaml_path = resolve_within(agent_dir, f"{name}.yaml")
+    if yaml_path is None or not yaml_path.exists():
+        return None
+
     v3 = yaml.safe_load(yaml_path.read_text()) or {}
     return project(name, v3, agent_dir, base_url)
 
