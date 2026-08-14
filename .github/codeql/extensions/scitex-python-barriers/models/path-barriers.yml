@@ -21,49 +21,78 @@
 # shape and belong in a barrierModel(ReturnValue, ...) — deferred until those
 # functions land on develop.
 extensions:
+  # ACCESS PATH — MEASURED, not reasoned about. See the note at the bottom of
+  # this file for the four-way comparison that produced these two forms.
+  #
+  # The type column holds an IMPORTABLE TOP-LEVEL MODULE NAME and the access
+  # path is a Member[] chain from it. This is the shape python-all uses for its
+  # own barriers; compare semmle/python/frameworks/AntiSSRF.model.yml:
+  #   - ['AntiSSRF', 'Member[URIValidator].Member[in_domain,...].Argument[0]', "true", 'request-forgery']
   - addsTo:
       pack: codeql/python-all
       extensible: barrierGuardModel
     data:
-      # ACCESS PATH: the first column is a TYPE, and the path is resolved from it.
-      # The previous form used ["apps", "Member[infra].Member[project_app]..."],
-      # which asks CodeQL to resolve a type literally named "apps" and walk members
-      # from it. No such type exists, the entry does not bind, and MaD silently
-      # IGNORES entries that do not resolve — so it looked installed and did nothing.
-      #
-      # A first-party MODULE is addressed with an empty type column and an explicit
-      # Module[<absolute.dotted.path>] head. The dotted path is authoritative here:
-      # every level (apps, infra, project_app, services, filesystem) carries an
-      # __init__.py, so this module IS importable as written. Callers reach it by
-      # RELATIVE import (`from ...services.filesystem.permissions import ...`), which
-      # resolves to the same absolute module.
-      #
       # validate_path_in_project(project_path, target_path) -> bool
-      # target_path (Argument[1]) is contained in project_path when this returns True.
-      - ["", "Module[apps.infra.project_app.services.filesystem.permissions].Member[validate_path_in_project].Argument[1,target_path:]", "true", "path-injection"]
+      # target_path (Argument[1]) is contained in project_path when this is True.
+      - ["apps", "Member[infra].Member[project_app].Member[services].Member[filesystem].Member[permissions].Member[validate_path_in_project].Argument[1,target_path:]", "true", "path-injection"]
       # validate_path_in_user_jail(user, target_path) -> bool  (delegates to the above)
-      - ["", "Module[apps.infra.project_app.services.filesystem.permissions].Member[validate_path_in_user_jail].Argument[1,target_path:]", "true", "path-injection"]
-      # is_within(root, target) -> bool
-      # (apps/infra/platform_app/services/paths.py) — the SAME component-wise
-      # `target.resolve().relative_to(root.resolve())` fact as the two above,
-      # factored into a Django-free module so a2a_app and repo_app can gate on
-      # it without pulling in the app registry (permissions.py imports
-      # django.contrib.auth models and ...models.Project at module level, so a
-      # low-level path utility cannot depend on it).
-      #
-      # resolve_within() is built on this and is the form callers should use:
-      # it hands back the VALIDATED path, which removes the ordering bug this
-      # sweep was opened for — the old code called .exists()/.is_file() on the
-      # unvalidated join and checked containment only afterwards.
-      #
-      # Modelled on the ARGUMENT (bool-guard shape), NOT on resolve_within's
-      # return value, for the reason the header already records: a
-      # returns-the-sanitised-value function needs barrierModel(ReturnValue,...),
-      # which is still deferred. Keeping the containment fact in a bool
-      # predicate is what makes it expressible today.
-      #
-      # FOLLOW-UP, deliberately not in this change: validate_path_in_project
-      # should delegate to is_within so there is ONE containment implementation
-      # rather than two that agree today. Not done here because that module
-      # carries the barrier entries above and this change should not risk them.
-      - ["", "Module[apps.infra.platform_app.services.paths].Member[is_within].Argument[1,target:]", "true", "path-injection"]
+      - ["apps", "Member[infra].Member[project_app].Member[services].Member[filesystem].Member[permissions].Member[validate_path_in_user_jail].Argument[1,target_path:]", "true", "path-injection"]
+
+  # resolve_within(root, fragment) -> Path | None
+  # (apps/infra/platform_app/services/paths.py) RETURNS a validated path rather
+  # than answering a yes/no question, so it is a barrierModel on ReturnValue and
+  # NOT a barrierGuardModel on an argument.
+  #
+  # Useful for the header's SSH note, which parks ssh_destination /
+  # ssh_remote_target in "a barrierModel(ReturnValue, ...) — deferred". That
+  # deferral is because those functions are not on develop yet, NOT because the
+  # construct was unavailable: barrierModel is a documented python-all
+  # extensible predicate and it is measured working here. When those functions
+  # land, this block is the worked example to copy.
+  #
+  # An earlier revision modelled is_within's ARGUMENT instead. That entry bound
+  # nothing and was removed: callers do not gate on is_within, they consume
+  # resolve_within's return value, so an argument-shaped barrier cannot reach
+  # them. Measured: adding it changed the alert count by exactly 0.
+  - addsTo:
+      pack: codeql/python-all
+      extensible: barrierModel
+    data:
+      - ["apps", "Member[infra].Member[platform_app].Member[services].Member[paths].Member[resolve_within].ReturnValue", "path-injection"]
+
+# ---------------------------------------------------------------------------
+# HOW THESE WERE VERIFIED, and why the previous form was wrong.
+#
+# Measured 2026-08-14 with CodeQL CLI 2.26.3 (the version codeql-analysis.yml
+# actually downloads) against a python database built from develop @24607f360,
+# running codeql/python-queries Security/CWE-022/PathInjection.ql:
+#
+#   pack form                                                 alerts   delta
+#   -----------------------------------------------------------------------
+#   (none) baseline                                             187      --
+#   ["", "Module[apps.infra...]..."]        <- the old form     187       0
+#   ["apps.infra...permissions", "Member[...]..."]              187       0
+#   ["apps", "Member[infra]..."]            <- restored here    151     -36
+#   + barrierModel on resolve_within.ReturnValue                137     -50
+#
+# Positive control: 18 of the 44 flagged files call the modelled validators, so
+# every run had a real opportunity to move. A zero delta without that control
+# would have meant nothing.
+#
+# THE OLD COMMENT HERE WAS WRONG. It said ["apps", "Member[infra]..."] "asks
+# CodeQL to resolve a type literally named 'apps' ... the entry does not bind".
+# That form is the one that DOES bind. It looked broken when it was written
+# because the pack was not being applied to the analysis at all, so "it
+# suppressed nothing" was true for an unrelated reason — and the fix was aimed
+# at the one part that had been correct.
+#
+# RE-VERIFY IN ~90 SECONDS, no merge and no publish required:
+#   codeql database analyze <db> <PathInjection.ql> --format=csv --output=X.csv \
+#       --rerun --additional-packs=<dir> --model-packs=<pack-name>
+# and diff the row count against a run with no pack. Do this before believing
+# any future edit to this file — a green CI run does not prove an entry bound.
+#
+# STILL UNVERIFIED, deliberately stated: whether CI applies this pack at all.
+# The runs above passed --model-packs explicitly; codeql-analysis.yml relies on
+# `packs:`. The syntax fix is necessary and may not be sufficient — confirm
+# red->green on real alerts after this lands rather than assuming.
