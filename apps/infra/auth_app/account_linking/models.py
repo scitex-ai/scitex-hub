@@ -134,6 +134,28 @@ class LinkedIdentity(models.Model):
             models.Index(fields=["cards_user_id"]),
         ]
 
+    @property
+    def deterministic_cards_id(self) -> str:
+        """The cards user id this identity WOULD mint, fleet-wide.
+
+        DERIVED, not stored, and deliberately so. It is a pure function of
+        ``issuer`` and ``subject``, both of which are already columns on this
+        row; a third column holding their digest would be denormalised state
+        that can drift from its own definition after a data fix.
+
+        Not yet authoritative — ``scitex_cards.register_user`` mints ids
+        internally with ``secrets.token_hex`` and accepts no caller-supplied
+        id, so :attr:`cards_user_id` still holds a random one. When that API
+        lands, this becomes the value hub sends, and existing rows can be
+        backfilled by comparing the two. See card
+        ``cards-email-uniqueness-is-fleet-wide-not-per-host-20260814``.
+        """
+        from .providers import OidcIdentity, deterministic_cards_user_id
+
+        return deterministic_cards_user_id(
+            OidcIdentity(issuer=self.issuer, subject=self.subject)
+        )
+
     def __str__(self) -> str:
         return f"{self.issuer}#{self.subject} -> {self.user}"
 

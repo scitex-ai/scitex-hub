@@ -161,6 +161,47 @@ def local_identity_for(user) -> OidcIdentity:
     return OidcIdentity(issuer=LOCAL_ISSUER, subject=str(pk))
 
 
+#: Shape of a scitex-cards user id — ``u_`` plus 12 hex characters. Mirrors
+#: ``scitex_cards._users._store_write._generate_user_id`` so a derived id is
+#: indistinguishable from a minted one.
+CARDS_USER_ID_PREFIX = "u_"
+CARDS_USER_ID_HEX_WIDTH = 12
+
+
+def deterministic_cards_user_id(identity: OidcIdentity) -> str:
+    """Derive a stable cards user id from a provider identity.
+
+    The fleet runs one PostgreSQL per host, synchronised between them, and
+    any machine can join. A randomly minted id therefore differs per host for
+    the same human, and reconciling that means merging two records after the
+    fact. Deriving the id from the identity instead makes every host arrive
+    at the same value with ZERO coordination — the property agreed on card
+    ``cards-email-uniqueness-is-fleet-wide-not-per-host-20260814``.
+
+    NOT YET AUTHORITATIVE. ``scitex_cards.register_user`` accepts no ``id``
+    argument and mints one internally with ``secrets.token_hex``, so hub
+    cannot supply this value today (measured against 0.37.1). It is computed
+    and stored now so that adopting it later is a one-line change plus a
+    backfill, rather than a redesign.
+
+    LENGTH-PREFIXED, and that detail is the whole point. Hashing a plain
+    ``f"{issuer}|{subject}"`` is ambiguous: issuer ``a`` + subject ``b|c``
+    and issuer ``a|b`` + subject ``c`` both render ``a|b|c`` and collapse to
+    one id. Issuers come from a closed table and contain no separator, but
+    SUBJECTS are provider-controlled strings, so the guard is real rather
+    than theoretical. This is the same argument hub made to scitex-cards
+    about joined-string identities; it applies here too.
+    """
+    import hashlib
+
+    payload = (
+        f"{len(identity.issuer)}:{identity.issuer}"
+        f"|{len(identity.subject)}:{identity.subject}"
+    )
+    digest = hashlib.sha256(payload.encode("utf-8")).hexdigest()
+    return CARDS_USER_ID_PREFIX + digest[:CARDS_USER_ID_HEX_WIDTH]
+
+
 def configured_providers_are_mapped(provider_ids) -> list[str]:
     """Provider ids that are enabled but have no issuer — empty means fine.
 
@@ -178,11 +219,14 @@ def configured_providers_are_mapped(provider_ids) -> list[str]:
 
 
 __all__ = [
+    "CARDS_USER_ID_HEX_WIDTH",
+    "CARDS_USER_ID_PREFIX",
     "LOCAL_ISSUER",
     "PROVIDER_ISSUERS",
     "OidcIdentity",
     "UnmappedProviderError",
     "configured_providers_are_mapped",
+    "deterministic_cards_user_id",
     "local_identity_for",
     "oidc_identity_for",
     "provider_issuer",
