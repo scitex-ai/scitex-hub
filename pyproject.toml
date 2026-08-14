@@ -143,7 +143,7 @@ dependencies = [
     # installed — a venv without scitex_hub silently skips audit-cli and will
     # tell you everything is fine.
     "scitex-dev==0.43.1",
-    "gitpython>=3.1",
+    "gitpython>=3.1.51",
 ]
 
 [project.urls]
@@ -181,21 +181,21 @@ all = [
     # the board it mounts.
     "scitex-cards>=0.32.1",
     # --- Django stack (web framework + DRF + auth + ORM + ASGI) ---
-    "Django>=5.2",
+    "Django>=5.2.11",
     "djangorestframework>=3.16",
     "djangorestframework-simplejwt>=5.3",
     "django-cors-headers>=4.9",
     "django-extensions>=4.1",
     "django-browser-reload>=1.12",
     "django-axes>=6.3",
-    "django-allauth[socialaccount]>=65.3",
+    "django-allauth[socialaccount]>=65.14.1",
     "django-oauth-toolkit>=3.0",
     "django-widget-tweaks>=1.5",
     "django-celery-results>=2.5",
     "django-celery-beat>=2.8",
     "psycopg2-binary>=2.9",
     "gunicorn>=21.2",
-    "daphne>=4.1",
+    "daphne>=4.2.2",
     "channels>=4.3",
     "channels-redis>=4.3",
     # <5.6: the floating pin let the 2026-07-13 image rebuild jump prod onto
@@ -213,13 +213,13 @@ all = [
     # --- HTTP / async server / API ---
     "fastapi>=0.109",
     "uvicorn[standard]>=0.27",
-    "python-multipart>=0.0.6",
+    "python-multipart>=0.0.31",
     # `requests` moved to [project.dependencies] — it is a top-level import of
     # the shipped CLI, not an optional extra. See the comment there.
     "feedparser>=6.0",
     # --- Auth / crypto ---
     "PyJWT>=2.8",
-    "cryptography>=42.0",
+    "cryptography>=48.0.1",
     "python-decouple>=3.8",
     "python-dotenv>=1.0",
     "paramiko>=3.4",
@@ -231,11 +231,11 @@ all = [
     # SCITEX_HUB_STRIPE_* env keys are configured) ---
     "stripe>=10.0",
     # --- AI / LLM / domain ---
-    "litellm>=1.0",
+    "litellm>=1.82.0",
     "impact-factor>=1.1",
     # --- Notebook / docs / rendering ---
     "nbformat>=5.9",
-    "nbconvert>=7.0",
+    "nbconvert>=7.17.0",
     "weasyprint>=60.0",
     "pygments",
     # --- Validation ---
@@ -254,8 +254,8 @@ all = [
     "scitex-ui>=0.6.1",
     # --- GUI (dearpygui-based modules) ---
     "dearpygui>=1.11",
-    "cairosvg>=2.7",
-    "Pillow>=10.0",
+    "cairosvg>=2.9.0",
+    "Pillow>=12.1.1",
     # --- MCP server surface ---
     "fastmcp>=2.0.0",
     "pyyaml>=6.0",
