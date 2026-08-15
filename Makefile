@@ -100,6 +100,7 @@ SHELL := /bin/bash
 	format-shell \
 	lint \
 	lint-web \
+	lint-shell \
 	check-file-sizes \
 	check-host \
 	ensure-executable \
@@ -211,7 +212,7 @@ ifdef ENV
 else
   # ENV not specified - only allow non-operational commands
   ifneq ($(MAKECMDGOALS),)
-    ifneq ($(filter-out help help-commands help-all status validate-docker stop-all force-stop-all format format-python format-web format-shell lint lint-web check-file-sizes check-assets check-host ensure-executable slurm-start slurm-stop slurm-restart slurm-status slurm-fix slurm-resume slurm-reset crossref-status crossref-check crossref-rebuild-check crossref-next-steps crossref-create-title-index crossref-create-author-index info regenerate-gallery sync-tests sync-tests-move sync-ts-tests sync-ts-tests-move setup-vitest test-ts test-ts-watch test-ts-ui test-ts-coverage setup-pytest setup-testing test-unit test-db test-api test-ui test-ui-headed test-python test-all test-status apptainer-build apptainer-build-base apptainer-upgrade apptainer-freeze,$(MAKECMDGOALS)),)
+    ifneq ($(filter-out help help-commands help-all status validate-docker stop-all force-stop-all format format-python format-web format-shell lint lint-web lint-shell check-file-sizes check-assets check-host ensure-executable slurm-start slurm-stop slurm-restart slurm-status slurm-fix slurm-resume slurm-reset crossref-status crossref-check crossref-rebuild-check crossref-next-steps crossref-create-title-index crossref-create-author-index info regenerate-gallery sync-tests sync-tests-move sync-ts-tests sync-ts-tests-move setup-vitest test-ts test-ts-watch test-ts-ui test-ts-coverage setup-pytest setup-testing test-unit test-db test-api test-ui test-ui-headed test-python test-all test-status apptainer-build apptainer-build-base apptainer-upgrade apptainer-freeze,$(MAKECMDGOALS)),)
       $(error ❌ ENV not specified! Use: make ENV=<dev|staging|prod> <command>)
     endif
   endif
@@ -1232,23 +1233,12 @@ format-shell:
 		echo -e "$(YELLOW)⚠️  shfmt not found. Install with: go install mvdan.cc/sh/v3/cmd/shfmt@latest$(NC)"; \
 		echo -e "$(YELLOW)   Skipping shell formatting...$(NC)"; \
 	fi
-	@if command -v shellcheck >/dev/null 2>&1; then \
-		find scripts/ deployment/ apps/ -name "*.sh" \
-			! -path "*/externals/*" \
-			! -path "*/node_modules/*" \
-			! -path "*/.venv/*" \
-			-exec shellcheck --severity=error {} + \
-			2>&1 || echo "$(RED)❌ ShellCheck found errors$(NC)"; \
-		echo -e "$(GREEN)✅ Shell linting complete!$(NC)"; \
-	else \
-		echo -e "$(YELLOW)⚠️  shellcheck not found. Install with: sudo apt-get install shellcheck$(NC)"; \
-		echo -e "$(YELLOW)   Skipping shell linting...$(NC)"; \
-	fi
+	@$(MAKE) --no-print-directory lint-shell
 
 # ============================================
 # Linting (Read-Only - SAFE)
 # ============================================
-lint: lint-web
+lint: lint-web lint-shell
 	@echo -e ""
 	@echo -e "$(GREEN)✅ All linting checks complete (no files modified)!$(NC)"
 
@@ -1283,6 +1273,31 @@ lint-web:
 		echo -e "$(RED)❌ Prettier not found. Install with: npm install -g prettier$(NC)"; \
 		exit 1; \
 	fi
+
+# Every step below is its own recipe line with no `|| ...`, so make aborts on the
+# first non-zero exit and the final ✅ is only ever reached by a clean run.
+# Guarded by tests/develop/test_shell_lint_gate_propagates_failure.py.
+#
+# Threshold is --severity=error, unchanged from when this was a no-op gate.
+# Raising it surfaces 523 warning/info/style findings and belongs in its own PR.
+#
+# .archive/ is excluded for the same reason as externals/ and node_modules/:
+# deployment/.archive/ is obsolete manual-deployment code retired in cca5ae712.
+# It is never executed, so linting it reports on nothing that can break.
+lint-shell:
+	@echo -e "$(CYAN)🐚 Checking shell scripts with ShellCheck (read-only)...$(NC)"
+	@command -v shellcheck >/dev/null 2>&1 || { \
+		echo -e "$(RED)❌ shellcheck not found. Install with: sudo apt-get install shellcheck$(NC)"; \
+		echo -e "$(RED)   A missing linter is a FAILED check, not a skipped one.$(NC)"; \
+		exit 1; \
+	}
+	@find scripts/ deployment/ apps/ -name "*.sh" \
+		! -path "*/externals/*" \
+		! -path "*/node_modules/*" \
+		! -path "*/.venv/*" \
+		! -path "*/.archive/*" \
+		-exec shellcheck --severity=error {} +
+	@echo -e "$(GREEN)✅ Shell linting complete!$(NC)"
 
 # ============================================
 # Accessibility Checks (WCAG 2.2 AA)
