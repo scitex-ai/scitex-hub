@@ -156,13 +156,10 @@ else:
             }
         }
 
-# ---------------------------------------
-# Email
-# ---------------------------------------
-ADMINS = [
-    ("Admin", "admin@scitex.ai"),
-    ("Yusuke Watanabe", "ywatanabe@scitex.ai"),
-]
+# ADMINS / MANAGERS moved to settings_shared on 2026-08-15 so that every
+# non-dev environment inherits the same recipients. Defining them only here
+# left staging with the empty default, i.e. an error-mail handler wired to
+# nobody.
 
 # ---------------------------------------
 # Integration
