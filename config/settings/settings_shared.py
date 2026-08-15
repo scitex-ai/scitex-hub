@@ -462,6 +462,18 @@ EMAIL_HOST_USER = _getenv_alias("SCITEX_HUB_EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = _getenv_alias("SCITEX_HUB_EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
+
+# Recipients of the mail_admins logging handler (settings_logging). Defined
+# HERE, once, rather than per environment: it lived only in settings_prod
+# until 2026-08-15, which meant staging constructed the handler, passed every
+# check a grep could make, and delivered to nobody because ADMINS was the
+# empty default. require_debug_false already keeps this off dev machines, so
+# the environment gate does not need a second, silent one.
+ADMINS = [
+    ("Admin", "admin@scitex.ai"),
+    ("Yusuke Watanabe", "ywatanabe@scitex.ai"),
+]
+MANAGERS = ADMINS
 SITE_URL = _getenv_alias("SCITEX_HUB_SITE_URL", "http://127.0.0.1:8000")
 
 # Campaign Chat Mode
