@@ -1,4 +1,20 @@
-name: tests
+# The FULL pytest suite, across Python 3.11 / 3.12 / 3.13. This workflow
+# carries the three required status checks on main and develop
+# (pytest-matrix-on-ubuntu-py3.11/3.12/3.13) -- those come from the JOB name
+# below, never from this `name:`.
+#
+# Named `pytest-matrix`, not `tests`: tests.yml is a DIFFERENT workflow and was
+# called `Tests`, differing from this one only by case. GitHub folds
+# concurrency group names to a single case -- "The concurrency group name is
+# case insensitive. For example, `prod` and `Prod` will be treated as the same
+# concurrency group" (Actions workflow syntax reference) -- so the
+# `${{ github.workflow }}` group below put BOTH suites in ONE group, and with
+# cancel-in-progress on a pull request either could cancel the other. The
+# cheaper victim was the one carrying the security regression gates, which are
+# NOT required contexts: the pull request would still have merged, green by
+# absence. tests/config/test_workflow_concurrency.py now asserts that no two
+# workflow names -- and no two resolved group keys -- can collide case-folded.
+name: pytest-matrix
 
 on:
   push:

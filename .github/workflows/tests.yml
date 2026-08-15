@@ -1,4 +1,20 @@
-name: Tests
+# The gates that are NOT the pytest matrix: the TypeScript/Vite build, the
+# Vitest unit tests, the terminal-broker/session tests and the security
+# regression suite. The pytest matrix lives in
+# pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml.
+#
+# Named for what it gates rather than `Tests`, which said nothing this repo's
+# other test workflow does not also say -- and differed from that workflow's
+# `tests` ONLY by case. GitHub folds concurrency group names to a single case
+# -- "The concurrency group name is case insensitive. For example, `prod` and
+# `Prod` will be treated as the same concurrency group" (Actions workflow
+# syntax reference) -- so the `${{ github.workflow }}` group below put both
+# suites in ONE group and either could cancel the other on a pull request.
+# Losing THIS one is the silent failure: it carries the security regression
+# gates, which are not required contexts, so the pull request would still have
+# merged. tests/config/test_workflow_concurrency.py now asserts that no two
+# workflow names -- and no two resolved group keys -- can collide case-folded.
+name: typescript-vitest-and-security-gates
 
 on:
   push:

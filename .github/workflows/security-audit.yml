@@ -19,6 +19,14 @@ on:
 # merge's run, and anything treating a develop run as a gate would lose it
 # silently. Superseding an in-flight PR run is free; superseding a branch run
 # is a decision nobody made.
+#
+# THIS workflow has no pull_request trigger (schedule / workflow_dispatch /
+# push-to-main-on-requirements only), so that expression is constant FALSE here
+# and nothing is ever cancelled. Kept as the expression rather than hard-coded
+# `false` so every workflow reads identically and a future pull_request trigger
+# inherits the right behaviour instead of a stale literal nobody re-reads. The
+# `group:` is NOT dead either way: it serialises the weekly scan against a
+# manual dispatch on the same ref.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
