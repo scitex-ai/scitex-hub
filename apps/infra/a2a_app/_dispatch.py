@@ -46,7 +46,23 @@ def dispatch(agent: str, body: dict) -> tuple[int, dict]:
 
     Returns ``(status_code, payload)``. ``payload`` is the parsed JSON
     response (the JSON-RPC reply on 200, an error envelope otherwise).
+
+    Raises:
+        ValueError: If ``agent`` is not in the dispatchable allowlist.
     """
+    # ENFORCED HERE, not only at the call site. `agent` is interpolated into a
+    # URL path below, so the allowlist is a security boundary — and until now
+    # it lived entirely in the ONE caller (views.py: `if ... and
+    # is_dispatchable(name)`). That is correct today and depends on every
+    # future caller remembering, which is the failure mode a mechanical guard
+    # exists to remove. Exact set membership, so no traversal can survive it.
+    if not is_dispatchable(agent):
+        raise ValueError(
+            f"agent {agent!r} is not dispatchable; it is not in "
+            f"SCITEX_OROCHI_A2A_DISPATCHABLE_AGENTS. Add it there, or check "
+            f"is_dispatchable() before calling dispatch()."
+        )
+
     url = f"{HUB_URL.rstrip('/')}/api/a2a/dispatch/{WORKSPACE}/{agent}/"
     data = json.dumps(body).encode("utf-8")
     req = urllib.request.Request(

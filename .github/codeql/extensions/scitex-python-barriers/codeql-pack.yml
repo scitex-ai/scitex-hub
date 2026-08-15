@@ -10,7 +10,19 @@
 # not the whole story) rather than "this scope does not exist" (also true, and
 # the fixable half).
 name: scitex-ai/python-security-barriers
-version: 0.0.1
+# 0.0.1 -> 0.1.0: adds the is_within barrier entry (a new model, so a minor
+# bump, not a patch). The bump is NOT cosmetic — consumers resolve `packs:
+# scitex-ai/python-security-barriers` from ghcr, and republishing an unchanged
+# version number is how a model change silently fails to reach the analysis.
+# That is the same "looked like it worked" failure this pack's own history
+# records three times.
+# 0.2.0 -> 0.3.0: adds the validate_slack_webhook_url barrier (request-forgery).
+# A new model, so a minor bump. Bumping is NOT optional even though this
+# particular entry is UNMEASURED (see the note on it in path-barriers.yml):
+# republishing an unchanged version is the documented way a model change
+# silently fails to reach the analysis, and shipping it unbumped would make
+# "did it bind?" unanswerable for the next reader too.
+version: 0.3.0
 library: true
 extensionTargets:
   codeql/python-all: '*'
