@@ -119,29 +119,67 @@ class SciTexSocialAccountAdapter(DefaultSocialAccountAdapter):
     def pre_social_login(self, request, sociallogin):
         """
         Called before social login completes.
-        Used to connect social account to existing user with same email.
+        Auto-connect this social account to an existing user with the same
+        address — but ONLY when the provider VERIFIED that address.
+
+        SECURITY (this is the whole reason the method is not two lines).
+        Auto-connecting on a bare address match is account takeover: the
+        address in a provider payload is only a claim, and a provider willing
+        to assert an address it never checked lets its holder sign straight
+        into the existing SciTeX account that uses it. The previous version
+        read ``extra_data["email"]`` and connected on ``email__iexact`` with
+        no verification check at all, which is exactly that hole — and it is
+        reachable by anyone on the public site.
+
+        So the gate is the provider's own verification claim, read through
+        the three-valued verdict in
+        :mod:`apps.infra.auth_app.account_linking.verification`. Anything but
+        ``verified`` declines to connect and lets allauth take its normal
+        path (which asks the user to prove the address instead of assuming
+        it). Fail-closed: "cannot tell" never connects.
         """
         # If user is already logged in, connect the social account
         if request.user.is_authenticated:
             return
 
-        # Try to find existing user with same email
-        email = sociallogin.account.extra_data.get("email")
-        if email:
-            try:
-                existing_user = User.objects.get(email__iexact=email)
-                # Connect social account to existing user
-                sociallogin.connect(request, existing_user)
-                logger.info(
-                    f"Connected {sociallogin.account.provider} account to existing user: {existing_user.username}"
-                )
-            except User.DoesNotExist:
-                pass
-            except User.MultipleObjectsReturned:
-                # Multiple users with same email - don't auto-connect
+        from apps.infra.auth_app.account_linking.verification import (
+            verified_email_of,
+        )
+
+        verdict = verified_email_of(sociallogin)
+        if not verdict.is_account_key:
+            if verdict.email:
                 logger.warning(
-                    f"Multiple users found with email {email}, not auto-connecting"
+                    "Refusing to auto-connect %s account to an existing user "
+                    "on address %s: provider verification is %r (source=%s). "
+                    "Auto-connecting an unverified address would be account "
+                    "takeover; the user must verify it instead.",
+                    sociallogin.account.provider,
+                    verdict.email,
+                    verdict.status,
+                    verdict.source,
                 )
+            return
+
+        email = verdict.email
+        try:
+            existing_user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            return
+        except User.MultipleObjectsReturned:
+            # Multiple users with same email - don't auto-connect
+            logger.warning(
+                f"Multiple users found with email {email}, not auto-connecting"
+            )
+            return
+
+        sociallogin.connect(request, existing_user)
+        logger.info(
+            "Connected %s account to existing user %s on a provider-VERIFIED "
+            "address",
+            sociallogin.account.provider,
+            existing_user.username,
+        )
 
     def save_user(self, request, sociallogin, form=None):
         """
