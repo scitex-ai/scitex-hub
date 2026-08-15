@@ -90,6 +90,46 @@ def _admins_from_source(source: str) -> list[tuple[str, str]]:
     )
 
 
+@pytest.fixture
+def admin_mail_settings():
+    """A prod-like mail configuration with an in-memory outbox.
+
+    Works whether or not the project's Django settings are already loaded:
+    standalone it configures a minimal set, and under the full suite it
+    overrides only what these tests depend on. DEBUG is pinned False because
+    the real handler carries require_debug_false, and a test that quietly ran
+    with DEBUG=True would prove nothing about production.
+    """
+    from django.conf import settings as django_settings
+
+    prod_like = dict(
+        DEBUG=False,
+        ADMINS=[("Operator", "operator@example.com")],
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        DEFAULT_FROM_EMAIL="hub@example.com",
+        SERVER_EMAIL="hub@example.com",
+        # AdminEmailHandler renders a traceback report, which reads
+        # SECRET_KEY to cleanse the settings dump it embeds.
+        SECRET_KEY="test-only-never-a-real-secret",
+    )
+    if not django_settings.configured:
+        import django
+
+        # AdminEmailHandler renders through Django's traceback reporter, which
+        # walks the app registry -- so a bare settings.configure() is not
+        # enough, the registry has to be populated too. Empty is fine: these
+        # tests exercise the mail rail, not any application.
+        django_settings.configure(INSTALLED_APPS=[], **prod_like)
+        django.setup()
+
+    from django.core import mail
+    from django.test import override_settings
+
+    with override_settings(**prod_like):
+        mail.outbox = []
+        yield
+
+
 def _handlers_referenced_by_loggers() -> set[str]:
     referenced: set[str] = set()
     for logger in LOGGING["loggers"].values():
@@ -221,6 +261,83 @@ class TestAdminsAreRealRecipients:
             f"{definers}. Defining it per environment is how staging ended up "
             "constructing the handler with the empty default."
         )
+
+
+class TestAnErrorActuallyReachesTheOperator:
+    """Trigger a real ERROR and look in the outbox.
+
+    The card that produced this file is explicit that reading the settings is
+    not proof -- reading the settings is exactly what made everyone believe
+    mail_admins worked for months. So these drive Django's real
+    AdminEmailHandler through the real filter and assert on delivered mail.
+    """
+
+    @staticmethod
+    def _handler():
+        from django.utils.log import AdminEmailHandler
+
+        handler = AdminEmailHandler()
+        handler.addFilter(SuppressRepeatedErrors())
+        return handler
+
+    def test_an_error_is_delivered_to_the_admins(self, admin_mail_settings):
+        # Arrange
+        from django.core import mail
+
+        handler = self._handler()
+        # Act
+        handler.handle(_error_record("Template clone returned falsy"))
+        # Assert
+        assert len(mail.outbox) == 1
+
+    def test_the_delivered_mail_names_the_failure(self, admin_mail_settings):
+        # Arrange
+        from django.core import mail
+
+        handler = self._handler()
+        # Act
+        handler.handle(_error_record("Template clone returned falsy"))
+        # Assert
+        assert "Template clone returned falsy" in mail.outbox[0].subject
+
+    def test_the_delivered_mail_goes_to_the_configured_admin(
+        self, admin_mail_settings
+    ):
+        # Arrange
+        from django.core import mail
+
+        handler = self._handler()
+        # Act
+        handler.handle(_error_record("Template clone returned falsy"))
+        # Assert
+        assert mail.outbox[0].to == ["operator@example.com"]
+
+    def test_a_storm_of_one_error_does_not_flood_the_mailbox(
+        self, admin_mail_settings
+    ):
+        # Arrange
+        from django.core import mail
+
+        handler = self._handler()
+        # Act
+        for _ in range(50):
+            handler.handle(_error_record("Template clone returned falsy"))
+        # Assert
+        assert len(mail.outbox) == 1
+
+    def test_a_second_distinct_failure_still_gets_through_a_storm(
+        self, admin_mail_settings
+    ):
+        # Arrange
+        from django.core import mail
+
+        handler = self._handler()
+        for _ in range(50):
+            handler.handle(_error_record("Template clone returned falsy"))
+        # Act
+        handler.handle(_error_record("Gitea project creation failed"))
+        # Assert
+        assert len(mail.outbox) == 2
 
 
 class TestSuppressRepeatedErrors:
