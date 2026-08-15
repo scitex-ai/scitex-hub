@@ -3,6 +3,7 @@
 """Authentication and OAuth settings for SciTeX Hub."""
 
 import os
+import socket
 from datetime import timedelta
 
 import scitex as stx
@@ -64,6 +65,20 @@ GOOGLE_CLIENT_SECRET = os.getenv("SCITEX_HUB_GOOGLE_CLIENT_SECRET") or os.getenv
 
 ACCOUNT_ADAPTER = "apps.infra.auth_app.adapters.SciTexAccountAdapter"
 SOCIALACCOUNT_ADAPTER = "apps.infra.auth_app.adapters.SciTexSocialAccountAdapter"
+
+# ---------------------------------------
+# Account linking (scitex.ai identity)
+# ---------------------------------------
+# This instance's name inside the fleet, e.g. "scitex-nas-03" for scitex.ai.
+# Several scitex.ai instances share a cards store that synchronises across
+# hosts, so a user record has to say which instance minted it — that is what
+# the cards-side ``host_at_name`` join key is for.
+#
+# Defaults to the machine hostname, which is right for a single-instance
+# deployment and wrong for nothing: it is a real, distinct value rather than
+# a placeholder that silently collides. Set it explicitly in SECRET/.env.*
+# when the instance name differs from the hostname.
+SCITEX_INSTANCE_NAME = os.getenv("SCITEX_INSTANCE_NAME") or socket.gethostname()
 
 
 # ---------------------------------------
