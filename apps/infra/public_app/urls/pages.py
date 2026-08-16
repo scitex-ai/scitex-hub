@@ -33,7 +33,12 @@ urlpatterns = [
     # path("vision/", views.vision, name="vision"),
     path("publications/", views.publications, name="publications"),
     path("contributors/", views.contributors, name="contributors"),
+    path("recruit/", views.recruit, name="recruit"),
     path("pricing/", views.pricing, name="pricing"),
+    # Services + inquiry (cash-runway entry point; JP-first)
+    path("services/", views.services, name="services"),
+    # Public security / trust page (implemented protections + live test count)
+    path("security/", views.security, name="security"),
     # Reference pages
     path("keyboard-shortcuts/", views.keyboard_shortcuts, name="keyboard_shortcuts"),
     # Legal and contact pages
@@ -42,6 +47,12 @@ urlpatterns = [
     path("privacy/", views.privacy_policy, name="privacy"),
     path("terms/", views.terms_of_use, name="terms"),
     path("cookies/", views.cookie_policy, name="cookies"),
+    # 特定商取引法に基づく表記 (legally required before charging JP customers)
+    path("tokushoho/", views.tokushoho, name="tokushoho"),
+    # Billing (Stripe scaffold; checkout is staff-only while testing,
+    # webhook is CSRF-exempt but signature-verified)
+    path("billing/checkout/", views.billing_checkout, name="billing_checkout"),
+    path("billing/webhook/stripe/", views.stripe_webhook, name="stripe_webhook"),
     # Demo page
     path("demo/", views.demo, name="demo"),
     # Web API documentation
@@ -65,6 +76,11 @@ urlpatterns = [
         lambda r, section: redirect("public_app:api_docs_section", section=section),
         name="api_docs_section_legacy",
     ),
+    # Visitor entry — the landing hero's "Enter as visitor" CTA target.
+    # MUST NOT be added to VisitorAutoLoginMiddleware's skip lists: being
+    # absent from them is exactly what makes this path allocate a slot.
+    # Guarded by tests/apps/public_app/views/test_visitor_entry_route.py.
+    path("enter/", views.visitor_enter, name="visitor_enter"),
     # Status pages
     path("status/", views.public_status_view, name="public-status"),
     path("server-status/", views.server_status, name="server_status"),

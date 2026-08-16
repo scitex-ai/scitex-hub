@@ -1,5 +1,5 @@
 /* Workflow delete confirmation page styles */
-@import url("shared/variables.css");
+@import url("../shared/variables.css");
 
 .workflow-delete-container {
   padding: 2rem;

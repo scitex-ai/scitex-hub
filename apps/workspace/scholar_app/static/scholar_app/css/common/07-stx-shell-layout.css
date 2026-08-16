@@ -79,7 +79,7 @@
   background: transparent;
   color: var(--text-primary, #d4e1e8);
   font-weight: 600;
-  border-bottom: 2px solid rgba(5, 150, 105, 0.6);
+  border-bottom: 2px solid var(--app-accent-scholar, #3d7a5e);
 }
 
 .scholar-tab i {
@@ -87,7 +87,7 @@
 }
 
 .scholar-tab.active i {
-  color: var(--workspace-icon-primary, #059669);
+  color: var(--app-accent-scholar, var(--workspace-icon-primary));
 }
 
 /* Light mode tab styles */
@@ -102,7 +102,7 @@
 
 [data-theme="light"] .scholar-tab.active {
   color: var(--text-primary, #1a2a40);
-  border-bottom: 2px solid rgba(16, 185, 129, 0.5);
+  border-bottom: 2px solid var(--app-accent-scholar, #3d7a5e);
 }
 
 /* Disabled tab state */
@@ -382,4 +382,84 @@
   overflow: hidden;
   border-left: none;
   padding: 0;
+}
+
+/* ===============================================
+   MOBILE PANE ROW — swipe left/right between panes
+   ===============================================
+
+   THE BUG THIS FIXES (measured on live prod at viewport 390, 2026-08-04):
+     #tab-library laid its three panels out in a row that ran off the screen —
+       .library-details-panel        x=2    w=360
+       .library-integrations-panel   x=362  w=280  -> right edge 642
+       .search-controls-panel        x=371  w=263  -> right edge 634
+     ...inside a container with `overflow-x: hidden`, so those panels were not
+     merely off-screen, they were UNREACHABLE. The visible panel's empty state
+     read "Select a paper to view details — click on any paper from the list"
+     while the list itself sat in a panel the layout had thrown away.
+
+   WHY THE EXISTING MOBILE BLOCK ABOVE DID NOT SAVE US — two separate defects:
+
+     1. IT IS DEAD CODE. The @media (max-width: 767px) block sets
+        `flex-direction: column !important` on #tab-search/#tab-bibtex/#tab-graph,
+        but the "TWO-COLUMN SPLIT LAYOUT" block LATER in this same file sets
+        `flex-direction: row !important` on the same selectors with no media
+        query. Equal specificity, both !important -> the later one wins at EVERY
+        viewport. Verified at 390px: #tab-search computes flex-direction: row,
+        not column. A rule that looks like mobile coverage and does nothing is
+        worse than no rule, because it stops anyone from looking further.
+
+     2. IT NEVER MENTIONED #tab-library — the DEFAULT landing tab, and the one a
+        first-time visitor actually sees. Even resurrected, it would not have
+        covered the broken screen.
+
+   THE FIX: make each pane a full-width swipe page instead of a squeezed column.
+   Operator asked for exactly this gesture (2026-08-04) and explicitly rejected
+   back-navigation: 「ペインごとにひだり、右、とスライドできると嬉しいですかね」.
+   CSS scroll-snap delivers it with no JavaScript and no per-app logic.
+
+   NOTE: ts/shell/mobile-swipe.ts implements TWO-FINGER VERTICAL collapse. That
+   is a different gesture and is not involved here; this needs no JS at all.
+
+   Placed at the END of the file ON PURPOSE so it wins on source order against
+   the unconditional row rules above — the very trap that killed defect 1. */
+
+@media (max-width: 768px) {
+  /* Every tab, including the default #tab-library the old block forgot. */
+  #tab-library,
+  #tab-search,
+  #tab-bibtex,
+  #tab-graph {
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  /* Drag handles are meaningless once panes are full-width, and WITHOUT this
+     they become full-width blank pages of their own — a swipe would land on an
+     empty screen between every pair of panels. Caught by measuring the fix
+     before shipping it: the resizer took x=380 w=380 as if it were a pane. */
+  #tab-library > .h-resizer,
+  #tab-search > .h-resizer,
+  #tab-bibtex > .h-resizer,
+  #tab-graph > .h-resizer {
+    display: none !important;
+  }
+
+  /* One pane = one full-width, snap-aligned page. */
+  #tab-library > *:not(.h-resizer),
+  #tab-search > *:not(.h-resizer),
+  #tab-bibtex > *:not(.h-resizer),
+  #tab-graph > *:not(.h-resizer) {
+    flex: 0 0 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    scroll-snap-align: start;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }

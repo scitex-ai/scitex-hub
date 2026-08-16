@@ -46,9 +46,15 @@ def publish(app_dir: str | Path, server_url: str, token: str) -> dict:
 
     project_name = manifest.get("name", app_path.name)
 
-    # Submit via JWT-authenticated endpoint
-    # Route: apps/store/api/<module_name>/submit/
-    url = f"{server_url.rstrip('/')}/apps/store/api/{project_name}/submit/"
+    # Submit via JWT-authenticated endpoint.
+    #
+    # Canonical route: /api/apps/submit/ → ``api_submit_jwt`` (DRF
+    # ``@api_view + IsAuthenticated``, honours JWTAuthentication). The
+    # older /apps/store/api/<module_name>/submit/ route hits
+    # ``api_submit_for_review`` which is ``@login_required``
+    # (session-only) and 401s a Bearer-only request — that route is for
+    # the in-app UI submission flow, not the CLI.
+    url = f"{server_url.rstrip('/')}/api/apps/submit/"
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",

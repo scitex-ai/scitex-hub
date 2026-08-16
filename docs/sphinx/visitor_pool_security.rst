@@ -5,110 +5,117 @@ The visitor pool provides anonymous, sandboxed access to SciTeX Hub
 for users who have not signed up. Four pre-allocated accounts
 (``visitor-001`` to ``visitor-004``) are shared in rotation.
 
-This page covers the security measures added on 2026-03-24 to prevent
-chat history and project files from leaking between consecutive visitors
-on the same slot.
+This page covers the leak-proof slot-recycling model introduced on
+2026-07-07 (visitor-slot isolation audit), which replaced the 2026-03
+decorator-based cleanup.
 
-Background: the fix
+Security invariant
+------------------
+
+**Only verified-clean slots are redistributed; failed slots are
+quarantined.** A slot is handed to a new visitor only after its
+workspace has been wiped, *verified empty*, re-cloned from the
+``scitex_minimal`` template, and the clone verified. Any failure in
+that pipeline quarantines the slot — it is never allocated again until
+``manage.py reconcile_visitor_slots`` re-cleans and re-verifies it.
+
+How allocation is gated
+-----------------------
+
+The wipe happens at *release* time (asynchronously, via the
+``reset_visitor_slot`` Celery task); allocation never cleans anything
+inline. ``PoolAllocator._try_allocate_slot()`` refuses every slot that
+is not:
+
+* ``workspace_ready=True`` — wiped + verified since the last visitor,
+* ``quarantined=False``,
+* passing a synchronous template-marker filesystem check.
+
+With Celery down, released slots simply stay out of circulation; the
+pool shrinks and overflow visitors get the shared ``readonly-visitor``
+account with ``session["visitor_readonly_reason"]`` set to
+``"no_ready_slot"`` (or ``"pool_full"`` when all slots are busy).
+
+The release pipeline
 --------------------
 
-Before the fix, a visitor who reused a recycled slot could see the
-previous visitor's chat sessions in the UI. The root cause was that
-``ChatSession`` records were not deleted on deallocation.
-
-Three layers of protection were added.
-
-Layer 1 — ``@reset_workspace_after``
--------------------------------------
-
-Applied to ``PoolAllocator.deallocate_visitor()``.
-
-After the slot is marked inactive the decorator calls
-``WorkspaceManager.reset_visitor_workspace(user)`` immediately.
-This is the primary cleanup path for normal session endings (expiry,
-sign-up, or explicit logout).
-
-.. code-block:: python
-
-   # apps/infra/project_app/services/visitor_pool/decorators.py
-
-   @reset_workspace_after
-   def deallocate_visitor(cls, session): ...
-
-Layer 2 — ``@ensure_clean_workspace``
---------------------------------------
-
-Applied to ``PoolAllocator._try_allocate_slot()``.
-
-Before handing a slot to a new visitor the decorator checks whether the
-slot was previously used and, if so, calls the same workspace reset.
-This catches edge cases where Layer 1 did not run: server crash, Docker
-restart, idle-timeout expiry, or NAS reboot.
-
-.. code-block:: python
-
-   # apps/infra/project_app/services/visitor_pool/decorators.py
-
-   @ensure_clean_workspace
-   def _try_allocate_slot(cls, visitor_num, session, pool_size): ...
-
-Layer 3 — ``reset_visitor_pool`` on container restart
-------------------------------------------------------
-
-``deployment/docker/docker_prod/entrypoint.sh`` runs the management
-command in the background immediately after ``gunicorn`` binds:
-
-.. code-block:: bash
-
-   python manage.py reset_visitor_pool   # wipe all slots
-   python manage.py create_visitor_pool  # ensure accounts exist
-
-No state survives a container bounce.
-
-What gets cleared
------------------
-
-``WorkspaceManager.reset_visitor_workspace(user)`` deletes and
-re-creates the following for each visitor account:
-
-* **Project** DB row — deleted then re-created from the
-  ``scitex_minimal`` template via ``scitex.template.clone_template()``.
-* **Project filesystem** — ``shutil.rmtree`` + fresh template clone.
-* **ChatSession / ChatMessage** — deleted by ``_clear_visitor_data()``.
-* **LLMUsageLog** — deleted by ``_clear_visitor_data()``.
-* **VisitorAllocation** — marked ``is_active=False``.
-
-Pool lifecycle diagram
------------------------
+Every path that frees a slot — explicit deallocation, the expiry
+middleware, the idle sweep, and signup claim — goes through
+``slot_lifecycle.release_slot()``:
 
 .. code-block:: text
 
-   Container start
-       → reset_visitor_pool        # hard reset all 4 slots
-       → create_visitor_pool       # ensure accounts/projects exist
+   release_slot()
+       → is_active=False, workspace_ready=False   (out of circulation NOW)
+       → enqueue reset_visitor_slot (Celery)
+            → WorkspaceManager.reset_visitor_workspace()
+                1. delete ALL the visitor's Project rows
+                2. wipe the filesystem base dir + VERIFY empty
+                   (guarded rmtree: chmod+retry on permission errors)
+                3. hard-delete ALL the visitor's Gitea repos + VERIFY zero
+                4. clear user-scoped rows (chat, LLM logs, app
+                   installs / stars / reviews, dev installs)
+                5. create the fresh Project row
+                6. clone template + VERIFY the marker
+            → success: workspace_ready=True (slot back in the pool)
+            → ANY failure: slot QUARANTINED (loud CRITICAL log)
 
-   Visitor arrives
-       → @ensure_clean_workspace   # layer 2 safety net
-       → allocate_visitor()        # DB lock prevents race conditions
+The fresh ``Project`` row is created only *after* the verified wipe —
+previously it was created first, so an aborted wipe still produced an
+"initialized" slot containing the previous visitor's files.
 
-   Visitor uses platform (~1 hour)
+Gitea repositories
+------------------
 
-   Session ends
-       → deallocate_visitor()
-       → @reset_workspace_after    # layer 1 immediate cleanup
+Visitor repos live at a stable path (``visitor-NNN/default-project``)
+across slot rotations, so a repo that survives a best-effort deletion
+would be adopted by the next visitor's project — leaking pushed
+commits across users. The reset therefore lists and deletes *every*
+repo the visitor owns and verifies none remain; additionally the
+``create_gitea_repository`` signal refuses adoption of a pre-existing
+repo for visitor-owned projects (it hard-deletes and recreates, or
+quarantines the slot when deletion fails).
+
+Boot fail-safe
+--------------
+
+``deployment/docker/*/entrypoint*.sh`` run at every service start:
+
+.. code-block:: bash
+
+   python manage.py create_visitor_pool       # ensure accounts exist
+   python manage.py reconcile_visitor_slots   # quarantine + wipe+verify
+
+``reconcile_visitor_slots`` treats *every* slot (allocated, mid-reset,
+or unknown at shutdown) as unverified: all are quarantined, then each
+runs the wipe+verify pipeline; only survivors return to circulation.
+Until at least one slot verifies clean, visitors are served
+``readonly-visitor`` only.
+
+Known gap (tracked)
+-------------------
+
+Apptainer/container overlay state is **not** yet wiped by the reset —
+scitex-container integration is a follow-up tracked on card
+``hub-visitor-slot-isolation-audit``.
 
 Operations
 ----------
 
 .. code-block:: bash
 
-   # Reset all slots (run automatically on restart)
+   # Boot fail-safe / release quarantined slots after re-clean
+   python manage.py reconcile_visitor_slots
+   python manage.py reconcile_visitor_slots --quarantine-only
+   python manage.py reconcile_visitor_slots --visitor 2
+
+   # Hard reset all slots (same wipe+verify pipeline)
    python manage.py reset_visitor_pool
 
-   # Free expired allocations only (no workspace wipe)
+   # Release expired allocations only (reset is enqueued per slot)
    python manage.py reset_visitor_pool --free-expired
 
-   # Pool health (free / total)
+   # Pool health (free / total / quarantined / ready)
    make status
 
 Further reading
@@ -116,4 +123,4 @@ Further reading
 
 * Module README: ``apps/infra/project_app/services/visitor_pool/README.md``
 * Architecture overview: ``docs/VISITOR_POOL_ARCHITECTURE.md``
-* Decorator source: ``apps/infra/project_app/services/visitor_pool/decorators.py``
+* Lifecycle source: ``apps/infra/project_app/services/visitor_pool/slot_lifecycle.py``

@@ -127,7 +127,7 @@ body.scholar-page .bibtex-dropzone {
 
 body.scholar-page .bibtex-dropzone:hover {
   background: var(--workspace-bg-tertiary);
-  border-color: var(--scitex-color-03, var(--workspace-icon-primary));
+  border-color: var(--app-accent-scholar, #3d7a5e);
 }
 
 body.scholar-page .bibtex-status-item {
@@ -147,10 +147,12 @@ body.scholar-page .terminal-log {
   border-radius: 0 !important;
 }
 
-/* Override bibtex tile icons to use workspace green */
+/* Override bibtex tile icons to use the scholar app accent
+   (--scitex-color-03 resolves to border-gray #30363d in dark mode,
+   which made these icons invisible) */
 body.scholar-page .bibtex-tile__title i,
 body.scholar-page .bibtex-card__title i {
-  color: var(--scitex-color-03, var(--workspace-icon-primary)) !important;
+  color: var(--app-accent-scholar, var(--workspace-icon-primary)) !important;
 }
 
 /* Scholar workspace panels */
@@ -274,17 +276,17 @@ body.scholar-page .scholar-workspace {
 
 .bibtex-dropzone:hover {
   background: var(--workspace-bg-tertiary, #2a2a2a) !important;
-  border-color: var(--workspace-icon-hover, #7eb8aa) !important;
+  border-color: var(--app-accent-scholar, #7eb8aa) !important;
 }
 
 [data-theme="light"] .bibtex-dropzone {
   background: #f6f8fa !important;
-  border-color: #2ea043 !important;
+  border-color: var(--app-accent-scholar, #3d7a5e) !important;
 }
 
 [data-theme="light"] .bibtex-dropzone:hover {
   background: #e6ebf0 !important;
-  border-color: #238636 !important;
+  border-color: var(--app-accent-scholar, #3d7a5e) !important;
 }
 
 .bibtex-tile__title i,
@@ -292,7 +294,7 @@ body.scholar-page .scholar-workspace {
 .pane-header h5 i,
 .properties-header h5 i,
 .stx-shell-sidebar__header h5 i {
-  color: var(--scitex-color-03, var(--workspace-icon-primary)) !important;
+  color: var(--app-accent-scholar, var(--workspace-icon-primary)) !important;
 }
 
 .bibtex-status-item {

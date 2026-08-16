@@ -19,7 +19,13 @@ import socket
 
 from dotenv import load_dotenv
 
+from config import branding
+
 from .settings_shared import *
+
+# Environment identity -- drives the tab title marker "(dev)" and the GREEN
+# favicon. Literal, not env-var derived: running settings_dev IS development.
+SCITEX_ENV = branding.ENV_DEVELOPMENT
 
 
 # ---------------------------------------
@@ -68,7 +74,12 @@ _wtb = os.getenv("SCITEX_WRITER_TEMPLATE_BRANCH", "main")
 SCITEX_WRITER_TEMPLATE_BRANCH = None if _wtb in ("", "null", "None") else _wtb
 _wtt = os.getenv("SCITEX_WRITER_TEMPLATE_TAG", "")
 SCITEX_WRITER_TEMPLATE_TAG = None if _wtt in ("", "null", "None") else _wtt
-SECRET_KEY = os.getenv("SCITEX_HUB_DJANGO_SECRET_KEY")
+# SECRET_KEY is deliberately NOT re-read here. settings_shared already resolves
+# it through getenv_with_legacy_alias() -- which honors the deprecated
+# SCITEX_CLOUD_DJANGO_SECRET_KEY name (ADR-0001) -- and raises if it is unset.
+# A plain os.getenv() here would miss the alias and silently overwrite that
+# value with None, so a dev env file using the legacy name yields an empty
+# SECRET_KEY and Django refuses to boot.
 ALLOWED_HOSTS = os.getenv(
     "SCITEX_HUB_ALLOWED_HOSTS",
     "localhost,127.0.0.1,0.0.0.0,[::1],testserver",
@@ -324,21 +335,24 @@ LOGGING.update(
 # ---------------------------------------
 # Celery Beat Schedule Override for Development
 # ---------------------------------------
-# Chart generation dispatches 48 child tasks; use 60s to avoid queue flooding
-CELERY_BEAT_SCHEDULE["generate-status-charts"] = {
-    "task": "apps.infra.public_app.tasks.generate_status_charts",
-    "schedule": 60.0,
-    "options": {
-        "expires": 55.0,
-    },
-}
+# expire_seconds, NOT "expires": DatabaseScheduler's ModelEntry silently
+# drops unknown option keys — see the schedule header in settings_celery.py
+# (2026-07-21 50k-backlog incident).
+#
+# The status-chart render override that used to live here was removed on
+# 2026-07-30: charts are drawn in the browser from /api/server-metrics/series/,
+# so there is no render task to schedule. It mattered that BOTH files were
+# cleaned — this override re-declared the entry via subscript assignment, so
+# deleting it from settings_celery.py alone would have left dev still fanning
+# out 48 tasks a minute.
 
-# Re-enable metrics collection in dev (runs as Celery task, not in Daphne)
+# Re-enable metrics collection in dev at a 10s cadence (prod runs the
+# settings_celery.py entry at 60s; runs as Celery task, not in Daphne)
 CELERY_BEAT_SCHEDULE["collect-server-metrics"] = {
     "task": "apps.infra.public_app.tasks.collect_server_metrics",
     "schedule": 10.0,
     "options": {
-        "expires": 9.0,
+        "expire_seconds": 9,
     },
 }
 

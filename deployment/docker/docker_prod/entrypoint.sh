@@ -30,14 +30,14 @@ sync_slurm_uid || echo_warning "SLURM UID sync skipped - terminal may have issue
 # ============================================
 verify_scitex_package
 
-# ============================================
-# TEMPORARY FIX: Upgrade scitex-writer to 2.6.5+
-# Needed because Docker layer cache has older version
-# TODO: Remove after next full rebuild with --no-cache
-# ============================================
-echo_info "Upgrading scitex-writer (temporary fix for scripts directory)..."
-pip install --quiet --upgrade "scitex-writer>=2.6.5" 2>/dev/null || true
-echo_success "scitex-writer upgraded"
+# NOTE: no runtime `pip install --upgrade scitex-writer` here.
+# The former "TEMPORARY FIX" unpinned upgrade silently replaced the
+# image-pinned scitex-writer with whatever PyPI served at boot — a
+# hidden fallback that shipped the broken 2.18.0–2.26.0 wheels
+# (missing scitex_writer._dataclasses.config) into production and
+# quarantined every visitor slot (2026-07-08). Versions are pinned
+# and smoke-tested at image build; the running container must be
+# reproducible from the image alone.
 
 # Ensure we're NOT using editable install
 if [ -d "/scitex-code" ]; then
@@ -69,12 +69,17 @@ if [[ ! "$*" =~ "celery" ]]; then
     echo_info "Visitor pool will initialize in background after server starts..."
     _init_visitor_pool() {
         sleep 5 # Let gunicorn bind first
-        # Reset all allocations and workspaces on startup (security: prevent
-        # data leakage from previous container's visitor sessions)
-        echo_info "Background: resetting visitor pool (clean slate on restart)..."
-        python manage.py reset_visitor_pool --verbosity 0 2>&1 | grep -v "ERRO\|WARN" || true
+        # Boot fail-safe (security: prevent data leakage from previous
+        # container's visitor sessions): create pool accounts, then
+        # reconcile — every slot is quarantined as unverified and only
+        # returns to circulation after the wipe+verify pipeline passes.
+        echo_info "Background: reconciling visitor pool (quarantine now, re-clean dispatched async)..."
         python manage.py create_visitor_pool --verbosity 0 2>&1 | grep -v "ERRO\|WARN" || true
-        echo_success "Background: visitor pool ready (all slots clean)"
+        # --async: quarantine synchronously then ENQUEUE the wipe+verify to
+        # Celery. Slots stay quarantined (not allocatable) until a worker
+        # verifies each clean — visitor-slot isolation preserved.
+        python manage.py reconcile_visitor_slots --async 2>&1 | grep -v "ERRO\|WARN" || true
+        echo_success "Background: visitor pool reconciled (re-clean dispatched async; only verified-clean slots distributable)"
     }
     _init_visitor_pool &
 fi

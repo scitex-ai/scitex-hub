@@ -65,6 +65,24 @@ Automated monitoring from WSL that detects failures and self-heals.
 ./health-check.sh
 ```
 
+## SSH Routes: Bastion vs LAN-direct
+
+`ssh nas` proxies through `bastion.scitex.ai` (a Cloudflare tunnel on the
+same NAS). When the tunnel is down — the exact failure this guide covers —
+that route is down with it. Use the LAN-direct alias instead:
+
+```bash
+ssh nas-direct    # 192.168.11.21, no tunnel dependency
+```
+
+Incident 2026-07-06: scitex.ai returned Cloudflare 1033 for ~2 days because
+the prod cloudflared container had been manually stopped (Exit 137;
+`restart: always` does not apply to manually-stopped containers) and
+`ssh nas` was dead too. Recovery was `ssh nas-direct` +
+`docker start scitex-hub-prod-cloudflared-1`. `health-check.sh` now tries
+`nas-direct` first and explicitly starts exited prod containers (Tier 1a)
+before the blanket restart (Tier 1b).
+
 ## Recovery Procedure
 
 When the NAS is unreachable:
@@ -76,8 +94,8 @@ nw-nas
 # Step 2: Wait ~30 seconds for network to stabilize
 sleep 30
 
-# Step 3: Try SSH
-ssh nas
+# Step 3: Try SSH (LAN-direct first — bastion dies with the tunnel)
+ssh nas-direct || ssh nas
 
 # Step 4: If SSH works, check what happened
 ssh nas 'dmesg | tail -50'

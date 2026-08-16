@@ -9,10 +9,18 @@ type Theme = "light" | "dark";
 
 interface ThemeResponse {
   theme?: Theme;
+  /**
+   * "profile" — a REGISTERED user's saved preference (wins everywhere).
+   * "default" — served fallback (anonymous / visitor-pool session);
+   * must never override an explicit prior choice in this browser.
+   */
+  source?: "profile" | "default";
 }
 
 interface ThemeSaveResponse {
   success: boolean;
+  /** false when the server kept the choice browser-only (visitor session). */
+  persisted?: boolean;
 }
 
 interface SciTeXThemeAPI {
@@ -31,7 +39,13 @@ declare global {
   }
 }
 
-const STORAGE_KEY = "scitex-theme-preference";
+// Canonical key converged with scitex-ui's ThemeProvider ("stx-theme").
+// The legacy hub key is a published contract: still read (one-time
+// migration) and written in sync for one release cycle — cached bundles
+// and tool embeds listen on it. Remove LEGACY_STORAGE_KEY after the
+// release that follows the one shipping this rename.
+const STORAGE_KEY = "stx-theme";
+const LEGACY_STORAGE_KEY = "scitex-theme-preference";
 const THEME_LIGHT: Theme = "light";
 const THEME_DARK: Theme = "dark";
 
@@ -39,18 +53,25 @@ const THEME_DARK: Theme = "dark";
  * Get the current theme preference from localStorage
  */
 function getThemePreference(): Theme {
-  const stored = localStorage.getItem(STORAGE_KEY);
+  const stored =
+    localStorage.getItem(STORAGE_KEY) ??
+    localStorage.getItem(LEGACY_STORAGE_KEY);
 
-  // Migration: Clean up old 'auto' or 'system' values from previous implementation
+  // Migration: Clean up old 'auto' or 'system' values from previous
+  // implementation. Those were never an explicit light choice, so they
+  // migrate to the DARK base default (operator mandate).
   if (stored && !["light", "dark"].includes(stored)) {
-    console.log(
-      `Migrating invalid theme value: "${stored}" → "${THEME_LIGHT}"`,
-    );
-    localStorage.setItem(STORAGE_KEY, THEME_LIGHT);
-    return THEME_LIGHT;
+    console.log(`Migrating invalid theme value: "${stored}" → "${THEME_DARK}"`);
+    localStorage.setItem(STORAGE_KEY, THEME_DARK);
+    return THEME_DARK;
   }
 
   if (stored && (stored === THEME_LIGHT || stored === THEME_DARK)) {
+    // One-time migration: a legacy-only value gets copied onto the
+    // canonical key so later reads never depend on the legacy key.
+    if (!localStorage.getItem(STORAGE_KEY)) {
+      localStorage.setItem(STORAGE_KEY, stored);
+    }
     return stored as Theme;
   }
 
@@ -60,17 +81,45 @@ function getThemePreference(): Theme {
 /**
  * Load theme preference from database (for authenticated users)
  */
-async function loadThemeFromDatabase(): Promise<Theme | null> {
+async function loadThemeFromDatabase(): Promise<ThemeResponse | null> {
   try {
     const response = await fetch("/auth/api/get-theme/");
     const data: ThemeResponse = await response.json();
     if (data.theme) {
-      return data.theme;
+      return data;
     }
   } catch (error) {
     console.warn("Failed to load theme from database:", error);
   }
   return null;
+}
+
+/**
+ * Resolve the theme to apply at boot (pure — exported for tests).
+ *
+ * Precedence (operator mandate, card hub-theme-default-must-be-dark):
+ * 1. A registered user's SAVED preference (server source "profile").
+ * 2. An explicit prior choice in this browser (localStorage).
+ * 3. The base default: DARK, on every viewport. A server-served
+ *    default (source "default") carries the same value;
+ *    prefers-color-scheme is deliberately not consulted so an OS
+ *    light preference can never flip a first visit to light.
+ *
+ * Visitor-pool sessions get source "default" from the server, so a
+ * recycled slot's stale profile row can never override this browser's
+ * explicit choice (the desktop-light bug measured on prod 2026-07-22).
+ */
+export function resolveInitialTheme(
+  db: ThemeResponse | null,
+  stored: string | null,
+): Theme {
+  if (db && db.theme && db.source === "profile") {
+    return db.theme;
+  }
+  if (stored === THEME_LIGHT || stored === THEME_DARK) {
+    return stored;
+  }
+  return THEME_DARK;
 }
 
 /**
@@ -89,7 +138,16 @@ async function saveThemeToDatabase(theme: Theme): Promise<void> {
     });
     const data: ThemeSaveResponse = await response.json();
     if (data.success) {
-      console.log("Theme saved to database:", theme);
+      if (data.persisted === false) {
+        // Visitor session: the server refuses to write onto the shared
+        // pool account; the choice lives in this browser's localStorage.
+        console.log(
+          "Theme kept in this browser only (visitor session):",
+          theme,
+        );
+      } else {
+        console.log("Theme saved to database:", theme);
+      }
     }
   } catch (error) {
     console.warn("Failed to save theme to database:", error);
@@ -123,6 +181,7 @@ function applyTheme(theme: Theme): void {
  */
 function setThemePreference(preference: Theme): void {
   localStorage.setItem(STORAGE_KEY, preference);
+  localStorage.setItem(LEGACY_STORAGE_KEY, preference);
   applyTheme(preference);
   // Save to database for authenticated users (async, don't wait)
   saveThemeToDatabase(preference);
@@ -184,16 +243,14 @@ function setupToggleButton(): void {
  */
 async function initTheme(): Promise<void> {
   // Try to load from database first (for authenticated users)
-  const dbTheme = await loadThemeFromDatabase();
-  let theme: Theme;
+  const db = await loadThemeFromDatabase();
+  const theme = resolveInitialTheme(db, localStorage.getItem(STORAGE_KEY));
 
-  if (dbTheme) {
-    // Use database theme and sync to localStorage
-    theme = dbTheme;
-    localStorage.setItem(STORAGE_KEY, dbTheme);
-  } else {
-    // Fallback to localStorage
-    theme = getThemePreference();
+  // Only a real saved profile preference is synced into localStorage —
+  // a served default must not masquerade as an explicit choice.
+  if (db && db.theme && db.source === "profile") {
+    localStorage.setItem(STORAGE_KEY, db.theme);
+    localStorage.setItem(LEGACY_STORAGE_KEY, db.theme);
   }
 
   // Apply theme immediately to prevent flash

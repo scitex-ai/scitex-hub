@@ -32,7 +32,7 @@
  * </div>
  *
  * @example
- * <div class="hero hero-bg-image" style="background-image: url('bg.jpg')">
+ * <div class="hero hero-bg-image" style="background-image: var(--your-bg-image)">
  *   <div class="hero-content">
  *     <h1 class="hero-title">Background Hero</h1>
  *     <p class="hero-description">With image background and overlay</p>

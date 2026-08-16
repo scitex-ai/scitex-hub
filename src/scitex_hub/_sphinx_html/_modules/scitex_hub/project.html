@@ -147,6 +147,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../api/_autosummary/scitex_hub.html#scitex_hub.Environment"><code class="docutils literal notranslate"><span class="pre">Environment</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../api/_autosummary/scitex_hub.html#scitex_hub.get_environment"><code class="docutils literal notranslate"><span class="pre">get_environment()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../api/_autosummary/scitex_hub.html#scitex_hub.DockerManager"><code class="docutils literal notranslate"><span class="pre">DockerManager</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../api/_autosummary/scitex_hub.account.html">scitex_hub.account</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../api/_autosummary/scitex_hub.appmaker.html">scitex_hub.appmaker</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../api/_autosummary/scitex_hub.module.html">scitex_hub.module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../api/_autosummary/scitex_hub.project.html">scitex_hub.project</a></li>
@@ -196,6 +197,10 @@
 <span class="sd">    projects = project_list()</span>
 <span class="sd">    new = project_create(&quot;my-project&quot;, description=&quot;My research&quot;)</span>
 
+<span class="sd">    # Create as an app project (the agent-programmatic publish flow).</span>
+<span class="sd">    app = project_create(&quot;my-tool&quot;, category=&quot;app&quot;)</span>
+<span class="sd">    # -&gt; name becomes &quot;my-tool_app&quot; (auto-suffix), is_app=True.</span>
+
 <span class="sd">Sandboxed file-operation handlers (async, used by MCP tools) live in</span>
 <span class="sd">:mod:`scitex_hub.project._mcp.handlers`.</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -203,6 +208,32 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.._mcp_tools.api</span><span class="w"> </span><span class="kn">import</span> <span class="n">_make_request</span>
+
+<span class="c1">#: Top-level project categories. Currently only ``&quot;app&quot;`` adds non-default</span>
+<span class="c1">#: semantics (sets ``is_app=True`` server-side + auto-suffixes the name with</span>
+<span class="c1">#: ``_app`` if missing). ``&quot;project&quot;`` is the default research-project shape</span>
+<span class="c1">#: and adds no extra fields — listed here so the API surface is closed and</span>
+<span class="c1">#: ``--category`` can be exhaustively validated CLI-side.</span>
+<span class="n">PROJECT_CATEGORIES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;project&quot;</span><span class="p">,</span> <span class="s2">&quot;app&quot;</span><span class="p">)</span>
+
+<span class="c1">#: Suffix appended to app-project names when ``category=&quot;app&quot;`` and the</span>
+<span class="c1">#: name doesn&#39;t already end with it. Mirrors the operator-12845 directive</span>
+<span class="c1">#: (&quot;the project NAME likely needs an &#39;app&#39; SUFFIX&quot;).</span>
+<span class="n">APP_NAME_SUFFIX</span> <span class="o">=</span> <span class="s2">&quot;_app&quot;</span>
+
+
+<div class="viewcode-block" id="_apply_app_suffix">
+<a class="viewcode-back" href="../../api/_autosummary/scitex_hub.project.html#scitex_hub.project._apply_app_suffix">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_apply_app_suffix</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return ``name`` with ``_app`` appended unless already present.</span>
+
+<span class="sd">    The check is suffix-only (not substring) so e.g. ``my_app_repo`` stays</span>
+<span class="sd">    untouched and only ``my_app`` round-trips through unchanged.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">APP_NAME_SUFFIX</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">name</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}{</span><span class="n">APP_NAME_SUFFIX</span><span class="si">}</span><span class="s2">&quot;</span></div>
+
 
 
 <div class="viewcode-block" id="project_list">
@@ -226,22 +257,68 @@
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
     <span class="n">template</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;scitex_minimal&quot;</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">category</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;project&quot;</span><span class="p">,</span>
+    <span class="n">app_category</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">request_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a new SciTeX Hub project.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        name: Project name.</span>
+<span class="sd">        name: Project name. When ``category=&quot;app&quot;`` and the name does not</span>
+<span class="sd">            already end with ``_app``, the suffix is appended automatically</span>
+<span class="sd">            (operator-12845 convention) before the server call.</span>
 <span class="sd">        description: Optional description.</span>
 <span class="sd">        template: Template ID (default: scitex_minimal).</span>
+<span class="sd">        category: Top-level project category. One of</span>
+<span class="sd">            :data:`PROJECT_CATEGORIES`. ``&quot;app&quot;`` marks the new project as</span>
+<span class="sd">            an app plugin (sets ``is_app=True`` server-side) — does NOT</span>
+<span class="sd">            submit it to the registry; that&#39;s a separate</span>
+<span class="sd">            :mod:`scitex_hub.appmaker` ``publish`` call.</span>
+<span class="sd">        app_category: Optional app sub-category (writing, visualization,</span>
+<span class="sd">            data, analysis, reference, utility, other). Only used when</span>
+<span class="sd">            ``category=&quot;app&quot;``; ignored otherwise. The sub-category can</span>
+<span class="sd">            also be left blank at create time and filled in at</span>
+<span class="sd">            ``app submit`` time.</span>
+<span class="sd">        request_fn: Optional dependency-injection seam for the HTTP</span>
+<span class="sd">            transport. Defaults to the module-level</span>
+<span class="sd">            :func:`_make_request`. Tests inject a hand-rolled fake to</span>
+<span class="sd">            avoid talking to a live server; production callers leave</span>
+<span class="sd">            this argument unset.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        Dict with project_id, name, success.</span>
+<span class="sd">        Dict with success, project_id, slug, url, is_app, app_category.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: ``category`` not in :data:`PROJECT_CATEGORIES`.</span>
+<span class="sd">        RuntimeError: Server-side rejection (name conflict, validation, etc.).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">_make_request</span><span class="p">(</span>
-        <span class="s2">&quot;POST&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;/api/v1/projects/create/&quot;</span><span class="p">,</span>
-        <span class="n">data</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span> <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">description</span><span class="p">,</span> <span class="s2">&quot;template&quot;</span><span class="p">:</span> <span class="n">template</span><span class="p">},</span>
-    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">category</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">PROJECT_CATEGORIES</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;category must be one of </span><span class="si">{</span><span class="n">PROJECT_CATEGORIES</span><span class="si">!r}</span><span class="s2">, got </span><span class="si">{</span><span class="n">category</span><span class="si">!r}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">is_app</span> <span class="o">=</span> <span class="n">category</span> <span class="o">==</span> <span class="s2">&quot;app&quot;</span>
+    <span class="k">if</span> <span class="n">is_app</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">_apply_app_suffix</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">app_category</span><span class="p">:</span>
+        <span class="c1"># Non-app project with app_category is a programming error — surface</span>
+        <span class="c1"># rather than silently dropping the field.</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;app_category is only valid when category=&#39;app&#39;; got category=</span><span class="si">{</span><span class="n">category</span><span class="si">!r}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">payload</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="n">description</span><span class="p">,</span>
+        <span class="s2">&quot;template&quot;</span><span class="p">:</span> <span class="n">template</span><span class="p">,</span>
+        <span class="s2">&quot;is_app&quot;</span><span class="p">:</span> <span class="n">is_app</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="n">is_app</span> <span class="ow">and</span> <span class="n">app_category</span><span class="p">:</span>
+        <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;app_category&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">app_category</span>
+
+    <span class="n">do_request</span> <span class="o">=</span> <span class="n">request_fn</span> <span class="k">if</span> <span class="n">request_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_make_request</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">do_request</span><span class="p">(</span><span class="s2">&quot;POST&quot;</span><span class="p">,</span> <span class="s2">&quot;/api/v1/projects/create/&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">payload</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;success&quot;</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">result</span>
     <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="s2">&quot;Failed to create project&quot;</span><span class="p">))</span></div>

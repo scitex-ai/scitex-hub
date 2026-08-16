@@ -9,8 +9,7 @@ register(
             "(middle) | module content (right). Modules switch without losing "
             "AI or worktree state."
         ),
-        page_patterns=["/workspace/"],
-        url_prefix="/workspace/",
+        url_route="workspace_app:shell",
         module_description=(
             "Unified three-column layout: AI pane | worktree | module content. "
             "Modules switch without losing AI/worktree state."

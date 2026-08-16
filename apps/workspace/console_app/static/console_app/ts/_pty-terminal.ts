@@ -11,16 +11,26 @@ import {
 } from "./_pty-input-handlers";
 import { handleCaptureRequest } from "./_on-site-capture";
 import { classifyCloseCode } from "./_close-codes";
+import {
+  getTerminalThemeFromCSS,
+  hideTerminalOverlay,
+  showTerminalReconnectPrompt,
+  showTerminalRestartOverlay,
+} from "./_pty-ui-helpers";
+import { handleSessionStateMessage } from "./_pty-session-state";
 
 export class PTYTerminal {
   private term: any;
   private ws: WebSocket | null = null;
   private projectId: number;
   private tmuxSession: string;
+  /** Model-provider id for this session (server-validated; "" = default). */
+  private provider: string;
   private containerEl: HTMLElement;
   private imageContainer: HTMLElement | null = null;
   private readyPromise: Promise<void>;
   private readyResolve!: () => void;
+  private readyReject!: (err: Error) => void;
   private spinnerTimer: ReturnType<typeof setInterval> | null = null;
   private sessionState: string = "unknown";
   private _reconnectAttempt: number = 0;
@@ -30,17 +40,32 @@ export class PTYTerminal {
     containerEl: HTMLElement,
     projectId: number,
     tmuxSession: string = "scitex-0",
+    provider: string = "",
   ) {
     this.projectId = projectId;
     this.tmuxSession = tmuxSession;
+    this.provider = provider;
     this.containerEl = containerEl;
 
-    this.readyPromise = new Promise<void>((resolve) => {
+    this.readyPromise = new Promise<void>((resolve, reject) => {
       this.readyResolve = resolve;
+      this.readyReject = reject;
     });
 
-    this.initXterm(containerEl);
-    this.connect();
+    // Sequence: connect() only runs AFTER initXterm() resolves. initXterm
+    // always yields (await document.fonts.ready) before `this.term` exists,
+    // so an unawaited initXterm() + synchronous connect() used to hit
+    // startSpinner() -> this.term.write with this.term undefined — a
+    // deterministic TypeError inside the constructor that left the terminal
+    // container hidden for every user. On init failure, reject readyPromise
+    // so waitForReady() callers can surface a VISIBLE error state.
+    this.initXterm(containerEl)
+      .then(() => this.connect())
+      .catch((err: unknown) => {
+        const error = err instanceof Error ? err : new Error(String(err));
+        console.error("[PTY] Terminal initialization failed:", error);
+        this.readyReject(error);
+      });
   }
 
   public async waitForReady(): Promise<void> {
@@ -48,7 +73,16 @@ export class PTYTerminal {
   }
 
   private async initXterm(containerEl: HTMLElement): Promise<void> {
+    // Bounded wait for the xterm.js bundle: an unbounded poll left a
+    // hidden, never-ready terminal with no signal when assets failed to
+    // load. Fail loud instead so the tab manager can render the error.
+    const deadline = Date.now() + 20000;
     while (!(window as any).Terminal) {
+      if (Date.now() > deadline) {
+        throw new Error(
+          "xterm.js failed to load (window.Terminal still missing after 20s)",
+        );
+      }
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
@@ -66,7 +100,7 @@ export class PTYTerminal {
       cursorBlink: true,
       fontSize: 14,
       fontFamily: "'JetBrains Mono', 'Monaco', 'Menlo', monospace",
-      theme: this.getThemeFromCSS(),
+      theme: getTerminalThemeFromCSS(),
       allowProposedApi: true,
       scrollback: 10000,
     });
@@ -157,7 +191,21 @@ export class PTYTerminal {
     this.readyResolve();
   }
 
+  /** Return the xterm instance, or throw a CLEAR ordering error. Guards
+   * the write paths so a future sequencing bug fails with an explicit
+   * message instead of a property-read TypeError on `undefined`. */
+  private requireTerm(): any {
+    if (!this.term) {
+      throw new Error(
+        "PTYTerminal: xterm not initialized yet — connect()/write paths " +
+          "must only run after initXterm() has resolved",
+      );
+    }
+    return this.term;
+  }
+
   private startSpinner(): void {
+    const term = this.requireTerm();
     const frames = [
       "\u28CB",
       "\u28D9",
@@ -171,10 +219,10 @@ export class PTYTerminal {
       "\u28CF",
     ];
     let i = 0;
-    this.term.write(`\x1b[0;36m${frames[0]} Connecting...\x1b[0m`);
+    term.write(`\x1b[0;36m${frames[0]} Connecting...\x1b[0m`);
     this.spinnerTimer = setInterval(() => {
       i = (i + 1) % frames.length;
-      this.term.write(`\r\x1b[0;36m${frames[i]} Connecting...\x1b[0m`);
+      term.write(`\r\x1b[0;36m${frames[i]} Connecting...\x1b[0m`);
     }, 80);
   }
 
@@ -186,158 +234,45 @@ export class PTYTerminal {
     }
   }
 
+  /** Delegate session-state control messages (see _pty-session-state.ts). */
   private handleSessionState(msg: any): void {
-    const state = msg.state;
-    this.sessionState = state;
-    console.log("[PTY] Session state:", state, msg);
-
-    const badge = document.getElementById("terminal-session-status");
-
-    switch (state) {
-      case "allocation_starting":
-        this.term.write(
-          "\r\n\x1b[1;36m Preparing your computing environment...\x1b[0m\r\n",
-        );
-        this.updateBadge(badge, "starting", "warning");
-        break;
-
-      case "allocation_expiring": {
-        const remaining = msg.remaining || 0;
-        const minutes = Math.ceil(remaining / 60);
-        const timeStr = minutes > 0 ? `${minutes} min` : `${remaining}s`;
-        this.term.write(
-          `\r\n\x1b[1;33m \u26a0 Session expires in ${timeStr}\x1b[0m\r\n`,
-        );
-        this.term.write(
-          "\x1b[0;33m   Save your work. A new session will start automatically.\x1b[0m\r\n",
-        );
-        this.updateBadge(badge, `expires ${timeStr}`, "warning");
-        this.notifyUser(`Terminal session expires in ${timeStr}`);
-        break;
-      }
-
-      case "allocation_dead": {
-        const reason = msg.reason || "Unknown reason";
-        this.term.write(
-          `\r\n\x1b[1;31m \u274c Session ended: ${reason}\x1b[0m\r\n`,
-        );
-        this.term.write(
-          "\x1b[0;36m   Reconnecting automatically...\x1b[0m\r\n",
-        );
-        this.updateBadge(badge, "reconnecting", "warning");
-        this.notifyUser(`Session ended: ${reason}. Reconnecting...`);
-        break;
-      }
-
-      case "allocation_recovering":
-        this.term.write(
-          "\r\n\x1b[1;36m Preparing your computing environment...\x1b[0m\r\n",
-        );
-        this.updateBadge(badge, "reconnecting", "warning");
-        break;
-
-      case "exited":
-      case "respawning":
-        this.term.write("\r\n\x1b[1;33m Restarting terminal...\x1b[0m\r\n");
-        this.updateBadge(badge, "restarting", "warning");
-        break;
-
-      case "running":
-        this.hideRestartOverlay();
-        this.updateBadge(badge, "", "");
-        break;
-
-      case "dead": {
-        const deadReason = msg.reason || "Terminal stopped";
-        this.term.write(`\r\n\x1b[1;31m \u274c ${deadReason}\x1b[0m\r\n`);
-        this.updateBadge(badge, "stopped", "error");
-        this.notifyUser(deadReason);
-        this.showRestartOverlay(deadReason);
-        break;
-      }
-    }
+    this.sessionState = handleSessionStateMessage(msg, this.requireTerm(), {
+      hideRestartOverlay: () => this.hideRestartOverlay(),
+      showRestartOverlay: (reason: string) => this.showRestartOverlay(reason),
+    });
   }
 
-  /** Update the status badge text and style */
-  private updateBadge(
-    badge: HTMLElement | null,
-    text: string,
-    level: string,
-  ): void {
-    if (!badge) return;
-    badge.textContent = text;
-    badge.className = level
-      ? `terminal-status-badge status-${level}`
-      : "terminal-status-badge";
-  }
-
-  /** Show/hide a prominent restart overlay over the terminal */
+  /** Show a prominent restart overlay over the terminal */
   private showRestartOverlay(reason: string): void {
-    this.hideRestartOverlay();
-    const overlay = document.createElement("div");
-    overlay.className = "terminal-restart-overlay";
-    overlay.innerHTML =
-      `<div class="terminal-restart-content">` +
-      `<i class="fas fa-exclamation-triangle"></i>` +
-      `<p>${reason}</p>` +
-      `<button class="terminal-restart-btn"><i class="fas fa-redo"></i> Restart Terminal</button>` +
-      `<button class="terminal-new-btn"><i class="fas fa-plus"></i> New Terminal</button>` +
-      `</div>`;
-    overlay
-      .querySelector(".terminal-restart-btn")
-      ?.addEventListener("click", () => {
-        this.hideRestartOverlay();
-        this.restart();
-      });
-    overlay
-      .querySelector(".terminal-new-btn")
-      ?.addEventListener("click", () => {
-        this.hideRestartOverlay();
-        document.querySelector<HTMLButtonElement>(".terminal-tab-new")?.click();
-      });
-    this.containerEl.style.position = "relative";
-    this.containerEl.appendChild(overlay);
+    showTerminalRestartOverlay(
+      this.containerEl,
+      reason,
+      () => this.restart(),
+      () =>
+        document.querySelector<HTMLButtonElement>(".terminal-tab-new")?.click(),
+    );
   }
 
   private hideRestartOverlay(): void {
-    this.containerEl.querySelector(".terminal-restart-overlay")?.remove();
+    hideTerminalOverlay(this.containerEl);
   }
 
   private showReconnectPrompt(reason: string): void {
-    this.hideRestartOverlay();
-    const overlay = document.createElement("div");
-    overlay.className = "terminal-restart-overlay";
-    overlay.innerHTML =
-      `<div class="terminal-restart-content">` +
-      `<i class="fas fa-plug"></i>` +
-      `<p>${reason}</p>` +
-      `<button class="terminal-reconnect-btn">` +
-      `<i class="fas fa-wifi"></i> Click to Reconnect</button></div>`;
-    overlay
-      .querySelector(".terminal-reconnect-btn")
-      ?.addEventListener("click", () => {
-        this._reconnectAttempt = 0;
-        this.hideRestartOverlay();
-        this.connect();
-      });
-    this.containerEl.style.position = "relative";
-    this.containerEl.appendChild(overlay);
-  }
-
-  /** Send browser notification for background tab awareness */
-  private notifyUser(message: string): void {
-    if (
-      document.hidden &&
-      "Notification" in window &&
-      Notification.permission === "granted"
-    ) {
-      new Notification("SciTeX Terminal", { body: message });
-    }
+    showTerminalReconnectPrompt(this.containerEl, reason, () => {
+      this._reconnectAttempt = 0;
+      this.connect();
+    });
   }
 
   private connect(): void {
+    // connect() writes to the terminal (spinner, close/error messages) —
+    // it must never run before initXterm() has created `this.term`.
+    this.requireTerm();
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws/console/terminal/?project_id=${this.projectId}&tmux_session=${this.tmuxSession}`;
+    const providerParam = this.provider
+      ? `&provider=${encodeURIComponent(this.provider)}`
+      : "";
+    const wsUrl = `${protocol}//${window.location.host}/ws/console/terminal/?project_id=${this.projectId}&tmux_session=${this.tmuxSession}${providerParam}`;
 
     console.log("[PTY] Connecting to:", wsUrl);
     this.startSpinner();
@@ -454,36 +389,9 @@ export class PTYTerminal {
     }
   }
 
-  private getThemeFromCSS(): any {
-    const style = getComputedStyle(document.documentElement);
-    const g = (name: string) => style.getPropertyValue(name).trim();
-    return {
-      background: g("--terminal-bg"),
-      foreground: g("--terminal-fg"),
-      cursor: g("--terminal-cursor"),
-      cursorAccent: g("--terminal-cursor-accent"),
-      black: g("--terminal-black"),
-      red: g("--terminal-red"),
-      green: g("--terminal-green"),
-      yellow: g("--terminal-yellow"),
-      blue: g("--terminal-blue"),
-      magenta: g("--terminal-magenta"),
-      cyan: g("--terminal-cyan"),
-      white: g("--terminal-white"),
-      brightBlack: g("--terminal-bright-black"),
-      brightRed: g("--terminal-bright-red"),
-      brightGreen: g("--terminal-bright-green"),
-      brightYellow: g("--terminal-bright-yellow"),
-      brightBlue: g("--terminal-bright-blue"),
-      brightMagenta: g("--terminal-bright-magenta"),
-      brightCyan: g("--terminal-bright-cyan"),
-      brightWhite: g("--terminal-bright-white"),
-    };
-  }
-
   public updateTheme(): void {
     if (!this.term) return;
-    this.term.options.theme = this.getThemeFromCSS();
+    this.term.options.theme = getTerminalThemeFromCSS();
   }
 
   public executeCommand(command: string): void {

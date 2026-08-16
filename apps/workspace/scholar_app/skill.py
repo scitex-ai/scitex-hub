@@ -19,8 +19,7 @@ register(
             "Enrich metadata (abstracts, impact factors, DOIs)",
             "Save papers to library collections",
         ],
-        page_patterns=["/scholar/"],
-        url_prefix="/scholar/",
+        url_route="scholar_app:index",
         module_description=(
             "Literature management: search papers (CrossRef/OpenAlex/Semantic Scholar), "
             "manage bibliography, explore citation graphs, download PDFs."

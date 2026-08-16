@@ -14,10 +14,17 @@ __DIR__ = os.path.dirname(__FILE__)
 from django.urls import path
 
 from . import api_views, views
+from .account_linking import views as account_linking_views
 
 app_name = "auth_app"
 
 urlpatterns = [
+    # Identity surface for the cards board — "who is this session?".
+    path(
+        "api/whoami/",
+        account_linking_views.whoami,
+        name="api_whoami",
+    ),
     path("signup/", views.signup, name="signup"),
     path("signin/", views.login_view, name="signin"),
     path("login/", views.login_view, name="login"),

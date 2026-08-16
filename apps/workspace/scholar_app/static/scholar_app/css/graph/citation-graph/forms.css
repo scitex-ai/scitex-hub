@@ -59,12 +59,35 @@
 .form-input:focus,
 .form-select:focus {
   outline: none;
-  border-color: var(--workspace-icon-primary, #059669);
-  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15);
+  border-color: var(--app-accent-scholar, #3d7a5e);
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--app-accent-scholar, #3d7a5e) 20%, transparent);
 }
 
 .form-input::placeholder {
   color: var(--text-muted, #6c8ba0);
+}
+
+/* The shared settings-page select skin ([data-theme] .form-select in
+   shared/css/components/select.css: 2px border, 6px radius, #444 bg)
+   otherwise outranks the flat workspace look above — keep the graph
+   form consistent with its neighbouring input and Build button. */
+[data-theme="dark"] .graph-form .form-select,
+[data-theme="light"] .graph-form .form-select {
+  background-color: var(--workspace-bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 0;
+  padding: 10px 32px 10px 12px;
+  font-size: 14px;
+  box-shadow: none;
+}
+
+[data-theme="dark"] .graph-form .form-select:focus,
+[data-theme="light"] .graph-form .form-select:focus {
+  border-color: var(--app-accent-scholar, #3d7a5e);
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--app-accent-scholar, #3d7a5e) 20%, transparent);
 }
 
 /* Buttons */
@@ -73,20 +96,20 @@
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  background: var(--workspace-icon-primary, #059669);
+  background: var(--app-accent-scholar, #3d7a5e);
   border: none;
-  color: var(--text-inverse);
+  color: var(--text-inverse, #fff);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition:
-    background 0.15s,
+    filter 0.15s,
     transform 0.1s;
   white-space: nowrap;
 }
 
 .btn-build:hover {
-  background: var(--color-accent-emphasis);
+  filter: brightness(1.08);
 }
 
 .btn-build:active {

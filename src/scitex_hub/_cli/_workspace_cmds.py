@@ -12,6 +12,13 @@ from pathlib import Path
 import click
 import requests
 
+from ._flags import (
+    confirm_or_abort,
+    emit_json,
+    json_flag,
+    mutating_flags,
+    print_dry_run,
+)
 from ._workspace_auth import (
     TOKEN_CACHE_PATH,
     auth_headers,
@@ -138,7 +145,8 @@ def _setup_remote_and_push(server_url, username, project_name, remote_name):
     default=True,
     help="Push code after creating the project (default: yes)",
 )
-def upload(name, description, server, visibility, remote, push):
+@mutating_flags()
+def upload(name, description, server, visibility, remote, push, dry_run, yes):
     """Upload current directory as a new workspace project.
 
     Creates a project record on the SciTeX server, which auto-creates a
@@ -147,9 +155,28 @@ def upload(name, description, server, visibility, remote, push):
 
     \b
     Similar to: gh repo create --push
+
+    \b
+    Example:
+        scitex-hub workspace upload --name my-project
+        scitex-hub workspace upload -n my-project --visibility public --yes
+        scitex-hub workspace upload --dry-run
     """
     server = get_server_url(server)
     project_name = name or Path(os.getcwd()).name
+
+    if dry_run:
+        print_dry_run(
+            f"would create project {project_name!r} on {server} "
+            f"(visibility={visibility}, push={push}, remote={remote!r})"
+        )
+        return
+
+    confirm_or_abort(
+        f"Create project {project_name!r} on {server} (visibility={visibility})?",
+        yes=yes,
+        dry_run=dry_run,
+    )
 
     token = get_jwt_token(server)
 
@@ -214,12 +241,17 @@ def upload(name, description, server, visibility, remote, push):
     show_default=True,
     help="SciTeX Hub server URL",
 )
-@click.option("--json", "as_json", is_flag=True, help="Output raw JSON")
-def list_projects(server, as_json):
+@json_flag()
+def list_projects(server, json_output):
     """List your projects on the SciTeX workspace.
 
     \b
     Similar to: gh repo list
+
+    \b
+    Example:
+        scitex-hub workspace list
+        scitex-hub workspace list --json
     """
     server = get_server_url(server)
     token = get_jwt_token(server)
@@ -243,8 +275,8 @@ def list_projects(server, as_json):
 
     projects = resp.json().get("projects", [])
 
-    if as_json:
-        click.echo(json.dumps(projects, indent=2, default=str))
+    if json_output:
+        emit_json(projects)
         return
 
     if not projects:
@@ -285,11 +317,18 @@ def list_projects(server, as_json):
     show_default=True,
     help="Sync direction",
 )
-def sync(remote, direction):
+@mutating_flags()
+def sync(remote, direction, dry_run, yes):
     """Sync local repo with workspace (pull and/or push).
 
     \b
     Similar to: git pull origin <branch> && git push origin <branch>
+
+    \b
+    Example:
+        scitex-hub workspace sync
+        scitex-hub workspace sync --direction push --yes
+        scitex-hub workspace sync --dry-run
     """
     if not _in_git_repo():
         click.echo("Error: Not in a git repository.", err=True)
@@ -299,6 +338,18 @@ def sync(remote, direction):
     if not branch:
         click.echo("Error: Not on any branch.", err=True)
         sys.exit(1)
+
+    if dry_run:
+        print_dry_run(
+            f"would sync {branch!r} with remote {remote!r} (direction={direction})"
+        )
+        return
+
+    confirm_or_abort(
+        f"Sync {branch!r} with remote {remote!r} (direction={direction})?",
+        yes=yes,
+        dry_run=dry_run,
+    )
 
     check = subprocess.run(
         ["git", "remote", "get-url", remote], capture_output=True, text=True
@@ -339,12 +390,24 @@ def sync(remote, direction):
     show_default=True,
     help="SciTeX Hub server URL",
 )
-def logout(server):
-    """Clear the cached JWT token for the given server."""
+@mutating_flags()
+def logout(server, dry_run, yes):
+    """Clear the cached JWT token for the given server.
+
+    \b
+    Example:
+        scitex-hub workspace logout
+        scitex-hub workspace logout --yes
+        scitex-hub workspace logout --dry-run
+    """
     server = get_server_url(server)
     if not TOKEN_CACHE_PATH.exists():
         click.echo("No cached token found.")
         return
+    if dry_run:
+        print_dry_run(f"would clear cached JWT token for {server}")
+        return
+    confirm_or_abort(f"Clear cached JWT token for {server}?", yes=yes, dry_run=dry_run)
     try:
         cached = json.loads(TOKEN_CACHE_PATH.read_text())
         if cached.get("server") == server:

@@ -36,10 +36,30 @@ class SessionState(enum.Enum):
 class BasePTY:
     """Common PTY lifecycle: fork, read, write, resize, cleanup, respawn."""
 
-    def __init__(self, pty_id: str, username: str, screen_session: str = "scitex-0"):
+    def __init__(
+        self,
+        pty_id: str,
+        username: str,
+        screen_session: str = "scitex-0",
+        project_dir: Optional[Path] = None,
+        provider_env: Optional[dict] = None,
+    ):
         self.pty_id = pty_id
         self.username = username
         self.screen_session = screen_session
+        # Model-provider env override (ANTHROPIC_BASE_URL / _API_KEY / ...)
+        # composed SERVER-SIDE by services.terminal_provider — never from
+        # client input. Applied in _prepare_child_env. Contains the user's
+        # decrypted API key: never log it and never include it in reprs.
+        self.provider_env: dict = dict(provider_env or {})
+        # When the PTY is launched from a workspace project, ``project_dir``
+        # is the broker-visible (Docker-side) path to that project so the
+        # parent ``os.chdir`` lands the pre-fork cwd on the project root.
+        # Caller is responsible for passing a path that exists in the
+        # broker's filesystem (e.g. ``USER_DATA_ROOT/<user>/proj/<slug>``);
+        # if it does not exist at fork time, ``_prepare_child_env`` falls
+        # back to ``HOME`` then ``/tmp`` (same escalation as PR #246).
+        self.project_dir: Optional[Path] = project_dir
         self.pid: Optional[int] = None
         self.fd: Optional[int] = None
         self.state = SessionState.DEAD
@@ -143,7 +163,41 @@ class BasePTY:
         env["LOGNAME"] = self.username
         env["TERM"] = "xterm-256color"
         env["SHELL"] = "/bin/bash"
-        os.chdir("/tmp")
+        # Model-provider override (see services.terminal_provider). Set each
+        # var twice: plain (inherited by `apptainer exec instance://` in
+        # shared-allocation mode, which passes the caller env through) and
+        # APPTAINERENV_-prefixed (honored by apptainer even under
+        # --cleanenv, covering the legacy one-srun-per-tab exec path).
+        for key, value in self.provider_env.items():
+            env[key] = value
+            env[f"APPTAINERENV_{key}"] = value
+        # chdir order (host-side bash PS1 \w, plus the cwd srun inherits):
+        #   1. self.project_dir — the workspace project root, when set and
+        #      reachable by the broker process. This makes the prompt land
+        #      on the user's project instead of bare $HOME.
+        #   2. env["HOME"] — same fallback as PR #246, used when no project
+        #      context is plumbed through (e.g. legacy callers) or when the
+        #      project_dir does not exist in the broker filesystem yet.
+        #   3. "/tmp" — last-ditch safety so we never raise out of
+        #      _prepare_child_env (the apptainer ``--pwd`` flag fixes the
+        #      in-container cwd regardless).
+        # OSError from a missing/unreadable dir is the documented signal to
+        # escalate to the next candidate; it is not a silent error swallow.
+        if self.project_dir is not None:
+            try:
+                os.chdir(str(self.project_dir))
+                return env
+            except OSError as exc:
+                logger.debug(
+                    "PTY %s: project_dir %s not chdir-able (%s); falling back to HOME",
+                    self.pty_id[:8],
+                    self.project_dir,
+                    exc,
+                )
+        try:
+            os.chdir(env["HOME"])
+        except OSError:
+            os.chdir("/tmp")
         return env
 
     def start_reader(self, output_callback):
@@ -243,10 +297,16 @@ class TerminalSession(BasePTY):
         container_path: str,
         project_slug: str,
         screen_session: str = "scitex-0",
+        provider: str = "anthropic-oauth",
+        provider_env: Optional[dict] = None,
     ):
         super().__init__(
-            pty_id=session_id, username=username, screen_session=screen_session
+            pty_id=session_id,
+            username=username,
+            screen_session=screen_session,
+            provider_env=provider_env,
         )
+        self.provider = provider
         self.session_id = session_id
         self.user_data_dir = user_data_dir
         self.project_dir = project_dir

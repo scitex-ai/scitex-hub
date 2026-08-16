@@ -10,13 +10,72 @@ Provides helper functions for git operations on Django projects
 that are backed by Gitea repositories.
 """
 
-import subprocess
+import base64
 import logging
+import os
+import subprocess
 from pathlib import Path
 from typing import Optional, List, Tuple
 from django.conf import settings
 
+# SECURITY: the origin-credential scrub lives in ONE module. Re-exported
+# here so existing import paths keep working unchanged.
+from .origin_scrub import (  # noqa: F401
+    OriginScrubResult,
+    OriginScrubStatus,
+    sanitize_origin_url,
+    strip_url_credentials,
+)
+
 logger = logging.getLogger(__name__)
+
+
+def build_gitea_auth_env(
+    token: Optional[str] = None,
+    gitea_url: Optional[str] = None,
+    base_env: Optional[dict] = None,
+) -> dict:
+    """Environment for a git invocation that must authenticate to Gitea.
+
+    SECURITY (sec-gitea-admin-token-plaintext-in-user-gitconfig): the platform
+    Gitea token must NEVER be written into a repo's ``.git/config`` (origin
+    URL) — that file is bind-mounted read/write into the user's Apptainer
+    console at ``/workspace``, so a token there leaks the platform ADMIN
+    credential across tenants.
+
+    The token is therefore supplied per-invocation, and via the ENVIRONMENT
+    (``GIT_CONFIG_COUNT`` / ``GIT_CONFIG_KEY_0`` / ``GIT_CONFIG_VALUE_0``,
+    git >= 2.31) rather than ``git -c ...`` on the command line: argv is
+    world-readable through ``/proc/<pid>/cmdline``, so the ``-c`` form would
+    merely move the leak from ``.git/config`` to the process table instead of
+    closing it. A process's environ is readable only by the same uid (or
+    root), which is the boundary we need.
+
+    The header is SCOPED to the Gitea origin (``http.<gitea-url>.extraHeader``)
+    so the admin credential is never attached to a request to another host
+    (e.g. after an HTTP redirect).
+
+    Always sets ``GIT_TERMINAL_PROMPT=0`` so a missing credential fails loud
+    instead of hanging on an interactive prompt.
+    """
+    env = dict(os.environ if base_env is None else base_env)
+    env["GIT_TERMINAL_PROMPT"] = "0"
+
+    token = token if token is not None else getattr(settings, "GITEA_TOKEN", "")
+    url = gitea_url if gitea_url is not None else getattr(settings, "GITEA_URL", "")
+    url = (url or "").rstrip("/")
+    if not token or not url:
+        # Nothing to inject — git runs unauthenticated and fails loud.
+        return env
+
+    # Gitea git-over-HTTP accepts the token as the Basic-auth username with an
+    # empty password (the same bytes the previously-working
+    # ``http://<token>@host`` clone URL sent).
+    basic = base64.b64encode(f"{token}:".encode()).decode()
+    env["GIT_CONFIG_COUNT"] = "1"
+    env["GIT_CONFIG_KEY_0"] = f"http.{url}.extraHeader"
+    env["GIT_CONFIG_VALUE_0"] = f"Authorization: Basic {basic}"
+    return env
 
 
 def git_commit_and_push(
@@ -88,7 +147,10 @@ def git_commit_and_push(
 
         commit_output = result.stdout
 
-        # Push to remote
+        # Push to remote. Credentials are supplied per-op through the
+        # environment (build_gitea_auth_env) — never persisted in origin and
+        # never on argv — so neither the sandbox-mounted .git/config nor
+        # /proc/<pid>/cmdline ever holds the token.
         if push:
             result = subprocess.run(
                 ["git", "push", "origin", branch],
@@ -96,6 +158,7 @@ def git_commit_and_push(
                 capture_output=True,
                 text=True,
                 timeout=30,
+                env=build_gitea_auth_env(),
             )
 
             if result.returncode != 0:
@@ -133,13 +196,15 @@ def git_pull(project_dir: Path, branch: str = "develop") -> Tuple[bool, str]:
         if not (project_dir / ".git").exists():
             return False, f"Not a git repository: {project_dir}"
 
-        # Fetch first
+        # Fetch first. Credentials are injected per-op via the environment
+        # (build_gitea_auth_env) so origin stays credential-less on disk.
         result = subprocess.run(
             ["git", "fetch", "origin"],
             cwd=project_dir,
             capture_output=True,
             text=True,
             timeout=30,
+            env=build_gitea_auth_env(),
         )
 
         if result.returncode != 0:
@@ -152,6 +217,7 @@ def git_pull(project_dir: Path, branch: str = "develop") -> Tuple[bool, str]:
             capture_output=True,
             text=True,
             timeout=30,
+            env=build_gitea_auth_env(),
         )
 
         if result.returncode != 0:
@@ -164,64 +230,6 @@ def git_pull(project_dir: Path, branch: str = "develop") -> Tuple[bool, str]:
     except Exception as e:
         logger.exception(f"Git pull failed for {project_dir}")
         return False, str(e)
-
-
-def configure_git_credentials(project_dir: Path, username: str, token: str):
-    """
-    Configure git credentials for pushing to Gitea.
-
-    Sets up credential helper to use token authentication.
-
-    Args:
-        project_dir: Path to project directory
-        username: Gitea username
-        token: Gitea API token
-    """
-    try:
-        project_dir = Path(project_dir)
-
-        # Get current remote URL
-        result = subprocess.run(
-            ["git", "remote", "get-url", "origin"],
-            cwd=project_dir,
-            capture_output=True,
-            text=True,
-        )
-
-        if result.returncode != 0:
-            logger.error(f"Failed to get remote URL: {result.stderr}")
-            return False
-
-        origin_url = result.stdout.strip()
-
-        # Update URL to include credentials
-        if origin_url.startswith("http"):
-            # Extract base URL
-            if "@" in origin_url:
-                # Remove existing credentials
-                origin_url = "http://" + origin_url.split("@")[1]
-
-            # Add token authentication
-            gitea_url = settings.GITEA_URL.replace("http://", "")
-            auth_url = f"http://{username}:{token}@{gitea_url}"
-            new_url = origin_url.replace(f"http://{gitea_url}", auth_url).replace(
-                f"https://{gitea_url}", auth_url
-            )
-
-            # Set new remote URL
-            subprocess.run(
-                ["git", "remote", "set-url", "origin", new_url],
-                cwd=project_dir,
-                capture_output=True,
-                text=True,
-            )
-
-            logger.info(f"✓ Configured git credentials for {project_dir}")
-            return True
-
-    except Exception as e:
-        logger.error(f"Failed to configure git credentials: {e}")
-        return False
 
 
 def auto_commit_file(

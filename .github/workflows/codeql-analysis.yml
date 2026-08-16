@@ -8,14 +8,40 @@ on:
   schedule:
     - cron: '0 6 * * 1'  # Weekly on Monday at 6 AM
 
+# Supersede a pull request's own earlier runs, which nobody will read once a
+# newer commit exists. Keyed per workflow per ref, so different PRs never
+# cancel each other.
+#
+# cancel-in-progress is TRUE ONLY FOR pull_request. A push to main or develop
+# is never cancelled: back-to-back merges would otherwise kill the earlier
+# merge's run, and anything treating a develop run as a gate would lose it
+# silently. Superseding an in-flight PR run is free; superseding a branch run
+# is a decision nobody made.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   analyze:
     name: Analyze Code
+    # VERIFICATION, not an assumption. I claimed earlier that codeql "needs
+    # its toolcache" and had NOT measured it — this job is how that gets
+    # settled. CodeQL for python/javascript is interpreted (autobuild is a
+    # no-op for both), the action downloads its own bundle, and nothing here
+    # needs root, so it SHOULD run on the unprivileged pool. If it does not,
+    # revert this hunk and exempt with the measured reason.
+    # This is currently a GREEN check, so the risk is real and accepted
+    # deliberately: an exemption I cannot justify by measurement is just a
+    # skip_rules entry with better manners.
     runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
       security-events: write
+      # Needed to PULL the barrier pack from ghcr. The package is PRIVATE
+      # (measured: `gh api orgs/scitex-ai/packages/container/python-security-barriers`
+      # -> visibility=private), so an unauthenticated pull cannot see it.
+      packages: read
 
     strategy:
       fail-fast: false
@@ -26,11 +52,105 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # CodeQL's JS/TS extractor SHELLS OUT to `node` and does not ship one.
+      # On GitHub-hosted runners node is preinstalled, so nothing here ever
+      # had to declare it. Measured on spartan (run 30335621068): the python
+      # leg passed, the javascript leg died in
+      #   TypeScriptParser.verifyNodeInstallation
+      #   -> "Please install Node.js and ensure 'node' is on the PATH."
+      # This is a FIX, not grounds for an exemption: the dependency was
+      # always there, the old runner just supplied it invisibly. vitest
+      # already proved setup-node works on this pool.
+      - name: Set up Node.js (JS/TS extractor requires it)
+        if: matrix.language == 'javascript'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # THE BARRIER PACK IS LOADED HERE. It took three attempts to get this
+      # far, each of which LOOKED like it had worked, so the history is kept:
+      #
+      #   1. `packs: scitex-hub/python-security-barriers` failed at `database
+      #      init` with "not found in the registry 'https://ghcr.io/v2/'".
+      #      Read at the time as "local packs cannot be loaded via packs:".
+      #      True, but not the whole story — `scitex-hub` is the REPOSITORY
+      #      name; the org is `scitex-ai`, so that coordinate never existed.
+      #   2. PR #558 repaired the access path INSIDE the pack. Correct fix,
+      #      wrong layer: nothing loaded the pack, so it suppressed nothing.
+      #   3. PR #561 published it to ghcr. The run went green and the package
+      #      exists — but PRIVATE, which is why `registries:` below is not
+      #      optional.
+      #
+      # `packs:` is python-only ON PURPOSE. codeql-pack.yml declares
+      # `extensionTargets: {codeql/python-all: '*'}`, so handing this pack to
+      # the javascript leg asks CodeQL to load a python extension into a JS
+      # analysis. The matrix runs both languages, hence the conditional.
+      #
+      # HOW TO TELL IT ACTUALLY BOUND — do NOT trust a green run. MaD silently
+      # ignores entries it cannot resolve, so "loaded but unbound" and
+      # "working" are indistinguishable in the log. The real test is red->green
+      # on alerts sitting on sites that call the modelled validators:
+      #   project_app/views/repository/file_view.py:104
+      #   project_app/views/repository/file_edit.py:69
+      #   project_app/views/directory_views/file_view_utils.py:61
+      #   project_app/views/api/directory_concatenation.py:76
+      #   llm_app/views/upload.py:125
+      #   figrecipe_app/urls/figrecipe.py:175, :190
+      # A survivor is not automatically a failure: the model guards
+      # `Argument[1,target_path:]`, so a site validating a DIFFERENT variable
+      # than the one reaching the sink stays flagged legitimately. Inspect the
+      # call before calling it a regression.
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
-          queries: security-and-quality
+          # `security-extended`, NOT `security-and-quality`. This is a SECURITY
+          # gate; `security-and-quality` additionally runs 224 code-quality
+          # queries, and those were drowning it: of 3550 open alerts measured
+          # 2026-08-05, 2538 (71%) carried NO security severity at all —
+          # py/commented-out-code alone was 1133 of them (32% of everything).
+          #
+          # The switch is LOSSLESS for security, and that is checkable rather
+          # than assumed. github/codeql's own suite definitions say so:
+          #   security-and-frozen-quality-selectors.yml
+          #     - apply: security-extended-selectors.yml   <-- verbatim
+          #     - exclude: {tags contain: [model-generator]}
+          # i.e. the security half of security-and-quality IS security-extended;
+          # everything else in that suite is a literal `include: id:` list of
+          # quality rule ids. Classifying all 3550 of our own open alerts
+          # against those lists left the "neither" bucket EMPTY (2538 quality /
+          # 1012 security / 0 unclassified), so no alert we actually have
+          # depends on that reading being right.
+          #
+          # Quality findings are not abandoned — they belong to the scitex-dev
+          # audit lane, which is where a lint regression should turn something
+          # red. Mixing them in here made every release-sync PR red for reasons
+          # that were never vulnerabilities (see PR #392: "386 new alerts").
+          queries: security-extended
+          packs: ${{ matrix.language == 'python' && 'scitex-ai/python-security-barriers' || '' }}
+          # NO `registries:` — the pack is PUBLIC, so it resolves anonymously.
+          #
+          # Two credentialed attempts BOTH failed with the identical error
+          # ('scitex-ai/python-security-barriers' not found in the registry):
+          # first GITHUB_TOKEN with `packages: read`, then
+          # PERSONAL_ACCESS_TOKEN. Byte-identical failures from two different
+          # credentials is not an auth problem — that was my misdiagnosis twice.
+          #
+          # Measured directly against ghcr AFTER the package was made public,
+          # bypassing CodeQL entirely:
+          #   GET /token?scope=repository:scitex-ai/python-security-barriers:pull
+          #   GET /v2/scitex-ai/python-security-barriers/tags/list
+          #     -> {"name":"scitex-ai/python-security-barriers","tags":["0.0.1"]}
+          #   GET /v2/.../manifests/0.0.1  -> HTTP 200
+          #   control: codeql/python-all tags -> HTTP 200 (probe method works)
+          #
+          # So the coordinate resolves ANONYMOUSLY. Supplying a token that may
+          # lack `read:packages` can turn a working anonymous pull into a failed
+          # authenticated one, which is the remaining explanation consistent
+          # with all three observations. Omitting `registries:` removes the
+          # variable rather than adding a fourth guess.
+          #
+          # If this still fails, the next thing to check is NOT the credential.
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v3

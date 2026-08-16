@@ -13,6 +13,11 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from apps.infra.accounts_app.api.user_views import api_search_users
+from apps.infra.accounts_app.views.me_token_views import (
+    api_me_token_list,
+    api_me_token_mint,
+    api_me_token_revoke,
+)
 from apps.infra.integrations_app.views_events import list_events, receive_event
 from apps.infra.project_app.views import api_check_name_availability
 from apps.infra.project_app.views.projects.api import (
@@ -37,6 +42,25 @@ urlpatterns = [
     ),
     # User info
     path("me/", csrf_exempt(api_me), name="api_me"),
+    # User-scoped token management — browser-free token issuance for the
+    # operator-12909 CLI publish surface. POST mints (unauthenticated;
+    # password-gated + throttled), GET lists user's tokens (authenticated),
+    # DELETE revokes by id (authenticated, owner-only).
+    path(
+        "me/token/",
+        csrf_exempt(api_me_token_mint),
+        name="api_me_token_mint",
+    ),
+    path(
+        "me/tokens/",
+        csrf_exempt(api_me_token_list),
+        name="api_me_token_list",
+    ),
+    path(
+        "me/token/<int:token_id>/",
+        csrf_exempt(api_me_token_revoke),
+        name="api_me_token_revoke",
+    ),
     # Project management
     path(
         "project/create/",

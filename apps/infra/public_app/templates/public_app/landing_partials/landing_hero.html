@@ -22,8 +22,37 @@
                 </div>
                 <!-- Value proposition and CTA -->
                 <p class="hero-tagline">{{ SITE_TAGLINE }}</p>
+                <p class="hero-tagline-secondary">{{ SITE_TAGLINE_SECONDARY }}</p>
                 <div class="hero-cta">
-                    <a href="/apps/home/" class="hero-cta-button">Go to Workspace <span class="hero-cta-arrow">&rarr;</span></a>
+                    <div class="hero-cta-container">
+                        {% comment %}
+                           Primary: explicitly START A VISITOR SESSION. Target /enter/ is a
+                           visitor-provisioning entry (NOT skip-listed by
+                           VisitorAutoLoginMiddleware), so choosing this allocates a slot; the
+                           view then sends the visitor to "/", which renders the APP LAUNCHER.
+                           Sign up / Sign in are the alternatives.
+
+                           This used to point at /apps/home/, which also provisions but renders
+                           the Gitea-style REPOSITORY BROWSER — so the first thing a prospective
+                           user saw after clicking was dotfiles and "No commit message". Do not
+                           point it back there: /apps/home/ keeps that view on purpose (approved
+                           2026-07-07, see repo_app/views/dispatch.py:13-17), and "/" cannot be
+                           the target either because it is EXACT-skipped by the middleware, so an
+                           anonymous click would bounce straight back to this page.
+
+                           MUST stay {% comment %}, not {# #}: Django's {# #} is SINGLE-LINE only,
+                           so a multi-line one is not lexed as a comment and renders VERBATIM to
+                           every visitor — which is exactly what shipped to prod here.
+                        {% endcomment %}
+                        <a href="/enter/" class="hero-cta-button">Enter as visitor <span class="hero-cta-arrow">&rarr;</span></a>
+                        <a href="/auth/signup/" class="hero-link-button">
+                            <i class="fas fa-user-plus"></i> Sign up
+                        </a>
+                        <a href="/auth/login/" class="hero-link-button">
+                            <i class="fas fa-sign-in-alt"></i> Sign in
+                        </a>
+                    </div>
+                    <p class="hero-cta-note">No sign-up needed — starts a temporary visitor workspace.</p>
                 </div>
                 <div class="hero-links">
                     <a href="/apps/" class="hero-link-button">
@@ -49,7 +78,7 @@
                                 flex-direction:column">
                         <div>
                             Alpha Release ({{ SCITEX_HUB_VERSION }}) — Data persistence and API stability are not guaranteed. For production use, install the local Python toolkit. Any contribution welcome:
-                            <a href="mailto:support@scitex.ai" class="warning-banner-link"><u>support@scitex.ai</u></a>
+                            <a href="mailto:{{ CONTACT_EMAIL }}" class="warning-banner-link"><u>{{ CONTACT_EMAIL }}</u></a>
                         </div>
                     </div>
                 </div>

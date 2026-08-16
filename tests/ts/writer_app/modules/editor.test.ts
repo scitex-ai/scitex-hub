@@ -2,21 +2,42 @@
  * Tests for apps/writer_app/static/writer_app/ts/modules/editor.ts
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { WriterEditor } from "@writer_app/modules/_editor";
 
-// TODO: Update import path based on your tsconfig paths
-// import { } from '@/apps/writer_app/static/writer_app/ts/modules/editor';
+/**
+ * Fail-loud regression (browser-sweep #4): the WriterEditor fallback must
+ * THROW when CodeMirror is unavailable instead of silently returning a hollow
+ * (truthy) instance. This is what lets ComponentInitializer's `if (!editor)
+ * throw` surface a visible "Failed to initialize editor" error rather than a
+ * blank editor + frozen word count.
+ */
+describe("WriterEditor fail-loud mount", () => {
+  beforeEach(() => {
+    document.body.innerHTML =
+      '<textarea id="latex-editor-textarea"></textarea>';
+  });
 
-describe('editor', () => {
-    beforeEach(() => {
-        // Setup before each test
-    });
+  afterEach(() => {
+    document.body.innerHTML = "";
+    delete (window as any).CodeMirror;
+  });
 
-    afterEach(() => {
-        // Cleanup after each test
-    });
+  it("throws when CodeMirror is unavailable (no silent hollow editor)", () => {
+    delete (window as any).CodeMirror;
+    expect(
+      () => new WriterEditor({ elementId: "latex-editor-textarea" }),
+    ).toThrow(/CodeMirror not available/);
+  });
 
-    it.todo('should be implemented');
+  it("does not throw when CodeMirror is present", () => {
+    (window as any).CodeMirror = {
+      fromTextArea: () => ({ on: () => {} }),
+    };
+    expect(
+      () => new WriterEditor({ elementId: "latex-editor-textarea" }),
+    ).not.toThrow();
+  });
 });
 
 // =============================================================================

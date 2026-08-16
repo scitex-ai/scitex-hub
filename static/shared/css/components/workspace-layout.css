@@ -4,12 +4,32 @@
    ============================================================ */
 
 /* ── Layout container ──────────────────────────────────────── */
+/* Height leaves room for the sticky global header above (64px desktop,
+   44px mobile — static/shared/css/components/header/01-container.css and
+   header/14-responsive.css). The header is the only chrome now that the
+   left nav rail is retired. */
 .workspace-layout {
   display: flex;
   flex-direction: row;
-  height: 100vh;
+  height: calc(100vh - 64px - env(safe-area-inset-top, 0px));
   overflow: hidden;
   background: var(--bg-primary, #0d1117);
+}
+
+/* ── Workspace nav rail: retired ───────────────────────────── */
+/* The left sidebar is hidden at EVERY viewport (operator directive
+   2026-07-17: the rail appeared on every page and is redundant — the
+   global header carries project switcher / search / user menu, the
+   app-launcher home grid carries app navigation, and /chat/ /console/
+   /files/ remain routable). The aside stays in the DOM for now: its
+   component JS owns core-pane routing (activateInitialPane) and the
+   keyboard shortcuts; structural removal rides with the scitex-ui
+   shell migration (card hub-apps-missing-scitex-ui-shell). */
+.workspace-sidebar {
+  display: none !important;
+}
+.mobile-top-bar {
+  display: none !important;
 }
 
 /* ── Content area ──────────────────────────────────────────── */
@@ -94,8 +114,8 @@
 @media (max-width: 767px) {
   .workspace-layout {
     flex-direction: row;
-    height: 100vh;
-    height: 100dvh;
+    height: calc(100vh - 44px - env(safe-area-inset-top, 0px));
+    height: calc(100dvh - 44px - env(safe-area-inset-top, 0px));
   }
 
   .workspace-content {
@@ -116,13 +136,6 @@
   }
 }
 
-/* ── Hide header on workspace pages (desktop only) ──────────── */
-@media (min-width: 768px) {
-  body.workspace-page:not(.landing-page) .global-header {
-    display: none;
-  }
-}
-
 /* ── Landing page: hide workspace layout, show normal flow ─── */
 body.landing-page .workspace-layout {
   display: none;
@@ -134,14 +147,57 @@ body.landing-page .mobile-top-bar {
   display: none;
 }
 
-/* ── Hide footer globally; show only on landing page ───────── */
-.global-footer,
-.site-footer {
+/* ── Hide the footer ONLY where the app shell renders ──────────
+   Deny-by-default was backwards. This used to read:
+       .global-footer, .site-footer      { display: none !important }
+       body.landing-page .site-footer    { display: block !important }
+   i.e. hide everywhere, restore on ONE allow-listed page. Every page
+   that is not /landing/ therefore shipped an invisible footer — and
+   silently, because the markup is present, so template tests, link
+   checkers and curl greps all PASS while the page is broken. Measured
+   on prod 2026-08-03: /pricing/ renders <body class=""> and its Terms,
+   Privacy, Cookies and 特定商取引法に基づく表記 links were in the DOM
+   and unreachable. That notice is a statutory disclosure for paid
+   services in Japan, on the page where the customer decides to pay.
+
+   Inverted: visible by default, hidden only where the app shell owns
+   the viewport. Keyed on `workspace-page` (which EVERY shell page
+   carries) rather than on `landing-page`, because `landing-page` means
+   two opposite things at once — "hide the app shell" AND "show the
+   footer" — and overloading it is what collapsed the launcher to 0x0
+   on 2026-07-30. See the note in templates/global_base.html, which
+   asked for exactly this fix. One class, one meaning.
+
+   Body classes as set by global_base.html:73 —
+       /landing/            workspace-page landing-page   -> shown (excluded)
+       / (anonymous)        workspace-page landing-page   -> shown (excluded)
+       / (authenticated)    workspace-page no-transition  -> hidden
+       active_module        workspace-page <module> …     -> hidden
+       /workspace/          workspace-page no-transition  -> hidden
+       /explore/            workspace-page explore-page   -> hidden
+       everything else      (empty)                       -> shown  <- the fix
+   So no app-shell page changes behaviour; only the empty-class public
+   pages flip from hidden to visible. */
+/* `.app-home` is the signed-in launcher at `/`. It is an app-shell surface,
+   but it is also where a signed-in user is oriented rather than working, and
+   it must carry the statutory 特定商取引法 disclosure, the policy pages and a
+   contact route. Those are reachable only via the footer, so the launcher is
+   excluded here. Deeper workspace surfaces (modules, /workspace/, /explore/)
+   still hide it — they own the viewport.
+   NOTE: the same decision is duplicated in footer.css under a max-width:768px
+   media query. Both must exclude `.app-home`, or the footer returns on desktop
+   and stays missing on phones.
+
+   NOTE 2 (2026-08-11): showing the footer here has a LAYOUT consequence that is
+   not optional. `body.workspace-page` is pinned to 100vh with overflow:hidden and
+   the footer is flex-shrink:0, so a visible footer eats the app shell's height —
+   measured on prod, this collapsed `.workspace-layout` from 800px to 143px and
+   the launcher's 43 tiles vanished on iPhone. The release lives in
+   global-base.css under "App Home Override". If you make the footer visible on
+   another shell surface, that surface needs the same release. */
+body.workspace-page:not(.landing-page):not(.app-home) .global-footer,
+body.workspace-page:not(.landing-page):not(.app-home) .site-footer {
   display: none !important;
-}
-body.landing-page .global-footer,
-body.landing-page .site-footer {
-  display: block !important;
 }
 
 /* ── Hide old layout remnants ──────────────────────────────── */

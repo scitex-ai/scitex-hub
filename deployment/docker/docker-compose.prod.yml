@@ -91,6 +91,8 @@ services:
       PYTHONPATH: /home/scitex/.local/lib/python3.11/site-packages:/app
       CROSSREF_DB_PATH: /data/crossref/crossref.db
       SCITEX_DIR: /app/.scitex
+      UV_CACHE_DIR: /app/.cache/uv
+      NPM_CONFIG_CACHE: /app/.cache/npm
     depends_on:
       postgres:
         condition: service_healthy
@@ -161,6 +163,8 @@ services:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
       - apps_volume:/app/.apps
+      - uv_cache_volume:/app/.cache/uv
+      - npm_cache_volume:/app/.cache/npm
       - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
       - ../../deployment/singularity:/app/singularity:ro
       - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
@@ -179,6 +183,8 @@ services:
       SCITEX_HUB_ENV: prod
       PYTHONUNBUFFERED: 1
       SCITEX_DIR: /app/.scitex
+      UV_CACHE_DIR: /app/.cache/uv
+      NPM_CONFIG_CACHE: /app/.cache/npm
     depends_on:
       postgres:
         condition: service_healthy
@@ -211,6 +217,8 @@ services:
           cpus: '1.0'
     volumes:
       - apps_volume:/app/.apps
+      - uv_cache_volume:/app/.cache/uv
+      - npm_cache_volume:/app/.cache/npm
       - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
     env_file:
       - ./envs/.env.prod
@@ -220,6 +228,8 @@ services:
       SCITEX_HUB_ENV: prod
       PYTHONUNBUFFERED: 1
       SCITEX_DIR: /app/.scitex
+      UV_CACHE_DIR: /app/.cache/uv
+      NPM_CONFIG_CACHE: /app/.cache/npm
     depends_on:
       postgres:
         condition: service_healthy
@@ -362,7 +372,12 @@ services:
         limits:
           memory: 512M
           cpus: '0.5'
-    command: tunnel --no-autoupdate run --token ${SCITEX_HUB_CLOUDFLARE_TUNNEL_TOKEN}
+    # Token in the ENVIRONMENT, not argv -- see the long note in
+    # docker_prod/docker-compose.yml. Fixed here too even though this file
+    # launches nothing today: a dormant file is the one that gets copied.
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${SCITEX_HUB_CLOUDFLARE_TUNNEL_TOKEN}
     env_file:
       - ./envs/.env.prod
     restart: always
@@ -384,4 +399,8 @@ volumes:
   scitex_config_volume:
     driver: local
   apps_volume:
+    driver: local
+  uv_cache_volume:
+    driver: local
+  npm_cache_volume:
     driver: local

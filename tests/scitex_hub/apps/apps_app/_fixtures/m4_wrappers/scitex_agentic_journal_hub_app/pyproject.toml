@@ -1,0 +1,23 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "scitex-agentic-journal-hub-app"
+version = "0.1.0"
+description = "ARA-native open publishing with AI review"
+requires-python = ">=3.10"
+license = "AGPL-3.0"
+
+[project.scripts]
+scitex-agentic-journal-hub-app = "scitex_agentic_journal_hub_app._cli:main"
+
+[project.optional-dependencies]
+scitex = ["scitex-app>=0.1.0", "scitex-ui>=0.1.0"]
+dev = ["pytest>=7.0.0"]
+
+[project.entry-points."scitex_modules"]
+scitex_agentic_journal_hub_app = "scitex_agentic_journal_hub_app:get_module_config"
+
+[tool.hatch.build.targets.wheel]
+packages = ["scitex_agentic_journal_hub_app"]

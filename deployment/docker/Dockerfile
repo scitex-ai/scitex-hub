@@ -217,7 +217,7 @@ COPY src/ ./src/
 
 # Install SciTeX Hub Python dependencies with cache mount
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system ".[django,test]"
+    uv pip install --system ".[all]"
 
 # Install Playwright browsers (must persist in image for runtime use)
 # Note: We already have chromium and dependencies installed above,

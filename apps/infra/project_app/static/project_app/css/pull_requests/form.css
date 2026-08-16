@@ -1,5 +1,5 @@
 /* Pull request form page styles */
-@import url("shared/variables.css");
+@import url("../shared/variables.css");
 
 .pr-form-container {
   max-width: 900px;

@@ -1,6 +1,22 @@
 # Production Deployment with Cloudflare Tunnel
 # For: UGREEN DXP480T Plus (Home Server)
 # No router access or port forwarding needed!
+#
+# ALWAYS run this file with `--env-file ../envs/.env.prod` (make ENV=prod does
+# it for you). `env_file:` below only populates variables INSIDE a container —
+# it does not feed the ${...} substitutions in this file, which compose resolves
+# at parse time from the shell. Run compose without --env-file and every ${...}
+# below silently becomes an empty string, so `docker compose up` cheerfully
+# builds a container with a BLANK database password. Postgres survives that
+# (its password lives in the data volume) and Django survives it (it talks to
+# pgbouncer), so the only thing that breaks is gitea — which crash-loops on
+# `password authentication failed`, taking the visitor-slot rescue path down
+# with it and leaving every visitor read-only. That cost hours to diagnose on
+# 2026-07-13.
+#
+# Hence the `:?` guards on every secret and required port below: compose now
+# ABORTS with a named variable and a fix, instead of quietly wiring up a broken
+# stack. Do not "simplify" them away.
 
 # Set project name with environment for clear identification
 name: scitex-hub-prod
@@ -15,15 +31,40 @@ services:
       args:
         BUILDKIT_INLINE_CACHE: 1
     image: scitex-hub-prod-django:latest
-    # tini reaps SIGCHLD so subprocess/pty.fork+execvpe("srun", ...) children
-    # don't accumulate as zombies under daphne PID 1 (issue #148).
-    init: true
-    entrypoint: ["/root-init.sh", "/entrypoint.sh"]
+    # tini FIRST, for the same reason every other service here does it: an
+    # `entrypoint:` override REPLACES the image's ENTRYPOINT wholesale, so it
+    # silently drops the tini that Dockerfile.prod installs as PID 1. django
+    # was the one service that still had that gap — measured on prod
+    # 2026-08-03, `docker exec ... ps -p 1 -o comm=` returned `daphne`, while
+    # celery_worker correctly returned `tini`.
+    #
+    # WHY IT MATTERS HERE SPECIFICALLY: daphne installs no SIGCHLD handler, so
+    # children orphaned by the terminal path (pty.fork() + execvpe("srun", ...))
+    # accumulate as <defunct>. 95 zombies were observed in issue #148, leaking
+    # since 2026-04-15. `root-init.sh` ends in `exec gosu scitex "$@"`, so it
+    # REPLACES itself — which is precisely why PID 1 ended up as daphne with no
+    # reaper. Putting tini in front keeps it at PID 1 across that exec chain.
+    #
+    # This restores the intent of 67a02ef0f (`init: true`, on main only, never
+    # merged back to develop), in the form develop standardised on afterwards.
+    entrypoint: ["/usr/bin/tini", "--", "/root-init.sh", "/entrypoint.sh"]
     command: ["daphne", "-b", "0.0.0.0", "-p", "8000", "--access-log", "-", "--verbosity", "1", "config.asgi:application"]
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
       - scitex_config_volume:/app/.scitex
+
+      # Sibling dev-install checkouts (scitex-ui, figrecipe, scitex-writer,
+      # scitex-todo — see .scitex-apps.json). Persisting this across a
+      # rebuild/recreate lets install_apps.sh skip re-cloning when nothing
+      # changed (hub-postboot-warmup-window, 2026-07-10). Previously
+      # missing here entirely, so every container recreate re-cloned all
+      # siblings from GitHub regardless of whether anything changed.
+      - apps_volume:/app/.apps
+      # uv/npm download caches — reused even when a (re)install genuinely
+      # is needed, so it doesn't re-fetch from the network every time.
+      - uv_cache_volume:/app/.cache/uv
+      - npm_cache_volume:/app/.cache/npm
 
       # scitex-code for citation_graph module (until published to PyPI)
       - /home/ywatanabe/proj/scitex-code/src/scitex/scholar/citation_graph:/usr/local/lib/python3.11/site-packages/scitex/scholar/citation_graph:ro
@@ -55,8 +96,21 @@ services:
       # CrossRef database for citation graph service (read-only)
       - /home/ywatanabe/proj/crossref-local/data:/data/crossref:ro
 
-      # OpenAlex database for local search (read-only)
-      - /home/ywatanabe/proj/openalex-local/data:/data/openalex:ro
+      # OpenAlex database for local search (read-only).
+      #
+      # MUST be the SAME source the openalex service mounts (see OPENALEX_LOCAL_DB_DIR
+      # below in that service). It previously pointed at .../openalex-local/data, which
+      # contains only a SYMLINK:
+      #     openalex.db -> /home/ywatanabe/proj/openalex-local.bak/data/openalex.db
+      # A symlink inside a bind mount resolves against the CONTAINER's filesystem, and
+      # /home/ywatanabe/... does not exist in the container — so the link dangled and
+      # django saw no database at all. Measured 2026-08-04 inside the running container:
+      #     test -r /data/openalex/openalex.db  -> NOT-READABLE
+      #     stat -c %s                          -> 56   (the link itself, not the 1.43 TB db)
+      # openalex_local.info() then raised FileNotFoundError and /server-status/ reported
+      # "OpenAlex Local — degraded — Database not configured" while the openalex
+      # CONTAINER was healthy, because that container mounts the real directory.
+      - ${OPENALEX_LOCAL_DB_DIR:-/home/ywatanabe/proj/openalex-local.bak/data}:/data/openalex:ro
 
       # Live-editable announcement banner (no rebuild needed)
       - ../../../apps/infra/public_app/templates/public_app/landing_partials/landing_announcement.html:/app/apps/infra/public_app/templates/public_app/landing_partials/landing_announcement.html:ro
@@ -70,7 +124,7 @@ services:
     expose:
       - "8000"
     env_file:
-      - .env
+      - ../envs/.env.prod
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings.settings_prod
       - SCITEX_OROCHI_AGENTS_DIR=/app/agents-orochi
@@ -83,6 +137,10 @@ services:
       - OPENALEX_LOCAL_MODE=db
       - SCITEX_DIR=/app/.scitex
       - SCITEX_HUB_BUILD_ID=b0a2a30c
+      # install_apps.sh sibling dev-installs: reuse downloaded packages
+      # across boots instead of re-fetching from the network every time.
+      - UV_CACHE_DIR=/app/.cache/uv
+      - NPM_CONFIG_CACHE=/app/.cache/npm
     depends_on:
       pgbouncer:
         condition: service_healthy
@@ -121,19 +179,19 @@ services:
     shm_size: 256mb
 
     env_file:
-      - .env
+      - ../envs/.env.prod
     environment:
       # PostgreSQL expects POSTGRES_* variables (not SCITEX_HUB_POSTGRES_*)
-      - POSTGRES_DB=${SCITEX_HUB_POSTGRES_DB}
-      - POSTGRES_USER=${SCITEX_HUB_POSTGRES_USER}
-      - POSTGRES_PASSWORD=${SCITEX_HUB_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${SCITEX_HUB_POSTGRES_DB:?required — pass --env-file ../envs/.env.prod}
+      - POSTGRES_USER=${SCITEX_HUB_POSTGRES_USER:?required — pass --env-file ../envs/.env.prod}
+      - POSTGRES_PASSWORD=${SCITEX_HUB_POSTGRES_PASSWORD:?required — pass --env-file ../envs/.env.prod}
     # Increase max_connections to handle django, celery workers, gitea, etc.
     command: postgres -c max_connections=200 -c shared_buffers=128MB
     restart: always
     networks:
       - scitex-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${SCITEX_HUB_POSTGRES_USER} -d ${SCITEX_HUB_POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${SCITEX_HUB_POSTGRES_USER:?required — pass --env-file ../envs/.env.prod} -d ${SCITEX_HUB_POSTGRES_DB:?required — pass --env-file ../envs/.env.prod}"]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -145,11 +203,9 @@ services:
       - ../common/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
       - ../common/pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt
     env_file:
-      - .env
+      - ../envs/.env.prod
     environment:
-      # SCITEX_HUB_POSTGRES_* (renamed from SCITEX_CLOUD_POSTGRES_*, see #150).
-      # If undefined, substitution yields empty and libpq falls back to OS user.
-      - DATABASE_URL=postgresql://${SCITEX_HUB_POSTGRES_USER}:${SCITEX_HUB_POSTGRES_PASSWORD}@postgres:5432/${SCITEX_HUB_POSTGRES_DB}
+      - DATABASE_URL=postgresql://${SCITEX_HUB_POSTGRES_USER:?required — pass --env-file ../envs/.env.prod}:${SCITEX_HUB_POSTGRES_PASSWORD:?required — pass --env-file ../envs/.env.prod}@postgres:5432/${SCITEX_HUB_POSTGRES_DB:?required — pass --env-file ../envs/.env.prod}
     depends_on:
       postgres:
         condition: service_healthy
@@ -179,20 +235,120 @@ services:
   # Celery Worker (Async Task Processing)
   celery_worker:
     image: scitex-hub-prod-django:latest
-    # tini reaps SIGCHLD so compute_queue tasks that spawn srun/subprocess
-    # don't leave zombies under celery PID 1 (issue #148).
-    init: true
-    entrypoint: ["/entrypoint.sh"]
+    # autoheal=true: the #382 liveness healthcheck marks this worker unhealthy
+    # when its queue beacon goes stale (the prefork pool is known to wedge on
+    # this host — see the POOL=THREADS note below), and the autoheal service
+    # below is what acts on that: docker itself never restarts unhealthy
+    # containers. Verified live 2026-07-17: worker sat "unhealthy" for 40+
+    # minutes with no autoheal running.
+    labels:
+      - autoheal=true
+    # tini, exactly as Dockerfile.prod's ENTRYPOINT intends ("tini as PID 1:
+    # ensures proper signal forwarding and zombie reaping"). Overriding
+    # `entrypoint:` REPLACES the image's ENTRYPOINT wholesale, so every service
+    # that overrides it silently drops tini — which left celery running as PID 1
+    # with no init and no reaper. See the header note above `celery_worker_vis`.
+    entrypoint: ["/usr/bin/tini", "--", "/entrypoint.sh"]
+    # NOTE: vis_queue is deliberately NOT here — it has its own worker below.
+    # This worker's `celery` queue is a firehose (the since-deleted status-chart
+    # renderer alone fanned out 48 subtasks every 60s on a 4-core N100 — removed
+    # 2026-07-30, ~89% of steady-state message volume), and it starved the
+    # visitor-slot re-cleans out of existence: vis_queue sat at 16-36 messages,
+    # untouched for hours, while this queue drained. Slot re-cleans are a
+    # SECURITY gate — a slot is not distributable until it is wiped and
+    # verified — so they must never wait behind chart rendering.
+    # POOL=THREADS (2026-07-30). The prefork pool wedges on this host, and
+    # this worker was the last one still using it.
+    #
+    # Measured signature, now THREE times (2026-07-14, 2026-07-17 after tini
+    # was restored — so NOT an init/reaping problem — and again 2026-07-30):
+    # each worker processes roughly one prefetch window and then dispatch
+    # dies. `inspect reserved` shows a FULL window that never runs
+    # (worker_pid=None, time_start=None, acknowledged=false — 24 such tasks
+    # on 2026-07-30, matching redis HLEN unacked=24), `inspect active` is
+    # EMPTY, the fork children exist and idle, the control channel still
+    # answers, redis still pings, and the container reports (healthy)
+    # throughout. On 2026-07-30 ServerMetrics' newest row sat at 09:59 while
+    # collect_server_metrics was RECEIVED 12 times in 20 minutes and
+    # SUCCEEDED 0 times. Not memory and not pids: OOMKilled=false,
+    # RestartCount=0, worker RSS 591MB, 46GB host free, cgroup pids.max
+    # 76602 with 5 in use. A restart drains one burst and wedges again.
+    #
+    # FIVE fixes were tried against this signature and all five failed,
+    # which is why the next step is the POOL and not a sixth mitigation:
+    #   #379  tini restored as PID 1 (signal forwarding + zombie reaping)
+    #   #381  `-O fair` + `--max-tasks-per-child=50`, on the theory that
+    #         default (non-fair) scheduling writes reserved tasks into a
+    #         specific child's pipe, so a task parked in a dead/replaced
+    #         child's pipe is never re-dispatched
+    #   #384  the celery<5.6 pin (pyproject.toml) + --without-gossip/mingle/
+    #         heartbeat, the community-standard mitigation for the redis
+    #         stops-consuming family (celery#8091/#8030) — those features
+    #         each hold extra broker connections inside the kombu async hub
+    #         and are pure overhead for our fixed two-worker deployment
+    # Reproduced identically on celery 5.6.3/kombu 5.6.2 and on 5.5.3.
+    #
+    # The DIFFERENTIAL EXPERIMENT that settles it: an ad-hoc worker in the
+    # SAME container, same code, same broker, same queue, differing ONLY by
+    # `--pool=threads`, drains immediately. On THIS queue (2026-07-30),
+    # within 90s: collect_server_metrics succeeded in 0.131s,
+    # warm_public_status_cache in 0.078s, check_site_health in 0.224s, and
+    # ServerMetrics' newest row jumped from 09:59 to 12:25:41 — while the
+    # prefork worker beside it succeeded nothing. Same result on vis_queue
+    # (2026-07-17): threads drained 48 tasks in 200s where prefork never
+    # exceeded 6 total. The tasks are fine and fast; the POOL is the defect.
+    #
+    # WHY THREADS ARE SAFE HERE NOW, and were not before: matplotlib is not
+    # thread-safe, and views/status/chart_generator.py — reached ONLY from
+    # generate_status_charts / generate_single_status_chart — was the sole
+    # matplotlib importer on any of this worker's queues. Server-side chart
+    # rendering is being replaced by client-side SVG (operator direction,
+    # 2026-07-30), which removes that single constraint. Everything left on
+    # these four queues blocks on I/O with the GIL released: requests.get
+    # (check_site_health), subprocess.run (collect_server_metrics' df/free,
+    # check_request_flood), redis SETEX (queue_liveness_beacon), pdflatex
+    # (compile_latex), network search + PDF fetch (scholar_app).
+    #
+    # CONCURRENCY 8, not the vis worker's 3, and not by inertia: this worker
+    # serves FOUR queues, so head-of-line blocking ACROSS them is the real
+    # risk — a 45s compile_latex on ai_queue must not delay the 120s
+    # queue_liveness_beacon on `celery`, and that beacon is exactly what the
+    # healthcheck below reads, so concurrency here directly protects the
+    # watchdog. A thread blocked in subprocess/socket costs a stack, not one
+    # of this box's 4 cores, and 1 process + 8 threads uses materially LESS
+    # memory than the prefork parent + 8 forked children it replaces.
+    # celery_worker_vis uses 3 for the opposite reason (~35s of heavy disk
+    # I/O per reset, fighting the web container for CPU) — that does not
+    # transfer here.
+    #
+    # PREFORK-ONLY FLAGS DROPPED, not kept: `-O fair` is a prefork
+    # child-dispatch strategy and `--max-tasks-per-child` recycles fork
+    # children, of which a threads pool has none. Celery ignores both under
+    # --pool=threads, so leaving them behind would read as an active
+    # mitigation for the very wedge they failed to fix (#381). The one thing
+    # genuinely lost is the per-child memory-leak backstop, for which a
+    # threads pool has no equivalent; `restart: always`, the #382 queue-
+    # liveness healthcheck below and the host autoheal container (#386) are
+    # what cover it — as they have for celery_worker_vis since #385.
+    #
+    # Regression gate: tests/develop/test_celery_worker_pool.py
     command: >
       celery -A config --broker=redis://redis:6379/1 worker
       --loglevel=info
-      --queues=celery,ai_queue,search_queue,compute_queue,vis_queue
+      --queues=celery,ai_queue,search_queue,compute_queue
+      --pool=threads
       --concurrency=8
       --prefetch-multiplier=1
+      --without-gossip
+      --without-mingle
+      --without-heartbeat
 
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
+      - apps_volume:/app/.apps
+      - uv_cache_volume:/app/.cache/uv
+      - npm_cache_volume:/app/.cache/npm
       - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
       - ../../../deployment/singularity:/app/singularity:ro
       - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
@@ -205,7 +361,7 @@ services:
       - /home/ywatanabe/proj/scitex-code/src/scitex/scholar/citation_graph:/usr/local/lib/python3.11/site-packages/scitex/scholar/citation_graph:ro
 
     env_file:
-      - .env
+      - ../envs/.env.prod
 
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings.settings_prod
@@ -214,6 +370,8 @@ services:
       - PYTHONUNBUFFERED=1
       - SCITEX_DIR=/app/.scitex
       - SCITEX_HUB_BUILD_ID=b0a2a30c
+      - UV_CACHE_DIR=/app/.cache/uv
+      - NPM_CONFIG_CACHE=/app/.cache/npm
 
     depends_on:
       pgbouncer:
@@ -229,24 +387,166 @@ services:
     networks:
       - scitex-network
 
+    # END-TO-END liveness, not a broker ping. The old redis-ping check
+    # stayed green through every measured wedge (see POOL=THREADS above):
+    # dispatch dies while redis, the control channel and the children all
+    # answer. Beat enqueues queue_liveness_beacon("celery") onto THIS
+    # worker's `celery` queue every 120s; the task stamps
+    # scitex:liveness:celery at EXECUTION time; the check fails LOUD when
+    # the stamp is missing or older than 600s — i.e. the worker has not
+    # actually run anything from the queue for 10 minutes.
+    # start_period 300s: after a deploy the stamp usually survives in the
+    # long-running redis container (fresh enough), but on a cold/flushed
+    # redis it exists only once beat's next 120s tick fires AND this worker
+    # executes it — give the whole beat→broker→worker chain 5 minutes
+    # before failures count. retries 10 × interval 60s: ~10 more minutes of
+    # consecutive staleness before docker marks unhealthy, so a busy-but-
+    # draining worker is never flagged. Docker only MARKS unhealthy; the
+    # host's autoheal container is what restarts unhealthy containers.
     healthcheck:
-      test: ["CMD", "python", "-c", "import redis; r = redis.Redis(host='redis', port=6379); r.ping()"]
-      interval: 30s
+      test: ["CMD", "bash", "/app/deployment/docker/common/scripts/check_queue_liveness.sh", "celery", "600"]
+      interval: 60s
       timeout: 10s
-      retries: 3
-      start_period: 120s
+      retries: 10
+      start_period: 300s
+
+  # Celery worker DEDICATED to the visitor-slot re-clean queue.
+  #
+  # INCIDENT 2026-07-13/14: the boot path runs `reconcile_visitor_slots --async`,
+  # which enqueues the per-slot wipe+verify onto vis_queue. Sharing a worker with
+  # the `celery` queue meant those tasks never ran — vis_queue sat static at
+  # 16/27/33/36 messages for HOURS while the shared worker chewed through the
+  # chart/metrics firehose. So after a restart the pool stayed quarantined and
+  # EVERY visitor silently fell back to the read-only user until a human ran the
+  # re-clean by hand. Its own queue means it cannot be starved.
+  #
+  # Concurrency 3, not 8: each reset is ~35s of disk I/O (wipe + re-clone +
+  # verify) on a 4-core N100, and 3 clears all 16 slots in ~3 min without
+  # fighting the web container for CPU.
+  #
+  # It needs the SAME mounts as celery_worker: the wipe rewrites the visitor's
+  # workspace under /app/data/users, and container_teardown shells out to
+  # squeue/scancel (slurm.conf + munge) to cancel the visitor's SLURM job and
+  # VERIFY their apptainer instance is gone before the slot may be reused.
+  # WHY tini (2026-07-14): Dockerfile.prod sets
+  #   ENTRYPOINT ["/usr/bin/tini", "--", "/root-init.sh", "/entrypoint.sh"]
+  #   # tini as PID 1: ensures proper signal forwarding and zombie reaping
+  # but a compose `entrypoint:` override REPLACES the image ENTRYPOINT outright,
+  # so every service here was silently discarding it. celery therefore ran as
+  # PID 1 with no init: no zombie reaping, and non-default signal semantics.
+  #
+  # POOL=THREADS (2026-07-17): the prefork pool wedges on this host — after
+  # one boot burst the parent stops ACKing completed tasks, its QoS window
+  # jams full, and it never fetches again (11 permanently-unacked messages
+  # accumulated in the broker across restarts). Children stay alive and
+  # idle, zero errors logged. Reproduced IDENTICALLY on celery 5.6.3 and
+  # 5.5.3, with tini (#379), -O fair + max-tasks-per-child (#381), the
+  # celery<5.6 pin + --without-gossip/mingle/heartbeat (#384) — five fixes,
+  # same wedge. The differential experiment that settled it: an ad-hoc
+  # worker in the SAME container / code / broker with --pool=threads
+  # drained 48 tasks in 200s where prefork never exceeded 6 total.
+  # Slot resets are I/O-bound (git/ssh/squeue subprocesses, Gitea HTTP,
+  # file ops), so threads lose nothing to the GIL. Prefork-only flags
+  # (-O fair, --max-tasks-per-child) dropped — meaningless for threads.
+  #
+  # UPDATE 2026-07-30: this worker is no longer the exception. The shared
+  # celery_worker stayed prefork for ONE reason — matplotlib chart rendering
+  # is not thread-safe and ran on its queues — and once that server-side
+  # rendering was replaced by client-side SVG, it moved to threads too.
+  # BOTH prod workers now run --pool=threads; the #382 liveness watchdog
+  # still covers both. The 2026-07-30 measurements and the full five-failed-
+  # fixes history live in the POOL=THREADS note on celery_worker above.
+  # Regression gate for both: tests/develop/test_celery_worker_pool.py
+  celery_worker_vis:
+    image: scitex-hub-prod-django:latest
+    labels:
+      - autoheal=true
+    entrypoint: ["/usr/bin/tini", "--", "/entrypoint.sh"]
+    command: >
+      celery -A config --broker=redis://redis:6379/1 worker
+      --loglevel=info
+      --queues=vis_queue
+      --hostname=vis@%h
+      --pool=threads
+      --concurrency=3
+      --prefetch-multiplier=1
+      --without-gossip
+      --without-mingle
+      --without-heartbeat
+
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+      - apps_volume:/app/.apps
+      - uv_cache_volume:/app/.cache/uv
+      - npm_cache_volume:/app/.cache/npm
+      - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
+      - ../../../deployment/singularity:/app/singularity:ro
+      - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
+      - /etc/munge:/etc/munge:ro
+      - /run/munge:/run/munge
+      - /var/log/slurm:/var/log/slurm
+      - /etc/passwd:/host/etc/passwd:ro
+
+    env_file:
+      - ../envs/.env.prod
+
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.settings_prod
+      - SCITEX_HUB_DJANGO_SETTINGS_MODULE=config.settings.settings_prod
+      - SCITEX_HUB_ENV=prod
+      - PYTHONUNBUFFERED=1
+      - SCITEX_DIR=/app/.scitex
+      - UV_CACHE_DIR=/app/.cache/uv
+      - NPM_CONFIG_CACHE=/app/.cache/npm
+
+    depends_on:
+      pgbouncer:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "${SCITEX_HUB_SLURM_HOST:-DXP480TPLUS-994}:host-gateway"
+
+    restart: always
+    networks:
+      - scitex-network
+
+    # END-TO-END liveness for vis_queue — the queue whose silent stall
+    # quarantined the whole visitor pool. Same design as celery_worker's
+    # check above: beat routes queue_liveness_beacon("vis_queue") onto
+    # vis_queue every 120s, the beacon stamps scitex:liveness:vis_queue at
+    # EXECUTION time, and this fails LOUD when the stamp is missing or
+    # older than 600s. A redis ping cannot see the measured wedge
+    # (reserved-full / active-empty / control channel answering). Docker
+    # only MARKS unhealthy; the host's autoheal container does the restart.
+    healthcheck:
+      test: ["CMD", "bash", "/app/deployment/docker/common/scripts/check_queue_liveness.sh", "vis_queue", "600"]
+      interval: 60s
+      timeout: 10s
+      retries: 10
+      start_period: 300s
 
   # Celery Beat (Periodic Task Scheduler)
   celery_beat:
     image: scitex-hub-prod-django:latest
-    entrypoint: ["/entrypoint.sh"]
+    labels:
+      - autoheal=true
+    # tini — same reason as the workers above (the compose entrypoint override
+    # otherwise discards the image's tini and leaves celery as PID 1).
+    entrypoint: ["/usr/bin/tini", "--", "/entrypoint.sh"]
     command: celery -A config --broker=redis://redis:6379/1 beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
 
     volumes:
+      - apps_volume:/app/.apps
+      - uv_cache_volume:/app/.cache/uv
+      - npm_cache_volume:/app/.cache/npm
       - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
 
     env_file:
-      - .env
+      - ../envs/.env.prod
 
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings.settings_prod
@@ -255,6 +555,8 @@ services:
       - PYTHONUNBUFFERED=1
       - SCITEX_DIR=/app/.scitex
       - SCITEX_HUB_BUILD_ID=b0a2a30c
+      - UV_CACHE_DIR=/app/.cache/uv
+      - NPM_CONFIG_CACHE=/app/.cache/npm
 
     depends_on:
       pgbouncer:
@@ -281,10 +583,7 @@ services:
     ports:
       - "${SCITEX_HUB_UMAMI_PORT_PROD:-3300}:3000"
     environment:
-      # SCITEX_HUB_POSTGRES_* (renamed from SCITEX_CLOUD_POSTGRES_*, see #150).
-      # If undefined, substitution yields empty and prisma reports 28P01
-      # "password authentication failed for user '<os-user>'".
-      - DATABASE_URL=postgresql://${SCITEX_HUB_POSTGRES_USER}:${SCITEX_HUB_POSTGRES_PASSWORD}@postgres:5432/umami
+      - DATABASE_URL=postgresql://${SCITEX_HUB_POSTGRES_USER:?required — pass --env-file ../envs/.env.prod}:${SCITEX_HUB_POSTGRES_PASSWORD:?required — pass --env-file ../envs/.env.prod}@postgres:5432/umami
       - DATABASE_TYPE=postgresql
       - APP_SECRET=${SCITEX_HUB_UMAMI_APP_SECRET:-scitex-umami-secret-2026}
       - DISABLE_TELEMETRY=1
@@ -334,17 +633,17 @@ services:
       - /etc/localtime:/etc/localtime:ro
     ports:
       - "${SCITEX_HUB_GITEA_HTTP_PORT_PROD:-3000}:3000"  # HTTP (configurable via .env)
-      - "${SCITEX_HUB_GITEA_SSH_PORT_PROD}:22"           # SSH - requires .env
+      - "${SCITEX_HUB_GITEA_SSH_PORT_PROD:?required — pass --env-file ../envs/.env.prod}:22"
     env_file:
-      - .env
+      - ../envs/.env.prod
     environment:
       - USER_UID=1000
       - USER_GID=1000
       - GITEA__database__DB_TYPE=postgres
       - GITEA__database__HOST=postgres:5432
-      - GITEA__database__NAME=${SCITEX_HUB_POSTGRES_DB}
-      - GITEA__database__USER=${SCITEX_HUB_POSTGRES_USER}
-      - GITEA__database__PASSWD=${SCITEX_HUB_POSTGRES_PASSWORD}
+      - GITEA__database__NAME=${SCITEX_HUB_POSTGRES_DB:?required — pass --env-file ../envs/.env.prod}
+      - GITEA__database__USER=${SCITEX_HUB_POSTGRES_USER:?required — pass --env-file ../envs/.env.prod}
+      - GITEA__database__PASSWD=${SCITEX_HUB_POSTGRES_PASSWORD:?required — pass --env-file ../envs/.env.prod}
     depends_on:
       postgres:
         condition: service_healthy
@@ -385,9 +684,21 @@ services:
   # Cloudflare Tunnel (replaces traditional port forwarding!)
   cloudflared:
     image: cloudflare/cloudflared:latest
-    command: tunnel --no-autoupdate run --token ${SCITEX_HUB_CLOUDFLARE_TUNNEL_TOKEN_PROD}
+    # The token goes in the ENVIRONMENT, never on the command line.
+    # `--token <secret>` placed it in argv, where a bare `ps aux` by any user on
+    # the host prints it in full -- which is how it landed in an agent transcript
+    # on 2026-08-03. Note what rotating the token would NOT have fixed: the
+    # disclosure rate is a property of the STORAGE LOCATION, so a fresh token in
+    # argv leaks again on the next `ps`. cloudflared reads TUNNEL_TOKEN from the
+    # environment for exactly this reason.
+    # Interpolation is unchanged -- ${...} still resolves at compose parse time
+    # from --env-file, so this moves WHERE the secret lands, not where it comes
+    # from.
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${SCITEX_HUB_CLOUDFLARE_TUNNEL_TOKEN_PROD:?required — pass --env-file ../envs/.env.prod}
     env_file:
-      - .env
+      - ../envs/.env.prod
     restart: always
     networks:
       - scitex-network
@@ -400,6 +711,69 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+
+
+  # ============================================
+  # OpenAlex Local API (Prod only)
+  # ============================================
+  # Build context is ../openalex_local because THIS file lives in docker_prod/.
+  # (docker-compose.prod.yml used ./openalex_local -- it sits one level up.
+  # That file is NOT the one prod runs; see the Makefile prod target.)
+  openalex:
+    build:
+      context: ../openalex_local
+      dockerfile: Dockerfile
+    image: scitex-openalex-prod:latest
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+    ports:
+      - "${SCITEX_HUB_OPENALEX_PORT_PROD:-31292}:31292"
+    volumes:
+      # data/openalex.db in the repo is a SYMLINK into openalex-local.bak/data and
+      # does not resolve inside the container -- mount the REAL directory (the live
+      # ~1.43 TB DB + WAL sidecars). READ-ONLY: this DB must never be container-writable.
+      # The entrypoint additionally REFUSES to start on a non-empty -wal, because a
+      # read-only reader cannot apply pending frames and would serve stale data silently.
+      - ${OPENALEX_LOCAL_DB_DIR:-/home/ywatanabe/proj/openalex-local.bak/data}:/data:ro
+    environment:
+      - OPENALEX_LOCAL_DB=/data/openalex.db
+      - OPENALEX_LOCAL_PORT=31292
+      - OPENALEX_LOCAL_HOST=0.0.0.0
+      - LOG_LEVEL=info
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "--max-time", "25", "http://localhost:31292/health"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+      start_period: 120s
+    networks:
+      - scitex-network
+
+  # Acts on health. Docker itself only LABELS a container unhealthy — nothing
+  # restarts it. The #382 liveness watchdog therefore needs this: autoheal
+  # polls docker's health status and restarts any container labeled
+  # autoheal=true that goes unhealthy (the three celery services). Scoped by
+  # label, NOT "all": django's recovery belongs to the host-level watchdog
+  # with its boot-grace/cooldown guards (#304) — a second blind restarter
+  # fighting it caused the 2026-07-12 restart loops. Verified need
+  # 2026-07-17: the shared worker sat "unhealthy" 40+ min because the
+  # previously hand-run autoheal container did not survive the power-off
+  # reboot; defining it here with restart:always makes it boot-persistent.
+  autoheal:
+    image: willfarrell/autoheal:latest
+    restart: always
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=autoheal
+      - AUTOHEAL_INTERVAL=30
+      - AUTOHEAL_START_PERIOD=300
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - scitex-network
 
 volumes:
   # Use existing nas volumes to preserve all data (including Umami analytics)
@@ -422,6 +796,16 @@ volumes:
   scitex_config_volume:
     external: true
     name: scitex-hub-nas_scitex_config_volume
+  # New volumes (2026-07-10, hub-postboot-warmup-window) — brand new, no
+  # prior data to migrate, so plain auto-created volumes rather than
+  # `external: true` (which would require them to be pre-created by hand
+  # before the next `up`, hard-failing the deploy otherwise).
+  apps_volume:
+    driver: local
+  uv_cache_volume:
+    driver: local
+  npm_cache_volume:
+    driver: local
 
 networks:
   scitex-network:

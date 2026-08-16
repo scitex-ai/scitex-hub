@@ -93,6 +93,10 @@
     font-size: 1.1rem;
   }
 
+  .hero-landing .hero-tagline-secondary {
+    font-size: 0.95rem;
+  }
+
   .section-heading h2 {
     font-size: 1.875rem;
   }

@@ -160,6 +160,50 @@ body.workspace-page.landing-page .site-footer {
 }
 
 /* =========================
+   App Home Override
+   ========================= */
+/* The signed-in launcher at `/` renders the footer (workspace-layout.css and
+   footer.css both exclude `.app-home` from their hide rules, so the 特定商取引法
+   disclosure, the policy pages and contact are reachable). A page may not do
+   that AND stay pinned to the viewport.
+
+   Measured on prod 2026-08-11 at 390x844, before this rule:
+
+       header               45px
+       #workspace-layout   143px   <- asks for calc(100dvh - 44px) = 800px
+       #app-launcher       687px   <- clipped to 143px; 43 tiles unreachable
+       .site-footer        656px
+                           ------
+                           844px   = the whole viewport
+
+   `body.workspace-page` above pins the body to 100vh with overflow:hidden, and
+   `.site-footer` is flex-shrink:0. The app shell is then the only flexible item
+   in the column, so it absorbs the footer's entire height — and because the body
+   cannot scroll, what got clipped is gone. The operator reported it as "the app
+   icons are missing, only the footer, on iPhone"; the icons were always in the
+   DOM. Desktop was starved too (launcher 657px inside a 587px shell); its
+   footer is only 248px, so the tile grid still fit and it looked fine.
+
+   Same release as the landing-page override directly above, for the same reason:
+   let the document scroll, so the footer sits BELOW a full-height shell instead
+   of competing with it. The extra `flex-shrink: 0` is what landing does not need
+   — landing hides `.workspace-layout` outright, whereas the app home keeps the
+   shell and must stop it being squeezed.
+
+   Guarded by tests/templates/test_app_home_launcher_not_starved_by_footer.py.
+   Do not re-pin this surface without deleting that test and reading why it
+   exists. */
+body.workspace-page.app-home {
+  height: auto;
+  max-height: none;
+  overflow-y: auto;
+}
+
+body.workspace-page.app-home .workspace-layout {
+  flex-shrink: 0;
+}
+
+/* =========================
    Django Messages Container
    ========================= */
 

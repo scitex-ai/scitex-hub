@@ -102,6 +102,7 @@ def _build_module_config(manifest: dict, project) -> "ModuleConfig":
         order=int(manifest.get("order", 90)),
         accent_color=manifest.get("accent_color", ""),
         license=manifest.get("license", "AGPL-3.0"),
+        version=manifest.get("version", ""),
         ai_hint=description,
         default_enabled=False,
         status="wip",

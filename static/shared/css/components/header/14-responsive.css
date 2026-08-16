@@ -179,6 +179,30 @@
     display: flex;
   }
 
+  /* Reserve the fixed dock's band at the END of the menu's scroll.
+
+     The menu is position:fixed with bottom:0, so it spans to the viewport
+     edge, and the launcher dock floats over its last ~78px at the same
+     z-index (1100) while sitting later in the DOM — so the dock paints on
+     top and swallows taps there.
+
+     Measured on production at 390px with this PR's Legal section simulated:
+     scrolled fully to the bottom, a[href="/contact/"] landed at y 784..828
+     and elementFromPoint at its centre returned .launcher-dock. The menu can
+     only scroll 21px, nowhere near enough to lift a 44px row clear of a 64px
+     dock, so the last entry was permanently untappable.
+
+     That is the same defect this PR removes from the footer, one layer up:
+     the legal route would exist, render, and not be reachable. Scoped to
+     :has(.launcher-dock) because only launcher pages carry the dock —
+     elsewhere the menu already reaches the viewport edge safely.
+     --launcher-dock-clearance is the launcher's own single source of truth
+     for this band (apps_app/css/launcher/mobile.css), and it ships with the
+     dock; the literal fallback covers the var being absent. */
+  body:has(.launcher-dock) .mobile-header-menu {
+    padding-bottom: var(--launcher-dock-clearance, 102px);
+  }
+
   .mobile-header-menu .mobile-menu-item {
     display: flex;
     align-items: center;

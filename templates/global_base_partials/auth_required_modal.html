@@ -26,7 +26,8 @@
         </div>
         <div class="scitex-modal-footer">
             <button class="scitex-btn scitex-btn-secondary" onclick="window.hideAuthModal()">Continue Reading</button>
-            <a href="/accounts/login/"
+            {# /auth/login/ is the real login route — /accounts/login/ 404s. #}
+            <a href="/auth/login/"
                class="scitex-btn scitex-btn-primary"
                style="text-align: center;
                       text-decoration: none">Sign In</a>

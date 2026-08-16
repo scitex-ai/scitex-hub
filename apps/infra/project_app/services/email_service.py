@@ -8,10 +8,16 @@ import logging
 from django.conf import settings
 from django.core.mail import send_mail
 
+from config import branding
+
 logger = logging.getLogger(__name__)
 
 # Get site URL from settings for generating absolute URLs
 SITE_URL = getattr(settings, "SITE_URL", "http://127.0.0.1:8000")
+
+# Single source of truth: config/branding.py. Bound here the same way SITE_URL
+# is, so the email bodies below can interpolate it like any other value.
+CONTACT_EMAIL = branding.CONTACT_EMAIL
 
 
 class EmailService:
@@ -292,7 +298,7 @@ class EmailService:
                         <img src="{SITE_URL}/static/shared/images/scitex_logos/scitex-icon/scitex-icon-navy-inverted-48x48.png" alt="SciTeX" style="height: 32px; opacity: 0.6;">
                     </div>
                     <p>If you didn't request this deletion, please log in immediately and cancel it, then change your password.</p>
-                    <p>Need help? Contact us at support@scitex.ai</p>
+                    <p>Need help? Contact us at {CONTACT_EMAIL}</p>
                     <p>The SciTeX Team</p>
                 </div>
             </div>
@@ -322,7 +328,7 @@ class EmailService:
 
             If you didn't request this deletion, please log in immediately and cancel it, then change your password.
 
-            Need help? Contact us at support@scitex.ai
+            Need help? Contact us at {CONTACT_EMAIL}
 
             The SciTeX Team
             """

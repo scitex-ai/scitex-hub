@@ -25,8 +25,18 @@ from .api import (
 )
 from .landing import index, premium_subscription
 
+# Billing (Stripe scaffold)
+from .billing import billing_checkout, stripe_webhook
+
 # Legal pages
-from .legal import contact, cookie_policy, donate, privacy_policy, terms_of_use
+from .legal import (
+    contact,
+    cookie_policy,
+    donate,
+    privacy_policy,
+    terms_of_use,
+    tokushoho,
+)
 
 # Information pages
 from .pages import (
@@ -38,6 +48,9 @@ from .pages import (
     open_source,
     pricing,
     publications,
+    recruit,
+    security,
+    services,
     setup_guide,
     video_player,
 )
@@ -50,13 +63,15 @@ from .status import (
     healthz,
     public_status_api,
     public_status_view,
-    render_metric_chart,
     server_health_status_api,
     server_metrics_export_csv,
     server_metrics_history_api,
+    server_metrics_series_api,
     server_status,
     server_status_api,
+    status_api,
     versions_api,
+    visitor_enter,
     visitor_expired,
     visitor_fill_slots_api,
     visitor_free_slots_api,
@@ -84,23 +99,33 @@ __all__ = [
     "publications",
     "fundraising",
     "pricing",
+    "services",
+    "security",
     "contributors",
     "keyboard_shortcuts",
+    "recruit",
     # Legal
     "contact",
     "donate",
     "privacy_policy",
     "terms_of_use",
     "cookie_policy",
+    "tokushoho",
+    # Billing
+    "billing_checkout",
+    "stripe_webhook",
     # Status
     "server_status",
     "server_status_api",
+    "status_api",
     "healthz",
     "server_health_status_api",
     "server_metrics_history_api",
     "server_metrics_export_csv",
+    "server_metrics_series_api",
     "versions_api",
     "visitor_status",
+    "visitor_enter",
     "visitor_restart_session",
     "visitor_expired",
     "visitor_pool_full",
@@ -109,7 +134,6 @@ __all__ = [
     "visitor_free_slots_api",
     "visitor_heartbeat_api",
     "visitor_resources_api",
-    "render_metric_chart",
     # API
     "api_docs",
     "api_docs_section",

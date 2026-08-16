@@ -220,15 +220,18 @@ def api_load_file_from_repo(request, username, slug):
 
         full_path = project_path / file_path
 
-        # Security check: ensure file is within project directory
+        # Security check: component-wise containment (UNROUTED shadowed
+        # duplicate). The validator resolves both sides internally.
+        from ...services.filesystem.permissions import validate_path_in_project
+
         try:
             full_path = full_path.resolve()
             project_path = project_path.resolve()
-            if not str(full_path).startswith(str(project_path)):
+            if not validate_path_in_project(project_path, full_path):
                 return JsonResponse(
                     {"error": "Access denied: path outside project"}, status=403
                 )
-        except Exception as e:
+        except (OSError, RuntimeError) as e:
             return JsonResponse({"error": f"Invalid path: {e}"}, status=400)
 
         if not full_path.exists():

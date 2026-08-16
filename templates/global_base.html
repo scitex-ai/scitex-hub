@@ -1,9 +1,10 @@
-{% load static vite %}
+{% load static vite branding_tags %}
 
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>{% include 'global_base_partials/page_title.html' %}</title>
+        {# Single source of truth for tab titles: config/branding.py #}
+        <title>{% page_title %}</title>
         {% include 'global_base_partials/global_head_meta.html' %}
         {% include 'global_base_partials/global_head_styles.html' %}
         <!-- Umami Analytics (privacy-focused, no cookies) -->
@@ -16,13 +17,60 @@
         {% block head_extra %}{% endblock %}
         {% block extra_css %}{% endblock %}
     </head>
+    {% comment %}
+        BODY CLASS — `landing-page` keys off WHICH PAGE RENDERS, never off the
+        session role. Both facts below are load-bearing; read them together.
+
+        `landing-page` is not a statement about the user. workspace-layout.css
+        uses it for TWO opposite jobs:
+            :140  body.landing-page .workspace-layout { display: none }
+            :152  body.landing-page .site-footer      { display: block }
+        so it means "the marketing page is rendering: hide the app shell, show
+        the footer". Apply it to a page that IS the app shell and the entire
+        workspace collapses to 0x0.
+
+        THAT REGRESSION SHIPPED. The previous version of this block keyed the
+        class on the session role — `{% if not user.is_authenticated or is_visitor %}`
+        — to fix a footer that was missing for visitors ON /landing/ (#499).
+        But this branch also covers `/`, and `/` is NOT the landing page for a
+        visitor: repo_app/views/dispatch.py root_dispatch redirects only
+        ROLE_ANONYMOUS to marketing and renders the app-launcher for every other
+        role. So every visitor's launcher got `landing-page` and was hidden —
+        13 launcher tiles present in the DOM, all 0x0, header and footer the only
+        things on screen. Operator-reported ~4.5h later, 2026-07-30.
+        A footer on one page was traded for a blank workspace on another,
+        because one class carried two meanings.
+
+        So the condition is PATH-BASED, plus anonymity only where the path is
+        genuinely ambiguous:
+            /landing/  -> always the landing page, for ANY role (keeps #499 fixed)
+            /          -> landing page ONLY when anonymous; otherwise the launcher
+        Do not reintroduce `is_visitor` here. If a future session-specific need
+        arises, add a SEPARATE class rather than overloading this one — and note
+        that the durable fix is to stop hiding .site-footer globally and
+        restoring it by exception, so a page cannot silently lose either the
+        footer or the shell.
+        data-user-type below is the right place for role-derived values.
+
+        THIS NOTE LIVES OUTSIDE THE <body> TAG ON PURPOSE, AND USES
+        {% comment %} RATHER THAN A {# #} PAIR. It was previously a MULTI-LINE
+        {# #} sitting between two body attributes. Django's {# #} is
+        SINGLE-LINE ONLY, so a multi-line one is never lexed as a comment and
+        renders VERBATIM. Rendered inside a tag, the browser then parsed every
+        word of it as a boolean attribute (`hides=""`, `globally=""`,
+        `body.landing-page.=""`, …) and the embedded double quotes swallowed
+        the real class attribute — so body carried NO landing-page class and
+        the footer stayed display:none. The comment explaining the footer fix
+        was what broke the footer fix. Keep explanations out of tag interiors.
+    {% endcomment %}
     <body data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}"
-          data-user-type="{% if user.is_authenticated and user.username == 'readonly-visitor' %}read-only{% elif user.is_authenticated and user.username|slice:':8' == 'visitor-' %}visitor{% elif user.is_authenticated %}registered{% else %}anonymous{% endif %}"
+          data-session-role="{{ session_role|default:'anonymous' }}"
+          data-user-type="{% if session_role == 'readonly_visitor' %}read-only{% elif session_role == 'visitor' %}visitor{% elif user.is_authenticated %}registered{% else %}anonymous{% endif %}"
           {% if user.is_authenticated %}data-current-username="{{ user.username }}"{% endif %}
           data-track-module="{% if active_module %}{{ active_module.get_track_module }}{% elif '/server-status' in request.path %}server_status{% elif '/explore/' in request.path %}explore{% elif '/workspace/' in request.path %}files{% endif %}"
           {% if request.initial_pane %}data-initial-pane="{{ request.initial_pane }}"{% endif %}
           {% if request.chat_session_token %}data-chat-session-token="{{ request.chat_session_token }}"{% endif %}
-          class="{% if request.path == '/' or request.path == '/landing/' %}workspace-page{% if not user.is_authenticated or user.username|slice:':8' == 'visitor-' or user.username == 'readonly-visitor' %} landing-page{% endif %}{% if user.is_authenticated %} no-transition{% endif %}{% elif active_module %}workspace-page {{ active_module.body_class }} no-transition{% elif '/workspace/' in request.path %}workspace-page no-transition{% elif '/explore/' in request.path %}workspace-page explore-page{% endif %}">
+          class="{% if request.path == '/' or request.path == '/landing/' %}workspace-page{% if request.path == '/landing/' or not user.is_authenticated %} landing-page{% else %} no-transition app-home{% endif %}{% elif active_module %}workspace-page {{ active_module.body_class }} no-transition{% elif '/workspace/' in request.path %}workspace-page no-transition{% elif '/explore/' in request.path %}workspace-page explore-page{% endif %}">
         <!-- Loading screen — hides FOUC until CSS/JS adds body.app-ready -->
         <!-- hook-bypass: inline-script -->
         <div id="app-loading-screen">
@@ -69,8 +117,11 @@
             <div id="workspace-layout" class="workspace-layout">
                 {% include 'global_base_partials/workspace_sidebar.html' %}
                 <div id="workspace-content" class="workspace-content">
-                    <!-- Chat pane: welcome overlay + AI panel (chat mode) -->
-                    <div class="workspace-pane" id="pane-chat" data-pane="chat">
+                    <!-- Chat pane: welcome overlay + AI panel (chat mode).
+                         Server-renders active on /chat/ (request.initial_pane
+                         == 'chat') so the snake welcome pane shows immediately,
+                         independent of the sidebar switch JS booting. -->
+                    <div class="workspace-pane{% if request.initial_pane == 'chat' %} active{% endif %}" id="pane-chat" data-pane="chat">
                         {% include 'global_base_partials/workspace_chat_pane.html' %}
                         <div id="ai-panel-container">{% include 'global_base_partials/workspace_ai_pane.html' %}</div>
                     </div>
@@ -87,8 +138,10 @@
                             <div class="editor-split-right">{% include 'global_base_partials/workspace_viewer_pane.html' %}</div>
                         </div>
                     </div>
-                    <!-- Module pane (active module content) -->
-                    <div class="workspace-pane active" id="pane-module" data-pane="module">
+                    <!-- Module pane (active module content). Default-active on
+                         every workspace page EXCEPT /chat/, where the chat pane
+                         above takes over. -->
+                    <div class="workspace-pane{% if request.initial_pane != 'chat' %} active{% endif %}" id="pane-module" data-pane="module">
                     {% else %}
                         <!-- Non-workspace pages: standard layout with header -->
                         {% if not workspace_has_panes or not user.is_authenticated %}

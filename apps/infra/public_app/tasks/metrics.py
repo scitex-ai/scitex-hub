@@ -14,7 +14,7 @@ from django.core.cache import cache
 from django.db import connection
 from django.utils import timezone
 
-from apps.infra.public_app.models import ServerMetrics
+from apps.infra.public_app.models import ServerMetrics, SiteHealthProbe
 
 from .utils import check_port
 
@@ -199,6 +199,15 @@ def collect_server_metrics(self):
         if deleted_count > 0:
             logger.info(
                 f"Deleted {deleted_count} old metric records (older than 30 days)"
+            )
+
+        # Same 30-day retention for site health probes (check_site_health)
+        deleted_probes, _ = SiteHealthProbe.objects.filter(
+            timestamp__lt=cutoff_date
+        ).delete()
+        if deleted_probes > 0:
+            logger.info(
+                f"Deleted {deleted_probes} old site health probe records (older than 30 days)"
             )
 
         logger.debug(

@@ -5,6 +5,7 @@ Contains: ProjectPermission, VisitorAllocation
 """
 
 from django.db import models
+from django.utils import timezone
 
 
 class ProjectPermission(models.Model):
@@ -57,7 +58,11 @@ class VisitorAllocation(models.Model):
     allocation_token = models.CharField(
         max_length=64, unique=True, help_text="Security token"
     )
-    allocated_at = models.DateTimeField(auto_now_add=True)
+    # NOT auto_now_add: slot rows are created once and REUSED across
+    # visitors, so an insert-time stamp records row creation, not the
+    # current allocation (on prod every row still read February). The
+    # allocator overwrites this on every handoff.
+    allocated_at = models.DateTimeField(default=timezone.now)
     expires_at = models.DateTimeField(help_text="Allocation expiry time")
     is_active = models.BooleanField(default=True, help_text="Active allocation")
     last_activity = models.DateTimeField(
@@ -65,8 +70,22 @@ class VisitorAllocation(models.Model):
     )
     workspace_ready = models.BooleanField(
         default=False,
-        help_text="Whether async workspace initialization (template clone) has completed",
+        help_text=(
+            "Whether the slot's workspace has been wiped, re-cloned and "
+            "VERIFIED clean. Allocation only serves slots with "
+            "workspace_ready=True (security gate — see visitor_pool README)."
+        ),
     )
+    quarantined = models.BooleanField(
+        default=False,
+        help_text=(
+            "Slot failed wipe/verify (or was in an unknown state at boot) "
+            "and must NEVER be allocated until re-verified clean via "
+            "`manage.py reconcile_visitor_slots`."
+        ),
+    )
+    quarantined_at = models.DateTimeField(null=True, blank=True)
+    quarantine_reason = models.TextField(blank=True, default="")
 
     class Meta:
         ordering = ["visitor_number"]
@@ -77,5 +96,10 @@ class VisitorAllocation(models.Model):
         ]
 
     def __str__(self):
-        status = "active" if self.is_active else "expired"
+        if self.quarantined:
+            status = "quarantined"
+        elif self.is_active:
+            status = "active"
+        else:
+            status = "expired"
         return f"visitor-{self.visitor_number:03d} ({status})"

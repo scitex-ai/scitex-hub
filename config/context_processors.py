@@ -9,6 +9,8 @@ from pathlib import Path
 
 from django.conf import settings
 
+from config import branding
+
 # Cache the build_id to avoid repeated file system calls
 _cached_build_id = None
 _last_check_time = 0
@@ -150,28 +152,93 @@ def site_branding(request):
     return {
         "SITE_NAME": branding.SITE_NAME,
         "SITE_TAGLINE": branding.SITE_TAGLINE,
+        "SITE_TAGLINE_SECONDARY": branding.SITE_TAGLINE_SECONDARY,
         "SITE_DESCRIPTION": branding.SITE_DESCRIPTION,
         "META_DESCRIPTION_DEFAULT": branding.META_DESCRIPTION_DEFAULT,
         "OG_TITLE": branding.OG_TITLE,
         "OG_DESCRIPTION": branding.OG_DESCRIPTION,
+        # Public contact addresses. Templates must use these rather than
+        # hardcoding an address, so changing one is a single edit and cannot go
+        # half-applied across pages. NOTE templates/500.html cannot use them —
+        # Django's default handler500 renders without context processors, so a
+        # {{ }} there would emit an empty mailto:. See config/branding.py.
+        "CONTACT_EMAIL": branding.CONTACT_EMAIL,
+        "LEGAL_EMAIL": branding.LEGAL_EMAIL,
+        "PRIVACY_EMAIL": branding.PRIVACY_EMAIL,
+        "RECRUIT_EMAIL": branding.RECRUIT_EMAIL,
+        # branding.NOREPLY_EMAIL is deliberately NOT exported: it is a mail
+        # SENDER, never something a page invites a reader to write to. Its one
+        # use site (apps/infra/public_app/tasks/health.py) is Python and imports
+        # the constant directly.
+        #
+        # The registered company address and name, READ-ONLY here. These are the
+        # only two values in this function that come from Django settings rather
+        # than config/branding.py, and that asymmetry is deliberate:
+        # settings_commerce.py OWNS them because they are 特定商取引法
+        # legal-disclosure facts, env-driven and changeable only when the
+        # operator says so. This export WIDENS READ ACCESS so any template can
+        # show the real address; it does not relocate ownership. Do NOT move the
+        # definitions into config/branding.py, and do NOT point them at
+        # branding.CONTACT_EMAIL's neighbours -- config/branding.py carries the
+        # matching warning about exactly that class of refactor.
+        #
+        # WHY THIS EXISTS: /cookies/ published a FABRICATED US address
+        # ("123 Science Park, San Francisco, CA 94107") while the app already
+        # held the real one and rendered it correctly on /services/tokushoho/.
+        # The page contradicted a value the app owned. The tokushoho VIEW passes
+        # its own lowercase ``company_address`` for that page only, so a template
+        # outside that view had no way to read it -- writing
+        # ``{{ company_address }}`` into any other template renders EMPTY.
+        # Exported in SCREAMING_SNAKE to match this function's other keys and to
+        # stay textually distinct from the tokushoho view's lowercase context, so
+        # the two never silently shadow one another.
+        #
+        # The getattr default is NOT an unconsidered silent fallback. settings
+        # ALWAYS defines these (settings_commerce.py is star-imported by
+        # settings_shared, which every environment inherits), so the default is
+        # unreachable in practice. It is kept because this processor runs on EVERY
+        # template: raising here would 500 the entire site over one line of one
+        # legal page. The loudness lives in the test instead --
+        # tests/apps/public_app/views/test_legal_addresses.py asserts the setting
+        # is non-trivial AND that the real string reaches the rendered /cookies/
+        # body, so an empty value fails CI and can never ship quietly. Same
+        # "SSoT by ASSERTION where raising is the wrong tool" pattern as
+        # tests/config/test_contact_email_ssot.py.
+        "COMPANY_ADDRESS": getattr(settings, "COMPANY_ADDRESS", ""),
+        # COMPANY_NAME is "株式会社 SciTeX" -- the entity that does not legally
+        # exist until incorporation completes (2026-08-08). It is exported so the
+        # switch on that date is a one-token template edit rather than a
+        # context-processor change, but the general legal pages deliberately
+        # render SITE_NAME ("SciTeX") until then: the operator ruled that naming a
+        # company which does not yet exist replaces one false statement with
+        # another. /services/tokushoho/ is the ONE page that names the statutory
+        # entity, and it reads settings directly through its own view.
+        "COMPANY_NAME": getattr(settings, "COMPANY_NAME", ""),
     }
 
 
 def scitex_env(request):
     """
-    Expose SCITEX_HUB_ENV to templates for environment-specific rendering.
-    Values: 'development', 'staging', 'production'
+    Expose the deployment environment to templates.
+
+    The environment is read from ``settings.SCITEX_ENV``, which each concrete
+    settings module (settings_dev / settings_staging / settings_prod) declares
+    literally. It is deliberately NOT re-derived from the SCITEX_HUB_ENV
+    environment variable here: the settings module Django is actually running
+    under IS the environment, and reading it twice from two sources is how the
+    favicon and the deployment drift apart.
+
+    ``SCITEX_FAVICON`` is the static-relative path of the environment's tab
+    icon -- the same SciTeX brand mark in a per-environment colour, so prod /
+    staging / dev are distinguishable from the tab icon alone.
     """
-    env = os.environ.get("SCITEX_HUB_ENV", "development").lower()
-    # Normalize aliases
-    if env in ("dev",):
-        env = "development"
-    elif env in ("stag",):
-        env = "staging"
-    elif env in ("prod",):
-        env = "production"
+    env = branding.normalize_env(settings.SCITEX_ENV)
     return {
         "SCITEX_ENV": env,
-        "IS_STAGING": env == "staging",
-        "IS_PRODUCTION": env == "production",
+        "IS_STAGING": env == branding.ENV_STAGING,
+        "IS_PRODUCTION": env == branding.ENV_PRODUCTION,
+        "SCITEX_FAVICON": branding.favicon_for_env(env),
+        # "dev" / "staging" / "standalone", or None in hub production. Same
+        # marker the tab title uses, so chrome and tab never disagree.
+        "SCITEX_ENV_MARKER": branding.title_marker(env, settings.SCITEX_APP_MODE),
     }

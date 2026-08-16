@@ -1,17 +1,49 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Timestamp: 2026-02-04
+# Timestamp: 2026-07-10
 # File: config/settings/settings_logging.py
 """Logging configuration for SciTeX Hub."""
 
 import os
 from pathlib import Path
 
+from scitex_config._ecosystem import local_state
+
 # Get BASE_DIR from parent - this will be set by the importing module
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-# Mirror settings_shared.LOG_DIR: GITIGNORED/logs/ by default (PS-102:
-# no runtime artifact at repo root); override with SCITEX_HUB_LOG_DIR.
-LOG_DIR = Path(os.environ.get("SCITEX_HUB_LOG_DIR", BASE_DIR / "GITIGNORED" / "logs"))
+
+# LOG_DIR: hub-wide (NOT per-visitor-project) operational runtime state for
+# this Django/Celery process. Resolved via the ecosystem's canonical
+# runtime-state-db-layout convention (scitex-dev skill
+# general/01_ecosystem/12_local-state-resolution.md +
+# 13_runtime-state-db-layout.md): logs are RUNTIME-nature data, so they
+# resolve through ``local_state.runtime_path()`` rather than a hand-rolled
+# precedence walk (PS-182 forbids the latter). This is deliberately NOT
+# the same pattern as the per-visitor ``.scitex/writer`` / ``.scitex/scholar``
+# paths (those live under each visitor's own project directory under
+# USER_DATA_ROOT) -- server-process logs belong to the hub deployment
+# itself, not to any one visitor's project.
+#
+# ``runtime_path("hub", "logs")`` resolves to
+# ``<repo-root>/.scitex/hub/runtime/logs`` when this checkout is a git
+# repo with ``.scitex/hub/`` present (dev: repo bind-mounted into /app,
+# .git included), else falls back to ``$SCITEX_DIR/hub/runtime/logs``
+# (prod/staging: SCITEX_DIR=/app/.scitex is set explicitly in
+# docker-compose.yml, so this resolves to the SAME physical path -- a
+# persistent named Docker volume that root-init.sh creates + chowns
+# unconditionally on every boot). Either way, the directory is also
+# created lazily by ``runtime_path()`` itself, so a fallback default can
+# never again silently point at a directory nothing prepared. See
+# incident hub-prod-outage-celery-log-permission (2026-07-09/10).
+#
+# SCITEX_HUB_LOG_DIR remains a legitimate operator override (e.g. to
+# redirect logs to a different mount); only the *default* changed.
+_log_dir_override = os.environ.get("SCITEX_HUB_LOG_DIR")
+LOG_DIR = (
+    Path(_log_dir_override)
+    if _log_dir_override
+    else local_state.runtime_path("hub", "logs")
+)
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 LOGGING = {
@@ -38,6 +70,13 @@ LOGGING = {
         "require_debug_false": {
             "()": "django.utils.log.RequireDebugFalse",
         },
+        # Keeps the admin mailbox readable: the first of each distinct error
+        # goes out, its repeats are dropped for the window and counted into
+        # the next message. Without it, one crash-looping view delivers
+        # hundreds of identical emails and the operator mutes the channel.
+        "suppress_repeated_errors": {
+            "()": "config.settings._suppress_repeated_errors.SuppressRepeatedErrors",
+        },
     },
     "handlers": {
         "console": {
@@ -46,9 +85,19 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "standard",
         },
+        # THE OPERATOR NOTIFICATION RAIL. Every logger below that can carry an
+        # operational failure attaches this, so a failure reaches a person and
+        # not only a rotating file nobody opens. It was defined here and
+        # referenced by NO logger until 2026-08-15, which is why the visitor
+        # pool sat 14/16 quarantined for four days: the error WAS logged, to
+        # errors.log, and nowhere else.
+        #
+        # Recipients come from ADMINS (settings_shared). require_debug_false
+        # keeps it off developer machines; suppress_repeated_errors keeps one
+        # looping failure from burying every other message.
         "mail_admins": {
             "level": "ERROR",
-            "filters": ["require_debug_false"],
+            "filters": ["require_debug_false", "suppress_repeated_errors"],
             "class": "django.utils.log.AdminEmailHandler",
             "formatter": "verbose",
         },
@@ -142,12 +191,12 @@ LOGGING = {
             "propagate": False,
         },
         "django.request": {
-            "handlers": ["django_file", "error_file"],
+            "handlers": ["django_file", "error_file", "mail_admins"],
             "level": "INFO",
             "propagate": False,
         },
         "django.security": {
-            "handlers": ["error_file"],
+            "handlers": ["error_file", "mail_admins"],
             "level": "ERROR",
             "propagate": False,
         },
@@ -182,28 +231,31 @@ LOGGING = {
         },
         # All errors
         "scitex.errors": {
-            "handlers": ["error_file", "console"],
+            "handlers": ["error_file", "console", "mail_admins"],
             "level": "ERROR",
             "propagate": False,
         },
-        # App-specific loggers
+        # App-specific loggers. These sit at DEBUG so their files stay
+        # detailed; mail_admins is itself level ERROR, so only failures leave
+        # the machine. apps.infra.project_app carries the visitor-pool and
+        # template-clone path whose four-day silent failure motivated this.
         "apps.workspace.writer_app": {
-            "handlers": ["writer_app_file", "console"],
+            "handlers": ["writer_app_file", "console", "mail_admins"],
             "level": "DEBUG",
             "propagate": False,
         },
         "apps.workspace.scholar_app": {
-            "handlers": ["scholar_app_file", "console"],
+            "handlers": ["scholar_app_file", "console", "mail_admins"],
             "level": "DEBUG",
             "propagate": False,
         },
         "apps.workspace.console_app": {
-            "handlers": ["console_app_file", "console"],
+            "handlers": ["console_app_file", "console", "mail_admins"],
             "level": "DEBUG",
             "propagate": False,
         },
         "apps.infra.project_app": {
-            "handlers": ["project_app_file", "console"],
+            "handlers": ["project_app_file", "console", "mail_admins"],
             "level": "DEBUG",
             "propagate": False,
         },

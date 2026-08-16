@@ -26,6 +26,9 @@ from .file_ops_utils import (
 
 logger = logging.getLogger(__name__)
 
+# Cap on URL downloads (tenant-supplied source) to bound disk usage / abuse.
+_MAX_DOWNLOAD_BYTES = 100 * 1024 * 1024  # 100 MiB
+
 
 @require_http_methods(["POST"])
 def api_file_move(request, username, slug):
@@ -155,19 +158,25 @@ def api_file_upload_url(request, username, slug):
                 {"success": False, "error": "URL is required"}, status=400
             )
 
-        if not url.startswith(("http://", "https://")):
-            return JsonResponse(
-                {"success": False, "error": "Invalid URL scheme"}, status=400
-            )
+        # SSRF protection: a bare requests.get on a tenant-supplied URL can reach
+        # internal services (127.0.0.1 Gitea, 169.254.169.254 cloud metadata,
+        # RFC1918 mgmt/DB). fetch_public_url resolves the host ONCE, rejects any
+        # non-public address, and PINS the vetted IP for the socket so a
+        # DNS-rebinding second lookup cannot retarget the connection; every
+        # redirect hop is pinned the same way and non-http(s) schemes are
+        # rejected. See apps/infra/project_app/url_safety.py.
+        from apps.infra.project_app.url_safety import fetch_public_url
 
         try:
-            resp = requests.get(
+            resp = fetch_public_url(
                 url,
-                timeout=30,
-                stream=True,
                 headers={"User-Agent": "Mozilla/5.0 (compatible; SciTeX/1.0)"},
             )
             resp.raise_for_status()
+        except ValueError as e:
+            return JsonResponse(
+                {"success": False, "error": str(e)}, status=400
+            )
         except requests.RequestException as e:
             return JsonResponse(
                 {"success": False, "error": f"Failed to download: {str(e)}"}, status=400
@@ -181,8 +190,22 @@ def api_file_upload_url(request, username, slug):
             return ERR_INVALID_PATH
 
         dest_full.parent.mkdir(parents=True, exist_ok=True)
+        total = 0
         with open(dest_full, "wb") as f:
             for chunk in resp.iter_content(chunk_size=8192):
+                total += len(chunk)
+                if total > _MAX_DOWNLOAD_BYTES:
+                    resp.close()
+                    f.close()
+                    dest_full.unlink(missing_ok=True)
+                    return JsonResponse(
+                        {
+                            "success": False,
+                            "error": "Download exceeds maximum size "
+                            f"({_MAX_DOWNLOAD_BYTES // (1024 * 1024)} MiB)",
+                        },
+                        status=400,
+                    )
                 f.write(chunk)
 
         file_size = dest_full.stat().st_size

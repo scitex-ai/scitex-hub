@@ -1,0 +1,45 @@
+name: command -v Guard
+
+# Fail the build if any tracked shell script calls `command -v` with trailing
+# arguments. `command -v` takes command NAMES and ignores those arguments, so
+# `command -v python3 -m pip` tests only python3 and returns 0 on every machine
+# that ships it — the branch it guards never runs. Motivating incident:
+# deployment/host-setup/provision-compute-node.sh (PR #553, fixed in #554),
+# where the guarded apt step was skipped on a bare node and `python3 -m venv`
+# then died. It passed human review and passed on the only host it was ever run
+# against, because that host had pip preinstalled. Root-cause guard.
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+# Supersede a pull request's own earlier runs, which nobody will read once a
+# newer commit exists. Keyed per workflow per ref, so different PRs never
+# cancel each other.
+#
+# cancel-in-progress is TRUE ONLY FOR pull_request. A push to main or develop
+# is never cancelled: back-to-back merges would otherwise kill the earlier
+# merge's run, and anything treating a develop run as a gate would lose it
+# silently. Superseding an in-flight PR run is free; superseding a branch run
+# is a decision nobody made.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check-command-v-args:
+    name: No command -v calls with trailing args
+    # Pure bash + git, no Python — mirrors the symlink guard, so no uv/venv step.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Self-test the guard (red-before-green)
+        run: bash scripts/maintenance/check_command_v_args.sh --self-test
+
+      - name: Run command -v guard against tracked files
+        run: bash scripts/maintenance/check_command_v_args.sh

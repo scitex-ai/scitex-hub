@@ -1,5 +1,5 @@
 /* Security policy page styles */
-@import url("shared/variables.css");
+@import url("../shared/variables.css");
 
 .policy-container {
   padding: 2rem;

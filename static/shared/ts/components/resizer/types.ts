@@ -22,6 +22,20 @@ export interface HorizontalConfig {
   externalToggleBtnId?: string;
   accordion?: boolean;
   snapPoints?: number[];
+  /**
+   * On a phone-width viewport, collapse the SECOND (right) panel rather than
+   * the first. Set via `data-collapse-on-narrow` on the resizer element.
+   *
+   * OFF BY DEFAULT AND OPT-IN PER RESIZER. The narrow-viewport rule in
+   * BaseResizer.restoreState() was written for a left sidebar and collapses
+   * the FIRST panel, which is correct for most consumers and catastrophic for
+   * Writer: its resizer declares data-left=".writer-container" (the document),
+   * so a phone collapsed the editor and left the Details panel spanning the
+   * whole workspace. Opt-in keeps every other consumer byte-for-byte unchanged
+   * — notably Scholar's library panes, whose mobile layout already works as
+   * scroll-snap swipe pages and must not be collapsed.
+   */
+  collapseOnNarrow?: boolean;
 }
 
 /** Configuration for VerticalResizer */
@@ -55,6 +69,8 @@ export interface BaseOpts {
   externalToggleBtnId?: string;
   accordion?: boolean;
   snapPoints?: number[];
+  /** See HorizontalConfig.collapseOnNarrow — opt-in, off by default. */
+  collapseOnNarrow?: boolean;
 }
 
 /** Cascade propagation target tracked during a drag operation */

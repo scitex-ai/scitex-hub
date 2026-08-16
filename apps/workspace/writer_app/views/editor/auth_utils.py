@@ -63,7 +63,9 @@ def api_login_optional(view_func):
                 # Regular authenticated user - verify ownership or access
                 if project.owner != request.user:
                     # Check if user has access through team/collaboration
-                    if not project.team_members.filter(id=request.user.id).exists():
+                    if not project.collaborators.filter(
+                        id=request.user.id
+                    ).exists():
                         return JsonResponse(
                             {
                                 "success": False,
@@ -117,6 +119,44 @@ def api_login_optional(view_func):
         return view_func(request, project_id, *args, **kwargs)
 
     return wrapper
+
+
+def user_can_access_project(request, project):
+    """Whether the request's caller may access ``project`` (owner / team / visitor).
+
+    Mirrors the authorization logic of :func:`api_login_optional` (owner, team
+    member, or a visitor whose session is bound to this project), but usable
+    from views that resolve ``project_id`` from a query param instead of the URL
+    path -- where the decorator cannot be applied because its wrapper requires
+    ``project_id`` as a positional URL argument. Returns a plain bool so the
+    caller can emit its own JSON error (fail closed, never mask).
+    """
+    if request.user.is_authenticated:
+        if request.user.username.startswith("visitor-"):
+            from apps.infra.project_app.services.visitor_pool import VisitorPool
+
+            visitor_project_id = request.session.get(VisitorPool.SESSION_KEY_PROJECT_ID)
+            if visitor_project_id and int(visitor_project_id) == int(project.id):
+                return True
+            return project.owner_id == request.user.id
+        # Regular authenticated user: owner or collaborator.
+        if project.owner_id == request.user.id:
+            return True
+        # `collaborators` is the real M2M (Project.collaborators, through
+        # ProjectMembership). `team_members` NEVER existed on the model, so
+        # this line used to raise AttributeError for every authenticated
+        # non-owner — see the module note in the commit for why that was
+        # worse than a typo.
+        return project.collaborators.filter(id=request.user.id).exists()
+
+    # Anonymous visitor: session must be bound to THIS project and its owner.
+    visitor_project_id = request.session.get("visitor_project_id")
+    visitor_user_id = request.session.get("visitor_user_id")
+    if not visitor_project_id or int(visitor_project_id) != int(project.id):
+        return False
+    if not visitor_user_id:
+        return False
+    return int(project.owner_id) == int(visitor_user_id)
 
 
 def get_user_for_request(request, project_id):

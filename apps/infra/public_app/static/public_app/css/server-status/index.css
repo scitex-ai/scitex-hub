@@ -4,11 +4,19 @@
  * Imports all modular CSS files
  */
 
-@import url('./legend.css');
-@import url('./controls.css');
-@import url('./metrics.css');
-@import url('./visitor-pool.css');
-@import url('./slots.css');
-@import url('./responsive.css');
-@import url('./architecture.css');
-@import url('./versions.css');
+@import url("./legend.css");
+@import url("./controls.css");
+@import url("./metrics.css");
+/* charts.css is deliberately NOT imported here. Measured 2026-07-30 with
+ * django.contrib.staticfiles.finders.find(): STATICFILES_DIRS puts the
+ * repo-root static/ tree FIRST, so "public_app/css/server-status/index.css"
+ * resolves to static/public_app/css/server-status/index.css — a DIVERGENT
+ * second copy of this directory — and THIS file is never served. An @import
+ * added here would silently never load. server_status.html links charts.css
+ * directly with {% static %}; that filename exists in only one tree, so the
+ * finder falls through to it deterministically. */
+@import url("./visitor-pool.css");
+@import url("./slots.css");
+@import url("./responsive.css");
+@import url("./architecture.css");
+@import url("./versions.css");

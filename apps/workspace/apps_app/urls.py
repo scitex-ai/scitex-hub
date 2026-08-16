@@ -34,6 +34,7 @@ urlpatterns = [
     ),
     # API — must come before <str:module_name> catch-all
     path("api/reorder/", views.api_reorder, name="api_reorder"),
+    path("api/<str:module_name>/pin/", views.api_pin, name="api_pin"),
     path("api/<str:module_name>/install/", views.api_install, name="api_install"),
     path("api/<str:module_name>/uninstall/", views.api_uninstall, name="api_uninstall"),
     path("api/<str:module_name>/toggle/", views.api_toggle, name="api_toggle"),
