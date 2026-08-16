@@ -8,13 +8,12 @@ from __future__ import annotations
 AUDIO_TOOLS = [
     {
         "name": "Transcribe Audio",
+        "slug": "transcribe-audio",
         "description": "Turn a recording into text, on our own hardware. Japanese and English are auto-detected.",
         "use_case": "Transcribe an interview, a seminar recording, or a spoken note",
         # The app is mounted at "apps/" (config/urls.py), so the served path is
-        # /apps/tools/... — `reverse("tools_app:tool_transcribe_audio")` returns exactly
-        # this. The sibling domains all advertise a bare "/tools/..." instead, which does
-        # NOT reach the tool; see the card referenced in the PR. Matching reverse() rather
-        # than matching the neighbours, because the neighbours are the ones that are wrong.
+        # /apps/tools/..., which is what reverse("tools_app:tool_transcribe_audio")
+        # returns. Every sibling domain uses the same prefix.
         "bookmarklet_url": "/apps/tools/transcribe-audio/",
         "icon": "🎙️",
     },
