@@ -16,13 +16,17 @@ name: scitex-ai/python-security-barriers
 # version number is how a model change silently fails to reach the analysis.
 # That is the same "looked like it worked" failure this pack's own history
 # records three times.
-# 0.2.0 -> 0.3.0: adds the validate_slack_webhook_url barrier (request-forgery).
-# A new model, so a minor bump. Bumping is NOT optional even though this
-# particular entry is UNMEASURED (see the note on it in path-barriers.yml):
-# republishing an unchanged version is the documented way a model change
-# silently fails to reach the analysis, and shipping it unbumped would make
-# "did it bind?" unanswerable for the next reader too.
-version: 0.3.0
+# 0.3.0 -> 0.4.0: REMOVES the validate_slack_webhook_url barrier that 0.3.0
+# added. It was published unmeasured, it was then measured on develop, and it
+# BOUND NOTHING — see the post-mortem in path-barriers.yml. Removing a model is
+# still a model change, so it still gets a bump: 0.3.0 is already on ghcr, and
+# republishing 0.3.0 with different contents is the exact silent-staleness trap
+# this file keeps re-learning.
+#
+# 0.2.0 -> 0.3.0: added the validate_slack_webhook_url barrier (request-forgery).
+# Kept in this log because the version exists on ghcr and someone reading a
+# 0.3.0 analysis needs to know what was in it.
+version: 0.4.0
 library: true
 extensionTargets:
   codeql/python-all: '*'
