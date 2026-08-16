@@ -509,8 +509,22 @@ RUN uv pip install --system --no-cache ".[all]"
 #   (1) above: PyPI figrecipe 0.34.5 published 2026-08-16T15:37:03Z, and the
 #   PUBLISHED wheel was downloaded and inspected — 36 gallery_templates
 #   entries (18 yaml + 18 png) are present in the artifact this line installs.
+# 2026-08-16: figrecipe 0.34.5 -> 0.34.6. 0.34.5 fixed only half the gallery.
+#   The 18 yaml + 18 png it shipped are enough to LIST the templates, so the
+#   category pages stopped saying "No templates available" — but each recipe
+#   also reads per-plot data files (bar_0_height.csv and friends), and PR #350
+#   moved only the yaml/png into package data. Clicking "Add to canvas" on any
+#   listed template therefore raised FileNotFoundError from an installed
+#   wheel: a gallery you can browse and cannot use. figrecipe PR #353 adds the
+#   57 missing data files (56 .csv + 1 .npz) to package data, and renames the
+#   literal-glob artifact plot_stackplot_data/stackplot_*ys.csv to
+#   stackplot_ys.csv. Checked before pinning, per lesson (1) above: PyPI
+#   figrecipe 0.34.6 published 2026-08-16T16:42:04Z, and the PUBLISHED wheel
+#   was downloaded and inspected — 93 gallery_templates entries (18 yaml +
+#   18 png + 56 csv + 1 npz), stackplot_ys.csv among them, and no member name
+#   containing a glob star, in the artifact this line installs.
 RUN uv pip install --system --no-cache \
-    "figrecipe==0.34.5" \
+    "figrecipe==0.34.6" \
     "scitex-io==0.2.3" \
     "scitex-stats==0.2.6" \
     "scitex-plt==0.24.0" \
