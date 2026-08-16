@@ -420,10 +420,11 @@ status:
 	@./deployment/host-setup/checks/check-status.sh
 
 # Live status with spinners and animations
+# Sections come from deployment/host-setup/checks/sections.sh, the same
+# registry `status` uses — including 08-filesizes, which used to be appended
+# here by hand. Do not add a check to this recipe; add it to the registry.
 status-live:
 	@./scripts/maintenance/check_status_live.sh $(ENV)
-	@echo -e ""
-	@./scripts/maintenance/check_file_sizes.sh
 
 # ============================================
 # Stop All Environments
