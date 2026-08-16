@@ -10,14 +10,27 @@ name: Product Screenshots
 # set, download the artifact, drop the PNGs in. It also runs on pushes to
 # develop so the set is never more than one merge old, and so a page that
 # starts erroring is caught by the job that photographs it.
+#
+# It also runs on a pull request THAT TOUCHES ITSELF. Without that, a
+# workflow whose only triggers are dispatch and push-to-develop cannot be
+# exercised until after it is merged — the first time anyone learns it is
+# broken would be on develop. The paths filter keeps it off every unrelated
+# PR, so a 30-minute job is not charged to work that cannot affect it.
 on:
   workflow_dispatch:
   push:
     branches: [ develop ]
+  pull_request:
+    paths:
+      - '.github/workflows/screenshots.yml'
+      - 'tests/e2e/playwright/test_capture_screenshots.py'
+      - 'tests/e2e/playwright/conftest.py'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name != 'push' }}
+  # Superseding an in-flight PR run is free; superseding a push to develop is
+  # a decision nobody made — same rule the e2e-mobile workflow states.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   screenshots:
