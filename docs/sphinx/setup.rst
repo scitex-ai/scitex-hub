@@ -48,7 +48,8 @@ Access at:
 
 - **Django**: http://localhost:8000
 - **Gitea**: http://localhost:3000
-- **Test user**: ``test-user`` / ``Password123!``
+- **Test user**: ``test-user``. The password is printed by ``init_test_user`` on first
+  run; set ``SCITEX_HUB_TEST_USER_PASSWORD`` to choose it yourself.
 
 Step-by-Step Development Setup
 ------------------------------

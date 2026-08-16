@@ -537,8 +537,16 @@ def base_url():
 
 @pytest.fixture
 def test_credentials():
-    """Test user credentials from .env.dev."""
-    return {"username": "test-user", "password": "Password123!"}
+    """Test user credentials from the environment.
+
+    No literal default: a password baked into a fixture is a shared credential,
+    and this repository is public. See
+    tests/develop/test_no_usable_credential_defaults.py.
+    """
+    return {
+        "username": os.getenv("SCITEX_HUB_TEST_USER_USERNAME", "test-user"),
+        "password": os.getenv("SCITEX_HUB_TEST_USER_PASSWORD", ""),
+    }
 
 @pytest.fixture
 def logged_in_page(page, base_url, test_credentials):
