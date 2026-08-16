@@ -458,6 +458,12 @@ markers = [
     "integration: Integration tests",
     "django_db: Tests requiring database access (pytest-django)",
     "security: Exploit-regression tests for confirmed security findings",
+    # A guard exists to stop ONE named defect coming back. Declaring which defect is
+    # not documentation: a guard whose author cannot state the defect in a sentence
+    # usually has not tested it either, and the declaration is what a mutation check
+    # would need as its target. See tests/develop/test_guards_declare_their_defect.py
+    # and card hub-guards-must-demonstrate-their-own-red-20260815.
+    "guards: Regression guard for one named defect. REQUIRES defect=\"...\"",
 ]
 filterwarnings = [
     "ignore::DeprecationWarning",
