@@ -316,7 +316,13 @@ dev = [
     "ruff>=0.1.0",
     "pytest>=7.0",
     "pytest-cov>=4.0",
-    "figrecipe>=0.13.0",
+    # Floor moved 0.13.0 -> 0.34.5 (2026-08-16). Below 0.34.5 the FigRecipe
+    # Template Gallery is empty in any INSTALLED deployment — the asset dir
+    # resolved outside the package, so nothing shipped in the wheel. figrecipe
+    # PR #350 moved the assets to package data. An older figrecipe is not
+    # merely older, it is visibly broken on the demo path, so the floor is
+    # raised rather than left at a version we know renders a blank gallery.
+    "figrecipe>=0.34.5",
     "joblib",
     "flask",
     # PS-210: `[all]` ships these and the test suite imports them

@@ -497,8 +497,20 @@ RUN uv pip install --system --no-cache ".[all]"
 #   Verified present before pinning: PyPI scitex-template 0.7.0 published
 #   2026-08-11 by the v0.7.0 tag; lesson (1) above is what happens when a pin
 #   moves ahead of the artifact, so it was checked rather than assumed.
+# 2026-08-16: figrecipe 0.34.3 -> 0.34.5. Below 0.34.5 the Template Gallery is
+#   EMPTY in any INSTALLED deployment — every category renders "No templates
+#   available for this category". figrecipe's _EXAMPLES_DIR climbed out of the
+#   package into examples/02_plot_and_reproduce_all_out, generated output that
+#   is uncommitted and therefore absent from the wheel, so the path resolved
+#   into site-packages and found nothing. 0.34.5 (PR #350) moves the assets to
+#   package data at src/figrecipe/_django/gallery_templates/ and resolves them
+#   relative to the package root. An older figrecipe here is not merely older,
+#   it is visibly broken on the demo path. Checked before pinning, per lesson
+#   (1) above: PyPI figrecipe 0.34.5 published 2026-08-16T15:37:03Z, and the
+#   PUBLISHED wheel was downloaded and inspected — 36 gallery_templates
+#   entries (18 yaml + 18 png) are present in the artifact this line installs.
 RUN uv pip install --system --no-cache \
-    "figrecipe==0.34.3" \
+    "figrecipe==0.34.5" \
     "scitex-io==0.2.3" \
     "scitex-stats==0.2.6" \
     "scitex-plt==0.24.0" \
