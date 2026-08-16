@@ -248,10 +248,30 @@ all = [
     # ResolutionImpossible — see scitex-python#282, resolved). Floor at
     # 2.29.3 to skip the broken 2.29.0/2.29.1 entirely.
     "scitex>=2.29.3",
-    # >=0.6.1: 0.6.0 never shipped middleware.py (merged after that release
-    # was cut) and anything older is sync-only, deadlocking daphne under
-    # ASGI. See scitex-ui PR #59 and settings_shared.py's MIDDLEWARE entry.
-    "scitex-ui>=0.6.1",
+    # >=0.8.0, and the floor is about what hub MOUNTS, not only what hub calls.
+    #
+    # 0.8.0 is where `shell_context()` grew its `panes` parameter (verified by
+    # reading branding.py at both tags: v0.7.1 has no such parameter, v0.8.0
+    # does). We mount upstream apps that pass it -- scitex_storage._django's
+    # `index` declares `panes={"ai": "unused", "files": "unused", "viewer":
+    # "unused"}` (scitex-storage PR #57) -- so on 0.6.x/0.7.x that call raises
+    # `TypeError: unexpected keyword argument 'panes'` AT REQUEST TIME and
+    # /apps/storage/ answers 500. It is a floor violation that presents as a
+    # broken page, several layers from the pin that permitted it.
+    #
+    # Hub itself calls `shell_context()` zero times, which is exactly why this
+    # was easy to miss: pip cannot derive the constraint either, because the
+    # mounted apps are installed EDITABLE from sibling checkouts at container
+    # start (deployment/docker/common/scripts/root-init.sh), so scitex-storage's
+    # own `scitex-ui>=0.8.0` never participates in resolution here. Nothing but
+    # this line enforces it, which is why it is a declared floor and not a
+    # comment. tests/config/test_shell_pane_contract_floor.py locks both halves.
+    #
+    # The previous floor's reason still holds and is not weakened: 0.6.0 never
+    # shipped middleware.py (merged after that release was cut) and anything
+    # older is sync-only, deadlocking daphne under ASGI. See scitex-ui PR #59
+    # and settings_shared.py's MIDDLEWARE entry.
+    "scitex-ui>=0.8.0",
     # --- GUI (dearpygui-based modules) ---
     "dearpygui>=1.11",
     "cairosvg>=2.9.0",
@@ -322,6 +342,21 @@ dev = [
     # skipped, they protect nothing while reading as protection.
     # Same rationale as the PS-210 block above.
     "scitex-cards>=0.32.1",
+    # Same floor as [all], and it must STAY the same — the two are swept
+    # together by tests/config/test_shell_pane_contract_floor.py, which reads
+    # every dependency group rather than one, precisely so the copies cannot
+    # drift apart unnoticed.
+    #
+    # Here in [dev] because tests/config/test_shell_pane_contract_floor.py
+    # imports scitex_ui UNGUARDED, and that is deliberate rather than an
+    # oversight. The alternative PS-210 offers is
+    # `pytest.importorskip("scitex_ui")`, which is the wrong remedy for THIS
+    # suite: the file exists to assert that the installed scitex-ui can honour
+    # the pane contract, so a skip when it is absent is the exact answer the
+    # gate must never give — an unrun check reading as a passing one. Declaring
+    # the dependency makes the test run instead of vanish. Same shape as the
+    # scitex-cards entry above.
+    "scitex-ui>=0.8.0",
 ]
 
 [project.scripts]
