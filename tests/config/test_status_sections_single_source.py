@@ -127,6 +127,38 @@ def test_every_registered_command_exists_and_is_executable(
     )
 
 
+def test_every_registered_command_is_executable_in_git(
+    sections: list[tuple[str, str]],
+) -> None:
+    # Arrange — the filesystem check above is not enough, and this test exists
+    # because it was not. `chmod +x` in a working tree does not put the bit in
+    # the index: on 2026-08-16 these scripts were executable locally, committed
+    # as 100644, and CI failed on a fresh checkout where the mode is whatever
+    # git recorded. The working tree lies; the index is what everyone else gets.
+    proc = subprocess.run(
+        ["git", "-C", str(REPO), "ls-files", "-s", "--", *[c for _, c in sections]],
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    assert proc.returncode == 0, f"git ls-files failed: {proc.stderr.strip()}"
+
+    # Act
+    not_executable = [
+        line.split("\t", 1)[1]
+        for line in proc.stdout.splitlines()
+        if line and not line.startswith("100755")
+    ]
+
+    # Assert
+    assert not_executable == [], (
+        f"these registered sections are not executable IN GIT, so a fresh "
+        f"checkout cannot run them: {not_executable}. Fix with "
+        f"`git update-index --chmod=+x <path>` — chmod alone only changes your "
+        f"working tree."
+    )
+
+
 def test_disk_section_is_registered(sections: list[tuple[str, str]]) -> None:
     # Arrange — the regression this whole file exists for.
     names = [name for name, _ in sections]

@@ -51,6 +51,9 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CHECK_SH = REPO_ROOT / "scripts" / "maintenance" / "check_disk_space.sh"
 STATUS_SH = REPO_ROOT / "deployment" / "host-setup" / "checks" / "check-status.sh"
+# The section registry both status surfaces iterate. Wiring is asserted here
+# rather than in check-status.sh, which no longer names any section itself.
+SECTIONS_SH = REPO_ROOT / "deployment" / "host-setup" / "checks" / "sections.sh"
 
 # Synthetic df. One fake serves every case; FAKE_DF_MODE picks the disk.
 # Columns are the POSIX `df -P` layout the script parses:
@@ -421,17 +424,50 @@ def test_distinct_filesystems_yield_two_bytes_rows(fake_df_dir, separate_filesys
 
 
 def test_check_is_wired_into_make_status():
-    """An alarm nobody runs is not an alarm."""
+    """An alarm nobody runs is not an alarm.
+
+    The wiring moved on 2026-08-16: check-status.sh used to name every section
+    script itself, and now iterates deployment/host-setup/checks/sections.sh —
+    the one registry `make status-live` reads too, which is what stopped the
+    live view from being blind to a full disk. So this asserts the same thing
+    at its new address, and `make status-live` inherits it for free.
+    """
     # Arrange
-    status = STATUS_SH.read_text(encoding="utf-8")
+    registry = SECTIONS_SH.read_text(encoding="utf-8")
     # Act
     wired = [
         ln
-        for ln in status.splitlines()
+        for ln in registry.splitlines()
         if "check_disk_space.sh" in ln and not ln.lstrip().startswith("#")
     ]
     # Assert
-    assert len(wired) == 1 and wired[0].rstrip().endswith("&"), wired
+    assert len(wired) == 1, wired
+
+
+def test_status_runs_its_sections_in_parallel():
+    """The other half of the old assertion: the disk section must not serialise.
+
+    This used to ride on the wiring line ending in `&`. Backgrounding now lives
+    in check-status.sh's loop over the registry rather than on each line, so it
+    is asserted where it moved to. Kept as its own test because it is a
+    separate claim: one says the alarm runs, this says it does not make every
+    later section wait on `df`.
+    """
+    # Arrange
+    status = STATUS_SH.read_text(encoding="utf-8")
+    # Act
+    backgrounded = [
+        ln
+        for ln in status.splitlines()
+        if "run_section" in ln
+        and ln.rstrip().endswith("&")
+        and not ln.lstrip().startswith("#")
+    ]
+    # Assert
+    assert len(backgrounded) == 1, (
+        f"expected exactly one backgrounded run_section call in "
+        f"{STATUS_SH.name} (the registry loop); found {backgrounded}"
+    )
 
 
 def test_check_is_executable():
