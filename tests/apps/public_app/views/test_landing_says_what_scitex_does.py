@@ -52,7 +52,14 @@ LANDING_URL = "/landing/"
 
 # The modules the landing page introduces. These are product names, not copy:
 # renaming one is a deliberate act that should update this list.
-MODULE_NAMES = ("Scholar", "Writer", "Console", "Visualizer")
+#
+# "Visualizer" was the OLD name and was still in the dormant partial. The
+# operator caught it on sight — 「コンソールとビジュアライザーは昔の名前ですね」
+# — which is the general hazard with re-enabling long-commented-out markup:
+# it stops being reviewed but does not stop being wrong. The registry
+# (apps_app.AppsModule.label) is the authority; it lists FigRecipe, and it
+# still lists Console, so only the one name was stale.
+MODULE_NAMES = ("Scholar", "Writer", "Console", "FigRecipe")
 
 
 class _VisibleText(HTMLParser):
