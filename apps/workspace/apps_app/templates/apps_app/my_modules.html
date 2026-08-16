@@ -25,7 +25,8 @@
                             <i class="fas fa-puzzle-piece" aria-hidden="true"></i>
                         </div>
                         <div class="ap-my-info">
-                            <a href="/apps/{{ inst.module.module_name }}/" class="ap-my-name">{{ inst.module.module_name }}</a>
+                            {# href keeps the slug (it is the route); the TEXT is the human name. #}
+                            <a href="/apps/{{ inst.module.module_name }}/" class="ap-my-name">{% firstof inst.module.label inst.module.module_name %}</a>
                             {% if inst.module.short_description %}<span class="ap-my-desc">{{ inst.module.short_description }}</span>{% endif %}
                             <div class="ap-my-meta">
                                 <span class="ap-category-badge ap-category-{{ inst.module.category }}">{{ inst.module.get_category_display }}</span>

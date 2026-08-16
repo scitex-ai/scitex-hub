@@ -34,12 +34,28 @@
         </div>
         <div class="ap-card-info">
             <div class="ap-card-title-row">
+                {% comment %}
+                   Name the app the way a human would.
+
+                   The fallback used to jump straight from the runtime
+                   registry to `module_name`, which is the SLUG — so the
+                   public App Store rendered "writer", "scholar",
+                   "figrecipe", "clew" in lowercase for every card whose
+                   registry entry was not resolved. Measured on production
+                   2026-08-16; the operator screenshots this page.
+
+                   AppsModule.label exists for exactly this ("Human-readable
+                   display name (manifest.json 'label')") and IS populated —
+                   Writer, Scholar, FigRecipe, Console — it was simply never
+                   consulted. config/branding.py states the same contract for
+                   tab titles: "Capitalization here is the contract: 'Cards',
+                   never 'cards'".
+
+                   Slug remains the last resort, so an app with no label at
+                   all still renders something rather than an empty heading.
+                {% endcomment %}
                 <h3 class="ap-card-title">
-                    {% if mod_item.reg %}
-                        {{ mod_item.reg.label }}
-                    {% else %}
-                        {{ mod_item.app.module_name }}
-                    {% endif %}
+                    {% firstof mod_item.reg.label mod_item.app.label mod_item.app.module_name %}
                 </h3>
                 {% if app_ver %}<span class="ap-card-version">v{{ app_ver }}</span>{% endif %}
                 <div class="ap-card-badges">

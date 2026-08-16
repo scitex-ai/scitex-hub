@@ -2,7 +2,7 @@
 
 {% load static %}
 
-{% block title %}{% if reg_module %}{{ reg_module.label }}{% else %}{{ app_module.module_name }}{% endif %} - Apps{% endblock %}
+{% block title %}{% firstof reg_module.label app_module.label app_module.module_name %} - Apps{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'apps_app/css/apps.css' %}" />
 {% endblock %}
@@ -21,14 +21,14 @@
             <div class="ap-detail-meta">
                 <div class="ap-detail-title-row">
                     <h1 class="ap-detail-title">
-                        {% if skill %}
-                            {{ skill.display_name }}
-                        {% elif reg_module %}
-                            {# Registry label ("Storage"), same precedence as the browse cards — never the raw slug #}
-                            {{ reg_module.label }}
-                        {% else %}
-                            {{ app_module.module_name }}
-                        {% endif %}
+                        {% comment %}
+                           "never the raw slug" was already the stated intent
+                           here — and the else branch printed one anyway when
+                           the registry entry was unresolved. AppsModule.label
+                           is the model's own human name and was never tried.
+                           Slug stays last so a label-less app still renders.
+                        {% endcomment %}
+                        {% firstof skill.display_name reg_module.label app_module.label app_module.module_name %}
                     </h1>
                     <div class="ap-detail-badges">
                         <span class="ap-category-badge ap-category-{{ app_module.category }}">{{ app_module.get_category_display }}</span>
