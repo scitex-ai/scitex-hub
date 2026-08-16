@@ -26,6 +26,7 @@ from config._env import (
     require_env_with_legacy_alias as _require_env_alias,
 )
 
+from ._logging_merge import merge_logging
 from .settings_shared import *
 
 # Environment identity -- drives the tab title marker "(staging)" and the
@@ -143,12 +144,16 @@ SCITEX_HUB_GITEA_SSH_PORT = _getenv_alias("SCITEX_HUB_GITEA_SSH_PORT", "2232")
 # ---------------------------------------
 # Logging
 # ---------------------------------------
-LOGGING.update(
+# merge_logging, NOT LOGGING.update -- see the note in settings_prod.py and the
+# measurement in config/settings/_logging_merge.py. `update` replaced the whole
+# loggers section, which deleted the base's wiring and left mail_admins
+# referenced by nothing in staging too.
+LOGGING = merge_logging(
+    LOGGING,
     {
         "handlers": {
-            # Keep existing handlers from base settings
-            **LOGGING.get("handlers", {}),
-            # Add staging-specific handlers (similar to prod but more verbose)
+            # Staging-specific handlers (similar to prod but more verbose).
+            # The base's handlers are kept by the merge.
             "file_app": {
                 "level": "DEBUG",
                 "class": "logging.handlers.RotatingFileHandler",
@@ -157,7 +162,9 @@ LOGGING.update(
                 "backupCount": 5,
                 "formatter": "verbose",
             },
-            "file_django": {
+            # REDEFINES the base's "django_file" instead of adding a second
+            # handler on the same file -- see the same note in settings_prod.
+            "django_file": {
                 "level": "INFO",
                 "class": "logging.handlers.RotatingFileHandler",
                 "filename": os.path.join(LOG_DIR, "django.log"),
@@ -180,14 +187,22 @@ LOGGING.update(
             },
         },
         "loggers": {
-            # Update existing loggers
+            # Loggers redefined for staging. Every logger NOT named here --
+            # django.security, scitex.errors and the four app loggers -- keeps
+            # the base's handlers, mail_admins included.
             "django": {
-                "handlers": ["file_django", "console_staging"],
+                "handlers": ["django_file", "console_staging"],
                 "level": "INFO",
                 "propagate": False,
             },
+            # mail_admins is re-listed because redefining a logger replaces its
+            # handler list. NOTE: staging pins the console email backend in
+            # deployment/docker/envs/.env.staging, so this rail composes
+            # correctly but prints instead of sending -- that is staging's
+            # deliberate choice, and it is why the wiring must be gated by
+            # composition rather than by watching for mail to arrive.
             "django.request": {
-                "handlers": ["file_error", "console_staging"],
+                "handlers": ["file_error", "console_staging", "mail_admins"],
                 "level": "INFO",
                 "propagate": False,
             },
@@ -197,12 +212,14 @@ LOGGING.update(
                 "propagate": False,
             },
         },
-        # Root logger
+        # Root logger. Deliberately NOT on the operator rail -- same reason as
+        # production: an unbounded catch-all message set makes the mailbox
+        # unreadable, which is the same outcome as sending nothing.
         "root": {
             "handlers": ["file_error", "console_staging"],
             "level": "INFO",
         },
-    }
+    },
 )
 
 # EOF
