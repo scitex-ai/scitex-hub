@@ -110,27 +110,34 @@ REQUIRED_CONFIG = {
     },
 }
 
+# The probe writes its answer to a FILE, never to stdout.
+#
+# It used to json.dump into sys.stdout, and settings_dev broke it: importing a
+# settings module prints (Django checks, scitex banners, third-party warnings),
+# so the JSON arrived with a prefix and json.loads died on "line 1 column 1"
+# while the process still exited 0. The reader could not tell a polluted stream
+# from a broken one. Stripping the noise would only work until something new
+# printed — a dedicated channel is immune to anything an import decides to say.
 _COMPOSE_PROBE = """
 import importlib, json, sys
 
 module = importlib.import_module("config.settings." + sys.argv[1])
 config = module.LOGGING
-json.dump(
-    {
-        "handlers": sorted(config.get("handlers", {})),
-        "files": {
-            name: str(handler["filename"])
-            for name, handler in config.get("handlers", {}).items()
-            if handler.get("filename")
-        },
-        "loggers": {
-            name: list(logger.get("handlers", []))
-            for name, logger in config.get("loggers", {}).items()
-        },
-        "root": list(config.get("root", {}).get("handlers", [])),
+payload = {
+    "handlers": sorted(config.get("handlers", {})),
+    "files": {
+        name: str(handler["filename"])
+        for name, handler in config.get("handlers", {}).items()
+        if handler.get("filename")
     },
-    sys.stdout,
-)
+    "loggers": {
+        name: list(logger.get("handlers", []))
+        for name, logger in config.get("loggers", {}).items()
+    },
+    "root": list(config.get("root", {}).get("handlers", [])),
+}
+with open(sys.argv[2], "w", encoding="utf-8") as fh:
+    json.dump(payload, fh)
 """
 
 
@@ -150,8 +157,9 @@ def compose(settings_module: str) -> str:
         [str(REPO_ROOT), environment.get("PYTHONPATH", "")]
     ).rstrip(os.pathsep)
 
+    out_path = Path(environment["SCITEX_HUB_LOG_DIR"]) / "composed-logging.json"
     completed = subprocess.run(
-        [sys.executable, "-c", _COMPOSE_PROBE, settings_module],
+        [sys.executable, "-c", _COMPOSE_PROBE, settings_module, str(out_path)],
         cwd=str(REPO_ROOT),
         env=environment,
         capture_output=True,
@@ -165,7 +173,16 @@ def compose(settings_module: str) -> str:
             "nobody is checking, which is how mail_admins stayed dead for "
             f"months.\n--- stderr ---\n{completed.stderr}"
         )
-    return completed.stdout
+    if not out_path.exists():
+        # Exit 0 but no payload: the import succeeded and the probe still did
+        # not answer. Distinguished from a parse failure on purpose — "I could
+        # not tell" must never be reported as "the config is wrong".
+        raise AssertionError(
+            f"config.settings.{settings_module} imported cleanly but the probe "
+            f"wrote no payload to {out_path}.\n"
+            f"--- stdout ---\n{completed.stdout}\n--- stderr ---\n{completed.stderr}"
+        )
+    return out_path.read_text(encoding="utf-8")
 
 
 def composed(settings_module: str) -> dict:
