@@ -163,6 +163,39 @@ def _is_user_profile_path(path: str) -> bool:
         "visitor-restart",
         "visitor-pool-full",
         "__reload__",
+        # --- Public marketing / legal / auth routes -------------------------
+        # Measured missing 2026-08-15 on production, signed in as test-user:
+        #     GET /tokushoho/  ->  body class="workspace-page home-page ..."
+        # i.e. the 特定商取引法 disclosure — a statutory page — was being served
+        # as somebody's USER PROFILE. Two consequences, both silent:
+        #   1. body.workspace-page hides .site-footer, so the page's own legal
+        #      links disappeared, and
+        #   2. body.workspace-page is height:100vh / overflow:hidden, so the
+        #      page COULD NOT SCROLL — anything below the fold was unreachable.
+        # For a disclosure whose whole purpose is that prescribed information be
+        # displayed, "renders but cannot be scrolled to" is not cosmetic.
+        #
+        # It only happened when SIGNED IN — anonymous visitors take another
+        # branch and get a working footer — so every casual check looked fine.
+        "tokushoho",
+        "recruit",
+        "services",
+        "security",
+        "integrations",
+        "organizations",
+        "social",
+        "enter",
+        "billing",
+        "oauth",
+        "invitations",
+        "status",
+        # Not a page but a FILE at /robots.txt, so it has no trailing-slash
+        # directory form. The classifier only sees the first path segment and
+        # would call it a username like any other. Found by the sweep in
+        # tests/apps/workspace_app/test_public_routes_are_not_usernames.py,
+        # not by hand — which is the point of deriving that test from the URL
+        # conf rather than listing known-bad routes.
+        "robots.txt",
     }
     return first not in _NON_USER_PREFIXES
 
