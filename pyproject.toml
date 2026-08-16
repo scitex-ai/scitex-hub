@@ -33,6 +33,14 @@ dependencies = [
     # Pinning to <0.16.1 silently lets every entry in `skip_rules`
     # leak through — the gate fails on rules we explicitly deferred.
     "scitex-dev>=0.16.1",
+    # `scitex-audio` owns the whisper.cpp transcription pipeline that
+    # llm_app/views/stt.py delegates to (`scitex_audio.transcribe`).
+    # Declared DIRECTLY rather than relied on transitively: llm_app/views/chat.py
+    # already does `import scitex.audio` for TTS and nothing in this list
+    # guarantees it — that import is undeclared today and fails on a clean
+    # install. Declaring the package we actually import keeps STT honest;
+    # unifying TTS onto the same import is a separate change.
+    "scitex-audio>=0.2.13",
     "gitpython>=3.1",
 ]
 
