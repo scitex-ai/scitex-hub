@@ -298,6 +298,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     poppler-utils \
     # --- Image processing ---
     imagemagick \
+    # --- OCR (scanned PDFs / figure text) ---
+    # poppler above extracts a text layer; a SCANNED page has none, and the
+    # extractor's capability probe reports ocr:false without these, so the
+    # Tools UI correctly refuses rather than returning a blank success.
+    # jpn is not optional here: the operator's corpus is Japanese.
+    tesseract-ocr \
+    tesseract-ocr-eng \
+    tesseract-ocr-jpn \
+    tesseract-ocr-jpn-vert \
     # --- Audio processing ---
     # ffmpeg converts an uploaded recording to the 16 kHz mono WAV whisper.cpp
     # requires. It was missing too, so even with the binary present the STT
@@ -568,6 +577,19 @@ RUN pdflatex --version && \
     convert --version && \
     yq --version && \
     python --version && \
+    # Tools/extract-pdf: poppler pulls the text layer and the embedded
+    # figures; tesseract is what makes a SCANNED page readable at all.
+    pdftotext -v && \
+    pdfimages -v && \
+    tesseract --version && \
+    # The Japanese traineddata specifically — tesseract installs and runs
+    # fine without it, then returns confident nonsense for a Japanese scan.
+    tesseract --list-langs 2>&1 | grep -qx jpn && \
+    # Tools/transcribe-audio. whisper-cli lives outside PATH, so this
+    # checks the env var the application actually resolves.
+    "$WHISPER_CLI" --help > /dev/null 2>&1 && \
+    test -s "$WHISPER_MODELS_DIR/ggml-base.bin" && \
+    ffmpeg -version > /dev/null && \
     echo "✅ Production image verified"
 
 # Writer/template import smoke test (2026-07-08 visitor-pool outage):
