@@ -1,0 +1,53 @@
+%% -*- coding: utf-8 -*-
+%% EXAMPLE CONTENT — ships with a new SciTeX workspace. Replace it with yours.
+\section{Methods}
+\label{sec:methods}
+\pdfbookmark[1]{Methods}{methods}
+
+\subsection{Data}
+
+The images come from the UCI \emph{Optical Recognition of Handwritten Digits}
+dataset of Alpaydin and Kaynak, in which 43 contributors wrote digits that were
+captured as $32\times32$ bitmaps and downsampled to $8\times8$ by counting the
+on-pixels in each non-overlapping $4\times4$ block. Each pixel is therefore an
+integer in $[0, 16]$. A 1{,}797-image partition of that dataset is redistributed
+with scikit-learn under a BSD-3-Clause licence.
+
+This project commits a stratified random subset of 500 of those images --- 50
+per digit --- drawn with \texttt{numpy.random.default\_rng(0)} and stored as
+\texttt{data/digits\_sample.csv}: 64 pixel columns followed by the label. Pixel
+values are copied through unchanged; there is no rescaling, augmentation, or
+filtering. The subset exists so the file is about 75\,KB and can be shipped
+with the project rather than downloaded. Because it is a subset, the accuracy
+reported in Section \ref{sec:results} is lower than the full dataset gives, and
+that is expected. The exact selection is reproduced in \texttt{data/README.md}.
+
+Figure \ref{fig:01_digit_grid} shows one image per class, rendered directly
+from the committed CSV.
+
+\subsection{Model and evaluation}
+
+The 500 images are split 70/30 into 350 training and 150 held-out images,
+stratified by digit, with \texttt{random\_state=0}. A linear support vector
+machine (\texttt{sklearn.svm.LinearSVC}, default regularisation, seeded) is fit
+on the 350 training images using the 64 raw pixel values as features. No
+feature extraction, dimensionality reduction, normalisation, or hyperparameter
+search is performed --- the absence of those steps is the point of the example.
+
+The model is evaluated once, on the 150 held-out images, by overall accuracy
+and by the full $10\times10$ confusion matrix. There is no validation split and
+no model selection, so no reuse of the held-out set occurs.
+
+\subsection{Reproducibility}
+
+Every number and both figures in this manuscript are produced by
+\texttt{scripts/reproduce\_figures.py}, which reads only the committed CSV and
+requires no network access. The subset draw, the train/test split, and the
+solver are all seeded, so re-running the script reproduces the images shipped
+with this project and the accuracy quoted below exactly:
+
+\begin{verbatim}
+python scripts/reproduce_figures.py
+\end{verbatim}
+
+%%%% EOF

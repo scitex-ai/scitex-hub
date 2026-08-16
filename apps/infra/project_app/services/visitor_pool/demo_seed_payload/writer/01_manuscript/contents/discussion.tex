@@ -1,0 +1,53 @@
+%% -*- coding: utf-8 -*-
+%% EXAMPLE CONTENT — ships with a new SciTeX workspace. Replace it with yours.
+\section{Discussion}
+\label{sec:discussion}
+\pdfbookmark[1]{Discussion}{discussion}
+
+\subsection{What the example shows}
+
+Most of the digit-recognition problem, at this resolution, is linearly
+separable in raw pixel space. A rule with no feature engineering behind it
+recovers 87.3\% of the held-out labels, and for eight of the ten classes it is
+close to the ceiling the sample size allows.
+
+The residual errors are where the example earns its keep. They are not noise
+spread evenly across classes; they concentrate on 8 and, to a lesser extent, 9.
+A linear decision boundary can only weigh each of the 64 pixels independently.
+The digit 8 fills nearly the whole $8\times8$ frame, so it overlaps in lit
+pixels with most other digits at once --- which is why its 8 errors scatter
+across five different classes (1, 4, 5, 6 and 7) rather than piling onto a
+single rival. What separates 8 from those digits is the \emph{arrangement} of
+the ink, not which pixels carry it, and arrangement is precisely what a linear
+model on raw pixels cannot express. This is the standard motivation for the
+kernel and convolutional methods that followed.
+
+\subsection{What it does not show}
+
+Several things, deliberately:
+
+\begin{itemize}
+  \item \textbf{This is not a benchmark.} The 500-image subset is a twentieth
+    of the source corpus, and the 150-image test set gives each class only 15
+    examples. A single reclassified image moves a per-class rate by nearly
+    seven points, so the per-digit numbers in Section \ref{sec:results} are
+    illustrative, not precise. No confidence intervals are reported because a
+    single split cannot support them.
+  \item \textbf{Nothing here is new.} The result reproduces textbook behaviour
+    on a dataset published in 1998. It is included because it is verifiable,
+    not because it is informative.
+  \item \textbf{No model comparison was run.} A kernel SVM, a random forest, or
+    a small convolutional network would all be expected to do better. None was
+    fitted, so no such claim is made.
+\end{itemize}
+
+\subsection{Using this project as a starting point}
+
+The structure generalises even though the content does not. Data lives in
+\texttt{data/} with its provenance beside it; one seeded script in
+\texttt{scripts/} turns that data into everything the manuscript displays; the
+manuscript cites the figures rather than restating numbers by hand. Replace the
+CSV, adjust the script, and rewrite these sections --- the wiring between them
+already works, and the reproduction command stays the same.
+
+%%%% EOF
