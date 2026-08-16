@@ -186,7 +186,7 @@ services:
 
     # Port mapping (avoid conflict with host postgres)
     ports:
-      - "${SCITEX_HUB_POSTGRES_PORT_DEV:-5433}:5432"
+      - "127.0.0.1:${SCITEX_HUB_POSTGRES_PORT_DEV:-5433}:5432"
 
     env_file:
       - .env
@@ -228,7 +228,7 @@ services:
       - redis_data:/data
 
     ports:
-      - "${SCITEX_HUB_REDIS_PORT_DEV:-6379}:6379"
+      - "127.0.0.1:${SCITEX_HUB_REDIS_PORT_DEV:-6379}:6379"
 
     # More verbose logging in development
     command: redis-server --appendonly yes --loglevel debug
