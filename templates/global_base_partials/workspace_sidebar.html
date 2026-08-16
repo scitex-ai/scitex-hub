@@ -98,30 +98,38 @@
             {# client-side switch that sidebar/index.ts followed with a #}
             {# history.pushState to /chat/ — a URL that exists only for #}
             {# someone already inside the workspace who has already clicked. #}
-            {# On a desktop viewport the site then carried no <a href="/chat/"> #}
-            {# at all (the two that existed were mobile-only: the launcher #}
-            {# dock, display:none above 767px, and the hamburger menu), so #}
-            {# /chat/ could not be linked to, shared, right-click-copied or #}
-            {# crawled. Operator 2026-08-16: 「このページでてきてないのもったいないです」. #}
+            {# On a desktop viewport the site then carried no anchor to #}
+            {# /chat/ at all (the two that existed were mobile-only: the #}
+            {# launcher dock, display:none above 767px, and the hamburger #}
+            {# menu), so /chat/ could not be linked to, shared, #}
+            {# right-click-copied or crawled. Operator 2026-08-16: #}
+            {# 「このページでてきてないのもったいないです」. #}
             {# The JS is unchanged and still intercepts: onItemClick() reads #}
             {# data-pane and calls preventDefault() for core panes, so the #}
             {# instant switch is preserved and the href is the fallback. #}
             {# .sidebar-item is already styled for "button or anchor" — the #}
             {# pinned-module items below have always been anchors. #}
-            {# Guarded by tests/templates/test_every_pane_is_linkable.py. #}
+            {# #}
+            {# The LIST IS NOT WRITTEN HERE. It comes from #}
+            {# apps/infra/workspace_app/core_panes.py already filtered by #}
+            {# each pane's own visibility rule, because the hand-written #}
+            {# copy that used to live here listed Console unconditionally — #}
+            {# putting href="/console/" on every regular user's page and #}
+            {# breaking the staff gate the hamburger menu has enforced since #}
+            {# 2026-07-21. Adding a pane means adding it there, with a label #}
+            {# AND a visibility; #}
+            {# tests/templates/test_every_pane_is_linkable.py fails if a #}
+            {# root-mounted pane has neither. #}
             <div class="sidebar-group">
-                <a href="/chat/" class="sidebar-item active" data-pane="chat" title="Chat">
-                    <i class="fas fa-comment"></i>
-                    <span class="sidebar-label">Chat</span>
-                </a>
-                <a href="/console/" class="sidebar-item" data-pane="console" title="Console">
-                    <i class="fas fa-terminal"></i>
-                    <span class="sidebar-label">Console</span>
-                </a>
-                <a href="/files/" class="sidebar-item" data-pane="editor" title="Files">
-                    <i class="fas fa-folder"></i>
-                    <span class="sidebar-label">Files</span>
-                </a>
+                {% for pane in workspace_core_panes %}
+                    <a href="{{ pane.route }}"
+                       class="sidebar-item{% if pane.default_active %} active{% endif %}"
+                       data-pane="{{ pane.pane }}"
+                       title="{{ pane.label }}">
+                        <i class="{{ pane.icon }}"></i>
+                        <span class="sidebar-label">{{ pane.label }}</span>
+                    </a>
+                {% endfor %}
             </div>
             <hr class="sidebar-divider" />
             <!-- Group 2: Home + pinned favorites + All apps (launcher design) -->

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import logging
 
+from .core_panes import visible_core_panes
 from .registry import extract_module_from_path, get_all_modules, is_workspace_path
 
 logger = logging.getLogger(__name__)
@@ -104,6 +105,13 @@ def workspace_context(request):
         "workspace_has_panes": has_panes,
         "workspace_modules": modules,
         "workspace_pinned_modules": _pinned_modules_for_user(request, modules),
+        # The root-mounted panes this user may be OFFERED, label + route +
+        # icon together, already filtered by each pane's own visibility rule
+        # (apps/infra/workspace_app/core_panes.py). The sidebar renders this
+        # list rather than re-deciding per item — the sidebar's hand-written
+        # copy of the list is exactly what leaked href="/console/" to every
+        # regular user in PR #626.
+        "workspace_core_panes": visible_core_panes(request),
         "workspace_module_names_csv": ",".join(m.name for m in modules),
         "active_module_name": active_name,
         "active_module": active_mod,
