@@ -1,7 +1,16 @@
-"""Speech-to-text endpoint using whisper.cpp."""
+"""Speech-to-text endpoint.
+
+Transcription itself lives in the ``scitex-audio`` package (``scitex_audio.transcribe``),
+which owns the ffmpeg-convert -> whisper.cpp -> parse pipeline. This module only does what
+is genuinely hub's job: resolve the deployment's baked-in whisper paths, validate the
+request, and shape the HTTP response.
+
+Hub deliberately keeps its own model DISCOVERY because the paths (``/opt/whisper``) are
+baked into hub's container image and differ from the package's own search paths; the
+resolved binary and model are handed to the package as explicit overrides.
+"""
 
 import os
-import subprocess
 import tempfile
 
 from django.contrib.auth.decorators import login_required
@@ -11,17 +20,27 @@ from django.views.decorators.http import require_http_methods
 # Paths match the baked-in Dockerfile location (same across dev/staging/production)
 _WHISPER_CLI = "/opt/whisper/bin/whisper-cli"
 _MODELS_DIR = "/opt/whisper/models"
-_DEFAULT_MODEL = "ggml-base.en"
 
-# Models that whisper.cpp supports (name → display label)
+# Models that whisper.cpp supports (name → display label).
+# MULTILINGUAL FIRST: the ``.en`` weights cannot transcribe anything but English, and this
+# endpoint serves Japanese dictation, so an English-only model must never be the default.
 _KNOWN_MODELS = [
-    ("ggml-tiny.en", "tiny.en (fast, ~39 MB)"),
-    ("ggml-tiny", "tiny (fast, multilingual, ~75 MB)"),
-    ("ggml-base.en", "base.en (balanced, ~142 MB)"),
     ("ggml-base", "base (multilingual, ~142 MB)"),
-    ("ggml-small.en", "small.en (accurate, ~466 MB)"),
     ("ggml-small", "small (multilingual, ~466 MB)"),
+    ("ggml-medium", "medium (multilingual, ~1.5 GB)"),
+    ("ggml-large-v3-turbo", "large-v3-turbo (multilingual, ~1.6 GB)"),
+    ("ggml-tiny", "tiny (fast, multilingual, ~75 MB)"),
+    ("ggml-base.en", "base.en (English only, ~142 MB)"),
+    ("ggml-small.en", "small.en (English only, ~466 MB)"),
+    ("ggml-tiny.en", "tiny.en (English only, ~39 MB)"),
 ]
+
+# Preferred default, when the caller does not name a model. Multilingual on purpose.
+_DEFAULT_MODEL = "ggml-base"
+
+# ``None`` means "let whisper auto-detect the language". Deployments that know their
+# audience can pin one (e.g. "ja") without touching code.
+_DEFAULT_LANGUAGE = os.environ.get("STT_DEFAULT_LANGUAGE") or None
 
 
 def _whisper_cli() -> str:
@@ -32,9 +51,9 @@ def _models_dir() -> str:
     return os.environ.get("WHISPER_MODELS_DIR", _MODELS_DIR)
 
 
-def _available_models() -> list[dict]:
+def _available_models(models_dir: str | None = None) -> list[dict]:
     """List whisper models found on disk in the models directory."""
-    mdir = _models_dir()
+    mdir = models_dir or _models_dir()
     if not os.path.isdir(mdir):
         return []
     found = []
@@ -45,11 +64,12 @@ def _available_models() -> list[dict]:
     return found
 
 
-def _resolve_model(requested: str | None) -> str | None:
+def _resolve_model(requested: str | None, models_dir: str | None = None) -> str | None:
     """Return the model file path for the given model name, or None if not found."""
-    mdir = _models_dir()
+    mdir = models_dir or _models_dir()
     if not requested:
-        # Default: prefer base.en, then fall back to first available
+        # Default: prefer the multilingual default, then the first available in
+        # _KNOWN_MODELS order (which is multilingual-first by design).
         for name, _ in _KNOWN_MODELS:
             path = os.path.join(mdir, f"{name}.bin")
             if os.path.isfile(path):
@@ -67,14 +87,14 @@ def _resolve_model(requested: str | None) -> str | None:
 def api_stt_models(request):
     """List available whisper models found on disk.
 
-    Returns: {"models": [{"name": "ggml-tiny.en", "label": "..."}, ...], "default": "ggml-base.en"}
+    Returns: {"models": [{"name": "ggml-base", "label": "..."}, ...], "default": "ggml-base"}
     """
     cli = _whisper_cli()
     if not os.path.isfile(cli):
         return JsonResponse({"models": [], "default": None, "available": False})
 
     models = [{"name": m["name"], "label": m["label"]} for m in _available_models()]
-    # Choose default: prefer base.en, then first available
+    # Choose default: prefer the multilingual default, then first available
     default = None
     for m in models:
         if m["name"] == _DEFAULT_MODEL:
@@ -91,14 +111,17 @@ def api_stt_models(request):
 @login_required
 @require_http_methods(["POST"])
 def api_stt(request):
-    """Transcribe uploaded audio using whisper.cpp.
+    """Transcribe uploaded audio.
 
     Accepts multipart POST with:
       - 'audio': audio file (webm or wav)
-      - 'model': optional model name (e.g. 'ggml-tiny.en', default: ggml-base.en)
+      - 'model': optional model name (e.g. 'ggml-tiny', default: ggml-base)
+      - 'language': optional language code (e.g. 'ja', 'en'). Omit to auto-detect.
 
-    Returns: {"text": "...", "model": "ggml-base.en"} or {"error": "..."}.
+    Returns: {"text": "...", "model": "ggml-base", "language": "ja"} or {"error": "..."}.
     """
+    from scitex_audio import transcribe
+
     cli = _whisper_cli()
     if not os.path.isfile(cli):
         return JsonResponse(
@@ -120,62 +143,32 @@ def api_stt(request):
     if not audio_file:
         return JsonResponse({"error": "audio file required"}, status=400)
 
+    language = request.POST.get("language") or _DEFAULT_LANGUAGE
+
     with tempfile.TemporaryDirectory() as tmpdir:
-        # Write uploaded audio to disk
+        # Write uploaded audio to disk. scitex_audio.transcribe accepts any format
+        # ffmpeg can read and does the 16 kHz mono conversion itself.
         raw_path = os.path.join(tmpdir, "input.webm")
         with open(raw_path, "wb") as fh:
             for chunk in audio_file.chunks():
                 fh.write(chunk)
 
-        # Convert to 16 kHz mono WAV
-        wav_path = os.path.join(tmpdir, "input.wav")
-        ffmpeg = subprocess.run(
-            [
-                "ffmpeg",
-                "-y",
-                "-i",
-                raw_path,
-                "-ar",
-                "16000",
-                "-ac",
-                "1",
-                "-f",
-                "wav",
-                wav_path,
-            ],
-            capture_output=True,
-            timeout=30,
+        result = transcribe(
+            raw_path,
+            language=language,
+            whisper_cli=cli,
+            model_path=model_path,
         )
-        if ffmpeg.returncode != 0:
-            return JsonResponse(
-                {"error": "Audio conversion failed (ffmpeg error)"},
-                status=500,
-            )
 
-        # Run whisper-cli transcription
-        result = subprocess.run(
-            [
-                cli,
-                "--language",
-                "en",
-                "--model",
-                model_path,
-                "--no-timestamps",
-                "--file",
-                wav_path,
-            ],
-            capture_output=True,
-            text=True,
-            timeout=60,
+    if not result.get("success"):
+        return JsonResponse(
+            {"error": result.get("error") or "Transcription failed"}, status=500
         )
-        if result.returncode != 0:
-            return JsonResponse({"error": "Transcription failed"}, status=500)
 
-        # Clean output: strip timestamp lines like [00:00:00 --> 00:00:05]
-        lines = [
-            ln.strip()
-            for ln in result.stdout.splitlines()
-            if ln.strip() and not ln.strip().startswith("[")
-        ]
-        text = " ".join(lines).strip()
-        return JsonResponse({"text": text, "model": model_name})
+    return JsonResponse(
+        {
+            "text": (result.get("text") or "").strip(),
+            "model": model_name,
+            "language": result.get("language") or language,
+        }
+    )

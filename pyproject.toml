@@ -143,6 +143,14 @@ dependencies = [
     # installed — a venv without scitex_hub silently skips audit-cli and will
     # tell you everything is fine.
     "scitex-dev==0.43.1",
+    # `scitex-audio` owns the whisper.cpp transcription pipeline that
+    # llm_app/views/stt.py delegates to (`scitex_audio.transcribe`).
+    # Declared DIRECTLY rather than relied on transitively: llm_app/views/chat.py
+    # already does `import scitex.audio` for TTS and nothing in this list
+    # guarantees it — that import is undeclared today and fails on a clean
+    # install. Declaring the package we actually import keeps STT honest;
+    # unifying TTS onto the same import is a separate change.
+    "scitex-audio>=0.2.13",
     "gitpython>=3.1.51",
 ]
 
