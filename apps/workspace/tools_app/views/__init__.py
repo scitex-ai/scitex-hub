@@ -6,6 +6,7 @@ Tools App Views Package
 Exports all view functions for URL routing.
 """
 
+from .pdf_extract_api import api_pdf_extract, api_pdf_extract_capabilities
 from .tools import (
     tool_compress_pdf,
     tool_concat_images,
@@ -18,6 +19,7 @@ from .tools import (
     tool_crop_images,
     tool_diff_texts,
     tool_edit_video,
+    tool_extract_pdf,
     tool_format_json,
     tool_generate_qr,
     tool_inspect_html_element,
@@ -38,6 +40,8 @@ from .tools import (
 
 __all__ = [
     "tools",
+    "api_pdf_extract",
+    "api_pdf_extract_capabilities",
     "tool_compress_pdf",
     "tool_concat_images",
     "tool_concat_repo",
@@ -49,6 +53,7 @@ __all__ = [
     "tool_crop_images",
     "tool_diff_texts",
     "tool_edit_video",
+    "tool_extract_pdf",
     "tool_format_json",
     "tool_generate_qr",
     "tool_inspect_html_element",

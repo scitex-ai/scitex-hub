@@ -147,6 +147,11 @@ def tool_split_pdf(request):
     return render(request, "tools_app/tools/split-pdf.html", _tool_context(request))
 
 
+def tool_extract_pdf(request):
+    """PDF text + figure extraction tool detail page."""
+    return render(request, "tools_app/tools/extract-pdf.html", _tool_context(request))
+
+
 # Audio tools
 def tool_transcribe_audio(request):
     """Audio Transcription tool detail page."""

@@ -10,6 +10,14 @@ from __future__ import annotations
 # PDF tools (shares some with Image)
 PDF_TOOLS = [
     {
+        "name": "PDF Text & Figure Extractor",
+        "slug": "pdf-text-figure-extractor",
+        "description": "Pull the text and the embedded figures out of a PDF, with table layout preserved.",
+        "use_case": "Lift the methods section and figures out of a paper you are citing",
+        "bookmarklet_url": "/apps/tools/extract-pdf/",
+        "icon": "🔎",
+    },
+    {
         "name": "PDF Compressor",
         "slug": "pdf-compressor",
         "description": "Reduce PDF file size while maintaining quality for email and uploads.",
