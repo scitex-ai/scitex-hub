@@ -18,7 +18,19 @@ from importlib.util import find_spec
 
 import pytest
 
-_TODO_INSTALLED = find_spec("scitex_todo") is not None
+# Gate on the CANONICAL name, with the deprecated alias still accepted.
+#
+# This read `find_spec("scitex_todo")` alone. That package was renamed to
+# scitex-cards on 2026-07-16 and scitex-cards 0.41.0 (2026-08-16) DELETED the
+# alias, so on a current install the probe returns None — and this file then
+# does the worst possible thing: the three tests that gate the mount SKIP
+# (green over an unrun suite, protecting nothing), while
+# `test_cards_url_absent_when_package_missing` INVERTS, runs, and asserts the
+# mount is absent on a host where the board is installed and mounted. One
+# rename turned this file from a guard into a false alarm plus three no-ops.
+_TODO_INSTALLED = (
+    find_spec("scitex_cards") is not None or find_spec("scitex_todo") is not None
+)
 
 
 @pytest.mark.skipif(not _TODO_INSTALLED, reason="scitex-todo not installed")
