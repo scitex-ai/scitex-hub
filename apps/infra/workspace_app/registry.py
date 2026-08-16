@@ -226,17 +226,28 @@ _BUILTIN_MANIFEST_PATHS: list[str] = [
 # the launcher never shows a dead tile on a host where the package is not
 # installed — mirror of the guarded imports in settings_shared.py and the URL
 # guards in config/urls.py.
-for _pkg, _tile_manifest in (
-    ("scitex_todo", "workspace/todo_app/manifest.json"),
-    ("scitex_storage", "workspace/storage_app/manifest.json"),
+# Each entry probes a TUPLE of names, canonical first. The board package was
+# renamed scitex-todo -> scitex-cards on 2026-07-16 and this probe kept asking
+# for the OLD name; scitex-cards 0.41.0 (2026-08-16) then DELETED the
+# `scitex_todo` alias outright, so the probe started returning None on a host
+# where the board is installed, mounted and reachable at /apps/cards/. The tile
+# would simply vanish from the launcher while the app kept working — a
+# user-visible regression with no error anywhere.
+#
+# Both names are accepted while both can be in play: an older wheel still ships
+# only the alias. Canonical first so hub stops depending on the deprecated name
+# the moment it can.
+for _pkg_names, _tile_manifest in (
+    (("scitex_cards", "scitex_todo"), "workspace/todo_app/manifest.json"),
+    (("scitex_storage",), "workspace/storage_app/manifest.json"),
 ):
     try:
         from importlib.util import find_spec as _find_spec
 
-        if _find_spec(_pkg) is not None:
+        if any(_find_spec(_name) is not None for _name in _pkg_names):
             _BUILTIN_MANIFEST_PATHS.append(_tile_manifest)
     except Exception:
-        logger.exception("[registry] %s tile probe failed", _pkg)
+        logger.exception("[registry] %s tile probe failed", _pkg_names[0])
 
 
 _SUPPORTED_SCHEMA_VERSIONS = {"1.0.0", "2.0.0"}
