@@ -20,6 +20,8 @@ from config._env import (
     require_env_with_legacy_alias as _require_env_alias,
 )
 
+from ._optional_apps import optional_upstream_apps
+
 
 # ---------------------------------------
 # Functions
@@ -176,72 +178,11 @@ THIRD_PARTY_APPS = [
 # Required: scitex_ui (available on PyPI as scitex-ui)
 THIRD_PARTY_APPS.append("scitex_ui")
 
-# Optional: figrecipe editor (static assets served via AppDirectoriesFinder)
-try:
-    import figrecipe  # noqa: F401
-
-    THIRD_PARTY_APPS.append("figrecipe._django")
-except ImportError:
-    pass
-
-# Optional: upstream scitex-writer app (contract-compliant _django app;
-# URL-mounted under /writer/ in config/urls.py). The explicit AppConfig
-# path is required: writer's apps.py holds two AppConfig candidates (the
-# imported ScitexAppConfig base + WriterEditorConfig, no default=True),
-# so a bare module entry falls back to label "_django" and collides with
-# figrecipe._django's identical fallback.
-try:
-    import scitex_writer  # noqa: F401
-
-    THIRD_PARTY_APPS.append("scitex_writer._django.apps.WriterEditorConfig")
-except ImportError:
-    pass
-
-# Optional: upstream scitex-storage app (contract-compliant _django app;
-# URL-mounted under /apps/storage/ in config/urls.py). StorageConfig sets
-# default=True and a unique label ("scitex_storage_django"), so the mount
-# is collision-free; the explicit AppConfig path mirrors the writer/todo
-# entries above.
-#
-# Gate on the _django SUBMODULE (not just the top-level package): the
-# AppConfig we append lives in scitex_storage._django.apps, so a
-# scitex_storage installed WITHOUT its _django app (an older published
-# wheel, or a checkout from before its _django app merged) must skip
-# cleanly here rather than crash Django app-loading with
-# "ModuleNotFoundError: No module named 'scitex_storage._django'".
-try:
-    import scitex_storage._django  # noqa: F401
-
-    THIRD_PARTY_APPS.append("scitex_storage._django.apps.StorageConfig")
-except ImportError:
-    pass
-
-# Optional: upstream scitex-todo board app (contract-compliant _django app;
-# URL-mounted under /todo/ in config/urls.py). The explicit AppConfig
-# path mirrors the writer entry above: todo's apps.py holds two AppConfig
-# candidates (the imported ScitexAppConfig base + ScitexTodoConfig, no
-# default=True), so a bare module entry falls back to label "_django"
-# and collides with figrecipe._django's identical fallback.
-try:
-    # CANONICAL name. `scitex_todo` is a deprecated alias of this package
-    # (renamed 2026-07-16) that warns it "ships for one transition window
-    # only" — importing the alias here made the whole board mount depend on
-    # a module the upstream has announced it will delete, and the failure
-    # is SILENT (the except arm below simply skips the app).
-    import scitex_cards  # noqa: F401
-
-    THIRD_PARTY_APPS.append("scitex_cards._django.apps.ScitexTodoConfig")
-
-    # Tenancy: the board's service layer (scitex_todo._django.services)
-    # unions host-side per-project lanes (default glob
-    # ~/proj/*/.scitex/todo/tasks.yaml) into every board load. On the hub
-    # each request must see ONLY the requesting user's workspace store
-    # (injected by apps.workspace.todo_app.middleware), so lane discovery
-    # is explicitly disabled — an empty glob list is the documented
-    # opt-out seam in that module.
-    os.environ["SCITEX_TODO_LANE_GLOBS"] = ""
-except ImportError:
-    pass
+# Optional upstream SciTeX apps (figrecipe / writer / storage / cards).
+# Which of them are installed, and which AppConfig path each one needs,
+# lives in _optional_apps.py — including the scitex-cards rename-window
+# shim and the reason it exists. Extracted 2026-08-16.
+THIRD_PARTY_APPS.extend(optional_upstream_apps())
 
 LOCAL_APPS = discover_local_apps()
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

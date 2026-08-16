@@ -26,18 +26,27 @@ def test_todo_app_installed_via_explicit_appconfig_path():
     # Arrange
     from django.conf import settings
 
-    # Act
-    # settings_shared.py:233 appends the CARDS package path; the AppConfig
-    # class kept its old name through the scitex-todo -> scitex-cards rename,
-    # so only the module path moved. This assertion tracked the pre-rename
-    # path and never failed, because the whole file skipped for want of the
-    # package — it has been stale since the rename.
-    entry_present = (
-        "scitex_cards._django.apps.ScitexTodoConfig" in settings.INSTALLED_APPS
-    )
+    # Act — the CLASS name is no longer fixed. Upstream renamed it
+    # (ScitexTodoConfig -> ScitexCardsConfig) on develop with no alias while
+    # every published wheel through 0.40.0 kept the old one, and hub installs
+    # both sources, so config/settings/_optional_apps.py resolves whichever is
+    # present. This asserts against the SAME candidate list rather than a
+    # literal, so the mount is still pinned but the test does not have to be
+    # edited every time upstream moves.
+    #
+    # What stays load-bearing is the EXPLICIT AppConfig path: a bare
+    # "scitex_cards._django" entry falls back to label "_django" and collides
+    # with figrecipe._django's identical fallback.
+    from config.settings._optional_apps import CARDS_APPCONFIG_NAMES
+
+    expected = {f"scitex_cards._django.apps.{n}" for n in CARDS_APPCONFIG_NAMES}
+    matched = expected & set(settings.INSTALLED_APPS)
 
     # Assert
-    assert entry_present is True
+    assert len(matched) == 1, (
+        f"expected exactly one of {sorted(expected)} in INSTALLED_APPS, "
+        f"found {sorted(matched)}"
+    )
 
 
 @pytest.mark.skipif(not _TODO_INSTALLED, reason="scitex-todo not installed")
