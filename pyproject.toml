@@ -316,7 +316,19 @@ dev = [
     "ruff>=0.1.0",
     "pytest>=7.0",
     "pytest-cov>=4.0",
-    "figrecipe>=0.13.0",
+    # 0.34.5 floor — below it the Template Gallery is EMPTY in any INSTALLED
+    # deployment. figrecipe <=0.34.4 resolved the gallery's yaml/png assets by
+    # climbing OUT of the package (a repo-relative path that only exists in a
+    # source checkout), so a pip/uv install found nothing to list. 0.34.5
+    # (figrecipe#350, tag v0.34.5) ships the 18 yaml + 18 png INSIDE the
+    # package and resolves them package-relative. Verified on PyPI before
+    # pinning: info.version == 0.34.5, wheel
+    # figrecipe-0.34.5-py3-none-any.whl uploaded 2026-08-16T15:37:03Z.
+    # KNOWN LIMITATION: 0.34.5 fixes the LISTING only. The 57 data files the
+    # templates reference are still absent from the wheel, so "Add to canvas"
+    # is expected to fail until the follow-up figrecipe release lands; bump
+    # this floor again then.
+    "figrecipe>=0.34.5",
     "joblib",
     "flask",
     # PS-210: `[all]` ships these and the test suite imports them
