@@ -1,0 +1,137 @@
+name: Product Screenshots
+
+# Operator request 2026-08-16: 「スクショをci化して欲しいです」.
+#
+# Hand-taken screenshots go stale the moment anything ships, and the moment
+# you need them — a grant application, a talk, a README — is exactly when
+# you do not want to be clicking through the product hoping nothing broke.
+#
+# workflow_dispatch is the primary trigger: run it when you need a current
+# set, download the artifact, drop the PNGs in. It also runs on pushes to
+# develop so the set is never more than one merge old, and so a page that
+# starts erroring is caught by the job that photographs it.
+on:
+  workflow_dispatch:
+  push:
+    branches: [ develop ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'push' }}
+
+jobs:
+  screenshots:
+    name: Capture product screenshots
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: scitex_test
+          POSTGRES_USER: scitex
+          POSTGRES_PASSWORD: scitex_test_pass  # pragma: allowlist secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Python dependencies
+        run: pip install -e ".[all,dev]" || pip install -e ".[dev]" || pip install -e .
+
+      - name: Install sibling workspace apps (scitex-ui, figrecipe)
+        # Same canonical script the e2e-mobile and typescript-check jobs use;
+        # package.json declares these as file: siblings and vite needs them
+        # present before `npm install`.
+        run: bash scripts/apps/install_apps.sh
+
+      - name: Install Node dependencies & build
+        run: |
+          npm install
+          npm run build
+
+      - name: Install Playwright browsers
+        run: python -m playwright install --with-deps chromium
+
+      - name: Migrate & start server
+        env:
+          SCITEX_HUB_DJANGO_SECRET_KEY: ci-screenshots-key  # pragma: allowlist secret
+          SCITEX_HUB_DB_NAME_DEV: scitex_test
+          SCITEX_HUB_DB_USER_DEV: scitex
+          SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
+          SCITEX_HUB_DB_HOST_DEV: localhost
+          SCITEX_HUB_DB_PORT_DEV: "5432"
+          SCITEX_HUB_REDIS_URL: redis://localhost:6379/0
+          SCITEX_HUB_ENV: development
+          SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
+          DEBUG: "1"
+        run: |
+          python manage.py migrate --run-syncdb
+          # The capture runs as a POOLED VISITOR, never a real account, so
+          # the artifact can never contain someone's private project,
+          # manuscript or chat history. Anyone who can read the run can
+          # download the artifact.
+          python manage.py create_visitor_pool --verbosity 0 || true
+          python manage.py runserver 127.0.0.1:8000 &
+          for i in $(seq 1 30); do
+            curl -s http://127.0.0.1:8000/landing/ > /dev/null 2>&1 && break
+            sleep 2
+          done
+
+      - name: Capture screenshots
+        env:
+          SCITEX_HUB_DJANGO_SECRET_KEY: ci-screenshots-key  # pragma: allowlist secret
+          SCITEX_HUB_DB_NAME_DEV: scitex_test
+          SCITEX_HUB_DB_USER_DEV: scitex
+          SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
+          SCITEX_HUB_DB_HOST_DEV: localhost
+          SCITEX_HUB_DB_PORT_DEV: "5432"
+          SCITEX_HUB_REDIS_URL: redis://localhost:6379/0
+          SCITEX_HUB_ENV: development
+          SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
+          SCITEX_BASE_URL: http://127.0.0.1:8000
+          DEBUG: "1"
+        run: |
+          python -m pytest \
+            tests/e2e/playwright/test_capture_screenshots.py \
+            -v --tb=short -o "addopts=" --timeout=120
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        # ALWAYS, not if:failure(). The artifact is the deliverable here —
+        # uploading only on failure would mean the run that succeeded is the
+        # one that gives you nothing.
+        if: always()
+        with:
+          name: product-screenshots
+          path: GITIGNORED/e2e_screenshots/
+          retention-days: 30
+          if-no-files-found: error
