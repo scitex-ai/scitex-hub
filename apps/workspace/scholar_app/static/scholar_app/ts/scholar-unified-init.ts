@@ -9,8 +9,11 @@
  * @module scholar-unified-init
  */
 
-const TAB_ORDER = ["library", "search", "bibtex", "graph"];
-const DEFAULT_TAB = "library";
+// Search leads, Library follows — kept identical to scholar-tab-switcher.ts and
+// to the markup. This file is the SIXTH copy of the Scholar tab order; the
+// duplication is why PR #616 could fix one and leave the live page unchanged.
+const TAB_ORDER = ["search", "library", "bibtex", "graph"];
+const DEFAULT_TAB = "search";
 const PANEL_STORAGE_KEY = "scholar-panel-states";
 
 function getActiveTab(): string {
