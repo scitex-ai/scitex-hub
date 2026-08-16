@@ -95,7 +95,17 @@ if [[ ! "$*" =~ "celery" ]]; then
     else
         echo_error "reconcile_visitor_slots --async FAILED to dispatch"
         echo_error "  -> slots stay quarantined and ALL visitors will be READ-ONLY"
+        echo_error "  -> repair: python manage.py reconcile_visitor_slots --repair-only"
     fi
+
+    # DISPATCH IS NOT AN OUTCOME. Everything above says "dispatched"; whether
+    # any slot actually came back is asked by `manage.py visitor_pool_ready`,
+    # which the deploy script runs as step 7d and FAILS the deploy on. It is
+    # deliberately NOT run here: this entrypoint must exec daphne promptly, and
+    # the re-clean is async precisely so boot is not blocked (a blocking
+    # assertion here re-creates the "django-1 Up (unhealthy) for minutes"
+    # problem the async split fixed). The assertion belongs to the deploy,
+    # which can afford to wait; boot only owns the dispatch.
 else
     echo_info "Skipping visitor pool init (celery service)"
 fi

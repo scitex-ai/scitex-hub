@@ -389,6 +389,51 @@ else
     echo -e "${YELLOW}   ⚠️ No verify URL for env '${ENV}' — service check SKIPPED${NC}" >&2
 fi
 
+# 7d. THE POST-CONDITION NOTHING ELSE CHECKS: the visitor pool must have at
+#     least one DISTRIBUTABLE slot before this deploy may call itself done.
+#
+# Every deploy quarantines all 16 slots. That is the boot fail-safe in
+# deployment/docker/common/scripts/entrypoint-prod.sh
+# (`reconcile_visitor_slots --async`), and it is CORRECT: after a restart no
+# slot's on-disk state can be trusted. The slots come back ONLY if
+# celery_worker_vis then verifies each one clean.
+#
+# The entrypoint only DISPATCHES that re-clean. Every message it prints says
+# "dispatched"; nothing anywhere asked the follow-up question "did any slot
+# actually come back?". So the deploy declared success on dispatch rather than
+# on outcome — constitution §2, a declaration that cannot be honoured
+# evaporating instead of failing.
+#
+# MEASURED 2026-08-16: image built 22:06:16 JST, django recreated 22:08:34 JST,
+# pool quarantined 16/16 for ~1h35m. EVERY SIGNAL WAS GREEN — containers
+# healthy, site 200, /api/server-health/ "healthy" — while every anonymous
+# visitor was funnelled onto the single shared readonly-visitor account. A
+# human noticed, not a signal. The repair was a command that lived only in a
+# card comment addressed to whoever deployed next, i.e. in a dead process's
+# intention (constitution §7).
+#
+# visitor_pool_ready is READ-ONLY (pure ORM counting). It must never be
+# replaced by `reconcile_visitor_slots`: that command's Phase 1 quarantines
+# EVERY slot including healthy ones, so using it as a probe takes the pool down.
+echo "   Checking visitor pool readiness..."
+if docker ps --format '{{.Names}}' | grep -q "^${DJANGO_CONTAINER}$"; then
+    # --wait: the async wipe+verify is ~10s per slot, and celery_worker_vis'
+    # own healthcheck start_period is 300s. 600s clears both, so a merely-slow
+    # pool is never failed — only a pool that never recovers.
+    if docker exec "$DJANGO_CONTAINER" \
+        python manage.py visitor_pool_ready --min-ready 1 --wait 600; then
+        echo -e "${GREEN}   Visitor pool has distributable slots${NC}"
+    else
+        echo -e "${RED}   ❌ Visitor pool has NO distributable slot — every anonymous visitor gets read-only${NC}" >&2
+        echo -e "${YELLOW}      docker exec ${DJANGO_CONTAINER} python manage.py reconcile_visitor_slots --repair-only${NC}" >&2
+        echo -e "${YELLOW}      docker logs --tail 100 scitex-hub-${ENV}-celery_worker_vis-1${NC}" >&2
+        VERIFY_FAILED=1
+    fi
+else
+    echo -e "${RED}   ❌ ${DJANGO_CONTAINER} not running — cannot verify visitor pool${NC}" >&2
+    VERIFY_FAILED=1
+fi
+
 echo ""
 if [ "$VERIFY_FAILED" != "0" ]; then
     echo -e "${RED}❌ ${ENV} rebuild FAILED verification — the site may be DOWN.${NC}" >&2

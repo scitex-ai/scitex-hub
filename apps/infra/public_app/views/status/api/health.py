@@ -18,6 +18,7 @@ from ..health_checks import (
     check_ssh_services,
     check_user_data_permissions,
 )
+from ..visitor_pool_health import check_visitor_pool
 
 logger = logging.getLogger("scitex")
 
@@ -68,6 +69,11 @@ def server_health_status_api(request):
         check_slurm_status(status_data)
         check_container_runtime_status(status_data)
         check_user_data_permissions(status_data)
+        # The anonymous-visitor product path. Every other check above was green
+        # for ~1h35m on 2026-08-16 while all 16 visitor slots sat quarantined
+        # and every visitor silently got the shared readonly account. Read-only:
+        # it counts slots, it never reconciles them.
+        check_visitor_pool(status_data)
 
         # Vite dev server check (DEBUG only)
         from django.conf import settings
@@ -143,6 +149,18 @@ def _determine_overall_health(status_data: dict) -> tuple[str, str]:
     if status_data.get("user_data_permissions", {}).get("health_class") == "unhealthy":
         has_warnings = True
 
+    # Visitor pool. `unhealthy` (ready == 0) must be an ERROR, not a warning:
+    # `issues[]` renders only in the staff-only notification bell, so the
+    # status COLOUR is the sole signal an anonymous visitor can see, and only
+    # "error" moves it off green. Downgrading a total outage of the visitor
+    # product path to "warning" would reproduce the 2026-08-16 incident for
+    # every non-staff viewer.
+    visitor_pool = status_data.get("visitor_pool", {})
+    if visitor_pool.get("health_class") == "unhealthy":
+        has_errors = True
+    elif visitor_pool.get("health_class") == "warning":
+        has_warnings = True
+
     # Determine final status
     if has_errors:
         return "error", "#ef4444"
@@ -198,6 +216,15 @@ def _build_services_dict(status_data: dict) -> dict:
         "citation_graph": citation_graph.get("health_class", "unknown"),
         "citation_graph_mode": citation_graph.get("mode", "unknown"),
         "user_data_permissions": user_data_perms.get("health_class", "unknown"),
+        "visitor_pool": status_data.get("visitor_pool", {}).get(
+            "health_class", "unknown"
+        ),
+        # `ready`, never `free` — see visitor_pool_health.classify_visitor_pool.
+        "visitor_pool_ready": status_data.get("visitor_pool", {}).get("ready"),
+        "visitor_pool_total": status_data.get("visitor_pool", {}).get("total"),
+        "visitor_pool_quarantined": status_data.get("visitor_pool", {}).get(
+            "quarantined"
+        ),
     }
 
 
@@ -312,6 +339,23 @@ def _build_issues_list(status_data: dict) -> list[dict]:
                 "service": "User Data",
                 "level": "warning",
                 "message": perms.get("message", "Permission issues"),
+            }
+        )
+
+    # Visitor pool. The message carries the REPAIR COMMAND, not just the
+    # symptom — every other entry in this list is a bare symptom string, and
+    # on 2026-08-16 the repair for this exact failure existed only inside a
+    # card comment addressed to whoever deployed next (constitution §7).
+    # "unknown" (the probe itself raised) is listed here but deliberately does
+    # NOT flip the public dot in _determine_overall_health: an unmeasurable
+    # pool is a fact staff must see, not a proven outage to alarm visitors with.
+    visitor_pool = status_data.get("visitor_pool", {})
+    if visitor_pool.get("health_class") in ("unhealthy", "warning", "unknown"):
+        issues.append(
+            {
+                "service": "Visitor Pool",
+                "level": visitor_pool.get("level", "warning"),
+                "message": visitor_pool.get("message", "Visitor pool degraded"),
             }
         )
 
