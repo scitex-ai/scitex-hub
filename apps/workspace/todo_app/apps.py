@@ -3,8 +3,8 @@
 """AppConfig for the hub-side scitex-todo mount glue.
 
 The actual board views/templates/static ship inside the upstream
-``scitex_todo._django`` package app (installed via the guarded import in
-``config/settings/settings_shared.py`` and URL-mounted at ``/todo/`` in
+``scitex_cards._django`` package app (installed via the guarded import in
+``config/settings/_optional_apps.py`` and URL-mounted at ``/apps/cards/`` in
 ``config/urls.py``). This hub app only carries:
 
 - :mod:`.middleware` — per-request workspace-store tenancy injection +
