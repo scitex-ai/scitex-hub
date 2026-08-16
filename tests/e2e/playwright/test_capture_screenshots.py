@@ -23,10 +23,22 @@ per user and serves dark by default, so each page sets
 ``data-theme="light"`` on <html> before the shot. Verified against
 production: that flips body from rgb(13,17,23) to rgb(250,249,247).
 
-A VISITOR SESSION, deliberately. These run as the pooled visitor, not as a
-real account, so nothing in the artifact can contain anybody's private
-project, manuscript or chat history. A screenshot artifact is downloadable
-by anyone who can read the run; it must never carry real user data.
+A VISITOR SESSION, deliberately — AND CHECKED, not merely asserted in
+prose. These run as the pooled visitor, not as a real account, so nothing
+in the artifact can contain anybody's private project, manuscript or chat
+history. A screenshot artifact is downloadable by anyone who can read the
+run; it must never carry real user data.
+
+That sentence used to be the whole guarantee. It is now enforced twice:
+the ``pooled_visitor_page`` fixture refuses to hand out a page unless the
+session really is a writable pool slot, and every page below re-reads
+``body[data-session-role]`` after navigating. Neither of the original
+failure conditions could see this: when the pool has no verified-clean
+slot, allocation falls back to the SHARED readonly-visitor account, which
+returns 200 and renders a full page — so HTTP<400 passes, non-blank text
+passes, and the artifact quietly shows the wrong product. Both CI (broken
+Gitea credential, this PR) and production (15/16 slots quarantined) were
+measured in exactly that state on 2026-08-16.
 
 FULL PAGE, deliberately: ``screenshot(..., full_page=True)`` in the shared
 fixture, so a long page is captured whole rather than cropped at the fold.
@@ -35,6 +47,12 @@ fixture, so a long page is captured whole rather than cropped at the fold.
 from __future__ import annotations
 
 import pytest
+
+from tests.e2e.playwright.session_role_check import (
+    READ_SESSION_ROLE_JS,
+    REQUIRED_ROLE,
+    wrong_role_message,
+)
 
 # (route, slug, what a human would call it)
 #
@@ -68,9 +86,9 @@ FORCE_LIGHT = """
     "route,slug,title", PAGES, ids=[p[1] for p in PAGES]
 )
 class TestProductScreenshots:
-    def test_page_is_served(self, visitor_desktop_page, route, slug, title):
+    def test_page_is_served(self, pooled_visitor_page, route, slug, title):
         # Arrange
-        page = visitor_desktop_page
+        page = pooled_visitor_page
 
         # Act
         response = page.goto(route)
@@ -80,11 +98,35 @@ class TestProductScreenshots:
         status = response.status if response else 0
         assert status < 400, f"{title} ({route}) returned HTTP {status}"
 
+    def test_page_is_a_pooled_visitor_session(
+        self, pooled_visitor_page, route, slug, title
+    ):
+        """Re-checked PER PAGE, not once at setup.
+
+        The warm-up proves the pool served a slot at the start of the run;
+        this proves the session is STILL a pooled visitor on the page about
+        to be photographed. A slot can lapse mid-run (the lease starts as a
+        2-minute probation), and a lapsed session silently becomes the
+        readonly-visitor fallback or anonymous — both of which render fine.
+        """
+        # Arrange
+        page = pooled_visitor_page
+        page.goto(route)
+        page.wait_for_load_state("networkidle")
+
+        # Act
+        role = page.evaluate(READ_SESSION_ROLE_JS)
+
+        # Assert
+        assert role == REQUIRED_ROLE, wrong_role_message(
+            role, f"{title} ({route})"
+        )
+
     def test_page_renders_and_is_captured(
-        self, visitor_desktop_page, screenshot, route, slug, title
+        self, pooled_visitor_page, screenshot, route, slug, title
     ):
         # Arrange
-        page = visitor_desktop_page
+        page = pooled_visitor_page
         page.goto(route)
         # networkidle rather than load: these pages hydrate after load, and
         # photographing them too early captures empty containers. Measured

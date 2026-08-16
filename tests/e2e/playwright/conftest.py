@@ -265,6 +265,85 @@ def visitor_desktop_page(visitor_desktop_context):
 
 
 # =============================================================================
+# REAL pooled-visitor session (no login at all)
+# =============================================================================
+#
+# The ``visitor_*`` fixtures above are misnamed: they FORM-LOG-IN as
+# ``$SCITEX_E2E_TEST_USER`` (default ``test-user``), i.e. a registered
+# account, and they assert nothing about the result — ``storage_state`` is
+# saved whether the login worked or not. They are kept as-is because the
+# mobile suites depend on them.
+#
+# A real pooled visitor is obtained by NOT logging in: SciTeX assigns one
+# through ``VisitorAutoLoginMiddleware`` on the first workspace request from
+# a browser user-agent. That middleware deliberately does NOT allocate on
+# ``/``, ``/landing/``, ``/apps/tools/`` or ``/auth/*`` — a first-time
+# reader must reach the marketing pages anonymously — so the session must
+# be established on a workspace route FIRST. Everything after that renders
+# as the visitor, including those four paths.
+
+
+#: Route used to acquire the pooled slot. Must be one
+#: VisitorAutoLoginMiddleware allocates on (it is not in its skip list),
+#: and it is in the capture set anyway.
+VISITOR_WARMUP_ROUTE = "/apps/home/"
+
+
+@pytest.fixture(scope="session")
+def pooled_visitor_context(browser, pw_base_url):
+    """ONE desktop context, no stored state, holding ONE pooled slot.
+
+    Session-scoped ON PURPOSE. A function-scoped context would start a new
+    anonymous session per test and burn a separate pool slot for each; with
+    a pool of 4 and 22 capture tests the pool would exhaust mid-run and the
+    remainder would be served the readonly-visitor fallback — a real
+    failure caused entirely by the test's own shape. One context = one
+    slot = one continuous visitor session, which is also what the
+    screenshots should depict.
+    """
+    context = browser.new_context(
+        base_url=pw_base_url,
+        viewport=DESKTOP["viewport"],
+        # A browser UA is load-bearing, not cosmetic:
+        # VisitorAutoLoginMiddleware skips non-browser user agents (curl,
+        # bots, health checks) and would leave the session anonymous.
+        user_agent=DESKTOP["user_agent"],
+        device_scale_factor=DESKTOP["device_scale_factor"],
+        is_mobile=DESKTOP["is_mobile"],
+        has_touch=DESKTOP["has_touch"],
+        ignore_https_errors=True,
+    )
+    context.set_default_timeout(TIMEOUT)
+    yield context
+    context.close()
+
+
+@pytest.fixture(scope="session")
+def pooled_visitor_page(pooled_visitor_context):
+    """A page whose session IS a writable pooled visitor slot.
+
+    Fails the whole capture at setup — before a single PNG is written — if
+    the warm-up did not yield ``body[data-session-role] == "visitor"``. The
+    alternative (start shooting and check later) writes an artifact full of
+    the wrong product first, and the artifact is the deliverable.
+    """
+    from tests.e2e.playwright.session_role_check import (
+        READ_SESSION_ROLE_JS,
+        assert_pooled_visitor,
+    )
+
+    page = pooled_visitor_context.new_page()
+    page.goto(VISITOR_WARMUP_ROUTE)
+    page.wait_for_load_state("networkidle")
+    role = page.evaluate(READ_SESSION_ROLE_JS)
+    assert_pooled_visitor(
+        role, f"visitor warm-up ({VISITOR_WARMUP_ROUTE})"
+    )
+    yield page
+    page.close()
+
+
+# =============================================================================
 # Screenshot helper
 # =============================================================================
 
