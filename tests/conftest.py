@@ -110,7 +110,11 @@ except Exception as e:
 # =============================================================================
 
 TEST_USER_USERNAME = os.getenv("SCITEX_HUB_TEST_USER_USERNAME", "test-user")
-TEST_USER_PASSWORD = os.getenv("SCITEX_HUB_TEST_USER_PASSWORD", "Password123!")
+# No literal default — see tests/develop/test_no_usable_secret_defaults.py.
+# These suites are integration tests against a live server and already skip
+# when one is unreachable; an empty password fails the login loudly instead of
+# silently trying a credential that this public repo advertises.
+TEST_USER_PASSWORD = os.getenv("SCITEX_HUB_TEST_USER_PASSWORD", "")
 BASE_URL = os.getenv("SCITEX_BASE_URL", "http://127.0.0.1:8000")
 
 

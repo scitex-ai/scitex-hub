@@ -297,14 +297,15 @@ fi
 # Create test-user for development and E2E testing
 initialize_test_user() {
     local username="${SCITEX_HUB_TEST_USER_USERNAME:-test-user}"
-    local password="${SCITEX_HUB_TEST_USER_PASSWORD:-Password123!}"
     local email="test@example.com"
 
+    # NO literal password default, and --password deliberately NOT passed —
+    # init_test_user owns the fallback. See the matching comment in
+    # deployment/docker/common/scripts/entrypoint-dev.sh.
     echo_info "Ensuring test user exists: $username"
     python manage.py init_test_user \
         --username="$username" \
         --email="$email" \
-        --password="$password" \
         2>&1 | grep -v "ERRO\|WARN" || true
     echo_success "Test user ready: $username"
 }

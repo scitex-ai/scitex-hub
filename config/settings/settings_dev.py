@@ -213,7 +213,16 @@ else:
             "ENGINE": "django.db.backends.postgresql",
             "NAME": os.environ.get("SCITEX_HUB_DB_NAME_DEV", "scitex_hub_dev"),
             "USER": os.environ.get("SCITEX_HUB_DB_USER_DEV", "scitex_dev"),
-            "PASSWORD": os.environ.get("SCITEX_HUB_DB_PASSWORD_DEV", "scitex_dev_2025"),
+            # DECLARED EXCEPTION, not an oversight. This is the compose-local
+            # dev postgres, which every real deployment overrides via
+            # SCITEX_HUB_DB_PASSWORD_DEV; prod uses settings_prod, which has no
+            # literal fallback at all. Emptying it would break `docker compose
+            # up` for anyone who has not set the variable, so it is declared
+            # rather than removed. If the dev database is ever exposed beyond
+            # the compose network this must become an empty default instead.
+            "PASSWORD": os.environ.get(
+                "SCITEX_HUB_DB_PASSWORD_DEV", "scitex_dev_2025"
+            ),  # pragma: allowlist secret
             "HOST": os.environ.get("SCITEX_HUB_DB_HOST_DEV", "localhost"),
             "PORT": os.environ.get("SCITEX_HUB_DB_PORT_DEV", "5432"),
             # ATOMIC_REQUESTS disabled: incompatible with ASGI (Daphne)
@@ -371,8 +380,20 @@ CELERY_BEAT_SCHEDULE["collect-server-metrics"] = {
 # ---------------------------------------
 # Test User Credentials for API Docs Examples
 # ---------------------------------------
-# Used to populate API docs code examples in Private mode (dev only)
-TEST_USER_PASSWORD = os.environ.get("SCITEX_HUB_TEST_USER_PASSWORD", "Password123!")
+# Used to populate API docs code examples in Private mode (dev only).
+#
+# NO LITERAL DEFAULT. This value is RENDERED INTO A PAGE
+# (public_app/views/api.py:61,105 -> api_docs_section.html), so a baked-in
+# default does not sit quietly in a config file — it gets displayed. The former
+# default "Password123!" was published in this repo, in the README and on the
+# setup page, and on 2026-08-16 it was found to authenticate as `test-user` on
+# PRODUCTION.
+#
+# Empty is the honest value when the environment has not supplied one: both
+# call sites already read it via getattr(settings, "TEST_USER_PASSWORD", "")
+# behind a DEBUG check, and an empty example is better than a confident example
+# of the wrong password.
+TEST_USER_PASSWORD = os.environ.get("SCITEX_HUB_TEST_USER_PASSWORD", "")
 
 # ---------------------------------------
 # Dev App Preview
