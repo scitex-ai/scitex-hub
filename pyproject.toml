@@ -342,6 +342,21 @@ dev = [
     # skipped, they protect nothing while reading as protection.
     # Same rationale as the PS-210 block above.
     "scitex-cards>=0.32.1",
+    # Same floor as [all], and it must STAY the same — the two are swept
+    # together by tests/config/test_shell_pane_contract_floor.py, which reads
+    # every dependency group rather than one, precisely so the copies cannot
+    # drift apart unnoticed.
+    #
+    # Here in [dev] because tests/config/test_shell_pane_contract_floor.py
+    # imports scitex_ui UNGUARDED, and that is deliberate rather than an
+    # oversight. The alternative PS-210 offers is
+    # `pytest.importorskip("scitex_ui")`, which is the wrong remedy for THIS
+    # suite: the file exists to assert that the installed scitex-ui can honour
+    # the pane contract, so a skip when it is absent is the exact answer the
+    # gate must never give — an unrun check reading as a passing one. Declaring
+    # the dependency makes the test run instead of vanish. Same shape as the
+    # scitex-cards entry above.
+    "scitex-ui>=0.8.0",
 ]
 
 [project.scripts]
