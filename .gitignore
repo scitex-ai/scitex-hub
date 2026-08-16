@@ -138,6 +138,20 @@ data/ssh_keys/
 **/*.jpeg
 **/*.h5
 **/*.zip
+
+# The visitor demo project's dataset, figures and manuscript media are
+# PRODUCT CONTENT, not analysis output: apps/infra/project_app/services/
+# visitor_pool/demo_seed.py copies them into every new visitor workspace, so
+# a deployment that does not carry them serves the empty pages this seed
+# exists to end.
+#
+# These MUST stay BELOW the blanket **/*.<ext> rules above. In gitignore the
+# LAST matching pattern wins, so the same three lines placed higher are
+# silently overruled and the files stay untracked — which looks exactly like
+# having forgotten to `git add` them.
+!apps/infra/project_app/services/visitor_pool/demo_seed_payload/**/*.csv
+!apps/infra/project_app/services/visitor_pool/demo_seed_payload/**/*.png
+!apps/infra/project_app/services/visitor_pool/demo_seed_payload/**/*.jpg
 **/*.tar
 **/*.gz
 **/*.rar

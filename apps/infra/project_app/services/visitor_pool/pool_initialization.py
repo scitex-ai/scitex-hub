@@ -13,6 +13,7 @@ from django.contrib.auth.models import User
 
 from apps.infra.project_app.models import Project
 
+from .demo_seed import try_seed_demo_content
 from .workspace_manager import TEMPLATE_MARKER_RELPATH, WorkspaceManager
 
 logger = logging.getLogger(__name__)
@@ -186,6 +187,11 @@ class PoolInitializer:
 
             cls._cleanup_project_dev_artifacts(project_path)
 
+            # Lay the demo project on top of the placeholder skeleton, so a
+            # freshly BUILT pool matches what a RECYCLED slot serves
+            # (workspace_manager._initialize_reset_directory does the same).
+            try_seed_demo_content(project_path)
+
             project.git_clone_path = str(project_path)
             project.directory_created = True
             project.save(update_fields=["git_clone_path", "directory_created"])
@@ -279,6 +285,7 @@ class PoolInitializer:
                 success = cls._clone_template(project_path)
                 if success:
                     cls._cleanup_project_dev_artifacts(project_path)
+                    try_seed_demo_content(project_path)
                     reset_count += 1
 
                     project.git_clone_path = str(project_path)

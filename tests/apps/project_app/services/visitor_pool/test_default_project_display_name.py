@@ -112,9 +112,7 @@ def visitor(db):
     hardcoded identity below cannot collide across xdist workers.
     """
     username = "visitor-001"
-    return User.objects.create(
-        username=username, email=f"{username}@visitor.local"
-    )
+    return User.objects.create(username=username, email=f"{username}@visitor.local")
 
 
 @pytest.fixture
@@ -164,9 +162,17 @@ class TestDefaultProjectConstants:
     """One value is human-facing text, the other is infrastructure."""
 
     def test_display_name_is_the_human_label(self):
-        """Positive: the name a first-time visitor should read."""
+        """Positive: the name a first-time visitor should read.
+
+        WAS "My Project", which was honest while the workspace was an
+        empty skeleton and said nothing once ``demo_seed`` started
+        filling it with a worked example. The name now says WHAT the
+        project is and that it is an EXAMPLE — the same complaint the
+        operator made about "dotfiles" meaning nothing to a general
+        audience.
+        """
         # Arrange
-        expected = "My Project"
+        expected = "Handwritten Digits (Example)"
         # Act
         actual = DISPLAY_NAME
         # Assert
@@ -324,9 +330,7 @@ class TestPoolInitializerNamesProjectForHumans:
         # Assert
         assert actual == SLUG
 
-    def test_persisted_row_carries_the_display_name(
-        self, initialized_project, visitor
-    ):
+    def test_persisted_row_carries_the_display_name(self, initialized_project, visitor):
         """Read it back the way the allocator does — by slug."""
         # Arrange
         _project, _created = initialized_project

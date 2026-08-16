@@ -55,6 +55,7 @@ from .container_teardown import (
     teardown_container_state,
     verify_container_state_gone,
 )
+from .demo_seed import try_seed_demo_content
 from .home_state import (
     HomeStateError,
     recreate_workspace_skeleton,
@@ -102,7 +103,18 @@ class WorkspaceManager:
     # complaint 2026-07-30: 「まずわかりにくい」). Do NOT "tidy" these two
     # back together: the slug cannot change (see above), so the only way
     # the UI reads like a product is for the name to diverge from it.
-    DEFAULT_PROJECT_DISPLAY_NAME = "My Project"
+    #
+    # It NAMES THE CONTENT, because there now IS content. This was "My
+    # Project" while the workspace was an empty skeleton, which said
+    # nothing about what a visitor was looking at — the same complaint
+    # the operator made about "dotfiles" being meaningless to a general
+    # audience. ``demo_seed`` now fills the project with a worked
+    # example, so the switcher says which one, and says it is an example.
+    # Keep it in sync with the seeded manuscript's subject; the two
+    # fallbacks in ``templates/global_base_partials/global_header.html``
+    # (both visitor-only) spell the same string and are asserted against
+    # this constant by test_default_project_display_name.py.
+    DEFAULT_PROJECT_DISPLAY_NAME = "Handwritten Digits (Example)"
 
     @classmethod
     def ensure_manuscript_record(cls, project: Project, project_path: Path):
@@ -271,9 +283,7 @@ class WorkspaceManager:
                 f"Final gate failed for {username}: {exc}"
             ) from exc
 
-        logger.info(
-            f"[VisitorPool] Verified-clean reset complete for {username}"
-        )
+        logger.info(f"[VisitorPool] Verified-clean reset complete for {username}")
 
     @classmethod
     def _purge_gitea_repos_verified(cls, visitor_user: User, gitea_client=None):
@@ -441,6 +451,13 @@ class WorkspaceManager:
         from .pool_initialization import PoolInitializer
 
         PoolInitializer._cleanup_project_dev_artifacts(project_path)
+
+        # The clone is a placeholder SKELETON — marker-valid but visibly
+        # empty. Lay the demo project on top so the recycled slot hands the
+        # next visitor a worked example instead of "Replace this text with
+        # your manuscript abstract." Never fatal: see demo_seed's docstring
+        # for why a seeding failure must not quarantine a live slot.
+        try_seed_demo_content(project_path)
 
         project.git_clone_path = str(project_path)
         project.directory_created = True

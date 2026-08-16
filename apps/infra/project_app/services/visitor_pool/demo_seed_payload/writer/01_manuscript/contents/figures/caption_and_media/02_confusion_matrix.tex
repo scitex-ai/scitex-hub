@@ -1,0 +1,13 @@
+%% Edit this file: 01_manuscript/contents/figures/caption_and_media/02_confusion_matrix.tex
+\caption{\textbf{Held-out confusion matrix for the linear support vector machine.}\\
+\smallskip
+Rows are the true digit, columns the predicted digit, over the 150 held-out
+images (15 per class) of the 70/30 stratified split described in Section
+\ref{sec:methods}. Cell counts are printed in the cells, so every claim in
+Section \ref{sec:results} can be read off directly. Overall accuracy is
+$131/150 = 87.3\%$. The diagonal is strong for nine of the ten classes; the
+digit 8 is the exception at $7/15$, and its errors are spread over five other
+classes rather than one, most often 1. Regenerate with
+\texttt{python scripts/reproduce\_figures.py}.
+}
+\label{fig:02_confusion_matrix}
