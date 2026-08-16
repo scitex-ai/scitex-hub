@@ -133,9 +133,16 @@ jobs:
           SCITEX_BASE_URL: http://127.0.0.1:8000
           DEBUG: "1"
         run: |
+          # --browser chromium is REQUIRED, not decoration. tests/conftest.py's
+          # pytest_collection_modifyitems skips everything under tests/e2e/
+          # unless --browser was passed explicitly ("E2E/browser test skipped in
+          # headless gate"). Without it this job SILENTLY captured nothing:
+          # 22 skipped, 0 run, in 0.04s, pytest exit 0 — and only the upload's
+          # if-no-files-found:error turned that into a visible failure.
           python -m pytest \
             tests/e2e/playwright/test_capture_screenshots.py \
-            -v --tb=short -o "addopts=" --timeout=120
+            --browser chromium \
+            -v --tb=short -rs -o "addopts=" --timeout=120
 
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
