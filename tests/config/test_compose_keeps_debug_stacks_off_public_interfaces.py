@@ -56,32 +56,34 @@ from a gate that passes.
 """
 
 import re
-from pathlib import Path
 
 import pytest
-import yaml
 
-_REPO_ROOT = Path(__file__).resolve().parents[2]
+# The compose parser lives in a shared helper so this gate and its datastore
+# sibling (test_compose_keeps_datastores_off_public_interfaces.py) can never
+# disagree about what "published beyond loopback" means. Two copies would answer
+# differently the day one learns a compose form the other has not, and the gate
+# left behind would keep reporting clean. Each gate still owns its own
+# population rule, controls and failure message.
+from ._compose_helpers import (
+    MIN_EXPECTED_COMPOSE_FILES,
+    REPO_ROOT,
+    UNPARSEABLE_PORTS,
+    UNPARSEABLE_SERVICE,
+    compose_files,
+    environment,
+    published_on_public_interface,
+    services,
+)
 
-# Discovered, not enumerated, so a compose file added tomorrow is covered without
-# anyone remembering to list it. The count control below keeps discovery honest:
-# a glob that silently matches nothing reports "clean" because it never ran.
-_COMPOSE_GLOB = "deployment/**/*compose*.y*ml"
-
-# Measured 2026-08-04: 10 compose files under deployment/. The floor sits below
-# that deliberately -- it is a tripwire for "discovery broke", not a headcount to
-# be edited whenever a file is legitimately added or retired.
-_MIN_EXPECTED_COMPOSE_FILES = 8
+_REPO_ROOT = REPO_ROOT
+_MIN_EXPECTED_COMPOSE_FILES = MIN_EXPECTED_COMPOSE_FILES
 
 _SETTINGS_DIR = _REPO_ROOT / "config" / "settings"
 
 # Both spellings appear in this repo; ADR-0001 keeps the unprefixed name as a
 # legacy alias, and several services set only one of the two.
 _SETTINGS_KEYS = ("DJANGO_SETTINGS_MODULE", "SCITEX_HUB_DJANGO_SETTINGS_MODULE")
-
-# Addresses that keep a port off the network. "::1" is here because a v6-only
-# loopback bind is equally safe and refusing it would be a false positive.
-_LOOPBACK_HOSTS = ("127.0.0.1", "localhost", "::1")
 
 # `DEBUG = os.getenv("NAME", "True")` -- the default is group 1. A module with no
 # DEBUG assignment at all (settings_shared.py) yields None, which is treated as
@@ -111,72 +113,31 @@ def _defaults_debug_true(settings_module):
     return match.group(1).strip().lower() in ("true", "1", "yes")
 
 
-def _environment(service):
-    """Compose accepts both ``KEY: value`` and ``- KEY=value``. Normalise."""
-    env = service.get("environment")
-    if isinstance(env, dict):
-        return {str(k): str(v) for k, v in env.items() if v is not None}
-    if isinstance(env, list):
-        out = {}
-        for item in env:
-            key, sep, value = str(item).partition("=")
-            if sep:
-                out[key.strip()] = value.strip()
-        return out
-    return {}
-
-
 def _settings_module(service):
-    env = _environment(service)
+    env = environment(service)
     for key in _SETTINGS_KEYS:
         if env.get(key):
             return env[key]
     return None
 
 
-def _published_on_public_interface(entry):
-    """True when this ``ports:`` entry reaches beyond loopback.
-
-    Handles compose's short form (``"127.0.0.1:8000:8000"``, ``"8000:8000"``,
-    ``"8000"``) and its long form (a mapping with ``host_ip``).
-    """
-    if isinstance(entry, dict):
-        # Long form. No `published` means the port is not published at all.
-        if entry.get("published") in (None, ""):
-            return False
-        return str(entry.get("host_ip") or "").strip() not in _LOOPBACK_HOSTS
-    text = str(entry).strip().strip('"').strip("'")
-    if not text:
-        return False
-    # A leading interface is present only when the entry has three colon-parts
-    # AND the first is not a ${...} port variable. Split from the right so that
-    # "${VAR:-8000}:8000" -- whose default syntax contains a colon -- is not
-    # mistaken for an interface.
-    for host in _LOOPBACK_HOSTS:
-        if text.startswith(host + ":"):
-            return False
-    return True
-
-
-def _compose_files():
-    return sorted(_REPO_ROOT.glob(_COMPOSE_GLOB))
+# Kept as module-local names so this file's own control tests still read as
+# assertions about the parser THIS gate uses.
+_published_on_public_interface = published_on_public_interface
+_compose_files = compose_files
 
 
 def _cases():
     """(path, service, settings_module, ports) for every DEBUG-defaulting service."""
     out = []
     for path in _compose_files():
-        try:
-            doc = yaml.safe_load(path.read_text(encoding="utf-8"))
-        except yaml.YAMLError:
-            # A malformed compose file is another test's problem, but it must not
-            # silently drop out of THIS sweep and read as clean.
-            out.append((path, "<unparseable>", "config.settings.settings_dev", ["0.0.0.0:1:1"]))
-            continue
-        if not isinstance(doc, dict):
-            continue
-        for name, svc in (doc.get("services") or {}).items():
-            if not isinstance(svc, dict):
+        for name, svc in services(path):
+            if name == UNPARSEABLE_SERVICE:
+                # A malformed compose file is another test's problem, but it must
+                # not silently drop out of THIS sweep and read as clean.
+                out.append(
+                    (path, name, "config.settings.settings_dev", list(UNPARSEABLE_PORTS))
+                )
                 continue
             module = _settings_module(svc)
             if not module or not _defaults_debug_true(module):

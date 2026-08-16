@@ -124,7 +124,7 @@ services:
   # ============================================
   postgres:
     ports:
-      - "${SCITEX_HUB_POSTGRES_PORT:-5433}:5432"
+      - "127.0.0.1:${SCITEX_HUB_POSTGRES_PORT:-5433}:5432"
     command:
       - postgres
       - -c
@@ -139,7 +139,7 @@ services:
   # ============================================
   redis:
     ports:
-      - "${SCITEX_HUB_REDIS_PORT:-6379}:6379"
+      - "127.0.0.1:${SCITEX_HUB_REDIS_PORT:-6379}:6379"
     command: redis-server --appendonly yes --loglevel debug
 
   # ============================================

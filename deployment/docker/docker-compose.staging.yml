@@ -106,7 +106,7 @@ services:
   # ============================================
   postgres:
     ports:
-      - "5434:5432"   # Staging postgres port
+      - "127.0.0.1:5434:5432"   # Staging postgres port — loopback only; never reachable off-host
     command: postgres -c max_connections=100 -c shared_buffers=64MB
     restart: unless-stopped
 
@@ -115,7 +115,7 @@ services:
   # ============================================
   redis:
     ports:
-      - "6380:6379"   # Staging redis port
+      - "127.0.0.1:6380:6379"   # Staging redis port — loopback only; never reachable off-host
     command: redis-server --appendonly yes
     restart: unless-stopped
 
