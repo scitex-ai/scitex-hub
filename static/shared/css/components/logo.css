@@ -52,12 +52,25 @@
   }
 }
 
-/* Light mode: invert white icons to dark */
+/* The header logo is the ENVIRONMENT FAVICON (see global_header.html), and it
+ * already ships the right colours for both themes: a navy mark (#1a2a40) on a
+ * white disc. So it must be rendered AS-IS, in both themes.
+ *
+ * It used to carry `filter: invert(1)` in light mode, under a comment reading
+ * "invert white icons to dark". That was true of an older asset — a white mark
+ * on transparent — and became wrong when the favicon moved to navy-on-white.
+ * Nothing failed loudly; it just quietly produced the wrong brand colour:
+ *
+ *     invert(#1a2a40) = #e5d5bf   <- sand/beige, not navy
+ *     invert(#ffffff) = #000000   <- black disc
+ *
+ * which is exactly what the operator reported seeing in light mode
+ * (2026-08-16: 「その砂みたいな色」), and why he asked for the official navy
+ * instead. Do not reintroduce a filter here: if a future asset needs different
+ * colours per theme, ship a per-theme ASSET rather than transforming this one,
+ * because a filter cannot know what the file already contains.
+ */
 .header-logo-icon {
-  filter: invert(1);
-}
-
-[data-theme="dark"] .header-logo-icon {
   filter: none;
 }
 
