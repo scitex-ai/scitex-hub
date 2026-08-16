@@ -40,6 +40,14 @@ covered by the pinning test named above.
 
 from __future__ import annotations
 
+#: Route used to acquire — and later to re-confirm — the pooled slot.
+#: Must be one ``VisitorAutoLoginMiddleware`` allocates on: it deliberately
+#: does NOT allocate on ``/``, ``/landing/``, ``/apps/tools/`` or
+#: ``/auth/*`` for an unauthenticated request, because a first-time reader
+#: must reach the marketing pages anonymously. ``/apps/home/`` is not in
+#: that skip list, and is in the capture set anyway.
+VISITOR_WARMUP_ROUTE = "/apps/home/"
+
 #: The body attribute carrying the canonical session role.
 SESSION_ROLE_ATTR = "data-session-role"
 

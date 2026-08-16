@@ -26,6 +26,7 @@ on:
       - 'tests/e2e/playwright/test_capture_screenshots.py'
       - 'tests/e2e/playwright/conftest.py'
       - 'tests/e2e/playwright/session_role_check.py'
+      - 'tests/e2e/playwright/page_ready.py'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

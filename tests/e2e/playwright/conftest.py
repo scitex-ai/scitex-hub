@@ -283,12 +283,6 @@ def visitor_desktop_page(visitor_desktop_context):
 # as the visitor, including those four paths.
 
 
-#: Route used to acquire the pooled slot. Must be one
-#: VisitorAutoLoginMiddleware allocates on (it is not in its skip list),
-#: and it is in the capture set anyway.
-VISITOR_WARMUP_ROUTE = "/apps/home/"
-
-
 @pytest.fixture(scope="session")
 def pooled_visitor_context(browser, pw_base_url):
     """ONE desktop context, no stored state, holding ONE pooled slot.
@@ -327,14 +321,16 @@ def pooled_visitor_page(pooled_visitor_context):
     alternative (start shooting and check later) writes an artifact full of
     the wrong product first, and the artifact is the deliverable.
     """
+    from tests.e2e.playwright.page_ready import wait_for_page_ready
     from tests.e2e.playwright.session_role_check import (
         READ_SESSION_ROLE_JS,
+        VISITOR_WARMUP_ROUTE,
         assert_pooled_visitor,
     )
 
     page = pooled_visitor_context.new_page()
     page.goto(VISITOR_WARMUP_ROUTE)
-    page.wait_for_load_state("networkidle")
+    wait_for_page_ready(page)
     role = page.evaluate(READ_SESSION_ROLE_JS)
     assert_pooled_visitor(
         role, f"visitor warm-up ({VISITOR_WARMUP_ROUTE})"

@@ -48,11 +48,29 @@ from __future__ import annotations
 
 import pytest
 
+from tests.e2e.playwright.page_ready import wait_for_page_ready
 from tests.e2e.playwright.session_role_check import (
     READ_SESSION_ROLE_JS,
     REQUIRED_ROLE,
+    VISITOR_WARMUP_ROUTE,
     wrong_role_message,
 )
+
+# Routes whose response does NOT extend templates/global_base.html, and so
+# carry neither `body.app-ready` nor `body[data-session-role]`.
+#
+# Measured 2026-08-16 against a live server: GET /apps/cards/ returns 200 and
+# 195 KB of HTML titled "SciTeX Cards v0.42.0" with ZERO occurrences of the
+# global_base loading-screen markup, while /apps/docs/ has four. It is the
+# embedded Cards board, rendered by its own template.
+#
+# This is a DECLARATION, not an exemption. The session identity belongs to
+# the browser context, not to one page's markup, so the check does not
+# disappear for these routes — it is taken on the warm-up route immediately
+# after the page has been visited in the same context (see
+# test_page_is_a_pooled_visitor_session). A route added here still has to
+# prove the session; it just proves it one navigation later.
+ROUTES_WITHOUT_GLOBAL_BASE = frozenset({"/apps/cards/"})
 
 # (route, slug, what a human would call it)
 #
@@ -108,11 +126,20 @@ class TestProductScreenshots:
         to be photographed. A slot can lapse mid-run (the lease starts as a
         2-minute probation), and a lapsed session silently becomes the
         readonly-visitor fallback or anonymous — both of which render fine.
+
+        For a route that does not render the marker
+        (ROUTES_WITHOUT_GLOBAL_BASE) the page is still VISITED first, in
+        this same browser context, and the session is then read on the
+        warm-up route. Same session, same cookies, one navigation later.
         """
         # Arrange
         page = pooled_visitor_page
+        carries_marker = route not in ROUTES_WITHOUT_GLOBAL_BASE
         page.goto(route)
-        page.wait_for_load_state("networkidle")
+        wait_for_page_ready(page, hydration_signal=carries_marker)
+        if not carries_marker:
+            page.goto(VISITOR_WARMUP_ROUTE)
+            wait_for_page_ready(page)
 
         # Act
         role = page.evaluate(READ_SESSION_ROLE_JS)
@@ -128,11 +155,17 @@ class TestProductScreenshots:
         # Arrange
         page = pooled_visitor_page
         page.goto(route)
-        # networkidle rather than load: these pages hydrate after load, and
-        # photographing them too early captures empty containers. Measured
-        # 2026-08-16 — reading a page mid-hydration produced four false
-        # "this is broken" reports in one session.
-        page.wait_for_load_state("networkidle")
+        # Wait for the product's own hydration signal, not `load` and not
+        # `networkidle` — see tests/e2e/playwright/page_ready.py. These pages
+        # hydrate after load, and photographing them too early captures empty
+        # containers (measured 2026-08-16 — reading a page mid-hydration
+        # produced four false "this is broken" reports in one session); but a
+        # pooled-visitor session polls a heartbeat forever, so `networkidle`
+        # is a condition it can never reach (measured 2026-08-16 in CI run
+        # 31955719803: 30s timeout, 33 errors, nothing actually broken).
+        wait_for_page_ready(
+            page, hydration_signal=route not in ROUTES_WITHOUT_GLOBAL_BASE
+        )
         page.evaluate(FORCE_LIGHT)
 
         # Act
