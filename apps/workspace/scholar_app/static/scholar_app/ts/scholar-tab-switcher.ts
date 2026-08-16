@@ -4,8 +4,12 @@
  * Works in both standalone mode and AJAX-injected unified workspace.
  */
 
-const TAB_ORDER = ["library", "search", "bibtex", "graph"];
-const DEFAULT_TAB = "library";
+// Search leads, Library follows — same order as the markup in
+// scholar_unified.html / scholar_partial.html, and the tab the app OPENS on.
+// Reordering the markup alone would put Search leftmost and still activate
+// Library, which is what the operator screenshotted after PR #616.
+const TAB_ORDER = ["search", "library", "bibtex", "graph"];
+const DEFAULT_TAB = "search";
 
 function isInUnifiedWorkspace(): boolean {
   return !!document.getElementById("unified-center");
