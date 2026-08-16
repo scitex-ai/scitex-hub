@@ -25,6 +25,7 @@ from django.utils import timezone
 
 from apps.infra.project_app.models import Project, VisitorAllocation
 
+from .pool_health import measure_pool
 from .session_role import (
     READONLY_REASON_NO_READY_SLOT,
     READONLY_REASON_POOL_FULL,
@@ -35,7 +36,6 @@ from .slot_lifecycle import (
     is_allocation_stale,
     quarantine_slot,
     release_slot,
-    stale_allocation_q,
 )
 
 logger = logging.getLogger(__name__)
@@ -288,9 +288,7 @@ class PoolAllocator:
                 # self-heals from serving traffic alone, so the periodic
                 # celery reaper is no longer a single point of failure —
                 # the failure mode that wedged prod at free=0 (2026-07-09).
-                reason = (
-                    "expired-lazy" if allocation.expires_at < now else "idle-lazy"
-                )
+                reason = "expired-lazy" if allocation.expires_at < now else "idle-lazy"
                 release_slot(allocation, reason=reason)
                 return None, None
             # Genuinely live session — slot busy.
@@ -432,53 +430,12 @@ class PoolAllocator:
 
     @classmethod
     def get_pool_status(cls, pool_size: int) -> dict:
+        """Get current pool status — see :func:`pool_health.measure_pool`.
+
+        Thin delegator. The counting itself lives next to the code that
+        INTERPRETS it (``pool_health``), because the whole class of bug this
+        module keeps hitting is a counter and a reader drifting apart on what
+        "available" means: ``free`` vs ``ready`` vs "workspace is clean" were
+        three different numbers used interchangeably.
         """
-        Get current pool status.
-
-        Args:
-            pool_size: Size of the visitor pool
-
-        Returns:
-            dict: {total, allocated, free, expired, quarantined, ready}
-
-            ``free`` and ``ready`` are NOT interchangeable, and ``ready`` is
-            the one that governs: allocation needs a slot that is unallocated
-            AND workspace_ready AND not quarantined. ``free`` is merely
-            total - occupied, so it counts slots that can never be handed out.
-            Report ``ready`` to anyone asking "can I get a slot?" — a UI that
-            showed ``free`` claimed spare capacity while every visitor was
-            correctly downgraded to read-only (prod 2026-07-30).
-        """
-        now = timezone.now()
-        total = pool_size
-
-        # "Occupied" = a genuinely LIVE visitor session: ``is_active`` AND
-        # neither expired nor idle. A stale row (``is_active`` with a
-        # future ``expires_at`` but a weeks-old ``last_activity``) is NOT
-        # occupied — it is reclaimable, so it counts as free. Counting only
-        # ``expires_at`` (the old behaviour) let such zombie rows wedge the
-        # pool at free=0 (prod 2026-07-09): nothing had extended
-        # ``expires_at``, yet the idle dimension was ignored.
-        occupied = (
-            VisitorAllocation.objects.filter(is_active=True)
-            .exclude(stale_allocation_q(now))
-            .count()
-        )
-
-        expired = VisitorAllocation.objects.filter(
-            is_active=True, expires_at__lte=now
-        ).count()
-
-        quarantined = VisitorAllocation.objects.filter(quarantined=True).count()
-        ready = VisitorAllocation.objects.filter(
-            quarantined=False, is_active=False, workspace_ready=True
-        ).count()
-
-        return {
-            "total": total,
-            "allocated": occupied,
-            "free": max(0, total - occupied),
-            "expired": expired,
-            "quarantined": quarantined,
-            "ready": ready,
-        }
+        return measure_pool(pool_size)
