@@ -87,9 +87,17 @@ class ModuleConfig:
 
     # Launcher-grid visibility. Some registered modules are workspace
     # panes / nav items, not standalone launcher apps — e.g. Clew (opens
-    # within a manuscript) and Chat/comms (lives in the left sidebar at
-    # /chat/). They stay fully registered (routes, tab bar, sidebar) but
+    # within a manuscript) and comms (reached from the workspace, not the
+    # grid). They stay fully registered (routes, tab bar, sidebar) but
     # are suppressed as launcher tiles. Default True = every module tiles.
+    #
+    # This comment used to say comms "lives in the left sidebar at /chat/".
+    # It does not, and that sentence cost the site a page: comms is the
+    # real-time MESSAGING app at /apps/comms/, while /chat/ is the LLM
+    # welcome pane dispatched by repo_app.views.dispatch.root_dispatch.
+    # They are different surfaces, and /chat/ has no registry entry at
+    # all — so its absence from the launcher grid was never a decision
+    # anyone made, it just followed from a mistaken identity.
     show_in_launcher: bool = True
 
     # Runtime state (set by context processor, not persisted)
