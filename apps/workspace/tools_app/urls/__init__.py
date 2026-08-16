@@ -126,6 +126,12 @@ urlpatterns = [
         views.tool_render_mmd,
         name="tool_render_mmd",
     ),
+    # Audio tools
+    path(
+        "tools/transcribe-audio/",
+        views.tool_transcribe_audio,
+        name="tool_transcribe_audio",
+    ),
     # Video tools
     path(
         "tools/edit-video/",

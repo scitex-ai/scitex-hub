@@ -30,6 +30,7 @@ from .tools import (
     tool_scrape_citations,
     tool_split_pdf,
     tool_test_scitex_plot,
+    tool_transcribe_audio,
     tool_view_image,
     tool_view_plot,
     tools,
@@ -60,6 +61,7 @@ __all__ = [
     "tool_scrape_citations",
     "tool_split_pdf",
     "tool_test_scitex_plot",
+    "tool_transcribe_audio",
     "tool_view_image",
     "tool_view_plot",
 ]

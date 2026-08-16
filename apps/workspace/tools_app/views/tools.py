@@ -9,6 +9,7 @@ Actual implementation is in tools_views.py and tools_data.py.
 from __future__ import annotations
 
 from .tools_data import (
+    AUDIO_TOOLS,
     DEVELOPER_TOOLS,
     IMAGE_TOOLS,
     PDF_TOOLS,
@@ -43,6 +44,7 @@ from .tools_views import (
     tool_scrape_citations,
     tool_split_pdf,
     tool_test_scitex_plot,
+    tool_transcribe_audio,
     tool_view_image,
     tool_view_plot,
     tools,
@@ -57,6 +59,7 @@ __all__ = [
     "TEXT_TOOLS",
     "IMAGE_TOOLS",
     "PDF_TOOLS",
+    "AUDIO_TOOLS",
     "VIDEO_TOOLS",
     "RENDERING_TOOLS",
     "DEVELOPER_TOOLS",
@@ -85,6 +88,7 @@ __all__ = [
     "tool_scrape_citations",
     "tool_split_pdf",
     "tool_test_scitex_plot",
+    "tool_transcribe_audio",
     "tool_view_image",
     "tool_view_plot",
 ]
