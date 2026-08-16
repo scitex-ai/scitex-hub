@@ -1,20 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # File: tests/config/test_admin_error_mail.py
-"""The operator must be told when hub fails.
+"""The operator must be told when hub fails -- and told readably.
 
 Operator request, Telegram 2026-08-10:
 「サイテクスハブの ... 失敗っていうのは必ず私にメールが届くようにしてほしいんですよ」
 
-Until 2026-08-15 the ``mail_admins`` handler was DEFINED in
-``settings_logging`` and referenced by no logger at all, so hub had never sent
-a single admin error email while the config read as though it did. That is the
-constitution's own example of a gate that cannot fail: "the config still lists
-it and everyone believes it is working."
+This file covers the base configuration, the recipients, and the BEHAVIOUR of
+the rail: a real ERROR through the real handler, into a real outbox.
 
-``test_every_defined_handler_is_attached_to_a_logger`` is the gate that would
-have caught it, and it is written to catch the CLASS rather than this one
-instance -- any future handler added and never wired fails it too.
+Two neighbours carry the rest:
+
+* ``tests/config/test_logging_wiring_per_environment.py`` is the GATE for
+  whether deployed environments keep the wiring -- it composes the actual
+  ``settings_{prod,staging,dev}`` modules. Everything in this file passed on
+  2026-08-15 while composed production had thrown the wiring away and sent
+  nothing, which is exactly why the composed gate exists.
+* ``tests/config/test_repeated_error_throttle.py`` covers the throttle
+  mechanism on its own, without Django.
 """
 
 from __future__ import annotations
@@ -35,10 +38,7 @@ def _load(module_filename: str):
 
     ``config/__init__.py`` pulls in celery_app, so a plain
     ``from config.settings... import ...`` drags the whole application import
-    graph into a test that only reads a dictionary. Loading by path keeps this
-    gate runnable in any environment -- including one where the app's runtime
-    dependencies are absent -- which matters because a gate you cannot run is
-    a gate that quietly stops running.
+    graph into a test that only reads a dictionary.
     """
     path = SETTINGS_DIR / module_filename
     spec = importlib.util.spec_from_file_location(path.stem, path)
@@ -47,17 +47,10 @@ def _load(module_filename: str):
     return module
 
 
-LOGGING = _load("settings_logging.py").LOGGING
-SuppressRepeatedErrors = _load("_suppress_repeated_errors.py").SuppressRepeatedErrors
-
-# A handler may legitimately have no logger ONLY when its purpose is to be
-# referenced by name at runtime. Each entry needs a written reason; this list
-# is deliberately not a wildcard, because a blanket exemption would hide every
-# future instance of the defect this file exists to prevent.
-HANDLERS_ALLOWED_TO_HAVE_NO_LOGGER = {
-    # A no-op sink attached on demand to silence a third-party logger.
-    "null",
-}
+BASE_LOGGING = _load("settings_logging.py").LOGGING
+ThrottledAdminEmailHandler = _load(
+    "_suppress_repeated_errors.py"
+).ThrottledAdminEmailHandler
 
 # Loggers that carry operational failure. Each must reach the operator.
 LOGGERS_THAT_MUST_MAIL_ADMINS = (
@@ -69,6 +62,25 @@ LOGGERS_THAT_MUST_MAIL_ADMINS = (
     "apps.workspace.scholar_app",
     "apps.workspace.console_app",
 )
+
+# Rendering an admin mail runs Django's ExceptionReporter over the whole
+# settings dump, measured at ~0.2s. A throttle window shorter than that would
+# expire while the first mail is still being built, so these tests would
+# measure the reporter rather than the throttle.
+HANDLER_TEST_WINDOW_SECONDS = 1
+
+
+def _error_record(message: str, name: str = "django.request") -> logging.LogRecord:
+    return logging.LogRecord(
+        name=name,
+        level=logging.ERROR,
+        pathname=__file__,
+        lineno=1,
+        msg=message,
+        args=(),
+        exc_info=None,
+    )
+
 
 def _admins_from_source(source: str) -> list[tuple[str, str]]:
     """Read the ADMINS literal without importing settings_shared.
@@ -130,50 +142,17 @@ def admin_mail_settings():
         yield
 
 
-def _handlers_referenced_by_loggers() -> set[str]:
-    referenced: set[str] = set()
-    for logger in LOGGING["loggers"].values():
-        referenced.update(logger.get("handlers", []))
-    root = LOGGING.get("root")
-    if root:
-        referenced.update(root.get("handlers", []))
-    return referenced
+class TestTheBaseConfiguration:
+    """settings_logging on its own.
 
-
-def _error_record(message: str, name: str = "django.request") -> logging.LogRecord:
-    return logging.LogRecord(
-        name=name,
-        level=logging.ERROR,
-        pathname=__file__,
-        lineno=1,
-        msg=message,
-        args=(),
-        exc_info=None,
-    )
-
-
-class TestHandlersAreActuallyWired:
-    def test_every_defined_handler_is_attached_to_a_logger(self):
-        # Arrange
-        defined = set(LOGGING["handlers"])
-        # Act
-        orphaned = defined - _handlers_referenced_by_loggers()
-        orphaned -= HANDLERS_ALLOWED_TO_HAVE_NO_LOGGER
-        # Assert
-        assert not orphaned, (
-            "These handlers are defined in settings_logging and referenced by "
-            f"no logger, so they never run: {sorted(orphaned)}. A handler that "
-            "is configured but unattached reads as a working safety mechanism "
-            "to anyone who greps for it while doing nothing at all. Either "
-            "attach it to the loggers it is meant to serve, or delete it. If "
-            "it genuinely has no logger by design, add it to "
-            "HANDLERS_ALLOWED_TO_HAVE_NO_LOGGER with the reason."
-        )
+    These localise a base-level mistake. They are deliberately NOT trusted as
+    the gate: every one of them passed while composed production sent nothing.
+    """
 
     @pytest.mark.parametrize("logger_name", LOGGERS_THAT_MUST_MAIL_ADMINS)
     def test_failure_carrying_loggers_reach_the_operator(self, logger_name):
         # Arrange
-        logger = LOGGING["loggers"][logger_name]
+        logger = BASE_LOGGING["loggers"][logger_name]
         # Act
         handlers = logger.get("handlers", [])
         # Assert
@@ -184,42 +163,42 @@ class TestHandlersAreActuallyWired:
             "for four days in August 2026."
         )
 
-    def test_mail_admins_suppresses_repeated_errors(self):
+    def test_mail_admins_throttles_repeats(self):
         # Arrange
-        handler = LOGGING["handlers"]["mail_admins"]
+        handler = BASE_LOGGING["handlers"]["mail_admins"]
         # Act
-        filters = handler["filters"]
+        handler_class = handler["class"]
         # Assert
-        assert "suppress_repeated_errors" in filters, (
-            "mail_admins has no repeat suppression. AdminEmailHandler has no "
-            "throttle of its own, so one crash-looping view delivers hundreds "
-            "of identical emails and the operator mutes the channel -- the "
-            "same outcome as sending nothing."
+        assert handler_class.endswith("ThrottledAdminEmailHandler"), (
+            f"mail_admins uses {handler_class!r}, which has no repeat "
+            "suppression. AdminEmailHandler has no throttle of its own, so one "
+            "crash-looping view delivers hundreds of identical emails and the "
+            "operator mutes the channel -- the same outcome as sending nothing."
         )
 
     def test_mail_admins_stays_off_developer_machines(self):
         # Arrange
-        handler = LOGGING["handlers"]["mail_admins"]
+        handler = BASE_LOGGING["handlers"]["mail_admins"]
         # Act
         filters = handler["filters"]
         # Assert
         assert "require_debug_false" in filters
 
-    def test_the_suppressor_dotted_path_resolves_to_a_real_class(self):
-        """Django resolves this filter by STRING at startup, not by import."""
+    def test_the_handler_dotted_path_resolves_to_a_real_class(self):
+        """Django resolves this by STRING at dictConfig time, not by import."""
         # Arrange
-        dotted = LOGGING["filters"]["suppress_repeated_errors"]["()"]
+        dotted = BASE_LOGGING["handlers"]["mail_admins"]["class"]
         module_path, class_name = dotted.rsplit(".", 1)
         source = SETTINGS_DIR / f"{module_path.rsplit('.', 1)[1]}.py"
         # Act
         defines_it = source.is_file() and f"class {class_name}" in source.read_text()
         # Assert
         assert defines_it, (
-            f"settings_logging names {dotted!r} as a filter, but no such class "
-            f"was found at {source}. Django resolves this string at startup, so "
-            "a rename that misses it does not fail here -- it fails when the "
-            "first error tries to reach the operator, which is the worst "
-            "possible moment to discover it."
+            f"settings_logging names {dotted!r} as the mail_admins handler, but "
+            f"no such class was found at {source}. Django resolves this string "
+            "at startup, so a rename that misses it does not fail here -- it "
+            "fails when the first error tries to reach the operator, which is "
+            "the worst possible moment to discover it."
         )
 
 
@@ -268,23 +247,14 @@ class TestAnErrorActuallyReachesTheOperator:
 
     The card that produced this file is explicit that reading the settings is
     not proof -- reading the settings is exactly what made everyone believe
-    mail_admins worked for months. So these drive Django's real
-    AdminEmailHandler through the real filter and assert on delivered mail.
+    mail_admins worked for months.
     """
-
-    @staticmethod
-    def _handler():
-        from django.utils.log import AdminEmailHandler
-
-        handler = AdminEmailHandler()
-        handler.addFilter(SuppressRepeatedErrors())
-        return handler
 
     def test_an_error_is_delivered_to_the_admins(self, admin_mail_settings):
         # Arrange
         from django.core import mail
 
-        handler = self._handler()
+        handler = ThrottledAdminEmailHandler()
         # Act
         handler.handle(_error_record("Template clone returned falsy"))
         # Assert
@@ -294,7 +264,7 @@ class TestAnErrorActuallyReachesTheOperator:
         # Arrange
         from django.core import mail
 
-        handler = self._handler()
+        handler = ThrottledAdminEmailHandler()
         # Act
         handler.handle(_error_record("Template clone returned falsy"))
         # Assert
@@ -306,7 +276,7 @@ class TestAnErrorActuallyReachesTheOperator:
         # Arrange
         from django.core import mail
 
-        handler = self._handler()
+        handler = ThrottledAdminEmailHandler()
         # Act
         handler.handle(_error_record("Template clone returned falsy"))
         # Assert
@@ -318,7 +288,7 @@ class TestAnErrorActuallyReachesTheOperator:
         # Arrange
         from django.core import mail
 
-        handler = self._handler()
+        handler = ThrottledAdminEmailHandler()
         # Act
         for _ in range(50):
             handler.handle(_error_record("Template clone returned falsy"))
@@ -331,7 +301,7 @@ class TestAnErrorActuallyReachesTheOperator:
         # Arrange
         from django.core import mail
 
-        handler = self._handler()
+        handler = ThrottledAdminEmailHandler()
         for _ in range(50):
             handler.handle(_error_record("Template clone returned falsy"))
         # Act
@@ -339,80 +309,82 @@ class TestAnErrorActuallyReachesTheOperator:
         # Assert
         assert len(mail.outbox) == 2
 
-
-class TestSuppressRepeatedErrors:
-    """The throttle itself -- pure Python, no Django needed."""
-
-    def test_the_first_occurrence_is_delivered(self):
+    def test_the_next_mail_reports_how_many_repeats_were_dropped(
+        self, admin_mail_settings
+    ):
         # Arrange
-        suppressor = SuppressRepeatedErrors()
-        # Act
-        delivered = suppressor.filter(_error_record("boom"))
-        # Assert
-        assert delivered is True
+        from django.core import mail
 
-    def test_repeats_of_the_same_error_are_dropped(self):
-        # Arrange
-        suppressor = SuppressRepeatedErrors()
-        # Act
-        verdicts = [suppressor.filter(_error_record("boom")) for _ in range(5)]
-        # Assert
-        assert verdicts == [True, False, False, False, False]
-
-    def test_a_different_error_is_never_suppressed(self):
-        # Arrange
-        suppressor = SuppressRepeatedErrors()
-        suppressor.filter(_error_record("boom"))
-        # Act
-        delivered = suppressor.filter(_error_record("a different failure"))
-        # Assert
-        assert delivered is True
-
-    def test_the_same_message_from_another_logger_is_delivered(self):
-        # Arrange
-        suppressor = SuppressRepeatedErrors()
-        suppressor.filter(_error_record("boom", name="django.request"))
-        # Act
-        delivered = suppressor.filter(_error_record("boom", name="scitex.errors"))
-        # Assert
-        assert delivered is True
-
-    def test_the_suppressed_count_is_reported_in_the_next_message(self):
-        # Arrange
-        suppressor = SuppressRepeatedErrors(window_seconds=0.05)
-        suppressor.filter(_error_record("boom"))
+        handler = ThrottledAdminEmailHandler(
+            window_seconds=HANDLER_TEST_WINDOW_SECONDS
+        )
+        handler.handle(_error_record("boom"))
         for _ in range(3):
-            suppressor.filter(_error_record("boom"))
-        time.sleep(0.06)
+            handler.handle(_error_record("boom"))
+        time.sleep(HANDLER_TEST_WINDOW_SECONDS + 0.1)
         # Act
-        record = _error_record("boom")
-        suppressor.filter(record)
+        handler.handle(_error_record("boom"))
         # Assert
-        assert "3 identical message(s) were suppressed" in record.getMessage(), (
-            "the next message must say how many repeats were dropped, or the "
+        assert (
+            "3 identical message(s) were suppressed in the previous 1 second"
+            in mail.outbox[-1].body
+        ), (
+            "the next mail must say how many repeats were dropped, or the "
             "throttle hides the scale of an incident"
         )
 
-    def test_the_window_reopens_once_it_has_elapsed(self):
-        # Arrange
-        suppressor = SuppressRepeatedErrors(window_seconds=0.05)
-        suppressor.filter(_error_record("boom"))
-        time.sleep(0.06)
-        # Act
-        delivered = suppressor.filter(_error_record("boom"))
-        # Assert
-        assert delivered is True
+    def test_the_record_other_handlers_share_is_never_touched(
+        self, admin_mail_settings
+    ):
+        """Correctness must not depend on mail_admins being listed last.
 
-    def test_a_window_that_could_suppress_nothing_is_refused(self):
+        Every handler on one logger is handed the SAME LogRecord object. The
+        first version of the throttle was a filter that rewrote record.msg in
+        place, so it only happened to be harmless because mail_admins was last
+        in every handler list; reordering one list would have started writing
+        throttle annotations into errors.log.
+        """
         # Arrange
-        window_that_suppresses_nothing = 0
-        # Act
-        construct = lambda: SuppressRepeatedErrors(  # noqa: E731
-            window_seconds=window_that_suppresses_nothing
+        handler = ThrottledAdminEmailHandler(
+            window_seconds=HANDLER_TEST_WINDOW_SECONDS
         )
+        handler.handle(_error_record("boom"))
+        handler.handle(_error_record("boom"))
+        time.sleep(HANDLER_TEST_WINDOW_SECONDS + 0.1)
+        record = _error_record("boom")
+        # Act
+        handler.handle(record)
         # Assert
-        with pytest.raises(ValueError, match="window must be positive"):
-            construct()
+        assert record.msg == "boom" and not hasattr(record, "suppressed_repeats"), (
+            "the throttle wrote its own bookkeeping onto the shared LogRecord; "
+            "every other handler on this logger sees the same object"
+        )
+
+    def test_the_subject_line_still_reads_as_the_failure(self, admin_mail_settings):
+        """The count belongs in the body, not in the subject.
+
+        AdminEmailHandler builds the subject from record.getMessage() and
+        escapes newlines into a literal "\\n", so a throttle that annotated the
+        message would push its own bookkeeping into the subject line of every
+        mail after a storm -- where the operator needs to read the failure.
+        """
+        # Arrange
+        handler = ThrottledAdminEmailHandler(
+            window_seconds=HANDLER_TEST_WINDOW_SECONDS
+        )
+        from django.core import mail
+
+        handler.handle(_error_record("Template clone returned falsy"))
+        handler.handle(_error_record("Template clone returned falsy"))
+        time.sleep(HANDLER_TEST_WINDOW_SECONDS + 0.1)
+        # Act
+        handler.handle(_error_record("Template clone returned falsy"))
+        # Assert
+        subject = mail.outbox[-1].subject
+        assert subject.endswith("Template clone returned falsy"), (
+            f"the subject reads {subject!r}; the throttle's suppressed-count "
+            "note must stay in the body"
+        )
 
 
 # EOF

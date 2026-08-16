@@ -70,13 +70,6 @@ LOGGING = {
         "require_debug_false": {
             "()": "django.utils.log.RequireDebugFalse",
         },
-        # Keeps the admin mailbox readable: the first of each distinct error
-        # goes out, its repeats are dropped for the window and counted into
-        # the next message. Without it, one crash-looping view delivers
-        # hundreds of identical emails and the operator mutes the channel.
-        "suppress_repeated_errors": {
-            "()": "config.settings._suppress_repeated_errors.SuppressRepeatedErrors",
-        },
     },
     "handlers": {
         "console": {
@@ -92,13 +85,33 @@ LOGGING = {
         # pool sat 14/16 quarantined for four days: the error WAS logged, to
         # errors.log, and nowhere else.
         #
-        # Recipients come from ADMINS (settings_shared). require_debug_false
-        # keeps it off developer machines; suppress_repeated_errors keeps one
-        # looping failure from burying every other message.
+        # Recipients come from ADMINS (settings_shared), which still uses the
+        # (name, address) pair form: measured on 2026-08-15, Django 6.0.8
+        # delivers to both recipients and emits RemovedInDjango70Warning
+        # asking for bare address strings. The pairs stay until pyproject's
+        # "Django>=5.2" floor moves to >=6.0 -- 5.2 unpacks the pairs, so
+        # switching early would break this rail on the oldest supported
+        # version. require_debug_false keeps it off developer machines. The
+        # handler class is Django's
+        # AdminEmailHandler plus a repeat throttle: the first of each distinct
+        # error goes out and its repeats are dropped for the window and counted
+        # into the next message, because one crash-looping view sending
+        # hundreds of identical emails is a channel the operator mutes -- the
+        # same outcome as sending nothing. The throttle is part of the HANDLER
+        # rather than a filter so that annotating the message cannot corrupt
+        # what the file handlers on the same logger write; see the module
+        # docstring in _suppress_repeated_errors.py.
+        #
+        # Environments refine this config through
+        # config.settings._logging_merge.merge_logging, which REFUSES a result
+        # where this handler has lost its loggers.
         "mail_admins": {
             "level": "ERROR",
-            "filters": ["require_debug_false", "suppress_repeated_errors"],
-            "class": "django.utils.log.AdminEmailHandler",
+            "filters": ["require_debug_false"],
+            "class": (
+                "config.settings._suppress_repeated_errors"
+                ".ThrottledAdminEmailHandler"
+            ),
             "formatter": "verbose",
         },
         "null": {
