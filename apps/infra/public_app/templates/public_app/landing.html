@@ -45,8 +45,28 @@
     <div class="landing-cushion" aria-hidden="true"></div>
     {% include 'public_app/landing_partials/landing_announcement.html' %}
     {% include 'public_app/landing_partials/landing_hero.html' %}
-    {# Ecosystem table moved to Python docs page #}
-    {# {% include 'public_app/landing_partials/landing_ecosystem.html' %} #}
+    {% comment %}
+       WHAT THE VISITOR CAN DO HERE, then HOW TO START.
+
+       Operator, 2026-08-16: 「今は道具がバラバラで来訪者がいても何が何だか
+       わからないと思うので」 and 「人様に見せられるレベルではない」.
+
+       He was right, and the cause was not missing work. This page loaded
+       SIXTEEN stylesheets — products, benefits, features, demos,
+       testimonials, pricing, faq, cta — while rendering only the
+       announcement and the hero. Everything else was written, styled,
+       unit-tested and never included, so a first-time visitor got one
+       tagline and no way to learn what SciTeX is or how to begin.
+
+       landing_demos names the four modules (Scholar / Writer / Console /
+       Visualizer) with a line each; landing_commitment closes with the
+       sign-up path. Both already ship their own CSS and TS entrypoints.
+
+       The ecosystem TABLE stays out — it moved to the Python docs page and
+       is not the same thing as the module cards below.
+    {% endcomment %}
+    {% include 'public_app/landing_partials/landing_demos.html' %}
+    {% include 'public_app/landing_partials/landing_commitment.html' %}
     <div class="landing-cushion" aria-hidden="true"></div>
 {% endblock %}
 {% block extra_js %}
