@@ -175,14 +175,18 @@ echo_success "Visitor slots reconciled (re-clean dispatched async; only verified
 # Create test-user for development and E2E testing
 initialize_test_user() {
     local username="${SCITEX_HUB_TEST_USER_USERNAME:-test-user}"
-    local password="${SCITEX_HUB_TEST_USER_PASSWORD:-Password123!}"
     local email="test@example.com"
 
+    # NO literal password default here, and --password is deliberately NOT
+    # passed. init_test_user reads $SCITEX_HUB_TEST_USER_PASSWORD itself and
+    # generates a random password when it is unset, so the fallback exists in
+    # exactly ONE place. A ":-Password123!" here would silently reinstate the
+    # published credential no matter what the Python does — which is precisely
+    # how the old default reached production despite living in a dev-only app.
     echo_info "Ensuring test user exists: $username"
     python manage.py init_test_user \
         --username="$username" \
         --email="$email" \
-        --password="$password" \
         2>&1 | grep -v "ERRO\|WARN" || true
     echo_success "Test user ready: $username"
 }

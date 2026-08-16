@@ -74,7 +74,16 @@ def reset_database():
     # Create superuser from env vars
     admin_user_name = os.environ.get("SCITEX_HUB_ADMIN_USERNAME", "admin")
     admin_email = os.environ.get("SCITEX_HUB_ADMIN_EMAIL", "admin@scitex.ai")
-    admin_password = os.environ.get("SCITEX_HUB_ADMIN_PASSWORD", "admin123")
+    # NO literal default. This value goes straight into create_superuser()
+    # below, so a fallback here mints a SUPERUSER whose password is published
+    # in a public repository. Fail closed: refusing to create the account is
+    # strictly better than creating an administrator everyone can log in as.
+    admin_password = os.environ.get("SCITEX_HUB_ADMIN_PASSWORD", "")
+    if not admin_password:
+        raise SystemExit(
+            "SCITEX_HUB_ADMIN_PASSWORD is not set. Refusing to create a "
+            "superuser with a built-in password — set the variable and re-run."
+        )
 
     if not User.objects.filter(username=admin_user_name).exists():
         admin_user = User.objects.create_superuser(
