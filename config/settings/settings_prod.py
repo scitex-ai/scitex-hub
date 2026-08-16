@@ -25,6 +25,7 @@ from config._env import (
     require_env_with_legacy_alias as _require_env_alias,
 )
 
+from ._logging_merge import merge_logging
 from .settings_shared import *
 
 # Environment identity -- unmarked tab title ("<App> — SciTeX") and the NAVY
@@ -180,12 +181,12 @@ SCITEX_HUB_GITEA_SSH_PORT = require_env("SCITEX_HUB_GITEA_SSH_PORT")
 # ---------------------------------------
 # Logging
 # ---------------------------------------
-LOGGING.update(
+LOGGING = merge_logging(
+    LOGGING,
     {
         "handlers": {
-            # Keep existing handlers from base settings
-            **LOGGING.get("handlers", {}),
-            # Add production-specific handlers
+            # Production-specific handlers. The base's handlers are kept by the
+            # merge; only the entries named here are added or replaced.
             "file_app": {
                 "level": "INFO",
                 "class": "logging.handlers.RotatingFileHandler",
@@ -194,7 +195,13 @@ LOGGING.update(
                 "backupCount": 10,
                 "formatter": "verbose",
             },
-            "file_django": {
+            # Deliberately REDEFINES the base's "django_file" rather than
+            # adding a second handler under a new name. Both wrote to
+            # LOG_DIR/django.log; two RotatingFileHandlers on one file rotate
+            # against each other. Now the base's entry is refined -- bigger
+            # files, more backups, verbose format -- and there is still exactly
+            # one writer.
+            "django_file": {
                 "level": "INFO",
                 "class": "logging.handlers.RotatingFileHandler",
                 "filename": os.path.join(LOG_DIR, "django.log"),
@@ -220,19 +227,24 @@ LOGGING.update(
             },
         },
         "loggers": {
-            # Update existing loggers
+            # Loggers redefined for production. Every logger NOT named here --
+            # scitex.errors and the four app loggers among them -- keeps the
+            # base's handlers, mail_admins included.
             "django": {
-                "handlers": ["file_django"],
+                "handlers": ["django_file"],
                 "level": "INFO",
                 "propagate": False,
             },
+            # mail_admins is re-listed because redefining a logger replaces its
+            # handler list. Dropping it here is the exact defect this file had:
+            # a 500 reached error.log and nobody else.
             "django.request": {
-                "handlers": ["file_error"],
+                "handlers": ["file_error", "mail_admins"],
                 "level": "ERROR",
                 "propagate": False,
             },
             "django.security": {
-                "handlers": ["file_security"],
+                "handlers": ["file_security", "mail_admins"],
                 "level": "INFO",
                 "propagate": False,
             },
@@ -242,12 +254,17 @@ LOGGING.update(
                 "propagate": False,
             },
         },
-        # Root logger catches everything else
+        # Root logger catches everything else. Deliberately NOT on the operator
+        # rail: root is the catch-all for loggers nobody enumerated, so its
+        # message set is unbounded and mostly third-party. Mailing an unbounded
+        # message set is how an operator learns to mute the channel, which is
+        # the same outcome as sending nothing. hub's own failure paths are the
+        # enumerated loggers above.
         "root": {
             "handlers": ["file_error"],
             "level": "ERROR",
         },
-    }
+    },
 )
 
 # EOF

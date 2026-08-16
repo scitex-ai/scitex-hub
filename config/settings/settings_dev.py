@@ -21,6 +21,7 @@ from dotenv import load_dotenv
 
 from config import branding
 
+from ._logging_merge import merge_logging
 from .settings_shared import *
 
 # Environment identity -- drives the tab title marker "(dev)" and the GREEN
@@ -261,12 +262,17 @@ if not test_redis_connection():
 # ---------------------------------------
 # Logging
 # ---------------------------------------
-LOGGING.update(
+# merge_logging, NOT LOGGING.update -- see the note in settings_prod.py and the
+# measurement in config/settings/_logging_merge.py. This module happened to
+# spread `**LOGGING.get("loggers", {})` and so kept the base's wiring, but the
+# spread was a habit rather than a guarantee: the same literal in prod and
+# staging did not have it, and nothing noticed for months.
+LOGGING = merge_logging(
+    LOGGING,
     {
         "handlers": {
-            # Keep existing handlers from base settings
-            **LOGGING.get("handlers", {}),
-            # Add development-specific handlers
+            # Development-specific handlers. The base's handlers are kept by
+            # the merge.
             "file_app": {
                 "level": "DEBUG",
                 "class": "logging.handlers.RotatingFileHandler",
@@ -275,14 +281,11 @@ LOGGING.update(
                 "backupCount": 5,
                 "formatter": "standard",
             },
-            "file_django": {
-                "level": "INFO",
-                "class": "logging.handlers.RotatingFileHandler",
-                "filename": LOG_DIR / "django.log",
-                "maxBytes": 1024 * 1024 * 5,  # 5 MB
-                "backupCount": 5,
-                "formatter": "standard",
-            },
+            # "file_django" used to be defined here as a byte-for-byte copy of
+            # the base's "django_file" -- same file, same size, same backups --
+            # so dev ran two RotatingFileHandlers over LOG_DIR/django.log and
+            # left the base's handler attached to nothing. The base's entry is
+            # simply reused instead.
             "file_requests": {
                 "level": "DEBUG",
                 "class": "logging.handlers.RotatingFileHandler",
@@ -298,21 +301,30 @@ LOGGING.update(
             },
         },
         "loggers": {
-            # Update existing loggers from base settings
-            **LOGGING.get("loggers", {}),
-            # Add development-specific loggers
+            # Loggers redefined for development. Every logger NOT named here
+            # keeps the base's handlers.
             "django": {
-                "handlers": ["console", "file_django"],
+                "handlers": ["console", "django_file"],
                 "level": "INFO",
                 "propagate": True,
             },
+            # mail_admins IS listed here on purpose, even though dev runs with
+            # DEBUG=True and require_debug_false drops every record. The rail
+            # must have exactly ONE gate deciding whether a developer machine
+            # mails, and that gate is require_debug_false -- the same reasoning
+            # settings_shared gives for defining ADMINS once instead of per
+            # environment. Omitting the handler here would be a SECOND, silent
+            # gate, and two gates where one is invisible is precisely how this
+            # rail came to be dead in production without anyone noticing. It
+            # also means a developer debugging with DEBUG=False sees the real
+            # production behaviour rather than a quieter imitation of it.
             "django.request": {
-                "handlers": ["file_requests"],
+                "handlers": ["file_requests", "mail_admins"],
                 "level": "ERROR",  # Only log errors, not 404s for __reload__
                 "propagate": True,
             },
             "django.server": {
-                "handlers": ["file_django"],
+                "handlers": ["django_file"],
                 "level": "ERROR",  # Suppress __reload__ 404 warnings
                 "propagate": False,
             },
@@ -329,7 +341,7 @@ LOGGING.update(
                 "propagate": True,
             },
         },
-    }
+    },
 )
 
 # ---------------------------------------
