@@ -26,9 +26,18 @@ slot is quarantined synchronously first, so NOTHING is allocatable until
 a worker verifies it clean — visitors get the readonly-visitor fallback
 during the async window (same gate as a Celery outage).
 
+``--repair-only`` is the REPAIR verb for a RUNNING system: it skips Phase 1
+entirely and re-cleans only slots that are already quarantined. The plain
+command must never be used that way — Phase 1 has no branch that leaves a
+healthy slot alone, so it quarantines the whole pool (``ready`` drops to 0)
+and can only make a degraded pool worse. Plain = boot; ``--repair-only`` =
+repair. See ``manage.py visitor_pool_ready`` for the read-only question "is
+the pool actually serving anyone?".
+
 Usage:
-    python manage.py reconcile_visitor_slots                    # full: quarantine + re-clean (inline)
+    python manage.py reconcile_visitor_slots                    # full: quarantine + re-clean (inline) — BOOT ONLY
     python manage.py reconcile_visitor_slots --async            # quarantine now, enqueue re-clean to Celery
+    python manage.py reconcile_visitor_slots --repair-only      # re-clean quarantined slots only — safe on a LIVE pool
     python manage.py reconcile_visitor_slots --quarantine-only  # mark only, no re-clean
     python manage.py reconcile_visitor_slots --visitor 2        # single slot
 """
@@ -72,6 +81,21 @@ class Command(BaseCommand):
                 "inline. Used by the container entrypoint so Django serves "
                 "immediately; slots stay quarantined (not allocatable) until a "
                 "worker verifies each clean."
+            ),
+        )
+        parser.add_argument(
+            "--repair-only",
+            dest="repair_only",
+            action="store_true",
+            help=(
+                "Skip Phase 1 (the blanket quarantine) and re-clean ONLY slots "
+                "that are ALREADY quarantined. Safe on a LIVE pool: Phase 2 "
+                "skips any slot that is not quarantined, so a distributable "
+                "slot is never touched. The plain command is NOT safe there — "
+                "Phase 1 quarantines every slot including healthy ones "
+                "('re-verify idle slot at startup'), dropping ready to 0 until "
+                "each re-clean succeeds. Use this as the REPAIR verb on a "
+                "running system; use the plain command only at boot."
             ),
         )
         parser.add_argument(
@@ -155,21 +179,44 @@ class Command(BaseCommand):
         # trusted (a reset may have been interrupted mid-wipe), so every
         # slot is treated as unverified until the pipeline proves it
         # clean.
-        for number in numbers:
-            allocation = get_or_create_allocation(number)
-            if allocation.is_active:
-                reason = "boot-reconcile: slot was allocated at shutdown"
-            elif allocation.quarantined:
-                reason = allocation.quarantine_reason or "boot-reconcile"
-            elif not allocation.workspace_ready:
-                reason = "boot-reconcile: slot was mid-reset/unverified at shutdown"
-            else:
-                reason = "boot-reconcile: re-verify idle slot at startup"
-            quarantine_slot(allocation, reason)
+        #
+        # --repair-only SKIPS this phase, and that distinction is the whole
+        # point of the flag. Phase 1 has no "leave a healthy slot alone"
+        # branch: an idle, verified, distributable slot still gets
+        # `quarantine_slot(... "re-verify idle slot at startup")`, which sets
+        # quarantined=True / workspace_ready=False. Since allocation requires
+        # workspace_ready AND not quarantined, running this against a LIVE pool
+        # drops ready to 0 the instant the loop finishes and only returns slots
+        # whose wipe+clone+verify then succeeds. Correct at boot (post-restart
+        # on-disk state is untrusted by design); purely destructive as a repair
+        # on a running system, where it can only make things worse.
+        if options["repair_only"]:
+            if options["quarantine_only"]:
+                raise CommandError(
+                    "--repair-only and --quarantine-only are mutually exclusive: "
+                    "--repair-only exists to SKIP the quarantine phase, which is "
+                    "the only thing --quarantine-only does."
+                )
+            self.stdout.write(
+                "--repair-only: skipping the blanket quarantine; re-cleaning "
+                "only slots ALREADY quarantined (healthy slots untouched)"
+            )
+        else:
+            for number in numbers:
+                allocation = get_or_create_allocation(number)
+                if allocation.is_active:
+                    reason = "boot-reconcile: slot was allocated at shutdown"
+                elif allocation.quarantined:
+                    reason = allocation.quarantine_reason or "boot-reconcile"
+                elif not allocation.workspace_ready:
+                    reason = "boot-reconcile: slot was mid-reset/unverified at shutdown"
+                else:
+                    reason = "boot-reconcile: re-verify idle slot at startup"
+                quarantine_slot(allocation, reason)
 
-        self.stdout.write(
-            f"Quarantined {len(numbers)} slot(s) pending wipe+verify"
-        )
+            self.stdout.write(
+                f"Quarantined {len(numbers)} slot(s) pending wipe+verify"
+            )
 
         if options["quarantine_only"]:
             self.stdout.write(
