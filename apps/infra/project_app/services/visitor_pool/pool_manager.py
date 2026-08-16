@@ -316,8 +316,37 @@ class PoolAllocator:
         # the slot returns to the pool in minutes instead of an hour.
         expires_at = now + timedelta(seconds=cls.PROBATION_SECONDS)
 
+        # A slot must know WHO holds it. A brand-new Django session has no
+        # session_key until it has been persisted — the key is assigned on
+        # first save — and the middleware allocates before that has happened.
+        # The old line was `session.session_key or ""`, which turned "there
+        # is no owner yet" into "the owner is the empty string" and stored
+        # the row anyway. Measured on production 2026-08-16: ELEVEN of eleven
+        # active allocations carried session_key=''.
+        #
+        # That single silent coercion produced the whole visitor-isolation
+        # failure: deallocate_visitor() matches on the session, so an orphan
+        # row can never be released; it survives only until the 120s probation
+        # lease expires; and because the visitor is meanwhile served the shared
+        # readonly-visitor account, the heartbeat that would promote the lease
+        # is never sent (the endpoint rejects any username outside visitor-NNN).
+        # Every navigation therefore burned fresh slots and handed the visitor
+        # the shared account — the funnel behind the cross-tenant chat leak.
+        if not session.session_key:
+            session.create()
+        if not session.session_key:  # pragma: no cover — defensive
+            # Never record an ownerless allocation. Refusing here leaves the
+            # slot distributable for the next request, which is the safe
+            # direction; storing it would leak the slot permanently.
+            logger.error(
+                "[VisitorPool] Refusing to allocate visitor-%03d: session has "
+                "no session_key even after create()",
+                visitor_num,
+            )
+            return None, None
+
         try:
-            allocation.session_key = session.session_key or ""
+            allocation.session_key = session.session_key
             allocation.allocation_token = allocation_token
             allocation.expires_at = expires_at
             allocation.is_active = True
