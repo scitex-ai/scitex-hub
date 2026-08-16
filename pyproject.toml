@@ -316,13 +316,19 @@ dev = [
     "ruff>=0.1.0",
     "pytest>=7.0",
     "pytest-cov>=4.0",
-    # Floor moved 0.13.0 -> 0.34.5 (2026-08-16). Below 0.34.5 the FigRecipe
-    # Template Gallery is empty in any INSTALLED deployment — the asset dir
-    # resolved outside the package, so nothing shipped in the wheel. figrecipe
-    # PR #350 moved the assets to package data. An older figrecipe is not
-    # merely older, it is visibly broken on the demo path, so the floor is
-    # raised rather than left at a version we know renders a blank gallery.
-    "figrecipe>=0.34.5",
+    # Floor moved 0.13.0 -> 0.34.5 -> 0.34.6 (both 2026-08-16). Below 0.34.5
+    # the FigRecipe Template Gallery is empty in any INSTALLED deployment —
+    # the asset dir resolved outside the package, so nothing shipped in the
+    # wheel; figrecipe PR #350 moved the assets to package data. 0.34.5 fixed
+    # only half of that: it shipped the 18 yaml + 18 png that make the gallery
+    # LIST templates, but not the 57 data files each recipe reads, so "Add to
+    # canvas" still died with FileNotFoundError. figrecipe PR #353 ships them.
+    # An older figrecipe is not merely older, it is visibly broken on the demo
+    # path, so the floor is raised rather than left at a version we know
+    # renders a blank — or unusable — gallery. Checked before pinning: the
+    # PUBLISHED 0.34.6 wheel was downloaded and inspected, and carries 56 .csv
+    # + 1 .npz under figrecipe/_django/gallery_templates/.
+    "figrecipe>=0.34.6",
     "joblib",
     "flask",
     # PS-210: `[all]` ships these and the test suite imports them
