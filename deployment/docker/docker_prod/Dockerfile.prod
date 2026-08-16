@@ -99,6 +99,44 @@ COPY deployment/docker/docker_prod/bin/yq_linux_amd64 /usr/local/bin/yq
 RUN chmod +x /usr/local/bin/yq
 
 # ============================================
+# Stage 3b: whisper.cpp (Speech-to-Text)
+# ============================================
+# Production had NO speech-to-text at all: whisper.cpp was baked only into
+# docker_dev/Dockerfile, whose own comment claimed it was "baked into the image
+# for consistency across dev / staging / production". It was not — measured
+# 2026-08-16: 16 whisper references in the dev Dockerfile, ZERO here. So the
+# /apps/llm/api/stt/ endpoint answered 503 "whisper-cli not installed" on
+# scitex.ai, for every request, since it shipped.
+#
+# A builder stage rather than an apt line in runtime, because compiling needs
+# cmake and a toolchain and the runtime stage deliberately carries neither.
+# Only /opt/whisper is copied forward.
+
+FROM python:3.11-slim-bookworm AS whisper-builder
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        cmake build-essential git wget ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && git clone --depth 1 https://github.com/ggerganov/whisper.cpp.git /tmp/whisper.cpp \
+    && cmake -S /tmp/whisper.cpp -B /tmp/whisper-build \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DWHISPER_BUILD_SERVER=OFF \
+        -DWHISPER_BUILD_EXAMPLES=ON \
+        -DBUILD_SHARED_LIBS=OFF \
+    && cmake --build /tmp/whisper-build --target whisper-cli -j"$(nproc)" \
+    && mkdir -p /opt/whisper/bin /opt/whisper/models \
+    && cp /tmp/whisper-build/bin/whisper-cli /opt/whisper/bin/whisper-cli \
+    # MULTILINGUAL, deliberately. The dev image ships only ggml-tiny.en and
+    # ggml-base.en, and an `.en` model cannot transcribe anything but English —
+    # it silently returns English-looking text for Japanese speech. That is the
+    # other half of the defect PR #611 fixed in code: the endpoint now prefers a
+    # multilingual model and passes the caller's language through, but the image
+    # gave it no multilingual model to choose. ~142 MB.
+    && wget -q -O /opt/whisper/models/ggml-base.bin \
+        "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin" \
+    && rm -rf /tmp/whisper.cpp /tmp/whisper-build
+
+# ============================================
 # Stage 4: Node.js Tools
 # ============================================
 # Mermaid CLI for diagram rendering. Changes rarely.
@@ -260,6 +298,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     poppler-utils \
     # --- Image processing ---
     imagemagick \
+    # --- Audio processing ---
+    # ffmpeg converts an uploaded recording to the 16 kHz mono WAV whisper.cpp
+    # requires. It was missing too, so even with the binary present the STT
+    # endpoint would have accepted the upload and then failed at conversion.
+    ffmpeg \
     # --- Browser (Chromium for Mermaid/Playwright rendering) ---
     chromium \
     fonts-liberation \
@@ -316,6 +359,14 @@ RUN sed -i 's/main/main contrib/g' /etc/apt/sources.list.d/debian.sources 2>/dev
 COPY --from=python-builder --chown=1000:1000 /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=python-builder /usr/local/bin /usr/local/bin
 COPY --from=python-builder /root/.cache/ms-playwright* /root/.cache/
+
+# whisper.cpp binary + multilingual model (from whisper-builder).
+# The paths are not arbitrary: apps/infra/llm_app/views/stt.py defaults to
+# /opt/whisper/bin/whisper-cli and /opt/whisper/models, and scitex-audio is
+# handed those as explicit overrides. Moving them here means moving them there.
+COPY --from=whisper-builder /opt/whisper /opt/whisper
+ENV WHISPER_CLI=/opt/whisper/bin/whisper-cli \
+    WHISPER_MODELS_DIR=/opt/whisper/models
 
 # SLURM client binaries + libraries (from slurm-builder)
 COPY --from=slurm-builder /usr/bin/sinfo /usr/bin/sinfo
