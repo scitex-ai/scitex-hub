@@ -74,17 +74,63 @@ def create_default_project_for_user(user):
     ensure_home_project(user)
 
 
+def _adopt_landing_project(user, *, fallback):
+    """Point a profile with no active project at the best one it owns.
+
+    The home (dotfiles) project is shell configuration — bashrc, gitconfig,
+    screenrc. It is a real feature for a signed-in user and a terrible first
+    screen for anyone else, because landing there shows a stranger our shell
+    dotfiles and nothing about research.
+
+    Measured on production 2026-08-16: every visitor workspace already holds
+    BOTH projects on disk --
+
+        proj/default-project/   figures/confusion_matrix.png, figures/digit_grid.png,
+                                data/digits_sample.csv, scripts/reproduce_figures.py
+        proj/dotfiles/          install.sh, bash_profile, screenrc, gitconfig
+
+    -- and the visitor was landed on the second one, so /apps/writer/ rendered
+    "dotfiles · Writer", 0 words and a blank manuscript while the seeded demo
+    sat unopened beside it. The content was never missing; the pointer was
+    wrong.
+
+    So prefer any NON-home project the user owns, and fall back to the home
+    project only when there is genuinely nothing else. Oldest-first, so the
+    provisioned demo wins over anything created later in the session.
+    """
+    if not hasattr(user, "profile") or user.profile.last_active_repository:
+        return
+
+    from apps.infra.project_app.models import Project
+
+    landing = (
+        Project.objects.filter(owner=user, is_home=False).order_by("id").first()
+        or fallback
+    )
+    user.profile.last_active_repository = landing
+    user.profile.save()
+
+
 def ensure_home_project(user):
     """Ensure user has a dotfiles project. Creates one if missing.
 
     Idempotent — safe to call on every login.
     The dotfiles project is a git-trackable, private, undeletable project
     for managing shell configs (bashrc, vimrc, gitconfig, etc.).
+
+    It is NOT the landing project: see :func:`_adopt_landing_project`.
     """
     from apps.infra.project_app.models import Project
 
     try:
-        if Project.objects.filter(owner=user, is_home=True).exists():
+        existing_home = Project.objects.filter(owner=user, is_home=True).first()
+        if existing_home is not None:
+            # The home project is already there, but the profile may still have
+            # no landing project at all -- a user provisioned before the demo
+            # project existed, for instance. Adopting here as well means a login
+            # repairs that, instead of the repair being reachable only on the
+            # one call that happens to create the home project.
+            _adopt_landing_project(user, fallback=existing_home)
             return
 
         dotfiles_project = Project.objects.create(
@@ -96,10 +142,7 @@ def ensure_home_project(user):
             is_home=True,
         )
 
-        # Set as last active if user has no active project
-        if hasattr(user, "profile") and not user.profile.last_active_repository:
-            user.profile.last_active_repository = dotfiles_project
-            user.profile.save()
+        _adopt_landing_project(user, fallback=dotfiles_project)
 
         logger.info(f"Created dotfiles project for {user.username}")
 
