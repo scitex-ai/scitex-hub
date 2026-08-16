@@ -282,9 +282,12 @@ def _build_tiles(request) -> list[dict]:
     # 1. Workspace module registry — same source that builds the sidebar.
     for mod in get_all_modules():
         # Some registered modules are workspace panes / nav items, not
-        # standalone launcher apps (Clew opens within a manuscript; Chat
-        # lives in the left sidebar at /chat/). They opt out of the grid
-        # via the manifest `show_in_launcher` flag but stay in the tab bar.
+        # standalone launcher apps (Clew opens within a manuscript; comms
+        # is reached from the workspace rather than the grid). They opt out
+        # of the grid via the manifest `show_in_launcher` flag but stay in
+        # the tab bar. NOTE the comms module is the real-time MESSAGING app
+        # at /apps/comms/ — not the /chat/ LLM pane, which this comment used
+        # to conflate it with and which has no registry entry at all.
         # Mark them seen BEFORE skipping: step 2 below re-adds any public
         # AppsModule row not in `seen`, which would put the tile straight
         # back on the grid.
