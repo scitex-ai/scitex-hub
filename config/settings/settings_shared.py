@@ -250,7 +250,7 @@ MIDDLEWARE = [
     # user's workspace store + enforce the phase-1 read-only gate. Must
     # run AFTER Authentication + VisitorAutoLogin so request.user is
     # final; no-ops in one prefix check for every other path (and when
-    # the scitex_todo package is not installed).
+    # the scitex_cards package is not installed).
     "apps.workspace.todo_app.middleware.TodoBoardTenancyMiddleware",
     # Injects the Alt+I element inspector into HTML responses when
     # SCITEX_UI_ELEMENT_INSPECTOR is on (see above). Async-capable as
