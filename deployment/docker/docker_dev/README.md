@@ -17,7 +17,7 @@ make env=dev start
 ## Test User
 
 - Username: `test-user`
-- Password: `Password123!`
+- Password: printed by `init_test_user` on first run (set `SCITEX_HUB_TEST_USER_PASSWORD` to choose it)
 
 ## Commands
 

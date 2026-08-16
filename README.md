@@ -111,7 +111,8 @@ make start                    # Start development environment
 
 # Access at: http://localhost:8000
 # Gitea: http://localhost:3000
-# Test user: test-user / Password123!
+# Test user: test-user — the password is printed by `init_test_user` on first run
+# (or set SCITEX_HUB_TEST_USER_PASSWORD to choose it yourself)
 ```
 
 ## Four Interfaces
