@@ -225,9 +225,23 @@ SECTION_NAMES = {
     "/tree/": "Files",
 }
 
+# Workspace panes mounted at the ROOT, not under /apps/. config/urls.py
+# dispatches these through root_dispatch with a `pane` kwarg, and they were
+# missing here entirely — so /chat/ produced a tab naming only the project
+# ("default-project — SciTeX"), while every sibling app named itself. The
+# operator screenshotted exactly that on 2026-08-16.
+#
+# Note /console/ is NOT redundant with /apps/console/: they are two separate
+# mounted routes, and only the second one had a label.
+PANE_NAMES = {
+    "/chat/": "Chat",
+    "/console/": "Console",
+    "/files/": "Files",
+}
+
 # Everything that can name a tab. Apps win over sections on an exact tie;
 # in practice their prefixes are disjoint.
-PATH_LABELS = {**SECTION_NAMES, **APP_NAMES}
+PATH_LABELS = {**SECTION_NAMES, **PANE_NAMES, **APP_NAMES}
 
 # Environment -> the parenthetical shown in the tab. Production is unmarked:
 # the public site reads simply "<App> — SciTeX".
