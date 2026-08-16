@@ -1,0 +1,177 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Capture a light-mode screenshot of every page worth showing someone.
+
+WHY THIS EXISTS. The operator asked for the screenshots to be CI'd rather
+than taken by hand: 「スクショをci化して欲しいです」. Hand-taken shots go
+stale the moment anything ships, and the moment you need them — a grant
+application, a talk, a README — is exactly when you do not want to be
+clicking through the product hoping nothing is broken.
+
+TWO JOBS IN ONE RUN:
+
+  1. A downloadable set of current product screenshots, as a CI artifact.
+     Grab the artifact, drop the PNGs into the document.
+  2. A smoke test. Every page here must return HTTP 200 and render its
+     shell. A page that started 500ing, or that renders blank, fails the
+     job — so a broken screen is caught by the thing that photographs it
+     rather than discovered while assembling a submission.
+
+LIGHT MODE, deliberately. The operator: 「スライドだからさあ」 — these go
+on slides, where the dark theme reads badly. The site stores the theme
+per user and serves dark by default, so each page sets
+``data-theme="light"`` on <html> before the shot. Verified against
+production: that flips body from rgb(13,17,23) to rgb(250,249,247).
+
+A VISITOR SESSION, deliberately — AND CHECKED, not merely asserted in
+prose. These run as the pooled visitor, not as a real account, so nothing
+in the artifact can contain anybody's private project, manuscript or chat
+history. A screenshot artifact is downloadable by anyone who can read the
+run; it must never carry real user data.
+
+That sentence used to be the whole guarantee. It is now enforced twice:
+the ``pooled_visitor_page`` fixture refuses to hand out a page unless the
+session really is a writable pool slot, and every page below re-reads
+``body[data-session-role]`` after navigating. Neither of the original
+failure conditions could see this: when the pool has no verified-clean
+slot, allocation falls back to the SHARED readonly-visitor account, which
+returns 200 and renders a full page — so HTTP<400 passes, non-blank text
+passes, and the artifact quietly shows the wrong product. Both CI (broken
+Gitea credential, this PR) and production (15/16 slots quarantined) were
+measured in exactly that state on 2026-08-16.
+
+FULL PAGE, deliberately: ``screenshot(..., full_page=True)`` in the shared
+fixture, so a long page is captured whole rather than cropped at the fold.
+"""
+
+from __future__ import annotations
+
+import pytest
+
+from tests.e2e.playwright.page_ready import wait_for_page_ready
+from tests.e2e.playwright.session_role_check import (
+    READ_SESSION_ROLE_JS,
+    REQUIRED_ROLE,
+    VISITOR_WARMUP_ROUTE,
+    wrong_role_message,
+)
+
+# Routes whose response does NOT extend templates/global_base.html, and so
+# carry neither `body.app-ready` nor `body[data-session-role]`.
+#
+# Measured 2026-08-16 against a live server: GET /apps/cards/ returns 200 and
+# 195 KB of HTML titled "SciTeX Cards v0.42.0" with ZERO occurrences of the
+# global_base loading-screen markup, while /apps/docs/ has four. It is the
+# embedded Cards board, rendered by its own template.
+#
+# This is a DECLARATION, not an exemption. The session identity belongs to
+# the browser context, not to one page's markup, so the check does not
+# disappear for these routes — it is taken on the warm-up route immediately
+# after the page has been visited in the same context (see
+# test_page_is_a_pooled_visitor_session). A route added here still has to
+# prove the session; it just proves it one navigation later.
+ROUTES_WITHOUT_GLOBAL_BASE = frozenset({"/apps/cards/"})
+
+# (route, slug, what a human would call it)
+#
+# The operator named the set he actually shows people: the apps home, a
+# project page, Writer, Scholar, FigRecipe, Tools and the App Store
+# ("App Storeは絶対見せる"), plus Cards and Chat. Adding a page here is one
+# line and it is picked up by both jobs.
+PAGES = [
+    ("/", "00-workspace-home", "Workspace home"),
+    ("/apps/home/", "01-projects", "Projects"),
+    ("/apps/writer/", "02-writer", "Writer"),
+    ("/apps/scholar/", "03-scholar", "Scholar"),
+    ("/apps/figrecipe/", "04-figrecipe", "FigRecipe"),
+    ("/apps/tools/", "05-tools", "Tools"),
+    ("/apps/store/", "06-app-store", "App Store"),
+    ("/apps/cards/", "07-cards", "Cards"),
+    ("/chat/", "08-chat", "Chat"),
+    ("/apps/docs/", "09-docs", "Docs"),
+    ("/landing/", "10-landing", "Landing"),
+]
+
+FORCE_LIGHT = """
+() => {
+  document.documentElement.setAttribute('data-theme', 'light');
+  document.documentElement.style.colorScheme = 'light';
+}
+"""
+
+
+@pytest.mark.parametrize(
+    "route,slug,title", PAGES, ids=[p[1] for p in PAGES]
+)
+class TestProductScreenshots:
+    def test_page_is_served(self, pooled_visitor_page, route, slug, title):
+        # Arrange
+        page = pooled_visitor_page
+
+        # Act
+        response = page.goto(route)
+
+        # Assert — a redirect is fine (sign-in walls, canonical paths);
+        # a server error is not, and is what this is here to catch.
+        status = response.status if response else 0
+        assert status < 400, f"{title} ({route}) returned HTTP {status}"
+
+    def test_page_is_a_pooled_visitor_session(
+        self, pooled_visitor_page, route, slug, title
+    ):
+        """Re-checked PER PAGE, not once at setup.
+
+        The warm-up proves the pool served a slot at the start of the run;
+        this proves the session is STILL a pooled visitor on the page about
+        to be photographed. A slot can lapse mid-run (the lease starts as a
+        2-minute probation), and a lapsed session silently becomes the
+        readonly-visitor fallback or anonymous — both of which render fine.
+
+        For a route that does not render the marker
+        (ROUTES_WITHOUT_GLOBAL_BASE) the page is still VISITED first, in
+        this same browser context, and the session is then read on the
+        warm-up route. Same session, same cookies, one navigation later.
+        """
+        # Arrange
+        page = pooled_visitor_page
+        carries_marker = route not in ROUTES_WITHOUT_GLOBAL_BASE
+        page.goto(route)
+        wait_for_page_ready(page, hydration_signal=carries_marker)
+        if not carries_marker:
+            page.goto(VISITOR_WARMUP_ROUTE)
+            wait_for_page_ready(page)
+
+        # Act
+        role = page.evaluate(READ_SESSION_ROLE_JS)
+
+        # Assert
+        assert role == REQUIRED_ROLE, wrong_role_message(
+            role, f"{title} ({route})"
+        )
+
+    def test_page_renders_and_is_captured(
+        self, pooled_visitor_page, screenshot, route, slug, title
+    ):
+        # Arrange
+        page = pooled_visitor_page
+        page.goto(route)
+        # Wait for the product's own hydration signal, not `load` and not
+        # `networkidle` — see tests/e2e/playwright/page_ready.py. These pages
+        # hydrate after load, and photographing them too early captures empty
+        # containers (measured 2026-08-16 — reading a page mid-hydration
+        # produced four false "this is broken" reports in one session); but a
+        # pooled-visitor session polls a heartbeat forever, so `networkidle`
+        # is a condition it can never reach (measured 2026-08-16 in CI run
+        # 31955719803: 30s timeout, 33 errors, nothing actually broken).
+        wait_for_page_ready(
+            page, hydration_signal=route not in ROUTES_WITHOUT_GLOBAL_BASE
+        )
+        page.evaluate(FORCE_LIGHT)
+
+        # Act
+        screenshot(page, slug)
+        body_text = page.evaluate("() => (document.body.innerText || '').trim()")
+
+        # Assert — a page that renders no visible text at all is broken,
+        # and a blank PNG in the artifact would hide that.
+        assert body_text, f"{title} ({route}) rendered no visible text"
