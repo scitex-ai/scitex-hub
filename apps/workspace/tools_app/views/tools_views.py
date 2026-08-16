@@ -147,6 +147,14 @@ def tool_split_pdf(request):
     return render(request, "tools_app/tools/split-pdf.html", _tool_context(request))
 
 
+# Audio tools
+def tool_transcribe_audio(request):
+    """Audio Transcription tool detail page."""
+    return render(
+        request, "tools_app/tools/transcribe-audio.html", _tool_context(request)
+    )
+
+
 # Video tools
 def tool_edit_video(request):
     """Video Editor tool detail page."""
