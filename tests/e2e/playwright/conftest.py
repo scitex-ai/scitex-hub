@@ -21,7 +21,8 @@ import pytest
 
 BASE_URL = os.getenv("SCITEX_BASE_URL", "http://127.0.0.1:8000")
 TEST_USER = os.getenv("SCITEX_E2E_TEST_USER", "test-user")
-TEST_PASS = os.getenv("SCITEX_E2E_TEST_PASS", "Password123!")
+# No literal default — see tests/develop/test_no_usable_credential_defaults.py.
+TEST_PASS = os.getenv("SCITEX_E2E_TEST_PASS", "")
 TIMEOUT = int(os.getenv("SCITEX_E2E_TIMEOUT", "30")) * 1000  # ms for Playwright
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
@@ -332,9 +333,7 @@ def pooled_visitor_page(pooled_visitor_context):
     page.goto(VISITOR_WARMUP_ROUTE)
     wait_for_page_ready(page)
     role = page.evaluate(READ_SESSION_ROLE_JS)
-    assert_pooled_visitor(
-        role, f"visitor warm-up ({VISITOR_WARMUP_ROUTE})"
-    )
+    assert_pooled_visitor(role, f"visitor warm-up ({VISITOR_WARMUP_ROUTE})")
     yield page
     page.close()
 

@@ -40,7 +40,25 @@ from pathlib import Path
 import pytest
 
 # Anything whose NAME says "this is a credential".
-SECRET_NAME_MARKERS = ("PASSWORD", "SECRET", "TOKEN", "PASSWD", "APIKEY", "API_KEY")
+SECRET_NAME_MARKERS = (
+    "PASSWORD",
+    "SECRET",
+    "TOKEN",
+    "PASSWD",
+    "APIKEY",
+    "API_KEY",
+    "CREDENTIAL",
+)
+
+# Substring matching alone misses abbreviations. SCITEX_E2E_TEST_PASS holds a real
+# password and contains none of the markers above — it was sitting in
+# tests/e2e/conftest.py with a `Password123!` default while the first version of this
+# guard reported the repository clean.
+#
+# "PASS" cannot go in the list above: it would match BYPASS, PASSTHROUGH and friends,
+# and a guard that cries wolf gets switched off. Requiring it as a SUFFIX is precise —
+# a name ENDING in _PASS or _PW is a credential, while CI_BYPASS is not.
+SECRET_NAME_SUFFIXES = ("_PASS", "_PW", "_KEY")
 
 # The specific credential from the 2026-08-16 incident. Split so this file is
 # not itself a textual hit for anyone grepping the repo for it.
@@ -89,7 +107,17 @@ GOOD_SAMPLES = [
     ),
     # not a secret-shaped name
     'import os\nH = os.getenv("SCITEX_HUB_DB_HOST_DEV", "localhost")\n',
+    # _PASS is a credential SUFFIX, but BYPASS must not trip it — the reason "PASS"
+    # is not in SECRET_NAME_MARKERS.
+    'import os\nB = os.getenv("CI_BYPASS", "1")\n',
+    'import os\nP = os.getenv("PASSTHROUGH_MODE", "on")\n',
 ]
+
+# The abbreviated form the first version of this guard missed entirely.
+ABBREVIATED_BAD_SAMPLE = (
+    "import os\n"
+    'TEST_PASS = os.getenv("SCITEX_E2E_TEST_PASS", "' + BURNED_CREDENTIAL + '")\n'
+)
 
 
 def _repo_root() -> Path:
@@ -111,7 +139,9 @@ def _python_files(root: Path):
 
 def _is_secret_name(name: str) -> bool:
     upper = name.upper()
-    return any(marker in upper for marker in SECRET_NAME_MARKERS)
+    if any(marker in upper for marker in SECRET_NAME_MARKERS):
+        return True
+    return upper.endswith(SECRET_NAME_SUFFIXES)
 
 
 def _env_lookup_default(node: ast.AST):
@@ -234,6 +264,16 @@ def test_detector_reports_the_burned_default_value():
     _lineno, _env_name, default = next(iter(find_usable_secret_defaults(source)))
     # Assert
     assert default == BURNED_CREDENTIAL
+
+
+def test_detector_flags_an_abbreviated_credential_name():
+    """SCITEX_E2E_TEST_PASS is a password and matches no PASSWORD/SECRET marker."""
+    # Arrange
+    source = ABBREVIATED_BAD_SAMPLE
+    # Act
+    hits = list(find_usable_secret_defaults(source))
+    # Assert
+    assert len(hits) == 1
 
 
 @pytest.mark.parametrize("source", GOOD_SAMPLES)
