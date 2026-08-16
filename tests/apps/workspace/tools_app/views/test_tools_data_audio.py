@@ -47,8 +47,12 @@ class TestAudioToolLinksResolve:
     """Every Audio tool's advertised URL must be one the router serves."""
 
     def test_transcribe_audio_route_is_registered(self):
+        # The "/apps/" prefix is not decoration: config/urls.py mounts the whole
+        # tools app under it, so the bare "/tools/..." path the sibling domains
+        # advertise returns 404 (measured). Pinning the served path here is what
+        # stops this tool from acquiring the same defect.
         # Arrange
-        expected = "/tools/transcribe-audio/"
+        expected = "/apps/tools/transcribe-audio/"
         # Act
         resolved = reverse("tools_app:tool_transcribe_audio")
         # Assert
