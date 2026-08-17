@@ -67,6 +67,14 @@ DEBUG = os.getenv("SCITEX_HUB_DJANGO_DEBUG", "True").lower() in [
     "yes",
 ]
 
+# In dev and in the test suite ONE process is both the visitor-slot resetter and
+# the web process, so the truthful owner to hand a recycled tree to is itself.
+# This is a declaration about the dev deployment, not a fallback: the setting
+# in settings_shared stays `scitex` for production, and an explicit
+# SCITEX_HUB_APP_UNIX_OWNER still wins here. verify_app_can_write() keeps
+# comparing real st_uid values, so the final gate can still fail in dev.
+APP_UNIX_OWNER = os.getenv("SCITEX_HUB_APP_UNIX_OWNER") or f"{os.getuid()}:{os.getgid()}"
+
 # ---------------------------------------
 # SciTeX Settings
 # ---------------------------------------
