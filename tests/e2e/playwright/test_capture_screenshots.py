@@ -50,8 +50,10 @@ import pytest
 
 from tests.e2e.playwright.content_check import (
     PAGE_ELEMENT_SIGNALS,
+    BrowserProblemLog,
     body_text_problem,
     broken_image_problem,
+    describe_browser_problems,
     describe_signals,
     empty_container_problem,
     loading_marker_problem,
@@ -158,11 +160,16 @@ def measured_content(pooled_visitor_page, content_report):
     is taken, so the report covers pages whose assertions later fail too.
     """
     cache = {}
+    browser_problems = BrowserProblemLog()
+    browser_problems.attach(pooled_visitor_page)
 
     def _for(route):
         if route not in cache:
             slug, title = ROUTES[route]
             page = pooled_visitor_page
+            # Reset immediately BEFORE the navigation, so what is collected
+            # belongs to this route and not to the tail of the last one.
+            browser_problems.reset()
             page.goto(route)
             wait_for_page_ready(
                 page, hydration_signal=route not in ROUTES_WITHOUT_GLOBAL_BASE
@@ -170,7 +177,13 @@ def measured_content(pooled_visitor_page, content_report):
             page.evaluate(FORCE_LIGHT)
             signals = read_content_signals(page, PAGE_ELEMENT_SIGNALS.get(route))
             cache[route] = signals
-            content_report(describe_signals("%s (%s)" % (title, route), signals))
+            content_report(
+                "%s\n%s"
+                % (
+                    describe_signals("%s (%s)" % (title, route), signals),
+                    describe_browser_problems(browser_problems.drain()),
+                )
+            )
         return cache[route]
 
     return _for

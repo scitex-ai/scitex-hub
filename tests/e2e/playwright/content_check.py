@@ -477,6 +477,89 @@ def nonzero_count_problem(signals, name, where):
 # ---------------------------------------------------------------------------
 
 
+class BrowserProblemLog:
+    """What the BROWSER complained about while a route was being measured.
+
+    WHY THIS EXISTS. "``#app-mount`` is 1910x1015 px with zero children"
+    says a page is broken; it does not say why, and every "why" so far has
+    cost a full CI round trip to answer. The browser already knew: it had
+    the failing request and the thrown exception in hand at the moment of
+    the screenshot, and threw them away.
+
+    Concretely — run 32056013931 spent ~13 minutes proving that every
+    ``/static/vite/*.js`` answered HTTP 500. That fact was in the response
+    stream of the very page being measured. Recorded here, the same run
+    would have printed it next to the empty mount it caused.
+
+    Three sources, because they fail differently and a page can hit any
+    one of them alone:
+
+      * a response with status >= 400 — the asset or API that did not
+        arrive (this is the one that would have named the 500s);
+      * an uncaught page exception — the script that loaded and then died,
+        which leaves a mount point painted and empty;
+      * a ``console.error`` — including the product's own
+        ``_manifest_miss`` marker, which reports a missing Vite entry via
+        exactly that channel in production.
+
+    Capped per route. A page whose every request fails should say so in a
+    line or two, not bury the report it is attached to.
+    """
+
+    MAX_PER_ROUTE = 20
+
+    def __init__(self):
+        self._items = []
+
+    def attach(self, page):
+        """Subscribe to the page's problem streams. Call once per page."""
+        page.on("response", self._on_response)
+        page.on("pageerror", self._on_page_error)
+        page.on("console", self._on_console)
+
+    def reset(self):
+        """Forget the previous route's problems."""
+        self._items = []
+
+    def drain(self):
+        """The problems seen since the last ``reset``."""
+        return list(self._items)
+
+    def _record(self, text):
+        if len(self._items) < self.MAX_PER_ROUTE:
+            self._items.append(text)
+        elif len(self._items) == self.MAX_PER_ROUTE:
+            self._items.append("... further problems suppressed")
+
+    def _on_response(self, response):
+        try:
+            status = response.status
+        except Exception:  # the page navigated away mid-read
+            return
+        if status >= 400:
+            self._record("HTTP %d %s" % (status, response.url))
+
+    def _on_page_error(self, error):
+        self._record("uncaught exception: %s" % str(error).split("\n")[0])
+
+    def _on_console(self, message):
+        try:
+            if message.type != "error":
+                return
+            self._record("console.error: %s" % message.text[:300])
+        except Exception:
+            return
+
+
+def describe_browser_problems(problems):
+    """Render the browser's complaints for the report, or say there were none."""
+    if not problems:
+        return "  browser errors ....... none"
+    lines = ["  browser errors ....... %d" % len(problems)]
+    lines.extend("      %s" % p for p in problems)
+    return "\n".join(lines)
+
+
 def threshold_banner():
     """State the thresholds this run actually used, and flag overrides.
 

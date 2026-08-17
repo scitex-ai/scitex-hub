@@ -43,6 +43,7 @@ import threading
 import pytest
 
 from tests.e2e.playwright.content_check import (
+    BrowserProblemLog,
     body_text_problem,
     broken_image_problem,
     empty_container_problem,
@@ -374,6 +375,50 @@ def test_the_same_broken_image_shown_does_fail(measure):
     problem = broken_image_problem(signals, "shown half of the pair")
     # Assert
     assert "hidden-or-not.png" in problem, "a visible broken image passed"
+
+
+# ---------------------------------------------------------------------------
+# The browser's own complaints must reach the report
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def problems_for(page, serve):
+    """Load a page with a BrowserProblemLog attached, return what it saw."""
+
+    def _problems_for(name, html):
+        log = BrowserProblemLog()
+        log.attach(page)
+        page.goto(serve(name, html))
+        page.wait_for_load_state("load")
+        page.wait_for_timeout(300)
+        return log.drain()
+
+    return _problems_for
+
+
+def test_a_failed_request_reaches_the_report(problems_for):
+    """The 404 the page suffered must be recorded, not inferred later.
+
+    This is the channel that would have named run 32056013931's HTTP 500
+    on every /static/vite/*.js at the moment of capture, instead of
+    costing a separate CI round trip to discover.
+    """
+    # Arrange
+    problems = problems_for("prob-broken.html", BROKEN_IMAGE_PAGE)
+    # Act
+    matching = [p for p in problems if "404" in p and "definitely-not-here" in p]
+    # Assert
+    assert matching, problems
+
+
+def test_a_clean_page_reports_no_browser_errors(problems_for):
+    # Arrange
+    problems = problems_for("prob-clean.html", HEALTHY_PAGE)
+    # Act
+    count = len(problems)
+    # Assert
+    assert count == 0, problems
 
 
 # EOF
