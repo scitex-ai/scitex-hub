@@ -259,11 +259,64 @@ def check_api_services(status_data):
         _check_local_db("OpenAlex Local", "openalex_local")
     )
 
-    # Gitea HTTP API - check /api/v1/version endpoint
+    # Gitea HTTP API.
+    #
+    # This probe is AUTHENTICATED on purpose. It used to call /api/v1/version
+    # with no credentials, which answers "is Gitea up?" -- a question that was
+    # never in doubt. Measured 2026-08-17: that unauthenticated check reported
+    # `gitea_api: healthy` for roughly five weeks while EVERY authenticated call
+    # returned 401, because the configured token had been rotated out from under
+    # the app and never written back. The whole visitor pool was quarantined and
+    # the one check that should have named the cause was green throughout.
+    #
+    # A check that cannot fail is not a check. What the product depends on is
+    # being able to AUTHENTICATE to Gitea -- creating and purging repos for
+    # visitor slots -- so that is what this measures. /api/v1/user requires a
+    # valid token and returns 401 for a bad one, which is the signal that went
+    # unreported.
+    #
+    # The base URL comes from settings.GITEA_API_URL, the same value the Gitea
+    # client itself resolves. It used to be the hardcoded literal
+    # "http://gitea:3000/api/v1", which was both a duplicate of configuration
+    # and the reason this function could not be tested without patching it.
+    gitea_api_url = (getattr(settings, "GITEA_API_URL", "") or "").rstrip("/")
+    gitea_token = getattr(settings, "GITEA_TOKEN", "")
     try:
-        response = requests.get("http://gitea:3000/api/v1/version", timeout=5)
+        if gitea_token:
+            gitea_probe_url = f"{gitea_api_url}/user"
+            response = requests.get(
+                gitea_probe_url,
+                headers={"Authorization": f"token {gitea_token}"},
+                timeout=5,
+            )
+        else:
+            # No token configured at all. Fall back to the liveness probe so the
+            # panel still reports whether Gitea is reachable, but say plainly
+            # that authentication was NOT tested -- an untested guard must never
+            # look like a passing one.
+            gitea_probe_url = f"{gitea_api_url}/version"
+            response = requests.get(gitea_probe_url, timeout=5)
         is_healthy = response.status_code == 200
         data = response.json() if is_healthy else {}
+        if not gitea_token:
+            gitea_auth_error = (
+                "SCITEX_HUB_GITEA_TOKEN is NOT configured, so authentication was "
+                "not tested — this reports reachability only. Visitor-slot resets "
+                "need a valid token and will fail without one."
+            )
+        elif response.status_code == 401:
+            # Gitea is UP and refusing us. Name the mechanism and the fix rather
+            # than reporting a generic error, per the actionable-hint rule.
+            gitea_auth_error = (
+                "Gitea rejected SCITEX_HUB_GITEA_TOKEN (401). Gitea itself is up; "
+                "the configured token is invalid or was rotated without being "
+                "written back to the env. Visitor-slot resets will fail until it "
+                "is replaced. Fix: deployment/host-setup/scripts/"
+                "regenerate-gitea-token.sh, then recreate django + the celery "
+                "services so they re-read the env."
+            )
+        else:
+            gitea_auth_error = ""
         status_data["api_services"].append(
             {
                 "name": "Gitea API",
@@ -273,7 +326,11 @@ def check_api_services(status_data):
                 "status": "healthy" if is_healthy else "error",
                 "health_class": "healthy" if is_healthy else "unhealthy",
                 "response_time_ms": int(response.elapsed.total_seconds() * 1000),
-                "details": f"v{data.get('version', 'unknown')}" if data else "",
+                "details": (
+                    f"v{data.get('version', 'unknown')}"
+                    if data
+                    else gitea_auth_error
+                ),
             }
         )
     except requests.exceptions.Timeout:
