@@ -139,6 +139,41 @@ jobs:
           # configured") on visitor-001 and produced ZERO usable slots. That
           # crash is what the old `|| true` on the next step was hiding.
           SCITEX_HUB_VISITOR_POOL_GITEA_ENABLED: "false"
+          # THIS RUNNER HAS NO VITE DEV SERVER EITHER, and until this line
+          # existed the capture photographed a product with NONE of its
+          # JavaScript loaded.
+          #
+          # `vite_script` (public_app/templatetags/vite.py) branches on
+          # `settings.DEBUG and not VITE_USE_BUILD`: in that branch it emits a
+          # <script> pointing at http://<host>:5173/<entry>.ts — the HOST Vite
+          # dev server. DEBUG is 1 below, nothing serves 5173 on a runner, so
+          # every platform entry silently failed to load and the `npm run
+          # build` two steps up produced a manifest nobody read.
+          #
+          # Measured 2026-08-17, run 32054829708 (this PR, before this line):
+          #   FigRecipe  #app-mount rendered 1910x1015 px with ZERO children
+          #              and no text — the blank body in 04-figrecipe.png
+          #   Writer     #section-selector-text still "Loading...",
+          #              #current-word-count still "0" — the template's own
+          #              defaults, because the TS that replaces them never ran
+          #   Docs       "Loading documentation..." still on screen
+          # ...and no 500s, no 404s except /media/. Three separate "broken
+          # page" reports, one cause.
+          #
+          # SCITEX_HUB_VITE_USE_BUILD is the supported switch for exactly this
+          # situation — settings_dev.py: "Set True to use pre-built Vite assets
+          # (staticfiles/vite/) instead of Vite dev server. Useful when Vite
+          # dev server can't run. Run `npm run build` first." This job already
+          # runs it, and vite.config.ts builds to staticfiles/vite with
+          # `manifest: true`; DEBUG serving already exposes STATIC_ROOT
+          # (config/urls.py). So the assets are there — this makes Django use
+          # them.
+          #
+          # It also upgrades the failure mode: on a manifest miss
+          # `_manifest_miss` RAISES under DEBUG, so a missing entry becomes a
+          # loud 500 that test_page_is_served catches, rather than a page that
+          # renders its shell over nothing.
+          SCITEX_HUB_VITE_USE_BUILD: "1"
           DEBUG: "1"
         run: |
           # -e: every command below is a precondition for a truthful
@@ -219,8 +254,13 @@ jobs:
           SCITEX_HUB_REDIS_URL: redis://localhost:6379/0
           SCITEX_HUB_ENV: development
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
-          # Same declaration as the step above: this runner has no Gitea.
+          # Same declarations as the step above: this runner has no Gitea and
+          # no Vite dev server. Both must match the server step — the server
+          # is the process that renders the <script> tags, but a mismatch here
+          # is the kind of drift that makes a later reader think the capture
+          # ran against different settings than it did.
           SCITEX_HUB_VISITOR_POOL_GITEA_ENABLED: "false"
+          SCITEX_HUB_VITE_USE_BUILD: "1"
           SCITEX_BASE_URL: http://127.0.0.1:8000
           DEBUG: "1"
         run: |
