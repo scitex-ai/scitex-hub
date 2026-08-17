@@ -326,11 +326,13 @@ def check_api_services(status_data):
                 "status": "healthy" if is_healthy else "error",
                 "health_class": "healthy" if is_healthy else "unhealthy",
                 "response_time_ms": int(response.elapsed.total_seconds() * 1000),
-                "details": (
-                    f"v{data.get('version', 'unknown')}"
-                    if data
-                    else gitea_auth_error
-                ),
+                # gitea_auth_error takes precedence over the version string.
+                # With no token the fallback /version probe returns 200 AND a
+                # version, so reporting only "v1.25.2" would hide the fact that
+                # authentication was never tested -- the untested guard looking
+                # exactly like a passing one. Caught by the test, not by review.
+                "details": gitea_auth_error
+                or (f"v{data.get('version', 'unknown')}" if data else ""),
             }
         )
     except requests.exceptions.Timeout:
