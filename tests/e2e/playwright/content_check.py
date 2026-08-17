@@ -168,16 +168,30 @@ CONTENT_PROBE_JS = """
     });
   }
 
+  // Is this element in the render at all? A broken <img> inside a
+  // display:none modal cannot be in the screenshot, and failing on it
+  // would be failing on something no reader can see — this product has
+  // several such modals, each with its own placeholder image.
+  //
+  // Layout PARTICIPATION is the question, not box size: a broken image can
+  // collapse to 0x0 and must still count, which is exactly the case that
+  // has to be caught. `shown()` is deliberately not reused here, because it
+  // requires a non-zero box and would therefore excuse the broken image
+  // whose box collapsed BECAUSE it was broken.
+  const inLayout = (el) => {
+    if (el.getClientRects().length === 0 && el.offsetParent === null) {
+      return false;
+    }
+    const cs = getComputedStyle(el);
+    if (cs.display === 'none' || cs.visibility === 'hidden') return false;
+    return parseFloat(cs.opacity || '1') !== 0;
+  };
+
   const images = [];
   for (const img of document.querySelectorAll('img')) {
     const src = img.getAttribute('src') || '';
     if (!src) continue;
-    // An ancestor with display:none takes the image out of the render
-    // entirely — a broken one there cannot be in the screenshot, and
-    // failing on it would be failing on something invisible.
-    const rendered = img.getClientRects().length > 0 ||
-      (img.offsetParent !== null) ||
-      getComputedStyle(img).display !== 'none';
+    const rendered = inLayout(img);
     images.push({
       src: src,
       alt: img.getAttribute('alt') || '',

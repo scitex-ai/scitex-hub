@@ -103,6 +103,23 @@ HEALTHY_PAGE = (
     "</body>" % PROSE
 )
 
+# A broken image and a stuck placeholder, both inside a display:none
+# modal. Neither is in the screenshot, so neither may fail the capture.
+#
+# This is not a hypothetical: the product ships several such modals, each
+# with its own "Loading ..." line and placeholder image —
+# index_partials/table_preview_modal.html, git_history_modal.html,
+# figures_panel.html, tables_panel.html, citations_panel.html. Failing on
+# them would make the gate fire on every Writer screenshot forever, which
+# is the fastest way to get a gate switched off.
+HIDDEN_MODAL_PAGE = (
+    "<body><p>%s</p>"
+    '<div id="a-modal" style="display:none">'
+    '<img src="/also-not-here.png" alt="table preview" />'
+    "<span>Loading table data...</span>"
+    "</div></body>" % PROSE
+)
+
 WRITER_SELECTORS = {
     "file_selector": "#section-selector-text",
     "word_count": "#current-word-count",
@@ -277,6 +294,35 @@ def test_healthy_page_has_a_positive_word_count(healthy):
     where = "healthy fixture"
     # Act
     problem = nonzero_count_problem(healthy, "word_count", where)
+    # Assert
+    assert problem == "", problem
+
+
+# ---------------------------------------------------------------------------
+# ...and neither may a defect that is not in the picture
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def hidden_modal(measure):
+    """One measurement of a page whose only defects are display:none."""
+    return measure("modal.html", HIDDEN_MODAL_PAGE)
+
+
+def test_broken_image_inside_a_hidden_modal_is_not_a_failure(hidden_modal):
+    # Arrange
+    where = "hidden-modal fixture"
+    # Act
+    problem = broken_image_problem(hidden_modal, where)
+    # Assert
+    assert problem == "", problem
+
+
+def test_loading_text_inside_a_hidden_modal_is_not_a_failure(hidden_modal):
+    # Arrange
+    where = "hidden-modal fixture"
+    # Act
+    problem = loading_marker_problem(hidden_modal, where)
     # Assert
     assert problem == "", problem
 
