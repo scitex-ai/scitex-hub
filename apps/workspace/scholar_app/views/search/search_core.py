@@ -11,6 +11,7 @@ __FILE__ = "./apps/scholar_app/views/search/search_core.py"
 __DIR__ = os.path.dirname(__FILE__)
 # ----------------------------------------
 
+from apps.infra.project_app.services.project_utils import get_current_project
 from django.shortcuts import render
 from scitex import logging
 
@@ -269,31 +270,13 @@ def simple_search_with_tab(
         user_projects = Project.objects.filter(owner=request.user).order_by(
             "-created_at"
         )
-
-        # Determine current project (use same logic as writer_app and scholar_app elsewhere)
-        # Try session-based project selection first
-        current_project_slug = request.session.get("current_project_slug")
-        if current_project_slug:
-            try:
-                current_project = Project.objects.get(
-                    slug=current_project_slug, owner=request.user
-                )
-            except Project.DoesNotExist:
-                pass
-
-        # Fallback: try profile's last active repository (only if user owns it)
-        if (
-            not current_project
-            and hasattr(request.user, "profile")
-            and request.user.profile.last_active_repository
-        ):
-            lar = request.user.profile.last_active_repository
-            if lar.owner_id == request.user.id:
-                current_project = lar
-
-        # Fallback: use first project if available
-        if not current_project and user_projects.exists():
-            current_project = user_projects.first()
+        # Use the shared resolver rather than a local copy of the rules.
+        # The copy that used to live here checked the session slug BEFORE
+        # profile.last_active_repository — the inverse of get_current_project —
+        # so after a header switch A -> B this page kept resolving to A while
+        # every other app showed B, and BibTeX silently saved to the old
+        # project. One resolver means that class of drift cannot recur.
+        current_project = get_current_project(request, user=request.user)
 
     context = {
         "query": query,
