@@ -23,6 +23,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 
 from ...models import Project
+from ...services.project_utils import set_current_project
 
 logger = logging.getLogger(__name__)
 
@@ -198,6 +199,13 @@ def api_switch_active_project(request):
         profile = request.user.profile
         profile.last_active_repository = project
         profile.save()
+
+        # ...and the session slug, which is the OTHER place "current project"
+        # is stored. Writing only the profile left the session pointing at the
+        # previous project, so any reader that consults the session first saw a
+        # stale answer while the header showed the new one. Both stores must
+        # move together or "which project am I in" has two answers.
+        set_current_project(request, project)
 
         logger.info(f"User {request.user.username} switched to project {project.name}")
 
