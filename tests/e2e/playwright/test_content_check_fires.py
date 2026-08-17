@@ -120,6 +120,32 @@ HIDDEN_MODAL_PAGE = (
     "</div></body>" % PROSE
 )
 
+# THE PAIR THAT PINS THE VISIBILITY TEST.
+#
+# One template, ONE difference: the wrapper's `display`. Same broken image,
+# same alt, same everything else. Hidden must not fail; shown must fail.
+# Asserting only one half is what let the original bug through — the first
+# version of the probe read
+#
+#     getClientRects().length > 0 || offsetParent !== null ||
+#     getComputedStyle(img).display !== 'none'
+#
+# whose last clause reads the IMAGE's own computed display, which an
+# ancestor's `display:none` does not change. It is 'inline', the OR
+# short-circuits true, and the clause added to EXCLUDE hidden images
+# admitted every one of them. The visible half still passed, so a control
+# set testing only that half would have called the gate healthy while it
+# failed the capture on images no reader can see.
+_VISIBILITY_PAIR = (
+    "<body><p>%s</p>"
+    '<div id="wrapper" style="%%s">'
+    '<img src="/hidden-or-not.png" alt="a broken thumbnail" '
+    'width="320" height="180" />'
+    "</div></body>" % PROSE
+)
+BROKEN_IMAGE_HIDDEN_PAGE = _VISIBILITY_PAIR % "display:none"
+BROKEN_IMAGE_SHOWN_PAGE = _VISIBILITY_PAIR % "display:block"
+
 WRITER_SELECTORS = {
     "file_selector": "#section-selector-text",
     "word_count": "#current-word-count",
@@ -325,6 +351,29 @@ def test_loading_text_inside_a_hidden_modal_is_not_a_failure(hidden_modal):
     problem = loading_marker_problem(hidden_modal, where)
     # Assert
     assert problem == "", problem
+
+
+# ---------------------------------------------------------------------------
+# The pair: one markup, one difference, both halves asserted
+# ---------------------------------------------------------------------------
+
+
+def test_broken_image_under_a_hidden_ancestor_does_not_fail(measure):
+    # Arrange
+    signals = measure("pair-hidden.html", BROKEN_IMAGE_HIDDEN_PAGE)
+    # Act
+    problem = broken_image_problem(signals, "hidden half of the pair")
+    # Assert
+    assert problem == "", problem
+
+
+def test_the_same_broken_image_shown_does_fail(measure):
+    # Arrange
+    signals = measure("pair-shown.html", BROKEN_IMAGE_SHOWN_PAGE)
+    # Act
+    problem = broken_image_problem(signals, "shown half of the pair")
+    # Assert
+    assert "hidden-or-not.png" in problem, "a visible broken image passed"
 
 
 # EOF

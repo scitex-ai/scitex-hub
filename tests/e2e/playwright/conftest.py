@@ -365,12 +365,18 @@ def content_report():
     too. Text is also printed, which surfaces it in pytest's output for a
     FAILING test alongside the assertion that failed.
     """
+    from tests.e2e.playwright.content_check import threshold_banner
+
     path = SCREENSHOT_DIR / "content-report.txt"
     SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
     path.write_text(
         "Content measured per captured page. FOUND / NOT FOUND is stated\n"
         "for every signal, so a page with no content says so rather than\n"
-        "being silently skipped.\n\n",
+        "being silently skipped.\n"
+        "\n"
+        "Thresholds in force for THIS run — a tunable bar has to be stated\n"
+        "or 'the job was green' means nothing:\n"
+        "  %s\n\n" % threshold_banner(),
         encoding="utf-8",
     )
 

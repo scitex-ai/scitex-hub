@@ -108,8 +108,33 @@ jobs:
 
       - name: Install Node dependencies & build
         run: |
+          set -euo pipefail
           npm install
           npm run build
+
+          # PUT THE BUILT BUNDLE WHERE DEBUG STATIC SERVING CAN SEE IT.
+          #
+          # vite.config.ts builds to `staticfiles/vite`, and `staticfiles`
+          # is STATIC_ROOT — the collectstatic DESTINATION. Under DEBUG the
+          # request never reaches STATIC_ROOT: ASGIStaticFilesHandler
+          # answers /static/ from the FINDERS, which search STATICFILES_DIRS
+          # and app static dirs and nothing else. So a Vite asset in
+          # STATIC_ROOT is unreachable by construction, and collectstatic
+          # cannot help — it copies INTO the directory that is already being
+          # skipped.
+          #
+          # settings_dev sets STATICFILES_DIRS = [BASE_DIR / "static"], so
+          # copying the build under `static/vite/` makes FileSystemFinder
+          # resolve exactly the /static/vite/<file> URLs the manifest emits.
+          #
+          # Measured 2026-08-17, CI run 32056013931: without this, every
+          # /static/vite/*.js answered HTTP 500, no JavaScript ran, and the
+          # visitor heartbeat (itself a Vite entry) never fired — so the
+          # pooled visitor's 120s probation lease was never promoted to its
+          # full hour and expired part-way through the 400s capture.
+          rm -rf static/vite
+          cp -r staticfiles/vite static/vite
+          echo "vite assets staged: $(find static/vite -type f | wc -l) files"
 
       - name: Install Playwright browsers
         run: python -m playwright install --with-deps chromium

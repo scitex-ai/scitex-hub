@@ -60,7 +60,23 @@ import os
 #: page that is blank or nearly so, not to police how wordy a screen is.
 #: The chrome alone (header, nav, footer) clears this on every page in the
 #: capture set, which is exactly why it cannot be the only check.
-MIN_BODY_TEXT_CHARS = int(os.getenv("SCITEX_E2E_MIN_BODY_TEXT", "80"))
+DEFAULT_MIN_BODY_TEXT_CHARS = 80
+
+#: The floor is tunable, because raising it while investigating a page is
+#: genuinely useful. It is tunable IN THE OPEN: an override is stated at
+#: the top of the content report and repeated on every page line, so a
+#: lowered floor shows up in the artifact instead of hiding in the
+#: environment.
+#:
+#: That reporting is the whole safeguard and it is deliberate. An
+#: env-overridable threshold is otherwise an off switch for the exact
+#: failure this module exists to end — set SCITEX_E2E_MIN_BODY_TEXT=0 in
+#: the workflow and the body-text check stops guarding while the job stays
+#: green, which is the old defect wearing a knob. A silent knob would be
+#: worse than no knob; a loud one is fine.
+MIN_BODY_TEXT_CHARS = int(
+    os.getenv("SCITEX_E2E_MIN_BODY_TEXT", str(DEFAULT_MIN_BODY_TEXT_CHARS))
+)
 
 #: A loading placeholder is SHORT. Prose that happens to begin with the
 #: word "loading" is not. Only an element whose own text is at most this
@@ -459,6 +475,33 @@ def nonzero_count_problem(signals, name, where):
 # ---------------------------------------------------------------------------
 # Reporting — say what was found AND what was not, for every page
 # ---------------------------------------------------------------------------
+
+
+def threshold_banner():
+    """State the thresholds this run actually used, and flag overrides.
+
+    A threshold nobody can see is a threshold nobody can audit. The floor
+    is env-tunable on purpose, so the report says what it is EVERY run and
+    says loudly when it is not the default — because "the job is green"
+    means nothing if the bar was quietly moved to zero, and that is the
+    precise shape of the defect this module was written to end.
+    """
+    line = "body-text floor: %d chars" % MIN_BODY_TEXT_CHARS
+    if MIN_BODY_TEXT_CHARS == DEFAULT_MIN_BODY_TEXT_CHARS:
+        return line + " (default)"
+    return line + (
+        " -- OVERRIDDEN via SCITEX_E2E_MIN_BODY_TEXT (default %d).\n"
+        "  %s Anything below the default weakens this gate; read the\n"
+        "  per-page character counts below before trusting a green run."
+        % (
+            DEFAULT_MIN_BODY_TEXT_CHARS,
+            (
+                "RAISED — stricter than default."
+                if MIN_BODY_TEXT_CHARS > DEFAULT_MIN_BODY_TEXT_CHARS
+                else "LOWERED — WEAKER than default."
+            ),
+        )
+    )
 
 
 def describe_signals(where, signals):
