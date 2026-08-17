@@ -245,6 +245,7 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
         project_dir=broker_project_dir,
         provider=provider,
         provider_env=provider_env,
+        project_slug=project_slug,
     )
 
     if not shell.spawn():
@@ -258,7 +259,8 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
         return {"status": "error", "error": error_msg}
 
     shell.client_socket = client
-    shell.last_project_slug = project_slug
+    # last_project_slug is set in Shell.__init__ — assigning it here would be
+    # after the fork and therefore too late to reach the child's environment.
     shell.on_exit_callback = _make_shell_exit_cb(broker, client)
     shell.start_reader(broker._make_output_callback(client))
     alloc.increment_shells()
