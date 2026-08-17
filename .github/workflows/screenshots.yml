@@ -24,9 +24,11 @@ on:
     paths:
       - '.github/workflows/screenshots.yml'
       - 'tests/e2e/playwright/test_capture_screenshots.py'
+      - 'tests/e2e/playwright/test_content_check_fires.py'
       - 'tests/e2e/playwright/conftest.py'
       - 'tests/e2e/playwright/session_role_check.py'
       - 'tests/e2e/playwright/page_ready.py'
+      - 'tests/e2e/playwright/content_check.py'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -228,10 +230,37 @@ jobs:
           # headless gate"). Without it this job SILENTLY captured nothing:
           # 22 skipped, 0 run, in 0.04s, pytest exit 0 — and only the upload's
           # if-no-files-found:error turned that into a visible failure.
+          #
+          # test_content_check_fires.py runs IN THE SAME COMMAND as the
+          # capture, and first. It is the positive control: real fixture
+          # pages served over a real local HTTP server, built to have the
+          # exact defects seen in run 32039805008's artifact, proving each
+          # content assertion still FAILS on them — and a healthy fixture
+          # proving the same assertions still PASS. A gate nobody has
+          # watched fail is not a gate, and "the assertions got stricter"
+          # is not evidence: the assertions they replaced were also green
+          # while photographing a blank FigRecipe.
           python -m pytest \
+            tests/e2e/playwright/test_content_check_fires.py \
             tests/e2e/playwright/test_capture_screenshots.py \
             --browser chromium \
             -v --tb=short -rs -o "addopts=" --timeout=120
+
+      - name: Content report
+        # ALWAYS, like the artifact upload. On a green run this is the only
+        # place the run says WHAT it photographed — pytest hides stdout for
+        # passing tests, which is how a job stayed green for a week while
+        # shooting an empty page. On a red run it gives the failing
+        # assertion its context: every other page's measurement, same run.
+        if: always()
+        run: |
+          set -euo pipefail
+          report=GITIGNORED/e2e_screenshots/content-report.txt
+          if [ -f "$report" ]; then
+            cat "$report"
+          else
+            echo "(no content report — the capture never measured a page)"
+          fi
 
       - name: Server log (on failure)
         # A capture failure is usually the server dying under it, and that

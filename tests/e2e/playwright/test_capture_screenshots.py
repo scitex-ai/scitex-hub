@@ -48,6 +48,18 @@ from __future__ import annotations
 
 import pytest
 
+from tests.e2e.playwright.content_check import (
+    PAGE_ELEMENT_SIGNALS,
+    body_text_problem,
+    broken_image_problem,
+    describe_signals,
+    empty_container_problem,
+    loading_marker_problem,
+    nonzero_count_problem,
+    read_content_signals,
+    stuck_placeholder_problem,
+    undeclared_absent_media_problem,
+)
 from tests.e2e.playwright.page_ready import wait_for_page_ready
 from tests.e2e.playwright.session_role_check import (
     READ_SESSION_ROLE_JS,
@@ -92,6 +104,37 @@ PAGES = [
     ("/landing/", "10-landing", "Landing"),
 ]
 
+ROUTES = {route: (slug, title) for route, slug, title in PAGES}
+
+WRITER_ROUTE = "/apps/writer/"
+FIGRECIPE_ROUTE = "/apps/figrecipe/"
+
+# Images this CI checkout CANNOT contain, named one by one.
+#
+# Django serves MEDIA_URL from MEDIA_ROOT = base_dir/'media'
+# (config/settings/settings_static.py), which is a RUNTIME VOLUME:
+# .gitignore excludes `media/` wholesale and `git ls-files media/` returns
+# nothing. So the landing hero's thumbnail 404s on a runner and renders as
+# the broken-image placeholder — which is exactly what 10-landing.png in
+# run 32039805008 showed, and it is a fact about the runner, not about the
+# product. Production mounts the volume and the hero plays.
+#
+# This is a DECLARATION, not a relaxation, and it is deliberately by exact
+# src rather than by prefix: any OTHER broken image under /media/, on any
+# page, still fails (test_page_has_no_undeclared_absent_media), and every
+# broken image served from a path the repo DOES carry still fails outright.
+# Adding a line here is a reviewable diff that has to say which file and
+# why.
+#
+# The corresponding limitation on the artifact is stated once, loudly:
+# 10-landing.png's hero panel is not representative. Do not put that
+# screenshot in a talk without checking the hero against production.
+DECLARED_ABSENT_MEDIA = {
+    "/landing/": frozenset(
+        {"/media/videos/scitex-automated-research-demo-thumbnail.png"}
+    ),
+}
+
 FORCE_LIGHT = """
 () => {
   document.documentElement.setAttribute('data-theme', 'light');
@@ -100,9 +143,40 @@ FORCE_LIGHT = """
 """
 
 
-@pytest.mark.parametrize(
-    "route,slug,title", PAGES, ids=[p[1] for p in PAGES]
-)
+@pytest.fixture(scope="session")
+def measured_content(pooled_visitor_page, content_report):
+    """Measure a route's content ONCE, and let every check read that read.
+
+    Session-scoped and cached BY ROUTE on purpose. The alternative —
+    each assertion navigating for itself — costs a page load per check and,
+    worse, means the "no loading placeholders" answer and the "no broken
+    images" answer come from two different renders of the page. When one of
+    them fails you then cannot tell whether the other was true at the same
+    moment. One navigation, one ``page.evaluate``, one set of facts.
+
+    Every measurement is written to the artifact's content-report.txt as it
+    is taken, so the report covers pages whose assertions later fail too.
+    """
+    cache = {}
+
+    def _for(route):
+        if route not in cache:
+            slug, title = ROUTES[route]
+            page = pooled_visitor_page
+            page.goto(route)
+            wait_for_page_ready(
+                page, hydration_signal=route not in ROUTES_WITHOUT_GLOBAL_BASE
+            )
+            page.evaluate(FORCE_LIGHT)
+            signals = read_content_signals(page, PAGE_ELEMENT_SIGNALS.get(route))
+            cache[route] = signals
+            content_report(describe_signals("%s (%s)" % (title, route), signals))
+        return cache[route]
+
+    return _for
+
+
+@pytest.mark.parametrize("route,slug,title", PAGES, ids=[p[1] for p in PAGES])
 class TestProductScreenshots:
     def test_page_is_served(self, pooled_visitor_page, route, slug, title):
         # Arrange
@@ -145,9 +219,7 @@ class TestProductScreenshots:
         role = page.evaluate(READ_SESSION_ROLE_JS)
 
         # Assert
-        assert role == REQUIRED_ROLE, wrong_role_message(
-            role, f"{title} ({route})"
-        )
+        assert role == REQUIRED_ROLE, wrong_role_message(role, f"{title} ({route})")
 
     def test_page_renders_and_is_captured(
         self, pooled_visitor_page, screenshot, route, slug, title
@@ -173,5 +245,122 @@ class TestProductScreenshots:
         body_text = page.evaluate("() => (document.body.innerText || '').trim()")
 
         # Assert — a page that renders no visible text at all is broken,
-        # and a blank PNG in the artifact would hide that.
+        # and a blank PNG in the artifact would hide that. This is the
+        # weakest of the content checks and is kept only as the floor
+        # under them; what the page actually CONTAINS is asserted by
+        # TestCapturedPageHasContent below.
         assert body_text, f"{title} ({route}) rendered no visible text"
+
+
+@pytest.mark.parametrize("route,slug,title", PAGES, ids=[p[1] for p in PAGES])
+class TestCapturedPageHasContent:
+    """The checks that could have caught what run 32039805008 photographed.
+
+    "The page painted" and "the page has content" are different questions,
+    and the capture only ever asked the first one. These ask the second,
+    generically, of every page in the set — so a screen that starts
+    rendering its shell over an empty body fails the job that photographs
+    it, which is the job's stated purpose.
+    """
+
+    def test_page_has_visible_content(self, measured_content, route, slug, title):
+        # Arrange
+        signals = measured_content(route)
+
+        # Act
+        problem = body_text_problem(signals, f"{title} ({route})")
+
+        # Assert
+        assert problem == "", problem
+
+    def test_page_has_no_stuck_loading_placeholders(
+        self, measured_content, route, slug, title
+    ):
+        # Arrange
+        signals = measured_content(route)
+
+        # Act
+        problem = loading_marker_problem(signals, f"{title} ({route})")
+
+        # Assert
+        assert problem == "", problem
+
+    def test_page_has_no_broken_images(self, measured_content, route, slug, title):
+        # Arrange
+        signals = measured_content(route)
+
+        # Act
+        problem = broken_image_problem(signals, f"{title} ({route})")
+
+        # Assert
+        assert problem == "", problem
+
+    def test_page_has_no_undeclared_absent_media(
+        self, measured_content, route, slug, title
+    ):
+        # Arrange
+        signals = measured_content(route)
+
+        # Act
+        problem = undeclared_absent_media_problem(
+            signals, DECLARED_ABSENT_MEDIA.get(route, frozenset()), f"{title} ({route})"
+        )
+
+        # Assert
+        assert problem == "", problem
+
+
+class TestWriterShowsAManuscript:
+    """02-writer.png showed an editor with nothing in it.
+
+    The file selector still read "Loading...", the word count still read
+    "0", and the manuscript pane was empty — all three are the literal
+    defaults shipped by ``index_partials/main_editor.html``. A screenshot
+    of Writer that contains no writing is not a screenshot of Writer.
+    """
+
+    def test_file_selector_resolved(self, measured_content):
+        # Arrange
+        signals = measured_content(WRITER_ROUTE)
+
+        # Act
+        problem = stuck_placeholder_problem(
+            signals, "file_selector", f"Writer ({WRITER_ROUTE})"
+        )
+
+        # Assert
+        assert problem == "", problem
+
+    def test_word_count_is_positive(self, measured_content):
+        # Arrange
+        signals = measured_content(WRITER_ROUTE)
+
+        # Act
+        problem = nonzero_count_problem(
+            signals, "word_count", f"Writer ({WRITER_ROUTE})"
+        )
+
+        # Assert
+        assert problem == "", problem
+
+
+class TestFigRecipeShowsAGallery:
+    """04-figrecipe.png was a header strip above an entirely blank body.
+
+    ``#app-mount`` is where ``figrecipe_partial.html`` mounts the FigRecipe
+    bundle. It painted; nothing mounted into it. Present-and-empty is the
+    state that has to fail, because present-and-empty is what a page looks
+    like when its front end never booted.
+    """
+
+    def test_mount_point_is_not_empty(self, measured_content):
+        # Arrange
+        signals = measured_content(FIGRECIPE_ROUTE)
+
+        # Act
+        problem = empty_container_problem(
+            signals, "mount", f"FigRecipe ({FIGRECIPE_ROUTE})"
+        )
+
+        # Assert
+        assert problem == "", problem
