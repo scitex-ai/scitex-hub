@@ -29,8 +29,13 @@ from apps.infra.project_app.services.project_filesystem.manager import (
 
 
 @pytest.fixture
-def locked_out_user(tmp_path, settings, django_user_model):
-    """A real user whose data dir exists but cannot be traversed."""
+def locked_out_user(db, tmp_path, settings, django_user_model):
+    """A real user whose data dir exists but cannot be traversed.
+
+    ``db`` is required explicitly: ``django_user_model`` only hands over the
+    model class, it does not grant database access, so creating a row without
+    it raises "Database access not allowed".
+    """
     # Arrange
     if os.getuid() == 0:
         pytest.skip("running as root — permission bits are not enforced")
