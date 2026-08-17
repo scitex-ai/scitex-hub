@@ -21,6 +21,8 @@ Failure policy: every check raises :class:`HomeStateError`; the caller
 """
 
 import logging
+import os
+import subprocess
 from pathlib import Path
 
 from django.conf import settings
@@ -131,6 +133,83 @@ def recreate_workspace_skeleton(visitor_user: User, project_slug: str) -> None:
         raise HomeStateError(
             f"Home skeleton recreation failed for {username}: {exc}"
         ) from exc
+
+
+APP_UNIX_OWNER = getattr(settings, "APP_UNIX_OWNER", "scitex")
+
+
+def enforce_app_ownership(home_root: Path) -> None:
+    """Hand the freshly materialised tree back to the process that serves it.
+
+    The reset runs inside the visitor Celery worker, which is ROOT, while the
+    web process that must later write into this tree is ``scitex`` (uid 1000)
+    and compiles IN-PROCESS with no privilege change. Measured on production
+    2026-08-17: ``celery_worker_vis`` PID 7 ``Uid: 0 0 0 0``; ``daphne`` PID 7
+    ``Uid: 1000 1000 1000 1000``.
+
+    Nothing between the two ever chowned the result. ``initialize_user_workspace``
+    calls ``enforce_data_dir_ownership`` at the one instant the tree is nearly
+    empty, so only ``proj/`` and ``workspace_info.json`` got an owner; every
+    directory created afterwards — the dotfiles repo, the project dir, the whole
+    template clone — stayed ``root:root`` 0755. The app could read the tree and
+    could not create a single entry in it, so the writer's first write, ``mkdir
+    .scitex/``, was EACCES and the demo never compiled:
+
+        mkdir: cannot create directory
+        '/app/data/users/visitor-003/proj/dotfiles/.scitex': Permission denied
+
+    Doing this LAST is the point. A chown in the middle is undone by every
+    directory created after it, which is exactly the bug being fixed here.
+
+    ``-h`` because the home root holds relative symlinks into ``proj/``; they
+    stay inside the tree, so plain ``-R`` is safe today, but ``-h`` removes the
+    class of bug rather than the instance.
+    """
+    result = subprocess.run(
+        ["chown", "-R", "-h", f"{APP_UNIX_OWNER}:{APP_UNIX_OWNER}", str(home_root)],
+        capture_output=True,
+        timeout=120,
+    )
+    if result.returncode != 0:
+        raise HomeStateError(
+            f"could not hand {home_root} back to {APP_UNIX_OWNER}: "
+            f"{result.stderr.decode(errors='replace').strip()}. The slot is "
+            f"quarantined rather than served, because a slot the web process "
+            f"cannot write to cannot run the demo."
+        )
+
+
+def verify_app_can_write(home_root: Path) -> None:
+    """Final-gate half that catches an unusable slot BEFORE it is served.
+
+    Deliberately compares ``stat().st_uid`` rather than calling ``os.access``
+    or ``Path.is_dir``-style checks. This runs in the ROOT worker, and root
+    bypasses DAC — ``os.access(path, os.W_OK)`` returns True for any existing
+    path regardless of owner, so a writability check here would pass for
+    precisely the broken slot it exists to catch. A check that cannot fail is
+    not a check.
+    """
+    try:
+        expected_uid = os.stat(home_root).st_uid
+    except OSError as exc:
+        raise HomeStateError(f"cannot stat home root {home_root}: {exc}") from exc
+
+    foreign = []
+    for path in home_root.rglob("*"):
+        try:
+            if path.lstat().st_uid != expected_uid:
+                foreign.append(str(path.relative_to(home_root)))
+        except OSError:
+            continue
+        if len(foreign) >= 5:
+            break
+
+    if foreign:
+        raise HomeStateError(
+            f"{home_root} still holds entries owned by another uid "
+            f"(first few: {foreign!r}); the web process would get EACCES on "
+            f"its first write, so this slot must not be served"
+        )
 
 
 def verify_recycled_home(visitor_user: User, home_root: Path) -> None:

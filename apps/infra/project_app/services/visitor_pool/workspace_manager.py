@@ -58,7 +58,9 @@ from .container_teardown import (
 from .demo_seed import try_seed_demo_content
 from .home_state import (
     HomeStateError,
+    enforce_app_ownership,
     recreate_workspace_skeleton,
+    verify_app_can_write,
     verify_recycled_home,
     wipe_user_container_dir,
 )
@@ -266,6 +268,17 @@ class WorkspaceManager:
             visitor_user, project, project_slug, clone_fn=clone_fn
         )
 
+        # 6b. Hand the whole tree back to the app user. Steps 5-6 run as ROOT
+        #     in this worker, while the web process that must later write into
+        #     the tree is uid 1000 — so without this every slot is served with
+        #     a workspace the app cannot create anything in, and the writer's
+        #     first `mkdir .scitex/` fails with EACCES. Must be LAST: a chown
+        #     any earlier is undone by whatever is created after it.
+        try:
+            enforce_app_ownership(home_root)
+        except HomeStateError as exc:
+            raise WorkspaceResetError(str(exc)) from exc
+
         # 7. FINAL GATE — never serve an unverified slot: (a) no SLURM
         #    job, (b) no instance, (c) home is exactly the fresh
         #    skeleton with an empty ~/.singularity, (d) no stored
@@ -278,6 +291,15 @@ class WorkspaceManager:
             ) from exc
         try:
             verify_recycled_home(visitor_user, home_root)
+        except HomeStateError as exc:
+            raise WorkspaceResetError(
+                f"Final gate failed for {username}: {exc}"
+            ) from exc
+        # (e) the app can actually WRITE the tree. The gate used to check
+        #     names only, which is why a slot the web process could not create
+        #     a single file in still passed as "verified clean" and was served.
+        try:
+            verify_app_can_write(home_root)
         except HomeStateError as exc:
             raise WorkspaceResetError(
                 f"Final gate failed for {username}: {exc}"
