@@ -140,6 +140,31 @@ UMAMI_SCRIPT_URL = _getenv_alias(
 )
 
 # ---------------------------------------
+# Unix identity the WEB process serves as
+# ---------------------------------------
+# A visitor-slot reset runs in the visitor Celery worker, which is ROOT on
+# production, while the process that must afterwards WRITE into the recycled
+# tree is the web process (daphne, uid 1000 / user `scitex`). The reset has to
+# hand the tree back to that identity as its last act -- see
+# apps/infra/project_app/services/visitor_pool/home_state.enforce_app_ownership.
+#
+# Declared HERE, once, because this identity is a property of the DEPLOYMENT,
+# not of the service that happens to run the chown. It began life as a
+# `getattr(settings, "APP_UNIX_OWNER", "scitex")` hidden inside home_state.py:
+# a user name that exists on production and nowhere else, reached through a
+# default nothing declared and nothing could override. CI's py3.11 leg made the
+# cost visible -- `chown: invalid user: 'scitex:scitex'` on a GitHub runner that
+# has no such account, so every slot reset failed there.
+#
+# Accepted forms: a user NAME (`scitex`), a numeric uid (`1000`), or an explicit
+# `<user>:<group>` pair of either (`scitex:scitex`, `1000:1000`). A name is
+# resolved through pwd/grp at reset time and an unresolvable value fails LOUDLY,
+# quarantining the slot. There is deliberately NO fallback to "whoever happens
+# to be running": on production that is root, which is exactly the bug this
+# whole mechanism exists to prevent.
+APP_UNIX_OWNER = _getenv_alias("SCITEX_HUB_APP_UNIX_OWNER", "scitex") or "scitex"
+
+# ---------------------------------------
 # Security
 # ---------------------------------------
 # Honors SCITEX_CLOUD_DJANGO_SECRET_KEY as a deprecated alias (ADR-0001).

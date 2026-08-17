@@ -20,8 +20,10 @@ Failure policy: every check raises :class:`HomeStateError`; the caller
 ``WorkspaceResetError`` so the slot is quarantined, never served.
 """
 
+import grp
 import logging
 import os
+import pwd
 import subprocess
 from pathlib import Path
 
@@ -135,7 +137,68 @@ def recreate_workspace_skeleton(visitor_user: User, project_slug: str) -> None:
         ) from exc
 
 
-APP_UNIX_OWNER = getattr(settings, "APP_UNIX_OWNER", "scitex")
+APP_UNIX_OWNER_SETTING = "APP_UNIX_OWNER"
+APP_UNIX_OWNER_ENV = "SCITEX_HUB_APP_UNIX_OWNER"
+
+
+def resolve_app_owner() -> tuple[int, int]:
+    """Turn ``settings.APP_UNIX_OWNER`` into a numeric ``(uid, gid)`` pair.
+
+    Accepted forms: ``scitex`` (name), ``1000`` (uid), ``scitex:scitex`` or
+    ``1000:1000`` (explicit ``user:group``, either form on each side). A bare
+    user resolves its group to that user's primary group; a bare numeric uid
+    resolves the gid to the same number.
+
+    Resolution happens HERE, at reset time, and any value that cannot be
+    resolved raises :class:`HomeStateError` naming the setting and the env var
+    to fix. There is deliberately no fallback to ``os.getuid()``: on production
+    the reset runs as root, so "whoever is running" is exactly the owner that
+    locks the web process out.
+    """
+    declared = getattr(settings, APP_UNIX_OWNER_SETTING, None)
+    if not declared or not str(declared).strip():
+        raise HomeStateError(
+            f"settings.{APP_UNIX_OWNER_SETTING} is empty; declare the unix identity "
+            f"the web process runs as (a user name, a uid, or user:group) via "
+            f"{APP_UNIX_OWNER_ENV}. Nothing is chowned until it is set."
+        )
+    declared = str(declared).strip()
+    user_part, _, group_part = declared.partition(":")
+
+    def _uid(token: str) -> tuple[int, int | None]:
+        if token.isdigit():
+            return int(token), None
+        try:
+            entry = pwd.getpwnam(token)
+        except KeyError as exc:
+            raise HomeStateError(
+                f"settings.{APP_UNIX_OWNER_SETTING}={declared!r}: user {token!r} does "
+                f"not exist on this host. Set {APP_UNIX_OWNER_ENV} to the user name "
+                f"or numeric uid the web process actually runs as (on production "
+                f"that is `scitex`, uid 1000)."
+            ) from exc
+        return entry.pw_uid, entry.pw_gid
+
+    def _gid(token: str) -> int:
+        if token.isdigit():
+            return int(token)
+        try:
+            return grp.getgrnam(token).gr_gid
+        except KeyError as exc:
+            raise HomeStateError(
+                f"settings.{APP_UNIX_OWNER_SETTING}={declared!r}: group {token!r} does "
+                f"not exist on this host. Set {APP_UNIX_OWNER_ENV} to an existing "
+                f"user:group or to numeric ids."
+            ) from exc
+
+    uid, primary_gid = _uid(user_part)
+    if group_part:
+        gid = _gid(group_part)
+    elif primary_gid is not None:
+        gid = primary_gid
+    else:
+        gid = uid
+    return uid, gid
 
 
 def enforce_app_ownership(home_root: Path) -> None:
@@ -161,21 +224,30 @@ def enforce_app_ownership(home_root: Path) -> None:
     Doing this LAST is the point. A chown in the middle is undone by every
     directory created after it, which is exactly the bug being fixed here.
 
+    The owner comes from ``settings.APP_UNIX_OWNER`` (see settings_shared) and
+    is resolved to NUMERIC ids first, so the chown never depends on a user name
+    existing on the host that happens to run the reset — CI's py3.11 runner had
+    no ``scitex`` account and every reset there failed with
+    ``chown: invalid user``.
+
     ``-h`` because the home root holds relative symlinks into ``proj/``; they
     stay inside the tree, so plain ``-R`` is safe today, but ``-h`` removes the
     class of bug rather than the instance.
     """
+    uid, gid = resolve_app_owner()
     result = subprocess.run(
-        ["chown", "-R", "-h", f"{APP_UNIX_OWNER}:{APP_UNIX_OWNER}", str(home_root)],
+        ["chown", "-R", "-h", f"{uid}:{gid}", str(home_root)],
         capture_output=True,
         timeout=120,
     )
     if result.returncode != 0:
         raise HomeStateError(
-            f"could not hand {home_root} back to {APP_UNIX_OWNER}: "
+            f"could not hand {home_root} back to uid {uid}:{gid} "
+            f"(settings.{APP_UNIX_OWNER_SETTING}={getattr(settings, APP_UNIX_OWNER_SETTING, None)!r}): "
             f"{result.stderr.decode(errors='replace').strip()}. The slot is "
             f"quarantined rather than served, because a slot the web process "
-            f"cannot write to cannot run the demo."
+            f"cannot write to cannot run the demo. If the ids are wrong, set "
+            f"{APP_UNIX_OWNER_ENV} to the identity the web process runs as."
         )
 
 
