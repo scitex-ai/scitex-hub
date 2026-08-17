@@ -343,6 +343,51 @@ def pooled_visitor_page(pooled_visitor_context):
 # =============================================================================
 
 
+@pytest.fixture(scope="session")
+def content_report():
+    """Append per-page content findings NEXT TO the PNGs, in the artifact.
+
+    Every page the capture measures gets a found/not-found block here,
+    whether it passed or not. Two reasons it is a file and not just a
+    print:
+
+      * pytest captures stdout on a PASSING test, so a report that only
+        printed would be invisible on exactly the runs it is meant to
+        describe — the green ones. Run 32039805008 was green while
+        photographing a blank FigRecipe; the whole point is that a green
+        run must still say what it saw.
+      * The artifact is the deliverable. Whoever downloads the PNGs for a
+        talk or a grant gets, in the same zip, the measurement each image
+        was passed on — so "is this screenshot showing the real product?"
+        is answerable without re-running anything.
+
+    The workflow prints it after the capture step, so it is in the run log
+    too. Text is also printed, which surfaces it in pytest's output for a
+    FAILING test alongside the assertion that failed.
+    """
+    from tests.e2e.playwright.content_check import threshold_banner
+
+    path = SCREENSHOT_DIR / "content-report.txt"
+    SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        "Content measured per captured page. FOUND / NOT FOUND is stated\n"
+        "for every signal, so a page with no content says so rather than\n"
+        "being silently skipped.\n"
+        "\n"
+        "Thresholds in force for THIS run — a tunable bar has to be stated\n"
+        "or 'the job was green' means nothing:\n"
+        "  %s\n\n" % threshold_banner(),
+        encoding="utf-8",
+    )
+
+    def _append(text):
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write(text + "\n\n")
+        print(text)
+
+    return _append
+
+
 @pytest.fixture
 def screenshot(request):
     """
