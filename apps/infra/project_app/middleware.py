@@ -23,6 +23,7 @@ from django.contrib.auth import login
 # "apps.infra.project_app.middleware.OnSiteAuthMiddleware". The class now
 # lives in its own module so the trust decision is small and auditable.
 from .middleware_onsite_auth import OnSiteAuthMiddleware  # noqa: F401
+from .visitor_browse_paths import needs_no_visitor_workspace
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,31 @@ class VisitorAutoLoginMiddleware:
     async def _acall(self, request):
         await sync_to_async(self._sync_body, thread_sensitive=True)(request)
         return await self.get_response(request)
+
+    @staticmethod
+    def _bind_browse_only_identity(request):
+        """Attach the shared readonly-visitor to ONE request, no session write.
+
+        The page must still RENDER (a repo view read by an anonymous
+        request, and /apps/home/, which redirects a logged-out browser to
+        the pool-full page) — so the request needs an identity. It does NOT
+        need a slot, and it must not persist: no ``login()``, therefore no
+        session row, no cookie, and no stickiness onto the visitor's next
+        page. If the shared account is missing the request simply stays
+        anonymous, which is the same degraded state it would already be in.
+        """
+        from django.contrib.auth.models import User
+
+        from apps.infra.project_app.services.visitor_pool import VisitorPool
+
+        try:
+            request.user = User.objects.get(
+                username=VisitorPool.READONLY_VISITOR_USERNAME
+            )
+        except User.DoesNotExist:
+            logger.error(
+                "[Middleware] readonly-visitor user not found — run create_visitor_pool"
+            )
 
     def _sync_body(self, request):
         # Skip if already authenticated
@@ -140,6 +166,23 @@ class VisitorAutoLoginMiddleware:
 
         # Note: Cookie consent check removed - SciTeX uses privacy-focused Umami
         # analytics and only essential session cookies (no tracking/advertising)
+
+        # Reading a repository, or enumerating the launcher by id, needs NO
+        # workspace to render — so it must not consume one. See
+        # visitor_browse_paths for the measured prod incident (a crawler on
+        # spoofed Chrome UAs held all 16 slots; humans got readonly) and for
+        # why the classification is by PATH, never by User-Agent quality.
+        #
+        # These requests get the shared read-only identity for THIS REQUEST
+        # ONLY — deliberately without login(), so nothing is written to the
+        # session and no cookie is issued. Two consequences, both wanted:
+        # the crawl costs zero slots AND zero session rows, and a real human
+        # who arrives on a repo link still gets a full writable slot the
+        # moment they open an app page, instead of being pinned read-only
+        # for the rest of their visit by the link they happened to follow.
+        if needs_no_visitor_workspace(request):
+            self._bind_browse_only_identity(request)
+            return
 
         # Auto-login as visitor for real browser requests
         try:
