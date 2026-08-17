@@ -92,14 +92,10 @@ def test_home_project_is_the_fallback_when_nothing_else_exists(user):
 
 def test_an_existing_choice_is_not_overwritten(user_with_demo):
     """last_active_repository means 'where they were'; do not rewrite a choice."""
-    # Arrange: the user is already sitting on the home project deliberately
-    home = Project.objects.create(
-        name="dotfiles",
-        slug="dotfiles",
-        owner=user_with_demo,
-        visibility="private",
-        is_home=True,
-    )
+    # Arrange: the user is already sitting on the home project deliberately.
+    # The post_save signal on User already created it, so fetch it rather than
+    # creating a second one (Project is unique per (name, owner) and (owner, slug)).
+    home = Project.objects.get(owner=user_with_demo, is_home=True)
     user_with_demo.profile.last_active_repository = home
     user_with_demo.profile.save()
     ensure_home_project(user_with_demo)
@@ -112,14 +108,11 @@ def test_an_existing_choice_is_not_overwritten(user_with_demo):
 
 def test_repair_runs_even_when_the_home_project_already_exists(user_with_demo):
     """A profile provisioned before the demo existed is fixed on next login."""
-    # Arrange: home project present, profile still pointing nowhere
-    Project.objects.create(
-        name="dotfiles",
-        slug="dotfiles",
-        owner=user_with_demo,
-        visibility="private",
-        is_home=True,
-    )
+    # Arrange: home project present, profile still pointing nowhere.
+    # The post_save signal on User already created the home project, which IS
+    # this test's precondition — get() raises DoesNotExist if that ever stops
+    # being true, so the precondition stays guarded without a second assert.
+    Project.objects.get(owner=user_with_demo, is_home=True)
     user_with_demo.profile.last_active_repository = None
     user_with_demo.profile.save()
     ensure_home_project(user_with_demo)
