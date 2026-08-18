@@ -279,7 +279,59 @@ all = [
     # shipped middleware.py (merged after that release was cut) and anything
     # older is sync-only, deadlocking daphne under ASGI. See scitex-ui PR #59
     # and settings_shared.py's MIDDLEWARE entry.
-    "scitex-ui>=0.8.0",
+    #
+    # RAISED 0.8.0 -> 0.16.0 on 2026-08-18. A SECOND contract now rides on this
+    # floor, and it is the reason the number moved.
+    #
+    # This release stops forking scitex-ui's primitives and @imports them
+    # instead (static/shared/css/primitives/variables.css). That import makes
+    # the floor a statement about FILE CONTENT, not merely about a call
+    # signature -- and content has a failure mode the pane contract does not:
+    #
+    #   file absent                    -> @import 404s, page visibly unstyled   LOUD
+    #   file present, token absent     -> var() resolves to nothing             SILENT
+    #   file present, value stale      -> renders wrong, passes every check     SILENT
+    #
+    # Only the first of those is visible. The other two render a page that
+    # looks fine, so no test we own would have caught them.
+    #
+    # MEASURED 2026-08-18, reading `--text-link` out of the PUBLISHED WHEELS
+    # (pip download --no-cache-dir, then read the zip -- NOT the git tree, which
+    # is the substitution that let the upstream --accent defect ship). Control
+    # token `--text-primary` returned 2 declarations at every version, so an
+    # absence below is measured absence and not a broken read:
+    #
+    #   0.8.0   --text-link ABSENT
+    #   0.12.0  --text-link ABSENT
+    #   0.13.0  --text-link ABSENT
+    #   0.14.0  --text-link ABSENT
+    #   0.14.1  --text-link #2c5d8f / #58a6ff   <- FIRST release carrying it
+    #   0.14.2  --text-link #2c5d8f / #58a6ff
+    #   0.15.0  --text-link #2c5d8f / #58a6ff
+    #   0.16.0  --text-link #2c5d8f / #58a6ff   (via colors.css -> colors/_{light,dark}.css)
+    #
+    # So four releases at or above the OLD >=0.8.0 floor do not define the token
+    # at all. A resolver picking any of them lets the @import succeed, the page
+    # render, and hub sit at 2.36:1 link contrast against a 4.5:1 AA
+    # requirement -- which is the exact defect this release exists to remove,
+    # reintroduced through the floor and wearing a green build.
+    #
+    # WHY 0.16.0 AND NOT 0.14.1, which is all hub strictly needs: a floor is a
+    # contract read by people who will not know that hub does not load
+    # shell/theme.css. In 0.15.0 `--accent` is defined in the primitives layer
+    # but MISSING from shell/theme.css -- the two layers disagree, so the same
+    # token needs a different floor depending on which file you link. 0.16.0 is
+    # the first release good on every token in both layers. Naming a version
+    # that needs no caveat beats naming the minimum we can justify with one.
+    #
+    # CAUTION FOR WHOEVER RAISES THIS NEXT -- the boundary above is off by one
+    # from what two other agents independently reported today. Both concluded
+    # "first appears in 0.15.0" because both SAMPLED versions (0.14.0, then
+    # 0.15.0) and neither pulled 0.14.1, where it actually lands. scitex-ui has
+    # published 31 versions; a hand-picked subset produces a confident wrong
+    # boundary. Enumerate every release from the PyPI index, or do not quote a
+    # boundary at all.
+    "scitex-ui>=0.16.0",
     # --- GUI (dearpygui-based modules) ---
     "dearpygui>=1.11",
     "cairosvg>=2.9.0",
@@ -376,7 +428,14 @@ dev = [
     # gate must never give — an unrun check reading as a passing one. Declaring
     # the dependency makes the test run instead of vanish. Same shape as the
     # scitex-cards entry above.
-    "scitex-ui>=0.8.0",
+    #
+    # RAISED 0.8.0 -> 0.16.0 on 2026-08-18, in lockstep with the [all] entry.
+    # Do not raise one without the other: test_shell_pane_contract_floor.py
+    # sweeps EVERY dependency group precisely so these two copies cannot drift
+    # apart unnoticed. The measurement and the reasoning live on the [all]
+    # entry -- read it there rather than duplicating it here, so there is one
+    # place to correct when the next token moves.
+    "scitex-ui>=0.16.0",
 ]
 
 [project.scripts]

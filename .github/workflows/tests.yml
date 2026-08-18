@@ -73,7 +73,14 @@ jobs:
           # comment above says must not happen, failing silently rather than
           # loudly. --seed puts pip in the venv so the fallback stays jailed.
           uv venv --seed --python 3.11 .venv
-          uv pip install --python .venv/bin/python "scitex-ui>=0.2.0"
+          # Floor kept in step with pyproject.toml's declaration (>=0.16.0).
+          # It read >=0.2.0 until 2026-08-18 -- fourteen minor versions below
+          # what hub declares. That never failed, because `>=` resolves to the
+          # newest release, so CI happened to install a version that satisfied
+          # a constraint CI did not state. A second, lower floor that is only
+          # ever right by accident is the kind of disagreement that surfaces
+          # the day someone pins for an unrelated reason.
+          uv pip install --python .venv/bin/python "scitex-ui>=0.16.0"
           # install_apps.sh shells `pip`/`python` itself, so put the venv
           # ahead of anything the shared runner has on PATH.
           echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
