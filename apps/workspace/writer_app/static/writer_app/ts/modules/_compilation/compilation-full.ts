@@ -4,6 +4,7 @@
  */
 
 import { CompilationAPI } from "./compilation-api";
+import { CompilationHttpError } from "./compilation-http-error";
 import { CompilationState } from "./compilation-state";
 import { CompilationUI } from "./compilation-ui";
 import { CompilationQueue } from "./compilation-queue";
@@ -91,11 +92,11 @@ export class CompilationFull {
         error instanceof Error ? error.message : "Full compilation failed";
       statusLamp.fullCompilationError();
 
-      // Show error modal
-      this.ui.showError(
-        message,
-        error instanceof Error ? error.stack || "" : "",
-      );
+      // Show error modal. A rejected request (403 read-only visitor, 404
+      // missing project, 409 busy) carries the backend's own explanation;
+      // a JS stack does not. Prefer the explanation — the stack of a
+      // `throw new Error("HTTP 403")` told the user nothing.
+      this.ui.showError(message, this.detailFor(error));
 
       this.ui.updateLogLine(
         "compilation-start-line",
@@ -113,6 +114,30 @@ export class CompilationFull {
         this.state.setCompiling(false);
       }
     }
+  }
+
+  /**
+   * The body text to show under the headline.
+   *
+   * For a structured rejection that is the backend's `detail` (plus the
+   * conversion urls when it is the read-only visitor role); for anything
+   * else it is the stack, which is all we have.
+   */
+  private detailFor(error: unknown): string {
+    if (error instanceof CompilationHttpError) {
+      const lines: string[] = [];
+      if (error.detail && error.detail !== error.message) {
+        lines.push(error.detail);
+      }
+      if (error.isReadonlyVisitor) {
+        const signup = error.signupUrl || "/auth/signup/";
+        const login = error.loginUrl || "/auth/login/";
+        lines.push(`Sign up: ${signup}`);
+        lines.push(`Log in: ${login}`);
+      }
+      return lines.join("\n");
+    }
+    return error instanceof Error ? error.stack || "" : "";
   }
 
   /**

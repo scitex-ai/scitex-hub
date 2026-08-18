@@ -14,15 +14,18 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
-from apps.workspace.console_app.services.apptainer_runner import run_in_user_allocation
-
 from ..auth_utils import api_login_optional, get_user_for_request
 
-logger = logging.getLogger(__name__)
+# The full-compile background worker. ``COMPILATION_JOBS`` is imported (not
+# re-declared) so the views below and the worker mutate the SAME dict, and
+# is re-exported here because that is where callers have always found it.
+from .compilation_full_job import (  # noqa: F401  (re-export)
+    COMPILATION_JOBS,
+    _resolve_project_dir,
+    run_compilation_async,
+)
 
-# In-memory compilation job storage
-# Format: {job_id: {'status': str, 'progress': int, 'step': str, 'log': list, 'result': dict}}
-COMPILATION_JOBS = {}
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # G4 — server-side preview coalesce
@@ -320,146 +323,6 @@ def compile_full_view(request, project_id):
     except Exception as e:
         logger.error(f"[CompileFullAPI] Error: {e}", exc_info=True)
         return JsonResponse({"success": False, "error": str(e)}, status=500)
-
-
-def _resolve_project_dir(project, user) -> "Path | None":
-    """Resolve the host filesystem path of a writer project directory."""
-    from pathlib import Path
-
-    from django.conf import settings
-
-    # Standard layout: data/users/<username>/proj/<slug>/
-    base = Path(settings.BASE_DIR) / "data" / "users" / user.username / "proj"
-    candidate = base / project.slug
-    if candidate.is_dir():
-        return candidate
-
-    # Fallback: check MEDIA_ROOT / users / user_id
-    media_base = Path(settings.MEDIA_ROOT) / "users" / str(user.id)
-    candidate2 = media_base / "proj" / project.slug
-    if candidate2.is_dir():
-        return candidate2
-
-    return None
-
-
-def run_compilation_async(
-    job_id, project_id, doc_type, timeout, user_id, comp_options=None
-):
-    """Run compilation in background thread — inside Apptainer sandbox."""
-    try:
-        from django.contrib.auth import get_user_model
-
-        from apps.infra.project_app.models import Project
-
-        User = get_user_model()
-        project = Project.objects.get(id=project_id)
-        user = User.objects.get(id=user_id)
-
-        comp_options = comp_options or {}
-
-        # Resolve host project directory
-        project_dir = _resolve_project_dir(project, user)
-        if not project_dir or not project_dir.is_dir():
-            raise FileNotFoundError(
-                f"Project directory not found for {user.username}/{project.slug}"
-            )
-
-        # Map doc_type to compile script (relative to project root)
-        script_map = {
-            "manuscript": "scripts/shell/compile_manuscript.sh",
-            "supplementary": "scripts/shell/compile_supplementary.sh",
-            "revision": "scripts/shell/compile_revision.sh",
-        }
-        script_rel = script_map.get(doc_type, "scripts/shell/compile_manuscript.sh")
-
-        # Callbacks
-        def on_log(message):
-            if job_id in COMPILATION_JOBS:
-                COMPILATION_JOBS[job_id]["log"].append(message)
-            logger.debug("[Compilation %s] %s", job_id, message)
-
-        def on_progress(percent, step):
-            if job_id in COMPILATION_JOBS:
-                COMPILATION_JOBS[job_id]["progress"] = percent
-                COMPILATION_JOBS[job_id]["step"] = step
-                COMPILATION_JOBS[job_id]["status"] = "running"
-
-        if job_id in COMPILATION_JOBS:
-            COMPILATION_JOBS[job_id]["status"] = "running"
-            COMPILATION_JOBS[job_id]["step"] = "Starting compilation in sandbox..."
-
-        # Build options flags for the shell script
-        flags = []
-        if comp_options.get("no_figs"):
-            flags.append("--no-figs")
-        if comp_options.get("quiet"):
-            flags.append("--quiet")
-        if comp_options.get("verbose"):
-            flags.append("--verbose")
-        if comp_options.get("force"):
-            flags.append("--force")
-        if comp_options.get("track_changes"):
-            flags.append("--track-changes")
-        color = comp_options.get("color_mode", "light")
-        if color:
-            flags.extend(["--color-mode", color])
-
-        inner_cmd = ["bash", f"/workspace/{script_rel}"] + flags
-
-        result = run_in_user_allocation(
-            username=user.username,
-            inner_cmd=inner_cmd,
-            project_dir=project_dir,
-            timeout=timeout,
-            log_callback=on_log,
-        )
-
-        logger.info("[CompileFullAPI %s] Result: success=%s", job_id, result["success"])
-
-        # Locate output PDF
-        pdf_url = None
-        if result["success"]:
-            pdf_candidates = [
-                project_dir / "01_manuscript" / "manuscript.pdf",
-                project_dir / "manuscript.pdf",
-            ]
-            for candidate in pdf_candidates:
-                if candidate.exists():
-                    pdf_url = (
-                        f"/apps/writer/api/project/{project_id}/pdf/{candidate.name}"
-                    )
-                    break
-
-        final_result = {
-            "success": result["success"],
-            "log": result["stdout"],
-            "output_pdf": pdf_url,
-            "pdf_path": pdf_url,
-            "returncode": result["returncode"],
-        }
-
-        if job_id in COMPILATION_JOBS:
-            COMPILATION_JOBS[job_id]["status"] = (
-                "completed" if result["success"] else "failed"
-            )
-            COMPILATION_JOBS[job_id]["progress"] = 100
-            COMPILATION_JOBS[job_id]["step"] = (
-                "Complete!" if result["success"] else "Failed"
-            )
-            COMPILATION_JOBS[job_id]["result"] = final_result
-
-    except Exception as e:
-        logger.error("[CompileFullAPI %s] Error: %s", job_id, e, exc_info=True)
-        if job_id in COMPILATION_JOBS:
-            COMPILATION_JOBS[job_id]["status"] = "failed"
-            COMPILATION_JOBS[job_id]["step"] = "Error"
-            COMPILATION_JOBS[job_id]["log"].append(f"[ERROR] {str(e)}")
-            COMPILATION_JOBS[job_id]["result"] = {
-                "success": False,
-                "error": str(e),
-                "log": str(e),
-            }
 
 
 @api_login_optional
