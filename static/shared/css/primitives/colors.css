@@ -73,6 +73,7 @@
   --text-muted: var(--_scitex-04); /* Medium gray for muted text */
   --text-inverse: var(--_white);
   --text-color: var(--text-primary); /* Alias for legacy compatibility */
+  --text-link: #2c5d8f; /* 6.39:1 on --bg-surface #f8f7f5; AA needs 4.5 */
 
   /* Background - warm, eye-friendly tones */
   --bg-page: var(--_warm-white); /* Warm off-white page background */
@@ -270,6 +271,7 @@
   --text-muted: #8b949e;
   --text-inverse: var(--_scitex-01);
   --text-color: var(--text-primary); /* Alias for legacy compatibility */
+  --text-link: #58a6ff; /* 6.85:1 on --bg-surface #161b22 */
 
   /* Background - flip to dark */
   --bg-page: #0d1117;
