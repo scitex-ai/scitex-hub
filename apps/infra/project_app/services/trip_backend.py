@@ -38,7 +38,7 @@ class TripFileBackend:
         return client, sftp
 
     def _full_path(self, rel_path: str) -> str:
-        """Join remote_path with relative path, with traversal guard.
+        """Join remote_path with relative path, with traversal and content guards.
 
         Uses component-wise containment (validate_remote_path_in_root), NOT a
         string prefix match: remote_path "/home/u/proj" must NOT admit a
@@ -51,7 +51,28 @@ class TripFileBackend:
         """
         import posixpath
 
-        from .filesystem.permissions import validate_remote_path_in_root
+        from .filesystem.permissions import (
+            path_is_servable,
+            validate_remote_path_in_root,
+        )
+
+        # Refuse VCS metadata and credentials on the remote side too. This is
+        # the one chokepoint of the three that NO edge tourniquet covers: the
+        # nginx blocks added on 2026-08-18 key on HTTP path shapes, and nothing
+        # reaching this backend goes through them.
+        #
+        # Placed here rather than in each read method because all eight public
+        # methods funnel through _full_path, so one check covers list_dir,
+        # read_file, read_file_bytes, write_file, delete, exists, is_file and
+        # build_tree. Refusing writes and deletes as well is deliberate: a file
+        # browser has no business writing into a remote .git either.
+        #
+        # Verified before placing it here that no git-operations code path uses
+        # this backend -- every caller is a file browser, editor or tree
+        # builder (console_app file_read/file_write/file_create_delete,
+        # writer_app file_tree, file_tree_builder).
+        if not path_is_servable(rel_path):
+            raise ValueError(f"Refused non-servable path: {rel_path}")
 
         full = posixpath.normpath(posixpath.join(self.remote_path, rel_path))
         if not validate_remote_path_in_root(self.remote_path, full):
