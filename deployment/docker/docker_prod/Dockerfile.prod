@@ -528,7 +528,7 @@ RUN uv pip install --system --no-cache \
     "scitex-io==0.2.3" \
     "scitex-stats==0.2.6" \
     "scitex-plt==0.24.0" \
-    "scitex-writer==2.26.1" \
+    "scitex-writer==2.42.0" \
     "scitex-template==0.7.0" \
     "scitex-linter==0.3.1" \
     "scitex-ui==0.6.3" \
@@ -632,6 +632,7 @@ RUN pdflatex --version && \
 # tests/apps/project_app/services/visitor_pool/
 # test_template_marker_reality.py.
 RUN python -c "import scitex_writer.writer" && \
+    python -c "import scitex_writer.workspace_layout" && \
     python -c "from scitex.template import clone_template" && \
     python -c "from scitex_template import clone_scitex_minimal" && \
     echo "✅ scitex-writer + template import chain verified"
