@@ -4,6 +4,7 @@
 
 import os
 import socket
+from urllib.parse import urlparse
 from datetime import timedelta
 
 import scitex as stx
@@ -25,6 +26,38 @@ ORCID_REDIRECT_URI = os.getenv(
 # Django-Allauth Settings (Social Login)
 # ---------------------------------------
 SITE_ID = 1
+
+#: The domain django.contrib.sites hands out for THIS deployment.
+#:
+#: DERIVED, NOT A SECOND VARIABLE. hub already configures its public address
+#: as SCITEX_HUB_SITE_URL (settings_shared.py: SITE_URL), and prod already
+#: sets it to https://scitex.ai. Introducing a separate SCITEX_HUB_SITE_DOMAIN
+#: would give one fact two sources that can disagree -- and the failure mode of
+#: disagreement here is invisible, which is the whole reason this code exists.
+#: So the Site domain is the host part of the URL we already have.
+#:
+#: SITE_ID pins allauth and Django to one Site row, so this value is not
+#: decorative: it is the host used to build OAuth callback URLs and the links
+#: inside confirmation and password-reset email. A wrong value raises nowhere --
+#: it silently produces URLs nobody can reach.
+#:
+#: EMPTY when SCITEX_HUB_SITE_URL was never set, deliberately. SITE_URL falls
+#: back to http://127.0.0.1:8000 for local development, and deriving the Site
+#: domain from that fallback is exactly how production came to hold
+#: "127.0.0.1:8000". `manage.py sync_site_domain` refuses on empty rather than
+#: stamping a development host onto whatever database it is pointed at.
+#: Read the ENV VAR rather than settings_shared.SITE_URL on purpose. This
+#: module is imported BY settings_shared (settings_shared.py:457), so a bare
+#: `SITE_URL` here resolves in this module's own namespace and would be a
+#: NameError, and importing it back would be a circular import into a
+#: half-initialised module. The env var is the same single source either way.
+_SITE_URL = (
+    os.getenv("SCITEX_HUB_SITE_URL", "") or os.getenv("SITE_URL", "")
+).strip()
+SITE_DOMAIN = urlparse(_SITE_URL).netloc.strip() if _SITE_URL else ""
+
+#: Human-readable label for the same Site row. Cosmetic, unlike SITE_DOMAIN.
+SITE_NAME = os.getenv("SCITEX_HUB_SITE_NAME", "SciTeX").strip()
 
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_LOGOUT_ON_GET = True
