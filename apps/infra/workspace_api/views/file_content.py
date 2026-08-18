@@ -46,6 +46,28 @@ def api_get_file_content(request, file_path):
     ):
         return JsonResponse({"error": "Unauthorized"}, status=403)
 
+    # Refuse VCS metadata and credentials before ANY filesystem or remote
+    # access, and before the local/TRIP split below, so both branches of this
+    # view are covered by one check.
+    #
+    # This view is why the rule exists at the chokepoint at all. It served
+    # .git/HEAD and .git/config with real contents to an anonymous reader of a
+    # public project, measured on live prod 2026-08-18, AFTER an edge block had
+    # already been deployed for the repo browser -- same files, different URL
+    # prefix, so the first block did not apply. The permission check above is
+    # working as designed: visibility == "public" is a deliberate grant. What
+    # was missing is that "public" was never meant to mean "including the
+    # object store".
+    #
+    # 404 rather than 403, matching the edge blocks: a 403 confirms the path
+    # exists.
+    from apps.infra.project_app.services.filesystem.permissions import (
+        path_is_servable,
+    )
+
+    if not path_is_servable(file_path):
+        return JsonResponse({"error": "File not found"}, status=404)
+
     try:
         # TRIP projects: on-demand SSH file access
         if (
