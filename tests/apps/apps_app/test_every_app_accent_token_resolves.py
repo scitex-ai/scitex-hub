@@ -49,7 +49,32 @@ _STATIC_ROOT = _REPO_ROOT / "static"
 _MANIFEST_ROOT = _REPO_ROOT / "apps"
 _ENTRY = _STATIC_ROOT / "shared" / "css" / "primitives" / "variables.css"
 
-_IMPORT_RE = re.compile(r"""@import\s+url\(\s*["']?([^"')]+)["']?\s*\)""")
+# BOTH @import forms, and the second one is not hypothetical.
+#
+#     @import url("./x.css");     <- what hub writes
+#     @import "./x.css";          <- what scitex-ui 0.16.0 writes
+#
+# CSS allows either. This pattern matched only the first until 2026-08-18, and
+# the cost was concrete: scitex-ui 0.16.0 split `primitives/colors.css` into a
+# 22-line BARREL whose entire content is two bare-string imports of
+# `colors/_light.css` and `colors/_dark.css`, where all 19 per-app accents now
+# live. Measured against that file:
+#
+#     url()-only pattern  -> []                                    <- saw nothing
+#     both-forms pattern  -> ['./colors/_light.css', './colors/_dark.css']
+#
+# So this test resolved the chain as far as the barrel, read a file that is
+# present and readable and contains no tokens, and reported every app's accent
+# as defined 0 times. The failure was indistinguishable from the real defect it
+# exists to catch -- it would have been read as "the accents are gone" when they
+# were one unfollowed hop away.
+#
+# That barrel has now defeated three separate instruments in this fleet on one
+# day (a version-comparison script, a token-presence scan, and this test), every
+# time by being a file that is exactly what you asked for and empty of what you
+# wanted. When a search over a stylesheet returns nothing, check whether it can
+# see BOTH import forms before concluding the tokens are absent.
+_IMPORT_RE = re.compile(r"""@import\s+(?:url\(\s*)?["']([^"']+)["']\s*\)?""")
 
 # Apps whose accent is knowingly absent, each with a reason and a removal
 # condition. An entry here is a DECLARED debt, not a silenced test.
