@@ -47,8 +47,26 @@ SETTINGS_AUTH = REPO_ROOT / "config/settings/settings_auth.py"
 DEV_HOST = "127.0.0.1:8000"
 
 #: The refusal must name this, or the operator is told what broke and not what
-#: to do about it.
-ENV_VAR = "SCITEX_HUB_SITE_DOMAIN"
+#: to do about it. It is the URL, not a separate domain variable: the Site
+#: domain is DERIVED from its host part so one fact has one source.
+ENV_VAR = "SCITEX_HUB_SITE_URL"
+
+#: A second variable for the same fact. Its ABSENCE is the contract.
+REJECTED_SECOND_SOURCE = "SCITEX_HUB_SITE_DOMAIN"
+
+
+def _code_lines(source):
+    """Drop comments and blank lines.
+
+    The settings module DOCUMENTS why a second variable was rejected, and it
+    names it to do so. A guard that greps raw text would fire on its own
+    explanation, so it must look at code.
+    """
+    return "\n".join(
+        line
+        for line in source.splitlines()
+        if line.strip() and not line.strip().startswith(("#", "#:"))
+    )
 
 
 def _argparse_defaults(source):
@@ -106,8 +124,8 @@ def test_setup_social_auth_does_not_default_the_domain_to_a_dev_host():
         "setup_social_auth is defaulting --domain to a development host again. "
         "That default is how production's Site row became 127.0.0.1:8000: the "
         "command's documented usage omits the flag, so the default IS the value "
-        "operators get. Read the domain from settings.SITE_DOMAIN "
-        "($SCITEX_HUB_SITE_DOMAIN) and refuse when it is unset."
+        "operators get. Read the domain from settings.SITE_DOMAIN, which is "
+        "derived from $SCITEX_HUB_SITE_URL, and refuse when it is unset."
     )
 
 
@@ -210,31 +228,50 @@ def test_check_mode_does_not_mutate_the_row(configured_domain, stale_site):
     assert stored == DEV_HOST
 
 
-def test_settings_reads_the_site_domain_env_var():
+def test_settings_derives_the_domain_from_the_site_url():
     # Arrange
     source = SETTINGS_AUTH.read_text()
 
     # Act
-    reads_env_var = ENV_VAR in source
+    derives_from_url = ENV_VAR in source and "urlparse" in source
 
     # Assert
-    assert reads_env_var
+    assert derives_from_url, (
+        "SITE_DOMAIN must be derived from the host part of $SCITEX_HUB_SITE_URL, "
+        "which hub already configures, rather than read from a variable of its own"
+    )
 
 
-def test_site_domain_setting_has_no_built_in_default():
-    """A default that is right in dev and wrong in prod is the same defect."""
+def test_settings_does_not_introduce_a_second_source_for_the_domain():
+    """One fact, one variable. Two that can disagree is the failure mode here."""
     # Arrange
     source = SETTINGS_AUTH.read_text()
 
     # Act
-    getenv_lines = [
-        line
-        for line in source.splitlines()
-        if ENV_VAR in line and "os.getenv" in line
-    ]
+    reintroduced = REJECTED_SECOND_SOURCE in _code_lines(source)
 
     # Assert
-    assert all('""' in line for line in getenv_lines), (
-        "SITE_DOMAIN must fall back to empty so the commands can refuse; "
-        f"got: {getenv_lines}"
+    assert not reintroduced, (
+        f"{REJECTED_SECOND_SOURCE} is back. The Site domain and the site URL are "
+        "the same fact; two variables can disagree, and a disagreement here is "
+        "invisible — it produces URLs nobody can reach without raising anywhere."
+    )
+
+
+def test_an_unset_site_url_yields_no_domain():
+    """SITE_URL falls back to localhost for dev; the Site domain must NOT.
+
+    Deriving the Site domain from that fallback is exactly how production came
+    to hold "127.0.0.1:8000". Unset must yield empty, so the commands refuse.
+    """
+    # Arrange
+    source = SETTINGS_AUTH.read_text()
+
+    # Act
+    guards_on_unset = 'else ""' in source
+
+    # Assert
+    assert guards_on_unset, (
+        "settings_auth must yield an EMPTY SITE_DOMAIN when SCITEX_HUB_SITE_URL "
+        "is unset, rather than deriving one from SITE_URL's localhost fallback"
     )

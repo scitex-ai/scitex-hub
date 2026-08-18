@@ -33,10 +33,16 @@ difference in the env file rather than in database state. Operator ruling,
 reached the broken state, and a hand-edited row drifts back the next time
 someone runs the setup command.
 
-IT REFUSES RATHER THAN GUESSING. With ``SCITEX_HUB_SITE_DOMAIN`` unset this
-command fails loudly and names the variable. A default here would be a default
-that is correct in development and silently wrong in production, which is the
-precise defect being removed -- so there is deliberately no fallback to invent.
+ONE SOURCE, NOT TWO. hub already configures its public address as
+``SCITEX_HUB_SITE_URL``, and production already sets it to ``https://scitex.ai``.
+The Site domain is the HOST PART of that, derived -- not a second variable that
+can disagree with it. The configuration was already correct; nothing applied it.
+
+IT REFUSES RATHER THAN GUESSING. With ``SCITEX_HUB_SITE_URL`` unset this command
+fails loudly and names it. ``SITE_URL`` itself falls back to
+``http://127.0.0.1:8000`` for local development, and deriving the Site domain
+from that fallback is precisely how production came to hold a localhost value --
+so an unset URL yields an empty domain and a refusal, never a guess.
 
 Idempotent: run it on every boot. It reports whether it changed anything.
 """
@@ -67,14 +73,16 @@ class Command(BaseCommand):
         configured = (getattr(settings, "SITE_DOMAIN", "") or "").strip()
         if not configured:
             raise CommandError(
-                "SCITEX_HUB_SITE_DOMAIN is not set, so there is no domain to "
+                "SCITEX_HUB_SITE_URL is not set, so there is no domain to "
                 "apply and this command will not invent one.\n"
                 "  Set it in the env file this deployment loads, e.g.\n"
-                "    SCITEX_HUB_SITE_DOMAIN=scitex.ai          (production)\n"
-                "    SCITEX_HUB_SITE_DOMAIN=127.0.0.1:8000     (local dev)\n"
-                "  It is read by config/settings/settings_auth.py and is the "
-                "domain allauth uses for OAuth callbacks and for the links in "
-                "confirmation and password-reset email."
+                "    SCITEX_HUB_SITE_URL=https://scitex.ai        (production)\n"
+                "    SCITEX_HUB_SITE_URL=http://127.0.0.1:8000    (local dev)\n"
+                "  The Site domain is DERIVED from it (its host part) by\n"
+                "  config/settings/settings_auth.py, so there is exactly one\n"
+                "  place to set this deployment's address. It is the domain\n"
+                "  allauth uses for OAuth callbacks and for the links in\n"
+                "  confirmation and password-reset email."
             )
 
         name = (getattr(settings, "SITE_NAME", "") or "SciTeX").strip()

@@ -22,7 +22,7 @@ class Command(BaseCommand):
             type=str,
             default=None,
             help=(
-                "Site domain. Defaults to $SCITEX_HUB_SITE_DOMAIN "
+                "Site domain. Defaults to the host part of $SCITEX_HUB_SITE_URL "
                 "(settings.SITE_DOMAIN). There is NO built-in fallback: this "
                 "flag used to default to '127.0.0.1:8000', and because the "
                 "documented invocation omits it, that literal was written onto "
@@ -41,13 +41,13 @@ class Command(BaseCommand):
         domain = (domain or "").strip()
         if not domain:
             raise CommandError(
-                "no Site domain: pass --domain or set $SCITEX_HUB_SITE_DOMAIN.\n"
+                "no Site domain: pass --domain or set $SCITEX_HUB_SITE_URL.\n"
                 "  This command REFUSES to guess. It previously defaulted to "
                 "'127.0.0.1:8000', and since the documented usage omits the "
                 "flag, that value was stamped onto production -- which broke "
                 "OAuth callbacks and put localhost links in every allauth "
                 "email, silently.\n"
-                "  e.g. SCITEX_HUB_SITE_DOMAIN=scitex.ai"
+                "  e.g. SCITEX_HUB_SITE_URL=https://scitex.ai"
             )
         name = options["name"] or getattr(settings, "SITE_NAME", "SciTeX")
 
