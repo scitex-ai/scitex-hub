@@ -35,6 +35,26 @@ from django.http import Http404
 from django.test import RequestFactory, override_settings
 from django.urls import resolve
 
+# These tests need database access even though not one of them reads a model,
+# and the reason is entirely in the teardown. ``_serve_root_url`` below closes
+# the response it was handed — it must, the view returns a ``FileResponse``
+# holding an open file handle — and closing ANY ``HttpResponse`` sends the
+# global ``request_finished`` signal. Django connects ``close_old_connections``
+# to that signal at startup, and that receiver reaches into the connection
+# handler. So the DB layer is touched on the way OUT of a request that never
+# queried anything.
+#
+# Unmarked, pytest-django raises out of ``response.close()``:
+#
+#     RuntimeError: Database access not allowed, use the "django_db" mark, ...
+#
+# ...before any assertion below runs — which is what happened on PR #655, on
+# all three pytest-matrix legs. It reproduces only mid-suite:
+# ``close_if_unusable_or_obsolete`` short-circuits unless a connection is
+# already open, so an earlier django_db test in the same worker process is
+# what arms it, and running this file alone hides the defect.
+pytestmark = pytest.mark.django_db
+
 
 @pytest.fixture
 def uncollected_static_root(tmp_path):
@@ -51,10 +71,14 @@ def _serve_root_url(url: str) -> tuple[int, bytes, str]:
     """Drive the REAL route for ``url``; return (status, body, content_type).
 
     Resolved out of the real urlconf rather than re-derived, so the test covers
-    the routing as shipped. Called directly instead of through the test client
-    so no database is needed; that means a missing file arrives as an ``Http404``
-    exception (no exception middleware to convert it), which is normalised to a
-    404 status here so the caller can assert on one thing.
+    the routing as shipped. Called directly instead of through the test client,
+    which means a missing file arrives as an ``Http404`` exception (there is no
+    exception middleware here to convert it) — normalised to a 404 status so the
+    caller can assert on one thing.
+
+    Calling the view directly does NOT make this database-free: see the
+    ``pytestmark`` at the top of the module for why ``response.close()`` below
+    still needs the ``django_db`` mark.
     """
     match = resolve(url)
     request = RequestFactory().get(url)
