@@ -18,7 +18,6 @@
    1. DESIGN TOKENS - MUST LOAD FIRST
    ======================================== */
 @import url("primitives/variables.css");
-@import url("primitives/colors.css");
 @import url("primitives/typography-vars.css");
 
 /* ========================================
