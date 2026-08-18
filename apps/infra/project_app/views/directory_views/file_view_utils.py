@@ -47,7 +47,18 @@ def get_file_context(request, username, slug, file_path):
     # Security check: component-wise containment, not a string prefix match.
     # CONTAINMENT ONLY -- the calling view permits visibility == "public", so
     # a tenant-ownership check here would break public repository browsing.
-    from ...services.filesystem.permissions import validate_path_in_project
+    from ...services.filesystem.permissions import (
+        path_is_servable,
+        validate_path_in_project,
+    )
+
+    # Containment says "inside the project"; it does not say "servable".
+    # `.git/HEAD` IS inside the project, which is why an anonymous reader of a
+    # public project could fetch it until 2026-08-18. Refuse before resolving,
+    # so the answer does not depend on whether the file happens to exist.
+    if not path_is_servable(file_path):
+        logger.warning("Refused non-servable path component: %s", file_path)
+        return None
 
     try:
         full_file_path = full_file_path.resolve()

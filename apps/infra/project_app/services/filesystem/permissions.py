@@ -4,7 +4,7 @@ Permission checks for project filesystem operations.
 This module handles all permission-related validation.
 """
 
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -48,6 +48,55 @@ def validate_path_in_project(project_path: Path, target_path: Path) -> bool:
         return True
     except (ValueError, OSError):
         return False
+
+
+# Path components that must never be SERVED, whatever the project's
+# visibility. Deliberately NOT "every dotfile": `.gitignore`, `.github/` and
+# friends are ordinary repository content that a repo browser is supposed to
+# show, and refusing them would be a UX regression dressed as hardening.
+#
+# `.git` is different in kind rather than degree. It is not content; it is the
+# object store, and a reader who can walk it reconstructs every version of
+# every file, including ones committed and later deleted.
+_REFUSED_PATH_COMPONENTS = frozenset({".git"})
+
+# Filenames refused wherever they appear. Same reasoning, one level down: these
+# are not repository content, they are credentials that happen to live in the
+# tree.
+_REFUSED_FILENAMES = frozenset({".env"})
+
+
+def path_is_servable(relative_path) -> bool:
+    """False when a path reaches VCS metadata or a credentials file.
+
+    This is the code-level form of two edge tourniquets added on 2026-08-18,
+    and it exists because those tourniquets key on URL SHAPES while this keys
+    on the PATH ITSELF. That distinction is the whole point: the first block
+    covered the repo browser, an anonymous request through the workspace API
+    reached the same files by a different prefix, and the second block had to
+    be written for it. BLOCKING A PATH SHAPE ONLY BLOCKS THE ROUTES THAT USE
+    IT. A rule at the filesystem chokepoint covers every route, including ones
+    nobody has enumerated -- and the route enumeration is known to be
+    incomplete.
+
+    Why the containment check next door is not enough: it answers "is this
+    inside the project?", and `.git/HEAD` IS inside the project. The jail is
+    sound; it simply has no opinion about which components are admissible
+    within it. `file_view_utils` says so itself -- "CONTAINMENT ONLY".
+
+    Measured on live production before this existed, anonymously, on two
+    public projects: `.git/HEAD` and `.git/config` both returned 200 with real
+    contents, with `README.md` (200) and a nonexistent `.env` (404) as the
+    controls proving the route worked and the 200s were not a catch-all.
+
+    Accepts str or Path, absolute or relative. Comparison is component-wise,
+    so `foo.git` and `env` are unaffected and only a real `.git` component or
+    a real `.env` filename is refused.
+    """
+    parts = PurePosixPath(str(relative_path).replace("\\", "/")).parts
+    if any(part in _REFUSED_PATH_COMPONENTS for part in parts):
+        return False
+    return not (parts and parts[-1] in _REFUSED_FILENAMES)
 
 
 def validate_remote_path_in_root(remote_root: str, full_path: str) -> bool:
