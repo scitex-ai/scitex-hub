@@ -18,15 +18,12 @@
    1. DESIGN TOKENS - MUST LOAD FIRST
    ======================================== */
 @import url("primitives/variables.css");
-@import url("primitives/typography-vars.css");
 
 /* ========================================
    2. RESET & BASE STYLES
    ======================================== */
 @import url("base/reset.css");
-@import url("primitives/spacing.css");
 @import url("utilities/effects.css");
-@import url("primitives/z-index.css");
 @import url("layouts/layout.css");
 @import url("primitives/typography.css");
 
