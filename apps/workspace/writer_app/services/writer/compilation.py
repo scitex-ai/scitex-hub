@@ -5,7 +5,9 @@ Thin wrapper delegating to scitex.writer.compile for all compilation.
 Django imports from scitex_writer._compile for compilation functions.
 """
 
-from typing import TYPE_CHECKING, Callable, Optional
+import dataclasses
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Callable, Optional
 
 from scitex import logging
 
@@ -27,6 +29,121 @@ def _get_sw_compile():
     return _sw_compile
 
 
+def _coerce_compile_result_to_dict(result: Any) -> dict:
+    """Normalise a ``scitex.writer.compile.content()`` return value to a dict.
+
+    scitex-writer >= 2.17.5 (G1, schema unification) returns a
+    ``CompilationResult`` dataclass. Older releases returned a raw ``dict``.
+    The downstream Django view (``compile_api``) and the UI's TypeScript
+    ``CompilationResult`` interface both consume the response as JSON, so we
+    flatten the dataclass with ``dataclasses.asdict`` and coerce any
+    ``Path`` fields (``output_pdf`` / ``diff_pdf`` / ``log_file`` /
+    ``temp_dir``) to strings so ``django.http.JsonResponse`` can serialise
+    the result without a custom encoder.
+
+    Passing through a plain dict (pre-2.17.5 shape) is a no-op so this
+    helper is safe to call unconditionally.
+    """
+    if dataclasses.is_dataclass(result) and not isinstance(result, type):
+        raw = dataclasses.asdict(result)
+    elif isinstance(result, dict):
+        raw = dict(result)
+    else:  # pragma: no cover — defensive: scitex.writer.compile.content
+        # always returns one of the two shapes above.
+        return {
+            "success": False,
+            "error": f"unexpected result shape: {type(result).__name__}",
+        }
+
+    for key in ("output_pdf", "diff_pdf", "log_file", "temp_dir"):
+        value = raw.get(key)
+        if isinstance(value, Path):
+            raw[key] = str(value)
+    return raw
+
+
+# A TeX engine reports a hard failure as a line starting with "! ", e.g.
+#   ! LaTeX Error: Unicode character 」 (U+300D) not set up for use with LaTeX.
+# That single line is the whole diagnosis; everything around it is package
+# chatter. "! ==> Fatal error occurred" is the epilogue, not the cause, so it
+# is only used when nothing better was found.
+_TEX_ERROR_PREFIX = "! "
+_TEX_EPILOGUE = "! ==> "
+
+
+def _first_tex_error(*streams: Optional[str]) -> Optional[str]:
+    """Return the first real ``! ...`` message across ``streams``, if any.
+
+    TeX hard-wraps its own diagnostics, so the sentence continues on the
+    following indented line(s) up to the first blank one:
+
+        ! LaTeX Error: Unicode character 」 (U+300D)
+                       not set up for use with LaTeX.
+
+    Reporting only the first line would cut the message mid-sentence, so
+    the continuation is folded back in.
+    """
+    fallback = None
+    for stream in streams:
+        lines = (stream or "").splitlines()
+        for index, raw_line in enumerate(lines):
+            line = raw_line.strip()
+            if not line.startswith(_TEX_ERROR_PREFIX):
+                continue
+            if line.startswith(_TEX_EPILOGUE):
+                fallback = fallback or line
+                continue
+            parts = [line]
+            for continuation in lines[index + 1 :]:
+                if not continuation.strip() or not continuation[:1].isspace():
+                    break
+                parts.append(continuation.strip())
+            return " ".join(parts)
+    return fallback
+
+
+def _ensure_error_and_log(raw: dict) -> dict:
+    """Guarantee the ``error`` / ``log`` keys the UI actually reads.
+
+    scitex.writer.compile.content() reports a failure through
+    ``message`` / ``errors`` / ``stderr`` / ``stdout`` / ``exit_code``. The
+    Writer front-end reads ``result.error`` and ``result.log`` and nothing
+    else (compilation-preview.ts), so a failure arrived with BOTH keys
+    absent and the user was shown the client-side fallback string with no
+    cause at all — measured on production 2026-08-16, where the real reason
+    was a stray 」 that pdflatex cannot typeset:
+
+        exit_code=12, message='Compilation failed with exit code 12',
+        error=None, log=None,
+        stdout=... '! LaTeX Error: Unicode character 」 (U+300D) ...'
+
+    Populating the two documented keys is what turns that into an
+    actionable message. Existing non-empty values are never overwritten.
+    """
+    stdout = raw.get("stdout")
+    stderr = raw.get("stderr")
+
+    if not raw.get("log"):
+        raw["log"] = "\n".join(part for part in (stdout, stderr) if part)
+
+    if raw.get("success") or raw.get("error"):
+        return raw
+
+    # Most specific first: the engine's own error line, then any collected
+    # errors[], then the generic exit-code message.
+    detail = _first_tex_error(stdout, stderr)
+    if not detail:
+        collected = [str(item) for item in (raw.get("errors") or []) if item]
+        detail = collected[0] if collected else None
+
+    message = raw.get("message")
+    if detail and message:
+        raw["error"] = f"{message}: {detail}"
+    else:
+        raw["error"] = detail or message or "Compilation failed"
+    return raw
+
+
 class CompilationMixin:
     """Mixin for compilation-related operations.
 
@@ -43,7 +160,10 @@ class CompilationMixin:
     ) -> dict:
         """Compile a quick preview of provided LaTeX content.
 
-        Delegates to scitex.writer.compile.content().
+        Delegates to scitex.writer.compile.content(). The upstream return
+        type changed from a raw dict to a ``CompilationResult`` dataclass
+        in scitex-writer 2.17.5 (G1); we normalise both back to a dict so
+        ``compile_api`` and the UI keep their existing JSON contract.
         """
         try:
             # Sanitize section_name: strip .tex extension if present
@@ -60,7 +180,7 @@ class CompilationMixin:
                 timeout=timeout,
                 keep_aux=False,
             )
-            return result
+            return _ensure_error_and_log(_coerce_compile_result_to_dict(result))
         except Exception as e:
             logger.error(f"Preview compilation error: {e}", exc_info=True)
             return {

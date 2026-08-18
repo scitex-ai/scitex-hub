@@ -1,6 +1,7 @@
 {% extends "global_base.html" %}
 
 {% load static %}
+{% load i18n %}
 
 {% block title %}
     Pricing -
@@ -34,6 +35,54 @@
                 </p>
             </div>
         </div>
+        {% if billing_plans and user.is_staff %}
+            <!-- Config-driven paid plans (SCITEX_HUB_BILLING_PLANS).
+                 STAFF-ONLY while billing is in testing (operator directive
+                 2026-07-08); prices are tax-inclusive 税込 per 総額表示義務. -->
+            <div class="pricing-alpha-notice pricing-paid-plans">
+                <i class="fas fa-credit-card"></i>
+                <div>
+                    <strong>{% trans "有料プラン(税込) — operator testing" %}</strong>
+                    <ul class="pricing-paid-plans-list">
+                        {% for plan in billing_plans %}
+                            <li>
+                                {{ plan.name }}: ¥{{ plan.price_tax_included }}{% trans "(税込)" %}
+                                {% if plan.interval == "month" %}
+                                    {% trans "/ 月" %}
+                                {% elif plan.interval == "year" %}
+                                    {% trans "/ 年" %}
+                                {% endif %}
+                                {% if stripe_configured %}
+                                    <form method="post"
+                                          action="{% url 'public_app:billing_checkout' %}"
+                                          class="pricing-checkout-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="price_id" value="{{ plan.stripe_price_id }}" />
+                                        <button type="submit" class="btn btn-sm btn-primary">Checkout</button>
+                                    </form>
+                                {% else %}
+                                    <span class="pricing-checkout-unconfigured">(Stripe keys not configured — checkout disabled)</span>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% elif not billing_plans %}
+            <!-- Honest empty state: no paid plans configured yet. -->
+            <div class="pricing-alpha-notice pricing-paid-plans-pending">
+                <i class="fas fa-yen-sign"></i>
+                <div>
+                    <strong>{% trans "有料プランは準備中です" %}</strong>
+                    <p>
+                        {% trans "提供開始時に税込(総額)価格をこのページに掲載します。" %}
+                        Paid plans are in preparation; tax-inclusive prices will be listed here.
+                        <a href="{% url 'public_app:contact' %}">{% trans "お問い合わせ" %}</a> /
+                        <a href="{% url 'public_app:tokushoho' %}">{% trans "特定商取引法に基づく表記" %}</a>
+                    </p>
+                </div>
+            </div>
+        {% endif %}
         <div class="pricing-cards-wrapper">
             <!-- Visitor -->
             <div class="pricing-card alpha-active">
@@ -43,7 +92,7 @@
                 <div class="pricing-header">
                     <h3 class="plan-name">Visitor</h3>
                     <div class="plan-price">
-                        <span class="price">$0</span>
+                        <span class="price">{{ free_price }}</span>
                     </div>
                     <p class="plan-description">No signup required</p>
                 </div>
@@ -75,7 +124,7 @@
                 <div class="pricing-header">
                     <h3 class="plan-name">Registered</h3>
                     <div class="plan-price">
-                        <span class="price">$0</span>
+                        <span class="price">{{ free_price }}</span>
                     </div>
                     <p class="plan-description">Free signup</p>
                 </div>
@@ -107,8 +156,7 @@
                 <div class="pricing-header">
                     <h3 class="plan-name">Pro</h3>
                     <div class="plan-price">
-                        <span class="price"><s>$16</s> $0</span>
-                        <span class="period">/ mo</span>
+                        <span class="price">{{ free_price }}</span>
                     </div>
                     <p class="plan-description">Individual researchers</p>
                 </div>
@@ -140,8 +188,7 @@
                 <div class="pricing-header">
                     <h3 class="plan-name">Team / Lab</h3>
                     <div class="plan-price">
-                        <span class="price"><s>$32</s> $0</span>
-                        <span class="period">/ user / mo</span>
+                        <span class="price">{{ free_price }}</span>
                     </div>
                     <p class="plan-description">Research teams</p>
                 </div>
@@ -173,8 +220,7 @@
                 <div class="pricing-header">
                     <h3 class="plan-name">Enterprise</h3>
                     <div class="plan-price">
-                        <span class="price"><s>$64</s> $0</span>
-                        <span class="period">/ mo</span>
+                        <span class="price">{{ free_price }}</span>
                     </div>
                     <p class="plan-description">Institutions</p>
                 </div>
@@ -223,17 +269,11 @@
                     </tr>
                     <tr>
                         <td>Price</td>
-                        <td>$0/mo</td>
-                        <td class="featured-col">$0/mo</td>
-                        <td>
-                            <s>$16</s> $0/mo
-                        </td>
-                        <td>
-                            <s>$32</s> $0/user/mo
-                        </td>
-                        <td>
-                            <s>$64</s> $0/mo
-                        </td>
+                        <td>{{ free_price }}</td>
+                        <td class="featured-col">{{ free_price }}</td>
+                        <td>{{ free_price }}</td>
+                        <td>{{ free_price }}</td>
+                        <td>{{ free_price }}</td>
                     </tr>
                     <!-- Resources -->
                     <tr class="section-header">
@@ -479,8 +519,27 @@
                         <td class="featured-col">
                             <i class="fas fa-times"></i>
                         </td>
-                        <td>$10/mo</td>
-                        <td>$20/user/mo</td>
+                        {% comment %}
+                        AI credit allowances were quoted here as monthly and per-user USD
+                        amounts -- an entitlement of paid tiers that pricing.json records
+                        as `not_offered` and that 特商法 states are 準備中. Quoting a price
+                        for a plan nobody can buy, in a currency the site no longer uses,
+                        is the same contradiction this page is being fixed for.
+
+                        The amounts are deliberately NOT restated in this comment: the
+                        SSoT guard scans every public template for price literals, and a
+                        literal inside a comment counts exactly the same as one inside a
+                        <td>. Naming them here would keep this file off the migrated list
+                        forever, for prose nobody renders.
+
+                        {% comment %}, NOT a multi-line {# #}: Django's tag_re has no
+                        re.DOTALL, so a {# #} spanning lines is NOT a comment -- it
+                        RENDERS as visible text and interpolates what is inside it. That
+                        has now happened three times in this repo, and I wrote a fourth
+                        one here before catching it.
+                        {% endcomment %}
+                        <td>{% trans "準備中" %}</td>
+                        <td>{% trans "準備中" %}</td>
                         <td>Custom</td>
                     </tr>
                     <!-- Collaboration -->

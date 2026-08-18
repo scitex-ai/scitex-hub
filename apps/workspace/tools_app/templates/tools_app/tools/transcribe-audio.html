@@ -1,0 +1,533 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% block title %}Transcribe Audio - Browser Tool | SciTeX{% endblock %}
+{% block meta_description %}
+    Turn a recording into text on SciTeX hardware. Japanese and English are auto-detected, and the audio never leaves our machines.
+{% endblock %}
+{% block extra_css %}
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .tool-detail-container {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .tool-breadcrumb {
+            padding: 12px 20px;
+            background: var(--workspace-bg-secondary);
+            border-bottom: 1px solid var(--workspace-border-default);
+        }
+
+        .tool-breadcrumb a {
+            color: var(--workspace-text-link);
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .tool-breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .tool-header {
+            text-align: center;
+            padding: 40px 20px;
+            background: var(--workspace-bg-secondary);
+            border-bottom: 1px solid var(--workspace-border-default);
+        }
+
+        .tool-title {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--workspace-text-primary);
+        }
+
+        .tool-header p {
+            font-size: 14px;
+            color: var(--workspace-text-secondary);
+        }
+
+        .tool-header div[style*="font-size: 64px"] {
+            color: var(--workspace-text-muted);
+        }
+
+        .editor-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+            flex: 1;
+            min-height: 0;
+            background: var(--workspace-border-default);
+            border-radius: 0 0 6px 6px;
+            overflow: hidden;
+        }
+
+        @media (max-width: 768px) {
+            .editor-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+        }
+
+        .editor-panel {
+            background: var(--workspace-bg-secondary);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: var(--workspace-bg-tertiary);
+            padding: 9px 16px;
+            border-bottom: 1px solid var(--workspace-border-default);
+            height: 36px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: var(--workspace-text-primary);
+        }
+
+        .panel-body {
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+            padding: 16px;
+            background: var(--workspace-bg-monaco);
+        }
+
+        .dropzone {
+            border: 1px dashed var(--workspace-border-default);
+            border-radius: 6px;
+            padding: 28px 16px;
+            text-align: center;
+            color: var(--workspace-text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            transition: border-color 0.15s ease, background 0.15s ease;
+        }
+
+        .dropzone:hover,
+        .dropzone.dragover {
+            border-color: var(--workspace-text-link);
+            background: var(--workspace-bg-secondary);
+        }
+
+        .dropzone strong {
+            color: var(--workspace-text-primary);
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .field {
+            margin-top: 16px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--workspace-text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .field select {
+            width: 100%;
+            padding: 6px 8px;
+            font-size: 13px;
+            background: var(--workspace-bg-secondary);
+            color: var(--workspace-text-primary);
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 4px;
+        }
+
+        .field .hint {
+            margin-top: 6px;
+            font-size: 11px;
+            color: var(--workspace-text-muted);
+            line-height: 1.5;
+        }
+
+        .selected-file {
+            margin-top: 14px;
+            font-size: 12px;
+            color: var(--workspace-text-primary);
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            word-break: break-all;
+        }
+
+        .transcript {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin: 0;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.7;
+            color: var(--workspace-text-primary);
+        }
+
+        .placeholder {
+            color: var(--workspace-text-muted);
+            font-size: 13px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            padding: 9px 16px;
+            border-top: 1px solid var(--workspace-border-default);
+            background: var(--workspace-bg-tertiary);
+            height: 36px;
+            box-sizing: border-box;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 3px 10px;
+            background: transparent;
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            color: var(--workspace-text-primary);
+            transition: all 0.15s ease;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: var(--workspace-bg-secondary);
+            border-color: var(--workspace-text-muted);
+        }
+
+        .btn:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+
+        .btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .status {
+            padding: 9px 16px;
+            text-align: center;
+            font-size: 11px;
+            border-top: 1px solid var(--workspace-border-default);
+            background: var(--workspace-bg-tertiary);
+            min-height: 36px;
+            box-sizing: border-box;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.5;
+        }
+
+        .status.error {
+            color: var(--status-error);
+            background: var(--workspace-bg-secondary);
+            display: flex;
+        }
+
+        .status.success {
+            color: var(--status-success);
+            background: var(--workspace-bg-secondary);
+            display: flex;
+        }
+
+        .status.busy {
+            color: var(--workspace-text-secondary);
+            display: flex;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="tool-detail-container">
+        {% if not embed %}
+            <div class="tool-breadcrumb">
+                <a href="{% url 'tools_app:tools' %}">← Back to Tools</a>
+            </div>
+            <div class="tool-header">
+                <div style="font-size: 64px; margin-bottom: 20px;">🎙️</div>
+                <h1 class="tool-title">Transcribe Audio</h1>
+                <p>Turn a recording into text, on our own hardware</p>
+            </div>
+        {% endif %}
+        {% csrf_token %}
+        <div class="editor-container">
+            <div class="editor-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Audio</span>
+                </div>
+                <div class="panel-body">
+                    <div id="dropzone" class="dropzone">
+                        <strong>Choose an audio file</strong>
+                        or drop one here — mp3, wav, m4a, ogg, webm, flac
+                    </div>
+                    <input id="fileInput"
+                           type="file"
+                           accept="audio/*,.mp3,.wav,.m4a,.ogg,.oga,.webm,.flac"
+                           style="display: none">
+                    <div id="selectedFile" class="selected-file"></div>
+                    <div class="field">
+                        <label for="languageSelect">Language</label>
+                        <select id="languageSelect">
+                            <option value="">Detect automatically</option>
+                            <option value="ja">Japanese</option>
+                            <option value="en">English</option>
+                        </select>
+                        <div class="hint">
+                            Auto-detection is reliable for a clear recording. Pick a language
+                            when the audio is short or noisy.
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label for="modelSelect">Model</label>
+                        <select id="modelSelect">
+                            <option value="">Loading available models…</option>
+                        </select>
+                        <div class="hint" id="modelHint">
+                            Larger models are more accurate and slower.
+                        </div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button id="transcribeBtn" class="btn" disabled>Transcribe</button>
+                    <button id="clearBtn" class="btn">Clear</button>
+                </div>
+            </div>
+            <div class="editor-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Transcript</span>
+                </div>
+                <div class="panel-body">
+                    <div id="placeholder" class="placeholder">
+                        The transcript will appear here. Audio is processed on SciTeX hardware
+                        and is not sent to any third-party service.
+                    </div>
+                    <pre id="transcript" class="transcript" style="display: none;"></pre>
+                </div>
+                <div class="controls">
+                    <button id="copyBtn" class="btn" disabled>Copy</button>
+                    <button id="downloadBtn" class="btn" disabled>Download .txt</button>
+                </div>
+                <div id="status" class="status"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+  const STT_URL = '/apps/llm/api/stt/';
+  const STT_MODELS_URL = '/apps/llm/api/stt/models/';
+
+  const fileInput = document.getElementById('fileInput');
+  const dropzone = document.getElementById('dropzone');
+  const selectedFile = document.getElementById('selectedFile');
+  const languageSelect = document.getElementById('languageSelect');
+  const modelSelect = document.getElementById('modelSelect');
+  const modelHint = document.getElementById('modelHint');
+  const transcribeBtn = document.getElementById('transcribeBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const copyBtn = document.getElementById('copyBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const transcript = document.getElementById('transcript');
+  const placeholder = document.getElementById('placeholder');
+  const status = document.getElementById('status');
+
+  let chosen = null;
+
+  function csrfToken() {
+    const field = document.querySelector('[name=csrfmiddlewaretoken]');
+    return field ? field.value : '';
+  }
+
+  function showStatus(message, type) {
+    status.textContent = message;
+    status.className = `status ${type}`;
+  }
+
+  function clearStatus() {
+    status.textContent = '';
+    status.className = 'status';
+  }
+
+  // A non-JSON body means the request never reached the endpoint - almost always an
+  // auth redirect to the sign-in page. Say that, rather than "unexpected token <".
+  async function readJson(response) {
+    const body = await response.text();
+    try {
+      return JSON.parse(body);
+    } catch (e) {
+      if (response.redirected || response.status === 403 || response.status === 401) {
+        throw new Error('Sign in to use this tool, then try again.');
+      }
+      throw new Error(
+        `The server returned ${response.status} without a JSON body. ` +
+        `This usually means the request was redirected to sign-in.`
+      );
+    }
+  }
+
+  async function loadModels() {
+    try {
+      const response = await fetch(STT_MODELS_URL, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      });
+      const data = await readJson(response);
+      modelSelect.innerHTML = '';
+      if (!data.models || data.models.length === 0) {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = 'No model installed';
+        modelSelect.appendChild(option);
+        modelSelect.disabled = true;
+        transcribeBtn.disabled = true;
+        modelHint.textContent =
+          'No Whisper model is installed on this deployment, so transcription is ' +
+          'unavailable. This is a server-side setup problem, not something you can fix here.';
+        showStatus('Transcription is unavailable: no Whisper model is installed.', 'error');
+        return;
+      }
+      for (const model of data.models) {
+        const option = document.createElement('option');
+        option.value = model.name;
+        option.textContent = model.label;
+        if (model.name === data.default) option.selected = true;
+        modelSelect.appendChild(option);
+      }
+      modelHint.textContent = 'Larger models are more accurate and slower.';
+    } catch (e) {
+      modelSelect.innerHTML = '';
+      const option = document.createElement('option');
+      option.value = '';
+      option.textContent = 'Could not load models';
+      modelSelect.appendChild(option);
+      modelSelect.disabled = true;
+      modelHint.textContent = e.message;
+      showStatus(e.message, 'error');
+    }
+  }
+
+  function chooseFile(file) {
+    if (!file) return;
+    chosen = file;
+    const megabytes = (file.size / (1024 * 1024)).toFixed(1);
+    selectedFile.textContent = `${file.name} (${megabytes} MB)`;
+    transcribeBtn.disabled = false;
+    clearStatus();
+  }
+
+  dropzone.addEventListener('click', () => fileInput.click());
+
+  fileInput.addEventListener('change', () => chooseFile(fileInput.files[0]));
+
+  dropzone.addEventListener('dragover', (event) => {
+    event.preventDefault();
+    dropzone.classList.add('dragover');
+  });
+
+  dropzone.addEventListener('dragleave', () => {
+    dropzone.classList.remove('dragover');
+  });
+
+  dropzone.addEventListener('drop', (event) => {
+    event.preventDefault();
+    dropzone.classList.remove('dragover');
+    chooseFile(event.dataTransfer.files[0]);
+  });
+
+  transcribeBtn.addEventListener('click', async () => {
+    if (!chosen) return;
+    transcribeBtn.disabled = true;
+    showStatus(`Transcribing ${chosen.name}… this takes a moment for a long recording.`, 'busy');
+
+    const form = new FormData();
+    form.append('audio', chosen);
+    if (languageSelect.value) form.append('language', languageSelect.value);
+    if (modelSelect.value) form.append('model', modelSelect.value);
+
+    const started = Date.now();
+    try {
+      const response = await fetch(STT_URL, {
+        method: 'POST',
+        body: form,
+        headers: {
+          'X-CSRFToken': csrfToken(),
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      });
+      const data = await readJson(response);
+      if (!response.ok || data.error) {
+        throw new Error(data.error || `Transcription failed (HTTP ${response.status}).`);
+      }
+      const seconds = ((Date.now() - started) / 1000).toFixed(1);
+      const text = (data.text || '').trim();
+      if (!text) {
+        showStatus(
+          'The recording transcribed to an empty result. It may contain no speech, ' +
+          'or the wrong language may be selected.',
+          'error'
+        );
+      } else {
+        placeholder.style.display = 'none';
+        transcript.style.display = 'block';
+        transcript.textContent = text;
+        copyBtn.disabled = false;
+        downloadBtn.disabled = false;
+        const detected = data.language ? `, ${data.language}` : '';
+        showStatus(`Done in ${seconds}s (${data.model}${detected})`, 'success');
+      }
+    } catch (e) {
+      showStatus(e.message, 'error');
+    } finally {
+      transcribeBtn.disabled = false;
+    }
+  });
+
+  copyBtn.addEventListener('click', async () => {
+    await navigator.clipboard.writeText(transcript.textContent);
+    showStatus('Transcript copied to the clipboard', 'success');
+  });
+
+  downloadBtn.addEventListener('click', () => {
+    const blob = new Blob([transcript.textContent], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = (chosen ? chosen.name.replace(/\.[^.]+$/, '') : 'transcript') + '.txt';
+    link.click();
+    URL.revokeObjectURL(url);
+  });
+
+  clearBtn.addEventListener('click', () => {
+    chosen = null;
+    fileInput.value = '';
+    selectedFile.textContent = '';
+    transcript.textContent = '';
+    transcript.style.display = 'none';
+    placeholder.style.display = 'block';
+    transcribeBtn.disabled = true;
+    copyBtn.disabled = true;
+    downloadBtn.disabled = true;
+    clearStatus();
+  });
+
+  loadModels();
+    </script>
+{% endblock %}

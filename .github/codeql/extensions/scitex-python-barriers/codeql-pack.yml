@@ -1,0 +1,34 @@
+# SCOPE MUST BE THE GITHUB ORG, NOT THE REPO NAME.
+#
+# This was `scitex-hub/python-security-barriers`. `scitex-hub` is the
+# REPOSITORY (this repo is scitex-ai/scitex-hub); the org is `scitex-ai`.
+# A CodeQL pack is addressed on ghcr as ghcr.io/<org>/<pack>, so the old
+# name was never a resolvable coordinate — which is why
+#   packs: scitex-hub/python-security-barriers
+# failed with "not found in the registry 'https://ghcr.io/v2/'". That error
+# was previously read as "local packs cannot be loaded via packs:" (true, but
+# not the whole story) rather than "this scope does not exist" (also true, and
+# the fixable half).
+name: scitex-ai/python-security-barriers
+# 0.0.1 -> 0.1.0: adds the is_within barrier entry (a new model, so a minor
+# bump, not a patch). The bump is NOT cosmetic — consumers resolve `packs:
+# scitex-ai/python-security-barriers` from ghcr, and republishing an unchanged
+# version number is how a model change silently fails to reach the analysis.
+# That is the same "looked like it worked" failure this pack's own history
+# records three times.
+# 0.3.0 -> 0.4.0: REMOVES the validate_slack_webhook_url barrier that 0.3.0
+# added. It was published unmeasured, it was then measured on develop, and it
+# BOUND NOTHING — see the post-mortem in path-barriers.yml. Removing a model is
+# still a model change, so it still gets a bump: 0.3.0 is already on ghcr, and
+# republishing 0.3.0 with different contents is the exact silent-staleness trap
+# this file keeps re-learning.
+#
+# 0.2.0 -> 0.3.0: added the validate_slack_webhook_url barrier (request-forgery).
+# Kept in this log because the version exists on ghcr and someone reading a
+# 0.3.0 analysis needs to know what was in it.
+version: 0.4.0
+library: true
+extensionTargets:
+  codeql/python-all: '*'
+dataExtensions:
+  - models/**/*.yml

@@ -1,0 +1,40 @@
+%% -*- coding: utf-8 -*-
+%% EXAMPLE CONTENT — ships with a new SciTeX workspace. Replace it with yours.
+\section{Introduction}
+\pdfbookmark[1]{Introduction}{introduction}
+
+\textbf{This is an example, not a study.} It is shipped with every new SciTeX
+workspace so that the editor, the figure browser, and the file tree have real
+content in them the first time you open them. Nothing below is a novel finding,
+and the manuscript should not be cited.
+
+An empty template is a poor way to learn a tool. It shows you where things go
+but not what they are for, and it gives you nothing to change. The alternative
+is a project small enough to read in one sitting, honest enough that every
+number in it can be re-derived, and boring enough that no one mistakes it for a
+claim. Handwritten digit recognition is the standard choice for exactly those
+reasons: the task is easy to state, the data is public, and the expected result
+has been known for three decades.
+
+The specific question is narrow. Optical character recognition normally begins
+by extracting features --- strokes, moments, edges --- before any classifier
+sees the image. What happens if that step is skipped entirely, and a linear
+decision rule is applied directly to the raw pixel intensities of a very small
+thumbnail? The images used here are $8\times8$, coarse enough that a human
+reader can still name most digits but fine detail is gone.
+
+The answer is that most of the work is already done. A linear support vector
+machine on 64 raw pixel values recovers the great majority of the labels, and
+its remaining errors are concentrated in the one place a linear rule is least
+able to help: the digits whose ink occupies nearly the same pixels. Section
+\ref{sec:methods} describes the data and the fit, Section \ref{sec:results}
+reports what it does, and Section \ref{sec:discussion} says what that does and
+does not show.
+
+More usefully for a new user, this project also shows the shape of a SciTeX
+workspace. The data lives in \texttt{data/}, one seeded script in
+\texttt{scripts/} turns it into the figures in \texttt{figures/}, and this
+manuscript reads those figures back. Change the CSV and re-run the script, and
+the numbers below change with it.
+
+%%%% EOF

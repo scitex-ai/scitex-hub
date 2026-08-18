@@ -4,10 +4,14 @@ Visitor Pool Allocation and Deallocation Management
 Handles allocation of visitor slots from the pre-allocated pool and
 deallocation when sessions expire or users sign up.
 
-Allocation uses a 2-phase approach:
-  Phase 1 (synchronous, fast): DB slot allocation + set expires_at + login
-  Phase 2 (async, Celery):     clone_template + workspace setup
-This prevents clone_template() (5-30s) from blocking the HTTP request.
+Security model (visitor-slot isolation audit 2026-07-07): the wipe
+happens on RELEASE, asynchronously; allocation only ever hands out
+slots whose workspace has been wiped + VERIFIED clean since the last
+visitor (``workspace_ready=True``, ``quarantined=False``) and which
+pass a synchronous template-marker check. A slot in any other state is
+refused — with no ready slot the caller falls back to the shared
+readonly-visitor (reason flag in the session). This holds even with
+Celery down: unreset slots simply stay out of circulation.
 """
 
 import logging
@@ -21,7 +25,18 @@ from django.utils import timezone
 
 from apps.infra.project_app.models import Project, VisitorAllocation
 
-from .decorators import reset_workspace_after
+from .pool_health import measure_pool
+from .session_role import (
+    READONLY_REASON_NO_READY_SLOT,
+    READONLY_REASON_POOL_FULL,
+    SESSION_KEY_READONLY_REASON,
+)
+from .slot_lifecycle import (
+    IDLE_TIMEOUT_MINUTES,
+    is_allocation_stale,
+    quarantine_slot,
+    release_slot,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -33,10 +48,29 @@ class PoolAllocator:
     POOL_SIZE = None  # Will be set by VisitorPool
     SESSION_LIFETIME_HOURS = 1  # Base session time (extended on activity)
     SESSION_EXTENSION_MINUTES = 30  # Extend by this much on activity
-    IDLE_TIMEOUT_MINUTES = 30  # Release slot if idle longer than this
+    # Release slot if idle longer than this. Aliases the operative reaper
+    # constant (slot_lifecycle — same pattern as PoolCleanup) so anything
+    # quoting this class attr (e.g. the visitor banner) can never drift
+    # from the eviction behavior actually enforced.
+    IDLE_TIMEOUT_MINUTES = IDLE_TIMEOUT_MINUTES
+    # Probation: a fresh allocation is a SHORT provisional lease, promoted
+    # to the full session by the first heartbeat (extend_session_on_activity).
+    # The heartbeat client fires within ~1s of page load, so any JS-executing
+    # browser confirms comfortably inside this window — while a plain HTTP
+    # client (crawler) never does and simply expires. Without this, every
+    # cookie-less bot request held a slot for the full session: on prod
+    # 2026-07-14 a crawler walked the site and squatted all 16 slots
+    # (sequentially, ~10 min; 1 heartbeat in 5000 nginx lines), so humans
+    # got readonly-visitor while the pool was "healthy". Wide enough for a
+    # slow phone on a heavy page; a JS-disabled human falls back to
+    # readonly-visitor, unchanged from before.
+    PROBATION_SECONDS = 120
     SESSION_KEY_PROJECT_ID = "visitor_project_id"
     SESSION_KEY_VISITOR_ID = "visitor_user_id"
     SESSION_KEY_ALLOCATION_TOKEN = "visitor_allocation_token"
+    # Canonical key + codes live in session_role (single source of truth
+    # for the reason model); re-exposed here for existing callers/tests.
+    SESSION_KEY_READONLY_REASON = SESSION_KEY_READONLY_REASON
 
     @classmethod
     def _check_table_exists(cls) -> bool:
@@ -96,8 +130,26 @@ class PoolAllocator:
             if result[0] is not None:
                 return result
 
-        # Pool exhausted
-        logger.warning(f"[VisitorPool] Pool exhausted - all {pool_size} slots in use")
+        # No slot served. Distinguish "all busy" from "free slots exist
+        # but none is verified clean yet" so the readonly-visitor
+        # fallback can fail loud with the right reason.
+        busy = VisitorAllocation.objects.filter(
+            is_active=True, expires_at__gt=timezone.now()
+        ).count()
+        if busy >= pool_size:
+            reason = READONLY_REASON_POOL_FULL
+            logger.warning(
+                f"[VisitorPool] Pool exhausted - all {pool_size} slots in use"
+            )
+        else:
+            reason = READONLY_REASON_NO_READY_SLOT
+            logger.warning(
+                f"[VisitorPool] No verified-clean slot available "
+                f"({busy}/{pool_size} busy; rest awaiting reset or quarantined) "
+                f"- falling back to readonly-visitor"
+            )
+        session[cls.SESSION_KEY_READONLY_REASON] = reason
+        session.save()
         return None, None
 
     @classmethod
@@ -134,14 +186,60 @@ class PoolAllocator:
             return None, None
 
     @classmethod
+    def extend_session_on_activity(cls, allocation: VisitorAllocation) -> None:
+        """Heartbeat handler: keep a live session alive, promote a probation one.
+
+        Allocation grants only a PROBATION_SECONDS provisional lease; the
+        first heartbeat proves a JS-executing browser is attached and
+        promotes it to the full session. Every later heartbeat re-extends,
+        so an active visitor always has at least SESSION_LIFETIME_HOURS of
+        runway — the "extended on activity" behavior the constants always
+        documented but nothing implemented. max() semantics: never shortens
+        an existing lease. Idle eviction is unaffected — it keys on
+        ``last_activity`` (IDLE_TIMEOUT_MINUTES), which the heartbeat client
+        stops feeding ~60s after the user goes inactive.
+        """
+        now = timezone.now()
+        full_session = now + timedelta(hours=cls.SESSION_LIFETIME_HOURS)
+        if allocation.expires_at is None or allocation.expires_at < full_session:
+            allocation.expires_at = full_session
+        allocation.last_activity = now
+        allocation.save(update_fields=["expires_at", "last_activity"])
+
+    @classmethod
+    def _verify_slot_clean(cls, user: User, project: Project) -> bool:
+        """Synchronous safety net: cheap filesystem check before handoff.
+
+        Verifies the slot's workspace still looks like a freshly cloned
+        template (marker present). This runs inline in the request so a
+        dirty/broken slot is refused even if the async pipeline lied.
+        """
+        from pathlib import Path
+
+        from apps.infra.project_app.services.project_filesystem import (
+            get_project_filesystem_manager,
+        )
+
+        from .workspace_manager import verify_template_marker
+
+        manager = get_project_filesystem_manager(user)
+        project_path = Path(manager.base_path) / project.slug
+        return verify_template_marker(project_path)
+
+    @classmethod
     def _try_allocate_slot(
         cls, visitor_num: int, session, pool_size: int
     ) -> Tuple[Optional[Project], Optional[User]]:
         """
-        Phase 1 (synchronous): allocate DB slot and set expires_at.
+        Allocate one slot — ONLY if it is verified clean.
 
-        Workspace initialization (clone_template) is deferred to a Celery
-        task (Phase 2) so the HTTP request returns immediately.
+        Gate (audit fix #2): a slot is distributable only when its
+        allocation row says ``workspace_ready=True`` (wiped + verified
+        since the last visitor) and ``quarantined=False``, AND the
+        synchronous template-marker check passes. The wipe itself runs
+        at RELEASE time (async); nothing is cleaned inline here, so a
+        Celery outage can never let a dirty slot through — it just
+        keeps the slot out of circulation.
         """
         from django.db import IntegrityError
 
@@ -165,70 +263,142 @@ class PoolAllocator:
             .first()
         )
 
-        # Slot is free if: no allocation, expired, or inactive
-        if (
-            allocation is None
-            or not allocation.is_active
-            or allocation.expires_at < timezone.now()
-        ):
-            allocation_token = secrets.token_hex(32)
-            expires_at = timezone.now() + timedelta(hours=cls.SESSION_LIFETIME_HOURS)
+        if allocation is None:
+            # Never reconciled → unverified. Boot reconciliation
+            # (manage.py reconcile_visitor_slots) creates verified rows;
+            # a rowless slot must not be served.
+            logger.warning(
+                f"[VisitorPool] Slot {visitor_num} has no allocation row "
+                f"(unverified) — run reconcile_visitor_slots"
+            )
+            return None, None
 
-            try:
-                if allocation:
-                    # Update existing allocation atomically (no delete/create race)
-                    allocation.session_key = session.session_key or ""
-                    allocation.allocation_token = allocation_token
-                    allocation.expires_at = expires_at
-                    allocation.is_active = True
-                    allocation.workspace_ready = False
-                    allocation.save()
-                else:
-                    # Create new allocation
-                    allocation = VisitorAllocation.objects.create(
-                        visitor_number=visitor_num,
-                        session_key=session.session_key or "",
-                        allocation_token=allocation_token,
-                        expires_at=expires_at,
-                        is_active=True,
-                        workspace_ready=False,
-                    )
+        if allocation.quarantined:
+            # NEVER serve a quarantined slot.
+            return None, None
 
-                # Store in session
-                session[cls.SESSION_KEY_PROJECT_ID] = project.id
-                session[cls.SESSION_KEY_VISITOR_ID] = user.id
-                session[cls.SESSION_KEY_ALLOCATION_TOKEN] = allocation_token
-                session.save()
+        now = timezone.now()
 
-                logger.info(
-                    f"[VisitorPool] Phase 1 complete: allocated visitor-{visitor_num:03d} "
-                    f"(expires_at={expires_at.isoformat()}), queuing workspace init"
-                )
-
-                # Phase 2: queue async workspace initialization
-                from apps.infra.project_app.tasks import initialize_visitor_workspace
-
-                initialize_visitor_workspace.delay(allocation.id)
-
-                return project, user
-
-            except IntegrityError:
-                # Race condition - another request allocated this slot
-                logger.debug(
-                    f"[VisitorPool] Slot {visitor_num} taken by concurrent request"
-                )
+        if allocation.is_active:
+            if is_allocation_stale(allocation, now):
+                # Expired OR idle (visitor walked away without logging
+                # out). The workspace is DIRTY — trigger the release
+                # pipeline and refuse to serve it this request. Reclaiming
+                # IDLE rows here (not just expired ones) means the pool
+                # self-heals from serving traffic alone, so the periodic
+                # celery reaper is no longer a single point of failure —
+                # the failure mode that wedged prod at free=0 (2026-07-09).
+                reason = "expired-lazy" if allocation.expires_at < now else "idle-lazy"
+                release_slot(allocation, reason=reason)
                 return None, None
+            # Genuinely live session — slot busy.
+            return None, None
 
-        return None, None
+        if not allocation.workspace_ready:
+            # Released but the wipe+verify has not completed (or Celery
+            # is down). Not distributable.
+            return None, None
+
+        # Synchronous safety net before handoff.
+        if not cls._verify_slot_clean(user, project):
+            quarantine_slot(
+                allocation,
+                "sync pre-handoff check failed: template marker missing",
+            )
+            return None, None
+
+        allocation_token = secrets.token_hex(32)
+        # PROBATION lease, not the full session. The first heartbeat
+        # promotes it to SESSION_LIFETIME_HOURS (extend_session_on_activity);
+        # a client that never runs JS never beats, so it expires here and
+        # the slot returns to the pool in minutes instead of an hour.
+        expires_at = now + timedelta(seconds=cls.PROBATION_SECONDS)
+
+        # A slot must know WHO holds it. A brand-new Django session has no
+        # session_key until it has been persisted — the key is assigned on
+        # first save — and the middleware allocates before that has happened.
+        # The old line was `session.session_key or ""`, which turned "there
+        # is no owner yet" into "the owner is the empty string" and stored
+        # the row anyway. Measured on production 2026-08-16: ELEVEN of eleven
+        # active allocations carried session_key=''.
+        #
+        # That single silent coercion produced the whole visitor-isolation
+        # failure: deallocate_visitor() matches on the session, so an orphan
+        # row can never be released; it survives only until the 120s probation
+        # lease expires; and because the visitor is meanwhile served the shared
+        # readonly-visitor account, the heartbeat that would promote the lease
+        # is never sent (the endpoint rejects any username outside visitor-NNN).
+        # Every navigation therefore burned fresh slots and handed the visitor
+        # the shared account — the funnel behind the cross-tenant chat leak.
+        if not session.session_key:
+            session.create()
+        if not session.session_key:  # pragma: no cover — defensive
+            # Never record an ownerless allocation. Refusing here leaves the
+            # slot distributable for the next request, which is the safe
+            # direction; storing it would leak the slot permanently.
+            logger.error(
+                "[VisitorPool] Refusing to allocate visitor-%03d: session has "
+                "no session_key even after create()",
+                visitor_num,
+            )
+            return None, None
+
+        try:
+            allocation.session_key = session.session_key
+            allocation.allocation_token = allocation_token
+            allocation.expires_at = expires_at
+            allocation.is_active = True
+            # Record when THIS visitor got the slot. The field default only
+            # fires on row creation, and slot rows are created once and
+            # reused forever — on prod every row still read February, which
+            # is why allocation age was unreadable during the 2026-07-14
+            # incident.
+            allocation.allocated_at = now
+            # Start the idle clock NOW. is_allocation_stale() reclaims any
+            # ACTIVE slot whose last_activity is older than
+            # IDLE_TIMEOUT_MINUTES, so handing a visitor a slot without
+            # resetting it hands them one that is ALREADY idle-stale: the
+            # very next request sees is_active + an ancient last_activity
+            # and evicts them with reason="idle-lazy". On prod every row
+            # carried a last_activity days old (and an allocated_at from
+            # February, auto_now_add so never refreshed), which made the
+            # predicate permanently true — every slot was released within
+            # seconds of being allocated, the pool sat at 0 allocatable,
+            # and EVERY visitor fell through to readonly-visitor.
+            allocation.last_activity = now
+            # workspace_ready stays True: it was verified clean at
+            # release time and is now in use by exactly one visitor.
+            allocation.save()
+
+            # Store in session
+            session[cls.SESSION_KEY_PROJECT_ID] = project.id
+            session[cls.SESSION_KEY_VISITOR_ID] = user.id
+            session[cls.SESSION_KEY_ALLOCATION_TOKEN] = allocation_token
+            session.pop(cls.SESSION_KEY_READONLY_REASON, None)
+            session.save()
+
+            logger.info(
+                f"[VisitorPool] Allocated verified-clean visitor-{visitor_num:03d} "
+                f"(expires_at={expires_at.isoformat()})"
+            )
+            return project, user
+
+        except IntegrityError:
+            # Race condition - another request allocated this slot
+            logger.debug(
+                f"[VisitorPool] Slot {visitor_num} taken by concurrent request"
+            )
+            return None, None
 
     @classmethod
-    @reset_workspace_after
     def deallocate_visitor(cls, session):
         """
         Free visitor slot (called when session expires or user signs up).
 
-        Decorated with @reset_workspace_after to clean workspace immediately
-        so the slot is ready for the next visitor with no data leakage.
+        Runs the release pipeline: the slot is marked not-ready and an
+        async wipe+verify reset is enqueued; it is not reusable until
+        the reset verifies clean (audit fix #3 — the expiry middleware
+        calls this too, instead of just popping session keys).
 
         Args:
             session: Django session object
@@ -241,8 +411,7 @@ class PoolAllocator:
             allocation = VisitorAllocation.objects.get(
                 allocation_token=allocation_token
             )
-            allocation.is_active = False
-            allocation.save()
+            release_slot(allocation, reason="deallocated")
 
             # Clear session
             session.pop(cls.SESSION_KEY_PROJECT_ID, None)
@@ -261,27 +430,12 @@ class PoolAllocator:
 
     @classmethod
     def get_pool_status(cls, pool_size: int) -> dict:
+        """Get current pool status — see :func:`pool_health.measure_pool`.
+
+        Thin delegator. The counting itself lives next to the code that
+        INTERPRETS it (``pool_health``), because the whole class of bug this
+        module keeps hitting is a counter and a reader drifting apart on what
+        "available" means: ``free`` vs ``ready`` vs "workspace is clean" were
+        three different numbers used interchangeably.
         """
-        Get current pool status.
-
-        Args:
-            pool_size: Size of the visitor pool
-
-        Returns:
-            dict: {total, allocated, free, expired}
-        """
-        total = pool_size
-        active_allocations = VisitorAllocation.objects.filter(
-            is_active=True, expires_at__gt=timezone.now()
-        ).count()
-
-        expired = VisitorAllocation.objects.filter(
-            is_active=True, expires_at__lte=timezone.now()
-        ).count()
-
-        return {
-            "total": total,
-            "allocated": active_allocations,
-            "free": total - active_allocations,
-            "expired": expired,
-        }
+        return measure_pool(pool_size)

@@ -3,7 +3,11 @@
   background-color: var(--_white); /* Crisp white for professional look */
   border-bottom: 1px solid var(--border-default);
   box-shadow: 0 1px 3px rgba(26, 35, 50, 0.04);
-  padding: 0;
+  /* Top inset keeps the header clear of the iOS status bar in the
+     edge-to-edge PWA (viewport-fit=cover exposes env(safe-area-*);
+     0 everywhere else). workspace-layout.css subtracts the same inset
+     from the layout height — keep the two in step. */
+  padding: env(safe-area-inset-top, 0px) 0 0 0;
   position: sticky;
   top: 0;
   z-index: 1000;

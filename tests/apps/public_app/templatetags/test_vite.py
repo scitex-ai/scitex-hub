@@ -138,6 +138,100 @@ class TestEntryToTsPath:
         assert (PROJECT_ROOT / path).exists()
 
 
+class TestManifestMissFailLoud:
+    """A manifest-lookup miss must fail LOUD, never silently return ''.
+
+    DEBUG: TemplateSyntaxError (loud in dev).
+    Production: a console.error <script> tag (visible to browser/QA console
+    capture — a server-side log alone leaves the page silently blank).
+    """
+
+    @pytest.fixture()
+    def vite_with_empty_manifest(self, tmp_path):
+        """Point BASE_DIR at a REAL empty manifest.json on disk.
+
+        No fake internals: get_manifest() reads the actual file; the
+        module-level cache is reset around the test so state cannot leak
+        between this fixture's tmp manifest and the repo's real one.
+        """
+        setup_django()
+        from django.test import override_settings
+
+        import apps.infra.public_app.templatetags.vite as vite_module
+
+        manifest_dir = tmp_path / "staticfiles" / "vite" / ".vite"
+        manifest_dir.mkdir(parents=True)
+        (manifest_dir / "manifest.json").write_text("{}")
+
+        def _reset_manifest_cache():
+            vite_module._manifest_cache = None
+            vite_module._manifest_mtime = 0.0
+            vite_module._manifest_name_index = None
+
+        override = override_settings(BASE_DIR=tmp_path)
+        override.enable()
+        _reset_manifest_cache()
+        try:
+            yield vite_module
+        finally:
+            override.disable()
+            _reset_manifest_cache()
+
+    def test_vite_script_manifest_miss_in_debug_raises_template_syntax_error(
+        self, vite_with_empty_manifest
+    ):
+        # Arrange
+        from django.template import TemplateSyntaxError
+        from django.test import override_settings
+
+        # Act
+        # (the vite_script call itself is the act under assertion below)
+        # Assert
+        with override_settings(DEBUG=True, VITE_USE_BUILD=True):
+            with pytest.raises(TemplateSyntaxError, match="workspace-shell"):
+                vite_with_empty_manifest.vite_script("workspace_app/workspace-shell")
+
+    def test_vite_script_manifest_miss_in_production_emits_console_error_tag(
+        self, vite_with_empty_manifest
+    ):
+        # Arrange
+        from django.test import override_settings
+
+        # Act
+        with override_settings(DEBUG=False):
+            html = vite_with_empty_manifest.vite_script("workspace_app/workspace-shell")
+        # Assert
+        assert "console.error" in html and "workspace_app/workspace-shell" in html
+
+    def test_vite_preload_manifest_miss_in_debug_raises_template_syntax_error(
+        self, vite_with_empty_manifest
+    ):
+        # Arrange
+        from django.template import TemplateSyntaxError
+        from django.test import override_settings
+
+        # Act
+        # (the vite_preload call itself is the act under assertion below)
+        # Assert
+        with override_settings(DEBUG=True, VITE_USE_BUILD=True):
+            with pytest.raises(TemplateSyntaxError, match="workspace-shell"):
+                vite_with_empty_manifest.vite_preload("workspace_app/workspace-shell")
+
+    def test_vite_preload_manifest_miss_in_production_emits_console_error_tag(
+        self, vite_with_empty_manifest
+    ):
+        # Arrange
+        from django.test import override_settings
+
+        # Act
+        with override_settings(DEBUG=False):
+            html = vite_with_empty_manifest.vite_preload(
+                "workspace_app/workspace-shell"
+            )
+        # Assert
+        assert "console.error" in html and "workspace_app/workspace-shell" in html
+
+
 class TestAllTemplateEntries:
     """Parametrized test: every vite_script entry in templates must resolve to an existing file."""
 

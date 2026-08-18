@@ -7,12 +7,13 @@ Rate limiting utilities for Scholar API endpoints.
 Provides sliding window rate limiting with Redis or in-memory fallback.
 """
 
-import time
 import logging
+import time
 from functools import wraps
-from django.http import JsonResponse
-from django.core.cache import cache
+
 from django.conf import settings
+from django.core.cache import cache
+from django.http import JsonResponse
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,12 @@ ENDPOINT_LIMITS = {
     "api_search_unified": {"requests": 60, "window": 60},  # 60/minute
     "api_search_crossref": {"requests": 30, "window": 60},  # CrossRef has strict limits
     "api_search_semantic": {"requests": 20, "window": 60},  # Semantic Scholar limits
+    # CLI account-token mint (POST /api/me/token/) — password-gated +
+    # per-IP throttle. The view layers a SECOND per-username counter
+    # to defeat credential-stuffing across IP rotation (defense in
+    # depth per dev's 53b830f4 spec). Tight cap because every miss
+    # costs the attacker a real bcrypt round on the server.
+    "account_token_mint": {"requests": 5, "window": 60},
 }
 
 

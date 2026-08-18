@@ -14,6 +14,7 @@ from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_http_methods
 
+from apps.infra.platform_app.services.paths import resolve_within
 from apps.infra.project_app.services.project_filesystem import (
     get_project_filesystem_manager,
 )
@@ -43,16 +44,19 @@ def api_browse(request):
     rel_path = request.GET.get("path", "").strip("/")
     manager = get_project_filesystem_manager(current_project.owner)
     project_root = manager.get_project_root_path(current_project)
-    browse_path = project_root / rel_path if rel_path else project_root
 
-    if not browse_path.exists() or not browse_path.is_dir():
-        return JsonResponse({"success": False, "error": "Path not found"}, status=404)
-
-    # Security: ensure path is within project root
-    try:
-        browse_path.resolve().relative_to(project_root.resolve())
-    except ValueError:
+    # Containment is settled BEFORE the filesystem is touched. The previous
+    # order called .exists()/.is_dir() on the unvalidated join and only then
+    # checked containment, which truthfully answered "does this path outside
+    # your project exist?" for any traversal fragment.
+    browse_path = resolve_within(project_root, rel_path)
+    if browse_path is None:
         return JsonResponse({"success": False, "error": "Invalid path"}, status=403)
+
+    # is_dir() is already False for a missing path, so the old
+    # `not exists() or not is_dir()` pair collapses to this.
+    if not browse_path.is_dir():
+        return JsonResponse({"success": False, "error": "Path not found"}, status=404)
 
     files, dirs = get_directory_contents(browse_path)
 
@@ -114,16 +118,16 @@ def api_file_view(request):
 
     manager = get_project_filesystem_manager(current_project.owner)
     project_root = manager.get_project_root_path(current_project)
-    full_path = project_root / rel_path
 
-    if not full_path.exists() or not full_path.is_file():
-        return JsonResponse({"success": False, "error": "File not found"}, status=404)
-
-    # Security: ensure path is within project root
-    try:
-        full_path.resolve().relative_to(project_root.resolve())
-    except ValueError:
+    # Containment first — see the note in api_browse() above. Here the leak was
+    # slightly worse: .is_file() distinguished "exists and is a file" from
+    # "exists and is a directory" for paths outside the project.
+    full_path = resolve_within(project_root, rel_path)
+    if full_path is None:
         return JsonResponse({"success": False, "error": "Invalid path"}, status=403)
+
+    if not full_path.is_file():
+        return JsonResponse({"success": False, "error": "File not found"}, status=404)
 
     file_name = full_path.name
     file_ext = full_path.suffix.lower()

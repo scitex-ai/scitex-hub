@@ -1,5 +1,5 @@
 /* Issues form page styles */
-@import url("shared/variables.css");
+@import url("../shared/variables.css");
 
 .issue-form-container {
   max-width: 800px;

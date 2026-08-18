@@ -1,5 +1,5 @@
 /* User projects page styles */
-@import url("shared/variables.css");
+@import url("../shared/variables.css");
 
 .user-projects-container {
   padding: 2rem;

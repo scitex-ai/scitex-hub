@@ -1,0 +1,103 @@
+{% extends "global_base.html" %}
+
+{% load static vite %}
+
+{% block title %}Home{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'apps_app/css/launcher.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="launcher" id="app-launcher" data-max-pins="{{ max_pins }}">
+        {% if is_guest_launcher %}
+            {# data-readonly-inline-banner marks this as the page's single, #}
+            {# in-flow read-only/guest notice. readonly-visitor-guard.ts   #}
+            {# sees the marker and suppresses its floating toast here, so a #}
+            {# visitor sees ONE banner, not two stacked (operator, 07-21).  #}
+            <div class="launcher-guest-cta" id="launcher-guest-cta" data-readonly-inline-banner role="region" aria-label="Guest session">
+                <div class="launcher-guest-cta-text">
+                    {% if guest_role == "visitor" %}
+                        {# Identity slice matches the header badge (Visitor #NNN); the #}
+                        {# idle timeout is the enforced PoolAllocator constant, so the #}
+                        {# lifetime claim can never drift from the actual reaper.      #}
+                        <strong>Visitor #{{ visitor_username|slice:"8:" }} · temporary workspace.</strong>
+                        Reclaimed after ~{{ visitor_idle_timeout_minutes }} min idle — sign up to keep your work.
+                    {% else %}
+                        <strong>You're browsing read-only.</strong>
+                        Sign in to edit, run code, and keep your work.
+                    {% endif %}
+                </div>
+                <div class="launcher-guest-cta-actions">
+                    <a href="/auth/login/?next={{ request.path }}" class="launcher-guest-btn launcher-guest-btn-signin">Sign in</a>
+                    <a href="/auth/signup/" class="launcher-guest-btn launcher-guest-btn-signup">Sign up</a>
+                </div>
+            </div>
+        {% endif %}
+        <div class="launcher-section-head">
+            <h2>All apps</h2>
+        </div>
+        <div class="launcher-grid" id="launcher-grid">
+            {% for tile in tiles %}
+                {# Availability is a registry/catalog FIELD (operator, Telegram #}
+                {# 1483) — the template only renders it. Coming-soon tiles get #}
+                {# no href at all: an <a> without href neither navigates nor   #}
+                {# focuses as a link, while the press-in tap effect survives.  #}
+                <a {% if tile.is_launchable %}href="{{ tile.launch_url }}"{% else %}aria-disabled="true"{% endif %}
+                   class="launcher-tile"
+                   draggable="false"
+                   data-module="{{ tile.name }}"
+                   data-category="{{ tile.category }}"
+                   data-label="{{ tile.label }}"
+                   data-availability="{{ tile.availability }}"
+                   data-installed="{% if tile.is_installed %}1{% else %}0{% endif %}"
+                   data-pinned="{% if tile.is_pinned %}1{% else %}0{% endif %}"
+                   data-detail-url="{{ tile.detail_url }}"
+                   data-version="{{ tile.version }}"
+                   title="{{ tile.label }}{% if tile.version_label %} {{ tile.version_label }}{% endif %}{% if tile.availability == 'coming_soon' %} — Coming Soon{% endif %}{% if tile.description %} — {{ tile.description }}{% endif %}">
+                    {# One badge slot: the availability badge outranks NEW — #}
+                    {# "you cannot use this yet" is the message that matters. #}
+                    {% if tile.availability == 'coming_soon' %}
+                        <span class="launcher-badge launcher-badge-coming-soon">Coming Soon</span>
+                    {% elif tile.availability == 'desktop_only' %}
+                        {# Visible on mobile only (launcher/mobile.css). #}
+                        <span class="launcher-badge launcher-badge-desktop-only">Desktop-only</span>
+                        {% if tile.is_new %}<span class="launcher-badge launcher-badge-new">NEW</span>{% endif %}
+                    {% elif tile.is_new %}
+                        <span class="launcher-badge launcher-badge-new">NEW</span>
+                    {% endif %}
+                    {% if tile.is_installed %}<span class="launcher-dot-installed" title="Installed"></span>{% endif %}
+                    <span class="launcher-tile-icon" data-tile-category="{{ tile.category }}">
+                        <i class="{{ tile.icon_fa }}" aria-hidden="true"></i>
+                    </span>
+                    <span class="launcher-tile-name">{{ tile.label }}</span>
+                    {% if tile.version_label %}<span class="launcher-tile-version">{{ tile.version_label }}</span>{% endif %}
+                </a>
+            {% endfor %}
+        </div>
+        {# Page dots for the mobile pager (launcher/pager.ts fills these in and #}
+        {# unhides them once there is more than one page). Rendered empty and   #}
+        {# hidden so a no-JS / desktop launcher shows nothing at all.           #}
+        <div class="launcher-dots" id="launcher-dots" role="tablist" aria-label="App pages" hidden></div>
+    </div>
+    <!-- Mobile dock (fixed bottom, < 640px only) -->
+    <nav class="launcher-dock" aria-label="Quick access">
+        <a href="/" class="launcher-dock-item active">
+            <i class="fas fa-house" aria-hidden="true"></i>
+            <span>Home</span>
+        </a>
+        <a href="/chat/" class="launcher-dock-item">
+            <i class="fas fa-comment" aria-hidden="true"></i>
+            <span>Chat</span>
+        </a>
+        <a href="/files/" class="launcher-dock-item">
+            <i class="fas fa-folder" aria-hidden="true"></i>
+            <span>Files</span>
+        </a>
+        <a href="/apps/store/" class="launcher-dock-item">
+            <i class="fas fa-border-all" aria-hidden="true"></i>
+            <span>App Store</span>
+        </a>
+    </nav>
+{% endblock %}
+{% block extra_js %}
+    {% vite_script 'apps_app/launcher' %}
+{% endblock %}

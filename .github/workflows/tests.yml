@@ -1,4 +1,20 @@
-name: Tests
+# The gates that are NOT the pytest matrix: the TypeScript/Vite build, the
+# Vitest unit tests, the terminal-broker/session tests and the security
+# regression suite. The pytest matrix lives in
+# pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml.
+#
+# Named for what it gates rather than `Tests`, which said nothing this repo's
+# other test workflow does not also say -- and differed from that workflow's
+# `tests` ONLY by case. GitHub folds concurrency group names to a single case
+# -- "The concurrency group name is case insensitive. For example, `prod` and
+# `Prod` will be treated as the same concurrency group" (Actions workflow
+# syntax reference) -- so the `${{ github.workflow }}` group below put both
+# suites in ONE group and either could cancel the other on a pull request.
+# Losing THIS one is the silent failure: it carries the security regression
+# gates, which are not required contexts, so the pull request would still have
+# merged. tests/config/test_workflow_concurrency.py now asserts that no two
+# workflow names -- and no two resolved group keys -- can collide case-folded.
+name: typescript-vitest-and-security-gates
 
 on:
   push:
@@ -6,25 +22,63 @@ on:
   pull_request:
     branches: [ main, develop ]
   schedule:
-    - cron: "0 7 * * *"  # nightly 07:00 UTC
+    - cron: "0 17 * * *"  # nightly 17:00 UTC (~02:00 JST), off-peak
   workflow_dispatch:
+
+# Supersede a pull request's own earlier runs, which nobody will read once a
+# newer commit exists. Keyed per workflow per ref, so different PRs never
+# cancel each other.
+#
+# cancel-in-progress is TRUE ONLY FOR pull_request. A push to main or develop
+# is never cancelled: back-to-back merges would otherwise kill the earlier
+# merge's run, and anything treating a develop run as a gate would lose it
+# silently. Superseding an in-flight PR run is free; superseding a branch run
+# is a decision nobody made.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   typescript-check:
     name: TypeScript Compilation & Linting
+    # Needs BOTH node and Python, which is why it waited: a failure here
+    # could not have told us which half was at fault. Both are now proven
+    # on this pool independently — vitest (node) and the pytest matrix
+    # (python) are green — so it can move.
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v7
         with:
-          python-version: '3.11'
+          cache-dependency-glob: pyproject.toml
 
       - name: Install workspace apps
-        run: pip install "scitex-ui>=0.2.0" && bash scripts/apps/install_apps.sh
+        run: |
+          set -euo pipefail
+          # uv venv, not bare pip: the pool's toolcache Python is uv-managed
+          # and refuses pip under PEP 668, and these runners are org-pooled
+          # so the shared interpreter must not be mutated.
+          #
+          # --seed is REQUIRED here, unlike the other migrated jobs. `uv venv`
+          # creates a venv with NO pip in it. That is fine when every install
+          # goes through `uv pip install --python .venv/bin/python`, but
+          # install_apps.sh shells plain `pip` as its documented fallback
+          # (scripts/apps/install_apps.sh: "Always fall back to plain pip").
+          # Without --seed there is no .venv/bin/pip for the PATH below to
+          # resolve, so that fallback escapes the venv and mutates whatever
+          # interpreter the shared pooled runner has — the exact thing the
+          # comment above says must not happen, failing silently rather than
+          # loudly. --seed puts pip in the venv so the fallback stays jailed.
+          uv venv --seed --python 3.11 .venv
+          uv pip install --python .venv/bin/python "scitex-ui>=0.2.0"
+          # install_apps.sh shells `pip`/`python` itself, so put the venv
+          # ahead of anything the shared runner has on PATH.
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+          export PATH="$PWD/.venv/bin:$PATH"
+          bash scripts/apps/install_apps.sh
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -39,6 +93,15 @@ jobs:
 
   vitest:
     name: Vitest Unit Tests
+    # Was the NODE CANARY for the spartan migration — that migration is
+    # reversed as of 2026-08-10 (operator ruling 2026-08-05, "stop Spartan
+    # CI entirely"), so the canary framing no longer describes this job.
+    # Rewritten rather than deleted so the reversal is recorded where it
+    # happened; the full reasoning lives on the `audit` job in
+    # scitex-hub-quality-audit-on-ubuntu-latest.yml.
+    # Node on ubuntu-latest needs no toolcache probing — actions/setup-node
+    # uses the hosted image's preinstalled versions, which is the case the
+    # canary existed to establish for the self-hosted pool.
     runs-on: ubuntu-latest
 
     steps:
@@ -64,13 +127,39 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v7
         with:
-          python-version: '3.11'
+          cache-dependency-glob: pyproject.toml
 
       - name: Install dependencies
-        run: pip install -e ".[all,dev]" || pip install -e ".[dev]" || pip install -e .
+        # No silent degradation: these tests need the FULL dependency set
+        # (config/__init__ imports celery; pytest-django provides
+        # django.setup() at collection). The old `|| .[dev] || .` fallback
+        # meant a transient PyPI error (e.g. IncompleteRead in run
+        # 28838625586) silently produced an env that cannot run the suite,
+        # failing collection with confusing ModuleNotFoundError /
+        # AppRegistryNotReady errors. Retry the full install instead and
+        # fail loudly if it never succeeds.
+        #
+        # GITHUB_PATH is written BEFORE the retry loop on purpose: the loop
+        # `exit 0`s the whole step on first success, so anything after it
+        # would never run. uv venv (not bare pip) because the pool's
+        # toolcache Python is uv-managed and refuses pip under PEP 668.
+        run: |
+          uv venv --python 3.11 .venv
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+          for attempt in 1 2 3; do
+            if uv pip install --python .venv/bin/python -e ".[all,dev]"; then
+              exit 0
+            fi
+            echo "::warning::uv pip install -e .[all,dev] attempt ${attempt} failed; retrying in 15s"
+            sleep 15
+          done
+          echo "::error::uv pip install -e .[all,dev] failed after 3 attempts"
+          exit 1
+
+      - name: Verify test environment is complete
+        run: python -c "import celery, pytest_django; print('terminal-test env OK')"
 
       - name: Run terminal tests
         env:
@@ -82,10 +171,95 @@ jobs:
             tests/apps/console_app/services/terminal_broker/ \
             -v --tb=short -p no:playwright -o "addopts="
 
+  security-regression:
+    name: "Security Regression Gates (tests/security/)"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          cache-dependency-glob: pyproject.toml
+
+      - name: Install dependencies
+        # Same no-silent-degradation policy as terminal-tests: retry the
+        # FULL install and fail loudly rather than run a security gate
+        # against a half-installed environment.
+        # GITHUB_PATH before the loop — the loop `exit 0`s the step.
+        run: |
+          uv venv --python 3.11 .venv
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+          for attempt in 1 2 3; do
+            if uv pip install --python .venv/bin/python -e ".[all,dev]"; then
+              exit 0
+            fi
+            echo "::warning::uv pip install -e .[all,dev] attempt ${attempt} failed; retrying in 15s"
+            sleep 15
+          done
+          echo "::error::uv pip install -e .[all,dev] failed after 3 attempts"
+          exit 1
+
+      - name: Verify test environment is complete
+        run: python -c "import celery, pytest_django; print('security-test env OK')"
+
+      - name: Run security regression suite
+        # Each test here reproduces a CONFIRMED exploit and asserts it is
+        # blocked. Operator directive (2026-07-22): "a gate that cannot
+        # fail is not a gate" — this job is PR-blocking via test-summary.
+        env:
+          SCITEX_HUB_DJANGO_SECRET_KEY: ci-test-key  # pragma: allowlist secret
+          SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
+          # Some regression tests are now BEHAVIOURAL (they build real
+          # tenants and execute the view against the DB — e.g.
+          # test_comms_participant_tenant_scope.py) rather than source-text
+          # gates. No Postgres runs in this job, so switch Django to an
+          # in-memory sqlite test DB, same as the pytest-matrix job. The
+          # DB-free tests here are unaffected (they never open a connection).
+          SCITEX_HUB_USE_SQLITE_DEV: "1"
+        run: |
+          python -m pytest \
+            tests/security/ \
+            -v --tb=short -p no:playwright -o "addopts=" \
+            -m security --strict-markers
+
+      - name: Fail if the security suite collected nothing
+        # A suite that silently collects 0 tests is a gate that cannot
+        # fail. Assert it is non-empty, independently of the run above.
+        env:
+          SCITEX_HUB_DJANGO_SECRET_KEY: ci-test-key  # pragma: allowlist secret
+          SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
+          SCITEX_HUB_USE_SQLITE_DEV: "1"
+        run: |
+          COUNT=$(python -m pytest tests/security/ -m security \
+            -p no:playwright -o "addopts=" --collect-only -q 2>/dev/null \
+            | grep -c '::' || true)
+          echo "collected security tests: ${COUNT}"
+          if [ "${COUNT}" -lt 1 ]; then
+            echo "::error::tests/security/ collected 0 tests — the security gate cannot fail"
+            exit 1
+          fi
+
   test-summary:
     name: Test Summary
+    # Pure bash over `needs.*.result` — no checkout, no Python, no node, no
+    # network. Nothing here can depend on a hosted-runner preinstall, which
+    # is the whole class of surprise that made the other migrations careful.
+    #
+    # So it runs GitHub-hosted. Measured 2026-08-09 on PR #567: every other
+    # check had finished and this one sat QUEUED for ~20 minutes waiting for
+    # a spartan-cpu slot behind six active runs — a job that executes in
+    # seconds, gating the merge. It is `needs:`-last by design, so queueing
+    # it behind the pool it summarises adds the pool's full latency to every
+    # pull request, twice.
+    #
+    # GitHub-hosted runners are free for public repositories (this repo is
+    # public) and slow, which is exactly the trade the operator's 2026-08-05
+    # CI ruling endorses for work where speed does not matter. Four lines of
+    # bash qualify.
     runs-on: ubuntu-latest
-    needs: [typescript-check, vitest, terminal-tests]
+    needs: [typescript-check, vitest, terminal-tests, security-regression]
     if: always()
 
     steps:
@@ -94,23 +268,39 @@ jobs:
           TS_RESULT="${{ needs.typescript-check.result }}"
           TEST_RESULT="${{ needs.vitest.result }}"
           TERMINAL_RESULT="${{ needs.terminal-tests.result }}"
+          SECURITY_RESULT="${{ needs.security-regression.result }}"
 
           echo "TypeScript: $TS_RESULT"
           echo "Vitest: $TEST_RESULT"
           echo "Terminal Tests: $TERMINAL_RESULT"
+          echo "Security Regression: $SECURITY_RESULT"
 
-          if [ "$TS_RESULT" == "failure" ]; then
-            echo "TypeScript checks failed"
+          # Every leg below uses `!= "success"`, never `== "failure"`.
+          # A job result is one of success / failure / cancelled /
+          # skipped, so `== "failure"` lets a cancelled or skipped job
+          # pass the summary — a gate that cannot fail. None of these
+          # three jobs carries an `if:` condition or a paths filter, so
+          # there is no legitimate skip to tolerate: anything other than
+          # success means the check did not actually run green.
+          if [ "$TS_RESULT" != "success" ]; then
+            echo "TypeScript checks did not pass (result: $TS_RESULT)"
             exit 1
           fi
 
-          if [ "$TEST_RESULT" == "failure" ]; then
-            echo "Vitest tests failed"
+          if [ "$TEST_RESULT" != "success" ]; then
+            echo "Vitest tests did not pass (result: $TEST_RESULT)"
             exit 1
           fi
 
-          if [ "$TERMINAL_RESULT" == "failure" ]; then
-            echo "Terminal tests failed"
+          if [ "$TERMINAL_RESULT" != "success" ]; then
+            echo "Terminal tests did not pass (result: $TERMINAL_RESULT)"
+            exit 1
+          fi
+
+          # A security regression gate that is skipped or cancelled is
+          # not a gate — only "success" is acceptable here.
+          if [ "$SECURITY_RESULT" != "success" ]; then
+            echo "Security regression gates did not pass (result: $SECURITY_RESULT)"
             exit 1
           fi
 

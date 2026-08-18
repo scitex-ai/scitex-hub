@@ -9,6 +9,7 @@ Actual implementation is in tools_views.py and tools_data.py.
 from __future__ import annotations
 
 from .tools_data import (
+    AUDIO_TOOLS,
     DEVELOPER_TOOLS,
     IMAGE_TOOLS,
     PDF_TOOLS,
@@ -31,6 +32,7 @@ from .tools_views import (
     tool_crop_images,
     tool_diff_texts,
     tool_edit_video,
+    tool_extract_pdf,
     tool_format_json,
     tool_generate_qr,
     tool_inspect_html_element,
@@ -43,6 +45,7 @@ from .tools_views import (
     tool_scrape_citations,
     tool_split_pdf,
     tool_test_scitex_plot,
+    tool_transcribe_audio,
     tool_view_image,
     tool_view_plot,
     tools,
@@ -57,6 +60,7 @@ __all__ = [
     "TEXT_TOOLS",
     "IMAGE_TOOLS",
     "PDF_TOOLS",
+    "AUDIO_TOOLS",
     "VIDEO_TOOLS",
     "RENDERING_TOOLS",
     "DEVELOPER_TOOLS",
@@ -73,6 +77,7 @@ __all__ = [
     "tool_crop_images",
     "tool_diff_texts",
     "tool_edit_video",
+    "tool_extract_pdf",
     "tool_format_json",
     "tool_generate_qr",
     "tool_inspect_html_element",
@@ -85,6 +90,7 @@ __all__ = [
     "tool_scrape_citations",
     "tool_split_pdf",
     "tool_test_scitex_plot",
+    "tool_transcribe_audio",
     "tool_view_image",
     "tool_view_plot",
 ]

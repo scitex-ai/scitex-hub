@@ -13,8 +13,11 @@ register(
             "Log experiments with structured metadata (title, date, status, notes, tags)",
             "Export experiment data to CSV via background job",
         ],
-        page_patterns=["/notebook/"],
-        url_prefix="/notebook/",
+        # No url_route: notebook_app is not mounted in config/urls.py at all.
+        # It previously advertised "/notebook/", which only 301-redirects to
+        # /apps/notebook/ — and that 404s. An app with no mount must not be
+        # advertised, so it is omitted from the assistant's module list.
+        url_route="",
         module_description=(
             "Experiment logger — proof-of-concept for platform services "
             "(DataStore, FileVault, JobQueue, scitex Bridge)."

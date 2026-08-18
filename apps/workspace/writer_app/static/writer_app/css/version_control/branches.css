@@ -1,0 +1,70 @@
+/* Branch list rows — see vc-panels.css for the .active / .current modifiers */
+
+.branch-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.branch-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid var(--scitex-color-06);
+  transition: background-color 0.2s ease;
+}
+
+.branch-item:hover {
+  background-color: var(--scitex-color-07);
+}
+
+.branch-item:last-child {
+  border-bottom: none;
+}
+
+.branch-info {
+  flex: 1;
+}
+
+.branch-name {
+  font-weight: 600;
+  color: var(--scitex-color-02);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.branch-badge {
+  background: var(--scitex-color-06);
+  color: var(--scitex-color-03);
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.branch-badge.main {
+  background: var(--scitex-color-02);
+  color: var(--white);
+}
+
+.branch-meta {
+  font-size: 0.9rem;
+  color: var(--scitex-color-03);
+  margin-top: 0.25rem;
+}
+
+.branch-description {
+  font-size: 0.85rem;
+  color: var(--scitex-color-04);
+  margin-top: 0.25rem;
+}
+
+.branch-stats {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: var(--scitex-color-04);
+  margin-top: 0.5rem;
+}

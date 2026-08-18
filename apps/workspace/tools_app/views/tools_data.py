@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 """Research Tools data definitions.
 
-Static tool configurations organized by domain: Text, Image, PDF, Video, Rendering, Developer, Research
+Static tool configurations organized by domain: Text, Image, PDF, Audio, Video, Rendering,
+Developer, Research
 Re-exports all tool definitions from domain-specific modules.
 """
 
 from __future__ import annotations
 
+from .tools_data_audio import AUDIO_TOOLS
 from .tools_data_image import IMAGE_TOOLS
 from .tools_data_other import (
     DEVELOPER_TOOLS,
@@ -22,6 +24,7 @@ __all__ = [
     "TEXT_TOOLS",
     "IMAGE_TOOLS",
     "PDF_TOOLS",
+    "AUDIO_TOOLS",
     "VIDEO_TOOLS",
     "RENDERING_TOOLS",
     "DEVELOPER_TOOLS",
@@ -67,6 +70,13 @@ def get_tool_domains():
             "icon": "📈",
             "description": "Create publication-quality plots and diagrams",
             "tools": RENDERING_TOOLS,
+        },
+        {
+            "name": "Audio",
+            "slug": "audio",
+            "icon": "🎙️",
+            "description": "Speech and audio processing",
+            "tools": AUDIO_TOOLS,
         },
         {
             "name": "Video",

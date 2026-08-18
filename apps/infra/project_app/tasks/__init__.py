@@ -3,7 +3,7 @@ Project App Celery Tasks
 """
 
 from .visitor_workspace_tasks import (
-    initialize_visitor_workspace,
+    reset_visitor_slot,
 )
 from .workflow_tasks import (
     execute_workflow_job,
@@ -15,7 +15,7 @@ __all__ = [
     "execute_workflow_run",
     "execute_workflow_job",
     "execute_workflow_step",
-    "initialize_visitor_workspace",
+    "reset_visitor_slot",
 ]
 
 # EOF

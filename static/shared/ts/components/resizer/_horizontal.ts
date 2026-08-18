@@ -44,6 +44,7 @@ export class HorizontalResizer extends BaseResizer {
       externalToggleBtnId: config.externalToggleBtnId,
       accordion: config.accordion,
       snapPoints: config.snapPoints,
+      collapseOnNarrow: config.collapseOnNarrow,
     });
   }
 
@@ -162,6 +163,9 @@ export class HorizontalResizer extends BaseResizer {
       snapPoints: el.dataset.snap
         ? el.dataset.snap.split(",").map((s) => parseInt(s.trim(), 10))
         : undefined,
+      // Presence-only, like data-in-app / data-accordion above. Opt-in so
+      // panels whose mobile layout already works are left exactly as they are.
+      collapseOnNarrow: el.hasAttribute("data-collapse-on-narrow"),
     };
   }
 }

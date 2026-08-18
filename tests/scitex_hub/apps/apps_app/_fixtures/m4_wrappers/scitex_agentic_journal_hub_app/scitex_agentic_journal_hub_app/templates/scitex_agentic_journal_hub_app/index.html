@@ -1,0 +1,10 @@
+{% extends "global_base.html" %}
+{% load static %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'scitex_agentic_journal_hub_app/css/scitex_agentic_journal_hub_app.css' %}">
+{% endblock %}
+{% block extra_js %}
+{% endblock %}
+{% block content %}
+    {% include "scitex_agentic_journal_hub_app/index_partial.html" %}
+{% endblock %}

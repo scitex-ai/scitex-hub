@@ -1,0 +1,23 @@
+# Runtime data (created by platform, not app source)
+scitex/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Environment
+.env
+.env.*
+.venv/
+venv/
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

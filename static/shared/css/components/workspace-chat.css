@@ -298,3 +298,64 @@
   background: #4a9af5;
   color: #fff;
 }
+
+/* ── Mobile (<= 767px; tuned for the 390px iPhone viewport) ── */
+@media (max-width: 767px) {
+  /* Top-anchor instead of dead-center: a vertically-centered flex column
+     clips its top (the logo) once the on-screen keyboard shrinks the
+     viewport. Anchoring to the top keeps the input + shortcuts reachable
+     above the keyboard and lets the pane scroll if it ever overflows. */
+  .chat-welcome {
+    justify-content: flex-start;
+    gap: 20px;
+    padding: 28px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
+  }
+
+  .chat-welcome-hero {
+    gap: 16px;
+  }
+
+  .chat-welcome-logo-glow {
+    width: 120px;
+    height: 120px;
+  }
+
+  .chat-welcome-logo {
+    width: 72px;
+    height: 72px;
+  }
+
+  .chat-welcome-tagline {
+    font-size: 15px;
+  }
+
+  .chat-welcome-input-box {
+    border-radius: 14px;
+    padding: 14px;
+  }
+
+  /* 16px keeps iOS Safari from auto-zooming the page when the field
+     gains focus (any smaller triggers the zoom-on-focus behaviour). */
+  .chat-welcome-input,
+  .chat-input {
+    font-size: 16px;
+  }
+
+  .chat-welcome-shortcuts {
+    gap: 6px;
+  }
+
+  .chat-shortcut-btn {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .chat-messages-area {
+    padding: 16px 12px;
+  }
+
+  .chat-input-area {
+    padding: 12px 12px calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+}

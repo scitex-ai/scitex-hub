@@ -1,5 +1,5 @@
 /* Issues milestone management styles */
-@import url("shared/variables.css");
+@import url("../shared/variables.css");
 
 .milestone-management-container {
   padding: 2rem;

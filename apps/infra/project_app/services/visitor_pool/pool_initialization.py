@@ -13,6 +13,9 @@ from django.contrib.auth.models import User
 
 from apps.infra.project_app.models import Project
 
+from .demo_seed import try_seed_demo_content
+from .workspace_manager import TEMPLATE_MARKER_RELPATH, WorkspaceManager
+
 logger = logging.getLogger(__name__)
 
 VISITOR_TEMPLATE_ID = "scitex_minimal"
@@ -101,10 +104,11 @@ class PoolInitializer:
                     return False
 
                 # Verify template content exists (not just empty directories)
-                writer_dir = project_root / "scitex" / "writer"
+                writer_dir = project_root / TEMPLATE_MARKER_RELPATH
                 if not writer_dir.exists() or not any(writer_dir.iterdir()):
                     logger.warning(
-                        f"[VisitorPool] {username}: scitex/writer/ missing or empty"
+                        f"[VisitorPool] {username}: "
+                        f"{TEMPLATE_MARKER_RELPATH}/ missing or empty"
                     )
                     return False
             except (User.DoesNotExist, Project.DoesNotExist):
@@ -129,12 +133,17 @@ class PoolInitializer:
 
     @classmethod
     def _create_default_project(cls, user: User, project_slug: str) -> tuple:
-        """Create default project if doesn't exist."""
+        """Create default project if doesn't exist.
+
+        ``name`` is the human-facing label and MUST NOT be the slug —
+        see WorkspaceManager.DEFAULT_PROJECT_DISPLAY_NAME for why the two
+        deliberately differ.
+        """
         project, project_created = Project.objects.get_or_create(
             slug=project_slug,
             owner=user,
             defaults={
-                "name": "default-project",
+                "name": WorkspaceManager.DEFAULT_PROJECT_DISPLAY_NAME,
                 "description": "Try SciTeX features - sign up to save permanently!",
                 "visibility": "private",
                 "data_location": f"{user.username}/{project_slug}",
@@ -148,22 +157,20 @@ class PoolInitializer:
     ) -> bool:
         """Initialize project directory via scitex.template.clone_template().
 
-        Uses scitex_minimal template which creates:
-          {project}/scitex/writer/  (writer workspace)
-          {project}/scitex/scholar/ (scholar workspace)
+        Uses scitex_minimal template which creates (dot-prefixed):
+          {project}/.scitex/writer/  (writer workspace)
+          {project}/.scitex/scholar/ (scholar workspace)
         No writer dirs at project root.
         """
         from apps.infra.project_app.services.project_filesystem import (
             get_project_filesystem_manager,
         )
 
-        from .workspace_manager import WorkspaceManager
-
         manager = get_project_filesystem_manager(user)
         project_root = manager.get_project_root_path(project)
 
         project_path = manager.base_path / project_slug
-        writer_dir = project_path / "scitex" / "writer"
+        writer_dir = project_path / TEMPLATE_MARKER_RELPATH
         needs_clone = (
             not (project_root and project_root.exists())
             or not writer_dir.exists()
@@ -180,6 +187,11 @@ class PoolInitializer:
 
             cls._cleanup_project_dev_artifacts(project_path)
 
+            # Lay the demo project on top of the placeholder skeleton, so a
+            # freshly BUILT pool matches what a RECYCLED slot serves
+            # (workspace_manager._initialize_reset_directory does the same).
+            try_seed_demo_content(project_path)
+
             project.git_clone_path = str(project_path)
             project.directory_created = True
             project.save(update_fields=["git_clone_path", "directory_created"])
@@ -187,7 +199,7 @@ class PoolInitializer:
             logger.info(
                 f"[VisitorPool] Created project: {project_slug} at {project_path}"
             )
-            # scitex_minimal already creates scitex/writer/ — just register manuscript
+            # scitex_minimal already creates .scitex/writer/ — just register manuscript
             WorkspaceManager.ensure_manuscript_record(project, project_path)
         else:
             logger.info(
@@ -273,6 +285,7 @@ class PoolInitializer:
                 success = cls._clone_template(project_path)
                 if success:
                     cls._cleanup_project_dev_artifacts(project_path)
+                    try_seed_demo_content(project_path)
                     reset_count += 1
 
                     project.git_clone_path = str(project_path)
@@ -280,8 +293,6 @@ class PoolInitializer:
                     project.save(update_fields=["git_clone_path", "directory_created"])
 
                     logger.info(f"[VisitorPool] Reset directory for {username}")
-
-                    from .workspace_manager import WorkspaceManager
 
                     WorkspaceManager.ensure_manuscript_record(project, project_path)
                 else:
@@ -312,8 +323,8 @@ class PoolInitializer:
             elif path.is_file():
                 path.unlink()
 
-        # Clean writer dev artifacts inside scitex/writer/
-        writer_dir = project_path / "scitex" / "writer"
+        # Clean writer dev artifacts inside .scitex/writer/
+        writer_dir = project_path / TEMPLATE_MARKER_RELPATH
         if writer_dir.exists():
             WRITER_DEV_ARTIFACTS = [
                 "tests",

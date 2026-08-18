@@ -293,3 +293,26 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================
+   Paid plans (config-driven, Stripe scaffold)
+   ============================================ */
+.pricing-paid-plans-list {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.pricing-paid-plans-list li {
+  margin-bottom: 0.5rem;
+}
+
+.pricing-checkout-form {
+  display: inline-block;
+  margin-left: 0.5rem;
+}
+
+.pricing-checkout-unconfigured {
+  font-size: 0.85em;
+  color: var(--text-secondary);
+  margin-left: 0.5rem;
+}

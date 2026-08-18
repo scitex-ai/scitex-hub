@@ -46,6 +46,7 @@ def _get_version() -> str:
 __version__ = _get_version()
 __author__ = "SciTeX Team"
 
+from . import account as account
 from ._api import CloudClient as CloudClient
 from ._config._environments import Environment as Environment
 from ._config._environments import get_environment as get_environment
@@ -154,6 +155,7 @@ def health_check(endpoint: str | None = None) -> dict:
 
 __all__ = [
     "__version__",
+    "account",
     "get_version",
     "health_check",
     "get_context",

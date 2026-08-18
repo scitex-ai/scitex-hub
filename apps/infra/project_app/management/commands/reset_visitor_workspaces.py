@@ -53,21 +53,41 @@ class Command(BaseCommand):
                 self.stdout.write(f"  - {visitor.username}")
             return
 
+        from apps.infra.project_app.services.visitor_pool.slot_lifecycle import (
+            get_or_create_allocation,
+            reset_and_verify_slot,
+        )
+
         reset_count = 0
         error_count = 0
 
         for visitor in visitors:
+            self.stdout.write(f"Resetting {visitor.username}...")
             try:
-                self.stdout.write(f"Resetting {visitor.username}...")
-                WorkspaceManager.reset_visitor_workspace(visitor)
+                visitor_num = int(visitor.username.split("-", 1)[1])
+            except (IndexError, ValueError):
+                error_count += 1
+                self.stdout.write(
+                    self.style.ERROR(
+                        f"  ✗ Cannot parse slot number from {visitor.username}"
+                    )
+                )
+                continue
+
+            allocation = get_or_create_allocation(visitor_num)
+            if reset_and_verify_slot(allocation):
                 reset_count += 1
                 self.stdout.write(
                     self.style.SUCCESS(f"  ✓ {visitor.username} reset successfully")
                 )
-            except Exception as e:
+            else:
                 error_count += 1
                 self.stdout.write(
-                    self.style.ERROR(f"  ✗ {visitor.username} failed: {e}")
+                    self.style.ERROR(
+                        f"  ✗ {visitor.username} not reset (active slot, or "
+                        f"reset failed and slot quarantined — see logs; "
+                        f"reconcile_visitor_slots re-cleans)"
+                    )
                 )
 
         self.stdout.write(f"\n=== Summary ===")

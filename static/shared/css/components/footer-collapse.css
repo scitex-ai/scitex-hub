@@ -175,10 +175,48 @@ body.workspace-page .workspace-layout {
 
 /* Fill remaining space between header and footer.
    Use 0 instead of auto to prevent flex children
-   from expanding beyond the viewport. */
-body.workspace-page:not(.landing-page) .workspace-three-col,
-body.workspace-page:not(.landing-page) .workspace-layout {
+   from expanding beyond the viewport.
+
+   `.app-home` is excluded for the SAME reason it is excluded from the footer
+   hide rules in workspace-layout.css and footer.css — and this file is the
+   THIRD place that same decision is written down. Missing it here is what made
+   the first attempt at this fix (#581) look correct and change nothing:
+   releasing the body's viewport lock in global-base.css is necessary but not
+   sufficient, because `height: 0 !important` here overrides the shell's own
+   `calc(100vh - 64px)` and hands its size entirely to flex distribution. The
+   non-shrinking footer then takes 656px of an 844px phone viewport and the
+   launcher is left with 143px of the 687px it needs.
+
+   Measured on prod 2026-08-11: disabling THIS stylesheet alone took
+   `#workspace-layout` from 143px to 844px, which is how the file was
+   identified. With the exclusion below: 143px -> 800px, footer moves below the
+   fold at top 845, document height 844 -> 1501 so the page scrolls to it.
+
+   If you add a fourth site for this decision, add it to
+   tests/templates/test_app_home_launcher_not_starved_by_footer.py, which now
+   enumerates the files rather than trusting anyone to remember. */
+body.workspace-page:not(.landing-page):not(.app-home) .workspace-three-col,
+body.workspace-page:not(.landing-page):not(.app-home) .workspace-layout {
   height: 0 !important;
+}
+
+/* The app home keeps its natural viewport-height shell and does not participate
+   in the fill-remaining-space model above: it is an orientation surface that
+   scrolls to its footer, not a working surface that owns the viewport. Without
+   `flex: 0 0 auto` the `flex: 1` rule above still gives it a 0% basis and it
+   collapses again the moment anything else in the column refuses to shrink. */
+body.workspace-page.app-home .workspace-three-col,
+body.workspace-page.app-home .workspace-layout {
+  flex: 0 0 auto;
+  height: calc(100vh - 64px);
+}
+
+@media (max-width: 767px) {
+  body.workspace-page.app-home .workspace-three-col,
+  body.workspace-page.app-home .workspace-layout {
+    height: calc(100vh - 44px);
+    height: calc(100dvh - 44px);
+  }
 }
 
 /* =========================

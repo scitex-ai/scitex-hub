@@ -126,6 +126,27 @@ urlpatterns = [
         views.tool_render_mmd,
         name="tool_render_mmd",
     ),
+    path(
+        "tools/extract-pdf/",
+        views.tool_extract_pdf,
+        name="tool_extract_pdf",
+    ),
+    path(
+        "tools/api/pdf-extract/",
+        views.api_pdf_extract,
+        name="api_pdf_extract",
+    ),
+    path(
+        "tools/api/pdf-extract/capabilities/",
+        views.api_pdf_extract_capabilities,
+        name="api_pdf_extract_capabilities",
+    ),
+    # Audio tools
+    path(
+        "tools/transcribe-audio/",
+        views.tool_transcribe_audio,
+        name="tool_transcribe_audio",
+    ),
     # Video tools
     path(
         "tools/edit-video/",

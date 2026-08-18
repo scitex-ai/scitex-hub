@@ -100,3 +100,46 @@ data/**
 logs/**
 backups/**
 ssh_keys/**
+
+# ============================================================================
+# Build-context bloat measured inside the RUNNING prod image (2026-07-30)
+# ============================================================================
+# Everything below was shipping in the 1.62 GB
+# `COPY --chown=scitex:scitex . .` layer (Dockerfile.prod:389).
+
+# Agent git worktrees — ~175 sibling checkouts of this same repo.
+# /app/.worktrees measured 437 MiB inside the running container, and
+# `docker inspect` showed NO bind mount there, so it is baked into the layer.
+.worktrees/
+
+# Nested copies of the anchored rules above.
+#
+# .dockerignore patterns are CONTEXT-ROOT-ANCHORED: `node_modules/` matches
+# ONLY ./node_modules, `SECRET/` only ./SECRET, `.env.*` only ./.env.<x>.
+# Measured proof that this is not theoretical: /app/.worktrees/*/.env.example
+# was PRESENT in the prod image despite the `.env.*` rule above. Nothing
+# secret leaked only because no nested SECRET/ happened to be populated.
+#
+# These `**/` forms ADD the nested case the anchored rules structurally
+# cannot cover. They do NOT replace them — do not delete the anchored
+# `node_modules/` / `.venv/` rules above: Dockerfile.prod:383-386
+# npm-installs into /app/node_modules immediately BEFORE `COPY . .`, so
+# re-admitting a host-built (macOS/WSL) tree would overwrite the image's
+# linux-built one and break the startup Vite build.
+**/node_modules/
+**/SECRET/
+**/.env*
+
+# Stale demo videos — 975 MB (706,773,544 B + 268,698,983 B) of untracked
+# drift in the prod build checkout.
+#
+# EXACT PATHS ONLY. Never `*.mp4`, never `videos/`, never `**/*.mp4`.
+# .gitignore:122 is `**/*.mp4` and the five LIVE landing demos
+# (videos/landing/{console,hub,scholar,visualizer,writer}-demo.mp4) exist
+# only as force-added exceptions. They are served through {% static %} from
+# apps/infra/public_app/views/pages_data.py and
+# templates/public_app/landing_partials/landing_demos.html, so a blanket rule
+# here 404s the landing page and /demos/. Both directions are guarded by
+# tests/develop/test_dockerignore_prod_build_context.py.
+apps/infra/public_app/static/public_app/videos/orochi-demo-2026-04-09.mp4
+apps/infra/public_app/static/public_app/videos/landing/orochi-demo.mp4

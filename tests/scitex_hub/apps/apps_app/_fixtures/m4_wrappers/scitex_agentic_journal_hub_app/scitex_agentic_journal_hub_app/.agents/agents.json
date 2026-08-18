@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 3,
+  "instructions": {
+    "path": "AGENTS.md"
+  },
+  "integrations": {
+    "enabled": [
+      "claude",
+      "codex",
+      "gemini",
+      "cursor",
+      "copilot_vscode"
+    ]
+  },
+  "syncMode": "source-only",
+  "mcp": {
+    "servers": {
+      "scitex": {
+        "label": "SciTeX Platform",
+        "transport": "stdio",
+        "command": "/usr/local/bin/scitex",
+        "args": [
+          "mcp",
+          "start"
+        ],
+        "enabled": true
+      }
+    }
+  }
+}

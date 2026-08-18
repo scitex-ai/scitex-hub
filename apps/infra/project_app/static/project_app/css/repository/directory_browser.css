@@ -1,5 +1,5 @@
 /* Directory browser styles */
-@import url("shared/variables.css");
+@import url("../shared/variables.css");
 
 .directory-browser {
   padding: 1.5rem;

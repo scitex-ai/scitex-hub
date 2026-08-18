@@ -12,6 +12,7 @@ import base64
 import json
 import logging
 import os
+import re
 import signal
 import socket
 import struct
@@ -24,6 +25,12 @@ from .session import TerminalSession
 logger = logging.getLogger(__name__)
 
 SOCKET_PATH = "/tmp/scitex-terminal-broker.sock"
+
+# Broker session ids are uuid4 strings — validate the shape before any
+# id reaches a log line so nothing tainted by message payloads (which may
+# route provider credentials) can be logged (CodeQL
+# py/clear-text-logging-sensitive-data).
+_SESSION_ID_RE = re.compile(r"\A[0-9a-fA-F-]{1,64}\Z")
 
 # Feature flag: when True, use shared sbatch allocation per (user, project)
 SHARED_ALLOCATION = os.environ.get(
@@ -100,7 +107,10 @@ class TerminalBroker:
 
     def _handle_client(self, client: socket.socket):
         """Handle a client connection."""
-        session_id = None
+        # The broker-generated PTY id of the shell this client spawned —
+        # NOT an auth/session token (uuid4 from the spawn handlers).
+        spawned_pty_id = ""
+        msg: Optional[dict] = None
         try:
             while True:
                 length_data = client.recv(4)
@@ -128,10 +138,22 @@ class TerminalBroker:
                     self._send_message(client, response)
 
                 if msg.get("action") == "spawn" and response.get("status") == "ok":
-                    session_id = response.get("session_id")
+                    # uuid-shape validation breaks payload taint so the
+                    # detach log below stays credential-free.
+                    sid = str(response.get("session_id") or "")
+                    spawned_pty_id = sid if _SESSION_ID_RE.fullmatch(sid) else ""
 
         except Exception as e:
-            logger.error(f"Client handler error: {e}", exc_info=True)
+            # Log the exception TYPE + message action only. Spawn handling
+            # composes provider env containing the user's API key, so no
+            # raw message payload or exception interpolation may reach the
+            # log (CodeQL py/clear-text-logging-sensitive-data).
+            action = msg.get("action", "?") if isinstance(msg, dict) else "?"
+            logger.error(
+                "Client handler error during action=%r: %s",
+                action,
+                type(e).__name__,
+            )
             try:
                 self._send_message(
                     client,
@@ -140,8 +162,19 @@ class TerminalBroker:
             except Exception:
                 pass
         finally:
-            if session_id:
-                logger.info(f"Session {session_id}: client detached")
+            if spawned_pty_id:
+                # Re-derive the logged id from broker-OWNED state (the
+                # PTY object's own attribute), never from the client
+                # message/response path — provably untainted for CodeQL
+                # py/clear-text-logging-sensitive-data.
+                with self.lock:
+                    owned = self.sessions.get(spawned_pty_id) or self.shells.get(
+                        spawned_pty_id
+                    )
+                if owned is not None:
+                    logger.info(f"PTY {owned.pty_id[:8]}: client detached")
+                else:
+                    logger.info("Terminal client detached (PTY already closed)")
             try:
                 client.close()
             except Exception:

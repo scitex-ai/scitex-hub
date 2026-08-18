@@ -38,11 +38,23 @@ class TripFileBackend:
         return client, sftp
 
     def _full_path(self, rel_path: str) -> str:
-        """Join remote_path with relative path, with traversal guard."""
+        """Join remote_path with relative path, with traversal guard.
+
+        Uses component-wise containment (validate_remote_path_in_root), NOT a
+        string prefix match: remote_path "/home/u/proj" must NOT admit a
+        sibling "/home/u/proj-other/secret" that merely shares the prefix.
+
+        NOTE: normpath cannot collapse symlinks on the far host, so this
+        confines path SYNTAX only -- a remote symlink planted inside
+        remote_path still escapes. Operator decision pending on paying for an
+        SFTP-side realpath() per access.
+        """
         import posixpath
 
+        from .filesystem.permissions import validate_remote_path_in_root
+
         full = posixpath.normpath(posixpath.join(self.remote_path, rel_path))
-        if not full.startswith(self.remote_path):
+        if not validate_remote_path_in_root(self.remote_path, full):
             raise ValueError(f"Path traversal detected: {rel_path}")
         return full
 

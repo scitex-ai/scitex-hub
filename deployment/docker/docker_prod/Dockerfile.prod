@@ -99,6 +99,44 @@ COPY deployment/docker/docker_prod/bin/yq_linux_amd64 /usr/local/bin/yq
 RUN chmod +x /usr/local/bin/yq
 
 # ============================================
+# Stage 3b: whisper.cpp (Speech-to-Text)
+# ============================================
+# Production had NO speech-to-text at all: whisper.cpp was baked only into
+# docker_dev/Dockerfile, whose own comment claimed it was "baked into the image
+# for consistency across dev / staging / production". It was not — measured
+# 2026-08-16: 16 whisper references in the dev Dockerfile, ZERO here. So the
+# /apps/llm/api/stt/ endpoint answered 503 "whisper-cli not installed" on
+# scitex.ai, for every request, since it shipped.
+#
+# A builder stage rather than an apt line in runtime, because compiling needs
+# cmake and a toolchain and the runtime stage deliberately carries neither.
+# Only /opt/whisper is copied forward.
+
+FROM python:3.11-slim-bookworm AS whisper-builder
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        cmake build-essential git wget ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && git clone --depth 1 https://github.com/ggerganov/whisper.cpp.git /tmp/whisper.cpp \
+    && cmake -S /tmp/whisper.cpp -B /tmp/whisper-build \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DWHISPER_BUILD_SERVER=OFF \
+        -DWHISPER_BUILD_EXAMPLES=ON \
+        -DBUILD_SHARED_LIBS=OFF \
+    && cmake --build /tmp/whisper-build --target whisper-cli -j"$(nproc)" \
+    && mkdir -p /opt/whisper/bin /opt/whisper/models \
+    && cp /tmp/whisper-build/bin/whisper-cli /opt/whisper/bin/whisper-cli \
+    # MULTILINGUAL, deliberately. The dev image ships only ggml-tiny.en and
+    # ggml-base.en, and an `.en` model cannot transcribe anything but English —
+    # it silently returns English-looking text for Japanese speech. That is the
+    # other half of the defect PR #611 fixed in code: the endpoint now prefers a
+    # multilingual model and passes the caller's language through, but the image
+    # gave it no multilingual model to choose. ~142 MB.
+    && wget -q -O /opt/whisper/models/ggml-base.bin \
+        "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin" \
+    && rm -rf /tmp/whisper.cpp /tmp/whisper-build
+
+# ============================================
 # Stage 4: Node.js Tools
 # ============================================
 # Mermaid CLI for diagram rendering. Changes rarely.
@@ -167,13 +205,29 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
 # This installs PyTorch, scipy, scikit-learn, etc. as transitive deps.
 # The version is intentionally old and frozen. Only update when scitex
 # changes its major dependency versions (e.g., PyTorch 2.x → 3.x).
-RUN uv pip install --system --no-cache "scitex[all]==2.26.0"
+#
+# 2026-06-07: bumped 2.26.0 → 2.30.1 so the [all] anchor resolves at a
+# scitex version whose [all] extra includes scitex-template + scitex-audit.
+# Previously, Layer 0 at 2.26.0 anchored the [all] extras to a version
+# that pre-dated those submodules; the later `.[all]` install on hub
+# source upgrades scitex itself but uv does NOT re-resolve [all] extras
+# on upgrade, so scitex-template / scitex-audit never landed.
+# See visitor_pool ImportError in v3 #4 cutover postmortem.
+RUN uv pip install --system --no-cache "scitex[all]==2.30.1"
 
 # --- Layer A: Latest scitex (bump freely on every publish) ---
 # PyTorch etc. are already satisfied from Layer 0. uv skips them and
 # only downloads/installs the scitex package itself. (~30s)
 # No --no-cache here: we want uv to recognize existing packages.
-RUN uv pip install --system "scitex[all]==2.26.0"
+# 2026-06-07: bumped 2.26.0 → 2.30.1 (operator dogfooding refresh).
+RUN uv pip install --system "scitex[all]==2.30.1"
+
+# --- Smoke gate: scitex umbrella extras must be importable ---
+# Guards against future regressions where a Layer 0 / Layer A pin drifts
+# to a scitex version whose [all] omits one of these submodules. If
+# either import fails the build fails immediately rather than producing
+# an image that crash-loops on cold-boot.
+RUN python -c "import scitex.template; import scitex.audit; print('scitex extras OK:', scitex.template.__name__, scitex.audit.__name__)"
 
 # Playwright browsers (cached separately via BuildKit cache mount)
 RUN --mount=type=cache,target=/root/.cache/ms-playwright \
@@ -244,6 +298,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     poppler-utils \
     # --- Image processing ---
     imagemagick \
+    # --- OCR (scanned PDFs / figure text) ---
+    # poppler above extracts a text layer; a SCANNED page has none, and the
+    # extractor's capability probe reports ocr:false without these, so the
+    # Tools UI correctly refuses rather than returning a blank success.
+    # jpn is not optional here: the operator's corpus is Japanese.
+    tesseract-ocr \
+    tesseract-ocr-eng \
+    tesseract-ocr-jpn \
+    tesseract-ocr-jpn-vert \
+    # --- Audio processing ---
+    # ffmpeg converts an uploaded recording to the 16 kHz mono WAV whisper.cpp
+    # requires. It was missing too, so even with the binary present the STT
+    # endpoint would have accepted the upload and then failed at conversion.
+    ffmpeg \
     # --- Browser (Chromium for Mermaid/Playwright rendering) ---
     chromium \
     fonts-liberation \
@@ -285,9 +353,29 @@ RUN sed -i 's/main/main contrib/g' /etc/apt/sources.list.d/debian.sources 2>/dev
 # --------------------------------------------
 
 # Python packages + binaries (from python-builder)
-COPY --from=python-builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+#
+# --chown=1000:1000 is the scitex user (created with `useradd -u 1000` below;
+# numeric because the name does not exist yet at this point in the build).
+# install_apps.sh runs as scitex and REPLACES some of these packages with
+# editable checkouts of the sibling app repos. Replacing a package means
+# DELETING its directory tree, and unlinking site-packages/figrecipe/WHEEL
+# needs write on site-packages/figrecipe/ — the file's OWN containing
+# directory, not site-packages/. Left root-owned, uv dies with
+# "[Errno 13] Permission denied: 'WHEEL'" on every boot (2026-07-13).
+# Doing it here costs nothing: COPY writes these files anyway, so --chown
+# only sets the owner as they land. A later `chown -R` could not be used
+# instead — it would copy the whole ~10GB tree up into a new image layer.
+COPY --from=python-builder --chown=1000:1000 /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=python-builder /usr/local/bin /usr/local/bin
 COPY --from=python-builder /root/.cache/ms-playwright* /root/.cache/
+
+# whisper.cpp binary + multilingual model (from whisper-builder).
+# The paths are not arbitrary: apps/infra/llm_app/views/stt.py defaults to
+# /opt/whisper/bin/whisper-cli and /opt/whisper/models, and scitex-audio is
+# handed those as explicit overrides. Moving them here means moving them there.
+COPY --from=whisper-builder /opt/whisper /opt/whisper
+ENV WHISPER_CLI=/opt/whisper/bin/whisper-cli \
+    WHISPER_MODELS_DIR=/opt/whisper/models
 
 # SLURM client binaries + libraries (from slurm-builder)
 COPY --from=slurm-builder /usr/bin/sinfo /usr/bin/sinfo
@@ -334,7 +422,8 @@ RUN useradd -m -u 1000 scitex && \
     # Match host docker socket GID
     groupmod -g 121 docker && \
     usermod -aG docker scitex && \
-    mkdir -p /app/staticfiles /app/media /app/logs /app/run /app/.cache/containers && \
+    mkdir -p /app/staticfiles /app/media /app/logs /app/run /app/.cache/containers \
+        /app/.cache/uv /app/.cache/npm /app/.apps && \
     chown -R scitex:scitex /app && \
     # Apptainer fakeroot requires subuid/subgid mappings
     echo "scitex:100000:65536" >> /etc/subuid && \
@@ -370,39 +459,134 @@ COPY --chown=scitex:scitex . .
 #   (a) use the -binary variant, or
 #   (b) add build-essential to runtime apt-get (increases image size), or
 #   (c) pre-build the wheel in python-builder and copy it over.
-RUN uv pip install --system --no-cache ".[django,test]"
+RUN uv pip install --system --no-cache ".[all]"
 
 # --- Layer C0: Anchor — cache ecosystem packages (bump rarely) ---
 # Pinned versions to cache the dependency tree. Only update when
 # you want to reset the cache baseline.
+#
+# 2026-06-10: scitex-writer 2.10.1 → 2.17.5 (aggregate release of
+#   G2 atomic .preview write (#124), G3 flock per-name serialisation
+#   (#125), G1 CompilationResult schema unification (#126)). The
+#   release-level fixes for the prod preview-compile race that this
+#   image needs to ship live here; Django consumer updated below to
+#   convert the new dataclass response to a JSON-serialisable dict.
+# 2026-07-08: scitex-writer 2.17.5 → 2.26.1 (repaired wheel — the
+#   2.18.0–2.26.0 wheels dropped src/scitex_writer/_dataclasses/config/
+#   from the sdist; 2.26.1 ships intact and the smoke test below
+#   verifies the import chain). Both 2.17.5 and 2.26.1 create the
+#   dot-prefixed {project}/.scitex/writer layout the visitor-pool
+#   marker verification checks (TEMPLATE_MARKER_RELPATH).
+# 2026-07-09: scitex-template pinned EXPLICITLY to 0.6.8. Two bugs bit here:
+#   (1) the earlier >=0.6.8 pin broke the build — 0.6.8 was not yet on PyPI
+#       (uv: "only scitex-template<=0.6.7 is available"), taking prod down;
+#   (2) 0.6.7's clone_scitex_minimal does `from scitex_scholar import
+#       ensure_workspace`, which on scitex-scholar >=1.4 binds the SUBMODULE
+#       (not callable) → "'module' object is not callable" → clone returns
+#       falsy → every visitor slot quarantined (proven on staging).
+#   0.6.8 (published via the v0.6.8 tag) imports the callable from the
+#   scitex_scholar.ensure_workspace submodule. Together with the hub-side
+#   marker-path fix (#319) and scitex-writer 2.26.1, visitor slots re-clean.
+# 2026-08-11: 0.6.8 -> 0.7.0, and this pin is now LOAD-BEARING FOR CODE, not
+#   just for behaviour. 0.7.0 adds `clone_template_result() -> CloneOutcome`,
+#   which visitor_pool/template_clone.py imports UNCONDITIONALLY — there is no
+#   fallback to the bool-returning `clone_template`, deliberately, because a
+#   silent downgrade would restore exactly the blindness this change removes
+#   (0.6.8 could only answer True/False, so a failed visitor reset could only
+#   ever say "Template clone returned falsy" — 14 slots, five days, no cause).
+#   Verified present before pinning: PyPI scitex-template 0.7.0 published
+#   2026-08-11 by the v0.7.0 tag; lesson (1) above is what happens when a pin
+#   moves ahead of the artifact, so it was checked rather than assumed.
+# 2026-08-16: figrecipe 0.34.3 -> 0.34.5. Below 0.34.5 the Template Gallery is
+#   EMPTY in any INSTALLED deployment — every category renders "No templates
+#   available for this category". figrecipe's _EXAMPLES_DIR climbed out of the
+#   package into examples/02_plot_and_reproduce_all_out, generated output that
+#   is uncommitted and therefore absent from the wheel, so the path resolved
+#   into site-packages and found nothing. 0.34.5 (PR #350) moves the assets to
+#   package data at src/figrecipe/_django/gallery_templates/ and resolves them
+#   relative to the package root. An older figrecipe here is not merely older,
+#   it is visibly broken on the demo path. Checked before pinning, per lesson
+#   (1) above: PyPI figrecipe 0.34.5 published 2026-08-16T15:37:03Z, and the
+#   PUBLISHED wheel was downloaded and inspected — 36 gallery_templates
+#   entries (18 yaml + 18 png) are present in the artifact this line installs.
+# 2026-08-16: figrecipe 0.34.5 -> 0.34.6. 0.34.5 fixed only half the gallery.
+#   The 18 yaml + 18 png it shipped are enough to LIST the templates, so the
+#   category pages stopped saying "No templates available" — but each recipe
+#   also reads per-plot data files (bar_0_height.csv and friends), and PR #350
+#   moved only the yaml/png into package data. Clicking "Add to canvas" on any
+#   listed template therefore raised FileNotFoundError from an installed
+#   wheel: a gallery you can browse and cannot use. figrecipe PR #353 adds the
+#   57 missing data files (56 .csv + 1 .npz) to package data, and renames the
+#   literal-glob artifact plot_stackplot_data/stackplot_*ys.csv to
+#   stackplot_ys.csv. Checked before pinning, per lesson (1) above: PyPI
+#   figrecipe 0.34.6 published 2026-08-16T16:42:04Z, and the PUBLISHED wheel
+#   was downloaded and inspected — 93 gallery_templates entries (18 yaml +
+#   18 png + 56 csv + 1 npz), stackplot_ys.csv among them, and no member name
+#   containing a glob star, in the artifact this line installs.
 RUN uv pip install --system --no-cache \
-    "figrecipe==0.27.0" \
+    "figrecipe==0.34.6" \
     "scitex-io==0.2.3" \
     "scitex-stats==0.2.6" \
     "scitex-plt==0.24.0" \
-    "scitex-writer==2.10.1" \
+    "scitex-writer==2.26.1" \
+    "scitex-template==0.7.0" \
     "scitex-linter==0.3.1" \
-    "scitex-ui==0.4.2" \
+    "scitex-ui==0.6.3" \
     "openalex-local==0.6.0" \
     "crossref-local==0.6.4"
 
 # --- Layer C1: Latest versions (bump freely) ---
 # Overwrites C0 packages to latest. C0 deps are already satisfied,
 # so this only downloads the delta. (~10s)
+#
+# scitex-writer is EXCLUDED from this blanket upgrade (2026-07-08,
+# visitor-pool outage): every PyPI wheel 2.18.0–2.26.0 is broken —
+# the v2.18.0 pyproject sdist exclude "config" (unanchored, matches at
+# any depth) drops src/scitex_writer/_dataclasses/config/ from the
+# sdist, so wheels built from it raise
+# ModuleNotFoundError: scitex_writer._dataclasses.config on
+# `import scitex_writer.writer`. That broke ensure_workspace() →
+# scitex.template clone_scitex_minimal → EVERY visitor-slot
+# wipe+verify reset (all 16 slots quarantined, zero writable slots).
+# scitex-writer stays on the C0 pin (now 2.26.1, the repaired wheel);
+# bump the C0 pin deliberately per release, and the smoke test below
+# will fail the build if the wheel is broken again. scitex-template is
+# likewise excluded — it stays on the deliberate C0 pin (==0.6.8).
+#
+# The trailing `find ... -exec chown` re-owns the root-owned DELTA: every
+# `uv pip install --system` layer above ran as ROOT, so the packages they wrote
+# are root-owned — unlike the bulk copied from python-builder, which the
+# COPY --chown already landed as scitex. install_apps.sh runs as the scitex
+# user and REPLACES several of these very packages (figrecipe, scitex-ui,
+# scitex-writer, ...) with editable sibling checkouts, which means DELETING
+# their directories — impossible while those directories are root-owned.
+# It lives inside this same RUN so it does not become an extra image layer, and
+# `! -user scitex` keeps that layer small: only this few-hundred-MB delta is
+# copied up, never the ~10GB already-correct torch/scipy tree. (No -xdev needed
+# — the read-only binds docker-compose mounts inside site-packages at runtime
+# do not exist at build time.)
 RUN uv pip install --system --no-cache --upgrade \
     "figrecipe" \
     "scitex-io" \
     "scitex-stats" \
     "scitex-plt" \
-    "scitex-writer" \
     "scitex-linter" \
     "scitex-ui" \
     "openalex-local" \
-    "crossref-local"
+    "crossref-local" && \
+    find /usr/local/lib/python3.11/site-packages ! -user scitex \
+        -exec chown scitex:scitex {} +
 
 # Note: Vite build runs at runtime (not here) because Docker volume mounts
-# for static_volume would shadow build-time output. npm deps are cached
-# above, so `vite build` at startup is fast (~10s).
+# for static_volume would shadow build-time output. npm deps are cached above
+# (and .dockerignore keeps `COPY . .` from clobbering them), so startup skips
+# `npm install` — but the Vite build itself is NOT fast.
+#
+# MEASURED 2026-07-30 on a full build: 2m14.9s wall / 2m26.3s CPU
+# (443 rollup entry points, 600 output files, 10.46 MB emitted).
+# The note here previously claimed "~10s", wrong by ~13x. Budget accordingly:
+# the NAS CPU is weaker than the machine that produced that figure, so the
+# real boot cost is >= 2m15s, not less.
 
 # Entrypoint scripts
 COPY deployment/docker/common/scripts/root-init.sh /root-init.sh
@@ -419,7 +603,38 @@ RUN pdflatex --version && \
     convert --version && \
     yq --version && \
     python --version && \
+    # Tools/extract-pdf: poppler pulls the text layer and the embedded
+    # figures; tesseract is what makes a SCANNED page readable at all.
+    pdftotext -v && \
+    pdfimages -v && \
+    tesseract --version && \
+    # The Japanese traineddata specifically — tesseract installs and runs
+    # fine without it, then returns confident nonsense for a Japanese scan.
+    tesseract --list-langs 2>&1 | grep -qx jpn && \
+    # Tools/transcribe-audio. whisper-cli lives outside PATH, so this
+    # checks the env var the application actually resolves.
+    "$WHISPER_CLI" --help > /dev/null 2>&1 && \
+    test -s "$WHISPER_MODELS_DIR/ggml-base.bin" && \
+    ffmpeg -version > /dev/null && \
     echo "✅ Production image verified"
+
+# Writer/template import smoke test (2026-07-08 visitor-pool outage):
+# `import scitex_writer.writer` exercises the exact import chain the
+# visitor-slot reset uses (ensure_workspace → writer → _compile →
+# _dataclasses → config). A wheel missing a subpackage (the
+# 2.18.0–2.26.0 PyPI breakage) fails the BUILD here instead of
+# quarantining all 16 slots at runtime.
+# NOTE: a REAL clone_scitex_minimal is deliberately NOT run here — the
+# writer workspace clone is a `git clone` of
+# github.com/ywatanabe1989/scitex-writer at call time, so it would make
+# the build depend on GitHub availability. The marker-layout contract
+# (.scitex/writer, TEMPLATE_MARKER_RELPATH) is instead reality-locked in
+# tests/apps/project_app/services/visitor_pool/
+# test_template_marker_reality.py.
+RUN python -c "import scitex_writer.writer" && \
+    python -c "from scitex.template import clone_template" && \
+    python -c "from scitex_template import clone_scitex_minimal" && \
+    echo "✅ scitex-writer + template import chain verified"
 
 # Back to root — root-init.sh handles UID fixup then drops to scitex
 USER root

@@ -1,0 +1,129 @@
+{
+  "_comment": "SINGLE SOURCE OF TRUTH for every price SciTeX publishes. Operator decision 2026-08-01: 「SSOT にしましょう」 / 「価格はjson あたりにしておくと使いやすいかと」. Before this file, /services/ hard-coded 9 JPY rows in its template and /landing/ hard-coded 12 USD items in its view; the two disagreed by up to 2.7x on the same service. Change a number HERE and it reaches every page and the brochure PDF together. A literal price anywhere else is a bug — tests/scitex_hub/public_app/test_pricing_ssot.py enforces it.",
+  "_amount_is_the_only_truth": "Store the NUMBER, never a formatted string. Rendering derives '無料' from amount 0, the '〜' suffix from from_price, and the '月額' prefix from unit. Storing both 11000 and '11,000円' would be two representations of one fact, which is the duplication this file exists to remove.",
+
+  "currency": "JPY",
+  "tax_included": true,
+  "tax_note": "表示価格はすべて税込(総額)です。",
+  "updated": "2026-08-02",
+
+  "consulting": [
+    {
+      "id": "initial-consult-30min",
+      "label": "初回相談・課題の整理（30分）",
+      "amount": 0,
+      "unit": "once",
+      "from_price": false
+    },
+    {
+      "id": "technical-consult-60min",
+      "label": "技術相談・設計相談（60分）",
+      "amount": 11000,
+      "unit": "once",
+      "from_price": false,
+      "anchor": "invoice-2024-06 小機能 10,000+税"
+    },
+    {
+      "id": "small-fix",
+      "label": "小さな設定・修正・調査",
+      "amount": 11000,
+      "unit": "once",
+      "from_price": true,
+      "anchor": "invoice-2024-06 小機能 10,000+税"
+    },
+    {
+      "id": "code-review",
+      "label": "コードレビュー・環境診断",
+      "amount": 33000,
+      "unit": "once",
+      "from_price": true,
+      "anchor": "invoice-2024-06 中規模機能 30,000+税"
+    },
+    {
+      "id": "environment-build",
+      "label": "環境構築・データ移行・自動化",
+      "amount": 55000,
+      "unit": "once",
+      "from_price": true,
+      "anchor": "invoice-2024-07 論文制作費 50,000+税"
+    },
+    {
+      "id": "lab-poc",
+      "label": "研究室向け試験導入・PoC",
+      "amount": 55000,
+      "unit": "once",
+      "from_price": true
+    },
+    {
+      "id": "custom-development",
+      "label": "個別開発・本格導入",
+      "amount": 110000,
+      "unit": "once",
+      "from_price": true,
+      "anchor": "invoice-2024-06 メール個別対応 100,000+税"
+    },
+    {
+      "id": "ongoing-support",
+      "label": "継続的な技術支援",
+      "amount": 33000,
+      "unit": "month",
+      "from_price": true
+    },
+    {
+      "id": "technical-advisor",
+      "label": "技術顧問・組織的な導入支援",
+      "amount": 55000,
+      "unit": "month",
+      "from_price": true
+    }
+  ],
+
+  "_plans_reference_bands": "The three plan tiers do NOT carry their own numbers. Each names a `price_ref` into `consulting` above, because /services/ previously printed the same band in FOUR places — the desktop comparison table and the mobile card, for each of three plans — all hand-typed. Changing a band would have updated the price table and silently left the plan cards showing the old figure. A reference cannot drift from what it references.",
+  "plans": [
+    {
+      "id": "individual",
+      "name": "Individual",
+      "audience": "個人研究者・大学院生",
+      "price_ref": "small-fix"
+    },
+    {
+      "id": "lab",
+      "name": "Lab",
+      "audience": "研究室・共同研究チーム",
+      "price_ref": "lab-poc",
+      "featured": true
+    },
+    {
+      "id": "enterprise",
+      "name": "Enterprise",
+      "audience": "大学・研究機関・企業 R&D",
+      "price_ref": "custom-development",
+      "suffix": "／要見積もり"
+    }
+  ],
+
+  "_notes_are_verbatim": "The first three are the exact lines /services/ published before this file existed, copied character-for-character so migrating the template changes nothing visible. The fourth is NEW, added at the operator's request 2026-08-01:「目安ですので気楽にご相談ください、と書いておくと良いかもですね」— with bands as wide as 55,000〜220,000, a reader with no invitation to ask simply leaves.",
+  "notes": [
+    "ソフトウェア、ハードウェア、クラウド、生成 AI API 等の外部利用料は原則実費です。",
+    "お客様自身の既存契約や計算資源を、そのまま利用できる構成を優先します。",
+    "SciTeX Cloud の従量課金は、料金確定後に別ページでご案内します。",
+    "上記はいずれも目安です。ご予算や状況に合わせて調整できますので、気楽にご相談ください。"
+  ],
+
+  "_provenance": {
+    "note": "The four `anchor` values above are not estimates. They are the operator's own 2024 invoices to 東京大学大学院薬学系研究科薬品作用学教室, read directly. Each listed band equals the invoiced amount plus 10% consumption tax, exactly. Do not 'tidy' these numbers without a new basis — they are what was billed and paid.",
+    "invoice-2024-06": "見積書_納品書_請求書_渡邉裕亮.xlsx — 小機能 10,000 / 中規模機能 30,000 / メール個別対応 100,000",
+    "invoice-2024-07": "見積書_納品書_請求書_渡邉裕亮_論文制作費.xlsx — 論文制作費 50,000 (→ F1000Research 13-714)"
+  },
+
+  "_subscription_status": {
+    "state": "not_offered",
+    "note": "NO subscription tiers are published. This is deliberate and must stay consistent with two other places: BILLING_PLANS (settings_commerce.py) resolves to [] so /pricing/ lists nothing, and /特商法/ states 「有料プランは現在準備中です…現在提供中の機能は無料でご利用いただけます」 — which is the legally operative disclosure. /landing/ previously contradicted both by advertising a $29-$999 ladder. Do not add tiers here without updating BILLING_PLANS and the 特商法 wording in the same change; a site that both denies and advertises paid plans is the defect this key exists to prevent."
+  },
+
+  "_pending_operator_decision": {
+    "note": "Two items removed from /landing/ are COMMITMENTS, not indicative bands, and are parked here rather than deleted so they are not lost: a reader could have relied on either. Restore or retire them explicitly.",
+    "mext_partnership": "50% off all plans — a standing discount to government-funded institutions",
+    "pilot_program": "Free (6 months) — Professional-tier features for up to 10 researchers"
+  }
+}

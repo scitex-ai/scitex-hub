@@ -165,10 +165,32 @@ def api_review_submission(request, submission_id):
 
 
 def _activate_approved_app(app_module):
-    """Pin commit and register into the workspace registry."""
+    """Pin commit, pip-install from Gitea, register into workspace registry.
+
+    F0+F1 (operator-A pick, lead msg 34a4b271):
+
+      1. ``pin_commit`` — record the latest scitex-apps/<repo> SHA so
+         subsequent activations are reproducible (existing behaviour).
+      2. ``pip_install_user_app`` — pull the package tarball from the
+         Gitea mirror at the pinned commit + install with
+         ``--no-deps --target=<hub-managed-dir>`` so the user-app's
+         module becomes importable by the Django process WITHOUT
+         polluting the hub venv. NEW (F0).
+      3. ``load_single_app`` — register the ModuleConfig (existing
+         partial-template surface) AND populate the URL-patterns
+         cache from the ``scitex_hub.apps`` entry-point (F1, the
+         ``/apps/u/<module_name>/`` dispatcher consumes this cache).
+
+    Rollback contract: any failure in step 2 raises ``RuntimeError``
+    + the activation surface for the AppsModule stays unchanged
+    (caller's outer ``api_registry_webhook`` returns 500; no half-
+    state where the module is "approved" but not importable).
+    """
+    from ..services._user_app_install import pip_install_user_app
     from ..services.app_loader import load_single_app, pin_commit
 
     pin_commit(app_module)
+    pip_install_user_app(app_module)
     load_single_app(app_module)
 
 

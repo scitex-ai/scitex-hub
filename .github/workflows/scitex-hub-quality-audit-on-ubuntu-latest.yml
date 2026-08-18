@@ -15,34 +15,235 @@ name: quality
 
 on:
   schedule:
-    - cron: "0 8 * * *"  # 08:00 UTC, after the 07:00 per-repo Test runs
+    - cron: "0 18 * * *"  # 18:00 UTC (~03:00 JST), after Test
   workflow_dispatch:
   push:
     branches: [develop]
-    paths:
-      - "src/**"
-      - "tests/**"
-      - "pyproject.toml"
-      - ".github/workflows/scitex-hub-quality-audit-on-ubuntu-latest.yml"
+    # NO `paths:` filter, deliberately. This previously listed only
+    # src/**, tests/**, pyproject.toml and this file — but scitex-hub is
+    # a Django app whose code lives almost entirely in apps/**, config/**,
+    # templates/** and scripts/**. None of those triggered the audit, so
+    # the gate's "green on develop" record was measured over a filtered
+    # sample that excluded nearly every real commit. A gate that does not
+    # run on the code is not a gate. The audit takes ~2 min; running it on
+    # every develop push is the correct trade.
+    # The filter also referenced this workflow BY FILENAME, so any rename
+    # would have silently stopped self-triggering — a second reason the
+    # list is gone rather than merely extended.
   pull_request:
     branches: [main, develop]
 
+# Supersede a pull request's own earlier runs, which nobody will read once a
+# newer commit exists. Keyed per workflow per ref, so different PRs never
+# cancel each other.
+#
+# cancel-in-progress is TRUE ONLY FOR pull_request. A push to main or develop
+# is never cancelled: back-to-back merges would otherwise kill the earlier
+# merge's run, and anything treating a develop run as a gate would lose it
+# silently. Superseding an in-flight PR run is free; superseding a branch run
+# is a decision nobody made.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   audit:
+    # MIGRATED BACK to GitHub-hosted, 2026-08-10. This comment used to
+    # describe the OPPOSITE migration (ubuntu-latest -> spartan, card
+    # ci-hub-runs-22-jobs-on-paid-github-runners) and is rewritten rather
+    # than deleted, because the reversal needs its reason recorded next to
+    # the line it changed.
+    #
+    # WHY REVERSED — the operator's ruling, 2026-08-05:
+    #     「スパルタンのCIは全面的にやめましょう」 — stop Spartan CI entirely.
+    # Its HPC scheduler is the wrong shape for CI: jobs queue behind other
+    # work. Measured on this repo 2026-08-09: ONE registered runner, busy,
+    # with 13 jobs queued behind it.
+    #
+    # WHY THE ORIGINAL REASON NO LONGER HOLDS — that card's premise was
+    # PAID runner minutes. scitex-ai/scitex-hub is PUBLIC (verified via the
+    # API, not assumed), and GitHub-hosted runners are free for public
+    # repositories. So the cost that justified moving here is not being
+    # re-incurred by moving back.
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      # uv, not setup-python + bare pip. The spartan runner's toolcache
+      # Python is uv-managed, so `pip install` into it dies with PEP 668
+      # "error: externally-managed-environment ... managed by uv"
+      # (measured on run 30329643093, runner spartan-cpu-org-02). The fix
+      # is a venv, NOT --break-system-packages: these runners are ORG-POOLED,
+      # so mutating the shared interpreter would corrupt Python for every
+      # other repo's jobs on that host.
+      # This install shape is the fleet convention — copied from the org
+      # reusable workflows in scitex-ai/.github, which already run on these
+      # runners (hub's import-smoke calls one and is consistently green).
+      - uses: astral-sh/setup-uv@v7
         with:
-          python-version: "3.12"
+          cache-dependency-glob: pyproject.toml
 
       - name: Install package + audit tooling
         run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
-          pip install "scitex-dev[cli-audit]"
+          set -euo pipefail
+          uv venv --python 3.12 .venv
+          uv pip install --python .venv/bin/python -e ".[dev]"
+          # PINNED DELIBERATELY. Unpinned, this line makes the gate
+          # non-reproducible: the rule corpus IS the definition of passing, so
+          # a scitex-dev release silently redefines it with no diff in this
+          # repo. Measured 2026-07-28 — develop @ fa16e8eb4 audited GREEN at
+          # 15:32Z on 07-27 and the identical tree audited RED (170 errors)
+          # at 04:17Z on 07-28, because 0.38.0 landed in between. You could
+          # not tell a regression from a corpus bump.
+          # Bump this pin as its own reviewable commit, so the new findings
+          # arrive attributable and someone owns them.
+          # NOTE: the org reusable quality-audit.yml installs scitex-dev
+          # UNPINNED, so every other package in the fleet still has this
+          # non-reproducibility. Worth fixing upstream.
+          #
+          # BUMP TO 0.43.0 ATTEMPTED 2026-08-09 AND REVERTED — read before retrying.
+          # Failed twice, two different ways, and the second exposed something
+          # worth more than the bump itself:
+          #   attempt 1 (this pin + pyproject) -> pytest-matrix FAILED
+          #   attempt 2 (this pin only)        -> this `audit` job FAILED
+          # Both on the SAME finding:
+          #     ERRO: scitex-hub: CLI conventions: 3 error(s)
+          #       [§2] interactive prompt  _cli/_flags.py:110        click.confirm()
+          #       [§2] interactive prompt  _cli/_auth/_login.py:151  click.prompt()
+          #       [§2] interactive prompt  _cli/_auth/_login.py:153  click.prompt()
+          #
+          # RESOLVED 2026-08-09, LATER THE SAME DAY. The paragraph that used to
+          # sit here was WRONG and is deleted rather than softened, because the
+          # next person would have trusted it. What it claimed:
+          #   - that the 3 §2 findings caused the failure          -> FALSE
+          #   - that `path=` (PR #568) was the leading candidate   -> FALSIFIED
+          #   - that CI reported "0 masked by skip-rules (0 declared)"
+          #                                                        -> MISATTRIBUTED,
+          #     see below. An earlier version of this block called that phrase
+          #     "NEVER EMITTED" and said it had been written from memory. THAT
+          #     CORRECTION WAS ITSELF WRONG, and is corrected here rather than
+          #     quietly dropped.
+          #
+          # The phrase is REAL auditor output. It is a format string:
+          #     scitex_dev/_cli/ecosystem/_cmds/_audit_masking.py:277
+          #     line += f", {masked} masked by skip-rules ({declared} declared)"
+          # and it appears verbatim in this repo's CI, e.g. PR #256's audit job
+          # on 2026-08-05:
+          #     summary: scitex-hub: 174 unmasked error(s) (+108 warning/info
+          #     finding(s)), 0 masked by skip-rules (0 declared); 309 line(s)
+          #     inspected, 12 UNREADABLE
+          #
+          # "(0 declared)" is the tell: it means that run passed NO skip_rules —
+          # i.e. it was `scitex-dev ecosystem audit-all` invoked DIRECTLY, the
+          # path the org reusable workflow takes and the reason this job uses the
+          # pytest wrapper instead (see the step below). It is NOT what the
+          # wrapper emits, and it is NOT what the 0.43.0 bump failure emitted.
+          #
+          # So the original error was reporting a real observation from ONE run as
+          # if it came from ANOTHER. Misattribution across runs, not invention.
+          # Why the retraction was wrong too: I searched only
+          # testing/_audit_conformance.py — the wrapper — concluded the string
+          # existed nowhere, and generalised "not in this module" to "not in the
+          # codebase". Searching the wrong file and calling it absence is the same
+          # class of error as the misattribution it was correcting.
+          #
+          # WHAT ACTUALLY FAILED, measured by replaying scitex-dev's classifier
+          # over the failing run's real stdout (run 31331280283):
+          #     205 violation lines classified
+          #     151 masked by SKIP_RULES
+          #       1 NON-SKIPPED   <- this alone made the gate raise
+          # The one line is a WARN-tier notice from a sub-auditor declining to
+          # give a verdict:
+          #     [§10w] §10 import-budget SKIPPED — COULD NOT MEASURE RELIABLY:
+          #     bare-interpreter baseline 112ms exceeds the 100ms sanity bound
+          # The guard is `if skipped and not non_skipped`, so ONE unmatched line
+          # discards the whole 151-line mask. The 3 §2 findings were masked
+          # correctly in CI the entire time.
+          #
+          # WHY THE BUMP TRIGGERED IT — a threshold, not the CLI:
+          #     v0.38.1  §10w fires when baseline exceeds the budget   (500ms)
+          #     v0.43.0  §10w fires when baseline exceeds a sanity bound (100ms)
+          # The runner measured 112ms: over the new bound, under the old. NOT a
+          # loaded-node effect — scitex-hpc measured the CI node at 17-18ms warm
+          # under load average 48-61, FASTER than an idle node. It is a
+          # first-launch penalty inside the container (cold 136/168/193ms across
+          # 3.11/3.12/3.13, warm 43-50ms), so any host running a SIF pays it.
+          #
+          # SEQUENCING — DO NOT BUMP TO 0.43.0 AS A STEPPING STONE. Each pin is
+          # broken where the other is not:
+          #     0.38.1  PS-169 ratchets W->E on a new hosted-runner line,
+          #             PS-224 rejects hosted labels        -> blocks #569
+          #     0.43.0  both of those fixed, but §10w's 100ms bound + the
+          #             notice-as-violation bug             -> reds a clean tree
+          # Jump straight to the release carrying scitex-dev's classifier fix
+          # (0.43.1+). Reported and fixed at source; they also found a sibling
+          # bug where an ERROR line with no rule bracket is counted as nothing
+          # at all (0.43.2, not yet released — 0.43.1 is latest on PyPI).
+          #
+          # DONE, 2026-08-10 — and MEASURED on THIS branch rather than assumed.
+          # Both versions run against the same tree with dependencies held
+          # identical, so the pin is the only variable:
+          #     0.38.1  [E] PS-169 hosted-runner-forbidden        <- blocks #569
+          #             [E] PS-224 on tests.yml::test-summary     <- blocks #569
+          #             45 errors / 621 warnings
+          #     0.43.1  PS-169 gone from the error tier (now advisory W)
+          #             PS-224 gone from tests.yml::test-summary
+          #             44 errors / 622 warnings
+          # The error/warning counts moving 45->44 and 621->622 in lockstep is
+          # PS-169 changing TIER, which is exactly what scitex-dev's rescope
+          # claimed. Both of #569's named blockers are cleared by this line.
+          #
+          # An earlier read of mine said "PS-224 still fires under 0.43.1, so
+          # the fix did not land". That was wrong and is recorded so nobody
+          # re-derives it: PS-224 still appears, but on a DIFFERENT job —
+          # cla.yml::call, the `secrets: inherit` exposure — which #570 already
+          # fixed on develop and which this branch was simply too old to have.
+          # Merging develop cleared it. Comparing RULE IDS instead of FINDINGS
+          # is what produced the wrong conclusion.
+          #
+          # RESIDUAL RISK, stated rather than discovered later: §10w did not
+          # fire under either pin here, but it keys off interpreter STARTUP
+          # TIME, and this measurement ran on a warm host. A cold container in
+          # CI pays the first-launch penalty documented above (136-193ms), so
+          # §10w can still fire there. If this job reds on §10w and nothing
+          # else, that is the cause — it is a notice, not a violation, so fix
+          # it at the threshold and do NOT widen SKIP_RULES.
+          #
+          # UPDATE 2026-08-10 — that risk is now CLOSED for the pytest gate,
+          # which is what both this job and pytest-matrix actually run. 0.43.1
+          # classifies §10w as a NON-violation at source
+          # (scitex_dev/testing/_audit_conformance.py: _NON_VIOLATION_RULES =
+          # {§10, §10w, TALLY, defer}, plus _NON_VIOLATION_LEVELS = {WARN,
+          # INFO, SUCC, NOTE}), so a cold-host §10w notice can no longer
+          # discard the skip mask. That bug — one notice voiding a 151-entry
+          # mask — is precisely what reddened the 0.43.0 attempt on this repo,
+          # and 0.43.1 names this repo's 2026-08-09 run as the case it fixes.
+          #
+          # ALSO 2026-08-10: pyproject now pins scitex-dev==0.43.1 in BOTH
+          # [project.dependencies] and [dev], so pytest-matrix (which installs
+          # `-e ".[all,dev]"`) grades with the same corpus as this job. Before
+          # that, this line pinned 0.43.1 while pytest-matrix still resolved
+          # 0.38.1 from the old `<0.39` ceiling — which is why this job passed
+          # in 38s while all three REQUIRED pytest-matrix legs stayed red for
+          # ~12 hours. This job is not a required check; those three are.
+          # Keep this pin and the two pyproject pins on the same version.
+          #
+          # STILL TRUE, and still the reason the 3 §2 prompts went unseen:
+          # audit-cli reports "not-auditable" and lets the run go green when it
+          # cannot import the CLI it is grading. But the missing dependency is
+          # HUB'S, not scitex-dev's — audit-cli resolves and imports the TARGET
+          # package's entry point to walk its command tree, so `rich` failing to
+          # import is hub's own CLI dependency missing from THIS job's install.
+          # `scitex-dev[cli-audit]` cannot fix it: that extra is an empty no-op
+          # alias (pyproject.toml:100), installing zero packages.
+          # So `-e ".[dev]"` above may not cover what hub's CLI imports, while
+          # pytest-matrix installs `.[all,dev]` — the two legs can disagree about
+          # whether the CLI is graded at all. Tracked:
+          #   hub-audit-cli-runs-only-when-its-deps-happen-to-be-installed-20260809
+          # Do NOT "fix" any of this by widening SKIP_RULES — §2/§5/§6 are
+          # already in it, and §10w is a notice, not a violation to defer.
+          uv pip install --python .venv/bin/python "scitex-dev[cli-audit]==0.43.1"
 
       # Use the pytest wrapper so the documented `skip_rules` deferrals in
       # tests/develop/test_audit.py are honoured. Calling `scitex-dev
@@ -51,5 +252,18 @@ jobs:
       # thinning) to land in one commit, which is not how this repo
       # schedules them. Unknown rules still SURFACE as failures because
       # `audit_all_for_package` raises on any unrecognised violation.
+      #
+      # This is also why hub does NOT call the org reusable quality-audit.yml
+      # even though one exists and targets these same runners: that workflow
+      # runs `scitex-dev ecosystem audit-all` DIRECTLY, which bypasses
+      # skip_rules entirely. Adopting it wholesale would fire every deferred
+      # campaign at once. We take its runner + install shape, not its
+      # invocation.
       - name: Run audit via pytest wrapper (honors skip_rules)
-        run: python -m pytest tests/develop/test_audit.py -q --no-header
+        run: |
+          set -euo pipefail
+          # .venv/bin on PATH so the `scitex-dev` subcommands that audit-all
+          # spawns resolve to the pinned one, not to anything on the shared
+          # runner's PATH.
+          export PATH="$PWD/.venv/bin:$PATH"
+          .venv/bin/python -m pytest tests/develop/test_audit.py -q --no-header

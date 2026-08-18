@@ -43,7 +43,7 @@ make -C deployment/docker/docker_prod cache-purge-all
 Cache purge is automatically included in the rebuild workflow:
 
 ```bash
-make rebuild  # Includes: down → clean-static → build → up → migrate → collectstatic → cache-purge-static
+make rebuild  # Zero-downtime: slurm-clean → build (old stack still serving) → clear-vite → up (swap) → apptainer → cache-purge
 ```
 
 ### Script Direct Usage

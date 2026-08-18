@@ -126,6 +126,11 @@ def login(url, token, user, password, name):
 
     The Gitea URL is auto-detected from SCITEX_HUB_GITEA_URL_DEV env var
     or SECRET/.env.dev file. Override with --url.
+
+    \b
+    Example:
+      $ scitex-hub gitea login --token "$SCITEX_HUB_GITEA_TOKEN"
+      $ scitex-hub gitea login --user alice --password "$PW"
     """
     from ._gitea_utils import get_gitea_url
 
@@ -196,6 +201,11 @@ def logout(name, url, user, password, delete_token):
     the API token on the Gitea server. In that mode, password is required
     non-interactively via --password or SCITEX_HUB_GITEA_PASSWORD
     (fail-fast with exit code 2 if missing — no prompt, spec §2).
+
+    \b
+    Example:
+      $ scitex-hub gitea logout
+      $ scitex-hub gitea logout --delete-token --user alice
     """
     if delete_token:
         # Try to pull connection details from tea config if not given

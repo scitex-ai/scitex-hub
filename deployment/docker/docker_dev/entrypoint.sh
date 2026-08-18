@@ -259,12 +259,36 @@ fi
 if [ ! -f "$MIGRATION_SENTINEL" ]; then
     initialize_visitor_pool() {
         echo_info "Initializing visitor pool..."
-        python manage.py create_visitor_pool --verbosity 0 2>&1 | grep -v "ERRO\|WARN" || true
-        echo_success "Visitor pool ready"
+        if python manage.py create_visitor_pool --verbosity 0; then
+            # "slots exist" — NOT "usable". A slot is only distributable once
+            # the re-clean below proves it wiped clean.
+            echo_success "Visitor pool slots created"
+        else
+            echo_error "create_visitor_pool FAILED — visitor slots may not exist"
+        fi
     }
     initialize_visitor_pool
 else
     echo_info "Hot-reload restart - visitor pool already initialized"
+fi
+
+# Boot fail-safe (runs on EVERY container start, including restarts after
+# an unclean shutdown): quarantine every slot as unverified (synchronous,
+# DB-only), then ENQUEUE the per-slot wipe+verify re-clean to Celery via
+# --async so Django serves immediately instead of blocking on the clone
+# loop. Slots stay quarantined until a worker verifies each clean; until
+# then allocation serves readonly-visitor (fail-loud).
+echo_info "Reconciling visitor slots (quarantine now, re-clean dispatched async)..."
+# The re-clean cancels each visitor's SLURM job and VERIFIES the apptainer
+# instance is gone before the slot may be reused. With no reachable SLURM
+# controller every re-clean fails, every slot stays quarantined, and every
+# visitor silently drops to read-only. Do not swallow that (prod hid exactly
+# this for >24h on 2026-07-13); the `if` keeps a failure from aborting boot.
+if python manage.py reconcile_visitor_slots --async; then
+    echo_success "Visitor-slot re-clean DISPATCHED (slots become allocatable as each verifies clean)"
+else
+    echo_error "reconcile_visitor_slots --async FAILED — slots stay quarantined, visitors will be READ-ONLY"
+    echo_error "  -> is the SLURM controller up? try: squeue"
 fi
 
 # ============================================
@@ -273,14 +297,15 @@ fi
 # Create test-user for development and E2E testing
 initialize_test_user() {
     local username="${SCITEX_HUB_TEST_USER_USERNAME:-test-user}"
-    local password="${SCITEX_HUB_TEST_USER_PASSWORD:-Password123!}"
     local email="test@example.com"
 
+    # NO literal password default, and --password deliberately NOT passed —
+    # init_test_user owns the fallback. See the matching comment in
+    # deployment/docker/common/scripts/entrypoint-dev.sh.
     echo_info "Ensuring test user exists: $username"
     python manage.py init_test_user \
         --username="$username" \
         --email="$email" \
-        --password="$password" \
         2>&1 | grep -v "ERRO\|WARN" || true
     echo_success "Test user ready: $username"
 }

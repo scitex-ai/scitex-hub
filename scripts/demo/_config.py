@@ -27,9 +27,14 @@ else:
 
 BASE_URL = "http://127.0.0.1:8000"
 
-# Load test user credentials from environment variables
+# Load test user credentials from environment variables.
+#
+# TEST_PASSWORD has NO literal default: a demo/screenshot script that carries a
+# working password for a real account is a published credential, and this
+# repository is public. Empty means "not configured" — callers should fail
+# loudly rather than silently attempting a login with a guessed value.
 TEST_USER = os.getenv("SCITEX_HUB_TEST_USER_USERNAME", "test-user")
-TEST_PASSWORD = os.getenv("SCITEX_HUB_TEST_USER_PASSWORD", "Password123!")
+TEST_PASSWORD = os.getenv("SCITEX_HUB_TEST_USER_PASSWORD", "")
 
 # Standard viewport sizes for consistent screenshots
 VIEWPORT_PRESETS = {

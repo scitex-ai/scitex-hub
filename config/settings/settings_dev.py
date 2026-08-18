@@ -19,7 +19,14 @@ import socket
 
 from dotenv import load_dotenv
 
+from config import branding
+
+from ._logging_merge import merge_logging
 from .settings_shared import *
+
+# Environment identity -- drives the tab title marker "(dev)" and the GREEN
+# favicon. Literal, not env-var derived: running settings_dev IS development.
+SCITEX_ENV = branding.ENV_DEVELOPMENT
 
 
 # ---------------------------------------
@@ -60,6 +67,14 @@ DEBUG = os.getenv("SCITEX_HUB_DJANGO_DEBUG", "True").lower() in [
     "yes",
 ]
 
+# In dev and in the test suite ONE process is both the visitor-slot resetter and
+# the web process, so the truthful owner to hand a recycled tree to is itself.
+# This is a declaration about the dev deployment, not a fallback: the setting
+# in settings_shared stays `scitex` for production, and an explicit
+# SCITEX_HUB_APP_UNIX_OWNER still wins here. verify_app_can_write() keeps
+# comparing real st_uid values, so the final gate can still fail in dev.
+APP_UNIX_OWNER = os.getenv("SCITEX_HUB_APP_UNIX_OWNER") or f"{os.getuid()}:{os.getgid()}"
+
 # ---------------------------------------
 # SciTeX Settings
 # ---------------------------------------
@@ -68,7 +83,12 @@ _wtb = os.getenv("SCITEX_WRITER_TEMPLATE_BRANCH", "main")
 SCITEX_WRITER_TEMPLATE_BRANCH = None if _wtb in ("", "null", "None") else _wtb
 _wtt = os.getenv("SCITEX_WRITER_TEMPLATE_TAG", "")
 SCITEX_WRITER_TEMPLATE_TAG = None if _wtt in ("", "null", "None") else _wtt
-SECRET_KEY = os.getenv("SCITEX_HUB_DJANGO_SECRET_KEY")
+# SECRET_KEY is deliberately NOT re-read here. settings_shared already resolves
+# it through getenv_with_legacy_alias() -- which honors the deprecated
+# SCITEX_CLOUD_DJANGO_SECRET_KEY name (ADR-0001) -- and raises if it is unset.
+# A plain os.getenv() here would miss the alias and silently overwrite that
+# value with None, so a dev env file using the legacy name yields an empty
+# SECRET_KEY and Django refuses to boot.
 ALLOWED_HOSTS = os.getenv(
     "SCITEX_HUB_ALLOWED_HOSTS",
     "localhost,127.0.0.1,0.0.0.0,[::1],testserver",
@@ -201,7 +221,16 @@ else:
             "ENGINE": "django.db.backends.postgresql",
             "NAME": os.environ.get("SCITEX_HUB_DB_NAME_DEV", "scitex_hub_dev"),
             "USER": os.environ.get("SCITEX_HUB_DB_USER_DEV", "scitex_dev"),
-            "PASSWORD": os.environ.get("SCITEX_HUB_DB_PASSWORD_DEV", "scitex_dev_2025"),
+            # DECLARED EXCEPTION, not an oversight. This is the compose-local
+            # dev postgres, which every real deployment overrides via
+            # SCITEX_HUB_DB_PASSWORD_DEV; prod uses settings_prod, which has no
+            # literal fallback at all. Emptying it would break `docker compose
+            # up` for anyone who has not set the variable, so it is declared
+            # rather than removed. If the dev database is ever exposed beyond
+            # the compose network this must become an empty default instead.
+            "PASSWORD": os.environ.get(
+                "SCITEX_HUB_DB_PASSWORD_DEV", "scitex_dev_2025"
+            ),  # pragma: allowlist secret
             "HOST": os.environ.get("SCITEX_HUB_DB_HOST_DEV", "localhost"),
             "PORT": os.environ.get("SCITEX_HUB_DB_PORT_DEV", "5432"),
             # ATOMIC_REQUESTS disabled: incompatible with ASGI (Daphne)
@@ -250,12 +279,17 @@ if not test_redis_connection():
 # ---------------------------------------
 # Logging
 # ---------------------------------------
-LOGGING.update(
+# merge_logging, NOT LOGGING.update -- see the note in settings_prod.py and the
+# measurement in config/settings/_logging_merge.py. This module happened to
+# spread `**LOGGING.get("loggers", {})` and so kept the base's wiring, but the
+# spread was a habit rather than a guarantee: the same literal in prod and
+# staging did not have it, and nothing noticed for months.
+LOGGING = merge_logging(
+    LOGGING,
     {
         "handlers": {
-            # Keep existing handlers from base settings
-            **LOGGING.get("handlers", {}),
-            # Add development-specific handlers
+            # Development-specific handlers. The base's handlers are kept by
+            # the merge.
             "file_app": {
                 "level": "DEBUG",
                 "class": "logging.handlers.RotatingFileHandler",
@@ -264,14 +298,11 @@ LOGGING.update(
                 "backupCount": 5,
                 "formatter": "standard",
             },
-            "file_django": {
-                "level": "INFO",
-                "class": "logging.handlers.RotatingFileHandler",
-                "filename": LOG_DIR / "django.log",
-                "maxBytes": 1024 * 1024 * 5,  # 5 MB
-                "backupCount": 5,
-                "formatter": "standard",
-            },
+            # "file_django" used to be defined here as a byte-for-byte copy of
+            # the base's "django_file" -- same file, same size, same backups --
+            # so dev ran two RotatingFileHandlers over LOG_DIR/django.log and
+            # left the base's handler attached to nothing. The base's entry is
+            # simply reused instead.
             "file_requests": {
                 "level": "DEBUG",
                 "class": "logging.handlers.RotatingFileHandler",
@@ -287,21 +318,30 @@ LOGGING.update(
             },
         },
         "loggers": {
-            # Update existing loggers from base settings
-            **LOGGING.get("loggers", {}),
-            # Add development-specific loggers
+            # Loggers redefined for development. Every logger NOT named here
+            # keeps the base's handlers.
             "django": {
-                "handlers": ["console", "file_django"],
+                "handlers": ["console", "django_file"],
                 "level": "INFO",
                 "propagate": True,
             },
+            # mail_admins IS listed here on purpose, even though dev runs with
+            # DEBUG=True and require_debug_false drops every record. The rail
+            # must have exactly ONE gate deciding whether a developer machine
+            # mails, and that gate is require_debug_false -- the same reasoning
+            # settings_shared gives for defining ADMINS once instead of per
+            # environment. Omitting the handler here would be a SECOND, silent
+            # gate, and two gates where one is invisible is precisely how this
+            # rail came to be dead in production without anyone noticing. It
+            # also means a developer debugging with DEBUG=False sees the real
+            # production behaviour rather than a quieter imitation of it.
             "django.request": {
-                "handlers": ["file_requests"],
+                "handlers": ["file_requests", "mail_admins"],
                 "level": "ERROR",  # Only log errors, not 404s for __reload__
                 "propagate": True,
             },
             "django.server": {
-                "handlers": ["file_django"],
+                "handlers": ["django_file"],
                 "level": "ERROR",  # Suppress __reload__ 404 warnings
                 "propagate": False,
             },
@@ -318,35 +358,50 @@ LOGGING.update(
                 "propagate": True,
             },
         },
-    }
+    },
 )
 
 # ---------------------------------------
 # Celery Beat Schedule Override for Development
 # ---------------------------------------
-# Chart generation dispatches 48 child tasks; use 60s to avoid queue flooding
-CELERY_BEAT_SCHEDULE["generate-status-charts"] = {
-    "task": "apps.infra.public_app.tasks.generate_status_charts",
-    "schedule": 60.0,
-    "options": {
-        "expires": 55.0,
-    },
-}
+# expire_seconds, NOT "expires": DatabaseScheduler's ModelEntry silently
+# drops unknown option keys — see the schedule header in settings_celery.py
+# (2026-07-21 50k-backlog incident).
+#
+# The status-chart render override that used to live here was removed on
+# 2026-07-30: charts are drawn in the browser from /api/server-metrics/series/,
+# so there is no render task to schedule. It mattered that BOTH files were
+# cleaned — this override re-declared the entry via subscript assignment, so
+# deleting it from settings_celery.py alone would have left dev still fanning
+# out 48 tasks a minute.
 
-# Re-enable metrics collection in dev (runs as Celery task, not in Daphne)
+# Re-enable metrics collection in dev at a 10s cadence (prod runs the
+# settings_celery.py entry at 60s; runs as Celery task, not in Daphne)
 CELERY_BEAT_SCHEDULE["collect-server-metrics"] = {
     "task": "apps.infra.public_app.tasks.collect_server_metrics",
     "schedule": 10.0,
     "options": {
-        "expires": 9.0,
+        "expire_seconds": 9,
     },
 }
 
 # ---------------------------------------
 # Test User Credentials for API Docs Examples
 # ---------------------------------------
-# Used to populate API docs code examples in Private mode (dev only)
-TEST_USER_PASSWORD = os.environ.get("SCITEX_HUB_TEST_USER_PASSWORD", "Password123!")
+# Used to populate API docs code examples in Private mode (dev only).
+#
+# NO LITERAL DEFAULT. This value is RENDERED INTO A PAGE
+# (public_app/views/api.py:61,105 -> api_docs_section.html), so a baked-in
+# default does not sit quietly in a config file — it gets displayed. The former
+# default "Password123!" was published in this repo, in the README and on the
+# setup page, and on 2026-08-16 it was found to authenticate as `test-user` on
+# PRODUCTION.
+#
+# Empty is the honest value when the environment has not supplied one: both
+# call sites already read it via getattr(settings, "TEST_USER_PASSWORD", "")
+# behind a DEBUG check, and an empty example is better than a confident example
+# of the wrong password.
+TEST_USER_PASSWORD = os.environ.get("SCITEX_HUB_TEST_USER_PASSWORD", "")
 
 # ---------------------------------------
 # Dev App Preview

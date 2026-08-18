@@ -22,9 +22,9 @@
   <a href="https://scitex-hub.readthedocs.io/en/latest/"><img src="https://img.shields.io/readthedocs/scitex-hub?label=docs" alt="docs"></a>
 </p>
 <p align="center">
-  <a href="https://github.com/ywatanabe1989/scitex-hub/actions/workflows/pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml"><img src="https://img.shields.io/github/actions/workflow/status/ywatanabe1989/scitex-hub/pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml?branch=develop&label=tests" alt="tests"></a>
-  <a href="https://github.com/ywatanabe1989/scitex-hub/actions/workflows/import-smoke-on-ubuntu-py3-12.yml"><img src="https://img.shields.io/github/actions/workflow/status/ywatanabe1989/scitex-hub/import-smoke-on-ubuntu-py3-12.yml?branch=develop&label=install-check" alt="install-check"></a>
-  <a href="https://codecov.io/gh/ywatanabe1989/scitex-hub"><img src="https://img.shields.io/codecov/c/github/ywatanabe1989/scitex-hub/develop?label=cov" alt="cov"></a>
+  <a href="https://github.com/scitex-ai/scitex-hub/actions/workflows/pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml"><img src="https://img.shields.io/github/actions/workflow/status/scitex-ai/scitex-hub/pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml?branch=develop&label=tests" alt="tests"></a>
+  <a href="https://github.com/scitex-ai/scitex-hub/actions/workflows/import-smoke-on-ubuntu-py3-12.yml"><img src="https://img.shields.io/github/actions/workflow/status/scitex-ai/scitex-hub/import-smoke-on-ubuntu-py3-12.yml?branch=develop&label=install-check" alt="install-check"></a>
+  <a href="https://codecov.io/gh/scitex-ai/scitex-hub"><img src="https://img.shields.io/codecov/c/github/scitex-ai/scitex-hub/develop?label=cov" alt="cov"></a>
   <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/license-AGPL_v3-blue.svg" alt="license"></a>
 </p>
 <!-- scitex-badges:end -->
@@ -105,13 +105,14 @@ pip install scitex-hub[all]         # Everything
 ## Quick Start
 
 ```bash
-git clone https://github.com/ywatanabe1989/scitex-hub.git
+git clone https://github.com/scitex-ai/scitex-hub.git
 cd scitex-hub
 make start                    # Start development environment
 
 # Access at: http://localhost:8000
 # Gitea: http://localhost:3000
-# Test user: test-user / Password123!
+# Test user: test-user — the password is printed by `init_test_user` on first run
+# (or set SCITEX_HUB_TEST_USER_PASSWORD to choose it yourself)
 ```
 
 ## Four Interfaces

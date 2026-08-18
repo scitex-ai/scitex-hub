@@ -56,7 +56,8 @@ SESSION_DIR.mkdir(parents=True, exist_ok=True)
 
 # Environment configuration
 TEST_USER_USERNAME = os.getenv("SCITEX_HUB_TEST_USER_USERNAME", "test-user")
-TEST_USER_PASSWORD = os.getenv("SCITEX_HUB_TEST_USER_PASSWORD", "Password123!")
+# No literal default — see tests/develop/test_no_usable_secret_defaults.py.
+TEST_USER_PASSWORD = os.getenv("SCITEX_HUB_TEST_USER_PASSWORD", "")
 BASE_URL = os.getenv("SCITEX_BASE_URL", "http://127.0.0.1:8000")
 
 

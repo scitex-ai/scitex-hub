@@ -1,0 +1,82 @@
+/* Styles for Live Paper workspace app */
+
+.scitex_live_paper_hub_app-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+.scitex_live_paper_hub_app-header {
+    margin-bottom: 1.5rem;
+}
+
+.scitex_live_paper_hub_app-header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--workspace-text-primary);
+    margin: 0 0 0.5rem;
+}
+
+.scitex_live_paper_hub_app-subtitle {
+    font-size: 0.875rem;
+    color: var(--workspace-text-secondary);
+    margin: 0;
+}
+
+.scitex_live_paper_hub_app-content {
+    background: var(--workspace-bg-secondary);
+    border: 1px solid var(--workspace-border-default);
+    border-radius: 6px;
+    padding: 2rem;
+}
+
+.scitex_live_paper_hub_app-getting-started {
+    margin-bottom: 2rem;
+}
+
+.scitex_live_paper_hub_app-getting-started h3 {
+    font-size: 1.125rem;
+    color: var(--workspace-text-primary);
+    margin: 0 0 1rem;
+}
+
+.scitex_live_paper_hub_app-steps {
+    padding-left: 1.25rem;
+    color: var(--workspace-text-secondary);
+    line-height: 1.8;
+}
+
+.scitex_live_paper_hub_app-steps code {
+    background: var(--workspace-bg-tertiary);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.8125rem;
+}
+
+.scitex_live_paper_hub_app-card {
+    background: var(--workspace-bg-tertiary);
+    border: 1px solid var(--workspace-border-default);
+    border-radius: 6px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.scitex_live_paper_hub_app-placeholder {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--workspace-text-secondary);
+}
+
+.scitex_live_paper_hub_app-placeholder p {
+    margin: 0.5rem 0;
+}
+
+@media (max-width: 768px) {
+    .scitex_live_paper_hub_app-container {
+        padding: 1rem;
+    }
+
+    .scitex_live_paper_hub_app-content {
+        padding: 1rem;
+    }
+}

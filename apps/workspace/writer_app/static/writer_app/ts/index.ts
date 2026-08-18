@@ -146,8 +146,74 @@ async function initWriterApplication(): Promise<void> {
     return;
   }
 
-  // Initialize editor components (async to wait for Monaco)
-  await initializeEditor(config);
+  // Initialize editor components (async to wait for Monaco).
+  // Fail loud: any failure in the mount chain (editor creation, listeners, or
+  // the trailing FileTreeSetup.setup()) must surface a VISIBLE error instead
+  // of leaving a silently blank editor, and must not let the section selector
+  // hang forever on its "Loading..." placeholder.
+  try {
+    await initializeEditor(config);
+  } catch (error) {
+    console.error("[Writer] Editor initialization failed:", error);
+    handleEditorInitFailure(error);
+  }
+}
+
+/**
+ * Fail-loud handler for a broken editor mount.
+ *
+ * Renders a visible error in the editor area (so it is never a silent blank),
+ * shows a toast, and — critically — replaces the section selector's "Loading..."
+ * placeholder so it cannot hang, then still attempts a real dropdown populate.
+ */
+function handleEditorInitFailure(error: unknown): void {
+  const message =
+    error instanceof Error ? error.message : "Unknown initialization error";
+
+  // Visible toast (reuse existing component).
+  try {
+    showToast(`Writer editor failed to load: ${message}`, "error");
+  } catch {
+    /* toast is best-effort — never mask the original failure */
+  }
+
+  // Visible banner in the editor area so it is not silently blank.
+  const container =
+    document.getElementById("writer-monaco-editor") ||
+    document.querySelector<HTMLElement>(".latex-panel");
+  if (container) {
+    container.style.display = "flex";
+    container.innerHTML = `
+      <div class="writer-editor-error" role="alert"
+           style="margin:auto;max-width:32rem;padding:1.5rem;text-align:center;color:var(--text-primary,#333);">
+        <i class="fas fa-triangle-exclamation"
+           style="font-size:1.5rem;color:var(--color-danger-fg,#d33);"></i>
+        <div style="margin-top:.5rem;font-weight:600;">Editor failed to load</div>
+        <div class="writer-editor-error-detail"
+             style="margin-top:.25rem;font-size:.85rem;color:var(--text-muted,#777);"></div>
+        <div style="margin-top:.5rem;font-size:.8rem;color:var(--text-muted,#777);">
+          Try reloading the page. If this persists, the editor libraries
+          (Monaco/CodeMirror) failed to load.
+        </div>
+      </div>`;
+    // Dynamic message via textContent to avoid any HTML injection.
+    const detail = container.querySelector(".writer-editor-error-detail");
+    if (detail) detail.textContent = message;
+  }
+
+  // Never let the section selector hang on "Loading...". Set a definitive
+  // fallback immediately, then still try to populate real sections (which
+  // overwrites the fallback when the sections API is reachable).
+  const selectorText = document.getElementById("section-selector-text");
+  if (selectorText && selectorText.textContent?.trim() === "Loading...") {
+    selectorText.textContent = "Unavailable";
+  }
+  populateSectionDropdownDirect("manuscript", null).catch((dropdownError) => {
+    console.error(
+      "[Writer] Failed to populate section dropdown after init failure:",
+      dropdownError,
+    );
+  });
 }
 
 // Handle case where DOMContentLoaded has already fired (e.g., unified workspace dynamic injection)
@@ -403,12 +469,7 @@ const globalPanelSwitcher = new PanelSwitcher();
 // Export switchRightPanel using PanelSwitcher module
 (window as any).switchRightPanel = (
   view:
-    | "pdf"
-    | "citations"
-    | "figures"
-    | "tables"
-    | "history"
-    | "collaboration",
+    "pdf" | "citations" | "figures" | "tables" | "history" | "collaboration",
 ) => {
   globalPanelSwitcher.switchPanel(view);
 };

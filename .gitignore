@@ -12,8 +12,19 @@ references.bib
 !.scitex/dev/
 .scitex/dev/*
 !.scitex/dev/config.yaml
-# Project-tracked agent operational state (HOLDs, candidates, in-flight tasks)
-!.scitex/todo/
+!.scitex/dev/cli-audit-dict.yaml
+
+# scitex-hub's own project-scope runtime state (runtime-state-db-layout
+# convention, scitex-dev skill general/01_ecosystem/13_*.md): only the
+# runtime/ seed files are tracked -- everything else regenerates per-host
+# (Django/Celery logs; see config/settings/settings_logging.py LOG_DIR
+# and incident hub-prod-outage-celery-log-permission).
+!.scitex/hub/
+.scitex/hub/*
+!.scitex/hub/runtime/
+.scitex/hub/runtime/*
+!.scitex/hub/runtime/.gitkeep
+!.scitex/hub/runtime/README.md
 
 ### Source: /home/ywatanabe/.git-templates/.gitignore-templates/Custom/Claude.gitignore ###
 .claude
@@ -37,7 +48,7 @@ deployment/ssl/
 tmp.sh
 tmp/*.sh
 rename_without_duplication.sh
-SCITEX_HUB_DJANGO_SETTINGS_MODULE
+SCITEX_CLOUD_DJANGO_SETTINGS_MODULE
 
 # Code workspace temporary files
 .scratch_temp.py
@@ -127,6 +138,20 @@ data/ssh_keys/
 **/*.jpeg
 **/*.h5
 **/*.zip
+
+# The visitor demo project's dataset, figures and manuscript media are
+# PRODUCT CONTENT, not analysis output: apps/infra/project_app/services/
+# visitor_pool/demo_seed.py copies them into every new visitor workspace, so
+# a deployment that does not carry them serves the empty pages this seed
+# exists to end.
+#
+# These MUST stay BELOW the blanket **/*.<ext> rules above. In gitignore the
+# LAST matching pattern wins, so the same three lines placed higher are
+# silently overruled and the files stay untracked — which looks exactly like
+# having forgotten to `git add` them.
+!apps/infra/project_app/services/visitor_pool/demo_seed_payload/**/*.csv
+!apps/infra/project_app/services/visitor_pool/demo_seed_payload/**/*.png
+!apps/infra/project_app/services/visitor_pool/demo_seed_payload/**/*.jpg
 **/*.tar
 **/*.gz
 **/*.rar
@@ -904,3 +929,13 @@ singularity/
 deployment/docker/docker_prod/bin/
 
 .claude/
+GITIGNORE/
+
+# Agent git worktrees. This repo carries ~175 of them under .worktrees/, and
+# until now the rule lived ONLY in .git/info/exclude — a per-clone, untracked
+# file. So a machine that happened to have that line saw a clean tree while a
+# fresh clone or a CI checkout saw ~175 untracked directories. Tracking the rule
+# here is what makes it true for everyone.
+# Pinned by tests/develop/test_worktrees_are_ignored_by_tracked_rule.py, which
+# asserts the rule's SOURCE is this file rather than a local exclude.
+.worktrees/

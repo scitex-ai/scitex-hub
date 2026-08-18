@@ -120,11 +120,42 @@
         </div>
         <!-- Right: Module pane (swaps on tab click) -->
         <div class="ws-module-pane" id="ws-module-pane">
-            <div class="ws-module-loading" id="ws-module-loading" style="display:none">
+            {# Visible by default (CSS display:flex) — workspace-shell.ts hides it in its finally block #}
+            <div class="ws-module-loading" id="ws-module-loading">
                 <i class="fas fa-spinner fa-spin"></i> Loading...
             </div>
             {# Initial module content is loaded by workspace-shell.ts on page load #}
         </div>
+        <script>
+            // Fail-loud watchdog: if workspace-shell.ts never executes (e.g. the
+            // Vite bundle failed to load), the pane would stay silently blank
+            // forever. ~10s after DOM ready, if nothing beyond the loader has
+            // appeared, show an explicit error. On success or fetch failure the
+            // shell script replaces the pane content, so this no-ops.
+            (function () {
+                function armWatchdog() {
+                    setTimeout(function () {
+                        var pane = document.getElementById("ws-module-pane");
+                        if (!pane) return;
+                        if (pane.querySelector(":scope > :not(.ws-module-loading)")) return;
+                        var box = document.createElement("div");
+                        box.setAttribute("role", "alert");
+                        box.style.cssText = "padding:2rem;color:var(--text-muted,#8b949e)";
+                        box.innerHTML =
+                            '<i class="fas fa-exclamation-triangle" aria-hidden="true"></i> ' +
+                            "This module failed to start — the page script did not load. " +
+                            '<a href="">Reload</a>';
+                        pane.replaceChildren(box);
+                        console.error("[workspace-shell] Module pane watchdog fired: shell script never populated #ws-module-pane");
+                    }, 10000);
+                }
+                if (document.readyState === "loading") {
+                    document.addEventListener("DOMContentLoaded", armWatchdog);
+                } else {
+                    armWatchdog();
+                }
+            })();
+        </script>
     </div>
 {% endblock %}
 {% block extra_js %}

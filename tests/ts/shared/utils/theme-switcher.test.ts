@@ -1,260 +1,144 @@
 /**
  * Tests for static/shared/ts/utils/theme-switcher.ts
+ *
+ * Two complementary suites, deliberately kept side by side:
+ *
+ * 1. resolveInitialTheme — the PURE boot-time precedence function
+ *    (card hub-theme-default-must-be-dark):
+ *      a. A registered user's SAVED preference (server source "profile").
+ *      b. An explicit prior choice in this browser (localStorage).
+ *      c. The DARK base default — on every viewport; a server-served
+ *         default (source "default") must never override an explicit
+ *         localStorage choice, and prefers-color-scheme is never consulted.
+ *
+ * 2. stx-theme key convergence — the STORAGE contract shared with
+ *    scitex-ui's ThemeProvider (card hub-scitex-ui-070-theme-key-convergence).
+ *    Exercised through the public window.SciTeX.theme API, since the
+ *    module self-initializes on import and exports nothing else.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// TODO: Update import path based on your tsconfig paths
-// import { } from '@/static/shared/ts/utils/theme-switcher';
+const CANONICAL_KEY = "stx-theme";
+const LEGACY_KEY = "scitex-theme-preference";
 
-describe('theme-switcher', () => {
-    beforeEach(() => {
-        // Setup before each test
-    });
+// The module runs initTheme() at import time; stub fetch first so the
+// import-side get-theme call resolves deterministically (no network).
+vi.stubGlobal(
+  "fetch",
+  vi.fn(() =>
+    Promise.resolve({
+      json: () => Promise.resolve({}),
+    }),
+  ),
+);
 
-    afterEach(() => {
-        // Cleanup after each test
-    });
+const { resolveInitialTheme } = await import("@/utils/theme-switcher");
 
-    it.todo('should be implemented');
+describe("resolveInitialTheme", () => {
+  it("lets a registered user's saved light preference win over stored dark", () => {
+    expect(
+      resolveInitialTheme({ theme: "light", source: "profile" }, "dark"),
+    ).toBe("light");
+  });
+
+  it("lets a registered user's saved dark preference win over stored light", () => {
+    expect(
+      resolveInitialTheme({ theme: "dark", source: "profile" }, "light"),
+    ).toBe("dark");
+  });
+
+  it("keeps an explicit stored light choice over a served default", () => {
+    // A visitor/anonymous session gets source "default" — a recycled
+    // pool account's row must never override this browser's choice.
+    expect(
+      resolveInitialTheme({ theme: "dark", source: "default" }, "light"),
+    ).toBe("light");
+  });
+
+  it("keeps an explicit stored dark choice over a served default", () => {
+    expect(
+      resolveInitialTheme({ theme: "dark", source: "default" }, "dark"),
+    ).toBe("dark");
+  });
+
+  it("defaults a first visit to dark when nothing is stored", () => {
+    expect(resolveInitialTheme(null, null)).toBe("dark");
+  });
+
+  it("defaults to dark when the server serves the default and nothing is stored", () => {
+    expect(
+      resolveInitialTheme({ theme: "dark", source: "default" }, null),
+    ).toBe("dark");
+  });
+
+  it("treats a source-less response as a default, not a preference", () => {
+    expect(resolveInitialTheme({ theme: "light" }, null)).toBe("dark");
+  });
+
+  it("ignores an invalid stored value and falls back to dark", () => {
+    expect(resolveInitialTheme(null, "system")).toBe("dark");
+  });
 });
 
-// =============================================================================
-// Source Code Reference (auto-generated, do not edit below this line)
-// =============================================================================
-// Source: static/shared/ts/utils/theme-switcher.ts
-// =============================================================================
+async function importFresh(): Promise<void> {
+  vi.resetModules();
+  // initTheme() fetches /auth/api/get-theme/ on import; an anonymous
+  // visitor gets no theme back, which routes reads to localStorage.
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ json: async () => ({}) }));
+  await import("@/utils/theme-switcher");
+  // Let the initTheme() promise chain settle.
+  await new Promise((resolve) => setTimeout(resolve, 0));
+}
 
-// /**
-//  * SciTeX Theme Switcher
-//  * Handles Light/Dark mode switching with localStorage persistence and database sync
-//  */
-//
-// import { getCsrfToken } from "./csrf";
-//
-// console.log(
-//   "[DEBUG] /home/ywatanabe/proj/scitex-hub/static/ts/utils/theme-switcher.ts loaded",
-// );
-// type Theme = "light" | "dark";
-//
-// interface ThemeResponse {
-//   theme?: Theme;
-// }
-//
-// interface ThemeSaveResponse {
-//   success: boolean;
-// }
-//
-// interface SciTeXThemeAPI {
-//   toggle: () => void;
-//   set: (theme: Theme) => void;
-//   get: () => Theme;
-//   LIGHT: Theme;
-//   DARK: Theme;
-// }
-//
-// declare global {
-//   interface Window {
-//     SciTeX: {
-//       theme: SciTeXThemeAPI;
-//     };
-//   }
-// }
-//
-// const STORAGE_KEY = "scitex-theme-preference";
-// const THEME_LIGHT: Theme = "light";
-// const THEME_DARK: Theme = "dark";
-//
-// /**
-//  * Get the current theme preference from localStorage
-//  */
-// function getThemePreference(): Theme {
-//   const stored = localStorage.getItem(STORAGE_KEY);
-//
-//   // Migration: Clean up old 'auto' or 'system' values from previous implementation
-//   if (stored && !["light", "dark"].includes(stored)) {
-//     console.log(
-//       `Migrating invalid theme value: "${stored}" → "${THEME_LIGHT}"`,
-//     );
-//     localStorage.setItem(STORAGE_KEY, THEME_LIGHT);
-//     return THEME_LIGHT;
-//   }
-//
-//   if (stored && (stored === THEME_LIGHT || stored === THEME_DARK)) {
-//     return stored as Theme;
-//   }
-//
-//   return THEME_DARK; // Default to dark theme for new visitors
-// }
-//
-// /**
-//  * Load theme preference from database (for authenticated users)
-//  */
-// async function loadThemeFromDatabase(): Promise<Theme | null> {
-//   try {
-//     const response = await fetch("/auth/api/get-theme/");
-//     const data: ThemeResponse = await response.json();
-//     if (data.theme) {
-//       return data.theme;
-//     }
-//   } catch (error) {
-//     console.warn("Failed to load theme from database:", error);
-//   }
-//   return null;
-// }
-//
-// /**
-//  * Save theme preference to database (for authenticated users)
-//  */
-// async function saveThemeToDatabase(theme: Theme): Promise<void> {
-//   try {
-//     const csrfToken = getCsrfToken();
-//     const response = await fetch("/auth/api/save-theme/", {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//         "X-CSRFToken": csrfToken,
-//       },
-//       body: JSON.stringify({ theme }),
-//     });
-//     const data: ThemeSaveResponse = await response.json();
-//     if (data.success) {
-//       console.log("Theme saved to database:", theme);
-//     }
-//   } catch (error) {
-//     console.warn("Failed to save theme to database:", error);
-//   }
-// }
-//
-// /**
-//  * Apply theme to the document
-//  */
-// function applyTheme(theme: Theme): void {
-//   if (theme === THEME_DARK) {
-//     document.documentElement.setAttribute("data-theme", "dark");
-//     document.documentElement.setAttribute("data-color-mode", "dark");
-//   } else {
-//     document.documentElement.setAttribute("data-theme", "light");
-//     document.documentElement.setAttribute("data-color-mode", "light");
-//   }
-//
-//   // Update toggle button if exists
-//   updateToggleButton();
-//
-//   // Dispatch custom event for Monaco editor and terminal to listen to
-//   const event = new CustomEvent("theme-changed", {
-//     detail: { theme },
-//   });
-//   document.dispatchEvent(event);
-//   console.log(`[Theme] Dispatched theme-changed event: ${theme}`);
-// }
-//
-// /**
-//  * Set theme preference and apply
-//  */
-// function setThemePreference(preference: Theme): void {
-//   localStorage.setItem(STORAGE_KEY, preference);
-//   applyTheme(preference);
-//   // Save to database for authenticated users (async, don't wait)
-//   saveThemeToDatabase(preference);
-// }
-//
-// /**
-//  * Toggle between themes: light <-> dark
-//  */
-// function toggleTheme(): void {
-//   const current = getThemePreference();
-//   const next = current === THEME_LIGHT ? THEME_DARK : THEME_LIGHT;
-//   console.log(`Theme toggle: ${current} → ${next}`);
-//   setThemePreference(next);
-// }
-//
-// /**
-//  * Update the toggle button appearance
-//  */
-// function updateToggleButton(): void {
-//   const toggleBtn = document.getElementById("theme-toggle");
-//   if (!toggleBtn) return;
-//
-//   const theme = getThemePreference();
-//
-//   // Update aria-label (accessibility)
-//   const labels = {
-//     light: "☀️ Light",
-//     dark: "🌙 Dark",
-//   } as const;
-//
-//   // Note: title attribute removed to avoid duplicate tooltips with data-tooltip
-//   toggleBtn.setAttribute("aria-label", `Current theme: ${labels[theme]}`);
-//
-//   // Update button content
-//   const icons = {
-//     light: "☀️",
-//     dark: "🌙",
-//   } as const;
-//
-//   toggleBtn.innerHTML = icons[theme];
-// }
-//
-// /**
-//  * Set up toggle button (call when DOM is ready)
-//  */
-// function setupToggleButton(): void {
-//   const toggleBtn = document.getElementById("theme-toggle");
-//   if (toggleBtn) {
-//     console.log("✓ Theme toggle button found, attaching click handler");
-//     toggleBtn.addEventListener("click", function () {
-//       console.log("✓ Theme toggle clicked");
-//       toggleTheme();
-//     });
-//     updateToggleButton();
-//   } else {
-//     console.warn("✗ Theme toggle button NOT found");
-//   }
-// }
-//
-// /**
-//  * Initialize theme on page load
-//  */
-// async function initTheme(): Promise<void> {
-//   // Try to load from database first (for authenticated users)
-//   const dbTheme = await loadThemeFromDatabase();
-//   let theme: Theme;
-//
-//   if (dbTheme) {
-//     // Use database theme and sync to localStorage
-//     theme = dbTheme;
-//     localStorage.setItem(STORAGE_KEY, dbTheme);
-//   } else {
-//     // Fallback to localStorage
-//     theme = getThemePreference();
-//   }
-//
-//   // Apply theme immediately to prevent flash
-//   applyTheme(theme);
-//
-//   // Set up toggle button - handle both pre-loaded and post-loaded states
-//   if (document.readyState === "loading") {
-//     document.addEventListener("DOMContentLoaded", setupToggleButton);
-//   } else {
-//     // DOM already loaded
-//     setupToggleButton();
-//   }
-// }
-//
-// // Initialize immediately (before DOM loads to prevent flash)
-// initTheme();
-//
-// // Expose API for manual control and settings page
-// window.SciTeX = window.SciTeX || ({} as any);
-// window.SciTeX.theme = {
-//   toggle: toggleTheme,
-//   set: setThemePreference,
-//   get: getThemePreference,
-//   LIGHT: THEME_LIGHT,
-//   DARK: THEME_DARK,
-// };
+describe("theme-switcher stx-theme convergence", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    document.documentElement.removeAttribute("data-theme");
+  });
 
-// =============================================================================
-// End of Source Code
-// =============================================================================
+  it("reads the canonical stx-theme key first", async () => {
+    localStorage.setItem(CANONICAL_KEY, "light");
+    localStorage.setItem(LEGACY_KEY, "dark");
+    await importFresh();
+    expect(window.SciTeX.theme.get()).toBe("light");
+  });
+
+  it("falls back to the legacy key and migrates it onto stx-theme", async () => {
+    localStorage.setItem(LEGACY_KEY, "light");
+    await importFresh();
+    expect(window.SciTeX.theme.get()).toBe("light");
+    expect(localStorage.getItem(CANONICAL_KEY)).toBe("light");
+  });
+
+  it("defaults to dark when neither key is set", async () => {
+    await importFresh();
+    expect(window.SciTeX.theme.get()).toBe("dark");
+  });
+
+  it("set() writes both keys (legacy kept in sync for one release cycle)", async () => {
+    await importFresh();
+    window.SciTeX.theme.set("light");
+    expect(localStorage.getItem(CANONICAL_KEY)).toBe("light");
+    expect(localStorage.getItem(LEGACY_KEY)).toBe("light");
+  });
+
+  it("cleans an invalid stored value to DARK on the canonical key", async () => {
+    // NOTE: this expectation was "light" on the original 2026-07-21 branch.
+    // It is deliberately NOT restored. PR #436 made DARK the base default on
+    // every viewport (operator mandate), and getThemePreference() migrates any
+    // non-light/dark value to THEME_DARK. Re-applying the stale "light"
+    // expectation would have been a stale test dragging the source back to a
+    // behaviour the dark-default card exists to prevent.
+    localStorage.setItem(CANONICAL_KEY, "system");
+    await importFresh();
+    expect(window.SciTeX.theme.get()).toBe("dark");
+    expect(localStorage.getItem(CANONICAL_KEY)).toBe("dark");
+  });
+
+  it("applies the resolved theme to the document root", async () => {
+    localStorage.setItem(CANONICAL_KEY, "dark");
+    await importFresh();
+    expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
+  });
+});

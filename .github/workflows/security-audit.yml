@@ -10,6 +10,27 @@ on:
       - 'requirements.txt'
       - 'requirements/*.txt'
 
+# Supersede a pull request's own earlier runs, which nobody will read once a
+# newer commit exists. Keyed per workflow per ref, so different PRs never
+# cancel each other.
+#
+# cancel-in-progress is TRUE ONLY FOR pull_request. A push to main or develop
+# is never cancelled: back-to-back merges would otherwise kill the earlier
+# merge's run, and anything treating a develop run as a gate would lose it
+# silently. Superseding an in-flight PR run is free; superseding a branch run
+# is a decision nobody made.
+#
+# THIS workflow has no pull_request trigger (schedule / workflow_dispatch /
+# push-to-main-on-requirements only), so that expression is constant FALSE here
+# and nothing is ever cancelled. Kept as the expression rather than hard-coded
+# `false` so every workflow reads identically and a future pull_request trigger
+# inherits the right behaviour instead of a stale literal nobody re-reads. The
+# `group:` is NOT dead either way: it serialises the weekly scan against a
+# manual dispatch on the same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   safety-check:
     name: Python Dependency Security Check
@@ -18,19 +39,37 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+      # uv venv, not setup-python + bare pip: the runner's toolcache Python
+      # is uv-managed and refuses pip under PEP 668, and these runners are
+      # org-pooled so the shared interpreter must not be mutated.
+      - uses: astral-sh/setup-uv@v7
 
       - name: Install safety
-        run: pip install safety
+        run: |
+          set -euo pipefail
+          uv venv --python 3.11 .venv
+          uv pip install --python .venv/bin/python safety
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
       - name: Run safety check
+        # ARMED. Previously `|| true`, and additionally vacuous: the whole check
+        # sat inside `if [ -f requirements.txt ]`, so a missing/renamed
+        # requirements.txt made the job pass having scanned nothing. A dependency
+        # audit that silently scans zero dependencies is the same defect as one
+        # that ignores its own exit code.
+        #
+        # If this goes red for a TOOLING reason rather than a finding — `safety
+        # check` is deprecated in favour of `safety scan`, and newer versions may
+        # want an API key — the fix is to migrate the invocation. It is NOT to
+        # restore `|| true`. Red-for-the-wrong-reason is debuggable; green-for-no-
+        # reason is not.
         run: |
-          if [ -f requirements.txt ]; then
-            safety check --file requirements.txt --json || true
+          set -euo pipefail
+          if [ ! -f requirements.txt ]; then
+            echo "::error::requirements.txt not found — a dependency audit cannot scan nothing." >&2
+            exit 1
           fi
+          safety check --file requirements.txt
 
   bandit:
     name: Python Security Linting
@@ -39,18 +78,53 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+      - uses: astral-sh/setup-uv@v7
 
       - name: Install bandit
-        run: pip install bandit
+        run: |
+          set -euo pipefail
+          uv venv --python 3.11 .venv
+          uv pip install --python .venv/bin/python bandit
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
       - name: Run bandit
+        # ARMED at HIGH severity. This step previously ended in `|| true`, so it
+        # could never report a finding: 10 consecutive weekly runs reported
+        # success while the repo carried 751 bandit findings, 15 of them HIGH.
+        #
+        # WHY --severity-level high AND NOT AN EXEMPTION FILE. Measured baseline
+        # 2026-07-30: 751 total = 15 HIGH / 65 MEDIUM / 671 LOW. 483 of those are
+        # the subprocess family (B603 subprocess_without_shell_equals_true, B607
+        # start_process_with_partial_path, B404 import subprocess) — hub shells
+        # out to git/slurm/apptainer deliberately, everywhere, so those are design
+        # not defect. They are ALL low severity, so the severity gate filters them
+        # and NO per-rule exemption list is needed. That matters: an exemption file
+        # is a thing that rots, and `|| true` was itself the blanket flag the
+        # constitution forbids. Filtering by severity keeps every rule live.
+        #
+        # B602 (shell=True) is HIGH and deliberately stays ARMED — it is the one
+        # member of the subprocess family that is a real injection surface, and a
+        # family-wide exemption would have silenced it.
+        #
+        # The 15 HIGH findings this now surfaces are enumerated on card
+        # sec-security-audit-workflow-cannot-fail-20260728: 9x B324 insecure hash
+        # (likely cache keys — needs usedforsecurity=False to confirm), 3x B507 ssh
+        # host-key verification disabled, 1x B602 shell=True, 1x B103 file perms.
+        # This job is EXPECTED TO BE RED until those are triaged. That is the point:
+        # red-and-true beats green-and-meaningless. Lower the gate to medium/low
+        # later, per-rule and with written reasons — never by restoring `|| true`.
+        #
+        # Note this workflow does NOT run on pull_request (schedule +
+        # workflow_dispatch + push-to-main on requirements only), so arming it
+        # cannot block anyone's PR. It turns the weekly badge honest.
         run: |
+          set -euo pipefail
+          # Write the FULL report for the artifact (all severities, human triage),
+          # without letting its exit status gate the job.
           bandit -r apps/ config/ -f json -o bandit-report.json || true
           cat bandit-report.json
+          # THEN gate, separately and loudly, on HIGH severity only.
+          bandit -r apps/ config/ --severity-level high
 
       - name: Upload bandit results
         uses: actions/upload-artifact@v4
@@ -65,18 +139,47 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+      - uses: astral-sh/setup-uv@v7
 
       - name: Install dependencies
+        # The `|| true` removed from the install was the SUBTLEST of the four
+        # defects in this file. It is not a non-failing gate — it is a VACUITY
+        # bug: if dependency install failed, the Django check below ran against a
+        # venv with no Django, and (being `|| true` itself) reported success.
+        # Fixing the check without fixing this would produce a check that passes
+        # because it could not run.
         run: |
-          pip install -r requirements.txt || true
+          set -euo pipefail
+          uv venv --python 3.11 .venv
+          uv pip install --python .venv/bin/python -r requirements.txt
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
       - name: Run Django security checks
         env:
           SCITEX_HUB_DJANGO_SECRET_KEY: 'test-secret-key-for-ci'
           SCITEX_HUB_DJANGO_SETTINGS_MODULE: 'config.settings.settings_dev'
+        # ARMED at --fail-level ERROR, deliberately not stricter yet.
+        #
+        # `check --deploy` is Django's PRODUCTION-hardening check, and this job
+        # points it at settings_dev (SCITEX_HUB_DJANGO_SETTINGS_MODULE above —
+        # that variable name IS correct, manage.py:57 reads it). Under dev
+        # settings the check legitimately emits WARNINGS (DEBUG=True, missing
+        # SECURE_* hardening) which are CORRECT for dev. Dropping `|| true` with
+        # the default fail level would therefore make this red for things that are
+        # not defects — a gate that cries wolf gets a `|| true` put back on it
+        # within a month, which is how this file got here.
+        #
+        # --fail-level ERROR gates on genuine ERRORS (broken settings, misconfigured
+        # apps, invalid values) while tolerating the dev-appropriate warnings. That
+        # is armed and honest today.
+        #
+        # THE REAL FIX, deliberately NOT attempted blind: run this against a
+        # PROD-shaped settings module so the SECURE_* warnings are meaningful.
+        # settings_prod calls require_env() for a long list of secrets and would
+        # abort in CI on missing env, i.e. fail for the wrong reason again. That
+        # needs a dedicated CI settings module with prod security posture and
+        # CI-safe values. Tracked on
+        # sec-security-audit-workflow-cannot-fail-20260728.
         run: |
-          python manage.py check --deploy || true
+          set -euo pipefail
+          python manage.py check --deploy --fail-level ERROR

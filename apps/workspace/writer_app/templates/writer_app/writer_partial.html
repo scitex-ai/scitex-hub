@@ -1,4 +1,4 @@
-{% load static vite tree_preseed %}
+{% load vite tree_preseed %}
 
 {% include "writer_app/index_partials/_writer_css.html" %}
 {% if needs_project_creation %}
@@ -24,6 +24,19 @@
         <!-- Main content: editor + preview -->
         <div class="writer-container">{% include "writer_app/index_partials/main_editor.html" %}</div>
         <!-- Details resizer (unified resizer system) -->
+        {% comment %}
+        data-collapse-on-narrow: on a phone this Details panel must start
+        COLLAPSED or there is no room left for the document. Measured on live
+        prod 2026-08-04 at 390px -- the aside occupied x=60..380 of a 380px
+        workspace and Writer showed NO editing surface at all. Two separate
+        paths produced that: a panel width stored from a desktop session was
+        restored verbatim, and with nothing stored the expanded HTML default
+        stood. The flag makes the narrow viewport win over both, and does NOT
+        persist the phone default back onto the user's desktop.
+        Implemented in scitex-ui ts/shell/resizer/_base.ts restoreState().
+        (A multi-line {# #} would RENDER here -- Django's tag_re has no
+        re.DOTALL -- so this is a {% templatetag openblock %} comment {% templatetag closeblock %} block.)
+        {% endcomment %}
         <div class="h-resizer"
              id="writer-details-resizer"
              data-h-resizer
@@ -35,6 +48,7 @@
              data-most-right
              data-threshold="40"
              data-storage-key="scitex-writer-details"
+             data-collapse-on-narrow
              data-external-toggle="details-toggle"></div>
         <!-- Details panel (rightmost) -->
         {% include "writer_app/index_partials/details_panel.html" %}
@@ -80,24 +94,6 @@
         },
         csrfToken: '{{ csrf_token }}'
     };
-    </script>
-    <!-- Import map for module resolution -->
-    <script type="importmap">
-    {
-        "imports": {
-            "@/types": "{% static 'shared/js/types/index.js' %}",
-            "@/types/": "{% static 'shared/js/types/' %}",
-            "@/utils/csrf": "{% static 'shared/js/utils/csrf.js' %}",
-            "@/utils/storage": "{% static 'shared/js/utils/storage.js' %}",
-            "@/utils/api": "{% static 'shared/js/utils/api.js' %}",
-            "@/utils/": "{% static 'shared/js/utils/' %}",
-            "@/utils": "{% static 'shared/js/utils/index.js' %}",
-            "@/writer/utils": "{% static 'writer_app/js/utils/index.js' %}",
-            "@/writer/utils/": "{% static 'writer_app/js/utils/' %}",
-            "@/writer/": "{% static 'writer_app/js/' %}",
-            "@/": "{% static 'shared/js/' %}"
-        }
-    }
     </script>
     <!-- Fallback panel switcher -->
     {% if project %}

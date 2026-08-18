@@ -23,6 +23,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 
 from ...models import Project
+from ...services.project_utils import set_current_project
 
 logger = logging.getLogger(__name__)
 
@@ -199,6 +200,13 @@ def api_switch_active_project(request):
         profile.last_active_repository = project
         profile.save()
 
+        # ...and the session slug, which is the OTHER place "current project"
+        # is stored. Writing only the profile left the session pointing at the
+        # previous project, so any reader that consults the session first saw a
+        # stale answer while the header showed the new one. Both stores must
+        # move together or "which project am I in" has two answers.
+        set_current_project(request, project)
+
         logger.info(f"User {request.user.username} switched to project {project.name}")
 
         return JsonResponse(
@@ -236,8 +244,28 @@ def api_project_create_jwt(request):
     """
     JWT-authenticated project creation endpoint for CLI access.
 
-    Accepts JSON: {"name": "...", "description": "...", "visibility": "private"}
-    Returns: {"success": true, "project_id": ..., "slug": "...", "url": "..."}
+    Accepts JSON::
+
+        {
+          "name": "my-thing",
+          "description": "...",          # optional
+          "visibility": "private",       # optional, "public"|"private"
+          "is_app": false,               # optional, marks as app project
+          "app_category": "writing"      # optional, app sub-category
+        }
+
+    The ``is_app`` flag is the agent-programmatic equivalent of the user
+    selecting "this is an app project" at creation time. Setting it does
+    NOT submit the project to the registry (that's a separate ``app
+    submit`` call); it only marks the project so subsequent ``app
+    install-dev`` / ``app submit`` calls know what to do.
+
+    ``app_category`` is optional at creation: leaving it blank is fine
+    (the value is required only when ``app submit`` is called and can be
+    supplied there). Allowed values come from
+    :data:`apps.workspace.apps_app.models.CATEGORY_CHOICES`.
+
+    Returns: ``{"success": true, "project_id": ..., "slug": "...", "url": ..., "is_app": bool, "app_category": str}``.
 
     CSRF-exempt by design — authentication is via Bearer JWT token, not session.
     The Django signal in project_signals.py will automatically create the
@@ -246,6 +274,8 @@ def api_project_create_jwt(request):
     name = request.data.get("name", "").strip()
     description = request.data.get("description", "").strip()
     visibility = request.data.get("visibility", "private")
+    is_app = bool(request.data.get("is_app", False))
+    app_category = (request.data.get("app_category") or "").strip()
 
     if not name:
         return Response(
@@ -263,18 +293,42 @@ def api_project_create_jwt(request):
             status=400,
         )
 
+    # Validate app_category if supplied (optional even when is_app=True)
+    if app_category:
+        try:
+            from apps.workspace.apps_app.models import CATEGORY_CHOICES
+        except Exception:  # pragma: no cover — fail-open if apps_app unavailable
+            CATEGORY_CHOICES = []
+        valid_categories = {c[0] for c in CATEGORY_CHOICES}
+        if valid_categories and app_category not in valid_categories:
+            return Response(
+                {
+                    "success": False,
+                    "error": (
+                        f"app_category must be one of: "
+                        f"{', '.join(sorted(valid_categories))}"
+                    ),
+                },
+                status=400,
+            )
+
     try:
         # Ensure unique name per user (appends suffix if duplicate)
         unique_name = Project.generate_unique_name(name, request.user)
         slug = Project.generate_unique_slug(unique_name, owner=request.user)
 
-        project = Project.objects.create(
-            name=unique_name,
-            slug=slug,
-            description=description,
-            owner=request.user,
-            visibility=visibility,
-        )
+        create_kwargs = {
+            "name": unique_name,
+            "slug": slug,
+            "description": description,
+            "owner": request.user,
+            "visibility": visibility,
+            "is_app": is_app,
+        }
+        if app_category:
+            create_kwargs["app_category"] = app_category
+
+        project = Project.objects.create(**create_kwargs)
 
         project_url = f"/{request.user.username}/{project.slug}/"
 
@@ -284,6 +338,8 @@ def api_project_create_jwt(request):
                 "project_id": project.pk,
                 "slug": project.slug,
                 "url": project_url,
+                "is_app": project.is_app,
+                "app_category": project.app_category or "",
                 "message": f'Project "{project.name}" created successfully',
             },
             status=201,

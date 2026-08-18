@@ -73,6 +73,7 @@
   --text-muted: var(--_scitex-04); /* Medium gray for muted text */
   --text-inverse: var(--_white);
   --text-color: var(--text-primary); /* Alias for legacy compatibility */
+  --text-link: #2c5d8f; /* 6.39:1 on --bg-surface #f8f7f5; AA needs 4.5 */
 
   /* Background - warm, eye-friendly tones */
   --bg-page: var(--_warm-white); /* Warm off-white page background */
@@ -136,6 +137,8 @@
   --app-accent-figrecipe-tint: rgba(124, 92, 191, 0.07);
   --app-accent-notebook: #4a7a3a; /* Deep green - lab notebook, experiments */
   --app-accent-notebook-tint: rgba(74, 122, 58, 0.07);
+  --app-accent-storage: #3a7a8a; /* Deep cyan-slate - storage, filesystems */
+  --app-accent-storage-tint: rgba(58, 122, 138, 0.07);
 
   /* Workspace icon color scheme (TOGGLE: swap _icon-green ↔ _icon-white below) */
   /* Green scheme */
@@ -268,6 +271,7 @@
   --text-muted: #8b949e;
   --text-inverse: var(--_scitex-01);
   --text-color: var(--text-primary); /* Alias for legacy compatibility */
+  --text-link: #58a6ff; /* 6.85:1 on --bg-surface #161b22 */
 
   /* Background - flip to dark */
   --bg-page: #0d1117;
@@ -335,6 +339,8 @@
   --app-accent-figrecipe-tint: rgba(160, 122, 224, 0.08);
   --app-accent-notebook: #7a9a6a; /* Soft green - lab notebook, experiments */
   --app-accent-notebook-tint: rgba(122, 154, 106, 0.08);
+  --app-accent-storage: #6ab0c0; /* Soft cyan - storage, filesystems */
+  --app-accent-storage-tint: rgba(106, 176, 192, 0.08);
 
   /* Workspace icon color scheme (TOGGLE: swap _icon-green ↔ _icon-white below) */
   /* Green scheme (dark mode) */

@@ -1,0 +1,133 @@
+# Teach CodeQL that the project's component-wise path-containment validators are
+# sanitizer barriers for py/path-injection.
+#
+# validate_path_in_project / validate_path_in_user_jail
+# (apps/infra/project_app/services/filesystem/permissions.py) both enforce
+# `target.resolve().relative_to(root.resolve())` and return a bool; every caller
+# gates the filesystem sink on them via `if not validate(...): return <error>`.
+#
+# CodeQL already models the inline `str(target.resolve()).startswith(str(root.resolve()))`
+# form as a path-injection barrier, but NOT these helper functions. So replacing a
+# buggy prefix check with the CORRECT component-wise check removes the modelled
+# barrier and re-reports a FALSE positive (the "penalized for the correct fix"
+# regression on the path-containment sweep). This encodes the TRUE containment
+# fact, scoped to the exact function + guarded argument — it is NOT a rule-wide or
+# path-wide suppression, and it does not weaken the check anywhere else.
+#
+# NOTE: validate_remote_path_in_root is INTENTIONALLY NOT modelled — its docstring
+# records an accepted residual symlink-escape risk (an operator decision), so
+# modelling it as a full barrier would permanently hide that channel from CodeQL.
+# The SSH validators (ssh_destination / ssh_remote_target) use a raise-and-return
+# shape and belong in a barrierModel(ReturnValue, ...) — deferred until those
+# functions land on develop.
+extensions:
+  # ACCESS PATH — MEASURED, not reasoned about. See the note at the bottom of
+  # this file for the four-way comparison that produced these two forms.
+  #
+  # The type column holds an IMPORTABLE TOP-LEVEL MODULE NAME and the access
+  # path is a Member[] chain from it. This is the shape python-all uses for its
+  # own barriers; compare semmle/python/frameworks/AntiSSRF.model.yml:
+  #   - ['AntiSSRF', 'Member[URIValidator].Member[in_domain,...].Argument[0]', "true", 'request-forgery']
+  - addsTo:
+      pack: codeql/python-all
+      extensible: barrierGuardModel
+    data:
+      # validate_path_in_project(project_path, target_path) -> bool
+      # target_path (Argument[1]) is contained in project_path when this is True.
+      - ["apps", "Member[infra].Member[project_app].Member[services].Member[filesystem].Member[permissions].Member[validate_path_in_project].Argument[1,target_path:]", "true", "path-injection"]
+      # validate_path_in_user_jail(user, target_path) -> bool  (delegates to the above)
+      - ["apps", "Member[infra].Member[project_app].Member[services].Member[filesystem].Member[permissions].Member[validate_path_in_user_jail].Argument[1,target_path:]", "true", "path-injection"]
+
+  # resolve_within(root, fragment) -> Path | None
+  # (apps/infra/platform_app/services/paths.py) RETURNS a validated path rather
+  # than answering a yes/no question, so it is a barrierModel on ReturnValue and
+  # NOT a barrierGuardModel on an argument.
+  #
+  # Useful for the header's SSH note, which parks ssh_destination /
+  # ssh_remote_target in "a barrierModel(ReturnValue, ...) — deferred". That
+  # deferral is because those functions are not on develop yet, NOT because the
+  # construct was unavailable: barrierModel is a documented python-all
+  # extensible predicate and it is measured working here. When those functions
+  # land, this block is the worked example to copy.
+  #
+  # An earlier revision modelled is_within's ARGUMENT instead. That entry bound
+  # nothing and was removed: callers do not gate on is_within, they consume
+  # resolve_within's return value, so an argument-shaped barrier cannot reach
+  # them. Measured: adding it changed the alert count by exactly 0.
+  - addsTo:
+      pack: codeql/python-all
+      extensible: barrierModel
+    data:
+      - ["apps", "Member[infra].Member[platform_app].Member[services].Member[paths].Member[resolve_within].ReturnValue", "path-injection"]
+
+# ---------------------------------------------------------------------------
+# HOW THESE WERE VERIFIED, and why the previous form was wrong.
+#
+# Measured 2026-08-14 with CodeQL CLI 2.26.3 (the version codeql-analysis.yml
+# actually downloads) against a python database built from develop @24607f360,
+# running codeql/python-queries Security/CWE-022/PathInjection.ql:
+#
+#   pack form                                                 alerts   delta
+#   -----------------------------------------------------------------------
+#   (none) baseline                                             187      --
+#   ["", "Module[apps.infra...]..."]        <- the old form     187       0
+#   ["apps.infra...permissions", "Member[...]..."]              187       0
+#   ["apps", "Member[infra]..."]            <- restored here    151     -36
+#   + barrierModel on resolve_within.ReturnValue                137     -50
+#
+# Positive control: 18 of the 44 flagged files call the modelled validators, so
+# every run had a real opportunity to move. A zero delta without that control
+# would have meant nothing.
+#
+# THE OLD COMMENT HERE WAS WRONG. It said ["apps", "Member[infra]..."] "asks
+# CodeQL to resolve a type literally named 'apps' ... the entry does not bind".
+# That form is the one that DOES bind. It looked broken when it was written
+# because the pack was not being applied to the analysis at all, so "it
+# suppressed nothing" was true for an unrelated reason — and the fix was aimed
+# at the one part that had been correct.
+#
+# RE-VERIFY IN ~90 SECONDS, no merge and no publish required:
+#   codeql database analyze <db> <PathInjection.ql> --format=csv --output=X.csv \
+#       --rerun --additional-packs=<dir> --model-packs=<pack-name>
+# and diff the row count against a run with no pack. Do this before believing
+# any future edit to this file — a green CI run does not prove an entry bound.
+#
+# ---------------------------------------------------------------------------
+# POST-MORTEM: THE request-forgery ENTRY THAT 0.3.0 SHIPPED AND 0.4.0 REMOVED.
+#
+# 0.3.0 added a barrierModel on validate_slack_webhook_url.ReturnValue, by
+# analogy with the resolve_within entry above. It was published UNMEASURED
+# (the authoring host had no codeql CLI) with a note promising to delete it if
+# it did not bind. It did not bind. Deleted.
+#
+# THE MEASUREMENT, on develop @4e76b661 (merge of #595):
+#   Two codeql-analysis runs fired on that one commit, and they loaded
+#   DIFFERENT pack versions — the publish race this pack keeps hitting:
+#       run 31848598098  started 22:57:29  installed 0.2.0   finished 22:59:45
+#       run 31848602786  started 22:57:34  installed 0.3.0   finished 23:00:52
+#   The 0.3.0 run finished LAST, so its SARIF is the authoritative upload. That
+#   is what makes this a real disproof rather than an untested guess: the alert
+#   list being read WAS produced by a run that had the entry loaded.
+#   Result: py/full-ssrf #14459 (slack_service.py:161) STILL OPEN. Open
+#   criticals on develop unchanged at 6.
+#
+# WHY IT LIKELY FAILED — a hypothesis, NOT a measured fact, flagged as such so
+# nobody spends 0.5.0 on it without checking: resolve_within's ReturnValue is
+# consumed as a PATH that flows onward into a filesystem sink, whereas
+# validate_slack_webhook_url returns its own ARGUMENT unchanged. A model that
+# marks the return value safe may simply not interrupt taint that CodeQL is
+# already tracking through the identical argument value. If so, this function
+# needs a barrierGuardModel-shaped treatment or a query-level change, not a
+# ReturnValue barrier — and that distinction can only be settled with the CLI.
+#
+# THE LESSON, which is the reusable part: DO NOT SHIP AN UNMEASURED MODEL.
+# Every entry above carries an alert delta. This one carried a promise instead,
+# and the promise cost a published version, a second published version to undo
+# it, and a develop analysis to find out. The file already said "a green CI run
+# does not prove an entry bound"; it now also says a plausible analogy to a
+# working entry does not either.
+#
+# STILL UNVERIFIED, deliberately stated: whether CI applies this pack at all.
+# The runs above passed --model-packs explicitly; codeql-analysis.yml relies on
+# `packs:`. The syntax fix is necessary and may not be sufficient — confirm
+# red->green on real alerts after this lands rather than assuming.

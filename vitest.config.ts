@@ -15,8 +15,19 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      // Shared-source alias (mirrors vite.config.ts "@" → static/shared/ts) so
+      // writer/console/etc. source files that import "@/utils/..." resolve
+      // under vitest.
+      "@": path.resolve(__dirname, "static/shared/ts"),
       // App aliases for imports
-      "@figrecipe_app": path.resolve(__dirname, "apps/workspace/figrecipe_app/static/figrecipe_app/ts"),
+      "@apps_app": path.resolve(
+        __dirname,
+        "apps/workspace/apps_app/static/apps_app/ts",
+      ),
+      "@figrecipe_app": path.resolve(
+        __dirname,
+        "apps/workspace/figrecipe_app/static/figrecipe_app/ts",
+      ),
       "@console_app": path.resolve(
         __dirname,
         "apps/workspace/console_app/static/console_app/ts",

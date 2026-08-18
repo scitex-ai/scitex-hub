@@ -1,12 +1,13 @@
-{% load static %}
+{% load static branding_tags %}
 
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {# Same tab-title policy as the hub shell: config/branding.py #}
         <title>
-            {% block title %}Tool{% endblock %}
+            {% block title %}{% page_title %}{% endblock %}
         </title>
         <!-- Fonts -->
         <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap"
@@ -39,7 +40,11 @@
         <!-- Detect theme from parent page or localStorage -->
         <script>
             (function() {
-                var theme = localStorage.getItem('scitex-theme-preference') || 'dark';
+                // Canonical key "stx-theme" (converged with scitex-ui);
+                // legacy key read as fallback for one release cycle.
+                var theme = localStorage.getItem('stx-theme')
+                    || localStorage.getItem('scitex-theme-preference')
+                    || 'dark';
                 document.documentElement.setAttribute('data-theme', theme);
             })();
         </script>
@@ -57,7 +62,7 @@
         <!-- Listen for theme changes from parent -->
         <script>
             window.addEventListener('storage', function(e) {
-                if (e.key === 'scitex-theme-preference') {
+                if (e.key === 'stx-theme' || e.key === 'scitex-theme-preference') {
                     document.documentElement.setAttribute('data-theme', e.newValue || 'dark');
                 }
             });

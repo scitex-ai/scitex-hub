@@ -24,6 +24,10 @@ import pytest
 # Project root
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
+# THIS checkout's src/ wins over any globally installed scitex_hub (the
+# editable .pth points at the primary clone) — a worktree must test its
+# own source, not another checkout's.
+sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 # ---------------------------------------------------------------------------
 # Module-import-time coverage wiring (parallel + subprocess support).
@@ -106,7 +110,11 @@ except Exception as e:
 # =============================================================================
 
 TEST_USER_USERNAME = os.getenv("SCITEX_HUB_TEST_USER_USERNAME", "test-user")
-TEST_USER_PASSWORD = os.getenv("SCITEX_HUB_TEST_USER_PASSWORD", "Password123!")
+# No literal default — see tests/develop/test_no_usable_secret_defaults.py.
+# These suites are integration tests against a live server and already skip
+# when one is unreachable; an empty password fails the login loudly instead of
+# silently trying a credential that this public repo advertises.
+TEST_USER_PASSWORD = os.getenv("SCITEX_HUB_TEST_USER_PASSWORD", "")
 BASE_URL = os.getenv("SCITEX_BASE_URL", "http://127.0.0.1:8000")
 
 

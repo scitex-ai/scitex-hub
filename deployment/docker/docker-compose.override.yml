@@ -73,12 +73,19 @@ services:
       - /app/staticfiles
       - /app/.cache
       - /app/.jsbuild
+    # Loopback-only, like docker-compose.preview.yml: this stack runs
+    # settings_dev, whose DEBUG defaults to True, so an unhandled 500 would
+    # serve settings, SQL, locals and the environment to anyone who can reach
+    # the host. The debugpy port is worse still -- a remote debugger on a
+    # public interface is arbitrary code execution in the Django process.
+    # Reach these over an SSH tunnel. Enforced by
+    # tests/config/test_compose_keeps_debug_stacks_off_public_interfaces.py
     ports:
-      - "${SCITEX_HUB_HTTP_PORT:-8000}:8000"
-      - "${SCITEX_HUB_SSH_PORT:-2200}:2200"
-      - "${SCITEX_HUB_DEBUGPY_PORT:-5678}:5678"   # debugpy
-      - "${SCITEX_HUB_VITE_PORT:-5173}:5173"      # Host Vite HMR (platform)
-      - "5174:5174"                                   # Container Vite HMR (dev apps)
+      - "127.0.0.1:${SCITEX_HUB_HTTP_PORT:-8000}:8000"
+      - "127.0.0.1:${SCITEX_HUB_SSH_PORT:-2200}:2200"
+      - "127.0.0.1:${SCITEX_HUB_DEBUGPY_PORT:-5678}:5678"   # debugpy
+      - "127.0.0.1:${SCITEX_HUB_VITE_PORT:-5173}:5173"      # Host Vite HMR (platform)
+      - "127.0.0.1:5174:5174"                               # Container Vite HMR (dev apps)
     env_file:
       - ./envs/.env.dev
     environment:
@@ -117,7 +124,7 @@ services:
   # ============================================
   postgres:
     ports:
-      - "${SCITEX_HUB_POSTGRES_PORT:-5433}:5432"
+      - "127.0.0.1:${SCITEX_HUB_POSTGRES_PORT:-5433}:5432"
     command:
       - postgres
       - -c
@@ -132,7 +139,7 @@ services:
   # ============================================
   redis:
     ports:
-      - "${SCITEX_HUB_REDIS_PORT:-6379}:6379"
+      - "127.0.0.1:${SCITEX_HUB_REDIS_PORT:-6379}:6379"
     command: redis-server --appendonly yes --loglevel debug
 
   # ============================================

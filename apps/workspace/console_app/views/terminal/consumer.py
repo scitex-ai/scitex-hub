@@ -91,6 +91,11 @@ class TerminalConsumer(ChannelEventsMixin, AsyncWebsocketConsumer):
         self.screen_session = query_params.get(
             "session", query_params.get("tmux_session", "scitex-0")
         )
+        # Model-provider id for this session (Option A model-agnostic
+        # agent sessions). An identifier only — validated against the
+        # server-side registry below and again inside the broker; the
+        # API key is never taken from the client.
+        requested_provider = query_params.get("provider", "")
 
         if not project_id:
             await self.accept()
@@ -162,7 +167,48 @@ class TerminalConsumer(ChannelEventsMixin, AsyncWebsocketConsumer):
             await self.close(code=4002)
             return
 
+        # Validate the model-provider request (role + ownership gate).
+        # Fail-loud: unknown ids, readonly visitors, anonymous sessions
+        # and non-owners get an explanation instead of a silent default.
+        from apps.workspace.console_app.services.terminal_provider import (
+            TerminalProviderError,
+            validate_provider_request,
+        )
+
+        try:
+            self.provider = validate_provider_request(
+                requested_provider, self.user, self.project.owner
+            )
+        except TerminalProviderError as e:
+            await self.accept()
+            await self.send(text_data=f"\x1b[1;31m❌ {e}\x1b[0m\r\n")
+            await self.close(code=4008)
+            return
+
         await self.accept()
+        await self._run_post_accept_setup()
+
+    async def _run_post_accept_setup(self):
+        """Run the post-accept setup pipeline, declining LOUDLY on failure.
+
+        An unhandled exception between accept() and the first send used to
+        close the socket with a bare 1011 and ZERO frames — the visitor saw
+        nothing. Instead: log the full traceback (prod daphne logs name the
+        real exception), send a visible ❌ frame naming the failed stage,
+        and close with a specific 4xxx code. Fail-closed: no fallback
+        execution path is ever taken here.
+        """
+        from .decline import send_decline
+
+        try:
+            await self._post_accept_setup()
+        except Exception as exc:
+            stage = getattr(self, "_setup_stage", "setup")
+            await send_decline(self, stage, exc, code=4010)
+
+    async def _post_accept_setup(self):
+        """Post-accept setup: channel groups, then session dispatch."""
+        self._setup_stage = "channel groups"
 
         # Join speech channel group so TTS relay can push to this browser
         if self.user.is_authenticated:
@@ -178,8 +224,27 @@ class TerminalConsumer(ChannelEventsMixin, AsyncWebsocketConsumer):
         else:
             self.capture_group = None
 
+        self._setup_stage = "session dispatch"
+
         # Remote: dispatch based on connection_mode
         if self.project.project_type == "remote":
+            from apps.workspace.console_app.services.terminal_provider import (
+                DEFAULT_PROVIDER,
+            )
+
+            if self.provider != DEFAULT_PROVIDER:
+                # Remote/TRIP shells run on the user's own machine over
+                # SSH — the hub cannot (and must not) inject API keys
+                # there. Fail loud instead of silently ignoring the pick.
+                await self.send(
+                    text_data=(
+                        "\x1b[1;31m❌ Model providers are not available for "
+                        "remote-connection projects — the terminal runs on "
+                        "your own machine.\x1b[0m\r\n"
+                    )
+                )
+                await self.close(code=4008)
+                return
             if (
                 hasattr(self.project, "remote_config")
                 and self.project.remote_config.connection_mode == "trip"
@@ -192,6 +257,8 @@ class TerminalConsumer(ChannelEventsMixin, AsyncWebsocketConsumer):
 
                 await spawn_remote_ssh(self)
             return
+
+        self._setup_stage = "terminal spawn"
 
         # Try broker first, fall back to direct mode
         if await _check_broker():

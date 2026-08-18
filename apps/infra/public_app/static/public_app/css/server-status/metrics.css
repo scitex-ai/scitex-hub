@@ -5,117 +5,113 @@
 
 /* System Metrics Grid - auto-fill with larger minimum for better readability */
 .metrics-grid {
-    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
 }
 
 /* Metric Cards - larger and more readable */
 .metric-card {
-    min-height: 280px;
-}
-
-.metric-card canvas {
-    min-height: 180px;
+  min-height: 280px;
 }
 
 /* Metric Cards */
 .metric-label {
-    margin-bottom: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1rem;
 }
 
 .metric-icon-cpu {
-    color: rgb(54, 162, 235);
+  color: rgb(54, 162, 235);
 }
 
 .metric-icon-memory {
-    color: rgb(255, 99, 132);
+  color: rgb(255, 99, 132);
 }
 
 .metric-icon-disk {
-    color: rgb(75, 192, 192);
+  color: rgb(75, 192, 192);
 }
 
 .metric-icon-gpu {
-    color: rgb(153, 102, 255);
+  color: rgb(153, 102, 255);
 }
 
 .metric-icon-disk-io {
-    color: rgb(255, 159, 64);
+  color: rgb(255, 159, 64);
 }
 
 .metric-icon-network {
-    color: rgb(255, 205, 86);
+  color: rgb(255, 205, 86);
 }
 
 .metric-icon-visitor-pool {
-    color: rgb(201, 203, 207);
+  color: rgb(201, 203, 207);
 }
 
 .metric-icon-users {
-    color: rgb(75, 192, 192);
+  color: rgb(75, 192, 192);
 }
 
 .metric-current-value {
-    font-size: 1.2rem;
-    font-weight: bold;
+  font-size: 1.2rem;
+  font-weight: bold;
 }
 
 .metric-current-value-cpu {
-    color: rgb(54, 162, 235);
+  color: rgb(54, 162, 235);
 }
 
 .metric-current-value-memory {
-    color: rgb(255, 99, 132);
+  color: rgb(255, 99, 132);
 }
 
 .metric-current-value-disk {
-    color: rgb(75, 192, 192);
+  color: rgb(75, 192, 192);
 }
 
 .metric-current-value-gpu {
-    color: rgb(153, 102, 255);
+  color: rgb(153, 102, 255);
 }
 
 .metric-current-value-disk-io {
-    color: rgb(255, 159, 64);
+  color: rgb(255, 159, 64);
 }
 
 .metric-current-value-network {
-    color: rgb(255, 205, 86);
+  color: rgb(255, 205, 86);
 }
 
 .metric-current-value-visitor-pool {
-    color: rgb(201, 203, 207);
+  color: rgb(201, 203, 207);
 }
 
 .metric-current-value-users {
-    color: rgb(75, 192, 192);
+  color: rgb(75, 192, 192);
 }
 
 .metric-chart {
-    min-height: 180px;
+  min-height: 180px;
 }
 
 .metric-info {
-    margin-top: 0.5rem;
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    text-align: center;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
 }
 
 /* Error Messages */
 .error-message {
-    color: var(--status-error);
+  color: var(--status-error);
 }
 
 .warning-message {
-    color: var(--status-warning);
+  color: var(--status-warning);
 }
 
 /* Info Boxes */
 .info-box-with-margin {
-    margin-top: 1.5rem;
+  margin-top: 1.5rem;
 }

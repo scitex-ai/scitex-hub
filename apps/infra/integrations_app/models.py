@@ -32,6 +32,7 @@ class IntegrationConnection(models.Model):
         ("mistral", "Mistral AI"),
         ("xai", "xAI (Grok)"),
         ("deepseek", "DeepSeek"),
+        ("mimo", "Xiaomi MiMo"),
         ("openrouter", "OpenRouter"),
         ("ollama", "Ollama (local)"),
         ("local_llm", "Local LLM (Ollama/LM Studio)"),

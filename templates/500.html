@@ -208,9 +208,10 @@
             <div class="footer">
                 <a href="https://scitex.ai">scitex.ai</a>
                 <span class="sep">&middot;</span>
-                <a href="mailto:support@scitex.ai">support@scitex.ai</a>
+                {# LITERAL ON PURPOSE — Django's default handler500 renders this without context processors, so {{ CONTACT_EMAIL }} would emit an empty mailto:. Pinned to branding.CONTACT_EMAIL by tests/config/test_contact_email_ssot.py. #}
+                <a href="mailto:info@scitex.ai">info@scitex.ai</a>
                 <span class="sep">&middot;</span>
-                <a href="https://github.com/ywatanabe1989/scitex-hub"
+                <a href="https://github.com/scitex-ai/scitex-hub"
                    target="_blank"
                    rel="noopener">GitHub</a>
             </div>

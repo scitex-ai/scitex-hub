@@ -8,4 +8,7 @@ class AuthAppConfig(AppConfig):
 
     def ready(self):
         """Initialize the app when Django starts."""
-        pass
+        # Registers the allauth ``user_logged_in`` receiver that records
+        # linked identities. Imported for its side effect; the receiver
+        # carries a dispatch_uid so a double import cannot double-fire.
+        from apps.infra.auth_app.account_linking import signals  # noqa: F401

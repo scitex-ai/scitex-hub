@@ -11,12 +11,14 @@ Or via Docker:
 
 Environment Variables (from deployment/docker/envs/.env.dev):
     SCITEX_HUB_TEST_USER_USERNAME - Test user username (default: test-user)
-    SCITEX_HUB_TEST_USER_PASSWORD - Test user password (default: Password123!)
+    SCITEX_HUB_TEST_USER_PASSWORD - Test user password. NO DEFAULT: when unset a
+                                    random password is generated and printed.
     SCITEX_HUB_TEST_USER_EMAIL    - Test user email (default: test@example.com)
 """
 
 import logging
 import os
+import secrets
 
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
@@ -25,8 +27,37 @@ logger = logging.getLogger(__name__)
 
 # Default values from environment variables
 DEFAULT_USERNAME = os.getenv("SCITEX_HUB_TEST_USER_USERNAME", "test-user")
-DEFAULT_PASSWORD = os.getenv("SCITEX_HUB_TEST_USER_PASSWORD", "Password123!")
 DEFAULT_EMAIL = os.getenv("SCITEX_HUB_TEST_USER_EMAIL", "test@example.com")
+
+# There is deliberately NO built-in password default.
+#
+# A literal here is not a placeholder, it is a SHARED credential: every
+# deployment that omits the env var converges on the same value, and this
+# repository is PUBLIC. The previous default, "Password123!", was documented in
+# the README, the setup page and the docs — and on 2026-08-16 it was found to
+# authenticate as `test-user` on PRODUCTION. The account was closed; this
+# removes the code path that recreates it.
+#
+# Absent an explicit password we mint a random one and print it. A forgotten
+# env var then yields a credential NOBODY knows instead of one EVERYBODY does,
+# which is the only difference that matters. The password is echoed at the end
+# of this command, so the dev workflow is "read the output" rather than "read
+# the source" — a small ergonomic cost, taken deliberately.
+PASSWORD_ENV_VAR = "SCITEX_HUB_TEST_USER_PASSWORD"
+
+
+def resolve_password(explicit=None):
+    """Return ``(password, was_generated)``.
+
+    Precedence: ``--password`` > ``$SCITEX_HUB_TEST_USER_PASSWORD`` > generated.
+    Never returns a value baked into this file.
+    """
+    if explicit:
+        return explicit, False
+    from_env = os.getenv(PASSWORD_ENV_VAR)
+    if from_env:
+        return from_env, False
+    return secrets.token_urlsafe(24), True
 
 
 class Command(BaseCommand):
@@ -42,8 +73,11 @@ class Command(BaseCommand):
         parser.add_argument(
             "--password",
             type=str,
-            default=DEFAULT_PASSWORD,
-            help="Password for the test user (from SCITEX_HUB_TEST_USER_PASSWORD)",
+            default=None,
+            help=(
+                f"Password for the test user. Falls back to ${PASSWORD_ENV_VAR}, "
+                "then to a generated random password (printed below)."
+            ),
         )
         parser.add_argument(
             "--email",
@@ -55,7 +89,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         User = get_user_model()
         username = options["username"]
-        password = options["password"]
+        password, generated = resolve_password(options["password"])
         email = options["email"]
 
         # Create Django user
@@ -83,6 +117,17 @@ class Command(BaseCommand):
                 f"\nCredentials:\n  Username: {username}\n  Password: {password}\n  Email: {email}"
             )
         )
+        if generated:
+            # Say it was generated. Otherwise this looks like a fixed value
+            # somebody could go and look up later, which is the habit that put
+            # a published literal onto production in the first place.
+            self.stdout.write(
+                self.style.WARNING(
+                    f"\n  ^ generated for this run because ${PASSWORD_ENV_VAR} is unset."
+                    "\n    It is NOT stored anywhere else and NOT recoverable from the"
+                    f"\n    source. Copy it now, or set ${PASSWORD_ENV_VAR} and re-run."
+                )
+            )
 
     def _sync_to_gitea(self, user, password):
         """Sync user to Gitea."""

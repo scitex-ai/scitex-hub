@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-05-22 05:15:38 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-cloud/config/logger.py
+# File: /home/ywatanabe/proj/scitex-hub/config/logger.py
 # ----------------------------------------
 """
 Logger utilities for SciTeX Hub project.
@@ -14,9 +14,9 @@ patterns like function calls, exceptions, and API requests.
 """
 
 import logging
-from functools import wraps
-import traceback
 import time
+import traceback
+from functools import wraps
 
 # Get logger for our application
 logger = logging.getLogger("scitex")

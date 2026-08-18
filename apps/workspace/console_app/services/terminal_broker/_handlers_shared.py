@@ -3,6 +3,11 @@
 These functions implement the sbatch + srun --overlap spawn pattern.
 They receive the broker instance as the first argument to access
 shared state (allocations, shells, indexes).
+
+Split for the 512-line cap:
+- ``_alloc_cooldown``  — hard-failure cooldown state + escalation math.
+- ``_shell_recovery``  — exit/respawn/allocation-recovery callbacks.
+Both are re-exported here so broker.py and tests keep their import paths.
 """
 
 import base64
@@ -16,25 +21,22 @@ from pathlib import Path
 
 from apps.workspace.console_app.views.terminal.config import SLURM_TIME_LIMIT_SECONDS
 
-from ._handler_utils import respawn_pty, send_state
+from ._alloc_cooldown import _get_cooldown, _hard_fail_info
+from ._handler_utils import send_state
+from ._paths import broker_user_data_root
+from ._shell_recovery import _make_shell_exit_cb, handle_restart_shared
 from .allocation import Allocation, AllocationState
 from .session import SessionState
-from .shell import MAX_RESPAWNS as SHELL_MAX_RESPAWNS
 from .shell import Shell
 
 logger = logging.getLogger(__name__)
 
-# Cooldown: don't retry allocation after hard failures (node DOWN, not installed)
-# Escalates: 30s -> 60s -> 120s -> 240s (capped at 4 min)
-_HARD_FAIL_COOLDOWN_BASE = 30  # seconds
-_HARD_FAIL_COOLDOWN_MAX = 240  # seconds
-# alloc_key -> (timestamp, reason, fail_count)
-_hard_fail_info: dict[tuple, tuple[float, str, int]] = {}
-
-
-def _get_cooldown(fail_count: int) -> int:
-    """Return escalating cooldown in seconds based on consecutive failure count."""
-    return min(_HARD_FAIL_COOLDOWN_BASE * (2**fail_count), _HARD_FAIL_COOLDOWN_MAX)
+__all__ = [
+    "handle_spawn_shared",
+    "handle_restart_shared",
+    "handle_stop_allocation",
+    "stop_all_allocations",
+]
 
 
 def _wait_for_node_or_fail(broker, client, alloc_key) -> tuple[bool, str]:
@@ -75,6 +77,24 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
     shell_key = (username, screen_session)
     alloc_key = (username,)  # 1 allocation per user, not per project
 
+    # 0. Resolve model provider SERVER-SIDE (registry validation + API-key
+    # lookup from the encrypted llm_app store) BEFORE any allocation work.
+    # Fail-loud: the error string is user-safe and never contains the key.
+    from apps.workspace.console_app.services.terminal_provider import (
+        TerminalProviderError,
+        resolve_spawn_provider,
+    )
+
+    try:
+        provider, provider_env = resolve_spawn_provider(msg)
+    except TerminalProviderError as exc:
+        logger.warning(
+            "Shell spawn rejected for %s: provider %r invalid or unusable",
+            username,
+            msg.get("provider"),
+        )
+        return {"status": "error", "error": str(exc)}
+
     # 1. Check for existing shell to reattach
     with broker.lock:
         existing_shell_id = broker.shell_index.get(shell_key)
@@ -86,6 +106,19 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
             and existing_shell.state == SessionState.RUNNING
             and existing_shell.fd is not None
         ):
+            # Env cannot change on a live PTY — reattaching with a
+            # DIFFERENT provider would silently keep the old backend, so
+            # fail loud and point the user at a fresh session instead.
+            running_provider = getattr(existing_shell, "provider", provider)
+            if running_provider != provider:
+                return {
+                    "status": "error",
+                    "error": (
+                        f"Terminal session '{screen_session}' is already "
+                        f"running with provider '{running_provider}'. "
+                        f"Open a new terminal tab to use '{provider}'."
+                    ),
+                }
             # Replay scrollback before starting live output
             scrollback = existing_shell.get_scrollback()
             if scrollback:
@@ -198,7 +231,10 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
                 "error": "Environment startup timed out, please retry",
             }
 
-    # 3. Spawn shell inside allocation
+    # 3. Spawn shell inside allocation. Resolve broker-visible project_dir so
+    # BasePTY chdirs to the project root before fork (falls back to HOME → /tmp
+    # if the path is missing, e.g. first-time user — no silent swallow).
+    broker_project_dir = broker_user_data_root() / username / "proj" / project_slug
     shell_id = str(uuid.uuid4())
     shell = Shell(
         shell_id=shell_id,
@@ -206,6 +242,10 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
         username=username,
         screen_session=screen_session,
         command=alloc.get_shell_command(project_slug=project_slug),
+        project_dir=broker_project_dir,
+        provider=provider,
+        provider_env=provider_env,
+        project_slug=project_slug,
     )
 
     if not shell.spawn():
@@ -219,7 +259,8 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
         return {"status": "error", "error": error_msg}
 
     shell.client_socket = client
-    shell.last_project_slug = project_slug
+    # last_project_slug is set in Shell.__init__ — assigning it here would be
+    # after the fork and therefore too late to reach the child's environment.
     shell.on_exit_callback = _make_shell_exit_cb(broker, client)
     shell.start_reader(broker._make_output_callback(client))
     alloc.increment_shells()
@@ -228,8 +269,6 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
     send_state(broker, client, shell_id, "running")
 
     # Inject cd and MOTD after shell initializes
-    container_dir = f"/home/{username}/proj/{project_slug}"
-
     from apps.workspace.console_app.views.terminal.config import SHOW_MOTD
 
     def _inject_init():
@@ -276,190 +315,9 @@ def handle_spawn_shared(broker, msg: dict, client: socket.socket) -> dict:
     return {"status": "ok", "session_id": shell_id}
 
 
-def _make_shell_exit_cb(broker, client: socket.socket):
-    """Create exit callback for shell auto-respawn."""
-
-    def on_exit(pty_id):
-        with broker.lock:
-            shell = broker.shells.get(pty_id)
-        if not shell or shell.state != SessionState.RUNNING:
-            return
-
-        shell.cleanup_fd()
-        shell.state = SessionState.EXITED
-        send_state(broker, client, pty_id, "exited")
-
-        # Check if allocation is still alive
-        with broker.lock:
-            alloc = broker.allocations.get(shell.allocation_id)
-        if alloc and not alloc.check_alive():
-            reason = alloc.get_failure_reason()
-            shell.state = SessionState.DEAD
-            alloc.decrement_shells()
-            send_state(
-                broker,
-                client,
-                pty_id,
-                "allocation_dead",
-                extra={"reason": reason},
-            )
-            # Attempt auto-recovery after a short delay
-            timer = threading.Timer(
-                2.0,
-                _auto_recover_allocation,
-                args=(broker, pty_id, shell, alloc, client),
-            )
-            timer.daemon = True
-            timer.start()
-            return
-
-        # Intentional exit (ran >10s): reset counter so user never gets stuck
-        if shell.last_spawn_time and (time.time() - shell.last_spawn_time > 10):
-            shell.spawn_count = 0
-
-        if shell.spawn_count < SHELL_MAX_RESPAWNS:
-            backoff = (
-                0.5 if shell.spawn_count == 0 else min(2 ** (shell.spawn_count - 1), 4)
-            )
-            timer = threading.Timer(
-                backoff, _respawn_shell, args=(broker, pty_id, client)
-            )
-            timer.daemon = True
-            timer.start()
-        else:
-            shell.state = SessionState.DEAD
-            if alloc:
-                alloc.decrement_shells()
-
-    return on_exit
-
-
-def _respawn_shell(broker, pty_id: str, client: socket.socket):
-    """Respawn a shell after exit."""
-    with broker.lock:
-        shell = broker.shells.get(pty_id)
-    if not shell or shell.state == SessionState.DEAD:
-        return
-
-    def on_fail():
-        with broker.lock:
-            alloc = broker.allocations.get(shell.allocation_id)
-        if alloc:
-            alloc.decrement_shells()
-
-    respawn_pty(broker, shell, client, _make_shell_exit_cb, on_fail=on_fail)
-
-
-def _auto_recover_allocation(
-    broker,
-    pty_id: str,
-    shell,
-    old_alloc,
-    client: socket.socket,
-):
-    """Attempt to start a new allocation and respawn the shell inside it."""
-    alloc_key = (shell.username,)
-
-    # Check cooldown (hard failures only)
-    last_info = _hard_fail_info.get(alloc_key)
-    if last_info and time.time() - last_info[0] < _get_cooldown(last_info[2]):
-        send_state(
-            broker,
-            client,
-            pty_id,
-            "dead",
-            extra={"reason": "Please wait a moment before retrying"},
-        )
-        return
-
-    send_state(broker, client, pty_id, "allocation_recovering")
-
-    new_alloc = Allocation(
-        username=old_alloc.username,
-        project_slug=old_alloc.project_slug,
-        container_path=old_alloc.container_path,
-        host_user_dir=old_alloc.host_user_dir,
-        host_project_dir=old_alloc.host_project_dir,
-        time_limit_seconds=old_alloc.time_limit_seconds,
-    )
-
-    # Check squeue for existing jobs before submitting new sbatch
-    existing_jobs = Allocation.find_existing_jobs(old_alloc.username)
-    if existing_jobs:
-        started = new_alloc.attach_to_existing(existing_jobs[0])
-    else:
-        started = new_alloc.start()
-
-    if not started:
-        reason = new_alloc.last_error or "Could not restart environment"
-        existing = _hard_fail_info.get(alloc_key)
-        fail_count = (existing[2] + 1) if existing else 0
-        _hard_fail_info[alloc_key] = (time.time(), reason, fail_count)
-        send_state(
-            broker,
-            client,
-            pty_id,
-            "dead",
-            extra={"reason": reason},
-        )
-        return
-
-    with broker.lock:
-        broker.allocations[new_alloc.allocation_id] = new_alloc
-        broker.alloc_index[alloc_key] = new_alloc.allocation_id
-        _hard_fail_info.pop(alloc_key, None)
-        shell.allocation_id = new_alloc.allocation_id
-        shell.command = new_alloc.get_shell_command(project_slug=old_alloc.project_slug)
-        shell.spawn_count = 0
-
-    def on_fail():
-        new_alloc.decrement_shells()
-
-    success = respawn_pty(broker, shell, client, _make_shell_exit_cb, on_fail=on_fail)
-    if success:
-        new_alloc.increment_shells()
-        logger.info(
-            f"Shell {pty_id[:8]}: auto-recovered into allocation {new_alloc.allocation_id[:8]}"
-        )
-    else:
-        logger.error(f"Shell {pty_id[:8]}: auto-recovery respawn failed")
-
-
-def handle_restart_shared(broker, msg: dict, client: socket.socket) -> dict:
-    """Restart a shell: respawn if allocation alive, recover if dead."""
-    session_id = msg.get("session_id", "")
-    with broker.lock:
-        shell = broker.shells.get(session_id)
-
-    if not shell:
-        return {"status": "error", "error": "Shell not found"}
-
-    with broker.lock:
-        alloc = broker.allocations.get(shell.allocation_id)
-
-    if alloc and alloc.check_alive():
-        # Allocation is alive — just respawn the shell
-        def on_fail():
-            if alloc:
-                alloc.decrement_shells()
-
-        respawn_pty(broker, shell, client, _make_shell_exit_cb, on_fail=on_fail)
-        return {"status": "ok", "session_id": session_id}
-
-    # Allocation is dead — trigger recovery
-    if alloc:
-        threading.Timer(
-            0,
-            _auto_recover_allocation,
-            args=(broker, session_id, shell, alloc, client),
-        ).start()
-    return {"status": "ok", "session_id": session_id}
-
-
 def handle_stop_allocation(broker, msg: dict) -> dict:
     """Stop a shared allocation and all its shells."""
     username = msg.get("username", "")
-    project_slug = msg.get("project_slug", "")
     alloc_key = (username,)  # matches per-user key in handle_spawn_shared
 
     with broker.lock:

@@ -1,5 +1,5 @@
 /* Repository maintenance admin page styles */
-@import url("shared/variables.css");
+@import url("../shared/variables.css");
 
 .maintenance-container {
   padding: 2rem;

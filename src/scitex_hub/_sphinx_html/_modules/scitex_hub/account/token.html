@@ -1,0 +1,470 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>scitex_hub.account.token &mdash; SciTeX Hub v0.18.1</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=1e56ff10"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            SciTeX Hub
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../installation.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../installation.html#install-from-pypi">Install from PyPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../installation.html#install-from-source">Install from Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../installation.html#verify-installation">Verify Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../setup.html">Setup Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#what-you-get">What You Get</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#quick-start-development">Quick Start (Development)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#step-by-step-development-setup">Step-by-Step Development Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#production-setup">Production Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#cli-only-install">CLI-Only Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#configuration-reference">Configuration Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#common-commands">Common Commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#architecture">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../setup.html#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#deployment">Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#cli-only-install">CLI-Only Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#common-operations">Common Operations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../cli.html">CLI Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#global-options">Global Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#project-management">Project Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#three-way-sync">Three-Way Sync</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#git-hosting-gitea">Git Hosting (Gitea)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#app-management">App Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#cloud-sdk">Cloud SDK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#infrastructure">Infrastructure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#mcp-server">MCP Server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../cli.html#utilities">Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../sync.html">Three-Way Sync</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../sync.html#architecture">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../sync.html#commands">Commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../sync.html#conflict-handling">Conflict Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../sync.html#state-tracking">State Tracking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../sync.html#typical-workflows">Typical Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../sync.html#implementation">Implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mcp.html">MCP Server</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../mcp.html#available-tools">Available Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../mcp.html#setup-for-claude-desktop">Setup for Claude Desktop</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../mcp.html#setup-for-claude-code">Setup for Claude Code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../mcp.html#environment-source-file-env-src">Environment Source File (<code class="docutils literal notranslate"><span class="pre">ENV_SRC</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../mcp.html#cli-commands">CLI Commands</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../app_platform.html">App Platform</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../app_platform.html#workspace-layout">Workspace Layout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../app_platform.html#platform-services">Platform Services</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../app_platform.html#datastore">DataStore</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../app_platform.html#filevault">FileVault</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../app_platform.html#jobqueue">JobQueue</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../app_platform.html#scitexbridge">ScitexBridge</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../app_platform.html#externalapi">ExternalAPI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../app_platform.html#realtimehub">RealtimeHub</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../app_platform.html#frontendkit">FrontendKit</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../app_platform.html#app-registration">App Registration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../app_platform.html#built-in-apps">Built-in Apps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../app_platform.html#external-pip-installed-apps">External (pip-installed) Apps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../app_platform.html#context-bootstrap">Context Bootstrap</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../app_platform.html#dev-install-workflow">Dev Install Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../app_platform.html#app-submission-and-review">App Submission and Review</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../app_platform.html#separation-of-concerns">Separation of Concerns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../app_platform.html#reference">Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../visitor_pool_security.html">Visitor Pool Security</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#background-the-fix">Background: the fix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#layer-1-reset-workspace-after">Layer 1 — <code class="docutils literal notranslate"><span class="pre">&#64;reset_workspace_after</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#layer-2-ensure-clean-workspace">Layer 2 — <code class="docutils literal notranslate"><span class="pre">&#64;ensure_clean_workspace</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#layer-3-reset-visitor-pool-on-container-restart">Layer 3 — <code class="docutils literal notranslate"><span class="pre">reset_visitor_pool</span></code> on container restart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#what-gets-cleared">What gets cleared</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#pool-lifecycle-diagram">Pool lifecycle diagram</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#operations">Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../visitor_pool_security.html#further-reading">Further reading</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/scitex_hub.html">scitex_hub Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/index.html#package-overview">Package Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/_autosummary/scitex_hub.html">scitex_hub</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_hub.html#scitex_hub.get_version"><code class="docutils literal notranslate"><span class="pre">get_version()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_hub.html#scitex_hub.health_check"><code class="docutils literal notranslate"><span class="pre">health_check()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_hub.html#scitex_hub.get_context"><code class="docutils literal notranslate"><span class="pre">get_context()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_hub.html#scitex_hub.eval_js"><code class="docutils literal notranslate"><span class="pre">eval_js()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_hub.html#scitex_hub.ui_action"><code class="docutils literal notranslate"><span class="pre">ui_action()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_hub.html#scitex_hub.CloudClient"><code class="docutils literal notranslate"><span class="pre">CloudClient</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_hub.html#scitex_hub.Environment"><code class="docutils literal notranslate"><span class="pre">Environment</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_hub.html#scitex_hub.get_environment"><code class="docutils literal notranslate"><span class="pre">get_environment()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_hub.html#scitex_hub.DockerManager"><code class="docutils literal notranslate"><span class="pre">DockerManager</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_hub.account.html">scitex_hub.account</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_hub.appmaker.html">scitex_hub.appmaker</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_hub.module.html">scitex_hub.module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_hub.project.html">scitex_hub.project</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/_autosummary/scitex_hub.sdk.html">scitex_hub.sdk</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">SciTeX Hub</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../../scitex_hub.html">scitex_hub</a></li>
+      <li class="breadcrumb-item active">scitex_hub.account.token</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for scitex_hub.account.token</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># File: src/scitex_hub/account/token.py</span>
+<span class="sd">&quot;&quot;&quot;Python parity for ``scitex-hub account token {create,list,revoke}``.</span>
+
+<span class="sd">Each function thin-wraps the corresponding ``/api/me/...`` HTTP</span>
+<span class="sd">endpoint that PR #273 / #274 wired up server-side. The transport is</span>
+<span class="sd">the stdlib ``requests`` library — same as the CLI in</span>
+<span class="sd">``src/scitex_hub/_cli/_account/_token.py`` — so behaviour matches the</span>
+<span class="sd">shell-out path 1:1.</span>
+
+<span class="sd">Authentication uses :func:`scitex_hub.account._auth.resolve_bearer`,</span>
+<span class="sd">which fails loud (``RuntimeError``) if no token is available rather</span>
+<span class="sd">than silently anonymising the call.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Sequence</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">._auth</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_bearer</span><span class="p">,</span> <span class="n">resolve_server</span>
+
+<span class="c1">#: Default scopes for a CLI/API-issued token. Mirrors the server-side</span>
+<span class="c1">#: ``ALLOWED_CLI_SCOPES`` allowlist on</span>
+<span class="c1">#: ``apps.infra.accounts_app.views.me_token_views``.</span>
+<span class="n">DEFAULT_SCOPES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;publish&quot;</span><span class="p">,)</span>
+
+
+<div class="viewcode-block" id="create">
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.account.token.html#scitex_hub.account.token.create">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create</span><span class="p">(</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;scitex-hub-api&quot;</span><span class="p">,</span>
+    <span class="n">scopes</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">user</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">password</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">server</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">request_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mint a new ``scitex_xxxx`` API token.</span>
+
+<span class="sd">    POSTs to ``/api/me/token/``. Server-side validates the scope</span>
+<span class="sd">    allowlist (currently ``{&quot;publish&quot;}``), rate-limits per-IP +</span>
+<span class="sd">    per-username, and uses a constant-time error path so a wrong</span>
+<span class="sd">    password is indistinguishable from an unknown user.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name: Human-readable name for the token (visible in the UI).</span>
+<span class="sd">            Defaults to ``&quot;scitex-hub-api&quot;`` so the agent-programmatic</span>
+<span class="sd">            path is visually distinct from the CLI default</span>
+<span class="sd">            (``&quot;scitex-hub-cli&quot;``).</span>
+<span class="sd">        scopes: Iterable of scope strings. Defaults to</span>
+<span class="sd">            :data:`DEFAULT_SCOPES`.</span>
+<span class="sd">        user: Username for basic-auth minting. Required when calling</span>
+<span class="sd">            ``create()`` without an existing cached bearer token (the</span>
+<span class="sd">            normal first-time login flow).</span>
+<span class="sd">        password: Password for basic-auth minting. Required alongside</span>
+<span class="sd">            ``user``.</span>
+<span class="sd">        server: Override server URL. Defaults to</span>
+<span class="sd">            :func:`._auth.resolve_server` (env / cache / scitex.ai).</span>
+<span class="sd">        request_fn: Dependency-injection seam for the HTTP transport.</span>
+<span class="sd">            When ``None``, uses ``requests.post`` directly. Tests pass</span>
+<span class="sd">            a hand-rolled fake (see ``tests/scitex_hub/account/``).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dict with ``token``, ``prefix``, ``scopes``, and ``name``.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: ``user``/``password`` missing (no other auth path).</span>
+<span class="sd">        RuntimeError: Server rejected the request (bad creds, scope</span>
+<span class="sd">            not allowlisted, rate limit, etc.).</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from scitex_hub.account import token</span>
+<span class="sd">        &gt;&gt;&gt; token.create(name=&quot;ci&quot;, scopes=[&quot;publish&quot;],</span>
+<span class="sd">        ...              user=&quot;ywatanabe&quot;, password=&quot;...&quot;)</span>
+<span class="sd">        {&#39;token&#39;: &#39;scitex_...&#39;, &#39;prefix&#39;: &#39;...&#39;,</span>
+<span class="sd">         &#39;scopes&#39;: [&#39;publish&#39;], &#39;name&#39;: &#39;ci&#39;}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">user</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">password</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;token.create requires user= and password= &quot;</span>
+            <span class="s2">&quot;(basic-auth path — bearer-only minting is not supported)&quot;</span>
+        <span class="p">)</span>
+    <span class="c1"># NOTE: cannot use the ``list`` builtin here — we expose ``list``</span>
+    <span class="c1"># as a module-level alias for :func:`list_` (CLI-verb mirror), and</span>
+    <span class="c1"># that alias shadows the builtin inside this module. Use literal</span>
+    <span class="c1"># unpacking instead.</span>
+    <span class="n">scope_list</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="n">scopes</span><span class="p">]</span> <span class="k">if</span> <span class="n">scopes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="o">*</span><span class="n">DEFAULT_SCOPES</span><span class="p">]</span>
+    <span class="n">server_url</span> <span class="o">=</span> <span class="n">resolve_server</span><span class="p">(</span><span class="n">server</span><span class="p">)</span>
+    <span class="n">body</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="n">user</span><span class="p">,</span>
+        <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="n">password</span><span class="p">,</span>
+        <span class="s2">&quot;scopes&quot;</span><span class="p">:</span> <span class="n">scope_list</span><span class="p">,</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">do_request</span> <span class="o">=</span> <span class="n">request_fn</span> <span class="k">if</span> <span class="n">request_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_default_post</span>
+    <span class="n">resp</span> <span class="o">=</span> <span class="n">do_request</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">server_url</span><span class="si">}</span><span class="s2">/api/me/token/&quot;</span><span class="p">,</span> <span class="n">body</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_handle_create_response</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="list_">
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.account.token.html#scitex_hub.account.token.list_">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">list_</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;List existing API tokens (never re-shows the secret value).</span>
+
+<span class="sd">    GETs ``/api/me/tokens/`` with the cached bearer token. Useful for</span>
+<span class="sd">    answering &quot;is my CI token still active?&quot; without re-minting.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List of token-metadata dicts. Each row carries ``id``,</span>
+<span class="sd">        ``name``, ``prefix``, ``scopes``, ``is_active``,</span>
+<span class="sd">        ``created_at``, and ``last_used_at`` — but never the secret</span>
+<span class="sd">        token itself (only ``create`` ever returns the secret).</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        RuntimeError: No bearer token resolved</span>
+<span class="sd">            (:func:`._auth.resolve_bearer`) or server returned non-200.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from scitex_hub.account import token</span>
+<span class="sd">        &gt;&gt;&gt; token.list_()</span>
+<span class="sd">        [{&#39;id&#39;: 1, &#39;name&#39;: &#39;cli&#39;, &#39;prefix&#39;: &#39;scitex_abcd&#39;,</span>
+<span class="sd">          &#39;scopes&#39;: [&#39;publish&#39;], &#39;is_active&#39;: True, ...}]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bearer</span> <span class="o">=</span> <span class="n">resolve_bearer</span><span class="p">()</span>
+    <span class="n">server_url</span> <span class="o">=</span> <span class="n">resolve_server</span><span class="p">()</span>
+    <span class="n">resp</span> <span class="o">=</span> <span class="n">_default_get</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">server_url</span><span class="si">}</span><span class="s2">/api/me/tokens/&quot;</span><span class="p">,</span>
+        <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="n">bearer</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">},</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">resp</span><span class="p">[</span><span class="s2">&quot;status_code&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;HTTP </span><span class="si">{</span><span class="n">resp</span><span class="p">[</span><span class="s1">&#39;status_code&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">resp</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">][:</span><span class="mi">200</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="c1"># ``list`` builtin is shadowed by the module-level alias; literal-unpack instead.</span>
+    <span class="k">return</span> <span class="p">[</span><span class="o">*</span><span class="n">resp</span><span class="p">[</span><span class="s2">&quot;json&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tokens&quot;</span><span class="p">,</span> <span class="p">[])]</span></div>
+
+
+
+<span class="c1"># Public alias — `list` is a builtin so we expose both names. Callers</span>
+<span class="c1"># can write either ``token.list()`` or ``token.list_()``. The trailing</span>
+<span class="c1"># underscore is conventional PEP-8 for builtin-shadowing avoidance,</span>
+<span class="c1"># the no-underscore form matches the literal CLI verb name.</span>
+<span class="nb">list</span> <span class="o">=</span> <span class="n">list_</span>  <span class="c1"># noqa: A001  — intentional CLI-verb mirror; see docstring</span>
+
+
+<div class="viewcode-block" id="revoke">
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.account.token.html#scitex_hub.account.token.revoke">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">revoke</span><span class="p">(</span><span class="n">token_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Revoke a single API token by id.</span>
+
+<span class="sd">    DELETEs ``/api/me/token/{token_id}/``. Server responds 204 on</span>
+<span class="sd">    success or 404 if the token doesn&#39;t belong to this user.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        token_id: Server-assigned integer id (from</span>
+<span class="sd">            :func:`list_`).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dict ``{&quot;success&quot;: True, &quot;token_id&quot;: &lt;id&gt;}`` on success.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        RuntimeError: No bearer token resolved, token not found</span>
+<span class="sd">            (404), or any other non-204 response.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from scitex_hub.account import token</span>
+<span class="sd">        &gt;&gt;&gt; token.revoke(7)</span>
+<span class="sd">        {&#39;success&#39;: True, &#39;token_id&#39;: 7}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bearer</span> <span class="o">=</span> <span class="n">resolve_bearer</span><span class="p">()</span>
+    <span class="n">server_url</span> <span class="o">=</span> <span class="n">resolve_server</span><span class="p">()</span>
+    <span class="n">resp</span> <span class="o">=</span> <span class="n">_default_delete</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">server_url</span><span class="si">}</span><span class="s2">/api/me/token/</span><span class="si">{</span><span class="n">token_id</span><span class="si">}</span><span class="s2">/&quot;</span><span class="p">,</span>
+        <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="n">bearer</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">},</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">resp</span><span class="p">[</span><span class="s2">&quot;status_code&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">204</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;token_id&quot;</span><span class="p">:</span> <span class="n">token_id</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">resp</span><span class="p">[</span><span class="s2">&quot;status_code&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">404</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Token id=</span><span class="si">{</span><span class="n">token_id</span><span class="si">}</span><span class="s2"> not found&quot;</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;HTTP </span><span class="si">{</span><span class="n">resp</span><span class="p">[</span><span class="s1">&#39;status_code&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">resp</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">][:</span><span class="mi">200</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="_handle_create_response">
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.account.token.html#scitex_hub.account.token._handle_create_response">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_handle_create_response</span><span class="p">(</span><span class="n">resp</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Normalise the ``/api/me/token/`` response into a plain dict.&quot;&quot;&quot;</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="n">resp</span><span class="p">[</span><span class="s2">&quot;status_code&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="mi">201</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">resp</span><span class="p">[</span><span class="s2">&quot;json&quot;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="mi">401</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Authentication failed: wrong username or password&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="mi">400</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="n">resp</span><span class="p">[</span><span class="s2">&quot;json&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="n">resp</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">])</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">AttributeError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">):</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="n">resp</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Bad request: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="mi">429</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Too many attempts: rate-limited; try again later&quot;</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unexpected response HTTP </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">resp</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">][:</span><span class="mi">200</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="_default_post">
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.account.token.html#scitex_hub.account.token._default_post">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_default_post</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">body</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Default POST transport (used when no ``request_fn`` is injected).</span>
+
+<span class="sd">    Wraps the response in a plain dict so the same shape works for</span>
+<span class="sd">    real HTTP and for the hand-rolled test fakes — no ``requests``</span>
+<span class="sd">    object leaks across the boundary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+
+    <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">body</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">r</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_default_get</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">headers</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+
+    <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_default_delete</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">headers</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+
+    <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_wrap</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="_wrap">
+<a class="viewcode-back" href="../../../api/_autosummary/scitex_hub.account.token.html#scitex_hub.account.token._wrap">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">_wrap</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Turn a ``requests.Response`` into a dict the handlers expect.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;status_code&quot;</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="p">,</span>
+        <span class="s2">&quot;json&quot;</span><span class="p">:</span> <span class="n">body</span><span class="p">,</span>
+        <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+
+
+<span class="c1"># EOF</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025-2026, SciTeX Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
