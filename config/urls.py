@@ -26,6 +26,7 @@ from apps.infra.project_app.views import (
 from apps.infra.public_app.views import healthz
 from apps.workspace.repo_app.views.dispatch import root_dispatch
 from apps.workspace.repo_app.views.index import current_project_view
+from config.pwa import serve_root_static
 from config.urls_helpers import RESERVED_PATHS, dev_module_view  # noqa: F401
 
 
@@ -79,22 +80,23 @@ urlpatterns = [
     # A2A protocol surface — canonical host: a2a.scitex.ai
     path("", include("apps.infra.a2a_app.urls")),
     # --- PWA (must be served from root for scope) ---
+    #
+    # Resolved through the staticfiles finders at REQUEST time, NOT pinned to a
+    # document_root here. The old form passed
+    # `settings.STATIC_ROOT or settings.STATICFILES_DIRS[0]`, but STATIC_ROOT is
+    # a Path and therefore always truthy, so the source-tree fallback never ran
+    # and both routes 404'd in every environment that had not run collectstatic
+    # — silently, because pwa-register.ts swallows the failure. See config/pwa.py.
     path(
         "manifest.json",
-        serve,
-        {
-            "document_root": settings.STATIC_ROOT or settings.STATICFILES_DIRS[0],
-            "path": "shared/manifest.json",
-        },
+        serve_root_static,
+        {"path": "shared/manifest.json"},
         name="pwa-manifest",
     ),
     path(
         "sw.js",
-        serve,
-        {
-            "document_root": settings.STATIC_ROOT or settings.STATICFILES_DIRS[0],
-            "path": "shared/sw.js",
-        },
+        serve_root_static,
+        {"path": "shared/sw.js"},
         name="pwa-sw",
     ),
     # --- Health ---
