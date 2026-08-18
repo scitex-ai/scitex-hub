@@ -50,6 +50,33 @@ else
 fi
 
 # ============================================
+# Site domain (web container ONLY)
+# ============================================
+# django.contrib.sites holds ONE row that SITE_ID pins allauth and Django to.
+# It is the host used to build OAuth callback URLs and the links inside
+# confirmation and password-reset email, so a wrong value produces URLs nobody
+# can reach — and it raises nowhere. Production was found holding
+# "127.0.0.1:8000", which arrived because `setup_social_auth --domain` used to
+# default to that literal while its documented usage omits the flag.
+#
+# Applying it here, from $SCITEX_HUB_SITE_DOMAIN, makes the domain a property of
+# the ENVIRONMENT rather than of database state, so a restored dump or a stray
+# run of the setup command cannot leave prod pointing at localhost. Idempotent:
+# it reports "unchanged" when the row already matches.
+#
+# Inside an `if` like the visitor-pool commands below: a wrong Site domain
+# breaks OAuth and email links, which is bad, but refusing to boot over it is
+# worse. It must not fail SILENTLY though, hence the explicit error.
+if [[ ! "$*" =~ "celery" ]]; then
+    if ! python manage.py sync_site_domain; then
+        echo_error "sync_site_domain FAILED — OAuth callbacks and the links in"
+        echo_error "  confirmation/password-reset email will use whatever the"
+        echo_error "  Site row currently holds. Set SCITEX_HUB_SITE_DOMAIN in"
+        echo_error "  this deployment's env file (e.g. scitex.ai) and restart."
+    fi
+fi
+
+# ============================================
 # Initialize Visitor Pool (web container ONLY)
 # ============================================
 # NEVER in celery services: they run this entrypoint as root, and a

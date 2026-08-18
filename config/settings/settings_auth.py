@@ -26,6 +26,22 @@ ORCID_REDIRECT_URI = os.getenv(
 # ---------------------------------------
 SITE_ID = 1
 
+#: The domain django.contrib.sites hands out for THIS deployment.
+#:
+#: SITE_ID pins allauth and Django to one Site row, so this value is not
+#: decorative: it is the host used to build OAuth callback URLs and the links
+#: inside confirmation and password-reset email. A wrong value does not raise
+#: anywhere -- it silently produces URLs nobody can reach.
+#:
+#: Deliberately EMPTY when unset. Production was found holding "127.0.0.1:8000"
+#: because a management command defaulted to that literal, so a default here
+#: would reintroduce exactly the failure this replaces. `manage.py
+#: sync_site_domain` refuses and names this variable instead of guessing.
+SITE_DOMAIN = os.getenv("SCITEX_HUB_SITE_DOMAIN", "").strip()
+
+#: Human-readable label for the same Site row. Cosmetic, unlike SITE_DOMAIN.
+SITE_NAME = os.getenv("SCITEX_HUB_SITE_NAME", "SciTeX").strip()
+
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_LOGOUT_ON_GET = True
 ACCOUNT_UNIQUE_EMAIL = True

@@ -10,7 +10,7 @@ for Google and ORCID OAuth providers.
 
 from django.conf import settings
 from django.contrib.sites.models import Site
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
 
 class Command(BaseCommand):
@@ -20,19 +20,36 @@ class Command(BaseCommand):
         parser.add_argument(
             "--domain",
             type=str,
-            default="127.0.0.1:8000",
-            help="Site domain (e.g., scitex.ai or 127.0.0.1:8000)",
+            default=None,
+            help=(
+                "Site domain. Defaults to $SCITEX_HUB_SITE_DOMAIN "
+                "(settings.SITE_DOMAIN). There is NO built-in fallback: this "
+                "flag used to default to '127.0.0.1:8000', and because the "
+                "documented invocation omits it, that literal was written onto "
+                "production's Site row."
+            ),
         )
         parser.add_argument(
             "--name",
             type=str,
-            default="SciTeX",
+            default=None,
             help="Site name",
         )
 
     def handle(self, *args, **options):
-        domain = options["domain"]
-        name = options["name"]
+        domain = options["domain"] or getattr(settings, "SITE_DOMAIN", "")
+        domain = (domain or "").strip()
+        if not domain:
+            raise CommandError(
+                "no Site domain: pass --domain or set $SCITEX_HUB_SITE_DOMAIN.\n"
+                "  This command REFUSES to guess. It previously defaulted to "
+                "'127.0.0.1:8000', and since the documented usage omits the "
+                "flag, that value was stamped onto production -- which broke "
+                "OAuth callbacks and put localhost links in every allauth "
+                "email, silently.\n"
+                "  e.g. SCITEX_HUB_SITE_DOMAIN=scitex.ai"
+            )
+        name = options["name"] or getattr(settings, "SITE_NAME", "SciTeX")
 
         self.stdout.write(self.style.NOTICE("Setting up social authentication..."))
 
