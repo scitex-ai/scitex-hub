@@ -74,6 +74,78 @@ def cards_appconfig_path(apps_module: ModuleType) -> str:
     )
 
 
+#: OPERATOR-FACING name for the cards store, in the hub's own
+#: ``SCITEX_HUB_<X>`` namespace (ADR-0001, ``config/_env.py``). Exactly the
+#: shape ``SCITEX_HUB_CROSSREF_DB_PATH`` -> ``CROSSREF_DB_PATH`` already has
+#: for the citation-graph service: the deployment states the value once, in
+#: ``deployment/docker/envs/.env.<env>``, under the prefix every other hub
+#: setting uses, and the hub hands it to the package under the name that
+#: package reads. A hub deployment should not have to know a sibling's
+#: private variable spelling to be configured.
+CARDS_STORE_HUB_ENV = "SCITEX_HUB_CARDS_STORE"
+
+#: The name scitex-cards ITSELF reads (``scitex_cards._db.ENV_DB``). The hub
+#: does not get to choose it, which is exactly why the hub-prefixed name above
+#: exists — and why this one is still honoured first below.
+CARDS_STORE_UPSTREAM_ENV = "SCITEX_CARDS_DB"
+
+
+def publish_cards_store_target(environ: dict | None = None) -> str | None:
+    """Hand scitex-cards the store target THIS DEPLOYMENT chose. Or nothing.
+
+    THE HUB NEVER CONFIGURED ONE AND THAT IS THE WHOLE DEFECT. The board's card
+    DATA comes from the store ``scitex_cards`` resolves with no argument, and
+    since the 2026-08-13 zero-config abolition that resolver REFUSES to invent a
+    filename — it raises ``StoreTargetNotConfigured``. Measured on this branch
+    against the real URLconf with a signed-in user: ``/apps/cards/graph`` 500s,
+    which is what the operator saw as 「cards が読み込めていない。」 Nothing in
+    ``config/``, ``deployment/`` or ``scripts/`` set ``$SCITEX_CARDS_DB`` or the
+    ``store.target`` config key, on any environment, so every hub deployment was
+    in that state.
+
+    Precedence, and each tier is deliberate:
+
+    1. ``$SCITEX_CARDS_DB`` already set -> LEFT ALONE. A developer or a test
+       that exports the package's own variable has said something more specific
+       than the deployment did, and a settings module that overwrites it would
+       silently move them to a different store. Returned so the caller can log
+       what won.
+    2. ``$SCITEX_HUB_CARDS_STORE`` set -> published as ``$SCITEX_CARDS_DB``.
+       This is the tier that fixes the defect: it gives a deployment a
+       conventional place to state the target.
+    3. NEITHER -> ``None``, and NOTHING IS SET. No literal DSN is written here,
+       not even the fleet's per-host ``postgresql://…:55432/scitex_cards``
+       convention. A hardcoded default is precisely the silent fallback
+       upstream abolished after it served a store frozen eight days earlier
+       while the fleet wrote elsewhere, and it would look healthy the whole
+       time. The unconfigured state is instead REPORTED, as an actionable 404
+       naming this variable — see
+       ``apps.workspace.todo_app.cards_store_provisioning``.
+
+    An EMPTY value counts as unset at every tier, matching the resolver's own
+    ``if value:`` test; otherwise ``SCITEX_HUB_CARDS_STORE=`` in a ``.env`` file
+    would publish an empty ``$SCITEX_CARDS_DB`` and mean something different
+    here than it does one call downstream.
+
+    :param environ: mapping to read and write; defaults to ``os.environ``.
+        Present so a test can prove the precedence without mutating the
+        process, not as a general seam.
+    :returns: the target now in effect, or ``None`` when nobody chose one.
+    """
+    env = os.environ if environ is None else environ
+
+    already = env.get(CARDS_STORE_UPSTREAM_ENV)
+    if already:
+        return already
+
+    chosen = env.get(CARDS_STORE_HUB_ENV)
+    if chosen:
+        env[CARDS_STORE_UPSTREAM_ENV] = chosen
+        return chosen
+
+    return None
+
+
 def _installed(module_path: str) -> ModuleType | None:
     """Import ``module_path``, or None when the package is not installed.
 
@@ -102,6 +174,12 @@ def optional_upstream_apps() -> list[str]:
     request must see ONLY the requesting user's workspace store (injected by
     ``apps.workspace.todo_app.middleware``), so an empty glob list — the
     documented opt-out seam in that module — is set alongside the mount.
+
+    SECOND SIDE EFFECT, SAME REASON: mounting the board also publishes the
+    deployment's chosen card store (:func:`publish_cards_store_target`). It
+    belongs next to the mount because a mounted board with no store is the
+    defect this fixes — the two are one decision, and splitting them is how
+    the second half gets forgotten on the next environment.
     """
     entries: list[str] = []
 
@@ -122,6 +200,7 @@ def optional_upstream_apps() -> list[str]:
     if cards_apps is not None:
         entries.append(cards_appconfig_path(cards_apps))
         os.environ["SCITEX_TODO_LANE_GLOBS"] = ""
+        publish_cards_store_target()
 
     return entries
 
