@@ -70,4 +70,47 @@
   #theme-selector {
     display: none;
   }
+
+  /* THE EDITOR GETS 58px ON A PHONE, AND NOTHING HERE WAS AIMED AT THE CAUSE.
+   *
+   * Measured on production 2026-08-19 at 390x844, anonymous:
+   *
+   *   .writer-workspace   380px  flex-direction: row
+   *     .writer-container            58px   flex: 1 1 0%      <- the editor
+   *     #writer-details-resizer       2px
+   *     aside#writer-details         320px  flex: 0 1 320px   <- the Details panel
+   *
+   * The editor is not hidden, not unmounted, and not 0x0 -- it is 58 pixels
+   * wide, with Monaco correctly mounted inside it. That is why every earlier
+   * report of this called it "no editor": at a glance an unusable sliver and an
+   * absent element look identical, and they have completely different causes.
+   *
+   * The `.writer-container { flex-direction: column }` rule above stacks the
+   * children of the CONTAINER. The row that starves it is one level higher, on
+   * .writer-workspace, which no media query in this file ever touched. A rule
+   * aimed one element away from the cause looks like a mobile fix and does
+   * nothing, which is why this survived several passes.
+   *
+   * Stacking rather than hiding is deliberate: #writer-details is a
+   * collapsible-panel carrying Compile, Cite, Figures and Project Info. Hiding
+   * it on mobile would trade an unusable editor for unreachable actions.
+   *
+   * Verified by injecting exactly these rules into the live production page and
+   * re-measuring before writing them here:
+   *     editor  58px -> 380px    monaco 380x393    details 380x338 (still reachable)
+   */
+  .writer-workspace {
+    flex-direction: column;
+  }
+
+  #writer-details.collapsible-panel {
+    flex: 0 0 auto;
+    width: 100%;
+    max-height: 40vh;
+  }
+
+  /* A vertical drag handle cannot resize a column stack. */
+  #writer-details-resizer {
+    display: none;
+  }
 }
