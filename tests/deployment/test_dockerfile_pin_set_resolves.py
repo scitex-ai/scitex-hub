@@ -36,6 +36,21 @@ version differs from the installed one, its requirements may differ too, and
 this check reasons about the installed metadata. It therefore catches the case
 that actually occurred -- a pin contradicting a requirement that is visible in
 the environment -- and does not claim to be a resolver.
+
+TWO THINGS IT DELIBERATELY DOES NOT CHECK, named so nobody reads a pass as more
+than it is:
+
+1. That a pinned version EXISTS on PyPI. A typo'd pin resolves to nothing and
+   fails the build exactly as loudly as a conflict does. Verifying it needs the
+   index, which is the network dependency this module is avoiding.
+2. Requirements of a version OTHER than the installed one. If a pin is far from
+   what is installed, its real requirements are not in this environment to read.
+
+Both are real gaps. They are written down instead of papered over, because a
+guard trusted for more than it measures is worse than no guard -- that is how
+2026-08-18 happened, when a passing smoke test (``import scitex_writer.writer``)
+was read as proof the image was good while hub actually needed
+``scitex_writer.workspace_layout``.
 """
 
 import pathlib
@@ -61,6 +76,16 @@ def _dockerfile_pins():
     return {
         _norm(name): version for name, version in _PINNED.findall(DOCKERFILE.read_text())
     }
+
+
+def _installed_version(dist_name):
+    """Version of the INSTALLED distribution, or None if absent."""
+    import importlib.metadata as md
+
+    try:
+        return md.version(dist_name)
+    except md.PackageNotFoundError:
+        return None
 
 
 def _installed_requirements(dist_name):
@@ -104,9 +129,16 @@ def _conflicts():
             except InvalidVersion:
                 continue
             if not req.specifier.contains(version, prereleases=True):
+                # Name the version the requirement was READ FROM. Printing
+                # the Dockerfile's pin next to a requirement taken from a
+                # DIFFERENT installed version reads as though the pinned
+                # version declared it -- which is a false attribution, and one
+                # this file made about itself before being corrected.
                 bad.append(
-                    f"{holder}=={pins[holder]} requires {req.name}{req.specifier}, "
-                    f"but the Dockerfile pins {target}=={pinned}"
+                    f"Dockerfile pins {target}=={pinned}, which is contradicted "
+                    f"by {holder}'s requirement '{req.name}{req.specifier}' "
+                    f"(read from INSTALLED {holder}=={_installed_version(holder)}; "
+                    f"the Dockerfile pins {holder}=={pins[holder]})"
                 )
     return bad
 
