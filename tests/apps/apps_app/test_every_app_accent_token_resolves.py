@@ -49,19 +49,59 @@ _STATIC_ROOT = _REPO_ROOT / "static"
 _MANIFEST_ROOT = _REPO_ROOT / "apps"
 _ENTRY = _STATIC_ROOT / "shared" / "css" / "primitives" / "variables.css"
 
-_IMPORT_RE = re.compile(r"""@import\s+url\(\s*["']?([^"')]+)["']?\s*\)""")
+# BOTH @import forms, and the second one is not hypothetical.
+#
+#     @import url("./x.css");     <- what hub writes
+#     @import "./x.css";          <- what scitex-ui 0.16.0 writes
+#
+# CSS allows either. This pattern matched only the first until 2026-08-18, and
+# the cost was concrete: scitex-ui 0.16.0 split `primitives/colors.css` into a
+# 22-line BARREL whose entire content is two bare-string imports of
+# `colors/_light.css` and `colors/_dark.css`, where all 19 per-app accents now
+# live. Measured against that file:
+#
+#     url()-only pattern  -> []                                    <- saw nothing
+#     both-forms pattern  -> ['./colors/_light.css', './colors/_dark.css']
+#
+# So this test resolved the chain as far as the barrel, read a file that is
+# present and readable and contains no tokens, and reported every app's accent
+# as defined 0 times. The failure was indistinguishable from the real defect it
+# exists to catch -- it would have been read as "the accents are gone" when they
+# were one unfollowed hop away.
+#
+# That barrel has now defeated three separate instruments in this fleet on one
+# day (a version-comparison script, a token-presence scan, and this test), every
+# time by being a file that is exactly what you asked for and empty of what you
+# wanted. When a search over a stylesheet returns nothing, check whether it can
+# see BOTH import forms before concluding the tokens are absent.
+_IMPORT_RE = re.compile(r"""@import\s+(?:url\(\s*)?["']([^"']+)["']\s*\)?""")
 
 # Apps whose accent is knowingly absent, each with a reason and a removal
 # condition. An entry here is a DECLARED debt, not a silenced test.
 _KNOWN_MISSING: dict[str, str] = {
-    # Found by this test on the day it was written: comms_app has declared
-    # "accent_color": "comms" while no loaded stylesheet defines the token, so
-    # its tile renders with no accent — the July storage defect, live, in a
-    # second app, unnoticed because CSS resolves a missing var to nothing.
-    # scitex-ui carries --app-accent-comms in its shell/theme.css, which hub
-    # does not load. Removal condition: scitex-ui consolidates per-app accents
-    # into the primitives layer hub imports, then delete this entry.
-    "comms": "defined only in scitex-ui shell/theme.css, which hub does not load",
+    # EMPTY as of 2026-08-18, and the one entry that was here is worth recording
+    # because it left under its own stated condition rather than by decision.
+    #
+    # It read:
+    #     "comms": "defined only in scitex-ui shell/theme.css, which hub does
+    #               not load"
+    # with the removal condition: "scitex-ui consolidates per-app accents into
+    # the primitives layer hub imports, then delete this entry."
+    #
+    # That condition is now met. scitex-ui 0.16.0 declares --app-accent-comms in
+    # primitives/colors/_{light,dark}.css, and this release makes hub import
+    # that layer. comms_app's tile renders with its accent.
+    #
+    # HOW WE FOUND OUT is the part worth keeping: nobody checked. The entry was
+    # xfail(strict), so when the token appeared the test reported
+    # XPASS(strict) — a FAILURE — and named the exemption as the thing that had
+    # gone stale. A non-strict xfail would have gone quietly green and this
+    # entry would still be sitting here, describing a defect that no longer
+    # exists, indefinitely.
+    #
+    # So: keep future entries xfail(strict), and give each a removal CONDITION
+    # rather than only a reason. A reason explains why the debt exists; a
+    # condition tells the test when to stop believing it.
 }
 
 
@@ -69,25 +109,87 @@ def _resolve_import(spec: str, base: Path) -> Path | None:
     """Map one @import target to a file on disk, or None if unresolvable.
 
     Relative specs resolve against the importing stylesheet, exactly as a
-    browser resolves them. A spec that climbs out of hub's static root and into
-    ``scitex_ui/`` is an installed-package asset, so it is resolved through the
-    package rather than the repo — that is the same file the static pipeline
-    collects and serves.
+    browser resolves them. Anything landing under a ``scitex_ui/`` path segment
+    is an installed-package asset and is resolved THROUGH THE PACKAGE — that is
+    the same file the static pipeline collects and serves.
+
+    THE ``scitex_ui`` CHECK COMES FIRST, AND THAT ORDERING IS THE WHOLE FUNCTION.
+
+    This used to redirect to the package only when the path climbed OUT of
+    ``_STATIC_ROOT``, on the reasoning that an in-repo path must be an in-repo
+    file. That reasoning is wrong for the path hub actually writes. From
+    ``static/shared/css/primitives/variables.css``:
+
+        ../../../scitex_ui/css/primitives/colors.css
+          -> <repo>/static/scitex_ui/css/primitives/colors.css
+
+    Three levels up from ``primitives/`` is ``static/``, not above it. So the
+    resolved path sits INSIDE ``_STATIC_ROOT``, ``relative_to`` succeeds, the
+    package branch is skipped, and the file is looked up in the repo — where it
+    does not exist, because ``static/scitex_ui/`` is a COLLECTSTATIC ARTEFACT
+    that only exists after the static pipeline runs.
+
+    Measured 2026-08-18 with the old ordering, scitex-ui 0.16.0 installed:
+
+        ../../../scitex_ui/css/primitives/colors.css           -> None
+        ../../../scitex_ui/css/primitives/typography-vars.css  -> None
+        ../../../scitex_ui/css/primitives/spacing.css          -> None
+        ../../../scitex_ui/css/primitives/z-index.css          -> None
+        ../utilities/effects.css                               -> resolved (hub's own)
+
+        loaded bytes 4465, --app-accent-storage 0, CONTROL --text-primary 0
+
+    Every upstream import silently unresolved. The control reading 0 is the tell
+    and the reason this was findable: a guard reporting "accent missing" while
+    ALSO unable to see ``--text-primary`` is not reporting a missing accent, it
+    is reporting that it loaded almost nothing. A test asserting only the accent
+    would have shown a plausible, specific, entirely wrong failure.
     """
     candidate = (base.parent / spec).resolve()
-    try:
-        candidate.relative_to(_STATIC_ROOT)
-    except ValueError:
-        parts = candidate.parts
-        if "scitex_ui" not in parts:
-            return None
+    parts = candidate.parts
+    if "scitex_ui" in parts:
         try:
             import scitex_ui
         except ImportError:
             return None
-        tail = Path(*parts[parts.index("scitex_ui") :])
-        pkg_static = Path(scitex_ui.__file__).parent / "static"
-        candidate = pkg_static / tail
+        pkg_static = (Path(scitex_ui.__file__).parent / "static").resolve()
+
+        # Map from the LAST "scitex_ui" segment, never the first.
+        #
+        # The installed layout contains that segment TWICE --
+        # ``site-packages/scitex_ui/static/scitex_ui/css/...`` -- so taking the
+        # first one re-prefixes a path that is already inside the package and
+        # yields ``<pkg>/static/scitex_ui/static/scitex_ui/css/...``, which
+        # resolves to nothing.
+        #
+        # Not hypothetical: it is exactly what a NESTED import hits. 0.16.0's
+        # colors.css is a barrel importing "./colors/_light.css" relative to
+        # ITSELF, i.e. relative to a file already in the package. Measured with
+        # the first-segment mapping and the regex fix already in place:
+        #
+        #     colors.css                      1069 bytes, resolved
+        #       UNRESOLVED: ./colors/_light.css
+        #       UNRESOLVED: ./colors/_dark.css
+        #
+        # Taking the last segment handles BOTH cases with one rule: a repo-side
+        # spec has one "scitex_ui" (first == last), and a package-side spec has
+        # two (last is the one inside ``static/``).
+        #
+        # ONE MECHANISM ON PURPOSE. This first shipped alongside an
+        # ``if candidate is already under pkg_static: use it as-is`` early
+        # return, which handles the nested case too. Both worked, so each hid
+        # the other: reverting either one alone left all 14 tests GREEN, and
+        # neither could be controlled. A mechanism whose removal changes nothing
+        # is untestable by construction, and two of them make the whole function
+        # untestable. The early return is gone; this line is now load-bearing
+        # and a control on it goes red.
+        last = len(parts) - 1 - parts[::-1].index("scitex_ui")
+        candidate = pkg_static / Path(*parts[last:])
+        return candidate if candidate.is_file() else None
+    try:
+        candidate.relative_to(_STATIC_ROOT)
+    except ValueError:
+        return None
     return candidate if candidate.is_file() else None
 
 

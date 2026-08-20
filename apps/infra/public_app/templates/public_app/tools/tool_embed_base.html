@@ -17,8 +17,15 @@
               href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
               crossorigin="visitor"
               referrerpolicy="no-referrer" />
-        <!-- Design tokens (CSS variables for theme consistency) -->
-        <link rel="stylesheet" href="{% static 'shared/css/primitives/colors.css' %}" />
+        <!-- Design tokens (CSS variables for theme consistency).
+             variables.css, NOT colors.css: hub no longer ships its own
+             colors.css -- it imports scitex-ui's primitives, and variables.css
+             is the entry point that pulls the whole chain (colour, typography,
+             spacing, z-index). Linking a single primitive file directly would
+             load one quarter of the tokens this page's :root aliases below
+             expand to, and a missing custom property renders as nothing rather
+             than erroring, so the page would look subtly wrong and pass. -->
+        <link rel="stylesheet" href="{% static 'shared/css/primitives/variables.css' %}" />
         <link rel="stylesheet" href="{% static 'shared/css/common.css' %}" />
         <style>
             /* Compatibility aliases: tool templates use these legacy names */

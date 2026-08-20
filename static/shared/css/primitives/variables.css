@@ -1,9 +1,39 @@
 /* SciTeX CSS Variables - Main Import File */
-/* This file imports all modular CSS variable definitions */
+/*
+ * The primitives below are OWNED BY scitex-ui and imported from it, not copied.
+ *
+ * Hub used to ship its own fork of these four files. The fork was measured on
+ * 2026-08-18: 157 of 158 colour tokens identical, and the ONE difference was
+ * --text-link -- scitex-ui's WCAG fix (its PR #140, merged 2026-08-09), which
+ * hub never received. So hub rendered link colour at 2.36:1 on the light
+ * surface against a 4.5:1 AA requirement for nine days, and nothing could have
+ * told us, because a fork has no link to its source.
+ *
+ * Paths are RELATIVE on purpose: they resolve against this stylesheet's own
+ * URL, so they survive any STATIC_URL prefix rather than assuming "/static/".
+ *
+ * PER-APP ACCENTS ARE NOT HERE, AND HUB DOES NOT CURRENTLY LOAD THEM.
+ * --app-accent-<app> and its -tint live in scitex_ui/css/shell/theme.css, one
+ * layer up from primitives, because a per-app accent is a derived shell
+ * decision rather than a raw palette value. Hub deleted its own duplicate
+ * copies of --app-accent-storage / -tint with this change: they were defined
+ * here and consumed NOWHERE in hub (measured 2026-08-18, with
+ * var(--text-primary) as the positive control proving the search runs).
+ *
+ * So this is safe today and is a LANDMINE for tomorrow: the first hub page to
+ * set data-app-accent="storage" will render a transparent accent with no error
+ * and no warning. If hub ever needs a per-app accent, do NOT re-define it here
+ * -- that recreates the fork this change removed. Either load
+ * scitex_ui/css/shell/theme.css (served already: 200 on prod today, just
+ * unreferenced), or ask scitex-ui to move the accents to a layer hub loads.
+ *
+ * utilities/effects.css stays HUB'S for now -- scitex-ui has no equivalent and
+ * is adopting it separately. Deleting that line would leave 13 actively-used
+ * tokens undefined across 96 hub files, silently.
+ */
 
-/* Import all variable modules */
-@import url("colors.css");
-@import url("typography-vars.css");
-@import url("spacing.css");
+@import url("../../../scitex_ui/css/primitives/colors.css");
+@import url("../../../scitex_ui/css/primitives/typography-vars.css");
+@import url("../../../scitex_ui/css/primitives/spacing.css");
 @import url("../utilities/effects.css");
-@import url("z-index.css");
+@import url("../../../scitex_ui/css/primitives/z-index.css");
