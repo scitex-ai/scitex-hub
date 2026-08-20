@@ -1,0 +1,194 @@
+name: Nightly scitex Floor-Pin Verify
+
+# issue #248: deployment/docker/docker_prod/Dockerfile.prod's scitex[all]
+# "Layer A" pin is floor-only (`scitex[all]>=X.Y.Z --upgrade`, not `==`), so a
+# plain `docker build` can resolve to whatever satisfies the floor on the day
+# it runs -- that currency is the whole point (the operator's dogfooding
+# directive: keep prod on roughly-latest scitex). A floor pin is only safe
+# for a REVENUE-CRITICAL prod image if something actually builds and
+# verifies against today's resolution before anyone trusts it. This
+# workflow is that gate, and it is a "canary re-resolve", not an
+# auto-upgrade: a red run promotes nothing, and a green run still stops at
+# a human-reviewed PR rather than touching prod directly.
+#
+# Flow (operator-confirmed 2026-08-20: dev -> staging -> operator manual
+# confirmation -> production):
+#
+#   1. dev: build the FULL prod image from `develop`, forcing a fresh
+#      re-resolution of ONLY the scitex[all] floor pin (via the
+#      SCITEX_A_VERIFIED cache-bust ARG -- see Dockerfile.prod's Layer A
+#      comment). Everything else (SLURM/Apptainer/whisper/node stages,
+#      apt layers, texlive, ...) is unaffected and reuses the GHA layer
+#      cache, so this stays cheap even though it exercises the real
+#      multi-stage build.
+#
+#      Reaching a successful build already proves every in-Dockerfile
+#      smoke gate passed -- `import scitex.template; import scitex.audit`
+#      (python-builder), the LaTeX/OCR/whisper tool-version gate, and the
+#      `scitex_writer`/`scitex_template` import-chain gate (runtime,
+#      right before the image is considered done). Those RUN instructions
+#      fail the BUILD outright on a broken resolution, so "build
+#      succeeded" IS the verification, not a separate assertion bolted on
+#      after the fact.
+#
+#   2. staging: on a green build, the image is tagged and pushed to GHCR
+#      as a `nightly-staging-candidate` (plus a dated tag for history).
+#      That is as far as THIS workflow reaches into staging: it does not
+#      SSH into the NAS or touch docker-compose.staging.yml, because
+#      there is no self-hosted runner / SSH deploy credential wired into
+#      this repo's CI today (checked: no other workflow does an SSH
+#      deploy). Actually running the candidate against
+#      deployment/docker/docker-compose.staging.yml on the NAS is a
+#      deliberate, named follow-up -- see the TODO below -- not something
+#      silently skipped.
+#
+#   3. operator manual confirmation: a PR is opened bumping
+#      SCITEX_A_VERIFIED (Dockerfile.prod's cache-bust marker) to today,
+#      naming the resolved scitex[all] version and the GHCR candidate tag
+#      to pull for a manual staging run. NOT auto-merged. The PR review
+#      *is* the confirmation gate.
+#
+#   4. production: merging that PR is what busts Layer A's cache for the
+#      next NORMAL prod build/deploy (which still happens the usual way,
+#      independent of this workflow) -- so today's verified resolution is
+#      what prod actually installs, instead of a stale cached layer.
+#
+# A RED build opens nothing and pushes nothing: SCITEX_A_VERIFIED (and
+# therefore the image every normal build already reuses via layer cache)
+# is untouched, so a bad upstream release cannot reach prod through this
+# path.
+#
+# TODO (named follow-up, not silently dropped): wire an actual staging
+# deploy -- either add SSH secrets + a deploy step here that pulls the
+# GHCR candidate and runs `docker compose -f docker-compose.yml -f
+# docker-compose.staging.yml up -d` on the NAS, or point
+# docker-compose.staging.yml's `image:` at the GHCR candidate tag so the
+# operator's existing manual staging workflow picks it up without a
+# rebuild. Out of scope here to keep this PR to the floor-pin + CI-gate
+# mechanism issue #248 asked for.
+#
+# TODO (named follow-up): this only builds/verifies the Python
+# `scitex[all]` pin. The same "hard pin goes stale" shape exists for the
+# C0/C1 npm-side `scitex-ui` pin (package.json currently uses a local
+# `file:../scitex-ui` reference, not a registry pin, so it wasn't in
+# scope) and for the scitex-writer/scitex-template pins that Dockerfile.prod
+# deliberately keeps hard-pinned after real breakage (2026-07-08,
+# 2026-08-18 incidents) -- those need their own regression-tested floor
+# story, not a blind copy of this mechanism.
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # nightly, 03:00 UTC
+  workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: write
+  pull-requests: write
+  packages: write
+
+jobs:
+  verify-and-stage:
+    name: Build prod image against today's scitex floor, stage candidate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build full prod image (scitex floor re-resolved fresh)
+        id: build
+        run: |
+          set -euo pipefail
+          BUST="ci-$(date -u +%Y%m%dT%H%M%SZ)"
+          DATE_TAG="$(date -u +%Y%m%d)"
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "bust=${BUST}" >> "$GITHUB_OUTPUT"
+          echo "date_tag=${DATE_TAG}" >> "$GITHUB_OUTPUT"
+          echo "repo_lower=${REPO_LOWER}" >> "$GITHUB_OUTPUT"
+
+          docker buildx build \
+            --build-arg SCITEX_A_VERIFIED="${BUST}" \
+            --cache-from "type=gha" \
+            --cache-to "type=gha,mode=max" \
+            --load \
+            -t "ghcr.io/${REPO_LOWER}:nightly-staging-candidate" \
+            -t "ghcr.io/${REPO_LOWER}:nightly-staging-candidate-${DATE_TAG}" \
+            -f deployment/docker/docker_prod/Dockerfile.prod \
+            .
+        # A failure here IS the gate: nothing downstream runs, nothing is
+        # pushed, nothing is proposed. The existing SCITEX_A_VERIFIED (and
+        # the image every normal build already reuses) stays untouched.
+
+      - name: Extract resolved scitex[all] version
+        id: resolved
+        run: |
+          set -euo pipefail
+          REPO_LOWER="${{ steps.build.outputs.repo_lower }}"
+          VERSION=$(docker run --rm "ghcr.io/${REPO_LOWER}:nightly-staging-candidate" \
+            python -c "import scitex; print(scitex.__version__)")
+          echo "Resolved scitex[all] version: ${VERSION}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Push staging candidate to GHCR
+        run: |
+          set -euo pipefail
+          REPO_LOWER="${{ steps.build.outputs.repo_lower }}"
+          docker push "ghcr.io/${REPO_LOWER}:nightly-staging-candidate"
+          docker push "ghcr.io/${REPO_LOWER}:nightly-staging-candidate-${{ steps.build.outputs.date_tag }}"
+
+      - name: Open promote PR (operator confirmation gate)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RESOLVED_VERSION: ${{ steps.resolved.outputs.version }}
+          DATE_TAG: ${{ steps.build.outputs.date_tag }}
+          REPO_LOWER: ${{ steps.build.outputs.repo_lower }}
+        run: |
+          set -euo pipefail
+          TODAY="$(date -u +%Y-%m-%d)"
+          DOCKERFILE=deployment/docker/docker_prod/Dockerfile.prod
+
+          if grep -q "^ARG SCITEX_A_VERIFIED=${TODAY}$" "$DOCKERFILE"; then
+            echo "Already verified+promoted today; nothing to open."
+            exit 0
+          fi
+
+          sed -i -E "s/^ARG SCITEX_A_VERIFIED=.*/ARG SCITEX_A_VERIFIED=${TODAY}/" "$DOCKERFILE"
+
+          git config user.name "scitex-nightly-bot"
+          git config user.email "actions@users.noreply.github.com"
+
+          BRANCH="chore/nightly-scitex-floor-verify-${TODAY}"
+          git checkout -b "$BRANCH"
+          git add "$DOCKERFILE"
+
+          # Built via printf '%b' (not a raw multi-line string) so this step
+          # stays a single logical YAML block-scalar line -- a literal
+          # embedded newline here would de-indent and terminate the `run: |`
+          # block early.
+          COMMIT_MSG=$(printf '%b' "chore(deploy): promote verified scitex[all] floor resolution (${RESOLVED_VERSION})\n\nNightly build of deployment/docker/docker_prod/Dockerfile.prod, forced to re-resolve the scitex[all]>=2.30.1 floor pin fresh, resolved to ${RESOLVED_VERSION} and passed every in-Dockerfile smoke gate (build succeeded end to end). Staging candidate pushed to ghcr.io/${REPO_LOWER}:nightly-staging-candidate-${DATE_TAG}.\n\nBumping SCITEX_A_VERIFIED only busts Layer A's BuildKit cache so the next normal prod build re-runs the install instead of reusing a stale resolution (issue #247's failure mode). Refs #248.")
+          git commit -m "$COMMIT_MSG"
+          git push -u origin "$BRANCH"
+
+          PR_BODY=$(printf '%b' "Nightly verify-then-promote gate (issue #248).\n\n**What ran:** a full build of \`deployment/docker/docker_prod/Dockerfile.prod\` off \`develop\`, forcing the \`scitex[all]>=2.30.1\` floor pin to re-resolve fresh. It resolved to **${RESOLVED_VERSION}** and the build reached the end, which means every in-Dockerfile smoke gate passed (scitex extras import gate, LaTeX/OCR/whisper tool gate, scitex-writer/scitex-template import-chain gate).\n\n**Staging candidate:** \`ghcr.io/${REPO_LOWER}:nightly-staging-candidate-${DATE_TAG}\` (also tagged \`:nightly-staging-candidate\`). Pull this and run it against \`deployment/docker/docker-compose.staging.yml\` on the NAS for a real staging smoke pass before merging -- this workflow builds and stages the candidate but does not itself deploy to the NAS (no SSH/self-hosted-runner credential is wired into this repo's CI yet; named as a follow-up, not silently skipped).\n\n**What merging does:** only bumps \`SCITEX_A_VERIFIED\` (a cache-bust marker, not a version constraint) so the next normal prod build re-runs Layer A instead of reusing a cached, possibly-stale resolution. Nothing here auto-deploys to production.\n\nPlease review before merging -- this is a revenue-critical image and a green nightly build is a necessary but not sufficient signal (it does not run the Django app's own test suite against the new resolution). Refs #248.")
+
+          gh pr create \
+            --base develop \
+            --head "$BRANCH" \
+            --title "chore(deploy): promote verified scitex floor resolution (${RESOLVED_VERSION})" \
+            --body "$PR_BODY"

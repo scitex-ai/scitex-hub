@@ -13,8 +13,8 @@
 #   Stage 3: tool-builder     — yq, small binaries    (changes: ~never)
 #   Stage 4: node-builder     — mermaid-cli           (changes: rarely)
 #   Stage 5: python-builder   — Python deps (scitex core):
-#            Layer 0: scitex[all]==2.26.0      (anchor — NEVER changes, caches PyTorch)
-#            Layer A: scitex[all]==2.26.0      (latest — bump freely, ~30s rebuild)
+#            Layer 0: scitex[all]==2.30.1      (anchor — NEVER changes, caches PyTorch)
+#            Layer A: scitex[all]>=2.30.1      (floor-only pin, issue #248 — see Layer A below)
 #   Stage 6: runtime          — Final image, includes:
 #            Layer B: scitex-cloud==0.10.10-alpha (installed after app COPY, ~30s)
 #
@@ -215,12 +215,37 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
 # See visitor_pool ImportError in v3 #4 cutover postmortem.
 RUN uv pip install --system --no-cache "scitex[all]==2.30.1"
 
-# --- Layer A: Latest scitex (bump freely on every publish) ---
+# --- Layer A: Latest scitex (floor-only pin, issue #248) ---
 # PyTorch etc. are already satisfied from Layer 0. uv skips them and
-# only downloads/installs the scitex package itself. (~30s)
+# only downloads/installs the scitex core delta. (~30s)
 # No --no-cache here: we want uv to recognize existing packages.
-# 2026-06-07: bumped 2.26.0 → 2.30.1 (operator dogfooding refresh).
-RUN uv pip install --system "scitex[all]==2.30.1"
+#
+# 2026-08-20 (issue #248): switched from a hard `==` pin to a FLOOR-ONLY
+# pin (`>=`) with `--upgrade`, so this layer resolves to the newest
+# scitex[all] release satisfying the floor instead of going stale the
+# day after every hand-edited version bump. `--upgrade` is required:
+# without it, uv sees the floor already satisfied by whatever Layer 0
+# installed and skips the package entirely, which would silently pin
+# this layer forever at Layer 0's version — the same "looks current,
+# is actually frozen" failure #247 documented for a hard `==` pin, just
+# moved one line down.
+#
+# SCITEX_A_VERIFIED is NOT a version constraint. Its only job is to
+# change the text of this RUN instruction so BuildKit's layer cache is
+# busted on demand — otherwise a normal `docker compose build` reuses
+# the cached layer forever and never re-resolves at all, which is
+# exactly how #247 happened (a cache hit re-tagged `latest` without
+# re-resolving, and the build still reported success). It is bumped
+# ONLY by .github/workflows/nightly-scitex-floor-verify.yml, and only
+# after that workflow built fresh against today's floor and passed
+# every smoke gate below — see that workflow for the full
+# verify-then-promote mechanism (dev -> nightly-verified candidate ->
+# operator-reviewed PR -> next normal build promotes to prod). Do not
+# hand-edit this value to "fix" a stale image; trigger the workflow
+# (schedule or workflow_dispatch) instead.
+ARG SCITEX_A_VERIFIED=2026-08-20
+RUN echo "scitex[all] floor-pin cache key: ${SCITEX_A_VERIFIED}" && \
+    uv pip install --system --upgrade "scitex[all]>=2.30.1"
 
 # --- Smoke gate: scitex umbrella extras must be importable ---
 # Guards against future regressions where a Layer 0 / Layer A pin drifts
