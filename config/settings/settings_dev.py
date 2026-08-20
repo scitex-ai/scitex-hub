@@ -108,6 +108,22 @@ except Exception:
 ALLOWED_HOSTS.append(".172.19.33.56")  # Specific WSL2 IP
 ALLOWED_HOSTS.append("*")  # Allow all hosts in development
 
+# CSRF trusted origins for dev. Django's Origin-header CSRF check is a
+# SEPARATE gate from ALLOWED_HOSTS (added Django 4.0) -- being permissive
+# above does not cover it, so every POST form (login included) 403s with
+# "CSRF verification failed ... Origin checking failed" as soon as dev is
+# reached over any origin not listed here. Undiscovered until 2026-08-20:
+# nobody had gotten this far in a tunnel-based dev session before (an
+# earlier bug -- vite.py hardcoding http:// -- blocked ALL page JS first,
+# see apps/infra/public_app/templatetags/vite.py history), so login was
+# never actually attempted through compute-0N-net.scitex.ai until then.
+# *.scitex.ai covers every host's Cloudflare tunnel domain (compute-01
+# through compute-0N) without needing a per-host update.
+CSRF_TRUSTED_ORIGINS = os.getenv(
+    "SCITEX_HUB_CSRF_TRUSTED_ORIGINS",
+    "http://localhost:8000,http://127.0.0.1:8000,https://*.scitex.ai",
+).split(",")
+
 
 # Hot reload settings
 INTERNAL_IPS = [
@@ -141,6 +157,31 @@ VITE_USE_BUILD = os.environ.get("SCITEX_HUB_VITE_USE_BUILD", "").lower() in (
     "true",
     "yes",
 )
+if VITE_USE_BUILD:
+    # Django's DEV static serving (django.contrib.staticfiles.views.serve, used
+    # whenever DEBUG=True) reads STATICFILES_DIRS + app static dirs through
+    # STATICFILES_FINDERS -- it does NOT read STATIC_ROOT ("staticfiles/", see
+    # settings_static.py). `npm run build` writes the vite bundle straight into
+    # STATIC_ROOT/vite/ (build.outDir in vite.config.ts), which is exactly the
+    # one place dev serving never looks. Without this, every /static/vite/*.js
+    # request 404s regardless of how correct the manifest.json lookup is --
+    # collectstatic (which populates STATIC_ROOT from STATICFILES_DIRS) is not
+    # the fix either, since the build output already IS in STATIC_ROOT and dev
+    # serving still wouldn't read it from there.
+    #
+    # Note the PREFIX TUPLE form ("vite", ...): a bare path entry would serve
+    # this directory's contents at STATIC_URL directly (e.g. /static/shared/...,
+    # silently dropping "vite/"), which does not match the URLs vite.config.ts
+    # actually emits (base: "/static/vite/") or what the manifest.json lookup
+    # in vite.py constructs -- confirmed via `manage.py findstatic`, which
+    # located the file fine but at the wrong unprefixed path, while the real
+    # request (with the "vite/" prefix) kept 404ing.
+    #
+    # Found 2026-08-20 chasing the tunnel-based UI audit: #667 (mixed content)
+    # and #668 (wrong env var name) both got the manifest.json lookup itself
+    # working, but every resulting URL still 404'd because of this gap -- so
+    # neither prior fix could have been verified end-to-end without it.
+    STATICFILES_DIRS.append(("vite", BASE_DIR / "staticfiles" / "vite"))
 # Set to your Windows LAN IP for iPhone dev testing (e.g. "192.168.0.67").
 # Default "127.0.0.1" works for localhost-only dev.
 # "auto" tries to detect the Windows host LAN IP via default gateway.
