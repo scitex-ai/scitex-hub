@@ -9,9 +9,8 @@ import sys
 
 import click
 import requests
-from scitex_config._ecosystem import local_state
-
 from .._config import get_config_value
+from .._config._local_state_fallback import local_state
 
 # Cached token location
 TOKEN_CACHE_PATH = local_state.runtime_path("cloud", "token.json")
