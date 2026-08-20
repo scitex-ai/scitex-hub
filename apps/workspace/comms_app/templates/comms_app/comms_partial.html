@@ -1,2 +1,16 @@
 {# Comms module partial — mount point for ChatPanel TypeScript #}
+{% load static vite %}
+
+<link rel="stylesheet" href="{% static 'comms_app/css/chat.css' %}" />
+
 <div id="comms-root" class="comms-root" data-module="comms"></div>
+<script>
+  const COMMS_CONFIG = {
+    currentUserId: {{ user.id|default:"-1" }},
+    currentUsername: "{{ user.username|escapejs }}",
+    initialChannelSlug: null,
+    apiBase: "/apps/comms",
+  };
+</script>
+{% vite_hmr_client %}
+{% vite_script 'comms_app/index' %}
