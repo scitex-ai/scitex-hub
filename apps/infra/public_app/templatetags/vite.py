@@ -154,10 +154,11 @@ def vite_hmr_client():
         scripts += (
             f'<script type="module">'
             f"const h=window.location.hostname;"
+            f"const p=window.location.protocol;"
             f'const s=document.createElement("script");s.type="module";'
-            f's.src="http://"+h+":{host_port}/@vite/client";document.head.appendChild(s);'
+            f's.src=p+"//"+h+":{host_port}/@vite/client";document.head.appendChild(s);'
             f'const s2=document.createElement("script");s2.type="module";'
-            f's2.src="http://"+h+":{dev_port}/@vite/client";s2.onerror=()=>{{}};'
+            f's2.src=p+"//"+h+":{dev_port}/@vite/client";s2.onerror=()=>{{}};'
             f"document.head.appendChild(s2);"
             f"</script>"
         )
@@ -211,7 +212,7 @@ def vite_script(entry_name: str):
             port = getattr(settings, "VITE_DEV_APP_PORT", 5174)
             return mark_safe(
                 f'<script type="module">{{const s=document.createElement("script");s.type="module";'
-                f's.src="http://"+window.location.hostname+":{port}/{entry_name}.ts";'
+                f's.src=window.location.protocol+"//"+window.location.hostname+":{port}/{entry_name}.ts";'
                 f"document.head.appendChild(s);}}</script>"
             )
         else:
@@ -228,7 +229,7 @@ def vite_script(entry_name: str):
         port = getattr(settings, "VITE_HOST_PORT", 5173)
         return mark_safe(
             f'<script type="module">{{const s=document.createElement("script");s.type="module";'
-            f's.src="http://"+window.location.hostname+":{port}/{ts_path}";'
+            f's.src=window.location.protocol+"//"+window.location.hostname+":{port}/{ts_path}";'
             f"document.head.appendChild(s);}}</script>"
         )
     else:
@@ -289,8 +290,10 @@ def vite_asset_url(context, entry_name: str) -> str:
     if settings.DEBUG and not getattr(settings, "VITE_USE_BUILD", False):
         ts_path = _entry_to_ts_path(entry_name)
         port = getattr(settings, "VITE_HOST_PORT", 5173)
+        request = context.get("request")
+        scheme = request.scheme if request is not None else "http"
         # Already a full URL (host Vite dev server) -- nothing to make absolute.
-        return f"http://localhost:{port}/{ts_path}"
+        return f"{scheme}://localhost:{port}/{ts_path}"
 
     manifest = get_manifest()
     ts_path = _entry_to_ts_path(entry_name)
