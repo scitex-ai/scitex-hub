@@ -44,6 +44,7 @@ _PLATFORM_APPS = frozenset(
         "workspace_app",
         "organizations_app",
         "discovery_app",
+        "comms_app",
         "shared",
         "scitex_ui",
     }
