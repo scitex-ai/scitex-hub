@@ -124,7 +124,7 @@ services:
       - PYTHONUNBUFFERED=1
       - PYTHONDONTWRITEBYTECODE=1
       - WATCHFILES_FORCE_POLLING=true  # For NFS/network filesystems
-      - VITE_USE_BUILD=${VITE_USE_BUILD:-false}  # Set true to use pre-built JS (no Vite dev server)
+      - SCITEX_HUB_VITE_USE_BUILD=${SCITEX_HUB_VITE_USE_BUILD:-false}  # Set true to use pre-built JS (no Vite dev server)
       # scitex.writer specific
       - SCITEX_WRITER_CACHE_DIR=/app/.cache
       # scitex-ui static dir for Vite alias resolution (avoids python3 discovery)
