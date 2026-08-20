@@ -528,10 +528,24 @@ RUN uv pip install --system --no-cache \
     "scitex-io==0.2.3" \
     "scitex-stats==0.2.6" \
     "scitex-plt==0.24.0" \
+    # scitex-writer 2.42.0 requires scitex-ui>=0.8.0. The C0 pin below was
+    # ==0.6.3, which made this whole RUN unresolvable the moment writer was
+    # bumped -- "No solution found ... you require scitex-ui==0.6.3". A pin set
+    # is only valid TOGETHER; each line being individually defensible is not
+    # enough. Guarded by tests/deployment/test_dockerfile_pin_set_resolves.py.
+    #
+    # 0.16.0 is chosen because it is scitex-ui's CURRENT PyPI LATEST, and the C1
+    # layer below upgrades scitex-ui to latest anyway -- so pinning latest here
+    # makes the two layers agree instead of fighting, which is what a cache
+    # anchor is for. It is NOT the version any local venv happens to run
+    # (/uvwork/venv-hub is on 0.15.0); that would have been a coincidence, not a
+    # reason. Note these pins are NOT checked for EXISTENCE by any guard -- a
+    # typo'd version resolves to nothing and fails the build. See the
+    # "does not check" note in test_dockerfile_pin_set_resolves.py.
     "scitex-writer==2.42.0" \
     "scitex-template==0.7.0" \
     "scitex-linter==0.3.1" \
-    "scitex-ui==0.6.3" \
+    "scitex-ui==0.16.0" \
     "openalex-local==0.6.0" \
     "crossref-local==0.6.4"
 
