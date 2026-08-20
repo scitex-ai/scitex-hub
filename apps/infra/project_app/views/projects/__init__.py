@@ -22,6 +22,7 @@ from .detail import project_detail, project_tree_or_blob
 from .detail_redirect import project_detail_redirect
 from .edit import project_edit
 from .list import project_list
+from .live_viewer import project_live_viewer, project_live_viewer_api
 from .settings import project_settings
 
 __all__ = [
@@ -34,6 +35,8 @@ __all__ = [
     "project_edit",
     "project_delete",
     "project_settings",
+    "project_live_viewer",
+    "project_live_viewer_api",
     "api_check_name_availability",
     "api_me",
     "api_project_list",
