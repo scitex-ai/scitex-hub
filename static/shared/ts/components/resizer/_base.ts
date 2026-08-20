@@ -34,6 +34,7 @@ export abstract class BaseResizer {
   protected isInApp: boolean;
   protected storageKey: string;
   protected accordion: boolean;
+  protected collapseOnNarrow: boolean;
   protected snapPointsExplicit: number[];
   private _onDragStart?: () => void;
   private _onDragEnd?: () => void;
@@ -65,6 +66,7 @@ export abstract class BaseResizer {
     this.isInApp = opts.isInApp;
     this.storageKey = opts.storageKey;
     this.accordion = opts.accordion ?? false;
+    this.collapseOnNarrow = opts.collapseOnNarrow ?? false;
     this.snapPointsExplicit = opts.snapPoints ?? [];
     this._onDragStart = opts.onDragStart;
     this._onDragEnd = opts.onDragEnd;
@@ -257,15 +259,37 @@ export abstract class BaseResizer {
     this.firstPanel.style.transition = "none";
     this.secondPanel.style.transition = "none";
 
-    // Auto-collapse sidebar on mobile viewport (< 768px)
+    // Auto-collapse a panel on a phone-width viewport (< 768px).
+    //
+    // WHICH panel is collapsed matters, and getting it wrong is how Writer
+    // lost its editor. This rule was written for a left SIDEBAR, so it
+    // collapsed the FIRST panel unconditionally. Writer's details resizer
+    // declares data-left=".writer-container" (the DOCUMENT) and
+    // data-right=".writer-details" (the side panel) — so on a phone this
+    // collapsed the editor and left the Details panel spanning the workspace.
+    // Measured on live prod 2026-08-04 at 390px: .writer-container 58px,
+    // #writer-details x=60..380 of a 380px workspace, no editing surface.
+    //
+    // data-collapse-on-narrow opts a resizer into collapsing the SECOND
+    // (right/bottom) panel instead. Opt-in, so every existing consumer keeps
+    // today's behaviour byte for byte; mirrors scitex-ui #124's flag of the
+    // same name, which patched the OTHER copy of this component.
     const isMobile = window.innerWidth < 768;
-    if (isMobile && this.firstCanCollapse) {
-      this.collapsePanel("first");
-      requestAnimationFrame(() => {
-        this.firstPanel.style.transition = "";
-        this.secondPanel.style.transition = "";
-      });
-      return;
+    if (isMobile) {
+      const narrowSide =
+        this.collapseOnNarrow && this.secondCanCollapse
+          ? "second"
+          : this.firstCanCollapse
+            ? "first"
+            : null;
+      if (narrowSide) {
+        this.collapsePanel(narrowSide);
+        requestAnimationFrame(() => {
+          this.firstPanel.style.transition = "";
+          this.secondPanel.style.transition = "";
+        });
+        return;
+      }
     }
 
     const firstCollapsed = restoreCollapsed(this.storageKey + "-first");

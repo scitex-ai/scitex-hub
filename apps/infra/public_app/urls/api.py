@@ -18,6 +18,12 @@ from .. import api_views, views
 
 urlpatterns = [
     # Status API endpoints
+    #
+    # api/status/ is the JSON twin of the /server-status/ PAGE — same collector,
+    # same deadline, same three-valued UNKNOWNs. It exists so status.scitex.ai
+    # (a Cloudflare Worker, deliberately not hosted on the NAS it monitors) can
+    # show the hub's internals, which no outside-in probe can see.
+    path("api/status/", views.status_api, name="status_api"),
     path("api/public-status/", views.public_status_api, name="public-status-api"),
     path("api/server-status/", views.server_status_api, name="server_status_api"),
     path(
@@ -36,10 +42,14 @@ urlpatterns = [
         views.server_metrics_export_csv,
         name="server_metrics_export",
     ),
+    # Chart data for /server-status/. Replaces the old
+    # api/server-metrics/chart/<metric_type>/ PNG route, whose Celery
+    # pre-generation wrote into a non-shared container path and therefore
+    # answered 503 for its entire life (removed 2026-07-30).
     path(
-        "api/server-metrics/chart/<str:metric_type>/",
-        views.render_metric_chart,
-        name="server_metrics_chart",
+        "api/server-metrics/series/",
+        views.server_metrics_series_api,
+        name="server_metrics_series",
     ),
     # Visitor pool API
     path(

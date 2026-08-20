@@ -1,6 +1,7 @@
 {% extends "auth_app/auth_base.html" %}
 
 {% load static %}
+{% load socialaccount %}
 
 {% block title %}
     Sign
@@ -93,28 +94,52 @@
                 </div>
                 <button type="submit" class="btn btn-primary w-100">Sign In</button>
             </form>
-            <!-- Social Login Divider -->
-            <div class="social-login-divider">
-                <span>or continue with</span>
-            </div>
-            <!-- Social Login Buttons -->
-            <div class="social-login-buttons">
-                <a href="{% url 'google_login' %}" class="btn btn-social btn-google">
-                    <svg class="social-icon" viewBox="0 0 24 24" width="20" height="20">
-                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                    </svg>
-                    <span>Google</span>
-                </a>
-                <a href="{% url 'orcid_login' %}" class="btn btn-social btn-orcid">
-                    <svg class="social-icon" viewBox="0 0 24 24" width="20" height="20">
-                        <path fill="#A6CE39" d="M12 0C5.372 0 0 5.372 0 12s5.372 12 12 12 12-5.372 12-12S18.628 0 12 0zM7.369 4.378c.525 0 .947.431.947.947s-.422.947-.947.947a.95.95 0 0 1-.947-.947c0-.525.422-.947.947-.947zm-.722 3.038h1.444v10.041H6.647V7.416zm3.562 0h3.9c3.712 0 5.344 2.653 5.344 5.025 0 2.578-2.016 5.025-5.325 5.025h-3.919V7.416zm1.444 1.303v7.444h2.297c3.272 0 4.022-2.484 4.022-3.722 0-2.016-1.284-3.722-4.097-3.722h-2.222z" />
-                    </svg>
-                    <span>ORCID</span>
-                </a>
-            </div>
+            {# Social login is DERIVED, never hardcoded. `get_providers` reads #}
+            {# allauth's own `list_apps(request)` -- the same source #}
+            {# `DefaultSocialAccountAdapter.get_app` reads when the login view #}
+            {# runs -- so a button exists exactly when clicking it can succeed. #}
+            {# Hardcoded anchors here shipped a two-click path to an HTTP 500 on #}
+            {# production, where no provider has ever had a usable SocialApp. #}
+            {# The provider OBJECT is passed to `provider_login_url`: a bare id #}
+            {# string sends the tag back through `get_app`, which is the lookup #}
+            {# that raises. Nothing else is needed to bring the buttons back -- #}
+            {# configure an app and they return on their own. #}
+            {% get_providers as socialaccount_providers %}
+            {% if socialaccount_providers %}
+                <!-- Social Login Divider (inside the guard: a divider above nothing is its own defect) -->
+                <div class="social-login-divider">
+                    <span>or continue with</span>
+                </div>
+                <!-- Social Login Buttons -->
+                <div class="social-login-buttons">
+                    {% for provider in socialaccount_providers %}
+                        {% if provider.id == "google" %}
+                            <a href="{% provider_login_url provider %}"
+                               class="btn btn-social btn-google">
+                                <svg class="social-icon" viewBox="0 0 24 24" width="20" height="20">
+                                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                                </svg>
+                                <span>Google</span>
+                            </a>
+                        {% elif provider.id == "orcid" %}
+                            <a href="{% provider_login_url provider %}"
+                               class="btn btn-social btn-orcid">
+                                <svg class="social-icon" viewBox="0 0 24 24" width="20" height="20">
+                                    <path fill="#A6CE39" d="M12 0C5.372 0 0 5.372 0 12s5.372 12 12 12 12-5.372 12-12S18.628 0 12 0zM7.369 4.378c.525 0 .947.431.947.947s-.422.947-.947.947a.95.95 0 0 1-.947-.947c0-.525.422-.947.947-.947zm-.722 3.038h1.444v10.041H6.647V7.416zm3.562 0h3.9c3.712 0 5.344 2.653 5.344 5.025 0 2.578-2.016 5.025-5.325 5.025h-3.919V7.416zm1.444 1.303v7.444h2.297c3.272 0 4.022-2.484 4.022-3.722 0-2.016-1.284-3.722-4.097-3.722h-2.222z" />
+                                </svg>
+                                <span>ORCID</span>
+                            </a>
+                        {% else %}
+                            <a href="{% provider_login_url provider %}" class="btn btn-social">
+                                <span>{{ provider.name }}</span>
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
             <div class="text-center mt-3">
                 <p>
                     Don't have an account?

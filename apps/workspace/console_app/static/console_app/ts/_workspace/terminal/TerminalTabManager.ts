@@ -4,13 +4,18 @@
  */
 
 import { PTYTerminal } from "../../_pty-terminal";
+import { showTerminalStartFailure } from "../../_pty-ui-helpers";
 import type { EditorConfig } from "../core/types";
 import { modalManager } from "../ui/ModalManager";
+import { TerminalProviderPicker } from "./TerminalProviderPicker";
+import { renderTerminalTabs } from "./TerminalTabStrip";
 
 interface TerminalTab {
   id: string;
   name: string;
   tmuxSession: string;
+  /** Model-provider id the session was created with ("" = default). */
+  provider: string;
   terminal: PTYTerminal;
   containerElement: HTMLElement;
 }
@@ -18,7 +23,7 @@ interface TerminalTab {
 const SESSION_STORAGE_KEY = "scitex-terminal-tabs";
 
 interface SavedTabState {
-  tabs: Array<{ name: string; tmuxSession: string }>;
+  tabs: Array<{ name: string; tmuxSession: string; provider?: string }>;
   activeSession: string;
   counter: number;
 }
@@ -29,7 +34,7 @@ export class TerminalTabManager {
   private config: EditorConfig;
   private terminalCounter: number = 1;
   private mainContainer: HTMLElement | null = null;
-  private draggedTerminalId: string | null = null;
+  private providerPicker: TerminalProviderPicker = new TerminalProviderPicker();
 
   constructor(config: EditorConfig) {
     this.config = config;
@@ -45,12 +50,21 @@ export class TerminalTabManager {
       return;
     }
 
+    await this.providerPicker.load();
+
     const saved = this.loadTabState();
     if (saved && saved.tabs.length > 0) {
       // Restore tabs from previous session (Ctrl+Shift+R)
       this.terminalCounter = saved.counter;
       for (const tab of saved.tabs) {
-        await this.createTerminal(tab.name, tab.tmuxSession);
+        // Old saved state has no provider field — restore as the server
+        // default ("") rather than the current picker selection, so a
+        // reattach never silently requests a different provider.
+        await this.createTerminal(
+          tab.name,
+          tab.tmuxSession,
+          tab.provider ?? "",
+        );
       }
       // Switch to previously active tab
       const activeTab = Array.from(this.terminals.values()).find(
@@ -73,8 +87,14 @@ export class TerminalTabManager {
    * Create a new terminal tab
    * @param name Display name for the tab
    * @param tmuxSession tmux session name (e.g., "scitex-0"). Auto-generated if omitted.
+   * @param provider Model-provider id ("" = default). New tabs pick up the
+   *                 picker selection; restored tabs pass their saved value.
    */
-  async createTerminal(name?: string, tmuxSession?: string): Promise<string> {
+  async createTerminal(
+    name?: string,
+    tmuxSession?: string,
+    provider?: string,
+  ): Promise<string> {
     if (!this.mainContainer || !this.config.currentProject) {
       throw new Error("Container or project not found");
     }
@@ -83,6 +103,8 @@ export class TerminalTabManager {
     const tabIndex = this.terminalCounter++;
     const terminalName = name || `T${tabIndex}`;
     const sessionName = tmuxSession || `scitex-${tabIndex - 1}`;
+    const sessionProvider =
+      provider ?? this.providerPicker.getSelectedProvider();
 
     // Create container for this terminal
     const containerElement = document.createElement("div");
@@ -93,20 +115,43 @@ export class TerminalTabManager {
 
     this.mainContainer.appendChild(containerElement);
 
-    // Create PTY terminal instance with tmux session name
-    const terminal = new PTYTerminal(
-      containerElement,
-      this.config.currentProject.id,
-      sessionName,
-    );
-
-    await terminal.waitForReady();
+    // Create PTY terminal instance with tmux session name. Fail LOUD:
+    // if construction or initialization throws, the container must not
+    // stay display:none with the failure visible only in the console —
+    // un-hide it and render an explicit error state with a Retry button.
+    let terminal: PTYTerminal;
+    try {
+      terminal = new PTYTerminal(
+        containerElement,
+        this.config.currentProject.id,
+        sessionName,
+        sessionProvider,
+      );
+      await terminal.waitForReady();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      containerElement.style.display = "block";
+      showTerminalStartFailure(
+        containerElement,
+        `Terminal failed to start: ${message}`,
+        () => {
+          containerElement.remove();
+          void this.createTerminal(terminalName, sessionName, sessionProvider);
+        },
+      );
+      console.error(
+        `[TerminalTabManager] Terminal failed to start: ${message}`,
+        err,
+      );
+      throw err instanceof Error ? err : new Error(message);
+    }
 
     // Store terminal tab
     this.terminals.set(terminalId, {
       id: terminalId,
       name: terminalName,
       tmuxSession: sessionName,
+      provider: sessionProvider,
       terminal,
       containerElement,
     });
@@ -202,63 +247,6 @@ export class TerminalTabManager {
   }
 
   /**
-   * Start inline rename for a terminal tab
-   */
-  private startInlineRename(
-    terminalId: string,
-    labelElement: HTMLSpanElement,
-    container: HTMLElement,
-  ): void {
-    const terminal = this.terminals.get(terminalId);
-    if (!terminal) return;
-
-    // Create input field
-    const input = document.createElement("input");
-    input.type = "text";
-    input.value = terminal.name;
-    input.className = "terminal-tab-rename-input";
-    input.style.cssText = `
-      width: 100px;
-      padding: 2px 4px;
-      font-size: 13px;
-      border: 1px solid var(--workspace-icon-primary);
-      border-radius: 3px;
-      background: var(--workspace-bg-primary);
-      color: var(--text-primary);
-      outline: none;
-    `;
-
-    // Replace label with input
-    labelElement.style.display = "none";
-    labelElement.parentElement?.insertBefore(input, labelElement);
-    input.focus();
-    input.select();
-
-    const finishRename = () => {
-      const newName = input.value.trim();
-      if (newName && newName !== terminal.name) {
-        this.renameTerminal(terminalId, newName);
-      } else {
-        // Restore original label
-        labelElement.style.display = "";
-        input.remove();
-      }
-    };
-
-    input.onblur = finishRename;
-    input.onkeydown = (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        finishRename();
-      } else if (e.key === "Escape") {
-        e.preventDefault();
-        labelElement.style.display = "";
-        input.remove();
-      }
-    };
-  }
-
-  /**
    * Get active terminal
    */
   getActiveTerminal(): PTYTerminal | null {
@@ -296,99 +284,41 @@ export class TerminalTabManager {
   }
 
   /**
-   * Render terminal tabs in the UI
+   * Render terminal tabs in the UI (DOM building lives in TerminalTabStrip)
    */
   private renderTabs(): void {
     const tabsContainer = document.getElementById("terminal-tabs");
     if (!tabsContainer) return;
 
-    // Clear existing tabs
-    tabsContainer.innerHTML = "";
+    renderTerminalTabs(
+      tabsContainer,
+      Array.from(this.terminals.values()).map((t) => ({
+        id: t.id,
+        name: t.name,
+      })),
+      this.activeTerminalId,
+      {
+        onSwitch: (id) => this.switchTerminal(id),
+        onCloseRequest: (id) => {
+          const terminal = this.terminals.get(id);
+          if (!terminal) return;
+          void modalManager.confirmClose(terminal.name).then((confirmed) => {
+            if (confirmed) this.closeTerminal(id);
+          });
+        },
+        onRename: (id, newName) => this.renameTerminal(id, newName),
+        onReorder: (draggedId, targetId) =>
+          this.reorderTabs(draggedId, targetId),
+        onNew: () => {
+          void this.createTerminal();
+        },
+      },
+    );
 
-    // Render each tab
-    this.terminals.forEach((terminal) => {
-      const tab = document.createElement("button");
-      tab.className = `terminal-tab ${terminal.id === this.activeTerminalId ? "active" : ""}`;
-      tab.dataset.terminalId = terminal.id;
-      tab.title = terminal.name;
-
-      // Tab label
-      const label = document.createElement("span");
-      label.className = "terminal-tab-label";
-      label.textContent = terminal.name;
-      tab.appendChild(label);
-
-      // Close button
-      const closeBtn = document.createElement("span");
-      closeBtn.className = "terminal-tab-close";
-      closeBtn.innerHTML = "×";
-      closeBtn.title = "Close terminal";
-      closeBtn.onclick = async (e) => {
-        e.stopPropagation();
-        const confirmed = await modalManager.confirmClose(terminal.name);
-        if (confirmed) this.closeTerminal(terminal.id);
-      };
-      tab.appendChild(closeBtn);
-
-      // Tab click handler
-      tab.onclick = () => {
-        this.switchTerminal(terminal.id);
-      };
-
-      // Double-click to rename
-      tab.ondblclick = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        this.startInlineRename(terminal.id, label, tabsContainer);
-      };
-
-      // Drag and drop reordering
-      tab.draggable = true;
-      tab.ondragstart = (e) => {
-        this.draggedTerminalId = terminal.id;
-        tab.classList.add("dragging");
-        if (e.dataTransfer) {
-          e.dataTransfer.effectAllowed = "move";
-          e.dataTransfer.setData("text/plain", terminal.id);
-        }
-      };
-      tab.ondragend = () => {
-        this.draggedTerminalId = null;
-        tab.classList.remove("dragging");
-        // Remove all drag-over classes
-        tabsContainer.querySelectorAll(".terminal-tab").forEach((t) => {
-          t.classList.remove("drag-over");
-        });
-      };
-      tab.ondragover = (e) => {
-        e.preventDefault();
-        if (this.draggedTerminalId && this.draggedTerminalId !== terminal.id) {
-          tab.classList.add("drag-over");
-        }
-      };
-      tab.ondragleave = () => {
-        tab.classList.remove("drag-over");
-      };
-      tab.ondrop = (e) => {
-        e.preventDefault();
-        tab.classList.remove("drag-over");
-        if (this.draggedTerminalId && this.draggedTerminalId !== terminal.id) {
-          this.reorderTabs(this.draggedTerminalId, terminal.id);
-        }
-      };
-
-      tabsContainer.appendChild(tab);
-    });
-
-    // Add "+" button at the end (inside scrollable container)
-    const newTabBtn = document.createElement("button");
-    newTabBtn.className = "terminal-tab-new";
-    newTabBtn.innerHTML = "+";
-    newTabBtn.title = "New terminal (Ctrl+Shift+T)";
-    newTabBtn.onclick = () => {
-      this.createTerminal();
-    };
-    tabsContainer.appendChild(newTabBtn);
+    // Model-provider picker for NEW sessions (Option A). Disabled with an
+    // explanatory tooltip for readonly visitors; hidden when the registry
+    // endpoint was unreachable.
+    this.providerPicker.render(tabsContainer);
   }
 
   /**
@@ -446,6 +376,7 @@ export class TerminalTabManager {
       tabs: Array.from(this.terminals.values()).map((t) => ({
         name: t.name,
         tmuxSession: t.tmuxSession,
+        provider: t.provider,
       })),
       activeSession: activeTab?.tmuxSession || "scitex-0",
       counter: this.terminalCounter,

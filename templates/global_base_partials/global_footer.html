@@ -20,7 +20,7 @@
                         <a href="https://www.youtube.com/@SciTeX-Official" title="YouTube"><i class="fab fa-youtube"></i></a>
                     </div>
                     <p class="footer-contact">
-                        <a href="mailto:support@scitex.ai"><i class="fas fa-envelope"></i> support@scitex.ai</a>
+                        <a href="mailto:{{ CONTACT_EMAIL }}"><i class="fas fa-envelope"></i> {{ CONTACT_EMAIL }}</a>
                     </p>
                     <p class="footer-copyright">
                         &copy; 2025–2026 SciTeX. All rights reserved. <span class="footer-version">v{{ SCITEX_HUB_VERSION }}</span>
@@ -37,6 +37,9 @@
                             <a href="{% url 'public_app:contributors' %}">Contributors</a>
                         </li>
                         <li>
+                            <a href="{% url 'public_app:recruit' %}">Recruit</a>
+                        </li>
+                        <li>
                             <a href="{% url 'public_app:publications' %}">Publications</a>
                         </li>
                         <li>
@@ -50,33 +53,29 @@
                         </li>
                     </ul>
                 </div>
-                <!-- Column 3: Developers (two-column layout) -->
-                <div class="footer-section footer-section-wide">
+                <!-- Column 3: Developers -->
+                <div class="footer-section">
                     <h3>Developers</h3>
-                    <div class="footer-links-2col">
-                        <ul class="footer-links">
-                            <li>
-                                <a href="{% url 'public_app:api_docs' %}">Web API Docs</a>
-                            </li>
-                            <li>
-                                <a href="{% url 'dev_app:tests_category' category='web-api' %}">Web API Tests</a>
-                            </li>
-                            <li>
-                                <a href="{% url 'public_app:releases' %}">Releases</a>
-                            </li>
-                        </ul>
-                        <ul class="footer-links">
-                            <li>
-                                <a href="/scitex-ai/scitex-hub/issues">Bug Reports</a>
-                            </li>
-                            <li>
-                                <a href="{% url 'dev_app:design' %}">Design System</a>
-                            </li>
-                            <li>
-                                <a href="{% url 'public_app:server_status' %}">Server Status</a>
-                            </li>
-                        </ul>
-                    </div>
+                    <ul class="footer-links">
+                        <li>
+                            <a href="{% url 'public_app:api_docs' %}">Web API Docs</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'dev_app:tests_category' category='web-api' %}">Web API Tests</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'public_app:releases' %}">Releases</a>
+                        </li>
+                        <li>
+                            <a href="/scitex-ai/scitex-hub/issues">Bug Reports</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'dev_app:design' %}">Design System</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'public_app:server_status' %}">Server Status</a>
+                        </li>
+                    </ul>
                 </div>
                 <!-- Column 4: Legal -->
                 <div class="footer-section">
@@ -90,6 +89,25 @@
                         </li>
                         <li>
                             <a href="{% url 'public_app:cookies' %}">Cookies</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'public_app:tokushoho' %}">特定商取引法に基づく表記</a>
+                        </li>
+                        {% comment %}
+                            The mailto: above is not a contact ROUTE: a visitor with no mail
+                            client configured cannot act on it, and it states no operator,
+                            address or response undertaking. The disclosure obligation is
+                            about being REACHABLE, so link the page as well.
+
+                            {% comment %} rather than {# #}: Django's hash comment is
+                            SINGLE-LINE ONLY, so a multi-line one is never lexed and renders
+                            VERBATIM to visitors. global_base.html:55-65 documents that exact
+                            incident, and this comment was written as a multi-line {# #} and
+                            caught by CI -- the same bug, in the same file family, one session
+                            after reading the warning about it.
+                        {% endcomment %}
+                        <li>
+                            <a href="{% url 'public_app:contact' %}">Contact</a>
                         </li>
                     </ul>
                 </div>

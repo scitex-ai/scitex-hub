@@ -31,12 +31,27 @@ class TestModuleRegistry(TestCase):
         self.assertEqual(len(names), len(set(names)))
 
     def test_all_modules_have_partial_templates(self):
-        """Every module must declare a partial template."""
-        for mod in get_all_modules():
-            self.assertTrue(
-                mod.partial_template,
-                f"Module '{mod.name}' has no partial_template",
-            )
+        """Every module that renders a workspace surface must declare a partial.
+
+        `renders_ui` defaults to True, so a module that merely FORGOT its
+        partial_template still fails here. Only a module that explicitly
+        declares ``"renders_ui": false`` is exempt — the exemption is a
+        stated fact in that module's manifest, greppable and individually
+        revisitable, rather than an empty string that means both "no UI by
+        design" and "not filled in yet".
+        """
+        # Arrange: only modules that claim a workspace surface are in scope.
+        ui_modules = [mod for mod in get_all_modules() if mod.renders_ui]
+
+        # Act
+        missing = [mod.name for mod in ui_modules if not mod.partial_template]
+
+        # Assert
+        assert not missing, (
+            f"Modules declaring renders_ui but no partial_template: {missing}. "
+            "Either add the partial, or declare \"renders_ui\": false in the "
+            "module's manifest.json with the reason it has no surface."
+        )
 
     def test_all_partial_templates_exist(self):
         """All declared partial templates must exist on disk."""

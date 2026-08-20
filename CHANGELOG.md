@@ -9,6 +9,59 @@ verbatim. See [ADR-0001](docs/adr/0001-rename-scitex-cloud-to-scitex-hub.md).
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.19.0] - 2026-07-17
+
+Rolls up ~200 commits since v0.18.2. Headline: the visitor pool became a
+self-healing system, the celery worker stall was root-caused and cured,
+and the launcher/apps received their first product-polish wave.
+
+### Added
+- Visitor-slot probation: allocation grants a short provisional lease and
+  the first heartbeat promotes it, so crawlers can no longer squat slots;
+  sessions now extend on activity instead of hard-expiring mid-work (#380)
+- End-to-end celery queue-liveness watchdog (beacon task + healthcheck on
+  stamp freshness) plus a boot-persistent autoheal service that actually
+  restarts unhealthy workers (#382, #386)
+- Dedicated worker for the security-critical visitor re-clean queue (#378)
+- iPhone-home launcher experience: curated tile order, long-press jiggle,
+  drag-reorder with travel animation, horizontal paging clear of the dock,
+  touch-enabled reorder on iOS (#352, #353, #354, #358, #360, #361, #365)
+- Storage as a real plugin app with launcher tile (#359, #362)
+- Managed openalex-local API service beside crossref (#375, #376)
+- Environment-coloured favicons + unified tab titles (#357); dev preview
+  stack that runs beside prod on one host (#356)
+- JWT bearer middleware, API keys on DRF endpoints, /me token endpoint
+  (#268, #271, #272, #273)
+- Visitor banner names the visitor (#NNN) and states the honest
+  activity-based lifetime from the live constants (#383)
+
+### Fixed
+- The visitor read-only saga, end to end: allocation starts the idle clock
+  (#377), boot no longer swallows a dead SLURM (#373), `make status`
+  reports the real allocatable gate (#374), re-cleans routed to their own
+  queue (#348), broker DB mismatch (#337), wipe verified on recycle (#335)
+- Celery prefork stall: root-caused to the pool's ack path; the vis worker
+  now runs the threads pool, with tini restored as PID 1, fair dispatch,
+  and the broker stack pinned below the 5.6 regression line
+  (#379, #381, #384, #385)
+- Content-hashed static URLs — devices no longer run month-old CSS against
+  fresh JS (#366)
+- Launcher sidebar: default pins seeded for real users (#371) but never
+  for the shared visitor-pool accounts (#389); app tiles show the real
+  installed package version via a single source of truth (#350, #363)
+- Scholar and Storage desktop polish: restored per-app accent colours,
+  dead login links, catalog drift, stale greens and a 502-line dead
+  stylesheet (#387, #388)
+- Prod deploy safety: compose aborts on missing secrets instead of
+  building blank-password containers (#372); prod-scoped compose env
+  sourcing (#334, #240)
+
+### Security
+- Visitor container instance + home wiped and verified on slot recycle
+  (#335); read-only visitors default-deny writes (#333); prod secrets
+  required at compose parse time (#372); world-writable env files
+  hardened and the SCITEX_CLOUD_→SCITEX_HUB_ rename completed
+
 ## [0.18.1] - 2026-06-01
 
 ### Added

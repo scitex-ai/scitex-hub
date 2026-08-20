@@ -56,30 +56,16 @@ def project_detail(request, username, slug):
             context["org_slug"] = username
         return render(request, "repo_app/index.html", context)
 
-    # Check for port proxy request (e.g., ?port=6006)
-    port_param = request.GET.get("port")
-    if port_param:
-        try:
-            port = int(port_param)
-            from ...utils.port_proxy import get_port_proxy_manager
-
-            proxy_manager = get_port_proxy_manager()
-            return proxy_manager.proxy_request(request, port)
-        except ValueError:
-            from django.http import HttpResponse
-
-            return HttpResponse(
-                f"Invalid port parameter: {port_param}",
-                status=400,
-                content_type="text/plain",
-            )
-        except Exception as e:
-            from django.http import HttpResponse
-
-            logger.error(f"Port proxy error: {e}", exc_info=True)
-            return HttpResponse(
-                f"Proxy error: {str(e)}", status=500, content_type="text/plain"
-            )
+    # NOTE: an unauthenticated `?port=` branch used to live here and forwarded
+    # the request to http://127.0.0.1:<port> (CodeQL py/partial-ssrf #9385,
+    # apps/infra/project_app/utils/port_proxy.py). It was removed: the branch
+    # sat AFTER the is_authenticated return above, so it was reachable ONLY by
+    # anonymous visitors — the check was inverted, the feature never served the
+    # logged-in workspace users it was written for, and it let anyone port-scan
+    # and read back localhost services in the 10000-20000 range. Nothing in the
+    # product ever built a `?port=` link (workspace Jupyter/TensorBoard go
+    # through console_app's own API), so this was dead code and a live SSRF.
+    # Regression: tests/apps/project_app/views/projects/test_detail_port_proxy.py
 
     mode = request.GET.get("mode", "overview")
     view = request.GET.get("view", "default")

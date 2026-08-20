@@ -12,7 +12,8 @@ import asyncio
 import logging
 import tempfile
 from pathlib import Path
-from django.http import JsonResponse, FileResponse
+
+from django.http import FileResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
 
 logger = logging.getLogger(__name__)

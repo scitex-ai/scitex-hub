@@ -65,7 +65,7 @@
 <link rel="stylesheet"
       href="{% static 'console_app/css/workspace/14-monaco-editor.css' %}" />
 <!-- xterm.js CDN CSS — must load before xterm.open() or helpers div is visible -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.css" />
 <link rel="stylesheet" href="{% static 'console_app/css/workspace/15-xterm.css' %}" />
 <link rel="stylesheet"
       href="{% static 'console_app/css/workspace/16-welcome-screen.css' %}" />
@@ -97,7 +97,7 @@
 <link rel="stylesheet"
       href="{% static 'shared/css/components/data-table/data-table.css' %}" />
 <!-- Monaco CSS bundled locally via Vite (imported by monaco-init.ts) -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.css" />
 <!-- Unified-workspace layout overrides: hide the module's own sidebar -->
 <style>
     /* The unified workspace provides its own file tree sidebar */
@@ -153,7 +153,7 @@
         </div>
     </div>
 {% else %}
-    <div class="code-workspace">
+    <div class="code-workspace module-mobile-stack">
         <!-- Center: Editor Area (sidebar omitted — unified workspace provides file tree) -->
         <div class="code-editor-area">
             <!-- Unified top bar: file tabs | toolbar actions | shortcuts -->
@@ -619,9 +619,9 @@
     </div>
 </div>
 <!-- xterm.js for real PTY terminal with addons -->
-<script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xterm-addon-image@0.6.0/lib/xterm-addon-image.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/lib/xterm.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@xterm/addon-image@0.8.0/lib/addon-image.js"></script>
 <!-- Monaco loaded locally via Vite bundle (workspace-inline.ts imports monaco-init.ts) -->
 <!-- Tree preseed for file tree population -->
 {% tree_preseed_script current_project %}

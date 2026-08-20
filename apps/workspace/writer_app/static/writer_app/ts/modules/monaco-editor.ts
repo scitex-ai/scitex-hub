@@ -259,8 +259,13 @@ export class EnhancedEditor {
 
       this.setupCodeMirrorEditor();
     } else {
-      console.warn(
-        "[Editor] Neither Monaco nor CodeMirror available. Editor will not be initialized.",
+      // Fail loud: silently returning here leaves a hollow editor (no DOM
+      // node, no change events → frozen word count, blank editor area) while
+      // the loader still logs success. Throw so ComponentInitializer's
+      // `if (!editor) throw` surfaces the "Failed to initialize editor" toast
+      // instead of a silent blank.
+      throw new Error(
+        "[Editor] Neither Monaco nor CodeMirror available — editor cannot be initialized",
       );
     }
   }

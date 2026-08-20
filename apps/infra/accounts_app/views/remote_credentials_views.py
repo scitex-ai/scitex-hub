@@ -9,6 +9,13 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 
 from apps.infra.project_app.models import RemoteCredential
+from apps.infra.project_app.ssh_safety import (
+    minimal_ssh_env,
+    ssh_copy_id_argv,
+    ssh_probe_argv,
+    validate_ssh_host,
+    validate_ssh_username,
+)
 
 
 def _get_user_ssh_dir(username):
@@ -120,28 +127,34 @@ def generate_ssh_key_fingerprint(ssh_public_key):
         raise ValueError(f"Invalid SSH public key: {str(e)}") from e
 
 
-def test_remote_credential_connection(credential):
-    """Test SSH connection to remote credential."""
+def test_remote_credential_connection(credential, runner=subprocess.run):
+    """Test SSH connection to remote credential.
+
+    ``runner`` is an injectable subprocess.run seam (kept for the security
+    regression test, which captures the argv/env without launching ssh).
+    The argv carries a ``--`` end-of-options terminator before the
+    destination and runs under a minimal, secret-free environment.
+    """
     ssh_key_path = credential.private_key_path
 
     if not Path(ssh_key_path).exists():
         return False, f"Private key not found: {ssh_key_path}"
 
-    cmd = [
-        "ssh",
-        "-p",
-        str(credential.ssh_port),
-        "-i",
-        ssh_key_path,
-        "-o",
-        "StrictHostKeyChecking=accept-new",
-        "-o",
-        "ConnectTimeout=10",
-        f"{credential.ssh_username}@{credential.ssh_host}",
-        "echo 'OK'",
-    ]
+    cmd = ssh_probe_argv(
+        ssh_port=credential.ssh_port,
+        ssh_key=ssh_key_path,
+        ssh_user=credential.ssh_username,
+        ssh_host=credential.ssh_host,
+        remote_command="echo OK",
+    )
 
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+    result = runner(
+        cmd,
+        capture_output=True,
+        text=True,
+        timeout=15,
+        env=minimal_ssh_env(),
+    )
 
     return result.returncode == 0, result.stderr if result.returncode != 0 else None
 
@@ -168,6 +181,17 @@ def handle_add_remote_credential(request):
         ssh_port = int(ssh_port)
     except ValueError:
         messages.error(request, "Invalid SSH port number")
+        return False
+
+    # SECURITY: reject argument-injection-prone host/username BEFORE any
+    # key generation or ORM write (SSH arg-injection → host RCE). Fail loud.
+    from django.core.exceptions import ValidationError
+
+    try:
+        validate_ssh_username(ssh_username)
+        validate_ssh_host(ssh_host)
+    except ValidationError as e:
+        messages.error(request, "; ".join(e.messages))
         return False
 
     # Handle key based on mode
@@ -294,6 +318,30 @@ def handle_test_remote_credential(request):
         return False
 
 
+def run_ssh_copy_id(credential, ssh_password, pub_key_path, runner=subprocess.run):
+    """Run ``sshpass ... ssh-copy-id ...`` with a hardened argv/env.
+
+    Pure helper (no request/DB) so the security regression test can capture
+    the argv and env via the injectable ``runner`` seam without launching
+    a subprocess. The argv carries a ``--`` end-of-options terminator before
+    the destination, and runs under a minimal, secret-free environment.
+    """
+    cmd = ssh_copy_id_argv(
+        ssh_password=ssh_password,
+        pub_key_path=pub_key_path,
+        ssh_port=credential.ssh_port,
+        ssh_user=credential.ssh_username,
+        ssh_host=credential.ssh_host,
+    )
+    return runner(
+        cmd,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        env=minimal_ssh_env(),
+    )
+
+
 def handle_ssh_copy_id(request):
     """Install public key on remote system via ssh-copy-id."""
     credential_id = request.POST.get("credential_id")
@@ -311,22 +359,7 @@ def handle_ssh_copy_id(request):
             messages.error(request, f"Public key not found: {pub_key_path}")
             return False
 
-        # Use sshpass + ssh-copy-id to install the key
-        cmd = [
-            "sshpass",
-            "-p",
-            ssh_password,
-            "ssh-copy-id",
-            "-i",
-            pub_key_path,
-            "-p",
-            str(credential.ssh_port),
-            "-o",
-            "StrictHostKeyChecking=accept-new",
-            f"{credential.ssh_username}@{credential.ssh_host}",
-        ]
-
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        result = run_ssh_copy_id(credential, ssh_password, pub_key_path)
 
         if result.returncode == 0:
             messages.success(

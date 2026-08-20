@@ -1,0 +1,13 @@
+# Japanese message catalog for SciTeX Hub.
+# Pages authored in Japanese (tokushoho) use Japanese msgids, so this
+# catalog intentionally starts empty. Regenerate with:
+#   python manage.py makemessages -l ja
+msgid ""
+msgstr ""
+"Project-Id-Version: scitex-hub\n"
+"Report-Msgid-Bugs-To: \n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"

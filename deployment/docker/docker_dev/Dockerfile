@@ -257,7 +257,7 @@ COPY src/ ./src/
 # mode from the mounted /scitex-python volume at container startup (-eU).
 # This avoids sktime==0.8.1 build failures from PyPI while keeping deps fresh.
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system ".[django,test]"
+    uv pip install --system ".[all]"
 
 # Install Playwright browsers (must persist in image for runtime use)
 # Note: We already have chromium and dependencies installed above,

@@ -300,18 +300,45 @@
                         If you have any questions about our use of cookies or this Cookie
                         Policy, please contact us at:
                     </p>
+                    {% comment %}
+                       Keep this a comment TAG. A hash-style template comment is
+                       single-line ONLY: Django's lexer regex has no re.DOTALL, so
+                       its dot never crosses a newline and a multi-line hash
+                       comment is not tokenized as a comment at all. It renders as
+                       VISIBLE body text, and any variable named inside it gets
+                       interpolated -- which on this page meant printing the very
+                       company name the comment exists to say we must NOT print
+                       yet. Caught before commit; pinned by
+                       test_cookie_policy_renders_no_raw_template_syntax.
+
+                       The name is SITE_NAME ("SciTeX"), NOT COMPANY_NAME
+                       ("株式会社 SciTeX"): incorporation completes 2026-08-08, so
+                       naming the company today would replace a false address with
+                       a false entity. /terms/ and /privacy/ say "SciTeX" for the
+                       same operator-ruled reason; /services/tokushoho/ is the one
+                       page that names the statutory entity. Switch to COMPANY_NAME
+                       on 8/8 -- it is already exported by site_branding.
+
+                       COMPANY_ADDRESS is env-overridable and may be empty, in
+                       which case the line is omitted rather than rendering a blank
+                       one inside <address>. That degrades to exactly what /terms/
+                       and /privacy/ already show (name + email), never to an
+                       address block with a hole in it. Under the shipped config it
+                       is set, and the guard in
+                       tests/apps/public_app/views/test_legal_addresses.py fetches
+                       this page and asserts the real address is in the response
+                       body -- so an accidental unset fails loudly.
+                    {% endcomment %}
                     <address>
-                        SciTeX
+                        {{ SITE_NAME }}
                         <br />
-                        Attn: Privacy Officer
-                        <br />
-                        123 Science Park
-                        <br />
-                        San Francisco, CA 94107
-                        <br />
+                        {% if COMPANY_ADDRESS %}
+                            {{ COMPANY_ADDRESS }}
+                            <br />
+                        {% endif %}
                         Email:
-                        <a href="mailto:privacy@scitex.ai"
-                           aria-label="Email our Privacy Officer at privacy@scitex.ai">privacy@scitex.ai</a>
+                        <a href="mailto:{{ PRIVACY_EMAIL }}"
+                           aria-label="Email {{ SITE_NAME }} about privacy at {{ PRIVACY_EMAIL }}">{{ PRIVACY_EMAIL }}</a>
                     </address>
                     <div class="highlight" role="note" style="margin-top: var(--spacing-lg)">
                         <p>

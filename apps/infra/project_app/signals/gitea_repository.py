@@ -18,6 +18,28 @@ from .project_initialization import _clone_gitea_repo_to_data_dir
 logger = logging.getLogger(__name__)
 
 
+def _quarantine_visitor_slot_for(username: str, reason: str) -> None:
+    """Quarantine the visitor slot behind ``username`` (visitor-NNN).
+
+    Used when a surviving Gitea repo cannot be removed for a visitor
+    project — the slot must never be redistributed while the previous
+    visitor's repo exists.
+    """
+    try:
+        visitor_number = int(username.split("-", 1)[1])
+    except (IndexError, ValueError):
+        logger.error(f"Cannot parse visitor number from username: {username}")
+        return
+
+    from apps.infra.project_app.services.visitor_pool.slot_lifecycle import (
+        get_or_create_allocation,
+        quarantine_slot,
+    )
+
+    allocation = get_or_create_allocation(visitor_number)
+    quarantine_slot(allocation, reason)
+
+
 @receiver(post_save, sender=Project)
 def create_gitea_repository(sender, instance, created, **kwargs):
     """
@@ -49,7 +71,10 @@ def create_gitea_repository(sender, instance, created, **kwargs):
                 f"Gitea unavailable during project creation for {instance.slug}: {e}"
             )
             logger.info(
-                "Project created without Gitea repository. Repository will be created when Gitea becomes available."
+                "Project created WITHOUT a Gitea repository, and NOTHING WILL RETRY: "
+                "there is no reconciler, no queued task and no backfill command, so "
+                "it stays repo-less until a human creates it. Find affected rows with "
+                "Project.objects.filter(gitea_repo_id__isnull=True)."
             )
             return
 
@@ -63,15 +88,46 @@ def create_gitea_repository(sender, instance, created, **kwargs):
             existing_repo = client.get_repository(
                 owner=instance.owner.username, repo=repo_name
             )
-            logger.info(
-                f"Gitea repository already exists: {instance.owner.username}/{repo_name}"
-            )
 
-            # Update project with Gitea info
-            instance.gitea_repo_url = existing_repo.get("html_url", "")
-            instance.gitea_clone_url = existing_repo.get("clone_url", "")
-            instance.save(update_fields=["gitea_repo_url", "gitea_clone_url"])
-            return
+            # SECURITY (visitor-slot isolation audit, gap #4): a visitor
+            # project must NEVER adopt a pre-existing repo. Visitor repos
+            # live at a STABLE path (visitor-NNN/default-project) across
+            # slot rotations, so a surviving repo contains the PREVIOUS
+            # visitor's pushed commits. Hard-delete it and recreate
+            # fresh; if deletion fails, quarantine the slot and link no
+            # repo at all.
+            if instance.owner.username.startswith("visitor-"):
+                logger.critical(
+                    f"Visitor project {instance.owner.username}/{repo_name} found a "
+                    f"surviving Gitea repo — refusing adoption, hard-deleting it"
+                )
+                try:
+                    client.delete_repository(
+                        owner=instance.owner.username, repo=repo_name
+                    )
+                except Exception as delete_error:
+                    logger.critical(
+                        f"Could not delete surviving visitor repo "
+                        f"{instance.owner.username}/{repo_name}: {delete_error} — "
+                        f"quarantining the slot"
+                    )
+                    _quarantine_visitor_slot_for(
+                        instance.owner.username,
+                        f"surviving Gitea repo {repo_name} could not be deleted: "
+                        f"{delete_error}",
+                    )
+                    return
+                # Fall through to fresh repo creation below.
+            else:
+                logger.info(
+                    f"Gitea repository already exists: {instance.owner.username}/{repo_name}"
+                )
+
+                # Update project with Gitea info
+                instance.gitea_repo_url = existing_repo.get("html_url", "")
+                instance.gitea_clone_url = existing_repo.get("clone_url", "")
+                instance.save(update_fields=["gitea_repo_url", "gitea_clone_url"])
+                return
 
         except (
             requests.exceptions.ConnectionError,
@@ -99,7 +155,10 @@ def create_gitea_repository(sender, instance, created, **kwargs):
         except GiteaConnectionError as e:
             logger.warning(f"Gitea unavailable when creating user: {e}")
             logger.info(
-                "Project created without Gitea repository. Repository will be created when Gitea becomes available."
+                "Project created WITHOUT a Gitea repository, and NOTHING WILL RETRY: "
+                "there is no reconciler, no queued task and no backfill command, so "
+                "it stays repo-less until a human creates it. Find affected rows with "
+                "Project.objects.filter(gitea_repo_id__isnull=True)."
             )
             return
         except GiteaUserCreationError as e:
@@ -152,11 +211,21 @@ def create_gitea_repository(sender, instance, created, **kwargs):
         # Gitea unavailable - log warning but don't fail project creation
         logger.warning(f"Gitea unavailable for {instance.slug}: Connection refused")
         logger.info(
-            "Project created without Gitea repository. Repository will be created when Gitea becomes available."
+            "Project created WITHOUT a Gitea repository, and NOTHING WILL RETRY: "
+            "there is no reconciler, no queued task and no backfill command, so "
+            "it stays repo-less until a human creates it. Find affected rows with "
+            "Project.objects.filter(gitea_repo_id__isnull=True)."
         )
     except Exception as e:
-        # Log error but don't fail project creation
-        logger.error(f"Failed to create Gitea repository for {instance.slug}: {e}")
+        # Project creation deliberately survives a Gitea failure, but the project
+        # is then INCOMPLETE and this line is the only place that says so.
+        # Recording the reason on the ROW is the real fix — see card
+        # hub-project-created-without-gitea-repo-is-silent-and-never-reconciled-20260811
+        logger.error(
+            f"Failed to create Gitea repository for {instance.slug}: {e}. "
+            f"The project row was SAVED and has no repository; nothing retries this. "
+            f"Find affected rows with Project.objects.filter(gitea_repo_id__isnull=True)."
+        )
         logger.exception("Full traceback:")
 
 

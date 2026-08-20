@@ -8,6 +8,8 @@ This module provides webhook-related operations for the Gitea REST API.
 
 from typing import Dict, List
 
+from .base import path_segment
+
 
 class WebhookOperationsMixin:
     """Mixin class for webhook-related operations"""
@@ -22,7 +24,7 @@ class WebhookOperationsMixin:
         Returns:
             List of webhook objects
         """
-        response = self._request("GET", f"/orgs/{org}/hooks")
+        response = self._request("GET", f"/orgs/{path_segment(org)}/hooks")
         return response.json()
 
     def create_org_webhook(
@@ -60,7 +62,7 @@ class WebhookOperationsMixin:
         if secret:
             data["config"]["secret"] = secret
 
-        response = self._request("POST", f"/orgs/{org}/hooks", json=data)
+        response = self._request("POST", f"/orgs/{path_segment(org)}/hooks", json=data)
         return response.json()
 
     def delete_org_webhook(self, org: str, hook_id: int) -> None:
@@ -71,7 +73,7 @@ class WebhookOperationsMixin:
             org: Organization name
             hook_id: Webhook ID
         """
-        self._request("DELETE", f"/orgs/{org}/hooks/{hook_id}")
+        self._request("DELETE", f"/orgs/{path_segment(org)}/hooks/{path_segment(hook_id)}")
 
     def list_repo_webhooks(self, owner: str, repo: str) -> List[Dict]:
         """
@@ -84,7 +86,7 @@ class WebhookOperationsMixin:
         Returns:
             List of webhook objects
         """
-        response = self._request("GET", f"/repos/{owner}/{repo}/hooks")
+        response = self._request("GET", f"/repos/{path_segment(owner)}/{path_segment(repo)}/hooks")
         return response.json()
 
     def create_repo_webhook(
@@ -124,7 +126,7 @@ class WebhookOperationsMixin:
         if secret:
             data["config"]["secret"] = secret
 
-        response = self._request("POST", f"/repos/{owner}/{repo}/hooks", json=data)
+        response = self._request("POST", f"/repos/{path_segment(owner)}/{path_segment(repo)}/hooks", json=data)
         return response.json()
 
 

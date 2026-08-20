@@ -12,6 +12,11 @@ from pathlib import Path
 from django.contrib.auth.models import User
 from django.db import models
 
+from apps.infra.project_app.services.writer_workspace_layout import (
+    MANUSCRIPT_DIRNAME,
+    get_writer_workspace_path,
+)
+
 
 class Manuscript(models.Model):
     """Minimal manuscript model - delegates to scitex.writer.Writer."""
@@ -74,7 +79,7 @@ class Manuscript(models.Model):
         project_root = manager.get_project_root_path(self.project)
         if project_root is None:
             return None
-        return project_root / "scitex" / "writer"
+        return get_writer_workspace_path(project_root)
 
     @property
     def writer_initialized(self) -> bool:
@@ -82,4 +87,4 @@ class Manuscript(models.Model):
         path = self.get_writer_path()
         if path is None:
             return False
-        return (path / "01_manuscript").exists()
+        return (path / MANUSCRIPT_DIRNAME).exists()

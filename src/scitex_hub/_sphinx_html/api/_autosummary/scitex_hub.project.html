@@ -150,6 +150,7 @@
 <li class="toctree-l4"><a class="reference internal" href="scitex_hub.html#scitex_hub.Environment"><code class="docutils literal notranslate"><span class="pre">Environment</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scitex_hub.html#scitex_hub.get_environment"><code class="docutils literal notranslate"><span class="pre">get_environment()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scitex_hub.html#scitex_hub.DockerManager"><code class="docutils literal notranslate"><span class="pre">DockerManager</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scitex_hub.account.html">scitex_hub.account</a></li>
 <li class="toctree-l4"><a class="reference internal" href="scitex_hub.appmaker.html">scitex_hub.appmaker</a></li>
 <li class="toctree-l4"><a class="reference internal" href="scitex_hub.module.html">scitex_hub.module</a></li>
 <li class="toctree-l4 current"><a class="current reference internal" href="#">scitex_hub.project</a></li>
@@ -195,14 +196,28 @@
 <dt>Project CRUD (Python API):</dt><dd><p>from scitex_hub.project import project_list, project_create</p>
 <p>projects = project_list()
 new = project_create(“my-project”, description=”My research”)</p>
+<p># Create as an app project (the agent-programmatic publish flow).
+app = project_create(“my-tool”, category=”app”)
+# -&gt; name becomes “my-tool_app” (auto-suffix), is_app=True.</p>
 </dd>
 </dl>
 <p>Sandboxed file-operation handlers (async, used by MCP tools) live in
 <code class="xref py py-mod docutils literal notranslate"><span class="pre">scitex_hub.project._mcp.handlers</span></code>.</p>
+<p class="rubric">Module Attributes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#scitex_hub.project.PROJECT_CATEGORIES" title="scitex_hub.project.PROJECT_CATEGORIES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PROJECT_CATEGORIES</span></code></a></p></td>
+<td><p>Top-level project categories.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#scitex_hub.project.APP_NAME_SUFFIX" title="scitex_hub.project.APP_NAME_SUFFIX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">APP_NAME_SUFFIX</span></code></a></p></td>
+<td><p>Suffix appended to app-project names when <code class="docutils literal notranslate"><span class="pre">category=&quot;app&quot;</span></code> and the name doesn't already end with it.</p></td>
+</tr>
+</tbody>
+</table>
 <p class="rubric">Functions</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#scitex_hub.project.project_create" title="scitex_hub.project.project_create"><code class="xref py py-obj docutils literal notranslate"><span class="pre">project_create</span></code></a>(name[, description, template])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#scitex_hub.project.project_create" title="scitex_hub.project.project_create"><code class="xref py py-obj docutils literal notranslate"><span class="pre">project_create</span></code></a>(name[, description, ...])</p></td>
 <td><p>Create a new SciTeX Hub project.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#scitex_hub.project.project_delete" title="scitex_hub.project.project_delete"><code class="xref py py-obj docutils literal notranslate"><span class="pre">project_delete</span></code></a>(slug)</p></td>
@@ -216,6 +231,32 @@ new = project_create(“my-project”, description=”My research”)</p>
 </tr>
 </tbody>
 </table>
+<dl class="py data">
+<dt class="sig sig-object py" id="scitex_hub.project.PROJECT_CATEGORIES">
+<span class="sig-prename descclassname"><span class="pre">scitex_hub.project.</span></span><span class="sig-name descname"><span class="pre">PROJECT_CATEGORIES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('project',</span> <span class="pre">'app')</span></span><a class="headerlink" href="#scitex_hub.project.PROJECT_CATEGORIES" title="Link to this definition"></a></dt>
+<dd><p>Top-level project categories. Currently only <code class="docutils literal notranslate"><span class="pre">&quot;app&quot;</span></code> adds non-default
+semantics (sets <code class="docutils literal notranslate"><span class="pre">is_app=True</span></code> server-side + auto-suffixes the name with
+<code class="docutils literal notranslate"><span class="pre">_app</span></code> if missing). <code class="docutils literal notranslate"><span class="pre">&quot;project&quot;</span></code> is the default research-project shape
+and adds no extra fields — listed here so the API surface is closed and
+<code class="docutils literal notranslate"><span class="pre">--category</span></code> can be exhaustively validated CLI-side.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="scitex_hub.project.APP_NAME_SUFFIX">
+<span class="sig-prename descclassname"><span class="pre">scitex_hub.project.</span></span><span class="sig-name descname"><span class="pre">APP_NAME_SUFFIX</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'_app'</span></span><a class="headerlink" href="#scitex_hub.project.APP_NAME_SUFFIX" title="Link to this definition"></a></dt>
+<dd><p>Suffix appended to app-project names when <code class="docutils literal notranslate"><span class="pre">category=&quot;app&quot;</span></code> and the
+name doesn’t already end with it. Mirrors the operator-12845 directive
+(“the project NAME likely needs an ‘app’ SUFFIX”).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scitex_hub.project._apply_app_suffix">
+<span class="sig-prename descclassname"><span class="pre">scitex_hub.project.</span></span><span class="sig-name descname"><span class="pre">_apply_app_suffix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="reference internal" href="../../_modules/scitex_hub/project.html#_apply_app_suffix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.project._apply_app_suffix" title="Link to this definition"></a></dt>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">name</span></code> with <code class="docutils literal notranslate"><span class="pre">_app</span></code> appended unless already present.</p>
+<p>The check is suffix-only (not substring) so e.g. <code class="docutils literal notranslate"><span class="pre">my_app_repo</span></code> stays
+untouched and only <code class="docutils literal notranslate"><span class="pre">my_app</span></code> round-trips through unchanged.</p>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="scitex_hub.project.project_list">
 <span class="sig-prename descclassname"><span class="pre">scitex_hub.project.</span></span><span class="sig-name descname"><span class="pre">project_list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/scitex_hub/project.html#project_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.project.project_list" title="Link to this definition"></a></dt>
@@ -229,18 +270,41 @@ new = project_create(“my-project”, description=”My research”)</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="scitex_hub.project.project_create">
-<span class="sig-prename descclassname"><span class="pre">scitex_hub.project.</span></span><span class="sig-name descname"><span class="pre">project_create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">template</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'scitex_minimal'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../../_modules/scitex_hub/project.html#project_create"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.project.project_create" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">scitex_hub.project.</span></span><span class="sig-name descname"><span class="pre">project_create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">template</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'scitex_minimal'</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">category</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'project'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_category</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../../_modules/scitex_hub/project.html#project_create"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_hub.project.project_create" title="Link to this definition"></a></dt>
 <dd><p>Create a new SciTeX Hub project.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> – Project name.</p></li>
+<li><p><strong>name</strong> – Project name. When <code class="docutils literal notranslate"><span class="pre">category=&quot;app&quot;</span></code> and the name does not
+already end with <code class="docutils literal notranslate"><span class="pre">_app</span></code>, the suffix is appended automatically
+(operator-12845 convention) before the server call.</p></li>
 <li><p><strong>description</strong> – Optional description.</p></li>
 <li><p><strong>template</strong> – Template ID (default: scitex_minimal).</p></li>
+<li><p><strong>category</strong> – Top-level project category. One of
+<a class="reference internal" href="#scitex_hub.project.PROJECT_CATEGORIES" title="scitex_hub.project.PROJECT_CATEGORIES"><code class="xref py py-data docutils literal notranslate"><span class="pre">PROJECT_CATEGORIES</span></code></a>. <code class="docutils literal notranslate"><span class="pre">&quot;app&quot;</span></code> marks the new project as
+an app plugin (sets <code class="docutils literal notranslate"><span class="pre">is_app=True</span></code> server-side) — does NOT
+submit it to the registry; that’s a separate
+<a class="reference internal" href="scitex_hub.appmaker.html#module-scitex_hub.appmaker" title="scitex_hub.appmaker"><code class="xref py py-mod docutils literal notranslate"><span class="pre">scitex_hub.appmaker</span></code></a> <code class="docutils literal notranslate"><span class="pre">publish</span></code> call.</p></li>
+<li><p><strong>app_category</strong> – Optional app sub-category (writing, visualization,
+data, analysis, reference, utility, other). Only used when
+<code class="docutils literal notranslate"><span class="pre">category=&quot;app&quot;</span></code>; ignored otherwise. The sub-category can
+also be left blank at create time and filled in at
+<code class="docutils literal notranslate"><span class="pre">app</span> <span class="pre">submit</span></code> time.</p></li>
+<li><p><strong>request_fn</strong> – Optional dependency-injection seam for the HTTP
+transport. Defaults to the module-level
+<code class="xref py py-func docutils literal notranslate"><span class="pre">_make_request()</span></code>. Tests inject a hand-rolled fake to
+avoid talking to a live server; production callers leave
+this argument unset.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Dict with project_id, name, success.</p>
+<dd class="field-even"><p>Dict with success, project_id, slug, url, is_app, app_category.</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – <code class="docutils literal notranslate"><span class="pre">category</span></code> not in <a class="reference internal" href="#scitex_hub.project.PROJECT_CATEGORIES" title="scitex_hub.project.PROJECT_CATEGORIES"><code class="xref py py-data docutils literal notranslate"><span class="pre">PROJECT_CATEGORIES</span></code></a>.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.14)"><strong>RuntimeError</strong></a> – Server-side rejection (name conflict, validation, etc.).</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>

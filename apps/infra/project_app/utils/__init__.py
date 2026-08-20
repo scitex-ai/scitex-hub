@@ -4,8 +4,10 @@
 Project App Utilities
 """
 
-from .port_proxy import get_port_proxy_manager, PortProxyManager
+# NOTE: port_proxy (PortProxyManager / get_port_proxy_manager) was removed as a
+# dead-code SSRF (CodeQL py/partial-ssrf #9385). See the removal note in
+# views/projects/detail.py. Nothing else consumed it.
 
-__all__ = ["get_port_proxy_manager", "PortProxyManager"]
+__all__: list[str] = []
 
 # EOF

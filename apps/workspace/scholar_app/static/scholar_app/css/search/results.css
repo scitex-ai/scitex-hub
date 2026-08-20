@@ -88,16 +88,18 @@
   border-color: var(--status-warning);
 }
 
-/* Downloaded state - success */
+/* Downloaded state - success (semantic token, like the warning/error
+   states below; the old literal rgba(5,150,105) green predates the
+   neutral+accent color system) */
 .pdf-status-badge[data-status="downloaded"] {
-  color: var(--workspace-icon-primary, #059669);
-  border-color: var(--workspace-icon-primary, #059669);
-  background: rgba(5, 150, 105, 0.1);
+  color: var(--status-success, #6ba89a);
+  border-color: var(--status-success, #6ba89a);
+  background: var(--status-success-bg, rgba(107, 168, 154, 0.15));
   cursor: pointer;
 }
 
 .pdf-status-badge[data-status="downloaded"]:hover {
-  background: var(--workspace-icon-primary, #059669);
+  background: var(--status-success, #6ba89a);
   color: var(--text-inverse);
 }
 
@@ -129,7 +131,7 @@
 }
 
 [data-theme="light"] .pdf-status-badge[data-status="downloaded"] {
-  background: rgba(5, 150, 105, 0.15);
+  background: var(--status-success-bg, rgba(107, 168, 154, 0.15));
 }
 
 /* Action bar PDF button styling */

@@ -21,7 +21,8 @@ import pytest
 
 BASE_URL = os.getenv("SCITEX_BASE_URL", "http://127.0.0.1:8000")
 TEST_USER = os.getenv("SCITEX_E2E_TEST_USER", "test-user")
-TEST_PASS = os.getenv("SCITEX_E2E_TEST_PASS", "Password123!")
+# No literal default — see tests/develop/test_no_usable_credential_defaults.py.
+TEST_PASS = os.getenv("SCITEX_E2E_TEST_PASS", "")
 TIMEOUT = int(os.getenv("SCITEX_E2E_TIMEOUT", "30")) * 1000  # ms for Playwright
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
@@ -265,8 +266,126 @@ def visitor_desktop_page(visitor_desktop_context):
 
 
 # =============================================================================
+# REAL pooled-visitor session (no login at all)
+# =============================================================================
+#
+# The ``visitor_*`` fixtures above are misnamed: they FORM-LOG-IN as
+# ``$SCITEX_E2E_TEST_USER`` (default ``test-user``), i.e. a registered
+# account, and they assert nothing about the result — ``storage_state`` is
+# saved whether the login worked or not. They are kept as-is because the
+# mobile suites depend on them.
+#
+# A real pooled visitor is obtained by NOT logging in: SciTeX assigns one
+# through ``VisitorAutoLoginMiddleware`` on the first workspace request from
+# a browser user-agent. That middleware deliberately does NOT allocate on
+# ``/``, ``/landing/``, ``/apps/tools/`` or ``/auth/*`` — a first-time
+# reader must reach the marketing pages anonymously — so the session must
+# be established on a workspace route FIRST. Everything after that renders
+# as the visitor, including those four paths.
+
+
+@pytest.fixture(scope="session")
+def pooled_visitor_context(browser, pw_base_url):
+    """ONE desktop context, no stored state, holding ONE pooled slot.
+
+    Session-scoped ON PURPOSE. A function-scoped context would start a new
+    anonymous session per test and burn a separate pool slot for each; with
+    a pool of 4 and 22 capture tests the pool would exhaust mid-run and the
+    remainder would be served the readonly-visitor fallback — a real
+    failure caused entirely by the test's own shape. One context = one
+    slot = one continuous visitor session, which is also what the
+    screenshots should depict.
+    """
+    context = browser.new_context(
+        base_url=pw_base_url,
+        viewport=DESKTOP["viewport"],
+        # A browser UA is load-bearing, not cosmetic:
+        # VisitorAutoLoginMiddleware skips non-browser user agents (curl,
+        # bots, health checks) and would leave the session anonymous.
+        user_agent=DESKTOP["user_agent"],
+        device_scale_factor=DESKTOP["device_scale_factor"],
+        is_mobile=DESKTOP["is_mobile"],
+        has_touch=DESKTOP["has_touch"],
+        ignore_https_errors=True,
+    )
+    context.set_default_timeout(TIMEOUT)
+    yield context
+    context.close()
+
+
+@pytest.fixture(scope="session")
+def pooled_visitor_page(pooled_visitor_context):
+    """A page whose session IS a writable pooled visitor slot.
+
+    Fails the whole capture at setup — before a single PNG is written — if
+    the warm-up did not yield ``body[data-session-role] == "visitor"``. The
+    alternative (start shooting and check later) writes an artifact full of
+    the wrong product first, and the artifact is the deliverable.
+    """
+    from tests.e2e.playwright.page_ready import wait_for_page_ready
+    from tests.e2e.playwright.session_role_check import (
+        READ_SESSION_ROLE_JS,
+        VISITOR_WARMUP_ROUTE,
+        assert_pooled_visitor,
+    )
+
+    page = pooled_visitor_context.new_page()
+    page.goto(VISITOR_WARMUP_ROUTE)
+    wait_for_page_ready(page)
+    role = page.evaluate(READ_SESSION_ROLE_JS)
+    assert_pooled_visitor(role, f"visitor warm-up ({VISITOR_WARMUP_ROUTE})")
+    yield page
+    page.close()
+
+
+# =============================================================================
 # Screenshot helper
 # =============================================================================
+
+
+@pytest.fixture(scope="session")
+def content_report():
+    """Append per-page content findings NEXT TO the PNGs, in the artifact.
+
+    Every page the capture measures gets a found/not-found block here,
+    whether it passed or not. Two reasons it is a file and not just a
+    print:
+
+      * pytest captures stdout on a PASSING test, so a report that only
+        printed would be invisible on exactly the runs it is meant to
+        describe — the green ones. Run 32039805008 was green while
+        photographing a blank FigRecipe; the whole point is that a green
+        run must still say what it saw.
+      * The artifact is the deliverable. Whoever downloads the PNGs for a
+        talk or a grant gets, in the same zip, the measurement each image
+        was passed on — so "is this screenshot showing the real product?"
+        is answerable without re-running anything.
+
+    The workflow prints it after the capture step, so it is in the run log
+    too. Text is also printed, which surfaces it in pytest's output for a
+    FAILING test alongside the assertion that failed.
+    """
+    from tests.e2e.playwright.content_check import threshold_banner
+
+    path = SCREENSHOT_DIR / "content-report.txt"
+    SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        "Content measured per captured page. FOUND / NOT FOUND is stated\n"
+        "for every signal, so a page with no content says so rather than\n"
+        "being silently skipped.\n"
+        "\n"
+        "Thresholds in force for THIS run — a tunable bar has to be stated\n"
+        "or 'the job was green' means nothing:\n"
+        "  %s\n\n" % threshold_banner(),
+        encoding="utf-8",
+    )
+
+    def _append(text):
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write(text + "\n\n")
+        print(text)
+
+    return _append
 
 
 @pytest.fixture

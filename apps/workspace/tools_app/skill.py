@@ -13,8 +13,7 @@ register(
             "Project validators and linters",
             "Utility functions and helpers",
         ],
-        page_patterns=["/tools/"],
-        url_prefix="/tools/",
+        url_route="tools_app:tools",
         module_description=("Shared utilities and tools for project management."),
     )
 )

@@ -6,6 +6,16 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
 
+# Account-linking tables (scitex.ai identity: one verified address -> one
+# human -> many provider identities). They live in their own package next to
+# the logic that uses them; re-exported here because Django's app registry
+# only auto-imports ``<app>.models``, and an unimported model is an
+# unmigrated one. See apps/infra/auth_app/account_linking/models.py.
+from apps.infra.auth_app.account_linking.models import (  # noqa: F401
+    LinkedIdentity,
+    VerifiedEmail,
+)
+
 # Japanese Academic domains to recognize
 JAPANESE_ACADEMIC_DOMAINS = [
     # Japanese Academic (.ac.jp) - All academic institutions

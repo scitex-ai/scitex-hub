@@ -12,7 +12,7 @@ tags: [scitex-hub-quick-start]
 ```bash
 scitex-hub project create my-project
 scitex-hub push-project           # push current dir to Gitea
-scitex-hub show-status
+scitex-hub status
 ```
 
 Project state lives under `~/.scitex/hub/projects/<name>/` and on the
@@ -31,9 +31,9 @@ print(client.scholar_search("hippocampus")) # via cloud Scholar API
 ## Sync workflows
 
 ```bash
-scitex-hub sync-to        # push working files (Dropbox-style)
-scitex-hub sync-from      # pull working files
-scitex-hub sync-status    # 3-way: Local / Gitea / Workspace
+scitex-hub workspace push      # push working files (Dropbox-style)
+scitex-hub workspace pull     # pull working files
+scitex-hub workspace status  # 3-way: Local / Gitea / Workspace
 ```
 
 ## Next steps

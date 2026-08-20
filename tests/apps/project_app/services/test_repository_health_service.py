@@ -1,21 +1,63 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Tests for apps/project_app/services/repository_health_service.py"""
+"""Tests for apps/project_app/services/repository_health_service.py.
+
+Currently focused on the clone-import-path regression: the file used to
+``from apps.infra.project_app.signals import _clone_gitea_repo_to_data_dir``
+(stale; the package root doesn't re-export that helper), which crashed
+``RepositoryHealthChecker.sync_repository`` and ``.restore_repository`` at
+runtime with ``ImportError`` — observed during the operator-12834
+agent-publish demo against prod scitex.ai. The fix moves both imports to
+the canonical submodule path. These tests pin the fix in two complementary
+ways without mocks: (1) the real production source has no occurrence of
+the broken path, (2) the helper is actually importable from the canonical
+path the production source now uses.
+"""
+
+import inspect
+from pathlib import Path
 
 import pytest
 
-# from apps.infra.project_app.services.repository_health_service import ...
+
+def test_clone_helper_importable_from_canonical_submodule():
+    # Arrange
+    # Act
+    from apps.infra.project_app.signals.project_initialization import (
+        _clone_gitea_repo_to_data_dir,
+    )
+
+    # Assert
+    assert callable(_clone_gitea_repo_to_data_dir)
 
 
-class TestPlaceholder:
-    """Placeholder test class - replace with actual tests."""
+def test_repository_health_service_source_has_no_stale_clone_import():
+    # Arrange
+    from apps.infra.project_app.services import repository_health_service
 
-    def test_placeholder_pending_implementation(self):
-        """Placeholder test - implement actual tests."""
-        # Arrange
-        # Act
-        # Assert
-        pytest.skip("Not implemented yet")
+    src = Path(inspect.getsourcefile(repository_health_service)).read_text()
+    stale = "from apps.infra.project_app.signals import _clone_gitea_repo_to_data_dir"
+
+    # Act
+    occurrences = src.count(stale)
+
+    # Assert — guards against future regressions reintroducing the bare
+    # package-root import path.
+    assert occurrences == 0
+
+
+def test_repository_health_checker_class_imports_without_error():
+    # Arrange
+    # Act
+    from apps.infra.project_app.services.repository_health_service import (
+        RepositoryHealthChecker,
+    )
+
+    # Assert — module-level execution succeeded (no ImportError surfacing
+    # from any of the lazy local imports inside sync_repository /
+    # restore_repository was the bug; the class-level smoke import is the
+    # cheapest regression proof).
+    assert RepositoryHealthChecker is not None
 
 
 if __name__ == "__main__":

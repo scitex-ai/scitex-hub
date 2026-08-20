@@ -100,6 +100,7 @@ SHELL := /bin/bash
 	format-shell \
 	lint \
 	lint-web \
+	lint-shell \
 	check-file-sizes \
 	check-host \
 	ensure-executable \
@@ -158,11 +159,16 @@ NC := \033[0m
 # ============================================
 # Command Definitions (Single Source of Truth)
 # ============================================
-# restart/build: defined here
+# restart/build: the commands `make help-commands` PRINTS. Derived from
+# $(COMPOSE_CMD) so the help shows the ENV-correct invocation — for prod that
+# includes `--env-file ../envs/.env.prod`. A bare `docker compose restart` here
+# would advertise the one form that silently interpolates every ${...} secret in
+# docker_prod/docker-compose.yml to an empty string. Never print it.
+# `=` not `:=`: COMPOSE_CMD is defined below, in the ifdef ENV block.
 # rebuild: steps defined in scripts/deploy/rebuild.sh (use --steps to extract)
 
-CMD_RESTART := docker compose restart
-CMD_BUILD := docker compose build
+CMD_RESTART = $(if $(COMPOSE_CMD),$(COMPOSE_CMD) restart,make ENV=<env> restart)
+CMD_BUILD = $(if $(COMPOSE_CMD),$(COMPOSE_CMD) build,make ENV=<env> build)
 
 # ============================================
 # Environment Validation - NO DEFAULTS!
@@ -184,17 +190,29 @@ ifdef ENV
     endif
   else ifeq ($(ENV),staging)
     DOCKER_DIR := $(DOCKER_BASE_DIR)
-    COMPOSE_CMD := docker compose -f docker-compose.yml -f docker-compose.staging.yml
+    # --env-file (ABSOLUTE) feeds SCITEX_HUB_*_STAGING vars at compose-time.
+    # Was silently omitted here, so staging targets (e.g. rebuild-no-cache)
+    # ran compose with every ${...} blank — the staging sibling of the prod
+    # env-file drop. Kept in sync with scripts/deploy/compose_env.sh.
+    COMPOSE_CMD := docker compose --env-file $(CURDIR)/$(DOCKER_BASE_DIR)/envs/.env.staging -f docker-compose.yml -f docker-compose.staging.yml
   else ifeq ($(ENV),prod)
     DOCKER_DIR := $(DOCKER_BASE_DIR)/docker_prod
-    COMPOSE_CMD := docker compose
+    # --env-file (ABSOLUTE) feeds SCITEX_HUB_*_PROD vars at compose-time
+    # (cloudflared token, ports). Symmetric with staging COMPOSE_CMD above.
+    # Closes RC-6's compose-time-substitution sibling gap surfaced in the
+    # 2026-06-06 cutover (docs/incidents/2026-06-06-prod-cutover-cloud-to-hub.md).
+    # ABSOLUTE (not cwd-relative ../envs/.env.prod): compose resolves --env-file
+    # from the caller's cwd, so a relative path silently loads nothing whenever
+    # a target does not cd into DOCKER_DIR first. Mirrors compose_env.sh
+    # (card hub-make-rebuild-drops-env-file).
+    COMPOSE_CMD := docker compose --env-file $(CURDIR)/$(DOCKER_BASE_DIR)/envs/.env.prod
   endif
   # Export SCITEX_ENV for docker-compose to use in env_file selection
   export SCITEX_ENV := $(ENV)
 else
   # ENV not specified - only allow non-operational commands
   ifneq ($(MAKECMDGOALS),)
-    ifneq ($(filter-out help help-commands help-all status validate-docker stop-all force-stop-all format format-python format-web format-shell lint lint-web check-file-sizes check-assets check-host ensure-executable slurm-start slurm-stop slurm-restart slurm-status slurm-fix slurm-resume slurm-reset crossref-status crossref-check crossref-rebuild-check crossref-next-steps crossref-create-title-index crossref-create-author-index info regenerate-gallery sync-tests sync-tests-move sync-ts-tests sync-ts-tests-move setup-vitest test-ts test-ts-watch test-ts-ui test-ts-coverage setup-pytest setup-testing test-unit test-db test-api test-ui test-ui-headed test-python test-all test-status apptainer-build apptainer-build-base apptainer-upgrade apptainer-freeze,$(MAKECMDGOALS)),)
+    ifneq ($(filter-out help help-commands help-all status validate-docker stop-all force-stop-all format format-python format-web format-shell lint lint-web lint-shell check-file-sizes check-assets check-host ensure-executable slurm-start slurm-stop slurm-restart slurm-status slurm-fix slurm-resume slurm-reset crossref-status crossref-check crossref-rebuild-check crossref-next-steps crossref-create-title-index crossref-create-author-index info regenerate-gallery sync-tests sync-tests-move sync-ts-tests sync-ts-tests-move setup-vitest test-ts test-ts-watch test-ts-ui test-ts-coverage setup-pytest setup-testing test-unit test-db test-api test-ui test-ui-headed test-python test-all test-status apptainer-build apptainer-build-base apptainer-upgrade apptainer-freeze,$(MAKECMDGOALS)),)
       $(error ❌ ENV not specified! Use: make ENV=<dev|staging|prod> <command>)
     endif
   endif
@@ -402,10 +420,11 @@ status:
 	@./deployment/host-setup/checks/check-status.sh
 
 # Live status with spinners and animations
+# Sections come from deployment/host-setup/checks/sections.sh, the same
+# registry `status` uses — including 08-filesizes, which used to be appended
+# here by hand. Do not add a check to this recipe; add it to the registry.
 status-live:
 	@./scripts/maintenance/check_status_live.sh $(ENV)
-	@echo -e ""
-	@./scripts/maintenance/check_file_sizes.sh
 
 # ============================================
 # Stop All Environments
@@ -418,18 +437,22 @@ stop-all:
 		echo -e "$(CYAN)Checking $$env...$(NC)"; \
 		if [ "$$env" = "dev" ]; then \
 			COMPOSE="docker compose"; \
+			COMPOSE_DIR="docker_dev"; \
 		elif [ "$$env" = "staging" ]; then \
 			COMPOSE="docker compose -f docker-compose.yml -f docker-compose.staging.yml"; \
+			COMPOSE_DIR="."; \
 		else \
-			COMPOSE="docker compose -f docker-compose.yml -f docker-compose.prod.yml"; \
+			COMPOSE="docker compose --env-file ../envs/.env.prod"; \
+			COMPOSE_DIR="docker_prod"; \
 		fi; \
 		export SCITEX_ENV=$$env; \
-		if $$COMPOSE ps -q 2>/dev/null | grep -q .; then \
+		( cd $$COMPOSE_DIR 2>/dev/null && \
+		  if $$COMPOSE ps -q 2>/dev/null | grep -q .; then \
 			echo -e "  $(YELLOW)Stopping $$env containers...$(NC)"; \
 			$$COMPOSE down --remove-orphans 2>/dev/null || true; \
-		else \
+		  else \
 			echo -e "  $(GREEN)✓ $$env already stopped$(NC)"; \
-		fi; \
+		  fi ); \
 	done
 	@echo -e ""
 	@echo -e "$(GREEN)✅ All environments stopped$(NC)"
@@ -1211,23 +1234,12 @@ format-shell:
 		echo -e "$(YELLOW)⚠️  shfmt not found. Install with: go install mvdan.cc/sh/v3/cmd/shfmt@latest$(NC)"; \
 		echo -e "$(YELLOW)   Skipping shell formatting...$(NC)"; \
 	fi
-	@if command -v shellcheck >/dev/null 2>&1; then \
-		find scripts/ deployment/ apps/ -name "*.sh" \
-			! -path "*/externals/*" \
-			! -path "*/node_modules/*" \
-			! -path "*/.venv/*" \
-			-exec shellcheck --severity=error {} + \
-			2>&1 || echo "$(RED)❌ ShellCheck found errors$(NC)"; \
-		echo -e "$(GREEN)✅ Shell linting complete!$(NC)"; \
-	else \
-		echo -e "$(YELLOW)⚠️  shellcheck not found. Install with: sudo apt-get install shellcheck$(NC)"; \
-		echo -e "$(YELLOW)   Skipping shell linting...$(NC)"; \
-	fi
+	@$(MAKE) --no-print-directory lint-shell
 
 # ============================================
 # Linting (Read-Only - SAFE)
 # ============================================
-lint: lint-web
+lint: lint-web lint-shell
 	@echo -e ""
 	@echo -e "$(GREEN)✅ All linting checks complete (no files modified)!$(NC)"
 
@@ -1262,6 +1274,31 @@ lint-web:
 		echo -e "$(RED)❌ Prettier not found. Install with: npm install -g prettier$(NC)"; \
 		exit 1; \
 	fi
+
+# Every step below is its own recipe line with no `|| ...`, so make aborts on the
+# first non-zero exit and the final ✅ is only ever reached by a clean run.
+# Guarded by tests/develop/test_shell_lint_gate_propagates_failure.py.
+#
+# Threshold is --severity=error, unchanged from when this was a no-op gate.
+# Raising it surfaces 523 warning/info/style findings and belongs in its own PR.
+#
+# .archive/ is excluded for the same reason as externals/ and node_modules/:
+# deployment/.archive/ is obsolete manual-deployment code retired in cca5ae712.
+# It is never executed, so linting it reports on nothing that can break.
+lint-shell:
+	@echo -e "$(CYAN)🐚 Checking shell scripts with ShellCheck (read-only)...$(NC)"
+	@command -v shellcheck >/dev/null 2>&1 || { \
+		echo -e "$(RED)❌ shellcheck not found. Install with: sudo apt-get install shellcheck$(NC)"; \
+		echo -e "$(RED)   A missing linter is a FAILED check, not a skipped one.$(NC)"; \
+		exit 1; \
+	}
+	@find scripts/ deployment/ apps/ -name "*.sh" \
+		! -path "*/externals/*" \
+		! -path "*/node_modules/*" \
+		! -path "*/.venv/*" \
+		! -path "*/.archive/*" \
+		-exec shellcheck --severity=error {} +
+	@echo -e "$(GREEN)✅ Shell linting complete!$(NC)"
 
 # ============================================
 # Accessibility Checks (WCAG 2.2 AA)

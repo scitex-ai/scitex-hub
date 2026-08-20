@@ -10,6 +10,7 @@ without changing any downstream code.
 """
 
 import logging
+import os
 import subprocess
 from pathlib import Path
 
@@ -100,6 +101,33 @@ def enforce_data_dir_ownership(user: User) -> bool:
     inaccessible to other OS users (mode 700).
 
     Safe to call repeatedly.  Returns True on success, False on error.
+
+    READ THIS BEFORE RUNNING IT WITH ENOUGH PRIVILEGE TO SUCCEED.
+
+    ``chown`` needs root. In the web process (uid 1000) it fails, the failure
+    is logged and swallowed, and the directory keeps the default
+    ``scitex:scitex 0755``. Every signup therefore takes that path, which means
+    the isolation this function advertises **is not in force for any ordinary
+    account** — it looks applied and is not. Measured 2026-08-17: 89 of 90
+    accounts were 0755, i.e. the guarantee had never once held.
+
+    When it DOES succeed, it locks the application out. Mode 700 owned by
+    ``100000 + user.pk`` is not traversable by the web process, so every page
+    that touches the workspace raises EACCES. Measured the same day: the one
+    account provisioned through a root path (``demo-reviewer``, pk 163, dir
+    owned by uid 100163, mode 0700) returned HTTP 500 on Writer, the file tree
+    and git status, while the other 89 worked.
+
+    So the two states are "isolation absent" and "application broken", and
+    there is no configuration of this function alone that gives both isolation
+    and a working app — the web process must be able to reach the data it
+    manages. Getting real per-tenant isolation needs a different mechanism
+    (a shared group the app belongs to, per-user subprocesses, or moving the
+    boundary out of the filesystem), which is a design decision, not a patch.
+
+    ``sync_unix_users`` calls this in a loop over every user. Running that
+    command as root would apply the working-state-breaking half to all accounts
+    at once.
     """
     uid = get_unix_uid(user)
     data_root = Path(settings.BASE_DIR) / "data" / "users" / user.username
@@ -123,15 +151,26 @@ def enforce_data_dir_ownership(user: User) -> bool:
         return True
 
     except subprocess.CalledProcessError as exc:
-        logger.warning(
-            "Failed to enforce data dir ownership for %s: %s", user.username, exc
+        # ERROR, not warning: this is a declared isolation guarantee that did
+        # not take effect. Logging it quietly is how it stayed unnoticed on 89
+        # of 90 accounts. Say plainly that the directory is NOT isolated.
+        logger.error(
+            "Data-dir isolation NOT applied for %s: %s. %s remains readable by "
+            "other OS users in this container (chown/chmod need root; this "
+            "process is uid %d). Treat that directory as unisolated.",
+            user.username,
+            exc,
+            data_root,
+            os.getuid(),
         )
         return False
     except Exception as exc:
-        logger.warning(
-            "Unexpected error enforcing data dir ownership for %s: %s",
+        logger.error(
+            "Data-dir isolation NOT applied for %s (unexpected error): %s. "
+            "Treat %s as unisolated.",
             user.username,
             exc,
+            data_root,
         )
         return False
 

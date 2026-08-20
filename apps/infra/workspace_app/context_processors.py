@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import logging
 
+from .core_panes import visible_core_panes
 from .registry import extract_module_from_path, get_all_modules, is_workspace_path
 
 logger = logging.getLogger(__name__)
@@ -24,8 +25,9 @@ def workspace_context(request):
     if path == "/landing/":
         is_ws = False
 
-    # Root "/" is workspace for all authenticated users (including visitors).
-    # readonly-visitor is already redirected to landing in dispatch.py.
+    # Root "/" is workspace for all authenticated users — including visitor
+    # sessions (visitor-* and readonly-visitor get the guest-mode launcher,
+    # card hub-visitor-ux-allapps). Only true anonymous stays non-workspace.
     if path == "/" and not request.user.is_authenticated:
         is_ws = False
 
@@ -37,9 +39,13 @@ def workspace_context(request):
     if path.rstrip("/") == "/new" and request.user.is_authenticated:
         is_ws = True
 
-    # Core pane paths (/chat/, /console/, /files/) → workspace with panes
+    # Core pane paths (/chat/, /console/, /files/) → workspace with panes.
+    # /chat/ also covers the session deep-link /chat/<uuid>/, so match the
+    # whole /chat/ subtree — the chat pane must render there too, not just on
+    # the bare /chat/ path.
     _CORE_PANE_PATHS = {"/chat/", "/console/", "/files/"}
-    if path in _CORE_PANE_PATHS and request.user.is_authenticated:
+    is_core_pane_path = path in _CORE_PANE_PATHS or path.startswith("/chat/")
+    if is_core_pane_path and request.user.is_authenticated:
         is_ws = True
 
     # /ai-setup/ and /search/ paths → workspace with panes
@@ -58,7 +64,7 @@ def workspace_context(request):
         if request.user.is_authenticated and (
             _is_user_profile_path(path)
             or path.rstrip("/") == "/new"
-            or path in _CORE_PANE_PATHS
+            or is_core_pane_path
             or path.startswith("/accounts/")
         ):
             has_panes = True
@@ -98,6 +104,14 @@ def workspace_context(request):
         "is_workspace_page": is_ws,
         "workspace_has_panes": has_panes,
         "workspace_modules": modules,
+        "workspace_pinned_modules": _pinned_modules_for_user(request, modules),
+        # The root-mounted panes this user may be OFFERED, label + route +
+        # icon together, already filtered by each pane's own visibility rule
+        # (apps/infra/workspace_app/core_panes.py). The sidebar renders this
+        # list rather than re-deciding per item — the sidebar's hand-written
+        # copy of the list is exactly what leaked href="/console/" to every
+        # regular user in PR #626.
+        "workspace_core_panes": visible_core_panes(request),
         "workspace_module_names_csv": ",".join(m.name for m in modules),
         "active_module_name": active_name,
         "active_module": active_mod,
@@ -157,6 +171,39 @@ def _is_user_profile_path(path: str) -> bool:
         "visitor-restart",
         "visitor-pool-full",
         "__reload__",
+        # --- Public marketing / legal / auth routes -------------------------
+        # Measured missing 2026-08-15 on production, signed in as test-user:
+        #     GET /tokushoho/  ->  body class="workspace-page home-page ..."
+        # i.e. the 特定商取引法 disclosure — a statutory page — was being served
+        # as somebody's USER PROFILE. Two consequences, both silent:
+        #   1. body.workspace-page hides .site-footer, so the page's own legal
+        #      links disappeared, and
+        #   2. body.workspace-page is height:100vh / overflow:hidden, so the
+        #      page COULD NOT SCROLL — anything below the fold was unreachable.
+        # For a disclosure whose whole purpose is that prescribed information be
+        # displayed, "renders but cannot be scrolled to" is not cosmetic.
+        #
+        # It only happened when SIGNED IN — anonymous visitors take another
+        # branch and get a working footer — so every casual check looked fine.
+        "tokushoho",
+        "recruit",
+        "services",
+        "security",
+        "integrations",
+        "organizations",
+        "social",
+        "enter",
+        "billing",
+        "oauth",
+        "invitations",
+        "status",
+        # Not a page but a FILE at /robots.txt, so it has no trailing-slash
+        # directory form. The classifier only sees the first path segment and
+        # would call it a username like any other. Found by the sweep in
+        # tests/apps/workspace_app/test_public_routes_are_not_usernames.py,
+        # not by hand — which is the point of deriving that test from the URL
+        # conf rather than listing known-bad routes.
+        "robots.txt",
     }
     return first not in _NON_USER_PREFIXES
 
@@ -183,7 +230,7 @@ def _filter_modules_for_user(request, modules):
         return modules
 
     try:
-        from apps.workspace.apps_app.models import AppsModule, ModuleInstallation
+        from apps.workspace.apps_app.models import ModuleInstallation
 
         installations = {
             inst.module.module_name: inst
@@ -192,23 +239,27 @@ def _filter_modules_for_user(request, modules):
             ).select_related("module")
         }
 
-        # Populate version from AppsModule (latest version per module)
-        from django.db.models import OuterRef, Subquery
-
-        from apps.workspace.apps_app.models import ModuleVersion
-
-        latest_ver_sq = (
-            ModuleVersion.objects.filter(module=OuterRef("pk"))
-            .order_by("-released_at")
-            .values("version")[:1]
-        )
-        mp_data = dict(
-            AppsModule.objects.filter(module_name__in=[m.name for m in modules])
-            .annotate(latest_version=Subquery(latest_ver_sq))
-            .values_list("module_name", "latest_version")
-        )
-        for mod in modules:
-            mod.version = mp_data.get(mod.name, "0.1.0") or "0.1.0"
+        # A module's version is NOT set here, deliberately.
+        #
+        # There used to be a per-request query that overwrote mod.version from
+        # the AppsModule/ModuleVersion tables. It was wrong twice over:
+        #
+        # 1. It INVERTED the source of truth. registry._resolve_version already
+        #    reads the version from the app's INSTALLED pip distribution (and
+        #    returns "" for hub-internal panes, so the launcher omits the label).
+        #    That is the SSOT — it is what makes the standalone package and the
+        #    hub-embedded app unable to drift. The DB carries a seed_apps row of
+        #    "0.1.0" for every built-in, and `db_version or manifest_version`
+        #    let that placeholder WIN. Every tile read "v0.1.0" — Writer showed
+        #    0.1.0 instead of its real 2.26.1.
+        #
+        # 2. It MUTATED PROCESS-GLOBAL STATE. `modules` are the shared
+        #    ModuleConfig objects from the registry, not per-request copies. So
+        #    one authenticated request clobbered them for the whole process, and
+        #    the "0.1.0" then leaked into renders that never run this code at
+        #    all — which is why anonymous/guest launchers showed it too.
+        #
+        # The registry value is already correct. Leave it alone.
     except Exception:
         # apps_app not migrated yet or other DB issue
         for mod in modules:
@@ -242,6 +293,32 @@ def _filter_modules_for_user(request, modules):
     visible = _append_dev_apps(request.user, visible)
     visible.sort(key=lambda m: m.order)
     return visible
+
+
+def _pinned_modules_for_user(request, modules):
+    """Modules the user pinned to the sidebar (launcher 'Pin to sidebar').
+
+    The reduced sidebar shows only Home + pinned favourites + All apps;
+    pins persist per user in ModuleInstallation.config["pinned"].
+    """
+    if not request.user.is_authenticated:
+        return []
+    try:
+        from apps.workspace.apps_app.views.launcher import get_pinned_module_names
+
+        pinned_names = get_pinned_module_names(request.user)
+    except Exception:
+        # Degrade to an empty pin list — a context processor that raises would
+        # 500 every page — but never silently: an empty sidebar looks exactly
+        # like this failure from the outside, so the cause must reach the logs.
+        logger.exception(
+            "[workspace] Could not resolve pinned modules for %s — sidebar will "
+            "render with no app entries. Is apps_app migrated?",
+            request.user,
+        )
+        return []
+    by_name = {m.name: m for m in modules}
+    return [by_name[name] for name in pinned_names if name in by_name]
 
 
 def _append_dev_apps(user, modules):

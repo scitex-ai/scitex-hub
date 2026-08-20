@@ -1,51 +1,68 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Research Tools data - PDF domain tools."""
+"""Research Tools data - PDF domain tools.
+
+``name`` : noun-form tool label. ``slug`` : kebab-case hash-URL anchor id.
+"""
 
 from __future__ import annotations
 
-# PDF tools (alphabetical by name, shares some with Image)
+# PDF tools (shares some with Image)
 PDF_TOOLS = [
     {
-        "name": "Compress PDF",
+        "name": "PDF Text & Figure Extractor",
+        "slug": "pdf-text-figure-extractor",
+        "description": "Pull the text and the embedded figures out of a PDF, with table layout preserved.",
+        "use_case": "Lift the methods section and figures out of a paper you are citing",
+        "bookmarklet_url": "/apps/tools/extract-pdf/",
+        "icon": "🔎",
+    },
+    {
+        "name": "PDF Compressor",
+        "slug": "pdf-compressor",
         "description": "Reduce PDF file size while maintaining quality for email and uploads.",
         "use_case": "Compress submission files under journal size limits",
-        "bookmarklet_url": "/tools/compress-pdf/",
+        "bookmarklet_url": "/apps/tools/compress-pdf/",
         "icon": "🗜️",
     },
     {
-        "name": "Convert Images to PDF",
+        "name": "Images to PDF Converter",
+        "slug": "images-to-pdf-converter",
         "description": "Convert multiple images into a single PDF with custom page orientation.",
         "use_case": "Create supplementary figures PDF from multiple images",
-        "bookmarklet_url": "/tools/convert-images-to-pdf/",
+        "bookmarklet_url": "/apps/tools/convert-images-to-pdf/",
         "icon": "📄",
     },
     {
-        "name": "Convert PDF to Images",
+        "name": "PDF to Images Converter",
+        "slug": "pdf-to-images-converter",
         "description": "Extract all pages from PDF as PNG or JPG images with adjustable DPI.",
         "use_case": "Convert PDF figures to images for presentation slides",
-        "bookmarklet_url": "/tools/convert-pdf-to-images/",
+        "bookmarklet_url": "/apps/tools/convert-pdf-to-images/",
         "icon": "🖼️",
     },
     {
-        "name": "Merge PDF",
+        "name": "PDF Merger",
+        "slug": "pdf-merger",
         "description": "Combine multiple PDF files into a single document with drag-to-reorder.",
         "use_case": "Merge manuscript, figures, and supplements for submission",
-        "bookmarklet_url": "/tools/merge-pdf/",
+        "bookmarklet_url": "/apps/tools/merge-pdf/",
         "icon": "📑",
     },
     {
-        "name": "Split PDF",
+        "name": "PDF Splitter",
+        "slug": "pdf-splitter",
         "description": "Extract specific pages from PDF files using page ranges.",
         "use_case": "Extract figures from compiled manuscript for separate upload",
-        "bookmarklet_url": "/tools/split-pdf/",
+        "bookmarklet_url": "/apps/tools/split-pdf/",
         "icon": "✂️",
     },
     {
-        "name": "View Image",
+        "name": "Image Viewer",
+        "slug": "image-viewer",
         "description": "View dimensions, DPI, and unit conversions (mm/inch) for publication figures.",
         "use_case": "Verify Figure 2 meets journal dimension requirements",
-        "bookmarklet_url": "/tools/view-image/",
+        "bookmarklet_url": "/apps/tools/view-image/",
         "icon": "📐",
     },
 ]

@@ -29,7 +29,19 @@ def completion_group(ctx):
     help="Target shell. Default: bash.",
 )
 def print_script(shell):
-    """Print the completion script for the chosen shell to stdout."""
+    """Print the completion script for the chosen shell to stdout.
+
+    \b
+    This is a read-only verb that emits a shell script (not a data
+    structure) — no `--json` flag because the payload is a shell source
+    file, not a JSON document.
+
+    \b
+    Example:
+        scitex-hub completion print-script --shell bash
+        scitex-hub completion print-script --shell zsh
+        eval "$(scitex-hub completion print-script --shell bash)"
+    """
 
     # Get the shell completion from Click
     from click.shell_completion import get_completion_class

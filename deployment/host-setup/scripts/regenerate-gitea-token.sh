@@ -151,16 +151,47 @@ if [ -f "$DOCKER_ENV_FILE" ] && [ "$DOCKER_ENV_FILE" != "$ENV_FILE" ]; then
     ENV_FILES+=("$DOCKER_ENV_FILE")
 fi
 
+STAMP=$(date -u +%Y%m%d-%H%M%S)
 UPDATED=0
 for TARGET_FILE in "${ENV_FILES[@]}"; do
     echo -e "${CYAN}  4. Updating $TARGET_FILE...${NC}"
-    OLD_TOKENS=$(grep "SCITEX_HUB_GITEA_TOKEN" "$TARGET_FILE" | sed 's/.*=//' | sort -u)
+
+    # Only rewrite files that actually declare the key. The legacy
+    # docker_<env>/.env still carries SCITEX_CLOUD_* names and is no longer
+    # read by compose (COMPOSE_CMD passes --env-file envs/.env.<env>), so a
+    # missing key there is expected, not an error.
+    if ! grep -qE "^SCITEX_HUB_GITEA_TOKEN(_[A-Z]+)?=" "$TARGET_FILE"; then
+        echo -e "${YELLOW}     ⚠️  No SCITEX_HUB_GITEA_TOKEN key — skipping${NC}"
+        continue
+    fi
+
+    # Archive before mutating: never overwrite a secrets file blind.
+    BACKUP_DIR="$(dirname "$TARGET_FILE")/.old/$STAMP"
+    mkdir -p "$BACKUP_DIR"
+    cp -p "$TARGET_FILE" "$BACKUP_DIR/$(basename "$TARGET_FILE")"
+
+    OLD_TOKENS=$(grep "^SCITEX_HUB_GITEA_TOKEN" "$TARGET_FILE" | sed 's/.*=//' | sort -u)
     for OLD_TOKEN in $OLD_TOKENS; do
         if [ -n "$OLD_TOKEN" ] && [ "$OLD_TOKEN" != "$NEW_TOKEN" ]; then
-            sed -i "s|${OLD_TOKEN}|${NEW_TOKEN}|g" "$TARGET_FILE"
+            # --follow-symlinks: on prod, envs/.env.prod is a SYMLINK into the
+            # operator's dotfiles. Plain `sed -i` unlinks it and writes a regular
+            # file, so the rotation lands on a detached copy while the dotfiles
+            # source keeps the dead token — and the next deploy re-reads the
+            # stale value.
+            sed -i --follow-symlinks "s|${OLD_TOKEN}|${NEW_TOKEN}|g" "$TARGET_FILE"
             UPDATED=$((UPDATED + 1))
         fi
     done
+
+    # A rotation that did not land is worse than no rotation: the operator
+    # restarts, every worker re-reads the old token, and Gitea answers 401 on
+    # each visitor-slot reset until someone reads the logs.
+    if ! grep -qE "^SCITEX_HUB_GITEA_TOKEN(_[A-Z]+)?=${NEW_TOKEN}$" "$TARGET_FILE"; then
+        echo -e "${RED}     ❌ $TARGET_FILE does not carry the new token after rewrite${NC}" >&2
+        echo -e "${RED}        Backup: $BACKUP_DIR${NC}" >&2
+        exit 1
+    fi
+    echo -e "${GREEN}     ✅ Verified (backup: $BACKUP_DIR)${NC}"
 done
 
 echo -e "${GREEN}     ✅ Updated ${UPDATED} token entries across ${#ENV_FILES[@]} file(s)${NC}"

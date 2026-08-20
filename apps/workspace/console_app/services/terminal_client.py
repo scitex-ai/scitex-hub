@@ -75,9 +75,16 @@ class TerminalBrokerClient:
         project_slug: str,
         tmux_session: str = "scitex-0",
         screen_session: str = "",
+        provider: str = "",
     ) -> Optional[str]:
         """
         Spawn a new terminal session.
+
+        ``provider`` is a model-provider id (see
+        ``services.terminal_provider``); empty means the default
+        (Anthropic OAuth, no env injection). The broker re-validates it
+        server-side and sources any API key from the DB — this field is
+        an identifier only, never a credential.
 
         Returns session_id on success, None on failure.
         """
@@ -97,6 +104,7 @@ class TerminalBrokerClient:
                     "container_path": container_path,
                     "project_slug": project_slug,
                     "screen_session": resolved_session,
+                    "provider": provider,
                 }
             )
 

@@ -16,7 +16,8 @@ class EvalJSConsumer(AsyncWebsocketConsumer):
     """WebSocket relay for JS evaluation in the user's browser.
 
     Flow:
-        1. Browser connects → joins eval_js_{username} group
+        1. Browser connects → joins the group from relay_groups.relay_group_for
+           (keyed on the visitor LEASE, not the username — see that module)
         2. MCP tool calls POST /llm/api/eval-js/
         3. Django view sends eval_js message to group
         4. This consumer forwards to browser WebSocket
@@ -30,8 +31,16 @@ class EvalJSConsumer(AsyncWebsocketConsumer):
             await self.close()
             return
 
+        # The group is keyed on the LEASE, not the username. `visitor-007` is a
+        # SEAT recycled across people (pool_manager.py:247), and a socket leaves
+        # its group only on disconnect (below) — nothing in the slot-release
+        # path closes one. Keying on the username alone therefore delivered a
+        # later occupant's frames into the previous occupant's still-open
+        # browser. See relay_groups.py for why the lease and not the session.
+        from .relay_groups import relay_group_for
+
         self.username = user.username
-        self.eval_group = f"eval_js_{self.username}"
+        self.eval_group = relay_group_for(user)
 
         await self.channel_layer.group_add(self.eval_group, self.channel_name)
         await self.accept()

@@ -16,6 +16,9 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
 from apps.infra.project_app.models import Project
+from apps.infra.project_app.services.writer_workspace_layout import (
+    get_writer_workspace_path,
+)
 
 from .auth_utils import api_login_optional, get_user_for_request
 
@@ -33,8 +36,8 @@ def _get_writer_project_path(project, user, is_visitor):
         visitor_dir = manager.get_project_root_path(project)
         if not visitor_dir:
             return None
-        return visitor_dir / "scitex" / "writer"
-    return Path(project.git_clone_path) / "scitex" / "writer"
+        return get_writer_workspace_path(visitor_dir)
+    return get_writer_workspace_path(project.git_clone_path)
 
 
 @api_login_optional

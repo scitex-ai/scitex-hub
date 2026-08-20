@@ -61,33 +61,51 @@ def _clone_gitea_repo_to_data_dir(project):
 
             shutil.rmtree(project_dir)
 
-        # Clone from Gitea using HTTP with embedded token for authentication
-        # Format: http://{token}@gitea:3000/{owner}/{repo}.git
-        clone_url = project.gitea_clone_url
+        # Clone from Gitea using HTTP. The token is supplied per-op (not
+        # embedded in origin); see the clone call below.
+        #
+        # Build the clone URL from the in-container Gitea service hostname
+        # (``settings.GITEA_URL``, defaults to ``http://gitea:3000`` in
+        # docker-compose deployments) rather than trusting
+        # ``project.gitea_clone_url``. Gitea's API reports ``clone_url`` from
+        # its own ``ROOT_URL`` config, which is set to the host-visible URL
+        # (e.g. ``http://localhost:3000`` in prod, ``https://git.scitex.ai``
+        # publicly). Neither of those resolves the same way from inside the
+        # django container, so trusting the API value cloned to an
+        # unreachable host and the broad ``except`` below swallowed the
+        # subprocess failure — surfaced during operator-12834 publish demo.
+        # ``settings.GITEA_URL`` is the URL Django ALREADY uses to talk to
+        # Gitea (see GiteaClient), so it's the right source of truth.
+        clone_url = (
+            f"{settings.GITEA_URL.rstrip('/')}"
+            f"/{project.owner.username}/{project.slug}.git"
+        )
 
-        # Inject Gitea admin token into URL for authentication
-        # Clone URL format from Gitea: http://gitea:3000/owner/repo.git
-        # Authenticated format needed: http://{token}@gitea:3000/owner/repo.git
-        gitea_token = settings.GITEA_TOKEN
-
-        if gitea_token and clone_url:
-            # Parse and inject token: http://gitea:3000/... → http://{token}@gitea:3000/...
-            if "://" in clone_url:
-                protocol, rest = clone_url.split("://", 1)
-                authenticated_clone_url = f"{protocol}://{gitea_token}@{rest}"
-            else:
-                authenticated_clone_url = clone_url
-        else:
-            authenticated_clone_url = clone_url
+        # Authenticate the clone WITHOUT persisting the admin token.
+        #
+        # SECURITY (sec-gitea-admin-token-plaintext-in-user-gitconfig): the
+        # token is handed to this single ``git`` process through the
+        # ENVIRONMENT (``GIT_CONFIG_*`` -> a URL-scoped
+        # ``http.<gitea>.extraHeader``), never in the clone URL and never on
+        # argv. ``git clone`` therefore records the credential-less
+        # ``clone_url`` as origin, so the platform admin token never lands in
+        # ``.git/config`` — that file is bind-mounted read/write into the
+        # user's Apptainer console at /workspace, where a token would leak
+        # cross-tenant. Push/pull re-supply the token per-op the same way
+        # (see git_service.build_gitea_auth_env).
+        from apps.infra.project_app.services.git_service import (
+            build_gitea_auth_env,
+        )
 
         logger.info(f"Cloning Gitea repo to: {project_dir}")
-        logger.info(f"  From: {clone_url}")  # Log original URL (without token)
+        logger.info(f"  From: {clone_url}")  # credential-less URL
 
         result = subprocess.run(
-            ["git", "clone", authenticated_clone_url, str(project_dir)],
+            ["git", "clone", clone_url, str(project_dir)],
             capture_output=True,
             text=True,
             timeout=60,
+            env=build_gitea_auth_env(),
         )
 
         if result.returncode == 0:
@@ -110,16 +128,43 @@ def _clone_gitea_repo_to_data_dir(project):
                 capture_output=True,
             )
 
-            # Configure git credentials for push (embed token in URL)
+            # Belt-and-braces: assert origin carries NO embedded credential.
+            # Push/pull authenticate per-op via build_gitea_auth_env(), so the
+            # token must never appear in this repo's .git/config (which is
+            # bind-mounted into the user's sandbox).
+            #
+            # THE RESULT IS CHECKED. It used to be discarded, which means a
+            # scrub that could not run would have said nothing at all. A
+            # security control whose failure is thrown away is not a control.
+            #
+            # NOTE (2026-07-30): an earlier version of this comment blamed a
+            # prod-wide git rc=128 ("dubious ownership"). That was a
+            # MEASUREMENT ERROR -- docker exec defaults to root, while this
+            # process runs as uid 1000 and the repo files are owned by uid
+            # 1000, so git works fine here. The 6-of-46 poisoned .git/config
+            # files were real, but the likely cause is that this scrub only
+            # runs at project CREATE time, so repos predating the fix were
+            # never covered. Checking the result is still right; the reason
+            # given for it was wrong. See hub-git-safedir-durable.
             from apps.infra.project_app.services.git_service import (
-                configure_git_credentials,
+                sanitize_origin_url,
             )
 
-            configure_git_credentials(
-                project_dir=project_dir,
-                username=project.owner.username,
-                token=settings.GITEA_TOKEN,
-            )
+            scrub = sanitize_origin_url(project_dir)
+            if not scrub.is_safe:
+                # Loud, and actionable: name the repo, the outcome and the why.
+                # Deliberately NOT raising -- project creation must not fail
+                # because a scrub could not run -- but this must never again be
+                # a silent no-op.
+                logger.error(
+                    "SECURITY: origin credential scrub did not confirm %s is "
+                    "clean (status=%s): %s. This repo is bind-mounted into the "
+                    "user's sandbox; a credential in .git/config would be "
+                    "readable cross-tenant. Investigate before trusting it.",
+                    project_dir,
+                    scrub.status.value,
+                    scrub.detail or "no detail",
+                )
 
             # Update project model with clone path
             project.git_clone_path = str(project_dir)

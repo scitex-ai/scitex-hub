@@ -11,6 +11,10 @@ from pathlib import Path
 from django.conf import settings
 from scitex import logging
 
+from apps.infra.project_app.services.writer_workspace_layout import (
+    get_writer_workspace_path,
+)
+
 from ..git_service import GitService
 
 # Lazy import to avoid pydantic/fastmcp version conflict at startup
@@ -79,7 +83,7 @@ class WriterService(
                         f"Please ensure the project directory exists."
                     )
 
-                self._writer_dir = project_root / "scitex" / "writer"
+                self._writer_dir = get_writer_workspace_path(project_root)
             except Project.DoesNotExist:
                 raise RuntimeError(f"Project {self.project_id} not found")
 

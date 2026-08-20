@@ -5,12 +5,19 @@ Returns the server-side paths so the AI agent can reference them.
 """
 
 import json
+import logging
 from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+
+from apps.infra.project_app.services.filesystem.permissions import (
+    validate_path_in_user_jail,
+)
+
+logger = logging.getLogger(__name__)
 
 
 def _get_downloads_dir(user) -> Path:
@@ -81,9 +88,26 @@ def api_copy_project_files(request):
         # Resolve relative to user base (proj/ or downloads/)
         src = (user_base / "proj" / rel_path).resolve()
 
-        # Security: ensure the resolved path is under user's data directory
-        if not str(src).startswith(str(user_base.resolve())):
-            continue
+        # Security: BOTH checks in one call. validate_path_in_user_jail
+        # derives the jail root from request.user (not from client input), so
+        # it is simultaneously the containment check AND the tenant-ownership
+        # check. A prefix match here was a genuine cross-USER hole: user
+        # "alice" string-prefix-matches sibling "alice2", and the sink below
+        # (shutil.copy2) lands the victim's file in the ATTACKER's downloads.
+        #
+        # BEHAVIOUR CHANGE (deliberate): the previous code silently
+        # `continue`d past a rejected path. Silent fallbacks are forbidden in
+        # this project -- refuse loudly and name the offending path.
+        if not validate_path_in_user_jail(request.user, src):
+            logger.warning(
+                "Rejected out-of-jail copy for user %s: %s",
+                request.user.username,
+                rel_path,
+            )
+            return JsonResponse(
+                {"error": f"Path outside your data directory: {rel_path}"},
+                status=400,
+            )
         if not src.is_file():
             continue
 

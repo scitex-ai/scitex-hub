@@ -11,7 +11,7 @@ from apps.infra.auth_app.models import EmailVerification  # noqa
 # EmailVerification model definition moved to apps.infra.auth_app.models
 # Import statement above provides backwards compatibility
 
-# Models for SciTeX-Hub services
+# Models for SciTeX Hub services
 
 
 class SubscriptionPlan(models.Model):
@@ -419,3 +419,98 @@ class ServerMetrics(models.Model):
 
     def __str__(self):
         return f"Metrics at {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
+
+
+class SiteHealthProbe(models.Model):
+    """One row per external site health probe (check_site_health, every minute).
+
+    Persists the per-minute response time of https://scitex.ai/ so
+    before/after comparisons (router swap, NURO 10G line) are possible.
+    A failed probe is stored with ``response_time_ms=None`` — the gap
+    itself is signal, not noise.
+    """
+
+    # Probe time
+    timestamp = models.DateTimeField(db_index=True)
+
+    # Result
+    response_time_ms = models.FloatField(
+        null=True, help_text="Response time in milliseconds (null when probe failed)"
+    )
+    is_healthy = models.BooleanField(help_text="HTTP 200 within timeout")
+    status_code = models.IntegerField(
+        null=True, help_text="HTTP status code (null when no response)"
+    )
+
+    class Meta:
+        ordering = ["-timestamp"]
+        indexes = [
+            models.Index(fields=["-timestamp"]),
+        ]
+        verbose_name = "Site Health Probe"
+        verbose_name_plural = "Site Health Probes"
+
+    def __str__(self):
+        rt = (
+            f"{self.response_time_ms:.0f}ms"
+            if self.response_time_ms is not None
+            else "failed"
+        )
+        return f"Probe at {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')} ({rt})"
+
+
+class BillingEvent(models.Model):
+    """Minimal record of signature-verified Stripe webhook events.
+
+    Scaffold only — entitlement logic (mapping events to subscriptions)
+    is a separate card (hub-billing-entitlement-minimal). ``event_id``
+    is the Stripe event id (``evt_...``) and is unique so webhook
+    retries stay idempotent.
+    """
+
+    event_id = models.CharField(max_length=255, unique=True)
+    event_type = models.CharField(max_length=255)
+    payload = models.JSONField()
+    received_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-received_at"]
+        verbose_name = "Billing Event"
+        verbose_name_plural = "Billing Events"
+
+    def __str__(self):
+        return f"{self.event_type} ({self.event_id})"
+
+
+class ServiceInquiry(models.Model):
+    """A services-page inquiry (問い合わせ).
+
+    Every submission is PERSISTED here so nothing is lost regardless of
+    whether a dedicated inquiry email is configured yet (the operator is
+    still deciding the address; see settings.SERVICES_INQUIRY_EMAIL). The
+    view additionally emails the inquiry only when that address is set —
+    never to recruit@ (the hiring inbox). This is an inquiry entry point
+    only: no billing/前受金 anything is implemented here.
+    """
+
+    name = models.CharField(max_length=120, verbose_name="お名前")
+    affiliation = models.CharField(
+        max_length=200, blank=True, verbose_name="ご所属"
+    )
+    # The free-text 相談内容 — what the person wants to hire us for.
+    request = models.TextField(verbose_name="ご相談内容")
+    # Optional 予算感 kept as free text (bands, "未定" etc.), never a hard number.
+    budget = models.CharField(max_length=120, blank=True, verbose_name="ご予算感")
+    handled = models.BooleanField(
+        default=False, verbose_name="対応済み"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Service Inquiry"
+        verbose_name_plural = "Service Inquiries"
+
+    def __str__(self):
+        who = self.affiliation or "-"
+        return f"{self.name} ({who}) {self.created_at:%Y-%m-%d}"

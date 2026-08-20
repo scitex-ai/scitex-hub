@@ -3,15 +3,98 @@
 from django.db import migrations
 
 
+def _drop_search_limits_pg(apps, schema_editor):
+    """Drop ``UserPreference.search_limits`` idempotently on PostgreSQL.
+
+    Postgres natively supports ``ALTER TABLE ... DROP COLUMN IF EXISTS``,
+    which is the behaviour the staging-bring-up fix (commit 675ecd8e,
+    2026-06-06) wanted: a re-run on a DB that already lacks the column
+    becomes a no-op instead of crashing the whole ``migrate`` invocation.
+
+    SQLite (the test DB on CI) and MySQL do NOT support that clause and
+    surface it as ``near "EXISTS": syntax error``. On those backends we
+    skip the raw SQL entirely — Django's ``state_operations`` (the
+    accompanying ``RemoveField`` below) tell the ORM the column is gone,
+    and ``setup_databases``/``create_test_db`` always start from an empty
+    DB so there is no stale column to drop. Prod runs on PostgreSQL
+    (``settings_prod`` sets ``ENGINE=django.db.backends.postgresql``), so
+    this conditional preserves the original idempotency guarantee where
+    it matters.
+    """
+    if schema_editor.connection.vendor != "postgresql":
+        return
+    schema_editor.execute(
+        "ALTER TABLE scholar_app_userpreference DROP COLUMN IF EXISTS search_limits;"
+    )
+
+
+def _add_search_limits_pg(apps, schema_editor):
+    """Re-add ``UserPreference.search_limits`` on PostgreSQL (reverse op).
+
+    Mirrors 0016's ``JSONField(default=dict, blank=True)`` so a rollback
+    restores the original column shape (``jsonb NOT NULL DEFAULT '{}'``).
+    Non-Postgres backends rely on the reverse ``state_operations`` only,
+    same reasoning as the forward direction.
+    """
+    if schema_editor.connection.vendor != "postgresql":
+        return
+    schema_editor.execute(
+        "ALTER TABLE scholar_app_userpreference "
+        "ADD COLUMN IF NOT EXISTS search_limits jsonb "
+        "NOT NULL DEFAULT '{}'::jsonb;"
+    )
+
+
 class Migration(migrations.Migration):
+    """Remove ``UserPreference.search_limits`` idempotently, backend-aware.
+
+    The original generated form used a bare ``migrations.RemoveField`` op,
+    which expanded to ``ALTER TABLE ... DROP COLUMN search_limits``. That
+    SQL is not idempotent: if the column is missing (e.g. a fresh DB where
+    something dropped it earlier, or a partial migration apply that was
+    retried), the rerun raises::
+
+        ProgrammingError: column "search_limits" of relation
+        "scholar_app_userpreference" does not exist
+
+    which crashes the whole ``migrate`` run. We hit this on a fresh
+    staging bring-up (NAS, 2026-06-06) and fixed it in commit 675ecd8e
+    with PostgreSQL-native ``DROP/ADD COLUMN IF EXISTS`` raw SQL.
+
+    That fix shipped Postgres-only syntax into a migration that the test
+    matrix applies under SQLite, breaking every test that depends on
+    ``setup_databases``. We extend the original solution to be
+    backend-aware:
+
+    * ``database_operations`` runs the idempotent raw SQL through
+      :func:`migrations.RunPython` callables that early-return on
+      non-Postgres backends. On SQLite/MySQL nothing is executed — the
+      empty fresh test DB has no column to drop anyway, so the column
+      removal is implicit. On Postgres the original ``DROP/ADD COLUMN IF
+      EXISTS`` semantics are preserved verbatim.
+    * ``state_operations`` carries the ``RemoveField`` so Django's
+      migration-state graph stays identical regardless of backend, and
+      downstream migrations (e.g. ``0019_savedgraph``) see the same
+      model on every backend.
+    """
 
     dependencies = [
         ("scholar_app", "0017_add_user_library_storage_fields"),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name="userpreference",
-            name="search_limits",
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunPython(
+                    _drop_search_limits_pg,
+                    reverse_code=_add_search_limits_pg,
+                ),
+            ],
+            state_operations=[
+                migrations.RemoveField(
+                    model_name="userpreference",
+                    name="search_limits",
+                ),
+            ],
         ),
     ]

@@ -80,7 +80,9 @@ class Allocation:
         self.host_user_dir = host_user_dir
         self.host_project_dir = host_project_dir
         self.time_limit_seconds = time_limit_seconds
-        self.instance_name = f"scitex-{username}"
+        from .slurm_health import instance_name_for
+
+        self.instance_name = instance_name_for(username)
         self.job_id: Optional[str] = None
         self.state = AllocationState.DEAD
         self.shell_count: int = 0

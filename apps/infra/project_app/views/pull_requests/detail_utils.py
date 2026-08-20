@@ -9,6 +9,8 @@ import subprocess
 from itertools import chain
 from operator import attrgetter
 
+from apps.infra.project_app.services.git_ref_validation import END_OF_OPTIONS
+
 logger = logging.getLogger(__name__)
 
 
@@ -32,7 +34,7 @@ def get_pr_diff(project, pr):
 
         # Get full diff
         result = subprocess.run(
-            ["git", "diff", f"{pr.target_branch}...{pr.source_branch}"],
+            ["git", "diff", END_OF_OPTIONS, f"{pr.target_branch}...{pr.source_branch}"],
             cwd=project_path,
             capture_output=True,
             text=True,
@@ -56,7 +58,13 @@ def get_pr_diff(project, pr):
 def _get_changed_files(project_path, pr):
     """Get list of changed files in a PR."""
     files_result = subprocess.run(
-        ["git", "diff", "--name-status", f"{pr.target_branch}...{pr.source_branch}"],
+        [
+            "git",
+            "diff",
+            "--name-status",
+            END_OF_OPTIONS,
+            f"{pr.target_branch}...{pr.source_branch}",
+        ],
         cwd=project_path,
         capture_output=True,
         text=True,

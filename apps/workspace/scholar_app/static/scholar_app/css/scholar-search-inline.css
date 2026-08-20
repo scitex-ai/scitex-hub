@@ -173,8 +173,9 @@
 
 .scholar-search-container .form-control:focus,
 .scholar-search-container .form-select:focus {
-  border-color: var(--workspace-icon-primary) !important;
-  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15) !important;
+  border-color: var(--app-accent-scholar, #3d7a5e) !important;
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--app-accent-scholar, #3d7a5e) 20%, transparent) !important;
   outline: none;
 }
 

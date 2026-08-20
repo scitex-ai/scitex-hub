@@ -11,60 +11,71 @@ from .dotfiles import create_dotfiles_repo, create_dotfiles_symlinks
 logger = logging.getLogger(__name__)
 
 
+def ensure_workspace_sync(user_data_dir: Path, username: str, project_slug: str):
+    """Ensure user workspace exists with proper structure (sync core).
+
+    Called from the async spawn path via :func:`ensure_workspace` and
+    directly (synchronously) by the visitor-pool reset pipeline, which
+    recreates the home skeleton after wiping the entire visitor home
+    root (``visitor_pool.workspace_manager``). Keep it the single
+    source of truth for the home-directory layout.
+    """
+    # Create directory structure
+    user_data_dir.mkdir(parents=True, exist_ok=True)
+    (user_data_dir / "proj").mkdir(exist_ok=True)
+    (user_data_dir / ".singularity").mkdir(exist_ok=True)
+
+    project_dir = user_data_dir / "proj" / project_slug
+    project_dir.mkdir(exist_ok=True)
+
+    # Ensure scitex/downloads/ for paste/drop uploads
+    (project_dir / "scitex" / "downloads").mkdir(parents=True, exist_ok=True)
+
+    # Ensure directories are accessible from the host for SLURM bind mounts.
+    # Docker creates these as root (UID 100019 on host via fakeroot),
+    # but SLURM jobs run as the host user and need read+exec access.
+    import os
+
+    for d in [user_data_dir, user_data_dir / "proj", project_dir]:
+        try:
+            st = d.stat()
+            if not (st.st_mode & 0o005):  # not world-readable+exec
+                os.chmod(d, st.st_mode | 0o755)
+        except OSError:
+            pass
+
+    # Create ~/proj/dotfiles as git repo (visible in project list)
+    dotfiles_dir = user_data_dir / "proj" / "dotfiles"
+    if not dotfiles_dir.exists():
+        dotfiles_dir.mkdir()
+        create_dotfiles_repo(dotfiles_dir, username)
+        create_dotfiles_symlinks(user_data_dir, dotfiles_dir)
+        logger.info(f"Created ~/proj/dotfiles git repo for {username}")
+    else:
+        # Ensure dotfiles symlinks exist even if dotfiles dir was
+        # created previously (e.g., interrupted setup, manual deletion).
+        # Without these symlinks, bash cannot find .bashrc/.bash_profile
+        # and the PS1 prompt is never set.
+        _ensure_dotfiles_symlinks(user_data_dir, dotfiles_dir)
+
+    # Patch existing bashrc with AI CLI tools section if missing
+    _patch_bashrc_ai_tools(dotfiles_dir)
+
+    # Clean up legacy ~/proj/home -> .. symlink (replaced by dotfiles project)
+    home_link = user_data_dir / "proj" / "home"
+    if home_link.is_symlink():
+        home_link.unlink()
+
+    logger.info(f"Workspace ready: {user_data_dir}")
+
+
 async def ensure_workspace(user_data_dir: Path, username: str, project_slug: str):
     """Ensure user workspace exists with proper structure"""
     import asyncio
 
-    def setup():
-        # Create directory structure
-        user_data_dir.mkdir(parents=True, exist_ok=True)
-        (user_data_dir / "proj").mkdir(exist_ok=True)
-        (user_data_dir / ".singularity").mkdir(exist_ok=True)
-
-        project_dir = user_data_dir / "proj" / project_slug
-        project_dir.mkdir(exist_ok=True)
-
-        # Ensure scitex/downloads/ for paste/drop uploads
-        (project_dir / "scitex" / "downloads").mkdir(parents=True, exist_ok=True)
-
-        # Ensure directories are accessible from the host for SLURM bind mounts.
-        # Docker creates these as root (UID 100019 on host via fakeroot),
-        # but SLURM jobs run as the host user and need read+exec access.
-        import os
-
-        for d in [user_data_dir, user_data_dir / "proj", project_dir]:
-            try:
-                st = d.stat()
-                if not (st.st_mode & 0o005):  # not world-readable+exec
-                    os.chmod(d, st.st_mode | 0o755)
-            except OSError:
-                pass
-
-        # Create ~/proj/dotfiles as git repo (visible in project list)
-        dotfiles_dir = user_data_dir / "proj" / "dotfiles"
-        if not dotfiles_dir.exists():
-            dotfiles_dir.mkdir()
-            create_dotfiles_repo(dotfiles_dir, username)
-            create_dotfiles_symlinks(user_data_dir, dotfiles_dir)
-            logger.info(f"Created ~/proj/dotfiles git repo for {username}")
-        else:
-            # Ensure dotfiles symlinks exist even if dotfiles dir was
-            # created previously (e.g., interrupted setup, manual deletion).
-            # Without these symlinks, bash cannot find .bashrc/.bash_profile
-            # and the PS1 prompt is never set.
-            _ensure_dotfiles_symlinks(user_data_dir, dotfiles_dir)
-
-        # Patch existing bashrc with AI CLI tools section if missing
-        _patch_bashrc_ai_tools(dotfiles_dir)
-
-        # Clean up legacy ~/proj/home -> .. symlink (replaced by dotfiles project)
-        home_link = user_data_dir / "proj" / "home"
-        if home_link.is_symlink():
-            home_link.unlink()
-
-        logger.info(f"Workspace ready: {user_data_dir}")
-
-    await asyncio.to_thread(setup)
+    await asyncio.to_thread(
+        ensure_workspace_sync, user_data_dir, username, project_slug
+    )
 
 
 def _ensure_dotfiles_symlinks(user_data_dir: Path, dotfiles_dir: Path):

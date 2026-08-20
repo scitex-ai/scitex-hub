@@ -16,7 +16,7 @@ See [CLA.md](CLA.md) for full details.
 
 ## Reporting Issues
 
-- Search [existing issues](https://github.com/ywatanabe1989/scitex-hub/issues)
+- Search [existing issues](https://github.com/scitex-ai/scitex-hub/issues)
   before opening a new one.
 - Include a minimal reproducible example when reporting bugs.
 - Specify your Python version, OS, and `scitex` version.
@@ -24,7 +24,7 @@ See [CLA.md](CLA.md) for full details.
 ## Development Setup
 
 ```bash
-git clone git@github.com:ywatanabe1989/scitex-hub.git
+git clone git@github.com:scitex-ai/scitex-hub.git
 cd scitex-hub
 pip install -e ".[dev]"
 ```

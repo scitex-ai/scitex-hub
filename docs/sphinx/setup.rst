@@ -38,7 +38,7 @@ Three commands to get running:
 
 .. code-block:: bash
 
-   git clone https://github.com/ywatanabe1989/scitex-hub.git
+   git clone https://github.com/scitex-ai/scitex-hub.git
    cd scitex-hub
    make start
 
@@ -48,7 +48,8 @@ Access at:
 
 - **Django**: http://localhost:8000
 - **Gitea**: http://localhost:3000
-- **Test user**: ``test-user`` / ``Password123!``
+- **Test user**: ``test-user``. The password is printed by ``init_test_user`` on first
+  run; set ``SCITEX_HUB_TEST_USER_PASSWORD`` to choose it yourself.
 
 Step-by-Step Development Setup
 ------------------------------
@@ -57,7 +58,7 @@ Step-by-Step Development Setup
 
 .. code-block:: bash
 
-   git clone https://github.com/ywatanabe1989/scitex-hub.git
+   git clone https://github.com/scitex-ai/scitex-hub.git
    cd scitex-hub
 
 2. **Create environment file**

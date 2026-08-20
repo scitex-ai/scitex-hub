@@ -51,6 +51,16 @@ services:
       - ../../../../scitex-notification:/scitex-notification:cached
       - ../../../../scitex-db:/scitex-db:cached
 
+      # Grant-material live-paper demo source (read-only).
+      # paper-scitex-clew sibling repo holds the real research project
+      # (claims.json + DAG + manuscript) exposed under
+      # GITIGNORED/grant-materials/live-paper-demo/project/ — we mount the
+      # whole repo read-only so the Writer + /viewer-v2/ surfaces can render
+      # the real clew data without copying it into the dev data tree.
+      # Used by writer_app's `register_livepaper_demo` management command
+      # to register a Django Project pointing at this path.
+      - ../../../../paper-scitex-clew:/paper-scitex-clew:ro,cached
+
       # Centralized logging - all container logs go here
       - ../../../logs:/app/logs
 
@@ -89,12 +99,19 @@ services:
       # TypeScript compiled JS output - Docker only, never syncs to host
       - /app/.jsbuild
 
-    # Port mapping
+    # Port mapping.
+    # Loopback-only, like docker-compose.preview.yml: this stack runs
+    # settings_dev, whose DEBUG defaults to True, so an unhandled 500 would
+    # serve settings, SQL, locals and the environment to anyone who can reach
+    # the host. The debugpy port is worse still -- a remote debugger on a
+    # public interface is arbitrary code execution in the Django process.
+    # Reach these over an SSH tunnel. Enforced by
+    # tests/config/test_compose_keeps_debug_stacks_off_public_interfaces.py
     ports:
-      - "${SCITEX_HUB_HTTP_PORT_DEV:-8000}:8000"
-      - "${SCITEX_HUB_SSH_PORT_DEV:-2200}:2200"  # SSH gateway for user workspaces
-      - "${SCITEX_HUB_DEBUGPY_PORT_DEV:-5678}:5678"  # debugpy/pdb port for remote debugging
-      - "${SCITEX_HUB_VITE_PORT_DEV:-5173}:5173"  # Vite dev server (HMR)
+      - "127.0.0.1:${SCITEX_HUB_HTTP_PORT_DEV:-8000}:8000"
+      - "127.0.0.1:${SCITEX_HUB_SSH_PORT_DEV:-2200}:2200"  # SSH gateway for user workspaces
+      - "127.0.0.1:${SCITEX_HUB_DEBUGPY_PORT_DEV:-5678}:5678"  # debugpy/pdb port for remote debugging
+      - "127.0.0.1:${SCITEX_HUB_VITE_PORT_DEV:-5173}:5173"  # Vite dev server (HMR)
 
     # Environment
     env_file:
@@ -169,7 +186,7 @@ services:
 
     # Port mapping (avoid conflict with host postgres)
     ports:
-      - "${SCITEX_HUB_POSTGRES_PORT_DEV:-5433}:5432"
+      - "127.0.0.1:${SCITEX_HUB_POSTGRES_PORT_DEV:-5433}:5432"
 
     env_file:
       - .env
@@ -211,7 +228,7 @@ services:
       - redis_data:/data
 
     ports:
-      - "${SCITEX_HUB_REDIS_PORT_DEV:-6379}:6379"
+      - "127.0.0.1:${SCITEX_HUB_REDIS_PORT_DEV:-6379}:6379"
 
     # More verbose logging in development
     command: redis-server --appendonly yes --loglevel debug

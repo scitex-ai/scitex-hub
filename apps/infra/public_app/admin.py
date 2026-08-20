@@ -156,7 +156,19 @@ class ContributorAdmin(admin.ModelAdmin):
     )
 
 
-from .models import Publication  # noqa: E402
+from .models import Publication, ServiceInquiry  # noqa: E402
+
+
+@admin.register(ServiceInquiry)
+class ServiceInquiryAdmin(admin.ModelAdmin):
+    """Read services-page inquiries here until a dedicated inbox is decided."""
+
+    list_display = ["name", "affiliation", "budget", "handled", "created_at"]
+    list_filter = ["handled", "created_at"]
+    search_fields = ["name", "affiliation", "request"]
+    list_editable = ["handled"]
+    readonly_fields = ["name", "affiliation", "request", "budget", "created_at"]
+    date_hierarchy = "created_at"
 
 
 @admin.register(Publication)

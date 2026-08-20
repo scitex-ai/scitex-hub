@@ -24,6 +24,10 @@ from apps.infra.project_app.models import (
     PullRequest,
     PullRequestEvent,
 )
+from apps.infra.project_app.services.git_ref_validation import (
+    END_OF_OPTIONS,
+    is_valid_git_ref,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -243,9 +247,15 @@ def compare_branches(project, base, head):
         if not project_path or not project_path.exists():
             return None
 
+        # base/head are request-derived; reject option-injecting refs and
+        # terminate options before them (see services.git_ref_validation).
+        if not (is_valid_git_ref(base) and is_valid_git_ref(head)):
+            logger.warning("Rejected invalid branch ref in compare: %r...%r", base, head)
+            return None
+
         # Get diff between branches
         result = subprocess.run(
-            ["git", "diff", f"{base}...{head}", "--stat"],
+            ["git", "diff", "--stat", END_OF_OPTIONS, f"{base}...{head}"],
             cwd=project_path,
             capture_output=True,
             text=True,
@@ -257,7 +267,7 @@ def compare_branches(project, base, head):
 
         # Get commit count
         commit_result = subprocess.run(
-            ["git", "rev-list", "--count", f"{base}..{head}"],
+            ["git", "rev-list", "--count", END_OF_OPTIONS, f"{base}..{head}"],
             cwd=project_path,
             capture_output=True,
             text=True,
@@ -304,8 +314,9 @@ def sync_pr_commits(pr):
             [
                 "git",
                 "log",
-                f"{pr.target_branch}..{pr.source_branch}",
                 "--format=%H|%an|%ae|%at|%s",
+                END_OF_OPTIONS,
+                f"{pr.target_branch}..{pr.source_branch}",
             ],
             cwd=project_path,
             capture_output=True,
@@ -361,7 +372,7 @@ def check_pr_conflicts(pr):
 
         # Try to merge (dry run)
         result = subprocess.run(
-            ["git", "merge-tree", pr.target_branch, pr.source_branch],
+            ["git", "merge-tree", END_OF_OPTIONS, pr.target_branch, pr.source_branch],
             cwd=project_path,
             capture_output=True,
             text=True,

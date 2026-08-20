@@ -1,0 +1,470 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% block title %}Extract PDF Text & Figures - Browser Tool | SciTeX{% endblock %}
+{% block meta_description %}
+    Pull the text and embedded figures out of a PDF, with table layout preserved. Runs on SciTeX hardware; the file is not sent to any third party.
+{% endblock %}
+{% block extra_css %}
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .tool-detail-container {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .tool-breadcrumb {
+            padding: 12px 20px;
+            background: var(--workspace-bg-secondary);
+            border-bottom: 1px solid var(--workspace-border-default);
+        }
+
+        .tool-breadcrumb a {
+            color: var(--workspace-text-link);
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .tool-breadcrumb a:hover { text-decoration: underline; }
+
+        .tool-header {
+            text-align: center;
+            padding: 40px 20px;
+            background: var(--workspace-bg-secondary);
+            border-bottom: 1px solid var(--workspace-border-default);
+        }
+
+        .tool-title {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--workspace-text-primary);
+        }
+
+        .tool-header p { font-size: 14px; color: var(--workspace-text-secondary); }
+
+        .tool-header div[style*="font-size: 64px"] { color: var(--workspace-text-muted); }
+
+        .editor-container {
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 1px;
+            flex: 1;
+            min-height: 0;
+            background: var(--workspace-border-default);
+            border-radius: 0 0 6px 6px;
+            overflow: hidden;
+        }
+
+        @media (max-width: 768px) {
+            .editor-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+        }
+
+        .editor-panel {
+            background: var(--workspace-bg-secondary);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: var(--workspace-bg-tertiary);
+            padding: 9px 16px;
+            border-bottom: 1px solid var(--workspace-border-default);
+            height: 36px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-title {
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: var(--workspace-text-primary);
+        }
+
+        .panel-body {
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+            padding: 16px;
+            background: var(--workspace-bg-monaco);
+        }
+
+        .dropzone {
+            border: 1px dashed var(--workspace-border-default);
+            border-radius: 6px;
+            padding: 28px 16px;
+            text-align: center;
+            color: var(--workspace-text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            transition: border-color .15s ease, background .15s ease;
+        }
+
+        .dropzone:hover,
+        .dropzone.dragover {
+            border-color: var(--workspace-text-link);
+            background: var(--workspace-bg-secondary);
+        }
+
+        .dropzone strong {
+            color: var(--workspace-text-primary);
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .field { margin-top: 16px; }
+
+        .field label.check {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--workspace-text-primary);
+            cursor: pointer;
+        }
+
+        .field .hint {
+            margin-top: 4px;
+            margin-left: 24px;
+            font-size: 11px;
+            color: var(--workspace-text-muted);
+            line-height: 1.5;
+        }
+
+        .selected-file {
+            margin-top: 14px;
+            font-size: 12px;
+            color: var(--workspace-text-primary);
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            word-break: break-all;
+        }
+
+        .extracted {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin: 0;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 12.5px;
+            line-height: 1.6;
+            color: var(--workspace-text-primary);
+        }
+
+        .placeholder { color: var(--workspace-text-muted); font-size: 13px; line-height: 1.8; }
+
+        .figures {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .figures img {
+            width: 100%;
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 4px;
+            background: #fff;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            padding: 9px 16px;
+            border-top: 1px solid var(--workspace-border-default);
+            background: var(--workspace-bg-tertiary);
+            height: 36px;
+            box-sizing: border-box;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 3px 10px;
+            background: transparent;
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            color: var(--workspace-text-primary);
+            transition: all .15s ease;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: var(--workspace-bg-secondary);
+            border-color: var(--workspace-text-muted);
+        }
+
+        .btn:disabled { opacity: .45; cursor: not-allowed; }
+
+        .status {
+            padding: 9px 16px;
+            text-align: center;
+            font-size: 11px;
+            border-top: 1px solid var(--workspace-border-default);
+            background: var(--workspace-bg-tertiary);
+            min-height: 36px;
+            box-sizing: border-box;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.5;
+        }
+
+        .status.error { color: var(--status-error); background: var(--workspace-bg-secondary); display: flex; }
+        .status.success { color: var(--status-success); background: var(--workspace-bg-secondary); display: flex; }
+        .status.busy { color: var(--workspace-text-secondary); display: flex; }
+        .status.note { color: var(--workspace-text-secondary); background: var(--workspace-bg-secondary); display: flex; }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="tool-detail-container">
+        {% if not embed %}
+            <div class="tool-breadcrumb">
+                <a href="{% url 'tools_app:tools' %}">← Back to Tools</a>
+            </div>
+            <div class="tool-header">
+                <div style="font-size: 64px; margin-bottom: 20px;">🔎</div>
+                <h1 class="tool-title">PDF Text &amp; Figure Extractor</h1>
+                <p>Pull the text and the embedded figures out of a PDF</p>
+            </div>
+        {% endif %}
+        {% csrf_token %}
+        <div class="editor-container">
+            <div class="editor-panel">
+                <div class="panel-header">
+                    <span class="panel-title">PDF</span>
+                </div>
+                <div class="panel-body">
+                    <div id="dropzone" class="dropzone">
+                        <strong>Choose a PDF</strong>
+                        or drop one here
+                    </div>
+                    <input id="fileInput" type="file" accept="application/pdf,.pdf" style="display: none">
+                    <div id="selectedFile" class="selected-file"></div>
+
+                    <div class="field">
+                        <label class="check">
+                            <input type="checkbox" id="layout" checked>
+                            <span>Preserve layout</span>
+                        </label>
+                        <div class="hint">
+                            Keeps columns and table rows roughly where they were. Turn it off for
+                            flowing prose you want to re-wrap.
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="check">
+                            <input type="checkbox" id="figures" checked>
+                            <span>Extract embedded figures</span>
+                        </label>
+                        <div class="hint" id="figuresHint">
+                            Pulls out the images the PDF actually contains, at their original
+                            resolution — not screenshots of the page.
+                        </div>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button id="extractBtn" class="btn" disabled>Extract</button>
+                    <button id="clearBtn" class="btn">Clear</button>
+                </div>
+            </div>
+
+            <div class="editor-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Result</span>
+                </div>
+                <div class="panel-body">
+                    <div id="placeholder" class="placeholder">
+                        The extracted text appears here, with any embedded figures below it.<br>
+                        The PDF is processed on SciTeX hardware and is not sent to a third party.
+                    </div>
+                    <pre id="extracted" class="extracted" style="display: none;"></pre>
+                    <div id="figuresOut" class="figures"></div>
+                </div>
+                <div class="controls">
+                    <button id="copyBtn" class="btn" disabled>Copy text</button>
+                    <button id="downloadBtn" class="btn" disabled>Download .txt</button>
+                </div>
+                <div id="status" class="status"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+  const EXTRACT_URL = '/apps/tools/api/pdf-extract/';
+  const CAPS_URL = '/apps/tools/api/pdf-extract/capabilities/';
+
+  const fileInput = document.getElementById('fileInput');
+  const dropzone = document.getElementById('dropzone');
+  const selectedFile = document.getElementById('selectedFile');
+  const layoutBox = document.getElementById('layout');
+  const figuresBox = document.getElementById('figures');
+  const figuresHint = document.getElementById('figuresHint');
+  const extractBtn = document.getElementById('extractBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const copyBtn = document.getElementById('copyBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const extracted = document.getElementById('extracted');
+  const figuresOut = document.getElementById('figuresOut');
+  const placeholder = document.getElementById('placeholder');
+  const status = document.getElementById('status');
+
+  let chosen = null;
+
+  function csrfToken() {
+    const f = document.querySelector('[name=csrfmiddlewaretoken]');
+    return f ? f.value : '';
+  }
+
+  function setStatus(msg, cls) {
+    status.textContent = msg;
+    status.className = `status ${cls || ''}`;
+  }
+
+  // A non-JSON body means the request never reached the view — nearly always an
+  // auth redirect. Say that instead of surfacing a JSON parse error.
+  async function readJson(res) {
+    const body = await res.text();
+    try { return JSON.parse(body); }
+    catch (e) {
+      if (res.redirected || res.status === 401 || res.status === 403) {
+        throw new Error('Sign in to use this tool, then try again.');
+      }
+      throw new Error(`The server returned ${res.status} without a JSON body.`);
+    }
+  }
+
+  // Ask what this deployment can do BEFORE offering the control, so a box is
+  // never ticked for something the server cannot deliver.
+  fetch(CAPS_URL, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    .then(readJson)
+    .then((caps) => {
+      if (!caps.text) {
+        extractBtn.disabled = true;
+        setStatus('PDF extraction is unavailable on this deployment (poppler is not installed).', 'error');
+      }
+      if (!caps.figures) {
+        figuresBox.checked = false;
+        figuresBox.disabled = true;
+        figuresHint.textContent = 'Figure extraction is unavailable on this deployment.';
+      }
+      if (!caps.ocr) {
+        figuresHint.textContent += ' Scanned PDFs (no text layer) need OCR, which is not installed here yet.';
+      }
+    })
+    .catch(() => { /* capabilities are advisory; extraction still reports its own errors */ });
+
+  function choose(file) {
+    if (!file) return;
+    chosen = file;
+    selectedFile.textContent = `${file.name} (${(file.size / (1024 * 1024)).toFixed(1)} MB)`;
+    extractBtn.disabled = false;
+    setStatus('', '');
+  }
+
+  dropzone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => choose(fileInput.files[0]));
+  dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+    choose(e.dataTransfer.files[0]);
+  });
+
+  extractBtn.addEventListener('click', async () => {
+    if (!chosen) return;
+    extractBtn.disabled = true;
+    setStatus(`Reading ${chosen.name}…`, 'busy');
+
+    const form = new FormData();
+    form.append('pdf', chosen);
+    form.append('layout', layoutBox.checked ? '1' : '0');
+    form.append('figures', figuresBox.checked ? '1' : '0');
+
+    try {
+      const res = await fetch(EXTRACT_URL, {
+        method: 'POST',
+        body: form,
+        headers: { 'X-CSRFToken': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
+      });
+      const data = await readJson(res);
+      if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+
+      placeholder.style.display = 'none';
+      extracted.style.display = 'block';
+      extracted.textContent = data.text || '';
+      copyBtn.disabled = !data.text;
+      downloadBtn.disabled = !data.text;
+
+      figuresOut.innerHTML = '';
+      for (const fig of data.figures || []) {
+        const img = document.createElement('img');
+        img.src = fig.image;
+        img.alt = fig.name;
+        figuresOut.appendChild(img);
+      }
+
+      if (data.note) {
+        setStatus(data.note, 'note');
+      } else {
+        const shown = (data.figures || []).length;
+        const total = data.figure_count || 0;
+        const figNote = total
+          ? ` · ${shown} of ${total} figure${total === 1 ? '' : 's'}`
+          : '';
+        setStatus(`${data.chars.toLocaleString()} characters${figNote}`, 'success');
+      }
+    } catch (e) {
+      setStatus(e.message, 'error');
+    } finally {
+      extractBtn.disabled = false;
+    }
+  });
+
+  copyBtn.addEventListener('click', async () => {
+    await navigator.clipboard.writeText(extracted.textContent);
+    setStatus('Text copied to the clipboard', 'success');
+  });
+
+  downloadBtn.addEventListener('click', () => {
+    const blob = new Blob([extracted.textContent], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (chosen ? chosen.name.replace(/\.[^.]+$/, '') : 'extracted') + '.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  clearBtn.addEventListener('click', () => {
+    chosen = null;
+    fileInput.value = '';
+    selectedFile.textContent = '';
+    extracted.textContent = '';
+    extracted.style.display = 'none';
+    figuresOut.innerHTML = '';
+    placeholder.style.display = 'block';
+    extractBtn.disabled = true;
+    copyBtn.disabled = true;
+    downloadBtn.disabled = true;
+    setStatus('', '');
+  });
+    </script>
+{% endblock %}

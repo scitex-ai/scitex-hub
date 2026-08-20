@@ -22,6 +22,14 @@ from typing import Any, Callable, Optional
 
 logger = logging.getLogger(__name__)
 
+# Tile availability states (card hub-launcher-tile-availability-states).
+# Honest can/cannot signalling AT the home icon, operator directive
+# (Telegram 1483): "available" launches everywhere; "coming_soon" renders
+# a badge and never navigates; "desktop_only" launches on desktop but is
+# badged + blocked on a phone. The manifest is the SSoT for built-ins;
+# the AppsModule catalog row carries it for store-published apps.
+AVAILABILITY_STATES = ("available", "coming_soon", "desktop_only")
+
 
 @dataclass
 class ModuleConfig:
@@ -40,6 +48,14 @@ class ModuleConfig:
     # Templates
     partial_template: str = ""  # e.g. "writer_app/writer_partial.html"
 
+    # Does this module render a surface in the workspace shell at all?
+    # Defaults to True, so a module that simply FORGOT its partial_template
+    # still fails the registry check. Only a module that explicitly declares
+    # `"renders_ui": false` in its manifest is exempt — an exemption that is
+    # greppable and individually revisitable, rather than an empty string
+    # that means both "no UI by design" and "not filled in yet".
+    renders_ui: bool = True
+
     # Context builder (dotted path or callable)
     context_builder: str = (
         ""  # e.g. "apps.workspace.writer_app.views.index.main.build_writer_context"
@@ -53,8 +69,36 @@ class ModuleConfig:
     # Sort order in tab bar (lower = leftmost)
     order: int = 50
 
+    # Launcher-tile category. Drives the tile's icon gradient (see
+    # launcher/grid.css [data-tile-category]). The manifest is the SSOT: an app
+    # declares what it IS. Previously the launcher took this from the AppsModule
+    # DB row only, so any module without a seeded row fell back to "other" and
+    # rendered with the generic yellow puzzle gradient — which is exactly the
+    # look the operator flagged on the custom-app tiles.
+    category: str = ""
+
     # Visibility defaults
     default_enabled: bool = True  # Show in tab bar for new users (no installations)
+
+    # Tile availability (see AVAILABILITY_STATES above). "" means the
+    # manifest declared nothing — readers fall back to the AppsModule
+    # catalog row, then to "available". Never invented in a template.
+    availability: str = ""
+
+    # Launcher-grid visibility. Some registered modules are workspace
+    # panes / nav items, not standalone launcher apps — e.g. Clew (opens
+    # within a manuscript) and comms (reached from the workspace, not the
+    # grid). They stay fully registered (routes, tab bar, sidebar) but
+    # are suppressed as launcher tiles. Default True = every module tiles.
+    #
+    # This comment used to say comms "lives in the left sidebar at /chat/".
+    # It does not, and that sentence cost the site a page: comms is the
+    # real-time MESSAGING app at /apps/comms/, while /chat/ is the LLM
+    # welcome pane dispatched by repo_app.views.dispatch.root_dispatch.
+    # They are different surfaces, and /chat/ has no registry entry at
+    # all — so its absence from the launcher grid was never a decision
+    # anyone made, it just followed from a mistaken identity.
+    show_in_launcher: bool = True
 
     # Runtime state (set by context processor, not persisted)
     is_active: bool = False
@@ -73,6 +117,12 @@ class ModuleConfig:
 
     # Legal
     license: str = "AGPL-3.0"  # SPDX identifier, default matches SciTeX project license
+
+    # Version — read from the app's manifest.json "version" key. This is the
+    # single source of truth for the deployed/code version surfaced on the
+    # launcher tiles and the app header (dev-loop aid). Empty when a manifest
+    # omits it — callers degrade gracefully (hide the label, never break).
+    version: str = ""  # e.g. "0.14.0"
 
     # URL override — empty means default to /apps/{name}/
     url: str = ""  # e.g. "/hub/" for top-level exceptions
@@ -179,6 +229,34 @@ _BUILTIN_MANIFEST_PATHS: list[str] = [
     "workspace/comms_app/manifest.json",
 ]
 
+# Upstream plugin-app tiles (the package ships its own Django app; hub mounts
+# it and carries only a manifest + any tenancy glue). Appended CONDITIONALLY so
+# the launcher never shows a dead tile on a host where the package is not
+# installed — mirror of the guarded imports in settings_shared.py and the URL
+# guards in config/urls.py.
+# Each entry probes a TUPLE of names, canonical first. The board package was
+# renamed scitex-todo -> scitex-cards on 2026-07-16 and this probe kept asking
+# for the OLD name; scitex-cards 0.41.0 (2026-08-16) then DELETED the
+# `scitex_todo` alias outright, so the probe started returning None on a host
+# where the board is installed, mounted and reachable at /apps/cards/. The tile
+# would simply vanish from the launcher while the app kept working — a
+# user-visible regression with no error anywhere.
+#
+# Both names are accepted while both can be in play: an older wheel still ships
+# only the alias. Canonical first so hub stops depending on the deprecated name
+# the moment it can.
+for _pkg_names, _tile_manifest in (
+    (("scitex_cards", "scitex_todo"), "workspace/todo_app/manifest.json"),
+    (("scitex_storage",), "workspace/storage_app/manifest.json"),
+):
+    try:
+        from importlib.util import find_spec as _find_spec
+
+        if any(_find_spec(_name) is not None for _name in _pkg_names):
+            _BUILTIN_MANIFEST_PATHS.append(_tile_manifest)
+    except Exception:
+        logger.exception("[registry] %s tile probe failed", _pkg_names[0])
+
 
 _SUPPORTED_SCHEMA_VERSIONS = {"1.0.0", "2.0.0"}
 
@@ -194,6 +272,53 @@ def _load_manifest(manifest_path: Path) -> dict:
     return data
 
 
+def _resolve_version(data: dict) -> str:
+    """Resolve an app's version from its INSTALLED pip package — the single
+    source of truth, so the standalone package and the hub-embedded app always
+    report the same version and cannot drift. ``pip_package`` names the
+    distribution; the version is read at runtime via ``importlib.metadata``.
+
+    Apps with no backing package (hub-internal panes like Home/Docs/Tools)
+    report "" and the launcher simply omits the label — the hub's own version
+    is shown once in the header, not per built-in pane. Never raises: a missing
+    dist degrades to blank, never a launcher 500. A literal ``version`` in a
+    manifest is IGNORED on purpose — hand-written versions ARE the drift we are
+    removing (the scitex-app validator rejects them).
+    """
+    pkg = data.get("pip_package", "")
+    if not pkg:
+        return ""
+    try:
+        from importlib.metadata import version as _pkg_version
+
+        return _pkg_version(pkg)
+    except Exception:
+        logger.warning(
+            "[registry] app %r declares pip_package=%r which is not installed; "
+            "version label omitted",
+            data.get("name"),
+            pkg,
+        )
+        return ""
+
+
+def _resolve_availability(data: dict) -> str:
+    """Validate the manifest's ``availability`` declaration.
+
+    Raises ValueError on an unknown state so a typo fails LOUDLY at
+    registry build time (the module is dropped with a logged error, same
+    as an unsupported schema version) instead of silently rendering as a
+    launchable tile — the exact dishonesty this field exists to remove.
+    """
+    availability = data.get("availability", "")
+    if availability and availability not in AVAILABILITY_STATES:
+        raise ValueError(
+            f"Unknown availability {availability!r} in manifest for "
+            f"{data.get('name')!r}; expected one of {AVAILABILITY_STATES}"
+        )
+    return availability
+
+
 def _manifest_to_module_config(data: dict) -> ModuleConfig:
     """Convert a manifest dict to a ModuleConfig dataclass."""
     name = data["name"]
@@ -207,15 +332,20 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
         icon_svg_tab=overrides.get("icon_svg_tab", ""),
         icon_svg_nav=overrides.get("icon_svg_nav", ""),
         partial_template=data.get("partial_template", ""),
+        renders_ui=data.get("renders_ui", True),
         context_builder=data.get("context_builder", ""),
         body_class=data.get("body_class", ""),
         keyboard_shortcut=data.get("keyboard_shortcut", ""),
         order=data.get("order", 50),
+        category=data.get("category", ""),
+        availability=_resolve_availability(data),
         default_enabled=data.get("default_enabled", True),
+        show_in_launcher=data.get("show_in_launcher", True),
         ai_hint=data.get("ai_hint", ""),
         accent_color=data.get("accent_color", ""),
         docs_slug=data.get("docs_slug", ""),
         license=data.get("license", "AGPL-3.0"),
+        version=_resolve_version(data),
         url=data.get("url", ""),
         privileges=data.get("privileges", []),
         allowed_extensions=data.get("allowed_extensions", []),
@@ -317,6 +447,24 @@ def register_module(config: ModuleConfig) -> None:
     _registry.append(config)
     _registry_by_name[config.name] = config
     logger.info(f"[registry] Registered external module: {config.name}")
+
+
+def unregister_module(name: str) -> None:
+    """Remove a runtime-registered module. No-op when absent.
+
+    The symmetric partner of register_module — the registry is
+    process-global, so anything that registers transiently (a
+    deactivated dev-install, a test fixture) must be able to leave the
+    registry exactly as it found it.
+    """
+    config = _registry_by_name.pop(name, None)
+    if config is None:
+        return
+    try:
+        _registry.remove(config)
+    except ValueError:
+        pass
+    logger.info(f"[registry] Unregistered module: {name}")
 
 
 def discover_external_modules() -> None:

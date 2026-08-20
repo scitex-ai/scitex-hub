@@ -40,7 +40,8 @@
           href="{% static 'scholar_app/css/library/library-details.css' %}" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css"
           rel="stylesheet" />
-    <!-- Scholar unified styles in 08-scholar-unified.css -->
+    <!-- Tab layout/visibility lives in common/07-stx-shell-layout.css;
+         the former 08-scholar-unified.css was never linked and has been removed -->
 {% endblock %}
 {% block content %}
     {% if needs_scholar_init %}
@@ -74,12 +75,25 @@
         <main class="scholar-main">
             <div class="pane-header" data-pane-type="module">
                 <nav class="scholar-tabs">
+                    {% comment %}
+                       Search leads, Library follows. Operator, 2026-08-16:
+                       「ライブラリが1番左ではなくて、先にサーチがあったほうがいい」.
+                       A new visitor has an empty Library, so leading with it opens the
+                       app on a blank list; Search is the thing they can act on with no
+                       prior state, and it is how anything gets INTO the Library.
+
+                       THIS is the template /apps/scholar/ renders. PR #616 made the
+                       same change in scholar_partial.html only — a template no route
+                       renders directly — went green, deployed, and the live page never
+                       moved. tests/apps/scholar_app/tests/test_scholar_tab_order.py now
+                       derives the template from the URLconf so that cannot recur.
+                    {% endcomment %}
+                    <a href="#search" class="scholar-tab" data-tab="search">
+                        <i class="fas fa-search"></i> Search
+                    </a>
                     <a href="#library" class="scholar-tab" data-tab="library">
                         <i class="fas fa-book-reader"></i> Library
                         {% if library_count %}<span class="scholar-tab-badge">{{ library_count }}</span>{% endif %}
-                    </a>
-                    <a href="#search" class="scholar-tab" data-tab="search">
-                        <i class="fas fa-search"></i> Search
                     </a>
                     <a href="#bibtex" class="scholar-tab" data-tab="bibtex">
                         <i class="fas fa-wand-magic-sparkles"></i> Metadata Enrichment

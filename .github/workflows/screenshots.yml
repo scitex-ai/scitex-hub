@@ -1,0 +1,357 @@
+name: Product Screenshots
+
+# Operator request 2026-08-16: 「スクショをci化して欲しいです」.
+#
+# Hand-taken screenshots go stale the moment anything ships, and the moment
+# you need them — a grant application, a talk, a README — is exactly when
+# you do not want to be clicking through the product hoping nothing broke.
+#
+# workflow_dispatch is the primary trigger: run it when you need a current
+# set, download the artifact, drop the PNGs in. It also runs on pushes to
+# develop so the set is never more than one merge old, and so a page that
+# starts erroring is caught by the job that photographs it.
+#
+# It also runs on a pull request THAT TOUCHES ITSELF. Without that, a
+# workflow whose only triggers are dispatch and push-to-develop cannot be
+# exercised until after it is merged — the first time anyone learns it is
+# broken would be on develop. The paths filter keeps it off every unrelated
+# PR, so a 30-minute job is not charged to work that cannot affect it.
+on:
+  workflow_dispatch:
+  push:
+    branches: [ develop ]
+  pull_request:
+    paths:
+      - '.github/workflows/screenshots.yml'
+      - 'tests/e2e/playwright/test_capture_screenshots.py'
+      - 'tests/e2e/playwright/test_content_check_fires.py'
+      - 'tests/e2e/playwright/conftest.py'
+      - 'tests/e2e/playwright/session_role_check.py'
+      - 'tests/e2e/playwright/page_ready.py'
+      - 'tests/e2e/playwright/content_check.py'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Superseding an in-flight PR run is free; superseding a push to develop is
+  # a decision nobody made — same rule the e2e-mobile workflow states.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  screenshots:
+    name: Capture product screenshots
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: scitex_test
+          POSTGRES_USER: scitex
+          POSTGRES_PASSWORD: scitex_test_pass  # pragma: allowlist secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Python dependencies
+        run: pip install -e ".[all,dev]" || pip install -e ".[dev]" || pip install -e .
+
+      - name: Install the visitor-pool template packages
+        # NOT covered by the line above. The visitor pool clones each slot's
+        # workspace through `scitex.template`, which scitex-hub does not
+        # declare as a dependency and the `[all]` extra does not reliably
+        # pull in — prod installs it by an explicit pin in
+        # deployment/docker/docker_prod/Dockerfile.prod (which spells out why
+        # the version is pinned rather than floated: 0.6.7 quarantined every
+        # slot, and visitor_pool/template_clone.py imports 0.7.0's
+        # `clone_template_result` UNCONDITIONALLY). Measured 2026-08-16 with
+        # `SCITEX_HUB_VISITOR_POOL_GITEA_ENABLED=false` and no pin:
+        # `create_visitor_pool` reaches the clone and dies with
+        # "ImportError: scitex.template.clone_template: `scitex_template` is
+        # required". The Gitea crash used to hide this one behind it.
+        # Same pins as prod, so CI photographs the workspace prod builds.
+        run: pip install "scitex-template==0.7.0" "scitex-writer==2.26.1"
+
+      - name: Install sibling workspace apps (scitex-ui, figrecipe)
+        # Same canonical script the e2e-mobile and typescript-check jobs use;
+        # package.json declares these as file: siblings and vite needs them
+        # present before `npm install`.
+        run: bash scripts/apps/install_apps.sh
+
+      - name: Install Node dependencies & build
+        run: |
+          set -euo pipefail
+          npm install
+          npm run build
+
+          # PUT THE BUILT BUNDLE WHERE DEBUG STATIC SERVING CAN SEE IT.
+          #
+          # vite.config.ts builds to `staticfiles/vite`, and `staticfiles`
+          # is STATIC_ROOT — the collectstatic DESTINATION. Under DEBUG the
+          # request never reaches STATIC_ROOT: ASGIStaticFilesHandler
+          # answers /static/ from the FINDERS, which search STATICFILES_DIRS
+          # and app static dirs and nothing else. So a Vite asset in
+          # STATIC_ROOT is unreachable by construction, and collectstatic
+          # cannot help — it copies INTO the directory that is already being
+          # skipped.
+          #
+          # settings_dev sets STATICFILES_DIRS = [BASE_DIR / "static"], so
+          # copying the build under `static/vite/` makes FileSystemFinder
+          # resolve exactly the /static/vite/<file> URLs the manifest emits.
+          #
+          # Measured 2026-08-17, CI run 32056013931: without this, every
+          # /static/vite/*.js answered HTTP 500, no JavaScript ran, and the
+          # visitor heartbeat (itself a Vite entry) never fired — so the
+          # pooled visitor's 120s probation lease was never promoted to its
+          # full hour and expired part-way through the 400s capture.
+          rm -rf static/vite
+          cp -r staticfiles/vite static/vite
+          echo "vite assets staged: $(find static/vite -type f | wc -l) files"
+
+      - name: Install Playwright browsers
+        run: python -m playwright install --with-deps chromium
+
+      - name: Migrate & start server
+        env:
+          SCITEX_HUB_DJANGO_SECRET_KEY: ci-screenshots-key  # pragma: allowlist secret
+          SCITEX_HUB_DB_NAME_DEV: scitex_test
+          SCITEX_HUB_DB_USER_DEV: scitex
+          SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
+          SCITEX_HUB_DB_HOST_DEV: localhost
+          SCITEX_HUB_DB_PORT_DEV: "5432"
+          SCITEX_HUB_REDIS_URL: redis://localhost:6379/0
+          SCITEX_HUB_ENV: development
+          SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
+          # THIS RUNNER HAS NO GITEA. Declaring that is the supported way to
+          # run the visitor pool without a git backend
+          # (visitor_pool/gitea_integration.py:_gitea_enabled — "an explicit,
+          # logged opt-out, not a silent fallback: when disabled we WARN and
+          # skip"), and it is already exercised by
+          # tests/apps/project_app/services/visitor_pool/
+          # test_reconcile_visitor_slots.py's no-Gitea deployment class.
+          # Visitors get a workspace and no git SSH access, which is exactly
+          # right for a browse-only capture.
+          #
+          # Undeclared, pool init raised GiteaAPIError("Gitea API token not
+          # configured") on visitor-001 and produced ZERO usable slots. That
+          # crash is what the old `|| true` on the next step was hiding.
+          SCITEX_HUB_VISITOR_POOL_GITEA_ENABLED: "false"
+          # THIS RUNNER HAS NO VITE DEV SERVER EITHER, and until this line
+          # existed the capture photographed a product with NONE of its
+          # JavaScript loaded.
+          #
+          # `vite_script` (public_app/templatetags/vite.py) branches on
+          # `settings.DEBUG and not VITE_USE_BUILD`: in that branch it emits a
+          # <script> pointing at http://<host>:5173/<entry>.ts — the HOST Vite
+          # dev server. DEBUG is 1 below, nothing serves 5173 on a runner, so
+          # every platform entry silently failed to load and the `npm run
+          # build` two steps up produced a manifest nobody read.
+          #
+          # Measured 2026-08-17, run 32054829708 (this PR, before this line):
+          #   FigRecipe  #app-mount rendered 1910x1015 px with ZERO children
+          #              and no text — the blank body in 04-figrecipe.png
+          #   Writer     #section-selector-text still "Loading...",
+          #              #current-word-count still "0" — the template's own
+          #              defaults, because the TS that replaces them never ran
+          #   Docs       "Loading documentation..." still on screen
+          # ...and no 500s, no 404s except /media/. Three separate "broken
+          # page" reports, one cause.
+          #
+          # SCITEX_HUB_VITE_USE_BUILD is the supported switch for exactly this
+          # situation — settings_dev.py: "Set True to use pre-built Vite assets
+          # (staticfiles/vite/) instead of Vite dev server. Useful when Vite
+          # dev server can't run. Run `npm run build` first." This job already
+          # runs it, and vite.config.ts builds to staticfiles/vite with
+          # `manifest: true`; DEBUG serving already exposes STATIC_ROOT
+          # (config/urls.py). So the assets are there — this makes Django use
+          # them.
+          #
+          # It also upgrades the failure mode: on a manifest miss
+          # `_manifest_miss` RAISES under DEBUG, so a missing entry becomes a
+          # loud 500 that test_page_is_served catches, rather than a page that
+          # renders its shell over nothing.
+          SCITEX_HUB_VITE_USE_BUILD: "1"
+          DEBUG: "1"
+        run: |
+          # -e: every command below is a precondition for a truthful
+          # artifact. None of them may fail quietly.
+          set -euo pipefail
+
+          python manage.py migrate --run-syncdb
+
+          # The capture runs as a POOLED VISITOR, never a real account, so
+          # the artifact can never contain someone's private project,
+          # manuscript or chat history. Anyone who can read the run can
+          # download the artifact.
+          #
+          # NOT `|| true`. A step that cannot fail is not a check, and this
+          # one guards the artifact's entire privacy claim: with no pool,
+          # allocation falls back to the shared readonly-visitor, every page
+          # renders perfectly, and the job goes green with the wrong product
+          # in the PNGs.
+          python manage.py create_visitor_pool --verbosity 0
+
+          # create_visitor_pool builds users/projects/workspaces but creates
+          # no VisitorAllocation rows, and allocation refuses a slot with no
+          # row ("no allocation row (unverified) — run reconcile_visitor_slots").
+          # This is the same order the container entrypoints use
+          # (deployment/docker/common/scripts/entrypoint-prod.sh). Inline, not
+          # --async: there is no Celery worker in this job to pick the work up.
+          python manage.py reconcile_visitor_slots
+
+          # Both commands above exit 0 even when the pool ends up serving
+          # nobody, so ask the question directly, before spending 20 minutes
+          # of browser time on a capture that could only be wrong.
+          python manage.py assert_visitor_pool_ready
+
+          # `from_docker` is manage.py's own escape hatch, not a trick to get
+          # around it: the guard at manage.py:19-23 fires on a bare
+          # `runserver`, and manage.py:70-73 strips this token before Django
+          # sees argv. Same form docker-compose.preview.yml uses to run a
+          # plain server outside the dev entrypoint. --noreload because the
+          # autoreloader forks a child, which makes a backgrounded server
+          # unkillable by its own PID.
+          python manage.py runserver 127.0.0.1:8000 --noreload from_docker \
+            > "$RUNNER_TEMP/server.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/server.pid"
+
+          # The old wait loop had nothing after it: 30 failed curls still
+          # exited 0, which is how a server that never started reached the
+          # capture step and ERRORed every single test. `served` is the
+          # whole point — the loop now RECORDS whether it succeeded, and
+          # the step fails on that record rather than on nothing.
+          # Everything is inside an `if` so `set -e` cannot abort on a
+          # poll that was expected to fail.
+          served=0
+          for _ in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8000/landing/ -o /dev/null; then
+              served=1
+              break
+            fi
+            if ! kill -0 "$(cat "$RUNNER_TEMP/server.pid")" 2>/dev/null; then
+              echo "::error::server process exited before answering"
+              break
+            fi
+            sleep 2
+          done
+          if [ "$served" -ne 1 ]; then
+            echo "::error::server never answered /landing/"
+            cat "$RUNNER_TEMP/server.log"
+            exit 1
+          fi
+
+      - name: Capture screenshots
+        env:
+          SCITEX_HUB_DJANGO_SECRET_KEY: ci-screenshots-key  # pragma: allowlist secret
+          SCITEX_HUB_DB_NAME_DEV: scitex_test
+          SCITEX_HUB_DB_USER_DEV: scitex
+          SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
+          SCITEX_HUB_DB_HOST_DEV: localhost
+          SCITEX_HUB_DB_PORT_DEV: "5432"
+          SCITEX_HUB_REDIS_URL: redis://localhost:6379/0
+          SCITEX_HUB_ENV: development
+          SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
+          # Same declarations as the step above: this runner has no Gitea and
+          # no Vite dev server. Both must match the server step — the server
+          # is the process that renders the <script> tags, but a mismatch here
+          # is the kind of drift that makes a later reader think the capture
+          # ran against different settings than it did.
+          SCITEX_HUB_VISITOR_POOL_GITEA_ENABLED: "false"
+          SCITEX_HUB_VITE_USE_BUILD: "1"
+          SCITEX_BASE_URL: http://127.0.0.1:8000
+          DEBUG: "1"
+        run: |
+          # --browser chromium is REQUIRED, not decoration. tests/conftest.py's
+          # pytest_collection_modifyitems skips everything under tests/e2e/
+          # unless --browser was passed explicitly ("E2E/browser test skipped in
+          # headless gate"). Without it this job SILENTLY captured nothing:
+          # 22 skipped, 0 run, in 0.04s, pytest exit 0 — and only the upload's
+          # if-no-files-found:error turned that into a visible failure.
+          #
+          # test_content_check_fires.py runs IN THE SAME COMMAND as the
+          # capture, and first. It is the positive control: real fixture
+          # pages served over a real local HTTP server, built to have the
+          # exact defects seen in run 32039805008's artifact, proving each
+          # content assertion still FAILS on them — and a healthy fixture
+          # proving the same assertions still PASS. A gate nobody has
+          # watched fail is not a gate, and "the assertions got stricter"
+          # is not evidence: the assertions they replaced were also green
+          # while photographing a blank FigRecipe.
+          python -m pytest \
+            tests/e2e/playwright/test_content_check_fires.py \
+            tests/e2e/playwright/test_capture_screenshots.py \
+            --browser chromium \
+            -v --tb=short -rs -o "addopts=" --timeout=120
+
+      - name: Content report
+        # ALWAYS, like the artifact upload. On a green run this is the only
+        # place the run says WHAT it photographed — pytest hides stdout for
+        # passing tests, which is how a job stayed green for a week while
+        # shooting an empty page. On a red run it gives the failing
+        # assertion its context: every other page's measurement, same run.
+        if: always()
+        run: |
+          set -euo pipefail
+          report=GITIGNORED/e2e_screenshots/content-report.txt
+          if [ -f "$report" ]; then
+            cat "$report"
+          else
+            echo "(no content report — the capture never measured a page)"
+          fi
+
+      - name: Server log (on failure)
+        # A capture failure is usually the server dying under it, and that
+        # story is only in the server's own stdout — the pytest output shows
+        # the symptom. Print it rather than making the next person re-run the
+        # job to find out. (The visitor-pool half already printed itself:
+        # assert_visitor_pool_ready reports total/ready/quarantined every run,
+        # and a wrong-session failure names the role it got.)
+        if: failure()
+        run: |
+          set -euo pipefail
+          if [ -f "$RUNNER_TEMP/server.log" ]; then
+            echo "----- server.log (last 200 lines) -----"
+            tail -n 200 "$RUNNER_TEMP/server.log"
+          else
+            echo "(no server log — the server step never got as far as starting one)"
+          fi
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        # ALWAYS, not if:failure(). The artifact is the deliverable here —
+        # uploading only on failure would mean the run that succeeded is the
+        # one that gives you nothing.
+        if: always()
+        with:
+          name: product-screenshots
+          path: GITIGNORED/e2e_screenshots/
+          retention-days: 30
+          if-no-files-found: error

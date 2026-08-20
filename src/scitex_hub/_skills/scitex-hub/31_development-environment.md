@@ -55,7 +55,7 @@ docker compose run --rm django celery -A config flower
 - `SECRET/.env.nas` — NAS production environment
 
 ## Test User
-For testing: `test-user` / `Password123!`
+For testing: `test-user`. The password is printed by `init_test_user` on first run; set `SCITEX_HUB_TEST_USER_PASSWORD` to choose it yourself.
 
 ## Console Debugging
 Browser console interceptor is active in dev mode:

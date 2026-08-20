@@ -18,8 +18,7 @@ register(
             "Export to various formats (PDF, Overleaf)",
             "Manage claims and cross-references",
         ],
-        page_patterns=["/writer/"],
-        url_prefix="/writer/",
+        url_route="writer_app:index",
         module_description=(
             "Scientific manuscript editor: LaTeX editing with live preview, "
             "figure/table management, bibliography, PDF compilation."

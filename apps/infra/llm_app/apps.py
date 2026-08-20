@@ -17,6 +17,9 @@ class LlmAppConfig(AppConfig):
         )
         thread.start()
         self._discover_skills()
+        # Import for its @register side effect: the skill-route check must be
+        # registered AFTER discovery, so it sees every skill that was loaded.
+        from apps.infra.llm_app import checks  # noqa: F401
 
     def _discover_skills(self):
         """Auto-discover skill.py from all installed apps."""
@@ -27,6 +30,8 @@ class LlmAppConfig(AppConfig):
 
         logger = logging.getLogger(__name__)
 
+        from apps.infra.llm_app.skills.registry import DuplicateSkillError
+
         for app_config in django_apps.get_app_configs():
             module_name = f"{app_config.name}.skill"
             try:
@@ -34,6 +39,11 @@ class LlmAppConfig(AppConfig):
                 logger.debug(f"Loaded skill from {module_name}")
             except ImportError:
                 pass  # App doesn't have a skill.py, that's fine
+            except DuplicateSkillError:
+                # Two apps claiming one app_name means one of them is silently
+                # missing from the assistant's map. Downgrading that to a log
+                # line is how it went unnoticed; let it stop the boot.
+                raise
             except Exception as e:
                 logger.warning(f"Error loading skill from {module_name}: {e}")
 

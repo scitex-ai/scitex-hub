@@ -14,6 +14,9 @@ from django.core.cache import cache
 from django.core.mail import send_mail
 from django.utils import timezone
 
+from apps.infra.public_app.models import SiteHealthProbe
+from config import branding
+
 logger = logging.getLogger(__name__)
 
 # Health Monitoring Cache Keys
@@ -71,14 +74,22 @@ def _get_health_config() -> tuple[str, str, str | None, str]:
     )
     health_check_url = f"{site_url}/"
     notification_recipient = os.getenv("SCITEX_HUB_HEALTH_NOTIFICATION_RECIPIENT")
+    # The default sender is the SSoT's noreply address (config/branding.py), not
+    # a literal: this module is plain Python, so there is no reason for it to
+    # carry its own copy of an address the rest of the site single-sources.
     notification_sender = os.getenv(
-        "SCITEX_HUB_HEALTH_NOTIFICATION_SENDER", "noreply@scitex.ai"
+        "SCITEX_HUB_HEALTH_NOTIFICATION_SENDER", branding.NOREPLY_EMAIL
     )
     return health_check_url, site_url, notification_recipient, notification_sender
 
 
-def _perform_health_check(url: str) -> tuple[bool, str | None, float | None]:
-    """Perform HTTP health check and return (is_healthy, error_message, response_time)."""
+def _perform_health_check(
+    url: str,
+) -> tuple[bool, str | None, float | None, int | None]:
+    """Perform HTTP health check.
+
+    Returns (is_healthy, error_message, response_time, status_code).
+    """
     try:
         response = requests.get(
             url, timeout=10, headers={"User-Agent": "SciTeX-HealthCheck/1.0"}
@@ -86,19 +97,22 @@ def _perform_health_check(url: str) -> tuple[bool, str | None, float | None]:
         response_time = response.elapsed.total_seconds()
         is_healthy = response.status_code == 200
         error_message = None if is_healthy else f"HTTP {response.status_code}"
-        return is_healthy, error_message, response_time
+        return is_healthy, error_message, response_time, response.status_code
     except requests.exceptions.Timeout:
-        return False, "Request timeout (>10s)", None
+        return False, "Request timeout (>10s)", None, None
     except requests.exceptions.ConnectionError as e:
-        return False, f"Connection error: {str(e)[:100]}", None
+        return False, f"Connection error: {str(e)[:100]}", None, None
     except Exception as e:
-        return False, f"Error: {str(e)[:100]}", None
+        return False, f"Error: {str(e)[:100]}", None, None
 
 
 def _send_recovery_notification(
     url: str, response_time: float, recipient: str, sender: str
 ):
-    """Send site recovery notification email."""
+    """Send site recovery notification email.
+
+    ``fail_silently=False`` is deliberate -- see ``_send_alert_notification``.
+    """
     try:
         send_mail(
             subject="[SciTeX] Site Recovered",
@@ -112,16 +126,33 @@ The site is now responding normally.
 """,
             from_email=sender,
             recipient_list=[recipient],
-            fail_silently=True,
+            fail_silently=False,
         )
     except Exception as e:
-        logger.error(f"[HealthCheck] Failed to send recovery email: {e}")
+        logger.error(
+            f"[HealthCheck] ALARM DELIVERY FAILED (recovery): {e}. "
+            f"recipient={recipient} sender={sender}. "
+            "Check EMAIL_HOST/EMAIL_HOST_USER credentials.",
+            exc_info=True,
+        )
 
 
 def _send_alert_notification(
     url: str, error: str, failure_count: int, recipient: str, sender: str
 ):
-    """Send site down alert notification email."""
+    """Send site down alert notification email.
+
+    ``fail_silently=False`` is deliberate, and is the whole point of this
+    function. With ``True`` -- what this shipped with -- Django's mail backend
+    swallows send failures, so the ``except`` below never fires and its
+    ``logger.error`` is dead code for the failure it exists to report. Stale
+    SMTP credentials would then produce an alarm that is silent about being
+    silent: configured, believed live, and incapable of saying otherwise.
+
+    The task keeps running either way -- the caller does not re-raise -- so
+    nothing is gained by discarding the error, and the one thing an alarm must
+    never do is fail quietly.
+    """
     try:
         send_mail(
             subject="[SciTeX] Site Down Alert",
@@ -141,10 +172,16 @@ Possible actions:
 """,
             from_email=sender,
             recipient_list=[recipient],
-            fail_silently=True,
+            fail_silently=False,
         )
     except Exception as e:
-        logger.error(f"[HealthCheck] Failed to send alert email: {e}")
+        logger.error(
+            f"[HealthCheck] ALARM DELIVERY FAILED (site down): {e}. "
+            f"recipient={recipient} sender={sender}. "
+            "The site-down alert did NOT reach anyone. "
+            "Check EMAIL_HOST/EMAIL_HOST_USER credentials.",
+            exc_info=True,
+        )
 
 
 @shared_task(
@@ -168,12 +205,21 @@ def check_site_health(self):
         url, _, recipient, sender = _get_health_config()
 
         if not recipient:
-            logger.debug(
-                "[HealthCheck] SCITEX_HUB_HEALTH_NOTIFICATION_RECIPIENT not set"
+            # WARNING, not DEBUG. This is the difference between "the alarm is
+            # armed" and "the alarm is running but can reach nobody", and at
+            # DEBUG that distinction was invisible in production -- emitted
+            # once a minute into a level nothing collects. An alarm that cannot
+            # notify must say so at a level someone sees.
+            logger.warning(
+                "[HealthCheck] SCITEX_HUB_HEALTH_NOTIFICATION_RECIPIENT is not "
+                "set, so site-down and recovery alerts will reach NOBODY. "
+                "Set it in deployment/docker/envs/.env.<env>."
             )
 
         # Perform check
-        is_healthy, error_message, response_time = _perform_health_check(url)
+        is_healthy, error_message, response_time, status_code = _perform_health_check(
+            url
+        )
 
         # Get previous state
         prev_status = cache.get(HEALTH_CHECK_CACHE_KEY, "unknown")
@@ -207,6 +253,19 @@ def check_site_health(self):
                 )
 
         cache.set(HEALTH_CHECK_CACHE_KEY, new_status, timeout=3600)
+
+        # Persist one probe row per run (success AND failure — a failed
+        # probe with response_time_ms=None is signal, not noise). History
+        # enables before/after comparisons (router swap 2026-07-21, NURO
+        # 10G). Retention: collect_server_metrics deletes rows >30 days.
+        SiteHealthProbe.objects.create(
+            timestamp=timezone.now(),
+            response_time_ms=(
+                response_time * 1000.0 if response_time is not None else None
+            ),
+            is_healthy=is_healthy,
+            status_code=status_code,
+        )
 
         return {
             "status": new_status,
@@ -311,7 +370,7 @@ Recommended actions:
 """,
                     from_email=sender,
                     recipient_list=[recipient],
-                    fail_silently=True,
+                    fail_silently=False,
                 )
 
                 # Rate limit alerts

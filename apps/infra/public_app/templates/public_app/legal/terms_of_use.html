@@ -318,7 +318,7 @@
                         account. Your cancellation will take effect at the end of the current
                         paid term. If you are unsatisfied with our services, please email us
                         at
-                        <a href="mailto:support@scitex.ai" aria-label="Email support at support@scitex.ai">support@scitex.ai</a>.
+                        <a href="mailto:{{ CONTACT_EMAIL }}" aria-label="Email support at {{ CONTACT_EMAIL }}">{{ CONTACT_EMAIL }}</a>.
                     </p>
                     <h2 id="termination">Termination</h2>
                     <p>
@@ -330,7 +330,7 @@
                     <p>
                         If you wish to terminate your account, you may simply discontinue
                         using the platform, or contact us at
-                        <a href="mailto:support@scitex.ai" aria-label="Email support at support@scitex.ai">support@scitex.ai</a>.
+                        <a href="mailto:{{ CONTACT_EMAIL }}" aria-label="Email support at {{ CONTACT_EMAIL }}">{{ CONTACT_EMAIL }}</a>.
                     </p>
                     <p>
                         All provisions of the Terms which by their nature should survive
@@ -338,9 +338,22 @@
                         ownership provisions, warranty disclaimers, indemnity, and limitations
                         of liability.
                     </p>
+                    {% comment %} No directors / employees / agents / subsidiaries /
+                       affiliates / partners are named in this clause or in the
+                       indemnity below, because none exist: SciTeX is operated by one
+                       person (operator ruling, 2026-07-30 — 「私1人会社です」). The US
+                       template this page was built from assumed a corporate group.
+                       Extending an indemnity to parties who do not exist is not
+                       harmless boilerplate — it describes a company we are not.
+
+                       These clauses are pinned by
+                       tests/apps/public_app/views/test_terms_fictitious_entities.py.
+                       When SciTeX incorporates (2026-08-08) and if it ever has
+                       officers or employees, reintroduce them DELIBERATELY, naming
+                       only the ones that exist. {% endcomment %}
                     <h2 id="limitation-of-liability">Limitation of Liability</h2>
                     <p>
-                        In no event will we or our directors, employees, or agents be liable
+                        In no event will we be liable
                         to you or any third party for any direct, indirect, consequential,
                         exemplary, incidental, special, or punitive damages, including lost
                         profit, lost revenue, loss of data, or other damages arising from your
@@ -349,9 +362,8 @@
                     </p>
                     <h2 id="indemnification">Indemnification</h2>
                     <p>
-                        You agree to defend, indemnify, and hold us harmless, including our
-                        subsidiaries, affiliates, and all of our respective officers, agents,
-                        partners, and employees, from and against any loss, damage, liability,
+                        You agree to defend, indemnify, and hold us harmless
+                        from and against any loss, damage, liability,
                         claim, or demand, including reasonable attorneys' fees and expenses,
                         made by any third party due to or arising out of: (1) your use of the
                         platform; (2) breach of these Terms of Use; (3) any breach of your
@@ -361,21 +373,44 @@
                         toward any other user of the platform with whom you connected via the
                         platform.
                     </p>
+                    {% comment %} 準拠法 (governing law) and 裁判管轄 (venue) are two
+                       DIFFERENT facts and stay in two separate clauses below. Both
+                       replace the US boilerplate this page originally shipped with,
+                       which named a US state's law and a US city's courts for a
+                       service operated from Japan for Japanese users.
+
+                       Venue: 静岡地方裁判所 — operator decision, 2026-07-30. It is the
+                       district court with jurisdiction over the registered office,
+                       which is held in config/settings/settings_commerce.py and is
+                       deliberately NOT repeated here: see the Contact Us note below
+                       on why no postal address belongs on this page yet. Naming the
+                       court is the standard Japanese drafting of
+                       本店所在地を管轄する裁判所.
+
+                       Governing law: 日本法, aligned to the chosen court — a Japanese
+                       district court applying a foreign state's law to a Japanese
+                       consumer contract is incoherent, so the two must move together.
+
+                       The court name is given in English AND in Japanese on purpose:
+                       an English-only rendering of a Japanese court name is not
+                       something a reader can act on.
+
+                       Do not "refresh" these two clauses from a US template. They are
+                       pinned by tests/apps/public_app/views/test_terms_jurisdiction.py,
+                       which fails if a US state or venue reappears here. {% endcomment %}
                     <h2 id="governing-law">Governing Law</h2>
                     <p>
                         These Terms of Use and your use of the platform are governed by and
-                        construed in accordance with the laws of the State of California
-                        applicable to agreements made and to be entirely performed within the
-                        State of California, without regard to its conflict of law principles.
+                        construed in accordance with the laws of Japan (日本法), without
+                        regard to its conflict of law principles.
                     </p>
                     <h2 id="dispute-resolution">Dispute Resolution</h2>
                     <p>
                         Any legal action of whatever nature brought by either you or us shall
-                        be commenced or prosecuted in the state and federal courts located in
-                        San Francisco, California, and you hereby consent to, and waive all
-                        defenses of lack of personal jurisdiction and forum non conveniens
-                        with respect to venue and jurisdiction in such state and federal
-                        courts.
+                        be commenced or prosecuted exclusively in the Shizuoka District Court
+                        (静岡地方裁判所) in Japan, which is the district court with jurisdiction
+                        over our registered office, and you hereby consent to that exclusive
+                        jurisdiction and waive any objection to it.
                     </p>
                     <h2 id="contact-us">Contact Us</h2>
                     <p>
@@ -383,16 +418,22 @@
                         further information regarding use of the platform, please contact us
                         at:
                     </p>
+                    {% comment %} No postal address here on purpose. The previous entry was
+                       a PERSONAL HOME ADDRESS published on a public page. The
+                       registered company address cannot replace it yet: the
+                       company is not incorporated until 2026-08-08, so naming
+                       it now would be a different false statement on a page
+                       whose whole job is to identify the actual operator.
+                       "SciTeX" is the service that genuinely operates today.
+                       After incorporation this becomes "SciTeX Inc." and the
+                       registered address goes in — sourced from config like
+                       the tokushoho page already does, not hardcoded here. {% endcomment %}
                     <address>
-                        Yusuke Watanabe
-                        <br />
-                        17 Wattle Road
-                        <br />
-                        Maidstone, VIC, Australia
+                        SciTeX
                         <br />
                         Email:
-                        <a href="mailto:legal@scitex.ai"
-                           aria-label="Email our Legal Department at legal@scitex.ai">legal@scitex.ai</a>
+                        <a href="mailto:{{ LEGAL_EMAIL }}"
+                           aria-label="Email SciTeX at {{ LEGAL_EMAIL }}">{{ LEGAL_EMAIL }}</a>
                     </address>
                 </article>
             </div>

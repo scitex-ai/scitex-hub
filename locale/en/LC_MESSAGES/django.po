@@ -1,0 +1,14 @@
+# English message catalog for SciTeX Hub.
+# The tokushoho page is authored in Japanese (msgid = Japanese text);
+# add English msgstr entries here when an English rendering of the
+# legal pages is wanted. Regenerate with:
+#   python manage.py makemessages -l en
+msgid ""
+msgstr ""
+"Project-Id-Version: scitex-hub\n"
+"Report-Msgid-Bugs-To: \n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"

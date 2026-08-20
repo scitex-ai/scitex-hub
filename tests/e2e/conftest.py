@@ -24,7 +24,10 @@ requests = pytest.importorskip(
 
 BASE_URL = os.getenv("SCITEX_BASE_URL", "http://127.0.0.1:8000")
 TEST_USER = os.getenv("SCITEX_E2E_TEST_USER", "test-user")
-TEST_PASS = os.getenv("SCITEX_E2E_TEST_PASS", "Password123!")
+# No literal default — see tests/develop/test_no_usable_credential_defaults.py.
+# E2E runs against a live server whose password is supplied by the environment
+# (.github/workflows/e2e-mobile.yml sets SCITEX_E2E_TEST_PASS explicitly).
+TEST_PASS = os.getenv("SCITEX_E2E_TEST_PASS", "")
 TIMEOUT = int(os.getenv("SCITEX_E2E_TIMEOUT", "30"))
 
 

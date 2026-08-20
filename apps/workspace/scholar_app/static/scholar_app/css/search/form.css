@@ -26,8 +26,9 @@
 }
 
 .search-input:focus {
-  border-color: var(--workspace-icon-primary, #059669) !important;
-  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15) !important;
+  border-color: var(--app-accent-scholar, #3d7a5e) !important;
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--app-accent-scholar, #3d7a5e) 20%, transparent) !important;
   outline: none;
 }
 
@@ -47,8 +48,9 @@
 }
 
 [data-theme="light"] .search-input:focus {
-  border-color: var(--workspace-icon-primary, #059669) !important;
-  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.1) !important;
+  border-color: var(--app-accent-scholar, #3d7a5e) !important;
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--app-accent-scholar, #3d7a5e) 15%, transparent) !important;
 }
 
 [data-theme="light"] .search-input:hover:not(:focus) {
@@ -108,15 +110,15 @@
 
 .search-btn:hover {
   background: var(--workspace-bg-secondary, #151515) !important;
-  border-color: var(--workspace-icon-primary, #059669) !important;
-  color: var(--workspace-icon-primary, #059669) !important;
+  border-color: var(--app-accent-scholar, #3d7a5e) !important;
+  color: var(--app-accent-scholar, #3d7a5e) !important;
 }
 
 .search-btn:focus,
 .search-btn:active {
   background: var(--workspace-bg-secondary, #151515) !important;
-  border-color: var(--workspace-icon-primary, #059669) !important;
-  color: var(--workspace-icon-primary, #059669) !important;
+  border-color: var(--app-accent-scholar, #3d7a5e) !important;
+  color: var(--app-accent-scholar, #3d7a5e) !important;
   box-shadow: none !important;
 }
 
@@ -131,8 +133,8 @@
 [data-theme="light"] .search-btn:focus,
 [data-theme="light"] .search-btn:active {
   background: var(--workspace-bg-secondary) !important;
-  border-color: var(--workspace-icon-primary, #059669) !important;
-  color: var(--workspace-icon-primary, #059669) !important;
+  border-color: var(--app-accent-scholar, #3d7a5e) !important;
+  color: var(--app-accent-scholar, #3d7a5e) !important;
 }
 
 /* Experimental badge inside search button */
@@ -160,6 +162,11 @@
 /* Override for search input specifically */
 .search-container-full-width .input-group-lg .search-input {
   min-height: 1rem !important;
+  /* Reserve right-edge space for the elements overlaid on the input's
+     right side (Ctrl+K badge at right:11rem, help "?" button, and the
+     Search button) so long placeholder/query text never slides under
+     them and renders as garbled overlap (browser-sweep #10). */
+  padding-right: 8rem !important;
 }
 
 /* Fix header button focus states to follow SciTeX design */

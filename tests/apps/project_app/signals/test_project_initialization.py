@@ -1,21 +1,76 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Tests for apps/project_app/signals/project_initialization.py"""
+"""Tests for apps/project_app/signals/project_initialization.py.
 
-import pytest
+Currently focused on the clone-URL-source regression: the function
+``_clone_gitea_repo_to_data_dir`` used to take its clone URL from
+``project.gitea_clone_url`` — the value returned by Gitea's API, which
+Gitea constructs from its own ``ROOT_URL`` config. In the production
+deployment ``ROOT_URL`` is the host-visible URL
+(``http://localhost:3000``), which does NOT resolve from inside the
+django container — so ``git clone`` connected to the django container
+itself (port 3000 unbound) and failed silently inside the function's
+broad ``except`` clause. Observed during the operator-12834 agent-publish
+demo against prod scitex.ai.
 
-# from apps.infra.project_app.signals.project_initialization import ...
+The fix sources the clone URL from ``settings.GITEA_URL`` — the same
+URL Django already uses to talk to Gitea (see
+``apps.infra.gitea_app.api_client.GiteaClient``). It is the
+container-internal service hostname that DOES resolve. These tests pin
+that invariant with two source-text guards so the regression can't
+silently reappear.
+"""
+
+from __future__ import annotations
+
+import inspect
+from pathlib import Path
 
 
-class TestPlaceholder:
-    """Placeholder test class - replace with actual tests."""
+def _read_function_source(func) -> str:
+    """Read the on-disk source of a module-level function (no mocks)."""
+    src_path = Path(inspect.getsourcefile(func))
+    return src_path.read_text()
 
-    def test_placeholder_pending_implementation(self):
-        """Placeholder test - implement actual tests."""
-        # Arrange
-        # Act
-        # Assert
-        pytest.skip("Not implemented yet")
+
+def test_clone_helper_builds_url_from_settings_gitea_url():
+    # Arrange
+    from apps.infra.project_app.signals.project_initialization import (
+        _clone_gitea_repo_to_data_dir,
+    )
+
+    src = _read_function_source(_clone_gitea_repo_to_data_dir)
+
+    # Act
+    has_settings_gitea_url = "settings.GITEA_URL" in src
+    has_username_path_segment = "project.owner.username" in src
+    has_slug_path_segment = "project.slug" in src
+
+    # Assert — all three pieces are required for the in-container URL
+    # construction. A future "simplification" PR that drops any one of
+    # them reverts the fix; this guard fails loudly instead.
+    assert (
+        has_settings_gitea_url and has_username_path_segment and has_slug_path_segment
+    )
+
+
+def test_clone_helper_does_not_use_project_gitea_clone_url():
+    # Arrange
+    from apps.infra.project_app.signals.project_initialization import (
+        _clone_gitea_repo_to_data_dir,
+    )
+
+    src = _read_function_source(_clone_gitea_repo_to_data_dir)
+
+    # Act
+    # The buggy assignment was ``clone_url = project.gitea_clone_url``.
+    # Allow ``project.gitea_clone_url`` to appear elsewhere in the file
+    # (e.g. as a logging value or in unrelated helpers) but assert the
+    # assignment pattern itself never returns.
+    buggy_assignment_pattern = "clone_url = project.gitea_clone_url"
+
+    # Assert
+    assert buggy_assignment_pattern not in src
 
 
 if __name__ == "__main__":

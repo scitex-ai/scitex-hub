@@ -90,6 +90,15 @@ class VisitorPool:
         PoolAllocator.deallocate_visitor(session)
 
     @classmethod
+    def extend_session_on_activity(cls, allocation) -> None:
+        """
+        Heartbeat handler: promote a probation lease / extend a live session.
+
+        See PoolAllocator.extend_session_on_activity for the full contract.
+        """
+        PoolAllocator.extend_session_on_activity(allocation)
+
+    @classmethod
     def claim_project_on_signup(cls, session, new_user: User) -> Optional[Project]:
         """
         Transfer visitor's default project to newly signed-up user.
@@ -121,7 +130,10 @@ class VisitorPool:
         Get current pool status.
 
         Returns:
-            dict: {total, allocated, free, expired}
+            dict: {total, allocated, free, expired, quarantined, ready}
+
+            ``ready`` — not ``free`` — is the allocatable count. See
+            PoolAllocator.get_pool_status for why the distinction matters.
         """
         return PoolAllocator.get_pool_status(cls.POOL_SIZE)
 

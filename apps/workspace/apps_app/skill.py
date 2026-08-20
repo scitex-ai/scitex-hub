@@ -14,8 +14,7 @@ register(
             "Star and review apps",
             "Publish custom apps",
         ],
-        page_patterns=["/apps/store/"],
-        url_prefix="/apps/store/",
+        url_route="apps_app:browse",
         module_description=("Browse, install, and publish community apps."),
     )
 )

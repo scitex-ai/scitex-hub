@@ -11,6 +11,10 @@ import subprocess
 import logging
 
 from apps.infra.project_app.models import PullRequestCommit
+from apps.infra.project_app.services.git_ref_validation import (
+    END_OF_OPTIONS,
+    is_valid_git_ref,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -80,9 +84,18 @@ def compare_branches(project, base, head):
         if not project_path or not project_path.exists():
             return None
 
+        # ``base`` / ``head`` arrive from the request (pr_create GET/POST,
+        # pr_compare URL). A value beginning with ``-`` would be parsed by git
+        # as an option (e.g. ``--output=<abs-path>`` → arbitrary host-file
+        # write), so reject anything that is not a plain revision before it
+        # reaches the argv, and terminate options with ``--end-of-options``.
+        if not (is_valid_git_ref(base) and is_valid_git_ref(head)):
+            logger.warning("Rejected invalid branch ref in compare: %r...%r", base, head)
+            return None
+
         # Get diff between branches
         result = subprocess.run(
-            ["git", "diff", f"{base}...{head}", "--stat"],
+            ["git", "diff", "--stat", END_OF_OPTIONS, f"{base}...{head}"],
             cwd=project_path,
             capture_output=True,
             text=True,
@@ -94,7 +107,7 @@ def compare_branches(project, base, head):
 
         # Get commit count
         commit_result = subprocess.run(
-            ["git", "rev-list", "--count", f"{base}..{head}"],
+            ["git", "rev-list", "--count", END_OF_OPTIONS, f"{base}..{head}"],
             cwd=project_path,
             capture_output=True,
             text=True,
@@ -135,9 +148,10 @@ def get_pr_diff(project, pr):
         if not project_path or not project_path.exists():
             return None, []
 
-        # Get full diff
+        # Get full diff. Branch names are terminated with ``--end-of-options``
+        # so a stored ``-``-leading ref can never be read by git as an option.
         result = subprocess.run(
-            ["git", "diff", f"{pr.target_branch}...{pr.source_branch}"],
+            ["git", "diff", END_OF_OPTIONS, f"{pr.target_branch}...{pr.source_branch}"],
             cwd=project_path,
             capture_output=True,
             text=True,
@@ -155,6 +169,7 @@ def get_pr_diff(project, pr):
                 "git",
                 "diff",
                 "--name-status",
+                END_OF_OPTIONS,
                 f"{pr.target_branch}...{pr.source_branch}",
             ],
             cwd=project_path,
@@ -237,8 +252,9 @@ def sync_pr_commits(pr):
             [
                 "git",
                 "log",
-                f"{pr.target_branch}..{pr.source_branch}",
                 "--format=%H|%an|%ae|%at|%s",
+                END_OF_OPTIONS,
+                f"{pr.target_branch}..{pr.source_branch}",
             ],
             cwd=project_path,
             capture_output=True,
@@ -292,9 +308,10 @@ def check_pr_conflicts(pr):
         if not project_path or not project_path.exists():
             return
 
-        # Try to merge (dry run)
+        # Try to merge (dry run). Both refs are user-set branch names, so
+        # terminate options before them.
         result = subprocess.run(
-            ["git", "merge-tree", pr.target_branch, pr.source_branch],
+            ["git", "merge-tree", END_OF_OPTIONS, pr.target_branch, pr.source_branch],
             cwd=project_path,
             capture_output=True,
             text=True,

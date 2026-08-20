@@ -18,12 +18,12 @@ import logging
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from apps.infra.platform_app.services.external_api.proxy import (
     ExternalAPIProxy,
     MethodNotAllowedError,
+    PathEscapesBaseURLError,
     RateLimitExceededError,
 )
 from apps.infra.platform_app.services.external_api.registry import (
@@ -51,7 +51,6 @@ def _resolve_app_name(request) -> str:
 
 @login_required
 @require_POST
-@csrf_exempt
 def external_proxy(request, api_name: str) -> JsonResponse:
     """
     Forward a request to a registered external API.
@@ -117,6 +116,17 @@ def external_proxy(request, api_name: str) -> JsonResponse:
         )
     except MethodNotAllowedError as exc:
         return JsonResponse({"success": False, "error": str(exc)}, status=405)
+    except PathEscapesBaseURLError as exc:
+        # 400, not 502: the caller sent a bad path, the upstream never saw it.
+        # Logged at WARNING because a rejected escape is a probe, not noise.
+        logger.warning(
+            "[ExternalAPI] rejected out-of-base path for '%s/%s' (user=%s): %s",
+            app_name,
+            api_name,
+            user_id,
+            exc,
+        )
+        return JsonResponse({"success": False, "error": str(exc)}, status=400)
     except RateLimitExceededError as exc:
         return JsonResponse({"success": False, "error": str(exc)}, status=429)
     except Exception as exc:

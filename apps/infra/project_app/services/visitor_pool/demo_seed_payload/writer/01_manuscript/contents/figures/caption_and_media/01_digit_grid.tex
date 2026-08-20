@@ -1,0 +1,12 @@
+%% Edit this file: 01_manuscript/contents/figures/caption_and_media/01_digit_grid.tex
+\caption{\textbf{The data at the resolution the classifier sees.}\\
+\smallskip
+One example of each digit 0--9, taken from \texttt{data/digits\_sample.csv} and
+drawn directly from its pixel columns. Each image is $8\times8$ with integer
+greyscale in $[0, 16]$, rendered dark-on-light. At this resolution strokes are
+two to three pixels wide and several classes overlap heavily in which pixels
+they light --- 8 against 1 most of all, which is where the classifier's errors
+later concentrate (Figure \ref{fig:02_confusion_matrix}). Regenerate with
+\texttt{python scripts/reproduce\_figures.py}.
+}
+\label{fig:01_digit_grid}

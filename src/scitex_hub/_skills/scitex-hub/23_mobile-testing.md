@@ -27,7 +27,7 @@ await browser.new_context(
   - Username: `id="username"`
   - Password: `id="password"`
   - Submit: form `id="login-form"`
-- **Test credentials:** `test-user` / `Password123!`
+- **Test credentials:** `test-user`; the password is printed by `init_test_user` on first run, or set `SCITEX_HUB_TEST_USER_PASSWORD`
 - **Post-login redirect:** `/workspace/` (not profile page)
 
 ## Page Load Waiting

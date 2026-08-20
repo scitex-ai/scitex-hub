@@ -19,6 +19,7 @@ from apps.infra.project_app.models import (
     PullRequestCommit,
     PullRequestEvent,
 )
+from apps.infra.project_app.services.git_ref_validation import is_valid_git_ref
 from .utils import (
     get_pr_diff,
     get_pr_checks,
@@ -153,6 +154,11 @@ def pr_create(request, username, slug):
             messages.error(request, "Source branch is required")
         elif base == head:
             messages.error(request, "Source and target branches must be different")
+        elif not (is_valid_git_ref(base) and is_valid_git_ref(head)):
+            # base/head are stored as target/source_branch and later reach
+            # git (sync_pr_commits, check_pr_conflicts, get_pr_diff). Reject a
+            # ``-``-leading value here so no argument-injecting ref is stored.
+            messages.error(request, "Invalid branch name")
         else:
             try:
                 # Create PR

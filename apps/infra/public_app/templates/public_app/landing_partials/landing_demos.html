@@ -74,7 +74,7 @@
                 <h3>Console</h3>
                 <p>Interactive development workspace</p>
             </div>
-            <!-- Visualizer -->
+            <!-- FigRecipe -->
             <div class="module-nav-card bg-pattern bg-pattern-dots-radial bg-pattern-subtle"
                  data-module="3"
                  onclick="demosCarousel.goTo(3)">
@@ -83,7 +83,7 @@
                      viewBox="0 0 64 64"
                      fill="none"
                      xmlns="http://www.w3.org/2000/svg"
-                     aria-label="Visualizer">
+                     aria-label="FigRecipe">
                     <rect x="8" y="8" width="48" height="48" rx="4" stroke="currentColor" stroke-width="3" fill="none" />
                     <path d="M12 44L20 36L28 40L38 26L52 32" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
                     <circle cx="20" cy="36" r="3" fill="currentColor" />
@@ -93,7 +93,7 @@
                     <path d="M8 52H56" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
                     <rect x="12" y="12" width="40" height="36" fill="currentColor" fill-opacity="0.3" />
                 </svg>
-                <h3>Visualizer</h3>
+                <h3>FigRecipe</h3>
                 <p>Scientific figure editor</p>
             </div>
             <!-- Local -->
@@ -169,19 +169,19 @@
                 <div class="demos-carousel-track" id="demosCarouselTrack">
                     <!-- Scholar Demo -->
                     <div class="demos-carousel-slide">
-                        {% include 'public_app/landing_partials/components/module_demo.html' with module_name='Scholar' icon_path='shared/images/icons_svg/scitex-scholar-icon.svg' video_path='public_app/videos/landing/scholar-demo.mp4' poster='public_app/videos/landing/thumbnails/scholar-demo.jpg' docs_url='docs_app:python' github_url='https://github.com/ywatanabe1989/SciTeX-Code/tree/main/src/scitex/scholar' video_position='1.5fr 1fr' video_first=True margin='0 auto' features_partial='public_app/landing_partials/features/scholar_features.html' %}
+                        {% include 'public_app/landing_partials/components/module_demo.html' with module_name='Scholar' icon_path='shared/images/icons_svg/scitex-scholar-icon.svg' video_path='public_app/videos/landing/scholar-demo.mp4' poster='public_app/videos/landing/thumbnails/scholar-demo.jpg' docs_url='docs_app:python' github_url='https://github.com/scitex-ai/scitex-python/tree/main/src/scitex/scholar' video_position='1.5fr 1fr' video_first=True margin='0 auto' features_partial='public_app/landing_partials/features/scholar_features.html' %}
                     </div>
                     <!-- Writer Demo -->
                     <div class="demos-carousel-slide">
-                        {% include 'public_app/landing_partials/components/module_demo.html' with module_name='Writer' icon_path='shared/images/icons_svg/scitex-writer-icon.svg' video_path='public_app/videos/landing/writer-demo.mp4' poster='public_app/videos/landing/thumbnails/writer-demo.jpg' docs_url='docs_app:python' github_url='https://github.com/ywatanabe1989/SciTeX-Writer' video_position='1.5fr 1fr' video_first=True object_fit=True margin='0 auto' features_partial='public_app/landing_partials/features/writer_features.html' %}
+                        {% include 'public_app/landing_partials/components/module_demo.html' with module_name='Writer' icon_path='shared/images/icons_svg/scitex-writer-icon.svg' video_path='public_app/videos/landing/writer-demo.mp4' poster='public_app/videos/landing/thumbnails/writer-demo.jpg' docs_url='docs_app:python' github_url='https://github.com/scitex-ai/scitex-writer' video_position='1.5fr 1fr' video_first=True object_fit=True margin='0 auto' features_partial='public_app/landing_partials/features/writer_features.html' %}
                     </div>
                     <!-- Console Demo -->
                     <div class="demos-carousel-slide">
-                        {% include 'public_app/landing_partials/components/module_demo.html' with module_name='Console' icon_path='shared/images/icons_svg/scitex-code-icon.svg' video_path='public_app/videos/landing/console-demo.mp4' docs_url='docs_app:python' github_url='https://github.com/ywatanabe1989/SciTeX-Code' video_position='1.5fr 1fr' video_first=True margin='0 auto' features_partial='public_app/landing_partials/features/code_features.html' %}
+                        {% include 'public_app/landing_partials/components/module_demo.html' with module_name='Console' icon_path='shared/images/icons_svg/scitex-code-icon.svg' video_path='public_app/videos/landing/console-demo.mp4' docs_url='docs_app:python' github_url='https://github.com/scitex-ai/scitex-python' video_position='1.5fr 1fr' video_first=True margin='0 auto' features_partial='public_app/landing_partials/features/code_features.html' %}
                     </div>
-                    <!-- Visualizer Demo -->
+                    <!-- FigRecipe Demo -->
                     <div class="demos-carousel-slide">
-                        {% include 'public_app/landing_partials/components/module_demo.html' with module_name='Visualizer' icon_path='shared/images/icons_svg/scitex-viz-icon.svg' video_path='public_app/videos/landing/visualizer-demo.mp4' docs_url='docs_app:python' github_url='https://github.com/ywatanabe1989/SciTeX-Vis' video_position='1.5fr 1fr' video_first=True margin='0 auto' features_partial='public_app/landing_partials/features/viz_features.html' %}
+                        {% include 'public_app/landing_partials/components/module_demo.html' with module_name='FigRecipe' icon_path='shared/images/icons_svg/scitex-viz-icon.svg' video_path='public_app/videos/landing/visualizer-demo.mp4' docs_url='docs_app:python' github_url='https://github.com/scitex-ai/figrecipe' video_position='1.5fr 1fr' video_first=True margin='0 auto' features_partial='public_app/landing_partials/features/viz_features.html' %}
                     </div>
                     <!-- Local Demo -->
                     <div class="demos-carousel-slide">
@@ -198,7 +198,7 @@ scitex mcp install  # Add to Claude Code</code></pre>
                                            class="btn btn-dark github-link-btn">
                                             <i class="fab fa-python"></i> PyPI
                                         </a>
-                                        <a href="https://github.com/ywatanabe1989/scitex"
+                                        <a href="https://github.com/scitex-ai/scitex-python"
                                            target="_blank"
                                            class="btn btn-black github-link-btn">
                                             <i class="fab fa-github"></i> GitHub
@@ -208,9 +208,9 @@ scitex mcp install  # Add to Claude Code</code></pre>
                             </div>
                         </div>
                     </div>
-                    <!-- Cloud Demo -->
+                    <!-- Hub Demo -->
                     <div class="demos-carousel-slide">
-                        {% include 'public_app/landing_partials/components/module_demo.html' with module_name='Cloud' icon_path='shared/images/icons_svg/scitex-hub-icon.svg' video_path='public_app/videos/landing/hub-demo.mp4' docs_url='public_app:about' github_url='https://github.com/ywatanabe1989/scitex-hub' video_position='1.5fr 1fr' video_first=True margin='0 auto' features_partial='public_app/landing_partials/features/hub_features.html' %}
+                        {% include 'public_app/landing_partials/components/module_demo.html' with module_name='Hub' icon_path='shared/images/icons_svg/scitex-hub-icon.svg' video_path='public_app/videos/landing/hub-demo.mp4' docs_url='public_app:about' github_url='https://github.com/scitex-ai/scitex-hub' video_position='1.5fr 1fr' video_first=True margin='0 auto' features_partial='public_app/landing_partials/features/hub_features.html' %}
                     </div>
                 </div>
             </div>

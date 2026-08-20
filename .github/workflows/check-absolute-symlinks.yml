@@ -1,0 +1,43 @@
+name: Symlink Guard
+
+# Fail the build if any TRACKED symlink points to an ABSOLUTE path. Such a
+# target is host-specific and breaks `git pull` / checkout on every other host
+# (NAS, CI, other agent containers). Motivating incidents: PR #409
+# (node_modules -> /home/.../node_modules) and the dotfiles P0 of 2026-07-12
+# (src/.scitex -> a Spartan-only absolute path). Root-cause guard.
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+# Supersede a pull request's own earlier runs, which nobody will read once a
+# newer commit exists. Keyed per workflow per ref, so different PRs never
+# cancel each other.
+#
+# cancel-in-progress is TRUE ONLY FOR pull_request. A push to main or develop
+# is never cancelled: back-to-back merges would otherwise kill the earlier
+# merge's run, and anything treating a develop run as a gate would lose it
+# silently. Superseding an in-flight PR run is free; superseding a branch run
+# is a decision nobody made.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check-absolute-symlinks:
+    name: No absolute-target tracked symlinks
+    # Pure bash + git, no Python at all — so unlike the other migrated jobs
+    # this one needs no uv/venv step, just the runner change.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Self-test the guard (red-before-green)
+        run: bash scripts/maintenance/check_absolute_symlinks.sh --self-test
+
+      - name: Run symlink guard against tracked files
+        run: bash scripts/maintenance/check_absolute_symlinks.sh

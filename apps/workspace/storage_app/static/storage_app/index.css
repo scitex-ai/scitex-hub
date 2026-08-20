@@ -1,0 +1,119 @@
+/* =============================================================================
+ * Storage app — dark theming for the hub-mounted scitex-storage GUI plugin.
+ * =============================================================================
+ * Loaded by templates/scitex_storage/index.html (a hub filesystem-loader
+ * override of the upstream scitex_storage/index.html), which renders inside
+ * scitex-ui's ALWAYS-DARK `standalone_shell.html`.
+ *
+ * The upstream page shipped raw, unthemed server-rendered HTML: native
+ * (bright-white) form controls and no painted surface, so the shell's module
+ * pane showed through. That pane background is `--workspace-bg-primary`, whose
+ * DARK value only applies under html[data-theme="dark"]; when a deploy leaves
+ * the shell HTML and the workspace theme CSS out of sync the token falls back
+ * to its LIGHT default (#f5f4f2) and the pane renders light inside the dark
+ * chrome. These rules paint the surface and style the controls with the
+ * shell's DARK palette explicitly (values mirror scitex-ui theme.css
+ * [data-theme="dark"] tokens), so Storage is dark regardless of that token
+ * state — matching the always-dark shell and every sibling app.
+ * ========================================================================== */
+
+/* Module pane surface (mirrors --workspace-bg-primary dark). */
+#main-content.ws-module-pane {
+  background: #0d1117;
+}
+
+/* App surface + primary text (mirrors --workspace-bg-primary / --text-primary). */
+#stx-storage-app {
+  box-sizing: border-box;
+  min-height: 100%;
+  padding: 1rem 1.25rem;
+  background: #0d1117;
+  color: #e6edf3;
+}
+
+#stx-storage-app h1 {
+  margin: 0 0 1rem;
+  color: #e6edf3;
+}
+
+/* Path form: responsive so it wraps cleanly on narrow mobile viewports. */
+.stx-storage-path-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.stx-storage-path-form label {
+  color: #c9d1d9; /* --text-secondary */
+}
+
+/* Native controls were bright-white; theme them to the dark shell.
+   (bg mirrors --workspace-bg-elevated, border --workspace-border-default) */
+.stx-storage-path-form input[type="text"] {
+  flex: 1 1 22rem;
+  min-width: 12rem;
+  max-width: 100%;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  background: #21262d;
+  color: #e6edf3;
+}
+
+.stx-storage-path-form input[type="text"]:focus {
+  outline: none;
+  border-color: #484f58; /* --workspace-border-hover */
+}
+
+.stx-storage-path-form button {
+  padding: 0.4rem 0.9rem;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  background: #21262d;
+  color: #e6edf3;
+  cursor: pointer;
+}
+
+.stx-storage-path-form button:hover {
+  background: #1c2128; /* --workspace-bg-tertiary */
+  border-color: #484f58;
+}
+
+.stx-storage-summary {
+  margin: 0.5rem 0 1rem;
+  color: #c9d1d9; /* --text-secondary */
+}
+
+.stx-storage-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  color: #e6edf3;
+}
+
+.stx-storage-table th,
+.stx-storage-table td {
+  padding: 0.35rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #30363d;
+}
+
+.stx-storage-table th {
+  font-weight: 600;
+  color: #c9d1d9;
+}
+
+.stx-storage-table td.size,
+.stx-storage-table td.files {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.stx-storage-error {
+  padding: 0.75rem;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  color: #f78166; /* --status-error (dark) */
+}

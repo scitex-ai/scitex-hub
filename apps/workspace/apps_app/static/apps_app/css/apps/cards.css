@@ -103,8 +103,10 @@
 }
 
 .ap-card-version {
-  font-size: 0.7rem;
+  font-size: 0.58rem;
+  font-weight: 400;
   color: var(--text-tertiary, #6a737d);
+  opacity: 0.75;
   white-space: nowrap;
 }
 
@@ -295,4 +297,50 @@ a.ap-card-owner:hover {
   height: 2px;
   background: var(--workspace-icon-primary, var(--accent));
   border-radius: 1px;
+}
+
+/* ─── Mobile (<=640px): reflow the card row so it fits the viewport ── */
+/* On a phone the single horizontal row cannot hold icon + info + owner +
+   stats + link buttons + actions without overflowing. Let the card wrap:
+   the link (icon + title + description) takes the full first row, and the
+   secondary blocks (owner / stats / links / actions) wrap onto the rows
+   below. The link spanning 100% is what lets the description's existing
+   `text-overflow: ellipsis` resolve at the card's right edge (= the
+   viewport edge, thanks to the container cap in layout.css) instead of
+   being clipped mid-word off-screen. Every block gets `min-width: 0` so
+   nothing can force the card wider than its now-bounded width. Desktop
+   (>640px) keeps the compact single-row layout. */
+@media (max-width: 640px) {
+  .ap-card {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  .ap-card-link {
+    flex: 1 1 100%;
+  }
+
+  /* Category/built-in/private badges drop below the title if the title
+     row runs out of width, rather than overflowing it. */
+  .ap-card-title-row {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+
+  .ap-card-links {
+    flex-wrap: wrap;
+  }
+
+  .ap-card-meta,
+  .ap-card-stats,
+  .ap-card-links,
+  .ap-card-actions {
+    min-width: 0;
+  }
+
+  /* Keep the primary action (install / login) at the trailing edge of
+     the secondary row. */
+  .ap-card-actions {
+    margin-left: auto;
+  }
 }

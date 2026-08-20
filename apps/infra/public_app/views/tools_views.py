@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from django.shortcuts import render
 
-from apps.infra.project_app.models import Project
+from apps.infra.project_app.services.project_utils import get_current_project
 
 from .tools_data import get_tool_domains
 
@@ -38,24 +38,14 @@ def build_tools_context(request, current_project=None):
 
 def tools(request):
     """Research tools page - bookmarklets and utilities for researchers."""
-    # Get current project for file tree sidebar
+    # Get current project for file tree sidebar.
+    # This used to read a "current_project_id" session key that NOTHING in the
+    # codebase writes, so the branch was dead and the sidebar always fell
+    # through to "most recently updated project" — ignoring whatever the user
+    # had actually selected in the header. Use the shared resolver instead.
     current_project = None
     if request.user.is_authenticated:
-        # Try to get project from session
-        project_id = request.session.get("current_project_id")
-        if project_id:
-            try:
-                current_project = Project.objects.get(id=project_id, owner=request.user)
-            except Project.DoesNotExist:
-                pass
-
-        # Fall back to most recent project if no session project
-        if not current_project:
-            current_project = (
-                Project.objects.filter(owner=request.user)
-                .order_by("-updated_at")
-                .first()
-            )
+        current_project = get_current_project(request, user=request.user)
 
     context = build_tools_context(request, current_project=current_project)
     return render(request, "public_app/pages/tools.html", context)

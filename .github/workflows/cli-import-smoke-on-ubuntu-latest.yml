@@ -1,0 +1,80 @@
+name: cli-import-smoke
+
+# Asserts the SHIPPED CLI starts from a plain `pip install .` — i.e. every
+# top-level import in the console-script chain is a declared RUNTIME
+# dependency, not something that only happens to be present via an extra.
+#
+# Why the existing import-smoke leg does not cover this: it installs bare and
+# runs `import scitex_hub`, but `scitex_hub/__init__.py` only reads package
+# metadata for __version__ — it never touches `_cli`. So an extras-only
+# top-level import anywhere under `scitex_hub._cli` is invisible to it.
+#
+# The gap was real, not theoretical (2026-08-11). `requests` was declared only
+# in the `all` extra while `_gitea_auth.py:9` imports it at module level, and
+# the console script `scitex_hub._cli.main:main` reaches it via
+# main.py:22 -> gitea.py:13 -> _gitea_auth.py:9. Two consequences:
+#   1. `pip install scitex-hub` + `scitex-hub --help` -> ModuleNotFoundError.
+#   2. The quality-audit job installs `.[dev]` and pytest-matrix installs
+#      `.[all,dev]`, so audit-cli could not import the CLI it grades and
+#      reported `not-auditable` — the CLI went UNGRADED on one leg and graded
+#      on the other, from an identical tree. A gate that silently stops
+#      grading is worse than one that is red.
+#
+# Deliberately a BARE install (no extras). Adding extras here would recreate
+# the exact hole this leg exists to close.
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+# Supersede a pull request's own earlier runs, which nobody will read once a
+# newer commit exists. Keyed per workflow per ref, so different PRs never
+# cancel each other.
+#
+# cancel-in-progress is TRUE ONLY FOR pull_request. A push to main or develop
+# is never cancelled: back-to-back merges would otherwise kill the earlier
+# merge's run, and anything treating a develop run as a gate would lose it
+# silently. Superseding an in-flight PR run is free; superseding a branch run
+# is a decision nobody made.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  cli-import-smoke:
+    name: cli-import-smoke-on-ubuntu-latest
+    runs-on: ubuntu-latest
+    # 30, not the reflexive 15: hub's CORE dependencies alone pull the scitex
+    # umbrella (numpy/matplotlib/fonttools et al), so even a no-extras install
+    # is not small. Measured 2026-08-11 in a container: a cold bare
+    # `pip install -e .` ran >10 minutes. A 15-minute cap would have shipped a
+    # gate that flakes on timeout, which reads as a broken check rather than a
+    # real failure and trains people to rerun it.
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install with NO extras
+        run: |
+          set -euo pipefail
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -e .
+
+      # Importing the entry-point module is what audit-cli does to walk the
+      # command tree, so this fails on precisely what makes audit-cli report
+      # "not-auditable".
+      - name: Import the console-script entry point
+        run: .venv/bin/python -c "import scitex_hub._cli.main; print('cli entry point imported')"
+
+      # --help exercises click's lazy subcommand wiring too, catching an
+      # extras-only import that hides behind a deferred import in a subcommand
+      # module rather than at the top of the chain.
+      - name: Run the console script
+        run: .venv/bin/scitex-hub --help > /dev/null && echo "scitex-hub --help ok"

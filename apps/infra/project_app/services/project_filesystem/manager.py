@@ -9,6 +9,7 @@ Extracted from project_filesystem.py for better maintainability.
 """
 
 import logging
+import os
 import shutil
 from pathlib import Path
 from typing import Dict, Optional, Tuple
@@ -22,6 +23,17 @@ from .git_ops import GitOperationsManager
 from .template_ops import TemplateOperationsManager
 
 logger = logging.getLogger(__name__)
+
+
+class WorkspaceNotAccessibleError(OSError):
+    """The user's data directory exists but this process cannot traverse it.
+
+    Distinct from "the workspace is missing", which we repair by creating it.
+    This one cannot be repaired by creating anything — the directory is there
+    and the operating system is refusing us. Raising a named error means the
+    failure says what is wrong instead of surfacing as a bare EACCES from a
+    ``Path.exists()`` call three layers down.
+    """
 
 
 class ProjectOpsManager(ProjectFilesystemManager):
@@ -269,7 +281,36 @@ def get_project_filesystem_manager(user):
     """
     manager = ProjectOpsManager(user)
 
-    if not manager.base_path.exists():
+    # Path.exists() swallows ENOENT/ENOTDIR/EBADF/ELOOP but lets EACCES
+    # propagate. An unguarded call here therefore turns "this process may not
+    # traverse the directory" into an uncaught PermissionError three frames
+    # below the view — a bare 500 with no indication of what is wrong.
+    #
+    # That is not hypothetical: enforce_data_dir_ownership() chowns
+    # /app/data/users/<username> to uid 100000+pk and chmods it 700. When that
+    # runs with enough privilege to succeed, the web process (a different uid)
+    # is locked out of the very directory it must manage, and every page
+    # touching the workspace 500s. Say so, with the numbers needed to fix it.
+    try:
+        workspace_missing = not manager.base_path.exists()
+    except PermissionError as exc:
+        try:
+            owner_uid = manager.base_path.parent.stat().st_uid
+            owner_hint = f"parent dir is owned by uid {owner_uid}"
+        except OSError:
+            owner_hint = "could not stat the parent directory either"
+        raise WorkspaceNotAccessibleError(
+            f"Cannot access the workspace for user {user.username!r} at "
+            f"{manager.base_path}: {exc.strerror}. This process runs as "
+            f"uid {os.getuid()} and {owner_hint}. The directory exists but is "
+            f"not traversable by this process — most likely its ownership or "
+            f"mode was enforced for a different uid (see "
+            f"accounts_app.services.unix_user.enforce_data_dir_ownership, "
+            f"which sets owner 100000+user.pk and mode 700). Fix the ownership "
+            f"or the mode; creating the directory again will not help."
+        ) from exc
+
+    if workspace_missing:
         manager.initialize_user_workspace()
 
     return manager

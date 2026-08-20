@@ -9,11 +9,13 @@ Gitea repositories. Ensures strict 1:1 mapping between:
 """
 
 import logging
-from typing import Dict, List, Tuple
 from pathlib import Path
+from typing import Dict, List, Tuple
+
 from django.contrib.auth.models import User
+
+from apps.infra.gitea_app.api_client import GiteaAPIError, GiteaClient
 from apps.infra.project_app.models import Project
-from apps.infra.gitea_app.api_client import GiteaClient, GiteaAPIError
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +112,7 @@ class RepositoryHealthChecker:
                     issue = RepositoryHealthIssue(
                         "orphaned_in_gitea",
                         gitea_name=gitea_name,
-                        message=f"Repository exists in Gitea but no Django project found",
+                        message="Repository exists in Gitea but no Django project found",
                     )
                     issues.append(issue)
                     stats["critical_issues"] += 1
@@ -131,7 +133,7 @@ class RepositoryHealthChecker:
             return RepositoryHealthIssue(
                 "missing_in_gitea",
                 project_slug=project.slug,
-                message=f"Django project exists but Gitea repository not found",
+                message="Django project exists but Gitea repository not found",
             )
 
         # Check if local directory exists
@@ -148,7 +150,7 @@ class RepositoryHealthChecker:
         return RepositoryHealthIssue(
             "healthy",
             project_slug=project.slug,
-            message=f"Repository healthy and in sync",
+            message="Repository healthy and in sync",
         )
 
     def delete_orphaned_repository(self, gitea_name: str) -> Tuple[bool, str]:
@@ -192,7 +194,9 @@ class RepositoryHealthChecker:
 
             # Re-clone from Gitea if directory is missing
             if not project.git_clone_path or not Path(project.git_clone_path).exists():
-                from apps.infra.project_app.signals import _clone_gitea_repo_to_data_dir
+                from apps.infra.project_app.signals.project_initialization import (
+                    _clone_gitea_repo_to_data_dir,
+                )
 
                 _clone_gitea_repo_to_data_dir(project)
                 return True, f"✓ Re-cloned repository to: {project.git_clone_path}"
@@ -266,7 +270,9 @@ class RepositoryHealthChecker:
             )
 
             # Clone the repository to local filesystem
-            from apps.infra.project_app.signals import _clone_gitea_repo_to_data_dir
+            from apps.infra.project_app.signals.project_initialization import (
+                _clone_gitea_repo_to_data_dir,
+            )
 
             _clone_gitea_repo_to_data_dir(project)
 
