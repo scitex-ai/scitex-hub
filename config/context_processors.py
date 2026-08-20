@@ -217,6 +217,41 @@ def site_branding(request):
     }
 
 
+def writer_api_base(request):
+    """Resolve ``api_base`` for scitex_writer._django's editor/viewer templates.
+
+    ``scitex_writer._django.views.editor_page`` / ``viewer_page`` render
+    ``writer/{editor,viewer}.html`` via
+    ``render_to_string(template, context, request=request)`` and never put
+    ``api_base`` in their own context dict, so the template's
+    ``{{ api_base|default:'/' }}`` always fell back to ``"/"``. That default
+    is only correct for scitex-writer's OWN standalone deployment (mounted
+    at the domain root by ``_standalone_urls.py``). Hub mounts the same
+    views under ``/apps/writer/{editor,viewer}-v2/`` and
+    ``/<username>/<slug>/live/`` (scitex-hub#146), so with no context
+    processor supplying ``api_base``, every one of
+    ``writer_app/frontend/src/api.ts``'s ``fetch(API_BASE + endpoint)``
+    calls silently targeted the wrong absolute path (e.g. ``/api/claims``
+    instead of ``/apps/writer/v2/api/claims``) and 404'd — the editor/viewer
+    shell renders, but no claim, DAG, or manuscript data ever loads.
+
+    Derived purely from ``request.path`` (no DB lookup): the writer v2
+    routes are the only ones with a matching shape, so every other template
+    keeps getting an empty context key here (falls through to the
+    template's own ``default:'/'``, unused since no other page reads
+    ``api_base``).
+    """
+    path = request.path
+    if path.endswith("/editor-v2/") or path.endswith("/viewer-v2/"):
+        return {"api_base": path.rsplit("/", 2)[0] + "/v2/"}
+    if path.endswith("/live/"):
+        # "v2/" (not "api/"): HANDLERS keys already carry their own "api/"
+        # prefix (e.g. "api/claims") — see
+        # apps/infra/project_app/urls.py's "<slug:slug>/live/v2/<endpoint>".
+        return {"api_base": path + "v2/"}
+    return {}
+
+
 def scitex_env(request):
     """
     Expose the deployment environment to templates.
