@@ -108,6 +108,22 @@ except Exception:
 ALLOWED_HOSTS.append(".172.19.33.56")  # Specific WSL2 IP
 ALLOWED_HOSTS.append("*")  # Allow all hosts in development
 
+# CSRF trusted origins for dev. Django's Origin-header CSRF check is a
+# SEPARATE gate from ALLOWED_HOSTS (added Django 4.0) -- being permissive
+# above does not cover it, so every POST form (login included) 403s with
+# "CSRF verification failed ... Origin checking failed" as soon as dev is
+# reached over any origin not listed here. Undiscovered until 2026-08-20:
+# nobody had gotten this far in a tunnel-based dev session before (an
+# earlier bug -- vite.py hardcoding http:// -- blocked ALL page JS first,
+# see apps/infra/public_app/templatetags/vite.py history), so login was
+# never actually attempted through compute-0N-net.scitex.ai until then.
+# *.scitex.ai covers every host's Cloudflare tunnel domain (compute-01
+# through compute-0N) without needing a per-host update.
+CSRF_TRUSTED_ORIGINS = os.getenv(
+    "SCITEX_HUB_CSRF_TRUSTED_ORIGINS",
+    "http://localhost:8000,http://127.0.0.1:8000,https://*.scitex.ai",
+).split(",")
+
 
 # Hot reload settings
 INTERNAL_IPS = [
