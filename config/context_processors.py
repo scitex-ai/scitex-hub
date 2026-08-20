@@ -252,6 +252,68 @@ def writer_api_base(request):
     return {}
 
 
+try:
+    from scitex_ui.branding import launcher_context as _ui_launcher_context
+except ImportError:
+    # scitex-ui is floor-pinned (>=0.16.0) in pyproject.toml, so a plain
+    # `pip install`/`uv pip install` picks up whatever the LATEST release on
+    # PyPI is -- not necessarily the exact version this file was written
+    # against. launcher_context() shipped in scitex-ui PR #162 (commit
+    # ee689b33e122, merged to scitex-ui's develop 2026-08-20), but the newest
+    # PyPI release at the time of THIS commit is 0.16.0 (published 2026-08-18,
+    # two days earlier) and does not have it yet. A hard `from ... import`
+    # would raise at Django startup and 500 every single page on any
+    # deployment still resolving to 0.16.0 -- unacceptable for one back-link.
+    # Falling back to building the same dict shape by hand keeps this inert
+    # (no launcher key changes) until scitex-ui publishes a release the floor
+    # pin picks up, at which point this starts calling the real validator
+    # with no hub-side change required.
+    _ui_launcher_context = None
+
+
+def mounted_app_launcher(request):
+    """Give standalone-mounted apps a way back to the Store (scitex-ui #162).
+
+    scitex-ui's ``standalone_shell.html`` (used by every app hub mounts as an
+    upstream leaf package rather than folding into the full workspace shell --
+    Storage and Cards today, Writer's editor-v2/viewer-v2 as well) renders a
+    launcher back-link ONLY when the context carries a ``launcher`` key. Below
+    768px every workspace pane is ``display:none``, and neither app's own
+    content supplies a way out, so scitex-hub measured /apps/storage/ at
+    390x844 with ZERO anchor elements on the page -- nothing a visitor could
+    tap to leave. This processor is the fix: it supplies ``launcher`` for
+    exactly the request paths that render through that shell.
+
+    A context processor, not each view's own context dict, because Storage's
+    and Cards' views are upstream (``scitex_storage._django`` /
+    ``scitex_cards._django``) -- hub cannot edit their context without
+    forking them, and forking a leaf package to add one shared link is the
+    kind of duplication that drifts. This processor reaches every render
+    without touching upstream code at all (mirrors ``writer_api_base``
+    above, which solves the same "upstream view, hub-only context" problem
+    for a different key).
+
+    Scoped by prefix/suffix on ``request.path``, deliberately narrow: any page
+    NOT in this list keeps getting no ``launcher`` key, unchanged from before
+    this processor existed. In particular this never touches hub's own
+    full-workspace pages (they already carry the sidebar's own navigation, so
+    a second back-link would be redundant) or Writer's public
+    ``/<user>/<slug>/live/`` viewer (an anonymous reader of a published paper
+    has no reason to be routed to the SciTeX app store).
+    """
+    path = request.path
+    is_mounted_standalone_page = path.startswith(
+        ("/apps/cards/", "/apps/storage/")
+    ) or path.endswith(("/editor-v2/", "/viewer-v2/"))
+    if not is_mounted_standalone_page:
+        return {}
+
+    launcher = {"url": "/apps/store/", "label": "Back to Store"}
+    if _ui_launcher_context is not None:
+        return _ui_launcher_context(launcher)
+    return {"launcher": launcher}
+
+
 def scitex_env(request):
     """
     Expose the deployment environment to templates.
