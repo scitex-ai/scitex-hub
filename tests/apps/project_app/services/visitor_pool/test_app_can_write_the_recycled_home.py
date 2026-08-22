@@ -30,12 +30,12 @@ import pwd
 
 from django.test import override_settings
 
-from apps.infra.project_app.services.visitor_pool.home_state import (
-    HomeStateError,
+from apps.infra.project_app.services.visitor_pool.home_access import (
     enforce_app_ownership,
     resolve_app_owner,
     verify_app_can_write,
 )
+from apps.infra.project_app.services.visitor_pool.home_state import HomeStateError
 
 
 @pytest.fixture
@@ -46,6 +46,33 @@ def absent_home_error(tmp_path):
     # Act
     with pytest.raises(HomeStateError) as caught:
         verify_app_can_write(absent)
+    # Assert
+    return caught.value
+
+
+UNKNOWN_OWNER = "no-such-user-scitex-hub-test"
+
+
+@pytest.fixture
+def unknown_owner_error():
+    """The error raised when APP_UNIX_OWNER names a user that does not exist."""
+    # Arrange
+    with override_settings(APP_UNIX_OWNER=UNKNOWN_OWNER):
+        # Act
+        with pytest.raises(HomeStateError) as caught:
+            resolve_app_owner()
+    # Assert
+    return caught.value
+
+
+@pytest.fixture
+def empty_owner_error():
+    """The error raised when APP_UNIX_OWNER is empty rather than defaulted."""
+    # Arrange
+    with override_settings(APP_UNIX_OWNER=""):
+        # Act
+        with pytest.raises(HomeStateError) as caught:
+            resolve_app_owner()
     # Assert
     return caught.value
 
@@ -61,6 +88,18 @@ def home_root(tmp_path):
     # Act
     yield root
     # Assert
+
+
+@pytest.fixture
+def home_root_after_failed_hand_back(home_root):
+    """The tree as it stands after a hand-back that could not resolve an owner."""
+    # Arrange
+    with override_settings(APP_UNIX_OWNER=UNKNOWN_OWNER):
+        # Act
+        with pytest.raises(HomeStateError):
+            enforce_app_ownership(home_root)
+    # Assert
+    return home_root
 
 
 class TestUniformlyOwnedTreePasses:
@@ -161,26 +200,43 @@ class TestTheOwnerIsResolvedFromADeclaredSetting:
         # Assert
         assert (uid, gid) == (me.pw_uid, os.getgid())
 
-    def test_an_unknown_user_name_fails_loudly_and_names_the_fix(self):
+    def test_an_unknown_user_name_fails_loudly(self):
         """POSITIVE CONTROL for the whole gate: this environment CAN go red."""
         # Arrange
-        with override_settings(APP_UNIX_OWNER="no-such-user-scitex-hub-test"):
-            # Act
-            with pytest.raises(HomeStateError) as caught:
-                resolve_app_owner()
+        unknown = UNKNOWN_OWNER
+        # Act
         # Assert
-        message = str(caught.value)
-        assert "no-such-user-scitex-hub-test" in message
-        assert "SCITEX_HUB_APP_UNIX_OWNER" in message
+        with override_settings(APP_UNIX_OWNER=unknown):
+            with pytest.raises(HomeStateError):
+                resolve_app_owner()
 
-    def test_an_empty_setting_is_refused_not_defaulted(self):
+    def test_the_unknown_user_error_names_the_offending_value(
+        self, unknown_owner_error
+    ):
         # Arrange
-        with override_settings(APP_UNIX_OWNER=""):
-            # Act
-            with pytest.raises(HomeStateError) as caught:
-                resolve_app_owner()
+        expected = "no-such-user-scitex-hub-test"
+        # Act
+        message = str(unknown_owner_error)
         # Assert
-        assert "SCITEX_HUB_APP_UNIX_OWNER" in str(caught.value)
+        assert expected in message
+
+    def test_the_unknown_user_error_names_the_env_var_to_fix(
+        self, unknown_owner_error
+    ):
+        # Arrange
+        expected = "SCITEX_HUB_APP_UNIX_OWNER"
+        # Act
+        message = str(unknown_owner_error)
+        # Assert
+        assert expected in message
+
+    def test_an_empty_setting_is_refused_not_defaulted(self, empty_owner_error):
+        # Arrange
+        expected = "SCITEX_HUB_APP_UNIX_OWNER"
+        # Act
+        message = str(empty_owner_error)
+        # Assert
+        assert expected in message
 
 
 class TestEnforceAppOwnershipEndToEnd:
@@ -196,11 +252,22 @@ class TestEnforceAppOwnershipEndToEnd:
         # Assert
         assert home_root.stat().st_uid == os.getuid()
 
-    def test_an_unresolvable_owner_raises_before_any_chown(self, home_root):
+    def test_an_unresolvable_owner_raises(self, home_root):
         # Arrange
-        with override_settings(APP_UNIX_OWNER="no-such-user-scitex-hub-test"):
-            # Act
+        unknown = UNKNOWN_OWNER
+        # Act
+        # Assert
+        with override_settings(APP_UNIX_OWNER=unknown):
             with pytest.raises(HomeStateError):
                 enforce_app_ownership(home_root)
+
+    def test_an_unresolvable_owner_raises_before_any_chown(
+        self, home_root_after_failed_hand_back
+    ):
+        """The owner is resolved FIRST, so a bad setting cannot half-chown."""
+        # Arrange
+        expected = os.getuid()
+        # Act
+        owner = home_root_after_failed_hand_back.stat().st_uid
         # Assert
-        assert home_root.stat().st_uid == os.getuid()
+        assert owner == expected
