@@ -85,6 +85,8 @@ fixtures; each test name states the single property it pins.
 
 from __future__ import annotations
 
+import base64
+import io
 import json
 import os
 import shutil
@@ -610,6 +612,105 @@ def test_editor_page_is_served_to_a_logged_in_caller(client):
     response = client.get(url)
     # Assert
     assert response.status_code == 200
+
+
+# ===========================================================================
+# CHANNEL 2 BLIND SPOT — api/compose with NO body working_dir at all
+# ===========================================================================
+# Every compose test written before these ones SUPPLIED a body working_dir
+# (here and in tests/security/test_working_dir_passthrough.py), so every one
+# of them took the guard's ``if isinstance(body_wd, str) and body_wd:``
+# branch. OMIT the key and that whole branch is skipped: ``filename`` is not
+# in ``_PATH_PARAMS``, so nothing validates it. Downstream,
+# ``handle_compose_save`` falls through to ``out_dir = Path(".")`` — the
+# ``editor is None`` branch is REACHABLE because ``api/compose`` is listed in
+# figrecipe's ``_NO_EDITOR_ENDPOINTS`` — and ``Path(".") / f"{filename}.png"``
+# DISCARDS ``out_dir`` entirely when ``filename`` is absolute.
+#
+# SANDBOX ONLY: the write target is always pytest's ``tmp_path``. Nothing
+# outside it is ever written, on any machine, pass or fail.
+
+
+def _sandbox_figures() -> list:
+    """One real 2x2 PNG panel — enough for the handler to reach the write.
+
+    ``_parse_figures`` raises ``ValueError("No figures on canvas")`` on an
+    empty list, which would short-circuit BEFORE the write and leave the
+    write sink unexercised. A real image is what makes the exploit complete.
+    """
+    from PIL import Image
+
+    buf = io.BytesIO()
+    Image.new("RGB", (2, 2), (255, 0, 0)).save(buf, "PNG")
+    return [
+        {
+            "path": "sandbox.png",
+            "x": 0,
+            "y": 0,
+            "width": 2,
+            "height": 2,
+            "image": base64.b64encode(buf.getvalue()).decode("ascii"),
+        }
+    ]
+
+
+def _traversal_filename(target: Path) -> str:
+    """A RELATIVE ``../``-bearing filename that lands on ``target``.
+
+    Climbing from the process cwd — which IS the base the handler uses when
+    it falls through to ``Path(".")`` — keeps the probe a genuine traversal
+    while pinning where it lands, so the sandbox promise above holds.
+    """
+    return os.path.relpath(str(target), os.getcwd())
+
+
+def test_compose_write_with_no_body_working_dir_is_403(client, tmp_path):
+    # Arrange — NO working_dir key at all; an ABSOLUTE filename then picks
+    # the write target on its own, because ``/`` discards the left operand.
+    body = {"figures": _sandbox_figures(), "filename": str(tmp_path / "pwned")}
+    # Act
+    response = _post(client, "api/compose", body)
+    # Assert
+    assert response.status_code == 403
+
+
+def test_compose_write_with_no_body_working_dir_creates_no_file(client, tmp_path):
+    # Arrange — the same request, asserted on its EFFECT rather than its
+    # status: a 403 that still wrote the file would not be a fix.
+    body = {"figures": _sandbox_figures(), "filename": str(tmp_path / "pwned")}
+    # Act
+    _post(client, "api/compose", body)
+    # Assert
+    assert not (tmp_path / "pwned.png").exists()
+
+
+def test_compose_traversal_filename_with_no_body_working_dir_is_403(
+    client, tmp_path
+):
+    # Arrange — no working_dir, and a RELATIVE ``../`` filename that climbs
+    # out of the ``Path(".")`` base the handler falls through to.
+    body = {
+        "figures": _sandbox_figures(),
+        "filename": _traversal_filename(tmp_path / "pwned-traversal"),
+    }
+    # Act
+    response = _post(client, "api/compose", body)
+    # Assert
+    assert response.status_code == 403
+
+
+def test_compose_traversal_filename_with_no_body_working_dir_creates_no_file(
+    client, tmp_path
+):
+    # Arrange
+    body = {
+        "figures": _sandbox_figures(),
+        "filename": _traversal_filename(tmp_path / "pwned-traversal"),
+    }
+    # Act
+    _post(client, "api/compose", body)
+    # Assert
+    assert not (tmp_path / "pwned-traversal.png").exists()
 
 
 # EOF
