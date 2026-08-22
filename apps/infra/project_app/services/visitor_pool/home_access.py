@@ -65,10 +65,31 @@ APP_UNIX_OWNER_ENV = "SCITEX_HUB_APP_UNIX_OWNER"
 #   * ``workspace_wipe``'s permission-recovery chmod used to ASSIGN 0700
 #     to the wiped directory's parent (fixed there, in ``_add_owner_rwx``).
 #
-# 0o755 and not 0o700: SLURM binds and the host-side tooling read this tree
-# as other identities, and — the reason it is load-bearing — the health check
-# behind the site-wide "Server:" badge lists every directory under
-# ``data/users`` and reports the WHOLE SITE degraded on one PermissionError.
+# 0o755 AND NOT 0o700, and the reason is the measured site convention rather
+# than this module's preference. Measured on production 2026-08-22:
+#
+#     ls -ln /app/data/users  ->  97 of 97 entries  drwxr-xr-x 1000:1000
+#
+# Every home — named users and visitor slots alike — is owned by the app uid
+# AND world-traversable, with no exceptions. Handing a recycled visitor home
+# back at 0700 would make those slots the only directories in the tree with a
+# different mode, which is how the next reader concludes the tree is
+# inconsistent and "fixes" the wrong half.
+#
+# The o+rx specifically is for readers OUTSIDE the container: this tree is
+# bind-mounted, and SLURM binds and host-side tooling walk it as other
+# identities. It is NOT needed by the app. ``enforce_app_ownership`` chowns to
+# the app uid immediately before this chmod, so the app satisfies
+# ``dir_is_traversable_by`` as OWNER, and the health check behind the
+# site-wide "Server:" badge would pass at 0700 too. An earlier version of this
+# comment cited that health check as the reason for o+rx; that was wrong — it
+# is the reason the mode must be pinned AT ALL, not the reason it is 755.
+#
+# CodeQL flags this as py/overly-permissive-file-permission and is describing
+# the mode accurately. Whether user homes should be 0750 site-wide is a real
+# question, but it is a decision about all 97 directories and every consumer
+# outside the container — not something to settle inside a visitor-pool
+# bugfix. Carded separately.
 APP_TRAVERSABLE_DIR_MODE = 0o755
 
 
