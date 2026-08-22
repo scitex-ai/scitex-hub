@@ -42,6 +42,18 @@ if [ $# -eq 0 ]; then
     exit 2
 fi
 
+# A manual `up` recreates containers just as surely as `make rebuild` does, and
+# the hotfixes keeping production alive live only in a container's writable layer
+# (measured 2026-08-22 via `docker diff`). Gate the recreate here too, or this
+# script becomes the documented way around the gate.
+for arg in "$@"; do
+    if [ "$arg" = "up" ]; then
+        echo "[compose.sh] running the sibling floor + import preflight before 'up'" >&2
+        "$SCRIPT_DIR/preflight_sibling_floors.sh" "$ENV"
+        break
+    fi
+done
+
 cd "$DOCKER_DIR"
 echo "[compose.sh] env=$ENV dir=$DOCKER_DIR" >&2
 echo "[compose.sh] \$ $COMPOSE_CMD $*" >&2

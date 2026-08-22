@@ -7,6 +7,7 @@
 #
 # REBUILD_STEPS (single source of truth - used by 'make help-commands'):
 #   1. build         - Build new images while the OLD stack keeps serving
+#   1b. preflight    - Refuse the swap if the NEW image cannot satisfy hub's floors
 #   2. clear-vite    - Clear vite timestamp (forces TypeScript rebuild)
 #   3. slurm-clean   - Cancel ALL SLURM jobs and reset node state
 #   4. up            - Swap in new containers (recreate only changed services)
@@ -148,6 +149,30 @@ export DOCKER_BUILDKIT=1
 # nice -n 10: lower priority so SSH/system processes win CPU contention
 # shellcheck disable=SC2086  # COMPOSE_CMD intentionally word-splits (e.g. "docker compose")
 nice -n 10 $COMPOSE_CMD build
+
+# Step 1b: SIBLING FLOOR + IMPORT PREFLIGHT — the only step that can still stop
+# this deploy for free.
+#
+# WHY IT SITS EXACTLY HERE, between the build and everything after it:
+#   - AFTER the build, because before it the artifact under test does not exist.
+#     A check run earlier could only read files in this repo, and reading a
+#     version on the host and stating it about production is the 2026-08-18
+#     mistake itself.
+#   - BEFORE Step 3, whose scancel is IRREVERSIBLE and destroys users' in-flight
+#     compute. Same ordering argument as the 2026-07-24 incident recorded below.
+#   - BEFORE Step 4's `up -d`, which is the recreate. Two outages (2026-08-18
+#     ImportError crash-loop, 25 min of 503; 2026-08-22 /api/plot/ 500 on every
+#     well-formed request) were both repaired by pip-installing INTO THE RUNNING
+#     CONTAINER, and `docker diff` shows those repairs live only in the writable
+#     layer. This line is what stands between that layer and the next recreate.
+#
+# `set -e` (line 37) makes a non-zero exit abort the deploy. There is deliberately
+# no skip flag: the check that was already here — `python -c "import scitex"` with
+# stderr discarded, deployment/docker/common/lib/scitex.src:10 — is GREEN on the
+# very image that raises ImportError on `import scitex.io`, and it runs after the
+# recreate where it can only report an outage it was too late to prevent.
+echo -e "${CYAN}  1b. Preflight: does the NEW image satisfy hub's declared sibling floors?${NC}"
+"$SCRIPT_DIR/preflight_sibling_floors.sh" "$ENV"
 
 # Step 2: Clear vite timestamp (forces TypeScript rebuild on the new container)
 echo -e "${CYAN}  2. Clearing vite timestamp (forces TypeScript rebuild)...${NC}"
