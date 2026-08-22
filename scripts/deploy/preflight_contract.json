@@ -1,0 +1,110 @@
+{
+  "$comment": [
+    "Hub-owned inputs to scripts/deploy/preflight_sibling_floors.py.",
+    "",
+    "The preflight DERIVES most of its work: module-scope sibling imports come",
+    "from an AST scan of this repo, and floors come from pyproject.toml. This",
+    "file holds only the parts that cannot be derived, because deriving them was",
+    "measured to be impossible rather than merely inconvenient.",
+    "",
+    "extra_import_probes exists because of 2026-08-22. /api/plot/ returned 500 to",
+    "every well-formed request (control: malformed requests correctly returned",
+    "400 throughout) and the failing import was NOT at module scope -- it was a",
+    "function-scope 'import scitex as stx' followed by the lazy attribute touch",
+    "'stx.plt.load_style()' in apps/infra/public_app/api_plot_helpers.py:293-295.",
+    "An AST scan of module-scope imports cannot see it. Neither can pip: the two",
+    "packages that were missing, scitex-sh and scitex-decorators, are declared in",
+    "no pyproject in the chain -- not hub's, not scitex's, not scitex-io's -- so",
+    "no floor comparison and no dependency resolver could have caught them.",
+    "Executing the import in the target is the only thing that reaches them.",
+    "",
+    "Measured that day: 'import scitex' left 29 sibling distributions loaded;",
+    "one 'stx.plt.load_style()' pulled six more -- figrecipe, scitex_clew,",
+    "scitex_decorators, scitex_io, scitex_sh, scitex_stats. That is why entries",
+    "here name submodules and attributes and not just the umbrella: the prod",
+    "image where 'import scitex.io' raises ImportError still prints a perfectly",
+    "happy 'import scitex OK 2.29.3', which is exactly what the existing boot",
+    "check (deployment/docker/common/lib/scitex.src:10) asks -- green on the",
+    "broken artifact, and running after the recreate where it can only report an",
+    "outage rather than prevent one.",
+    "",
+    "ignore_import_roots keeps the derived set honest. hub's OWN wheel provides",
+    "scitex_hub and scitex_cloud, and importlib.metadata maps scitex_container to",
+    "BOTH scitex-hub and scitex-container, so treating them as siblings would ask",
+    "the target about hub's own source tree."
+  ],
+
+  "sibling_distribution_prefixes": [
+    "scitex-"
+  ],
+
+  "sibling_distributions": [
+    "figrecipe"
+  ],
+
+  "ignore_distributions": [
+    "scitex-hub"
+  ],
+
+  "sibling_import_roots": [
+    "figrecipe"
+  ],
+
+  "sibling_import_root_prefixes": [
+    "scitex_",
+    "scitex."
+  ],
+
+  "ignore_import_roots": [
+    "scitex_hub",
+    "scitex_cloud"
+  ],
+
+  "scan_dirs": [
+    "apps",
+    "config",
+    "src"
+  ],
+
+  "prod_image_extras": [
+    "all"
+  ],
+
+  "extra_import_probes": [
+    {
+      "module": "scitex",
+      "attrs": [],
+      "why": "The umbrella itself. Green even on a broken artifact -- kept as the control that proves the probe reaches a working import, so an all-fatal result is distinguishable from a probe that cannot import anything at all."
+    },
+    {
+      "module": "scitex.io",
+      "attrs": [],
+      "why": "2026-08-22 outage, exact shape. scitex/io/_load.py:33 does 'from scitex.decorators import preserve_doc'; with scitex-decorators absent the umbrella's _aggregator raises ImportError and /api/plot/ 500s. Measured absent from scitex-hub-prod-django:latest on 2026-08-22 and present only in the running container's writable layer, so this probe is the one that fails on the artifact the next recreate will run."
+    },
+    {
+      "module": "scitex.plt",
+      "attrs": ["load_style"],
+      "why": "The attribute the outage actually touched. 'import scitex.plt' alone can pass while the lazy resolution of an attribute raises, because scitex/__init__.py defers to _LazyModule and only __getattr__ reaches the real distribution."
+    },
+    {
+      "module": "scitex.sh",
+      "attrs": [],
+      "why": "scitex/__init__.py:153 maps scitex.sh -> scitex_sh via _LazyModule, and neither hub's pyproject nor scitex's declares scitex-sh. Undeclared at every level means no floor check can ever see it."
+    },
+    {
+      "module": "scitex.decorators",
+      "attrs": [],
+      "why": "scitex/__init__.py:97 maps scitex.decorators -> scitex_decorators, likewise undeclared everywhere. The other half of the 2026-08-22 pair."
+    },
+    {
+      "module": "scitex.stats",
+      "attrs": [],
+      "why": "Pulled by the same load_style() touch; undeclared by hub."
+    },
+    {
+      "module": "scitex.template",
+      "attrs": ["clone_template"],
+      "why": "Already smoke-tested at image build time (Dockerfile.prod), but only there -- the build smoke test cannot see the boot overlay that replaces five siblings at every container start."
+    }
+  ]
+}

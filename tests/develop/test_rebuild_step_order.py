@@ -28,6 +28,7 @@ gating.
 No Docker and no secrets required, so this runs in the headless pytest matrix.
 """
 
+import re
 from pathlib import Path
 
 import pytest
@@ -108,13 +109,19 @@ def _ordering_violations(script: str) -> list:
     return violations
 
 
+# A step declaration is "#   <n>[<letter>]. <name> - <description>", e.g.
+# "#   1. build - ..." or "#   1b. preflight - ...". Anchoring on that shape
+# matters: the previous predicate accepted ANY "#   " comment containing both
+# ". " and "- ", so ordinary prose in the same file was parsed as a step and
+# raised IndexError, taking both tests below down with it. A gate that crashes
+# on an unrelated comment is not measuring step order, and its red says nothing
+# about the thing it names.
+_STEP_DECL = re.compile(r"^#   (\d+[a-z]?)\. +(\S+) +- ")
+
+
 def _declared_steps(script: str) -> list:
     """Return the step names from the REBUILD_STEPS header block, in order."""
-    return [
-        line.split("- ", 1)[0].split(". ", 1)[1].strip()
-        for line in script.splitlines()
-        if line.startswith("#   ") and ". " in line and "- " in line
-    ]
+    return [m.group(2).strip() for m in map(_STEP_DECL.match, script.splitlines()) if m]
 
 
 @pytest.fixture(scope="module")
@@ -175,3 +182,40 @@ def test_checker_rejects_a_script_missing_a_landmark():
     violations = _ordering_violations(script)
     # Assert
     assert violations
+
+
+def test_declared_step_parser_ignores_prose_that_looks_like_a_step():
+    """Red-proof for the parser fix: prose must not be read as a step declaration.
+
+    The pre-fix predicate accepted any ``#   `` line containing ". " and "- ",
+    so this exact comment shape raised IndexError and took both header tests
+    down with it. The failure said "declared steps are wrong" while the header
+    was correct -- a red that named the wrong thing.
+    """
+    # Arrange
+    script = "\n".join(
+        [
+            "#   1. build         - Build new images",
+            "#   3. slurm-clean   - Cancel ALL SLURM jobs",
+            "#   - BEFORE Step 4's `up -d`, which is the recreate. Two of them.",
+        ]
+    )
+    # Act
+    steps = _declared_steps(script)
+    # Assert
+    assert steps == ["build", "slurm-clean"], steps
+
+
+def test_declared_step_order_check_still_goes_red_on_a_reordered_header():
+    """The header check must still FAIL when the header really is wrong."""
+    # Arrange
+    script = "\n".join(
+        [
+            "#   1. slurm-clean   - Cancel ALL SLURM jobs",
+            "#   2. build         - Build new images",
+        ]
+    )
+    # Act
+    steps = _declared_steps(script)
+    # Assert
+    assert steps.index("build") > steps.index("slurm-clean"), steps

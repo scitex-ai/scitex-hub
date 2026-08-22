@@ -551,6 +551,12 @@ restart: validate
 		echo -e "$(YELLOW)   • make ENV=$$RUNNING restart     # Restart current $$RUNNING$(NC)"; \
 		exit 1; \
 	fi
+	@# SIBLING FLOOR + IMPORT PREFLIGHT. A recreate here runs the EXISTING image,
+	@# and on 2026-08-22 that image was measured to be missing scitex-sh and
+	@# scitex-decorators — present only in the running container's writable layer
+	@# as a hotfix. This target is what deletes that layer, so the gate belongs
+	@# here and not only in rebuild.sh. Non-zero aborts the target (no leading '-').
+	@./scripts/deploy/preflight_sibling_floors.sh $(ENV)
 	@echo -e "$(CYAN)🔄 Restarting $(ENV) environment (with volume remount)...$(NC)"
 	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) up -d --force-recreate
 	@./scripts/deploy/wait-healthy.sh $(ENV) 120
@@ -569,6 +575,12 @@ reload: validate
 		echo -e "$(YELLOW)   • make ENV=$$RUNNING reload      # Reload current $$RUNNING$(NC)"; \
 		exit 1; \
 	fi
+	@# SIBLING FLOOR + IMPORT PREFLIGHT. A recreate here runs the EXISTING image,
+	@# and on 2026-08-22 that image was measured to be missing scitex-sh and
+	@# scitex-decorators — present only in the running container's writable layer
+	@# as a hotfix. This target is what deletes that layer, so the gate belongs
+	@# here and not only in rebuild.sh. Non-zero aborts the target (no leading '-').
+	@./scripts/deploy/preflight_sibling_floors.sh $(ENV)
 	@echo -e "$(CYAN)⚡ Quick reload (Django only, with volume remount)...$(NC)"
 	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) up -d --force-recreate django
 	@echo -e "$(GREEN)✅ $(ENV) reloaded$(NC)"
@@ -678,6 +690,8 @@ rebuild-no-cache: validate-docker
 	@$(MAKE) --no-print-directory ENV=$(ENV) stop
 	@echo -e "  2. Building images (without cache)..."
 	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) build --no-cache
+	@echo -e "  2b. Preflight: does the NEW image satisfy hub's declared sibling floors?"
+	@./scripts/deploy/preflight_sibling_floors.sh $(ENV)
 	@echo -e "  3. Starting $(ENV)..."
 	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) up -d
 	@echo -e ""
