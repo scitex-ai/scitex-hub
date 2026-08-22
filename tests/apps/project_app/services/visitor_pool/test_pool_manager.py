@@ -435,3 +435,158 @@ if __name__ == "__main__":
     import pytest
 
     pytest.main([os.path.abspath(__file__), "-v"])
+
+
+class UnsavedSession(dict):
+    """A Django session BEFORE its first save — the shape the middleware sees.
+
+    ``MockSession`` above is constructed WITH a key, so any test written on it
+    passes whether or not the defect is present: with ``session_key or ""``
+    restored, the truthy key survives the coercion and the assertion still
+    holds. A guard built on it could not fail, which is the one property a
+    guard must not have.
+
+    This one starts keyless and acquires a key only when ``create()`` is
+    called — reproducing the production sequence, where the middleware
+    allocates before anything has persisted the session.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self._session_key = None
+
+    @property
+    def session_key(self):
+        return self._session_key
+
+    def create(self):
+        self._session_key = "key-assigned-on-first-persist"
+
+    def save(self):
+        pass
+
+
+class UnkeyableSession(UnsavedSession):
+    """A session that cannot obtain a key even after ``create()``.
+
+    Stands in for the failure the allocator must REFUSE rather than record.
+    """
+
+    def create(self):
+        pass
+
+
+class TestAllocationMustRecordItsOwner(TestCase):
+    """An allocation with no ``session_key`` can never be released.
+
+    Regression for prod 2026-08-16, fixed in #623. The line was::
+
+        allocation.session_key = session.session_key or ""
+
+    A brand-new Django session has no ``session_key`` until it is persisted —
+    the key is assigned on first save — and the middleware allocates before
+    that has happened. So ``session.session_key`` was ``None`` and the
+    ``or ""`` silently turned "there is no owner yet" into "the owner is the
+    empty string", then stored the row. Measured on production: ELEVEN of
+    eleven active allocations carried ``session_key=''``.
+
+    That one coercion produced the entire visitor-isolation failure.
+    ``deallocate_visitor()`` matches on the session, so an ownerless row can
+    never be released; it survives only until the 120s probation lease
+    expires; and because the visitor is meanwhile served the shared
+    ``readonly-visitor`` account, the heartbeat that would promote the lease
+    is never sent. Every navigation burned fresh slots AND handed the visitor
+    the shared account — the funnel behind the cross-tenant chat leak.
+
+    THE FIX SHIPPED WITHOUT THIS GUARD. The card that diagnosed it said, in as
+    many words, that asserting ownerless-allocation-count == 0 "would have
+    caught this the day it shipped". It was never written, so nothing stopped
+    the coercion returning. This class is that assertion.
+    """
+
+    def setUp(self):
+        self.user, _ = User.objects.get_or_create(
+            username="visitor-001", defaults={"email": "v001@example.com"}
+        )
+        self.project, _ = Project.objects.get_or_create(
+            slug="default-project",
+            owner=self.user,
+            defaults={"name": "Default Project"},
+        )
+        VisitorAllocation.objects.filter(visitor_number=1).delete()
+        self.allocation = _mk(
+            1,
+            is_active=False,
+            expires_in_minutes=-60,
+            last_activity_minutes_ago=60 * 24 * 3,
+            workspace_ready=True,
+        )
+        # Without the template marker the pre-handoff check refuses every slot
+        # and each assertion below passes over an allocation that never happened.
+        manager = get_project_filesystem_manager(self.user)
+        marker = Path(manager.base_path) / self.project.slug / TEMPLATE_MARKER_RELPATH
+        marker.mkdir(parents=True, exist_ok=True)
+        (marker / "config.yaml").write_text("template: true\n")
+
+    def tearDown(self):
+        base = Path(settings.BASE_DIR) / "data" / "users" / "visitor-001"
+        if base.exists():
+            shutil.rmtree(base, ignore_errors=True)
+
+    def test_the_keyless_session_really_starts_without_a_key(self):
+        """Control on the FIXTURE, not the subject.
+
+        If ``UnsavedSession`` ever gained a key at construction, every
+        assertion below would pass against a session that never exhibited the
+        defect — green, and proving nothing. This is the row that makes the
+        rest of the class able to fail.
+        """
+        # Arrange
+        session = UnsavedSession()
+        # Act
+        key_before_allocation = session.session_key
+        # Assert
+        assert key_before_allocation is None
+
+    def test_a_visitor_arriving_before_first_save_still_owns_its_slot(self):
+        """THE defect. Fails if ``session.session_key or ""`` returns."""
+        # Arrange: the production sequence — allocate before the session persists.
+        session = UnsavedSession()
+        # Act
+        VisitorPool.allocate_visitor(session)
+        self.allocation.refresh_from_db()
+        # Assert: the row records WHO holds it, so it can be released.
+        assert self.allocation.session_key, (
+            "the allocation was stored without an owner. deallocate_visitor() "
+            "matches on the session, so this slot can never be released and "
+            "will leak until its 120s probation lease expires."
+        )
+
+    def test_no_active_allocation_is_ownerless(self):
+        """The invariant, stated as the card asked for it."""
+        # Arrange
+        VisitorPool.allocate_visitor(UnsavedSession())
+        # Act
+        ownerless = VisitorAllocation.objects.filter(
+            is_active=True, session_key=""
+        ).count()
+        # Assert
+        assert ownerless == 0
+
+    def test_an_unkeyable_session_is_refused_rather_than_orphaned(self):
+        """Refusing leaves the slot distributable; storing leaks it forever.
+
+        The defensive branch must not be a comment. A session that cannot be
+        keyed is rare, but the wrong choice here is permanent: an ownerless
+        row is unreleasable, whereas a refusal costs one request.
+        """
+        # Arrange
+        session = UnkeyableSession()
+        # Act
+        project, _ = VisitorPool.allocate_visitor(session)
+        # Assert: no slot handed out, and nothing ownerless recorded.
+        assert project is None
+        assert (
+            VisitorAllocation.objects.filter(is_active=True, session_key="").count()
+            == 0
+        )
