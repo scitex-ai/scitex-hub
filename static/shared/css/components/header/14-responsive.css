@@ -272,3 +272,70 @@
     display: none;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   MOBILE HEADER OVERFLOW — the hamburger was off-screen, and it was the thing
+   pushing the page sideways.
+
+   MEASURED on live production 2026-08-22, real browser at 390x844, anonymous:
+
+       /apps/scholar/     scrollWidth 438 vs viewport 390   ->  48px of
+       /apps/figrecipe/   scrollWidth 438                        horizontal
+                                                                 scroll
+       #mobile-hamburger-btn   right = 438   i.e. 48px PAST the right edge
+
+   The hamburger's overflow EQUALS the page's total overflow, so the navigation
+   control itself was what created the sideways scroll. A phone user had to
+   scroll right to find the menu button, with nothing indicating it was there.
+
+   MECHANISM. .global-header-inner is 380px wide and is display:flex, but its
+   children measured 253 + 142 + 15 = 410 plus gaps, and they COULD NOT SHRINK:
+
+       .header-left                    253px   min-width: auto   <- offender
+       .header-visitor-badge-mobile    142px   min-width: auto   <- offender
+       .mobile-hamburger                15px   (margin-left:auto)
+       .header-center / .search-modal / .header-right    min-width: 0px  <- fine
+
+   `flex: 0 1 auto` grants permission to shrink, but `min-width: auto` on a flex
+   item resolves to the item's CONTENT size and revokes it. So the row could not
+   compress and simply overflowed, carrying the auto-margined hamburger out of
+   view.
+
+   Note the three siblings that already carry `min-width: 0`. This pattern is
+   already the codebase's answer to exactly this problem; these two items were
+   missed, not deliberately excluded.
+
+   VERIFIED BY INJECTING THESE RULES INTO THE LIVE PAGE AND RE-MEASURING, before
+   writing them here — the same method used for #662:
+
+       page scrollWidth   438 -> 380    (horizontal scroll gone)
+       hamburger right    438 -> 372    (inside the viewport)
+
+   and confirmed visually: the hamburger is present in the top-right of the
+   screenshot afterwards and absent before. The project name and visitor badge
+   now ellipsize instead of shoving the nav off-screen, which is the correct
+   trade — a truncated label is readable, an unreachable menu is not.
+
+   Desktop is untouched: every rule is inside max-width: 767px.
+   --------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+  /* Let the two shrinkable header items actually shrink. */
+  .global-header-inner > .header-left,
+  .global-header-inner > .header-visitor-badge-mobile {
+    min-width: 0;
+  }
+
+  /* Having granted shrink, contain what overflows rather than letting it spill. */
+  .header-left,
+  .header-visitor-badge-mobile {
+    overflow: hidden;
+  }
+
+  /* The project name is the longest variable-width item; ellipsize it. */
+  .project-selector-btn {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
