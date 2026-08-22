@@ -111,8 +111,15 @@
     flex: none !important;
   }
 
-  /* Hide resizer in single-pane mode */
-  .split-view .panel-resizer {
-    display: none;
-  }
+  /* REMOVED: `.split-view .panel-resizer { display: none }`.
+     Writer emits NO element with class `panel-resizer` — measured on the live
+     page, `document.querySelectorAll('.split-view .panel-resizer').length` is 0,
+     while `.h-resizer` returns three (#writer-editor-resizer,
+     #writer-preview-resizer, #writer-details-resizer).
+
+     So the rule intended to hide the handles in single-pane mode could never
+     match, and the handles stayed live for as long as it has existed. A rule
+     that cannot fire reads in review as the problem being handled — the
+     constitution's gate-that-cannot-fail, in CSS. The real hiding is now done
+     by id in editor/tex-view/responsive.css. */
 }
