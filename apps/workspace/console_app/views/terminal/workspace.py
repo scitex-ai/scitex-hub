@@ -4,11 +4,24 @@ Handles user workspace setup and directory initialization
 """
 
 import logging
+import os
+import stat
 from pathlib import Path
 
 from .dotfiles import create_dotfiles_repo, create_dotfiles_symlinks
 
 logger = logging.getLogger(__name__)
+
+# The floor every workspace directory is pinned to, EXPLICITLY.
+#
+# ``mkdir``/``makedirs`` cannot express this: their ``mode=`` argument is
+# masked by the caller's umask. Measured 2026-08-22 on this interpreter,
+# ``os.makedirs(mode=0o755)`` yields 0755 at umask 0022, 0750 at umask 0027 and
+# 0700 at umask 0077, while ``os.chmod(0o755)`` yields 0755 at every one of
+# them. A workspace whose permissions depend on the ambient umask of whichever
+# process happened to spawn the terminal is the defect, not the symptom — so
+# the mode is asserted after creation, by chmod, unconditionally.
+WORKSPACE_DIR_MODE = 0o755
 
 
 def ensure_workspace_sync(user_data_dir: Path, username: str, project_slug: str):
@@ -31,18 +44,43 @@ def ensure_workspace_sync(user_data_dir: Path, username: str, project_slug: str)
     # Ensure scitex/downloads/ for paste/drop uploads
     (project_dir / "scitex" / "downloads").mkdir(parents=True, exist_ok=True)
 
-    # Ensure directories are accessible from the host for SLURM bind mounts.
-    # Docker creates these as root (UID 100019 on host via fakeroot),
-    # but SLURM jobs run as the host user and need read+exec access.
-    import os
-
-    for d in [user_data_dir, user_data_dir / "proj", project_dir]:
+    # Pin the mode of everything just created. Two reasons, and the second is
+    # why this is unconditional now:
+    #
+    #  * SLURM bind mounts and host-side tooling read this tree as other
+    #    identities and need read+exec.
+    #  * The health check behind the site-wide "Server:" badge lists every
+    #    directory under ``data/users`` and marks the WHOLE check unhealthy on
+    #    a single PermissionError. Measured 2026-08-16: one visitor home at
+    #    mode 0700 rendered "Server: partial" in the header for every visitor,
+    #    anonymous ones included, for days, with nothing connecting the two.
+    #
+    # The previous form was `if not (st.st_mode & 0o005): chmod(... | 0o755)`.
+    # That test is an OR over two bits, so mode 0701 — execute-for-other but
+    # not read — satisfied it and was left un-widened, unlistable and silent.
+    # Bits are only ever ADDED here: narrowing a directory as a side effect of
+    # a repair is the mechanism this whole change is about.
+    for d in [
+        user_data_dir,
+        user_data_dir / "proj",
+        user_data_dir / ".singularity",
+        project_dir,
+    ]:
         try:
-            st = d.stat()
-            if not (st.st_mode & 0o005):  # not world-readable+exec
-                os.chmod(d, st.st_mode | 0o755)
-        except OSError:
-            pass
+            current = stat.S_IMODE(d.stat().st_mode)
+            if current & WORKSPACE_DIR_MODE != WORKSPACE_DIR_MODE:
+                os.chmod(d, current | WORKSPACE_DIR_MODE)
+        except OSError as exc:
+            # Not fatal here — an ordinary terminal spawn must not be blocked
+            # by a directory somebody else owns — but never silent either: the
+            # consequence is a page that cannot read its own workspace and a
+            # degraded site badge, and this used to be a bare `pass`.
+            logger.error(
+                f"Could not pin mode {WORKSPACE_DIR_MODE:04o} on {d} for "
+                f"{username}: {exc}. If the app cannot list it, the workspace "
+                f"is unreadable AND the site-wide health badge reports "
+                f"degraded until it is fixed."
+            )
 
     # Create ~/proj/dotfiles as git repo (visible in project list)
     dotfiles_dir = user_data_dir / "proj" / "dotfiles"

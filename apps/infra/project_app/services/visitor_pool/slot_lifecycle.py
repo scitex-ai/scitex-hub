@@ -211,6 +211,16 @@ def reset_and_verify_slot(
             user, gitea_client=gitea_client, clone_fn=clone_fn, run_cmd=run_cmd
         )
     except Exception as exc:
+        # Quarantine the slot (correct), but do not let it take the whole site
+        # with it. A reset that raised mid-pipeline can leave the home root at
+        # mode 0700, and the health check behind the site-wide "Server:" badge
+        # marks itself unhealthy on one unlistable directory under data/users.
+        # Measured 2026-08-16: one quarantined slot read "Server: partial" for
+        # every visitor for days. See home_access.leave_home_root_listable.
+        from .home_access import leave_home_root_listable
+        from .home_state import visitor_home_root
+
+        leave_home_root_listable(visitor_home_root(user))
         quarantine_slot(allocation, f"reset failed: {exc}")
         return False
 
