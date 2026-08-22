@@ -113,4 +113,25 @@
   #writer-details-resizer {
     display: none;
   }
+
+  /* The SAME reasoning applies to the editor/preview handles, and #662 missed
+     them. At this width the panes are a TOGGLED single-pane arrangement
+     (.latex-panel.collapse / .preview-panel.showin — each measured 380px, i.e.
+     full width, one shown at a time), so neither handle resizes anything.
+
+     They are not merely useless, they are HOSTILE. Each survives as a 2x748px
+     sliver whose ::before extends left:-10px right:-10px — a 22px-wide
+     invisible tap target layered over the panel beneath. Measured on the live
+     page with elementFromPoint, 8px to the left of the sliver:
+
+         before hiding -> "writer-editor-resizer"   (the invisible handle)
+         after  hiding -> "panel-header"            (the real control)
+
+     So a tap aimed at the panel header was being swallowed by a control that
+     cannot act. Hiding them changed nothing else: .latex-panel 380,
+     .preview-panel 380, #writer-mode-selector 380x56, all unchanged. */
+  #writer-editor-resizer,
+  #writer-preview-resizer {
+    display: none;
+  }
 }
