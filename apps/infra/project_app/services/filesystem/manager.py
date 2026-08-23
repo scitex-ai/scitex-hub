@@ -6,12 +6,10 @@ all filesystem operations for SciTeX projects.
 """
 
 import os
-import shutil
 import json
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime
-from django.conf import settings
 from django.contrib.auth.models import User
 from ...models import Project
 from .paths import (
@@ -239,35 +237,35 @@ class ProjectFilesystemManager:
             if not project_path.parent.exists():
                 project_path.parent.mkdir(parents=True, exist_ok=True)
 
-            if template_type == "research":
-                template_master = Path(
-                    getattr(
-                        settings,
-                        "VISITOR_TEMPLATE_PATH",
-                        "/app/templates/research-master",
-                    )
-                )
-
-                if not template_master.exists():
-                    from scitex.template import clone_research as clone_template
-
-                    success = clone_template(
-                        str(project_path), git_strategy=None, branch=None, tag=None
-                    )
-                else:
-                    shutil.copytree(template_master, project_path, symlinks=True)
-                    success = True
+            # Every template type delegates to scitex.template — the 2026-02-08
+            # migration (68e5bd0b5 "Remove research-master, delegate to
+            # scitex.template") completed, and this is the whole of it.
+            #
+            # WHAT WAS REMOVED HERE, so nobody restores it by accident: a
+            # local-copy fast path for template_type == "research", guarded by
+            # `getattr(settings, "VISITOR_TEMPLATE_PATH", "/app/templates/
+            # research-master")`. It was DEAD in three independent ways:
+            #   1. VISITOR_TEMPLATE_PATH is set NOWHERE — the only occurrences
+            #      are this getattr and four COMMENTED-OUT test lines.
+            #   2. its default named templates/research-master/, deleted by that
+            #      same 2026-02-08 commit. Verified absent from the running prod
+            #      image, not merely from the repo.
+            #   3. so `template_master.exists()` was always False and the copy
+            #      branch never executed. The `research` special case existed
+            #      ONLY to hold it, which is why removing it collapses the
+            #      branch entirely.
+            # It read like a configurable optimisation and was an unreachable
+            # branch pointing at a grave.
+            if template_type == "pip_project":
+                from scitex.template import clone_pip_project as clone_template
+            elif template_type == "singularity":
+                from scitex.template import clone_singularity as clone_template
             else:
-                if template_type == "pip_project":
-                    from scitex.template import clone_pip_project as clone_template
-                elif template_type == "singularity":
-                    from scitex.template import clone_singularity as clone_template
-                else:
-                    from scitex.template import clone_research as clone_template
+                from scitex.template import clone_research as clone_template
 
-                success = clone_template(
-                    str(project_path), git_strategy=None, branch=None, tag=None
-                )
+            success = clone_template(
+                str(project_path), git_strategy=None, branch=None, tag=None
+            )
 
             if success:
                 customize_template_for_project(project_path, project, template_type)
