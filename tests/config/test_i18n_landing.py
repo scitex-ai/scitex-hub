@@ -33,6 +33,7 @@ and the switch must be AUTOMATIC from the visitor's browser preference:
 
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -53,6 +54,19 @@ SWITCHER_TEMPLATE = "global_base_partials/language_switcher.html"
 # template path, and the interpolating one (blocktrans).
 CTA_EN = "Enter as visitor"
 CTA_JA = "ゲストとして試す"
+
+
+def _reverse_or_none(name):
+    """reverse(), returning None instead of raising, so the test keeps one assert.
+
+    A NoReverseMatch here means the route is absent, which is exactly the thing
+    under test — turning it into a value keeps the failure on the assertion line
+    rather than in an exception handler.
+    """
+    try:
+        return reverse(name)
+    except NoReverseMatch:
+        return None
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -78,6 +92,47 @@ def compiled_catalogs():
     # the .mo existed would be an empty catalog that never reloads.
     translation.trans_real._translations.clear()
     yield
+
+
+# ---------------------------------------------------------------------------
+# The constraint that marking branding strings actually broke
+# ---------------------------------------------------------------------------
+def test_branding_stays_importable_while_settings_are_composing():
+    """config/branding.py must not import Django at module scope.
+
+    Its docstring has said so for a long time; this asserts it, because the
+    docstring did not stop me from adding ``from django.utils.translation
+    import gettext_noop`` and breaking every environment's settings import.
+
+    ``settings_shared.py`` calls ``branding.normalize_env(...)`` while composing
+    settings, so a Django import here is circular: django.utils.translation ->
+    django.conf.settings -> config.settings -> settings_shared -> back into a
+    half-executed config.branding, where ``normalize_env`` does not exist yet.
+
+    Run in a SUBPROCESS on purpose. In-process the module is already imported
+    and fully initialized by the time any test runs, so an in-process import
+    passes no matter what — it would be a check that cannot fail.
+    """
+    # Arrange — DJANGO_SETTINGS_MODULE must be SET, since it is what makes
+    # django.conf.settings resolve back into config.settings and close the loop.
+    environment = dict(os.environ)
+    environment["DJANGO_SETTINGS_MODULE"] = "config.settings.settings_dev"
+    environment["PYTHONPATH"] = os.pathsep.join(
+        [str(PROJECT_ROOT), environment.get("PYTHONPATH", "")]
+    ).rstrip(os.pathsep)
+    # Act
+    result = subprocess.run(
+        [sys.executable, "-c", "import config.branding"],
+        cwd=str(PROJECT_ROOT),
+        env=environment,
+        capture_output=True,
+        text=True,
+    )
+    # Assert
+    assert result.returncode == 0, (
+        "config/branding.py is no longer importable during settings "
+        f"composition:\n{result.stderr}"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -111,12 +166,9 @@ def test_set_language_endpoint_is_routed():
     # Arrange
     expected = "/i18n/setlang/"
     # Act
-    try:
-        actual = reverse("set_language")
-    except NoReverseMatch as exc:  # pragma: no cover - failure path
-        pytest.fail(f"django.conf.urls.i18n not included in config/urls.py: {exc}")
+    actual = _reverse_or_none("set_language")
     # Assert
-    assert actual == expected
+    assert actual == expected, "django.conf.urls.i18n not included in config/urls.py"
 
 
 # ---------------------------------------------------------------------------
@@ -221,7 +273,17 @@ def test_hero_blocktrans_keeps_the_interpolated_version(hero_context):
         html = render_to_string(HERO_TEMPLATE, hero_context)
     # Assert
     assert expected_version in html
-    assert "アルファ版" in html
+
+
+def test_hero_blocktrans_is_translated(hero_context):
+    """Paired with the test above: the banner must be Japanese, not just filled."""
+    # Arrange
+    expected = "アルファ版"
+    # Act
+    with translation.override("ja"):
+        html = render_to_string(HERO_TEMPLATE, hero_context)
+    # Assert
+    assert expected in html
 
 
 # ---------------------------------------------------------------------------
@@ -234,19 +296,42 @@ def switcher_html():
         return render_to_string(SWITCHER_TEMPLATE, {"request": request})
 
 
-def test_switcher_posts_to_set_language(switcher_html):
-    """set_language requires POST since Django 4.0; a GET is answered 405."""
+def test_switcher_targets_the_set_language_endpoint(switcher_html):
     # Arrange
     expected = 'action="/i18n/setlang/"'
-    # Act / Assert
-    assert expected in switcher_html
-    assert 'method="post"' in switcher_html
+    # Act
+    actual = switcher_html
+    # Assert
+    assert expected in actual
 
 
-def test_switcher_offers_both_languages(switcher_html):
-    # Arrange / Act / Assert — name_local, so each reads in its own language
-    assert "English" in switcher_html
-    assert "日本語" in switcher_html
+def test_switcher_posts_rather_than_gets(switcher_html):
+    """set_language requires POST since Django 4.0; a GET is answered 405."""
+    # Arrange
+    expected = 'method="post"'
+    # Act
+    actual = switcher_html
+    # Assert
+    assert expected in actual
+
+
+def test_switcher_offers_english(switcher_html):
+    """name_local, so each option reads in its own language."""
+    # Arrange
+    expected = "English"
+    # Act
+    actual = switcher_html
+    # Assert
+    assert expected in actual
+
+
+def test_switcher_offers_japanese(switcher_html):
+    # Arrange
+    expected = "日本語"
+    # Act
+    actual = switcher_html
+    # Assert
+    assert expected in actual
 
 
 def test_switcher_marks_the_current_language(switcher_html):
@@ -263,5 +348,7 @@ def test_switcher_returns_to_the_current_page(switcher_html):
     """Without `next`, set_language redirects to "/" and loses the visitor."""
     # Arrange
     expected = 'name="next" value="/landing/"'
-    # Act / Assert
-    assert expected in switcher_html
+    # Act
+    actual = switcher_html
+    # Assert
+    assert expected in actual

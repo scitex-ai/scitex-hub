@@ -4,15 +4,23 @@
 
 WHY THIS EXISTS RATHER THAN `django-admin compilemessages`
 ----------------------------------------------------------
-`compilemessages` shells out to `msgfmt`, and msgfmt is NOT INSTALLED where
-this project runs. Measured 2026-08-23 in three places:
+`compilemessages` shells out to `msgfmt`. Measured 2026-08-23 across the four
+environments this project actually runs in:
 
-    scitex-hub agent container      msgfmt ABSENT   babel 2.18.0 present
-    scitex-hub-prod-django:latest   msgfmt ABSENT   babel 2.18.0 present
-    scitex-app's container          msgfmt ABSENT   babel 2.18.0 present
+    scitex-hub agent container      msgfmt ABSENT    babel 2.18.0 present
+    scitex-hub-prod-django:latest   msgfmt ABSENT    babel 2.18.0 present
+    scitex-app's container          msgfmt ABSENT    babel 2.18.0 present
+    scitex-hub-dev-django-1         msgfmt PRESENT   babel 2.18.0 present
 
-Three environments, three absences, one common tool. So the pure-Python path
-is not a convenience — it is the only one that works anywhere we deploy.
+msgfmt is present in exactly one of the four — and the three without it include
+the PRODUCTION image. babel is present in all four. So `compilemessages` would
+work in dev and fail in prod, which is the worst available split: green where
+you test, broken where the users are. babel is the only tool that behaves the
+same everywhere, which is why this script exists.
+
+(An earlier revision of this docstring claimed msgfmt was absent "anywhere we
+deploy". That was three measurements generalised to four environments; the dev
+container disproves it. The conclusion is unchanged, the reasoning is not.)
 
 WHY IT MATTERS THAT THIS RUNS AT ALL
 ------------------------------------
