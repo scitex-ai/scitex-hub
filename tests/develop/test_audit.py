@@ -66,134 +66,40 @@ _MASKED_COUNT_RE = re.compile(r"audit-all:\s*(\d+)\s+violation\(s\)\s+masked")
 # tracking campaign — per the rule that exemptions are taken one at a
 # time in a reviewable file, never with a blanket flag that silences the
 # whole run.
-SKIP_RULES = (
-    # ============================================================
-    # Project-structure deferrals (audit-project)
-    # ============================================================
-    # Auditor emits hyphenated tags (`[PS-NNN §M ...]`). The
-    # skip_rules matcher does `f"[{r} "` / `f"[{r}]"` substring
-    # checks, so every entry MUST be hyphenated.
-    # PS-139 — `scitex` umbrella listed at [all]. The codebase
-    # uses `scitex.cli`, `scitex._dev`, `scitex.io`, `scitex.clew`,
-    # `scitex._mcp_tools` and friends. Splitting the umbrella into
-    # peer-only requires verifying which peer packages export
-    # each submodule (currently scitex-cli and scitex._mcp_tools
-    # live INSIDE the umbrella, not in dedicated peers). Tracked
-    # under the umbrella-thinning campaign (ADR-0002 §5).
-    "PS-139",
-    # PS-202 / PS-207 — src/scitex_hub/{appmaker, module, _utils,
-    # _config, project/_mcp} have no matching test mirror dir
-    # (PS-202). Creating an empty one trips PS-207
-    # ("empty test directory mirrors src/...; move test_*.py
-    # files in or remove the dir"), and creating real tests is
-    # the orphan-relocation work in PS-204. All three resolve
-    # together once the CLI noun-verb migration (Group C)
-    # settles and the orphan tests get moved into their
-    # canonical homes.
-    "PS-202",
-    "PS-207",
-    # PS-204 — orphan tests under tests/scitex_hub/ predate the
-    # mirror-dir convention. Resolving means relocating files
-    # like tests/scitex_hub/test_docker.py to
-    # tests/scitex_hub/_cli/test_docker.py, which conflicts with
-    # the in-flight CLI noun-verb migration (Group C). Defer
-    # until the noun-verb structure stabilises, then relocate.
-    "PS-204",
-    # PS-302 — tests/{apps,js,ui,ts,unit,api,config,db,fixtures}
-    # use legacy top-level subdirs. The auditor wants
-    # tests/scitex_hub/{...}. This is hundreds of files; the
-    # move must be coordinated with pytest config, conftest
-    # discovery, CI workflow paths, and editor config. Tracked
-    # as a dedicated structural PR.
-    "PS-302",
-    # PS-221 — public extra [dev] not a subset of [all]. New rule
-    # in the scitex-dev release of ~2026-07-19 (audit went red on
-    # main 07-19 with no hub change). Both suggested fixes are
-    # wrong here: (a) folding [dev] into [all] ships black/ruff/
-    # scitex-dev to user installs and self-referencing
-    # `scitex-hub[dev]` from [all] reintroduces the recursive-
-    # extra resolution that halted the v0.18.0 release (see the
-    # [project.optional-dependencies] header); (b) the `_dev`
-    # rename produces an extra name with a leading underscore,
-    # which fails PEP 685 / packaging name normalization (must
-    # start alphanumeric) on current setuptools. [dev] is
-    # documented as internal-only in the pyproject header.
-    # Raised with scitex-dev (DM 2026-07-21) — lift this skip
-    # when the auditor gains a sanctioned way to declare an
-    # extra internal.
-    "PS-221",
-    # "defer" — NOT a rule: the auditor's own notice line
-    # `[defer] scitex-hub: 18 PS-103 finding(s) suppressed by
-    # 'project-type: deferred'` starts with a bracketed token, so
-    # audit_all_for_package's classifier (scitex-dev 0.33.0,
-    # _audit_conformance: payload.startswith("[")) counts it as a
-    # violation that matches no skip rule. Result: once ANY
-    # E-level rule makes the CLI exit non-zero, the re-classify
-    # path can never conclude "all skipped" — skip_rules is dead
-    # for every project-type:deferred repo. This entry matches
-    # the notice via the same `f"[{r}]" in line` mechanism.
-    # Remove when scitex-dev excludes notice lines from
-    # classification (reported upstream 2026-07-21).
-    # NOTE: this entry appeared TWICE in this tuple until
-    # 2026-07-25 (the duplicate carried a second, redundant copy
-    # of the same rationale). Deduplicated — a skip list that
-    # repeats itself is a list nobody is reading.
-    "defer",
-    # ============================================================
-    # Python-API deferrals (audit-python-apis)
-    # ============================================================
-    # PA-202 — package root __init__.py version is hard-coded.
-    # Switch to `importlib.metadata.version("scitex-hub")` once
-    # the release pipeline confirms it round-trips correctly on
-    # the editable install + the wheel build. Mirrors scitex-io.
-    "PA-202",
-    # PA-501 — `from __future__ import annotations` missing on
-    # package root __init__.py. Cosmetic; tracked with the
-    # broader PA-501 migration in the ecosystem.
-    "PA-501",
-    # PA-306 — no-mocks. Existing tests use unittest.mock /
-    # pytest-mock. The de-mocking effort spans hundreds of
-    # tests across every app. Tracked as the TQ-migration
-    # campaign (the same one scitex-io / scitex-orochi defer).
-    "PA-306",
-    # PA-307 — test-quality (AAA structure, single-assertion
-    # principle). 5000+ violations across the existing suite.
-    # Same TQ-migration campaign as PA-306. When this lands,
-    # the gate should be tightened to error-on-regression
-    # rather than blanket-defer.
-    "PA-307",
-    # ============================================================
-    # CLI / MCP convention deferrals (audit-cli, audit-mcp-tools)
-    # ============================================================
-    # The §-rules cover noun-verb shape, --json/--dry-run/--yes
-    # flags, help examples, Python-API <-> MCP-tool parity, and
-    # required skills tools. The current `scitex-hub` CLI
-    # predates these rules; the noun-verb migration is a large
-    # separate campaign (see GROUP C in the audit-restoration
-    # PR). The CLI itself works and is exercised by
-    # tests/scitex_hub/test_cli.py — these rules cover its
-    # shape, not its correctness.
-    "§2",
-    "§4",
-    "§5",
-    "§6",
-    "§6b",
-    # §1f (non-canonical verb synonyms, e.g. check→validate) and
-    # §4b (free-form help vs CliHelp) are finer-grained sub-rules
-    # the newer audit corpus split out of the SAME noun-verb /
-    # help-format campaign the §-rules above already defer. The
-    # matcher is exact ("§4" does not substring-cover "§4b"), so
-    # they need their own entries. Same Group-C deferral + tracking.
-    "§1f",
-    "§4b",
-    # §13 (self-maintenance commands nest under `dev`, e.g.
-    # `scitex-hub skills` → `scitex-hub dev skills`) — new rule in
-    # the ~2026-07-21 corpus; same CLI-restructure campaign as the
-    # noun-verb Group-C deferrals above. Moving `skills` under a
-    # `dev` group (or registering a deprecated_alias) is a CLI
-    # contract MIGRATION, not a one-liner — do it with Group C.
-    "§13",
-)
+# Documented deferrals now live in `.scitex/dev/config.yaml` under
+# `audit.skip-rules`, and are READ FROM THERE rather than restated here.
+#
+# WHY THE MOVE (measured on PR #683, scitex-dev 0.56.4, 2026-08-23):
+# this used to be a literal tuple handed to `audit_all_for_package(...,
+# skip_rules=...)`. That only ever worked while scitex-dev graded
+# in-process. Newer scitex-dev shells out to its own CLI —
+#
+#     python -m scitex_dev ecosystem audit-all scitex-hub --path <repo>
+#
+# — with no skip-rules argument, so the tuple never reached the auditor.
+# Every declared deferral came back as an unmasked error and the run
+# reported `0 masked by skip-rules (0 declared)`: 47 unmasked errors, and
+# the ONLY two red checks in a run of 4577 passing tests. That is also
+# precisely what hub's `scitex-dev==0.43.1` pin was holding off, which is
+# why the pin could not become a floor until this moved.
+#
+# The config file is on disk, so the shelled-out CLI reads it directly and
+# the deferrals no longer depend on which scitex-dev is resolved. Measured
+# after the move, same version: `0 unmasked error(s), 41 masked by
+# skip-rules (20 declared)`.
+#
+# Reading them back here keeps ONE source of truth: the in-process path
+# and the CLI path cannot disagree, because there is only one list.
+def _declared_skip_rules():
+    """Rule ids declared in `.scitex/dev/config.yaml` -> `audit.skip-rules`."""
+    import yaml
+
+    config = Path(__file__).resolve().parents[2] / ".scitex" / "dev" / "config.yaml"
+    entries = yaml.safe_load(config.read_text())["audit"]["skip-rules"]
+    return tuple(entry["rule"] for entry in entries)
+
+
+SKIP_RULES = _declared_skip_rules()
 
 
 def _require_audit_tooling():
@@ -292,4 +198,30 @@ def test_masked_violation_count_within_ceiling(audit_masked_count):
         "list grew: fix the violations, or trade an existing SKIP_RULES "
         "entry out so the total does not rise. Do not raise the ceiling — "
         "that is the mask growing, not the gate passing."
+    )
+
+
+def test_every_declared_deferral_states_a_reason():
+    """A deferral that cannot say why is the abandonment this list catches.
+
+    The auditor rejects a reasonless entry loudly, so this only fails when
+    the file is edited without running an audit — which is exactly when a
+    bare rule id would otherwise slip in. It also guards the shape
+    `_declared_skip_rules` depends on: a plain string entry (the shorthand
+    mapping form) parses fine as YAML and would raise TypeError there.
+    """
+    # Arrange
+    import yaml
+
+    config = Path(__file__).resolve().parents[2] / ".scitex" / "dev" / "config.yaml"
+    entries = yaml.safe_load(config.read_text())["audit"]["skip-rules"]
+    # Act
+    reasonless = [
+        entry for entry in entries
+        if not isinstance(entry, dict) or not str(entry.get("reason", "")).strip()
+    ]
+    # Assert
+    assert reasonless == [], (
+        f"skip-rules entries with no written rationale: {reasonless}. Every "
+        "deferral must say why, in writing, next to the rule it defers."
     )
