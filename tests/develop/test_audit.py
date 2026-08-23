@@ -126,6 +126,35 @@ def _require_audit_tooling():
     )
 
 
+# audit-all's own summary line, e.g.
+#   summary: scitex-hub: 0 unmasked error(s), 148 masked by skip-rules (20 declared)
+_CLI_MASKED_RE = re.compile(r"(\d+)\s+masked by skip-rules")
+
+
+def _masked_count_from_cli(repo):
+    """Masked-violation count read from audit-all's own masked inventory.
+
+    Costs a second audit run, deliberately. The alternative is to infer the
+    number, and this gate exists precisely because an inferred green is not a
+    green — the ratchet has to compare against a number the auditor actually
+    reported, or it is measuring its own assumption.
+
+    Returns None when the line cannot be found, which the tests below treat
+    as a failure. "I could not tell" must never collapse into "nothing was
+    masked".
+    """
+    import subprocess
+    import sys
+
+    proc = subprocess.run(
+        [sys.executable, "-m", "scitex_dev", "ecosystem", "audit-all",
+         "scitex-hub", "--path", str(repo)],
+        capture_output=True, text=True, timeout=600.0,
+    )
+    match = _CLI_MASKED_RE.search(proc.stdout + proc.stderr)
+    return int(match.group(1)) if match else None
+
+
 @pytest.fixture(scope="module")
 def audit_masked_count():
     """Run the audit ONCE for this module; yield the masked-violation count.
@@ -167,7 +196,19 @@ def audit_masked_count():
         if match:
             yield int(match.group(1))
             return
-    yield None
+    # No warning — which is now the NORMAL path, not a broken one.
+    #
+    # `audit_all_for_package` only emits that warning when IT does the
+    # masking, in its own re-classification of the CLI's output. Now that the
+    # deferrals live in `.scitex/dev/config.yaml`, the CLI masks them itself
+    # and exits 0, so the helper returns before ever reaching that branch and
+    # there is no warning to read. Measured on PR #683: the audit PASSED and
+    # this fixture still failed, because "no warning" used to mean "unknown".
+    #
+    # The count is not lost, it MOVED: audit-all prints its own masked
+    # inventory. Read it from there rather than treating the authoritative
+    # source as an absence.
+    yield _masked_count_from_cli(Path(__file__).resolve().parents[2])
 
 
 def test_audit_all_clean(audit_masked_count):
