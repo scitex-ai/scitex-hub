@@ -65,6 +65,61 @@ def test_html_lang_matches_the_active_language(language):
     )
 
 
+def _rendered_base(language="ja"):
+    from django.test import RequestFactory
+
+    context = {
+        "request": RequestFactory().get("/landing/"),
+        "SITE_TAGLINE": "タグライン",
+        "SCITEX_HUB_VERSION": "0.1.0",
+        "CONTACT_EMAIL": "info@scitex.ai",
+    }
+    with translation.override(language):
+        return render_to_string(BASE_TEMPLATE, context)
+
+
+def test_doctype_is_not_pushed_down_by_template_tags():
+    """`<!DOCTYPE html>` must stay at the top of the response.
+
+    I BROKE THIS MAKING THE FIX ABOVE. Adding `{% load i18n %}` and
+    `{% get_current_language %}` as their own LINES put two extra newlines ahead
+    of the doctype:
+
+        before:  '\\n\\n<!DOCTYPE html>'
+        after:   '\\n\\n\\n\\n<!DOCTYPE html>'
+
+    A template tag renders to the empty string, but the LINE it sits on still
+    emits its newline — and those newlines land before the doctype. Leading
+    whitespace there can put a browser into QUIRKS MODE, which changes the box
+    model for the whole site. That is a worse defect than the attribute I was
+    fixing, and it was invisible to the lang assertions, which only look at the
+    <html> tag.
+
+    Fixed by putting both tags on the SAME line as the existing `{% load %}`, so
+    the leading bytes are identical to before the change.
+    """
+    # Arrange — 2 is what develop had: the load line's newline plus one blank.
+    expected_max = 2
+    # Act
+    html = _rendered_base()
+    leading = len(html) - len(html.lstrip())
+    # Assert
+    assert leading <= expected_max, (
+        f"{leading} whitespace characters precede <!DOCTYPE html>. Template "
+        "tags on their own lines each emit a newline; put them on one line."
+    )
+
+
+def test_doctype_is_the_first_markup():
+    """Paired with the count above: whitespace is not the only way to break it."""
+    # Arrange
+    expected = "<!doctype"
+    # Act
+    actual = _rendered_base().lstrip()[: len(expected)].lower()
+    # Assert
+    assert actual == expected
+
+
 def test_the_two_languages_do_not_render_the_same_lang():
     """Control. A hardcoded value passes one case above by coincidence.
 
