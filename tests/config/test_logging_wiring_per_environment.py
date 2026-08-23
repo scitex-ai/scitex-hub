@@ -135,6 +135,11 @@ payload = {
         for name, logger in config.get("loggers", {}).items()
     },
     "root": list(config.get("root", {}).get("handlers", [])),
+    "filters": {
+        name: list(handler.get("filters", []))
+        for name, handler in config.get("handlers", {}).items()
+    },
+    "debug": bool(getattr(module, "DEBUG", False)),
 }
 with open(sys.argv[2], "w", encoding="utf-8") as fh:
     json.dump(payload, fh)
@@ -275,6 +280,38 @@ class TestEveryDeployedEnvironmentIsWired:
             "LOGGING with dict.update instead of "
             "config.settings._logging_merge.merge_logging: update REPLACES the "
             "loggers section and takes the base's wiring with it."
+        )
+
+    def test_no_attached_handler_is_silenced_by_its_own_environment(
+        self, settings_module
+    ):
+        """A handler wired to a logger must be able to EMIT in this environment.
+
+        The sibling test above asks whether a handler is ATTACHED. That is the
+        adjacent question, and prod passed it for months while logging nothing
+        to stdout: ``console`` was attached to seven loggers and carried
+        ``require_debug_true`` in an environment with ``DEBUG = False``, so
+        every record routed to a handler that could not fire. Wired and inert
+        greps as working, which is worse than unattached.
+        """
+        # Arrange
+        config = composed(settings_module)
+        debug = config["debug"]
+        forbidden = "require_debug_true" if not debug else "require_debug_false"
+        # Act
+        silenced = sorted(
+            name
+            for name in _handlers_referenced(config)
+            if forbidden in config["filters"].get(name, [])
+        )
+        # Assert
+        assert not silenced, (
+            f"In COMPOSED {settings_module} (DEBUG={debug}) these handlers are "
+            f"attached to a logger but carry {forbidden!r}, so they cannot emit "
+            f"a single record here: {silenced}. Every logger pointing at them "
+            "is writing to nothing. Attachment is not the same as delivery, and "
+            "this is the gate-that-cannot-fail shape the constitution names: "
+            "the config still lists it and everyone believes it is working."
         )
 
     @pytest.mark.parametrize("logger_name", LOGGERS_THAT_MUST_MAIL_ADMINS)
