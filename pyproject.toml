@@ -139,12 +139,23 @@ dependencies = [
     # Every PR in the Spartan migration introduces a new hosted runner by
     # construction, so the ratchet blocks precisely the PRs that comply with
     # the operator's 2026-08-05 ruling
-    # (「スパルタンのCIは全面的にやめましょう」). 0.43.1 deletes the ratchet
+    # (「スパルタンのCIは全面的にやめましょう」 — SINCE WITHDRAWN, see below).
+    # 0.43.1 deletes the ratchet
     # and makes PS-169 a flat advisory W — upstream's words: "A gate that
     # permits the accumulated mess and blocks its correction is worse than no
     # gate." There is no exemption path for PS-169 in any version
     # (`audit.exemptions` is loaded per-check and PS-169 never loads it), so
     # moving the corpus is the only fix that is not a lie.
+    #
+    # THE 2026-08-05 RULING CITED ABOVE WAS REVERSED on 2026-08-13
+    # (「あー憲法が古い、スパルタンのci使ってください、圧倒的に早いので」);
+    # constitution §4 now permits and PREFERS Spartan CI where it is faster.
+    # It is named above only to date the migration that hit this ratchet.
+    # NOTHING HERE DEPENDS ON IT: PS-169's retirement was correct on
+    # upstream's own grounds — a gate that permits the accumulated mess and
+    # blocks its correction is worse than no gate — whichever runner pool we
+    # are moving toward. Do not re-add the ratchet on the theory that the
+    # policy behind its removal is gone; the policy was never the reason.
     #
     # FLOOR, NOT AN EXACT PIN — operator ruling 2026-08-23
     # (「ミニマム指定でいいんじゃないでしょうか」), taken after the prod deploy was
