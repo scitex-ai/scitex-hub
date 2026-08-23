@@ -1,7 +1,8 @@
 {% load static vite branding_tags i18n %}{% get_current_language as LANGUAGE_CODE %}
 
 <!DOCTYPE html>
-{# lang MUST follow the ACTIVE language, not a constant.
+{% comment %}
+   lang MUST follow the ACTIVE language, not a constant.
 
    It was hardcoded to "en" while the page served Japanese — measured on the
    live site 2026-08-23: django_language=ja, every visible string Japanese, and
@@ -11,7 +12,14 @@
    reader picks its voice and pronunciation rules from this attribute, so a
    Japanese page announced as English is read aloud wrong; search engines index
    the page as English. This landing page exists to be read by Japanese
-   investors and lenders, which is precisely the audience both of those hurt. #}
+   investors and lenders, which is precisely the audience both of those hurt.
+
+   COMMENT TAG, NOT {# #}: Django's hash comment is SINGLE-LINE ONLY. Written
+   as a multi-line {# #} this whole block rendered VERBATIM to visitors, on
+   every page extending this template. Caught by
+   tests/apps/public_app/views/test_landing_body_class.py, which exists for
+   exactly this and named the offender by file and line.
+{% endcomment %}
 <html lang="{{ LANGUAGE_CODE }}">
     <head>
         {# Single source of truth for tab titles: config/branding.py #}
