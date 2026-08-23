@@ -12,14 +12,29 @@ and favicon policy below can be lifted verbatim into a shared SciTeX package
 in ``favicon_for_env``.
 """
 
+from django.utils.translation import gettext_noop
+
 # Core branding
 SITE_NAME = "SciTeX"
 # The tagline is TWO lines: the promise, then what SciTeX is. Both are shown
 # together wherever the brand introduces itself (the landing hero), so they are
 # defined together here rather than one in a template and one in Python.
-SITE_TAGLINE = "Research Automation for AI and Humans"
-SITE_TAGLINE_SECONDARY = "Open-source Scientific Research Automation Ecosystem"
-SITE_DESCRIPTION = (
+#
+# WHY gettext_noop AND NOT gettext_lazy. These constants are interpolated into
+# f-strings immediately below (META_DESCRIPTION_DEFAULT, META_DESCRIPTION_LONG,
+# OG_TITLE). An f-string calls __format__ AT IMPORT TIME, which would resolve a
+# lazy object once, in whatever language happened to be active during startup,
+# and freeze it there for every subsequent request. gettext_noop returns the str
+# UNCHANGED — so the f-strings keep working exactly as before — while still
+# making the literal visible to `makemessages` for extraction.
+#
+# Translation therefore happens at the USE SITE, in the context processor, where
+# there is a request and an active language. See config/context_processors.py.
+SITE_TAGLINE = gettext_noop("Research Automation for AI and Humans")
+SITE_TAGLINE_SECONDARY = gettext_noop(
+    "Open-source Scientific Research Automation Ecosystem"
+)
+SITE_DESCRIPTION = gettext_noop(
     "Python toolkit + MCP server for literature search, "
     "statistics, visualization, and manuscript writing."
 )

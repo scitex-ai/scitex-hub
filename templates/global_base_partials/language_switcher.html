@@ -1,0 +1,54 @@
+{% load i18n %}
+
+{% comment %}
+Language switcher — the MANUAL OVERRIDE, not the primary mechanism.
+
+Language is chosen AUTOMATICALLY by LocaleMiddleware from the visitor's
+Accept-Language header (operator, 2026-08-23: 「アクセス者の言語 preference を
+取って自動で日本語英語切り替えるようにしてほしいです」). This control exists for
+when that guess is wrong — a Japanese researcher on a machine configured in
+English, or an English reader on a Japanese-locale laptop.
+
+POST, NOT GET, AND NOT A LINK. Django's set_language has REQUIRED POST since
+4.0; a GET is answered 405 and the language silently does not change. So this
+must be a real form with a CSRF token, which is also why it is not just an
+<a href> pair.
+
+Rendered only when more than one language is configured, so a single-language
+deployment does not show a control with one option in it.
+{% endcomment %}
+
+{% get_current_language as CURRENT_LANGUAGE %}
+{% get_available_languages as AVAILABLE_LANGUAGES %}
+
+{% if AVAILABLE_LANGUAGES|length > 1 %}
+    <form action="{% url 'set_language' %}"
+          method="post"
+          class="language-switcher">
+        {% csrf_token %}
+        {# Where to return after switching. set_language validates this against #}
+        {# allowed hosts, so a same-site relative path is what it accepts.      #}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+        <label for="language-switcher-select" class="language-switcher-label">
+            <i class="fas fa-globe"></i>
+            <span class="sr-only">{% trans "Language" %}</span>
+        </label>
+        <select id="language-switcher-select"
+                name="language"
+                class="language-switcher-select"
+                onchange="this.form.submit()">
+            {% get_language_info_list for AVAILABLE_LANGUAGES as languages %}
+            {% for language in languages %}
+                <option value="{{ language.code }}"
+                        {% if language.code == CURRENT_LANGUAGE %}selected{% endif %}>
+                    {{ language.name_local }}
+                </option>
+            {% endfor %}
+        </select>
+        {# Keyboard/no-JS path: onchange submit covers the mouse, this covers   #}
+        {# everyone else. Hidden from pointer users via CSS, never from a11y.   #}
+        <noscript>
+            <button type="submit" class="language-switcher-go">{% trans "Language" %}</button>
+        </noscript>
+    </form>
+{% endif %}

@@ -147,13 +147,26 @@ def site_branding(request):
     Expose site branding constants to all templates.
     Single source of truth: config/branding.py
     """
+    from django.utils.translation import gettext
+
     from config import branding
 
+    # TRANSLATED HERE, NOT IN branding.py, and the distinction is load-bearing.
+    # branding.py marks these with gettext_noop so `makemessages` can extract
+    # them while leaving the value a plain str for the f-strings it builds at
+    # import time. This is the use site: a request is in flight, LocaleMiddleware
+    # has resolved the language, and gettext() therefore returns the visitor's
+    # language rather than whatever was active when the process booted.
+    #
+    # A missing translation returns the msgid unchanged, so an untranslated
+    # string renders in English rather than erroring — which is why the startup
+    # warning about uncompiled catalogs matters: without it, "no Japanese" and
+    # "no compiled catalog" look identical on the page.
     return {
         "SITE_NAME": branding.SITE_NAME,
-        "SITE_TAGLINE": branding.SITE_TAGLINE,
-        "SITE_TAGLINE_SECONDARY": branding.SITE_TAGLINE_SECONDARY,
-        "SITE_DESCRIPTION": branding.SITE_DESCRIPTION,
+        "SITE_TAGLINE": gettext(branding.SITE_TAGLINE),
+        "SITE_TAGLINE_SECONDARY": gettext(branding.SITE_TAGLINE_SECONDARY),
+        "SITE_DESCRIPTION": gettext(branding.SITE_DESCRIPTION),
         "META_DESCRIPTION_DEFAULT": branding.META_DESCRIPTION_DEFAULT,
         "OG_TITLE": branding.OG_TITLE,
         "OG_DESCRIPTION": branding.OG_DESCRIPTION,

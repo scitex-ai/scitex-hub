@@ -77,6 +77,15 @@ def _scitex_storage_installed() -> bool:
 
 
 urlpatterns = [
+    # Language selection. Django's set_language view writes the chosen language
+    # to the session/cookie and redirects back to `next`. LocaleMiddleware then
+    # prefers that over the Accept-Language header on every later request, which
+    # is the whole point: automatic detection is the DEFAULT, and this is how a
+    # visitor overrides it when the guess is wrong.
+    #
+    # Mounted at a non-i18n prefix deliberately: the endpoint must be reachable
+    # identically in every language, so it must not itself be language-prefixed.
+    path("i18n/", include("django.conf.urls.i18n")),
     # A2A protocol surface — canonical host: a2a.scitex.ai
     path("", include("apps.infra.a2a_app.urls")),
     # --- PWA (must be served from root for scope) ---
