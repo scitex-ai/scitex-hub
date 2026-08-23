@@ -41,10 +41,45 @@ correct response to a shape this module cannot honestly gate.
 
 from __future__ import annotations
 
+import logging
+
 from django.contrib.auth.decorators import login_required
 from django.urls import URLPattern, URLResolver, include, path
 
-import scitex_scholar._django.urls as _leaf
+logger = logging.getLogger(__name__)
+
+# WHY THIS IMPORT IS GUARDED — a MEASURED outage, not a hypothetical.
+#
+# This module is imported by scholar_app/urls/__init__.py, which config/urls.py
+# imports to build the ROOT urlconf. A module-scope ImportError here therefore
+# does not disable scholar — it takes down EVERY URL hub serves, including the
+# landing page.
+#
+# That is not speculative. Measured 2026-08-23 in scitex-hub-dev-django-1,
+# minutes after #687 merged and before it was deployed:
+#
+#     /scitex-scholar/src/scitex_scholar/_django/views.py:42
+#         from scitex_app.embed import mount_prefix
+#     ImportError: cannot import name 'mount_prefix' from 'scitex_app.embed'
+#
+# scholar 1.9.0 needs `mount_prefix`; the scitex-app in that container is 0.6.1
+# and does not export it. Both are EDITABLE installs from bind-mounted working
+# trees, so hub's `scitex-scholar>=1.9.0` floor does not govern either version —
+# a floor binds only where something installs against it.
+#
+# NOT A SILENT FALLBACK. The failure is logged at ERROR with the exception and
+# the routes are omitted, so /apps/scholar/v2/ 404s while the legacy
+# /apps/scholar/ keeps serving. Hub already uses exactly this shape for optional
+# plugin mounts (config/urls.py: "Only mounted when the package is importable").
+# The alternative — letting one leaf's dependency skew 500 the whole site — is
+# not "failing loud", it is failing everywhere.
+try:
+    import scitex_scholar._django.urls as _leaf
+except Exception as exc:  # noqa: BLE001 - any import-time failure must be caught
+    _leaf = None
+    _LEAF_IMPORT_ERROR = exc
+else:
+    _LEAF_IMPORT_ERROR = None
 
 _MOUNT_PREFIX = "v2/"
 
@@ -84,11 +119,23 @@ def _gated(patterns):
     return gated
 
 
-urlpatterns = [
-    path(
-        _MOUNT_PREFIX,
-        include((_gated(_leaf.urlpatterns), "scholar"), namespace="scholar-leaf"),
-    ),
-]
+if _LEAF_IMPORT_ERROR is not None:
+    logger.error(
+        "scitex-scholar's Django app could not be imported, so %s is NOT "
+        "mounted. The legacy /apps/scholar/ is unaffected. Cause: %r. Check "
+        "that the installed scitex-scholar and its own dependencies agree — "
+        "note that editable installs from bind-mounted working trees ignore "
+        "hub's pyproject floors entirely.",
+        "/apps/scholar/" + _MOUNT_PREFIX,
+        _LEAF_IMPORT_ERROR,
+    )
+    urlpatterns = []
+else:
+    urlpatterns = [
+        path(
+            _MOUNT_PREFIX,
+            include((_gated(_leaf.urlpatterns), "scholar"), namespace="scholar-leaf"),
+        ),
+    ]
 
 # EOF
