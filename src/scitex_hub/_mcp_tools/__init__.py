@@ -11,6 +11,7 @@ from .gitea import register_gitea_tools
 from .onsite import register_onsite_tools
 from .project_crud import register_project_crud_tools
 from .sdk import register_sdk_tools
+from .skills import register_skills_tools
 
 __all__ = ["register_all_tools"]
 
@@ -23,6 +24,7 @@ def register_all_tools(mcp) -> None:
     register_app_tools(mcp)
     register_sdk_tools(mcp)
     register_project_crud_tools(mcp)
+    register_skills_tools(mcp)
 
 
 # EOF

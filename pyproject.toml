@@ -146,14 +146,34 @@ dependencies = [
     # (`audit.exemptions` is loaded per-check and PS-169 never loads it), so
     # moving the corpus is the only fix that is not a lie.
     #
-    # EXACT PIN, NOT A RANGE — deliberately, for the same reason the <0.39
-    # ceiling above chose <0.39 over <0.40: a range readmits releases nobody
-    # has run, which is the "whatever resolves redefines our gate" bug in a
-    # smaller box. 0.43.1 is measured; 0.43.2 is not. Move this pin only with
-    # a green pytest-matrix run behind it, and re-measure with `.[all,dev]`
-    # installed — a venv without scitex_hub silently skips audit-cli and will
-    # tell you everything is fine.
-    "scitex-dev==0.43.1",
+    # FLOOR, NOT AN EXACT PIN — operator ruling 2026-08-23
+    # (「ミニマム指定でいいんじゃないでしょうか」), taken after the prod deploy was
+    # refused by the #676 preflight for this exact constraint.
+    #
+    # WHAT THE `==` WAS FOR, because the reason has not gone away: a range
+    # readmits releases nobody has run — "whatever resolves redefines our
+    # gate". The incident it was bought with is recorded above at the <0.39
+    # ceiling: same hub code, scitex-dev 0.38.1 -> audit GREEN, 0.40.0 ->
+    # audit RED (ci-unpinned-scitex-dev-voids-skip-rules-20260729).
+    #
+    # WHY IT STILL HAD TO CHANGE: hub was the ONLY consumer in the ecosystem
+    # using `==`. Measured 2026-08-23 inside the built prod image: ~50
+    # packages require scitex-dev, every other one with a floor
+    # (scitex >=0.11.7, scitex-writer >=0.30.0, scitex-cards >=0.34.0,
+    # figrecipe >=0.12.2, ...). scitex[all] therefore resolves scitex-dev to
+    # the newest release, and hub's `==` could never hold in an image that
+    # also installs scitex[all] — the two were unsatisfiable together, which
+    # is precisely what blocked the deploy.
+    #
+    # SO THE RISK IS REAL AND IS NOW CARRIED BY CI, NOT BY THIS PIN. The
+    # pytest-matrix job is what must catch a scitex-dev release that voids
+    # the skip rules. If that job goes red on a scitex-dev bump, THIS is the
+    # line that explains why — do not re-pin to silence it; fix the gate or
+    # raise the floor to the version that works, with the measurement.
+    #
+    # Re-measure with `.[all,dev]` installed: a venv without scitex_hub
+    # silently skips audit-cli and will tell you everything is fine.
+    "scitex-dev>=0.43.1",
     # `scitex-audio` owns the whisper.cpp transcription pipeline that
     # llm_app/views/stt.py delegates to (`scitex_audio.transcribe`).
     # Declared DIRECTLY rather than relied on transitively: llm_app/views/chat.py
@@ -410,11 +430,13 @@ dev = [
     # test_audit.py uses (`[PA-307 …]` <- skip_rules=("PA-307",)).
     # Pinning to <0.16.1 silently lets every entry in `skip_rules`
     # leak through — the gate fails on rules we explicitly deferred.
-    # PINNED ==0.43.1 — see the matching pin in [project.dependencies] for the
-    # measurement. THIS is the pin pytest-matrix installs (`-e ".[all,dev]"`),
-    # so this is the one that decides the three required checks; the audit
-    # workflow's own pin cannot substitute for it. Keep the two identical.
-    "scitex-dev==0.43.1",
+    # FLOOR >=0.43.1 — see the matching declaration in [project.dependencies]
+    # for the operator ruling and the measurement behind it. THIS is the one
+    # pytest-matrix installs (`-e ".[all,dev]"`), so this is the one that
+    # decides the three required checks; the audit workflow's own pin cannot
+    # substitute for it. Keep the two identical — if they drift, the matrix
+    # and the audit test different versions and one of them is lying.
+    "scitex-dev>=0.43.1",
     # The board-tenancy suite is guarded by `_TODO_INSTALLED`
     # (middleware.py:115, find_spec("scitex_cards")). Without this package
     # installed, every one of those tests SKIPS and the job exits 0 — a
@@ -584,6 +606,38 @@ library_dirs = ["src", "tests", "examples", "apps", "lib", "config"]
 # sktime==0.8.1 needs pkg_resources at build time but doesn't declare it.
 # pkg_resources is provided by setuptools. This injects it into uv's build isolation.
 sktime = ["setuptools"]
+
+[tool.scitex_dev]
+# audit-mcp-tools §6 (MCP tool <-> Python API parity) opt-out.
+#
+# STATED PLAINLY, because the knob's own documentation describes a
+# DIFFERENT case than hub's and pretending otherwise would be the kind of
+# well-written justification that freezes a bad state. figrecipe is the
+# named example: it mirrors ~74 matplotlib Axes methods as tools that have
+# no standalone Python function BY DESIGN, so §6 is a false positive there.
+#
+# Hub is not that. Measured 2026-08-23 (scitex-dev 0.56.4): 52 of hub's ~55
+# tools are reported as orphans, and the reason is STYLE, not design —
+# every tool module registers nested `@mcp.tool()` closures inside its
+# `register_*_tools(mcp)` function, and a closure defined inside a register
+# function is not importable, so nothing can ever pair with it. The finding
+# is therefore accurate about the shape and wrong only about it being
+# deliberate.
+#
+# Clearing it properly means hoisting ~52 closures into public, importable
+# functions and designing the API surface each one should present — a real
+# campaign, not a rename, and not something to land inside a deploy-unblock
+# change. This entry is what keeps prod deployable while that campaign is
+# scheduled; it is not a verdict that §6 does not apply to hub.
+#
+# The shape the campaign moves toward already exists in-tree: see
+# `_mcp_tools/skills.py`, added in this change, whose tools are thin
+# wrappers over module-level `skills_list` / `skills_get`. New tool modules
+# should follow it so this number goes down rather than up.
+#
+# LIFT THIS when the parity campaign lands. Tracked as
+# hub-mcp-tools-have-no-python-api-parity-20260823.
+mcp_parity_exempt = true
 
 [tool.scitex_dev.audit]
 # PS-168 — Per-package secret + env-var prefix in GitHub Actions workflows.
