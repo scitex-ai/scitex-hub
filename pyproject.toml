@@ -607,6 +607,38 @@ library_dirs = ["src", "tests", "examples", "apps", "lib", "config"]
 # pkg_resources is provided by setuptools. This injects it into uv's build isolation.
 sktime = ["setuptools"]
 
+[tool.scitex_dev]
+# audit-mcp-tools §6 (MCP tool <-> Python API parity) opt-out.
+#
+# STATED PLAINLY, because the knob's own documentation describes a
+# DIFFERENT case than hub's and pretending otherwise would be the kind of
+# well-written justification that freezes a bad state. figrecipe is the
+# named example: it mirrors ~74 matplotlib Axes methods as tools that have
+# no standalone Python function BY DESIGN, so §6 is a false positive there.
+#
+# Hub is not that. Measured 2026-08-23 (scitex-dev 0.56.4): 52 of hub's ~55
+# tools are reported as orphans, and the reason is STYLE, not design —
+# every tool module registers nested `@mcp.tool()` closures inside its
+# `register_*_tools(mcp)` function, and a closure defined inside a register
+# function is not importable, so nothing can ever pair with it. The finding
+# is therefore accurate about the shape and wrong only about it being
+# deliberate.
+#
+# Clearing it properly means hoisting ~52 closures into public, importable
+# functions and designing the API surface each one should present — a real
+# campaign, not a rename, and not something to land inside a deploy-unblock
+# change. This entry is what keeps prod deployable while that campaign is
+# scheduled; it is not a verdict that §6 does not apply to hub.
+#
+# The shape the campaign moves toward already exists in-tree: see
+# `_mcp_tools/skills.py`, added in this change, whose tools are thin
+# wrappers over module-level `skills_list` / `skills_get`. New tool modules
+# should follow it so this number goes down rather than up.
+#
+# LIFT THIS when the parity campaign lands. Tracked as
+# hub-mcp-tools-have-no-python-api-parity-20260823.
+mcp_parity_exempt = true
+
 [tool.scitex_dev.audit]
 # PS-168 — Per-package secret + env-var prefix in GitHub Actions workflows.
 # `GH_PERSONAL_ACCESS_TOKEN` is the ecosystem-wide cross-cutting PAT used
