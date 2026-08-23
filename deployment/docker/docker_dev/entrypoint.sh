@@ -230,6 +230,34 @@ else
 fi
 
 # ============================================
+# Translation catalogs (i18n)
+# ============================================
+# Django answers a MISSING translation with the msgid — i.e. the English source
+# string. So an UNCOMPILED catalog and a correctly-working English site are
+# byte-identical: nothing raises, nothing logs, and a visitor whose browser asks
+# for Japanese silently reads English while every layer reports success.
+#
+# THIS FILE, NOT ONLY common/scripts/entrypoint-dev.sh. The dev container's
+# ENTRYPOINT is deployment/docker/docker_dev/entrypoint.sh — measured with
+# `docker inspect scitex-hub-dev-django-1` — and it does NOT delegate to the
+# common/ script, which only appears here in a comment. Putting the step solely
+# in the common/ copy would have produced exactly the silent failure above on
+# the one deployment the operator actually looks at.
+#
+# NOT `django-admin compilemessages`: it shells out to msgfmt, which is absent
+# from the PROD image (it happens to exist in this dev image). babel is present
+# in both, so this path behaves the same everywhere.
+#
+# Failure is reported loudly but does NOT abort the boot. The site still serves
+# — in English. Refusing to start over a translation would trade a cosmetic
+# fault for an outage.
+if ! python scripts/i18n/compile_catalogs.py; then
+    echo_error "translation catalogs did NOT compile."
+    echo_error "  Every visitor will be served ENGLISH, including those whose"
+    echo_error "  browser requests Japanese. Site is otherwise unaffected."
+fi
+
+# ============================================
 # Database & Django Setup
 # ============================================
 # Skip migrations on hot-reload restarts (only run on first container start)
