@@ -476,3 +476,19 @@ msgstr "ドキュメント"
 #: apps/infra/public_app/templates/public_app/landing_partials/components/module_demo.html
 msgid "View on GitHub"
 msgstr "GitHub で見る"
+
+# Found by the rendered-text sweep (tests/config/test_landing_has_no_untranslated_text.py),
+# NOT by reading templates — each hides behind an inline element or is a fallback
+# that only shows when <video> fails.
+
+#: apps/infra/public_app/templates/public_app/landing_partials/components/module_demo.html
+msgid "Your browser does not support the video tag."
+msgstr "お使いのブラウザは video タグに対応していません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/code_features.html
+msgid "tracks everything automatically"
+msgstr "がすべてを自動で記録します"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/code_features.html
+msgid "research modules"
+msgstr "の研究モジュール"
