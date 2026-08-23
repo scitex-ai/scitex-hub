@@ -187,6 +187,29 @@ LOGGING = merge_logging(
         "handlers": {
             # Production-specific handlers. The base's handlers are kept by the
             # merge; only the entries named here are added or replaced.
+            # REDEFINES the base's "console", which is filtered by
+            # require_debug_true and therefore CANNOT EMIT here (DEBUG is False
+            # in every deployed environment). It is attached to seven loggers
+            # -- celery, scitex.slurm, scitex.errors and all four app loggers --
+            # so every one of them was routing records into a handler that
+            # could not fire. Measured on the running prod container
+            # 2026-08-23; `docker logs` carried only the ASGI access log.
+            #
+            # In a container, stdout IS the observability surface. Writing only
+            # to a RotatingFileHandler inside an ephemeral filesystem is the
+            # same defect this file documents for mail_admins one handler up:
+            # "the error WAS logged, to errors.log, and nowhere else."
+            #
+            # require_debug_FALSE rather than no filter, so the entry states
+            # the environment it is for instead of merely omitting a condition.
+            # The base keeps its debug-gated console for developer machines,
+            # where runserver already prints and a second stream would double.
+            "console": {
+                "level": "INFO",
+                "filters": ["require_debug_false"],
+                "class": "logging.StreamHandler",
+                "formatter": "verbose",
+            },
             "file_app": {
                 "level": "INFO",
                 "class": "logging.handlers.RotatingFileHandler",
