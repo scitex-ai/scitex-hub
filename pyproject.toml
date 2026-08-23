@@ -54,6 +54,17 @@ dependencies = [
     # so the import works in any install graph.
     "scitex-session>=0.1.6",
     "scitex-writer>=2.42.0",
+    # >=1.9.0 is a MOUNT requirement, not a feature preference. Below it the
+    # leaf's client JS builds API urls from the SITE ROOT
+    # (static/scholar/js/graph/citation-graph.js: fetch("/api/graph/health")),
+    # so mounted at /apps/scholar/v2/ every graph call goes to hub's root and
+    # misses. The page still renders — the shell looks correct and only the
+    # graph is dead — and an import check cannot see it: 1.7.1 imports
+    # `scitex_scholar._django.urls` perfectly well. 1.9.0 prefixes with
+    # STX_MOUNT and throws when the marker is absent rather than falling back
+    # to root, so a wrong mount fails loudly. Measured by scitex-scholar
+    # (scholar #113/#118), 2026-08-23.
+    "scitex-scholar>=1.9.0",
     # 0.16.1 is the first release where `audit_all_for_package`
     # honours the HYPHENATED rule-id format that tests/develop/
     # test_audit.py uses (`[PA-307 …]` <- skip_rules=("PA-307",)).
