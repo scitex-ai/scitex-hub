@@ -492,3 +492,15 @@ msgstr "がすべてを自動で記録します"
 #: apps/infra/public_app/templates/public_app/landing_partials/features/code_features.html
 msgid "research modules"
 msgstr "の研究モジュール"
+
+# Found by extending the sweep to the page CHROME. "Support SciTeX" is a
+# DIFFERENT string from the hero's "Support Us" — gettext keys on exact source
+# text, so marking one does nothing for the other, and I had assumed otherwise.
+
+#: templates/global_base_partials/global_footer.html
+msgid "All rights reserved."
+msgstr "無断複製・転載を禁じます。"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Support SciTeX"
+msgstr "SciTeX を支援する"

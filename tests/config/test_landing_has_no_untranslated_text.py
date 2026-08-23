@@ -71,6 +71,13 @@ ALLOWED = {
     # A shell-comment inside a code sample. Translating the comment would make
     # the sample no longer copy-pasteable as shown.
     "Add to Claude Code PyPI GitHub", "Add",
+    # "Web API" survives inside the Japanese 「Web API ドキュメント」 — it names
+    # the product surface and romanising it would lose the meaning.
+    "Web API",
+    # The language toggle's label is the language you are switching TO, so under
+    # ja it reads "English" BY DESIGN. Translating it would make the button
+    # describe the state the reader is already in.
+    "English",
     # contact
     "info@scitex.ai",
 }
@@ -90,6 +97,7 @@ _COMMENT = re.compile(r"<!--.*?-->", re.S)
 _NON_TEXT = re.compile(r"<(script|style)\b.*?</\1>", re.S | re.I)
 _ENTITY = re.compile(r"&[a-zA-Z][a-zA-Z0-9]{1,8};?")
 _WS = re.compile(r"\s+")
+_VERSION = re.compile(r"v?\d+(?:\.\d+)*")
 
 CONTEXT = {
     "SITE_TAGLINE": "タグライン",
@@ -129,6 +137,12 @@ def _untranslated_words(text):
             continue
         if chunk in ALLOWED:
             continue
+        # Version strings are data, not copy, and the value changes with every
+        # release — allowlisting the literal would go stale immediately. Matched
+        # as a SHAPE so v0.1.0 in the test context and v0.19.0 on the live site
+        # are both covered.
+        if _VERSION.fullmatch(chunk):
+            continue
         # A run may be an allowed token plus punctuation, or several allowed
         # tokens in a row ("Docker Singularity SLURM"). Only report a run that
         # contains at least one word nobody has accounted for.
@@ -137,6 +151,39 @@ def _untranslated_words(text):
             continue
         leftovers.append(chunk)
     return leftovers
+
+
+# The shell every page renders inside. Kept separate because these need a
+# `request` in context, and because the operator named BOTH of them:
+#   「フッターも英語のままですね」「ヘッダーにあったほうがいい」
+# Leaving them out is what let me almost report the footer as done on the
+# strength of a probe that was reading HTML comments as page text.
+CHROME_PARTIALS = [
+    "global_base_partials/global_footer.html",
+    "global_base_partials/language_switcher.html",
+]
+
+
+@pytest.fixture
+def chrome_context():
+    from django.test import RequestFactory
+
+    return {**CONTEXT, "request": RequestFactory().get("/landing/")}
+
+
+@pytest.mark.parametrize("template", CHROME_PARTIALS)
+def test_chrome_has_no_untranslated_text_under_japanese(template, chrome_context):
+    # Arrange
+    expected = []
+    # Act
+    with translation.override("ja"):
+        leftovers = _untranslated_words(
+            _visible_text(render_to_string(template, chrome_context))
+        )
+    # Assert
+    assert leftovers == expected, (
+        f"{template} still shows English under ja: {leftovers}."
+    )
 
 
 @pytest.mark.parametrize("template", LANDING_PARTIALS)

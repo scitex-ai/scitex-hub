@@ -24,7 +24,7 @@
                         <a href="mailto:{{ CONTACT_EMAIL }}"><i class="fas fa-envelope"></i> {{ CONTACT_EMAIL }}</a>
                     </p>
                     <p class="footer-copyright">
-                        &copy; 2025–2026 SciTeX. All rights reserved. <span class="footer-version">v{{ SCITEX_HUB_VERSION }}</span>
+                        &copy; 2025–2026 SciTeX. {% trans "All rights reserved." %} <span class="footer-version">v{{ SCITEX_HUB_VERSION }}</span>
                     </p>
                 </div>
                 <!-- Column 2: Community -->
@@ -47,7 +47,7 @@
                             <a href="{% url 'public_app:pricing' %}">{% trans "Premium" %}</a>
                         </li>
                         <li>
-                            <a href="{% url 'public_app:donate' %}"><i class="fas fa-heart"></i> Support SciTeX</a>
+                            <a href="{% url 'public_app:donate' %}"><i class="fas fa-heart"></i> {% trans "Support SciTeX" %}</a>
                         </li>
                         <li>
                             <a href="{% url 'public_app:setup' %}">{% trans "Self-Hosting Guide" %}</a>
