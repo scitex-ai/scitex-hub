@@ -1,3 +1,4 @@
+{% load i18n %}
 {% load static %}
 <!-- Module Demo Component -->
 <div class="module-demo-container">
@@ -11,7 +12,7 @@
                           font-size: 0.9rem;
                           margin-bottom: 0.75rem;
                           font-style: italic">
-                    <i class="fas fa-desktop"></i> Demonstration on local environment
+                    <i class="fas fa-desktop"></i> {% trans "Demonstration on local environment" %}
                 </p>
                 <div class="module-demo-video-wrapper">
                     <video
@@ -25,17 +26,17 @@
                         onloadedmetadata="this.playbackRate = 4.0"
                         >
                         <source src="{% static video_path %}" type="video/mp4" />
-                        Your browser does not support the video tag.
+                        {% trans "Your browser does not support the video tag." %}
                     </video>
                 </div>
                 <div class="module-demo-actions">
                     <a href="{% url docs_url %}" class="btn btn-dark github-link-btn">
-                        <i class="fas fa-book-open"></i> Documentation
+                        <i class="fas fa-book-open"></i> {% trans "Documentation" %}
                     </a>
                     <a href="{{ github_url }}"
                        target="_blank"
                        class="btn btn-black github-link-btn">
-                        <i class="fab fa-github"></i> View on GitHub
+                        <i class="fab fa-github"></i> {% trans "View on GitHub" %}
                     </a>
                     {% if extra_note %}<p class="module-demo-note">{{ extra_note }}</p>{% endif %}
                 </div>
@@ -52,7 +53,7 @@
                           font-size: 0.9rem;
                           margin-bottom: 0.75rem;
                           font-style: italic">
-                    <i class="fas fa-desktop"></i> Demonstration on local environment
+                    <i class="fas fa-desktop"></i> {% trans "Demonstration on local environment" %}
                 </p>
                 <div class="module-demo-video-wrapper">
                     <video
@@ -66,17 +67,17 @@
                         onloadedmetadata="this.playbackRate = 4.0"
                         >
                         <source src="{% static video_path %}" type="video/mp4" />
-                        Your browser does not support the video tag.
+                        {% trans "Your browser does not support the video tag." %}
                     </video>
                 </div>
                 <div class="module-demo-actions">
                     <a href="{% url docs_url %}" class="btn btn-dark github-link-btn">
-                        <i class="fas fa-book-open"></i> Documentation
+                        <i class="fas fa-book-open"></i> {% trans "Documentation" %}
                     </a>
                     <a href="{{ github_url }}"
                        target="_blank"
                        class="btn btn-black github-link-btn">
-                        <i class="fab fa-github"></i> View on GitHub
+                        <i class="fab fa-github"></i> {% trans "View on GitHub" %}
                     </a>
                     {% if extra_note %}<p class="module-demo-note">{{ extra_note }}</p>{% endif %}
                 </div>

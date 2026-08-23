@@ -382,6 +382,14 @@ def switcher_html():
         return render_to_string(SWITCHER_TEMPLATE, {"request": request})
 
 
+@pytest.fixture
+def switcher_en_html():
+    """The toggle rendered under en — the control for every ja assertion."""
+    request = RequestFactory().get("/landing/")
+    with translation.override("en"):
+        return render_to_string(SWITCHER_TEMPLATE, {"request": request})
+
+
 def test_switcher_targets_the_set_language_endpoint(switcher_html):
     # Arrange
     expected = 'action="/i18n/setlang/"'
@@ -401,8 +409,15 @@ def test_switcher_posts_rather_than_gets(switcher_html):
     assert expected in actual
 
 
-def test_switcher_offers_english(switcher_html):
-    """name_local, so each option reads in its own language."""
+def test_switcher_offers_the_other_language_under_ja(switcher_html):
+    """A TOGGLE names its DESTINATION, so under ja the label is English.
+
+    The control changed shape on the operator's instruction (2026-08-23): it was
+    a <select> in the footer offering both languages; it is now a toggle in the
+    header offering the one you are not in. These tests changed with it rather
+    than being loosened — the old "offers both" assertion would now be asserting
+    a control that no longer exists.
+    """
     # Arrange
     expected = "English"
     # Act
@@ -411,23 +426,44 @@ def test_switcher_offers_english(switcher_html):
     assert expected in actual
 
 
-def test_switcher_offers_japanese(switcher_html):
+def test_switcher_submits_the_other_language_under_ja(switcher_html):
+    """The LABEL is cosmetic; this is the part that actually switches."""
     # Arrange
-    expected = "日本語"
+    expected = 'name="language" value="en"'
     # Act
     actual = switcher_html
     # Assert
     assert expected in actual
 
 
-def test_switcher_marks_the_current_language(switcher_html):
+def test_switcher_offers_japanese_under_en(switcher_en_html):
     # Arrange
-    expected = "selected"
+    expected = "日本語"
     # Act
-    japanese_option_index = switcher_html.index('value="ja"')
-    tail = switcher_html[japanese_option_index : japanese_option_index + 80]
+    actual = switcher_en_html
     # Assert
-    assert expected in tail, f"ja option not preselected under ja: {tail!r}"
+    assert expected in actual
+
+
+def test_switcher_submits_japanese_under_en(switcher_en_html):
+    # Arrange
+    expected = 'name="language" value="ja"'
+    # Act
+    actual = switcher_en_html
+    # Assert
+    assert expected in actual
+
+
+def test_switcher_reuses_the_header_button_class(switcher_html):
+    """No bespoke colours. The operator rejected the first version for looking
+    unlike the rest of the header 「ブランドのカラーと合ってない」; reusing
+    .header-btn is what makes it inherit the brand tokens."""
+    # Arrange
+    expected = 'class="header-btn"'
+    # Act
+    actual = switcher_html
+    # Assert
+    assert expected in actual
 
 
 def test_switcher_returns_to_the_current_page(switcher_html):

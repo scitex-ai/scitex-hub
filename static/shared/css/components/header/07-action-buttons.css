@@ -53,3 +53,21 @@
   opacity: 1;
 }
 
+
+/* Language toggle.
+ *
+ * The ONLY rule this control needs. It deliberately styles the <form> WRAPPER
+ * and not the button: the button is a plain .header-btn above, so the toggle
+ * inherits every brand token (--border-default, --text-primary,
+ * --scitex-color-04) and the dark-mode handling without redefining any of them.
+ *
+ * A <form> is display:block by default, which would drop the toggle onto its own
+ * line and break .header-right's flex row. That is all this fixes — if you find
+ * yourself adding colours here, the button has stopped matching Sign in / Sign up
+ * and that is the bug, not a missing rule.
+ */
+.language-toggle-form {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+}
