@@ -1,4 +1,5 @@
 {% load static vite %}
+{% load i18n %}
 <link rel="stylesheet"
       href="{% static 'public_app/css/landing-demos-inline.css' %}">
 {% vite_script 'public_app/landing-demos-inline' %}
@@ -7,8 +8,8 @@
          id="ecosystem">
     <div class="container">
         <div class="section-heading landing-demos-section-heading">
-            <h2>SciTeX Ecosystem</h2>
-            <p>From data to publication — all in one</p>
+            <h2>{% trans "SciTeX Ecosystem" %}</h2>
+            <p>{% trans "From data to publication — all in one" %}</p>
         </div>
         <!-- Interactive Module Navigation Cards -->
         <div class="ecosystem-modules-nav">
@@ -27,7 +28,7 @@
                     <circle cx="26" cy="26" r="14" fill="currentColor" fill-opacity="0.3" />
                 </svg>
                 <h3>Scholar</h3>
-                <p>Literature discovery & enrichment</p>
+                <p>{% trans "Literature discovery & enrichment" %}</p>
             </div>
             <!-- Writer -->
             <div class="module-nav-card bg-pattern bg-pattern-dots-radial bg-pattern-subtle"
@@ -50,7 +51,7 @@
                     <circle cx="31" cy="27" r="2" fill="currentColor" />
                 </svg>
                 <h3>Writer</h3>
-                <p>LaTeX manuscript writing</p>
+                <p>{% trans "LaTeX manuscript writing" %}</p>
             </div>
             <!-- Code -->
             <div class="module-nav-card bg-pattern bg-pattern-dots-radial bg-pattern-subtle"
@@ -72,7 +73,7 @@
                     <circle cx="24" cy="14" r="1.5" fill="currentColor" />
                 </svg>
                 <h3>Console</h3>
-                <p>Interactive development workspace</p>
+                <p>{% trans "Interactive development workspace" %}</p>
             </div>
             <!-- FigRecipe -->
             <div class="module-nav-card bg-pattern bg-pattern-dots-radial bg-pattern-subtle"
@@ -94,7 +95,7 @@
                     <rect x="12" y="12" width="40" height="36" fill="currentColor" fill-opacity="0.3" />
                 </svg>
                 <h3>FigRecipe</h3>
-                <p>Scientific figure editor</p>
+                <p>{% trans "Scientific figure editor" %}</p>
             </div>
             <!-- Local -->
             <div class="module-nav-card bg-pattern bg-pattern-dots-radial bg-pattern-subtle"
@@ -118,7 +119,7 @@
                     <path d="M32 37L24 42" stroke="currentColor" stroke-width="2" />
                     <path d="M32 37L40 42" stroke="currentColor" stroke-width="2" />
                 </svg>
-                <h3>Local</h3>
+                <h3>{% trans "Local" %}</h3>
                 <p>
                     <code>pip install scitex</code>
                 </p>
@@ -146,8 +147,8 @@
                     <circle cx="30" cy="39" r="1.5" fill="currentColor" />
                     <circle cx="30" cy="45" r="1.5" fill="currentColor" />
                 </svg>
-                <h3>Cloud</h3>
-                <p>Self-host for your lab</p>
+                <h3>{% trans "Cloud" %}</h3>
+                <p>{% trans "Self-host for your lab" %}</p>
             </div>
         </div>
         <!-- Detailed Demos Carousel -->
@@ -189,7 +190,7 @@
                             <div class="module-demo-grid local-demo-grid">
                                 <div class="module-demo-features">
                                     <h3 class="local-demo-heading">pip install scitex</h3>
-                                    <p class="local-demo-description">Full control on your machine. Works offline with complete privacy.</p>
+                                    <p class="local-demo-description">{% trans "Full control on your machine. Works offline with complete privacy." %}</p>
                                     <pre class="local-demo-code"><code>pip install scitex[all]
 scitex mcp install  # Add to Claude Code</code></pre>
                                     <div class="module-demo-actions">

@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 <!-- Note: This partial requires 'public_app/css/landing-commitment.css' to be loaded in the parent template -->
 <!-- Our Commitment Section -->
 <section class="landing-section section-commitment bg-pattern bg-pattern-circuit bg-pattern-subtle"
@@ -8,69 +9,67 @@
          id="commitment">
     <div class="container commitment-container">
         <div class="commitment-card bg-pattern bg-pattern-grid bg-pattern-subtle">
-            <h2 class="commitment-title">Our Commitment to Science</h2>
+            <h2 class="commitment-title">{% trans "Our Commitment to Science" %}</h2>
             <p class="commitment-subtitle">
-                SciTeX will always prioritize researchers and science over profit. Our
-                code is yours, forever.
+                {% trans "SciTeX will always prioritize researchers and science over profit. Our code is yours, forever." %}
             </p>
             <div class="commitment-grid">
                 <!-- To Individual Researchers - Radial dots (personal spotlight) -->
                 <div class="commitment-feature-card bg-pattern bg-pattern-dots-radial bg-pattern-subtle">
                     <h3 class="commitment-feature-title">
-                        <i class="fas fa-user-graduate"></i> To Individual Researchers
+                        <i class="fas fa-user-graduate"></i> {% trans "To Individual Researchers" %}
                     </h3>
                     <ul class="commitment-feature-list">
                         <li>
-                            <strong>✓</strong> Generous free tier, always
+                            <strong>✓</strong> {% trans "Generous free tier, always" %}
                         </li>
                         <li>
-                            <strong>✓</strong> Your data is yours—export anytime
+                            <strong>✓</strong> {% trans "Your data is yours—export anytime" %}
                         </li>
                         <li>
-                            <strong>✓</strong> Privacy-first: we never sell your data
+                            <strong>✓</strong> {% trans "Privacy-first: we never sell your data" %}
                         </li>
                         <li>
-                            <strong>✓</strong> See and verify everything we do
+                            <strong>✓</strong> {% trans "See and verify everything we do" %}
                         </li>
                     </ul>
                 </div>
                 <!-- To Research Community - Medium dots (collaborative points) -->
                 <div class="commitment-feature-card bg-pattern bg-pattern-dots-md bg-pattern-subtle">
                     <h3 class="commitment-feature-title">
-                        <i class="fas fa-users"></i> To Research Community
+                        <i class="fas fa-users"></i> {% trans "To Research Community" %}
                     </h3>
                     <ul class="commitment-feature-list">
                         <li>
-                            <strong>✓</strong> 100% open-source, forever
+                            <strong>✓</strong> {% trans "100% open-source, forever" %}
                         </li>
                         <li>
-                            <strong>✓</strong> All improvements benefit everyone
+                            <strong>✓</strong> {% trans "All improvements benefit everyone" %}
                         </li>
                         <li>
-                            <strong>✓</strong> Community governance for major decisions
+                            <strong>✓</strong> {% trans "Community governance for major decisions" %}
                         </li>
                         <li>
-                            <strong>✓</strong> Prioritize science over profit
+                            <strong>✓</strong> {% trans "Prioritize science over profit" %}
                         </li>
                     </ul>
                 </div>
             </div>
             <!-- Call to Action Section -->
             <div class="commitment-cta">
-                <h3 class="commitment-cta-title">Ready to accelerate your research?</h3>
+                <h3 class="commitment-cta-title">{% trans "Ready to accelerate your research?" %}</h3>
                 <p class="commitment-cta-subtitle">
-                    Join the SciTeX community and start transforming your research
-                    workflow today.
+                    {% trans "Join the SciTeX community and start transforming your research workflow today." %}
                 </p>
                 <div class="cta-group cta-group-center">
                     <a href="{% url 'auth_app:signup' %}" class="btn btn-lg btn-cta">
-                        <i class="fas fa-user-plus"></i> Sign Up
+                        <i class="fas fa-user-plus"></i> {% trans "Sign Up" %}
                     </a>
                     <a href="{% url 'auth_app:signin' %}"
                        class="btn btn-primary"
                        style="padding: 1rem 2.25rem;
                               font-size: 1.125rem">
-                        <i class="fas fa-sign-in-alt"></i> Sign In
+                        <i class="fas fa-sign-in-alt"></i> {% trans "Sign In" %}
                     </a>
                 </div>
             </div>

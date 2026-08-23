@@ -13,11 +13,28 @@
 # approved by the operator. They are investor-facing copy about his company;
 # read them on the running site rather than trusting this file.
 #
-# REGENERATE:  python manage.py makemessages -l ja
-# COMPILE:     msgfmt is ABSENT from this container AND from the prod image.
-#              Use the babel-based compile step (scripts/i18n/compile_catalogs.py),
-#              not `django-admin compilemessages`, which shells out to msgfmt and
-#              will fail.
+# WHERE THE GETTEXT TOOLS ACTUALLY EXIST. Measured 2026-08-23, because an
+# earlier revision of this header told the reader to run `makemessages` in a
+# place where it cannot run:
+#
+#     agent container        xgettext ABSENT   msgfmt ABSENT
+#     bare host (compute-03) xgettext ABSENT   msgfmt ABSENT
+#     dev django container   xgettext PRESENT  msgfmt PRESENT
+#     prod image             (msgfmt ABSENT; babel present)
+#
+# REGENERATE — only inside the dev container, which is the one place with
+# xgettext. `makemessages` shells out to it exactly as `compilemessages` shells
+# out to msgfmt, so it fails identically everywhere else:
+#
+#     docker exec scitex-hub-dev-django-1 python manage.py makemessages -l ja
+#
+# COMPILE — anywhere, including prod. Use the babel-based step, NOT
+# `django-admin compilemessages`: msgfmt is absent from the PRODUCTION image, so
+# compilemessages would succeed in dev and fail where users are.
+#
+#     python scripts/i18n/compile_catalogs.py
+#
+# This runs automatically from both entrypoints on every container start.
 msgid ""
 msgstr ""
 "Project-Id-Version: scitex-hub\n"
@@ -93,3 +110,131 @@ msgstr ""
 #: templates/global_base_partials/language_switcher.html
 msgid "Language"
 msgstr "言語"
+
+# --- landing_demos.html -----------------------------------------------------
+# PRODUCT NAMES ARE NOT MARKED and must stay that way: Scholar, Writer,
+# Console, FigRecipe, SciTeX. A brand translated is a brand lost. Neither is
+# `pip install scitex` — a shell command translated is a shell command broken.
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_demos.html
+msgid "SciTeX Ecosystem"
+msgstr "SciTeX エコシステム"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_demos.html
+msgid "From data to publication — all in one"
+msgstr "データから論文まで、すべてをひとつに"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_demos.html
+msgid "Literature discovery & enrichment"
+msgstr "文献の発見と情報の付加"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_demos.html
+msgid "LaTeX manuscript writing"
+msgstr "LaTeX による論文執筆"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_demos.html
+msgid "Interactive development workspace"
+msgstr "対話的な開発ワークスペース"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_demos.html
+msgid "Scientific figure editor"
+msgstr "科学図表エディタ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_demos.html
+msgid "Local"
+msgstr "ローカル"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_demos.html
+msgid "Cloud"
+msgstr "クラウド"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_demos.html
+msgid "Self-host for your lab"
+msgstr "研究室で自前運用"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_demos.html
+msgid "Full control on your machine. Works offline with complete privacy."
+msgstr "自分のマシンで完全にコントロール。オフラインでも動作し、プライバシーを保てます。"
+
+# --- landing_commitment.html ------------------------------------------------
+# THE MOST INVESTOR-FACING COPY ON THE SITE. This is the section that states
+# what the company promises, and it is the reason the operator asked for
+# Japanese at all 「日本の会社でビジコンやら融資やらでも外部の方が見られた方が
+# 良いので」. Read it on the running site before trusting it.
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "Our Commitment to Science"
+msgstr "科学への私たちの約束"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid ""
+"SciTeX will always prioritize researchers and science over profit. Our code "
+"is yours, forever."
+msgstr ""
+"SciTeX は利益よりも、研究者と科学をつねに優先します。私たちのコードは、"
+"これからも永くあなたのものです。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "To Individual Researchers"
+msgstr "研究者お一人おひとりへ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "Generous free tier, always"
+msgstr "充実した無料プランを、いつまでも"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "Your data is yours—export anytime"
+msgstr "データはあなたのもの。いつでも書き出せます"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "Privacy-first: we never sell your data"
+msgstr "プライバシー第一。データを販売することはありません"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "See and verify everything we do"
+msgstr "私たちの取り組みは、すべて公開・検証できます"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "To Research Community"
+msgstr "研究コミュニティへ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "100% open-source, forever"
+msgstr "100% オープンソースを、これからも"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "All improvements benefit everyone"
+msgstr "改善の成果は、すべての人へ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "Community governance for major decisions"
+msgstr "重要な決定は、コミュニティとともに"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "Prioritize science over profit"
+msgstr "利益よりも科学を優先します"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "Ready to accelerate your research?"
+msgstr "研究を加速する準備はできましたか？"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid ""
+"Join the SciTeX community and start transforming your research workflow "
+"today."
+msgstr ""
+"SciTeX コミュニティに参加して、今日から研究のワークフローを変えていきましょう。"
+
+# NOTE — "Sign Up"/"Sign In" here are SEPARATE msgids from the hero's
+# "Sign up"/"Sign in": gettext keys on the exact source string, so the
+# capitalisation makes them distinct entries. Both are translated identically.
+# Normalising the templates to one casing would collapse them, but that changes
+# the ENGLISH page's visible text, which is a copy decision and not mine to make
+# while shipping a translation.
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "Sign Up"
+msgstr "新規登録"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "Sign In"
+msgstr "ログイン"

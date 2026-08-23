@@ -34,6 +34,7 @@ and the switch must be AUTOMATIC from the visitor's browser preference:
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -47,6 +48,8 @@ from django.utils import translation
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 HERO_TEMPLATE = "public_app/landing_partials/landing_hero.html"
+DEMOS_TEMPLATE = "public_app/landing_partials/landing_demos.html"
+COMMITMENT_TEMPLATE = "public_app/landing_partials/landing_commitment.html"
 SWITCHER_TEMPLATE = "global_base_partials/language_switcher.html"
 
 # One string per surface, chosen because each proves a DIFFERENT link in the
@@ -282,6 +285,89 @@ def test_hero_blocktrans_is_translated(hero_context):
     # Act
     with translation.override("ja"):
         html = render_to_string(HERO_TEMPLATE, hero_context)
+    # Assert
+    assert expected in html
+
+
+# ---------------------------------------------------------------------------
+# The rest of the landing page
+# ---------------------------------------------------------------------------
+_HTML_COMMENT = re.compile(r"<!--.*?-->", re.S)
+
+# (template, japanese, english) for each partial marked after the hero.
+# landing_announcement.html is deliberately ABSENT: all 22 of its lines are
+# HTML comments, so it renders nothing and has nothing to translate.
+PARTIAL_CASES = [
+    (DEMOS_TEMPLATE, "SciTeX エコシステム", "SciTeX Ecosystem"),
+    (DEMOS_TEMPLATE, "科学図表エディタ", "Scientific figure editor"),
+    (DEMOS_TEMPLATE, "研究室で自前運用", "Self-host for your lab"),
+    (COMMITMENT_TEMPLATE, "科学への私たちの約束", "Our Commitment to Science"),
+    (COMMITMENT_TEMPLATE, "研究者お一人おひとりへ", "To Individual Researchers"),
+    (COMMITMENT_TEMPLATE, "利益よりも科学を優先します", "Prioritize science over profit"),
+]
+
+
+def _visible(html):
+    """Rendered HTML minus comments — what a reader actually sees.
+
+    NOT cosmetic. Without it, `test_partial_leaves_no_visible_english` fails on
+    CORRECT output: landing_commitment.html carries layout notes like
+    `<!-- To Individual Researchers - Radial dots (personal spotlight) -->`, so
+    the English string survives in the source while the heading itself is fully
+    translated. Asserting against raw HTML measures the template, not the page.
+    """
+    return _HTML_COMMENT.sub("", html)
+
+
+@pytest.mark.parametrize(
+    ("template", "japanese", "english"), PARTIAL_CASES, ids=str
+)
+def test_partial_renders_japanese(template, japanese, english, hero_context):
+    # Arrange
+    expected = japanese
+    # Act
+    with translation.override("ja"):
+        html = _visible(render_to_string(template, hero_context))
+    # Assert
+    assert expected in html
+
+
+@pytest.mark.parametrize(
+    ("template", "japanese", "english"), PARTIAL_CASES, ids=str
+)
+def test_partial_renders_english(template, japanese, english, hero_context):
+    """Control: the same template under en must still be English."""
+    # Arrange
+    expected = english
+    # Act
+    with translation.override("en"):
+        html = _visible(render_to_string(template, hero_context))
+    # Assert
+    assert expected in html
+
+
+@pytest.mark.parametrize(
+    ("template", "japanese", "english"), PARTIAL_CASES, ids=str
+)
+def test_partial_leaves_no_visible_english(template, japanese, english, hero_context):
+    """A dropped {% trans %} shows up here and nowhere else."""
+    # Arrange
+    forbidden = english
+    # Act
+    with translation.override("ja"):
+        html = _visible(render_to_string(template, hero_context))
+    # Assert
+    assert forbidden not in html
+
+
+@pytest.mark.parametrize("brand", ["Scholar", "Writer", "Console", "FigRecipe"])
+def test_product_names_survive_translation(brand, hero_context):
+    """A brand name translated is a brand name lost — these must NOT be marked."""
+    # Arrange
+    expected = brand
+    # Act
+    with translation.override("ja"):
+        html = render_to_string(DEMOS_TEMPLATE, hero_context)
     # Assert
     assert expected in html
 
