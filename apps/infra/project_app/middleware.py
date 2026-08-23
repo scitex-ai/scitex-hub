@@ -350,6 +350,16 @@ class VisitorExpirationMiddleware:
                     )
                     # Check if allocation is expired
                     is_expired = allocation.expires_at <= timezone.now()
+                    if not is_expired:
+                        # THIS REQUEST IS THE ACTIVITY. Idle eviction keys on
+                        # last_activity, and its only other writer is the
+                        # heartbeat view — so a visitor browsing a route where
+                        # the heartbeat JS does not run (or throws) was being
+                        # judged idle WHILE USING THE SITE, losing their slot
+                        # to someone else mid-session. Throttled inside
+                        # touch_activity; deliberately does NOT extend
+                        # expires_at, which stays the heartbeat's decision.
+                        VisitorPool.touch_activity(allocation)
                 except VisitorAllocation.DoesNotExist:
                     # No active allocation found - visitor is expired
                     is_expired = True

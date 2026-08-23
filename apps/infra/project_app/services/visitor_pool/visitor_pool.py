@@ -99,6 +99,17 @@ class VisitorPool:
         PoolAllocator.extend_session_on_activity(allocation)
 
     @classmethod
+    def touch_activity(cls, allocation) -> bool:
+        """
+        Record that a real request reached us, for idle-eviction purposes.
+
+        NOT the same as extend_session_on_activity: this refreshes
+        ``last_activity`` only and never promotes the lease. See
+        PoolAllocator.touch_activity for why the two are separate.
+        """
+        return PoolAllocator.touch_activity(allocation)
+
+    @classmethod
     def claim_project_on_signup(cls, session, new_user: User) -> Optional[Project]:
         """
         Transfer visitor's default project to newly signed-up user.
