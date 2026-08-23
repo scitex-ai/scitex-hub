@@ -247,12 +247,74 @@ ARG SCITEX_A_VERIFIED=2026-08-20
 RUN echo "scitex[all] floor-pin cache key: ${SCITEX_A_VERIFIED}" && \
     uv pip install --system --upgrade "scitex[all]>=2.30.1"
 
+# --- Layer B: scitex-decorators, which NO extra actually installs ---
+#
+# MEASURED 2026-08-23 inside scitex-hub-prod-django:latest:
+#
+#     importlib.metadata.version("scitex-decorators")  ->  PackageNotFoundError
+#
+# despite Layer 0 and Layer A both installing scitex[all]. scitex/io/_load.py
+# does `from scitex.decorators import preserve_doc` at import time, so without
+# it `import scitex.io` raises ImportError out of the umbrella's _aggregator
+# and hub's /api/plot/ returns 500. Hub uses that surface in three places:
+# public_app/api_views.py, api_stats_helpers.py and api_plot_helpers.py.
+#
+# THIS IS THE 2026-08-22 OUTAGE, AND IT WAS NEVER ACTUALLY FIXED. The
+# preflight contract records that scitex-decorators was present only in the
+# RUNNING CONTAINER'S WRITABLE LAYER — someone pip-installed it live to end
+# the outage. A writable layer does not survive a recreate, so the image has
+# been broken ever since while the site looked healthy, and any restart for
+# any reason would have reproduced the outage.
+#
+# THIS IS A WORKAROUND AND SHOULD NOT BE PERMANENT. An extra named `all` that
+# omits a module `scitex.io` needs at import time is an upstream packaging
+# defect, and pinning it here fixes hub while every other consumer of
+# scitex[all] keeps hitting it. Reported upstream 2026-08-23; the scitex
+# umbrella source is not on this host, and no scitex agent was running to
+# take the report, so hub carries it meanwhile. REMOVE THIS LAYER once
+# scitex[all] pulls scitex-decorators itself — the smoke gate below is what
+# will tell you it is safe to remove.
+#
+# THE OBVIOUS FIX DOES NOT WORK, AND THAT IS THE WHOLE POINT OF THIS LAYER.
+# The ImportError tells you to run `pip install 'scitex[decorators]'`. Read
+# what that extra actually contains in the RELEASED wheel (PyPI metadata for
+# scitex 2.29.3, the version this image ends up with, and 2.30.1 alike):
+#
+#     extra == "decorators"  ->  joblib, matplotlib, pytest-asyncio,
+#                                scipy, tqdm, xarray
+#
+# Third-party libraries only. NOTHING in all 629 requirement entries requires
+# the `scitex-decorators` DISTRIBUTION, so the command the error message
+# recommends installs six unrelated packages and still leaves the import
+# broken. Nor does `[all]` help: the released wheel carries ZERO
+# self-referential `scitex[...]` entries under `extra == "all"`, so the
+# recursive extra composition visible in scitex-python's pyproject.toml
+# (`"scitex[decorators]"` in the `all` list) does not survive into the
+# published metadata at all.
+#
+# Hence the BARE distribution. I wrote `scitex[decorators]` here first, and it
+# would have produced a green build that still 500s on /api/plot/ — the exact
+# shape this layer exists to prevent.
+RUN uv pip install --system "scitex-decorators"
+
 # --- Smoke gate: scitex umbrella extras must be importable ---
 # Guards against future regressions where a Layer 0 / Layer A pin drifts
 # to a scitex version whose [all] omits one of these submodules. If
 # either import fails the build fails immediately rather than producing
 # an image that crash-loops on cold-boot.
+#
+# scitex.io AND scitex.plt.load_style ADDED 2026-08-23. This gate already
+# existed on 2026-08-22 and did not stop the outage, because it imported
+# scitex.template and scitex.audit — neither of which touches
+# scitex.decorators. The gate was real, it ran, it passed, and the image it
+# passed was the one that 500s. A smoke gate only covers what it names, so
+# it now names the two surfaces hub actually serves from:
+#   scitex.io              -> public_app/api_views.py (/api/plot/ data load)
+#   scitex.plt.load_style  -> api_stats_helpers.py, api_plot_helpers.py
+# Calling load_style() rather than merely importing it, because the failure
+# is raised by the umbrella's attribute aggregator on ACCESS.
 RUN python -c "import scitex.template; import scitex.audit; print('scitex extras OK:', scitex.template.__name__, scitex.audit.__name__)"
+RUN python -c "import scitex.io; import scitex; scitex.plt.load_style; print('scitex.io + scitex.plt.load_style OK')"
 
 # Playwright browsers (cached separately via BuildKit cache mount)
 RUN --mount=type=cache,target=/root/.cache/ms-playwright \
