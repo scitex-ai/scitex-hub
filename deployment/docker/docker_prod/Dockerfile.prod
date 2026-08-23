@@ -668,6 +668,8 @@ RUN uv pip install --system --no-cache \
 # do not exist at build time.)
 RUN uv pip install --system --no-cache --upgrade \
     "figrecipe" \
+    "scitex-decorators" \
+    "scitex-sh" \
     "scitex-io" \
     "scitex-stats" \
     "scitex-plt" \
@@ -737,6 +739,34 @@ RUN python -c "import scitex_writer.writer" && \
     python -c "from scitex.template import clone_template" && \
     python -c "from scitex_template import clone_scitex_minimal" && \
     echo "✅ scitex-writer + template import chain verified"
+
+# --- Runtime-stage gate for the surfaces /api/plot/ serves from ---
+#
+# THIS GATE EXISTS BECAUSE THE BUILDER-STAGE ONE WAS NOT ENOUGH, and the way
+# it was not enough is worth writing down.
+#
+# The python-builder stage runs the same two imports and they PASSED on the
+# 2026-08-23 13:00 build. The preflight then REFUSED the deploy on those exact
+# imports. Both were true: the BUILDER had the peers, and the RUNTIME image did
+# not — because this stage re-resolves. `uv pip install ".[all]"` above carries
+# hub's own `scitex>=2.29.3`, lands on 2.29.3, and drops peers that the
+# builder's `scitex[all]>=2.30.1` had pulled in. So a gate in the builder
+# certifies an environment that no longer exists by the time the image ships.
+#
+# Measured on the refused build's own artifact:
+#     docker run ... scitex-hub-prod-django:latest -c "import scitex.io"
+#     -> ImportError: scitex.sh.sh: `scitex_sh` is required
+#     scitex-decorators 0.1.12 present, scitex-sh ABSENT
+#
+# The peers are now installed in THIS stage (above) so the re-resolution
+# cannot drop them, and the check runs HERE, after every install, on what
+# actually ships. Keep the builder copy too: it fails faster and catches a
+# different regression. Neither is redundant; the builder one is just not
+# authoritative.
+RUN python -c "import scitex.io" && \
+    python -c "import scitex; scitex.plt.load_style" && \
+    python -c "import scitex_decorators, scitex_sh" && \
+    echo "✅ scitex.io + scitex.plt.load_style verified in the RUNTIME image"
 
 # Back to root — root-init.sh handles UID fixup then drops to scitex
 USER root
