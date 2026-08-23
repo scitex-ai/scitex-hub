@@ -54,11 +54,34 @@ jobs:
     # than deleted, because the reversal needs its reason recorded next to
     # the line it changed.
     #
-    # WHY REVERSED — the operator's ruling, 2026-08-05:
-    #     「スパルタンのCIは全面的にやめましょう」 — stop Spartan CI entirely.
-    # Its HPC scheduler is the wrong shape for CI: jobs queue behind other
-    # work. Measured on this repo 2026-08-09: ONE registered runner, busy,
-    # with 13 jobs queued behind it.
+    # WHAT WAS MEASURED, on this repo, 2026-08-09: Spartan had ONE
+    # registered runner, busy, with 13 jobs queued behind it — so this job
+    # queued behind unrelated compute.
+    #
+    # THE POLICY THAT ALSO JUSTIFIED THE MOVE HAS BEEN WITHDRAWN. This
+    # comment used to lead with the operator's 2026-08-05 ruling
+    # 「スパルタンのCIは全面的にやめましょう」 (stop Spartan CI entirely).
+    # REVERSED 2026-08-13 — constitution §4, quoting the operator:
+    #     「あー憲法が古い、スパルタンのci使ってください、圧倒的に早いので」
+    # §4 now reads: "Spartan CI is PERMITTED and PREFERRED where it is
+    # faster. The blanket ban is WITHDRAWN as of 2026-08-13."
+    #
+    # AND THE MEASUREMENT ABOVE DOES NOT SURVIVE AS A REASON EITHER — this
+    # is the part that is easy to get wrong, so it is spelled out. §4
+    # addresses that exact measurement: a busy pool "described a pool that
+    # was too small, not a machine that is unsuitable … A fast machine is
+    # not excluded for having once been busy." Queueing is a CAPACITY
+    # observation with a shelf life, not a property of Spartan.
+    #
+    # SO: this job runs on ubuntu-latest because nobody has re-measured
+    # since the reversal — that is inertia, not a justification. Do NOT
+    # read this file as "we must avoid Spartan." If you are here to decide
+    # where CI runs, the live question per §4 is which machine turns the
+    # loop fastest TODAY; measure both pools and move it if Spartan wins.
+    #
+    # (Kept rather than deleted: scitex-dev's audit source cites this
+    # repo's PR #561 as the measured case for retiring the PS-169 ratchet,
+    # so the history here is load-bearing for another package.)
     #
     # WHY THE ORIGINAL REASON NO LONGER HOLDS — that card's premise was
     # PAID runner minutes. scitex-ai/scitex-hub is PUBLIC (verified via the
