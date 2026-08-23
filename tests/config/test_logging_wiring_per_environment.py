@@ -77,6 +77,23 @@ HANDLERS_ALLOWED_TO_HAVE_NO_LOGGER = {
     "null",
 }
 
+# Handlers whose inertness in SOME environment is the DESIGN, not the defect.
+# Each entry needs a written reason, and lives here rather than in the settings
+# so that silencing the gate means editing the gate.
+#
+# The sibling gate below asks whether an attached handler can EMIT. That
+# question has a legitimate "no": a handler deliberately scoped to one
+# environment is supposed to be dead in the others. Without this set the gate
+# cannot tell "inert by accident" from "inert by intent" and fails forever on
+# correct configuration -- which is how a gate gets deleted rather than fixed.
+HANDLERS_DELIBERATELY_SCOPED_BY_DEBUG = {
+    # settings_logging.py, verbatim: "require_debug_false keeps it off
+    # developer machines". mail_admins is MEANT to be dead under DEBUG -- a dev
+    # machine emailing the operator on every caught exception is the failure,
+    # not the fix. Its inertness on settings_dev is correct and permanent.
+    "mail_admins",
+}
+
 # Every settings module a deployment actually points DJANGO_SETTINGS_MODULE at
 # (deployment/docker/docker-compose.{prod,staging}.yml, and
 # docker-compose.override.yml for dev).
@@ -301,7 +318,7 @@ class TestEveryDeployedEnvironmentIsWired:
         # Act
         silenced = sorted(
             name
-            for name in _handlers_referenced(config)
+            for name in _handlers_referenced(config) - HANDLERS_DELIBERATELY_SCOPED_BY_DEBUG
             if forbidden in config["filters"].get(name, [])
         )
         # Assert
