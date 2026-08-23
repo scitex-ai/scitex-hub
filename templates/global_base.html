@@ -1,7 +1,20 @@
 {% load static vite branding_tags %}
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
 
 <!DOCTYPE html>
-<html lang="en">
+{# lang MUST follow the ACTIVE language, not a constant.
+
+   It was hardcoded to "en" while the page served Japanese — measured on the
+   live site 2026-08-23: django_language=ja, every visible string Japanese, and
+   the document still declaring `lang="en"`.
+
+   Not cosmetic, and invisible to any check that reads page TEXT: a screen
+   reader picks its voice and pronunciation rules from this attribute, so a
+   Japanese page announced as English is read aloud wrong; search engines index
+   the page as English. This landing page exists to be read by Japanese
+   investors and lenders, which is precisely the audience both of those hurt. #}
+<html lang="{{ LANGUAGE_CODE }}">
     <head>
         {# Single source of truth for tab titles: config/branding.py #}
         <title>{% page_title %}</title>
