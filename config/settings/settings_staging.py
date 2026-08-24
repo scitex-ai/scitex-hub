@@ -180,6 +180,25 @@ LOGGING = merge_logging(
                 "backupCount": 5,
                 "formatter": "verbose",
             },
+            # REDEFINES the base's "console", which is require_debug_true and
+            # so cannot emit here (staging defaults DEBUG to False). Staging
+            # already has console_staging, but it is attached only to django,
+            # django.request, scitex and root. The loggers staging does NOT
+            # redefine -- scitex.errors, celery, scitex.slurm and all four app
+            # loggers -- still point at the base's inert console, so their
+            # records reached no stream at all. Same defect as prod, partially
+            # masked here by console_staging covering the other half.
+            #
+            # No logger lists BOTH console and console_staging, so this adds no
+            # double-logging. That the two exist at all is a separate tidy-up:
+            # one stream handler per environment would be the "one dish"
+            # answer, and consolidating them is a refactor, not this fix.
+            "console": {
+                "level": "INFO",
+                "filters": ["require_debug_false"],
+                "class": "logging.StreamHandler",
+                "formatter": "verbose",
+            },
             "console_staging": {
                 "level": "INFO",
                 "class": "logging.StreamHandler",
