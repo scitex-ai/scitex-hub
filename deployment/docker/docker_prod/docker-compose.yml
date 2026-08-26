@@ -78,8 +78,13 @@ services:
       # Singularity/Apptainer container for secure user code execution
       - ../../../deployment/singularity:/app/singularity:ro
 
-      # Docker socket for container status monitoring on server-status page
-      - /var/run/docker.sock:/var/run/docker.sock
+      # Docker socket REMOVED 2026-08-25 (security).
+      # It was mounted for the server-status page's container list. But this
+      # container is internet-facing and runs as root: holding the socket makes
+      # any web vulnerability a root compromise of nas-03, and the host also
+      # carries the Slurm munge keys. The three read-only call sites all wrap
+      # `import docker` in try/except, so they degrade to "no container data".
+      # autoheal keeps its socket - that is its actual job.
 
       # SLURM access (connects to host SLURM for job scheduling)
       - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro

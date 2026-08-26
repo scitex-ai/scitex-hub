@@ -52,7 +52,8 @@ services:
       # Singularity container
       - ../../deployment/singularity:/app/singularity:ro
       # Docker socket
-      - /var/run/docker.sock:/var/run/docker.sock
+      # Docker socket REMOVED 2026-08-25 (security): staging shares the
+      # host daemon with prod, so holding it here is the same hole.
       # SLURM access (optional - can be disabled for staging)
       - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
       - /etc/munge:/etc/munge:ro
