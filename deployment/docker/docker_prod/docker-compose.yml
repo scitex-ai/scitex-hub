@@ -88,7 +88,6 @@ services:
 
       # SLURM access (connects to host SLURM for job scheduling)
       - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
-      - /etc/munge:/etc/munge:ro
       - /run/munge:/run/munge
       - /var/log/slurm:/var/log/slurm
       - /var/spool/slurmctld:/var/spool/slurmctld:ro
@@ -379,7 +378,6 @@ services:
       - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
       - ../../../deployment/singularity:/app/singularity:ro
       - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
-      - /etc/munge:/etc/munge:ro
       - /run/munge:/run/munge
       - /var/log/slurm:/var/log/slurm
       # Mount host passwd for SLURM UID synchronization
@@ -510,7 +508,6 @@ services:
       - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
       - ../../../deployment/singularity:/app/singularity:ro
       - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
-      - /etc/munge:/etc/munge:ro
       - /run/munge:/run/munge
       - /var/log/slurm:/var/log/slurm
       - /etc/passwd:/host/etc/passwd:ro
