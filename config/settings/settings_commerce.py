@@ -29,13 +29,15 @@ Environment keys (document in SECRET/.env.nas when finalized):
 
 - ``SCITEX_HUB_COMPANY_NAME``            販売業者 (default: 株式会社 SciTeX)
 - ``SCITEX_HUB_COMPANY_REPRESENTATIVE``  運営統括責任者 (default: 渡邉 裕亮)
-- ``SCITEX_HUB_COMPANY_ADDRESS``         所在地 (default:
-                                         〒420-0839 静岡県静岡市葵区鷹匠2-8-10
-                                         — registered address; NO room
-                                         number, operator-confirmed
-                                         2026-07-18; 〒 operator-confirmed
-                                         2026-07-17 via grant, 日本郵便
-                                         lookup 葵区鷹匠=420-0839)
+- ``SCITEX_HUB_COMPANY_ADDRESS``         所在地 (default: the REGISTERED
+                                         office, 〒420-0857 静岡県静岡市葵区御幸町３－２１ペガサートビル７階静岡市コ・クリエーションスペース内
+                                         — taken byte-for-byte from the 国税庁
+                                         record for 法人番号 4080001027758,
+                                         2026-08-28. Full-width ３－２１ is
+                                         U+FF0D and ７階 is U+FF17; do NOT
+                                         normalise to ASCII, Stripe's
+                                         corporate review compares this
+                                         against the registry.)
 - ``SCITEX_HUB_COMPANY_PHONE``           電話番号 (default: 080-4022-3567
                                          — operator-confirmed 2026-07-18)
 - ``SCITEX_HUB_COMPANY_CONTACT_EMAIL``   公開メールアドレス (default:
@@ -64,19 +66,31 @@ from config._env import getenv_with_legacy_alias as _getenv_alias
 # ---------------------------------------
 # Company information (特定商取引法に基づく表記)
 # ---------------------------------------
-COMPANY_NAME = _getenv_alias("SCITEX_HUB_COMPANY_NAME", "株式会社 SciTeX") or ""
+COMPANY_NAME = _getenv_alias("SCITEX_HUB_COMPANY_NAME", "株式会社ＳｃｉＴｅＸ") or ""
 COMPANY_REPRESENTATIVE = (
     _getenv_alias("SCITEX_HUB_COMPANY_REPRESENTATIVE", "渡邉 裕亮") or ""
 )
-# Registered address — operator-confirmed 2026-07-18 (Telegram 1530).
-# NO room number (card scitex-ai-address-update-takajo). The 〒 postal
-# code was initially omitted as unconfirmed; operator later confirmed
-# 〒420-0839 (grant DM 2026-07-17, verified against 日本郵便 郵便番号検索
-# for 葵区鷹匠). Prod overrides via SCITEX_HUB_COMPANY_ADDRESS in the
-# canonical .env.prod — keep both in sync.
+# REGISTERED address, and the default is deliberately the real one.
+# Updated 2026-08-28: the previous default (〒420-0839 葵区鷹匠2-8-10) was
+# operator-confirmed 2026-07-18, three weeks BEFORE incorporation on
+# 2026-08-08, so it never matched the registry. That office is also being
+# given up at the end of 2026-08, so the old default was about to name a
+# location that does not exist.
+#
+# This value is copied from the 国税庁 public record for 法人番号
+# 4080001027758 rather than retyped, because the characters that differ are
+# invisible: ３－２１ uses U+FF0D (FULLWIDTH HYPHEN-MINUS, not U+2212) and
+# ７階 uses U+FF17. Stripe's corporate review compares the published address
+# against that record, so a glyph-width "tidy-up" here is a compliance
+# regression, not a formatting change.
+#
+# The DEFAULT is the correct value on purpose: an environment that forgets
+# SCITEX_HUB_COMPANY_ADDRESS must publish the right registered office, not a
+# stale one. Prod may still override; keep it in sync if it does.
 COMPANY_ADDRESS = (
     _getenv_alias(
-        "SCITEX_HUB_COMPANY_ADDRESS", "〒420-0839 静岡県静岡市葵区鷹匠2-8-10"
+        "SCITEX_HUB_COMPANY_ADDRESS",
+        "〒420-0857 静岡県静岡市葵区御幸町３－２１ペガサートビル７階静岡市コ・クリエーションスペース内",
     )
     or ""
 )
