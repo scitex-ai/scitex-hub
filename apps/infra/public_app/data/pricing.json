@@ -1,12 +1,10 @@
 {
   "_comment": "SINGLE SOURCE OF TRUTH for every price SciTeX publishes. Operator decision 2026-08-01: 「SSOT にしましょう」 / 「価格はjson あたりにしておくと使いやすいかと」. Before this file, /services/ hard-coded 9 JPY rows in its template and /landing/ hard-coded 12 USD items in its view; the two disagreed by up to 2.7x on the same service. Change a number HERE and it reaches every page and the brochure PDF together. A literal price anywhere else is a bug — tests/scitex_hub/public_app/test_pricing_ssot.py enforces it.",
   "_amount_is_the_only_truth": "Store the NUMBER, never a formatted string. Rendering derives '無料' from amount 0, the '〜' suffix from from_price, and the '月額' prefix from unit. Storing both 11000 and '11,000円' would be two representations of one fact, which is the duplication this file exists to remove.",
-
   "currency": "JPY",
   "tax_included": true,
   "tax_note": "表示価格はすべて税込(総額)です。",
   "updated": "2026-08-02",
-
   "consulting": [
     {
       "id": "initial-consult-30min",
@@ -77,21 +75,30 @@
       "from_price": true
     }
   ],
-
   "_plans_reference_bands": "The three plan tiers do NOT carry their own numbers. Each names a `price_ref` into `consulting` above, because /services/ previously printed the same band in FOUR places — the desktop comparison table and the mobile card, for each of three plans — all hand-typed. Changing a band would have updated the price table and silently left the plan cards showing the old figure. A reference cannot drift from what it references.",
   "plans": [
     {
       "id": "individual",
       "name": "Individual",
       "audience": "個人研究者・大学院生",
-      "price_ref": "small-fix"
+      "price_ref": "small-fix",
+      "subscription": {
+        "amount": 2980,
+        "unit": "month",
+        "from_price": false
+      }
     },
     {
       "id": "lab",
       "name": "Lab",
       "audience": "研究室・共同研究チーム",
       "price_ref": "lab-poc",
-      "featured": true
+      "featured": true,
+      "subscription": {
+        "amount": 100000,
+        "unit": "month",
+        "from_price": false
+      }
     },
     {
       "id": "enterprise",
@@ -101,7 +108,6 @@
       "suffix": "／要見積もり"
     }
   ],
-
   "_notes_are_verbatim": "The first three are the exact lines /services/ published before this file existed, copied character-for-character so migrating the template changes nothing visible. The fourth is NEW, added at the operator's request 2026-08-01:「目安ですので気楽にご相談ください、と書いておくと良いかもですね」— with bands as wide as 55,000〜220,000, a reader with no invitation to ask simply leaves.",
   "notes": [
     "ソフトウェア、ハードウェア、クラウド、生成 AI API 等の外部利用料は原則実費です。",
@@ -109,21 +115,20 @@
     "SciTeX Cloud の従量課金は、料金確定後に別ページでご案内します。",
     "上記はいずれも目安です。ご予算や状況に合わせて調整できますので、気楽にご相談ください。"
   ],
-
   "_provenance": {
     "note": "The four `anchor` values above are not estimates. They are the operator's own 2024 invoices to 東京大学大学院薬学系研究科薬品作用学教室, read directly. Each listed band equals the invoiced amount plus 10% consumption tax, exactly. Do not 'tidy' these numbers without a new basis — they are what was billed and paid.",
     "invoice-2024-06": "見積書_納品書_請求書_渡邉裕亮.xlsx — 小機能 10,000 / 中規模機能 30,000 / メール個別対応 100,000",
     "invoice-2024-07": "見積書_納品書_請求書_渡邉裕亮_論文制作費.xlsx — 論文制作費 50,000 (→ F1000Research 13-714)"
   },
-
   "_subscription_status": {
-    "state": "not_offered",
-    "note": "NO subscription tiers are published. This is deliberate and must stay consistent with two other places: BILLING_PLANS (settings_commerce.py) resolves to [] so /pricing/ lists nothing, and /特商法/ states 「有料プランは現在準備中です…現在提供中の機能は無料でご利用いただけます」 — which is the legally operative disclosure. /landing/ previously contradicted both by advertising a $29-$999 ladder. Do not add tiers here without updating BILLING_PLANS and the 特商法 wording in the same change; a site that both denies and advertises paid plans is the defect this key exists to prevent."
+    "state": "announced",
+    "note": "PRICES ARE PUBLISHED; BILLING IS NOT OPEN. Operator decision 2026-08-28. Three places must agree and this key is the contract between them:\n  (1) plans[].subscription here — Individual 2,980 / Lab 100,000, monthly, tax-included\n  (2) BILLING_PLANS (settings_commerce.py) stays [] — so /pricing/ lists no checkout button and billing_checkout refuses; the payment path is shut at TWO points (operator-only, and it aborts without a Stripe key)\n  (3) /特商法/ states the prices AND that card payment begins after Stripe's corporate review — so the page never simultaneously denies and advertises paid plans\nThe previous state was not_offered, whose contract was the mirror image: 'no paid plans exist, keep all three saying so'. Do not move ONE of the three without the other two; that inconsistency is exactly what this key exists to prevent.",
+    "lab_price_is_a_list_price_on_purpose": "100,000/month replaced 49,800〜 on 2026-08-28. The operator's reasoning: publish high and come down via coupons and individual quotes, because being wrong downward is safer than being wrong upward. Hence a flat figure with no 〜 — a range invites negotiation from the bottom of it."
   },
-
   "_pending_operator_decision": {
     "note": "Two items removed from /landing/ are COMMITMENTS, not indicative bands, and are parked here rather than deleted so they are not lost: a reader could have relied on either. Restore or retire them explicitly.",
     "mext_partnership": "50% off all plans — a standing discount to government-funded institutions",
     "pilot_program": "Free (6 months) — Professional-tier features for up to 10 researchers"
-  }
+  },
+  "_subscription_is_not_a_consulting_band": "plans[].price_ref points into `consulting` and is a PROJECT band (one-off or retainer engagements, anchored to real 2024 invoices). plans[].subscription is the SaaS monthly price. They are different products that happen to sit on the same card, so they are separate fields rather than one overloaded number. Enterprise carries NO subscription on purpose: it is 要相談 and quoting it here would invent a price."
 }

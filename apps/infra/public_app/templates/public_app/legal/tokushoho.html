@@ -83,7 +83,19 @@
                                         {% trans "最新の価格は" %}<a href="{% url 'public_app:pricing' %}">{% trans "料金ページ" %}</a>{% trans "をご確認ください。価格はすべて税込(総額)表示です。" %}
                                     </p>
                                 {% else %}
-                                    {% trans "有料プランは現在準備中です。提供開始時に、本ページおよび" %}<a href="{% url 'public_app:pricing' %}">{% trans "料金ページ" %}</a>{% trans "に税込(総額)価格を掲載します。現在提供中の機能は無料でご利用いただけます。" %}
+                                    <ul>
+                                        {% for row in subscription_rows %}
+                                            <li>SciTeX {{ row.name }}: {{ row.price }}{% trans "(税込)" %}</li>
+                                        {% endfor %}
+                                        <li>{% trans "機関向け：規模に応じて別途お見積り" %}</li>
+                                        <li>{% trans "受託開発・コンサルティング：個別にお見積り" %}</li>
+                                    </ul>
+                                    <p>
+                                        {% trans "オンラインでのクレジットカード決済は、決済代行（Stripe）の審査完了後に開始します。それまでのお申し込み・お見積りは info@scitex.ai までご連絡ください。" %}
+                                    </p>
+                                    <p>
+                                        {% trans "最新の価格は" %}<a href="{% url 'public_app:pricing' %}">{% trans "料金ページ" %}</a>{% trans "をご確認ください。価格はすべて税込(総額)表示です。" %}
+                                    </p>
                                 {% endif %}
                             </td>
                         </tr>
