@@ -104,7 +104,7 @@ US_ADDRESS_SAMPLES = (
 # are supposed to show, and the venue clause is explicitly out of scope; a regex
 # that flagged either would make this guard unlandable for the wrong reason.
 NON_US_ADDRESS_SAMPLES = (
-    "〒420-0839 静岡県静岡市葵区鷹匠2-8-10",
+    "〒420-0857 静岡県静岡市葵区御幸町３－２１ペガサートビル７階静岡市コ・クリエーションスペース内",
     "San Francisco, California",
     "SciTeX",
 )

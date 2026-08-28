@@ -10,7 +10,10 @@ decision, 2026-07-30):
 - 準拠法 (governing law) -> the laws of Japan (日本法)
 - 裁判管轄 (venue)        -> the Shizuoka District Court (静岡地方裁判所),
   the district court with jurisdiction over the registered office
-  〒420-0839 静岡県静岡市葵区鷹匠2-8-10 (config/settings/settings_commerce.py)
+  〒420-0857 静岡県静岡市葵区御幸町３－２１ペガサートビル７階静岡市コ・クリエーションスペース内
+  (config/settings/settings_commerce.py). The venue is unchanged by the
+  2026-08-28 address update: both the old and the registered office are in
+  静岡市葵区, so 静岡地方裁判所 remains the court with jurisdiction.
 
 The realistic regression is not someone deliberately re-Americanising a
 Japanese company's terms — it is a future boilerplate refresh pasting a US
