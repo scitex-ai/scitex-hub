@@ -86,6 +86,41 @@ def pricing_rows() -> list[dict[str, str]]:
     ]
 
 
+def subscription_rows() -> list[dict[str, Any]]:
+    """Return the plans that carry a MONTHLY SUBSCRIPTION price, formatted.
+
+    Separate from ``plan_rows`` because a plan's ``price_ref`` is a CONSULTING
+    band (project engagements, anchored to 2024 invoices) while ``subscription``
+    is the SaaS monthly fee. They are different products; rendering one where
+    the other belongs is the drift this module exists to prevent.
+
+    Plans WITHOUT a subscription are omitted rather than rendered blank —
+    Enterprise is 要相談 by decision, and an empty price reads as free.
+
+    This exists so /特商法/ can state prices without hard-coding them. A
+    literal in that template would be exactly the defect
+    tests/apps/public_app/test_pricing_ssot.py guards against, and its own
+    failure message says: migrate the page, do not raise the ceiling.
+    """
+    rows = []
+    for plan in load_pricing().get("plans", []):
+        sub = plan.get("subscription")
+        if not sub:
+            continue
+        rows.append(
+            {
+                "id": plan["id"],
+                "name": plan["name"],
+                "price": format_amount(
+                    sub["amount"],
+                    sub.get("unit", "month"),
+                    sub.get("from_price", False),
+                ),
+            }
+        )
+    return rows
+
+
 def plan_rows() -> list[dict[str, Any]]:
     """Return the plan tiers with prices RESOLVED from the bands they cite.
 

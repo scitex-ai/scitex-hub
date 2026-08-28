@@ -136,15 +136,47 @@ class TestTokushohoPage:
         # Assert
         assert "080-4022-3567" in content
 
-    def test_tokushoho_without_plans_states_paid_plans_preparing(
+    def test_tokushoho_without_billing_plans_publishes_the_price_list(
         self, client, settings
     ):
+        """No Stripe plan configured is the PRODUCTION state, and the page must
+        still say what the paid tiers cost.
+
+        This branch used to render 有料プランは現在準備中です. That was true while
+        no price had been decided; it stopped being true on 2026-08-28, when the
+        prices were published and only the PAYMENT path stayed pending. A 特商法
+        page that hides the price of the thing it is selling is exactly the
+        defect this branch exists to prevent — so the assertion MOVED to the new
+        requirement rather than being deleted.
+
+        Prices are read from ``subscription_rows()``, the same pricing.json
+        source the page renders, so this test cannot drift into a hardcoded
+        number that silently contradicts the page.
+        """
         # Arrange
+        from apps.infra.public_app.pricing import subscription_rows
+
         settings.BILLING_PLANS = []
+        rows = subscription_rows()
+        assert rows, (
+            "Control: subscription_rows() returned nothing, so every price "
+            "assertion below would pass vacuously. pricing.json lost its "
+            "subscription amounts — fix that, do not weaken this test."
+        )
+
         # Act
         content = client.get(reverse("public_app:tokushoho")).content.decode("utf-8")
+
         # Assert
-        assert "有料プランは現在準備中です" in content
+        for row in rows:
+            assert row["price"] in content, (
+                f"pricing.json prices {row['name']} at {row['price']}, but the "
+                "特商法 page does not show it."
+            )
+        assert "審査完了後に開始" in content, (
+            "The page must state that online card payment opens after the "
+            "Stripe review — that is the only part still 準備中."
+        )
 
     @pytest.mark.parametrize("expected", ["Pro (Test)", "1100", "税込"])
     def test_tokushoho_with_plans_lists_tax_inclusive_price_details(
