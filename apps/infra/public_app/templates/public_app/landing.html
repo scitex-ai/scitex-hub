@@ -46,6 +46,16 @@
     {% include 'public_app/landing_partials/landing_announcement.html' %}
     {% include 'public_app/landing_partials/landing_hero.html' %}
     {% comment %}
+       The module NAMES, without the demo videos. Commenting the demos include
+       out below also removed Scholar / Writer / Console / FigRecipe from the
+       page, which is not what was asked and put the page back to
+       hero-and-nothing — the exact state the operator objected to on
+       2026-08-16. landing_modules.html carries the same six cards with the
+       carousel apparatus and the "SciTeX Ecosystem" heading removed, and no
+       new copy. Guarded by test_landing_says_what_scitex_does.py.
+    {% endcomment %}
+    {% include 'public_app/landing_partials/landing_modules.html' %}
+    {% comment %}
        WHAT THE VISITOR CAN DO HERE, then HOW TO START.
 
        Operator, 2026-08-16: 「今は道具がバラバラで来訪者がいても何が何だか
@@ -65,8 +75,105 @@
        The ecosystem TABLE stays out — it moved to the Python docs page and
        is not the same thing as the module cards below.
     {% endcomment %}
-    {% include 'public_app/landing_partials/landing_demos.html' %}
-    {% include 'public_app/landing_partials/landing_commitment.html' %}
+    {% comment %}
+       COMMENTED OUT 2026-08-28, same operator instruction as the commitment
+       block below: 「コメントアウトぐらいにしておいてもらって、あとで私が丁寧に
+       見て直しますね」 and 「怪しいものは載せない方が良いかと」.
+
+       THIS ONE INCLUDE CARRIES ALL THREE THINGS HE ASKED TO REMOVE, which is
+       why it is a single change rather than three:
+
+         the "SciTeX Ecosystem" heading      landing_demos.html:11
+         the module demo videos              module_demo.html included 6x
+                                             (scholar/writer/console/
+                                              visualizer/hub .mp4)
+         the "Demonstration on local
+          environment" caption               module_demo.html:15 and :56
+
+       AND THE 40-MINUTE DEMO SURVIVES, which is the point — the operator wants
+       the page to stay hero+demo. That demo is NOT here; it is in the hero:
+         landing_hero.html:110  "Automated Research with SciTeX MCP Server in 40 min"
+       hero is section id="home"; this block is section id="ecosystem".
+       Verified on the rendered production page by the business agent, and the
+       template side re-checked here independently.
+
+       WHY I ALMOST GOT THIS WRONG: I searched the templates for the Japanese
+       string 「ローカル環境でのデモ」 and found nothing, because the template holds
+       the ENGLISH msgid and the Japanese lives in locale/ja/LC_MESSAGES/
+       django.po:469. Searching a translated string against a source tree finds
+       nothing and looks like absence.
+
+       The include itself:
+       {% include 'public_app/landing_partials/landing_demos.html' %}
+    {% endcomment %}
+    {% comment %}
+       COMMENTED OUT 2026-08-28 on the operator's instruction, relayed via the
+       business agent: 「コメントアウトぐらいにしておいてもらって、あとで私が
+       丁寧に見て直しますね」. Deliberately NOT deleted — he intends to revise
+       the wording himself and wants the markup to still be here when he does.
+
+       WHY THE BLOCK-COMMENT TAG AND NOT THE HASH FORM: Django's hash comment
+       is SINGLE-LINE
+       ONLY. A multi-line hash comment renders VERBATIM to every visitor, and this repo
+       shipped exactly that once (global_base.html, caught by CI on PR #691).
+
+       THE REPLACEMENT COPY IS ALREADY AGREED, so it is parked here rather than
+       in a card nobody opens. business settled it 2026-08-28 after I verified
+       each claim against the code. Three bullets CHANGED because they were not
+       true:
+
+         REMOVED  "Community governance for major decisions"
+                  The company has ONE director. This was a promise to investors
+                  that describes governance that does not exist.
+         REMOVED  "always" from the free-tier line
+                  Pricing was decided the same day; an unbounded guarantee next
+                  to a loan application is a commitment nobody authorised.
+         CHANGED  "100% open-source, forever" -> the AGPL's legal property
+                  A promise can be broken; a licence term cannot. This also
+                  removes the "%", which {% trans %} doubles before the catalog
+                  lookup, silently rendering the msgid in English.
+         CHANGED  "export it and leave anytime, no lock-in" -> deletion
+                  MEASURED: there is no account-wide export. Only per-app
+                  exports exist (scholar citations, docs, Overleaf). Deletion
+                  IS implemented (auth_app/urls.py:40), so the weaker claim is
+                  the true one and is still strong. Tracked on
+                  hub-no-account-wide-data-export-20260828; when that ships,
+                  the portability wording may come back.
+
+       AGREED TEXT, EN then JA:
+
+         Our Commitment to Science / 科学への約束
+         SciTeX puts researchers and science first. Our code is open — and code
+         once released stays open.
+         SciTeX は研究者と科学を第一に考えます。公開したコードは、公開され続けます。
+
+         To Individual Researchers / 個人の研究者の方へ
+           A free tier for individual researchers
+           個人研究者向けの無料枠を用意しています
+           Your data is yours — delete your account and your data at any time
+           データはあなたのものです。アカウントとデータはいつでも削除できます
+           We never sell your data
+           あなたのデータを売ることは決してありません
+           Bring your own AI — your keys, your models, your compute
+           AI は持ち込み式です。鍵もモデルも計算資源も、あなたの選択で使えます
+
+         To the Research Community / 研究コミュニティへ
+           Open source under AGPL v3.0 — released code stays free, by license
+           AGPL v3.0 のオープンソースです。公開済みのコードはライセンスの性質上、自由であり続けます
+           Improvements flow back to everyone — copyleft guarantees it
+           改良はコピーレフトの仕組みで、全員に還元されます
+           Built in the open — public repository, public roadmap
+           開発は公開の場で行います。リポジトリもロードマップも公開です
+           Self-hosting supported — sensitive data can stay inside your institution
+           自己ホストに対応しています。外に出せないデータは、機関の中に置いたまま使えます
+
+       NOTE FOR WHOEVER RE-ENABLES THIS: every string is its own gettext msgid.
+       Changing the English creates a NEW msgid, and without its Japanese
+       counterpart the page silently renders English. Do not put "%" in any of
+       them.
+       The include itself:
+       {% include 'public_app/landing_partials/landing_commitment.html' %}
+    {% endcomment %}
     <div class="landing-cushion" aria-hidden="true"></div>
 {% endblock %}
 {% block extra_js %}
