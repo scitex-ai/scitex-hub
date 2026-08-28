@@ -46,6 +46,16 @@
     {% include 'public_app/landing_partials/landing_announcement.html' %}
     {% include 'public_app/landing_partials/landing_hero.html' %}
     {% comment %}
+       The module NAMES, without the demo videos. Commenting the demos include
+       out below also removed Scholar / Writer / Console / FigRecipe from the
+       page, which is not what was asked and put the page back to
+       hero-and-nothing — the exact state the operator objected to on
+       2026-08-16. landing_modules.html carries the same six cards with the
+       carousel apparatus and the "SciTeX Ecosystem" heading removed, and no
+       new copy. Guarded by test_landing_says_what_scitex_does.py.
+    {% endcomment %}
+    {% include 'public_app/landing_partials/landing_modules.html' %}
+    {% comment %}
        WHAT THE VISITOR CAN DO HERE, then HOW TO START.
 
        Operator, 2026-08-16: 「今は道具がバラバラで来訪者がいても何が何だか
