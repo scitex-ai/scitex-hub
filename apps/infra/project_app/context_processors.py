@@ -22,9 +22,32 @@ def version_context(request):
 VISITOR_POOL_STATUS_CACHE_KEY = "visitor_pool_status"
 VISITOR_POOL_STATUS_CACHE_SECONDS = 60
 
+#: Every key the header badge's templates read off ``visitor_pool_status``.
+#: SSoT for the projection below AND for the test that scans the templates
+#: (tests/apps/project_app/test_visitor_badge_projection.py) — so a template
+#: that starts reading a new key fails a test instead of shipping a blank.
+VISITOR_POOL_STATUS_KEYS = ("total", "allocated", "ready")
+
 
 def _visitor_pool_status_cached():
-    """{"total", "allocated"} for the header badge, cached 60s.
+    """The keys the header badge renders, cached 60s.
+
+    MUST carry every key the templates read off ``visitor_pool_status``.
+    tests/apps/project_app/test_visitor_badge_projection.py asserts exactly
+    that by scanning the templates, because the failure mode here is SILENT:
+    Django renders a missing dict key as the empty string, so a projection
+    that drops a key produces a badge reading " of 16 visitor slots
+    available" with no error anywhere.
+
+    That is not hypothetical. On 2026-07-30 the badge was correctly changed
+    from ``allocated`` to ``ready`` — allocation needs a slot that is free AND
+    workspace_ready AND not quarantined, which only ``ready`` expresses — and
+    this projection was not updated with it. Measured on production
+    2026-08-28, nearly a month later, the count was still blank.
+
+    ``allocated`` is retained because it is cheap and other consumers may
+    read it; ``ready`` is the one the badge actually renders. Both come from
+    ``measure_pool``, which returns them alongside free/expired/quarantined.
 
     Returns None (badge hides occupancy) when the pool tables are not
     migrated yet — logged loudly, never masked as fake numbers.
@@ -37,7 +60,7 @@ def _visitor_pool_status_cached():
 
     def _load():
         status = VisitorPool.get_pool_status()
-        return {"total": status["total"], "allocated": status["allocated"]}
+        return {key: status[key] for key in VISITOR_POOL_STATUS_KEYS}
 
     try:
         return cache.get_or_set(
