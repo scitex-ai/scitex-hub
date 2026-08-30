@@ -276,28 +276,7 @@ DATABASES = {
         # — same issue as production (see settings_prod.py).
         # Visitor middleware DB errors cascade to views.
         "ATOMIC_REQUESTS": False,
-        # Persistent connections in normal dev, but NEVER under test.
-        #
-        # This is not a preference, it is a correctness requirement, and it
-        # only became reachable when the engine changed. The removed
-        # file-backed config carried no CONN_MAX_AGE at all, so the whole
-        # persistent-connection code path was dead during tests; pointing the
-        # suite at Postgres woke it up and turned 61 tests red at once with
-        # `django.db.utils.OperationalError: the connection is closed`
-        # (measured, pytest-matrix py3.13, run 33286768590).
-        #
-        # Mechanism: with CONN_MAX_AGE > 0 Django keeps the connection open
-        # between requests, and `close_old_connections` — wired to the
-        # request_started/request_finished signals — closes it at the end of
-        # each test-client request. Inside a TestCase the outer atomic block
-        # still holds that same connection, so the NEXT query in the same test
-        # finds it closed. Every failure was a middleware/view test that
-        # issues more than one request, which is exactly the shape that
-        # predicts.
-        #
-        # 0 means "close after each request", which is what the test client
-        # needs and costs nothing in dev.
-        "CONN_MAX_AGE": 0 if os.environ.get("SCITEX_HUB_TEST_MODE") else 600,
+        "CONN_MAX_AGE": 600,  # Connection pooling (10 minutes)
         "OPTIONS": {
             "connect_timeout": 10,
         },

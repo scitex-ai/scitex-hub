@@ -68,7 +68,13 @@ def index(request):
     # Ensure a clean DB connection for this thread.  In ASGI mode, the
     # thread pool may hand us a thread whose connection was dirtied by a
     # previous request's middleware (PgBouncer transaction pool mode).
-    connection.close()
+    #
+    # NEVER inside an atomic block -- see the same guard in
+    # project_app/middleware.py. Closing a connection mid-transaction marks it
+    # `closed_in_transaction`, so the next query raises "the connection is
+    # closed" rather than reconnecting, and the transaction's work is lost.
+    if not connection.in_atomic_block:
+        connection.close()
     context = {
         "ecosystem_versions": _get_ecosystem_versions(),
     }

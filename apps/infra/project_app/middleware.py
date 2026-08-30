@@ -252,7 +252,16 @@ class VisitorAutoLoginMiddleware:
         try:
             from django.db import connection
 
-            connection.close()
+        # NEVER inside an atomic block. Django marks a connection closed in a
+        # transaction as `closed_in_transaction`, and the next query then
+        # raises "the connection is closed" instead of reconnecting. Under
+        # ATOMIC_REQUESTS=False in production this is not in a transaction, so
+        # the PgBouncer cleanup below still runs exactly as before; under a
+        # Django TestCase (which wraps every test in an atomic block) it is
+        # now correctly skipped. Closing mid-transaction would silently
+        # discard the transaction's work, so this guard is right in both.
+            if not connection.in_atomic_block:
+                connection.close()
         except Exception:
             pass
 
@@ -422,7 +431,16 @@ class VisitorExpirationMiddleware:
         try:
             from django.db import connection
 
-            connection.close()
+        # NEVER inside an atomic block. Django marks a connection closed in a
+        # transaction as `closed_in_transaction`, and the next query then
+        # raises "the connection is closed" instead of reconnecting. Under
+        # ATOMIC_REQUESTS=False in production this is not in a transaction, so
+        # the PgBouncer cleanup below still runs exactly as before; under a
+        # Django TestCase (which wraps every test in an atomic block) it is
+        # now correctly skipped. Closing mid-transaction would silently
+        # discard the transaction's work, so this guard is right in both.
+            if not connection.in_atomic_block:
+                connection.close()
         except Exception:
             pass
 
