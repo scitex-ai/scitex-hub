@@ -144,17 +144,41 @@ def _is_secret_name(name: str) -> bool:
     return upper.endswith(SECRET_NAME_SUFFIXES)
 
 
+#: BARE-NAME env readers this repo defines itself. Without these the scan sees
+#: only DOTTED calls, and every lookup routed through the repo's own ADR-0001
+#: alias helper is invisible to it.
+#:
+#: THIS GAP WAS LOAD-BEARING, not hypothetical. `settings_prod.py` carried
+#:     _getenv_alias("SCITEX_HUB_POSTGRES_PASSWORD", "CHANGE_THIS_IN_PROD")
+#: on the branch production actually takes, and this file -- which exists to
+#: forbid exactly that shape -- was green the whole time, because
+#: `_getenv_alias` is an ast.Name and the check below required an
+#: ast.Attribute. A guard blind to the wrapper its own repo prefers is a guard
+#: that grades the code nobody writes. (Removed 2026-08-30; the scan is
+#: widened in the same change so the fix cannot be undone silently.)
+BARE_ENV_READERS = (
+    "getenv_with_legacy_alias",
+    "_getenv_alias",
+    "getenv",
+)
+
+
 def _env_lookup_default(node: ast.AST):
     """Return ``(env_name, default_literal)`` for a 2-arg env lookup, else None.
 
-    Matches ``os.getenv(NAME, DEFAULT)`` and ``os.environ.get(NAME, DEFAULT)``.
+    Matches ``os.getenv(NAME, DEFAULT)`` and ``os.environ.get(NAME, DEFAULT)``,
+    and the bare-name wrappers in :data:`BARE_ENV_READERS`.
     """
     if not isinstance(node, ast.Call) or len(node.args) != 2:
         return None
     func = node.func
-    if not isinstance(func, ast.Attribute):
-        return None
-    if func.attr not in ("getenv", "get"):
+    if isinstance(func, ast.Name):
+        if func.id not in BARE_ENV_READERS:
+            return None
+    elif isinstance(func, ast.Attribute):
+        if func.attr not in ("getenv", "get"):
+            return None
+    else:
         return None
     name_arg, default_arg = node.args
     if not isinstance(name_arg, ast.Constant) or not isinstance(name_arg.value, str):

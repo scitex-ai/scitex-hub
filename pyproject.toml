@@ -184,7 +184,26 @@ dependencies = [
     #
     # Re-measure with `.[all,dev]` installed: a venv without scitex_hub
     # silently skips audit-cli and will tell you everything is fine.
-    "scitex-dev>=0.43.1",
+    #
+    # FLOOR RAISED 0.43.1 -> 0.56.8 (2026-08-30). `_optional_apps.
+    # publish_cards_store_target` now resolves the DEFAULT cards store through
+    # `scitex_dev.store.host_store`, so the DSN that primitive builds is load
+    # bearing, not incidental. MEASURED on this repo's own .venv:
+    #
+    #   scitex-dev 0.43.1  host_store(pkg="cards").dsn
+    #     -> postgresql:///scitex?host=~/.scitex/pg
+    #   scitex-dev 0.56.8  host_store(pkg="cards").dsn
+    #     -> postgresql:///scitex?host=~/.scitex/pg/run&port=55432
+    #
+    # 0.43.1 emits NEITHER the `run/` subdirectory NOR `port=`, so libpq looks
+    # for `~/.scitex/pg/.s.PGSQL.5432` -- a socket the fleet does not create.
+    # That is verbatim the "(original)" row in upstream's own table in
+    # scitex_dev/store/_host.py::socket_dsn, annotated "THIS PATH HAD NEVER
+    # CONNECTED"; it went undetected because every host that worked had
+    # $SCITEX_STORE_DSN set and never reached the fallback. A hub that
+    # configures nothing is exactly the caller that DOES reach it.
+    # 0.56.8 is the version measured good here, not proven to be the minimum.
+    "scitex-dev>=0.56.8",
     # `scitex-audio` owns the whisper.cpp transcription pipeline that
     # llm_app/views/stt.py delegates to (`scitex_audio.transcribe`).
     # Declared DIRECTLY rather than relied on transitively: llm_app/views/chat.py
@@ -441,13 +460,16 @@ dev = [
     # test_audit.py uses (`[PA-307 …]` <- skip_rules=("PA-307",)).
     # Pinning to <0.16.1 silently lets every entry in `skip_rules`
     # leak through — the gate fails on rules we explicitly deferred.
-    # FLOOR >=0.43.1 — see the matching declaration in [project.dependencies]
-    # for the operator ruling and the measurement behind it. THIS is the one
+    # FLOOR >=0.56.8 — see the matching declaration in [project.dependencies]
+    # for the operator ruling and the measurement behind it (raised from
+    # 0.43.1 on 2026-08-30: that release's host_store built a socket DSN with
+    # neither `run/` nor `port=`, so the cards-store default could not reach
+    # the fleet instance). THIS is the one
     # pytest-matrix installs (`-e ".[all,dev]"`), so this is the one that
     # decides the three required checks; the audit workflow's own pin cannot
     # substitute for it. Keep the two identical — if they drift, the matrix
     # and the audit test different versions and one of them is lying.
-    "scitex-dev>=0.43.1",
+    "scitex-dev>=0.56.8",
     # The board-tenancy suite is guarded by `_TODO_INSTALLED`
     # (middleware.py:115, find_spec("scitex_cards")). Without this package
     # installed, every one of those tests SKIPS and the job exits 0 — a

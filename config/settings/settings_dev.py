@@ -271,7 +271,29 @@ DATABASES = {
             "SCITEX_HUB_DB_PASSWORD_DEV", "scitex_dev_2025"
         ),  # pragma: allowlist secret
         "HOST": os.environ.get("SCITEX_HUB_DB_HOST_DEV", "localhost"),
-        "PORT": os.environ.get("SCITEX_HUB_DB_PORT_DEV", "5432"),
+        # 5433, NOT 5432. Paired with the "localhost" default above, this is
+        # the developer running Django on the HOST against the compose
+        # postgres, and compose publishes that container on
+        # `127.0.0.1:${SCITEX_HUB_POSTGRES_PORT:-5433}:5432`
+        # (deployment/docker/docker-compose.override.yml:127, and
+        # deployment/docker/docker_dev/docker-compose.yml:189 with
+        # `_PORT_DEV`). NO compose file in this repo publishes host 5432 for
+        # postgres -- the comment at docker_dev/docker-compose.yml:187 says
+        # why: "avoid conflict with host postgres". So the old 5432 default
+        # named a port nothing in this repo serves.
+        #
+        # This is NOT the settings_prod treatment, and the difference is the
+        # point. A wrong PORT cannot silently succeed: libpq answers
+        # "connection refused" on the first query and names the address. The
+        # thing production must never do is SUCCEED against a store that
+        # reaches nobody, which is why it raises there instead of defaulting.
+        # A dev default that fails loudly when wrong is already the required
+        # behaviour, so raising here would only break `pytest` for anyone who
+        # has not exported four variables -- and CI sets all four explicitly
+        # (pytest-matrix workflow), so a raise would buy nothing there either.
+        # Running INSIDE compose is a different pairing: HOST=postgres with
+        # PORT=5432, which the .env templates state explicitly.
+        "PORT": os.environ.get("SCITEX_HUB_DB_PORT_DEV", "5433"),
         # ATOMIC_REQUESTS disabled: incompatible with ASGI (Daphne)
         # — same issue as production (see settings_prod.py).
         # Visitor middleware DB errors cascade to views.
