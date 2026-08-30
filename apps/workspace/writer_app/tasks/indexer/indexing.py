@@ -14,16 +14,16 @@ logger = logging.getLogger(__name__)
 @shared_task
 def index_project_figures(project_id):
     """
-    Index all figures in project to local SQLite DB.
+    Index all figures in the project into the media index.
 
     This task scans the project directory for figure files and stores
-    their metadata in the project's SQLite database for fast querying.
+    their metadata in the ProjectFigure table for fast querying.
 
     Args:
         project_id: Project ID
     """
     from apps.infra.project_app.models import Project
-    from ...utils.project_db import get_project_db
+    from ...utils.media_index import get_media_index
     from ...services import WriterService
     from .references import update_latex_references
     from .thumbnails import generate_thumbnail
@@ -53,7 +53,7 @@ def index_project_figures(project_id):
                 )
                 return
 
-        db = get_project_db(project)
+        db = get_media_index(project)
 
         logger.info(
             f"[Indexer] Starting indexing for project {project_id} at {project_path}"
@@ -147,7 +147,7 @@ def index_project_figures(project_id):
 @shared_task
 def index_project_tables(project_id):
     """
-    Index all table files (CSV, Excel) in project to local SQLite DB.
+    Index all table files (CSV, Excel) in the project into the media index.
 
     Tables are discovered in:
     - scitex/writer/**/tables/**/* (manuscript tables)
@@ -160,7 +160,7 @@ def index_project_tables(project_id):
         project_id: Project ID
     """
     from apps.infra.project_app.models import Project
-    from ...utils.project_db import get_project_db
+    from ...utils.media_index import get_media_index
     from .thumbnails import generate_table_thumbnail
 
     try:
@@ -187,7 +187,7 @@ def index_project_tables(project_id):
                 )
                 return
 
-        db = get_project_db(project)
+        db = get_media_index(project)
 
         logger.info(
             f"[TableIndexer] Starting table indexing for project {project_id} at {project_path}"

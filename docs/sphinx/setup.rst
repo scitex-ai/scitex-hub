@@ -18,7 +18,7 @@ SciTeX Hub is a self-hostable research platform. One ``make start`` gives you:
 
 Optional local databases for offline paper search:
 
-- **CrossRef Local** — 167M+ papers in a local SQLite database with citation graph analysis.
+- **CrossRef Local** — 167M+ papers in a local database with citation graph analysis.
 - **OpenAlex Local** — 284M+ scholarly works with full-text search, abstracts, and impact factors.
 
 Prerequisites

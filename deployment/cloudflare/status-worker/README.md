@@ -137,7 +137,7 @@ answers "is SciTeX up", not "what is every component doing".
 ## Why CrossRef is not listed
 
 CrossRef Local has no public hostname **by design**. It runs in-process inside
-django in `db` mode — the settings read the SQLite file at
+django in `db` mode — the settings read the CrossRef mirror file at
 `/data/crossref/crossref.db` directly — so there is no HTTP service to probe, and
 `/server-status/` reporting it HEALTHY is correct.
 

@@ -329,10 +329,28 @@ TEMPLATES = [
 # ---------------------------------------
 # Database (override in environment settings)
 # ---------------------------------------
+# PostgreSQL is the ONLY supported engine, per the 2026-08-29 fleet ruling
+# that removed every embedded file-backed database from the ecosystem. There
+# is deliberately no second branch here: an environment that cannot reach
+# Postgres must fail loudly at connect time rather than silently degrade onto
+# a local file whose contents nobody else can see.
+#
+# Every environment module (settings_dev / settings_staging / settings_prod)
+# reassigns DATABASES, so this block is the base for a direct
+# `config.settings.settings_shared` import only.
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "data" / "db" / "sqlite" / "scitex_hub.db",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": _getenv_alias("SCITEX_HUB_DB_NAME", "scitex_hub"),
+        "USER": _getenv_alias("SCITEX_HUB_DB_USER", "scitex"),
+        "PASSWORD": _getenv_alias("SCITEX_HUB_DB_PASSWORD", ""),
+        "HOST": _getenv_alias("SCITEX_HUB_DB_HOST", "localhost"),
+        "PORT": _getenv_alias("SCITEX_HUB_DB_PORT", "5432"),
+        "ATOMIC_REQUESTS": False,
+        "CONN_MAX_AGE": 600,
+        "OPTIONS": {
+            "connect_timeout": 10,
+        },
     }
 }
 

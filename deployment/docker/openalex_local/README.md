@@ -43,7 +43,8 @@ note explains it.
    compose.
 2. **Resource cap.** Capped at 1G / 1 cpu like crossref; the NAS is the
    constrained tier-1 box, so an uncapped process is a real risk.
-3. **Gold-standard check still pending:** raw `sqlite3 :ro` reads are verified;
+3. **Gold-standard check still pending:** raw read-only reads of the mounted
+   mirror are verified;
    the full relay (FastAPI + FTS5) inside the `:ro` container has not been hit
    yet — build the image and curl `/works` to confirm the FTS path before
    flipping the card.

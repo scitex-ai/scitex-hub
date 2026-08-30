@@ -47,14 +47,19 @@ CELERY_RESULT_EXTENDED = True
 
 # Test-mode eager execution
 # ------------------------
-# The SQLite test gate (SCITEX_HUB_USE_SQLITE_DEV=1, used by pytest-matrix
-# in CI) runs without a Redis broker, so .delay() raises
-# kombu.exceptions.OperationalError. Run tasks inline instead of enqueuing.
-# EAGER_PROPAGATES=True surfaces task exceptions to the caller — per
-# project policy, errors must be loud (no silent fallback).
-# In-memory broker keeps Celery's internal probes (canvas, etc.) from
-# doing real network I/O at import time.
-if os.environ.get("SCITEX_HUB_USE_SQLITE_DEV"):
+# SCITEX_HUB_TEST_MODE=1 is what the CI test jobs set. It runs without a Redis
+# broker, so .delay() raises kombu.exceptions.OperationalError. Run tasks
+# inline instead of enqueuing. EAGER_PROPAGATES=True surfaces task exceptions
+# to the caller — per project policy, errors must be loud (no silent
+# fallback). In-memory broker keeps Celery's internal probes (canvas, etc.)
+# from doing real network I/O at import time.
+#
+# This gate used to be spelled as a database-engine switch, borrowed as a
+# proxy for "is this a test run". The engine half is gone (Postgres is now
+# the only one — see settings_dev.py), so the flag was renamed to say what
+# it actually selects. CI supplies a real postgres service AND this
+# variable; the two are now independent.
+if os.environ.get("SCITEX_HUB_TEST_MODE"):
     CELERY_TASK_ALWAYS_EAGER = True
     CELERY_TASK_EAGER_PROPAGATES = True
     CELERY_BROKER_URL = "memory://"

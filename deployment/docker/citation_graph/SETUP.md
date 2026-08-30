@@ -269,7 +269,7 @@ Service Layer (service.py) + In-Memory Cache
     ↓
 CitationGraphBuilder (scitex-code)
     ↓
-CrossRef Database (SQLite)
+CrossRef Database (external mirror)
 ```
 
 **Comparison with Django**:

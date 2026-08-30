@@ -84,7 +84,7 @@ Service Layer (services/citation_graph/service.py)
   ↓
 Core Module (scitex.scholar.citation_graph from scitex-code)
   ↓
-CrossRef Database (SQLite)
+CrossRef Database (external mirror)
 ```
 
 ---
@@ -342,7 +342,7 @@ scitex-code  # pip install -e ~/proj/scitex-code
 
 - Python 3.11+
 - Django 4.2+
-- CrossRef SQLite database (~1.2TB)
+- CrossRef local database mirror (~1.2TB)
 - Redis (recommended for caching)
 
 ---

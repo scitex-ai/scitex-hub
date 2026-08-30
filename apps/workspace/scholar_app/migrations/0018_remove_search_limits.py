@@ -11,8 +11,9 @@ def _drop_search_limits_pg(apps, schema_editor):
     2026-06-06) wanted: a re-run on a DB that already lacks the column
     becomes a no-op instead of crashing the whole ``migrate`` invocation.
 
-    SQLite (the test DB on CI) and MySQL do NOT support that clause and
-    surface it as ``near "EXISTS": syntax error``. On those backends we
+    Other backends (MySQL, and the file-backed engine CI used to run on)
+    do NOT support that clause and surface it as
+    ``near "EXISTS": syntax error``. On those backends we
     skip the raw SQL entirely — Django's ``state_operations`` (the
     accompanying ``RemoveField`` below) tell the ORM the column is gone,
     and ``setup_databases``/``create_test_db`` always start from an empty
@@ -62,13 +63,14 @@ class Migration(migrations.Migration):
     with PostgreSQL-native ``DROP/ADD COLUMN IF EXISTS`` raw SQL.
 
     That fix shipped Postgres-only syntax into a migration that the test
-    matrix applies under SQLite, breaking every test that depends on
+    matrix applied under a different engine, breaking every test that
+    depends on
     ``setup_databases``. We extend the original solution to be
     backend-aware:
 
     * ``database_operations`` runs the idempotent raw SQL through
       :func:`migrations.RunPython` callables that early-return on
-      non-Postgres backends. On SQLite/MySQL nothing is executed — the
+      non-Postgres backends. On those nothing is executed — the
       empty fresh test DB has no column to drop anyway, so the column
       removal is implicit. On Postgres the original ``DROP/ADD COLUMN IF
       EXISTS`` semantics are preserved verbatim.

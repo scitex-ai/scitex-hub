@@ -10,8 +10,8 @@ class Migration(migrations.Migration):
 
     operations = [
         # Drop indexes / unique_together that reference the fields being removed
-        # BEFORE removing those fields. On SQLite every RemoveField triggers a
-        # full table remake which rebuilds the model's indexes from the current
+        # BEFORE removing those fields. On a table-remaking backend every
+        # RemoveField rebuilds the model's indexes from the current
         # model state; if a manuscript/session index is still declared at that
         # point, _model_indexes_sql calls options.get_field('manuscript') on a
         # field that no longer exists -> KeyError: 'manuscript'.

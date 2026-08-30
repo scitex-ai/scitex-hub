@@ -23,6 +23,9 @@ from .editor.document import Manuscript
 from .editor.references import Citation, Figure, Table
 from .editor.section import ManuscriptSection
 
+# Per-project media index (replaces the old per-project embedded-file sidecar)
+from .media.index import ProjectFigure, ProjectFigureLatexReference, ProjectTable
+
 # Version control models
 from .version_control.version import (
     DiffResult,

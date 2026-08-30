@@ -35,11 +35,11 @@ exists to prevent. So the production gate stays a fixed, auditable, cheap
 constant and THIS test locks it to reality. Mirrors the sibling lock
 ``test_template_marker_reality.py``.
 
-Run (SQLite, no network — the skeleton is pure filesystem + a local ``git``):
+Run (no network — the skeleton is pure filesystem + a local ``git``):
 
     SCITEX_HUB_DJANGO_SECRET_KEY=local-test-secret \
     SCITEX_HUB_GITEA_SSH_PORT_DEV=2222 \
-    SCITEX_HUB_USE_SQLITE_DEV=1 \
+    SCITEX_HUB_TEST_MODE=1 \
     /opt/venv-sac/bin/python3 -m pytest <abs path to this file>
 """
 

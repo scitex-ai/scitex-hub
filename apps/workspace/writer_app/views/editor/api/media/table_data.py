@@ -32,7 +32,7 @@ def table_data_api(request, project_id, file_hash):
         import pandas as pd
         from pathlib import Path
         from apps.infra.project_app.models import Project
-        from .....utils.project_db import get_project_db
+        from .....utils.media_index import get_media_index
 
         project = Project.objects.get(id=project_id)
         user, is_visitor = get_user_for_request(request, project_id)
@@ -42,7 +42,7 @@ def table_data_api(request, project_id, file_hash):
                 {"success": False, "error": "Invalid session"}, status=403
             )
 
-        db = get_project_db(project)
+        db = get_media_index(project)
 
         # Find table by hash
         tables = db.get_all_tables()
@@ -147,7 +147,7 @@ def table_update_api(request, project_id, file_hash):
         import pandas as pd
         from pathlib import Path
         from apps.infra.project_app.models import Project
-        from .....utils.project_db import get_project_db
+        from .....utils.media_index import get_media_index
         from .....tasks.indexer import index_project_tables, CELERY_AVAILABLE
 
         project = Project.objects.get(id=project_id)
@@ -168,7 +168,7 @@ def table_update_api(request, project_id, file_hash):
                 {"success": False, "error": "Missing data or columns"}, status=400
             )
 
-        db = get_project_db(project)
+        db = get_media_index(project)
 
         # Find table by hash
         tables = db.get_all_tables()

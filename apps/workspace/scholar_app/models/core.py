@@ -171,7 +171,9 @@ class SearchIndex(models.Model):
     # search_vector = SearchVectorField(null=True)  # PostgreSQL full-text search - commented for compatibility
     keywords = models.TextField(
         blank=True
-    )  # Store as comma-separated values for SQLite compatibility
+    )  # Comma-separated values; predates the Postgres-only rule and
+    # could now become an array/JSON field (see the commented
+    # SearchVectorField above).
     topics = models.ManyToManyField(Topic, blank=True)
 
     # Metrics

@@ -44,10 +44,10 @@ if __name__ == "__main__":
 # @shared_task
 # def index_project_figures(project_id):
 #     """
-#     Index all figures in project to local SQLite DB.
+#     Index all figures in project to the media index.
 #
 #     This task scans the project directory for figure files and stores
-#     their metadata in the project's SQLite database for fast querying.
+#     their metadata in the media index for fast querying.
 #
 #     Args:
 #         project_id: Project ID
@@ -162,7 +162,7 @@ if __name__ == "__main__":
 # @shared_task
 # def index_project_tables(project_id):
 #     """
-#     Index all table files (CSV, Excel) in project to local SQLite DB.
+#     Index all table files (CSV, Excel) in project to the media index.
 #
 #     Tables are discovered in:
 #     - scitex/writer/**/tables/**/* (manuscript tables)

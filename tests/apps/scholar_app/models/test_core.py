@@ -201,7 +201,7 @@ if __name__ == "__main__":
 #     # search_vector = SearchVectorField(null=True)  # PostgreSQL full-text search - commented for compatibility
 #     keywords = models.TextField(
 #         blank=True
-#     )  # Store as comma-separated values for SQLite compatibility
+#     )  # Comma-separated values; predates the Postgres-only rule
 #     topics = models.ManyToManyField(Topic, blank=True)
 #
 #     # Metrics

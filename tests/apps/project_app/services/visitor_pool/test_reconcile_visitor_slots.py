@@ -349,8 +349,8 @@ class TestReconcileAsyncDispatch(TestCase):
     The command accepts an ``enqueue_fn`` seam (mirroring the existing
     ``gitea_client=``/``clone_fn=`` injection points on
     ``reset_and_verify_slot``) so these tests observe dispatch WITHOUT
-    fighting Celery's process-global ``task_always_eager`` flag — the SQLite
-    test gate (``SCITEX_HUB_USE_SQLITE_DEV``) forces that True at Django
+    fighting Celery's process-global ``task_always_eager`` flag — the CI
+    test gate (``SCITEX_HUB_TEST_MODE``) forces that True at Django
     settings load time, and it cannot be flipped back mid-process (confirmed:
     neither ``app.conf.update()`` nor attribute assignment on the bound
     Celery app changes the effective value here), so ``.delay()`` would

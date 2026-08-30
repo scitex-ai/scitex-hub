@@ -96,7 +96,6 @@ ssh_keys/
 
 ### Source: /home/ywatanabe/.git-templates/.gitignore-templates/Custom/LargeFiles.gitignore ###
 # Data directories - specific patterns to ignore
-data/db/sqlite/*.db*
 data/db/backups/*
 data/db/migrations_archive/*
 data/users/*/
@@ -112,7 +111,6 @@ data/**/
 data/ssh_keys/
 
 # Keep directory structure with .gitkeep files
-!data/db/sqlite/.gitkeep
 !data/db/backups/.gitkeep
 !data/db/migrations_archive/.gitkeep
 !data/users/.gitkeep
@@ -179,7 +177,6 @@ data/ssh_keys/
 **/*.txt
 **/*.log
 **/*.db
-**/*.sqlite
 **/*.xml
 **/*.JNB
 **/*.jnb
@@ -281,8 +278,6 @@ cover/
 # Django stuff:
 *.log
 local_settings.py
-db.sqlite3
-db.sqlite3-journal
 
 # Flask stuff:
 instance/
@@ -800,17 +795,25 @@ secret_key.txt
 !.secrets.baseline
 
 # Django database files
-*.sqlite3
 *.db
 *.db.backup*
 *.db.broken
-db.sqlite3*
 *.db-journal
 *.db-shm
 *.db-wal
 
-# Django media uploads (user content)
-media/
+# Django media uploads (user content).
+# ANCHORED to the repo root on purpose. MEDIA_ROOT is `base_dir / "media"`
+# (settings_static.py), so only the top-level directory is user content. The
+# unanchored `media/` matched EVERY directory of that name, including two
+# tracked SOURCE packages —
+#   apps/workspace/writer_app/views/editor/api/media/   (4 files, force-added)
+#   apps/workspace/writer_app/models/media/
+# — which git then hid from `git grep --untracked` and from ripgrep, while
+# `git grep <commit>` still saw them. That split cost a wrong audit count and,
+# worse, silently dropped a new model package from `git add -A`, so CI died on
+# ModuleNotFoundError for code that was present on disk.
+/media/
 uploads/
 
 # Django static files in production

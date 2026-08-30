@@ -245,45 +245,43 @@ MIDDLEWARE += [
 
 
 # ---------------------------------------
-# Database - Fallback
+# Database
 # ---------------------------------------
-# Use SQLite: export SCITEX_HUB_USE_SQLITE_DEV=1
-if os.environ.get("SCITEX_HUB_USE_SQLITE_DEV"):
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "data" / "db" / "sqlite" / "scitex_hub_dev.db",
-        }
+# PostgreSQL, unconditionally. An env flag used to swap in a local
+# file-backed engine here; it was removed on 2026-08-29 with the rest of
+# the fleet's embedded databases. There is no fallback by design — a dev
+# box or CI job without Postgres must say so at connect time instead of
+# quietly testing against a different engine than production runs.
+#
+# CI supplies these via a `postgres:16` service container; see
+# .github/workflows/pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml.
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ.get("SCITEX_HUB_DB_NAME_DEV", "scitex_hub_dev"),
+        "USER": os.environ.get("SCITEX_HUB_DB_USER_DEV", "scitex_dev"),
+        # DECLARED EXCEPTION, not an oversight. This is the compose-local
+        # dev postgres, which every real deployment overrides via
+        # SCITEX_HUB_DB_PASSWORD_DEV; prod uses settings_prod, which has no
+        # literal fallback at all. Emptying it would break `docker compose
+        # up` for anyone who has not set the variable, so it is declared
+        # rather than removed. If the dev database is ever exposed beyond
+        # the compose network this must become an empty default instead.
+        "PASSWORD": os.environ.get(
+            "SCITEX_HUB_DB_PASSWORD_DEV", "scitex_dev_2025"
+        ),  # pragma: allowlist secret
+        "HOST": os.environ.get("SCITEX_HUB_DB_HOST_DEV", "localhost"),
+        "PORT": os.environ.get("SCITEX_HUB_DB_PORT_DEV", "5432"),
+        # ATOMIC_REQUESTS disabled: incompatible with ASGI (Daphne)
+        # — same issue as production (see settings_prod.py).
+        # Visitor middleware DB errors cascade to views.
+        "ATOMIC_REQUESTS": False,
+        "CONN_MAX_AGE": 600,  # Connection pooling (10 minutes)
+        "OPTIONS": {
+            "connect_timeout": 10,
+        },
     }
-else:
-    # PostgreSQL (default for development)
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.environ.get("SCITEX_HUB_DB_NAME_DEV", "scitex_hub_dev"),
-            "USER": os.environ.get("SCITEX_HUB_DB_USER_DEV", "scitex_dev"),
-            # DECLARED EXCEPTION, not an oversight. This is the compose-local
-            # dev postgres, which every real deployment overrides via
-            # SCITEX_HUB_DB_PASSWORD_DEV; prod uses settings_prod, which has no
-            # literal fallback at all. Emptying it would break `docker compose
-            # up` for anyone who has not set the variable, so it is declared
-            # rather than removed. If the dev database is ever exposed beyond
-            # the compose network this must become an empty default instead.
-            "PASSWORD": os.environ.get(
-                "SCITEX_HUB_DB_PASSWORD_DEV", "scitex_dev_2025"
-            ),  # pragma: allowlist secret
-            "HOST": os.environ.get("SCITEX_HUB_DB_HOST_DEV", "localhost"),
-            "PORT": os.environ.get("SCITEX_HUB_DB_PORT_DEV", "5432"),
-            # ATOMIC_REQUESTS disabled: incompatible with ASGI (Daphne)
-            # — same issue as production (see settings_prod.py).
-            # Visitor middleware DB errors cascade to views.
-            "ATOMIC_REQUESTS": False,
-            "CONN_MAX_AGE": 600,  # Connection pooling (10 minutes)
-            "OPTIONS": {
-                "connect_timeout": 10,
-            },
-        }
-    }
+}
 
 # ---------------------------------------
 # Integration

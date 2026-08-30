@@ -316,12 +316,12 @@ graph TB
   - User project repositories
   - SSH key management
   - Webhooks (future: CI/CD integration)
-- **Database**: SQLite (internal, within volume)
+- **Database**: Gitea's own internal store (within volume)
 
 #### Crossref
 - **Purpose**: Citation metadata API with local caching
 - **Port**: 8001
-- **Database**: SQLite `/data/crossref.db`
+- **Database**: `/data/crossref.db` (external CrossRef mirror)
 - **Features**:
   - DOI lookup caching
   - Reduces external API calls
@@ -426,7 +426,7 @@ graph TB
 #### Production (`settings_prod.py`)
 - **DEBUG**: `False`
 - **ALLOWED_HOSTS**: `['scitex.ai', '*.scitex.ai', 'localhost']`
-- **DATABASE**: PostgreSQL (not SQLite)
+- **DATABASE**: PostgreSQL
 - **STATIC_ROOT**: `/app/staticfiles/`
 - **MEDIA_ROOT**: `/app/media/`
 - **CELERY_BROKER**: `redis://redis:6379/0`

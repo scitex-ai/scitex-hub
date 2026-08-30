@@ -48,6 +48,27 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
+    # PostgreSQL is the only engine Django supports here now. This matrix used
+    # to run with no database service at all and set a flag that swapped the
+    # ENGINE for a local file-backed one -- so the required status checks were
+    # measuring behaviour against a DIFFERENT database than production runs,
+    # and every postgres-only construct (jsonb, DROP COLUMN IF EXISTS, ILIKE)
+    # went untested by the gate that blocks merges. Same image/credentials as
+    # e2e-mobile.yml and screenshots.yml, which already do this.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: scitex_test
+          POSTGRES_USER: scitex
+          POSTGRES_PASSWORD: scitex_test_pass  # pragma: allowlist secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       # uv, NOT setup-python + bare pip. The runner's toolcache Python is
@@ -86,13 +107,20 @@ jobs:
         # secret, so we set an obviously-fake one for the test process only.
         env:
           SCITEX_HUB_DJANGO_SECRET_KEY: ci-test-secret-do-not-use-in-prod  # pragma: allowlist secret
-          # settings_dev.py L233: require_env("SCITEX_HUB_GITEA_SSH_PORT_DEV")
+          # settings_dev.py: require_env("SCITEX_HUB_GITEA_SSH_PORT_DEV")
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
-          # settings_dev.py L189-194: SCITEX_HUB_USE_SQLITE_DEV switches
-          # Django from postgres to a local sqlite file. No postgres
-          # service runs in this matrix; sqlite keeps the test gate
-          # focused on the wheel + import + unit-level behaviour.
-          SCITEX_HUB_USE_SQLITE_DEV: "1"
+          # Point Django at the postgres service declared above. settings_dev
+          # reads the _DEV-suffixed variants, not the bare names.
+          SCITEX_HUB_DB_NAME_DEV: scitex_test
+          SCITEX_HUB_DB_USER_DEV: scitex
+          SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
+          SCITEX_HUB_DB_HOST_DEV: localhost
+          SCITEX_HUB_DB_PORT_DEV: "5432"
+          # No Redis broker in this job, so .delay() would raise
+          # kombu.exceptions.OperationalError. Run tasks inline instead
+          # (settings_celery.py). This is now purely a Celery switch -- it no
+          # longer doubles as a database selector.
+          SCITEX_HUB_TEST_MODE: "1"
         run: |
           set -euo pipefail
           # .venv/bin on PATH so any tool the suite shells out to (e.g. the

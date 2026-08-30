@@ -242,7 +242,7 @@ class Command(BaseCommand):
             # inject a tiny real recording function here (mirroring the
             # existing gitea_client=/clone_fn= seams on reset_and_verify_slot)
             # instead of fighting Celery's process-global eager-mode flag,
-            # which the SQLite/CI gate forces True and does not allow
+            # which the CI test-mode gate forces True and does not allow
             # overriding mid-process.
             enqueue_fn = options.get("enqueue_fn")
             if enqueue_fn is None:
