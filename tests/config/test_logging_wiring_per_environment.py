@@ -109,16 +109,34 @@ DEPLOYED_ENVIRONMENTS = ("settings_prod", "settings_staging", "settings_dev")
 # defaulting to development. Leaving it unset imports settings_dev BEFORE
 # settings_prod and measures a combination no deployment runs. The values below
 # are the ones the compose files set.
+#
+# SCITEX_HUB_POSTGRES_PASSWORD joined this list on 2026-08-30, when prod and
+# staging stopped defaulting it -- prod to the placeholder "CHANGE_THIS_IN_PROD",
+# staging to a real shared literal committed to this public repository. Both now
+# raise ImproperlyConfigured at import instead, so both became modules that
+# "refuse to boot without" it, which is precisely what this mapping is for. The
+# value below is never connected with: these gates read the composed LOGGING
+# dict and never open a database.
+#
+# NOTE FOR ANYONE TEMPTED TO SOLVE A FAILURE HERE BY DELETING A LINE. This
+# mapping is the ONLY correct place to answer "the environment will not
+# compose". Making the settings lenient again would restore the silent fallback
+# the operator abolished; skipping the parametrisation would restore the
+# unchecked wiring that let mail_admins stay dead for months. Both failures are
+# real, and adding the operator-set value a deployment really supplies is what
+# keeps both rules intact at once.
 REQUIRED_CONFIG = {
     "settings_prod": {
         "SCITEX_HUB_ENV": "prod",
         "SCITEX_HUB_DJANGO_SECRET_KEY": "test-only-never-a-real-secret",
         "SCITEX_HUB_GITEA_SSH_PORT": "22",
+        "SCITEX_HUB_POSTGRES_PASSWORD": "test-only-never-connected-with",
     },
     "settings_staging": {
         "SCITEX_HUB_ENV": "staging",
         "SCITEX_HUB_DJANGO_SECRET_KEY": "test-only-never-a-real-secret",
         "SCITEX_HUB_GITEA_SSH_PORT": "2232",
+        "SCITEX_HUB_POSTGRES_PASSWORD": "test-only-never-connected-with",
     },
     "settings_dev": {
         "SCITEX_HUB_ENV": "development",

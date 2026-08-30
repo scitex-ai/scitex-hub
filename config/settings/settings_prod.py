@@ -15,6 +15,7 @@ Production settings for SciTeX Hub project.
 Optimized for deployment with Cloudflare Tunnel.
 """
 
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 from config import branding
@@ -101,9 +102,26 @@ CSRF_COOKIE_HTTPONLY = True
 # SCITEX_CLOUD_* alias as well, so a stale environment could silently
 # demote production onto a single-file store. There is no fallback now,
 # by design.
+#
+# The two branches below are NOT a fallback chain -- they are two spellings of
+# the same PostgreSQL connection, kept apart because the deployment files use
+# two variable families. Neither branch has a default password, and neither can
+# be reached without one. See the raise below.
+
+#: Passwords that are shipped as examples and must never authenticate. Held in
+#: one place so a stale .env carrying either is rejected identically wherever it
+#: is read; a placeholder honoured on one path and refused on another is how a
+#: deployment ends up believing it is configured.
+_DB_PASSWORD_PLACEHOLDERS = frozenset(
+    {
+        "CHANGE-THIS-DATABASE-PASSWORD-FOR-PROD",
+        "CHANGE_THIS_IN_PROD",
+    }
+)  # pragma: allowlist secret
+
 DB_PASSWORD = _getenv_alias("SCITEX_HUB_DB_PASSWORD")
 
-if DB_PASSWORD and DB_PASSWORD != "CHANGE-THIS-DATABASE-PASSWORD-FOR-PROD":
+if DB_PASSWORD and DB_PASSWORD not in _DB_PASSWORD_PLACEHOLDERS:
     # Remote PostgreSQL via PgBouncer (for production deployment)
     DATABASES = {
         "default": {
@@ -135,15 +153,50 @@ if DB_PASSWORD and DB_PASSWORD != "CHANGE-THIS-DATABASE-PASSWORD-FOR-PROD":
         }
     }
 else:
-    # Fallback to environment variables (for docker-compose via PgBouncer)
+    # The SCITEX_HUB_POSTGRES_* family (docker-compose via PgBouncer). This is
+    # the branch the live deployment takes.
+    #
+    # NO DEFAULT PASSWORD. Until 2026-08-30 this read
+    #     _getenv_alias("SCITEX_HUB_POSTGRES_PASSWORD", "CHANGE_THIS_IN_PROD")
+    # so a production container with neither password variable set started
+    # cleanly and authenticated with a placeholder string. That is the same
+    # defect ADR-0004 removed, wearing a different hat: a default that points
+    # at nothing. It moved the failure from
+    # startup -- where it is one line in the boot log and names its own cause
+    # -- to the first query of the first request, where it surfaces as an
+    # authentication error with no indication that nobody ever configured a
+    # password. Startup is the only place this can be reported honestly, so
+    # it is reported here.
+    POSTGRES_PASSWORD = _getenv_alias("SCITEX_HUB_POSTGRES_PASSWORD")
+    if not POSTGRES_PASSWORD or POSTGRES_PASSWORD in _DB_PASSWORD_PLACEHOLDERS:
+        raise ImproperlyConfigured(
+            "The production database password is not configured, so there is "
+            "no database to connect to.\n"
+            "\n"
+            "Set exactly one of these in deployment/docker/envs/.env.prod:\n"
+            "\n"
+            "  SCITEX_HUB_POSTGRES_PASSWORD  -- with SCITEX_HUB_POSTGRES_DB "
+            "and SCITEX_HUB_POSTGRES_USER\n"
+            "  SCITEX_HUB_DB_PASSWORD        -- with SCITEX_HUB_DB_NAME and "
+            "SCITEX_HUB_DB_USER\n"
+            "\n"
+            "Both are currently unset or still hold one of the shipped "
+            f"placeholders {sorted(_DB_PASSWORD_PLACEHOLDERS)!r}, which are "
+            "rejected exactly as if unset -- a placeholder that authenticates "
+            "is a credential nobody chose.\n"
+            "\n"
+            "There is deliberately NO default and NO alternate path. "
+            "PostgreSQL is the only database engine (docs/adr/"
+            "0004-postgresql-is-the-only-database-engine.md); an unconfigured "
+            "production must refuse to start rather than degrade to something "
+            "that accepts writes and reaches nobody."
+        )
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
             "NAME": _getenv_alias("SCITEX_HUB_POSTGRES_DB", "scitex_hub_prod"),
             "USER": _getenv_alias("SCITEX_HUB_POSTGRES_USER", "scitex_prod"),
-            "PASSWORD": _getenv_alias(
-                "SCITEX_HUB_POSTGRES_PASSWORD", "CHANGE_THIS_IN_PROD"
-            ),
+            "PASSWORD": POSTGRES_PASSWORD,
             # Connect via PgBouncer for connection pooling
             "HOST": _getenv_alias("SCITEX_HUB_DB_HOST", "pgbouncer"),
             "PORT": _getenv_alias("SCITEX_HUB_DB_PORT", "6432"),

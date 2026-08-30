@@ -29,12 +29,23 @@ target under its own ``SCITEX_HUB_*`` prefix (ADR-0001, ``config/_env.py``) in
 ``publish_cards_store_target`` hands it to the package under the name the
 package reads.
 
-NO DEFAULT DSN IS ASSERTED ANYWHERE HERE, deliberately. A literal fallback is
-the silent-fallback failure upstream abolished on 2026-08-13 after one served a
-store frozen eight days earlier while the fleet wrote elsewhere, looking
-healthy throughout. ``test_nothing_is_invented_...`` pins that: the
-unconfigured state must stay unconfigured, and be REPORTED — see
-``tests/apps/todo_app/test_cards_mount_store_provisioning.py``.
+THE SECOND DEFECT, AND THE REVERSAL — 2026-08-30. The seam above gave a
+deployment a PLACE to state the target, and then nobody stated one: measured on
+every hub deployment, neither variable was set, so the unconfigured path was
+the ONLY path and the board 404'd for everyone. Requiring configuration to
+reach the normal path had made the correct setup the exceptional one. The
+operator ruled that the fleet's PostgreSQL on 55432 is the DEFAULT and
+configuration exists only to OVERRIDE it, so the final tier now resolves
+through ``scitex_dev.store.host_store``.
+
+NO LITERAL DSN IS ASSERTED ANYWHERE HERE, and that has not changed. The
+abolished 2026-08-13 fallback invented a local FILENAME nobody chose — a
+private file that served a store frozen eight days earlier while the fleet
+wrote elsewhere, looking healthy throughout. Asking the fleet primitive is the
+opposite of inventing a name: ``host_store`` honours ``$SCITEX_STORE_DSN``, has
+no file-backed tier, and raises when the fleet store is not durable. So these
+tests pin the SHAPE and the SOURCE (``test_no_dsn_is_spelled_out_...``), never
+a value.
 
 No mocks: every test drives the real ``publish_cards_store_target``, the real
 ``optional_upstream_apps`` mount path, and the real upstream resolver. The env
@@ -49,6 +60,7 @@ from pathlib import Path
 
 import pytest
 
+from config.settings import _optional_apps
 from config.settings._optional_apps import (
     CARDS_STORE_HUB_ENV,
     CARDS_STORE_UPSTREAM_ENV,
@@ -72,11 +84,78 @@ _DEFECT = (
     "StoreTargetNotConfigured (operator TG 2026-08-17, CI run 32059143367)."
 )
 
+_UNCONFIGURED_DEFECT = (
+    "A hub that configured no cards store reached NO store at all: "
+    "publish_cards_store_target returned None, so scitex_cards raised "
+    "StoreTargetNotConfigured and /apps/cards/* served 404. Measured "
+    "2026-08-30: neither SCITEX_HUB_CARDS_STORE nor SCITEX_CARDS_DB was set "
+    "in any hub deployment, i.e. the unconfigured path WAS the only path. "
+    "Configuration must exist to OVERRIDE the fleet default, never to enable "
+    "it (operator ruling 2026-08-30)."
+)
+
 _CARDS_INSTALLED = find_spec("scitex_cards") is not None
 _requires_cards = pytest.mark.skipif(
     not _CARDS_INSTALLED,
     reason="scitex-cards not installed; the board is not mounted",
 )
+
+
+#: The variable ``scitex_dev.store.host_store`` reads FIRST. Setting it is how
+#: a test pins what the fleet default resolves to without depending on the
+#: machine running the test having a live fleet PostgreSQL.
+_STORE_DSN_ENV = "SCITEX_STORE_DSN"
+
+
+@pytest.fixture
+def fleet_dsn():
+    """REAL process env: the fleet store redirected to a known target.
+
+    Tier 3 resolves through ``host_store``, whose FIRST step is
+    ``$SCITEX_STORE_DSN``. Pointing that at a known DSN makes the default
+    deterministic on a laptop, in CI and on a fleet host alike — and it is the
+    production code path, not a stand-in for it: if tier 3 ever stopped going
+    through ``host_store``, this value would stop being honoured and the tests
+    using it would fail, which is exactly what they are for.
+    """
+    saved = {
+        key: os.environ.get(key)
+        for key in (_STORE_DSN_ENV, CARDS_STORE_HUB_ENV, CARDS_STORE_UPSTREAM_ENV)
+    }
+    os.environ.pop(CARDS_STORE_HUB_ENV, None)
+    os.environ.pop(CARDS_STORE_UPSTREAM_ENV, None)
+    os.environ[_STORE_DSN_ENV] = _FAKE_DSN
+    yield _FAKE_DSN
+    for key, value in saved.items():
+        if value is None:
+            os.environ.pop(key, None)
+        else:
+            os.environ[key] = value
+
+
+@pytest.fixture
+def unresolvable_fleet_store():
+    """REAL process env: a fleet store target that genuinely cannot resolve.
+
+    ``host_store`` REFUSES a ``$SCITEX_STORE_DSN`` that is not a PostgreSQL
+    DSN (``_host.py``: "is not a Postgres DSN"), so this reproduces the
+    unresolvable case with the real primitive raising its real exception. No
+    production internals are rewritten — the value is bad, and the code under
+    test meets it exactly as it would in a misconfigured deployment.
+    """
+    saved = {
+        key: os.environ.get(key)
+        for key in (_STORE_DSN_ENV, CARDS_STORE_HUB_ENV, CARDS_STORE_UPSTREAM_ENV)
+    }
+    os.environ.pop(CARDS_STORE_HUB_ENV, None)
+    os.environ.pop(CARDS_STORE_UPSTREAM_ENV, None)
+    os.environ[_STORE_DSN_ENV] = "/var/lib/not-a-dsn"
+    yield
+    for key, value in saved.items():
+        if value is None:
+            os.environ.pop(key, None)
+        else:
+            os.environ[key] = value
 
 
 @pytest.fixture
@@ -122,25 +201,85 @@ def test_the_hub_setting_is_published_under_the_packages_own_name():
     assert env[CARDS_STORE_UPSTREAM_ENV] == _FAKE_DSN
 
 
-@pytest.mark.guards(defect=_DEFECT)
-def test_nothing_is_reported_when_nobody_configured_one():
-    # Arrange — the state every hub deployment was in before this change.
+@pytest.mark.guards(defect=_UNCONFIGURED_DEFECT)
+def test_the_fleet_store_is_reached_when_nobody_configured_one(fleet_dsn):
+    # Arrange — the state every hub deployment was in, measured 2026-08-30:
+    # neither variable set anywhere, so the resolver raised and
+    # /apps/cards/graph served HTTP 500. Requiring a variable to reach the
+    # normal path made the CORRECT configuration the exceptional one.
     env: dict[str, str] = {}
     # Act
+    published = publish_cards_store_target(env)
+    # Assert
+    assert published == fleet_dsn
+
+
+@pytest.mark.guards(defect=_UNCONFIGURED_DEFECT)
+def test_the_fleet_default_is_published_under_the_packages_own_name(fleet_dsn):
+    # Arrange — publishing is the whole mechanism: the package reads
+    # $SCITEX_CARDS_DB and nothing else.
+    env: dict[str, str] = {}
+    # Act
+    publish_cards_store_target(env)
+    # Assert
+    assert env[CARDS_STORE_UPSTREAM_ENV] == fleet_dsn
+
+
+@pytest.mark.guards(defect=_UNCONFIGURED_DEFECT)
+def test_the_default_is_the_fleet_postgres_not_a_local_file(fleet_dsn):
+    # Arrange — the abolished fallback invented a local FILENAME nobody
+    # chose: private, per-process, silently divergent. This default is the
+    # opposite: it asks scitex_dev.store.host_store, the fleet's single
+    # source of truth, which has no file-backed tier at all. Assert the
+    # SHAPE, never this repo's own literal — pinning a DSN here would
+    # re-create the hardcoded default the indirection exists to avoid.
+    env: dict[str, str] = {}
+    # Act
+    published = publish_cards_store_target(env)
+    # Assert
+    assert published.startswith(("postgres://", "postgresql://"))
+
+
+@pytest.mark.guards(defect=_UNCONFIGURED_DEFECT)
+def test_an_unresolvable_fleet_store_does_not_abort_settings_import(
+    unresolvable_fleet_store,
+):
+    # Arrange — publish_cards_store_target runs at SETTINGS LOAD. A host
+    # where the fleet store cannot be resolved must lose the BOARD, not the
+    # whole site: raising here takes down the landing page, auth and every
+    # unrelated app over one leaf's database. PR #689 ruled on that shape.
+    env: dict[str, str] = {}
+    # Act — the real host_store refusing a real bad value; must not raise.
     published = publish_cards_store_target(env)
     # Assert
     assert published is None
 
 
-@pytest.mark.guards(defect=_DEFECT)
-def test_no_store_is_invented_when_nobody_configured_one():
-    # Arrange — a literal default here would be the silent fallback that
-    # served a store frozen eight days earlier and looked healthy.
+@pytest.mark.guards(defect=_UNCONFIGURED_DEFECT)
+def test_an_unresolvable_fleet_store_invents_no_substitute(
+    unresolvable_fleet_store,
+):
+    # Arrange — degrading is allowed; guessing is not. Nothing may be
+    # published when the real target could not be resolved.
     env: dict[str, str] = {}
     # Act
     publish_cards_store_target(env)
     # Assert
     assert CARDS_STORE_UPSTREAM_ENV not in env
+
+
+@pytest.mark.guards(defect=_UNCONFIGURED_DEFECT)
+def test_no_dsn_is_spelled_out_in_the_settings_module():
+    # Arrange — the guard that replaces the old "invent nothing" one. The
+    # default must come from the primitive, so a literal fleet DSN written
+    # into this module would drift the moment the fleet moved.
+    source = (
+        Path(_optional_apps.__file__).read_text(encoding="utf-8").splitlines()
+    )
+    # Act — ignore prose; a DSN in a docstring is documentation, not wiring.
+    code = [ln for ln in source if "postgresql://" in ln and not ln.lstrip().startswith("#")]
+    # Assert
+    assert not [ln for ln in code if "55432" in ln]
 
 
 @pytest.mark.guards(defect=_DEFECT)
@@ -167,15 +306,16 @@ def test_an_explicit_upstream_target_is_never_overridden():
     ],
     ids=["hub-empty", "both-empty"],
 )
-def test_an_empty_value_counts_as_unset(env):
+def test_an_empty_value_counts_as_unset(env, fleet_dsn):
     # Arrange — `SCITEX_HUB_CARDS_STORE=` in a .env file is common, and the
-    # resolver's own test is `if value:`. Publishing an empty string would
-    # mean something different here than it does one call downstream.
-    expected = None
+    # resolver's own test is `if value:`. An empty value must fall THROUGH to
+    # the fleet default, exactly as an absent one does; publishing the empty
+    # string itself would mean something different here than it does one call
+    # downstream, and would hand the package a target it rejects.
     # Act
     published = publish_cards_store_target(env)
     # Assert
-    assert published == expected
+    assert published
 
 
 @_requires_cards
