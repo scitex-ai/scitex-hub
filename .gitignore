@@ -802,8 +802,18 @@ secret_key.txt
 *.db-shm
 *.db-wal
 
-# Django media uploads (user content)
-media/
+# Django media uploads (user content).
+# ANCHORED to the repo root on purpose. MEDIA_ROOT is `base_dir / "media"`
+# (settings_static.py), so only the top-level directory is user content. The
+# unanchored `media/` matched EVERY directory of that name, including two
+# tracked SOURCE packages —
+#   apps/workspace/writer_app/views/editor/api/media/   (4 files, force-added)
+#   apps/workspace/writer_app/models/media/
+# — which git then hid from `git grep --untracked` and from ripgrep, while
+# `git grep <commit>` still saw them. That split cost a wrong audit count and,
+# worse, silently dropped a new model package from `git add -A`, so CI died on
+# ModuleNotFoundError for code that was present on disk.
+/media/
 uploads/
 
 # Django static files in production
