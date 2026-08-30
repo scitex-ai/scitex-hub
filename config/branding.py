@@ -12,14 +12,65 @@ and favicon policy below can be lifted verbatim into a shared SciTeX package
 in ``favicon_for_env``.
 """
 
+
+def gettext_noop(message):
+    """Mark a literal for extraction. DELIBERATELY NOT Django's gettext_noop.
+
+    THE MODULE DOCSTRING ABOVE IS A HARD CONSTRAINT, NOT A PREFERENCE: this
+    file must not import Django at module scope. ``settings_shared.py`` line 91
+    calls ``branding.normalize_env(...)`` while composing settings, so importing
+    ``django.utils.translation`` here creates a cycle —
+
+        config.branding
+          -> django.utils.translation
+          -> django.conf.settings          (resolves DJANGO_SETTINGS_MODULE)
+          -> config.settings.__init__
+          -> config.settings.settings_shared
+          -> config.branding               (still half-executed)
+
+    and settings_shared reaches back before ``normalize_env`` is defined. The
+    measured failure is::
+
+        AttributeError: partially initialized module 'config.branding' has no
+        attribute 'normalize_env' (most likely due to a circular import)
+
+    It takes down EVERY environment's settings import — it was caught by
+    tests/config/test_logging_wiring_per_environment.py, which composes prod
+    and staging in a subprocess, not by anything in the i18n tests.
+
+    Using a local identity function costs nothing, because `makemessages` runs
+    **xgettext**, which extracts by SOURCE TEXT and keyword name — it never
+    imports this module or inspects the runtime object. So a function named
+    ``gettext_noop`` here is collected exactly like Django's would be.
+
+    The real translation happens at the USE SITE (config/context_processors.py),
+    where a request is in flight, a language is active, and importing Django is
+    safe.
+    """
+    return message
+
+
 # Core branding
 SITE_NAME = "SciTeX"
 # The tagline is TWO lines: the promise, then what SciTeX is. Both are shown
 # together wherever the brand introduces itself (the landing hero), so they are
 # defined together here rather than one in a template and one in Python.
-SITE_TAGLINE = "Research Automation for AI and Humans"
-SITE_TAGLINE_SECONDARY = "Open-source Scientific Research Automation Ecosystem"
-SITE_DESCRIPTION = (
+#
+# WHY gettext_noop AND NOT gettext_lazy. These constants are interpolated into
+# f-strings immediately below (META_DESCRIPTION_DEFAULT, META_DESCRIPTION_LONG,
+# OG_TITLE). An f-string calls __format__ AT IMPORT TIME, which would resolve a
+# lazy object once, in whatever language happened to be active during startup,
+# and freeze it there for every subsequent request. gettext_noop returns the str
+# UNCHANGED — so the f-strings keep working exactly as before — while still
+# making the literal visible to `makemessages` for extraction.
+#
+# Translation therefore happens at the USE SITE, in the context processor, where
+# there is a request and an active language. See config/context_processors.py.
+SITE_TAGLINE = gettext_noop("Research Automation for AI and Humans")
+SITE_TAGLINE_SECONDARY = gettext_noop(
+    "Open-source Scientific Research Automation Ecosystem"
+)
+SITE_DESCRIPTION = gettext_noop(
     "Python toolkit + MCP server for literature search, "
     "statistics, visualization, and manuscript writing."
 )

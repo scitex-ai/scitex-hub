@@ -66,6 +66,21 @@ urlpatterns = [
     ),
     path("id/<int:pk>/", views.project_detail_redirect, name="detail_redirect"),
     # Project-level URLs (require slug)
+    # Public read-only live-paper viewer (scitex-hub#146 Part B). Anonymous;
+    # default-deny via @project_access_required — 404s any non-public
+    # project. Must come before the "<slug:slug>/" catch-all detail route so
+    # "live/" is not swallowed as a (nonexistent) blob/tree path.
+    path("<slug:slug>/live/", views.project_live_viewer, name="live_viewer"),
+    # "v2/" (not "api/") on purpose: HANDLERS keys already carry their own
+    # "api/" prefix (e.g. "api/claims"), matching the convention
+    # writer_app/urls/writer_django.py uses for the authenticated
+    # "v2/<path:endpoint>" route. An "api/" segment here would double up to
+    # ".../live/api/api/claims".
+    path(
+        "<slug:slug>/live/v2/<path:endpoint>",
+        views.project_live_viewer_api,
+        name="live_viewer_api",
+    ),
     # Repository root (detail)
     path("<slug:slug>/", views.project_detail, name="detail"),
     # Repository API endpoints

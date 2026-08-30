@@ -274,35 +274,13 @@ services:
           cpus: '1.0'
     restart: always
 
-  # ============================================
-  # CrossRef API (Prod only)
-  # ============================================
-  crossref:
-    build:
-      context: ./crossref_local
-      dockerfile: Dockerfile
-    image: scitex-crossref-prod:latest
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '1.0'
-    ports:
-      - "31291:31291"
-    volumes:
-      - /home/ywatanabe/proj/crossref-local/data:/data:ro
-    environment:
-      CROSSREF_DB_PATH: /data/crossref.db
-      LOG_LEVEL: info
-    restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "--max-time", "25", "http://localhost:31291/health"]
-      interval: 30s
-      timeout: 30s
-      retries: 3
-      start_period: 120s
-    networks:
-      - scitex-network
+  # The `crossref` service was REMOVED on 2026-08-29 along with its build
+  # context (deployment/docker/crossref_local/). It could not build -- the
+  # Dockerfile did `COPY requirements.txt .` and no such file existed -- and
+  # nothing deployed it: the live prod stack is docker_prod/docker-compose.yml,
+  # which never declared it, and crossref.scitex.ai was retired on 2026-08-03
+  # for pointing at a container that was never deployed. Django reaches CrossRef
+  # in-process instead (settings_integrations.py CROSSREF_LOCAL_DB).
 
   # ============================================
   # WebSocket SSH Proxy (Prod only)

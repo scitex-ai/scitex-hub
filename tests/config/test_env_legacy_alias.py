@@ -238,7 +238,6 @@ class TestSettingsModulesHonorTheAlias:
         env = dict(os.environ)
         env.pop("SCITEX_HUB_DJANGO_SECRET_KEY", None)
         env["SCITEX_CLOUD_DJANGO_SECRET_KEY"] = "legacy-only-value"
-        env["SCITEX_HUB_USE_SQLITE_DEV"] = "1"
         env["PYTHONWARNINGS"] = "ignore::DeprecationWarning"
         # Act
         secret_key = self._secret_key_from_settings(

@@ -127,6 +127,30 @@ start_typescript_build_watcher_fallback() {
 start_vite_dev_server
 
 # ============================================
+# Translation catalogs (i18n)
+# ============================================
+# Django answers a MISSING translation with the msgid — i.e. the English source
+# string. So an UNCOMPILED catalog and a correctly-working English site are
+# byte-identical: nothing raises, nothing logs, and a visitor whose browser asks
+# for Japanese silently reads English while every layer reports success.
+# Compiling on every start is what makes the .po files that ship in this image
+# actually reach visitors. It also picks up .po edits across a hot-reload
+# restart, where a build-time step would not.
+#
+# NOT `django-admin compilemessages`: that shells out to msgfmt, which is ABSENT
+# from this image (measured 2026-08-23). scripts/i18n/compile_catalogs.py uses
+# babel, which is present.
+#
+# Failure is reported loudly but does NOT abort the boot. The site still serves
+# — in English. Refusing to start over a translation would trade a cosmetic
+# fault for an outage.
+if ! python scripts/i18n/compile_catalogs.py; then
+    echo_error "translation catalogs did NOT compile."
+    echo_error "  Every visitor will be served ENGLISH, including those whose"
+    echo_error "  browser requests Japanese. Site is otherwise unaffected."
+fi
+
+# ============================================
 # Database & Django Setup
 # ============================================
 # Skip migrations on hot-reload restarts (only run on first container start)

@@ -39,6 +39,22 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
+    # Mirror the push/PR pytest matrix exactly: PostgreSQL is the only engine
+    # Django supports, so the release gate has to run against one too.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: scitex_test
+          POSTGRES_USER: scitex
+          POSTGRES_PASSWORD: scitex_test_pass  # pragma: allowlist secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Resolve version
         id: ver
@@ -74,16 +90,18 @@ jobs:
         # secret, so we set an obviously-fake one for the test process only.
         env:
           SCITEX_HUB_DJANGO_SECRET_KEY: ci-test-secret-do-not-use-in-prod  # pragma: allowlist secret
-          # settings_dev.py L233: require_env("SCITEX_HUB_GITEA_SSH_PORT_DEV")
+          # settings_dev.py: require_env("SCITEX_HUB_GITEA_SSH_PORT_DEV")
           # (already set in tests.yml; mirror it here so the release-tag
           # pipeline matches the push/PR matrix).
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
-          # settings_dev.py L189-194: when SCITEX_HUB_USE_SQLITE_DEV is set,
-          # Django uses a local sqlite file instead of the postgres service
-          # we don't run in this CI job (no `services: postgres:14` block).
-          # Tests that need postgres behaviour will skip/xfail naturally;
-          # the goal of this gate is to confirm the wheel + import chain.
-          SCITEX_HUB_USE_SQLITE_DEV: "1"
+          # Point Django at the postgres service declared above.
+          SCITEX_HUB_DB_NAME_DEV: scitex_test
+          SCITEX_HUB_DB_USER_DEV: scitex
+          SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
+          SCITEX_HUB_DB_HOST_DEV: localhost
+          SCITEX_HUB_DB_PORT_DEV: "5432"
+          # No Redis broker in this job; run Celery tasks inline.
+          SCITEX_HUB_TEST_MODE: "1"
         run: |
           if [ -d tests ]; then
             pytest tests/ -x

@@ -54,7 +54,6 @@ docker-compose*.yml
 .dockerignore
 
 # Database
-*.sqlite3
 *.db
 
 # Environment

@@ -1,0 +1,59 @@
+{% load i18n %}
+
+{% comment %}
+Language toggle — HEADER, and a TOGGLE rather than a dropdown.
+
+Both of those are the operator's calls (2026-08-23), after seeing the first
+version in the footer:
+  「1番下のフッターにあるよりもヘッダーにあったほうがいいと思う」
+  「言語選択のドロップダウンがすごくダサイ…他のエレメントがどのように
+    作られているのかっていうのを見てもらって真似してもらっていいですか？」
+
+WHY A TOGGLE AND NOT A <select>. Exactly two languages are configured, and the
+operator has ruled out adding more 「日本語、英語、意外は…非対応で問題ない」. A
+select is the right control for choosing among many; for two it is one extra
+click and a widget the browser styles its own way — which is precisely why the
+first version looked foreign to the rest of the header. He also called it a
+トグル himself.
+
+NO NEW COLOURS. This reuses `.header-btn`, the same class Sign in / Sign up use,
+so it inherits --border-default / --text-primary / --scitex-color-04 and the
+dark-mode handling for free. Nothing here hardcodes a colour; that was the
+actual defect in the dropdown, which rendered in the browser's native palette.
+
+THE LABEL IS THE DESTINATION, NOT THE CURRENT STATE. Showing 「日本語」 while
+English is active tells the reader what the button DOES. A control labelled with
+the state you are already in makes the reader guess.
+
+STILL A POST. `set_language` has required POST since Django 4.0; a GET is
+answered 405. So this is a real form with a CSRF token, not a link.
+{% endcomment %}
+
+{% get_current_language as CURRENT_LANGUAGE %}
+{% get_available_languages as AVAILABLE_LANGUAGES %}
+
+{% if AVAILABLE_LANGUAGES|length > 1 %}
+    <form action="{% url 'set_language' %}"
+          method="post"
+          class="language-toggle-form">
+        {% csrf_token %}
+        {# Return to the page the visitor is on. Without this, set_language #}
+        {# redirects to "/" and the reader loses their place.               #}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+        {% if CURRENT_LANGUAGE == "ja" %}
+            <input type="hidden" name="language" value="en" />
+            <button type="submit"
+                    class="header-btn"
+                    data-tooltip="Switch to English">
+                <i class="fas fa-language"></i> English
+            </button>
+        {% else %}
+            <input type="hidden" name="language" value="ja" />
+            <button type="submit"
+                    class="header-btn"
+                    data-tooltip="日本語に切り替える">
+                <i class="fas fa-language"></i> 日本語
+            </button>
+        {% endif %}
+    </form>
+{% endif %}

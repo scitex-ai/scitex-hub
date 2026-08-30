@@ -13,8 +13,8 @@
 #   Stage 3: tool-builder     — yq, small binaries    (changes: ~never)
 #   Stage 4: node-builder     — mermaid-cli           (changes: rarely)
 #   Stage 5: python-builder   — Python deps (scitex core):
-#            Layer 0: scitex[all]==2.26.0      (anchor — NEVER changes, caches PyTorch)
-#            Layer A: scitex[all]==2.26.0      (latest — bump freely, ~30s rebuild)
+#            Layer 0: scitex[all]==2.30.1      (anchor — NEVER changes, caches PyTorch)
+#            Layer A: scitex[all]>=2.30.1      (floor-only pin, issue #248 — see Layer A below)
 #   Stage 6: runtime          — Final image, includes:
 #            Layer B: scitex-cloud==0.10.10-alpha (installed after app COPY, ~30s)
 #
@@ -215,19 +215,106 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
 # See visitor_pool ImportError in v3 #4 cutover postmortem.
 RUN uv pip install --system --no-cache "scitex[all]==2.30.1"
 
-# --- Layer A: Latest scitex (bump freely on every publish) ---
+# --- Layer A: Latest scitex (floor-only pin, issue #248) ---
 # PyTorch etc. are already satisfied from Layer 0. uv skips them and
-# only downloads/installs the scitex package itself. (~30s)
+# only downloads/installs the scitex core delta. (~30s)
 # No --no-cache here: we want uv to recognize existing packages.
-# 2026-06-07: bumped 2.26.0 → 2.30.1 (operator dogfooding refresh).
-RUN uv pip install --system "scitex[all]==2.30.1"
+#
+# 2026-08-20 (issue #248): switched from a hard `==` pin to a FLOOR-ONLY
+# pin (`>=`) with `--upgrade`, so this layer resolves to the newest
+# scitex[all] release satisfying the floor instead of going stale the
+# day after every hand-edited version bump. `--upgrade` is required:
+# without it, uv sees the floor already satisfied by whatever Layer 0
+# installed and skips the package entirely, which would silently pin
+# this layer forever at Layer 0's version — the same "looks current,
+# is actually frozen" failure #247 documented for a hard `==` pin, just
+# moved one line down.
+#
+# SCITEX_A_VERIFIED is NOT a version constraint. Its only job is to
+# change the text of this RUN instruction so BuildKit's layer cache is
+# busted on demand — otherwise a normal `docker compose build` reuses
+# the cached layer forever and never re-resolves at all, which is
+# exactly how #247 happened (a cache hit re-tagged `latest` without
+# re-resolving, and the build still reported success). It is bumped
+# ONLY by .github/workflows/nightly-scitex-floor-verify.yml, and only
+# after that workflow built fresh against today's floor and passed
+# every smoke gate below — see that workflow for the full
+# verify-then-promote mechanism (dev -> nightly-verified candidate ->
+# operator-reviewed PR -> next normal build promotes to prod). Do not
+# hand-edit this value to "fix" a stale image; trigger the workflow
+# (schedule or workflow_dispatch) instead.
+ARG SCITEX_A_VERIFIED=2026-08-20
+RUN echo "scitex[all] floor-pin cache key: ${SCITEX_A_VERIFIED}" && \
+    uv pip install --system --upgrade "scitex[all]>=2.30.1"
+
+# --- Layer B: scitex-decorators, which NO extra actually installs ---
+#
+# MEASURED 2026-08-23 inside scitex-hub-prod-django:latest:
+#
+#     importlib.metadata.version("scitex-decorators")  ->  PackageNotFoundError
+#
+# despite Layer 0 and Layer A both installing scitex[all]. scitex/io/_load.py
+# does `from scitex.decorators import preserve_doc` at import time, so without
+# it `import scitex.io` raises ImportError out of the umbrella's _aggregator
+# and hub's /api/plot/ returns 500. Hub uses that surface in three places:
+# public_app/api_views.py, api_stats_helpers.py and api_plot_helpers.py.
+#
+# THIS IS THE 2026-08-22 OUTAGE, AND IT WAS NEVER ACTUALLY FIXED. The
+# preflight contract records that scitex-decorators was present only in the
+# RUNNING CONTAINER'S WRITABLE LAYER — someone pip-installed it live to end
+# the outage. A writable layer does not survive a recreate, so the image has
+# been broken ever since while the site looked healthy, and any restart for
+# any reason would have reproduced the outage.
+#
+# THIS IS A WORKAROUND AND SHOULD NOT BE PERMANENT. An extra named `all` that
+# omits a module `scitex.io` needs at import time is an upstream packaging
+# defect, and pinning it here fixes hub while every other consumer of
+# scitex[all] keeps hitting it. Reported upstream 2026-08-23; the scitex
+# umbrella source is not on this host, and no scitex agent was running to
+# take the report, so hub carries it meanwhile. REMOVE THIS LAYER once
+# scitex[all] pulls scitex-decorators itself — the smoke gate below is what
+# will tell you it is safe to remove.
+#
+# THE OBVIOUS FIX DOES NOT WORK, AND THAT IS THE WHOLE POINT OF THIS LAYER.
+# The ImportError tells you to run `pip install 'scitex[decorators]'`. Read
+# what that extra actually contains in the RELEASED wheel (PyPI metadata for
+# scitex 2.29.3, the version this image ends up with, and 2.30.1 alike):
+#
+#     extra == "decorators"  ->  joblib, matplotlib, pytest-asyncio,
+#                                scipy, tqdm, xarray
+#
+# Third-party libraries only. NOTHING in all 629 requirement entries requires
+# the `scitex-decorators` DISTRIBUTION, so the command the error message
+# recommends installs six unrelated packages and still leaves the import
+# broken. Nor does `[all]` help: the released wheel carries ZERO
+# self-referential `scitex[...]` entries under `extra == "all"`, so the
+# recursive extra composition visible in scitex-python's pyproject.toml
+# (`"scitex[decorators]"` in the `all` list) does not survive into the
+# published metadata at all.
+#
+# Hence the BARE distribution. I wrote `scitex[decorators]` here first, and it
+# would have produced a green build that still 500s on /api/plot/ — the exact
+# shape this layer exists to prevent.
+RUN uv pip install --system "scitex-decorators"
 
 # --- Smoke gate: scitex umbrella extras must be importable ---
 # Guards against future regressions where a Layer 0 / Layer A pin drifts
 # to a scitex version whose [all] omits one of these submodules. If
 # either import fails the build fails immediately rather than producing
 # an image that crash-loops on cold-boot.
+#
+# scitex.io AND scitex.plt.load_style ADDED 2026-08-23. This gate already
+# existed on 2026-08-22 and did not stop the outage, because it imported
+# scitex.template and scitex.audit — neither of which touches
+# scitex.decorators. The gate was real, it ran, it passed, and the image it
+# passed was the one that 500s. A smoke gate only covers what it names, so
+# it now names the two surfaces hub actually serves from:
+#   scitex.io              -> public_app/api_views.py (/api/plot/ data load)
+#   scitex.plt.load_style  -> api_stats_helpers.py, api_plot_helpers.py
+# Calling load_style() rather than merely importing it, because the failure
+# is raised by the umbrella's attribute aggregator on ACCESS.
 RUN python -c "import scitex.template; import scitex.audit; print('scitex extras OK:', scitex.template.__name__, scitex.audit.__name__)"
+RUN python -c "import scitex.io; import scitex; scitex.plt.load_style; print('scitex.io + scitex.plt.load_style OK')"
 
 # Playwright browsers (cached separately via BuildKit cache mount)
 RUN --mount=type=cache,target=/root/.cache/ms-playwright \
@@ -528,10 +615,24 @@ RUN uv pip install --system --no-cache \
     "scitex-io==0.2.3" \
     "scitex-stats==0.2.6" \
     "scitex-plt==0.24.0" \
-    "scitex-writer==2.26.1" \
+    # scitex-writer 2.42.0 requires scitex-ui>=0.8.0. The C0 pin below was
+    # ==0.6.3, which made this whole RUN unresolvable the moment writer was
+    # bumped -- "No solution found ... you require scitex-ui==0.6.3". A pin set
+    # is only valid TOGETHER; each line being individually defensible is not
+    # enough. Guarded by tests/deployment/test_dockerfile_pin_set_resolves.py.
+    #
+    # 0.16.0 is chosen because it is scitex-ui's CURRENT PyPI LATEST, and the C1
+    # layer below upgrades scitex-ui to latest anyway -- so pinning latest here
+    # makes the two layers agree instead of fighting, which is what a cache
+    # anchor is for. It is NOT the version any local venv happens to run
+    # (/uvwork/venv-hub is on 0.15.0); that would have been a coincidence, not a
+    # reason. Note these pins are NOT checked for EXISTENCE by any guard -- a
+    # typo'd version resolves to nothing and fails the build. See the
+    # "does not check" note in test_dockerfile_pin_set_resolves.py.
+    "scitex-writer==2.42.0" \
     "scitex-template==0.7.0" \
     "scitex-linter==0.3.1" \
-    "scitex-ui==0.6.3" \
+    "scitex-ui==0.16.0" \
     "openalex-local==0.6.0" \
     "crossref-local==0.6.4"
 
@@ -567,6 +668,8 @@ RUN uv pip install --system --no-cache \
 # do not exist at build time.)
 RUN uv pip install --system --no-cache --upgrade \
     "figrecipe" \
+    "scitex-decorators" \
+    "scitex-sh" \
     "scitex-io" \
     "scitex-stats" \
     "scitex-plt" \
@@ -632,9 +735,38 @@ RUN pdflatex --version && \
 # tests/apps/project_app/services/visitor_pool/
 # test_template_marker_reality.py.
 RUN python -c "import scitex_writer.writer" && \
+    python -c "import scitex_writer.workspace_layout" && \
     python -c "from scitex.template import clone_template" && \
     python -c "from scitex_template import clone_scitex_minimal" && \
     echo "✅ scitex-writer + template import chain verified"
+
+# --- Runtime-stage gate for the surfaces /api/plot/ serves from ---
+#
+# THIS GATE EXISTS BECAUSE THE BUILDER-STAGE ONE WAS NOT ENOUGH, and the way
+# it was not enough is worth writing down.
+#
+# The python-builder stage runs the same two imports and they PASSED on the
+# 2026-08-23 13:00 build. The preflight then REFUSED the deploy on those exact
+# imports. Both were true: the BUILDER had the peers, and the RUNTIME image did
+# not — because this stage re-resolves. `uv pip install ".[all]"` above carries
+# hub's own `scitex>=2.29.3`, lands on 2.29.3, and drops peers that the
+# builder's `scitex[all]>=2.30.1` had pulled in. So a gate in the builder
+# certifies an environment that no longer exists by the time the image ships.
+#
+# Measured on the refused build's own artifact:
+#     docker run ... scitex-hub-prod-django:latest -c "import scitex.io"
+#     -> ImportError: scitex.sh.sh: `scitex_sh` is required
+#     scitex-decorators 0.1.12 present, scitex-sh ABSENT
+#
+# The peers are now installed in THIS stage (above) so the re-resolution
+# cannot drop them, and the check runs HERE, after every install, on what
+# actually ships. Keep the builder copy too: it fails faster and catches a
+# different regression. Neither is redundant; the builder one is just not
+# authoritative.
+RUN python -c "import scitex.io" && \
+    python -c "import scitex; scitex.plt.load_style" && \
+    python -c "import scitex_decorators, scitex_sh" && \
+    echo "✅ scitex.io + scitex.plt.load_style verified in the RUNTIME image"
 
 # Back to root — root-init.sh handles UID fixup then drops to scitex
 USER root

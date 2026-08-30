@@ -77,6 +77,23 @@ HANDLERS_ALLOWED_TO_HAVE_NO_LOGGER = {
     "null",
 }
 
+# Handlers whose inertness in SOME environment is the DESIGN, not the defect.
+# Each entry needs a written reason, and lives here rather than in the settings
+# so that silencing the gate means editing the gate.
+#
+# The sibling gate below asks whether an attached handler can EMIT. That
+# question has a legitimate "no": a handler deliberately scoped to one
+# environment is supposed to be dead in the others. Without this set the gate
+# cannot tell "inert by accident" from "inert by intent" and fails forever on
+# correct configuration -- which is how a gate gets deleted rather than fixed.
+HANDLERS_DELIBERATELY_SCOPED_BY_DEBUG = {
+    # settings_logging.py, verbatim: "require_debug_false keeps it off
+    # developer machines". mail_admins is MEANT to be dead under DEBUG -- a dev
+    # machine emailing the operator on every caught exception is the failure,
+    # not the fix. Its inertness on settings_dev is correct and permanent.
+    "mail_admins",
+}
+
 # Every settings module a deployment actually points DJANGO_SETTINGS_MODULE at
 # (deployment/docker/docker-compose.{prod,staging}.yml, and
 # docker-compose.override.yml for dev).
@@ -92,16 +109,34 @@ DEPLOYED_ENVIRONMENTS = ("settings_prod", "settings_staging", "settings_dev")
 # defaulting to development. Leaving it unset imports settings_dev BEFORE
 # settings_prod and measures a combination no deployment runs. The values below
 # are the ones the compose files set.
+#
+# SCITEX_HUB_POSTGRES_PASSWORD joined this list on 2026-08-30, when prod and
+# staging stopped defaulting it -- prod to the placeholder "CHANGE_THIS_IN_PROD",
+# staging to a real shared literal committed to this public repository. Both now
+# raise ImproperlyConfigured at import instead, so both became modules that
+# "refuse to boot without" it, which is precisely what this mapping is for. The
+# value below is never connected with: these gates read the composed LOGGING
+# dict and never open a database.
+#
+# NOTE FOR ANYONE TEMPTED TO SOLVE A FAILURE HERE BY DELETING A LINE. This
+# mapping is the ONLY correct place to answer "the environment will not
+# compose". Making the settings lenient again would restore the silent fallback
+# the operator abolished; skipping the parametrisation would restore the
+# unchecked wiring that let mail_admins stay dead for months. Both failures are
+# real, and adding the operator-set value a deployment really supplies is what
+# keeps both rules intact at once.
 REQUIRED_CONFIG = {
     "settings_prod": {
         "SCITEX_HUB_ENV": "prod",
         "SCITEX_HUB_DJANGO_SECRET_KEY": "test-only-never-a-real-secret",
         "SCITEX_HUB_GITEA_SSH_PORT": "22",
+        "SCITEX_HUB_POSTGRES_PASSWORD": "test-only-never-connected-with",
     },
     "settings_staging": {
         "SCITEX_HUB_ENV": "staging",
         "SCITEX_HUB_DJANGO_SECRET_KEY": "test-only-never-a-real-secret",
         "SCITEX_HUB_GITEA_SSH_PORT": "2232",
+        "SCITEX_HUB_POSTGRES_PASSWORD": "test-only-never-connected-with",
     },
     "settings_dev": {
         "SCITEX_HUB_ENV": "development",
@@ -135,6 +170,11 @@ payload = {
         for name, logger in config.get("loggers", {}).items()
     },
     "root": list(config.get("root", {}).get("handlers", [])),
+    "filters": {
+        name: list(handler.get("filters", []))
+        for name, handler in config.get("handlers", {}).items()
+    },
+    "debug": bool(getattr(module, "DEBUG", False)),
 }
 with open(sys.argv[2], "w", encoding="utf-8") as fh:
     json.dump(payload, fh)
@@ -275,6 +315,38 @@ class TestEveryDeployedEnvironmentIsWired:
             "LOGGING with dict.update instead of "
             "config.settings._logging_merge.merge_logging: update REPLACES the "
             "loggers section and takes the base's wiring with it."
+        )
+
+    def test_no_attached_handler_is_silenced_by_its_own_environment(
+        self, settings_module
+    ):
+        """A handler wired to a logger must be able to EMIT in this environment.
+
+        The sibling test above asks whether a handler is ATTACHED. That is the
+        adjacent question, and prod passed it for months while logging nothing
+        to stdout: ``console`` was attached to seven loggers and carried
+        ``require_debug_true`` in an environment with ``DEBUG = False``, so
+        every record routed to a handler that could not fire. Wired and inert
+        greps as working, which is worse than unattached.
+        """
+        # Arrange
+        config = composed(settings_module)
+        debug = config["debug"]
+        forbidden = "require_debug_true" if not debug else "require_debug_false"
+        # Act
+        silenced = sorted(
+            name
+            for name in _handlers_referenced(config) - HANDLERS_DELIBERATELY_SCOPED_BY_DEBUG
+            if forbidden in config["filters"].get(name, [])
+        )
+        # Assert
+        assert not silenced, (
+            f"In COMPOSED {settings_module} (DEBUG={debug}) these handlers are "
+            f"attached to a logger but carry {forbidden!r}, so they cannot emit "
+            f"a single record here: {silenced}. Every logger pointing at them "
+            "is writing to nothing. Attachment is not the same as delivery, and "
+            "this is the gate-that-cannot-fail shape the constitution names: "
+            "the config still lists it and everyone believes it is working."
         )
 
     @pytest.mark.parametrize("logger_name", LOGGERS_THAT_MUST_MAIL_ADMINS)

@@ -4,6 +4,7 @@
  */
 
 import { getCsrfToken } from "@/utils/csrf";
+import { compilationErrorFromResponse } from "./compilation-http-error";
 import { CompilationOptions, CompilationResult } from "./types";
 
 export class CompilationAPI {
@@ -56,7 +57,9 @@ export class CompilationAPI {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        // The body carries the reason (read-only visitor, project gone,
+        // section busy). Throwing `HTTP <status>` here is what hid it.
+        throw await compilationErrorFromResponse(response);
       }
 
       return (await response.json()) as CompilationResult;
@@ -123,7 +126,9 @@ export class CompilationAPI {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        // The body carries the reason (read-only visitor, project gone,
+        // section busy). Throwing `HTTP <status>` here is what hid it.
+        throw await compilationErrorFromResponse(response);
       }
 
       return (await response.json()) as CompilationResult;
@@ -145,7 +150,7 @@ export class CompilationAPI {
     );
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+      throw await compilationErrorFromResponse(response);
     }
 
     return (await response.json()) as CompilationResult;

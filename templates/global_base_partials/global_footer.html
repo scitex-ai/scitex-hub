@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 
 <footer class="site-footer" id="site-footer">
     <div class="footer-inner">
@@ -23,72 +24,73 @@
                         <a href="mailto:{{ CONTACT_EMAIL }}"><i class="fas fa-envelope"></i> {{ CONTACT_EMAIL }}</a>
                     </p>
                     <p class="footer-copyright">
-                        &copy; 2025–2026 SciTeX. All rights reserved. <span class="footer-version">v{{ SCITEX_HUB_VERSION }}</span>
+                        &copy; 2025–2026 SciTeX. {% trans "All rights reserved." %} <span class="footer-version">v{{ SCITEX_HUB_VERSION }}</span>
                     </p>
                 </div>
                 <!-- Column 2: Community -->
                 <div class="footer-section">
-                    <h3>Community</h3>
+                    <h3>{% trans "Community" %}</h3>
                     <ul class="footer-links">
                         <li>
-                            <a href="{% url 'public_app:about' %}">About</a>
+                            <a href="{% url 'public_app:about' %}">{% trans "About" %}</a>
                         </li>
                         <li>
-                            <a href="{% url 'public_app:contributors' %}">Contributors</a>
+                            <a href="{% url 'public_app:contributors' %}">{% trans "Contributors" %}</a>
                         </li>
                         <li>
-                            <a href="{% url 'public_app:recruit' %}">Recruit</a>
+                            <a href="{% url 'public_app:recruit' %}">{% trans "Recruit" %}</a>
                         </li>
                         <li>
-                            <a href="{% url 'public_app:publications' %}">Publications</a>
+                            <a href="{% url 'public_app:publications' %}">{% trans "Publications" %}</a>
                         </li>
                         <li>
-                            <a href="{% url 'public_app:pricing' %}">Premium</a>
+                            <a href="{% url 'public_app:pricing' %}">{% trans "Premium" %}</a>
                         </li>
                         <li>
-                            <a href="{% url 'public_app:donate' %}"><i class="fas fa-heart"></i> Support SciTeX</a>
+                            <a href="{% url 'public_app:donate' %}"><i class="fas fa-heart"></i> {% trans "Support SciTeX" %}</a>
                         </li>
                         <li>
-                            <a href="{% url 'public_app:setup' %}">Self-Hosting Guide</a>
+                            <a href="{% url 'public_app:setup' %}">{% trans "Self-Hosting Guide" %}</a>
                         </li>
                     </ul>
                 </div>
                 <!-- Column 3: Developers -->
                 <div class="footer-section">
-                    <h3>Developers</h3>
+                    <h3>{% trans "Developers" %}</h3>
                     <ul class="footer-links">
                         <li>
-                            <a href="{% url 'public_app:api_docs' %}">Web API Docs</a>
+                            <a href="{% url 'public_app:api_docs' %}">{% trans "Web API Docs" %}</a>
                         </li>
                         <li>
-                            <a href="{% url 'dev_app:tests_category' category='web-api' %}">Web API Tests</a>
+                            <a href="{% url 'dev_app:tests_category' category='web-api' %}">{% trans "Web API Tests" %}</a>
                         </li>
                         <li>
-                            <a href="{% url 'public_app:releases' %}">Releases</a>
+                            <a href="{% url 'public_app:releases' %}">{% trans "Releases" %}</a>
                         </li>
                         <li>
-                            <a href="/scitex-ai/scitex-hub/issues">Bug Reports</a>
+                            <a href="https://github.com/scitex-ai/scitex-hub/issues"
+                               target="_blank">{% trans "Bug Reports" %}</a>
                         </li>
                         <li>
-                            <a href="{% url 'dev_app:design' %}">Design System</a>
+                            <a href="{% url 'dev_app:design' %}">{% trans "Design System" %}</a>
                         </li>
                         <li>
-                            <a href="{% url 'public_app:server_status' %}">Server Status</a>
+                            <a href="{% url 'public_app:server_status' %}">{% trans "Server Status" %}</a>
                         </li>
                     </ul>
                 </div>
                 <!-- Column 4: Legal -->
                 <div class="footer-section">
-                    <h3>Legal</h3>
+                    <h3>{% trans "Legal" %}</h3>
                     <ul class="footer-links">
                         <li>
-                            <a href="{% url 'public_app:terms' %}">Terms</a>
+                            <a href="{% url 'public_app:terms' %}">{% trans "Terms" %}</a>
                         </li>
                         <li>
-                            <a href="{% url 'public_app:privacy' %}">Privacy</a>
+                            <a href="{% url 'public_app:privacy' %}">{% trans "Privacy" %}</a>
                         </li>
                         <li>
-                            <a href="{% url 'public_app:cookies' %}">Cookies</a>
+                            <a href="{% url 'public_app:cookies' %}">{% trans "Cookies" %}</a>
                         </li>
                         <li>
                             <a href="{% url 'public_app:tokushoho' %}">特定商取引法に基づく表記</a>
@@ -107,7 +109,7 @@
                             after reading the warning about it.
                         {% endcomment %}
                         <li>
-                            <a href="{% url 'public_app:contact' %}">Contact</a>
+                            <a href="{% url 'public_app:contact' %}">{% trans "Contact" %}</a>
                         </li>
                     </ul>
                 </div>

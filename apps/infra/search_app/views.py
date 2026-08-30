@@ -87,7 +87,8 @@ def search_users(query, current_user=None, limit=20):
     Search for users by username, name, institution, or research interests.
     Uses PostgreSQL full-text search for better relevance.
     """
-    # Basic Q-based search (works with SQLite for development)
+    # Basic Q-based substring search. NOTE: the docstring above claims
+    # PostgreSQL full-text search; this is icontains, not that.
     users = (
         User.objects.filter(
             Q(username__icontains=query)

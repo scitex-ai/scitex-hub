@@ -1,13 +1,506 @@
-# Japanese message catalog for SciTeX Hub.
-# Pages authored in Japanese (tokushoho) use Japanese msgids, so this
-# catalog intentionally starts empty. Regenerate with:
-#   python manage.py makemessages -l ja
+# Japanese translations for scitex-hub.
+#
+# SCOPE: public/legal surfaces only — the landing page and the commerce/legal
+# pages. The signed-in app interior stays English for now, per the operator
+# (2026-08-23): 「日本語、英語、意外は私が見てもわからないので今のところは非対応で
+# 問題ないです」 — Japanese and English only.
+#
+# WHY THIS EXISTS: the landing page is read by investors and lenders in Japan.
+# Operator, 2026-08-23: 「日本の会社でビジコンやら融資やらでも外部の方が見られた方が
+# 良いので。日本の方で英語が使いにくいと思う方はたくさんいらっしゃいます」
+#
+# REVIEW STATUS: these strings were drafted by scitex-hub and are NOT yet
+# approved by the operator. They are investor-facing copy about his company;
+# read them on the running site rather than trusting this file.
+#
+# WHERE THE GETTEXT TOOLS ACTUALLY EXIST. Measured 2026-08-23, because an
+# earlier revision of this header told the reader to run `makemessages` in a
+# place where it cannot run:
+#
+#     agent container        xgettext ABSENT   msgfmt ABSENT
+#     bare host (compute-03) xgettext ABSENT   msgfmt ABSENT
+#     dev django container   xgettext PRESENT  msgfmt PRESENT
+#     prod image             (msgfmt ABSENT; babel present)
+#
+# REGENERATE — only inside the dev container, which is the one place with
+# xgettext. `makemessages` shells out to it exactly as `compilemessages` shells
+# out to msgfmt, so it fails identically everywhere else:
+#
+#     docker exec scitex-hub-dev-django-1 python manage.py makemessages -l ja
+#
+# COMPILE — anywhere, including prod. Use the babel-based step, NOT
+# `django-admin compilemessages`: msgfmt is absent from the PRODUCTION image, so
+# compilemessages would succeed in dev and fail where users are.
+#
+#     python scripts/i18n/compile_catalogs.py
+#
+# This runs automatically from both entrypoints on every container start.
 msgid ""
 msgstr ""
 "Project-Id-Version: scitex-hub\n"
 "Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-23 07:45+0000\n"
+"PO-Revision-Date: 2026-08-23 07:45+0000\n"
+"Last-Translator: scitex-hub <info@scitex.ai>\n"
+"Language-Team: Japanese\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+
+#: config/branding.py
+msgid "Research Automation for AI and Humans"
+msgstr "AIと人のための研究自動化"
+
+#: config/branding.py
+msgid "Open-source Scientific Research Automation Ecosystem"
+msgstr "オープンソースの科学研究自動化エコシステム"
+
+#: config/branding.py
+msgid ""
+"Python toolkit + MCP server for literature search, statistics, "
+"visualization, and manuscript writing."
+msgstr ""
+"文献検索・統計・可視化・論文執筆のための Python ツールキットと MCP サーバー。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "Enter as visitor"
+msgstr "ゲストとして試す"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "Sign up"
+msgstr "新規登録"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "Sign in"
+msgstr "ログイン"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "No sign-up needed — starts a temporary visitor workspace."
+msgstr "登録不要。一時的なワークスペースがすぐに立ち上がります。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "Apps"
+msgstr "アプリ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "Docs"
+msgstr "ドキュメント"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "Open Source (AGPL v3.0)"
+msgstr "オープンソース (AGPL v3.0)"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "Support Us"
+msgstr "支援する"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#, python-format
+msgid ""
+"Alpha Release (%(version)s) — Data persistence and API stability are not "
+"guaranteed. For production use, install the local Python toolkit. Any "
+"contribution welcome:"
+msgstr ""
+"アルファ版 (%(version)s) — データの保持と API の安定性は保証されません。"
+"本番環境でのご利用にはローカルの Python ツールキットをおすすめします。"
+"ご協力を歓迎します："
+
+#: templates/global_base_partials/language_switcher.html
+msgid "Language"
+msgstr "言語"
+
+# --- landing_demos.html -----------------------------------------------------
+# PRODUCT NAMES ARE NOT MARKED and must stay that way: Scholar, Writer,
+# Console, FigRecipe, SciTeX. A brand translated is a brand lost. Neither is
+# `pip install scitex` — a shell command translated is a shell command broken.
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_demos.html
+msgid "SciTeX Ecosystem"
+msgstr "SciTeX エコシステム"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_demos.html
+msgid "From data to publication — all in one"
+msgstr "データから論文まで、すべてをひとつに"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_demos.html
+msgid "Literature discovery & enrichment"
+msgstr "文献の発見と情報の付加"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_demos.html
+msgid "LaTeX manuscript writing"
+msgstr "LaTeX による論文執筆"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_demos.html
+msgid "Interactive development workspace"
+msgstr "対話的な開発ワークスペース"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_demos.html
+msgid "Scientific figure editor"
+msgstr "科学図表エディタ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_demos.html
+msgid "Local"
+msgstr "ローカル"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_demos.html
+msgid "Cloud"
+msgstr "クラウド"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_demos.html
+msgid "Self-host for your lab"
+msgstr "研究室で自前運用"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_demos.html
+msgid "Full control on your machine. Works offline with complete privacy."
+msgstr "自分のマシンで完全にコントロール。オフラインでも動作し、プライバシーを保てます。"
+
+# --- landing_commitment.html ------------------------------------------------
+# THE MOST INVESTOR-FACING COPY ON THE SITE. This is the section that states
+# what the company promises, and it is the reason the operator asked for
+# Japanese at all 「日本の会社でビジコンやら融資やらでも外部の方が見られた方が
+# 良いので」. Read it on the running site before trusting it.
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "Our Commitment to Science"
+msgstr "科学への私たちの約束"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid ""
+"SciTeX will always prioritize researchers and science over profit. Our code "
+"is yours, forever."
+msgstr ""
+"SciTeX は利益よりも、研究者と科学をつねに優先します。私たちのコードは、"
+"これからも永くあなたのものです。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "To Individual Researchers"
+msgstr "研究者お一人おひとりへ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "Generous free tier, always"
+msgstr "充実した無料プランを、いつまでも"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "Your data is yours—export anytime"
+msgstr "データはあなたのもの。いつでも書き出せます"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "Privacy-first: we never sell your data"
+msgstr "プライバシー第一。データを販売することはありません"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "See and verify everything we do"
+msgstr "私たちの取り組みは、すべて公開・検証できます"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "To Research Community"
+msgstr "研究コミュニティへ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+# DOUBLED PERCENT ON PURPOSE — this is not a typo.
+# Django's {% trans %} does `msgid = value.replace("%", "%%")` before the
+# lookup (django/template/base.py, Variable.resolve), so a template literal
+# containing a percent sign is looked up in its DOUBLED form. With the
+# single-% msgid the lookup misses and Django falls back to the English
+# source — silently, with no error. Measured on the live site 2026-08-23:
+#   gettext("100% open-source, forever")     -> Japanese   (found)
+#   {% trans "100% open-source, forever" %}  -> English    (missed)
+msgid "100%% open-source, forever"
+msgstr "100% オープンソースを、これからも"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "All improvements benefit everyone"
+msgstr "改善の成果は、すべての人へ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "Community governance for major decisions"
+msgstr "重要な決定は、コミュニティとともに"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "Prioritize science over profit"
+msgstr "利益よりも科学を優先します"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "Ready to accelerate your research?"
+msgstr "研究を加速する準備はできましたか？"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid ""
+"Join the SciTeX community and start transforming your research workflow "
+"today."
+msgstr ""
+"SciTeX コミュニティに参加して、今日から研究のワークフローを変えていきましょう。"
+
+# NOTE — "Sign Up"/"Sign In" here are SEPARATE msgids from the hero's
+# "Sign up"/"Sign in": gettext keys on the exact source string, so the
+# capitalisation makes them distinct entries. Both are translated identically.
+# Normalising the templates to one casing would collapse them, but that changes
+# the ENGLISH page's visible text, which is a copy decision and not mine to make
+# while shipping a translation.
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "Sign Up"
+msgstr "新規登録"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_commitment.html
+msgid "Sign In"
+msgstr "ログイン"
+
+# --- header language toggle -------------------------------------------------
+# The toggle's own label is NOT translated: it always names the language you are
+# switching TO, in that language. 「日本語」 must read as 日本語 to an English
+# reader, and "English" as English to a Japanese one — translating either would
+# make the button describe the state you are already in.
+
+# --- landing_hero.html: the demo legend -------------------------------------
+# Operator, 2026-08-23: 「ムービーのレジェンドとかはなってないですね」
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "DEMO"
+msgstr "デモ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "Automated Research with SciTeX MCP Server in 40 min"
+msgstr "SciTeX MCP サーバーによる研究自動化を 40 分で"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "Literature Search → Analysis → Graphing → Manuscript → Revision"
+msgstr "文献検索 → 解析 → 作図 → 執筆 → 改訂"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "Speed:"
+msgstr "再生速度:"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "Watch More Demos"
+msgstr "デモをもっと見る"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "SciTeX Automated Research Demo"
+msgstr "SciTeX 研究自動化デモ"
+
+# --- global_footer.html -----------------------------------------------------
+# Operator, 2026-08-23: 「フッターも英語のままですね」
+
+#: templates/global_base_partials/global_footer.html
+msgid "About"
+msgstr "SciTeX について"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Bug Reports"
+msgstr "不具合のご報告"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Community"
+msgstr "コミュニティ"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Contact"
+msgstr "お問い合わせ"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Contributors"
+msgstr "コントリビューター"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Cookies"
+msgstr "クッキー"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Design System"
+msgstr "デザインシステム"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Developers"
+msgstr "開発者向け"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Legal"
+msgstr "法的情報"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Premium"
+msgstr "プレミアム"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Privacy"
+msgstr "プライバシー"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Publications"
+msgstr "発表・論文"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Recruit"
+msgstr "採用"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Releases"
+msgstr "リリース"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Self-Hosting Guide"
+msgstr "セルフホスティング手順"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Server Status"
+msgstr "サーバー稼働状況"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Terms"
+msgstr "利用規約"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Web API Docs"
+msgstr "Web API ドキュメント"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Web API Tests"
+msgstr "Web API テスト"
+
+# --- global_header.html -----------------------------------------------------
+# The auth buttons at the very top. Found by SCREENSHOT + innerText on the live
+# page, not by reading templates — they sit at y=14 and I had never looked.
+
+#: templates/global_base_partials/global_header.html
+msgid "Log in"
+msgstr "ログイン"
+
+# --- landing_partials/features/*.html ---------------------------------------
+# The whole feature grid. I never opened this directory: landing.html does not
+# include it directly, the strings are not shaped like `>text<` in the files I
+# had grepped, and my source-level check reported "two files remain". The live
+# page said otherwise. Operator, 2026-08-23:
+#   「実際にスクリーンショットを撮って見ていますか…抜け漏れがあるんですよね」
+# features/v01/ is deliberately NOT translated — measured 0 references, dead.
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/scholar_features.html
+msgid "Grounded citations"
+msgstr "裏付けのある引用"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/scholar_features.html
+msgid "Real references from 167M+ works via local DB"
+msgstr "ローカルDBの1.67億件超の文献から、実在する参考文献を取得"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/scholar_features.html
+msgid "Automatic PDF download"
+msgstr "PDFの自動ダウンロード"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/scholar_features.html
+msgid "Works with paywalled journals via your credentials"
+msgstr "ご自身の購読権限で、有料ジャーナルにも対応"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/writer_features.html
+msgid "Real-time LaTeX"
+msgstr "リアルタイム LaTeX"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/writer_features.html
+msgid ""
+"Type → see PDF — instantly. Figures, tables, citations as draggable cards"
+msgstr ""
+"入力すると即座にPDFへ。図・表・引用はドラッグできるカードとして扱えます"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/writer_features.html
+msgid "AI-ready"
+msgstr "AI 連携"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/writer_features.html
+msgid "LLM integration for writing, editing, citations"
+msgstr "執筆・推敲・引用でLLMを活用できます"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/code_features.html
+msgid "Execute in-browser"
+msgstr "ブラウザ上で実行"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/code_features.html
+msgid "Python/R code → figures → paper. No context switching"
+msgstr "Python/R のコードから図、そして論文へ。文脈の切り替えは不要です"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/code_features.html
+msgid "Reproducibility by default"
+msgstr "再現性を既定で担保"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/code_features.html
+msgid "Stats, ML, visualization — batteries included"
+msgstr "統計・機械学習・可視化まで、必要なものは一式そろっています"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/viz_features.html
+msgid "Reproducible figures"
+msgstr "再現できる図"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/viz_features.html
+msgid "Saved as YAML recipes — reload and edit anytime"
+msgstr "YAMLのレシピとして保存。いつでも読み込んで編集できます"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/viz_features.html
+msgid "Millimeter-precise layout"
+msgstr "ミリ単位のレイアウト"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/viz_features.html
+msgid "Designed for journal figures, not dashboards"
+msgstr "ダッシュボードではなく、学術誌の図のための設計です"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/viz_features.html
+msgid "Drop-in matplotlib"
+msgstr "matplotlib をそのまま置き換え"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/viz_features.html
+msgid "Works with existing code — just change the import"
+msgstr "既存のコードのまま、import を変えるだけで動きます"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/hub_features.html
+msgid "HPC infrastructure built-in"
+msgstr "HPC 基盤を標準搭載"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/hub_features.html
+msgid "Docker + Singularity + SLURM — ready for lab deployment"
+msgstr "Docker + Singularity + SLURM。研究室への導入をそのまま行えます"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/hub_features.html
+msgid "Django-based REST API"
+msgstr "Django ベースの REST API"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/hub_features.html
+msgid "Python stack. Share workflows with lab mates, secured data"
+msgstr "Python で統一。データを守りながら、研究室の仲間とワークフローを共有できます"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/components/module_demo.html
+msgid "Demonstration on local environment"
+msgstr "ローカル環境でのデモ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/components/module_demo.html
+msgid "Documentation"
+msgstr "ドキュメント"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/components/module_demo.html
+msgid "View on GitHub"
+msgstr "GitHub で見る"
+
+# Found by the rendered-text sweep (tests/config/test_landing_has_no_untranslated_text.py),
+# NOT by reading templates — each hides behind an inline element or is a fallback
+# that only shows when <video> fails.
+
+#: apps/infra/public_app/templates/public_app/landing_partials/components/module_demo.html
+msgid "Your browser does not support the video tag."
+msgstr "お使いのブラウザは video タグに対応していません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/code_features.html
+msgid "tracks everything automatically"
+msgstr "がすべてを自動で記録します"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/code_features.html
+msgid "research modules"
+msgstr "の研究モジュール"
+
+# Found by extending the sweep to the page CHROME. "Support SciTeX" is a
+# DIFFERENT string from the hero's "Support Us" — gettext keys on exact source
+# text, so marking one does nothing for the other, and I had assumed otherwise.
+
+#: templates/global_base_partials/global_footer.html
+msgid "All rights reserved."
+msgstr "無断複製・転載を禁じます。"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Support SciTeX"
+msgstr "SciTeX を支援する"

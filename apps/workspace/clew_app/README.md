@@ -17,7 +17,7 @@ Clew ("clue" in archaic English, from Ariadne's thread) traces research artifact
 User / CLI / MCP
        │
        ▼
-  scitex.clew          ← Core logic: hashing, tracking, verification, SQLite DB
+  scitex.clew          ← Core logic: hashing, tracking, verification, its own store
        │
        ▼
   clew_app (Django)    ← Thin wrapper: 2 view files + 1 model + templates

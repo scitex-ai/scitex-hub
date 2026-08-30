@@ -551,6 +551,12 @@ restart: validate
 		echo -e "$(YELLOW)   • make ENV=$$RUNNING restart     # Restart current $$RUNNING$(NC)"; \
 		exit 1; \
 	fi
+	@# SIBLING FLOOR + IMPORT PREFLIGHT. A recreate here runs the EXISTING image,
+	@# and on 2026-08-22 that image was measured to be missing scitex-sh and
+	@# scitex-decorators — present only in the running container's writable layer
+	@# as a hotfix. This target is what deletes that layer, so the gate belongs
+	@# here and not only in rebuild.sh. Non-zero aborts the target (no leading '-').
+	@./scripts/deploy/preflight_sibling_floors.sh $(ENV)
 	@echo -e "$(CYAN)🔄 Restarting $(ENV) environment (with volume remount)...$(NC)"
 	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) up -d --force-recreate
 	@./scripts/deploy/wait-healthy.sh $(ENV) 120
@@ -569,6 +575,12 @@ reload: validate
 		echo -e "$(YELLOW)   • make ENV=$$RUNNING reload      # Reload current $$RUNNING$(NC)"; \
 		exit 1; \
 	fi
+	@# SIBLING FLOOR + IMPORT PREFLIGHT. A recreate here runs the EXISTING image,
+	@# and on 2026-08-22 that image was measured to be missing scitex-sh and
+	@# scitex-decorators — present only in the running container's writable layer
+	@# as a hotfix. This target is what deletes that layer, so the gate belongs
+	@# here and not only in rebuild.sh. Non-zero aborts the target (no leading '-').
+	@./scripts/deploy/preflight_sibling_floors.sh $(ENV)
 	@echo -e "$(CYAN)⚡ Quick reload (Django only, with volume remount)...$(NC)"
 	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) up -d --force-recreate django
 	@echo -e "$(GREEN)✅ $(ENV) reloaded$(NC)"
@@ -678,6 +690,8 @@ rebuild-no-cache: validate-docker
 	@$(MAKE) --no-print-directory ENV=$(ENV) stop
 	@echo -e "  2. Building images (without cache)..."
 	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) build --no-cache
+	@echo -e "  2b. Preflight: does the NEW image satisfy hub's declared sibling floors?"
+	@./scripts/deploy/preflight_sibling_floors.sh $(ENV)
 	@echo -e "  3. Starting $(ENV)..."
 	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) up -d
 	@echo -e ""
@@ -1345,174 +1359,6 @@ info:
 	@echo -e "Running environments: $$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-hub-(dev|staging|prod)-' | sed 's/scitex-hub-//' | sed 's/-//' | sort -u | tr '\n' ' ')"
 	@echo -e "Container directory: $(DOCKER_DIR)"
 	@echo -e "Compose command: $(COMPOSE_CMD)"
-
-# ============================================
-# CrossRef Database Management
-# ============================================
-.PHONY: crossref-status crossref-check crossref-rebuild-check crossref-create-title-index crossref-create-author-index crossref-next-steps
-
-crossref-status:
-	@echo -e "$(CYAN)📊 CrossRef Citations Rebuild Status$(NC)"
-	@echo -e ""
-	@echo -e "$(YELLOW)⚠️  IMPORTANT REMINDER:$(NC)"
-	@echo -e "  Started: Dec 4, 2025 ~22:50"
-	@echo -e "  Expected completion: ~Dec 9-10, 2025 (5 days)"
-	@echo -e ""
-	@echo -e "$(CYAN)Screen session:$(NC)"
-	@screen -ls | grep citations-rebuild || echo -e "  $(RED)❌ Screen session not found$(NC)"
-	@echo -e ""
-	@echo -e "$(CYAN)Process status:$(NC)"
-	@ps aux | grep rebuild_citations_table.py | grep -v grep | head -3 || echo -e "  $(RED)❌ Process not running$(NC)"
-	@echo -e ""
-	@echo -e "$(CYAN)Latest progress:$(NC)"
-	@tail -30 /home/ywatanabe/proj/crossref_local/impact_factor/rebuild_citations_*.log 2>/dev/null | grep -E "Progress|ETA" | tail -5 || echo -e "  $(YELLOW)No log found$(NC)"
-	@echo -e ""
-	@echo -e "$(CYAN)Database info:$(NC)"
-	@du -h /home/ywatanabe/proj/crossref_local/data/crossref.db 2>/dev/null | awk '{print "  Size: " $$1}' || echo -e "  $(YELLOW)Database not found$(NC)"
-	@sqlite3 /home/ywatanabe/proj/crossref_local/data/crossref.db "SELECT COUNT(*) FROM citations;" 2>/dev/null | awk '{print "  Citations: " $$0}' || echo -e "  $(YELLOW)Table not accessible$(NC)"
-	@echo -e ""
-	@echo -e "$(CYAN)To attach to screen session:$(NC)"
-	@echo -e "  screen -r citations-rebuild"
-
-crossref-check: crossref-rebuild-check
-
-crossref-rebuild-check:
-	@echo -e "$(CYAN)🔍 Checking if Citations Rebuild is Complete$(NC)"
-	@echo -e ""
-	@if ps aux | grep rebuild_citations_table.py | grep -v grep > /dev/null; then \
-		echo -e "$(YELLOW)⏳ Citations rebuild is STILL RUNNING$(NC)"; \
-		echo ""; \
-		echo -e "$(CYAN)Current progress:$(NC)"; \
-		tail -30 /home/ywatanabe/proj/crossref_local/impact_factor/rebuild_citations_*.log 2>/dev/null | grep Progress | tail -1; \
-		echo ""; \
-		echo -e "$(CYAN)💡 Commands:$(NC)"; \
-		echo "  make crossref-status         # Detailed status"; \
-		echo "  screen -r citations-rebuild  # Attach to screen"; \
-		echo ""; \
-		echo -e "$(RED)❌ NOT READY for next steps yet$(NC)"; \
-	else \
-		echo -e "$(GREEN)✅ Citations rebuild appears to be COMPLETE!$(NC)"; \
-		echo ""; \
-		echo -e "$(CYAN)Verification:$(NC)"; \
-		sqlite3 /home/ywatanabe/proj/crossref_local/data/crossref.db "SELECT COUNT(*) FROM citations;" 2>/dev/null | awk '{print "  Total citations: " $$0}' || echo -e "  $(YELLOW)Cannot verify$(NC)"; \
-		echo ""; \
-		echo -e "$(GREEN)✅ Ready for next steps!$(NC)"; \
-		echo ""; \
-		echo "  make crossref-next-steps     # Show optimization steps"; \
-	fi
-
-crossref-next-steps:
-	@echo -e "$(CYAN)╔═══════════════════════════════════════════════════════╗$(NC)"
-	@echo -e "$(CYAN)║    📋 Next Steps: CrossRef API Optimization           ║$(NC)"
-	@echo -e "$(CYAN)╚═══════════════════════════════════════════════════════╝$(NC)"
-	@echo -e ""
-	@echo -e "$(GREEN)✅ Citations rebuild is complete!$(NC)"
-	@echo -e ""
-	@echo -e "$(CYAN)📊 Current API Status:$(NC)"
-	@echo -e "  Port 8000 (Django):  ✅ All searches work (DOI, title, year, authors)"
-	@echo -e "  Port 31291 (FastAPI): ⚠️  Only DOI works, title/author/year broken"
-	@echo -e ""
-	@echo -e "$(CYAN)🔧 Required Optimizations:$(NC)"
-	@echo -e ""
-	@echo -e "$(YELLOW)1. Create Title Index$(NC) (~4-8 hours)"
-	@echo -e "   Enables fast title searches on port 31291"
-	@echo -e "   Command: $(GREEN)make crossref-create-title-index$(NC)"
-	@echo -e ""
-	@echo -e "$(YELLOW)2. Create Author Index$(NC) (~4-8 hours)"
-	@echo -e "   Enables fast author searches on port 31291"
-	@echo -e "   Command: $(GREEN)make crossref-create-author-index$(NC)"
-	@echo -e ""
-	@echo -e "$(YELLOW)3. Update FastAPI Code$(NC)"
-	@echo -e "   File: deployment/crossref/database.py"
-	@echo -e "   Update search_by_metadata() to use JSON queries"
-	@echo -e "   See: /home/ywatanabe/proj/crossref_local/impact_factor/docs/API_OPTIMIZATION.md"
-	@echo -e ""
-	@echo -e "$(CYAN)💡 Recommended order:$(NC)"
-	@echo -e "  1. Run both index creation commands (can do overnight)"
-	@echo -e "  2. Update FastAPI code"
-	@echo -e "  3. Restart port 31291 service"
-	@echo -e "  4. Test all search types work on both ports"
-	@echo -e ""
-	@echo -e "$(CYAN)📚 Documentation:$(NC)"
-	@echo -e "  /home/ywatanabe/proj/crossref_local/impact_factor/NEXT_STEPS_AFTER_REBUILD.md"
-	@echo -e ""
-
-crossref-create-title-index:
-	@echo -e "$(CYAN)═══════════════════════════════════════════════════════$(NC)"
-	@echo -e "$(CYAN)    📊 Creating Title Index on CrossRef Database        $(NC)"
-	@echo -e "$(CYAN)═══════════════════════════════════════════════════════$(NC)"
-	@echo -e ""
-	@echo -e "$(YELLOW)⚠️  WARNING:$(NC)"
-	@echo -e "  • This will take ~4-8 hours"
-	@echo -e "  • Database will be under heavy load"
-	@echo -e "  • Do NOT interrupt or run other DB operations"
-	@echo -e "  • Port 31291 API may be slow during this time"
-	@echo -e ""
-	@echo -e "$(CYAN)Index details:$(NC)"
-	@echo -e "  Database: /home/ywatanabe/proj/crossref_local/data/crossref.db"
-	@echo -e "  Table: works (167M rows)"
-	@echo -e "  Field: json_extract(metadata, '\$$.title[0]')"
-	@echo -e ""
-	@printf "$(YELLOW)Type 'yes' to continue: $(NC)"; \
-	read confirm; \
-	if [ "$$confirm" = "yes" ]; then \
-		echo ""; \
-		echo -e "$(CYAN)Starting index creation...$(NC)"; \
-		echo "  Started at: $$(date '+%Y-%m-%d %H:%M:%S')"; \
-		echo ""; \
-		START_TIME=$$(date +%s); \
-		sqlite3 /home/ywatanabe/proj/crossref_local/data/crossref.db "CREATE INDEX IF NOT EXISTS idx_title ON works(json_extract(metadata, '\$$.title[0]'));" && \
-		END_TIME=$$(date +%s); \
-		DURATION=$$((END_TIME - START_TIME)); \
-		echo ""; \
-		echo -e "$(GREEN)✅ Title index created successfully!$(NC)"; \
-		echo "  Completed at: $$(date '+%Y-%m-%d %H:%M:%S')"; \
-		echo "  Duration: $$((DURATION / 3600))h $$((DURATION % 3600 / 60))m $$((DURATION % 60))s"; \
-		echo ""; \
-		echo -e "$(CYAN)Next step:$(NC)"; \
-		echo "  make crossref-create-author-index  # Create author index"; \
-	else \
-		echo -e "$(GREEN)✅ Cancelled$(NC)"; \
-	fi
-
-crossref-create-author-index:
-	@echo -e "$(CYAN)═══════════════════════════════════════════════════════$(NC)"
-	@echo -e "$(CYAN)    👥 Creating Author Index on CrossRef Database       $(NC)"
-	@echo -e "$(CYAN)═══════════════════════════════════════════════════════$(NC)"
-	@echo -e ""
-	@echo -e "$(YELLOW)⚠️  WARNING:$(NC)"
-	@echo -e "  • This will take ~4-8 hours"
-	@echo -e "  • Database will be under heavy load"
-	@echo -e "  • Do NOT interrupt or run other DB operations"
-	@echo -e "  • Port 31291 API may be slow during this time"
-	@echo -e ""
-	@echo -e "$(CYAN)Index details:$(NC)"
-	@echo -e "  Database: /home/ywatanabe/proj/crossref_local/data/crossref.db"
-	@echo -e "  Table: works (167M rows)"
-	@echo -e "  Field: json_extract(metadata, '\$$.author')"
-	@echo -e ""
-	@printf "$(YELLOW)Type 'yes' to continue: $(NC)"; \
-	read confirm; \
-	if [ "$$confirm" = "yes" ]; then \
-		echo ""; \
-		echo -e "$(CYAN)Starting index creation...$(NC)"; \
-		echo "  Started at: $$(date '+%Y-%m-%d %H:%M:%S')"; \
-		echo ""; \
-		START_TIME=$$(date +%s); \
-		sqlite3 /home/ywatanabe/proj/crossref_local/data/crossref.db "CREATE INDEX IF NOT EXISTS idx_author ON works(json_extract(metadata, '\$$.author'));" && \
-		END_TIME=$$(date +%s); \
-		DURATION=$$((END_TIME - START_TIME)); \
-		echo ""; \
-		echo -e "$(GREEN)✅ Author index created successfully!$(NC)"; \
-		echo "  Completed at: $$(date '+%Y-%m-%d %H:%M:%S')"; \
-		echo "  Duration: $$((DURATION / 3600))h $$((DURATION % 3600 / 60))m $$((DURATION % 60))s"; \
-		echo ""; \
-		echo -e "$(CYAN)Next steps:$(NC)"; \
-		echo "  1. Update FastAPI code to use JSON queries"; \
-		echo "  2. make crossref-next-steps  # See full instructions"; \
-	else \
-		echo -e "$(GREEN)✅ Cancelled$(NC)"; \
-	fi
 
 # ============================================
 # SLURM Management

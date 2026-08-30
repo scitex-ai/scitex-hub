@@ -19,12 +19,12 @@ username-keyed container state must die with the session:
   is cleared and verified gone.
 * Every teardown/verify failure quarantines the slot — never served.
 
-Run (SQLite, no network — SLURM/apptainer are faked at the subprocess
+Run (no network — SLURM/apptainer are faked at the subprocess
 boundary through the pipeline's ``run_cmd`` seam):
 
     SCITEX_HUB_DJANGO_SECRET_KEY=local-test-secret \
     SCITEX_HUB_GITEA_SSH_PORT_DEV=2222 \
-    SCITEX_HUB_USE_SQLITE_DEV=1 \
+    SCITEX_HUB_TEST_MODE=1 \
     /opt/venv-sac/bin/python -m pytest <abs path to this file>
 """
 

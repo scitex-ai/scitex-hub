@@ -65,6 +65,8 @@ from .projects import (
     project_detail_redirect,
     project_edit,
     project_list,
+    project_live_viewer,
+    project_live_viewer_api,
     project_settings,
     project_tree_or_blob,
 )
@@ -135,6 +137,8 @@ __all__ = [
     "project_edit",
     "project_delete",
     "project_settings",
+    "project_live_viewer",
+    "project_live_viewer_api",
     # Users
     "user_profile",
     "user_bio_page",

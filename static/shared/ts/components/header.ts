@@ -3,7 +3,8 @@
  * Handles dropdown menus, search, visitor mode, and other header functionality
  */
 
-import { API_URLS, NAV_URLS } from "../utils/api-urls";
+import { API_URLS } from "../utils/api-urls";
+import { initVisitorCountdown } from "./visitor-countdown";
 
 // Storage key for header collapse state
 const HEADER_COLLAPSE_STORAGE_KEY = "scitex-header-collapsed";
@@ -215,133 +216,14 @@ function initializeHeader(): void {
     });
   }
 
-  // Visitor Mode Countdown Timer
-  // Try visitorMenuToggle first, fall back to the mobile badge for expires-at data
-  const mobileBadge = document.querySelector(
-    ".header-visitor-badge-mobile",
-  ) as HTMLElement | null;
-  const expiresAtSource =
-    (visitorMenuToggle && visitorMenuToggle.dataset.expiresAt) ||
-    (mobileBadge && mobileBadge.dataset.expiresAt) ||
-    null;
-  if (expiresAtSource) {
-    const expiresAt = new Date(expiresAtSource);
-    if (isNaN(expiresAt.getTime())) {
-      console.error(
-        "[header] Invalid visitor expiration date:",
-        expiresAtSource,
-      );
-      // Skip timer setup — date is unparseable
-    } else if (visitorMenuToggle?.hasAttribute("data-inline-countdown")) {
-      // Inline fallback countdown already running — skip to avoid duplicate timers
-    } else {
-      const countdownSpan = document.getElementById("visitor-countdown");
-      const mobileCountdownSpan = document.getElementById(
-        "mobile-visitor-countdown",
-      );
-      const mobileHeaderCountdownSpan = document.getElementById(
-        "mobile-header-visitor-countdown",
-      );
-
-      function updateCountdown(): void {
-        const now = new Date();
-        const timeLeft = expiresAt.getTime() - now.getTime();
-
-        if (timeLeft <= 0) {
-          // Session expired - show expired indicator
-          if (countdownSpan) {
-            countdownSpan.textContent = "⏰ EXPIRED";
-            countdownSpan.style.color = "#f44336";
-          }
-          if (mobileCountdownSpan) {
-            mobileCountdownSpan.textContent = "EXPIRED";
-            mobileCountdownSpan.style.color = "#f44336";
-          }
-          if (mobileHeaderCountdownSpan) {
-            mobileHeaderCountdownSpan.textContent = "⏰ EXPIRED";
-            mobileHeaderCountdownSpan.style.color = "#f44336";
-          }
-
-          // Don't redirect if already on visitor management or auth pages
-          // This prevents redirect loops when user tries to sign in/up
-          const currentPath = window.location.pathname;
-          const noRedirectPaths = [
-            NAV_URLS.visitorExpired,
-            "/visitor-restart/",
-            "/visitor-pool-full/",
-            "/auth/", // All auth pages (signin, signup, etc.)
-          ];
-
-          const shouldSkipRedirect = noRedirectPaths.some((path) =>
-            currentPath.startsWith(path),
-          );
-
-          if (!shouldSkipRedirect) {
-            setTimeout(() => {
-              window.location.href = NAV_URLS.visitorExpired;
-            }, 2000);
-          }
-          return;
-        }
-
-        const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-
-        // Format: MM:SS or HH:MM:SS
-        let timeString: string;
-        if (hours > 0) {
-          timeString = `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-        } else {
-          timeString = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-        }
-
-        if (countdownSpan) {
-          countdownSpan.textContent = `⏰ ${timeString}`;
-
-          // Color coding based on time remaining
-          if (timeLeft < 5 * 60 * 1000) {
-            // < 5 minutes: Red (urgent)
-            countdownSpan.style.color = "#f44336";
-          } else if (timeLeft < 15 * 60 * 1000) {
-            // < 15 minutes: Orange (warning)
-            countdownSpan.style.color = "#ff9800";
-          } else {
-            // > 15 minutes: Default color
-            countdownSpan.style.color = "inherit";
-          }
-        }
-
-        // Update mobile hamburger menu countdown
-        if (mobileCountdownSpan) {
-          mobileCountdownSpan.textContent = timeString;
-          if (timeLeft < 5 * 60 * 1000) {
-            mobileCountdownSpan.style.color = "#f44336";
-          } else if (timeLeft < 15 * 60 * 1000) {
-            mobileCountdownSpan.style.color = "#ff9800";
-          } else {
-            mobileCountdownSpan.style.color = "inherit";
-          }
-        }
-
-        // Update mobile header bar countdown
-        if (mobileHeaderCountdownSpan) {
-          mobileHeaderCountdownSpan.textContent = `⏰ ${timeString}`;
-          if (timeLeft < 5 * 60 * 1000) {
-            mobileHeaderCountdownSpan.style.color = "#f44336";
-          } else if (timeLeft < 15 * 60 * 1000) {
-            mobileHeaderCountdownSpan.style.color = "#ff9800";
-          } else {
-            mobileHeaderCountdownSpan.style.color = "inherit";
-          }
-        }
-      }
-
-      // Update immediately and then every second
-      updateCountdown();
-      setInterval(updateCountdown, 1000);
-    } // end else (valid date)
-  }
+  // Visitor Mode Countdown Timer — DISPLAY ONLY.
+  // Lives in ./visitor-countdown so it can be unit-tested, and so the rule it
+  // enforces is stated where a reader will find it: the deadline is refreshed
+  // from every heartbeat response, and a client-side zero never navigates.
+  // The old inline version captured `expires_at` once from a render-time data
+  // attribute — the 120s PROBATION stamp, not the session lease — and hard
+  // navigated to /visitor-expired/ on its own arithmetic.
+  initVisitorCountdown();
 
   // Server Health Status Live Indicator
   const serverStatusIndicator = document.getElementById(

@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 
 <!-- Hero Section -->
 <section class="hero-landing" id="home">
@@ -44,28 +45,28 @@
                            so a multi-line one is not lexed as a comment and renders VERBATIM to
                            every visitor — which is exactly what shipped to prod here.
                         {% endcomment %}
-                        <a href="/enter/" class="hero-cta-button">Enter as visitor <span class="hero-cta-arrow">&rarr;</span></a>
+                        <a href="/enter/" class="hero-cta-button">{% trans "Enter as visitor" %} <span class="hero-cta-arrow">&rarr;</span></a>
                         <a href="/auth/signup/" class="hero-link-button">
-                            <i class="fas fa-user-plus"></i> Sign up
+                            <i class="fas fa-user-plus"></i> {% trans "Sign up" %}
                         </a>
                         <a href="/auth/login/" class="hero-link-button">
-                            <i class="fas fa-sign-in-alt"></i> Sign in
+                            <i class="fas fa-sign-in-alt"></i> {% trans "Sign in" %}
                         </a>
                     </div>
-                    <p class="hero-cta-note">No sign-up needed — starts a temporary visitor workspace.</p>
+                    <p class="hero-cta-note">{% trans "No sign-up needed — starts a temporary visitor workspace." %}</p>
                 </div>
                 <div class="hero-links">
                     <a href="/apps/" class="hero-link-button">
-                        <i class="fas fa-th-large"></i> Apps
+                        <i class="fas fa-th-large"></i> {% trans "Apps" %}
                     </a>
                     <a href="/docs/" class="hero-link-button">
-                        <i class="fas fa-book"></i> Docs
+                        <i class="fas fa-book"></i> {% trans "Docs" %}
                     </a>
                     <a href="/docs/#agpl-v3" class="hero-link-button">
-                        <i class="fas fa-lock-open"></i> Open Source (AGPL v3.0)
+                        <i class="fas fa-lock-open"></i> {% trans "Open Source (AGPL v3.0)" %}
                     </a>
                     <a href="/donate/" class="hero-link-button">
-                        <i class="fas fa-heart"></i> Support Us
+                        <i class="fas fa-heart"></i> {% trans "Support Us" %}
                     </a>
                 </div>
                 <div class="warning-banner"
@@ -77,7 +78,7 @@
                                 gap:0.5rem;
                                 flex-direction:column">
                         <div>
-                            Alpha Release ({{ SCITEX_HUB_VERSION }}) — Data persistence and API stability are not guaranteed. For production use, install the local Python toolkit. Any contribution welcome:
+                            {% blocktrans with version=SCITEX_HUB_VERSION %}Alpha Release ({{ version }}) — Data persistence and API stability are not guaranteed. For production use, install the local Python toolkit. Any contribution welcome:{% endblocktrans %}
                             <a href="mailto:{{ CONTACT_EMAIL }}" class="warning-banner-link"><u>{{ CONTACT_EMAIL }}</u></a>
                         </div>
                     </div>
@@ -87,7 +88,7 @@
             <div class="hero-image">
                 <div class="demo-display" id="hero-demo-container" title="Play Demo Movie">
                     <img src="/media/videos/scitex-automated-research-demo-thumbnail.png"
-                         alt="SciTeX Automated Research Demo"
+                         alt="{% trans 'SciTeX Automated Research Demo' %}"
                          class="demo-thumbnail"
                          id="hero-demo-thumbnail"
                          title="Play Demo Movie" />
@@ -105,14 +106,14 @@
                 <div class="demo-description">
                     <div class="demo-info-left">
                         <span class="demo-workflow-text">
-                            <span class="demo-badge">DEMO</span>
-                            Automated Research with SciTeX MCP Server in 40 min
+                            <span class="demo-badge">{% trans "DEMO" %}</span>
+                            {% trans "Automated Research with SciTeX MCP Server in 40 min" %}
                             <br />
-                            Literature Search → Analysis → Graphing → Manuscript → Revision
+                            {% trans "Literature Search → Analysis → Graphing → Manuscript → Revision" %}
                         </span>
                     </div>
                     <div class="demo-info-right">
-                        <span class="speed-label">Speed:</span>
+                        <span class="speed-label">{% trans "Speed:" %}</span>
                         <select class="speed-select" id="hero-speed-select">
                             <option value="1">1x</option>
                             <option value="2">2x</option>
@@ -123,7 +124,7 @@
                     </div>
                 </div>
                 <a href="{% url 'public_app:demos' %}" class="watch-more-demos">
-                    <i class="fas fa-play-circle"></i> Watch More Demos
+                    <i class="fas fa-play-circle"></i> {% trans "Watch More Demos" %}
                 </a>
             </div>
         </div>

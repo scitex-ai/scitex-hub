@@ -56,12 +56,12 @@ from .container_teardown import (
     verify_container_state_gone,
 )
 from .demo_seed import try_seed_demo_content
+from .home_access import enforce_app_ownership, verify_app_can_write
 from .home_state import (
     HomeStateError,
-    enforce_app_ownership,
     recreate_workspace_skeleton,
-    verify_app_can_write,
     verify_recycled_home,
+    visitor_home_root,
     wipe_user_container_dir,
 )
 from .template_clone import (
@@ -191,16 +191,10 @@ class WorkspaceManager:
         project_slug = cls.DEFAULT_PROJECT_SLUG
         username = visitor_user.username
 
-        from apps.infra.project_app.services.project_filesystem import (
-            get_project_filesystem_manager,
-        )
-
-        manager = get_project_filesystem_manager(visitor_user)
-        base_path = Path(manager.base_path)
         # Apptainer binds the PARENT of proj/ as the container home
         # (scitex_container --home <home_root>:/home/<username>), so the
         # wipe must cover the whole home root, not just proj/.
-        home_root = base_path.parent
+        home_root = visitor_home_root(visitor_user)
 
         # 0. Container teardown FIRST — before any wipe. A live
         #    instance holds the home bind open and keeps writing.

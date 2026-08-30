@@ -76,11 +76,11 @@ class PoolAllocator:
     def _check_table_exists(cls) -> bool:
         """Check if VisitorAllocation table exists.
 
-        Uses Django's database-agnostic introspection so the check works
-        across SQLite (test/CI), PostgreSQL, and MySQL alike. The previous
-        implementation queried ``information_schema.tables`` directly, which
-        does not exist on SQLite and silently returned False there, wrongly
-        triggering the DemoProjectPool fallback.
+        Uses Django's database-agnostic introspection rather than querying
+        ``information_schema.tables`` directly. That table does not exist on
+        every backend, and where it is missing the old implementation
+        silently returned False, wrongly triggering the DemoProjectPool
+        fallback. Introspection cannot fail that way.
         """
         from django.db import connection
 
@@ -205,6 +205,54 @@ class PoolAllocator:
             allocation.expires_at = full_session
         allocation.last_activity = now
         allocation.save(update_fields=["expires_at", "last_activity"])
+
+    #: Do not write ``last_activity`` more often than this. A visitor
+    #: generates many requests per page (assets, polls, fetches) and idle
+    #: eviction only cares about minutes, so per-request writes would buy
+    #: nothing and cost a DB round-trip on every hit.
+    ACTIVITY_TOUCH_THROTTLE_SECONDS = 60
+
+    @classmethod
+    def touch_activity(cls, allocation: VisitorAllocation) -> bool:
+        """Record that a REAL REQUEST reached us, for idle-eviction purposes.
+
+        WHY THIS EXISTS SEPARATELY FROM ``extend_session_on_activity``.
+
+        Idle eviction keys on ``last_activity`` (IDLE_TIMEOUT_MINUTES), and
+        until now the ONLY production writer of that field was the heartbeat
+        view — see ``extend_session_on_activity``'s own docstring: "the
+        heartbeat client stops feeding ~60s after the user goes inactive".
+        That makes browsing invisible: a visitor reading one page for longer
+        than IDLE_TIMEOUT_MINUTES, or on any route where the heartbeat JS
+        does not run or throws, is judged idle WHILE USING THE SITE. The
+        reclaim then sets ``is_active=False``, ``_reuse_allocation`` stops
+        matching, and their next click silently hands them a DIFFERENT
+        workspace — while their old slot returns to the pool for someone
+        else. Measured 2026-08-22: Visitor #003 became Visitor #002 twenty
+        five minutes later, inside the thirty minute window.
+
+        A server-side request is evidence of use that no client-side failure
+        can erase, so that is what this records.
+
+        DELIBERATELY DOES NOT TOUCH ``expires_at``. Promotion from the
+        PROBATION lease to a full session is a DIFFERENT decision, and it is
+        the heartbeat's to make: it is what proves a real browser is
+        attached. Refreshing idle-activity here must not smuggle in that
+        promotion, or a bot fetching one URL would earn a full session.
+        Two decisions, two methods.
+
+        Returns True if the row was written, False if throttled — so a
+        caller (and a test) can tell the difference.
+        """
+        now = timezone.now()
+        previous = allocation.last_activity
+        if previous is not None:
+            age = (now - previous).total_seconds()
+            if age < cls.ACTIVITY_TOUCH_THROTTLE_SECONDS:
+                return False
+        allocation.last_activity = now
+        allocation.save(update_fields=["last_activity"])
+        return True
 
     @classmethod
     def _verify_slot_clean(cls, user: User, project: Project) -> bool:

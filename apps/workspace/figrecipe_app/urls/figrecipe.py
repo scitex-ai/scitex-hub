@@ -33,11 +33,16 @@ against the caller's OWN data jail and fails closed (403) on any escape:
 
   CHANNEL 2 — body sinks whose base is NOT ``working_dir`` (endpoint-gated,
     so a same-named key on another endpoint is never mis-validated):
-      * ``api/compose`` writes ``Path(working_dir) / f"{filename}.png"`` with
-        the BODY ``working_dir`` used VERBATIM — the GET override never
-        touches the JSON body, so an absolute/``..`` body value is an
-        arbitrary host-directory WRITE. The exact resolved out-path is
-        jailed.
+      * ``api/compose`` WRITES a PNG at ``out_dir / f"{filename}.png"``.
+        ``out_dir`` is ONE OF THREE bases (``handle_compose_save``: the BODY
+        ``working_dir``, else the editor's recipe dir, else ``Path(".")`` ==
+        the process cwd == ``/app``), and the filename component is the
+        caller's ``filename`` VERBATIM. The GET override never touches the
+        JSON body, so an absolute/``..`` body ``working_dir`` is an
+        arbitrary host-directory WRITE — and so is an absolute/``..``
+        ``filename``, under WHICHEVER base fires, because pathlib's ``/``
+        DISCARDS the left operand. Both are checked UNCONDITIONALLY; see
+        :func:`_reject_compose_write`.
       * ``api/gallery/add`` reads ``_EXAMPLES_DIR / f"{template}.yaml"`` and
         ``add_image_from_url`` fetches ``url`` via ``urllib`` (``file://`` is
         a local-file READ). ``template`` is contained to a relative subtree;
@@ -131,6 +136,103 @@ def _within_relative_subtree(value: str) -> bool:
     return not p.is_absolute() and ".." not in p.parts
 
 
+def _compose_recipe_dir(request, body):
+    """Return the ``editor.recipe_path.parent`` compose would use, or ``None``.
+
+    Mirrors figrecipe's own chain for the SECOND of the three out-dir
+    branches: ``views._get_recipe_path`` (body ``recipe_path``, else GET
+    ``recipe``) -> ``services.get_or_create_editor`` -> ``_create_editor``
+    -> ``_editor._resolve_source`` -> ``_utils._bundle.resolve_recipe_path``.
+
+    ``None`` means "that branch will NOT fire", which is exactly what
+    ``_get_editor`` produces for a missing/unopenable recipe: it catches
+    ``FileNotFoundError`` and returns ``editor = None``, so the handler falls
+    through to its cwd branch — and so does the caller of this function.
+
+    ``resolve_recipe_path`` returns ``<dir>/recipe.yaml`` for a directory and
+    the sibling ``.yaml`` for an image, so the recipe's PARENT DIRECTORY is
+    the out-dir in both shapes. The one shape this does NOT predict exactly
+    is a ZIP/``.figz`` recipe, which is EXTRACTED to a fresh temp dir; that
+    residual is harmless because ``_reject_compose_write``'s filename check
+    is BASE-INDEPENDENT — an unpredicted base still cannot be escaped.
+    """
+    raw = body.get("recipe_path") or request.GET.get("recipe") or ""
+    if not isinstance(raw, str) or not raw:
+        return None
+    candidate = Path(raw)
+    if not candidate.exists():
+        return None
+    return candidate if candidate.is_dir() else candidate.parent
+
+
+def _reject_compose_write(request, body, username):
+    """403 unless the EXACT PNG ``handle_compose_save`` writes is in-jail.
+
+    Runs UNCONDITIONALLY. The previous version ran only inside
+    ``if body["working_dir"]:``, so simply OMITTING that key skipped the
+    entire check — and ``filename`` is validated by nothing else (it is not
+    in ``_PATH_PARAMS``). That left an arbitrary WRITE: an ABSOLUTE
+    ``filename`` DISCARDS ``out_dir`` outright, and the handler's
+    ``editor is None`` fallback is genuinely reachable because
+    ``api/compose`` is listed in figrecipe's ``_NO_EDITOR_ENDPOINTS``.
+
+    TWO checks, because neither alone is sufficient:
+
+    1. BASE-INDEPENDENT — ``f"{filename}.png"``, the exact component the
+       handler joins, must be RELATIVE and ``..``-free. This holds under
+       whichever of the three bases fires, INCLUDING the ZIP-recipe temp dir
+       :func:`_compose_recipe_dir` cannot predict. It is what stops the
+       left-operand-discard trick at the source.
+    2. BASE-SPECIFIC — the resolved out-path under the base the handler will
+       actually pick must sit in the caller's own data jail. This is the
+       check that rejects an absolute/``..`` body ``working_dir``, and the
+       one that mirrors the handler's if/elif/else:
+
+           if working_dir:            out_dir = Path(working_dir)
+           elif editor_recipe_path:   out_dir = editor.recipe_path.parent
+           else:                      out_dir = Path(".")
+
+       ``Path(".")`` is the PROCESS CWD (``/app`` == ``settings.BASE_DIR`` in
+       the container, per the images' ``WORKDIR /app`` and no ``cd`` in any
+       entrypoint), so ``Path.cwd()`` is that same directory named
+       explicitly. That base is outside every tenant's jail, so a compose
+       with no resolvable base now 403s instead of quietly dropping a PNG in
+       the Django app root — the editor's real compose call always sends a
+       body ``working_dir`` (the SPA builds it from ``api/files``), so no
+       legitimate flow depends on that fallback.
+    """
+    from apps.infra.project_app.services.filesystem.permissions import (
+        validate_path_in_user_jail,
+    )
+
+    # -- 1. base-independent containment of the joined component ----------
+    name = body.get("filename", "composed")
+    component = f"{name}.png"  # byte-for-byte what handle_compose_save joins
+    if not _within_relative_subtree(component):
+        return _forbid("filename", name, username)
+
+    # -- 2. the handler's own out-dir, mirrored branch for branch ---------
+    body_wd = body.get("working_dir")
+    if body_wd and not isinstance(body_wd, str):
+        # The handler would call Path(<non-str>) and raise. An out-path we
+        # cannot COMPUTE is never one we can certify as in-jail.
+        return _forbid("working_dir", body_wd, username)
+
+    if body_wd:
+        out_dir, key, value = Path(body_wd), "working_dir", body_wd
+    else:
+        recipe_dir = _compose_recipe_dir(request, body)
+        if recipe_dir is not None:
+            out_dir, key, value = recipe_dir, "recipe_path", str(recipe_dir)
+        else:
+            out_dir, key, value = Path.cwd(), "filename", name
+
+    out_path = (out_dir / component).resolve()
+    if not validate_path_in_user_jail(request.user, out_path):
+        return _forbid(key, value, username)
+    return None
+
+
 def _forbid(key, value, username):
     """Log and return the canonical fail-closed 403 for an escape."""
     logger.warning(
@@ -178,18 +280,9 @@ def _reject_out_of_jail_paths(request, endpoint=None):
 
     # -- CHANNEL 2: endpoint-specific body sinks (base != working_dir) ----
     if endpoint == "api/compose":
-        # handle_compose_save WRITES Path(working_dir) / f"{filename}.png"
-        # with the BODY working_dir used verbatim. Validate the EXACT
-        # resolved out-path so neither an absolute working_dir nor a ``..``
-        # in filename can land the write outside the jail.
-        body_wd = body.get("working_dir")
-        if isinstance(body_wd, str) and body_wd:
-            name = body.get("filename")
-            if not isinstance(name, str) or not name:
-                name = "composed"
-            out_path = (Path(body_wd) / f"{name}.png").resolve()
-            if not validate_path_in_user_jail(request.user, out_path):
-                return _forbid("working_dir", body_wd, username)
+        blocked = _reject_compose_write(request, body, username)
+        if blocked is not None:
+            return blocked
     elif endpoint == "api/gallery/add":
         template = body.get("template")
         if (

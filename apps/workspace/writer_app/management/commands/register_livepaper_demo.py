@@ -160,5 +160,8 @@ class Command(BaseCommand):
         self.stdout.write(
             "Demo URL (when dev Django is up):\n"
             f"  http://localhost:8000/apps/writer/editor/?project_id={project.id}\n"
-            f"  http://localhost:8000/apps/writer/viewer-v2/?working_dir={local_path}"
+            f"  http://localhost:8000/apps/writer/viewer-v2/?working_dir={local_path}\n"
+            "Public, anonymous, read-only (requires visibility='public' -- "
+            "set by this command already):\n"
+            f"  http://localhost:8000/{owner_username}/{slug}/live/"
         )

@@ -434,7 +434,7 @@ Client → FastAPI (server.py)
            ↓
        CitationGraphBuilder (scitex-code)
            ↓
-       CrossRef Database (SQLite)
+       CrossRef Database (external mirror)
 ```
 
 ---

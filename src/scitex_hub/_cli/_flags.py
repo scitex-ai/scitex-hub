@@ -107,7 +107,15 @@ def confirm_or_abort(message: str, *, yes: bool, dry_run: bool = False) -> bool:
         return True
     if not sys.stdin.isatty():
         return True
-    if not click.confirm(message, default=False):
+    # audit-cli: interactive-ok — this IS the --yes helper the §2 rule asks
+    # for. Every non-interactive path returns above without reaching here:
+    # --dry-run returns False, --yes returns True, and a non-TTY stdin
+    # returns True so a pipeline cannot deadlock on a missing flag. What
+    # is left is a human at a terminal who passed neither flag, and
+    # prompting them is the correct behaviour rather than the defect.
+    if not click.confirm(  # audit-cli: interactive-ok — see the note above
+        message, default=False
+    ):
         click.echo("Aborted.", err=True)
         raise SystemExit(1)
     return True

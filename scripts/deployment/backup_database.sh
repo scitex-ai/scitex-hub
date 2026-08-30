@@ -67,24 +67,6 @@ backup_postgres() {
     fi
 }
 
-backup_sqlite() {
-    local db_file="$1"
-    local db_name=$(basename "$db_file" .db)
-    local backup_file="$BACKUP_DIR/${db_name}_${TIMESTAMP}.db"
-
-    echo_info "Backing up SQLite: $db_name"
-
-    if [ ! -f "$db_file" ]; then
-        echo_warning "Database not found: $db_file"
-        return 1
-    fi
-
-    cp "$db_file" "$backup_file"
-    gzip "$backup_file"
-    echo_success "Backup created: ${backup_file}.gz"
-    return 0
-}
-
 cleanup_old_backups() {
     echo_info "Cleaning up backups older than 7 days..."
     find "$BACKUP_DIR" -name "*.gz" -mtime +7 -delete
@@ -118,12 +100,10 @@ main() {
 
     if [ -z "$ENV" ] || [ "$ENV" = "dev" ]; then
         backup_postgres "scitex_hub_dev" "scitex_dev"
-        backup_sqlite "$PROJECT_ROOT/data/db/sqlite/scitex_hub_dev.db"
     fi
 
     if [ -z "$ENV" ] || [ "$ENV" = "prod" ]; then
         backup_postgres "scitex_hub_prod" "scitex_prod"
-        backup_sqlite "$PROJECT_ROOT/data/db/sqlite/scitex_hub_prod.db"
     fi
 
     echo ""

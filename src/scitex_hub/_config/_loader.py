@@ -43,7 +43,7 @@ import os
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from scitex_config._ecosystem import local_state
+from ._local_state_fallback import local_state
 
 
 def _candidate_paths(explicit: Optional[str]) -> list[Path]:

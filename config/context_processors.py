@@ -147,13 +147,26 @@ def site_branding(request):
     Expose site branding constants to all templates.
     Single source of truth: config/branding.py
     """
+    from django.utils.translation import gettext
+
     from config import branding
 
+    # TRANSLATED HERE, NOT IN branding.py, and the distinction is load-bearing.
+    # branding.py marks these with gettext_noop so `makemessages` can extract
+    # them while leaving the value a plain str for the f-strings it builds at
+    # import time. This is the use site: a request is in flight, LocaleMiddleware
+    # has resolved the language, and gettext() therefore returns the visitor's
+    # language rather than whatever was active when the process booted.
+    #
+    # A missing translation returns the msgid unchanged, so an untranslated
+    # string renders in English rather than erroring — which is why the startup
+    # warning about uncompiled catalogs matters: without it, "no Japanese" and
+    # "no compiled catalog" look identical on the page.
     return {
         "SITE_NAME": branding.SITE_NAME,
-        "SITE_TAGLINE": branding.SITE_TAGLINE,
-        "SITE_TAGLINE_SECONDARY": branding.SITE_TAGLINE_SECONDARY,
-        "SITE_DESCRIPTION": branding.SITE_DESCRIPTION,
+        "SITE_TAGLINE": gettext(branding.SITE_TAGLINE),
+        "SITE_TAGLINE_SECONDARY": gettext(branding.SITE_TAGLINE_SECONDARY),
+        "SITE_DESCRIPTION": gettext(branding.SITE_DESCRIPTION),
         "META_DESCRIPTION_DEFAULT": branding.META_DESCRIPTION_DEFAULT,
         "OG_TITLE": branding.OG_TITLE,
         "OG_DESCRIPTION": branding.OG_DESCRIPTION,
@@ -215,6 +228,103 @@ def site_branding(request):
         # entity, and it reads settings directly through its own view.
         "COMPANY_NAME": getattr(settings, "COMPANY_NAME", ""),
     }
+
+
+def writer_api_base(request):
+    """Resolve ``api_base`` for scitex_writer._django's editor/viewer templates.
+
+    ``scitex_writer._django.views.editor_page`` / ``viewer_page`` render
+    ``writer/{editor,viewer}.html`` via
+    ``render_to_string(template, context, request=request)`` and never put
+    ``api_base`` in their own context dict, so the template's
+    ``{{ api_base|default:'/' }}`` always fell back to ``"/"``. That default
+    is only correct for scitex-writer's OWN standalone deployment (mounted
+    at the domain root by ``_standalone_urls.py``). Hub mounts the same
+    views under ``/apps/writer/{editor,viewer}-v2/`` and
+    ``/<username>/<slug>/live/`` (scitex-hub#146), so with no context
+    processor supplying ``api_base``, every one of
+    ``writer_app/frontend/src/api.ts``'s ``fetch(API_BASE + endpoint)``
+    calls silently targeted the wrong absolute path (e.g. ``/api/claims``
+    instead of ``/apps/writer/v2/api/claims``) and 404'd — the editor/viewer
+    shell renders, but no claim, DAG, or manuscript data ever loads.
+
+    Derived purely from ``request.path`` (no DB lookup): the writer v2
+    routes are the only ones with a matching shape, so every other template
+    keeps getting an empty context key here (falls through to the
+    template's own ``default:'/'``, unused since no other page reads
+    ``api_base``).
+    """
+    path = request.path
+    if path.endswith("/editor-v2/") or path.endswith("/viewer-v2/"):
+        return {"api_base": path.rsplit("/", 2)[0] + "/v2/"}
+    if path.endswith("/live/"):
+        # "v2/" (not "api/"): HANDLERS keys already carry their own "api/"
+        # prefix (e.g. "api/claims") — see
+        # apps/infra/project_app/urls.py's "<slug:slug>/live/v2/<endpoint>".
+        return {"api_base": path + "v2/"}
+    return {}
+
+
+try:
+    from scitex_ui.branding import launcher_context as _ui_launcher_context
+except ImportError:
+    # scitex-ui is floor-pinned (>=0.16.0) in pyproject.toml, so a plain
+    # `pip install`/`uv pip install` picks up whatever the LATEST release on
+    # PyPI is -- not necessarily the exact version this file was written
+    # against. launcher_context() shipped in scitex-ui PR #162 (commit
+    # ee689b33e122, merged to scitex-ui's develop 2026-08-20), but the newest
+    # PyPI release at the time of THIS commit is 0.16.0 (published 2026-08-18,
+    # two days earlier) and does not have it yet. A hard `from ... import`
+    # would raise at Django startup and 500 every single page on any
+    # deployment still resolving to 0.16.0 -- unacceptable for one back-link.
+    # Falling back to building the same dict shape by hand keeps this inert
+    # (no launcher key changes) until scitex-ui publishes a release the floor
+    # pin picks up, at which point this starts calling the real validator
+    # with no hub-side change required.
+    _ui_launcher_context = None
+
+
+def mounted_app_launcher(request):
+    """Give standalone-mounted apps a way back to the Store (scitex-ui #162).
+
+    scitex-ui's ``standalone_shell.html`` (used by every app hub mounts as an
+    upstream leaf package rather than folding into the full workspace shell --
+    Storage and Cards today, Writer's editor-v2/viewer-v2 as well) renders a
+    launcher back-link ONLY when the context carries a ``launcher`` key. Below
+    768px every workspace pane is ``display:none``, and neither app's own
+    content supplies a way out, so scitex-hub measured /apps/storage/ at
+    390x844 with ZERO anchor elements on the page -- nothing a visitor could
+    tap to leave. This processor is the fix: it supplies ``launcher`` for
+    exactly the request paths that render through that shell.
+
+    A context processor, not each view's own context dict, because Storage's
+    and Cards' views are upstream (``scitex_storage._django`` /
+    ``scitex_cards._django``) -- hub cannot edit their context without
+    forking them, and forking a leaf package to add one shared link is the
+    kind of duplication that drifts. This processor reaches every render
+    without touching upstream code at all (mirrors ``writer_api_base``
+    above, which solves the same "upstream view, hub-only context" problem
+    for a different key).
+
+    Scoped by prefix/suffix on ``request.path``, deliberately narrow: any page
+    NOT in this list keeps getting no ``launcher`` key, unchanged from before
+    this processor existed. In particular this never touches hub's own
+    full-workspace pages (they already carry the sidebar's own navigation, so
+    a second back-link would be redundant) or Writer's public
+    ``/<user>/<slug>/live/`` viewer (an anonymous reader of a published paper
+    has no reason to be routed to the SciTeX app store).
+    """
+    path = request.path
+    is_mounted_standalone_page = path.startswith(
+        ("/apps/cards/", "/apps/storage/")
+    ) or path.endswith(("/editor-v2/", "/viewer-v2/"))
+    if not is_mounted_standalone_page:
+        return {}
+
+    launcher = {"url": "/apps/store/", "label": "Back to Store"}
+    if _ui_launcher_context is not None:
+        return _ui_launcher_context(launcher)
+    return {"launcher": launcher}
 
 
 def scitex_env(request):

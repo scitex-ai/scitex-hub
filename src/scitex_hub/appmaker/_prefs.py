@@ -14,7 +14,7 @@ import logging
 from pathlib import Path
 from typing import Any, Optional
 
-from scitex_config._ecosystem import local_state
+from .._config._local_state_fallback import local_state
 
 logger = logging.getLogger(__name__)
 

@@ -53,7 +53,18 @@ dependencies = [
     # (upstream gap, ywatanabe1989/scitex-python). Declare it directly
     # so the import works in any install graph.
     "scitex-session>=0.1.6",
-    "scitex-writer>=2.17.2",
+    "scitex-writer>=2.42.0",
+    # >=1.9.0 is a MOUNT requirement, not a feature preference. Below it the
+    # leaf's client JS builds API urls from the SITE ROOT
+    # (static/scholar/js/graph/citation-graph.js: fetch("/api/graph/health")),
+    # so mounted at /apps/scholar/v2/ every graph call goes to hub's root and
+    # misses. The page still renders — the shell looks correct and only the
+    # graph is dead — and an import check cannot see it: 1.7.1 imports
+    # `scitex_scholar._django.urls` perfectly well. 1.9.0 prefixes with
+    # STX_MOUNT and throws when the marker is absent rather than falling back
+    # to root, so a wrong mount fails loudly. Measured by scitex-scholar
+    # (scholar #113/#118), 2026-08-23.
+    "scitex-scholar>=1.9.0",
     # 0.16.1 is the first release where `audit_all_for_package`
     # honours the HYPHENATED rule-id format that tests/develop/
     # test_audit.py uses (`[PA-307 …]` <- skip_rules=("PA-307",)).
@@ -128,21 +139,71 @@ dependencies = [
     # Every PR in the Spartan migration introduces a new hosted runner by
     # construction, so the ratchet blocks precisely the PRs that comply with
     # the operator's 2026-08-05 ruling
-    # (「スパルタンのCIは全面的にやめましょう」). 0.43.1 deletes the ratchet
+    # (「スパルタンのCIは全面的にやめましょう」 — SINCE WITHDRAWN, see below).
+    # 0.43.1 deletes the ratchet
     # and makes PS-169 a flat advisory W — upstream's words: "A gate that
     # permits the accumulated mess and blocks its correction is worse than no
     # gate." There is no exemption path for PS-169 in any version
     # (`audit.exemptions` is loaded per-check and PS-169 never loads it), so
     # moving the corpus is the only fix that is not a lie.
     #
-    # EXACT PIN, NOT A RANGE — deliberately, for the same reason the <0.39
-    # ceiling above chose <0.39 over <0.40: a range readmits releases nobody
-    # has run, which is the "whatever resolves redefines our gate" bug in a
-    # smaller box. 0.43.1 is measured; 0.43.2 is not. Move this pin only with
-    # a green pytest-matrix run behind it, and re-measure with `.[all,dev]`
-    # installed — a venv without scitex_hub silently skips audit-cli and will
-    # tell you everything is fine.
-    "scitex-dev==0.43.1",
+    # THE 2026-08-05 RULING CITED ABOVE WAS REVERSED on 2026-08-13
+    # (「あー憲法が古い、スパルタンのci使ってください、圧倒的に早いので」);
+    # constitution §4 now permits and PREFERS Spartan CI where it is faster.
+    # It is named above only to date the migration that hit this ratchet.
+    # NOTHING HERE DEPENDS ON IT: PS-169's retirement was correct on
+    # upstream's own grounds — a gate that permits the accumulated mess and
+    # blocks its correction is worse than no gate — whichever runner pool we
+    # are moving toward. Do not re-add the ratchet on the theory that the
+    # policy behind its removal is gone; the policy was never the reason.
+    #
+    # FLOOR, NOT AN EXACT PIN — operator ruling 2026-08-23
+    # (「ミニマム指定でいいんじゃないでしょうか」), taken after the prod deploy was
+    # refused by the #676 preflight for this exact constraint.
+    #
+    # WHAT THE `==` WAS FOR, because the reason has not gone away: a range
+    # readmits releases nobody has run — "whatever resolves redefines our
+    # gate". The incident it was bought with is recorded above at the <0.39
+    # ceiling: same hub code, scitex-dev 0.38.1 -> audit GREEN, 0.40.0 ->
+    # audit RED (ci-unpinned-scitex-dev-voids-skip-rules-20260729).
+    #
+    # WHY IT STILL HAD TO CHANGE: hub was the ONLY consumer in the ecosystem
+    # using `==`. Measured 2026-08-23 inside the built prod image: ~50
+    # packages require scitex-dev, every other one with a floor
+    # (scitex >=0.11.7, scitex-writer >=0.30.0, scitex-cards >=0.34.0,
+    # figrecipe >=0.12.2, ...). scitex[all] therefore resolves scitex-dev to
+    # the newest release, and hub's `==` could never hold in an image that
+    # also installs scitex[all] — the two were unsatisfiable together, which
+    # is precisely what blocked the deploy.
+    #
+    # SO THE RISK IS REAL AND IS NOW CARRIED BY CI, NOT BY THIS PIN. The
+    # pytest-matrix job is what must catch a scitex-dev release that voids
+    # the skip rules. If that job goes red on a scitex-dev bump, THIS is the
+    # line that explains why — do not re-pin to silence it; fix the gate or
+    # raise the floor to the version that works, with the measurement.
+    #
+    # Re-measure with `.[all,dev]` installed: a venv without scitex_hub
+    # silently skips audit-cli and will tell you everything is fine.
+    #
+    # FLOOR RAISED 0.43.1 -> 0.56.8 (2026-08-30). `_optional_apps.
+    # publish_cards_store_target` now resolves the DEFAULT cards store through
+    # `scitex_dev.store.host_store`, so the DSN that primitive builds is load
+    # bearing, not incidental. MEASURED on this repo's own .venv:
+    #
+    #   scitex-dev 0.43.1  host_store(pkg="cards").dsn
+    #     -> postgresql:///scitex?host=~/.scitex/pg
+    #   scitex-dev 0.56.8  host_store(pkg="cards").dsn
+    #     -> postgresql:///scitex?host=~/.scitex/pg/run&port=55432
+    #
+    # 0.43.1 emits NEITHER the `run/` subdirectory NOR `port=`, so libpq looks
+    # for `~/.scitex/pg/.s.PGSQL.5432` -- a socket the fleet does not create.
+    # That is verbatim the "(original)" row in upstream's own table in
+    # scitex_dev/store/_host.py::socket_dsn, annotated "THIS PATH HAD NEVER
+    # CONNECTED"; it went undetected because every host that worked had
+    # $SCITEX_STORE_DSN set and never reached the fallback. A hub that
+    # configures nothing is exactly the caller that DOES reach it.
+    # 0.56.8 is the version measured good here, not proven to be the minimum.
+    "scitex-dev>=0.56.8",
     # `scitex-audio` owns the whisper.cpp transcription pipeline that
     # llm_app/views/stt.py delegates to (`scitex_audio.transcribe`).
     # Declared DIRECTLY rather than relied on transitively: llm_app/views/chat.py
@@ -279,7 +340,59 @@ all = [
     # shipped middleware.py (merged after that release was cut) and anything
     # older is sync-only, deadlocking daphne under ASGI. See scitex-ui PR #59
     # and settings_shared.py's MIDDLEWARE entry.
-    "scitex-ui>=0.8.0",
+    #
+    # RAISED 0.8.0 -> 0.16.0 on 2026-08-18. A SECOND contract now rides on this
+    # floor, and it is the reason the number moved.
+    #
+    # This release stops forking scitex-ui's primitives and @imports them
+    # instead (static/shared/css/primitives/variables.css). That import makes
+    # the floor a statement about FILE CONTENT, not merely about a call
+    # signature -- and content has a failure mode the pane contract does not:
+    #
+    #   file absent                    -> @import 404s, page visibly unstyled   LOUD
+    #   file present, token absent     -> var() resolves to nothing             SILENT
+    #   file present, value stale      -> renders wrong, passes every check     SILENT
+    #
+    # Only the first of those is visible. The other two render a page that
+    # looks fine, so no test we own would have caught them.
+    #
+    # MEASURED 2026-08-18, reading `--text-link` out of the PUBLISHED WHEELS
+    # (pip download --no-cache-dir, then read the zip -- NOT the git tree, which
+    # is the substitution that let the upstream --accent defect ship). Control
+    # token `--text-primary` returned 2 declarations at every version, so an
+    # absence below is measured absence and not a broken read:
+    #
+    #   0.8.0   --text-link ABSENT
+    #   0.12.0  --text-link ABSENT
+    #   0.13.0  --text-link ABSENT
+    #   0.14.0  --text-link ABSENT
+    #   0.14.1  --text-link #2c5d8f / #58a6ff   <- FIRST release carrying it
+    #   0.14.2  --text-link #2c5d8f / #58a6ff
+    #   0.15.0  --text-link #2c5d8f / #58a6ff
+    #   0.16.0  --text-link #2c5d8f / #58a6ff   (via colors.css -> colors/_{light,dark}.css)
+    #
+    # So four releases at or above the OLD >=0.8.0 floor do not define the token
+    # at all. A resolver picking any of them lets the @import succeed, the page
+    # render, and hub sit at 2.36:1 link contrast against a 4.5:1 AA
+    # requirement -- which is the exact defect this release exists to remove,
+    # reintroduced through the floor and wearing a green build.
+    #
+    # WHY 0.16.0 AND NOT 0.14.1, which is all hub strictly needs: a floor is a
+    # contract read by people who will not know that hub does not load
+    # shell/theme.css. In 0.15.0 `--accent` is defined in the primitives layer
+    # but MISSING from shell/theme.css -- the two layers disagree, so the same
+    # token needs a different floor depending on which file you link. 0.16.0 is
+    # the first release good on every token in both layers. Naming a version
+    # that needs no caveat beats naming the minimum we can justify with one.
+    #
+    # CAUTION FOR WHOEVER RAISES THIS NEXT -- the boundary above is off by one
+    # from what two other agents independently reported today. Both concluded
+    # "first appears in 0.15.0" because both SAMPLED versions (0.14.0, then
+    # 0.15.0) and neither pulled 0.14.1, where it actually lands. scitex-ui has
+    # published 31 versions; a hand-picked subset produces a confident wrong
+    # boundary. Enumerate every release from the PyPI index, or do not quote a
+    # boundary at all.
+    "scitex-ui>=0.16.0",
     # --- GUI (dearpygui-based modules) ---
     "dearpygui>=1.11",
     "cairosvg>=2.9.0",
@@ -347,11 +460,16 @@ dev = [
     # test_audit.py uses (`[PA-307 …]` <- skip_rules=("PA-307",)).
     # Pinning to <0.16.1 silently lets every entry in `skip_rules`
     # leak through — the gate fails on rules we explicitly deferred.
-    # PINNED ==0.43.1 — see the matching pin in [project.dependencies] for the
-    # measurement. THIS is the pin pytest-matrix installs (`-e ".[all,dev]"`),
-    # so this is the one that decides the three required checks; the audit
-    # workflow's own pin cannot substitute for it. Keep the two identical.
-    "scitex-dev==0.43.1",
+    # FLOOR >=0.56.8 — see the matching declaration in [project.dependencies]
+    # for the operator ruling and the measurement behind it (raised from
+    # 0.43.1 on 2026-08-30: that release's host_store built a socket DSN with
+    # neither `run/` nor `port=`, so the cards-store default could not reach
+    # the fleet instance). THIS is the one
+    # pytest-matrix installs (`-e ".[all,dev]"`), so this is the one that
+    # decides the three required checks; the audit workflow's own pin cannot
+    # substitute for it. Keep the two identical — if they drift, the matrix
+    # and the audit test different versions and one of them is lying.
+    "scitex-dev>=0.56.8",
     # The board-tenancy suite is guarded by `_TODO_INSTALLED`
     # (middleware.py:115, find_spec("scitex_cards")). Without this package
     # installed, every one of those tests SKIPS and the job exits 0 — a
@@ -376,7 +494,14 @@ dev = [
     # gate must never give — an unrun check reading as a passing one. Declaring
     # the dependency makes the test run instead of vanish. Same shape as the
     # scitex-cards entry above.
-    "scitex-ui>=0.8.0",
+    #
+    # RAISED 0.8.0 -> 0.16.0 on 2026-08-18, in lockstep with the [all] entry.
+    # Do not raise one without the other: test_shell_pane_contract_floor.py
+    # sweeps EVERY dependency group precisely so these two copies cannot drift
+    # apart unnoticed. The measurement and the reasoning live on the [all]
+    # entry -- read it there rather than duplicating it here, so there is one
+    # place to correct when the next token moves.
+    "scitex-ui>=0.16.0",
 ]
 
 [project.scripts]
@@ -514,6 +639,38 @@ library_dirs = ["src", "tests", "examples", "apps", "lib", "config"]
 # sktime==0.8.1 needs pkg_resources at build time but doesn't declare it.
 # pkg_resources is provided by setuptools. This injects it into uv's build isolation.
 sktime = ["setuptools"]
+
+[tool.scitex_dev]
+# audit-mcp-tools §6 (MCP tool <-> Python API parity) opt-out.
+#
+# STATED PLAINLY, because the knob's own documentation describes a
+# DIFFERENT case than hub's and pretending otherwise would be the kind of
+# well-written justification that freezes a bad state. figrecipe is the
+# named example: it mirrors ~74 matplotlib Axes methods as tools that have
+# no standalone Python function BY DESIGN, so §6 is a false positive there.
+#
+# Hub is not that. Measured 2026-08-23 (scitex-dev 0.56.4): 52 of hub's ~55
+# tools are reported as orphans, and the reason is STYLE, not design —
+# every tool module registers nested `@mcp.tool()` closures inside its
+# `register_*_tools(mcp)` function, and a closure defined inside a register
+# function is not importable, so nothing can ever pair with it. The finding
+# is therefore accurate about the shape and wrong only about it being
+# deliberate.
+#
+# Clearing it properly means hoisting ~52 closures into public, importable
+# functions and designing the API surface each one should present — a real
+# campaign, not a rename, and not something to land inside a deploy-unblock
+# change. This entry is what keeps prod deployable while that campaign is
+# scheduled; it is not a verdict that §6 does not apply to hub.
+#
+# The shape the campaign moves toward already exists in-tree: see
+# `_mcp_tools/skills.py`, added in this change, whose tools are thin
+# wrappers over module-level `skills_list` / `skills_get`. New tool modules
+# should follow it so this number goes down rather than up.
+#
+# LIFT THIS when the parity campaign lands. Tracked as
+# hub-mcp-tools-have-no-python-api-parity-20260823.
+mcp_parity_exempt = true
 
 [tool.scitex_dev.audit]
 # PS-168 — Per-package secret + env-var prefix in GitHub Actions workflows.

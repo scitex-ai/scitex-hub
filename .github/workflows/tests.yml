@@ -73,7 +73,14 @@ jobs:
           # comment above says must not happen, failing silently rather than
           # loudly. --seed puts pip in the venv so the fallback stays jailed.
           uv venv --seed --python 3.11 .venv
-          uv pip install --python .venv/bin/python "scitex-ui>=0.2.0"
+          # Floor kept in step with pyproject.toml's declaration (>=0.16.0).
+          # It read >=0.2.0 until 2026-08-18 -- fourteen minor versions below
+          # what hub declares. That never failed, because `>=` resolves to the
+          # newest release, so CI happened to install a version that satisfied
+          # a constraint CI did not state. A second, lower floor that is only
+          # ever right by accident is the kind of disagreement that surfaces
+          # the day someone pins for an unrelated reason.
+          uv pip install --python .venv/bin/python "scitex-ui>=0.16.0"
           # install_apps.sh shells `pip`/`python` itself, so put the venv
           # ahead of anything the shared runner has on PATH.
           echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
@@ -175,6 +182,26 @@ jobs:
     name: "Security Regression Gates (tests/security/)"
     runs-on: ubuntu-latest
 
+    # The behavioural gates here build real tenants and execute real views
+    # against a real database, so they need one. Previously this job ran with
+    # no database service and flipped Django's ENGINE to a local file-backed
+    # store -- meaning a tenant-isolation gate was proving isolation on a
+    # different engine than production uses.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: scitex_test
+          POSTGRES_USER: scitex
+          POSTGRES_PASSWORD: scitex_test_pass  # pragma: allowlist secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -211,13 +238,17 @@ jobs:
         env:
           SCITEX_HUB_DJANGO_SECRET_KEY: ci-test-key  # pragma: allowlist secret
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
-          # Some regression tests are now BEHAVIOURAL (they build real
-          # tenants and execute the view against the DB — e.g.
+          # Some regression tests are BEHAVIOURAL (they build real tenants and
+          # execute the view against the DB — e.g.
           # test_comms_participant_tenant_scope.py) rather than source-text
-          # gates. No Postgres runs in this job, so switch Django to an
-          # in-memory sqlite test DB, same as the pytest-matrix job. The
+          # gates. Point Django at the postgres service declared above; the
           # DB-free tests here are unaffected (they never open a connection).
-          SCITEX_HUB_USE_SQLITE_DEV: "1"
+          SCITEX_HUB_DB_NAME_DEV: scitex_test
+          SCITEX_HUB_DB_USER_DEV: scitex
+          SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
+          SCITEX_HUB_DB_HOST_DEV: localhost
+          SCITEX_HUB_DB_PORT_DEV: "5432"
+          SCITEX_HUB_TEST_MODE: "1"
         run: |
           python -m pytest \
             tests/security/ \
@@ -230,7 +261,12 @@ jobs:
         env:
           SCITEX_HUB_DJANGO_SECRET_KEY: ci-test-key  # pragma: allowlist secret
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
-          SCITEX_HUB_USE_SQLITE_DEV: "1"
+          SCITEX_HUB_DB_NAME_DEV: scitex_test
+          SCITEX_HUB_DB_USER_DEV: scitex
+          SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
+          SCITEX_HUB_DB_HOST_DEV: localhost
+          SCITEX_HUB_DB_PORT_DEV: "5432"
+          SCITEX_HUB_TEST_MODE: "1"
         run: |
           COUNT=$(python -m pytest tests/security/ -m security \
             -p no:playwright -o "addopts=" --collect-only -q 2>/dev/null \

@@ -12,7 +12,7 @@ import time
 from pathlib import Path
 
 import click
-from scitex_config._ecosystem import local_state
+from .._config._local_state_fallback import local_state
 
 # Default Gitea port for SciTeX Hub
 _DEFAULT_GITEA_PORT = 3000

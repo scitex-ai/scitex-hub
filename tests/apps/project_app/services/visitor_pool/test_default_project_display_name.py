@@ -30,10 +30,10 @@ sibling so neither half can pass vacuously:
 The backfill migration for the 67 existing rows is covered in
 ``test_default_project_name_backfill_migration.py``.
 
-Run (SQLite, no network/Gitea — the Gitea client and template clone are
+Run (no network/Gitea — the Gitea client and template clone are
 injected as tiny real fakes through the production seams):
 
-    SCITEX_HUB_USE_SQLITE_DEV=1 \
+    SCITEX_HUB_TEST_MODE=1 \
     /opt/venv-sac/bin/python -m pytest <abs path to this file>
 """
 

@@ -21,11 +21,21 @@ so it protects exactly one deployment and neither dev nor staging (which run no
 nginx at all). Removing the mount in code is the actual fix, and the assertions
 below are what keep it removed. The legitimate, login-gated writer lives at
 ``/apps/writer/`` and is unaffected.
+
+THE nginx TOURNIQUET IS NOW GONE (2026-08-17). ``location /writer/ { return
+403; }`` was deleted from deployment/docker/common/nginx/nginx_prod.conf. It
+was not merely dead: it sat IN FRONT of the legacy 301 that this repo promises
+(config/urls_legacy_redirects.py, ``LEGACY_APP_NAMES`` contains "writer"), so
+every surviving ``/writer/`` link answered 403 instead of taking the reader to
+the working app. ``TestLegacyWriterPrefixRedirects`` below pins the redirect
+that the block was intercepting, so the removal is asserted rather than
+assumed — and so nothing re-adds a blanket 403 without a red test.
 """
 
 from importlib.util import find_spec
 
 import pytest
+from django.test import Client
 
 _WRITER_INSTALLED = find_spec("scitex_writer") is not None
 
@@ -90,3 +100,43 @@ def test_no_urlpattern_includes_the_raw_scitex_writer_urlconf():
 
     # Assert
     assert "scitex_writer._django.urls" not in mounted
+
+
+@pytest.mark.django_db
+class TestLegacyWriterPrefixRedirects:
+    """What the removed nginx ``location /writer/ { return 403; }`` blocked.
+
+    The block guarded a mount that no longer exists, and in doing so it broke
+    the thing that replaced it. These assert the replacement behaviour in
+    Django, where it is checked on every push rather than on whoever next
+    reads an nginx conf.
+    """
+
+    def test_legacy_writer_prefix_is_a_permanent_redirect(self):
+        # Arrange
+        http = Client()
+        # Act
+        response = http.get("/writer/")
+        # Assert
+        assert response.status_code == 301
+
+    def test_legacy_writer_prefix_redirects_to_the_gated_apps_mount(self):
+        # Arrange — a 301 to the wrong place would still be a 301
+        http = Client()
+        # Act
+        response = http.get("/writer/")
+        # Assert
+        assert response.headers["Location"] == "/apps/writer/"
+
+    def test_legacy_writer_api_path_is_not_served(self):
+        # Arrange — the exact probe that leaked before the mount was removed.
+        # ``follow=True`` because APPEND_SLASH 301s this to /writer/api/files/
+        # first; asserting on the un-followed response would pin the redirect
+        # rather than the outcome, and a redirect is not an answer.
+        http = Client()
+        # Act
+        response = http.get(
+            "/writer/api/files", {"working_dir": "/tmp"}, follow=True
+        )
+        # Assert — no handler answers under the legacy prefix any more
+        assert response.status_code == 404

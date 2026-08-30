@@ -78,12 +78,16 @@ services:
       # Singularity/Apptainer container for secure user code execution
       - ../../../deployment/singularity:/app/singularity:ro
 
-      # Docker socket for container status monitoring on server-status page
-      - /var/run/docker.sock:/var/run/docker.sock
+      # Docker socket REMOVED 2026-08-25 (security).
+      # It was mounted for the server-status page's container list. But this
+      # container is internet-facing and runs as root: holding the socket makes
+      # any web vulnerability a root compromise of nas-03, and the host also
+      # carries the Slurm munge keys. The three read-only call sites all wrap
+      # `import docker` in try/except, so they degrade to "no container data".
+      # autoheal keeps its socket - that is its actual job.
 
       # SLURM access (connects to host SLURM for job scheduling)
       - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
-      - /etc/munge:/etc/munge:ro
       - /run/munge:/run/munge
       - /var/log/slurm:/var/log/slurm
       - /var/spool/slurmctld:/var/spool/slurmctld:ro
@@ -152,9 +156,31 @@ services:
       - "host.docker.internal:host-gateway"
       - "${SCITEX_HUB_SLURM_HOST:-DXP480TPLUS-994}:host-gateway"
 
-    # Security settings for Apptainer (nested containers)
-    # Privileged mode required for mounting proc/sys inside nested containers
-    privileged: true
+    # Apptainer here runs ROOTLESS -- there is no setuid starter in the image
+    # (/usr/libexec/apptainer/bin/starter-suid is absent, /usr/bin/apptainer is
+    # not setuid), so it creates a user namespace rather than escalating. What
+    # it needs is the two LSM profiles out of the way, NOT privileged.
+    #
+    # MEASURED 2026-08-26, throwaway containers from this image, A/B with a
+    # positive control:
+    #     seccomp=unconfined alone   FAIL  "Failed to set mount propagation"
+    #     apparmor=unconfined alone  FAIL  "Failed to create user namespace"
+    #     BOTH                       PASS
+    #     cap-add SYS_ADMIN alone    FAIL  mount propagation denied
+    #     SYS_ADMIN + apparmor       FAIL  "/dev/loop0: operation not permitted"
+    #     privileged (control)       PASS
+    # Each profile alone fails for a DIFFERENT reason, so the pair is minimal.
+    #
+    # What this stops granting, relative to privileged: every capability, and
+    # every host device. The container keeps the default capability set and
+    # sees only /dev/fuse below -- which closes the shortest escape there is,
+    # mounting the host block device. Apptainer takes the FUSE path instead,
+    # which is why the SYS_ADMIN arm above died on a loop device and this one
+    # does not. NOT equivalent to a default container: seccomp and AppArmor
+    # off is still weaker, so this reduces blast radius rather than containing.
+    security_opt:
+      - seccomp=unconfined
+      - apparmor=unconfined
     devices:
       - /dev/fuse:/dev/fuse
 
@@ -352,7 +378,6 @@ services:
       - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
       - ../../../deployment/singularity:/app/singularity:ro
       - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
-      - /etc/munge:/etc/munge:ro
       - /run/munge:/run/munge
       - /var/log/slurm:/var/log/slurm
       # Mount host passwd for SLURM UID synchronization
@@ -483,7 +508,6 @@ services:
       - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
       - ../../../deployment/singularity:/app/singularity:ro
       - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
-      - /etc/munge:/etc/munge:ro
       - /run/munge:/run/munge
       - /var/log/slurm:/var/log/slurm
       - /etc/passwd:/host/etc/passwd:ro

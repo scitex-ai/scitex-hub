@@ -1,3 +1,4 @@
+{% load i18n %}
 {% load static %}
 {% load module_icons %}
 
@@ -281,8 +282,8 @@
                     <div class="header-visitor-badge-popover-slots">{{ visitor_pool_status.ready }} of {{ visitor_pool_status.total }} visitor slots available</div>
                 {% endif %}
                 <div class="header-visitor-badge-popover-actions">
-                    <a href="/auth/signup/" class="header-btn header-btn-primary">Sign up</a>
-                    <a href="/auth/login/?next={{ request.path }}" class="header-btn">Log in</a>
+                    <a href="/auth/signup/" class="header-btn header-btn-primary">{% trans "Sign up" %}</a>
+                    <a href="/auth/login/?next={{ request.path }}" class="header-btn">{% trans "Log in" %}</a>
                 </div>
             </div>
             <!-- Inline handler: badge popover must work even if the JS bundle fails -->
@@ -345,6 +346,12 @@
         </button>
         <!-- Right: Actions + User Menu -->
         <div class="header-right">
+            <!-- Language toggle. Placed FIRST in header-right on the operator's
+                 instruction (2026-08-23): 「1番下のフッターにあるよりもヘッダーに
+                 あったほうがいい」. It reuses .header-btn so it inherits the brand
+                 tokens rather than the browser's native widget styling, which is
+                 what made the previous <select> look out of place. -->
+            {% include 'global_base_partials/language_switcher.html' %}
             <!-- Theme Toggle (always visible) -->
             <button id="theme-toggle" class="theme-toggle" data-tooltip="Toggle light/dark theme">
                 <i class="fas fa-adjust"></i>
@@ -623,10 +630,10 @@
                 })();
                 </script>
                 <!-- Visible Sign In / Sign Up buttons for visitors -->
-                <a href="/auth/signin/" class="header-btn" data-tooltip="Sign in to your account">Sign in</a>
+                <a href="/auth/signin/" class="header-btn" data-tooltip="Sign in to your account">{% trans "Sign in" %}</a>
                 <a href="/auth/signup/"
                    class="header-btn header-btn-primary"
-                   data-tooltip="Create a new account">Sign up</a>
+                   data-tooltip="Create a new account">{% trans "Sign up" %}</a>
             {% elif user.is_authenticated %}
                 <!-- User Menu -->
                 <div class="header-user-menu">
@@ -746,8 +753,8 @@
                 </div>
             {% else %}
                 <!-- Not logged in -->
-                <a href="/auth/signin/" class="header-btn" data-tooltip="Sign in to your account">Sign in</a>
-                <a href="/auth/signup/" class="header-btn" data-tooltip="Create a new account">Sign up</a>
+                <a href="/auth/signin/" class="header-btn" data-tooltip="Sign in to your account">{% trans "Sign in" %}</a>
+                <a href="/auth/signup/" class="header-btn" data-tooltip="Create a new account">{% trans "Sign up" %}</a>
             {% endif %}
         </div>
     </div>

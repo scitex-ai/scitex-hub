@@ -115,6 +115,24 @@ echo "Installing $APP_COUNT app(s) from $REGISTRY"
 # change in progress — never auto-touch it). Lives inside PARENT_DIR so
 # it persists exactly as long as the checkouts do (same volume).
 SYNC_STATE_DIR="$PARENT_DIR/.install-state"
+
+# Collected sibling-sync failures, reported together at exit. A single
+# failure line scrolls past in boot output; a summary at the end does not.
+SYNC_FAILURES=()
+
+# git refuses to touch a repo owned by another uid ("detected dubious
+# ownership"). The sibling checkouts live on a SHARED docker volume that
+# django, celery_worker and celery_beat all mount, so the owning uid is not
+# reliably the uid running this script — and when git refuses, every fetch
+# below fails and the checkout silently freezes.
+#
+# Declaring the volume root safe is narrower than the global wildcard and
+# removes the cause rather than reporting it. Measured 2026-08-18: this is
+# what froze scitex-writer at 2.41.0 while every layer reported success.
+git config --global --add safe.directory "$PARENT_DIR" 2>/dev/null || true
+for _d in "$PARENT_DIR"/*/; do
+    [[ -d "$_d/.git" ]] && git config --global --add safe.directory "${_d%/}" 2>/dev/null || true
+done
 mkdir -p "$SYNC_STATE_DIR"
 
 # Prints the resolved remote sha for a branch/tag ref, or nothing if it
@@ -224,7 +242,31 @@ for i in $(seq 0 $((APP_COUNT - 1))); do
                         NEEDS_PIP=true
                         git -C "$SIBLING_DIR" rev-parse HEAD >"$SYNC_STATE_FILE"
                     else
-                        echo "WARNING: fast-forward failed for $NAME — using existing checkout as-is"
+                        # DO NOT soften this back to a bare WARNING.
+                        #
+                        # On 2026-08-18 this exact branch took scitex.ai down for
+                        # ~25 minutes. hub had merged a MODULE-SCOPE import of a
+                        # symbol added in scitex-writer 2.42.0; this fast-forward
+                        # failed with `fatal: detected dubious ownership`; the
+                        # script printed one WARNING line into a wall of boot
+                        # output and carried on; Django then booted against the
+                        # frozen 2.41.0 checkout and crash-looped on ImportError.
+                        #
+                        # The warning was not missed through carelessness. It is
+                        # that a step whose whole job is to guarantee freshness,
+                        # and which cannot fail loudly, is not a guarantee — it is
+                        # a hope. Worse, its existence is why nobody hand-checks
+                        # the installed versions before deploying.
+                        SYNC_FAILURES+=("$NAME: fast-forward failed ($LOCAL_SHA -> $REMOTE_SHA)")
+                        echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+                        echo "!! SIBLING SYNC FAILED: $NAME"
+                        echo "!! wanted $GIT_REF $REMOTE_SHA, still on $LOCAL_SHA"
+                        echo "!! This container will run against the STALE checkout."
+                        echo "!! If hub imports a symbol newer than that checkout,"
+                        echo "!! Django will crash-loop at startup with ImportError."
+                        echo "!! Common cause: git safe.directory. Check the fetch"
+                        echo "!! output directly above for 'dubious ownership'."
+                        echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
                     fi
                 fi
             else
@@ -370,4 +412,26 @@ elif spec and spec.origin:
 done
 
 echo ""
+
+# A per-sibling failure line scrolls past in boot output; this does not.
+# `${arr[@]+...}` because `set -u` is on and an empty array is unset in
+# bash < 4.4.
+if [[ ${#SYNC_FAILURES[@]} -gt 0 ]]; then
+    echo "=============================================================="
+    echo "SIBLING SYNC FAILED FOR ${#SYNC_FAILURES[@]} PACKAGE(S)"
+    for _f in ${SYNC_FAILURES[@]+"${SYNC_FAILURES[@]}"}; do
+        echo "  - $_f"
+    done
+    echo ""
+    echo "Those packages are running from a STALE checkout. If hub imports"
+    echo "anything newer than them, startup will crash-loop on ImportError."
+    echo "This is the 2026-08-18 outage shape; see"
+    echo "incident-prod-down-writer-import-20260818."
+    echo "=============================================================="
+    # Deliberately NOT exiting non-zero: a site serving stale siblings beats
+    # a site that will not boot, and the entrypoint already tolerates this
+    # script failing. The requirement is that it can never again be MISSED,
+    # not that it becomes fatal.
+fi
+
 echo "All apps installed. Vite can now resolve bridge entries."

@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 @require_http_methods(["GET"])
 def tables_api(request, project_id):
     """
-    Get all tables from project SQLite DB.
+    Get all tables from the project's media index.
 
     Query params:
         - source: 'paper', 'pool', 'data', 'scripts', 'all' (default: 'all')
@@ -34,7 +34,7 @@ def tables_api(request, project_id):
     """
     try:
         from apps.infra.project_app.models import Project
-        from .....utils.project_db import get_project_db
+        from .....utils.media_index import get_media_index
 
         project = Project.objects.get(id=project_id)
         user, is_visitor = get_user_for_request(request, project_id)
@@ -44,7 +44,7 @@ def tables_api(request, project_id):
                 {"success": False, "error": "Invalid session"}, status=403
             )
 
-        db = get_project_db(project)
+        db = get_media_index(project)
 
         # Parse filters from query params
         filters = {}

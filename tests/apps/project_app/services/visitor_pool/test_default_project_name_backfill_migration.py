@@ -34,9 +34,9 @@ is the only one whose output the code still has to agree with. When a
 future rename lands, add 0041 and move the pin again; do not touch 0039 or
 0040.
 
-Run (SQLite):
+Run:
 
-    SCITEX_HUB_USE_SQLITE_DEV=1 \
+    SCITEX_HUB_TEST_MODE=1 \
     /opt/venv-sac/bin/python -m pytest <abs path to this file>
 """
 

@@ -94,3 +94,206 @@ audit:
           `release` above, plus it pushes branches, so a wrong runner turns a
           release into a half-synced main. Migrate with `release`, together,
           behind the same canary.
+
+  # ============================================================
+  # Declared deferrals (audit.skip-rules)
+  # ============================================================
+  # WHY THESE LIVE HERE AND NOT IN tests/develop/test_audit.py.
+  #
+  # They used to be a Python tuple passed as
+  # `audit_all_for_package(..., skip_rules=SKIP_RULES)`. That worked
+  # only while scitex-dev graded in-process. Newer scitex-dev shells
+  # out to its own CLI:
+  #
+  #     python -m scitex_dev ecosystem audit-all scitex-hub --path <repo>
+  #
+  # — with no skip-rules argument. The tuple never reaches the auditor,
+  # so every declared deferral is reported as an unmasked error and the
+  # run summary says `0 masked by skip-rules (0 declared)`. Measured on
+  # PR #683 (scitex-dev 0.56.4): 47 unmasked errors, 19 of which were
+  # these very entries, and the only two red checks in a run of 4577
+  # passing tests.
+  #
+  # `.scitex/dev/config.yaml` is on DISK, so the shelled-out CLI reads
+  # it directly and the version that grades no longer changes what is
+  # deferred. This is why hub pinned `scitex-dev==0.43.1` in the first
+  # place; declaring here is what lets that pin become a floor.
+  #
+  # This surface is also strictly stronger than the tuple was:
+  #   * a reason is REQUIRED — an entry without one is rejected loudly,
+  #     where the tuple's rationale was a comment no tool ever read;
+  #   * audit-all prints a MASKED INVENTORY every run, so a deferral
+  #     nobody looks at cannot quietly become green-by-absence.
+  #
+  # Every entry below is migrated VERBATIM in substance from that tuple
+  # — same rules, same campaigns. Nothing is newly excused except
+  # PS-231, whose reason is measured and stated. PS-140 was NOT
+  # deferred: it was a real gate defect and is fixed in this change.
+  # The LEGACY bare-code list, kept ALONGSIDE skip-rules below because the
+  # two act at different layers, and only having both makes the gate pass.
+  # Measured 2026-08-23 against scitex-dev 0.56.4:
+  #
+  #   skip-rules only  -> audit-all reports `0 unmasked error(s), 148 masked`
+  #                       and STILL exits 1, because each sub-auditor prints
+  #                       its own tally line — `ERRO: ...: project-structure:
+  #                       40 error(s), ...` — which carries NO rule id. The
+  #                       test helper classifies an error-tier line without a
+  #                       rule id as unmaskable BY DESIGN (an auditor that
+  #                       could not run must never be maskable), so those 3
+  #                       tally lines alone kept the gate red: 65 findings
+  #                       matched a skip rule, 3 tally lines did not.
+  #   audit.skip       -> honoured by audit-project ITSELF, so its tally
+  #                       becomes `WARN: ... 0 error(s)` and it exits 0.
+  #
+  # Only audit-project honours this knob: adding the §-codes here was tried
+  # and measured to change nothing for audit-cli/audit-mcp-tools, so they are
+  # deliberately absent rather than listed hopefully.
+  skip: [PS-139, PS-202, PS-204, PS-207, PS-302, PS-221, PS-231, defer]
+  skip-rules:
+    # ---- project-structure (audit-project) -------------------
+    - rule: PS-139
+      reason: >-
+        `scitex` umbrella listed at [all]. The codebase uses scitex.cli,
+        scitex._dev, scitex.io, scitex.clew and scitex._mcp_tools;
+        splitting into peer-only requires verifying which peer exports
+        each submodule, and scitex-cli / scitex._mcp_tools currently
+        live INSIDE the umbrella with no dedicated peer to point at.
+        Tracked under the umbrella-thinning campaign (ADR-0002 §5).
+    - rule: PS-202
+      reason: >-
+        src/scitex_hub/{appmaker,module,_utils,_config,project/_mcp}
+        have no matching test mirror dir. Creating an empty one trips
+        PS-207 instead, and creating real tests is the orphan
+        relocation in PS-204 — all three resolve together once the CLI
+        noun-verb migration (Group C) settles.
+    - rule: PS-204
+      reason: >-
+        Orphan tests under tests/scitex_hub/ predate the mirror-dir
+        convention (20 files). Resolving means relocating them into
+        their canonical homes, which is the same move PS-202/PS-207
+        wait on. Deferred as one coordinated structural PR, not 20
+        piecemeal renames.
+    - rule: PS-207
+      reason: >-
+        Empty test dirs mirroring populated src dirs — the other end of
+        the PS-202/PS-204 move. Removing the dirs and relocating the
+        orphan tests are the same change; doing either alone just moves
+        the finding between rules.
+    - rule: PS-302
+      reason: >-
+        Test categories use legacy top-level subdirs (tests/apps,
+        tests/ts, tests/config, ...) where the auditor wants
+        tests/scitex_hub/<category>/. Measured 2026-08-23: 1,606
+        tracked files across 11 directories, and the move must be
+        coordinated with pytest config, conftest discovery, CI
+        workflow paths and editor config. Tracked as a dedicated
+        structural PR — a rename that large landing inside an
+        unrelated fix would conflict with every open branch.
+    - rule: PS-221
+      reason: >-
+        Public extra [dev] not a subset of [all]. Both suggested fixes
+        are wrong here: folding [dev] into [all] ships black/ruff/
+        scitex-dev to user installs, and self-referencing
+        `scitex-hub[dev]` from [all] reintroduces the recursive-extra
+        resolution that halted the v0.18.0 release; the `_dev` rename
+        produces a leading-underscore extra name, which fails PEP 685
+        normalization. [dev] is documented internal-only in the
+        pyproject header. Raised with scitex-dev (DM 2026-07-21) —
+        lift when the auditor gains a sanctioned internal-extra
+        declaration. (Emitted by 0.43.1; 0.56.4 no longer raises it.)
+    - rule: PS-231
+      reason: >-
+        Workflow duplication. NEW in 0.56.4 and the ONE entry here that
+        is not migrated from the previous list, so its ground is stated
+        rather than inherited. The rule's own text says to take a
+        reasoned exemption when the converted job publishes a
+        branch-protection-REQUIRED context, because conversion renames
+        that context from `<job>` to `<caller-job> / <callee-job>` and
+        nothing can then publish the required name. Measured
+        2026-08-23 via `gh api repos/scitex-ai/scitex-hub/branches/
+        {develop,main}/protection`: BOTH protected branches require
+        exactly pytest-matrix-on-ubuntu-py3.11, -py3.12 and -py3.13 —
+        the three contexts published by the flagged
+        pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml. Converting it
+        would leave every PR on both branches waiting forever on a
+        check nothing can publish. Lift together with the protection
+        edit, never in a workflow-only PR. The second flagged file
+        (rtd-sphinx-build) is held with it pending the BLOCKER-2 check
+        on whether hub vendors its Sphinx output back into the tree.
+    - rule: defer
+      reason: >-
+        NOT a rule — the auditor's own notice line
+        `[defer] scitex-hub: N PS-103 finding(s) suppressed by
+        'project-type: deferred'` starts with a bracketed token, so the
+        classifier counts it as a violation matching no skip rule.
+        Without this entry, once any E-level rule makes the CLI exit
+        non-zero the re-classify path can never conclude "all skipped",
+        which kills masking for every project-type:deferred repo.
+        Remove when scitex-dev excludes notice lines from
+        classification (reported upstream 2026-07-21).
+    # ---- Python API (audit-python-apis) ----------------------
+    - rule: PA-202
+      reason: >-
+        Package root __init__.py hard-codes the version. Switch to
+        importlib.metadata.version("scitex-hub") once the release
+        pipeline confirms it round-trips on both the editable install
+        and the wheel build. Mirrors scitex-io.
+    - rule: PA-501
+      reason: >-
+        `from __future__ import annotations` missing on the package
+        root __init__.py. Cosmetic; tracked with the broader PA-501
+        migration across the ecosystem.
+    - rule: PA-306
+      reason: >-
+        no-mocks. Existing tests use unittest.mock / pytest-mock; the
+        de-mocking effort spans hundreds of tests across every app.
+        Tracked as the TQ-migration campaign, the same one scitex-io
+        and scitex-orochi defer.
+    - rule: PA-307
+      reason: >-
+        test-quality (AAA structure, single-assertion). 5000+
+        violations across the existing suite, same TQ-migration
+        campaign as PA-306. When it lands, tighten to
+        error-on-regression rather than blanket-defer.
+    # ---- CLI / MCP conventions (audit-cli, audit-mcp-tools) --
+    # These cover noun-verb shape, --json/--dry-run/--yes flags, help
+    # examples, Python-API <-> MCP-tool parity and required skills
+    # tools. The scitex-hub CLI predates them; the noun-verb migration
+    # is the separate Group C campaign. The CLI works and is exercised
+    # by tests/scitex_hub/test_cli.py — these rules cover its SHAPE,
+    # not its correctness.
+    - rule: "§2"
+      reason: >-
+        Interactive prompts (click.confirm/click.prompt at
+        _cli/_flags.py and _cli/_auth/_login.py) must become
+        --yes/-y flags and options. Group C noun-verb campaign.
+    - rule: "§4"
+      reason: >-
+        CLI flag conventions (--json/--dry-run/--yes coverage).
+        Group C noun-verb campaign.
+    - rule: "§5"
+      reason: >-
+        Required skills tools (hub_skills_list / hub_skills_get) are
+        not yet on hub's MCP surface. Group C campaign.
+    - rule: "§6"
+      reason: >-
+        MCP tool <-> Python API parity: 52 MCP tools have no matching
+        Python API. Landing this means designing the public API
+        surface for each, which is the umbrella-thinning wave, not a
+        rename.
+    - rule: "§6b"
+      reason: >-
+        MCP parity sub-check, same campaign as §6.
+    - rule: "§1f"
+      reason: >-
+        Non-canonical verb synonyms ('check' -> validate, 'set' ->
+        update). This IS the Group C noun-verb migration; renaming
+        published CLI verbs is a breaking change that needs its own
+        deprecation window.
+    - rule: "§4b"
+      reason: >-
+        Help text is free-form rather than constructed via CliHelp.
+        ~100 findings, mechanical but wide; Group C campaign.
+    - rule: "§13"
+      reason: >-
+        CLI convention section deferred with the rest of Group C.

@@ -16,6 +16,7 @@ Production-like setup for local testing before deployment.
 Uses daphne (ASGI) but without SSL/Cloudflare.
 """
 
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 from config import branding
@@ -94,14 +95,39 @@ CSRF_TRUSTED_ORIGINS = _getenv_alias(
 # Database
 # ---------------------------------------
 # PostgreSQL for staging via PgBouncer (separate from dev and prod)
+#
+# NO DEFAULT PASSWORD, for the same reason settings_prod has none. Until
+# 2026-08-30 this line read
+#     _getenv_alias("SCITEX_HUB_POSTGRES_PASSWORD", "scitex_staging_2025")
+# so every staging deployment that set nothing converged on one credential
+# committed to a public repository. It survived because
+# tests/develop/test_no_usable_credential_defaults.py only inspected DOTTED
+# calls (`os.getenv`, `os.environ.get`) and this goes through the repo's own
+# bare-name `_getenv_alias` helper -- the guard could not see the wrapper this
+# package actually uses. Widening that scan is what surfaced this line; it is
+# fixed here rather than allowlisted, because a shared literal password is not
+# a placeholder.
+STAGING_DB_PASSWORD = _getenv_alias("SCITEX_HUB_POSTGRES_PASSWORD")
+if not STAGING_DB_PASSWORD:
+    raise ImproperlyConfigured(
+        "SCITEX_HUB_POSTGRES_PASSWORD is not set, so staging has no database "
+        "to connect to.\n"
+        "\n"
+        "Set it in deployment/docker/envs/.env.staging, alongside "
+        "SCITEX_HUB_POSTGRES_DB and SCITEX_HUB_POSTGRES_USER.\n"
+        "\n"
+        "There is deliberately NO default. The previous fallback was a literal "
+        "shared across every unconfigured staging deployment and readable in "
+        "this repository's history; refusing to start is the honest answer to "
+        "'nobody configured a credential'."
+    )
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": _getenv_alias("SCITEX_HUB_POSTGRES_DB", "scitex_hub_staging"),
         "USER": _getenv_alias("SCITEX_HUB_POSTGRES_USER", "scitex_staging"),
-        "PASSWORD": _getenv_alias(
-            "SCITEX_HUB_POSTGRES_PASSWORD", "scitex_staging_2025"
-        ),
+        "PASSWORD": STAGING_DB_PASSWORD,
         # Connect via PgBouncer for connection pooling
         "HOST": _getenv_alias("SCITEX_HUB_DB_HOST", "pgbouncer"),
         "PORT": _getenv_alias("SCITEX_HUB_DB_PORT", "6432"),
@@ -178,6 +204,25 @@ LOGGING = merge_logging(
                 "filename": os.path.join(LOG_DIR, "error.log"),
                 "maxBytes": 1024 * 1024 * 10,
                 "backupCount": 5,
+                "formatter": "verbose",
+            },
+            # REDEFINES the base's "console", which is require_debug_true and
+            # so cannot emit here (staging defaults DEBUG to False). Staging
+            # already has console_staging, but it is attached only to django,
+            # django.request, scitex and root. The loggers staging does NOT
+            # redefine -- scitex.errors, celery, scitex.slurm and all four app
+            # loggers -- still point at the base's inert console, so their
+            # records reached no stream at all. Same defect as prod, partially
+            # masked here by console_staging covering the other half.
+            #
+            # No logger lists BOTH console and console_staging, so this adds no
+            # double-logging. That the two exist at all is a separate tidy-up:
+            # one stream handler per environment would be the "one dish"
+            # answer, and consolidating them is a refactor, not this fix.
+            "console": {
+                "level": "INFO",
+                "filters": ["require_debug_false"],
+                "class": "logging.StreamHandler",
                 "formatter": "verbose",
             },
             "console_staging": {

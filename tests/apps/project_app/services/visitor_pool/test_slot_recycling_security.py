@@ -5,12 +5,12 @@
 Invariant under test: only verified-clean slots are redistributed;
 failed slots are quarantined.
 
-Run (SQLite, no network/Gitea — the Gitea client and template clone are
+Run (no network/Gitea — the Gitea client and template clone are
 injected as tiny real fakes through their seams):
 
     SCITEX_HUB_DJANGO_SECRET_KEY=local-test-secret \
     SCITEX_HUB_GITEA_SSH_PORT_DEV=2222 \
-    SCITEX_HUB_USE_SQLITE_DEV=1 \
+    SCITEX_HUB_TEST_MODE=1 \
     /opt/venv-sac/bin/python -m pytest <abs path to this file>
 """
 

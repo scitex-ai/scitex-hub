@@ -167,9 +167,19 @@ def auth_login(username, password, scopes, name, server):
             "For unattended use prefer a pre-minted token in $SCITEX_HUB_TOKEN "
             "over logging in at all."
         )
+    # audit-cli: interactive-ok — unattended callers never reach this point.
+    # The block directly above raises click.UsageError naming --user/--password
+    # whenever stdin is not a terminal, and points at $SCITEX_HUB_TOKEN as the
+    # preferred unattended path. These two prompts are the interactive branch
+    # only. Accepting a password as a CLI option INSTEAD would be worse than
+    # the finding: it puts the secret in argv, where it is readable from `ps`
+    # and lands in shell history.
     if not username:
-        username = click.prompt("Username", type=str)
+        username = click.prompt(  # audit-cli: interactive-ok — TTY-only branch
+            "Username", type=str
+        )
     if not password:
+        # audit-cli: interactive-ok — same TTY guard as the username prompt.
         password = click.prompt("Password", type=str, hide_input=True)
 
     try:

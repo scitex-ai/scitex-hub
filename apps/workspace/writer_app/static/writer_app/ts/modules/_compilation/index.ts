@@ -5,6 +5,12 @@
 
 export * from "./types";
 export { CompilationAPI } from "./compilation-api";
+export {
+  CompilationHttpError,
+  compilationErrorFromResponse,
+  messageFromPayload,
+} from "./compilation-http-error";
+export type { CompilationErrorPayload } from "./compilation-http-error";
 export { CompilationState } from "./compilation-state";
 export { CompilationUI } from "./compilation-ui";
 export { CompilationQueue } from "./compilation-queue";

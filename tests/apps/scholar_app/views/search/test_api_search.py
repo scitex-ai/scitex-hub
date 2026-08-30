@@ -377,7 +377,7 @@ if __name__ == "__main__":
 #
 # @require_http_methods(["GET"])
 # def api_search_crossref_local(request):
-#     """API endpoint for CrossRef Local (NAS SQLite database) search."""
+#     """API endpoint for CrossRef Local (NAS mirror) search."""
 #     query = request.GET.get("q", "").strip()
 #     max_results = min(int(request.GET.get("max_results", 100)), 1000)
 #     ignore_cache = request.GET.get("ignore_cache", "").lower() == "true"

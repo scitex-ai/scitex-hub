@@ -156,10 +156,17 @@ export class CompilationQueue {
     console.error("[CompilationQueue] Failed");
     statusLamp.fullCompilationError();
 
-    // Update log
+    // `result.error` is the backend's stated reason. It used to be absent
+    // on the full-compile path entirely (run_compilation_async built its
+    // result dict without the key), so every failure announced itself with
+    // the fallback string below while the real cause sat unread in the log.
+    const errorMsg = data.result?.error || "Compilation failed";
+    const errorLog = data.log || "";
+
+    // Update log — say WHY here too, not just that it failed.
     this.ui.updateLogLine(
       "compilation-start-line",
-      `[${new Date().toLocaleTimeString()}] ✗ Compilation failed`,
+      `[${new Date().toLocaleTimeString()}] ✗ ${errorMsg}`,
       "error",
     );
 
@@ -169,13 +176,11 @@ export class CompilationQueue {
       const errorDiv = document.createElement("div");
       errorDiv.style.color = "var(--color-danger-fg)";
       errorDiv.style.marginTop = "0.5rem";
-      errorDiv.textContent = `✗ Compilation failed`;
+      errorDiv.textContent = `✗ ${errorMsg}`;
       detailsLog.appendChild(errorDiv);
       detailsLog.scrollTop = detailsLog.scrollHeight;
     }
 
-    const errorMsg = data.result?.error || "Compilation failed";
-    const errorLog = data.log || "";
     this.ui.showError(errorMsg, errorLog);
   }
 }

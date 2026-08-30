@@ -429,6 +429,147 @@ class IdleTimeoutConstantAliasTest(TestCase):
         assert quoted == slot_lifecycle.IDLE_TIMEOUT_MINUTES
 
 
+class TestOrdinaryRequestsCountAsActivity(TestCase):
+    """A browsing visitor must not be judged idle because JS stopped.
+
+    Idle eviction keys on ``last_activity``. Until ``touch_activity``
+    existed, the ONLY production writer of that field was the heartbeat
+    view — ``extend_session_on_activity``'s own docstring says so: "the
+    heartbeat client stops feeding ~60s after the user goes inactive".
+
+    So a visitor reading one page past IDLE_TIMEOUT_MINUTES, or on a
+    route where the heartbeat JS never runs or throws, was judged idle
+    WHILE USING THE SITE. The reclaim sets ``is_active=False``,
+    ``_reuse_allocation`` stops matching, and the next click hands them a
+    different workspace — while their old slot goes back into the pool
+    for a different person.
+
+    Measured on production 2026-08-22: Visitor #003 at 19:55 was Visitor
+    #002 at 20:20 with a fresh lease. Twenty five minutes, inside the
+    thirty minute window.
+
+    Real DB, no mocks (STX-NM001).
+    """
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="visitor-901", password="x"
+        )
+        self.allocation = VisitorAllocation.objects.create(
+            visitor_number=901,
+            session_key="session-901",
+            allocation_token=secrets.token_urlsafe(16),
+            expires_at=timezone.now()
+            + timedelta(hours=PoolAllocator.SESSION_LIFETIME_HOURS),
+            is_active=True,
+            workspace_ready=True,
+            last_activity=timezone.now(),
+        )
+
+    def _backdate_activity(self, minutes: float):
+        """Put last_activity that many minutes in the past, via the DB."""
+        stamp = timezone.now() - timedelta(minutes=minutes)
+        VisitorAllocation.objects.filter(pk=self.allocation.pk).update(
+            last_activity=stamp
+        )
+        self.allocation.refresh_from_db()
+
+    def test_a_silent_visitor_is_reclaimable_two_minutes_later(self):
+        """CONTROL. Without it the next test proves nothing: if this
+        instant were never reclaimable, `is False` there would pass on a
+        slot that was never at risk."""
+        # Arrange: the heartbeat died one minute inside the idle window.
+        self._backdate_activity(PoolAllocator.IDLE_TIMEOUT_MINUTES - 1)
+        two_minutes_on = timezone.now() + timedelta(minutes=2)
+        # Act
+        stale = is_allocation_stale(self.allocation, now=two_minutes_on)
+        # Assert
+        assert stale is True
+
+    def test_an_ordinary_request_resets_the_idle_clock(self):
+        # Arrange: same instant the control just proved reclaimable, but
+        # the visitor is still clicking around.
+        self._backdate_activity(PoolAllocator.IDLE_TIMEOUT_MINUTES - 1)
+        two_minutes_on = timezone.now() + timedelta(minutes=2)
+        # Act: a real request reaches the middleware.
+        VisitorPool.touch_activity(self.allocation)
+        # Assert: the clock restarted, so the SAME instant is now safe.
+        assert (
+            is_allocation_stale(self.allocation, now=two_minutes_on) is False
+        )
+
+    def test_an_ordinary_request_is_actually_recorded(self):
+        # Arrange: activity old enough to be past the throttle window.
+        self._backdate_activity(PoolAllocator.IDLE_TIMEOUT_MINUTES - 1)
+        # Act
+        wrote = VisitorPool.touch_activity(self.allocation)
+        # Assert
+        assert wrote is True
+
+    def test_touch_does_not_promote_the_lease(self):
+        # Arrange: a probation-length lease, as a fresh allocation has.
+        short = timezone.now() + timedelta(
+            seconds=PoolAllocator.PROBATION_SECONDS
+        )
+        VisitorAllocation.objects.filter(pk=self.allocation.pk).update(
+            expires_at=short
+        )
+        self.allocation.refresh_from_db()
+        before = self.allocation.expires_at
+        self._backdate_activity(PoolAllocator.IDLE_TIMEOUT_MINUTES - 1)
+
+        # Act
+        VisitorPool.touch_activity(self.allocation)
+        self.allocation.refresh_from_db()
+
+        # Assert: activity is not proof of a browser. Promotion stays the
+        # heartbeat's decision, or one fetch would buy a full session.
+        assert self.allocation.expires_at == before
+
+    def test_the_heartbeat_still_promotes_which_is_the_difference(self):
+        """CONTROL for the test above: the OTHER method DOES promote, so
+        that assertion is about touch_activity specifically, not about a
+        lease that simply never moves in this fixture."""
+        # Arrange: a probation-length lease, as a fresh allocation has.
+        short = timezone.now() + timedelta(
+            seconds=PoolAllocator.PROBATION_SECONDS
+        )
+        VisitorAllocation.objects.filter(pk=self.allocation.pk).update(
+            expires_at=short
+        )
+        self.allocation.refresh_from_db()
+        before = self.allocation.expires_at
+        # Act
+        VisitorPool.extend_session_on_activity(self.allocation)
+        self.allocation.refresh_from_db()
+        # Assert
+        assert self.allocation.expires_at > before
+
+    def test_touch_is_throttled_so_it_is_not_a_write_per_request(self):
+        # Arrange: activity recorded just now.
+        VisitorPool.touch_activity(self.allocation)
+
+        # Act: a second request arrives immediately after.
+        wrote_again = VisitorPool.touch_activity(self.allocation)
+
+        # Assert: refused, because a visitor generates many requests per
+        # page and idle eviction only cares about minutes.
+        assert wrote_again is False
+
+    def test_touch_writes_again_once_the_throttle_window_passes(self):
+        """CONTROL for the throttle: it must be a delay, not a mute. A
+        throttle that never releases would pass the test above while
+        leaving the idle clock permanently stale."""
+        # Arrange: last write is just past the throttle window.
+        self._backdate_activity(
+            (PoolAllocator.ACTIVITY_TOUCH_THROTTLE_SECONDS + 5) / 60
+        )
+        # Act
+        wrote = VisitorPool.touch_activity(self.allocation)
+        # Assert
+        assert wrote is True
+
+
 if __name__ == "__main__":
     import os
 

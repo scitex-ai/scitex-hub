@@ -32,6 +32,30 @@ if [ -d "/scitex-code" ]; then
 fi
 
 # ============================================
+# Translation catalogs (i18n)
+# ============================================
+# Django answers a MISSING translation with the msgid — i.e. the English source
+# string. So an UNCOMPILED catalog and a correctly-working English site are
+# byte-identical: nothing raises, nothing logs, and a visitor whose browser asks
+# for Japanese silently reads English while every layer reports success.
+# Compiling on every start is what makes the .po files that ship in this image
+# actually reach visitors. It also picks up .po edits across a hot-reload
+# restart, where a build-time step would not.
+#
+# NOT `django-admin compilemessages`: that shells out to msgfmt, which is ABSENT
+# from this image (measured 2026-08-23). scripts/i18n/compile_catalogs.py uses
+# babel, which is present.
+#
+# Failure is reported loudly but does NOT abort the boot. The site still serves
+# — in English. Refusing to start over a translation would trade a cosmetic
+# fault for an outage.
+if ! python scripts/i18n/compile_catalogs.py; then
+    echo_error "translation catalogs did NOT compile."
+    echo_error "  Every visitor will be served ENGLISH, including those whose"
+    echo_error "  browser requests Japanese. Site is otherwise unaffected."
+fi
+
+# ============================================
 # Database & Django Setup
 # ============================================
 wait_for_database
@@ -47,6 +71,33 @@ if [[ ! "$*" =~ "celery" ]]; then
     collect_static_files
 else
     echo_info "Skipping collectstatic (celery service)"
+fi
+
+# ============================================
+# Site domain (web container ONLY)
+# ============================================
+# django.contrib.sites holds ONE row that SITE_ID pins allauth and Django to.
+# It is the host used to build OAuth callback URLs and the links inside
+# confirmation and password-reset email, so a wrong value produces URLs nobody
+# can reach — and it raises nowhere. Production was found holding
+# "127.0.0.1:8000", which arrived because `setup_social_auth --domain` used to
+# default to that literal while its documented usage omits the flag.
+#
+# Applying it here, from $SCITEX_HUB_SITE_URL, makes the domain a property of
+# the ENVIRONMENT rather than of database state, so a restored dump or a stray
+# run of the setup command cannot leave prod pointing at localhost. Idempotent:
+# it reports "unchanged" when the row already matches.
+#
+# Inside an `if` like the visitor-pool commands below: a wrong Site domain
+# breaks OAuth and email links, which is bad, but refusing to boot over it is
+# worse. It must not fail SILENTLY though, hence the explicit error.
+if [[ ! "$*" =~ "celery" ]]; then
+    if ! python manage.py sync_site_domain; then
+        echo_error "sync_site_domain FAILED — OAuth callbacks and the links in"
+        echo_error "  confirmation/password-reset email will use whatever the"
+        echo_error "  Site row currently holds. Set SCITEX_HUB_SITE_URL in"
+        echo_error "  this deployment's env file (e.g. https://scitex.ai) and restart."
+    fi
 fi
 
 # ============================================

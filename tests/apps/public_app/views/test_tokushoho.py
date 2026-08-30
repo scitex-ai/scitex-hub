@@ -9,7 +9,7 @@ Covers:
 - Configured fields render; missing fields render an explicit 準備中
   notice (no fake data); footer link present.
 - Committed config defaults (config/settings/settings_commerce.py):
-  registered address 〒420-0839 静岡県静岡市葵区鷹匠2-8-10 and
+  registered address 〒420-0857 静岡県静岡市葵区御幸町３－２１ペガサートビル７階静岡市コ・クリエーションスペース内 and
   representative phone 080-4022-3567 (operator-confirmed 2026-07-18;
   〒 confirmed 2026-07-17 via grant); public contact email stays
   unset (準備中).
@@ -120,12 +120,12 @@ class TestTokushohoPage:
 
     def test_tokushoho_default_renders_registered_address(self, client):
         # Arrange: no overrides — the committed config default applies
-        # (no room number; 〒420-0839 operator-confirmed 2026-07-17)
+        # (no room number; 〒420-0857 from the 国税庁 registry, 2026-08-28)
         url = reverse("public_app:tokushoho")
         # Act
         content = client.get(url).content.decode("utf-8")
         # Assert
-        assert "〒420-0839 静岡県静岡市葵区鷹匠2-8-10" in content
+        assert "〒420-0857 静岡県静岡市葵区御幸町３－２１ペガサートビル７階静岡市コ・クリエーションスペース内" in content
 
     def test_tokushoho_default_renders_representative_phone(self, client):
         # Arrange: no overrides — the committed config default applies
@@ -136,15 +136,47 @@ class TestTokushohoPage:
         # Assert
         assert "080-4022-3567" in content
 
-    def test_tokushoho_without_plans_states_paid_plans_preparing(
+    def test_tokushoho_without_billing_plans_publishes_the_price_list(
         self, client, settings
     ):
+        """No Stripe plan configured is the PRODUCTION state, and the page must
+        still say what the paid tiers cost.
+
+        This branch used to render 有料プランは現在準備中です. That was true while
+        no price had been decided; it stopped being true on 2026-08-28, when the
+        prices were published and only the PAYMENT path stayed pending. A 特商法
+        page that hides the price of the thing it is selling is exactly the
+        defect this branch exists to prevent — so the assertion MOVED to the new
+        requirement rather than being deleted.
+
+        Prices are read from ``subscription_rows()``, the same pricing.json
+        source the page renders, so this test cannot drift into a hardcoded
+        number that silently contradicts the page.
+        """
         # Arrange
+        from apps.infra.public_app.pricing import subscription_rows
+
         settings.BILLING_PLANS = []
+        rows = subscription_rows()
+        assert rows, (
+            "Control: subscription_rows() returned nothing, so every price "
+            "assertion below would pass vacuously. pricing.json lost its "
+            "subscription amounts — fix that, do not weaken this test."
+        )
+
         # Act
         content = client.get(reverse("public_app:tokushoho")).content.decode("utf-8")
+
         # Assert
-        assert "有料プランは現在準備中です" in content
+        for row in rows:
+            assert row["price"] in content, (
+                f"pricing.json prices {row['name']} at {row['price']}, but the "
+                "特商法 page does not show it."
+            )
+        assert "審査完了後に開始" in content, (
+            "The page must state that online card payment opens after the "
+            "Stripe review — that is the only part still 準備中."
+        )
 
     @pytest.mark.parametrize("expected", ["Pro (Test)", "1100", "税込"])
     def test_tokushoho_with_plans_lists_tax_inclusive_price_details(
@@ -199,9 +231,9 @@ class TestCommerceSettingsDefaults:
         module = commerce_settings_clean_env
         # Act
         module = importlib.reload(module)
-        # Assert: registered address — no room number; 〒420-0839
+        # Assert: registered address — registered office; 〒420-0857
         # operator-confirmed 2026-07-17 (grant, 日本郵便 lookup)
-        assert module.COMPANY_ADDRESS == "〒420-0839 静岡県静岡市葵区鷹匠2-8-10"
+        assert module.COMPANY_ADDRESS == "〒420-0857 静岡県静岡市葵区御幸町３－２１ペガサートビル７階静岡市コ・クリエーションスペース内"
 
     def test_company_phone_defaults_to_representative_number(
         self, commerce_settings_clean_env

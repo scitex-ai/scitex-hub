@@ -19,9 +19,12 @@ read the same.
 
 from __future__ import annotations
 
+import logging
 import os
 from importlib import import_module
 from types import ModuleType
+
+logger = logging.getLogger(__name__)
 
 #: scitex-cards AppConfig class names to accept, NEWEST FIRST.
 #:
@@ -74,6 +77,153 @@ def cards_appconfig_path(apps_module: ModuleType) -> str:
     )
 
 
+#: OPERATOR-FACING name for the cards store, in the hub's own
+#: ``SCITEX_HUB_<X>`` namespace (ADR-0001, ``config/_env.py``). Exactly the
+#: shape ``SCITEX_HUB_CROSSREF_DB_PATH`` -> ``CROSSREF_DB_PATH`` already has
+#: for the citation-graph service: the deployment states the value once, in
+#: ``deployment/docker/envs/.env.<env>``, under the prefix every other hub
+#: setting uses, and the hub hands it to the package under the name that
+#: package reads. A hub deployment should not have to know a sibling's
+#: private variable spelling to be configured.
+CARDS_STORE_HUB_ENV = "SCITEX_HUB_CARDS_STORE"
+
+#: The name scitex-cards ITSELF reads (``scitex_cards._db.ENV_DB``). The hub
+#: does not get to choose it, which is exactly why the hub-prefixed name above
+#: exists — and why this one is still honoured first below.
+CARDS_STORE_UPSTREAM_ENV = "SCITEX_CARDS_DB"
+
+#: The package name handed to ``scitex_dev.store.host_store`` for the fleet
+#: default. It selects WHICH store on the fleet cluster, so it must stay
+#: "cards" — the board scitex-cards reads — and not, say, "hub".
+CARDS_STORE_PKG = "cards"
+
+
+def publish_cards_store_target(environ: dict | None = None) -> str | None:
+    """Hand scitex-cards the store target THIS DEPLOYMENT chose, or the fleet's.
+
+    THE HUB NEVER CONFIGURED ONE AND THAT IS THE WHOLE DEFECT. The board's card
+    DATA comes from the store ``scitex_cards`` resolves with no argument, and
+    since the 2026-08-13 zero-config abolition that resolver REFUSES to invent a
+    filename — it raises ``StoreTargetNotConfigured``. Measured on this branch
+    against the real URLconf with a signed-in user: ``/apps/cards/graph`` 500s,
+    which is what the operator saw as 「cards が読み込めていない。」 Nothing in
+    ``config/``, ``deployment/`` or ``scripts/`` set ``$SCITEX_CARDS_DB`` or the
+    ``store.target`` config key, on any environment, so every hub deployment was
+    in that state.
+
+    Precedence, and each tier is deliberate:
+
+    1. ``$SCITEX_CARDS_DB`` already set -> LEFT ALONE. A developer or a test
+       that exports the package's own variable has said something more specific
+       than the deployment did, and a settings module that overwrites it would
+       silently move them to a different store. Returned so the caller can log
+       what won.
+    2. ``$SCITEX_HUB_CARDS_STORE`` set -> published as ``$SCITEX_CARDS_DB``.
+       This is the tier that fixes the defect: it gives a deployment a
+       conventional place to state the target.
+    3. NEITHER -> the FLEET DEFAULT, resolved by ``scitex_dev.store.host_store``
+       and published as ``$SCITEX_CARDS_DB``. A hub that has been told nothing
+       lands on the fleet's PostgreSQL on port 55432, which is where every other
+       package in the ecosystem already keeps its store.
+
+    WHY TIER 3 IS A DEFAULT HERE AND A HARD FAILURE FOR ``DATABASES``.
+    These two look contradictory in the same settings package and they are not,
+    so the difference is written down rather than left to be re-derived.
+
+    ``DATABASES`` (settings_prod.py) refuses to start without a password: hub's
+    OWN relational data lives in a database only this deployment knows, there is
+    no correct guess, and every candidate default is a different empty database
+    that would accept writes and reach nobody.
+
+    The CARDS STORE is the opposite shape. It is not hub's data — it is the
+    fleet's shared board, and the fleet has exactly ONE right answer for where
+    it lives. Requiring an env var to reach the normal path made the CORRECT
+    configuration the exceptional one: measured 2026-08-30, neither variable was
+    set in any hub deployment, so the resolver raised ``StoreTargetNotConfigured``
+    and ``/apps/cards/graph`` served HTTP 500 — the operator's
+    「cards が読み込めていない。」 Configuration should exist to OVERRIDE a
+    default, never to enable one.
+
+    THIS IS NOT THE FALLBACK UPSTREAM ABOLISHED, and the distinction is the
+    whole reason it is safe. What was abolished was *inventing a local
+    filename nobody chose* — a private file, per-process, silently divergent
+    (ADR-0004). What tier 3 does instead is ASK THE PRIMITIVE: ``host_store``
+    is the fleet's single source of truth for DSN resolution
+    (``scitex_dev/store/_host.py:288``), it honours ``$SCITEX_STORE_DSN``
+    first, it has no file-backed tier of its own,
+    and it calls ``require_durable_pgdata`` so a host whose PostgreSQL is not
+    durable RAISES here rather than being quietly written to. No DSN is spelled
+    out in this file; hardcoding ``…:55432/…`` locally is exactly the thing
+    still refused, because it would drift from the primitive the moment the
+    fleet moved.
+
+    IF ``host_store`` CANNOT RESOLVE, NOTHING IS PUBLISHED — and nothing is
+    invented in its place. This is the one case that returns ``None``.
+
+    It is NOT a fallback: no second store is chosen, no write goes anywhere
+    unintended, and the state is reported twice over — an ERROR in the log
+    naming the resolver's own sentence, and the existing typed 404 from
+    ``apps.workspace.todo_app.cards_store_provisioning`` on the board's data
+    endpoints. What it deliberately does NOT do is abort settings import.
+    ``publish_cards_store_target`` runs at settings load, so an exception here
+    takes down the whole site — landing page, auth, every unrelated app —
+    because one leaf's database is unreachable. That is the failure PR #689
+    ruled against by name ("a broken leaf must not take down every URL hub
+    serves"), and trading a 404 on /apps/cards/* for a total outage is not a
+    trade this makes. The cards board degrades; the hub stays up and says why.
+
+    An EMPTY value counts as unset at every tier, matching the resolver's own
+    ``if value:`` test; otherwise ``SCITEX_HUB_CARDS_STORE=`` in a ``.env`` file
+    would publish an empty ``$SCITEX_CARDS_DB`` and mean something different
+    here than it does one call downstream.
+
+    :param environ: mapping to read and write; defaults to ``os.environ``.
+        Present so a test can prove the precedence without mutating the
+        process, not as a general seam.
+    :returns: the target now in effect. ``None`` ONLY when nobody configured
+        one AND the fleet default could not be resolved — never as the normal
+        answer to "nothing was configured", which is what it used to mean.
+    """
+    env = os.environ if environ is None else environ
+
+    already = env.get(CARDS_STORE_UPSTREAM_ENV)
+    if already:
+        return already
+
+    chosen = env.get(CARDS_STORE_HUB_ENV)
+    if chosen:
+        env[CARDS_STORE_UPSTREAM_ENV] = chosen
+        return chosen
+
+    # Imported here, not at module scope: this module is imported during
+    # settings load and `scitex_dev.store` is only needed on the tier that
+    # actually reaches it.
+    from scitex_dev.store import host_store
+
+    try:
+        fleet_default = host_store(pkg=CARDS_STORE_PKG).dsn
+    except Exception as exc:  # noqa: BLE001 - see the docstring
+        # BROAD ON PURPOSE. The set of ways a store target fails to resolve is
+        # the PRIMITIVE's to define and it has grown before (StoreTargetError,
+        # the durability refusal, a psycopg import failure). Naming a subset
+        # here would let the unnamed ones abort settings import and take the
+        # whole site down -- the exact outcome this except exists to prevent.
+        logger.error(
+            "[cards-store] no store configured (%s / %s unset) and the fleet "
+            "default could not be resolved via scitex_dev.store.host_store: "
+            "%s. The board's data endpoints will answer 404 naming %s; the "
+            "rest of the site is unaffected.",
+            CARDS_STORE_HUB_ENV,
+            CARDS_STORE_UPSTREAM_ENV,
+            exc,
+            CARDS_STORE_HUB_ENV,
+        )
+        return None
+
+    env[CARDS_STORE_UPSTREAM_ENV] = fleet_default
+    return fleet_default
+
+
 def _installed(module_path: str) -> ModuleType | None:
     """Import ``module_path``, or None when the package is not installed.
 
@@ -102,6 +252,12 @@ def optional_upstream_apps() -> list[str]:
     request must see ONLY the requesting user's workspace store (injected by
     ``apps.workspace.todo_app.middleware``), so an empty glob list — the
     documented opt-out seam in that module — is set alongside the mount.
+
+    SECOND SIDE EFFECT, SAME REASON: mounting the board also publishes the
+    deployment's chosen card store (:func:`publish_cards_store_target`). It
+    belongs next to the mount because a mounted board with no store is the
+    defect this fixes — the two are one decision, and splitting them is how
+    the second half gets forgotten on the next environment.
     """
     entries: list[str] = []
 
@@ -122,6 +278,7 @@ def optional_upstream_apps() -> list[str]:
     if cards_apps is not None:
         entries.append(cards_appconfig_path(cards_apps))
         os.environ["SCITEX_TODO_LANE_GLOBS"] = ""
+        publish_cards_store_target()
 
     return entries
 

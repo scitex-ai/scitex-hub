@@ -4,7 +4,10 @@ import { resolve } from "path";
 import * as path from "path";
 import * as fs from "fs";
 import { execSync } from "child_process";
+import { createRequire } from "module";
 import { getEntryPoints } from "./vite.entries";
+
+const require = createRequire(import.meta.url);
 
 /**
  * Discover scitex-ui static directory from the Python environment.
@@ -165,6 +168,72 @@ function resolveStaticPaths(): Plugin {
   };
 }
 
+/**
+ * Plugin to resolve bare npm-package imports from BRIDGED sibling source
+ * files (scitex-ui, and every auto-discovered app bridge e.g. figrecipe,
+ * scitex-cards) against scitex-hub's OWN node_modules.
+ *
+ * WHY THIS EXISTS: files under these directories are real files living in
+ * sibling repos (e.g. /home/.../scitex-cards/.../layout.ts), reached here
+ * only via a Vite `resolve.alias` path mapping. Rollup's default node
+ * resolution walks up from an importing file's REAL directory looking for
+ * node_modules, so a bare import like `import "dagre"` in that file never
+ * finds hub's node_modules (a sibling directory tree, not an ancestor) and
+ * Rollup aborts the build with "Rollup failed to resolve import".
+ *
+ * Before this plugin, each affected package needed its own one-off
+ * `resolve.alias` entry (see monaco-editor/mermaid/zustand/@hpcc-js/
+ * wasm-graphviz/pdfjs-dist above) — undiscovered until someone happened to
+ * exercise that exact import path in a real build. Found the hard way
+ * 2026-08-20: #669 added @xyflow/react as a *dependency* but not an alias,
+ * so its own "build succeeded" verification silently never reached that
+ * import; the very next build attempt (chasing an unrelated dagre gap in
+ * the SAME bridged file, scitex-cards' layout.ts) hit it immediately,
+ * followed immediately by a THIRD missing package (react-markdown, a
+ * different bridged file). Rather than keep whack-a-moling one alias per
+ * package per discovery, this makes the fallback generic: any bare
+ * specifier that fails to resolve relative to a bridged importer is
+ * retried against hub's own node_modules before Rollup gives up on it.
+ * Existing explicit aliases above are left in place (harmless, and cheaper
+ * for Vite dev-server since `enforce: "pre"` runs before this too either
+ * way) rather than removed, to keep this change additive/low-risk.
+ */
+function resolveBridgedBareImports(): Plugin {
+  const bridgeRoots = [
+    ...(SCITEX_UI_STATIC ? [SCITEX_UI_STATIC] : []),
+    ...APP_BRIDGES.bridges.map((b) => b.frontendSrc),
+  ];
+  const hubNodeModules = resolve(__dirname, "node_modules");
+
+  return {
+    name: "resolve-bridged-bare-imports",
+    enforce: "pre",
+    resolveId(source, importer) {
+      // Only bare specifiers (npm package names), never relative/absolute/
+      // virtual ids -- those resolve correctly on their own.
+      if (
+        !importer ||
+        source.startsWith(".") ||
+        source.startsWith("/") ||
+        source.includes("\0")
+      )
+        return null;
+
+      // Only for files actually under a bridged sibling source tree.
+      if (!bridgeRoots.some((dir) => importer === dir || importer.startsWith(dir + path.sep)))
+        return null;
+
+      try {
+        return require.resolve(source, { paths: [hubNodeModules] });
+      } catch {
+        // Not found in hub's node_modules either -- fall through to normal
+        // resolution, which will produce the usual Rollup error.
+        return null;
+      }
+    },
+  };
+}
+
 export default defineConfig(({ command }) => ({
   plugins: [
     react({
@@ -173,6 +242,7 @@ export default defineConfig(({ command }) => ({
       exclude: [/scitex.ui/, ...APP_BRIDGES.excludePatterns],
     }),
     resolveStaticPaths(),
+    resolveBridgedBareImports(),
   ],
   // A BUILT bundle must reference its siblings under STATIC_URL, not the site
   // root. Output goes to staticfiles/vite/ (see build.outDir below) and Django
@@ -226,6 +296,9 @@ export default defineConfig(({ command }) => ({
       // `new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url)` worker
       // reference — both must resolve at build time or Rollup aborts the build).
       "pdfjs-dist": resolve(__dirname, "node_modules/pdfjs-dist"),
+      // dagre / @xyflow/react (both imported from scitex-cards' bridged
+      // layout.ts) are handled by the generic resolveBridgedBareImports()
+      // plugin below instead of one-off aliases -- see its docstring.
       // scitex-ui: shared component library (auto-discovered)
       ...(SCITEX_UI_STATIC
         ? {
