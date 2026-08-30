@@ -95,67 +95,64 @@ CSRF_COOKIE_HTTPONLY = True
 # ---------------------------------------
 # Database
 # ---------------------------------------
-if _getenv_alias("SCITEX_HUB_USE_SQLITE_PROD"):
+# PostgreSQL only. An env flag used to point production at a local
+# file-backed engine; it was removed on 2026-08-29 with the rest of the
+# fleet's embedded databases. It was reachable through the ADR-0001 legacy
+# SCITEX_CLOUD_* alias as well, so a stale environment could silently
+# demote production onto a single-file store. There is no fallback now,
+# by design.
+DB_PASSWORD = _getenv_alias("SCITEX_HUB_DB_PASSWORD")
+
+if DB_PASSWORD and DB_PASSWORD != "CHANGE-THIS-DATABASE-PASSWORD-FOR-PROD":
+    # Remote PostgreSQL via PgBouncer (for production deployment)
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "data" / "db" / "sqlite" / "scitex_hub_prod.db",
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": _getenv_alias("SCITEX_HUB_DB_NAME", "scitex_hub_prod"),
+            "USER": _getenv_alias("SCITEX_HUB_DB_USER", "scitex_prod"),
+            "PASSWORD": DB_PASSWORD,
+            # Connect via PgBouncer for connection pooling
+            "HOST": _getenv_alias("SCITEX_HUB_DB_HOST", "pgbouncer"),
+            "PORT": _getenv_alias("SCITEX_HUB_DB_PORT", "6432"),
+            # ATOMIC_REQUESTS disabled: incompatible with ASGI (Daphne)
+            # + PgBouncer transaction pooling.  Middleware and views run
+            # in different threads under ASGI, so a dirty connection in
+            # one thread cascades "transaction aborted" errors to the
+            # view's atomic wrapper.  Views needing transactions should
+            # use @transaction.atomic explicitly.
+            "ATOMIC_REQUESTS": False,
+            # CONN_MAX_AGE=0: Let PgBouncer handle connection pooling
+            # This closes Django connections after each request, allowing
+            # PgBouncer to efficiently manage the actual PostgreSQL connections
+            "CONN_MAX_AGE": 0,
+            "CONN_HEALTH_CHECKS": True,  # Django 4.1+ connection health checks
+            # Disable server-side cursors (incompatible with PgBouncer transaction pooling)
+            "DISABLE_SERVER_SIDE_CURSORS": True,
+            "OPTIONS": {
+                "connect_timeout": 10,
+                "options": "-c statement_timeout=30000",
+            },
         }
     }
 else:
-    # PostgreSQL (default for production)
-    DB_PASSWORD = _getenv_alias("SCITEX_HUB_DB_PASSWORD")
-
-    if DB_PASSWORD and DB_PASSWORD != "CHANGE-THIS-DATABASE-PASSWORD-FOR-PROD":
-        # Remote PostgreSQL via PgBouncer (for production deployment)
-        DATABASES = {
-            "default": {
-                "ENGINE": "django.db.backends.postgresql",
-                "NAME": _getenv_alias("SCITEX_HUB_DB_NAME", "scitex_hub_prod"),
-                "USER": _getenv_alias("SCITEX_HUB_DB_USER", "scitex_prod"),
-                "PASSWORD": DB_PASSWORD,
-                # Connect via PgBouncer for connection pooling
-                "HOST": _getenv_alias("SCITEX_HUB_DB_HOST", "pgbouncer"),
-                "PORT": _getenv_alias("SCITEX_HUB_DB_PORT", "6432"),
-                # ATOMIC_REQUESTS disabled: incompatible with ASGI (Daphne)
-                # + PgBouncer transaction pooling.  Middleware and views run
-                # in different threads under ASGI, so a dirty connection in
-                # one thread cascades "transaction aborted" errors to the
-                # view's atomic wrapper.  Views needing transactions should
-                # use @transaction.atomic explicitly.
-                "ATOMIC_REQUESTS": False,
-                # CONN_MAX_AGE=0: Let PgBouncer handle connection pooling
-                # This closes Django connections after each request, allowing
-                # PgBouncer to efficiently manage the actual PostgreSQL connections
-                "CONN_MAX_AGE": 0,
-                "CONN_HEALTH_CHECKS": True,  # Django 4.1+ connection health checks
-                # Disable server-side cursors (incompatible with PgBouncer transaction pooling)
-                "DISABLE_SERVER_SIDE_CURSORS": True,
-                "OPTIONS": {
-                    "connect_timeout": 10,
-                    "options": "-c statement_timeout=30000",
-                },
-            }
+    # Fallback to environment variables (for docker-compose via PgBouncer)
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": _getenv_alias("SCITEX_HUB_POSTGRES_DB", "scitex_hub_prod"),
+            "USER": _getenv_alias("SCITEX_HUB_POSTGRES_USER", "scitex_prod"),
+            "PASSWORD": _getenv_alias(
+                "SCITEX_HUB_POSTGRES_PASSWORD", "CHANGE_THIS_IN_PROD"
+            ),
+            # Connect via PgBouncer for connection pooling
+            "HOST": _getenv_alias("SCITEX_HUB_DB_HOST", "pgbouncer"),
+            "PORT": _getenv_alias("SCITEX_HUB_DB_PORT", "6432"),
+            "ATOMIC_REQUESTS": False,
+            "CONN_MAX_AGE": 0,
+            "CONN_HEALTH_CHECKS": True,
+            "DISABLE_SERVER_SIDE_CURSORS": True,
         }
-    else:
-        # Fallback to environment variables (for docker-compose via PgBouncer)
-        DATABASES = {
-            "default": {
-                "ENGINE": "django.db.backends.postgresql",
-                "NAME": _getenv_alias("SCITEX_HUB_POSTGRES_DB", "scitex_hub_prod"),
-                "USER": _getenv_alias("SCITEX_HUB_POSTGRES_USER", "scitex_prod"),
-                "PASSWORD": _getenv_alias(
-                    "SCITEX_HUB_POSTGRES_PASSWORD", "CHANGE_THIS_IN_PROD"
-                ),
-                # Connect via PgBouncer for connection pooling
-                "HOST": _getenv_alias("SCITEX_HUB_DB_HOST", "pgbouncer"),
-                "PORT": _getenv_alias("SCITEX_HUB_DB_PORT", "6432"),
-                "ATOMIC_REQUESTS": False,
-                "CONN_MAX_AGE": 0,
-                "CONN_HEALTH_CHECKS": True,
-                "DISABLE_SERVER_SIDE_CURSORS": True,
-            }
-        }
+    }
 
 # ADMINS / MANAGERS moved to settings_shared on 2026-08-15 so that every
 # non-dev environment inherits the same recipients. Defining them only here

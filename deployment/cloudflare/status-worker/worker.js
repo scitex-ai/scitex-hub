@@ -86,7 +86,7 @@ const GROUPS = [
       { url: "https://stag.scitex.ai/", en: "Staging", ja: "検証環境" },
       { url: "https://umami.scitex.ai/", en: "Analytics", ja: "アクセス解析" },
       // OpenAlex only. CrossRef has NO public hostname by design: it runs
-      // in-process inside django in "db mode" (settings read the SQLite file
+      // in-process inside django in "db mode" (settings read the mirror file
       // directly), so there is no HTTP service to probe. crossref.scitex.ai
       // pointed at a container that was never deployed and was removed
       // 2026-08-03 rather than left as a permanently-red row.

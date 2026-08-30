@@ -52,9 +52,9 @@ exactly what production shipped, not against an empty string that any code
 change would accidentally satisfy. No network, no mocks --- a tiny real
 directory tree injected through the production ``clone_fn`` seam.
 
-Run (SQLite, no network/Gitea):
+Run (no network/Gitea):
 
-    SCITEX_HUB_USE_SQLITE_DEV=1 \
+    SCITEX_HUB_TEST_MODE=1 \
     /opt/venv-sac/bin/python -m pytest <abs path to this file>
 """
 

@@ -39,7 +39,7 @@ This removes the "fragmentation tax" every researcher currently pays.
 
 Your local CrossRef mirror:
 
-- 1.2 TB SQLite, 167M+ works, 47M+ citations
+- 1.2 TB local mirror, 167M+ works, 47M+ citations
 - Less than 50 ms citation graph queries (cached)
 - Fast title/author/year search
 - Co-citation + bibliographic coupling + direct citation hybrid similarity

@@ -102,7 +102,7 @@ if __name__ == "__main__":
 #     Search for users by username, name, institution, or research interests.
 #     Uses PostgreSQL full-text search for better relevance.
 #     """
-#     # Basic Q-based search (works with SQLite for development)
+#     # Basic Q-based substring search
 #     users = (
 #         User.objects.filter(
 #             Q(username__icontains=query)

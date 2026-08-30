@@ -18,7 +18,12 @@
 # zero build AND guarantees dev runs the same dependency set as production.
 #
 # Trade-offs, stated plainly (no silent fallbacks):
-#   - sqlite, not postgres (SCITEX_HUB_USE_SQLITE_DEV=1) -- no second DB server.
+#   - a small dedicated postgres container, NOT the co-hosted prod database.
+#     This preview used to run a single-file embedded engine to avoid a second
+#     DB server; that engine is gone fleet-wide (2026-08-29), and previewing
+#     against a different database than production runs was always the wrong
+#     kind of cheap. The container publishes no port and holds no data worth
+#     keeping -- `docker compose down -v` resets it.
 #   - no Gitea/Umami/Celery containers, so flows that need them fail loudly.
 #   - TypeScript is served from the image's pre-built bundle
 #     (SCITEX_HUB_VITE_USE_BUILD=true); TS edits need a build. Python, template
@@ -47,6 +52,23 @@ services:
     # Deliberately NO published port: a co-hosted prod stack already owns 6379.
     # django reaches this as `redis:6379` over the compose network.
 
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: scitex_hub_dev
+      POSTGRES_USER: scitex_dev
+      POSTGRES_PASSWORD: scitex_dev_2025  # pragma: allowlist secret
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scitex_dev -d scitex_hub_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    # Same reasoning as redis: no published port, because a co-hosted prod
+    # stack owns 5432 on this box. django reaches it as `postgres:5432`.
+    volumes:
+      - preview_pgdata:/var/lib/postgresql/data
+
   django:
     # Reuse an already-built image rather than building a dev one. Override with
     # SCITEX_HUB_DEV_BASE_IMAGE if the local image is named differently.
@@ -61,10 +83,6 @@ services:
       - -lc
       - |
         set -e
-        # sqlite will not create its parent directory, and a fresh checkout has
-        # no data/db/sqlite -- without this the container crash-loops on
-        # "unable to open database file".
-        mkdir -p /app/data/db/sqlite
         python manage.py migrate --noinput
         exec python manage.py runserver 0.0.0.0:8000 from_docker
 
@@ -74,7 +92,11 @@ services:
     environment:
       SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_dev
       DJANGO_SETTINGS_MODULE: config.settings.settings_dev
-      SCITEX_HUB_USE_SQLITE_DEV: "1"
+      SCITEX_HUB_DB_HOST_DEV: postgres
+      SCITEX_HUB_DB_PORT_DEV: "5432"
+      SCITEX_HUB_DB_NAME_DEV: scitex_hub_dev
+      SCITEX_HUB_DB_USER_DEV: scitex_dev
+      SCITEX_HUB_DB_PASSWORD_DEV: scitex_dev_2025  # pragma: allowlist secret
       SCITEX_HUB_REDIS_URL: redis://redis:6379/1
       SCITEX_HUB_VITE_USE_BUILD: "true"
       SCITEX_HUB_DJANGO_DEBUG: "True"
@@ -97,9 +119,12 @@ services:
     depends_on:
       redis:
         condition: service_started
+      postgres:
+        condition: service_healthy
 
     restart: unless-stopped
 
 volumes:
   vite_build:
   node_modules:
+  preview_pgdata:

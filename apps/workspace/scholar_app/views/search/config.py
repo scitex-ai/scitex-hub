@@ -34,15 +34,15 @@ DEFAULT_SEARCH_LIMITS = {
     # === LOCAL DATABASES (Fast, Recommended) ===
     "crossref_local": {
         "name": "Crossref (SciTeX)",
-        "limit": LOCAL_DB_LIMIT,  # Env-based: NAS=10000 (fast SQLite), dev=2000 (HTTP API)
-        "description": "CrossRef SQLite DB (~47M citations) - Recommended",
+        "limit": LOCAL_DB_LIMIT,
+        "description": "CrossRef local DB (~47M citations) - Recommended",
         "category": "local",
         "recommended": True,
     },
     "openalex_local": {
         "name": "OpenAlex (SciTeX)",
-        "limit": LOCAL_DB_LIMIT,  # Env-based: NAS=10000 (fast SQLite), dev=2000 (HTTP API)
-        "description": "OpenAlex SQLite DB (~284M works) - Recommended",
+        "limit": LOCAL_DB_LIMIT,
+        "description": "OpenAlex local DB (~284M works) - Recommended",
         "category": "local",
         "recommended": True,
     },

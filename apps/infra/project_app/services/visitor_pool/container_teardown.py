@@ -24,7 +24,7 @@ Failure policy (no silent fallbacks):
   caller (workspace_manager) quarantines the slot.
 * SLURM/apptainer binaries MISSING (``FileNotFoundError``) is a
   decidable environment state, not a swallowed error: deployments
-  without the SLURM/apptainer toolchain (dev SQLite, plain CI) cannot
+  without the SLURM/apptainer toolchain (local dev, plain CI) cannot
   have broker-created jobs or instances, so there is nothing to tear
   down. Logged, then treated as clean.
 """

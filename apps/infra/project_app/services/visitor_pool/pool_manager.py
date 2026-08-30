@@ -76,11 +76,11 @@ class PoolAllocator:
     def _check_table_exists(cls) -> bool:
         """Check if VisitorAllocation table exists.
 
-        Uses Django's database-agnostic introspection so the check works
-        across SQLite (test/CI), PostgreSQL, and MySQL alike. The previous
-        implementation queried ``information_schema.tables`` directly, which
-        does not exist on SQLite and silently returned False there, wrongly
-        triggering the DemoProjectPool fallback.
+        Uses Django's database-agnostic introspection rather than querying
+        ``information_schema.tables`` directly. That table does not exist on
+        every backend, and where it is missing the old implementation
+        silently returned False, wrongly triggering the DemoProjectPool
+        fallback. Introspection cannot fail that way.
         """
         from django.db import connection
 

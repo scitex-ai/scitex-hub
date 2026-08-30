@@ -31,7 +31,7 @@ config/
 
 ### `settings_shared.py`
 - Shared settings for all environments
-- Database configuration (supports both PostgreSQL and SQLite)
+- Database configuration (PostgreSQL)
 - Installed apps
 - Middleware
 - Static/media files base configuration
@@ -40,7 +40,7 @@ config/
 ### `settings_dev.py`
 - Imports from `settings_shared.py`
 - DEBUG=True
-- Development database (PostgreSQL `scitex_hub_dev` or SQLite fallback)
+- Development database (PostgreSQL `scitex_hub_dev`)
 - CORS enabled for all origins
 - Console logging
 - Environment variables with `_DEV` suffix

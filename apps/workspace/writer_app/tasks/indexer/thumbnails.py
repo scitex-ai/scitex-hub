@@ -23,7 +23,7 @@ def generate_thumbnail(project_id, file_path):
         file_path: Relative path to figure
     """
     from apps.infra.project_app.models import Project
-    from ...utils.project_db import get_project_db
+    from ...utils.media_index import get_media_index
 
     try:
         from PIL import Image
@@ -51,7 +51,7 @@ def generate_thumbnail(project_id, file_path):
                 )
                 return
 
-        db = get_project_db(project)
+        db = get_media_index(project)
 
         full_path = project_path / file_path
         if not full_path.exists():
@@ -99,13 +99,7 @@ def generate_thumbnail(project_id, file_path):
         # Update DB with thumbnail path
         relative_thumb_path = str(thumb_path.relative_to(project_path))
 
-        with db.connection() as conn:
-            conn.execute(
-                """
-                UPDATE figures SET thumbnail_path = ? WHERE file_path = ?
-            """,
-                (relative_thumb_path, file_path),
-            )
+        db.set_figure_thumbnail(file_path, relative_thumb_path)
 
         logger.debug(f"[Thumbnail] Generated for {file_path}")
 
@@ -125,7 +119,7 @@ def generate_table_thumbnail(project_id, file_path):
         file_path: Relative path to table file
     """
     from apps.infra.project_app.models import Project
-    from ...utils.project_db import get_project_db
+    from ...utils.media_index import get_media_index
 
     try:
         import pandas as pd
@@ -158,7 +152,7 @@ def generate_table_thumbnail(project_id, file_path):
                 )
                 return
 
-        db = get_project_db(project)
+        db = get_media_index(project)
 
         full_path = project_path / file_path
         if not full_path.exists():
@@ -246,13 +240,7 @@ def generate_table_thumbnail(project_id, file_path):
         # Update DB with thumbnail path
         relative_thumb_path = str(thumb_path.relative_to(project_path))
 
-        with db.connection() as conn:
-            conn.execute(
-                """
-                UPDATE tables SET thumbnail_path = ? WHERE file_path = ?
-            """,
-                (relative_thumb_path, file_path),
-            )
+        db.set_table_thumbnail(file_path, relative_thumb_path)
 
         logger.debug(f"[TableThumbnail] Generated for {file_path}")
 

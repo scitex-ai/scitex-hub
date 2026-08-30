@@ -96,7 +96,6 @@ ssh_keys/
 
 ### Source: /home/ywatanabe/.git-templates/.gitignore-templates/Custom/LargeFiles.gitignore ###
 # Data directories - specific patterns to ignore
-data/db/sqlite/*.db*
 data/db/backups/*
 data/db/migrations_archive/*
 data/users/*/
@@ -112,7 +111,6 @@ data/**/
 data/ssh_keys/
 
 # Keep directory structure with .gitkeep files
-!data/db/sqlite/.gitkeep
 !data/db/backups/.gitkeep
 !data/db/migrations_archive/.gitkeep
 !data/users/.gitkeep
@@ -179,7 +177,6 @@ data/ssh_keys/
 **/*.txt
 **/*.log
 **/*.db
-**/*.sqlite
 **/*.xml
 **/*.JNB
 **/*.jnb
@@ -281,8 +278,6 @@ cover/
 # Django stuff:
 *.log
 local_settings.py
-db.sqlite3
-db.sqlite3-journal
 
 # Flask stuff:
 instance/
@@ -800,11 +795,9 @@ secret_key.txt
 !.secrets.baseline
 
 # Django database files
-*.sqlite3
 *.db
 *.db.backup*
 *.db.broken
-db.sqlite3*
 *.db-journal
 *.db-shm
 *.db-wal

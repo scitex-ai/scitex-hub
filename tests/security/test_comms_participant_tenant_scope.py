@@ -45,9 +45,10 @@ assert a legitimate co-member and the caller's own row ARE returned, so
 "deny everything" cannot pass. No mocks (project rule); the DB is real.
 One assertion per test (STX-TQ007), shared setup lifted into fixtures.
 
-DB NOTE: these need the Django test DB. The pytest-matrix workflow runs the
-whole suite with ``SCITEX_HUB_USE_SQLITE_DEV=1``; the security-regression job
-in tests.yml sets the same flag so this gate runs there too.
+DB NOTE: these need the Django test DB, which is PostgreSQL. Both the
+pytest-matrix workflow and the security-regression job in tests.yml declare
+a ``postgres:16`` service container and point Django at it, so this gate
+runs against the same engine production does.
 """
 
 import pytest

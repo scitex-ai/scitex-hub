@@ -71,7 +71,7 @@ if __name__ == "__main__":
 #     "crossref_local": {
 #         "name": "CrossRef Local",
 #         "limit": 1000,
-#         "description": "CrossRef SQLite DB on NAS (~47M citations)",
+#         "description": "CrossRef local DB on NAS (~47M citations)",
 #     },
 #     "openalex": {
 #         "name": "OpenAlex",

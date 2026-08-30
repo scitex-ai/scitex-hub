@@ -10,7 +10,6 @@ WORKDIR /app
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     curl \
-    sqlite3 \
     && rm -rf /var/lib/apt/lists/*
 
 # openalex-local ships the `relay` FastAPI server in its [server] extra.

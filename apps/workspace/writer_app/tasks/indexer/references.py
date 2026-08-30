@@ -22,7 +22,7 @@ def update_latex_references(project_id):
         project_id: Project ID
     """
     from apps.infra.project_app.models import Project
-    from ...utils.project_db import get_project_db
+    from ...utils.media_index import get_media_index
 
     try:
         project = Project.objects.get(id=project_id)
@@ -48,7 +48,7 @@ def update_latex_references(project_id):
                 )
                 return
 
-        db = get_project_db(project)
+        db = get_media_index(project)
 
         logger.info(
             f"[RefTracker] Starting reference tracking for project {project_id}"

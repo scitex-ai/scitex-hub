@@ -105,7 +105,7 @@ DJANGO_SETTINGS_MODULE=scitex_hub.settings.production
 
 ## Database Requirements
 
-### CrossRef SQLite Database
+### CrossRef Local Database
 
 The service requires a local CrossRef database with:
 
@@ -157,7 +157,7 @@ Ensure these indexes exist on your CrossRef database:
 
 ```sql
 -- Check existing indexes
-SELECT name, sql FROM sqlite_master WHERE type='index' AND tbl_name='citations';
+SELECT indexname, indexdef FROM pg_catalog.pg_indexes WHERE tablename = 'citations';
 
 -- Add if missing
 CREATE INDEX IF NOT EXISTS idx_citations_composite

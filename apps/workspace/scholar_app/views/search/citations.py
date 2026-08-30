@@ -15,16 +15,19 @@ from scitex import logging
 # Set up logger
 logger = logging.getLogger(__name__)
 
-# Thread-local storage for impact factor instance (SQLite is not thread-safe)
+# Thread-local storage for impact factor instance (its embedded store is
+# not thread-safe)
 _local = threading.local()
 
 
 def get_impact_factor_instance():
     """Get or create a thread-local impact factor instance.
 
-    Each thread gets its own Factor() instance to avoid SQLite threading errors.
-    The impact_factor package uses SQLite internally, and SQLite connections
-    cannot be shared across threads safely in async environments like Daphne.
+    Each thread gets its own Factor() instance to avoid threading errors.
+    The third-party impact_factor package keeps its own embedded,
+    file-backed store whose connections cannot be shared across threads
+    safely in async environments like Daphne. That dependency is external
+    to this repo; the thread-local is what makes it safe to use here.
     """
     if not hasattr(_local, "impact_factor_instance"):
         try:
