@@ -22,10 +22,15 @@ def _catalogue():
 
 def test_a_future_dated_row_is_hidden_and_then_shown_from_its_month() -> None:
     # Arrange
-    gated = [r for r in _catalogue() if r.get("available_from")]
+    # A withheld row never publishes, so it cannot serve as the control for a
+    # gate that must be seen OPEN as well as closed.
+    gated = [
+        r for r in _catalogue()
+        if r.get("available_from") and not str(r.get("withheld", "")).strip()
+    ]
     assert gated, (
-        "Control: the catalogue has no available_from row, so this test cannot "
-        "observe the gate. Add one, or delete this test deliberately."
+        "Control: no un-withheld row carries available_from, so this test cannot "
+        "observe the gate opening. Add one, or delete this test deliberately."
     )
     row = gated[0]
     year, month = (int(x) for x in row["available_from"].split("-"))
@@ -80,3 +85,28 @@ def test_every_catalogue_unit_is_one_the_formatter_renders() -> None:
     for row in _catalogue():
         rendered = format_amount(row["amount"], row.get("unit", "once"))
         assert rendered.endswith("円"), (row["id"], rendered)
+
+
+def test_a_withheld_row_is_not_published_whatever_its_date_says() -> None:
+    """withheld is a GATE with a stated reason; a blank reason is not a hold."""
+    from unittest import mock
+    from apps.infra.public_app import pricing
+
+    fake = {"published_prices": [
+        {"id": "held", "label": "A", "amount": 100, "unit": "month", "available_from": "2000-01",
+         "withheld": "list price under an active discount; presentation undecided"},
+        {"id": "blank", "label": "B", "amount": 100, "unit": "month", "available_from": "2000-01",
+         "withheld": "   "},
+        {"id": "open", "label": "C", "amount": 100, "unit": "month", "available_from": "2000-01"},
+    ]}
+    with mock.patch.object(pricing, "load_pricing", return_value=fake):
+        ids = {r["id"] for r in pricing.published_price_rows(today=date(2026, 9, 2))}
+    assert ids == {"blank", "open"}, ids
+
+
+def test_the_two_subscription_rows_are_currently_withheld() -> None:
+    """Pins TODAY's decision so it cannot be undone by accident. When the
+    operator rules on the discount framing, delete the `withheld` field AND
+    this test in the same commit — that pairing is the point."""
+    held = {r["id"] for r in _catalogue() if str(r.get("withheld", "")).strip()}
+    assert held == {"subscription-student", "subscription-general"}, held

@@ -105,28 +105,32 @@
       "label": "サブスク・学生",
       "amount": 2980,
       "unit": "month",
-      "available_from": "2026-09"
+      "available_from": "2026-09",
+      "withheld": "WITHHELD from publication 2026-09-02 (business, 19:38Z): 2,980 / 5,980 are LIST prices before the early-adopter Launch/Y1 50% (2026-08-08 to 2027-07-31, active). What a customer pays today is 1,490 / 2,990. Publishing the list price as the selling price on a legal page states an amount nobody pays; publishing 「通常 2,980円 → 今 1,490円」 is a dual-price display (景表法) that requires 2,980 to have actually been sold, and it never has. Which framing to use is the operator's decision (business is raising it). Until then this row stays in the catalogue and OFF every page; the amount here remains the list price."
     },
     {
       "id": "subscription-general",
       "label": "サブスク・一般",
       "amount": 5980,
       "unit": "month",
-      "available_from": "2026-09"
+      "available_from": "2026-09",
+      "withheld": "WITHHELD from publication 2026-09-02 (business, 19:38Z): 2,980 / 5,980 are LIST prices before the early-adopter Launch/Y1 50% (2026-08-08 to 2027-07-31, active). What a customer pays today is 1,490 / 2,990. Publishing the list price as the selling price on a legal page states an amount nobody pays; publishing 「通常 2,980円 → 今 1,490円」 is a dual-price display (景表法) that requires 2,980 to have actually been sold, and it never has. Which framing to use is the operator's decision (business is raising it). Until then this row stays in the catalogue and OFF every page; the amount here remains the list price."
     },
     {
       "id": "onprem-setup",
       "label": "オンプレ導入サポート",
       "amount": 298000,
       "unit": "per_case",
-      "available_from": "2026-08"
+      "available_from": "2026-08",
+      "from_price": true
     },
     {
       "id": "onprem-maintenance",
       "label": "オンプレ保守サポート",
       "amount": 98000,
       "unit": "month",
-      "available_from": "2026-08"
+      "available_from": "2026-08",
+      "from_price": true
     },
     {
       "id": "contract-development",
@@ -179,5 +183,6 @@
     "mext_partnership": "50% off all plans — a standing discount to government-funded institutions",
     "pilot_program": "Free (6 months) — Professional-tier features for up to 10 researchers"
   },
-  "_subscription_is_not_a_consulting_band": "plans[].price_ref points into `consulting` and is a PROJECT band (one-off or retainer engagements, anchored to real 2024 invoices). plans[].subscription is the SaaS monthly price. They are different products that happen to sit on the same card, so they are separate fields rather than one overloaded number. Enterprise carries NO subscription on purpose: it is 要相談 and quoting it here would invent a price."
+  "_subscription_is_not_a_consulting_band": "plans[].price_ref points into `consulting` and is a PROJECT band (one-off or retainer engagements, anchored to real 2024 invoices). plans[].subscription is the SaaS monthly price. They are different products that happen to sit on the same card, so they are separate fields rather than one overloaded number. Enterprise carries NO subscription on purpose: it is 要相談 and quoting it here would invent a price.",
+  "_withheld_is_a_gate": "A row with a non-empty `withheld` is in the catalogue and NOT published, whatever its available_from says. It is a stated reason, not a flag — an empty string is not a hold. Use it for a price whose AMOUNT is settled but whose PRESENTATION is not; delete the field to publish."
 }

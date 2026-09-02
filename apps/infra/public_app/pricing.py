@@ -100,6 +100,12 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
     catalogue (upstream: scitex-kk/config/business.yaml), tax-included by
     ruling of 2026-09-03.
 
+    ``withheld`` (a stated reason) hides a row whose amount is settled but
+    whose presentation is not — added 2026-09-02 when the two subscription
+    rows turned out to be LIST prices under an active 50% launch discount,
+    so neither the list price nor a struck-through pair could go on a legal
+    page without an operator ruling. The row stays in the catalogue.
+
     ``available_from`` (YYYY-MM) is a GATE, not a label, and it is the SAME
     rule the upstream business.yaml uses: published iff set and <= this
     month. A row dated in the future is part of the catalogue and NOT on the
@@ -129,6 +135,11 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
         # accidental omission fails CI rather than silently hiding a price.
         available_from = item.get("available_from")
         if not available_from or available_from > this_month:
+            continue
+        # A settled amount whose PRESENTATION is not settled (e.g. a list
+        # price that is never the selling price during an active discount).
+        # Stated reason, never a bare flag; whitespace is not a hold.
+        if str(item.get("withheld", "")).strip():
             continue
         rows.append(
             {

@@ -213,6 +213,13 @@ class TestTokushohoPage:
         assert "SciTeX Lab" not in content and "100,000" not in content, (
             "The retired Lab tier (月額 100,000円) is back on the 特商法 page."
         )
+        # Assert — withheld (amount settled, presentation not; see pricing.json)
+        for row in catalogue:
+            if str(row.get("withheld", "")).strip():
+                assert row["label"] not in content, (
+                    f"{row['label']} is withheld ({row['withheld'][:60]}...) and must "
+                    "not be on the 特商法 page until the operator rules."
+                )
         # Assert — unreleased
         for row in unreleased:
             assert row["label"] not in content, (
