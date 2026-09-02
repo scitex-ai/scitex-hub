@@ -100,13 +100,15 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
     catalogue (upstream: scitex-kk/config/business.yaml), tax-included by
     ruling of 2026-09-03.
 
-    ``available_from`` (YYYY-MM) is a GATE, not a label. A row dated in the
-    future is part of the catalogue and NOT on the page: a 特商法 page that
-    prices a service which is not yet for sale invites exactly the reviewer
-    query the operator hit while filling in the Stripe activation form. The
-    gate is date-driven so a service becomes visible on its month without a
-    code change — and so the test can prove the gate closes by dating a row
-    ahead of ``today``.
+    ``available_from`` (YYYY-MM) is a GATE, not a label, and it is the SAME
+    rule the upstream business.yaml uses: published iff set and <= this
+    month. A row dated in the future is part of the catalogue and NOT on the
+    page: a 特商法 page that prices a service which is not yet for sale invites
+    exactly the reviewer query the operator hit while filling in the Stripe
+    activation form. A row with NO date is not for sale at a list price and
+    is excluded. The gate is date-driven so a service becomes visible on its
+    month without a code change — and so the test can prove the gate closes
+    by dating a row ahead of ``today``.
 
     This replaced ``subscription_rows`` on 2026-09-03. That function rendered
     ``plans[].subscription`` — Individual 2,980 / Lab 100,000 — and the Lab tier
@@ -119,8 +121,14 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
     this_month = f"{today.year:04d}-{today.month:02d}"
     rows = []
     for item in load_pricing().get("published_prices", []):
+        # business.yaml's rule, verbatim: published iff available_from is SET
+        # and <= this month. A row with no date is not for sale at a list
+        # price (upstream's usage-billed rows have none), so it is excluded —
+        # the same outcome the export will produce, which is the point. The
+        # test suite requires the field on every hand-entered row, so an
+        # accidental omission fails CI rather than silently hiding a price.
         available_from = item.get("available_from")
-        if available_from and available_from > this_month:
+        if not available_from or available_from > this_month:
             continue
         rows.append(
             {

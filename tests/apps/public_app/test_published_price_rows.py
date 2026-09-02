@@ -46,16 +46,31 @@ def test_a_future_dated_row_is_hidden_and_then_shown_from_its_month() -> None:
     )
 
 
-def test_rows_without_a_date_are_always_published() -> None:
-    # Arrange
-    undated = {r["id"] for r in _catalogue() if not r.get("available_from")}
-    assert undated, "Control: every catalogue row is date-gated; nothing to assert."
+def test_every_hand_entered_row_carries_available_from() -> None:
+    """The publication rule is business.yaml's: no available_from = not for
+    sale at a list price = NOT on the page. That makes a forgotten date on a
+    hand-entered row a silent omission at runtime — so it is caught HERE,
+    at CI, where it is loud, rather than as a missing line on a legal page."""
+    missing = [r["id"] for r in _catalogue() if not r.get("available_from")]
+    assert not missing, (
+        f"published_prices rows without available_from: {missing}. Every row "
+        "in pricing.json is for sale at a list price and must say from when; "
+        "upstream's usage-billed rows (no date) are not copied here at all."
+    )
 
-    # Act
-    ids = {r["id"] for r in published_price_rows(today=date(2000, 1, 1))}
 
-    # Assert
-    assert undated <= ids
+def test_a_row_with_no_date_is_not_published() -> None:
+    """Rule check on the function itself, independent of the data file."""
+    from unittest import mock
+    from apps.infra.public_app import pricing
+
+    fake = {"published_prices": [
+        {"id": "dated", "label": "A", "amount": 100, "unit": "month", "available_from": "2000-01"},
+        {"id": "undated", "label": "B", "amount": 100, "unit": "month"},
+    ]}
+    with mock.patch.object(pricing, "load_pricing", return_value=fake):
+        ids = {r["id"] for r in pricing.published_price_rows(today=date(2026, 9, 2))}
+    assert ids == {"dated"}, ids
 
 
 def test_every_catalogue_unit_is_one_the_formatter_renders() -> None:

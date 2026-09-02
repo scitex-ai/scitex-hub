@@ -98,43 +98,49 @@
       "suffix": "／要見積もり"
     }
   ],
-  "_published_prices_are_the_tokushoho_list": "The price list the 特定商取引法 page publishes, and the ONLY list it publishes. Operator decision 2026-09-03, relayed by business: the upstream is scitex-kk/config/business.yaml (business's repo, not cloned here — the six rows below are the table business rendered from it and confirmed usable verbatim). All amounts tax-INCLUDED, operator ruling 2026-09-03: 「税込みとしてだしましょう」. `available_from` is a YYYY-MM gate: a row dated in the future is in the catalogue but NOT on the page, because a 特商法 page must not price a service that is not yet for sale. This REPLACES the old plans[].subscription pair (Individual 2,980 / Lab 100,000): the Lab tier was RETIRED and replaced by on-premise setup/maintenance (business commit 0fb4ab9), and the individual tier split into 学生 / 一般. Two SSoTs — this file and business.yaml — is exactly one too many; that drift is what put a retired plan with a price on a public page for six days.",
+  "_published_prices_are_the_tokushoho_list": "The price list the 特定商取引法 page publishes, and the ONLY list it publishes. Operator decision 2026-09-03, relayed by business. UPSTREAM: github.com/ywatanabe1989/scitex-business, scitex-kk/config/business.yaml (the BUSINESS repo — not scitex-ai/scitex-business, which is the engine package; same name, two orgs). Every row here was checked against that file on 2026-09-02: id, label, amount, interval, available_from. All amounts tax-INCLUDED, operator ruling 2026-09-03: 「税込みとしてだしましょう」. THE PUBLICATION RULE IS business.yaml's, verbatim, so an export can replace this hand-copy without changing what the page shows: a row is published iff `available_from` (YYYY-MM) is SET and <= the current month. No available_from = not for sale at a list price (business.yaml's 18 usage-billed rows — API, storage, compute, traffic — have none and are permanently excluded). A future month = in the catalogue, off the page, appears on its month with no code change — so a deploy is still the human gate on what a legal page says; the derivation is automatic, the publication is a diff someone reads. `status` is NOT a gate: all 26 upstream rows are `draft`, including the six on the page by decision. Labels follow the SSoT exactly (コンサル, not コンサルティング) because a hand-maintained exception on the page would be overwritten by the first mechanical export.",
   "published_prices": [
     {
       "id": "subscription-student",
       "label": "サブスク・学生",
       "amount": 2980,
-      "unit": "month"
+      "unit": "month",
+      "available_from": "2026-09"
     },
     {
       "id": "subscription-general",
       "label": "サブスク・一般",
       "amount": 5980,
-      "unit": "month"
+      "unit": "month",
+      "available_from": "2026-09"
     },
     {
       "id": "onprem-setup",
       "label": "オンプレ導入サポート",
       "amount": 298000,
-      "unit": "per_case"
+      "unit": "per_case",
+      "available_from": "2026-08"
     },
     {
       "id": "onprem-maintenance",
       "label": "オンプレ保守サポート",
       "amount": 98000,
-      "unit": "month"
+      "unit": "month",
+      "available_from": "2026-08"
     },
     {
       "id": "contract-development",
       "label": "受託開発",
       "amount": 198000,
-      "unit": "per_case"
+      "unit": "per_case",
+      "available_from": "2026-08"
     },
     {
       "id": "consulting",
-      "label": "コンサルティング",
+      "label": "コンサル",
       "amount": 9800,
-      "unit": "per_hour"
+      "unit": "per_hour",
+      "available_from": "2026-08"
     },
     {
       "id": "translation",
