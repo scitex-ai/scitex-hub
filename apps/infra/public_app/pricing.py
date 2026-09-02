@@ -27,9 +27,9 @@ __all__ = [
     "PRICING_PATH",
     "format_amount",
     "load_pricing",
-    "plan_rows",
-    "pricing_rows",
+    "published_price_groups",
     "published_price_rows",
+    "tier_rows",
 ]
 
 PRICING_PATH = Path(__file__).resolve().parent / "data" / "pricing.json"
@@ -52,11 +52,11 @@ def load_pricing() -> dict[str, Any]:
             "template."
         )
     data = json.loads(PRICING_PATH.read_text(encoding="utf-8"))
-    if not data.get("consulting"):
+    if not data.get("published_prices"):
         raise ValueError(
-            f"pricing.json at {PRICING_PATH} parsed but has no 'consulting' "
-            "entries, so every price table would render empty. Fix the data "
-            "file; do not let the page claim there is nothing to buy."
+            f"pricing.json at {PRICING_PATH} parsed but has no 'published_prices' "
+            "entries, so /services/ and /tokushoho/ would both render an empty price "
+            "list. Fix the data file; do not let a page claim there is nothing to buy."
         )
     return data
 
@@ -83,14 +83,6 @@ def _render(row: dict[str, Any]) -> str:
     return format_amount(
         row["amount"], row.get("unit", "once"), row.get("from_price", False)
     )
-
-
-def pricing_rows() -> list[dict[str, str]]:
-    """Return display-ready rows: ``[{"label": ..., "price": ...}, ...]``."""
-    data = load_pricing()
-    return [
-        {"label": row["label"], "price": _render(row)} for row in data["consulting"]
-    ]
 
 
 def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
@@ -148,38 +140,75 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
                 "price": format_amount(
                     item["amount"], item.get("unit", "once"), item.get("from_price", False)
                 ),
+                # Pass-through of the upstream catalogue's descriptive fields, so
+                # /services/ can describe an offer in business.yaml's words.
+                "category": item.get("category", "service"),
+                "description": item.get("description", ""),
+                "attributes": item.get("attributes", {}),
+                "price_is_floor": bool(item.get("price_is_floor", False)),
             }
         )
     return rows
 
 
-def plan_rows() -> list[dict[str, Any]]:
-    """Return the plan tiers with prices RESOLVED from the bands they cite.
+def published_price_groups(today: date | None = None) -> list[dict[str, Any]]:
+    """published_price_rows() grouped by category, in catalogue order.
 
-    A plan carries a ``price_ref`` into ``consulting`` rather than its own
-    number, so the comparison table and the mobile cards cannot drift apart
-    from the price list the way the hand-typed originals did. An unresolvable
-    ref raises: a plan card silently rendering a blank price is how a visitor
-    concludes the tier is free.
+    Category labels are the upstream's own words (business.yaml `category`),
+    rendered in Japanese exactly as the operator's price table does: the
+    subscriptions are the サブスク rows; everything else is a サービス. The
+    template gets a list, not a dict, so category order is the JSON order and
+    not whatever a dict happens to iterate in.
     """
-    data = load_pricing()
-    bands = {row["id"]: row for row in data["consulting"]}
-    resolved = []
-    for plan in data.get("plans", []):
-        ref = plan["price_ref"]
-        if ref not in bands:
+    labels = {"subscription": "サブスク", "service": "サービス"}
+    groups: list[dict[str, Any]] = []
+    for row in published_price_rows(today=today):
+        cat = row["category"]
+        if cat not in labels:
             raise ValueError(
-                f"plan {plan['id']!r} cites price_ref {ref!r}, which is not an "
-                f"id in 'consulting' ({sorted(bands)}). Fix pricing.json — a "
-                "dangling reference would render an empty price."
+                f"published_prices row {row['id']!r} has category {cat!r}; "
+                f"expected one of {sorted(labels)}. Add the category here "
+                "deliberately rather than letting it render unlabelled."
             )
-        resolved.append(
+        group = next((g for g in groups if g["category"] == cat), None)
+        if group is None:
+            group = {"category": cat, "label": labels[cat], "rows": []}
+            groups.append(group)
+        group["rows"].append(row)
+    return groups
+
+
+def tier_rows(today: date | None = None) -> list[dict[str, Any]]:
+    """The /services/ tiers with their cited prices resolved and date-gated.
+
+    A tier cites published_prices ids rather than carrying amounts, so the
+    tier copy can never disagree with the price list — the drift that put a
+    retired Lab tier, priced, on /services/ for five days after business
+    retired it. A dangling id raises: a tier card that silently shows no price
+    reads as free.
+    """
+    rows_by_id = {r["id"]: r for r in published_price_rows(today=today)}
+    catalogue_ids = {r["id"] for r in load_pricing().get("published_prices", [])}
+    tiers = []
+    for tier in load_pricing().get("tiers", []):
+        resolved = []
+        for rid in tier.get("rows", []):
+            if rid not in catalogue_ids:
+                raise ValueError(
+                    f"tier {tier['id']!r} cites published_prices id {rid!r}, which "
+                    f"does not exist ({sorted(catalogue_ids)}). Fix pricing.json — a "
+                    "dangling reference would render a tier with no price."
+                )
+            if rid in rows_by_id:  # absent only when the row is date-gated off
+                resolved.append(rows_by_id[rid])
+        tiers.append(
             {
-                "id": plan["id"],
-                "name": plan["name"],
-                "audience": plan["audience"],
-                "featured": plan.get("featured", False),
-                "price": _render(bands[ref]) + plan.get("suffix", ""),
+                "id": tier["id"],
+                "name": tier["name"],
+                "audience": tier.get("audience", ""),
+                "description": tier.get("description", ""),
+                "quote_only": bool(tier.get("quote_only", False)),
+                "rows": resolved,
             }
         )
-    return resolved
+    return tiers

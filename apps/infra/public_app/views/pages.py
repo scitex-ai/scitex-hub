@@ -174,9 +174,7 @@ def services(request):
             submitted = True
             form = {"name": "", "affiliation": "", "request": "", "budget": ""}
 
-    from ..pricing import load_pricing, plan_rows, pricing_rows
-
-    _plans = plan_rows()
+    from ..pricing import load_pricing, published_price_groups, published_price_rows, tier_rows
 
     return render(
         request,
@@ -190,14 +188,18 @@ def services(request):
             # how /services/ and /landing/ drifted 2.7x apart on the same
             # service. Do not put a literal amount back into the template;
             # tests/apps/public_app/test_pricing_ssot.py fails if you do.
-            "pricing_rows": pricing_rows(),
-            "pricing_plans": _plans,
-            # Keyed by id as well as ordered: the mobile plan cards are three
-            # separate <article> blocks, and addressing them positionally
-            # (plans.0/.1/.2) would silently show the wrong plan's price if the
-            # JSON order ever changed — a swap the SSoT guard cannot detect,
-            # because every amount would still come from pricing.json.
-            "pricing_plan_by_id": {p["id"]: p for p in _plans},
+            #
+            # 2026-09-02: this page and /tokushoho/ now read the SAME list —
+            # published_price_rows, the business.yaml catalogue. Until then this
+            # page rendered the 2024-invoice consulting bands and a three-tier
+            # plan table whose middle tier (Lab) business had retired on
+            # 2026-08-28, while /tokushoho/ showed the current catalogue: two
+            # public pages, one file, two disjoint price sets. The operator's
+            # words on seeing it: 「値段はめちゃくちゃだった」.
+            "published_price_rows": published_price_rows(),
+            "published_price_groups": published_price_groups(),
+            "tiers": tier_rows(),
+            "tax_note": load_pricing().get("tax_note", ""),
             "pricing_notes": load_pricing()["notes"],
         },
     )
