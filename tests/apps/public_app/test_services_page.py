@@ -125,7 +125,9 @@ class TestServicesGet:
         # Assert
         for needle in retired_tier_names + retired_band_amounts:
             assert needle not in content, f"retired {needle!r} is back on /services/"
-        assert content.count('class="svc-plan-card') == 3, "exactly three tiers"
+        # The grid container is class="svc-plan-cards" and shares the prefix;
+        # count the tier articles, not every class that starts that way.
+        assert content.count('<article class="svc-plan-card') == 3, "exactly three tiers"
 
     def test_get_shows_the_three_tiers_business_wrote(self, client, services_url):
         # Arrange

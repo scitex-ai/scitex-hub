@@ -188,26 +188,48 @@ class TestTokushohoPage:
         the Stripe activation form — the reviewer reads this page, and a price
         for something not for sale is grounds for a query.
 
-        UNRELEASED: translation and Clew verification carry list prices in the
-        catalogue with available_from 2027-08. They must be in pricing.json (so
-        the SSoT is complete) and NOT on the page (so the page does not sell
-        them yet). The page reads through the date gate; this asserts the gate
-        actually reaches the rendered HTML, not just the function.
+        UNRELEASED: a row dated available_from AFTER the current month must be
+        in pricing.json (so the SSoT is complete) and NOT on the page (so the
+        page does not sell it yet). Every row in the catalogue is dated, and
+        today all of them are on sale, so the catalogue itself cannot supply
+        the fixture; a future-dated row is spliced into the loaded catalogue
+        and the page is rendered against that. This asserts the date gate
+        actually reaches the rendered HTML, not just the function. A control
+        row from the real catalogue must still render, or the assertion would
+        pass on an empty page.
         """
         # Arrange
-        from apps.infra.public_app.pricing import load_pricing
+        import copy
+        from unittest import mock
+
+        from apps.infra.public_app import pricing
 
         settings.BILLING_PLANS = []
-        catalogue = load_pricing()["published_prices"]
-        unreleased = [r for r in catalogue if r.get("available_from")]
-        assert unreleased, (
-            "Control: no catalogue row carries available_from, so the "
-            "unreleased-offer assertion below would pass vacuously. If every "
-            "service is now on sale, delete that half of this test deliberately."
+        real = pricing.load_pricing()
+        catalogue = real["published_prices"]
+        unreleased = {
+            "id": "test-unreleased",
+            "label": "未来の項目（テスト用）",
+            "amount": 1,
+            "unit": "once",
+            "available_from": "2999-01",
+        }
+        spliced = copy.deepcopy(real)
+        spliced["published_prices"].append(unreleased)
+        control = next(
+            r for r in catalogue
+            if r.get("available_from") and not str(r.get("withheld", "")).strip()
         )
 
         # Act
-        content = client.get(reverse("public_app:tokushoho")).content.decode("utf-8")
+        with mock.patch.object(pricing, "load_pricing", return_value=spliced):
+            content = client.get(reverse("public_app:tokushoho")).content.decode("utf-8")
+
+        # Assert — control: the real catalogue still renders through the patch
+        assert control["label"] in content, (
+            f"control row {control['label']!r} missing: the patched catalogue did "
+            "not reach the page, so the unreleased assertion below proves nothing."
+        )
 
         # Assert — retired
         assert "SciTeX Lab" not in content and "100,000" not in content, (
@@ -221,11 +243,11 @@ class TestTokushohoPage:
                     "not be on the 特商法 page until the operator rules."
                 )
         # Assert — unreleased
-        for row in unreleased:
-            assert row["label"] not in content, (
-                f"{row['label']} is dated available_from {row['available_from']} "
-                "and must not be priced on the 特商法 page before then."
-            )
+        assert unreleased["label"] not in content, (
+            f"{unreleased['label']} is dated available_from "
+            f"{unreleased['available_from']} and must not be priced on the "
+            "特商法 page before then."
+        )
 
     @pytest.mark.parametrize("expected", ["Pro (Test)", "1100", "税込"])
     def test_tokushoho_with_plans_lists_tax_inclusive_price_details(
