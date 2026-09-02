@@ -140,28 +140,28 @@ class TestTokushohoPage:
         self, client, settings
     ):
         """No Stripe plan configured is the PRODUCTION state, and the page must
-        still say what the paid tiers cost.
+        still say what every priced offer costs.
 
-        This branch used to render 有料プランは現在準備中です. That was true while
-        no price had been decided; it stopped being true on 2026-08-28, when the
-        prices were published and only the PAYMENT path stayed pending. A 特商法
-        page that hides the price of the thing it is selling is exactly the
-        defect this branch exists to prevent — so the assertion MOVED to the new
-        requirement rather than being deleted.
+        This branch used to render 有料プランは現在準備中です; on 2026-08-28 it
+        began publishing prices; on 2026-09-03 the catalogue itself changed (the
+        Lab tier was retired, the individual tier split into 学生/一般, and
+        on-premise / contract / consulting got list prices). A 特商法 page that
+        hides — or misstates — the price of the thing it is selling is exactly
+        the defect this branch exists to prevent.
 
-        Prices are read from ``subscription_rows()``, the same pricing.json
+        Prices are read from ``published_price_rows()``, the same pricing.json
         source the page renders, so this test cannot drift into a hardcoded
         number that silently contradicts the page.
         """
         # Arrange
-        from apps.infra.public_app.pricing import subscription_rows
+        from apps.infra.public_app.pricing import published_price_rows
 
         settings.BILLING_PLANS = []
-        rows = subscription_rows()
+        rows = published_price_rows()
         assert rows, (
-            "Control: subscription_rows() returned nothing, so every price "
+            "Control: published_price_rows() returned nothing, so every price "
             "assertion below would pass vacuously. pricing.json lost its "
-            "subscription amounts — fix that, do not weaken this test."
+            "published_prices — fix that, do not weaken this test."
         )
 
         # Act
@@ -169,14 +169,56 @@ class TestTokushohoPage:
 
         # Assert
         for row in rows:
-            assert row["price"] in content, (
-                f"pricing.json prices {row['name']} at {row['price']}, but the "
-                "特商法 page does not show it."
+            assert row["label"] in content and row["price"] in content, (
+                f"pricing.json publishes {row['label']} at {row['price']}, but "
+                "the 特商法 page does not show it."
             )
         assert "審査完了後に開始" in content, (
             "The page must state that online card payment opens after the "
             "Stripe review — that is the only part still 準備中."
         )
+
+    def test_tokushoho_does_not_price_a_retired_or_unreleased_offer(
+        self, client, settings
+    ):
+        """Two ways a 特商法 page lies, both caught on 2026-09-03.
+
+        RETIRED: 'SciTeX Lab 月額 100,000円' stayed on this page for six days
+        after business retired the tier. The operator found it while filling in
+        the Stripe activation form — the reviewer reads this page, and a price
+        for something not for sale is grounds for a query.
+
+        UNRELEASED: translation and Clew verification carry list prices in the
+        catalogue with available_from 2027-08. They must be in pricing.json (so
+        the SSoT is complete) and NOT on the page (so the page does not sell
+        them yet). The page reads through the date gate; this asserts the gate
+        actually reaches the rendered HTML, not just the function.
+        """
+        # Arrange
+        from apps.infra.public_app.pricing import load_pricing
+
+        settings.BILLING_PLANS = []
+        catalogue = load_pricing()["published_prices"]
+        unreleased = [r for r in catalogue if r.get("available_from")]
+        assert unreleased, (
+            "Control: no catalogue row carries available_from, so the "
+            "unreleased-offer assertion below would pass vacuously. If every "
+            "service is now on sale, delete that half of this test deliberately."
+        )
+
+        # Act
+        content = client.get(reverse("public_app:tokushoho")).content.decode("utf-8")
+
+        # Assert — retired
+        assert "SciTeX Lab" not in content and "100,000" not in content, (
+            "The retired Lab tier (月額 100,000円) is back on the 特商法 page."
+        )
+        # Assert — unreleased
+        for row in unreleased:
+            assert row["label"] not in content, (
+                f"{row['label']} is dated available_from {row['available_from']} "
+                "and must not be priced on the 特商法 page before then."
+            )
 
     @pytest.mark.parametrize("expected", ["Pro (Test)", "1100", "税込"])
     def test_tokushoho_with_plans_lists_tax_inclusive_price_details(

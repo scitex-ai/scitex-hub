@@ -19,6 +19,7 @@ it looks like "we charge nothing".
 from __future__ import annotations
 
 import json
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -28,11 +29,17 @@ __all__ = [
     "load_pricing",
     "plan_rows",
     "pricing_rows",
+    "published_price_rows",
 ]
 
 PRICING_PATH = Path(__file__).resolve().parent / "data" / "pricing.json"
 
-_UNIT_PREFIX = {"month": "月額 ", "once": ""}
+# How a unit renders in front of the amount. ``once`` is the consulting bands'
+# bare figure; ``per_case`` / ``per_hour`` were added 2026-09-03 for the
+# published price list (オンプレ導入 1件, コンサル 1時間). An unknown unit raises in
+# format_amount rather than rendering a bare number that could be read as
+# monthly, one-off or hourly by whoever is looking.
+_UNIT_PREFIX = {"month": "月額 ", "once": "", "per_case": "1件 ", "per_hour": "1時間 "}
 
 
 def load_pricing() -> dict[str, Any]:
@@ -86,35 +93,41 @@ def pricing_rows() -> list[dict[str, str]]:
     ]
 
 
-def subscription_rows() -> list[dict[str, Any]]:
-    """Return the plans that carry a MONTHLY SUBSCRIPTION price, formatted.
+def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
+    """The price list the 特定商取引法 page publishes, formatted, gated by date.
 
-    Separate from ``plan_rows`` because a plan's ``price_ref`` is a CONSULTING
-    band (project engagements, anchored to 2024 invoices) while ``subscription``
-    is the SaaS monthly fee. They are different products; rendering one where
-    the other belongs is the drift this module exists to prevent.
+    Reads ``published_prices`` from pricing.json — the operator's current
+    catalogue (upstream: scitex-kk/config/business.yaml), tax-included by
+    ruling of 2026-09-03.
 
-    Plans WITHOUT a subscription are omitted rather than rendered blank —
-    Enterprise is 要相談 by decision, and an empty price reads as free.
+    ``available_from`` (YYYY-MM) is a GATE, not a label. A row dated in the
+    future is part of the catalogue and NOT on the page: a 特商法 page that
+    prices a service which is not yet for sale invites exactly the reviewer
+    query the operator hit while filling in the Stripe activation form. The
+    gate is date-driven so a service becomes visible on its month without a
+    code change — and so the test can prove the gate closes by dating a row
+    ahead of ``today``.
 
-    This exists so /特商法/ can state prices without hard-coding them. A
-    literal in that template would be exactly the defect
-    tests/apps/public_app/test_pricing_ssot.py guards against, and its own
-    failure message says: migrate the page, do not raise the ceiling.
+    This replaced ``subscription_rows`` on 2026-09-03. That function rendered
+    ``plans[].subscription`` — Individual 2,980 / Lab 100,000 — and the Lab tier
+    had been RETIRED six days earlier without this file hearing about it. The
+    name changed with the data: these are not subscriptions, they are every
+    priced offer, and a name that says otherwise invites the next person to
+    put the next non-subscription somewhere else.
     """
+    today = today or date.today()
+    this_month = f"{today.year:04d}-{today.month:02d}"
     rows = []
-    for plan in load_pricing().get("plans", []):
-        sub = plan.get("subscription")
-        if not sub:
+    for item in load_pricing().get("published_prices", []):
+        available_from = item.get("available_from")
+        if available_from and available_from > this_month:
             continue
         rows.append(
             {
-                "id": plan["id"],
-                "name": plan["name"],
+                "id": item["id"],
+                "label": item["label"],
                 "price": format_amount(
-                    sub["amount"],
-                    sub.get("unit", "month"),
-                    sub.get("from_price", False),
+                    item["amount"], item.get("unit", "once"), item.get("from_price", False)
                 ),
             }
         )

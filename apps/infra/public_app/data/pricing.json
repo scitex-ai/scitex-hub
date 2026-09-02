@@ -4,7 +4,7 @@
   "currency": "JPY",
   "tax_included": true,
   "tax_note": "表示価格はすべて税込(総額)です。",
-  "updated": "2026-08-02",
+  "updated": "2026-09-03",
   "consulting": [
     {
       "id": "initial-consult-30min",
@@ -81,24 +81,14 @@
       "id": "individual",
       "name": "Individual",
       "audience": "個人研究者・大学院生",
-      "price_ref": "small-fix",
-      "subscription": {
-        "amount": 2980,
-        "unit": "month",
-        "from_price": false
-      }
+      "price_ref": "small-fix"
     },
     {
       "id": "lab",
       "name": "Lab",
       "audience": "研究室・共同研究チーム",
       "price_ref": "lab-poc",
-      "featured": true,
-      "subscription": {
-        "amount": 100000,
-        "unit": "month",
-        "from_price": false
-      }
+      "featured": true
     },
     {
       "id": "enterprise",
@@ -106,6 +96,59 @@
       "audience": "大学・研究機関・企業 R&D",
       "price_ref": "custom-development",
       "suffix": "／要見積もり"
+    }
+  ],
+  "_published_prices_are_the_tokushoho_list": "The price list the 特定商取引法 page publishes, and the ONLY list it publishes. Operator decision 2026-09-03, relayed by business: the upstream is scitex-kk/config/business.yaml (business's repo, not cloned here — the six rows below are the table business rendered from it and confirmed usable verbatim). All amounts tax-INCLUDED, operator ruling 2026-09-03: 「税込みとしてだしましょう」. `available_from` is a YYYY-MM gate: a row dated in the future is in the catalogue but NOT on the page, because a 特商法 page must not price a service that is not yet for sale. This REPLACES the old plans[].subscription pair (Individual 2,980 / Lab 100,000): the Lab tier was RETIRED and replaced by on-premise setup/maintenance (business commit 0fb4ab9), and the individual tier split into 学生 / 一般. Two SSoTs — this file and business.yaml — is exactly one too many; that drift is what put a retired plan with a price on a public page for six days.",
+  "published_prices": [
+    {
+      "id": "subscription-student",
+      "label": "サブスク・学生",
+      "amount": 2980,
+      "unit": "month"
+    },
+    {
+      "id": "subscription-general",
+      "label": "サブスク・一般",
+      "amount": 5980,
+      "unit": "month"
+    },
+    {
+      "id": "onprem-setup",
+      "label": "オンプレ導入サポート",
+      "amount": 298000,
+      "unit": "per_case"
+    },
+    {
+      "id": "onprem-maintenance",
+      "label": "オンプレ保守サポート",
+      "amount": 98000,
+      "unit": "month"
+    },
+    {
+      "id": "contract-development",
+      "label": "受託開発",
+      "amount": 198000,
+      "unit": "per_case"
+    },
+    {
+      "id": "consulting",
+      "label": "コンサルティング",
+      "amount": 9800,
+      "unit": "per_hour"
+    },
+    {
+      "id": "translation",
+      "label": "SciTeX 翻訳",
+      "amount": 98000,
+      "unit": "per_case",
+      "available_from": "2027-08"
+    },
+    {
+      "id": "clew-verification",
+      "label": "Clew 検証",
+      "amount": 98000,
+      "unit": "per_case",
+      "available_from": "2027-08"
     }
   ],
   "_notes_are_verbatim": "The first three are the exact lines /services/ published before this file existed, copied character-for-character so migrating the template changes nothing visible. The fourth is NEW, added at the operator's request 2026-08-01:「目安ですので気楽にご相談ください、と書いておくと良いかもですね」— with bands as wide as 55,000〜220,000, a reader with no invitation to ask simply leaves.",
@@ -122,8 +165,8 @@
   },
   "_subscription_status": {
     "state": "announced",
-    "note": "PRICES ARE PUBLISHED; BILLING IS NOT OPEN. Operator decision 2026-08-28. Three places must agree and this key is the contract between them:\n  (1) plans[].subscription here — Individual 2,980 / Lab 100,000, monthly, tax-included\n  (2) BILLING_PLANS (settings_commerce.py) stays [] — so /pricing/ lists no checkout button and billing_checkout refuses; the payment path is shut at TWO points (operator-only, and it aborts without a Stripe key)\n  (3) /特商法/ states the prices AND that card payment begins after Stripe's corporate review — so the page never simultaneously denies and advertises paid plans\nThe previous state was not_offered, whose contract was the mirror image: 'no paid plans exist, keep all three saying so'. Do not move ONE of the three without the other two; that inconsistency is exactly what this key exists to prevent.",
-    "lab_price_is_a_list_price_on_purpose": "100,000/month replaced 49,800〜 on 2026-08-28. The operator's reasoning: publish high and come down via coupons and individual quotes, because being wrong downward is safer than being wrong upward. Hence a flat figure with no 〜 — a range invites negotiation from the bottom of it."
+    "note": "PRICES ARE PUBLISHED; BILLING IS NOT OPEN. Operator decision 2026-08-28, prices revised 2026-09-03. Three places must agree and this key is the contract between them:\n  (1) published_prices above — the current catalogue, tax-included; the available_from gate keeps unreleased services off the page\n  (2) BILLING_PLANS (settings_commerce.py) stays [] — so /pricing/ lists no checkout button and billing_checkout refuses; the payment path is shut at TWO points (operator-only, and it aborts without a Stripe key)\n  (3) /特商法/ states the prices AND that card payment begins after Stripe's corporate review — so the page never simultaneously denies and advertises paid plans\nThe previous state was not_offered, whose contract was the mirror image: 'no paid plans exist, keep all three saying so'. Do not move ONE of the three without the other two; that inconsistency is exactly what this key exists to prevent.",
+    "lab_tier_retired_2026_09_03": "SciTeX Lab 月額 100,000円 was published 2026-08-28 and RETIRED 2026-09-03 (business commit 0fb4ab9: ラボ・機関プランを廃し、オンプレ導入／保守サポートに置き換える). It stayed on the public 特商法 page for six days after retirement because this file was not updated with business.yaml. Found by the operator while filling in the Stripe activation form — the reviewer reads this page, and a price for something not for sale is grounds for a query."
   },
   "_pending_operator_decision": {
     "note": "Two items removed from /landing/ are COMMITMENTS, not indicative bands, and are parked here rather than deleted so they are not lost: a reader could have relied on either. Restore or retire them explicitly.",
