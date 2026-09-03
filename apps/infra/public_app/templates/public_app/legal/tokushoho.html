@@ -85,7 +85,7 @@
                                 {% else %}
                                     <ul>
                                         {% for row in published_price_rows %}
-                                            <li>{{ row.label }}: {{ row.price }}{% trans "(税込)" %}</li>
+                                            <li>{{ row.label }}: {{ row.price }}{% trans "(税込)" %}{% if row.price_note %}。{{ row.price_note }}{% endif %}{% if row.included %}<br>{% trans "含まれるもの：" %}{{ row.included|join:"、" }}{% endif %}</li>
                                         {% endfor %}
                                         <li>{% trans "規模の大きい導入（複数研究室など）：規模に応じてお見積り（規模が大きいほど1人あたりは安くなる形）" %}</li>
                                     </ul>

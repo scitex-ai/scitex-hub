@@ -173,6 +173,15 @@ class TestTokushohoPage:
                 f"pricing.json publishes {row['label']} at {row['price']}, but "
                 "the 特商法 page does not show it."
             )
+        # Assert — a discounted row says when the price ends and what follows,
+        # and every row states what it includes (特商法: サービスの内容)
+        noted = [row for row in rows if row["price_note"]]
+        assert noted, "Control: no row carries a price_note today; the loop below is vacuous."
+        for row in noted:
+            assert row["price_note"] in content, f"{row['label']}: {row['price_note']!r} not on the page"
+        for row in rows:
+            for item in row["included"]:
+                assert item in content, f"{row['label']}: included item {item!r} not on the page"
         assert "審査完了後に開始" in content, (
             "The page must state that online card payment opens after the "
             "Stripe review — that is the only part still 準備中."

@@ -115,12 +115,12 @@
                         {% else %}
                             {% for row in tier.rows %}
                                 <dt>{{ row.label }}</dt>
-                                <dd class="svc-plan-price">{{ row.price }}</dd>
+                                <dd class="svc-plan-price">{{ row.price }}{% if row.price_note %}<span class="svc-plan-card-sub">{{ row.price_note }}</span>{% endif %}</dd>
                             {% endfor %}
                         {% endif %}
                     </dl>
                     <p class="svc-card-lead">{{ tier.description }}</p>
-                    {% for row in tier.rows %}{% if row.description %}<p class="svc-muted">{{ row.label }}：{{ row.description }}</p>{% endif %}{% endfor %}
+                    {% for row in tier.rows %}{% if row.description %}<p class="svc-muted">{{ row.label }}：{{ row.description }}</p>{% endif %}{% if row.included %}<p class="svc-muted">{{ row.label }}：{{ row.included|join:"、" }}</p>{% endif %}{% endfor %}
                     <a href="#inquiry" class="svc-btn svc-btn-primary">問い合わせはこちら</a>
                 </article>
                 {% endfor %}
@@ -245,7 +245,10 @@
                     <tbody>
                         {% for group in published_price_groups %}
                             {% for row in group.rows %}
-                            <tr><td>{{ row.label }}</td><td class="svc-price-cell">{{ row.price }}</td></tr>
+                            <tr>
+                                <td>{{ row.label }}{% if row.included %}<br><span class="svc-muted">{{ row.included|join:"、" }}</span>{% endif %}</td>
+                                <td class="svc-price-cell">{{ row.price }}{% if row.price_note %}<br><span class="svc-muted">{{ row.price_note }}</span>{% endif %}</td>
+                            </tr>
                             {% endfor %}
                         {% endfor %}
                     </tbody>

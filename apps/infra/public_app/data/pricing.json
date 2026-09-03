@@ -1,6 +1,6 @@
 {
   "_comment": "SINGLE SOURCE OF TRUTH for every price SciTeX publishes. Operator decision 2026-08-01: 「SSOT にしましょう」 / 「価格はjson あたりにしておくと使いやすいかと」. Before this file, /services/ hard-coded 9 JPY rows in its template and /landing/ hard-coded 12 USD items in its view; the two disagreed by up to 2.7x on the same service. Change a number HERE and it reaches every page and the brochure PDF together. A literal price anywhere else is a bug — tests/scitex_hub/public_app/test_pricing_ssot.py enforces it.",
-  "_amount_is_the_only_truth": "Store the NUMBER, never a formatted string. Rendering derives '無料' from amount 0, the '〜' suffix from from_price, and the '月額' prefix from unit. Storing both 11000 and '11,000円' would be two representations of one fact, which is the duplication this file exists to remove.",
+  "_amount_is_the_only_truth": "Store the NUMBER, never a formatted string. Rendering derives '無料' from amount 0, the '〜' suffix from from_price, the '月額' prefix from unit, and — for a row with `policy` — the selling price from `amount` (always the LIST price, as upstream's list_amount) and the active window in pricing_policies. Never write the discounted number here: 1,490 is 2,980 × 50%, and storing both is two representations of one fact, which is the duplication this file exists to remove.",
   "currency": "JPY",
   "tax_included": true,
   "tax_note": "表示価格はすべて税込(総額)です。",
@@ -11,9 +11,9 @@
       "id": "subscription-student",
       "label": "サブスク・学生",
       "amount": 2980,
+      "policy": "early-adopter",
       "unit": "month",
       "available_from": "2026-09",
-      "withheld": "WITHHELD from publication 2026-09-02 (business, 19:38Z): 2,980 / 5,980 are LIST prices before the early-adopter Launch/Y1 50% (2026-08-08 to 2027-07-31, active). What a customer pays today is 1,490 / 2,990. Publishing the list price as the selling price on a legal page states an amount nobody pays; publishing 「通常 2,980円 → 今 1,490円」 is a dual-price display (景表法) that requires 2,980 to have actually been sold, and it never has. Which framing to use is the operator's decision (business is raising it). Until then this row stays in the catalogue and OFF every page; the amount here remains the list price.",
       "category": "subscription",
       "attributes": {
         "included_storage": {
@@ -27,6 +27,7 @@
         },
         "included_traffic": "normal-use",
         "overage": "metered",
+        "monthly_limit_set_by": "user",
         "eligibility": "機関メールアドレス等で在籍を確認できること"
       }
     },
@@ -34,9 +35,9 @@
       "id": "subscription-general",
       "label": "サブスク・一般",
       "amount": 5980,
+      "policy": "early-adopter",
       "unit": "month",
       "available_from": "2026-09",
-      "withheld": "WITHHELD from publication 2026-09-02 (business, 19:38Z): 2,980 / 5,980 are LIST prices before the early-adopter Launch/Y1 50% (2026-08-08 to 2027-07-31, active). What a customer pays today is 1,490 / 2,990. Publishing the list price as the selling price on a legal page states an amount nobody pays; publishing 「通常 2,980円 → 今 1,490円」 is a dual-price display (景表法) that requires 2,980 to have actually been sold, and it never has. Which framing to use is the operator's decision (business is raising it). Until then this row stays in the catalogue and OFF every page; the amount here remains the list price.",
       "category": "subscription",
       "attributes": {
         "included_storage": {
@@ -49,7 +50,8 @@
           "unit": "JPY-equivalent/month"
         },
         "included_traffic": "normal-use",
-        "overage": "metered"
+        "overage": "metered",
+        "monthly_limit_set_by": "user"
       }
     },
     {
@@ -126,14 +128,15 @@
   "_subscription_status": {
     "state": "announced",
     "note": "PRICES ARE PUBLISHED; BILLING IS NOT OPEN. Operator decision 2026-08-28, prices revised 2026-09-03. Three places must agree and this key is the contract between them:\n  (1) published_prices above — the current catalogue, tax-included; the available_from gate keeps unreleased services off the page\n  (2) BILLING_PLANS (settings_commerce.py) stays [] — so /pricing/ lists no checkout button and billing_checkout refuses; the payment path is shut at TWO points (operator-only, and it aborts without a Stripe key)\n  (3) /特商法/ states the prices AND that card payment begins after Stripe's corporate review — so the page never simultaneously denies and advertises paid plans\nThe previous state was not_offered, whose contract was the mirror image: 'no paid plans exist, keep all three saying so'. Do not move ONE of the three without the other two; that inconsistency is exactly what this key exists to prevent.",
-    "lab_tier_retired_2026_09_03": "SciTeX Lab 月額 100,000円 was published 2026-08-28 and RETIRED 2026-09-03 (business commit 0fb4ab9: ラボ・機関プランを廃し、オンプレ導入／保守サポートに置き換える). It stayed on the public 特商法 page for six days after retirement because this file was not updated with business.yaml. Found by the operator while filling in the Stripe activation form — the reviewer reads this page, and a price for something not for sale is grounds for a query."
+    "lab_tier_retired_2026_09_03": "SciTeX Lab 月額 100,000円 was published 2026-08-28 and RETIRED 2026-09-03 (business commit 0fb4ab9: ラボ・機関プランを廃し、オンプレ導入／保守サポートに置き換える). It stayed on the public 特商法 page for six days after retirement because this file was not updated with business.yaml. Found by the operator while filling in the Stripe activation form — the reviewer reads this page, and a price for something not for sale is grounds for a query.",
+    "early_adopter_price_published_2026_09_02": "The two subscription rows were WITHHELD from 19:38Z to 20:09Z on 2026-09-02 because 2,980 / 5,980 are list prices nobody pays under the active Launch/Y1 50% window. business ruled (operator: 「今日決めた SOHO の資料通りで良い」) to publish the discounted price with the window's end and the price after it, plus what the subscription includes (storage, compute credit, traffic, metered overage, user-set monthly cap) — 特商法 lists サービスの内容 as well as 価格."
   },
   "_pending_operator_decision": {
     "note": "Two items removed from /landing/ are COMMITMENTS, not indicative bands, and are parked here rather than deleted so they are not lost: a reader could have relied on either. Restore or retire them explicitly.",
     "mext_partnership": "50% off all plans — a standing discount to government-funded institutions",
     "pilot_program": "Free (6 months) — Professional-tier features for up to 10 researchers"
   },
-  "_withheld_is_a_gate": "A row with a non-empty `withheld` is in the catalogue and NOT published, whatever its available_from says. It is a stated reason, not a flag — an empty string is not a hold. Use it for a price whose AMOUNT is settled but whose PRESENTATION is not; delete the field to publish.",
+  "_withheld_is_a_gate": "A row with a non-empty `withheld` is in the catalogue and NOT published, whatever its available_from says. It is a stated reason, not a flag — an empty string is not a hold. Use it for a price whose AMOUNT is settled but whose PRESENTATION is not; delete the field to publish. Used 2026-09-02 19:38Z–20:09Z on the two subscription rows while business settled how a list price under an active discount may be shown; no row is withheld now, and a test pins that.",
   "_published_prices_fields": "category (subscription | service), description, attributes and price_is_floor are copied VERBATIM from business.yaml so /services/ can describe each offer without hub inventing a sentence. Two deliberate omissions when copying: internal planning notes (e.g. 「計画上はこの下限を使う」) are not customer copy and stay upstream; and a price restated inside a description is dropped, because `amount` is the only truth in this file. price_is_floor is the upstream fact; from_price is how this file renders it (円〜).",
   "_consulting_bands_retired_2026_09_02": "Until 2026-09-02 this file carried a `consulting` list (技術相談 11,000 / コードレビュー 33,000〜 / 環境構築 55,000〜 / 個別開発 110,000〜 / 継続支援 月額 33,000〜 / 技術顧問 月額 55,000〜) and a three-tier `plans` list (Individual / Lab / Enterprise) that cited them. business retired both: the operator-approved five-year plan — the SOHO tenancy application and the bank's supporting document — is built on 受託開発 198,000円/件 × 8 and コンサル 9,800円/時間 × 48h/yr, so a site saying 110,000円〜 for the same work put three different prices on one product. The CAPABILITY is not retired: 技術相談・コードレビュー・環境構築 are what コンサル 9,800円/時間 covers. What retired was the packaging from one 2024 invoice to one customer — a history, not a maintained price list. If package pricing ever returns it enters business.yaml first, then the plan, then this file; never this file first. The Lab tier had already been retired on 2026-08-28 and was still priced on /services/ until this change.",
   "_tiers": "The /services/ tiers, in business's words (2026-09-02). The axis is 'use it yourself' (サブスク) vs 'install it in an organisation' (オンプレ) vs 'department / university scale' (大規模, quote only). `rows` cite published_prices ids; the page renders each cited row's label and price, so the tier copy never carries a number. Every tier links to the same inquiry form — for 大規模 the form is the only entry.",
@@ -166,5 +169,33 @@
       "quote_only": true,
       "description": "規模が大きいほど一人あたりは下がります。構成をうかがって個別にお見積りします。"
     }
-  ]
+  ],
+  "_pricing_policies": "Discount schedules, copied VERBATIM from business.yaml pricing_policies. A row that carries `policy` sells at its `amount` (the LIST price) minus the percent of the window that is `active` on the day the page renders; a `proposed` window discounts nothing until upstream activates it. The page states when the active window ends — business's ruling of 2026-09-02 20:09Z: the discounted price is the ONLY selling price shown, never the list price alone (nobody has paid it) and never a struck-through pair (景表法: a 'was' price must have been sold). WHAT FOLLOWS THE WINDOW IS WITHHELD (business, 2026-09-03 00:02Z): the approved five-year plan was computed with the Y2 (30%) and Y3 (10%) windows applied while this schedule marks them `proposed`, so the SSoT contradicts itself and the operator is deciding whether 「以降は」 names the list price or the next window's. The renderer therefore says nothing after the period; the wording is added on purpose when the ruling comes, never by the calendar.",
+  "pricing_policies": {
+    "early-adopter": {
+      "schedule": [
+        {
+          "label": "Launch / Y1",
+          "start": "2026-08-08",
+          "end": "2027-07-31",
+          "percent": 50,
+          "status": "active"
+        },
+        {
+          "label": "Y2",
+          "start": "2027-08-01",
+          "end": "2028-07-31",
+          "percent": 30,
+          "status": "proposed"
+        },
+        {
+          "label": "Y3",
+          "start": "2028-08-01",
+          "end": "2029-07-31",
+          "percent": 10,
+          "status": "proposed"
+        }
+      ]
+    }
+  }
 }

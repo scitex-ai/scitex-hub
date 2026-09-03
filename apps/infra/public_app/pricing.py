@@ -19,13 +19,14 @@ it looks like "we charge nothing".
 from __future__ import annotations
 
 import json
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
 
 __all__ = [
     "PRICING_PATH",
     "format_amount",
+    "included_items",
     "load_pricing",
     "published_price_groups",
     "published_price_rows",
@@ -79,6 +80,95 @@ def format_amount(amount: int, unit: str = "once", from_price: bool = False) -> 
     return f"{_UNIT_PREFIX[unit]}{amount:,}{suffix}"
 
 
+# How one upstream attribute of a published row reads to a visitor. Keys are
+# business.yaml's attribute names, copied verbatim into pricing.json; the
+# phrasing is this module's, because prose written for a planning document is
+# not customer copy. Every value form is enumerated, so a value this table has
+# not seen fails the test that renders the whole catalogue instead of reaching
+# a legal page as an English token. 特商法 lists サービスの内容 alongside 価格;
+# this is where the 内容 comes from.
+_STORAGE_UNIT = {"GB/month": "GB/月"}
+_CREDIT_UNIT = {"JPY-equivalent/month": "円相当/月"}
+_TRAFFIC = {"normal-use": "通常利用の範囲の通信"}
+_OVERAGE = {"metered": "超過分は従量課金"}
+_LIMIT_SET_BY = {"user": "月の上限は利用者が設定"}
+
+
+def _storage_text(value: dict[str, Any]) -> str:
+    kind = f"（{value['type']}）" if value.get("type") else ""
+    return f"ストレージ {value['amount']:,}{_STORAGE_UNIT[value['unit']]}{kind}"
+
+
+def _credit_text(value: dict[str, Any]) -> str:
+    return f"計算クレジット {value['amount']:,}{_CREDIT_UNIT[value['unit']]}"
+
+
+_ATTRIBUTE_TEXT = {
+    "included_storage": _storage_text,
+    "included_compute_credit": _credit_text,
+    "included_traffic": _TRAFFIC.__getitem__,
+    "overage": _OVERAGE.__getitem__,
+    "monthly_limit_set_by": _LIMIT_SET_BY.__getitem__,
+    "eligibility": "対象: {}".format,
+}
+
+
+def included_items(attributes: dict[str, Any]) -> list[str]:
+    """What a row includes, one short phrase per attribute, in catalogue order.
+
+    Raises on an attribute name or value this module does not know: the
+    catalogue is committed with the code that renders it, and the test that
+    renders every row turns an unknown upstream field into a red CI rather
+    than a silently shorter legal page.
+    """
+    items = []
+    for key, value in attributes.items():
+        if key not in _ATTRIBUTE_TEXT:
+            raise ValueError(
+                f"unknown attribute {key!r} in pricing.json; add its wording to "
+                "_ATTRIBUTE_TEXT deliberately rather than dropping it from the page."
+            )
+        items.append(_ATTRIBUTE_TEXT[key](value))
+    return items
+
+
+def _active_window(policy: str, policies: dict[str, Any], today: date) -> dict[str, Any] | None:
+    """The discount window of ``policy`` that is active on ``today``, or None.
+
+    Only a window whose upstream ``status`` is ``active`` discounts anything;
+    a ``proposed`` window is a plan, and a page that priced by a plan would
+    state an amount nobody has decided to charge.
+    """
+    if policy not in policies:
+        raise ValueError(
+            f"pricing.json row cites policy {policy!r} but pricing_policies does "
+            "not define it; copy the schedule from business.yaml."
+        )
+    day = today.isoformat()
+    for window in policies[policy]["schedule"]:
+        if window.get("status") == "active" and window["start"] <= day <= window["end"]:
+            return window
+    return None
+
+
+def _discounted(list_amount: int, percent: int) -> int:
+    scaled = list_amount * (100 - percent)
+    if scaled % 100:
+        raise ValueError(
+            f"{list_amount} at {percent}% off is not a whole yen; the rounding is "
+            "a pricing decision that belongs in business.yaml, not here."
+        )
+    return scaled // 100
+
+
+def _until_text(end: str) -> str:
+    """2027-07-31 -> 2027年7月末; a mid-month end names the day."""
+    last = date.fromisoformat(end)
+    if (last + timedelta(days=1)).day == 1:
+        return f"{last.year}年{last.month}月末"
+    return f"{last.year}年{last.month}月{last.day}日"
+
+
 def _render(row: dict[str, Any]) -> str:
     return format_amount(
         row["amount"], row.get("unit", "once"), row.get("from_price", False)
@@ -117,8 +207,10 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
     """
     today = today or date.today()
     this_month = f"{today.year:04d}-{today.month:02d}"
+    data = load_pricing()
+    policies = data.get("pricing_policies", {})
     rows = []
-    for item in load_pricing().get("published_prices", []):
+    for item in data.get("published_prices", []):
         # business.yaml's rule, verbatim: published iff available_from is SET
         # and <= this month. A row with no date is not for sale at a list
         # price (upstream's usage-billed rows have none), so it is excluded —
@@ -133,13 +225,31 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
         # Stated reason, never a bare flag; whitespace is not a hold.
         if str(item.get("withheld", "")).strip():
             continue
+        unit = item.get("unit", "once")
+        from_price = item.get("from_price", False)
+        # `amount` is the LIST price. A row under a discount policy sells at
+        # the active window's price and says when that window ends (business
+        # ruling 2026-09-02 20:09Z: the discounted price alone, never the list
+        # price alone, never a struck-through pair). What the price is AFTER
+        # the window is deliberately NOT stated (business, 2026-09-03 00:02Z):
+        # the approved five-year plan was computed with the Y2/Y3 windows
+        # applied while business.yaml still marks them `proposed`, so the SSoT
+        # contradicts itself on what follows, and the operator is deciding.
+        # Until that ruling the page states only the period; the wording for
+        # 「以降は」 is added on purpose when it comes, never by the calendar.
+        amount, price_note = item["amount"], ""
+        if item.get("policy"):
+            window = _active_window(item["policy"], policies, today)
+            if window is not None:
+                amount = _discounted(amount, window["percent"])
+                price_note = f"{_until_text(window['end'])}までの早期導入価格"
         rows.append(
             {
                 "id": item["id"],
                 "label": item["label"],
-                "price": format_amount(
-                    item["amount"], item.get("unit", "once"), item.get("from_price", False)
-                ),
+                "price": format_amount(amount, unit, from_price),
+                "price_note": price_note,
+                "included": included_items(item.get("attributes", {})),
                 # Pass-through of the upstream catalogue's descriptive fields, so
                 # /services/ can describe an offer in business.yaml's words.
                 "category": item.get("category", "service"),

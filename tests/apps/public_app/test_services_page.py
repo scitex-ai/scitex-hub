@@ -114,6 +114,11 @@ class TestServicesGet:
             assert row["label"] in content and row["price"] in content, (
                 f"{row['label']} {row['price']} is in pricing.json but not on /services/."
             )
+        for row in rows:
+            if row["price_note"]:
+                assert row["price_note"] in content, f"{row['label']}: {row['price_note']!r} not on /services/"
+            for item in row["included"]:
+                assert item in content, f"{row['label']}: included item {item!r} not on /services/"
         assert "税込" in content
 
     def test_get_no_longer_prices_retired_offers(self, client, services_url):
