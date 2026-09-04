@@ -97,6 +97,16 @@ CARDS_STORE_UPSTREAM_ENV = "SCITEX_CARDS_DB"
 #: "cards" — the board scitex-cards reads — and not, say, "hub".
 CARDS_STORE_PKG = "cards"
 
+#: How a deployment names its environment. The SAME variable and the SAME
+#: production spellings ``config/settings/__init__.py`` switches on, so the
+#: two cannot disagree about which deployment is production.
+HUB_ENV_VAR = "SCITEX_HUB_ENV"
+PRODUCTION_ENV_NAMES = ("prod", "production")
+
+
+def _is_production(env) -> bool:
+    return str(env.get(HUB_ENV_VAR, "development")).lower() in PRODUCTION_ENV_NAMES
+
 
 def publish_cards_store_target(environ: dict | None = None) -> str | None:
     """Hand scitex-cards the store target THIS DEPLOYMENT chose, or the fleet's.
@@ -125,6 +135,22 @@ def publish_cards_store_target(environ: dict | None = None) -> str | None:
        and published as ``$SCITEX_CARDS_DB``. A hub that has been told nothing
        lands on the fleet's PostgreSQL on port 55432, which is where every other
        package in the ecosystem already keeps its store.
+
+       EXCEPT IN PRODUCTION. Tier 3 is a development convenience: on a laptop
+       or the dev preview, "the fleet's shared board" is what a developer
+       wants to see. On scitex.ai it is an exposure: the board's middleware
+       gates on ``is_authenticated`` only (apps/workspace/todo_app/
+       middleware.py), so a production hub that fell through to tier 3 would
+       hand the fleet's live task board — every agent's cards, DMs and
+       operator notes — to any signed-in customer. That is the exact config
+       change the parent card forbade (hub-cards-store-contract-and-multihost-
+       20260730, comment c_1971278e38ee), and #705 introduced it by accident;
+       measured 2026-09-03 on scitex-nas-03, only the container's inability to
+       resolve ``scitex-primary`` stood between the two. So when
+       ``$SCITEX_HUB_ENV`` names production — the same spellings
+       ``config/settings/__init__.py`` switches on — tier 3 publishes NOTHING,
+       logs why, and the board answers its typed 404 until a deployment states
+       a store it owns through tier 2.
 
     WHY TIER 3 IS A DEFAULT HERE AND A HARD FAILURE FOR ``DATABASES``.
     These two look contradictory in the same settings package and they are not,
@@ -194,6 +220,21 @@ def publish_cards_store_target(environ: dict | None = None) -> str | None:
     if chosen:
         env[CARDS_STORE_UPSTREAM_ENV] = chosen
         return chosen
+
+    if _is_production(env):
+        logger.error(
+            "[cards-store] no store configured (%s / %s unset) and this is "
+            "PRODUCTION (%s=%s): the fleet default is NOT applied here, because "
+            "scitex.ai must not serve the fleet's task board to every signed-in "
+            "user. The board's data endpoints will answer 404 naming %s; set it "
+            "to a store this deployment owns. The rest of the site is unaffected.",
+            CARDS_STORE_HUB_ENV,
+            CARDS_STORE_UPSTREAM_ENV,
+            HUB_ENV_VAR,
+            env.get(HUB_ENV_VAR),
+            CARDS_STORE_HUB_ENV,
+        )
+        return None
 
     # Imported here, not at module scope: this module is imported during
     # settings load and `scitex_dev.store` is only needed on the tier that
