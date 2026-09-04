@@ -57,7 +57,16 @@
                             <th>{% trans "メールアドレス" %}</th>
                             <td>
                                 {% if company_contact_email %}
-                                    <a href="mailto:{{ company_contact_email }}">{{ company_contact_email }}</a>
+                                    {% comment %}
+                                    Cloudflare's Email Address Obfuscation rewrites every address in
+                                    the HTML into a JavaScript-decoded stub ([email protected]), so the
+                                    served page carried NO readable address (business measured it with
+                                    curl, 2026-09-04). A 特商法 contact must be readable without script,
+                                    and this address is the route that survives when a customer's own
+                                    registered address dies. The email_off markers are Cloudflare's own
+                                    opt-out for a segment.
+                                    {% endcomment %}
+                                    <!--email_off--><a href="mailto:{{ company_contact_email }}">{{ company_contact_email }}</a><!--/email_off-->
                                 {% else %}
                                     <span class="tokushoho-pending">{% trans "準備中 — 確定後に掲載します。" %}</span>
                                 {% endif %}
@@ -111,7 +120,9 @@
                         <tr>
                             <th>{% trans "支払時期" %}</th>
                             <td>
-                                {% trans "都度払い: ご購入手続き完了時にお支払いが確定します。サブスクリプション(定期課金): 初回はお申し込み時、以降は各更新日に課金されます。" %}
+                                {% trans "サブスクリプション(定期課金): お申し込み時にクレジットカードをご登録いただきます。登録から30日間は無料で、料金は発生しません。31日目に初回の月額課金が自動で始まり、以降は毎月の更新日に課金されます。無料期間が終わる前に、ご登録のメールアドレスへお知らせします。" %}
+                                <br>
+                                {% trans "都度払い(導入支援・受託開発・コンサルティング等): お見積り・ご契約後、請求書に記載の期日までにお支払いいただきます。" %}
                             </td>
                         </tr>
                         <tr>
@@ -122,13 +133,27 @@
                             <th>{% trans "返品・キャンセル" %}</th>
                             <td>
                                 {# 返品・キャンセル特約 — draft by the business/legal owner (grant repo: business/scitex-kk/tokushoho-pricing-notes.md). Final operator/legal review required before live charging. #}
+                                {% comment %}
+                                Three steps in this order, so that 「30日間はいつでも解約できます」 is not
+                                read as 「30日以内なら返金される」: during the free period there is no
+                                charge, so there is nothing to refund; after it, cancelling stops the
+                                NEXT renewal and never refunds the paid period. Operator ruling
+                                2026-09-03 (Telegram 6965), relayed by business: no refunds, use until
+                                the end of the paid period, monthly and yearly alike. 特商法 lists
+                                申込みの撤回・解除 as a required disclosure, and the final confirmation
+                                screen repeats it.
+                                {% endcomment %}
+                                <ol>
+                                    <li>{% trans "お申し込みから30日間は無料です。この間はマイページからいつでも解約でき、料金は発生しません。" %}</li>
+                                    <li>{% trans "30日を過ぎると、月額課金が自動で始まります。" %}</li>
+                                    <li>{% trans "課金開始後に解約された場合、日割りの返金はありません。解約は次回更新の停止であり、お支払い済みの期間の末日までご利用いただけます(月払い・年払いとも同じ扱いです)。" %}</li>
+                                </ol>
+                                <p>
+                                    {% trans "解約はログイン後のマイページから完結し、メールのリンクは必要ありません。ご登録のメールアドレスが使えなくなった場合も、上記の電話番号またはメールアドレスまでご連絡いただければ、個別に対応します。" %}
+                                </p>
                                 <p>
                                     {% trans "本サービスはデジタルコンテンツおよびオンラインサービスの性質上、提供開始後のお客様都合による返品・返金はお受けいたしません。" %}
                                 </p>
-                                <p>
-                                    {% trans "サブスクリプション(定期課金)はマイページからいつでも解約でき、解約手続き後は次回更新分の課金が停止します。既にお支払いいただいた利用期間分の日割り返金は行いません。" %}
-                                </p>
-                                <p>{% trans "無料トライアル期間中に解約された場合、料金は発生しません。" %}</p>
                                 <p>
                                     {% trans "当社の責めに帰すべき事由によりサービスを提供できなかった場合は、法令に従い対応いたします。" %}
                                 </p>

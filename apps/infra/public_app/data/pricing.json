@@ -9,7 +9,7 @@
   "published_prices": [
     {
       "id": "subscription-student",
-      "label": "サブスク・学生",
+      "label": "サブスク・学術",
       "amount": 2980,
       "policy": "early-adopter",
       "unit": "month",
@@ -28,7 +28,7 @@
         "included_traffic": "normal-use",
         "overage": "metered",
         "monthly_limit_set_by": "user",
-        "eligibility": "機関メールアドレス等で在籍を確認できること"
+        "eligibility": "大学・研究機関のメールアドレスを持つこと（学生・院生・教職員・研究員）"
       }
     },
     {
@@ -129,7 +129,8 @@
     "state": "announced",
     "note": "PRICES ARE PUBLISHED; BILLING IS NOT OPEN. Operator decision 2026-08-28, prices revised 2026-09-03. Three places must agree and this key is the contract between them:\n  (1) published_prices above — the current catalogue, tax-included; the available_from gate keeps unreleased services off the page\n  (2) BILLING_PLANS (settings_commerce.py) stays [] — so /pricing/ lists no checkout button and billing_checkout refuses; the payment path is shut at TWO points (operator-only, and it aborts without a Stripe key)\n  (3) /特商法/ states the prices AND that card payment begins after Stripe's corporate review — so the page never simultaneously denies and advertises paid plans\nThe previous state was not_offered, whose contract was the mirror image: 'no paid plans exist, keep all three saying so'. Do not move ONE of the three without the other two; that inconsistency is exactly what this key exists to prevent.",
     "lab_tier_retired_2026_09_03": "SciTeX Lab 月額 100,000円 was published 2026-08-28 and RETIRED 2026-09-03 (business commit 0fb4ab9: ラボ・機関プランを廃し、オンプレ導入／保守サポートに置き換える). It stayed on the public 特商法 page for six days after retirement because this file was not updated with business.yaml. Found by the operator while filling in the Stripe activation form — the reviewer reads this page, and a price for something not for sale is grounds for a query.",
-    "early_adopter_price_published_2026_09_02": "The two subscription rows were WITHHELD from 19:38Z to 20:09Z on 2026-09-02 because 2,980 / 5,980 are list prices nobody pays under the active Launch/Y1 50% window. business ruled (operator: 「今日決めた SOHO の資料通りで良い」) to publish the discounted price with the window's end and the price after it, plus what the subscription includes (storage, compute credit, traffic, metered overage, user-set monthly cap) — 特商法 lists サービスの内容 as well as 価格."
+    "early_adopter_price_published_2026_09_02": "The two subscription rows were WITHHELD from 19:38Z to 20:09Z on 2026-09-02 because 2,980 / 5,980 are list prices nobody pays under the active Launch/Y1 50% window. business ruled (operator: 「今日決めた SOHO の資料通りで良い」) to publish the discounted price with the window's end and the price after it, plus what the subscription includes (storage, compute credit, traffic, metered overage, user-set monthly cap) — 特商法 lists サービスの内容 as well as 価格.",
+    "academic_rename_2026_09_03": "サブスク・学生 → サブスク・学術 (business.yaml PR #54, operator Telegram 6924/6929): a university address proves AFFILIATION, not student status — faculty share the domain — so the name now matches what is verified. eligibility became 大学・研究機関のメールアドレスを持つこと（学生・院生・教職員・研究員）. The id subscription-student is deliberately unchanged: the five-year plan and this file reference it. Price unchanged (business re-summed all five years)."
   },
   "_pending_operator_decision": {
     "note": "Two items removed from /landing/ are COMMITMENTS, not indicative bands, and are parked here rather than deleted so they are not lost: a reader could have relied on either. Restore or retire them explicitly.",
@@ -170,7 +171,7 @@
       "description": "規模が大きいほど一人あたりは下がります。構成をうかがって個別にお見積りします。"
     }
   ],
-  "_pricing_policies": "Discount schedules, copied VERBATIM from business.yaml pricing_policies. A row that carries `policy` sells at its `amount` (the LIST price) minus the percent of the window that is `active` on the day the page renders; a `proposed` window discounts nothing until upstream activates it. The page states when the active window ends — business's ruling of 2026-09-02 20:09Z: the discounted price is the ONLY selling price shown, never the list price alone (nobody has paid it) and never a struck-through pair (景表法: a 'was' price must have been sold). WHAT FOLLOWS THE WINDOW IS WITHHELD (business, 2026-09-03 00:02Z): the approved five-year plan was computed with the Y2 (30%) and Y3 (10%) windows applied while this schedule marks them `proposed`, so the SSoT contradicts itself and the operator is deciding whether 「以降は」 names the list price or the next window's. The renderer therefore says nothing after the period; the wording is added on purpose when the ruling comes, never by the calendar.",
+  "_pricing_policies": "Discount schedules, copied VERBATIM from business.yaml pricing_policies. A row that carries `policy` sells at its `amount` (the LIST price) minus the percent of the window whose DATES cover the day the page renders — selection is by date, exactly as the business engine's Price.from_mapping does it; `status` only marks which single phase is current (two may not be active at once) and is NOT read here (business, 2026-09-03 06:54Z, correcting their 00:02Z hold; the 50→30→10 taper is a settled decision, operator Telegram 6913). The page states, before the period: the list price and the discount (「定価 2,980円、早期導入割引 50%」 — operator Telegram 6915 wants 割引 named, because reducing a discount reads more honestly than raising a price later), then when the window ends, then every later stage at its own percent and finally the list price from the day after the last window. Disclosing all stages up front is what keeps 「定価」 a stated future price and not a 景表法 claim of past sales; a struck-through pair is still refused.",
   "pricing_policies": {
     "early-adopter": {
       "schedule": [
