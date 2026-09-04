@@ -256,6 +256,35 @@ class TestTheWipeDoesNotNarrowTheHomeRoot:
         assert _app_can_list(target) is True
 
     @pytest.mark.guards(defect=DEFECT)
+    def test_a_directory_entry_is_removable_when_it_is_iterated_first(self, tmp_path):
+        """THE ORDER-DEPENDENT FAILURE, made deterministic.
+
+        ``wipe_directory_contents`` iterates the home root in the filesystem's
+        own order. When a DIRECTORY entry comes before any file entry, nothing
+        has widened the read-only root yet, and rmdir needs write on the
+        parent just as unlink does. ``force_rmtree``'s directory branch used to
+        widen only the tree below the directory, so its retry hit the same
+        EACCES and the wipe failed — but only on filesystems (and tmp names)
+        whose hash order put the directory first. CI flickered per leg for
+        two days and then went red on every leg. A home root holding ONLY a
+        directory removes the order from the equation: this test is red on the
+        old code on every filesystem.
+        """
+        # Arrange
+        root = tmp_path / "data" / "users" / "visitor-001"
+        (root / "proj" / "dotfiles").mkdir(parents=True)
+        (root / "proj" / "dotfiles" / "bashrc").write_text("# bashrc\n")
+        os.chmod(root, 0o555)
+        try:
+            # Act
+            wipe_directory_contents(root)
+            # Assert
+            assert list(root.iterdir()) == []
+            assert _app_can_list(root) is True
+        finally:
+            os.chmod(root, APP_TRAVERSABLE_DIR_MODE)
+
+    @pytest.mark.guards(defect=DEFECT)
     def test_that_wipe_still_empties_the_directory(self, read_only_visitor_home):
         """The widening must not have been bought by skipping the removal."""
         # Arrange
