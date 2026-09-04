@@ -84,11 +84,10 @@
                                     </p>
                                 {% else %}
                                     <ul>
-                                        {% for row in subscription_rows %}
-                                            <li>SciTeX {{ row.name }}: {{ row.price }}{% trans "(税込)" %}</li>
+                                        {% for row in published_price_rows %}
+                                            <li>{{ row.label }}: {{ row.price }}{% trans "(税込)" %}{% if row.price_note %}。{{ row.price_note }}{% endif %}{% if row.included %}<br>{% trans "含まれるもの：" %}{{ row.included|join:"、" }}{% endif %}</li>
                                         {% endfor %}
-                                        <li>{% trans "機関向け：規模に応じて別途お見積り" %}</li>
-                                        <li>{% trans "受託開発・コンサルティング：個別にお見積り" %}</li>
+                                        <li>{% trans "規模の大きい導入（複数研究室など）：規模に応じてお見積り（規模が大きいほど1人あたりは安くなる形）" %}</li>
                                     </ul>
                                     <p>
                                         {% trans "オンラインでのクレジットカード決済は、決済代行（Stripe）の審査完了後に開始します。それまでのお申し込み・お見積りは info@scitex.ai までご連絡ください。" %}

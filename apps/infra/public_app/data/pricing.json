@@ -1,111 +1,116 @@
 {
   "_comment": "SINGLE SOURCE OF TRUTH for every price SciTeX publishes. Operator decision 2026-08-01: 「SSOT にしましょう」 / 「価格はjson あたりにしておくと使いやすいかと」. Before this file, /services/ hard-coded 9 JPY rows in its template and /landing/ hard-coded 12 USD items in its view; the two disagreed by up to 2.7x on the same service. Change a number HERE and it reaches every page and the brochure PDF together. A literal price anywhere else is a bug — tests/scitex_hub/public_app/test_pricing_ssot.py enforces it.",
-  "_amount_is_the_only_truth": "Store the NUMBER, never a formatted string. Rendering derives '無料' from amount 0, the '〜' suffix from from_price, and the '月額' prefix from unit. Storing both 11000 and '11,000円' would be two representations of one fact, which is the duplication this file exists to remove.",
+  "_amount_is_the_only_truth": "Store the NUMBER, never a formatted string. Rendering derives '無料' from amount 0, the '〜' suffix from from_price, the '月額' prefix from unit, and — for a row with `policy` — the selling price from `amount` (always the LIST price, as upstream's list_amount) and the active window in pricing_policies. Never write the discounted number here: 1,490 is 2,980 × 50%, and storing both is two representations of one fact, which is the duplication this file exists to remove.",
   "currency": "JPY",
   "tax_included": true,
   "tax_note": "表示価格はすべて税込(総額)です。",
-  "updated": "2026-08-02",
-  "consulting": [
+  "updated": "2026-09-03",
+  "_published_prices_are_the_tokushoho_list": "The price list the 特定商取引法 page publishes, and the ONLY list it publishes. Operator decision 2026-09-03, relayed by business. UPSTREAM: github.com/ywatanabe1989/scitex-business, scitex-kk/config/business.yaml (the BUSINESS repo — not scitex-ai/scitex-business, which is the engine package; same name, two orgs). Every row here was checked against that file on 2026-09-02: id, label, amount, interval, available_from. All amounts tax-INCLUDED, operator ruling 2026-09-03: 「税込みとしてだしましょう」. THE PUBLICATION RULE IS business.yaml's, verbatim, so an export can replace this hand-copy without changing what the page shows: a row is published iff `available_from` (YYYY-MM) is SET and <= the current month. No available_from = not for sale at a list price (business.yaml's 18 usage-billed rows — API, storage, compute, traffic — have none and are permanently excluded). A future month = in the catalogue, off the page, appears on its month with no code change — so a deploy is still the human gate on what a legal page says; the derivation is automatic, the publication is a diff someone reads. `status` is NOT a gate: all 26 upstream rows are `draft`, including the six on the page by decision. Labels follow the SSoT exactly (コンサル, not コンサルティング) because a hand-maintained exception on the page would be overwritten by the first mechanical export.",
+  "published_prices": [
     {
-      "id": "initial-consult-30min",
-      "label": "初回相談・課題の整理（30分）",
-      "amount": 0,
-      "unit": "once",
-      "from_price": false
-    },
-    {
-      "id": "technical-consult-60min",
-      "label": "技術相談・設計相談（60分）",
-      "amount": 11000,
-      "unit": "once",
-      "from_price": false,
-      "anchor": "invoice-2024-06 小機能 10,000+税"
-    },
-    {
-      "id": "small-fix",
-      "label": "小さな設定・修正・調査",
-      "amount": 11000,
-      "unit": "once",
-      "from_price": true,
-      "anchor": "invoice-2024-06 小機能 10,000+税"
-    },
-    {
-      "id": "code-review",
-      "label": "コードレビュー・環境診断",
-      "amount": 33000,
-      "unit": "once",
-      "from_price": true,
-      "anchor": "invoice-2024-06 中規模機能 30,000+税"
-    },
-    {
-      "id": "environment-build",
-      "label": "環境構築・データ移行・自動化",
-      "amount": 55000,
-      "unit": "once",
-      "from_price": true,
-      "anchor": "invoice-2024-07 論文制作費 50,000+税"
-    },
-    {
-      "id": "lab-poc",
-      "label": "研究室向け試験導入・PoC",
-      "amount": 55000,
-      "unit": "once",
-      "from_price": true
-    },
-    {
-      "id": "custom-development",
-      "label": "個別開発・本格導入",
-      "amount": 110000,
-      "unit": "once",
-      "from_price": true,
-      "anchor": "invoice-2024-06 メール個別対応 100,000+税"
-    },
-    {
-      "id": "ongoing-support",
-      "label": "継続的な技術支援",
-      "amount": 33000,
+      "id": "subscription-student",
+      "label": "サブスク・学生",
+      "amount": 2980,
+      "policy": "early-adopter",
       "unit": "month",
-      "from_price": true
-    },
-    {
-      "id": "technical-advisor",
-      "label": "技術顧問・組織的な導入支援",
-      "amount": 55000,
-      "unit": "month",
-      "from_price": true
-    }
-  ],
-  "_plans_reference_bands": "The three plan tiers do NOT carry their own numbers. Each names a `price_ref` into `consulting` above, because /services/ previously printed the same band in FOUR places — the desktop comparison table and the mobile card, for each of three plans — all hand-typed. Changing a band would have updated the price table and silently left the plan cards showing the old figure. A reference cannot drift from what it references.",
-  "plans": [
-    {
-      "id": "individual",
-      "name": "Individual",
-      "audience": "個人研究者・大学院生",
-      "price_ref": "small-fix",
-      "subscription": {
-        "amount": 2980,
-        "unit": "month",
-        "from_price": false
+      "available_from": "2026-09",
+      "category": "subscription",
+      "attributes": {
+        "included_storage": {
+          "amount": 50,
+          "unit": "GB/month",
+          "type": "Standard"
+        },
+        "included_compute_credit": {
+          "amount": 1000,
+          "unit": "JPY-equivalent/month"
+        },
+        "included_traffic": "normal-use",
+        "overage": "metered",
+        "monthly_limit_set_by": "user",
+        "eligibility": "機関メールアドレス等で在籍を確認できること"
       }
     },
     {
-      "id": "lab",
-      "name": "Lab",
-      "audience": "研究室・共同研究チーム",
-      "price_ref": "lab-poc",
-      "featured": true,
-      "subscription": {
-        "amount": 100000,
-        "unit": "month",
-        "from_price": false
+      "id": "subscription-general",
+      "label": "サブスク・一般",
+      "amount": 5980,
+      "policy": "early-adopter",
+      "unit": "month",
+      "available_from": "2026-09",
+      "category": "subscription",
+      "attributes": {
+        "included_storage": {
+          "amount": 50,
+          "unit": "GB/month",
+          "type": "Standard"
+        },
+        "included_compute_credit": {
+          "amount": 1000,
+          "unit": "JPY-equivalent/month"
+        },
+        "included_traffic": "normal-use",
+        "overage": "metered",
+        "monthly_limit_set_by": "user"
       }
     },
     {
-      "id": "enterprise",
-      "name": "Enterprise",
-      "audience": "大学・研究機関・企業 R&D",
-      "price_ref": "custom-development",
-      "suffix": "／要見積もり"
+      "id": "onprem-setup",
+      "label": "オンプレ導入サポート",
+      "amount": 298000,
+      "unit": "per_case",
+      "available_from": "2026-08",
+      "from_price": true,
+      "category": "service",
+      "description": "オンプレミス導入支援。規模に応じて個別見積。",
+      "price_is_floor": true
+    },
+    {
+      "id": "onprem-maintenance",
+      "label": "オンプレ保守サポート",
+      "amount": 98000,
+      "unit": "month",
+      "available_from": "2026-08",
+      "from_price": true,
+      "category": "service",
+      "description": "オンプレミス保守。規模に応じて個別見積。",
+      "price_is_floor": true
+    },
+    {
+      "id": "contract-development",
+      "label": "受託開発",
+      "amount": 198000,
+      "unit": "per_case",
+      "available_from": "2026-08",
+      "category": "service",
+      "description": "研究・アプリ開発等。個別見積。"
+    },
+    {
+      "id": "consulting",
+      "label": "コンサル",
+      "amount": 9800,
+      "unit": "per_hour",
+      "available_from": "2026-08",
+      "category": "service",
+      "description": "技術・研究相談。時間に応じて課金。"
+    },
+    {
+      "id": "translation",
+      "label": "SciTeX 翻訳",
+      "amount": 98000,
+      "unit": "per_case",
+      "available_from": "2027-08",
+      "category": "service",
+      "description": "既存の解析・原稿を SciTeX 形式に移す。規模により個別見積だが、1 件から受け付ける。誰でも依頼できる。"
+    },
+    {
+      "id": "clew-verification",
+      "label": "Clew 検証",
+      "amount": 98000,
+      "unit": "per_case",
+      "available_from": "2027-08",
+      "category": "service",
+      "description": "再現・検証実行（SciTeX 形式に対応）。計算資源費等は別途従量。1 件から受け付ける。誰でも依頼できる。"
     }
   ],
   "_notes_are_verbatim": "The first three are the exact lines /services/ published before this file existed, copied character-for-character so migrating the template changes nothing visible. The fourth is NEW, added at the operator's request 2026-08-01:「目安ですので気楽にご相談ください、と書いておくと良いかもですね」— with bands as wide as 55,000〜220,000, a reader with no invitation to ask simply leaves.",
@@ -116,19 +121,81 @@
     "上記はいずれも目安です。ご予算や状況に合わせて調整できますので、気楽にご相談ください。"
   ],
   "_provenance": {
-    "note": "The four `anchor` values above are not estimates. They are the operator's own 2024 invoices to 東京大学大学院薬学系研究科薬品作用学教室, read directly. Each listed band equals the invoiced amount plus 10% consumption tax, exactly. Do not 'tidy' these numbers without a new basis — they are what was billed and paid.",
+    "note": "HISTORY, not a price list. The 2024 invoices below anchored the consulting bands that this file carried until 2026-09-02 (see _consulting_bands_retired_2026_09_02). They are kept so the origin of those numbers is not lost; nothing renders from them.",
     "invoice-2024-06": "見積書_納品書_請求書_渡邉裕亮.xlsx — 小機能 10,000 / 中規模機能 30,000 / メール個別対応 100,000",
     "invoice-2024-07": "見積書_納品書_請求書_渡邉裕亮_論文制作費.xlsx — 論文制作費 50,000 (→ F1000Research 13-714)"
   },
   "_subscription_status": {
     "state": "announced",
-    "note": "PRICES ARE PUBLISHED; BILLING IS NOT OPEN. Operator decision 2026-08-28. Three places must agree and this key is the contract between them:\n  (1) plans[].subscription here — Individual 2,980 / Lab 100,000, monthly, tax-included\n  (2) BILLING_PLANS (settings_commerce.py) stays [] — so /pricing/ lists no checkout button and billing_checkout refuses; the payment path is shut at TWO points (operator-only, and it aborts without a Stripe key)\n  (3) /特商法/ states the prices AND that card payment begins after Stripe's corporate review — so the page never simultaneously denies and advertises paid plans\nThe previous state was not_offered, whose contract was the mirror image: 'no paid plans exist, keep all three saying so'. Do not move ONE of the three without the other two; that inconsistency is exactly what this key exists to prevent.",
-    "lab_price_is_a_list_price_on_purpose": "100,000/month replaced 49,800〜 on 2026-08-28. The operator's reasoning: publish high and come down via coupons and individual quotes, because being wrong downward is safer than being wrong upward. Hence a flat figure with no 〜 — a range invites negotiation from the bottom of it."
+    "note": "PRICES ARE PUBLISHED; BILLING IS NOT OPEN. Operator decision 2026-08-28, prices revised 2026-09-03. Three places must agree and this key is the contract between them:\n  (1) published_prices above — the current catalogue, tax-included; the available_from gate keeps unreleased services off the page\n  (2) BILLING_PLANS (settings_commerce.py) stays [] — so /pricing/ lists no checkout button and billing_checkout refuses; the payment path is shut at TWO points (operator-only, and it aborts without a Stripe key)\n  (3) /特商法/ states the prices AND that card payment begins after Stripe's corporate review — so the page never simultaneously denies and advertises paid plans\nThe previous state was not_offered, whose contract was the mirror image: 'no paid plans exist, keep all three saying so'. Do not move ONE of the three without the other two; that inconsistency is exactly what this key exists to prevent.",
+    "lab_tier_retired_2026_09_03": "SciTeX Lab 月額 100,000円 was published 2026-08-28 and RETIRED 2026-09-03 (business commit 0fb4ab9: ラボ・機関プランを廃し、オンプレ導入／保守サポートに置き換える). It stayed on the public 特商法 page for six days after retirement because this file was not updated with business.yaml. Found by the operator while filling in the Stripe activation form — the reviewer reads this page, and a price for something not for sale is grounds for a query.",
+    "early_adopter_price_published_2026_09_02": "The two subscription rows were WITHHELD from 19:38Z to 20:09Z on 2026-09-02 because 2,980 / 5,980 are list prices nobody pays under the active Launch/Y1 50% window. business ruled (operator: 「今日決めた SOHO の資料通りで良い」) to publish the discounted price with the window's end and the price after it, plus what the subscription includes (storage, compute credit, traffic, metered overage, user-set monthly cap) — 特商法 lists サービスの内容 as well as 価格."
   },
   "_pending_operator_decision": {
     "note": "Two items removed from /landing/ are COMMITMENTS, not indicative bands, and are parked here rather than deleted so they are not lost: a reader could have relied on either. Restore or retire them explicitly.",
     "mext_partnership": "50% off all plans — a standing discount to government-funded institutions",
     "pilot_program": "Free (6 months) — Professional-tier features for up to 10 researchers"
   },
-  "_subscription_is_not_a_consulting_band": "plans[].price_ref points into `consulting` and is a PROJECT band (one-off or retainer engagements, anchored to real 2024 invoices). plans[].subscription is the SaaS monthly price. They are different products that happen to sit on the same card, so they are separate fields rather than one overloaded number. Enterprise carries NO subscription on purpose: it is 要相談 and quoting it here would invent a price."
+  "_withheld_is_a_gate": "A row with a non-empty `withheld` is in the catalogue and NOT published, whatever its available_from says. It is a stated reason, not a flag — an empty string is not a hold. Use it for a price whose AMOUNT is settled but whose PRESENTATION is not; delete the field to publish. Used 2026-09-02 19:38Z–20:09Z on the two subscription rows while business settled how a list price under an active discount may be shown; no row is withheld now, and a test pins that.",
+  "_published_prices_fields": "category (subscription | service), description, attributes and price_is_floor are copied VERBATIM from business.yaml so /services/ can describe each offer without hub inventing a sentence. Two deliberate omissions when copying: internal planning notes (e.g. 「計画上はこの下限を使う」) are not customer copy and stay upstream; and a price restated inside a description is dropped, because `amount` is the only truth in this file. price_is_floor is the upstream fact; from_price is how this file renders it (円〜).",
+  "_consulting_bands_retired_2026_09_02": "Until 2026-09-02 this file carried a `consulting` list (技術相談 11,000 / コードレビュー 33,000〜 / 環境構築 55,000〜 / 個別開発 110,000〜 / 継続支援 月額 33,000〜 / 技術顧問 月額 55,000〜) and a three-tier `plans` list (Individual / Lab / Enterprise) that cited them. business retired both: the operator-approved five-year plan — the SOHO tenancy application and the bank's supporting document — is built on 受託開発 198,000円/件 × 8 and コンサル 9,800円/時間 × 48h/yr, so a site saying 110,000円〜 for the same work put three different prices on one product. The CAPABILITY is not retired: 技術相談・コードレビュー・環境構築 are what コンサル 9,800円/時間 covers. What retired was the packaging from one 2024 invoice to one customer — a history, not a maintained price list. If package pricing ever returns it enters business.yaml first, then the plan, then this file; never this file first. The Lab tier had already been retired on 2026-08-28 and was still priced on /services/ until this change.",
+  "_tiers": "The /services/ tiers, in business's words (2026-09-02). The axis is 'use it yourself' (サブスク) vs 'install it in an organisation' (オンプレ) vs 'department / university scale' (大規模, quote only). `rows` cite published_prices ids; the page renders each cited row's label and price, so the tier copy never carries a number. Every tier links to the same inquiry form — for 大規模 the form is the only entry.",
+  "tiers": [
+    {
+      "id": "subscription",
+      "name": "サブスク",
+      "audience": "個人で使う",
+      "rows": [
+        "subscription-student",
+        "subscription-general"
+      ],
+      "description": "すぐ始められて、いつでも止められます。計算資源はご自身のものを繋いでいただけます。"
+    },
+    {
+      "id": "onprem",
+      "name": "オンプレ",
+      "audience": "研究室・部門に入れる",
+      "rows": [
+        "onprem-setup",
+        "onprem-maintenance"
+      ],
+      "description": "データを外に出さずに運用できます。人数が増えても月額は拠点単位です。"
+    },
+    {
+      "id": "large",
+      "name": "大規模",
+      "audience": "学部・全学など（応相談）",
+      "rows": [],
+      "quote_only": true,
+      "description": "規模が大きいほど一人あたりは下がります。構成をうかがって個別にお見積りします。"
+    }
+  ],
+  "_pricing_policies": "Discount schedules, copied VERBATIM from business.yaml pricing_policies. A row that carries `policy` sells at its `amount` (the LIST price) minus the percent of the window that is `active` on the day the page renders; a `proposed` window discounts nothing until upstream activates it. The page states when the active window ends — business's ruling of 2026-09-02 20:09Z: the discounted price is the ONLY selling price shown, never the list price alone (nobody has paid it) and never a struck-through pair (景表法: a 'was' price must have been sold). WHAT FOLLOWS THE WINDOW IS WITHHELD (business, 2026-09-03 00:02Z): the approved five-year plan was computed with the Y2 (30%) and Y3 (10%) windows applied while this schedule marks them `proposed`, so the SSoT contradicts itself and the operator is deciding whether 「以降は」 names the list price or the next window's. The renderer therefore says nothing after the period; the wording is added on purpose when the ruling comes, never by the calendar.",
+  "pricing_policies": {
+    "early-adopter": {
+      "schedule": [
+        {
+          "label": "Launch / Y1",
+          "start": "2026-08-08",
+          "end": "2027-07-31",
+          "percent": 50,
+          "status": "active"
+        },
+        {
+          "label": "Y2",
+          "start": "2027-08-01",
+          "end": "2028-07-31",
+          "percent": 30,
+          "status": "proposed"
+        },
+        {
+          "label": "Y3",
+          "start": "2028-08-01",
+          "end": "2029-07-31",
+          "percent": 10,
+          "status": "proposed"
+        }
+      ]
+    }
+  }
 }
