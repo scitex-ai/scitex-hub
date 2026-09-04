@@ -148,10 +148,15 @@ def _active_window(policy: str, policies: dict[str, Any], today: date) -> dict[s
             "not define it; copy the schedule from business.yaml."
         )
     day = today.isoformat()
-    for window in policies[policy]["schedule"]:
-        if window["start"] <= day <= window["end"]:
-            return window
-    return None
+    covering = [w for w in policies[policy]["schedule"] if w["start"] <= day <= w["end"]]
+    if len(covering) > 1:
+        raise ValueError(
+            f"pricing.json policy {policy!r} has {len(covering)} windows covering "
+            f"{day} ({[w['label'] for w in covering]}); windows must not overlap — "
+            "fix the schedule upstream (business.yaml) rather than letting the "
+            "page pick one."
+        )
+    return covering[0] if covering else None
 
 
 def _discounted(list_amount: int, percent: int) -> int:

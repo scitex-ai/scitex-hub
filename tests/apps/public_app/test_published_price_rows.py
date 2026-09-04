@@ -259,3 +259,21 @@ def test_the_subscription_rows_state_what_they_include() -> None:
             assert needle in text, (row_id, text)
     assert "対象: 大学・研究機関のメールアドレスを持つこと（学生・院生・教職員・研究員）" in "、".join(by_id["subscription-student"]["included"])
     assert "対象: " not in "、".join(by_id["subscription-general"]["included"])
+
+
+def test_overlapping_windows_are_refused() -> None:
+    """Two windows covering the same day is an upstream data error; the page
+    must not silently pick one (the first in file order would win)."""
+    from unittest import mock
+
+    import pytest
+
+    from apps.infra.public_app import pricing
+
+    fake = _policy_fixture([
+        {"label": "a", "start": "2026-01-01", "end": "2026-12-31", "percent": 50, "status": "active"},
+        {"label": "b", "start": "2026-06-01", "end": "2027-12-31", "percent": 30, "status": "proposed"},
+    ])
+    with mock.patch.object(pricing, "load_pricing", return_value=fake):
+        with pytest.raises(ValueError, match="must not overlap"):
+            pricing.published_price_rows(today=date(2026, 9, 2))

@@ -195,7 +195,7 @@ class TestTokushohoPage:
             "日割りの返金はありません",
             "お支払い済みの期間の末日までご利用いただけます",
             "マイページから完結",
-            "個別に対応します",
+            "個別対応します",
             "サブスク・学術",
         ):
             assert needle in content, f"{needle!r} missing from the 特商法 page"
