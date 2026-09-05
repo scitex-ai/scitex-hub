@@ -133,11 +133,14 @@ def included_items(attributes: dict[str, Any]) -> list[str]:
 
 
 def _active_window(policy: str, policies: dict[str, Any], today: date) -> dict[str, Any] | None:
-    """The discount window of ``policy`` that is active on ``today``, or None.
+    """The discount window of ``policy`` that covers ``today``, or None.
 
-    Only a window whose upstream ``status`` is ``active`` discounts anything;
-    a ``proposed`` window is a plan, and a page that priced by a plan would
-    state an amount nobody has decided to charge.
+    Selection is BY DATE, as the business engine does it (business, 2026-09-03
+    06:54Z, having read config.py: ``Price.from_mapping`` takes the phase whose
+    dates cover the day; ``status`` only marks which single phase is current
+    and may not be set on two at once). The taper 50 → 30 → 10 is a settled
+    business decision (operator, Telegram 6913), so a later window is not a
+    plan — it is the price from its first day.
     """
     if policy not in policies:
         raise ValueError(
@@ -145,10 +148,15 @@ def _active_window(policy: str, policies: dict[str, Any], today: date) -> dict[s
             "not define it; copy the schedule from business.yaml."
         )
     day = today.isoformat()
-    for window in policies[policy]["schedule"]:
-        if window.get("status") == "active" and window["start"] <= day <= window["end"]:
-            return window
-    return None
+    covering = [w for w in policies[policy]["schedule"] if w["start"] <= day <= w["end"]]
+    if len(covering) > 1:
+        raise ValueError(
+            f"pricing.json policy {policy!r} has {len(covering)} windows covering "
+            f"{day} ({[w['label'] for w in covering]}); windows must not overlap — "
+            "fix the schedule upstream (business.yaml) rather than letting the "
+            "page pick one."
+        )
+    return covering[0] if covering else None
 
 
 def _discounted(list_amount: int, percent: int) -> int:
@@ -167,6 +175,51 @@ def _until_text(end: str) -> str:
     if (last + timedelta(days=1)).day == 1:
         return f"{last.year}年{last.month}月末"
     return f"{last.year}年{last.month}月{last.day}日"
+
+
+def _from_text(start: date) -> str:
+    """2027-08-01 -> 2027年8月から; a mid-month start names the day."""
+    if start.day == 1:
+        return f"{start.year}年{start.month}月から"
+    return f"{start.year}年{start.month}月{start.day}日から"
+
+
+def _yen(amount: int) -> str:
+    return f"{amount:,}円"
+
+
+def _staged_price_note(
+    policy: str, policies: dict[str, Any], window: dict[str, Any], list_amount: int
+) -> str:
+    """The sentence a discounted row carries, in business's final form
+    (2026-09-03 06:54Z; operator, Telegram 6913/6915):
+
+        定価 2,980円、早期導入割引 50%。2027年7月末までの早期導入価格。
+        2027年8月から 2,086円、2028年8月から 2,682円、2029年8月から 2,980円
+
+    Every later stage is disclosed up front, so the list price is a stated
+    future price and not a claim of past sales (no struck-through pair — that
+    would read as a price once sold). The stages are the LATER windows of the
+    same schedule in date order, each at its own percent, then the list price
+    from the day after the last window ends. Amounts inside the sentence carry
+    no 月額 prefix: the row's own price already says what the unit is.
+    """
+    later = sorted(
+        (w for w in policies[policy]["schedule"] if w["start"] > window["end"]),
+        key=lambda w: w["start"],
+    )
+    stages = [
+        f"{_from_text(date.fromisoformat(w['start']))} {_yen(_discounted(list_amount, w['percent']))}"
+        for w in later
+    ]
+    last_end = later[-1]["end"] if later else window["end"]
+    after = date.fromisoformat(last_end) + timedelta(days=1)
+    stages.append(f"{_from_text(after)} {_yen(list_amount)}")
+    return (
+        f"定価 {_yen(list_amount)}、早期導入割引 {window['percent']}%。"
+        f"{_until_text(window['end'])}までの早期導入価格。"
+        + "、".join(stages)
+    )
 
 
 def _render(row: dict[str, Any]) -> str:
@@ -228,21 +281,20 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
         unit = item.get("unit", "once")
         from_price = item.get("from_price", False)
         # `amount` is the LIST price. A row under a discount policy sells at
-        # the active window's price and says when that window ends (business
-        # ruling 2026-09-02 20:09Z: the discounted price alone, never the list
-        # price alone, never a struck-through pair). What the price is AFTER
-        # the window is deliberately NOT stated (business, 2026-09-03 00:02Z):
-        # the approved five-year plan was computed with the Y2/Y3 windows
-        # applied while business.yaml still marks them `proposed`, so the SSoT
-        # contradicts itself on what follows, and the operator is deciding.
-        # Until that ruling the page states only the period; the wording for
-        # 「以降は」 is added on purpose when it comes, never by the calendar.
+        # the price of the window covering today and states, up front, the
+        # list price, the discount, when the window ends and every later
+        # stage (business, 2026-09-03 06:54Z, lifting the 00:02Z hold after
+        # reading the engine: windows are selected by date; the 50→30→10 taper
+        # is a settled business decision, operator Telegram 6913). Disclosing
+        # all stages first is what makes 「定価」 a stated future price rather
+        # than a 景表法 dual-price claim; a struck-through pair stays out.
         amount, price_note = item["amount"], ""
         if item.get("policy"):
             window = _active_window(item["policy"], policies, today)
             if window is not None:
-                amount = _discounted(amount, window["percent"])
-                price_note = f"{_until_text(window['end'])}までの早期導入価格"
+                list_amount = amount
+                amount = _discounted(list_amount, window["percent"])
+                price_note = _staged_price_note(item["policy"], policies, window, list_amount)
         rows.append(
             {
                 "id": item["id"],
