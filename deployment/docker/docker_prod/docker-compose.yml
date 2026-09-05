@@ -384,6 +384,15 @@ services:
       - /etc/passwd:/host/etc/passwd:ro
       # scitex-code for citation_graph module (until published to PyPI)
       - /home/ywatanabe/proj/scitex-code/src/scitex/scholar/citation_graph:/usr/local/lib/python3.11/site-packages/scitex/scholar/citation_graph:ro
+      # The local bibliographic databases, SAME sources and targets as the
+      # django service above. warm_public_status_cache runs HERE (celery beat
+      # -> this worker) and computes the public /status/ page's verdicts by
+      # calling crossref_local.info() / openalex_local.info(); without these
+      # mounts both reported "degraded" for a day (2026-09-05) while the
+      # django container read them fine. Guarded by
+      # tests/config/test_prod_compose_worker_sees_what_the_web_container_sees.py.
+      - /home/ywatanabe/proj/crossref-local/data:/data/crossref:ro
+      - ${OPENALEX_LOCAL_DB_DIR:-/home/ywatanabe/proj/openalex-local.bak/data}:/data/openalex:ro
 
     env_file:
       - ../envs/.env.prod
@@ -392,6 +401,10 @@ services:
       - DJANGO_SETTINGS_MODULE=config.settings.settings_prod
       - SCITEX_HUB_DJANGO_SETTINGS_MODULE=config.settings.settings_prod
       - SCITEX_HUB_ENV=prod
+      - CROSSREF_LOCAL_DB=/data/crossref/crossref.db
+      - CROSSREF_LOCAL_MODE=db
+      - OPENALEX_LOCAL_DB=/data/openalex/openalex.db
+      - OPENALEX_LOCAL_MODE=db
       - PYTHONUNBUFFERED=1
       - SCITEX_DIR=/app/.scitex
       - SCITEX_HUB_BUILD_ID=b0a2a30c
