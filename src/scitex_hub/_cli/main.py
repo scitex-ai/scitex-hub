@@ -8,6 +8,7 @@ import click
 from rich.console import Console
 
 from .. import __version__
+from .._dev_preview._cli import dev_preview
 from ._click_compat import (
     HAS_CLI_HELPERS,
     register_error_redirect,
@@ -48,7 +49,7 @@ _ROOT_CATEGORIES = [
         ],
     ),
     ("Data & Sync", ["push-project", "pull-project", "gitea"]),
-    ("Service", ["docker", "mcp", "sdk"]),
+    ("Service", ["docker", "mcp", "sdk", "dev-preview"]),
     ("Diagnostics", ["status", "logs"]),
     ("Introspection", ["list-python-apis", "skills", "docs", "dev"]),
     (
@@ -161,6 +162,10 @@ register_warn_alias(main, "deploy-project", target="deploy", remove_in="v0.20")
 main.add_command(docker)
 main.add_command(gitea)
 main.add_command(mcp)
+# The develop-preview sync verb the scitex-hub-dev-preview-sync job runs
+# every 2 min on compute-03 (see scitex_hub._jobs). Service, like docker/mcp:
+# it operates infrastructure, not project data.
+main.add_command(dev_preview)
 main.add_command(context_group, "context")
 
 main.add_command(status)

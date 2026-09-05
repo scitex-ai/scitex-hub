@@ -262,6 +262,19 @@ scitex-hub = "scitex_hub"
 [project.entry-points."scitex_dev.skills"]
 scitex-hub = "scitex_hub"
 
+# Federated scheduled jobs (constitution, operator ruling 2026-08-20: every
+# periodic SciTeX job is a scitex-dev JobSpec run by the host supervisor's
+# PeriodicRunner; cron is retired). `scitex_dev.host_placement` is the
+# SEPARATE group that pins a job to hosts — an unplaced job arms on EVERY
+# supervisor host, and hub's dev-preview sync must run only where the
+# develop preview stack lives. Both providers import scitex_dev lazily, so
+# this metadata stays loadable on a scitex-dev that predates the contract.
+[project.entry-points."scitex_dev.jobs"]
+scitex-hub = "scitex_hub._jobs:provide_jobs"
+
+[project.entry-points."scitex_dev.host_placement"]
+scitex-hub = "scitex_hub._jobs:provide_placement"
+
 [project.optional-dependencies]
 # Project rule: ONLY [all] is a user-facing install target. Sub-extras
 # like [django], [gui], [mcp], [test], [docs] used to exist and were
