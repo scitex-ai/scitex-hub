@@ -7,7 +7,11 @@
   --border-radius-xl: 12px;
   --border-radius-pill: 50rem;
   --border-width: 1px;
-  --border-color: var(--gray-300);
+  /* --border-color is NOT defined here any more. scitex-ui defines it
+     theme-aware (colors/_light.css: var(--border-default); colors/_dark.css:
+     var(--workspace-border-default)) and primitives/variables.css imports this
+     file LAST, so a flat value here won the cascade and dark mode lost its
+     border colour. The spelling stays; scitex-ui's colors layer resolves it. */
 
   /* Box Shadows - Professional, refined */
   --box-shadow-sm:
@@ -21,10 +25,12 @@
   --box-shadow-card: 0 2px 8px rgba(26, 35, 50, 0.08);
   --box-shadow-card-hover: 0 8px 24px rgba(26, 35, 50, 0.12);
 
-  /* Transitions */
-  --transition-fast: 0.2s;
-  --transition-normal: 0.3s;
-  --transition-slow: 0.5s;
+  /* Transitions are NOT defined here any more. scitex-ui's primitives/
+     spacing.css declares --transition-fast/normal/slow = 150/200/300 ms, and
+     because variables.css imports this file after spacing.css these 0.2/0.3/
+     0.5 s values silently overrode them — hub ran 33-67% slower than every
+     other consumer while claiming the same token names (scitex-ui measured
+     it 2026-08-23; hub adopted scitex-ui's values 2026-09-04). */
 }
 
 /* Notification Animations */
