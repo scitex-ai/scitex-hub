@@ -145,12 +145,23 @@ def default_pinned_module_names() -> list[str]:
     Reuses DEFAULT_LAUNCHER_ORDER so the sidebar and the launcher grid agree
     on which apps lead — no second curated list to drift. "home" is excluded
     because the sidebar renders its own Home entry above the pinned loop.
+
+    An app that opted OUT of the grid (manifest ``show_in_launcher: false``)
+    is excluded too. Leading the sidebar with an app that has no tile is the
+    drift this function's own docstring exists to prevent, and it is what made
+    "hide Console" nearly a half-measure: MAX_PINNED_MODULES is 5, Console sat
+    fifth in the curated list, so dropping only its tile would have left it
+    pinned in the sidebar — still there, for a user told it was gone. Clew and
+    Comms already declared the same flag and are excluded for the same reason;
+    both are reached from where they belong (a manuscript, the workspace)
+    rather than from a pin.
     """
+    hidden = {mod.name for mod in get_all_modules() if not mod.show_in_launcher}
     registered = {mod.name for mod in get_all_modules()}
     return [
         name
         for name in DEFAULT_LAUNCHER_ORDER
-        if name != _SIDEBAR_HOME_MODULE and name in registered
+        if name != _SIDEBAR_HOME_MODULE and name in registered and name not in hidden
     ][:MAX_PINNED_MODULES]
 
 

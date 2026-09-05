@@ -347,11 +347,18 @@ class DefaultPinSeedTest(TestCase):
         assert "home" not in pinned
 
     def test_default_pins_follow_the_curated_launcher_order(self):
-        # Arrange — sidebar and launcher grid must agree on which apps lead
+        # Arrange — sidebar and launcher grid must agree on which apps lead.
+        # "Agree" now excludes apps with no tile at all: an app that opted out
+        # of the grid (show_in_launcher=false) must not lead the sidebar
+        # either, or hiding it only half-hides it. Console is the case that
+        # forced this — it sat 5th, exactly at MAX_PINNED_MODULES.
+        from apps.infra.workspace_app.registry import get_all_modules
+
+        hidden = {m.name for m in get_all_modules() if not m.show_in_launcher}
         expected = [
             name
             for name in DEFAULT_LAUNCHER_ORDER
-            if name != "home"
+            if name != "home" and name not in hidden
         ][:MAX_PINNED_MODULES]
         # Act
         pinned = get_pinned_module_names(self.user)
