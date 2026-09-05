@@ -249,6 +249,19 @@ class PoolInitializer:
             project.description = "Read-only demo — sign up for full access!"
             project.save(update_fields=["description"])
 
+        # Point this account at the demo, exactly as the pooled visitor-NNN
+        # slots are pointed. Unconditional, not gated on project_created: the
+        # account long predates this call and its pointer still needs moving.
+        #
+        # THIS IS THE ACCOUNT MOST ARRIVALS ACTUALLY GET. The middleware binds
+        # readonly-visitor for any request classified as needing no workspace
+        # — the public landing page included — so it serves the FIRST SCREEN
+        # even while the pool has free slots. Measured on the dev preview
+        # 2026-09-05: the site read "dotfiles — SciTeX (dev)" with "2 of 4
+        # visitor slots available", because the earlier fix moved the four
+        # pooled slots and left this one behind.
+        land_visitor_on(user, project)
+
         success = cls._initialize_project_directory(user, project, project_slug)
         if success:
             logger.info("[VisitorPool] readonly-visitor initialized successfully")
