@@ -14,6 +14,7 @@ Public API:
 """
 
 from .session_role import (
+    READONLY_REASON_NEEDS_OPERATOR,
     READONLY_REASON_NO_READY_SLOT,
     READONLY_REASON_POOL_FULL,
     READONLY_REASON_UNKNOWN,
@@ -37,6 +38,7 @@ from .visitor_pool import DemoProjectPool, VisitorPool
 __all__ = [
     "VisitorPool",
     "DemoProjectPool",
+    "READONLY_REASON_NEEDS_OPERATOR",
     "READONLY_REASON_NO_READY_SLOT",
     "READONLY_REASON_POOL_FULL",
     "READONLY_REASON_UNKNOWN",

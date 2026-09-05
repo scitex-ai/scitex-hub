@@ -48,13 +48,22 @@ SESSION_KEY_READONLY_REASON = "visitor_readonly_reason"
 
 #: Structured downgrade-reason codes (recorded at allocation time).
 #: ``pool_full``    — every slot is busy serving another visitor.
-#: ``no_ready_slot``— free slots exist but none is wiped + verified
-#:                    clean yet (post-rebuild boot fail-safe, Celery
-#:                    outage, or quarantine) — slots are being prepared.
+#: ``no_ready_slot``— free slots exist and are being wiped + verified
+#:                    right now (the post-rebuild boot fail-safe). This
+#:                    one DOES clear on its own, which is why its copy may
+#:                    say "retry in a few minutes".
+#: ``needs_operator``— free slots exist but are QUARANTINED or missing.
+#:                    These do NOT clear on their own: a quarantined slot
+#:                    is released only by `manage.py
+#:                    reconcile_visitor_slots --repair-only`, and a Celery
+#:                    outage means the re-clean nobody is running. Telling
+#:                    the user to retry would be telling them to do the one
+#:                    thing that cannot work.
 #: ``unknown``      — the session carries no recorded reason (e.g. a
 #:                    legacy session from before this release).
 READONLY_REASON_POOL_FULL = "pool_full"
 READONLY_REASON_NO_READY_SLOT = "no_ready_slot"
+READONLY_REASON_NEEDS_OPERATOR = "needs_operator"
 READONLY_REASON_UNKNOWN = "unknown"
 
 #: Reason code → truthful user-facing explanation. NO silent fallback to
@@ -67,6 +76,15 @@ _READONLY_REASON_DETAILS = {
     READONLY_REASON_NO_READY_SLOT: (
         "Visitor slots are being prepared — you are browsing read-only. "
         "Retry in a few minutes for a writable slot."
+    ),
+    # No "retry in a few minutes" here, deliberately: a quarantined slot is
+    # released by an operator command and by nothing else, so retrying is
+    # the one action guaranteed not to help. Measured 2026-09-05 — all four
+    # slots sat quarantined for 2h45m while the UI invited the operator to
+    # keep waiting.
+    READONLY_REASON_NEEDS_OPERATOR: (
+        "Writable visitor slots are temporarily unavailable and need an "
+        "administrator — you are browsing read-only."
     ),
 }
 _READONLY_REASON_DETAIL_GENERIC = (

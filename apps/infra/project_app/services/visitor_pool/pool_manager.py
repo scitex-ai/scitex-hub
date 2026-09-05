@@ -26,7 +26,16 @@ from django.utils import timezone
 from apps.infra.project_app.models import Project, VisitorAllocation
 
 from .pool_health import measure_pool
+from .pool_health import (
+    CAUSE_QUARANTINED,
+    CAUSE_UNPROVISIONED,
+    capacity_cause,
+    describe_partition,
+    measure_pool,
+    partition_pool_status,
+)
 from .session_role import (
+    READONLY_REASON_NEEDS_OPERATOR,
     READONLY_REASON_NO_READY_SLOT,
     READONLY_REASON_POOL_FULL,
     SESSION_KEY_READONLY_REASON,
@@ -142,11 +151,27 @@ class PoolAllocator:
                 f"[VisitorPool] Pool exhausted - all {pool_size} slots in use"
             )
         else:
-            reason = READONLY_REASON_NO_READY_SLOT
+            # "awaiting reset" and "quarantined" are NOT the same answer to
+            # the user, and this branch used to give both the same one.
+            # A resetting slot clears itself in seconds; a quarantined slot
+            # is released only by `manage.py reconcile_visitor_slots
+            # --repair-only`, so "retry in a few minutes" is advice that
+            # cannot come true. Measured 2026-09-05: four quarantined slots
+            # sat for 2h45m telling the operator to keep waiting.
+            #
+            # pool_health already partitions the pool and names the dominant
+            # cause, so ask it rather than guessing here.
+            partition = partition_pool_status(measure_pool(pool_size))
+            cause = capacity_cause(partition)
+            if cause in (CAUSE_QUARANTINED, CAUSE_UNPROVISIONED):
+                reason = READONLY_REASON_NEEDS_OPERATOR
+            else:
+                reason = READONLY_REASON_NO_READY_SLOT
             logger.warning(
                 f"[VisitorPool] No verified-clean slot available "
-                f"({busy}/{pool_size} busy; rest awaiting reset or quarantined) "
-                f"- falling back to readonly-visitor"
+                f"({busy}/{pool_size} busy; cause={cause}; "
+                f"{describe_partition(partition)}) "
+                f"- falling back to readonly-visitor, reason={reason}"
             )
         session[cls.SESSION_KEY_READONLY_REASON] = reason
         session.save()
