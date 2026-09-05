@@ -202,6 +202,42 @@ def test_the_hub_setting_is_published_under_the_packages_own_name():
 
 
 @pytest.mark.guards(defect=_UNCONFIGURED_DEFECT)
+def test_production_never_falls_through_to_the_fleet_store(fleet_dsn, caplog):
+    """The parent card's prohibition, as a gate: on scitex.ai, "nothing
+    configured" must NOT mean "the fleet's board". The board gates on
+    is_authenticated only, so tier 3 in production would hand every agent's
+    cards and DMs to any signed-in customer. Measured on prod 2026-09-03: all
+    three variables unset, so only the container's failure to resolve
+    scitex-primary stood between the two — DNS is not a gate."""
+    import logging
+
+    for spelling in ("prod", "production", "PROD"):
+        env: dict[str, str] = {"SCITEX_HUB_ENV": spelling}
+        with caplog.at_level(logging.ERROR):
+            published = publish_cards_store_target(env)
+        assert published is None, spelling
+        assert CARDS_STORE_UPSTREAM_ENV not in env, spelling
+        assert any("PRODUCTION" in r.getMessage() for r in caplog.records), spelling
+        caplog.clear()
+
+
+def test_production_still_honours_a_store_the_deployment_owns():
+    """The gate blocks the DEFAULT, not the deployment's choice: tier 2 on
+    production publishes exactly as it does anywhere else."""
+    env: dict[str, str] = {"SCITEX_HUB_ENV": "prod", CARDS_STORE_HUB_ENV: _FAKE_DSN}
+    published = publish_cards_store_target(env)
+    assert published == _FAKE_DSN
+    assert env[CARDS_STORE_UPSTREAM_ENV] == _FAKE_DSN
+
+
+def test_development_and_staging_still_reach_the_fleet_default(fleet_dsn):
+    """Negative control for the gate: the environments tier 3 exists for keep
+    getting it, under every spelling settings/__init__.py accepts."""
+    for spelling in ("development", "dev", "staging", "stag", ""):
+        env: dict[str, str] = {"SCITEX_HUB_ENV": spelling} if spelling else {}
+        assert publish_cards_store_target(env) == fleet_dsn, spelling
+
+
 def test_the_fleet_store_is_reached_when_nobody_configured_one(fleet_dsn):
     # Arrange — the state every hub deployment was in, measured 2026-08-30:
     # neither variable set anywhere, so the resolver raised and

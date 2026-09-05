@@ -178,8 +178,11 @@ body.landing-page .mobile-top-bar {
        everything else      (empty)                       -> shown  <- the fix
    So no app-shell page changes behaviour; only the empty-class public
    pages flip from hidden to visible. */
-/* `.app-home` is the signed-in launcher at `/`. It is an app-shell surface,
-   but it is also where a signed-in user is oriented rather than working, and
+/* `.app-home` marks a LAUNCHER SURFACE: the signed-in launcher at `/` (set in
+   global_base.html) and the app store at /apps/store/ (declared in the store
+   module's manifest body_class, 2026-09-05 — /apps/ redirects there, and it
+   hid the footer at every width for 26 days after the operator asked for it).
+   Each is an app-shell surface, but also where a user is oriented rather than working, and
    it must carry the statutory 特定商取引法 disclosure, the policy pages and a
    contact route. Those are reachable only via the footer, so the launcher is
    excluded here. Deeper workspace surfaces (modules, /workspace/, /explore/)
