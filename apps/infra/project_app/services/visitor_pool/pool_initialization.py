@@ -14,6 +14,7 @@ from django.contrib.auth.models import User
 from apps.infra.project_app.models import Project
 
 from .demo_seed import try_seed_demo_content
+from .landing import land_visitor_on
 from .workspace_manager import TEMPLATE_MARKER_RELPATH, WorkspaceManager
 
 logger = logging.getLogger(__name__)
@@ -63,6 +64,10 @@ class PoolInitializer:
             GiteaIntegration.ensure_user_in_gitea(username, visitor_num)
 
             project, project_created = cls._create_default_project(user, project_slug)
+            # Open the slot on the demo. The user was created first, so the
+            # profile signal already pointed this profile at the `dotfiles`
+            # home project and will not revisit it (see .landing).
+            land_visitor_on(user, project)
 
             success = cls._initialize_project_directory(user, project, project_slug)
             if success:

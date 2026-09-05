@@ -57,6 +57,7 @@ from .container_teardown import (
 )
 from .demo_seed import try_seed_demo_content
 from .home_access import enforce_app_ownership, verify_app_can_write
+from .landing import land_visitor_on
 from .home_state import (
     HomeStateError,
     recreate_workspace_skeleton,
@@ -256,6 +257,9 @@ class WorkspaceManager:
             visibility="private",
             data_location=f"{username}/{project_slug}",
         )
+        # Open the recycled slot on the demo, never on the recreated
+        # `dotfiles` home project the skeleton just made (see .landing).
+        land_visitor_on(visitor_user, project)
 
         # 6. Clone the template + verify the marker.
         cls._initialize_reset_directory(
