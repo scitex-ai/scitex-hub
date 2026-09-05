@@ -4,6 +4,25 @@
  */
 
 import { PDFJSViewer } from "../pdf-viewer-pdfjs";
+import { CompilationHttpError } from "../_compilation/compilation-http-error";
+
+/**
+ * Escape text destined for innerHTML.
+ *
+ * These panels interpolate backend strings, and a LaTeX error message
+ * carries USER-AUTHORED content verbatim (\\input paths, undefined control
+ * sequences, the offending source line). Interpolating that raw put
+ * author-controlled markup into the DOM; measured 2026-09-05, an
+ * `<img onerror>` in a compile error really did become an element.
+ */
+function escapeHtml(value: string): string {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
 export interface ViewerState {
   currentPdfUrl: string | null;
@@ -213,19 +232,56 @@ export class PDFViewer {
   /**
    * Display error message
    */
-  displayError(error: string): void {
+  displayError(error: string | CompilationHttpError): void {
     if (!this.container) return;
+
+    // A REFUSAL IS NOT A COMPILATION ERROR. The backend answers a read-only
+    // visitor with 403 + reason "readonly-visitor"; that request never
+    // reached a compiler, so "Compilation Error" and "Check the error
+    // output" are both false — there is no output to check. Measured
+    // 2026-09-05: the operator saw this panel, believed the LaTeX had
+    // failed, and went looking for a bug in scitex-writer.
+    //
+    // The full-compilation path already distinguishes these (see
+    // CompilationFull.detailFor); this is the preview pane catching up.
+    if (error instanceof CompilationHttpError && error.isReadonlyVisitor) {
+      const signup = error.signupUrl || "/auth/signup/";
+      const login = error.loginUrl || "/auth/login/";
+      const detail =
+        error.detail && error.detail !== error.message
+          ? `<p style="font-size: 0.85rem; color: var(--color-fg-muted);">${escapeHtml(error.detail)}</p>`
+          : "";
+
+      this.container.innerHTML = `
+            <div style="padding: 2rem; text-align: center;">
+                <i class="fas fa-lock fa-2x mb-3" style="color: var(--color-fg-muted);"></i>
+                <h5>Read-Only Session</h5>
+                <p style="font-size: 0.9rem;">${escapeHtml(error.message)}</p>
+                ${detail}
+                <p style="margin-top: 1rem;">
+                    <a href="${escapeHtml(signup)}" class="btn btn-sm btn-primary">Sign up</a>
+                    <a href="${escapeHtml(login)}" class="btn btn-sm btn-secondary">Log in</a>
+                </p>
+            </div>
+        `;
+
+      // Deliberately not console.error: nothing failed.
+      console.info("[PDFViewer] Compile refused (read-only visitor)");
+      return;
+    }
+
+    const message = typeof error === "string" ? error : error.message;
 
     this.container.innerHTML = `
             <div style="padding: 2rem; text-align: center; color: var(--color-danger-fg);">
                 <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
                 <h5>Compilation Error</h5>
-                <p style="font-size: 0.9rem;">${error}</p>
+                <p style="font-size: 0.9rem;">${escapeHtml(message)}</p>
                 <small style="color: var(--color-fg-muted);">Check the error output for details</small>
             </div>
         `;
 
-    console.error("[PDFViewer] Compilation error:", error);
+    console.error("[PDFViewer] Compilation error:", message);
   }
 
   /**
