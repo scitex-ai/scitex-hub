@@ -4,7 +4,7 @@
   "name": "home",
   "label": "Projects",
   "app_name": "repo_app",
-  "icon": "fas fa-home",
+  "icon": "fas fa-folder-open",
   "description": "User dashboard: profile, projects, and current project workspace.",
   "version": "0.14.0",
   "license": "AGPL-3.0",
