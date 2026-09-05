@@ -31,6 +31,7 @@ from .session_role import (
     is_readonly_visitor,
     is_visitor_session,
     readonly_reason_detail,
+    readonly_reason_for_capacity_cause,
     readonly_write_rejection,
 )
 from .visitor_pool import DemoProjectPool, VisitorPool
@@ -55,5 +56,6 @@ __all__ = [
     "is_readonly_visitor",
     "is_visitor_session",
     "readonly_reason_detail",
+    "readonly_reason_for_capacity_cause",
     "readonly_write_rejection",
 ]

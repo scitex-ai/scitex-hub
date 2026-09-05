@@ -93,6 +93,29 @@ _READONLY_REASON_DETAIL_GENERIC = (
 )
 
 
+#: Pool-capacity causes (pool_health.CAUSE_*) that an operator must clear.
+#: Kept as bare strings so session_role stays importable from lightweight
+#: contexts — pool_health imports models transitively.
+_CAUSES_NEEDING_OPERATOR = frozenset({"quarantined", "unprovisioned"})
+
+
+def readonly_reason_for_capacity_cause(cause: str | None) -> str:
+    """Downgrade-reason for a pool_health capacity cause.
+
+    Split out of the allocator branch so the RULE is a named thing with its
+    own tests, rather than an `if` nobody can exercise without a database.
+
+    The distinction that matters is whether the condition CLEARS ITSELF:
+    a resetting slot does, in seconds; a quarantined or missing one does
+    not, and is released only by `manage.py reconcile_visitor_slots
+    --repair-only`. Telling a user to retry in the second case is telling
+    them to do the one thing that cannot work.
+    """
+    if cause in _CAUSES_NEEDING_OPERATOR:
+        return READONLY_REASON_NEEDS_OPERATOR
+    return READONLY_REASON_NO_READY_SLOT
+
+
 def readonly_reason_detail(reason: str | None) -> str:
     """Truthful copy for a downgrade-reason code (generic when unknown)."""
     return _READONLY_REASON_DETAILS.get(reason or "", _READONLY_REASON_DETAIL_GENERIC)

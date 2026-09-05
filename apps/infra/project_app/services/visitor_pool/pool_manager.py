@@ -27,16 +27,13 @@ from apps.infra.project_app.models import Project, VisitorAllocation
 
 from .pool_health import measure_pool
 from .pool_health import (
-    CAUSE_QUARANTINED,
-    CAUSE_UNPROVISIONED,
     capacity_cause,
     describe_partition,
     measure_pool,
     partition_pool_status,
 )
 from .session_role import (
-    READONLY_REASON_NEEDS_OPERATOR,
-    READONLY_REASON_NO_READY_SLOT,
+    readonly_reason_for_capacity_cause,
     READONLY_REASON_POOL_FULL,
     SESSION_KEY_READONLY_REASON,
 )
@@ -163,10 +160,7 @@ class PoolAllocator:
             # cause, so ask it rather than guessing here.
             partition = partition_pool_status(measure_pool(pool_size))
             cause = capacity_cause(partition)
-            if cause in (CAUSE_QUARANTINED, CAUSE_UNPROVISIONED):
-                reason = READONLY_REASON_NEEDS_OPERATOR
-            else:
-                reason = READONLY_REASON_NO_READY_SLOT
+            reason = readonly_reason_for_capacity_cause(cause)
             logger.warning(
                 f"[VisitorPool] No verified-clean slot available "
                 f"({busy}/{pool_size} busy; cause={cause}; "
