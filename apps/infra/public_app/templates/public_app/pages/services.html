@@ -1,5 +1,6 @@
 {% extends "global_base.html" %}
 {% load static %}
+{% load i18n %}
 
 {% block title %}サービス・料金 | Services - SciTeX{% endblock %}
 {% block meta_description %}
@@ -28,7 +29,7 @@
                 </p>
                 <div class="svc-hero-actions">
                     <a href="#inquiry" class="svc-btn svc-btn-primary">相談内容を整理する</a>
-                    <a href="#plans" class="svc-btn svc-btn-ghost">プランを見る</a>
+                    <a href="#tiers" class="svc-btn svc-btn-ghost">料金を見る</a>
                 </div>
                 <p class="svc-hero-note">
                     初回相談 30 分無料。契約を前提とせず、自分でできること・SciTeX が支援できることを
@@ -79,120 +80,53 @@
         </div>
 
         <!-- ============================================================ -->
-        <!-- 対象別プラン (Individual / Lab / Enterprise)                  -->
+        <!-- 段階別プラン (サブスク / オンプレ / 大規模) — data/pricing.json tiers -->
         <!-- ============================================================ -->
-        <section class="svc-section" id="plans">
+        <section class="svc-section" id="tiers">
             <p class="svc-kicker">Plans</p>
             <h2>個人から研究組織まで、必要な範囲だけ。</h2>
             <p class="svc-section-desc">
                 最初から大規模な導入を前提にせず、課題の大きさと組織の状況に合わせて支援範囲を
                 設計します。
             </p>
-            <div class="svc-plan-wrap">
-                <table class="svc-plan-table">
-                    <thead>
-                        <tr>
-                            <th scope="col" class="svc-plan-axis">Plan</th>
-                            <th scope="col">
-                                <span class="svc-plan-name">Individual</span>
-                                <span class="svc-plan-sub">個人研究者・大学院生</span>
-                            </th>
-                            <th scope="col" class="svc-plan-featured">
-                                <span class="svc-plan-badge">おすすめ</span>
-                                <span class="svc-plan-name">Lab</span>
-                                <span class="svc-plan-sub">研究室・共同研究チーム</span>
-                            </th>
-                            <th scope="col">
-                                <span class="svc-plan-name">Enterprise</span>
-                                <span class="svc-plan-sub">大学・研究機関・企業 R&amp;D</span>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <th scope="row">主な課題</th>
-                            <td>解析、コード、Figure、個人環境の整備</td>
-                            <td>データ共有、自動化、計算資源、属人化</td>
-                            <td>組織導入、標準化、セキュリティ、継続運用</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">導入方法</th>
-                            <td>スポット相談・個別支援</td>
-                            <td>一工程からの小規模 PoC</td>
-                            <td>要件整理・試験導入・段階展開</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">対応環境</th>
-                            <td>PC、WSL、クラウド、HPC</td>
-                            <td>研究室サーバー、NAS、HPC</td>
-                            <td>オンプレミス、閉域環境、クラウド</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">支援内容</th>
-                            <td>レビュー、環境構築、自動化</td>
-                            <td>共有基盤、データ管理、専用ツール</td>
-                            <td>ガバナンス、導入設計、継続支援</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">NDA・オンサイト</th>
-                            <td class="svc-muted">必要に応じて対応</td>
-                            <td>対応</td>
-                            <td>対応</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">料金の目安</th>
-                            {% comment %}
-                            Resolved from data/pricing.json via each plan's
-                            price_ref. These three bands also appear in the
-                            mobile cards below; before the SSoT they were
-                            hand-typed in both places and could disagree.
-                            {% endcomment %}
-                            {% for plan in pricing_plans %}<td class="svc-plan-price">{{ plan.price }}</td>{% endfor %}
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <!-- Mobile: same plans as stacked cards (no horizontal scroll) -->
+            {% comment %}
+            Three tiers, from data/pricing.json `tiers`, in business's words
+            (2026-09-02): the axis is "use it yourself" (サブスク) / "install it in
+            an organisation" (オンプレ) / "department or university scale"
+            (大規模, quote only). Each tier CITES published_prices rows; the
+            amounts below are rendered from those rows, never typed here —
+            test_pricing_ssot.py fails on a literal. The previous three-column
+            table (Individual / Lab / Enterprise) is gone: business retired the
+            Lab tier on 2026-08-28 and this page kept pricing it for five days.
+            Every tier links to the same inquiry form; for 大規模 that is the
+            only entry.
+            {% endcomment %}
             <div class="svc-plan-cards">
-                <article class="svc-plan-card">
-                    <p class="svc-plan-card-name">Individual<span class="svc-plan-card-sub">個人研究者・大学院生</span></p>
+                {% for tier in tiers %}
+                <article class="svc-plan-card{% if tier.id == 'onprem' %} svc-plan-card-featured{% endif %}">
+                    <p class="svc-plan-card-name">{{ tier.name }}<span class="svc-plan-card-sub">{{ tier.audience }}</span></p>
                     <dl>
-                        <dt>主な課題</dt><dd>解析、コード、Figure、個人環境の整備</dd>
-                        <dt>導入方法</dt><dd>スポット相談・個別支援</dd>
-                        <dt>対応環境</dt><dd>PC、WSL、クラウド、HPC</dd>
-                        <dt>支援内容</dt><dd>レビュー、環境構築、自動化</dd>
-                        <dt>NDA・オンサイト</dt><dd>必要に応じて対応</dd>
-                        <dt>料金の目安</dt><dd class="svc-plan-price">{{ pricing_plan_by_id.individual.price }}</dd>
+                        {% if tier.quote_only %}
+                            <dt>料金</dt><dd class="svc-plan-price">応相談</dd>
+                        {% elif not tier.rows %}
+                            {% comment %} every cited row is gated off (withheld, or not yet
+                            available) — the same wording /tokushoho/ uses for an unsettled value {% endcomment %}
+                            <dt>料金</dt><dd class="svc-plan-price">{% trans "準備中 — 確定後に掲載します。" %}</dd>
+                        {% else %}
+                            {% for row in tier.rows %}
+                                <dt>{{ row.label }}</dt>
+                                <dd class="svc-plan-price">{{ row.price }}{% if row.price_note %}<span class="svc-plan-card-sub">{{ row.price_note }}</span>{% endif %}</dd>
+                            {% endfor %}
+                        {% endif %}
                     </dl>
+                    <p class="svc-card-lead">{{ tier.description }}</p>
+                    {% for row in tier.rows %}{% if row.description %}<p class="svc-muted">{{ row.label }}：{{ row.description }}</p>{% endif %}{% if row.included %}<p class="svc-muted">{{ row.label }}：{{ row.included|join:"、" }}</p>{% endif %}{% endfor %}
+                    <a href="#inquiry" class="svc-btn svc-btn-primary">問い合わせはこちら</a>
                 </article>
-                <article class="svc-plan-card svc-plan-card-featured">
-                    <p class="svc-plan-card-name"><span class="svc-plan-badge">おすすめ</span>Lab<span class="svc-plan-card-sub">研究室・共同研究チーム</span></p>
-                    <dl>
-                        <dt>主な課題</dt><dd>データ共有、自動化、計算資源、属人化</dd>
-                        <dt>導入方法</dt><dd>一工程からの小規模 PoC</dd>
-                        <dt>対応環境</dt><dd>研究室サーバー、NAS、HPC</dd>
-                        <dt>支援内容</dt><dd>共有基盤、データ管理、専用ツール</dd>
-                        <dt>NDA・オンサイト</dt><dd>対応</dd>
-                        <dt>料金の目安</dt><dd class="svc-plan-price">{{ pricing_plan_by_id.lab.price }}</dd>
-                    </dl>
-                </article>
-                <article class="svc-plan-card">
-                    <p class="svc-plan-card-name">Enterprise<span class="svc-plan-card-sub">大学・研究機関・企業 R&amp;D</span></p>
-                    <dl>
-                        <dt>主な課題</dt><dd>組織導入、標準化、セキュリティ、継続運用</dd>
-                        <dt>導入方法</dt><dd>要件整理・試験導入・段階展開</dd>
-                        <dt>対応環境</dt><dd>オンプレミス、閉域環境、クラウド</dd>
-                        <dt>支援内容</dt><dd>ガバナンス、導入設計、継続支援</dd>
-                        <dt>NDA・オンサイト</dt><dd>対応</dd>
-                        <dt>料金の目安</dt><dd class="svc-plan-price">{{ pricing_plan_by_id.enterprise.price }}</dd>
-                    </dl>
-                </article>
+                {% endfor %}
             </div>
         </section>
 
-        <!-- ============================================================ -->
-        <!-- Services (4 cards)                                            -->
-        <!-- ============================================================ -->
         <section class="svc-section" id="services">
             <p class="svc-kicker">Services</p>
             <h2>研究ワークフローを、部分ではなく流れで整える。</h2>
@@ -292,7 +226,7 @@
             <p class="svc-kicker">Pricing</p>
             <h2>料金の目安</h2>
             <p class="svc-section-desc">
-                作業内容、既存環境、納期によって変動します。正式な作業前に対応範囲と金額をご提示します。
+                正式な作業前に対応範囲と金額をご提示します。
             </p>
             <div class="svc-price-wrap">
                 <table class="svc-price-table">
@@ -309,13 +243,19 @@
                     interpolates the variables inside it.
                     {% endcomment %}
                     <tbody>
-                        {% for row in pricing_rows %}
-                        <tr><td>{{ row.label }}</td><td class="svc-price-cell">{{ row.price }}</td></tr>
+                        {% for group in published_price_groups %}
+                            {% for row in group.rows %}
+                            <tr>
+                                <td>{{ row.label }}{% if row.included %}<br><span class="svc-muted">{{ row.included|join:"、" }}</span>{% endif %}</td>
+                                <td class="svc-price-cell">{{ row.price }}{% if row.price_note %}<br><span class="svc-muted">{{ row.price_note }}</span>{% endif %}</td>
+                            </tr>
+                            {% endfor %}
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
             <div class="svc-price-notes">
+                {% if tax_note %}<p class="svc-price-note">{{ tax_note }}</p>{% endif %}
                 {% for note in pricing_notes %}
                 <p class="svc-price-note">{{ note }}</p>
                 {% endfor %}
