@@ -119,6 +119,18 @@ def force_rmtree(path: Path) -> None:
     try:
         shutil.rmtree(path)
     except OSError:
+        # Removing a directory needs WRITE on its PARENT (rmdir unlinks the
+        # entry from the parent), exactly as unlinking a file does — and for
+        # a direct entry of a visitor home the parent IS the home root, which
+        # a reset finds at 0555. The file branch above widens the parent; this
+        # branch used to widen only the tree BELOW the directory, so the retry
+        # failed with the same EACCES whenever the directory entry was
+        # iterated before a file entry had already widened the root. That
+        # order is the filesystem's hash order, not ours: the same wipe passed
+        # or failed depending on the tmp dir's name, which is why CI flickered
+        # per leg and then went red on every leg (2026-09-03/04). Widen the
+        # parent too, widening-only as always (see _add_owner_rwx).
+        _add_owner_rwx(path.parent)
         _chmod_tree_writable(path)
         try:
             shutil.rmtree(path)
