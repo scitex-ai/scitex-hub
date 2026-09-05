@@ -20,7 +20,7 @@ Handles contact, privacy policy, terms of use, cookie policy, and the
 
 from django.conf import settings
 from django.shortcuts import render
-from ..pricing import subscription_rows
+from ..pricing import published_price_rows
 
 
 def donate(request):
@@ -66,8 +66,9 @@ def tokushoho(request):
         # Prices come from data/pricing.json, never from literals in the
         # template — test_pricing_ssot.py scans this app's templates and
         # views for hard-coded amounts. BILLING_PLANS stays empty on
-        # purpose (checkout is shut); these are DISPLAY prices only.
-        "subscription_rows": subscription_rows(),
+        # purpose (checkout is shut); these are DISPLAY prices only, and
+        # published_price_rows() already hides anything not yet for sale.
+        "published_price_rows": published_price_rows(),
     }
     return render(request, "public_app/legal/tokushoho.html", context)
 

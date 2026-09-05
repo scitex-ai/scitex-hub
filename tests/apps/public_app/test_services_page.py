@@ -96,6 +96,53 @@ class TestServicesGet:
         # Assert
         assert "囲い込" in resp.content.decode()
 
+    def test_get_prices_the_same_catalogue_as_tokushoho(self, client, services_url):
+        """2026-09-02: /services/ and /tokushoho/ read ONE list. Until then this
+        page rendered the 2024-invoice consulting bands and a three-tier table
+        whose middle tier (Lab) business had retired on 2026-08-28 — two public
+        pages, one pricing.json, two disjoint price sets. The operator's words
+        on seeing it: 「値段はめちゃくちゃだった」."""
+        # Arrange
+        from apps.infra.public_app.pricing import published_price_rows
+
+        rows = published_price_rows()
+        assert rows, "Control: an empty catalogue would satisfy the loop below vacuously."
+        # Act
+        content = client.get(services_url).content.decode()
+        # Assert — every published row, by label AND price, is on the page
+        for row in rows:
+            assert row["label"] in content and row["price"] in content, (
+                f"{row['label']} {row['price']} is in pricing.json but not on /services/."
+            )
+        for row in rows:
+            if row["price_note"]:
+                assert row["price_note"] in content, f"{row['label']}: {row['price_note']!r} not on /services/"
+            for item in row["included"]:
+                assert item in content, f"{row['label']}: included item {item!r} not on /services/"
+        assert "税込" in content
+
+    def test_get_no_longer_prices_retired_offers(self, client, services_url):
+        # Arrange
+        retired_tier_names = ("Individual", "Enterprise")  # the old three-tier table
+        retired_band_amounts = ("11,000", "33,000", "110,000")  # 2024-invoice bands
+        # Act
+        content = client.get(services_url).content.decode()
+        # Assert
+        for needle in retired_tier_names + retired_band_amounts:
+            assert needle not in content, f"retired {needle!r} is back on /services/"
+        # The grid container is class="svc-plan-cards" and shares the prefix;
+        # count the tier articles, not every class that starts that way.
+        assert content.count('<article class="svc-plan-card') == 3, "exactly three tiers"
+
+    def test_get_shows_the_three_tiers_business_wrote(self, client, services_url):
+        # Arrange
+        expected = ("サブスク", "オンプレ", "大規模", "応相談", "問い合わせはこちら")
+        # Act
+        content = client.get(services_url).content.decode()
+        # Assert
+        for needle in expected:
+            assert needle in content, f"{needle!r} missing from the tier cards"
+
 
 @pytest.mark.django_db
 class TestServicesInquiryValid:
