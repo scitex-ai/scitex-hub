@@ -40,11 +40,18 @@ NEW_BADGE_DAYS = 14
 # operator (Telegram 992/997, 2026-07-12); this gives the research apps a
 # natural first-screen order. Modules not listed sort after these by label.
 # A per-user drag-reorder (api_reorder) overrides this entirely.
+#
+# THIS LIST — not the manifests — is what a user sees. _build_tiles enumerates
+# get_all_modules() (manifest `order`) but then re-sorts every tile through
+# _default_order_value(), so editing a manifest's `order` moves nothing on the
+# grid. Both are kept in step anyway: leaving them to disagree is what made
+# that easy to get wrong. Operator, Telegram 4794, 2026-09-05:
+# 「順番はスカラフィグレシピライター」 — Scholar, FigRecipe, Writer.
 DEFAULT_LAUNCHER_ORDER = [
     "home",
-    "writer",
     "scholar",
     "figrecipe",
+    "writer",
     "console",
     "discovery",
     "clew",
