@@ -79,11 +79,25 @@ def beaconed_queues():
 
 
 def worker_services():
-    """(file, service_name, service) for every celery worker in every stack.
+    """(file, service_name, service) for every celery worker DECLARING a test.
 
     Discovered, not enumerated. A compose file that cannot be parsed is yielded
     as a service that fails every rule rather than dropping silently out of the
     sweep -- an unparseable file must never read as clean.
+
+    ONLY SERVICES THAT DECLARE ``healthcheck.test`` ARE JUDGED, because compose
+    MERGES an override onto its base. ``docker_dev/docker-compose.override.yml``
+    sets ``celery_worker.healthcheck.start_period`` and nothing else; the
+    effective ``test:`` comes from the base file and is judged there. Verified
+    on the running container 2026-09-05 -- ``docker inspect`` showed the base
+    file's test on a worker whose override names only start_period. Treating
+    that partial override as "no execution proof" is a false positive, and a
+    gate that cries wolf on a correct file gets switched off.
+
+    The consequence is deliberate: a worker with NO healthcheck anywhere is not
+    caught here. That is a different defect (no gate at all, rather than a gate
+    that cannot fail), and ``test_every_stack_declares_worker_healthchecks``
+    below keeps the judged population from silently emptying.
     """
     found = []
     for path in compose_files():
@@ -94,8 +108,13 @@ def worker_services():
             found.append((path, "<unparseable>", {}))
             continue
         for name, service in services.items():
-            if name.startswith("celery_worker") and isinstance(service, dict):
-                found.append((path, name, service))
+            if not name.startswith("celery_worker"):
+                continue
+            if not isinstance(service, dict):
+                continue
+            if (service.get("healthcheck") or {}).get("test") is None:
+                continue
+            found.append((path, name, service))
     return found
 
 
@@ -119,13 +138,21 @@ def test_discovery_found_the_compose_files():
     assert len(discovered) >= floor
 
 
-def test_discovery_found_celery_workers():
-    """Control: the population must be non-empty for the gate to mean anything."""
+def test_every_stack_declares_worker_healthchecks():
+    """Control: the judged population must not silently empty.
+
+    ``worker_services`` skips partial overrides that declare no ``test:``. If
+    that filter ever widened -- or a stack stopped declaring healthchecks at
+    all -- every rule below would pass vacuously. Measured 2026-09-05: 6
+    declaring workers across 5 stacks. The floor sits below that deliberately;
+    it is a tripwire, not a headcount to edit whenever a stack is added.
+    """
     # Arrange
+    floor = 5
     # Act
     workers = worker_services()
     # Assert
-    assert workers
+    assert len(workers) >= floor
 
 
 def test_beat_schedule_declares_beaconed_queues():
