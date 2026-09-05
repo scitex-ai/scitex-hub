@@ -37,13 +37,38 @@ class LauncherTileUrlTest(TestCase):
         resp = self.client.get("/")
         return next(t for t in resp.context["tiles"] if t["name"] == name)
 
-    def test_console_tile_url_is_console_route(self):
+    def test_console_url_is_the_console_route(self):
+        """Console has no launcher TILE any more (operator asked for it to be
+        hidden), so this asks the registry for its URL instead of the grid.
+
+        The intent is unchanged and still worth pinning: whatever sends a user
+        to Console — the tab bar, a direct link, the sidebar — must send them
+        to /apps/console/. Only the SUBJECT moved, from the tile to the module
+        that would have produced it.
+
+        This test previously did next(t for t in tiles if t["name"] ==
+        "console") and, once the tile went away, raised StopIteration — which
+        is how it surfaced, on all three CI legs.
+        """
         # Arrange
+        from apps.infra.workspace_app.registry import get_module
+
         module_name = "console"
         # Act
-        tile = self._tile(module_name)
+        module = get_module(module_name)
         # Assert
-        assert tile["launch_url"] == "/apps/console/"
+        assert module is not None and module.get_url() == "/apps/console/"
+
+    def test_console_really_has_no_tile(self):
+        """The other half of the change above: asserting the URL from the
+        registry would keep passing if the tile came back, so pin its absence
+        here rather than leaving it implied."""
+        # Arrange
+        resp = self.client.get("/")
+        # Act
+        names = {t["name"] for t in resp.context["tiles"]}
+        # Assert
+        assert "console" not in names
 
     def test_console_index_does_not_redirect_to_writer(self):
         # Arrange
