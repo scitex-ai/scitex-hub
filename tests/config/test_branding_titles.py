@@ -382,3 +382,100 @@ def test_page_title_tag_is_loadable_and_renders_in_a_real_template():
 
     # Assert
     assert html == "<title>Writer — SciTeX (dev)</title>"
+
+
+# ---------------------------------------------------------------------------
+# The project detail is the project's NAME, not its URL slug
+# ---------------------------------------------------------------------------
+# A first-time visitor's tab read "default-project · Chat — SciTeX (dev)" on
+# the dev preview (measured 2026-09-05) while the same page rendered the
+# project's actual name, "Handwritten Digits (Example)", five times in its
+# body. The tab is often the only place a user sees which project they are in,
+# so it says what the project is CALLED. The slug remains the fallback, which
+# is why the older tests above — whose fake projects carry only a slug — still
+# describe correct behaviour rather than becoming stale.
+@override_settings(SCITEX_ENV="production", SCITEX_APP_MODE=branding.MODE_HUB)
+def test_the_project_name_is_preferred_over_the_slug():
+    # Arrange
+    class _Project:
+        name = "Handwritten Digits (Example)"
+        slug = "default-project"
+
+    context = {"request": FakeRequest("/writer/"), "current_project": _Project()}
+
+    # Act
+    title = branding_tags.page_title(context)
+
+    # Assert
+    assert title == "Handwritten Digits (Example) · Writer — SciTeX"
+
+
+@override_settings(SCITEX_ENV="production", SCITEX_APP_MODE=branding.MODE_HUB)
+def test_the_slug_is_still_used_when_the_project_has_no_name():
+    """A project with no name must still get a title, not lose its detail."""
+    # Arrange
+    class _Project:
+        name = ""
+        slug = "my-proj"
+
+    context = {"request": FakeRequest("/writer/"), "current_project": _Project()}
+
+    # Act
+    title = branding_tags.page_title(context)
+
+    # Assert
+    assert title == "my-proj · Writer — SciTeX"
+
+
+@override_settings(SCITEX_ENV="production", SCITEX_APP_MODE=branding.MODE_HUB)
+def test_a_whitespace_only_name_falls_back_to_the_slug():
+    """"   " is not a label; it would render as a blank detail plus a dot."""
+    # Arrange
+    class _Project:
+        name = "   "
+        slug = "my-proj"
+
+    context = {"request": FakeRequest("/writer/"), "current_project": _Project()}
+
+    # Act
+    title = branding_tags.page_title(context)
+
+    # Assert
+    assert title == "my-proj · Writer — SciTeX"
+
+
+@override_settings(SCITEX_ENV="production", SCITEX_APP_MODE=branding.MODE_HUB)
+def test_the_name_is_stripped_before_it_reaches_the_title():
+    # Arrange
+    class _Project:
+        name = "  Handwritten Digits (Example)  "
+        slug = "default-project"
+
+    context = {"request": FakeRequest("/writer/"), "current_project": _Project()}
+
+    # Act
+    title = branding_tags.page_title(context)
+
+    # Assert
+    assert title == "Handwritten Digits (Example) · Writer — SciTeX"
+
+
+@override_settings(SCITEX_ENV="production", SCITEX_APP_MODE=branding.MODE_HUB)
+def test_an_explicit_detail_still_wins_over_the_project_name():
+    """The per-view override outranks both name and slug."""
+    # Arrange
+    class _Project:
+        name = "Handwritten Digits (Example)"
+        slug = "default-project"
+
+    context = {
+        "request": FakeRequest("/apps/scholar/"),
+        "current_project": _Project(),
+        "page_title_detail": "Library",
+    }
+
+    # Act
+    title = branding_tags.page_title(context)
+
+    # Assert
+    assert title == "Library · Scholar — SciTeX"
