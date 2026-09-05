@@ -43,7 +43,14 @@ dependencies = [
     # with the upstream flat-layout generator, breaking
     # `pip_install_user_app` at install time. (0.2.9 was claimed by an
     # orphan tag for an unrelated earlier release — jumping to 0.2.10.)
-    "scitex-app>=0.2.10",
+    # >=0.11.0 (2026-09-03): `scitex_app.hosts_to_allow` becomes PUBLIC API —
+    # the interface-enumerating ALLOWED_HOSTS fix (scholar #137, copied into
+    # scitex-app by figrecipe #105 for 0.10.1, re-exported publicly in 0.11.0)
+    # so an app bound to 0.0.0.0 answers on its real addresses instead of 400.
+    # Also: appmaker.validate() no longer fails a build on advisory findings
+    # (a behaviour change). Verified by scitex-app against the PUBLISHED wheel
+    # in a clean venv (installed 0.11.0, public name True, alias same object).
+    "scitex-app>=0.11.0",
     "scitex-config>=0.3.6",
     # `scitex-session` is consumed via the umbrella as `scitex.session.INJECTED`
     # (settings_shared.py / settings_auth.py / config/routing.py).
@@ -64,7 +71,12 @@ dependencies = [
     # STX_MOUNT and throws when the marker is absent rather than falling back
     # to root, so a wrong mount fails loudly. Measured by scitex-scholar
     # (scholar #113/#118), 2026-08-23.
-    "scitex-scholar>=1.9.0",
+    # >=1.10.0 (2026-09-03): carries scholar #137 — standalone ALLOWED_HOSTS
+    # enumerates interface IPv4s (SIOCGIFADDR, no hostname resolution) when
+    # bound to 0.0.0.0, DEBUG defaults False, no "*". /api/health no longer
+    # returns db_available / db_path (hub has no reader — measured). Verified
+    # by scholar from a throwaway venv against PyPI 1.10.0.
+    "scitex-scholar>=1.10.0",
     # 0.16.1 is the first release where `audit_all_for_package`
     # honours the HYPHENATED rule-id format that tests/develop/
     # test_audit.py uses (`[PA-307 …]` <- skip_rules=("PA-307",)).
