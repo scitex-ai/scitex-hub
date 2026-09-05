@@ -353,16 +353,17 @@
                  what made the previous <select> look out of place. -->
             {% include 'global_base_partials/language_switcher.html' %}
             <!-- Theme Toggle (always visible) -->
-            <button id="theme-toggle" class="theme-toggle" data-tooltip="Toggle light/dark theme">
+            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light/dark theme" data-tooltip="Toggle light/dark theme">
                 <i class="fas fa-adjust"></i>
             </button>
             <!-- Product Tour -->
-            <button id="product-tour-btn" class="theme-toggle" data-tooltip="Product Tour">
+            <button id="product-tour-btn" class="theme-toggle" aria-label="Product tour" data-tooltip="Product Tour">
                 <i class="fas fa-question-circle"></i>
             </button>
             <!-- Keyboard Shortcuts Help (Alt+/ for modal, click for page) -->
             <a href="/keyboard-shortcuts/"
                id="shortcuts-help-btn"
+               aria-label="Keyboard shortcuts (Alt+/ for quick view)"
                class="theme-toggle"
                data-tooltip="Keyboard Shortcuts (Alt+/ for quick view)">
                 <i class="fas fa-keyboard"></i>
@@ -373,7 +374,7 @@
                      class="header-notification-center"
                      style="position: relative;
                             display: inline-flex">
-                    <button id="notification-bell" class="theme-toggle" data-tooltip="Notifications">
+                    <button id="notification-bell" class="theme-toggle" aria-label="Notifications" data-tooltip="Notifications">
                         <i class="fas fa-bell"></i>
                         <span id="notification-badge" class="notification-badge" style="display: none">0</span>
                     </button>
@@ -394,6 +395,7 @@
             <!-- Server Status with live health indicator -->
             <a href="{% url 'public_app:server_status' %}"
                id="server-stx-shell-status-bar__btn"
+               aria-label="System status"
                class="theme-toggle"
                data-tooltip="System Status"
                style="font-size: 18px;
