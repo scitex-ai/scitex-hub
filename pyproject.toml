@@ -77,6 +77,28 @@ dependencies = [
     # returns db_available / db_path (hub has no reader — measured). Verified
     # by scholar from a throwaway venv against PyPI 1.10.0.
     "scitex-scholar>=1.10.0",
+    # THE FOUR SIBLINGS HUB IMPORTS BUT NEVER DECLARED — measured 2026-09-03/04
+    # inside the dev image built from `.[all]` (sha256:70be677c04bf): hub's
+    # `all` extra pulls the umbrella BARE (`scitex>=2.29.3`, below), whose base
+    # Requires-Dist carries none of these. scitex-decorators and scitex-sh sit
+    # under NO umbrella extra at all; scitex-container and scitex-template only
+    # under umbrella extras hub never asks for. So the dev image failed its own
+    # sibling-floor preflight (scripts/deploy/preflight_sibling_floors.sh:
+    # scitex.io and scitex.plt.load_style raise "scitex_decorators is required",
+    # scitex.template.clone_template raises "scitex_template is required",
+    # scitex_container.apptainer is ModuleNotFoundError) while production got
+    # them only through Dockerfile.prod's hand-written pins. hub imports them
+    # directly (apps/workspace/console_app/views/terminal/_command_builder.py:
+    # 14-23 imports scitex_container.apptainer unguarded; scitex.io's loader
+    # imports scitex.decorators.preserve_doc), so hub declares them: a dependency
+    # only the deployer knows about is the drift this repo keeps paying for.
+    # Versions are what `uv pip install --dry-run` resolved on a scitex 2.29.3
+    # environment; scitex-template's floor equals its C0 pin (raise both
+    # together, per the pin rule).
+    "scitex-container>=0.4.2",
+    "scitex-decorators>=0.1.12",
+    "scitex-sh>=0.2.0",
+    "scitex-template>=0.7.0",
     # 0.16.1 is the first release where `audit_all_for_package`
     # honours the HYPHENATED rule-id format that tests/develop/
     # test_audit.py uses (`[PA-307 …]` <- skip_rules=("PA-307",)).
