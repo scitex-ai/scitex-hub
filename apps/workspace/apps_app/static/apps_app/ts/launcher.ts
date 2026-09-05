@@ -25,6 +25,7 @@ import { showToast } from "@utils/ui";
 import { getCsrf } from "./_launcher/csrf";
 import { LauncherPager } from "./_launcher/pager";
 import { LauncherPopover } from "./_launcher/popover";
+import { shouldSwap } from "./_launcher/swap-intent";
 
 // Hold this long before the grid enters jiggle/edit mode.
 const LONG_PRESS_MS = 420;
@@ -75,6 +76,11 @@ class AppLauncher {
   private dragTile: HTMLElement | null = null;
   private dragPointerId: number | null = null;
   private suppressClick = false;
+  // While displaced tiles are still travelling to their new slots, hit-testing
+  // reads their ANIMATED boxes, not their layout — so a reorder decided during
+  // the travel is decided against positions that are about to stop existing.
+  // Timestamp (performance.now()) at which the current travel ends; 0 = idle.
+  private travelUntil = 0;
 
   // Bound drag handlers so add/removeEventListener pair up.
   private onDragMove = (e: PointerEvent) => this.handleDragMove(e);
@@ -271,6 +277,23 @@ class AppLauncher {
     const host = over.parentElement;
     if (!host) return;
 
+    // Passing, not touching: swap only once the pointer is past the target's
+    // centre, and never mid-travel. Being over a neighbour's edge used to be
+    // enough, which made a finger resting near a boundary swap the pair back
+    // and forth every pointermove (operator, 2026-09-05: "1秒の間に10回とか
+    // 入れ替わって"). See _launcher/swap-intent.ts for the measured cause.
+    if (
+      !shouldSwap({
+        pointer: { x: e.clientX, y: e.clientY },
+        dragged: dragged.getBoundingClientRect(),
+        target: over.getBoundingClientRect(),
+        forward: from < to,
+        travelling: performance.now() < this.travelUntil,
+      })
+    ) {
+      return;
+    }
+
     this.reorderWithTravel(() => {
       if (from < to) {
         host.insertBefore(dragged, over.nextSibling);
@@ -311,6 +334,10 @@ class AppLauncher {
       "(prefers-reduced-motion: reduce)",
     ).matches;
     const duration = reduced ? 120 : 200;
+    // Hold the next decision until these tiles have landed: while they travel,
+    // elementFromPoint reports their animated boxes, so a reorder decided now
+    // would be decided against positions that are already obsolete.
+    this.travelUntil = performance.now() + duration;
 
     tiles.forEach((tile) => {
       const start = before.get(tile);
