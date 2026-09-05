@@ -162,7 +162,8 @@ body.workspace-page.landing-page .site-footer {
 /* =========================
    App Home Override
    ========================= */
-/* The signed-in launcher at `/` renders the footer (workspace-layout.css and
+/* Launcher surfaces — the signed-in launcher at `/` and the app store at
+   /apps/store/, both carrying `.app-home` — render the footer (workspace-layout.css and
    footer.css both exclude `.app-home` from their hide rules, so the 特定商取引法
    disclosure, the policy pages and contact are reachable). A page may not do
    that AND stay pinned to the viewport.
