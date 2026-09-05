@@ -630,7 +630,12 @@ RUN uv pip install --system --no-cache \
     # typo'd version resolves to nothing and fails the build. See the
     # "does not check" note in test_dockerfile_pin_set_resolves.py.
     "scitex-writer==2.42.0" \
-    "scitex-template==0.7.0" \
+    # 0.7.1 (2026-09-03): clone_scitex_minimal returns CloneOutcome.failed(reason=...)
+    # instead of a bare False, so a failed visitor reset records WHY it failed
+    # (prod 2026-08-31: "the template reported NO reason"). Verified against the
+    # published wheel: clone_template / clone_scitex_minimal /
+    # clone_template_result / CloneOutcome all exported.
+    "scitex-template==0.7.1" \
     "scitex-linter==0.3.1" \
     "scitex-ui==0.16.0" \
     "openalex-local==0.6.0" \
