@@ -11,7 +11,7 @@
   "keyboard_shortcut": "M",
   "order": 90,
   "accent_color": "store",
-  "body_class": "store-page",
+  "body_class": "store-page app-home",
   "partial_template": "apps_app/browse_partial.html",
   "context_builder": "apps.workspace.apps_app.views.build_apps_context",
   "url": "/apps/store/",
