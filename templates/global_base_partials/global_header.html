@@ -392,27 +392,24 @@
                     </div>
                 </div>
             {% endif %}
-            <!-- Server Status with live health indicator -->
-            <a href="{% url 'public_app:server_status' %}"
-               id="server-stx-shell-status-bar__btn"
-               aria-label="System status"
-               class="theme-toggle"
-               data-tooltip="System Status"
-               style="font-size: 18px;
-                      position: relative">
-                <span id="server-status-indicator"
-                      class="status-dot"
-                      style="position: absolute;
-                             top: 8px;
-                             right: 8px;
-                             width: 8px;
-                             height: 8px;
-                             border-radius: 50%;
-                             background: #4caf50;
-                             border: 2px solid var(--bg-page);
-                             box-shadow: 0 0 4px rgba(76, 175, 80, 0.6)"></span>
-                <i class="fas fa-server"></i>
-            </a>
+            {% comment %}
+            The server-status icon used to sit here. Operator, Telegram
+            4864/4866/4869, 2026-09-05: take it out of the header — the
+            shortcuts are moving into a hamburger and status belongs in there
+            with them, so the header icon is not needed.
+            REACHABLE, NOT REMOVED: /server-status/ still exists and is still
+            linked from the footer and from the notification dropdown above.
+            This deletes a header ORNAMENT, not the page.
+            The TypeScript that polled it (static/shared/ts/components/
+            header.ts, "Server Health Status Live Indicator") is deliberately
+            LEFT IN PLACE. It is guarded by
+                if (serverStatusIndicator && serverStatusBtn) { ... }
+            so with the markup gone it simply never runs — no console error,
+            and one periodic fetch of the health endpoint per page stops. It
+            stays because the status is going INTO the hamburger next
+            (hub-header-declutter-hamburger-holds-shortcuts-and-server-status-
+            20260905), and it will want this code back with new ids.
+            {% endcomment %}
             {% if is_visitor %}
                 <!-- Visitor Menu (Integrated badge + dropdown) -->
                 <div class="header-user-menu">
