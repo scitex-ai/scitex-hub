@@ -126,7 +126,9 @@ export class CompilationManager {
   /**
    * Set error callback
    */
-  onError(callback: (error: string) => void): void {
+  onError(
+    callback: (error: string | CompilationHttpError) => void,
+  ): void {
     this.state.setCallbacks({ onError: callback });
   }
 
