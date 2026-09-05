@@ -148,3 +148,78 @@ def test_a_profileless_user_does_not_break_provisioning(visitor_with_demo):
 
 
 # EOF
+
+
+# ---------------------------------------------------------------------------
+# The SHARED read-only account — the one the first screen actually uses
+# ---------------------------------------------------------------------------
+# The fix above moved the four pooled visitor-NNN slots and left this account
+# behind, which meant it fixed nothing a first-time arrival could see. Measured
+# on the PUBLIC dev preview 2026-09-05, AFTER the pooled slots were repaired:
+#
+#     https://compute-03-net.scitex.ai/  ->  "dotfiles — SciTeX (dev)"
+#     body: "Read-Only Mode / 2 of 4 visitor slots available"
+#     the bound user was readonly-visitor, not visitor-NNN
+#
+# Two free slots, and the visitor still got this account: the middleware binds
+# readonly-visitor for any request classified as needing no workspace, the
+# public landing page included. So this account serves the FIRST SCREEN, and it
+# is the one that has to open on the demo.
+@pytest.fixture(name="readonly_visitor_with_demo")
+def _readonly_visitor_with_demo():
+    """The shared account as provisioning leaves it: parked on dotfiles.
+
+    The User post_save signal creates the profile AND the dotfiles home project
+    and points the profile at it — so this fixture must NOT create dotfiles
+    itself. Doing that is what my first attempt got wrong, and Postgres said so:
+    UniqueViolation on (name, owner_id)=(dotfiles, 1).
+    """
+    User = get_user_model()
+    user = User.objects.create_user(username="readonly-visitor", password="x")
+    Project.objects.create(
+        name=DISPLAY_NAME,
+        slug=SLUG,
+        owner=user,
+        visibility="private",
+        data_location=f"{user.username}/{SLUG}",
+    )
+    return user
+
+
+@pytest.mark.django_db
+def test_the_shared_readonly_account_starts_parked_on_dotfiles(
+    readonly_visitor_with_demo,
+):
+    """Control: the defect must be present before the fix is asserted."""
+    # Arrange
+    user = readonly_visitor_with_demo
+    # Act
+    parked = user.profile.last_active_repository
+    # Assert
+    assert getattr(parked, "slug", None) == "dotfiles"
+
+
+@pytest.mark.django_db
+def test_the_shared_readonly_account_opens_on_the_demo(readonly_visitor_with_demo):
+    # Arrange
+    user = readonly_visitor_with_demo
+    demo = Project.objects.get(owner=user, slug=SLUG)
+    # Act
+    land_visitor_on(user, demo)
+    # Assert
+    user.refresh_from_db()
+    assert user.profile.last_active_repository_id == demo.pk
+
+
+@pytest.mark.django_db
+def test_moving_the_readonly_account_is_idempotent(readonly_visitor_with_demo):
+    """The account long predates the fix, so the move cannot be gated on
+    project_created — that is exactly how it was missed the first time."""
+    # Arrange
+    user = readonly_visitor_with_demo
+    demo = Project.objects.get(owner=user, slug=SLUG)
+    # Act
+    moved_first = land_visitor_on(user, demo)
+    moved_again = land_visitor_on(user, demo)
+    # Assert
+    assert (moved_first, moved_again) == (True, False)
