@@ -299,17 +299,38 @@ services:
     # Use mounted entrypoint (picks up changes without rebuild)
     entrypoint: ["/app/deployment/docker/docker_dev/entrypoint.sh"]
 
-    # Run Celery worker with all queues
-    # --max-tasks-per-child: auto-restart worker after N tasks (prevents memory leaks)
-    # --max-memory-per-child: auto-restart if worker exceeds 500MB (KB units)
+    # Run Celery worker with all queues.
+    #
+    # POOL=THREADS. The prefork pool WEDGES on this host. Prod moved off it on
+    # 2026-07-30 after the signature was measured three times (2026-07-14,
+    # 07-17, 07-30) and FIVE other fixes failed; dev was never migrated and has
+    # been wedging ever since. See the long diagnosis above `celery_worker` in
+    # docker_prod/docker-compose.yml — it is the authority, not this comment.
+    #
+    # The signature, reproduced on dev 2026-09-05: the worker processes roughly
+    # one prefetch window and then dispatch dies. Fork children idle, the
+    # control channel answers `inspect ping`, redis pings, the container
+    # reports healthy, and NOTHING RUNS. Measured here: 0 tasks in 12.9h,
+    # queues growing (celery 212k, vis_queue 9.9k), unacked=0. A restart drains
+    # one burst and wedges again — observed exactly once at +3min, then dead.
+    #
+    # Threads are safe for THESE queues because prod already runs all five of
+    # them on threads: celery_worker takes celery/ai_queue/search_queue/
+    # compute_queue and celery_worker_vis takes vis_queue, both --pool=threads.
+    # The one documented precondition — matplotlib is not thread-safe and used
+    # to be reachable via server-side chart rendering — was removed when that
+    # moved client-side (operator direction 2026-07-30).
+    #
+    # --max-tasks-per-child / --max-memory-per-child are DELIBERATELY GONE:
+    # both recycle POOL CHILD PROCESSES and do nothing under threads. Keeping
+    # them would advertise a recycling behaviour this worker no longer has.
     command: >
       celery -A config --broker=redis://redis:6379/1 worker
       --loglevel=info
       --queues=celery,ai_queue,search_queue,compute_queue,vis_queue
+      --pool=threads
       --concurrency=4
       --prefetch-multiplier=1
-      --max-tasks-per-child=100
-      --max-memory-per-child=500000
 
     restart: unless-stopped
 

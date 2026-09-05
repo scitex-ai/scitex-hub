@@ -146,10 +146,17 @@ services:
   celery_worker:
     image: scitex-hub-prod-django:latest
     entrypoint: ["/entrypoint.sh"]
+    # POOL=THREADS: the prefork pool WEDGES on this host (measured three times
+    # 2026-07-14/17/30; five other fixes failed). Prod moved off it 2026-07-30;
+    # every other stack was left behind. Authority is the diagnosis above
+    # `celery_worker` in docker_prod/docker-compose.yml.
+    # --max-tasks-per-child / --max-memory-per-child recycle POOL CHILDREN and
+    # do nothing under threads, so they are removed rather than left lying.
     command: >
       celery -A config --broker=redis://redis:6379/1 worker
       --loglevel=info
       --queues=celery,ai_queue,search_queue,compute_queue,vis_queue
+      --pool=threads
       --concurrency=8
       --prefetch-multiplier=1
     deploy:
