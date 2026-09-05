@@ -9,7 +9,7 @@
   "pip_package": "scitex-scholar",
   "license": "AGPL-3.0",
   "keyboard_shortcut": "S",
-  "order": 30,
+  "order": 20,
   "accent_color": "scholar",
   "body_class": "scholar-page",
   "partial_template": "scholar_app/scholar_partial.html",

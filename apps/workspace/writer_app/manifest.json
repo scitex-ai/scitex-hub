@@ -10,7 +10,7 @@
   "license": "AGPL-3.0",
   "keyboard_shortcut": "W",
   "availability": "desktop_only",
-  "order": 20,
+  "order": 30,
   "accent_color": "writer",
   "body_class": "writer-page",
   "partial_template": "writer_app/writer_partial.html",

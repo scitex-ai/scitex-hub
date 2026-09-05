@@ -10,7 +10,7 @@
   "license": "AGPL-3.0",
   "keyboard_shortcut": "F",
   "availability": "desktop_only",
-  "order": 45,
+  "order": 25,
   "accent_color": "figrecipe",
   "body_class": "figrecipe-page",
   "partial_template": "figrecipe_app/figrecipe_partial.html",
