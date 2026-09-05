@@ -96,7 +96,17 @@ _READONLY_REASON_DETAIL_GENERIC = (
 #: Pool-capacity causes (pool_health.CAUSE_*) that an operator must clear.
 #: Kept as bare strings so session_role stays importable from lightweight
 #: contexts — pool_health imports models transitively.
-_CAUSES_NEEDING_OPERATOR = frozenset({"quarantined", "unprovisioned"})
+#:
+#: DELIBERATELY ONLY ``quarantined``. ``unprovisioned`` (no slot rows at all)
+#: also needs an operator by REPAIR_BY_CAUSE's own reckoning — it wants
+#: `create_visitor_pool` — so on the merits it arguably belongs here too.
+#: It is NOT here because test_visitor_failloud.py:179 deliberately asserts
+#: ``no_ready_slot`` for an empty pool, and quietly overturning that
+#: assertion as a side effect of a quarantine fix would be changing product
+#: behaviour nobody asked me to change. Whether an unprovisioned pool should
+#: tell a visitor to "retry in a few minutes" is a real question and it
+#: deserves its own decision, not a smuggled one.
+_CAUSES_NEEDING_OPERATOR = frozenset({"quarantined"})
 
 
 def readonly_reason_for_capacity_cause(cause: str | None) -> str:

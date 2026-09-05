@@ -127,13 +127,17 @@ def test_quarantined_capacity_needs_an_operator():
     assert reason == READONLY_REASON_NEEDS_OPERATOR
 
 
-def test_unprovisioned_capacity_needs_an_operator():
-    # Arrange - missing rows are not something waiting fixes either
+def test_unprovisioned_capacity_keeps_the_existing_reason():
+    # Arrange - an empty pool arguably needs an operator too (REPAIR_BY_CAUSE
+    # wants create_visitor_pool), but test_visitor_failloud.py:179 asserts
+    # no_ready_slot for exactly this state. Changing that as a side effect of
+    # a quarantine fix would be overturning a deliberate assertion nobody
+    # asked me to touch, so the scope stays where the measured defect was.
     cause = "unprovisioned"
     # Act
     reason = readonly_reason_for_capacity_cause(cause)
     # Assert
-    assert reason == READONLY_REASON_NEEDS_OPERATOR
+    assert reason == READONLY_REASON_NO_READY_SLOT
 
 
 def test_resetting_capacity_is_still_the_self_healing_reason():
