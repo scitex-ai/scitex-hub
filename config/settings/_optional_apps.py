@@ -311,6 +311,23 @@ def optional_upstream_apps() -> list[str]:
     if _installed("scitex_storage._django"):
         entries.append("scitex_storage._django.apps.StorageConfig")
 
+    # scitex-scholar's Django app. Its VIEWS were already mounted at
+    # /apps/scholar/v2/ (apps/workspace/scholar_app/urls/scholar_django.py)
+    # without the APP being installed, and a mounted view whose app is not in
+    # INSTALLED_APPS cannot find its own templates: app_directories.Loader
+    # walks INSTALLED_APPS and nothing else. Measured on production 2026-09-05
+    # after the rebuild — scitex_scholar/_django/templates/scholar/scholar.html
+    # was on disk in the installed 1.10.0 wheel, and every visitor request to
+    # /apps/scholar/v2/ answered 500 with TemplateDoesNotExist('scholar/
+    # scholar.html'); anonymous requests never reached the view (login
+    # redirect), which is why curl looked healthy. The leaf's label is
+    # "scholar_editor", chosen upstream precisely not to collide with hub's own
+    # apps.workspace.scholar_app. Its AppConfig imports scitex_app hard; hub
+    # floors scitex-app, so a missing scitex_app is a broken install and must
+    # fail at startup rather than be papered over here.
+    if _installed("scitex_scholar._django"):
+        entries.append("scitex_scholar._django.apps.ScholarEditorConfig")
+
     # CANONICAL name. `scitex_todo` is a deprecated alias of this package
     # (renamed 2026-07-16) that warns it "ships for one transition window
     # only" — importing the alias would make the whole board mount depend on a
