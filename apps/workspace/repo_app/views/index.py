@@ -19,10 +19,16 @@ def build_hub_context(request, current_project=None):
     When no project, shows dashboard with project cards.
     """
 
+    # No "module_icon" here. The icon comes from this app's manifest, resolved
+    # by public_app.templatetags.module_icons.build_module_icon_html, which
+    # calls registry.get_module(name) and documents itself as "the single
+    # source of truth for module icon rendering". This dict used to carry
+    # "module_icon": "fa-home" as well — never rendered ({{ module_icon }}
+    # appears in no template) and contradicting the manifest, so it read like a
+    # second place to change and was not one. Removing it leaves one.
     context = {
         "is_visitor": False,
         "module_name": "Hub",
-        "module_icon": "fa-home",
         "current_project": current_project,
     }
 
