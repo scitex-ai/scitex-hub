@@ -43,6 +43,27 @@ in place by inertia.
 """
 
 import pytest
+from tests.e2e.playwright.page_ready import wait_for_page_ready
+
+# WHY THESE TESTS DO NOT WAIT FOR `networkidle`
+#
+# `networkidle` means "500 ms with zero requests in flight". A SciTeX page
+# held by a pooled visitor session runs a heartbeat/countdown poller for as
+# long as the page is open (PoolAllocator.extend_session_on_activity), so
+# that condition never arrives and the wait always times out. The page is
+# fine; the question is unanswerable.
+#
+# Measured twice, same exception both times:
+#   2026-08-16, CI run 31955719803 -- 30s timeout, 33 errors, capture down.
+#   2026-09-06, job 101449817274   -- 30s timeout, 14/14 mobile tests
+#                                     ERRORED in fixture setup, so not one
+#                                     assertion in the mobile suite had
+#                                     ever been evaluated.
+#
+# `wait_for_page_ready` (load -> body.app-ready -> short settle) was written
+# after the first of those and is the sanctioned wait. See
+# tests/e2e/playwright/page_ready.py for why each step is there and why none
+# of them can hide a broken page.
 
 STORE_PATH = "/apps/store/"
 
@@ -143,7 +164,7 @@ _REACHABILITY_PROBE = """
 @pytest.fixture
 def store_reachability(visitor_mobile_page):
     visitor_mobile_page.goto(STORE_PATH)
-    visitor_mobile_page.wait_for_load_state("networkidle")
+    wait_for_page_ready(visitor_mobile_page)
     return visitor_mobile_page.evaluate(_REACHABILITY_PROBE)
 
 

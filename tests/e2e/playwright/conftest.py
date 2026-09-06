@@ -178,6 +178,8 @@ def visitor_storage_state(browser_type, pw_base_url):
         context.browser.close()
 
     # Create fresh session by logging in
+    from tests.e2e.playwright.page_ready import wait_for_page_ready
+
     browser = browser_type.launch()
     context = browser.new_context(
         base_url=pw_base_url,
@@ -197,7 +199,27 @@ def visitor_storage_state(browser_type, pw_base_url):
     page.fill('input[name="username"]', TEST_USER)
     page.fill('input[name="password"]', TEST_PASS)
     page.click('button[type="submit"]')
-    page.wait_for_load_state("networkidle")
+    # NOT networkidle. THIS LINE IS WHY 14/14 MOBILE TESTS ERRORED AT SETUP.
+    #
+    # Measured 2026-09-06, job 101449817274:
+    #     E  playwright._impl._errors.TimeoutError: Timeout 30000ms exceeded.
+    #     E  "domcontentloaded" event fired
+    #     E  "load" event fired
+    # Both real load events fired. Only networkidle never came -- because the
+    # session this fixture has just created is a POOLED VISITOR, and a pooled
+    # visitor polls a heartbeat for as long as the page is open
+    # (PoolAllocator.extend_session_on_activity). "500 ms with no requests in
+    # flight" is a state it can never reach, so this wait could only ever time
+    # out, and every test depending on this fixture died before its first
+    # assertion.
+    #
+    # tests/e2e/playwright/page_ready.py was written for exactly this after the
+    # same exception took the screenshot capture down with 33 errors (CI run
+    # 31955719803, 2026-08-16). Its docstring even notes that this fixture
+    # already waits on body.app-ready for the login page -- which it does,
+    # eleven lines above. The helper was adopted by pooled_visitor_page in this
+    # same file and not here, and that gap is the whole defect.
+    wait_for_page_ready(page)
 
     # Save storage state
     context.storage_state(path=str(state_file))
