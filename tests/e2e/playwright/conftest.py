@@ -398,8 +398,78 @@ def visitor_mobile_context(browser, pw_base_url, visitor_storage_state):
 
 @pytest.fixture
 def visitor_mobile_page(visitor_mobile_context):
-    """A mobile page with visitor session."""
+    """A mobile page with visitor session -- and PROOF that it has one.
+
+    WHY THIS WARMS UP AND ASSERTS INSTEAD OF JUST HANDING OVER A PAGE.
+
+    visitor_storage_state already proves a session exists in the LOGIN context.
+    It then writes that state to a file and hands the FILE here, where a
+    DIFFERENT context is built (iPhone 14 viewport, mobile UA, has_touch).
+    Nothing proved the session survives that handoff -- and measured
+    2026-09-06, job 101474196873 on develop 7ebd24388, IT DOES NOT:
+
+        the login-time assertion did NOT fire (so the session was real there)
+        and the screenshots from the same run show
+            /apps/workspace/  -> the logged-out landing page
+            /apps/store/      -> "Login to install" on every card
+
+    The suite reported "1 failed, 8 passed". Those 8 assert
+    `resp.status == 200`, and a logged-out page returns 200 -- so they passed
+    while measuring nothing, exactly as they did before #745. A precondition
+    proven in one context is not proven in another, and the only place worth
+    proving it is WHERE THE ASSERTIONS RUN.
+
+    This mirrors pooled_visitor_page, which has warmed up and asserted its role
+    since it was written. That helper was sitting one fixture away the whole
+    time; this is its adoption, not a new idea.
+
+    ROLE EXPECTED HERE IS "user", NOT "visitor". This chain logs in as a
+    REGISTERED ACCOUNT, so assert_pooled_visitor would be the wrong assertion --
+    it demands a pooled slot this fixture never asks for. What is asserted is
+    the absence of a LOGGED-OUT state, which is the weakest claim that still
+    catches the defect.
+
+    AND THE ROLE IT REPORTS DISCRIMINATES THE REMAINING CANDIDATES:
+        anonymous / ""    -> the session did not survive the context handoff
+        readonly_visitor  -> the visitor POOL is required after all, and
+                             #748's reasoning for omitting the provisioning
+                             ("this fixture logs in as a registered account")
+                             was wrong
+        user              -> the session is fine and the failure is elsewhere
+    """
+    from tests.e2e.playwright.page_ready import wait_for_page_ready
+    from tests.e2e.playwright.session_role_check import (
+        READ_SESSION_ROLE_JS,
+        ROLE_ANONYMOUS,
+        VISITOR_WARMUP_ROUTE,
+    )
+
     page = visitor_mobile_context.new_page()
+
+    # A route VisitorAutoLoginMiddleware acts on -- deliberately not "/", which
+    # it skips for unauthenticated requests, and which would therefore report a
+    # role that says nothing about whether a session was carried.
+    page.goto(VISITOR_WARMUP_ROUTE)
+    wait_for_page_ready(page)
+    role = page.evaluate(READ_SESSION_ROLE_JS)
+    if role in (ROLE_ANONYMOUS, ""):
+        raise AssertionError(
+            f"the MOBILE context has session role {role!r} at "
+            f"{page.url!r}, so every test using this fixture would run "
+            "against a LOGGED-OUT site and still report 200. The login "
+            "itself succeeded -- visitor_storage_state's own assertion "
+            "passed -- so the session was lost between the login context "
+            "and this one. "
+            + (
+                "An empty role means the page carries no data-session-role "
+                "attribute at all, so it does not extend global_base and "
+                "cannot be vouched for."
+                if role == ""
+                else "An anonymous role means the storage state did not "
+                "carry the session into this context."
+            )
+        )
+
     yield page
     page.close()
 
