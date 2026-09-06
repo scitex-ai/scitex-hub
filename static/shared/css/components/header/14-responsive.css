@@ -107,6 +107,73 @@
 
   .header-left {
     gap: 8px;
+
+    /* THE HAMBURGER — THE PRIMARY NAVIGATION CONTROL — RENDERED 48px OFF THE
+       RIGHT EDGE OF A 390px VIEWPORT WITHOUT THESE TWO DECLARATIONS.
+
+       `.global-header-inner` is `display: flex; flex-wrap: nowrap` with 364px
+       of content box at 390px. Its three children measure:
+
+           .header-left                  253px   flex 0 1 auto   min-width auto
+           .header-visitor-badge-mobile  142px   flex 0 1 auto   min-width auto
+           .mobile-hamburger              15px   flex 0 1 auto   min-width auto
+           + 2 gaps                      ----
+                                         426px   against 364px available
+
+       Every child is `flex-shrink: 1` AND `min-width: auto`. On a flex item
+       the automatic minimum is its MIN-CONTENT size, so flex-shrink cannot
+       act: nothing shrinks, the row stays 438px wide, and the hamburger --
+       last in source order -- absorbs the entire overflow.
+
+       This is the same mechanism as `.apps-grid { grid-template-columns: 1fr }`
+       (= `minmax(auto, 1fr)`, automatic minimum = min-content), fixed in #741.
+       Same root cause, two layout modes, two pages. Expect more instances:
+       the pattern is any shrinkable box whose automatic minimum is not zeroed.
+
+       MEASURED on prod, /apps/store/, 390x844, mobile UA, anonymous, by
+       mutating these declarations on the live page and reverting:
+
+           as shipped     doc overflow  48   .header-left 253   ham +48 OFF
+           with this fix  doc overflow   0   .header-left 181   ham  -8 on
+           reverted       doc overflow  48   .header-left 253   ham +48 OFF
+
+       `overflow: hidden` IS REQUIRED, and `min-width: 0` alone is a WORSE
+       BUG THAN THE ONE IT FIXES. min-width:0 shrinks .header-left's BOX to
+       181px while its CONTENT stays 253px, so the project selector paints
+       ON TOP OF the visitor badge.
+
+       That was invisible to getBoundingClientRect(), which reports BOXES:
+       the box overlap is 65px WITH AND WITHOUT `overflow: hidden` -- it
+       never moves, so the obvious metric rejects the correct fix. The
+       question is about PAINT, and `document.elementFromPoint()` answers it
+       because it respects clipping. Five probes across the badge's own box:
+
+           as shipped              badge badge badge badge OFFSCREEN
+           min-width:0 only        HEADER-LEFT HEADER-LEFT badge badge badge
+           min-width:0 + hidden    badge badge badge badge badge
+
+       2 of 5 points collide under min-width:0 alone; 0 of 5 with the clip.
+       (The OFFSCREEN in the shipped rows is not an anomaly -- the badge runs
+       to x=411 on a 390 viewport, so that probe point is off-screen. It is
+       the shipped defect appearing in a second instrument.)
+
+       KNOWN RESIDUE, NOT FIXED HERE. The clip cuts the project name at an
+       arbitrary pixel rather than ellipsising it. `.project-selector-text`
+       ALREADY declares `overflow: hidden; text-overflow: ellipsis;
+       white-space: nowrap`, so the machinery exists -- but it never fires,
+       because the squeeze never reaches it: with min-width:0 on both
+       .header-left and .header-project-selector-inline, the inline box does
+       shrink 187 -> 115 while `.project-selector-btn` stays 187 and simply
+       overflows. Measured, in that order, each step reverted. Making the
+       ellipsis fire needs the button constrained, which is a separate change
+       against a separate rule; tracked on
+       hub-hamburger-menu-is-43px-off-screen-at-390px-20260906.
+
+       Shipping the clip now regardless: an off-screen PRIMARY NAV is a P1
+       and a mid-glyph clip is cosmetic. Holding a nav fix for a cosmetic
+       refinement would be the wrong trade. */
+    min-width: 0;
+    overflow: hidden;
   }
 
   /* Hide AI toggle in compact header (accessible via tab bar Console pane) */
