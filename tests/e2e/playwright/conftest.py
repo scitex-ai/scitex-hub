@@ -146,6 +146,69 @@ def desktop_page(desktop_context):
 # =============================================================================
 
 
+
+#: Selectors Django/Bootstrap use to render form errors, most specific first.
+#: Read as a LIST rather than one selector so the message can say WHICH kind of
+#: error was found -- "errorlist" and "alert" mean different things.
+_LOGIN_ERROR_SELECTORS = (
+    ".errorlist",
+    ".invalid-feedback",
+    ".alert-danger",
+    ".alert",
+    "[role='alert']",
+)
+
+
+def _login_page_diagnosis(page) -> str:
+    """Say WHAT THE PAGE SAID when a login fails to navigate.
+
+    WHY THIS EXISTS. The bare assertion this feeds reports that the login did
+    not complete and the URL it is stuck on. Measured 2026-09-06, job
+    101461416410: that was enough to make the failure loud and NOT enough to
+    say why, leaving three candidates open (credentials rejected / CSRF
+    re-render / the submit control never firing) and needing a human to go and
+    look. Django re-renders the login page at the SAME URL on a failed login,
+    so the URL cannot discriminate between them; the rendered error text can.
+
+    This is scholar's rule -- a skip must name what it looked for and where --
+    applied to an assertion instead of a skip.
+
+    READS innerText, NOT textContent: textContent returns text inside
+    display:none nodes, and Django's error containers are frequently present
+    and empty until a POST fails. innerText reports what a person would see.
+
+    NEVER RAISES. It runs inside an `except` block, so a failure here would
+    replace a diagnosable error with an incomprehensible one. Every branch
+    degrades to a sentence saying what could not be read.
+    """
+    parts = []
+    for sel in _LOGIN_ERROR_SELECTORS:
+        try:
+            texts = page.eval_on_selector_all(
+                sel,
+                "els => els.map(e => (e.innerText || '').trim()).filter(Boolean)",
+            )
+        except Exception:  # noqa: BLE001 -- diagnosis must not mask the real error
+            continue
+        if texts:
+            parts.append(f"  {sel}: {texts!r}")
+    if parts:
+        return "THE PAGE SAID:\n" + "\n".join(parts)
+
+    # No recognised error container carried text. That is itself informative --
+    # it argues AGAINST "credentials rejected" (which renders an errorlist) and
+    # FOR the form never having been submitted at all.
+    try:
+        body = page.evaluate("() => (document.body.innerText || '').trim()")
+    except Exception:  # noqa: BLE001
+        return "THE PAGE SAID: <could not read the page at all>"
+    return (
+        "NO error container carried visible text, which argues against "
+        "'credentials rejected' and toward 'the form was never submitted'. "
+        f"First 300 chars of what is on screen: {body[:300]!r}"
+    )
+
+
 @pytest.fixture(scope="session")
 def visitor_storage_state(browser_type, pw_base_url):
     """
@@ -231,7 +294,8 @@ def visitor_storage_state(browser_type, pw_base_url):
             "login did not navigate away from /auth/login/ within "
             f"{TIMEOUT}ms (still at {page.url!r}). Every test using this "
             "fixture would otherwise run against a LOGGED-OUT site and still "
-            f"report 200. Check SCITEX_E2E_TEST_USER / _TEST_PASS. ({exc})"
+            f"report 200. Check SCITEX_E2E_TEST_USER / _TEST_PASS.\n"
+            f"{_login_page_diagnosis(page)}\n({exc})"
         ) from exc
 
     wait_for_page_ready(page)
