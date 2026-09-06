@@ -27,6 +27,9 @@ from .execution import (
     select_container,
 )
 from .workspace import ensure_workspace
+from apps.workspace.console_app.views.terminal.pty_children import (
+    register_pty_child,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -285,6 +288,10 @@ async def spawn_direct(consumer):
 
     try:
         consumer.pid, consumer.fd = pty.fork()
+        # Register BEFORE anything else can fail: the SIGCHLD handler may
+        # only reap pids it knows, and an unregistered pty child leaks a
+        # zombie. No-op in the child (pid 0), which execs immediately.
+        register_pty_child(consumer.pid)
 
         if consumer.pid == 0:
             signal.pthread_sigmask(signal.SIG_SETMASK, old_mask)

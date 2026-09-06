@@ -34,16 +34,25 @@ async def _check_broker():
         return False
 
 
+from apps.workspace.console_app.views.terminal.pty_children import (
+    reap_registered_children,
+)
+
 # Fallback: SIGCHLD handler for direct pty.fork() mode
 def _sigchld_handler(signum, frame):
-    """Reap all zombie children without blocking."""
-    while True:
-        try:
-            pid, _ = os.waitpid(-1, os.WNOHANG)
-            if pid == 0:
-                break
-        except ChildProcessError:
-            break
+    """Reap the pty children THIS module forked, and nothing else.
+
+    This used to be `os.waitpid(-1, os.WNOHANG)` in a loop — reap ANY child of
+    this process. Since the handler is installed at IMPORT (below), and
+    importing the URLconf installs it, that made every `subprocess.run` in the
+    Django process liable to report returncode 0 for a command that failed:
+    the handler collected the child first, so Popen.wait() got ECHILD.
+
+    Measured 2026-09-06 — `bash -c "echo hi; exit 1"` returned 0 after the
+    URLconf was imported, and 1 without it. See pty_children.py for the full
+    write-up and the call-site gate.
+    """
+    reap_registered_children()
 
 
 # Only install if not already handled (for fallback mode)
