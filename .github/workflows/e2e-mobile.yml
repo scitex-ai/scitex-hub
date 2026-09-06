@@ -110,12 +110,81 @@ jobs:
           u.save()
           print(f'Test user ready (created={created})')
           "
-          python manage.py runserver 127.0.0.1:8000 &
-          # Wait for server to be ready
-          for i in $(seq 1 30); do
-            curl -s http://127.0.0.1:8000/auth/login/ > /dev/null 2>&1 && break
+          # `from_docker` is manage.py's own escape hatch, not a trick to get
+          # around it: the guard at manage.py:19-23 fires on a bare
+          # `runserver`, and manage.py:70-73 strips this token before Django
+          # sees argv. Without it the server NEVER STARTS in CI, which is what
+          # this workflow had been doing since it was created on 2026-03-30 —
+          # the guard predates the workflow by five months, so this job has
+          # never run a test. --noreload because the autoreloader forks a
+          # child, making a backgrounded server unkillable by its own PID.
+          # Same form screenshots.yml and docker-compose.preview.yml use.
+          python manage.py runserver 127.0.0.1:8000 --noreload from_docker \
+            > "$RUNNER_TEMP/server.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/server.pid"
+
+          # The old wait loop had nothing after it: 30 failed curls still
+          # exited 0, so a server that never started reached the test step and
+          # every test SKIPPED — reported as a green job. `served` is the whole
+          # point: the loop RECORDS whether it succeeded and the step fails on
+          # that record rather than on nothing.
+          #
+          # THE TRACING BELOW IS NOT DEBUG LEFTOVER, AND THE REASON IS A
+          # CORRECTION TO MY OWN EARLIER READING OF THIS STEP.
+          #
+          # After the first live run (job 101431112671) I recorded here that
+          # "the server did not start, the loop stopped after 3 of 60
+          # iterations, neither ::error:: branch printed, and the step still
+          # reported SUCCESS". EVERY PART OF THAT WAS WRONG, and the next run
+          # with these diagnostics proved it:
+          #
+          #     RUNNER_TEMP=[/home/runner/work/_temp]   not empty
+          #     pidfile=[5783]                          written fine
+          #     wait loop finished: served=1 after attempt=4
+          #
+          # `curl -fsS` IS SILENT ON SUCCESS. Three failing attempts printed
+          # `curl: (7)`; the fourth succeeded and printed NOTHING. I read that
+          # silence as the loop stopping. The step's success was correct and the
+          # guard had nothing to fire on.
+          #
+          # So the tracing stays for the opposite reason to the one I first
+          # gave: not because the step lies about its outcome, but because I
+          # cannot read this step's outcome from its default output. Every
+          # silencing flag (-s, -q, 2>/dev/null) turns a successful run into
+          # evidence of nothing, so the state is printed UNCONDITIONALLY.
+          #
+          # AND THE SKIPS ARE NOT CAUSED BY THE SERVER. With served=1 all 11
+          # tests still skipped, so the cause is a fixture precondition,
+          # undiagnosed as of this commit. Do not re-derive "server down" from
+          # a skip count.
+          echo "RUNNER_TEMP=[$RUNNER_TEMP]"
+          echo "pidfile=[$(cat "$RUNNER_TEMP/server.pid" 2>&1)]"
+          echo "server.log exists: $(test -f "$RUNNER_TEMP/server.log" && echo yes || echo NO)"
+
+          set -x
+          served=0
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8000/auth/login/ -o /dev/null; then
+              served=1
+              break
+            fi
+            if ! kill -0 "$(cat "$RUNNER_TEMP/server.pid")" 2>/dev/null; then
+              echo "::error::server process exited before answering (attempt $attempt)"
+              break
+            fi
             sleep 2
           done
+          set +x
+          echo "wait loop finished: served=$served after attempt=${attempt:-none}"
+
+          echo "=== server.log, printed unconditionally ==="
+          cat "$RUNNER_TEMP/server.log" 2>&1 || echo "(no server.log to read)"
+          echo "=== end server.log ==="
+
+          if [ "$served" -ne 1 ]; then
+            echo "::error::server never answered /auth/login/"
+            exit 1
+          fi
 
       - name: Run Playwright mobile tests
         env:
@@ -133,20 +202,106 @@ jobs:
           SCITEX_E2E_TEST_PASS: "Password123!"
           DEBUG: "1"
         run: |
-          # pytest-playwright's `--headed` is a store_true flag; passing
-          # `--headed=false` is an argparse error ("ignored explicit
-          # argument 'false'", exit=4). Headless is the default; just
-          # omit the flag.
+          # `--browser chromium` IS THE WHOLE REASON THIS JOB RAN ZERO TESTS.
+          # Not the server, not a fixture. tests/conftest.py:276 installs a
+          # collection hook that skip-marks EVERY item under tests/e2e/, every
+          # item marked `e2e`, and every item requesting a Playwright fixture —
+          # unless `--browser` was supplied:
+          #
+          #     browser_requested = bool(config.getoption("--browser"))
+          #     if browser_requested:
+          #         return                      # e2e tests run untouched
+          #     ...
+          #     item.add_marker(skip_e2e)       # otherwise ALL of them skip
+          #
+          # That hook exists for a good reason: a plain `pytest tests/` in the
+          # headless release gate would otherwise launch a real browser and
+          # crash. The opt-out is deliberate. THIS workflow is the one caller
+          # that is supposed to opt IN, and it stopped passing the flag.
+          #
+          # The conftest even documents the contract from its side — "The 'E2E
+          # Mobile Tests' workflow drives the browser tests explicitly: it
+          # clears addopts with -o addopts= and passes --browser (plus
+          # --headed=false ...)". This file clears addopts, so half the
+          # contract was honoured; `--headed=false` was removed as an argparse
+          # error (correctly — it is a store_true flag), and `--browser` was
+          # not here either. A contract written down on one side and dropped on
+          # the other FAILS SILENTLY, because the penalty for missing it is a
+          # skip, and a skip is not a failure.
+          #
+          # So this single flag is the fix, and the MIN_EXECUTED guard below is
+          # what turns a future regression of it back into a red job instead of
+          # a green one. Keep both: the flag makes the tests run, the guard
+          # proves they ran.
+          #
+          # `-rs` prints the REASON for every skip in the summary. Without it
+          # `-v` prints a bare "SKIPPED" and the log cannot tell you which
+          # precondition fired — which is exactly why this took a diagnosis
+          # instead of a read. If tests skip again, the log will now say why.
+          #
+          # `--headed` is a store_true flag; `--headed=false` is an argparse
+          # error ("ignored explicit argument 'false'", exit=4). Headless is
+          # the default, so the flag is simply omitted.
           python -m pytest \
             tests/e2e/playwright/test_mobile_workspace.py \
             tests/e2e/playwright/test_mobile_scholar.py \
             tests/e2e/playwright/test_mobile_writer.py \
             tests/e2e/playwright/test_mobile_app_store_controls_are_reachable.py \
-            -v --tb=short \
+            --browser chromium \
+            -v -rs --tb=short \
             --screenshot=only-on-failure \
             --video=retain-on-failure \
             -o "addopts=" \
+            --junit-xml="$RUNNER_TEMP/e2e-mobile.xml" \
             --timeout=120
+
+          # A SKIP IS NOT A FAILURE, so pytest exits 0 when every test skips
+          # and the job goes green having verified nothing. That is exactly
+          # what this workflow did from 2026-03-30 until this commit: 14
+          # collected, 14 skipped, 0 executed, 0.06s, PASS.
+          #
+          # Asserting on COLLECTED would not have caught it — all 14 were
+          # collected. Only EXECUTED distinguishes the two, so that is what is
+          # asserted here.
+          #
+          # Reading the junit XML rather than grepping pytest's summary line:
+          # the summary is human-readable text whose wording changes between
+          # pytest versions, and a guard that silently stops matching is the
+          # same defect one layer up.
+          python - "$RUNNER_TEMP/e2e-mobile.xml" <<'PYEOF'
+          import sys, xml.etree.ElementTree as ET
+
+          # Floor, not an exact count: new tests get added and this must not
+          # become a chore that the next author lowers. It exists to separate
+          # "the suite ran" from "the suite was skipped", nothing finer.
+          MIN_EXECUTED = 5
+
+          root = ET.parse(sys.argv[1]).getroot()
+          suites = [root] if root.tag == "testsuite" else root.findall("testsuite")
+          total = sum(int(s.get("tests", 0)) for s in suites)
+          skipped = sum(int(s.get("skipped", 0)) for s in suites)
+          executed = total - skipped
+
+          print(f"collected={total} skipped={skipped} executed={executed}")
+          if executed < MIN_EXECUTED:
+              print(
+                  f"::error::only {executed} mobile E2E test(s) actually ran "
+                  f"({skipped} of {total} skipped), so the suite verified "
+                  "nothing. The tests were COLLECTED and then SKIPPED, which "
+                  "is a precondition firing, not a test failure. FIRST look at "
+                  "the '-rs' short summary printed just above: it names the "
+                  "reason for every skip, so this should not need diagnosis. "
+                  "THE KNOWN CAUSE, seen 2026-09-06: the pytest invocation "
+                  "lost '--browser chromium', and tests/conftest.py's "
+                  "pytest_collection_modifyitems skip-marks everything under "
+                  "tests/e2e/ unless --browser is supplied. If the summary "
+                  "says 'skipped in headless gate', that flag is missing again "
+                  "— restore it rather than touching anything else. "
+                  "DO NOT lower MIN_EXECUTED to get a green; that restores the "
+                  "exact defect this check exists to catch."
+              )
+              sys.exit(1)
+          PYEOF
 
       - name: Upload test artifacts
         uses: actions/upload-artifact@v4
