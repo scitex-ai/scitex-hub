@@ -40,7 +40,19 @@ jobs:
   screenshots:
     name: Capture product screenshots
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Raised 30 -> 45 on 2026-09-06. The capture was being killed at 22-24
+    # min on every develop push (runs 34030453842 / 34031946558 / 34039423420),
+    # with ~6 min of setup ahead of it, so 30 was simply below the work.
+    #
+    # This number is a JUDGEMENT, not a measurement: the capture never ran to
+    # completion, so nobody knows what it actually needs. What makes raising it
+    # legitimate rather than a guess-and-hope is the truncation check added to
+    # the Content report step below -- if 45 is still short, the run now SAYS
+    # SO, in the log and in the artifact, instead of reporting a partial
+    # capture as a clean one. Do not raise this again without reading that
+    # error first: if the capture is growing without bound, the answer is
+    # sharding or cutting pages, not a bigger number.
+    timeout-minutes: 45
 
     services:
       postgres:
@@ -269,6 +281,11 @@ jobs:
           fi
 
       - name: Capture screenshots
+        # id: the Content report below reads `steps.capture.outcome` to tell a
+        # COMPLETED capture from a TRUNCATED one. Without it the report cannot
+        # distinguish "photographed every page, found nothing" from "was killed
+        # half way, found nothing in the half it reached".
+        id: capture
         env:
           SCITEX_HUB_DJANGO_SECRET_KEY: ci-screenshots-key  # pragma: allowlist secret
           SCITEX_HUB_DB_NAME_DEV: scitex_test
@@ -325,6 +342,45 @@ jobs:
             cat "$report"
           else
             echo "(no content report — the capture never measured a page)"
+          fi
+
+          # A TRUNCATED CAPTURE MUST NOT READ AS A MEASUREMENT.
+          #
+          # Measured 2026-09-06 on three consecutive develop pushes (runs
+          # 34030453842 / 34031946558 / 34039423420): `Capture screenshots` was
+          # killed at 22-24 min by the job's timeout-minutes, and THIS step then
+          # ran over the partial output in 0 seconds and exited 0. The run's own
+          # conclusion was `cancelled`, which is indistinguishable from somebody
+          # pressing cancel -- so nothing anywhere said the artifact was partial,
+          # and a card waiting on defects visible only in that artifact waited on
+          # a measurement that had stopped happening.
+          #
+          # Two consumers, so two signals. The artifact is read later by humans
+          # and by cards, long after the log is gone, so the banner goes IN the
+          # file; the log gets an ::error:: for whoever is looking now.
+          # TRUNCATED and FAILED are different, and saying so matters.
+          # GitHub reports `cancelled` when the job budget kills the step
+          # mid-run, and `failure` when the step ran to completion and its
+          # assertions failed. Measured 2026-09-06 on this very PR: the first
+          # draft called BOTH "TRUNCATED ... every absence is UNMEASURED",
+          # and the run that exercised it had actually COMPLETED with 56 real
+          # failures. Calling a finished measurement "unmeasured" is the same
+          # class of lie as calling a partial one clean.
+          outcome='${{ steps.capture.outcome }}'
+          if [ "$outcome" = "cancelled" ]; then
+            banner="!! TRUNCATED: the capture was KILLED mid-run (outcome=cancelled, usually the job timeout). Every absence below is UNMEASURED, not clean. !!"
+          elif [ "$outcome" != "success" ]; then
+            banner="!! INCOMPLETE: the capture ran but FAILED (outcome=$outcome). The pages below WERE measured; read the failures, do not read absences as clean. !!"
+          fi
+          if [ "$outcome" != "success" ]; then
+            if [ -f "$report" ]; then
+              printf '\n%s\n' "$banner" >> "$report"
+            else
+              mkdir -p "$(dirname "$report")"
+              printf '%s\n' "$banner" > "$report"
+            fi
+            echo "::error::$banner"
+            exit 1
           fi
 
       - name: Server log (on failure)
