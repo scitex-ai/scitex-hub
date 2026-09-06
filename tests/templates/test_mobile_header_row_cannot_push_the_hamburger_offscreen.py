@@ -328,6 +328,45 @@ def test_selector_text_can_shrink_below_min_content():
     )
 
 
+@pytest.mark.guards(defect=_ELLIPSIS_DEFECT)
+def test_dropdown_project_name_can_shrink_below_min_content():
+    """The same dead ellipsis one layer in — LATENT, and guarded anyway.
+
+    `.project-item-name` is the project name inside the selector dropdown. It
+    declares `flex: 1` + `overflow: hidden` + `text-overflow: ellipsis` and,
+    before this change, no `min-width: 0` — so the ellipsis could not fire.
+
+    Measured with the dropdown OPEN (closed, these elements are width 0 and
+    every reading is worthless): parent `display: flex`, item `flex: 1 1 0%`,
+    `min-width: auto`, scrollWidth == clientWidth on both items.
+
+    It is not visible today only because the current project names fit inside
+    the dropdown's `max-width: 300px`. A longer name overflows into
+    `.project-selector-dropdown`'s `overflow: hidden` and gets clipped
+    mid-glyph. Guarded because "invisible today" is a fact about the DATA, not
+    about the CSS, and the data is user-supplied project names.
+    """
+    # Arrange
+    path = Path(settings.BASE_DIR) / SELECTOR_CSS_REL
+    body = _rule_body(
+        _strip_css_comments(path.read_text(encoding="utf-8")),
+        ".project-item-name",
+    )
+    normalized = re.sub(r"\s+", " ", body or "")
+
+    # Act
+    can_shrink = bool(re.search(r"min-width\s*:\s*0", normalized))
+
+    # Assert
+    assert can_shrink, (
+        f"`.project-item-name` in {SELECTOR_CSS_REL} does not declare "
+        "`min-width: 0`, so its `flex: 1` cannot take it below min-content and "
+        "the `text-overflow: ellipsis` beside it is dead. A long project name "
+        "will be clipped mid-glyph by the dropdown's overflow: hidden. "
+        f"Declarations found: {normalized!r}"
+    )
+
+
 @pytest.mark.guards(defect=_DEFECT)
 def test_the_fix_is_scoped_to_the_mobile_breakpoint(css_text):
     """`overflow: hidden` on the desktop header would clip working UI.

@@ -163,6 +163,31 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+
+  /* Same dead-ellipsis defect as `.project-selector-text` above, one layer in.
+     LATENT rather than live today, and included because it was MEASURED, not
+     because it looked similar.
+
+     Measured on prod, 390x844, with the dropdown actually OPEN (closed, these
+     elements are width 0 and every reading is worthless):
+
+         .dropdown-project-item   display: flex        <- so these ARE flex items
+         .project-item-name       flex 1 1 0%, min-width AUTO
+         "dotfiles"               w 199  scrollW 199  clientW 199
+         "Handwritten Digits (…)" w 181  scrollW 181  clientW 181
+         ellipsis active          NO, on both
+
+     The floor is genuinely missing, so `text-overflow: ellipsis` on the line
+     above can never fire. It costs nothing TODAY only because the current
+     project names fit inside the dropdown's `max-width: 300px`.
+
+     WHAT MAKES IT LIVE: a longer project name. The item cannot shrink below its
+     min-content width, so it pushes past the dropdown's content box — and
+     `.project-selector-dropdown` declares `overflow: hidden`, so the name gets
+     CLIPPED MID-GLYPH instead of ellipsised. Exactly the header defect this
+     change removes, reproduced one layer down, and triggered by nothing more
+     exotic than a user naming a project something long. */
+  min-width: 0;
 }
 
 .project-item-check {
