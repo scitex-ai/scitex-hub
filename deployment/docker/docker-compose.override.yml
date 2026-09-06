@@ -69,8 +69,12 @@ services:
       - /run/munge:/run/munge
       - /var/log/slurm:/var/log/slurm
       - /etc/passwd:/host/etc/passwd:ro
-      # Exclude generated files
-      - /app/staticfiles
+      # Exclude generated files.
+      # NOT /app/staticfiles: `static_volume:/app/staticfiles` above already
+      # shadows the host bind AND persists it. Two mounts on one destination
+      # in one service means the last wins, so this bare entry silently
+      # replaced the named volume with an anonymous one. Gated by
+      # tests/config/test_compose_never_mounts_one_path_twice_in_a_service.py
       - /app/.cache
       - /app/.jsbuild
     # Loopback-only, like docker-compose.preview.yml: this stack runs
