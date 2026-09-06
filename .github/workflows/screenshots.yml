@@ -358,8 +358,21 @@ jobs:
           # Two consumers, so two signals. The artifact is read later by humans
           # and by cards, long after the log is gone, so the banner goes IN the
           # file; the log gets an ::error:: for whoever is looking now.
-          if [ "${{ steps.capture.outcome }}" != "success" ]; then
-            banner="!! TRUNCATED: the capture did not complete (outcome=${{ steps.capture.outcome }}). Every absence below is UNMEASURED, not clean. !!"
+          # TRUNCATED and FAILED are different, and saying so matters.
+          # GitHub reports `cancelled` when the job budget kills the step
+          # mid-run, and `failure` when the step ran to completion and its
+          # assertions failed. Measured 2026-09-06 on this very PR: the first
+          # draft called BOTH "TRUNCATED ... every absence is UNMEASURED",
+          # and the run that exercised it had actually COMPLETED with 56 real
+          # failures. Calling a finished measurement "unmeasured" is the same
+          # class of lie as calling a partial one clean.
+          outcome='${{ steps.capture.outcome }}'
+          if [ "$outcome" = "cancelled" ]; then
+            banner="!! TRUNCATED: the capture was KILLED mid-run (outcome=cancelled, usually the job timeout). Every absence below is UNMEASURED, not clean. !!"
+          elif [ "$outcome" != "success" ]; then
+            banner="!! INCOMPLETE: the capture ran but FAILED (outcome=$outcome). The pages below WERE measured; read the failures, do not read absences as clean. !!"
+          fi
+          if [ "$outcome" != "success" ]; then
             if [ -f "$report" ]; then
               printf '\n%s\n' "$banner" >> "$report"
             else

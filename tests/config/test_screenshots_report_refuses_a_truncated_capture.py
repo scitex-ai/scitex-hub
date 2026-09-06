@@ -145,13 +145,37 @@ def test_a_truncated_capture_fails_the_step(outcome, tmp_path):
     )
 
 
+@pytest.mark.parametrize(
+    "outcome,banner",
+    [("cancelled", "TRUNCATED"), ("failure", "INCOMPLETE")],
+)
+def test_the_artifact_distinguishes_killed_from_failed(outcome, banner, tmp_path):
+    """A finished-but-failing capture must NOT be labelled unmeasured.
+
+    GitHub reports `cancelled` when the job budget kills the step mid-run and
+    `failure` when it ran and its assertions failed. Measured on this PR's own
+    CI run: the capture COMPLETED in 28:55 with 56 real failures, and the first
+    draft of this workflow called that "TRUNCATED ... every absence is
+    UNMEASURED". The pages had been measured. Calling a finished measurement
+    unmeasured is the same class of error as calling a partial one clean, so
+    the two get different words.
+    """
+    _run_report(outcome, tmp_path, "Cards  OK  11 images\n")
+
+    text = (tmp_path / REPORT_RELPATH).read_text()
+    assert banner in text, (
+        f"capture outcome {outcome!r} should be reported as {banner!r}; the "
+        f"artifact says: {text!r}"
+    )
+
+
 @pytest.mark.parametrize("outcome", ["cancelled", "failure"])
-def test_the_artifact_itself_records_the_truncation(outcome, tmp_path):
+def test_the_artifact_itself_records_that_it_is_not_clean(outcome, tmp_path):
     """The log is gone in a week; the artifact is what cards read later."""
     _run_report(outcome, tmp_path, "Cards  OK  11 images\n")
 
     text = (tmp_path / REPORT_RELPATH).read_text()
-    assert "TRUNCATED" in text, (
+    assert ("TRUNCATED" in text) or ("INCOMPLETE" in text), (
         "the uploaded content report does not say it is partial. Anyone "
         "reading the artifact later -- which is how the blocked P1 card "
         "consumes it -- cannot tell a clean run from a killed one."
