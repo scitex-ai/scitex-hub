@@ -259,9 +259,29 @@ def visitor_storage_state(browser_type, pw_base_url):
     page.wait_for_function(
         "document.body.classList.contains('app-ready')", timeout=15000
     )
-    page.fill('input[name="username"]', TEST_USER)
-    page.fill('input[name="password"]', TEST_PASS)
-    page.click('button[type="submit"]')
+    # SCOPED TO #login-form ON PURPOSE. `button[type="submit"]` is NOT unique on
+    # this page and page.click() is non-strict, so it takes the FIRST match in
+    # DOM order -- which is the LANGUAGE SWITCHER, not the login button.
+    #
+    # MEASURED 2026-09-06, job 101468563871 on develop 6db3b2f9. The login never
+    # completed and the diagnosis this fixture now prints said:
+    #     "NO error container carried visible text, which argues against
+    #      'credentials rejected' and toward 'the form was never submitted'."
+    #     first 300 chars on screen: "/ English (moon) Sign in Sign up Sign In
+    #      Username or Email * Password * Remember me ..."
+    # "English" is templates/global_base_partials/language_switcher.html's
+    # <button type="submit">, and it renders ABOVE the form. Clicking it submits
+    # set_language, whose hidden `next` is request.get_full_path -- so the page
+    # reloads BACK to /auth/login/. Unchanged URL, no error text, no POST to the
+    # login view. Every symptom, one cause.
+    #
+    # The form carries id="login-form" (auth_app/templates/auth_app/signin.html),
+    # so scoping is exact rather than positional. Do not "fix" this by taking
+    # .last or .nth(1): those are just as positional and break the next time a
+    # partial is added to the shared header.
+    page.fill('#login-form input[name="username"]', TEST_USER)
+    page.fill('#login-form input[name="password"]', TEST_PASS)
+    page.click('#login-form button[type="submit"]')
     # NOT networkidle. THIS LINE IS WHY 14/14 MOBILE TESTS ERRORED AT SETUP.
     #
     # Measured 2026-09-06, job 101449817274:
