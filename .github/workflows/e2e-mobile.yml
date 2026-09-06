@@ -129,21 +129,34 @@ jobs:
           # point: the loop RECORDS whether it succeeded and the step fails on
           # that record rather than on nothing.
           #
-          # THE TRACING BELOW IS NOT DEBUG LEFTOVER — IT IS THE FIX FOR A
-          # SECOND DEFECT. On this step's first live run (PR #742, job
-          # 101431112671) the server did not start, the loop stopped after 3 of
-          # 60 iterations, NEITHER `::error::` branch printed, and the step
-          # still reported SUCCESS. Both messages appeared only in the script
-          # echo, never at runtime — verified by timestamp, with the three curl
-          # failures as a positive control that the log capture worked.
+          # THE TRACING BELOW IS NOT DEBUG LEFTOVER, AND THE REASON IS A
+          # CORRECTION TO MY OWN EARLIER READING OF THIS STEP.
           #
-          # A step that cannot explain its own outcome is the same defect this
-          # workflow is about, one level down. So the state is printed
-          # UNCONDITIONALLY and `set -x` traces control flow, rather than my
-          # inferring a mechanism from three curl lines. I had four plausible
-          # explanations and no evidence separating them; guessing between them
-          # is exactly the mistake that made the original 500 take four
-          # attempts to diagnose.
+          # After the first live run (job 101431112671) I recorded here that
+          # "the server did not start, the loop stopped after 3 of 60
+          # iterations, neither ::error:: branch printed, and the step still
+          # reported SUCCESS". EVERY PART OF THAT WAS WRONG, and the next run
+          # with these diagnostics proved it:
+          #
+          #     RUNNER_TEMP=[/home/runner/work/_temp]   not empty
+          #     pidfile=[5783]                          written fine
+          #     wait loop finished: served=1 after attempt=4
+          #
+          # `curl -fsS` IS SILENT ON SUCCESS. Three failing attempts printed
+          # `curl: (7)`; the fourth succeeded and printed NOTHING. I read that
+          # silence as the loop stopping. The step's success was correct and the
+          # guard had nothing to fire on.
+          #
+          # So the tracing stays for the opposite reason to the one I first
+          # gave: not because the step lies about its outcome, but because I
+          # cannot read this step's outcome from its default output. Every
+          # silencing flag (-s, -q, 2>/dev/null) turns a successful run into
+          # evidence of nothing, so the state is printed UNCONDITIONALLY.
+          #
+          # AND THE SKIPS ARE NOT CAUSED BY THE SERVER. With served=1 all 11
+          # tests still skipped, so the cause is a fixture precondition,
+          # undiagnosed as of this commit. Do not re-derive "server down" from
+          # a skip count.
           echo "RUNNER_TEMP=[$RUNNER_TEMP]"
           echo "pidfile=[$(cat "$RUNNER_TEMP/server.pid" 2>&1)]"
           echo "server.log exists: $(test -f "$RUNNER_TEMP/server.log" && echo yes || echo NO)"
@@ -235,11 +248,17 @@ jobs:
           if executed < MIN_EXECUTED:
               print(
                   f"::error::only {executed} mobile E2E test(s) actually ran "
-                  f"({skipped} of {total} skipped). The suite is not verifying "
-                  "anything. This almost always means the server did not start "
-                  "— read $RUNNER_TEMP/server.log. DO NOT lower MIN_EXECUTED to "
-                  "get a green; that restores the exact defect this check exists "
-                  "to catch."
+                  f"({skipped} of {total} skipped), so the suite verified "
+                  "nothing. WHAT IS KNOWN: the tests were COLLECTED and then "
+                  "SKIPPED — this is a fixture precondition, not a test "
+                  "failure. WHAT IS NOT KNOWN: which one. Check, in order: "
+                  "(a) the step above prints 'wait loop finished: served=' — "
+                  "if served=1 the server was up and the server is NOT the "
+                  "cause; (b) the visitor-session fixture, which needs a "
+                  "provisioned visitor and fails when Gitea is unconfigured; "
+                  "(c) any other skip guard in tests/e2e/playwright/conftest.py. "
+                  "DO NOT lower MIN_EXECUTED to get a green; that restores the "
+                  "exact defect this check exists to catch."
               )
               sys.exit(1)
           PYEOF
