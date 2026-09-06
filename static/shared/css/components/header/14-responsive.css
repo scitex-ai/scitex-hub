@@ -107,6 +107,82 @@
 
   .header-left {
     gap: 8px;
+
+    /* THE HAMBURGER — THE PRIMARY NAVIGATION CONTROL — RENDERED 48px OFF THE
+       RIGHT EDGE OF A 390px VIEWPORT WITHOUT THESE TWO DECLARATIONS.
+
+       `.global-header-inner` is `display: flex; flex-wrap: nowrap` with 364px
+       of content box at 390px. Its three children measure:
+
+           .header-left                  253px   flex 0 1 auto   min-width auto
+           .header-visitor-badge-mobile  142px   flex 0 1 auto   min-width auto
+           .mobile-hamburger              15px   flex 0 1 auto   min-width auto
+           + 2 gaps                      ----
+                                         426px   against 364px available
+
+       Every child is `flex-shrink: 1` AND `min-width: auto`. On a flex item
+       the automatic minimum is its MIN-CONTENT size, so flex-shrink cannot
+       act: nothing shrinks, the row stays 438px wide, and the hamburger --
+       last in source order -- absorbs the entire overflow.
+
+       This is the same mechanism as `.apps-grid { grid-template-columns: 1fr }`
+       (= `minmax(auto, 1fr)`, automatic minimum = min-content), fixed in #741.
+       Same root cause, two layout modes, two pages. Expect more instances:
+       the pattern is any shrinkable box whose automatic minimum is not zeroed.
+
+       MEASURED on prod, /apps/store/, 390x844, mobile UA, anonymous, by
+       mutating these declarations on the live page and reverting:
+
+           as shipped     doc overflow  48   .header-left 253   ham +48 OFF
+           with this fix  doc overflow   0   .header-left 181   ham  -8 on
+           reverted       doc overflow  48   .header-left 253   ham +48 OFF
+
+       `overflow: hidden` IS REQUIRED, and `min-width: 0` alone is a WORSE
+       BUG THAN THE ONE IT FIXES. min-width:0 shrinks .header-left's BOX to
+       181px while its CONTENT stays 253px, so the project selector paints
+       ON TOP OF the visitor badge.
+
+       That was invisible to getBoundingClientRect(), which reports BOXES:
+       the box overlap is 65px WITH AND WITHOUT `overflow: hidden` -- it
+       never moves, so the obvious metric rejects the correct fix. The
+       question is about PAINT, and `document.elementFromPoint()` answers it
+       because it respects clipping. Five probes across the badge's own box:
+
+           as shipped              badge badge badge badge OFFSCREEN
+           min-width:0 only        HEADER-LEFT HEADER-LEFT badge badge badge
+           min-width:0 + hidden    badge badge badge badge badge
+
+       2 of 5 points collide under min-width:0 alone; 0 of 5 with the clip.
+       (The OFFSCREEN in the shipped rows is not an anomaly -- the badge runs
+       to x=411 on a 390 viewport, so that probe point is off-screen. It is
+       the shipped defect appearing in a second instrument.)
+
+       WHAT `overflow: hidden` IS FOR NOW -- READ BEFORE DELETING IT.
+
+       An earlier draft of this change shipped the clip as THE fix and called
+       the mid-glyph cut "known residue, not fixed here". That is no longer
+       the situation, and the note is corrected rather than removed because
+       the wrong version was a claim about what could not be fixed.
+
+       `.project-selector-btn { width: 100% }` below, plus `min-width: 0` on
+       `.project-selector-text` (12-project-selector.css), make the button
+       fill its parent and the project name TRUNCATE WITH A REAL ELLIPSIS.
+       Nothing overflows any more, and the paint-collision count is 0 of 5
+       even with THIS declaration removed -- measured on prod, reverted.
+
+       So `overflow: hidden` is now a SAFETY NET, not the mechanism. Kept
+       because `.header-left` has other children (logo, AI toggle) whose
+       overflow it also contains, and because a regression in the ellipsis
+       chain should degrade to a clip rather than to a project name painted
+       across the visitor badge.
+
+       Its cost, stated so the next person can weigh it: A NET HIDES THE
+       FAILURE IT CATCHES. If `width: 100%` is ever lost, this clip makes the
+       page look almost right instead of obviously wrong. That is why the
+       guard test asserts the ellipsis chain SEPARATELY, rather than settling
+       for "no visible collision". */
+    min-width: 0;
+    overflow: hidden;
   }
 
   /* Hide AI toggle in compact header (accessible via tab bar Console pane) */
@@ -128,6 +204,44 @@
     max-width: 200px;
     font-size: 12px;
     padding: 4px 6px;
+
+    /* `width: 100%` IS WHAT MAKES THE ELLIPSIS POSSIBLE, and the reason is a
+       form-control quirk rather than anything about flexbox.
+
+       This is a <button>. Form controls are SHRINK-TO-FIT: `width: auto`
+       resolves to the element's max-content width, NOT to the containing
+       block, the way a <div> would. So the button stayed 187px wide inside a
+       parent measured at 115px and simply overflowed it.
+
+       That is why none of the obvious levers moved it. All measured on prod,
+       each reverted:
+
+           .project-selector-btn { flex-shrink: 1 }   btn 187   INERT
+           .project-selector-btn { min-width: 0 }     btn 187   INERT
+           .project-selector-btn { max-width: 100% }  btn 187   INERT
+           .project-selector-text { min-width: 0 }    btn 187   INERT
+           .project-selector-btn { width: 100% }      btn 115   <- the lever
+
+       flex-* properties are inert here for a second, independent reason:
+       the parent `.header-project-selector-inline` is `display: block`
+       (02-layout.css), so this button is not a flex ITEM at all and
+       `flex-shrink: 0` in 12-project-selector.css:23 never applied to
+       anything. Two red herrings stacked on one element.
+
+       WITH this line, at 390x844:
+
+           .header-project-selector-inline  115px
+           .project-selector-btn            115px   (was 187, overflowing)
+           .project-selector-text            83px   scrollWidth 155
+           ellipsis                         RENDERS
+           document overflow                0px
+           hamburger                        on-screen
+           paint collisions on the badge    0 of 5
+
+       Scoped to mobile deliberately: on desktop the button should keep its
+       intrinsic 160-220px sizing, where there is room and no truncation is
+       wanted. */
+    width: 100%;
   }
 
   .project-files-btn {
