@@ -117,12 +117,28 @@ def _initialize_scitex_structure(project, project_dir):
         if result.returncode == 0:
             logger.info("✓ Committed writer structure")
 
-            # Push to Gitea
+            # Push to Gitea.
+            #
+            # The clone that created this repo deliberately recorded a
+            # CREDENTIAL-LESS ``origin`` (see project_initialization.py and
+            # sec-gitea-admin-token-plaintext-in-user-gitconfig): .git/config
+            # is bind-mounted read/write into the user's console, so a token
+            # there leaks the platform admin credential across tenants. The
+            # obligation that comes with that design -- stated in the clone's
+            # own comment, "Push/pull re-supply the token per-op the same
+            # way" -- was not honoured here, so this push carried NO
+            # credential at all and git fell back to prompting for a username
+            # it can never read.
+            from apps.infra.project_app.services.git_service import (
+                build_gitea_auth_env,
+            )
+
             result = subprocess.run(
                 ["git", "push", "origin", "main"],
                 cwd=project_dir,
                 capture_output=True,
                 text=True,
+                env=build_gitea_auth_env(),
             )
 
             if result.returncode == 0:
