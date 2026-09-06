@@ -216,9 +216,36 @@
 }
 
 /* ─── Module Grid ──────────────────────────────────────────────── */
+/* `minmax(0, 1fr)`, not a bare `1fr`. A bare `1fr` is shorthand for
+   `minmax(auto, 1fr)`, and that automatic minimum resolves to the GRID
+   ITEM's min-content width — so the track cannot shrink below the widest
+   card, no matter how narrow the grid is. Measured on prod at 390x844
+   before this change: .apps-grid was correctly capped at 362px by the
+   mobile block below, and its single track still resolved to 796.95px,
+   dragging every .ap-card to 797px. .apps-container clips at
+   `overflow-x: hidden`, so the excess was not merely ugly — it was
+   UNREACHABLE: 25 of 90 visible controls sat entirely past the clip
+   edge, including every card's star button (292px beyond) and status
+   trigger (326px beyond). No gesture could reveal them.
+
+   Changing only this declaration in the live page took the track
+   796.95px -> 362px, the card 797px -> 362px, and unreachable controls
+   25 -> 1; reverting restored all three. (The remaining 1 is the
+   hamburger, a separate header-overflow defect with its own cause.)
+
+   This is why the existing mobile work below did not land: capping the
+   CONTAINER and the GRID's outer width leaves the TRACK free to size to
+   content, and `.ap-card { flex-wrap: wrap }` in cards.css then wraps
+   inside an 797px box, which changes nothing visible. Both of those
+   rules are correct and load-bearing — they were just downstream of
+   this floor.
+
+   Safe at every width: the grid is single-column everywhere (no other
+   grid-template-columns targets .apps-grid), and on desktop the card
+   content fits the track anyway, so the used size is unchanged. */
 .apps-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 6px;
 }
 
