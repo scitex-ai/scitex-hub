@@ -202,16 +202,53 @@ jobs:
           SCITEX_E2E_TEST_PASS: "Password123!"
           DEBUG: "1"
         run: |
-          # pytest-playwright's `--headed` is a store_true flag; passing
-          # `--headed=false` is an argparse error ("ignored explicit
-          # argument 'false'", exit=4). Headless is the default; just
-          # omit the flag.
+          # `--browser chromium` IS THE WHOLE REASON THIS JOB RAN ZERO TESTS.
+          # Not the server, not a fixture. tests/conftest.py:276 installs a
+          # collection hook that skip-marks EVERY item under tests/e2e/, every
+          # item marked `e2e`, and every item requesting a Playwright fixture —
+          # unless `--browser` was supplied:
+          #
+          #     browser_requested = bool(config.getoption("--browser"))
+          #     if browser_requested:
+          #         return                      # e2e tests run untouched
+          #     ...
+          #     item.add_marker(skip_e2e)       # otherwise ALL of them skip
+          #
+          # That hook exists for a good reason: a plain `pytest tests/` in the
+          # headless release gate would otherwise launch a real browser and
+          # crash. The opt-out is deliberate. THIS workflow is the one caller
+          # that is supposed to opt IN, and it stopped passing the flag.
+          #
+          # The conftest even documents the contract from its side — "The 'E2E
+          # Mobile Tests' workflow drives the browser tests explicitly: it
+          # clears addopts with -o addopts= and passes --browser (plus
+          # --headed=false ...)". This file clears addopts, so half the
+          # contract was honoured; `--headed=false` was removed as an argparse
+          # error (correctly — it is a store_true flag), and `--browser` was
+          # not here either. A contract written down on one side and dropped on
+          # the other FAILS SILENTLY, because the penalty for missing it is a
+          # skip, and a skip is not a failure.
+          #
+          # So this single flag is the fix, and the MIN_EXECUTED guard below is
+          # what turns a future regression of it back into a red job instead of
+          # a green one. Keep both: the flag makes the tests run, the guard
+          # proves they ran.
+          #
+          # `-rs` prints the REASON for every skip in the summary. Without it
+          # `-v` prints a bare "SKIPPED" and the log cannot tell you which
+          # precondition fired — which is exactly why this took a diagnosis
+          # instead of a read. If tests skip again, the log will now say why.
+          #
+          # `--headed` is a store_true flag; `--headed=false` is an argparse
+          # error ("ignored explicit argument 'false'", exit=4). Headless is
+          # the default, so the flag is simply omitted.
           python -m pytest \
             tests/e2e/playwright/test_mobile_workspace.py \
             tests/e2e/playwright/test_mobile_scholar.py \
             tests/e2e/playwright/test_mobile_writer.py \
             tests/e2e/playwright/test_mobile_app_store_controls_are_reachable.py \
-            -v --tb=short \
+            --browser chromium \
+            -v -rs --tb=short \
             --screenshot=only-on-failure \
             --video=retain-on-failure \
             -o "addopts=" \
@@ -250,14 +287,16 @@ jobs:
               print(
                   f"::error::only {executed} mobile E2E test(s) actually ran "
                   f"({skipped} of {total} skipped), so the suite verified "
-                  "nothing. WHAT IS KNOWN: the tests were COLLECTED and then "
-                  "SKIPPED — this is a fixture precondition, not a test "
-                  "failure. WHAT IS NOT KNOWN: which one. Check, in order: "
-                  "(a) the step above prints 'wait loop finished: served=' — "
-                  "if served=1 the server was up and the server is NOT the "
-                  "cause; (b) the visitor-session fixture, which needs a "
-                  "provisioned visitor and fails when Gitea is unconfigured; "
-                  "(c) any other skip guard in tests/e2e/playwright/conftest.py. "
+                  "nothing. The tests were COLLECTED and then SKIPPED, which "
+                  "is a precondition firing, not a test failure. FIRST look at "
+                  "the '-rs' short summary printed just above: it names the "
+                  "reason for every skip, so this should not need diagnosis. "
+                  "THE KNOWN CAUSE, seen 2026-09-06: the pytest invocation "
+                  "lost '--browser chromium', and tests/conftest.py's "
+                  "pytest_collection_modifyitems skip-marks everything under "
+                  "tests/e2e/ unless --browser is supplied. If the summary "
+                  "says 'skipped in headless gate', that flag is missing again "
+                  "— restore it rather than touching anything else. "
                   "DO NOT lower MIN_EXECUTED to get a green; that restores the "
                   "exact defect this check exists to catch."
               )
