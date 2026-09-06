@@ -79,10 +79,20 @@ SELECTOR = ".header-left"
 #: badge) is only assembled below this width, so the rule must live inside it.
 MOBILE_BREAKPOINT = "@media (max-width: 768px)"
 
+#: The stylesheet holding the project-selector rules, relative to BASE_DIR.
+SELECTOR_CSS_REL = "static/shared/css/components/header/12-project-selector.css"
+
 _DEFECT = (
     "the mobile hamburger -- the primary navigation control -- rendered 48px "
     "off the right edge at 390x844, because every child of "
     ".global-header-inner has min-width: auto and so cannot shrink"
+)
+
+_ELLIPSIS_DEFECT = (
+    "the project name was clipped mid-glyph instead of ellipsised, because "
+    "the <button> is shrink-to-fit (width:auto = max-content, 187px in a "
+    "115px parent) and .project-selector-text had min-width:auto, so its "
+    "declared text-overflow: ellipsis could never fire"
 )
 
 
@@ -246,6 +256,75 @@ def test_header_left_clips_its_overflow(header_left_declarations):
         "hit-test points inside the badge returning .header-left. Note the box "
         "overlap is 65px either way, so getBoundingClientRect cannot see this; "
         f"only elementFromPoint can. Declarations found: {normalized!r}"
+    )
+
+
+@pytest.mark.guards(defect=_ELLIPSIS_DEFECT)
+def test_selector_button_fills_its_parent_on_mobile(css_text):
+    """`width: 100%` is the ONE lever that makes the button shrinkable.
+
+    `.project-selector-btn` is a <button>, and form controls are
+    SHRINK-TO-FIT: `width: auto` resolves to max-content, not to the
+    containing block. So the button sat at 187px inside a 115px parent and
+    overflowed it. Measured on prod, each reverted:
+
+        flex-shrink: 1    -> 187 (inert)
+        min-width: 0      -> 187 (inert)
+        max-width: 100%   -> 187 (inert)
+        width: 100%       -> 115  <- the lever
+
+    Without this, the ellipsis below cannot fire no matter what the text span
+    declares, and `.header-left { overflow: hidden }` silently degrades the
+    page to a mid-glyph clip.
+    """
+    # Arrange
+    body = _rule_body(_strip_css_comments(css_text), ".project-selector-btn")
+    normalized = re.sub(r"\s+", " ", body or "")
+
+    # Act
+    fills_parent = bool(re.search(r"width\s*:\s*100%", normalized))
+
+    # Assert
+    assert fills_parent, (
+        "`.project-selector-btn` does not declare `width: 100%` in the mobile "
+        "block. It is a <button>, so `width: auto` is max-content (187px "
+        "measured) rather than its parent's width (115px), and it overflows. "
+        "The project name then cannot ellipsise and the header clip cuts it "
+        f"mid-glyph instead. Declarations found: {normalized!r}"
+    )
+
+
+@pytest.mark.guards(defect=_ELLIPSIS_DEFECT)
+def test_selector_text_can_shrink_below_min_content():
+    """Without `min-width: 0`, the ellipsis declarations next to it do nothing.
+
+    Separate file from the rest of these assertions, so it is read separately:
+    `.project-selector-text` lives in 12-project-selector.css. It declares
+    `flex: 1` (= `flex: 1 1 0%`) with `overflow: hidden; text-overflow:
+    ellipsis` — but a flex item's automatic minimum is its MIN-CONTENT width,
+    so it never narrows, never overflows, and the ellipsis never renders.
+
+    Measured: width 155 / scrollWidth 155 before, width 83 / scrollWidth 155
+    after — i.e. the ellipsis only becomes real with this line present.
+    """
+    # Arrange
+    path = Path(settings.BASE_DIR) / SELECTOR_CSS_REL
+    body = _rule_body(
+        _strip_css_comments(path.read_text(encoding="utf-8")),
+        ".project-selector-text",
+    )
+    normalized = re.sub(r"\s+", " ", body or "")
+
+    # Act
+    can_shrink = bool(re.search(r"min-width\s*:\s*0", normalized))
+
+    # Assert
+    assert can_shrink, (
+        f"`.project-selector-text` in {SELECTOR_CSS_REL} does not declare "
+        "`min-width: 0`, so its `flex: 1` cannot take it below min-content and "
+        "the `text-overflow: ellipsis` on the very next line is dead. This is "
+        "the same automatic-minimum rule as the hamburger and the app-store "
+        f"grid track. Declarations found: {normalized!r}"
     )
 
 

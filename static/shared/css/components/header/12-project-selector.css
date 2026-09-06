@@ -45,6 +45,30 @@
   overflow: hidden;
   text-overflow: ellipsis;
   flex: 1;
+
+  /* WITHOUT THIS, THE THREE DECLARATIONS ABOVE DO NOTHING.
+
+     `flex: 1` is `flex: 1 1 0%`, so this span is allowed to shrink -- but a
+     flex item's automatic minimum is its MIN-CONTENT width, and `min-width`
+     defaults to `auto`. The span therefore never gets narrower than the full
+     project name, `text-overflow: ellipsis` never has an overflow to act on,
+     and the ellipsis never renders.
+
+     Measured on prod at 390x844 before this line existed:
+
+         .project-selector-text   width 155   scrollWidth 155   clientWidth 155
+         ellipsis rendered        NO
+
+     After, with the button able to fill its parent (see 14-responsive.css):
+
+         .project-selector-text   width  83   scrollWidth 155   clientWidth  83
+         ellipsis rendered        YES, overflowing by 72px
+
+     This is the same automatic-minimum rule that put the hamburger 48px
+     off-screen and blew the app-store grid track out to 797px (#741). Third
+     instance in one file-set: any shrinkable box whose automatic minimum is
+     not explicitly zeroed. */
+  min-width: 0;
 }
 
 /* Dark mode project selector button */

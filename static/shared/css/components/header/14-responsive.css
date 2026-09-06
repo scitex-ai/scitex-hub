@@ -157,21 +157,30 @@
        to x=411 on a 390 viewport, so that probe point is off-screen. It is
        the shipped defect appearing in a second instrument.)
 
-       KNOWN RESIDUE, NOT FIXED HERE. The clip cuts the project name at an
-       arbitrary pixel rather than ellipsising it. `.project-selector-text`
-       ALREADY declares `overflow: hidden; text-overflow: ellipsis;
-       white-space: nowrap`, so the machinery exists -- but it never fires,
-       because the squeeze never reaches it: with min-width:0 on both
-       .header-left and .header-project-selector-inline, the inline box does
-       shrink 187 -> 115 while `.project-selector-btn` stays 187 and simply
-       overflows. Measured, in that order, each step reverted. Making the
-       ellipsis fire needs the button constrained, which is a separate change
-       against a separate rule; tracked on
-       hub-hamburger-menu-is-43px-off-screen-at-390px-20260906.
+       WHAT `overflow: hidden` IS FOR NOW -- READ BEFORE DELETING IT.
 
-       Shipping the clip now regardless: an off-screen PRIMARY NAV is a P1
-       and a mid-glyph clip is cosmetic. Holding a nav fix for a cosmetic
-       refinement would be the wrong trade. */
+       An earlier draft of this change shipped the clip as THE fix and called
+       the mid-glyph cut "known residue, not fixed here". That is no longer
+       the situation, and the note is corrected rather than removed because
+       the wrong version was a claim about what could not be fixed.
+
+       `.project-selector-btn { width: 100% }` below, plus `min-width: 0` on
+       `.project-selector-text` (12-project-selector.css), make the button
+       fill its parent and the project name TRUNCATE WITH A REAL ELLIPSIS.
+       Nothing overflows any more, and the paint-collision count is 0 of 5
+       even with THIS declaration removed -- measured on prod, reverted.
+
+       So `overflow: hidden` is now a SAFETY NET, not the mechanism. Kept
+       because `.header-left` has other children (logo, AI toggle) whose
+       overflow it also contains, and because a regression in the ellipsis
+       chain should degrade to a clip rather than to a project name painted
+       across the visitor badge.
+
+       Its cost, stated so the next person can weigh it: A NET HIDES THE
+       FAILURE IT CATCHES. If `width: 100%` is ever lost, this clip makes the
+       page look almost right instead of obviously wrong. That is why the
+       guard test asserts the ellipsis chain SEPARATELY, rather than settling
+       for "no visible collision". */
     min-width: 0;
     overflow: hidden;
   }
@@ -195,6 +204,44 @@
     max-width: 200px;
     font-size: 12px;
     padding: 4px 6px;
+
+    /* `width: 100%` IS WHAT MAKES THE ELLIPSIS POSSIBLE, and the reason is a
+       form-control quirk rather than anything about flexbox.
+
+       This is a <button>. Form controls are SHRINK-TO-FIT: `width: auto`
+       resolves to the element's max-content width, NOT to the containing
+       block, the way a <div> would. So the button stayed 187px wide inside a
+       parent measured at 115px and simply overflowed it.
+
+       That is why none of the obvious levers moved it. All measured on prod,
+       each reverted:
+
+           .project-selector-btn { flex-shrink: 1 }   btn 187   INERT
+           .project-selector-btn { min-width: 0 }     btn 187   INERT
+           .project-selector-btn { max-width: 100% }  btn 187   INERT
+           .project-selector-text { min-width: 0 }    btn 187   INERT
+           .project-selector-btn { width: 100% }      btn 115   <- the lever
+
+       flex-* properties are inert here for a second, independent reason:
+       the parent `.header-project-selector-inline` is `display: block`
+       (02-layout.css), so this button is not a flex ITEM at all and
+       `flex-shrink: 0` in 12-project-selector.css:23 never applied to
+       anything. Two red herrings stacked on one element.
+
+       WITH this line, at 390x844:
+
+           .header-project-selector-inline  115px
+           .project-selector-btn            115px   (was 187, overflowing)
+           .project-selector-text            83px   scrollWidth 155
+           ellipsis                         RENDERS
+           document overflow                0px
+           hamburger                        on-screen
+           paint collisions on the badge    0 of 5
+
+       Scoped to mobile deliberately: on desktop the button should keep its
+       intrinsic 160-220px sizing, where there is room and no truncation is
+       wanted. */
+    width: 100%;
   }
 
   .project-files-btn {
