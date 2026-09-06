@@ -86,6 +86,17 @@ def _find_app_ts_path(app_name: str, ts_rest: str) -> str:
     return f"{prefix}{app_name}/static/{app_name}/ts/{ts_rest}.ts"
 
 
+def manifest_path() -> Path:
+    """The one place the built Vite manifest lives.
+
+    Extracted so the boot-time guard in ``public_app.checks`` and the reader
+    below cannot drift onto different paths. A check that validates a
+    different file than the code reads is worse than no check at all: it
+    reports green over exactly the failure it exists to catch.
+    """
+    return Path(settings.BASE_DIR) / "staticfiles" / "vite" / ".vite" / "manifest.json"
+
+
 def get_manifest() -> dict:
     """Load the Vite manifest file (production only).
 
@@ -94,12 +105,10 @@ def get_manifest() -> dict:
     """
     global _manifest_cache, _manifest_mtime, _manifest_name_index
 
-    manifest_path = (
-        Path(settings.BASE_DIR) / "staticfiles" / "vite" / ".vite" / "manifest.json"
-    )
+    path = manifest_path()
 
     try:
-        current_mtime = manifest_path.stat().st_mtime
+        current_mtime = path.stat().st_mtime
     except OSError:
         # File doesn't exist — return empty and don't cache
         _manifest_cache = {}
@@ -110,7 +119,7 @@ def get_manifest() -> dict:
     if _manifest_cache is not None and current_mtime == _manifest_mtime:
         return _manifest_cache
 
-    with open(manifest_path) as f:
+    with open(path) as f:
         _manifest_cache = json.load(f)
     _manifest_mtime = current_mtime
     # Invalidate the name index so it gets rebuilt from the new manifest
