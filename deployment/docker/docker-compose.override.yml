@@ -190,12 +190,33 @@ services:
       redis:
         condition: service_started
     entrypoint: ["/app/deployment/docker/common/scripts/entrypoint-dev.sh"]
+    # POOL=THREADS, NOT PREFORK. The prefork pool wedges on this host: after
+    # one boot burst the parent stops acknowledging completed tasks, its QoS
+    # window jams full of reservations with worker_pid=None / time_start=None
+    # / acknowledged=false, `inspect active` is empty, the control channel
+    # still answers ping, and nothing is logged. Five fixes failed against it
+    # (tini #379, -O fair + --max-tasks-per-child #381, the celery<5.6 pin
+    # with --without-gossip/mingle/heartbeat #384). The differential
+    # experiment that settled it: same container, same code, same broker,
+    # differing ONLY by --pool=threads, drained 48 tasks in 200s where
+    # prefork never exceeded 6. See docker_prod/docker-compose.yml for the
+    # full history and tests/develop/test_celery_worker_pool.py for the gate.
+    #
+    # The prefork-only flags are dropped deliberately: -O fair is a prefork
+    # child-dispatch strategy and --max-tasks-per-child / --max-memory-per-child
+    # recycle fork children, of which a threads pool has none. Celery ignores
+    # them under --pool=threads, so leaving them in place is dead config that
+    # reads as an active mitigation for the very wedge they failed to fix.
     command: >
       celery -A config --broker=redis://redis:6379/1 worker
       --loglevel=info
       --queues=celery,ai_queue,search_queue,compute_queue,vis_queue
+      --pool=threads
       --concurrency=4
       --prefetch-multiplier=1
+      --without-gossip
+      --without-mingle
+      --without-heartbeat
     restart: unless-stopped
     # Healthcheck asserts EXECUTION, not connectivity.
     #
