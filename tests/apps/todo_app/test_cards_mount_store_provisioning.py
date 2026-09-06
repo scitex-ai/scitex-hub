@@ -189,14 +189,61 @@ class CardsMountStoreProvisioningTest(TestCase):
         assert response.status_code == 200
 
     @pytest.mark.guards(defect=_DEFECT)
-    def test_dm_threads_with_no_store_target_still_answers(self):
-        # Arrange — DM reads the store THIS middleware injected, not the
-        # ambient one, and works today; the refusal must not blanket it.
+    @pytest.mark.xfail(
+        strict=True,
+        reason=(
+            "Upstream defect, fixed in scitex-cards 0.51.2 (unreleased at the "
+            "time of writing). The endpoint currently 500s because an "
+            "ANTICIPATED refusal reaches the client unhandled. STRICT on "
+            "purpose: when 0.51.2 lands, hub's floating pin picks it up, this "
+            "starts passing, and a strict xfail FAILS on an unexpected pass — "
+            "which is the signal to delete this marker. A non-strict xfail "
+            "would go quietly green and leave a permanent lie in the suite."
+        ),
+    )
+    def test_dm_threads_with_no_store_target_answers_404_not_500(self):
+        # Arrange — CORRECTED 2026-09-06. This previously asserted 200 on the
+        # premise that "DM reads the store THIS middleware injected, not the
+        # ambient one". scitex-cards states BOTH halves are wrong: from 0.51.2
+        # `resolve_dm_db` deliberately IGNORES a non-DSN store label and
+        # resolves the AMBIENT target, because DM threads are fleet-wide; and
+        # with no store configured the intended answer is 404, not 200. So the
+        # injected label is neither honoured nor fatal here.
+        #
+        # The INTENT was always right — "still answers", i.e. does not 500 —
+        # and only the expected shape of that answer was wrong.
         path = "/apps/cards/dm/threads"
         # Act
         response = self.client.get(path)
         # Assert
-        assert response.status_code == 200
+        assert response.status_code == 404, (
+            "a mount with no store configured must ANSWER, not crash; "
+            f"got {response.status_code}"
+        )
+
+    @pytest.mark.guards(defect=_DEFECT)
+    @pytest.mark.xfail(
+        strict=True,
+        reason=(
+            "Same upstream defect as the 404 test above — fixed in "
+            "scitex-cards 0.51.2, unreleased at the time of writing. Strict, "
+            "so an unexpected pass is the signal to delete both markers."
+        ),
+    )
+    def test_dm_threads_404_carries_the_store_absent_reason(self):
+        # Arrange — a BARE 404 is not enough. Without a typed reason a caller
+        # cannot distinguish "no store is configured" from "no such route",
+        # and those need opposite responses: one is a deployment gap to fix,
+        # the other is a client bug. Separate test from the status code so a
+        # CI failure names which half of the contract broke.
+        path = "/apps/cards/dm/threads"
+        # Act
+        response = self.client.get(path)
+        # Assert
+        assert response.json().get("reason") == "store_absent", (
+            "the 404 must carry the typed reason. "
+            f"Body: {response.content[:200]!r}"
+        )
 
     @pytest.mark.guards(defect=_DEFECT)
     def test_ping_with_no_store_target_still_answers(self):
