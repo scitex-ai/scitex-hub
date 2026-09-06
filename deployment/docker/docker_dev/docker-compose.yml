@@ -93,8 +93,15 @@ services:
       # Mount host passwd for SLURM UID synchronization (prevents "Security violation" errors)
       - /etc/passwd:/host/etc/passwd:ro
 
-      # Explicitly exclude generated files from host mount (performance)
-      - /app/staticfiles
+      # Explicitly exclude generated files from host mount (performance).
+      # NOT /app/staticfiles: `static_volume:/app/staticfiles` above already
+      # shadows the host bind for that path AND persists it. Listing it here
+      # too created a SECOND mount on the same destination in the same
+      # service, and the last one wins -- so this bare entry silently
+      # overrode static_volume with an ANONYMOUS volume, measured on
+      # scitex-hub-dev-django-1 2026-09-06 as
+      # {"com.docker.volume.anonymous": ""}. static_volume was declared,
+      # mounted and dead, and the Vite build did not survive a recreate.
       - /app/.cache
       # TypeScript compiled JS output - Docker only, never syncs to host
       - /app/.jsbuild
