@@ -31,9 +31,24 @@ That is why `test_mobile_container_cap_survives` is here: the cap is
 load-bearing and must not be deleted on the theory that this fix replaced it.
 
 SCOPE, stated plainly: these are SOURCE assertions. They prove the declarations
-survive in the stylesheet; they cannot prove the pixels. The pixel evidence is
-the before/after/revert triple above and in the commit message. A rendering
-guard would need a browser at 390px, which this suite does not have.
+survive in the stylesheet; they cannot prove the pixels.
+
+The pixels are guarded separately, in
+`tests/e2e/playwright/test_mobile_app_store_controls_are_reachable.py`, which
+loads the store at 390x844 in chromium and asserts no control inside
+`.apps-container` sits past a clipping ancestor. Both are wanted: this file
+fails fast and names the cause, while the E2E one is the only thing that can
+catch a regression arriving from another stylesheet, a template change, or a
+scitex-ui shell upgrade. A declaration surviving is a proxy; being able to tap
+the button is the thing.
+
+An earlier draft of this docstring said "a rendering guard would need a browser
+at 390px, which this suite does not have." That was FALSE — hub has had
+`tests/e2e/playwright/` and a `Playwright Mobile E2E` job all along, with an
+iPhone-14 fixture at exactly 390x844. It was written from an assumption instead
+of a look, and seeing the job name in this PR's own CI run is what exposed it.
+Recorded rather than quietly deleted, because the wrong version was a claim
+about what could not be tested, and those are the ones that stop people looking.
 """
 
 from __future__ import annotations
