@@ -21,6 +21,7 @@ from config._env import (
 )
 
 from ._optional_apps import optional_upstream_apps
+from .settings_secret_key import resolve_secret_key, resolve_secret_key_fallbacks
 
 
 # ---------------------------------------
@@ -168,9 +169,17 @@ APP_UNIX_OWNER = _getenv_alias("SCITEX_HUB_APP_UNIX_OWNER", "scitex") or "scitex
 # Security
 # ---------------------------------------
 # Honors SCITEX_CLOUD_DJANGO_SECRET_KEY as a deprecated alias (ADR-0001).
-SECRET_KEY = _getenv_alias("SCITEX_HUB_DJANGO_SECRET_KEY")
+# Resolution and the rotation contract live in settings_secret_key; the
+# REFUSAL stays here so a missing key still raises the error this module
+# has always raised.
+SECRET_KEY = resolve_secret_key()
 if not SECRET_KEY:
     raise ValueError("SCITEX_HUB_DJANGO_SECRET_KEY must be set in environment")
+
+# Retired keys that still VERIFY during a rotation, so rotating a leaked key
+# does not log every user out. Empty unless a rotation is in flight; see
+# settings_secret_key for the three-step contract, including removing them.
+SECRET_KEY_FALLBACKS = resolve_secret_key_fallbacks()
 
 # ---------------------------------------
 # Applications
