@@ -7,6 +7,27 @@ Verify the workspace default pane behavior on mobile viewport.
 """
 
 import pytest
+from tests.e2e.playwright.page_ready import wait_for_page_ready
+
+# WHY THESE TESTS DO NOT WAIT FOR `networkidle`
+#
+# `networkidle` means "500 ms with zero requests in flight". A SciTeX page
+# held by a pooled visitor session runs a heartbeat/countdown poller for as
+# long as the page is open (PoolAllocator.extend_session_on_activity), so
+# that condition never arrives and the wait always times out. The page is
+# fine; the question is unanswerable.
+#
+# Measured twice, same exception both times:
+#   2026-08-16, CI run 31955719803 -- 30s timeout, 33 errors, capture down.
+#   2026-09-06, job 101449817274   -- 30s timeout, 14/14 mobile tests
+#                                     ERRORED in fixture setup, so not one
+#                                     assertion in the mobile suite had
+#                                     ever been evaluated.
+#
+# `wait_for_page_ready` (load -> body.app-ready -> short settle) was written
+# after the first of those and is the sanctioned wait. See
+# tests/e2e/playwright/page_ready.py for why each step is there and why none
+# of them can hide a broken page.
 
 
 class TestMobileWorkspace:
@@ -21,7 +42,7 @@ class TestMobileWorkspace:
     def test_workspace_default_pane_visible(self, visitor_mobile_page, screenshot):
         """Workspace shows a default pane on mobile load."""
         visitor_mobile_page.goto("/apps/workspace/")
-        visitor_mobile_page.wait_for_load_state("networkidle")
+        wait_for_page_ready(visitor_mobile_page)
 
         # Look for the primary/default pane
         pane = visitor_mobile_page.locator(
@@ -41,7 +62,7 @@ class TestMobileWorkspace:
     def test_workspace_default_module_is_chat(self, visitor_mobile_page, screenshot):
         """Default module should be 'chat' after the DEFAULT_MODULE change."""
         visitor_mobile_page.goto("/apps/workspace/")
-        visitor_mobile_page.wait_for_load_state("networkidle")
+        wait_for_page_ready(visitor_mobile_page)
 
         # The workspace shell marks the active module tab with .active class
         # and each tab has a data-module attribute.
@@ -81,7 +102,7 @@ class TestMobileWorkspace:
     def test_workspace_no_horizontal_overflow(self, visitor_mobile_page):
         """Workspace does not overflow horizontally on mobile."""
         visitor_mobile_page.goto("/apps/workspace/")
-        visitor_mobile_page.wait_for_load_state("networkidle")
+        wait_for_page_ready(visitor_mobile_page)
 
         overflow = visitor_mobile_page.evaluate(
             """
@@ -97,7 +118,7 @@ class TestMobileWorkspace:
     def test_workspace_pane_fills_viewport(self, visitor_mobile_page):
         """Default pane fills most of the mobile viewport width."""
         visitor_mobile_page.goto("/apps/workspace/")
-        visitor_mobile_page.wait_for_load_state("networkidle")
+        wait_for_page_ready(visitor_mobile_page)
 
         pane = visitor_mobile_page.locator(
             "[data-testid='workspace-default-pane'], "

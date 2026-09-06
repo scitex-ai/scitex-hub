@@ -178,6 +178,8 @@ def visitor_storage_state(browser_type, pw_base_url):
         context.browser.close()
 
     # Create fresh session by logging in
+    from tests.e2e.playwright.page_ready import wait_for_page_ready
+
     browser = browser_type.launch()
     context = browser.new_context(
         base_url=pw_base_url,
@@ -197,7 +199,88 @@ def visitor_storage_state(browser_type, pw_base_url):
     page.fill('input[name="username"]', TEST_USER)
     page.fill('input[name="password"]', TEST_PASS)
     page.click('button[type="submit"]')
-    page.wait_for_load_state("networkidle")
+    # NOT networkidle. THIS LINE IS WHY 14/14 MOBILE TESTS ERRORED AT SETUP.
+    #
+    # Measured 2026-09-06, job 101449817274:
+    #     E  playwright._impl._errors.TimeoutError: Timeout 30000ms exceeded.
+    #     E  "domcontentloaded" event fired
+    #     E  "load" event fired
+    # Both real load events fired. Only networkidle never came -- because the
+    # session this fixture has just created is a POOLED VISITOR, and a pooled
+    # visitor polls a heartbeat for as long as the page is open
+    # (PoolAllocator.extend_session_on_activity). "500 ms with no requests in
+    # flight" is a state it can never reach, so this wait could only ever time
+    # out, and every test depending on this fixture died before its first
+    # assertion.
+    #
+    # tests/e2e/playwright/page_ready.py was written for exactly this after the
+    # same exception took the screenshot capture down with 33 errors (CI run
+    # 31955719803, 2026-08-16). Its docstring even notes that this fixture
+    # already waits on body.app-ready for the login page -- which it does,
+    # eleven lines above. The helper was adopted by pooled_visitor_page in this
+    # same file and not here, and that gap is the whole defect.
+    # WAIT FOR THE NAVIGATION, NOT JUST FOR A LOAD STATE. `click()` starts the
+    # POST, but wait_for_load_state("load") can be satisfied by the document
+    # ALREADY on screen -- the login page -- and return before the response
+    # lands. Without this line the storage state below can be captured while
+    # still on /auth/login/, i.e. with no session at all.
+    try:
+        page.wait_for_url(lambda url: "/auth/login" not in url, timeout=TIMEOUT)
+    except Exception as exc:  # noqa: BLE001 -- re-raised with a usable message
+        raise AssertionError(
+            "login did not navigate away from /auth/login/ within "
+            f"{TIMEOUT}ms (still at {page.url!r}). Every test using this "
+            "fixture would otherwise run against a LOGGED-OUT site and still "
+            f"report 200. Check SCITEX_E2E_TEST_USER / _TEST_PASS. ({exc})"
+        ) from exc
+
+    wait_for_page_ready(page)
+
+    # PROVE THE SESSION EXISTS BEFORE SAVING IT.
+    #
+    # MEASURED 2026-09-06, job 101458943232 -- the run that first executed this
+    # suite at all. Without this assertion the fixture completed happily and
+    # handed every test an ANONYMOUS session:
+    #     /apps/workspace/  rendered the public landing page ("Sign in")
+    #     /apps/store/      rendered with "Login to install" on every card
+    #     /apps/scholar/    rendered a shell stuck on "Loading..."
+    # and the suite reported 8 PASSED, because those tests assert
+    # `resp.status == 200` and a logged-out page returns 200. Five more
+    # SKIPPED with "No workspace pane element found on page" -- which is what
+    # a logged-out page looks like to a selector.
+    #
+    # That is worse than the crash this fixture used to produce: a loud error
+    # tells you nothing works; eight vacuous passes tell you everything does.
+    # #742 removed a job that was green over zero tests; this stops the same
+    # job going green over zero SESSIONS, which MIN_EXECUTED cannot detect
+    # because the tests genuinely do run.
+    #
+    # The role vocabulary is the product's own (body[data-session-role], see
+    # session_role_check.py). This fixture logs in as a REGISTERED ACCOUNT, so
+    # the expected role here is "user" -- deliberately NOT the pooled "visitor"
+    # that the screenshot capture requires, which is why this asserts the
+    # absence of a logged-out state rather than reusing assert_pooled_visitor.
+    from tests.e2e.playwright.session_role_check import (
+        READ_SESSION_ROLE_JS,
+        ROLE_ANONYMOUS,
+    )
+
+    role = page.evaluate(READ_SESSION_ROLE_JS)
+    if role in (ROLE_ANONYMOUS, ""):
+        raise AssertionError(
+            f"logged in as {TEST_USER!r} but the page reports session role "
+            f"{role!r} at {page.url!r}. "
+            + (
+                "An empty role means the page carries no data-session-role "
+                "attribute, so it does not extend global_base and cannot be "
+                "vouched for at all."
+                if role == ""
+                else "An anonymous role means the credentials were rejected "
+                "or the session cookie was not set."
+            )
+            + " REFUSING to save a session-less storage state: every test "
+            "using it would run against a logged-out site and still pass."
+        )
 
     # Save storage state
     context.storage_state(path=str(state_file))
