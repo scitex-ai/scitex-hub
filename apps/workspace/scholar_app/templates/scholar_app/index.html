@@ -43,11 +43,7 @@
             <div class="scitex-tabs">
                 <a href="#search" class="scitex-tab tab-link" data-tab="search">
                     <i class="fas fa-search"></i>
-                    <span>Literature Search</span>
-                </a>
-                <a href="#bibtex" class="scitex-tab tab-link" data-tab="bibtex">
-                    <i class="fas fa-wand-magic-sparkles"></i>
-                    <span>Metadata Enrichment</span>
+                    <span>Search databases</span>
                 </a>
             </div>
             <!-- Tab Content Container -->
@@ -58,10 +54,6 @@
                      data-tab="search">
                     {% include "scholar_app/search_partials/search.html" with show_results=True %}
                 </div>
-                <!-- BibTeX Enrichment Tab -->
-                <div class="vertical-tab-content {% if active_tab == 'bibtex' %}active{% endif %}"
-                     id="bibtex-tab"
-                     data-tab="bibtex">{% include "scholar_app/bibtex_partials/enrich.html" %}</div>
             </div>
         </div>
     </div>
