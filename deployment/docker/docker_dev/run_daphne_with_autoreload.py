@@ -12,6 +12,7 @@ autoreload system to detect file changes and send events to the browser.
 
 Uses WatchFilesReloader for better Docker volume change detection.
 """
+
 import os
 import sys
 from pathlib import Path
@@ -36,6 +37,13 @@ from django.utils import autoreload
 import django
 
 django.setup()
+
+# Daphne does not run Django's deployment checks automatically. Run them
+# before opening the listening socket so required external dependencies (for
+# example signup email delivery) cannot be silently misconfigured.
+from django.core.management import call_command  # noqa: E402
+
+call_command("check")
 
 
 def run_daphne():

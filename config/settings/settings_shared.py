@@ -449,6 +449,9 @@ EMAIL_HOST_USER = _getenv_alias("SCITEX_HUB_EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = _getenv_alias("SCITEX_HUB_EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
+EMAIL_DELIVERY_REQUIRED = (
+    _getenv_alias("SCITEX_HUB_EMAIL_DELIVERY_REQUIRED", "False") or "False"
+).lower() in ("1", "true", "yes")
 
 # Recipients of the mail_admins logging handler (settings_logging). Defined
 # HERE, once, rather than per environment: it lived only in settings_prod
