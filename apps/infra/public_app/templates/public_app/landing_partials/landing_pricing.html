@@ -1,0 +1,53 @@
+{% load i18n %}
+{% comment %}
+   Landing-page pricing (compass 25.1: "Publish the Pricing table on the
+   TOP/LANDING page so a user can tell what they get before signing in").
+
+   Rendered from data/pricing.json via the SAME helpers /pricing/ and
+   /services/ use — never a hand-written copy. test_pricing_ssot.py fails
+   on a literal amount in this file. Uses 11-pricing.css classes (already
+   loaded on the landing) + section-heading/landing-section (03-landing-sections.css).
+{% endcomment %}
+<section class="landing-section section-pricing" id="pricing">
+    <div class="container">
+        <h2 class="section-heading">{% trans "料金" %}</h2>
+        <p class="plan-sub">
+            {% trans "サブスクリプションは登録から30日間無料・いつでも解約できます。詳細は" %}
+            <a href="{% url 'public_app:pricing' %}">{% trans "料金ページ" %}</a>{% trans "、" %}
+            <a href="{% url 'public_app:tokushoho' %}">{% trans "特定商取引法に基づく表記" %}</a>{% trans "をご覧ください。" %}
+        </p>
+        <div class="pricing-grid">
+            {% for group in published_price_groups %}
+            {% for row in group.rows %}
+            <div class="pricing-card">
+                <div class="pricing-header">
+                    <h3 class="plan-name">{{ row.label }}</h3>
+                    <p class="pricing-price">{{ row.price }}{% if row.price_note %}<span class="period">{{ row.price_note }}</span>{% endif %}</p>
+                </div>
+                {% if row.included %}
+                <div class="pricing-features">
+                    <ul>
+                        {% for item in row.included %}
+                        <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                {% if row.description %}
+                <p class="plan-sub">{{ row.description }}</p>
+                {% endif %}
+                <div class="pricing-action">
+                    <a href="{% url 'auth_app:signup' %}" class="btn btn-primary btn-block">{% trans "30日間無料で始める" %}</a>
+                </div>
+            </div>
+            {% endfor %}
+            {% endfor %}
+        </div>
+        <div class="pricing-notes">
+            {% if tax_note %}<p class="pricing-note">{{ tax_note }}</p>{% endif %}
+            {% for note in pricing_notes %}
+            <p class="pricing-note">{{ note }}</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>

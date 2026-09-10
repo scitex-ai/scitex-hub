@@ -75,8 +75,16 @@ def index(request):
     # closed" rather than reconnecting, and the transaction's work is lost.
     if not connection.in_atomic_block:
         connection.close()
+    from ..pricing import load_pricing, published_price_groups
+
     context = {
         "ecosystem_versions": _get_ecosystem_versions(),
+        # Pricing columns on the landing (compass 25.1: "Publish the Pricing
+        # table on the TOP/LANDING page"). Rendered from the SSOT via the same
+        # helpers /pricing/ and /services/ use — never a hand-written copy.
+        "published_price_groups": published_price_groups(),
+        "tax_note": load_pricing().get("tax_note", ""),
+        "pricing_notes": load_pricing()["notes"],
     }
     return render(request, "public_app/landing.html", context)
 

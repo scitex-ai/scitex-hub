@@ -154,3 +154,29 @@ input:checked + .slider:before {
 .pricing-action {
   padding: 0 var(--spacing-lg) var(--spacing-lg);
 }
+
+/* Landing pricing section (added 2026-09-10, compass 25.1) — only the rules
+   the landing_pricing partial needs that this file did not already define. */
+.plan-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem;
+  color: var(--text-color);
+}
+
+.plan-sub {
+  font-size: 0.875rem;
+  color: var(--text-light);
+  margin: 0.25rem 0;
+}
+
+.pricing-notes {
+  margin-top: var(--spacing-lg);
+  text-align: center;
+}
+
+.pricing-note {
+  font-size: 0.8125rem;
+  color: var(--text-light);
+  margin: 0.25rem 0;
+}
