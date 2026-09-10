@@ -182,23 +182,25 @@ class TestTokushohoPage:
         for row in rows:
             for item in row["included"]:
                 assert item in content, f"{row['label']}: included item {item!r} not on the page"
-        # Assert — the 定期購入 disclosures business asked for (operator rulings
-        # 2026-09-03: 30-day free trial then automatic billing; no refund after
-        # billing starts, service to the end of the paid period; cancellation
-        # completes on-screen; a human contact that does not depend on the
-        # customer's registered address).
+        # Assert — the 定期購入 disclosures business asked for (operator ruling
+        # 2026-09-10, trial model revision: 30-day trial; if continuing, the
+        # first 30 days are billed from the registration date; if not, the
+        # stored email+card are discarded in 7 days; one trial per
+        # email/card identity; no proration after billing starts).
         for needle in (
-            "登録から30日間は無料",
-            "31日目に初回の月額課金が自動で始まり",
-            "お申し込みから30日間は無料です",
-            "30日を過ぎると、月額課金が自動で始まります",
+            "登録後30日間が無料トライアル期間",
+            "初回30日分を登録日から遡って課金",
+            "7日後に破棄",
+            "30日間トライアルを一度しか利用できません",
             "日割りの返金はありません",
             "お支払い済みの期間の末日までご利用いただけます",
-            "マイページから完結",
             "個別対応します",
             "サブスク・学術",
         ):
             assert needle in content, f"{needle!r} missing from the 特商法 page"
+        # The old "free 30 days then auto-bill on day 31" model is gone.
+        assert "31日目に初回の月額課金が自動で始まり" not in content
+        assert "メールのリンクは必要ありません" not in content
         assert "サブスク・学生" not in content, "the 学生 name was renamed to 学術 on 2026-09-03 (business.yaml PR #54)"
         assert "審査完了後に開始" in content, (
             "The page must state that online card payment opens after the "

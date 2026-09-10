@@ -170,7 +170,7 @@
                         <tr>
                             <th>{% trans "支払時期" %}</th>
                             <td>
-                                {% trans "サブスクリプション(定期課金): お申し込み時にクレジットカードをご登録いただきます。登録から30日間は無料で、料金は発生しません。31日目に初回の月額課金が自動で始まり、以降は毎月の更新日に課金されます。無料期間が終わる前に、ご登録のメールアドレスへお知らせします。" %}
+                                {% trans "サブスクリプション(定期課金): お申し込み時にメールアドレスとクレジットカード/デビットカードをご登録いただきます。登録後30日間が無料トライアル期間です。トライアル期間内に継続を選択された場合、初回30日分を登録日から遡って課金し、以降は毎月の更新日に課金されます。継続しなかった場合、登録したメールアドレスとカード情報は当方のデータベースに保持され、7日後に破棄されます。同一のメールアドレスまたはカード情報では、30日間トライアルを一度しか利用できません。" %}
                                 <br>
                                 {% trans "都度払い(オンプレ導入サポート・受託開発・コンサル): お見積り・ご契約後、請求書に記載の期日までにお支払いいただきます(クレジットカード決済または銀行振込)。オンプレ保守サポート(月額): 毎月、請求書に記載の期日までにお支払いいただきます。" %}
                             </td>
@@ -182,27 +182,21 @@
                         <tr>
                             <th>{% trans "返品・キャンセル" %}</th>
                             <td>
-                                {# 返品・キャンセル: operator rulings 2026-09-03 relayed by business (no refund, use to period end, 30-day free trial); wording to be checked against the 消費者庁 guidelines before card payment opens. #}
-                                {% comment %}
-                                Three steps in this order, so that 「30日間はいつでも解約できます」 is not
-                                read as 「30日以内なら返金される」: during the free period there is no
-                                charge, so there is nothing to refund; after it, cancelling stops the
-                                NEXT renewal and never refunds the paid period. Operator ruling
-                                2026-09-03 (Telegram 6965), relayed by business: no refunds, use until
-                                the end of the paid period, monthly and yearly alike. 特商法 lists
-                                申込みの撤回・解除 as a required disclosure, and the final confirmation
-                                screen repeats it.
-                                {% endcomment %}
+                                {# 返品・キャンセル: operator ruling 2026-09-10 (trial model revision):
+                                   30-day trial; if continuing, charged from day 1 (retroactive) for
+                                   the first 30 days; if not continuing, email+card discarded in 7 days;
+                                   one trial per email/card identity; no proration after billing.
+                                   "メールのリンクは必要ありません" dropped per operator. #}
                                 <ol>
-                                    <li>{% trans "お申し込みから30日間は無料です。この間はマイページからいつでも解約でき、料金は発生しません。" %}</li>
-                                    <li>{% trans "30日を過ぎると、月額課金が自動で始まります。" %}</li>
+                                    <li>{% trans "お申し込みから30日間が無料トライアル期間です。この期間内に継続を選択された場合、初回30日分を登録日から遡って課金し、以降は毎月の更新日に課金されます。" %}</li>
                                     <li>{% trans "課金開始後に解約された場合、日割りの返金はありません。解約は次回更新の停止であり、お支払い済みの期間の末日までご利用いただけます。" %}</li>
+                                    <li>{% trans "同一のメールアドレスまたはカード情報では、30日間トライアルを一度しか利用できません。" %}</li>
                                 </ol>
                                 <p>
-                                    {% trans "解約はログイン後のマイページから完結し、メールのリンクは必要ありません。ご登録のメールアドレスが使えなくなった場合も、上記の電話番号またはメールアドレスまでご連絡いただければ、個別対応します。" %}
+                                    {% trans "本サービスはデジタルコンテンツおよびオンラインサービスの性質上、提供開始後のお客様都合による返品・返金はお受けいたしません。" %}
                                 </p>
                                 <p>
-                                    {% trans "本サービスはデジタルコンテンツおよびオンラインサービスの性質上、提供開始後のお客様都合による返品・返金はお受けいたしません。" %}
+                                    {% trans "ご登録のメールアドレスが使えなくなった場合、またはカード情報が更新された場合は、上記の電話番号またはメールアドレスまでご連絡いただければ、個別対応します。" %}
                                 </p>
                                 <p>
                                     {% trans "当社の責めに帰すべき事由によりサービスを提供できなかった場合は、法令に従い対応いたします。" %}
