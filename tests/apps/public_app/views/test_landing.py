@@ -41,7 +41,7 @@ class LandingHeroCtaTest(TestCase):
         # Act
         resp = self.client.get("/landing/")
         # Assert — explicit, clearly-labeled visitor-entry button
-        assert b"Enter as visitor" in resp.content
+        assert b"Try SciTeX" in resp.content
 
     def test_hero_cta_targets_visitor_provisioning_entry(self):
         # Arrange — the entry path, reversed so a route rename cannot rot this

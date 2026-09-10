@@ -65,8 +65,8 @@ msgstr ""
 "文献検索・統計・可視化・論文執筆のための Python ツールキットと MCP サーバー。"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
-msgid "Enter as visitor"
-msgstr "ゲストとして試す"
+msgid "Try SciTeX"
+msgstr "SciTeX を試す"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
 msgid "Sign up"

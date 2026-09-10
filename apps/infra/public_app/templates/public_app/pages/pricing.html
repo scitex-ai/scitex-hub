@@ -8,8 +8,8 @@
     SciTeX
 {% endblock %}
 {% block meta_description %}
-    SciTeX pricing plans for
-    researchers, labs, and institutions.
+    SciTeX pricing - subscription and on-premise plans, rendered from the
+    single source of truth so this page and the 特定商取引法 page always agree.
 {% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
@@ -20,25 +20,29 @@
     <div class="container py-4">
         <!-- Hero Section -->
         <header class="minimal-hero">
-            <h1 class="minimal-hero-title">Pricing</h1>
+            <h1 class="minimal-hero-title">{% trans "料金" %} / Pricing</h1>
+            <p class="minimal-hero-sub">{% trans "すべての価格は data/pricing.json（単一の情報源）から表示されます。" %}</p>
         </header>
     </div>
-    <!-- Pricing Cards -->
+
     <div class="container py-4">
-        <!-- Alpha Notice -->
+        <!-- Subscription state (announced but billing not yet open). This block
+             stays truthful via pricing.json _subscription_status.state; it is the
+             same fact the 特商法 page and BILLING_PLANS (empty) carry. -->
         <div class="pricing-alpha-notice">
             <i class="fas fa-flask"></i>
             <div>
-                <strong>Alpha Release</strong>
+                <strong>{% trans "サブスクリプション" %}</strong>
                 <p>
-                    All plans are free during alpha. Features and limits are provisional and will be finalized based on demand and feedback.
+                    {% trans "料金は公開済みです。カードによる課金は準備中（Stripe の法人審査を経て開始）。「有料プランは準備中です」は /services/ と /tokushoho/ とで同じ状態を示します。" %}
                 </p>
             </div>
         </div>
+
         {% if billing_plans and user.is_staff %}
-            <!-- Config-driven paid plans (SCITEX_HUB_BILLING_PLANS).
-                 STAFF-ONLY while billing is in testing (operator directive
-                 2026-07-08); prices are tax-inclusive 税込 per 総額表示義務. -->
+            <!-- Config-driven paid plans (SCITEX_HUB_BILLING_PLANS). STAFF-ONLY
+                 while billing is in testing (operator directive 2026-07-08);
+                 prices are tax-inclusive 税込 per 総額表示義務. -->
             <div class="pricing-alpha-notice pricing-paid-plans">
                 <i class="fas fa-credit-card"></i>
                 <div>
@@ -61,7 +65,7 @@
                                         <button type="submit" class="btn btn-sm btn-primary">Checkout</button>
                                     </form>
                                 {% else %}
-                                    <span class="pricing-checkout-unconfigured">(Stripe keys not configured — checkout disabled)</span>
+                                    <span class="pricing-checkout-unconfigured">{% trans "(Stripe keys not configured — checkout disabled)" %}</span>
                                 {% endif %}
                             </li>
                         {% endfor %}
@@ -69,7 +73,7 @@
                 </div>
             </div>
         {% elif not billing_plans %}
-            <!-- Honest empty state: no paid plans configured yet. -->
+            <!-- Honest empty state: billing not open yet. -->
             <div class="pricing-alpha-notice pricing-paid-plans-pending">
                 <i class="fas fa-yen-sign"></i>
                 <div>
@@ -83,607 +87,97 @@
                 </div>
             </div>
         {% endif %}
-        <div class="pricing-cards-wrapper">
-            <!-- Visitor -->
-            <div class="pricing-card alpha-active">
-                <div class="alpha-badge">
-                    <i class="fas fa-flask"></i> Alpha
-                </div>
-                <div class="pricing-header">
-                    <h3 class="plan-name">Visitor</h3>
-                    <div class="plan-price">
-                        <span class="price">{{ free_price }}</span>
+
+        <!-- ============================================================ -->
+        <!-- Plan tiers — rendered from data/pricing.json `tiers`        -->
+        <!-- (the same source /services/ reads). The five retired plans  -->
+        <!-- (Visitor/Registered/Pro/Team/Lab/Enterprise) that this page -->
+        <!-- hard-coded are gone: pricing.json removed them 2026-08-28/  -->
+        <!-- 09-02 and this template must not keep its own copy.        -->
+        <!-- ============================================================ -->
+        <section class="pricing-tiers">
+            <div class="pricing-cards-wrapper">
+                {% for tier in tiers %}
+                <article class="pricing-card pricing-tier-card{% if tier.id == 'onprem' %} pricing-tier-card-featured{% endif %}">
+                    <h3 class="plan-name">{{ tier.name }}<span class="plan-sub">{{ tier.audience }}</span></h3>
+                    <dl class="pricing-tier-prices">
+                        {% if tier.quote_only %}
+                            <dt>{% trans "料金" %}</dt><dd class="plan-price">{{ free_price }}</dd>
+                        {% elif not tier.rows %}
+                            <dt>{% trans "料金" %}</dt><dd class="plan-price">{% trans "準備中 — 確定後に掲載します。" %}</dd>
+                        {% else %}
+                            {% for row in tier.rows %}
+                                <dt>{{ row.label }}</dt>
+                                <dd class="plan-price">{{ row.price }}{% if row.price_note %}<span class="plan-sub">{{ row.price_note }}</span>{% endif %}</dd>
+                            {% endfor %}
+                        {% endif %}
+                    </dl>
+                    <p class="plan-description">{{ tier.description }}</p>
+                    {% for row in tier.rows %}{% if row.description %}<p class="plan-note">{{ row.label }}：{{ row.description }}</p>{% endif %}{% if row.included %}<p class="plan-note">{{ row.label }}：{{ row.included|join:"、" }}</p>{% endif %}{% endfor %}
+                    <div class="pricing-cta">
+                        {% if tier.quote_only %}
+                            <a href="{% url 'public_app:services' %}#inquiry" class="btn btn-outline-primary btn-block">{% trans "問い合わせ" %}</a>
+                        {% else %}
+                            <a href="{% url 'public_app:services' %}#inquiry" class="btn btn-outline-primary btn-block">{% trans "問い合わせ" %}</a>
+                        {% endif %}
                     </div>
-                    <p class="plan-description">No signup required</p>
-                </div>
-                <div class="pricing-features">
-                    <ul>
-                        <li>
-                            <i class="fas fa-check"></i> 60-min session
-                        </li>
-                        <li>
-                            <i class="fas fa-check"></i> Temporary workspace
-                        </li>
-                        <li>
-                            <i class="fas fa-check"></i> 1 project, 500 MB
-                        </li>
-                        <li>
-                            <i class="fas fa-check"></i> Basic features
-                        </li>
-                    </ul>
-                </div>
-                <div class="pricing-cta">
-                    <a href="{% url 'writer_app:index' %}" class="btn btn-outline-primary btn-block">Try Now</a>
-                </div>
+                </article>
+                {% endfor %}
             </div>
-            <!-- Registered -->
-            <div class="pricing-card alpha-active featured">
-                <div class="alpha-badge">
-                    <i class="fas fa-flask"></i> Alpha
-                </div>
-                <div class="pricing-header">
-                    <h3 class="plan-name">Registered</h3>
-                    <div class="plan-price">
-                        <span class="price">{{ free_price }}</span>
-                    </div>
-                    <p class="plan-description">Free signup</p>
-                </div>
-                <div class="pricing-features">
-                    <ul>
-                        <li>
-                            <i class="fas fa-check"></i> Unlimited sessions
-                        </li>
-                        <li>
-                            <i class="fas fa-check"></i> Persistent storage
-                        </li>
-                        <li>
-                            <i class="fas fa-check"></i> 50 projects, 50 GB
-                        </li>
-                        <li>
-                            <i class="fas fa-check"></i> Full features
-                        </li>
-                    </ul>
-                </div>
-                <div class="pricing-cta">
-                    <a href="{% url 'auth_app:signup' %}" class="btn btn-primary btn-block">Sign Up Free</a>
-                </div>
-            </div>
-            <!-- Pro -->
-            <div class="pricing-card alpha-active">
-                <div class="alpha-badge">
-                    <i class="fas fa-flask"></i> Alpha
-                </div>
-                <div class="pricing-header">
-                    <h3 class="plan-name">Pro</h3>
-                    <div class="plan-price">
-                        <span class="price">{{ free_price }}</span>
-                    </div>
-                    <p class="plan-description">Individual researchers</p>
-                </div>
-                <div class="pricing-features">
-                    <ul>
-                        <li>
-                            <i class="fas fa-check"></i> 4 CPU / 16 GB RAM
-                        </li>
-                        <li>
-                            <i class="fas fa-check"></i> Priority compute
-                        </li>
-                        <li>
-                            <i class="fas fa-check"></i> All journal templates
-                        </li>
-                        <li>
-                            <i class="fas fa-check"></i> 100 GB storage
-                        </li>
-                    </ul>
-                </div>
-                <div class="pricing-cta">
-                    <a href="{% url 'auth_app:signup' %}" class="btn btn-outline-primary btn-block">Sign Up Free</a>
-                </div>
-            </div>
-            <!-- Team / Lab -->
-            <div class="pricing-card alpha-active">
-                <div class="alpha-badge">
-                    <i class="fas fa-flask"></i> Alpha
-                </div>
-                <div class="pricing-header">
-                    <h3 class="plan-name">Team / Lab</h3>
-                    <div class="plan-price">
-                        <span class="price">{{ free_price }}</span>
-                    </div>
-                    <p class="plan-description">Research teams</p>
-                </div>
-                <div class="pricing-features">
-                    <ul>
-                        <li>
-                            <i class="fas fa-check"></i> Shared projects
-                        </li>
-                        <li>
-                            <i class="fas fa-check"></i> Team permissions
-                        </li>
-                        <li>
-                            <i class="fas fa-check"></i> SLURM / HPC
-                        </li>
-                        <li>
-                            <i class="fas fa-check"></i> 500 GB pooled
-                        </li>
-                    </ul>
-                </div>
-                <div class="pricing-cta">
-                    <a href="{% url 'auth_app:signup' %}" class="btn btn-outline-primary btn-block">Sign Up Free</a>
-                </div>
-            </div>
-            <!-- Enterprise -->
-            <div class="pricing-card alpha-active">
-                <div class="alpha-badge">
-                    <i class="fas fa-flask"></i> Alpha
-                </div>
-                <div class="pricing-header">
-                    <h3 class="plan-name">Enterprise</h3>
-                    <div class="plan-price">
-                        <span class="price">{{ free_price }}</span>
-                    </div>
-                    <p class="plan-description">Institutions</p>
-                </div>
-                <div class="pricing-features">
-                    <ul>
-                        <li>
-                            <i class="fas fa-check"></i> On-prem deploy support
-                        </li>
-                        <li>
-                            <i class="fas fa-check"></i> HPC integration
-                        </li>
-                        <li>
-                            <i class="fas fa-check"></i> HIPAA / GDPR
-                        </li>
-                        <li>
-                            <i class="fas fa-check"></i> Custom storage
-                        </li>
-                    </ul>
-                </div>
-                <div class="pricing-cta">
-                    <a href="{% url 'public_app:contact' %}" class="btn btn-outline-primary btn-block">Contact Us</a>
-                </div>
-            </div>
-        </div>
+        </section>
     </div>
-    <!-- Comparison Table -->
+
+    <!-- ============================================================ -->
+    <!-- Price table — content | price, from published_price_groups   -->
+    <!-- (the same list /services/ and /tokushoho/ render). No amount -->
+    <!-- is typed here; the SSoT guard fails on a literal.            -->
+    <!-- ============================================================ -->
     <div class="container py-4">
+        <h2 class="pricing-section-title">{% trans "料金の目安" %}</h2>
         <div class="table-responsive">
-            <table class="comparison-table comparison-table-compact">
+            <table class="comparison-table comparison-table-compact pricing-content-table">
                 <thead>
                     <tr>
-                        <th></th>
-                        <th>Visitor</th>
-                        <th class="featured-col">Registered</th>
-                        <th>Pro</th>
-                        <th>Team</th>
-                        <th>Enterprise</th>
+                        <th scope="col">{% trans "内容" %}</th>
+                        <th scope="col">{% trans "料金の目安" %}</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Pricing Row -->
-                    <tr class="section-header">
-                        <td colspan="6">
-                            <strong><i class="fas fa-dollar-sign"></i> Pricing</strong>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Price</td>
-                        <td>{{ free_price }}</td>
-                        <td class="featured-col">{{ free_price }}</td>
-                        <td>{{ free_price }}</td>
-                        <td>{{ free_price }}</td>
-                        <td>{{ free_price }}</td>
-                    </tr>
-                    <!-- Resources -->
-                    <tr class="section-header">
-                        <td colspan="6">
-                            <strong><i class="fas fa-server"></i> Resources</strong>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Session Duration</td>
-                        <td>60 min</td>
-                        <td class="featured-col">Unlimited</td>
-                        <td>Unlimited</td>
-                        <td>Unlimited</td>
-                        <td>Unlimited</td>
-                    </tr>
-                    <tr>
-                        <td>Projects</td>
-                        <td>1</td>
-                        <td class="featured-col">Unlimited</td>
-                        <td>Unlimited</td>
-                        <td>Unlimited</td>
-                        <td>Unlimited</td>
-                    </tr>
-                    <tr>
-                        <td>Storage</td>
-                        <td>500 MB</td>
-                        <td class="featured-col">50 GB</td>
-                        <td>100 GB</td>
-                        <td>50 GB/user</td>
-                        <td>Custom</td>
-                    </tr>
-                    <tr>
-                        <td>Compute (CPU / RAM)</td>
-                        <td>2 / 8 GB</td>
-                        <td class="featured-col">2 / 8 GB</td>
-                        <td>4 / 16 GB</td>
-                        <td>4 / 16 GB</td>
-                        <td>Custom</td>
-                    </tr>
-                    <tr>
-                        <td>Priority Queue</td>
-                        <td>
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td class="featured-col">
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                    </tr>
-                    <!-- Scholar Module -->
-                    <tr class="section-header">
-                        <td colspan="6">
-                            <strong><i class="fas fa-book"></i> Scholar Module</strong>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>PDF / BibTeX Management</td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td class="featured-col">
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>CrossRef / DOI Resolution</td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td class="featured-col">
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>PDF Auto-Download</td>
-                        <td>10/day</td>
-                        <td class="featured-col">50/day</td>
-                        <td>Unlimited</td>
-                        <td>Unlimited</td>
-                        <td>Unlimited</td>
-                    </tr>
-                    <!-- Visualizer Module -->
-                    <tr class="section-header">
-                        <td colspan="6">
-                            <strong><i class="fas fa-chart-bar"></i> Visualizer Module</strong>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>High-Res Export (300 DPI)</td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td class="featured-col">
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Publication Templates</td>
-                        <td>Basic</td>
-                        <td class="featured-col">Basic</td>
-                        <td>All journals</td>
-                        <td>All journals</td>
-                        <td>Custom</td>
-                    </tr>
-                    <!-- Writer Module -->
-                    <tr class="section-header">
-                        <td colspan="6">
-                            <strong><i class="fas fa-pen"></i> Writer Module</strong>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>LaTeX Compilation</td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td class="featured-col">
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Journal Templates</td>
-                        <td>5</td>
-                        <td class="featured-col">20</td>
-                        <td>All</td>
-                        <td>All</td>
-                        <td>Custom</td>
-                    </tr>
-                    <!-- Console Module -->
-                    <tr class="section-header">
-                        <td colspan="6">
-                            <strong><i class="fas fa-terminal"></i> Console Module</strong>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Python / R Execution</td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td class="featured-col">
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>SLURM / HPC Integration</td>
-                        <td>
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td class="featured-col">
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                    </tr>
-                    <!-- AI Features -->
-                    <tr class="section-header">
-                        <td colspan="6">
-                            <strong><i class="fas fa-robot"></i> AI Features</strong>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>AI Tools (User's API Keys)</td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td class="featured-col">
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>AI Credits (Included)</td>
-                        <td>
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td class="featured-col">
-                            <i class="fas fa-times"></i>
-                        </td>
-                        {% comment %}
-                        AI credit allowances were quoted here as monthly and per-user USD
-                        amounts -- an entitlement of paid tiers that pricing.json records
-                        as `not_offered` and that 特商法 states are 準備中. Quoting a price
-                        for a plan nobody can buy, in a currency the site no longer uses,
-                        is the same contradiction this page is being fixed for.
-
-                        The amounts are deliberately NOT restated in this comment: the
-                        SSoT guard scans every public template for price literals, and a
-                        literal inside a comment counts exactly the same as one inside a
-                        <td>. Naming them here would keep this file off the migrated list
-                        forever, for prose nobody renders.
-
-                        {% comment %}, NOT a multi-line {# #}: Django's tag_re has no
-                        re.DOTALL, so a {# #} spanning lines is NOT a comment -- it
-                        RENDERS as visible text and interpolates what is inside it. That
-                        has now happened three times in this repo, and I wrote a fourth
-                        one here before catching it.
-                        {% endcomment %}
-                        <td>{% trans "準備中" %}</td>
-                        <td>{% trans "準備中" %}</td>
-                        <td>Custom</td>
-                    </tr>
-                    <!-- Collaboration -->
-                    <tr class="section-header">
-                        <td colspan="6">
-                            <strong><i class="fas fa-users"></i> Collaboration</strong>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Team Workspaces</td>
-                        <td>
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td class="featured-col">
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Shared Projects</td>
-                        <td>
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td class="featured-col">
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Role-Based Permissions</td>
-                        <td>
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td class="featured-col">
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                    </tr>
-                    <!-- Enterprise -->
-                    <tr class="section-header">
-                        <td colspan="6">
-                            <strong><i class="fas fa-building"></i> Enterprise</strong>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>On-Premise Deploy Support</td>
-                        <td>
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td class="featured-col">
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>SSO / SAML Integration</td>
-                        <td>
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td class="featured-col">
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>HIPAA / GDPR Compliance</td>
-                        <td>
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td class="featured-col">
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>SLA & Priority Support</td>
-                        <td>
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td class="featured-col">
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-times"></i>
-                        </td>
-                        <td>
-                            <i class="fas fa-check"></i>
-                        </td>
-                    </tr>
+                    {% for group in published_price_groups %}
+                        {% for row in group.rows %}
+                        <tr>
+                            <td>{{ row.label }}{% if row.included %}<br><span class="plan-sub">{{ row.included|join:"、" }}</span>{% endif %}</td>
+                            <td class="plan-price">{{ row.price }}{% if row.price_note %}<br><span class="plan-sub">{{ row.price_note }}</span>{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
+        <div class="pricing-notes">
+            {% if tax_note %}<p class="pricing-note">{{ tax_note }}</p>{% endif %}
+            {% for note in pricing_notes %}
+            <p class="pricing-note">{{ note }}</p>
+            {% endfor %}
+        </div>
     </div>
+
+    <!-- Self-host / commercial services — stated concisely (compass 25.1).
+         These are service FACTS (free / paid / contact), not price literals,
+         so the SSoT guard does not fire; the actual amounts remain in the
+         table above from pricing.json. -->
+    <div class="container py-4">
+        <h2 class="pricing-section-title">{% trans "セルフホスト / サービス" %}</h2>
+        <ul class="pricing-selfhost-list">
+            <li><strong>{% trans "セルフホスト / オンプレミス" %}</strong>：{% trans "ソフトウェアは AGPL-3.0 で無料。" %}</li>
+            <li><strong>{% trans "導入支援 (Installation / Setup / Migration)" %}</strong>：{% trans "有料" %}</li>
+            <li><strong>{% trans "保守・メンテナンス・定期サポート" %}</strong>：{% trans "有料" %}</li>
+            <li><strong>{% trans "デュアルライセンス" %}</strong>：{% trans "お問い合わせ" %}</li>
+            <li><strong>{% trans "カスタムアプリ開発 (SciTeX App 受託開発)" %}</strong>：{% trans "お問い合わせ" %}</li>
+        </ul>
+        <p class="plan-note">{% trans "金額は上の料金表（pricing.json から表示）を参照してください。" %}</p>
+    </div>
+
     <!-- FAQ Section -->
     <div class="container py-5">
         <h2 class="text-center mb-4 faq-section-title">FAQ</h2>
@@ -691,59 +185,55 @@
             <div class="col-lg-8">
                 <div class="faq-item">
                     <h5>
-                        <i class="fas fa-question-circle"></i> What happens to my data during
-                        alpha?
+                        <i class="fas fa-question-circle"></i> {% trans "Alpha 中に自分のデータはどう扱われますか？" %}
                     </h5>
                     <p>
-                        No guarantee. Back up important work. For production, self-host or use
-                        <code>pip install scitex</code> locally.
+                        {% trans "保証はありません。重要な作業はバックアップしてください。本番ではセルフホストするか、ローカルで " %}<code>pip install scitex</code>{% trans " をお使いください。" %}
                     </p>
                 </div>
                 <div class="faq-item">
                     <h5>
-                        <i class="fas fa-question-circle"></i> Can I self-host SciTeX?
+                        <i class="fas fa-question-circle"></i> {% trans "SciTeX はセルフホストできますか？" %}
                     </h5>
                     <p>
-                        Yes. 100% open source under AGPL-3.0 license. Self-host on your own
-                        infrastructure for free.
+                        {% trans "はい。AGPL-3.0 ライセンスのもと 100% オープンソースです。ご自身のインフラで無料でセルフホストできます。" %}
                     </p>
                 </div>
                 <div class="faq-item">
                     <h5>
-                        <i class="fas fa-question-circle"></i> When will paid plans be
-                        available?
+                        <i class="fas fa-question-circle"></i> {% trans "課金はいつ始まりますか？" %}
                     </h5>
                     <p>
-                        After alpha phase. Timeline TBD based on stability and community
-                        feedback.
+                        {% trans "サブスクリプションは登録から 30 日間無料、初回の月額課金は 31 日目から、いつでも解約できます。カード決済は Stripe の法人審査を経て開始します（" %}<a href="{% url 'public_app:tokushoho' %}">{% trans "特定商取引法に基づく表記" %}</a>{% trans "）。" %}
                     </p>
                 </div>
                 <div class="faq-item">
                     <h5>
-                        <i class="fas fa-question-circle"></i> How can I support SciTeX now?
+                        <i class="fas fa-question-circle"></i> {% trans "今はどうやって SciTeX を応援できますか？" %}
                     </h5>
                     <p>
-                        You can support SciTeX development through
-                        <a href="https://github.com/sponsors/ywatanabe1989">GitHub Sponsors</a> or
-                        <a href="https://buymeacoffee.com/ywatanabe">Buy Me a Coffee</a>.
-                        Visit our <a href="{% url 'public_app:donate' %}">donate page</a> for details.
+                        {% trans "次のいずれかで SciTeX の開発を応援できます：" %}
+                        <a href="https://github.com/sponsors/ywatanabe1989">GitHub Sponsors</a> {% trans "または" %}
+                        <a href="https://buymeacoffee.com/ywatanabe">Buy Me a Coffee</a>{% trans "。" %}
+                        <a href="{% url 'public_app:donate' %}">{% trans "寄付ページ" %}</a>{% trans "で詳細をご覧ください。" %}
                     </p>
                 </div>
             </div>
         </div>
     </div>
+
     <!-- CTA Section -->
     <section class="pricing-cta-section">
         <div class="container text-center">
-            <h2>Try SciTeX Now</h2>
-            <p class="lead">Sign up to keep your work</p>
+            <h2>{% trans "SciTeX を試す" %}</h2>
+            <p class="lead">{% trans "作業を続けるためにアカウントを作成" %}</p>
             <div class="mt-4">
-                <a href="{% url 'writer_app:index' %}" class="btn btn-outline-light btn-lg mx-2">Try as Visitor</a>
-                <a href="{% url 'auth_app:signup' %}" class="btn btn-light btn-lg mx-2">Sign Up Free</a>
+                <a href="{% url 'writer_app:index' %}" class="btn btn-outline-light btn-lg mx-2">{% trans "Visitor として試す" %}</a>
+                <a href="{% url 'auth_app:signup' %}" class="btn btn-light btn-lg mx-2">{% trans "無料で登録" %}</a>
             </div>
             <div class="mt-3">
                 <a href="{% url 'public_app:donate' %}" class="btn btn-link text-light">
-                    <i class="fas fa-heart"></i> Support open science — Donate
+                    <i class="fas fa-heart"></i> {% trans "オープンサイエンスを支援 — 寄付" %}
                 </a>
             </div>
         </div>

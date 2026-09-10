@@ -55,8 +55,8 @@ SWITCHER_TEMPLATE = "global_base_partials/language_switcher.html"
 # One string per surface, chosen because each proves a DIFFERENT link in the
 # chain: the constant path (branding.py -> context processor), the plain
 # template path, and the interpolating one (blocktrans).
-CTA_EN = "Enter as visitor"
-CTA_JA = "ゲストとして試す"
+CTA_EN = "Try SciTeX"
+CTA_JA = "SciTeX を試す"
 
 
 def _reverse_or_none(name):

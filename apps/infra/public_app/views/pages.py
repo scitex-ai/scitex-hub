@@ -285,26 +285,28 @@ def fundraising(request):
 
 
 def pricing(request):
-    """SciTeX pricing page - subscription plans and feature comparison.
+    """SciTeX pricing page - renders the SSOT, never its own copy.
 
-    The rendered public state stays the truthful alpha-free framing.
-    Underneath, the page is Stripe-ready: paid plans come from
-    ``SCITEX_HUB_BILLING_PLANS`` (settings_commerce; prices are
-    tax-inclusive 税込 per 総額表示義務) and are shown to staff only
-    while billing is in testing (operator directive 2026-07-08).
+    The plan names, prices, and tier descriptions all come from
+    ``data/pricing.json`` via ``pricing.tier_rows()`` and
+    ``pricing.published_price_groups()`` -- the same helpers /services/ and
+    /tokushoho/ use. Before this fix (2026-09-10 compass L539/L550/L652),
+    the template hard-coded five plans (Visitor/Registered/Pro/Team/Lab/
+    Enterprise) that ``pricing.json`` had already retired on 2026-08-28/09-02;
+    the page and the SSoT therefore disagreed, and the SSoT guard
+    (test_pricing_ssot.py) could not see it because it only scans for price
+    LITERALS, not for stale plan names. A literal amount in this template is
+    a regression the guard fails on; a plan name that the SSoT does not carry
+    is the defect this rewrite removes.
+
+    The rendered public state stays the truthful announced-but-not-billing
+    framing: ``pricing.json`` ``_subscription_status.state`` keeps this page,
+    ``BILLING_PLANS`` (empty) and the 特商法 disclosure saying the SAME thing.
     """
     from django.conf import settings
 
-    from ..pricing import format_amount, load_pricing
+    from ..pricing import format_amount, load_pricing, published_price_groups, tier_rows
 
-    # The page showed twelve USD amounts while /services/ showed JPY -- two
-    # LIVE public pages quoting different currencies for the same product,
-    # measured on prod 2026-08-03 (/pricing/ 18 "$" and 0 "円"; /services/ 0
-    # "$" and 16 "円"). Operator directive, repeated: prices are JPY, from one
-    # source of truth. So the "free" label is rendered by the same function
-    # that renders every other price rather than typed into the template --
-    # format_amount() is the one place deciding that a zero amount reads as
-    # 無料 rather than as a zero with a currency symbol.
     pricing_data = load_pricing()
 
     return render(
@@ -316,9 +318,15 @@ def pricing(request):
             "free_price": format_amount(0),
             # Not cosmetic: pricing.json's _subscription_status is the key that
             # keeps this page, BILLING_PLANS (empty) and the 特商法 disclosure
-            # (「有料プランは現在準備中です」) saying the SAME thing. A site that
-            # both denies and advertises paid plans is the defect being fixed.
+            # saying the SAME thing. A site that both denies and advertises
+            # paid plans is the defect being fixed.
             "subscription_state": pricing_data["_subscription_status"]["state"],
+            # Plan names + tier prices from the SSoT (same source /services/
+            # and /tokushoho/ read). Never a plan name or amount typed here.
+            "tiers": tier_rows(),
+            "published_price_groups": published_price_groups(),
+            "tax_note": pricing_data.get("tax_note", ""),
+            "pricing_notes": pricing_data["notes"],
         },
     )
 
