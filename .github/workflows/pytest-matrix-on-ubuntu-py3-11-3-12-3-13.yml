@@ -127,7 +127,36 @@ jobs:
           # audit gate's scitex-dev subcommands) resolves to THIS venv rather
           # than to whatever the shared runner happens to have installed.
           export PATH="$PWD/.venv/bin:$PATH"
-          .venv/bin/python -m pytest tests/ --cov=src/scitex_hub --cov-report=xml --cov-report=term
+          # PARALLEL, and the numbers behind it. Measured on PR #771 (run
+          # 34541827131, jobs 103085957832/766/917): the three legs took
+          # 521s / 897s / 676s wall-clock, of which the "Run tests" step alone
+          # was 469s on py3.11 -- all of it SINGLE-PROCESS pytest on a runner
+          # with 4 idle vCPUs, while queue delay was only 2-68s. The queue was
+          # never the cost; the serial run was.
+          #
+          # --dist loadfile, not the default --dist load: this suite has never
+          # run in parallel, so keeping every FILE on one worker is the
+          # conservative choice that preserves intra-file ordering and
+          # module-level state. Cross-file parallelism is where the suite's own
+          # size lives (tests/config alone is 40+ files), so little is lost.
+          #
+          # Each worker gets its OWN test database, which is why this is safe
+          # with the postgres service above: pytest-django suffixes the database
+          # name per xdist process (`_gw0`, `_gw1`, ... -- pytest_django/
+          # fixtures.py), so the workers do not share a schema. The service
+          # container has no CPU limit declared, and four databases is well
+          # inside what postgres:16 does on this runner.
+          #
+          # -n 4 is EXPLICIT rather than `auto` on purpose: `auto` reads the
+          # host's CPU count, so the same line would spawn 4 workers on a
+          # GitHub-hosted runner and 32+ on a big self-hosted one, each opening
+          # its own database. The runner is 4 vCPU today; raise this number
+          # when the ROUTING changes (routing is a cross-repo/infra decision --
+          # see the card, not this file).
+          #
+          # Coverage and the fail-loud contract are unchanged: --cov stays, the
+          # three-leg matrix stays, and a failing test still exits non-zero.
+          .venv/bin/python -m pytest tests/ -n 4 --dist loadfile --cov=src/scitex_hub --cov-report=xml --cov-report=term
       - name: Upload coverage to Codecov
         if: always() && matrix.python-version == '3.12'
         uses: codecov/codecov-action@v5
