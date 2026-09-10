@@ -454,12 +454,14 @@ def test_switcher_submits_japanese_under_en(switcher_en_html):
     assert expected in actual
 
 
-def test_switcher_reuses_the_header_button_class(switcher_html):
+def test_switcher_reuses_the_footer_button_class(switcher_html):
     """No bespoke colours. The operator rejected the first version for looking
-    unlike the rest of the header 「ブランドのカラーと合ってない」; reusing
-    .header-btn is what makes it inherit the brand tokens."""
+    unlike its neighbours 「ブランドのカラーと合ってない」; reusing a shared
+    button class is what makes it inherit the brand tokens. (2026-09-11: the
+    switcher moved from the header to the footer, so the class it reuses is
+    now .footer-lang-btn, styled from the footer token palette.)"""
     # Arrange
-    expected = 'class="header-btn"'
+    expected = 'class="footer-lang-btn"'
     # Act
     actual = switcher_html
     # Assert

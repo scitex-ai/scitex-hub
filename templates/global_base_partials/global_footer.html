@@ -23,6 +23,13 @@
                     <p class="footer-contact">
                         <a href="mailto:{{ CONTACT_EMAIL }}"><i class="fas fa-envelope"></i> {{ CONTACT_EMAIL }}</a>
                     </p>
+                    <!-- Global language switcher (moved from the header 2026-09-11:
+                         the operator wants it in the footer, GitHub-style). It is a
+                         real set_language POST form (CSRF + next), so it persists via
+                         the django_language cookie. Natural destination labels. -->
+                    <div class="footer-language">
+                        {% include 'global_base_partials/language_switcher.html' %}
+                    </div>
                     <p class="footer-copyright">
                         &copy; 2025–2026 SciTeX. {% trans "All rights reserved." %} <span class="footer-version">v{{ SCITEX_HUB_VERSION }}</span>
                     </p>

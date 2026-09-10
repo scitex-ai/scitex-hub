@@ -346,12 +346,6 @@
         </button>
         <!-- Right: Actions + User Menu -->
         <div class="header-right">
-            <!-- Language toggle. Placed FIRST in header-right on the operator's
-                 instruction (2026-08-23): 「1番下のフッターにあるよりもヘッダーに
-                 あったほうがいい」. It reuses .header-btn so it inherits the brand
-                 tokens rather than the browser's native widget styling, which is
-                 what made the previous <select> look out of place. -->
-            {% include 'global_base_partials/language_switcher.html' %}
             <!-- Theme Toggle (always visible) -->
             <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light/dark theme" data-tooltip="Toggle light/dark theme">
                 <i class="fas fa-adjust"></i>
@@ -763,6 +757,12 @@
             <i class="fas fa-adjust"></i>
             <span>Toggle Theme</span>
         </button>
+        {# Language switcher — also in the mobile menu because the footer is
+           hidden on mobile workspace pages (footer.css @media rule), so the
+           footer copy alone would be unreachable there. Same set_language POST
+           form, so it persists identically. (2026-09-11, switcher -> footer.) #}
+        {% include 'global_base_partials/language_switcher.html' %}
+        <div class="mobile-menu-divider"></div>
         {# Developer-facing entries: shown to staff (and in dev), hidden for #}
         {# ordinary users/visitors so the menu stays focused (operator,      #}
         {# 2026-07-21). Same gate as the header notification center.         #}
