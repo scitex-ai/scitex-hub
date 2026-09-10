@@ -58,7 +58,7 @@ input:checked + .slider:before {
 
 .badge {
   display: inline-block;
-  background-color: var(--success-color);
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
   color: var(--text-inverse);
   font-size: 0.75rem;
   padding: 0.2rem 0.5rem;
@@ -148,7 +148,7 @@ input:checked + .slider:before {
   content: "✓";
   position: absolute;
   left: 0;
-  color: var(--color-btn-primary-bg, #3b82f6);
+  color: #2563eb;
 }
 
 .pricing-action {
@@ -192,7 +192,7 @@ input:checked + .slider:before {
 
 .pricing-trial-badge {
   display: inline-block;
-  background: var(--color-btn-primary-bg, #3b82f6);
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
   color: var(--text-inverse);
   font-size: 0.75rem;
   font-weight: 600;
@@ -217,6 +217,15 @@ input:checked + .slider:before {
   display: inline-block;
   min-width: 3.5em;
   font-weight: 600;
-  color: var(--color-btn-primary-bg, #3b82f6);
+  color: #2563eb;
   margin-right: 0.4em;
+}
+
+/* Brand blue gradient CTA on the landing pricing cards (matches hero button) */
+.pricing-action .btn-primary {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border-color: transparent;
+}
+.pricing-action .btn-primary:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
 }

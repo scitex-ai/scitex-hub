@@ -29,8 +29,82 @@ def donate(request):
 
 
 def contact(request):
-    """Contact page."""
-    return render(request, "public_app/legal/contact.html")
+    """Contact page — three channels + a direct inquiry form.
+
+    The form persists to the SAME ServiceInquiry model /services/ uses
+    (the cash-runway inquiry path) and, when SERVICES_INQUIRY_EMAIL is set,
+    emails it. A 'type' field distinguishes support / sales / general so one
+    backend can serve all three cards.
+    """
+    submitted = False
+    errors: dict[str, str] = {}
+    form = {"name": "", "email": "", "type": "support", "request": ""}
+
+    if request.method == "POST":
+        form = {
+            "name": (request.POST.get("name") or "").strip(),
+            "email": (request.POST.get("email") or "").strip(),
+            "type": (request.POST.get("type") or "support").strip(),
+            "request": (request.POST.get("request") or "").strip(),
+        }
+        if not form["name"]:
+            errors["name"] = "お名前をご記入ください。"
+        if not form["request"]:
+            errors["request"] = "ご相談内容をご記入ください。"
+        if not errors:
+            from ..models import ServiceInquiry
+
+            inquiry = ServiceInquiry.objects.create(
+                name=form["name"][:120],
+                affiliation=form["email"][:200],
+                request=f"[{form['type']}] {form['request']}",
+                budget=form["type"][:120],
+            )
+            _notify_contact_inquiry(inquiry, form)
+            submitted = True
+            form = {"name": "", "email": "", "type": "support", "request": ""}
+
+    return render(
+        request,
+        "public_app/legal/contact.html",
+        {"submitted": submitted, "errors": errors, "form": form},
+    )
+
+
+def _notify_contact_inquiry(inquiry, form):
+    """Best-effort email of a contact-form inquiry. DB is the record of truth."""
+    from django.conf import settings
+
+    to_addr = (getattr(settings, "SERVICES_INQUIRY_EMAIL", "") or "").strip()
+    if not to_addr:
+        return
+    from django.core.mail import send_mail
+
+    subject = f"[SciTeX contact] {form.get('type', 'general')}: {inquiry.name}"
+    body = (
+        f"お名前: {inquiry.name}\n"
+        f"ご連絡先: {form.get('email') or '-'}\n"
+        f"種別: {form.get('type')}\n"
+        f"受付日時: {inquiry.created_at:%Y-%m-%d %H:%M}\n\n"
+        f"ご相談内容:\n{inquiry.request}\n"
+    )
+    try:
+        send_mail(
+            subject,
+            body,
+            settings.DEFAULT_FROM_EMAIL,
+            [to_addr],
+            fail_silently=False,
+        )
+    except Exception:  # noqa: BLE001
+        import logging
+
+        logging.getLogger(__name__).warning(
+            "ContactInquiry %s stored but email to %s failed",
+            inquiry.pk,
+            to_addr,
+            exc_info=True,
+        )
 
 
 def privacy_policy(request):
