@@ -68,13 +68,20 @@
   margin-top: var(--spacing-md);
 }
 
-/* ── Nested price table (販売価格・対価 row) ────────────────────────────── */
+/* ── Full-width price table (販売価格・対価, broken out of the label column) ── */
 .tokushoho-price-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  margin: var(--spacing-xs) 0;
+  margin: var(--spacing-lg) 0;
   font-size: 0.95em;
+}
+
+/* Standalone full-bleed instance gets its own outer frame + rounded corners */
+.tokushoho-price-table.full-bleed {
+  border: 1px solid var(--border-muted);
+  border-radius: var(--border-radius-lg, 8px);
+  overflow: hidden;
 }
 
 .tokushoho-price-table thead th {
@@ -88,13 +95,15 @@
   color: var(--text-primary);
 }
 
-.tokushoho-price-table thead th:nth-child(1) { width: 16%; }
-.tokushoho-price-table thead th:nth-child(2) { width: 15%; }
-.tokushoho-price-table thead th:nth-child(3) { width: 11%; }
-.tokushoho-price-table thead th:nth-child(4) { width: 8%; }
-.tokushoho-price-table thead th:nth-child(5) { width: 13%; }
-.tokushoho-price-table thead th:nth-child(6) { width: 13%; }
-.tokushoho-price-table thead th:nth-child(7) { width: 24%; }
+/* 8 columns: 内容 / 料金 / 定価 / 割引 / ストレージ / 計算クレジット / 超過計算 / 備考 */
+.tokushoho-price-table thead th:nth-child(1) { width: 15%; }
+.tokushoho-price-table thead th:nth-child(2) { width: 14%; }
+.tokushoho-price-table thead th:nth-child(3) { width: 10%; }
+.tokushoho-price-table thead th:nth-child(4) { width: 7%; }
+.tokushoho-price-table thead th:nth-child(5) { width: 12%; }
+.tokushoho-price-table thead th:nth-child(6) { width: 14%; }
+.tokushoho-price-table thead th:nth-child(7) { width: 14%; }
+.tokushoho-price-table thead th:nth-child(8) { width: 14%; }
 
 .tokushoho-price-table tbody td {
   border: none;
@@ -121,7 +130,14 @@
   white-space: nowrap;
 }
 
-/* The colspan note row — (removed 2026-09-10: 規模の大きい導入 row dropped) */
+/* The 規模の大きい導入 footer note row — visually distinct from the data rows */
+.tokushoho-price-table .price-note-row td {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  padding: var(--spacing-md);
+  border-top: 2px solid var(--border-muted);
+  background: var(--bg-muted, rgba(0, 0, 0, 0.02));
+}
 
 .tokushoho-price-note {
   font-size: 0.85em;

@@ -217,6 +217,14 @@ def _format_compute_credit(attrs: dict[str, Any]) -> str:
     return base
 
 
+def _format_overage(attrs: dict[str, Any]) -> str:
+    """超過計算の表現。metered → 「従量課金（超過分のみ）」、無いと ''。"""
+    ov = attrs.get("overage", "")
+    if str(ov).lower() == "metered":
+        return "従量課金（超過分のみ）"
+    return ""
+
+
 def _staged_price_note(
     policy: str, policies: dict[str, Any], window: dict[str, Any], list_amount: int
 ) -> str:
@@ -338,6 +346,7 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
                 "price_note": price_note,
                 "storage": _format_included_storage(item.get("attributes", {})),
                 "compute_credit": _format_compute_credit(item.get("attributes", {})),
+                "overage": _format_overage(item.get("attributes", {})),
                 "included": included_items(item.get("attributes", {})),
                 # Pass-through of the upstream catalogue's descriptive fields, so
                 # /services/ can describe an offer in business.yaml's words.

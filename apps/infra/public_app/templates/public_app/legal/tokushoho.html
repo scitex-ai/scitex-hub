@@ -92,44 +92,55 @@
                                         {% trans "最新の価格は" %}<a href="{% url 'public_app:pricing' %}">{% trans "料金ページ" %}</a>{% trans "をご確認ください。価格はすべて税込(総額)表示です。" %}
                                     </p>
                                 {% else %}
-                                    <table class="tokushoho-price-table">
-                                        <thead>
-                                            <tr>
-                                                <th>{% trans "内容" %}</th>
-                                                <th>{% trans "料金（税込）" %}</th>
-                                                <th>{% trans "定価" %}</th>
-                                                <th>{% trans "割引" %}</th>
-                                                <th>{% trans "ストレージ" %}</th>
-                                                <th>{% trans "計算クレジット" %}</th>
-                                                <th>{% trans "備考" %}</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for row in published_price_rows %}
-                                            <tr>
-                                                <td>{{ row.label }}</td>
-                                                <td class="price-cell">{{ row.price }}</td>
-                                                <td class="muted-cell">{{ row.list_price|default:"—" }}</td>
-                                                <td class="muted-cell">{{ row.discount|default:"—" }}</td>
-                                                <td class="muted-cell">{{ row.storage|default:"—" }}</td>
-                                                <td class="muted-cell">{{ row.compute_credit|default:"—" }}</td>
-                                                <td>
-                                                    {% if row.included %}{{ row.included|join:"、" }}{% elif row.description %}{{ row.description }}{% endif %}
-                                                    {% if row.price_note %}<br><span class="tokushoho-price-note">{{ row.price_note }}</span>{% endif %}
-                                                </td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                    <p>
-                                        <!--email_off-->{% trans "オンラインでのクレジットカード決済は、決済代行（Stripe）の審査完了後に開始します。それまでのお申し込み・お見積りは info@scitex.ai までご連絡ください。" %}<!--/email_off-->
-                                    </p>
-                                    <p>
-                                        {% trans "最新の価格は" %}<a href="{% url 'public_app:pricing' %}">{% trans "料金ページ" %}</a>{% trans "をご確認ください。価格はすべて税込(総額)表示です。" %}
-                                    </p>
+                                    <p>{% trans "下表を参照してください。価格はすべて税込(総額)表示です。" %}</p>
                                 {% endif %}
                             </td>
                         </tr>
+                    </table>
+                    {% if billing_plans %}
+                    {% else %}
+                    <table class="tokushoho-price-table full-bleed">
+                        <thead>
+                            <tr>
+                                <th>{% trans "内容" %}</th>
+                                <th>{% trans "料金（税込）" %}</th>
+                                <th>{% trans "定価" %}</th>
+                                <th>{% trans "割引" %}</th>
+                                <th>{% trans "ストレージ" %}</th>
+                                <th>{% trans "計算クレジット" %}</th>
+                                <th>{% trans "超過計算" %}</th>
+                                <th>{% trans "備考" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in published_price_rows %}
+                            <tr>
+                                <td>{{ row.label }}</td>
+                                <td class="price-cell">{{ row.price }}</td>
+                                <td class="muted-cell">{{ row.list_price|default:"—" }}</td>
+                                <td class="muted-cell">{{ row.discount|default:"—" }}</td>
+                                <td class="muted-cell">{{ row.storage|default:"—" }}</td>
+                                <td class="muted-cell">{{ row.compute_credit|default:"—" }}</td>
+                                <td class="muted-cell">{{ row.overage|default:"—" }}</td>
+                                <td>
+                                    {% if row.included %}{{ row.included|join:"、" }}{% elif row.description %}{{ row.description }}{% endif %}
+                                    {% if row.price_note %}<br><span class="tokushoho-price-note">{{ row.price_note }}</span>{% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            <tr class="price-note-row">
+                                <td colspan="8">{% trans "規模の大きい導入（複数研究室など）：規模に応じてお見積り（規模が大きいほど1人あたりは安くなる形）" %}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p>
+                        <!--email_off-->{% trans "オンラインでのクレジットカード決済は、決済代行（Stripe）の審査完了後に開始します。それまでのお申し込み・お見積りは info@scitex.ai までご連絡ください。" %}<!--/email_off-->
+                    </p>
+                    <p>
+                        {% trans "最新の価格は" %}<a href="{% url 'public_app:pricing' %}">{% trans "料金ページ" %}</a>{% trans "をご確認ください。" %}
+                    </p>
+                    {% endif %}
+                    <table class="tokushoho-table">
                         <tr>
                             <th>{% trans "商品代金以外の必要料金" %}</th>
                             <td>
