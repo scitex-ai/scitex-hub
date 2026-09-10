@@ -177,13 +177,6 @@ def _until_text(end: str) -> str:
     return f"{last.year}年{last.month}月{last.day}日"
 
 
-def _from_text(start: date) -> str:
-    """2027-08-01 -> 2027年8月から; a mid-month start names the day."""
-    if start.day == 1:
-        return f"{start.year}年{start.month}月から"
-    return f"{start.year}年{start.month}月{start.day}日から"
-
-
 def _yen(amount: int) -> str:
     return f"{amount:,}円"
 
@@ -229,34 +222,19 @@ def _format_overage(attrs: dict[str, Any]) -> str:
 def _staged_price_note(
     policy: str, policies: dict[str, Any], window: dict[str, Any], list_amount: int
 ) -> str:
-    """The sentence a discounted row carries, in business's final form
-    (2026-09-03 06:54Z; operator, Telegram 6913/6915):
+    """The sentence a discounted row carries: the current window only.
 
-        定価 2,980円、早期導入割引 50%。2027年7月末までの早期導入価格。
-        2027年8月から 2,086円、2028年8月から 2,682円、2029年8月から 2,980円
+    定価 2,980円、早期導入割引 50%。2027年7月末までの早期導入価格。
 
-    Every later stage is disclosed up front, so the list price is a stated
-    future price and not a claim of past sales (no struck-through pair — that
-    would read as a price once sold). The stages are the LATER windows of the
-    same schedule in date order, each at its own percent, then the list price
-    from the day after the last window ends. Amounts inside the sentence carry
-    no 月額 prefix: the row's own price already says what the unit is.
+    The LATER stages (2027年8月から 2,086円、2028年8月から …) were originally
+    disclosed up front (2026-09-03, 景表法 dual-price protection), but the
+    operator ruled 2026-09-10 that future years should not be shown — the 定価
+    is already its own column, so the trailing schedule is dropped. Only the
+    active window's end date remains.
     """
-    later = sorted(
-        (w for w in policies[policy]["schedule"] if w["start"] > window["end"]),
-        key=lambda w: w["start"],
-    )
-    stages = [
-        f"{_from_text(date.fromisoformat(w['start']))} {_yen(_discounted(list_amount, w['percent']))}"
-        for w in later
-    ]
-    last_end = later[-1]["end"] if later else window["end"]
-    after = date.fromisoformat(last_end) + timedelta(days=1)
-    stages.append(f"{_from_text(after)} {_yen(list_amount)}")
     return (
         f"定価 {_yen(list_amount)}、早期導入割引 {window['percent']}%。"
         f"{_until_text(window['end'])}までの早期導入価格。"
-        + "、".join(stages)
     )
 
 
