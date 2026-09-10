@@ -46,7 +46,7 @@
                     {% if row.category == "subscription" %}
                     <a href="{% url 'auth_app:signup' %}" class="btn btn-primary btn-block">{% trans "30日間無料で始める" %}</a>
                     {% else %}
-                    <a href="{% url 'public_app:contact' %}" class="btn btn-outline btn-block">{% trans "お問い合わせ" %}</a>
+                    <a href="{% url 'public_app:contact' %}" class="btn btn-block">{% trans "お問い合わせ" %}</a>
                     {% endif %}
                 </div>
             </div>
