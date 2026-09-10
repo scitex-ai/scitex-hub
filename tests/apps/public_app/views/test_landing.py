@@ -43,16 +43,15 @@ class LandingHeroCtaTest(TestCase):
         # Assert — explicit, clearly-labeled visitor-entry button
         assert b"Try SciTeX" in resp.content
 
-    def test_hero_cta_targets_visitor_provisioning_entry(self):
+    def test_hero_cta_targets_signup(self):
         # Arrange — the entry path, reversed so a route rename cannot rot this
-        entry = reverse("public_app:visitor_enter").encode()
+        entry = reverse("auth_app:signup").encode()
         # Act
         resp = self.client.get("/landing/")
-        # Assert — target is a visitor-provisioning entry, now the dedicated
-        # /enter/ route rather than /apps/home/. The INVARIANT this test names
-        # is unchanged and still enforced; only the entry moved. /apps/home/
-        # also provisioned, but rendered the Gitea repository browser, so the
-        # first thing a visitor saw was dotfiles and "No commit message" x6.
+        # Assert — signup-first (operator ruling 2026-09-10: the visitor
+        # sandbox is dropped, so the primary CTA goes to /auth/signup/).
+        # Previously /enter/ provisioned a visitor slot and rendered the
+        # Gitea repository browser (dotfiles + "No commit message" x6).
         assert b'href="' + entry + b'"' in resp.content
 
     def test_hero_cta_no_longer_targets_repo_browser(self):

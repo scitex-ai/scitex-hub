@@ -77,6 +77,14 @@ msgid "Sign in"
 msgstr "ログイン"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "Free for 30 days. Cancel anytime. Email verification and a card are required."
+msgstr "30日間無料・いつでも解約。メール認証とカード登録が必要です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Start free for 30 days"
+msgstr "30日間無料で始める"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
 msgid "No sign-up needed — starts a temporary visitor workspace."
 msgstr "登録不要。一時的なワークスペースがすぐに立ち上がります。"
 
