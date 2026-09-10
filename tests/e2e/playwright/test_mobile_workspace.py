@@ -60,35 +60,36 @@ class TestMobileWorkspace:
         screenshot(visitor_mobile_page, "workspace_default_pane")
 
     def test_workspace_default_module_is_chat(self, visitor_mobile_page, screenshot):
-        """Default module should be 'chat' after the DEFAULT_MODULE change."""
-        visitor_mobile_page.goto("/apps/workspace/")
+        """Default module should be 'chat' after the DEFAULT_MODULE change.
+
+        The legacy 3-pane robot-icon chat shell was retired: a direct hit on
+        /apps/workspace/ (which defaults to module="chat") now redirects to the
+        canonical /chat/ route, where chat renders as the active pane in the
+        unified workspace layout (see workspace_app/views.py:workspace_shell and
+        global_base.html — #pane-chat is server-rendered with the "active" class
+        and data-initial-pane="chat" when request.initial_pane == "chat").
+
+        The old test probed the retired .module-tab-btn module bar on the
+        retired /apps/workspace/ route, which no longer exists, so it reported
+        None. This asserts the CURRENT contract: on the authenticated mobile
+        context, /chat/ marks the chat pane active.
+        """
+        visitor_mobile_page.goto("/chat/")
         wait_for_page_ready(visitor_mobile_page)
 
-        # The workspace shell marks the active module tab with .active class
-        # and each tab has a data-module attribute.
         active_module = visitor_mobile_page.evaluate(
             """
             () => {
-                // Strategy 1: active tab button with data-module
-                const activeBtn = document.querySelector(
-                    '.module-tab-btn.active[data-module]'
+                // Strategy 1: the pane server-rendered active with data-pane
+                const activePane = document.querySelector(
+                    '.workspace-pane.active[data-pane]'
                 );
-                if (activeBtn) return activeBtn.getAttribute('data-module');
+                if (activePane) return activePane.getAttribute('data-pane');
 
-                // Strategy 2: active tab button href containing module name
-                const activeBtnHref = document.querySelector(
-                    '.module-tab-btn.active[href]'
-                );
-                if (activeBtnHref) {
-                    const href = activeBtnHref.getAttribute('href');
-                    const match = href.match(/\\/apps\\/workspace\\/([^/]+)/);
-                    if (match) return match[1];
-                }
-
-                // Strategy 3: URL fragment or path
-                const path = window.location.pathname;
-                const match = path.match(/\\/apps\\/workspace\\/([^/]+)/);
-                if (match) return match[1];
+                // Strategy 2: the body's initial-pane marker set by /chat/,
+                // /console/, /files/ (consumed by the sidebar to open the pane).
+                const initial = document.body.getAttribute('data-initial-pane');
+                if (initial) return initial;
 
                 return null;
             }
