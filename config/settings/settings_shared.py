@@ -10,8 +10,6 @@ settings_integrations, settings_commerce
 import os
 from pathlib import Path
 
-import scitex as stx
-
 from config import branding
 from config._env import (
     getenv_with_legacy_alias as _getenv_alias,
@@ -483,15 +481,5 @@ from .settings_logging import *  # noqa: E402, F401, F403
 
 # SIMPLE_JWT requires SECRET_KEY defined above
 SIMPLE_JWT = get_simple_jwt_settings(SECRET_KEY)  # noqa: F821
-
-
-@stx.session
-def main(CONFIG=stx.session.INJECTED):
-    """Settings module — not meant to be executed directly."""
-    return 0
-
-
-if __name__ == "__main__":
-    main()
 
 # EOF

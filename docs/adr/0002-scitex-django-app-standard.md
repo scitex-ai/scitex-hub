@@ -7,6 +7,9 @@
 # ADR 0002 — SciTeX Django App Standard ("apps and config")
 
 - **Status**: Accepted
+- **Amended**: 2026-09-10 (Amendment 1 — the Django settings do not import
+  the umbrella; §5 and §6 corrected. Measurement and merge order in the
+  amendment.)
 - **Date**: 2026-05-29
 - **Deciders**: ywatanabe (lead), proj-scitex-hub (agent)
 - **Affects**: every SciTeX package that ships a Django application
@@ -144,9 +147,13 @@ added a conflicting pin). The standard is therefore:
   install target (`pip install scitex-<name>[all]`).
 - **`[dev]`**: development-only tooling (formatters, linters, dev test
   plugins). CI installs `".[all,dev]"`.
-- **`import scitex as stx`** is a hard runtime requirement of the Django
-  settings (`@stx.session`, `stx.session.INJECTED`, `@stx.module`), so
-  the umbrella `scitex>=…` lives in `[all]`, not as an optional sibling.
+- **`import scitex as stx`** is NOT required by the Django settings.
+  **Amended 2026-09-10** — see "Amendment 1" below. The four sites that
+  carried it decorated dead `main()` entry points; the decorators were
+  removed along with the import, and the settings load without the
+  umbrella. The umbrella `scitex>=…` stays in `[all]` for other, measured
+  reasons (scholar's `from scitex import logging` and the
+  `scitex.scholar.*` pipelines).
 
 Per **PS-170**, peer scitex packages SHOULD be pinned to the current
 published version. (hub's core `dependencies` still carry stale `>=`
@@ -155,11 +162,68 @@ auditor flags it as a warning, not an error, so hub stays green.)
 
 ### 6. Settings reference the umbrella
 
-`config/settings/settings_shared.py` does `import scitex as stx` and uses
-`@stx.session` / `@stx.module`. Django apps are top-layer (L4/L5)
-consumers per SOC: they MAY import lower scitex packages but only via the
-**public API** (never private `_submodules`, enforced by linter
-**STX-I008**).
+**AMENDED 2026-09-10 — the settings do NOT reference the umbrella.** This
+section previously read: "`config/settings/settings_shared.py` does
+`import scitex as stx` and uses `@stx.session` / `@stx.module`." That was
+true in letter and hollow in substance; see "Amendment 1". Django apps
+are top-layer (L4/L5) consumers per SOC: they MAY import lower scitex
+packages but only via the **public API** (never private `_submodules`,
+enforced by linter **STX-I008**).
+
+## Amendment 1 — 2026-09-10: the settings do not require the umbrella
+
+**Amends**: §5 (dependency declaration), §6 (settings reference the umbrella).
+**Card**: `hub-settings-import-the-umbrella-for-one-decorator-20260818`.
+**Status of the amendment**: proposed with the measurement below; held for
+review because two in-flight branches touch the same file (see "Merge order").
+
+### What was measured
+
+The four `import scitex as stx` sites in the settings/routing layer were each
+used for exactly one thing:
+
+    config/settings/settings_shared.py:488-489     @stx.session  on a no-op main()
+    config/settings/settings_auth.py:156-157       @stx.session  on a no-op main()
+    config/settings/settings_integrations.py:184-185  @stx.session on a no-op main()
+    config/routing.py:41                           @stx.module   on a no-op main()
+
+Each sat behind `if __name__ == "__main__":` with a docstring saying the module
+was not meant to be executed. Django IMPORTS a settings module and never runs
+one, so that guard could not fire: the decorators were on dead entry points.
+`stx` was used for nothing else in any of the four files.
+
+### Why it mattered
+
+Loading hub's settings therefore required the umbrella, which pins every
+sibling exactly (`scitex-ui==0.6.0` among ~40), while hub declares
+`scitex-ui>=0.20.0`. Any environment that could import settings had scitex-ui
+pinned to 0.6.0 — which made
+`tests/config/test_static_manifest.py::test_collectstatic_succeeds_with_hashed_urls`,
+the guard on a production build step, structurally unrunnable against the
+version hub's own pyproject declares.
+
+### The amendment
+
+Django settings SHALL NOT import the umbrella. The four dead `main()` blocks
+and their four `import scitex as stx` lines are deleted, asserted by
+`tests/config/test_settings_do_not_require_the_umbrella.py`, which imports the
+settings chain in a child interpreter where `scitex` is made unimportable —
+with two positive controls (the blocker does block; blocking a package the
+settings genuinely need does fail the child).
+
+The umbrella REMAINS a dependency in `[all]`/`[dev]`, and that is measured, not
+assumed: 35 runtime files still reach for it, chiefly scholar's
+`from scitex import logging` and the `scitex.scholar.*` pipelines. This
+amendment removes the SETTINGS requirement; it does not remove the package.
+
+### Merge order
+
+Two open branches edit `config/settings/settings_shared.py` for unrelated
+reasons — `feat/retire-visitor-pool-signup-first` (#764) and
+`feat/secret-key-fallbacks-for-zero-logout-rotation` (#740). This amendment
+lands AFTER them, rebased, so the visitor/auth work is not forced to resolve a
+conflict it did not cause. Until then it is preserved on
+`fix/settings-do-not-require-the-umbrella` and is not a PR.
 
 ## Consequences
 

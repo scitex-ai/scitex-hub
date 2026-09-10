@@ -7,8 +7,6 @@
 import os
 from pathlib import Path
 
-import scitex as stx
-
 # Get BASE_DIR from parent
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -177,18 +175,5 @@ REST_FRAMEWORK = {
     ],
 }
 
-
-# ---------------------------------------
-# Main Guard
-# ---------------------------------------
-@stx.session
-def main(CONFIG=stx.session.INJECTED):
-    """Settings module - not meant to be executed directly."""
-    print("This is a Django settings module. Import it, don't execute it.")
-    return 0
-
-
-if __name__ == "__main__":
-    main()
 
 # EOF
