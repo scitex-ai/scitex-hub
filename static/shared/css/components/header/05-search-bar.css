@@ -6,13 +6,16 @@
 
 .header-search input {
   width: 100%;
+  height: var(--input-height, 36px);
   background: var(--bg-page);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-xs) 36px var(--spacing-xs) 32px;
+  padding: 0 36px 0 32px;
   color: var(--text-primary);
   font-size: var(--base-font-size);
-  line-height: 20px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
   transition: all var(--transition-normal) ease;
   box-shadow: var(--shadow-xs);
 }

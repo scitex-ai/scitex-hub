@@ -3,7 +3,8 @@
   background: transparent;
   border: 2px solid var(--border-default);
   color: var(--text-primary);
-  padding: 5px 16px;
+  height: var(--button-height, 36px);
+  padding: 0 16px;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 400;
