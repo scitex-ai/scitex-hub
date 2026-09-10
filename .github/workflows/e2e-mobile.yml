@@ -268,6 +268,7 @@ jobs:
           # error ("ignored explicit argument 'false'", exit=4). Headless is
           # the default, so the flag is simply omitted.
           python -m pytest \
+            tests/e2e/playwright/test_auth_fixture_role_validation.py \
             tests/e2e/playwright/test_mobile_workspace.py \
             tests/e2e/playwright/test_mobile_scholar.py \
             tests/e2e/playwright/test_mobile_writer.py \

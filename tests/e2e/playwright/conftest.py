@@ -209,40 +209,91 @@ def _login_page_diagnosis(page) -> str:
     )
 
 
+#: Version the storage-state filename. Bump to invalidate any previously saved
+#: state (e.g. a stale anonymous one) on the first run after a fixture change.
+_STORAGE_STATE_VERSION = 2
+
+
+def _form_login(page) -> None:
+    """Perform the scoped login-form submission on ``page``.
+
+    Shared by the session-scoped storage-state login and the mobile context's
+    in-context self-heal, so the selectors and the post-submit navigation wait
+    live in ONE place. Caller has already navigated ``page`` to /auth/login/.
+
+    The submit selector is SCOPED TO #login-form ON PURPOSE: button[type="submit"]
+    is NOT unique on the page (the language switcher submits first in DOM order).
+    See the measured history in the fixture docstrings below -- do not "fix"
+    this to a positional selector.
+    """
+    page.wait_for_load_state("domcontentloaded")
+    # body.app-ready disables the loading screen's pointer-events; the
+    # global_base.html safety-net guarantees it within 3s even if the Vite
+    # bundle fails to load.
+    page.wait_for_function(
+        "document.body.classList.contains('app-ready')", timeout=15000
+    )
+    page.fill('#login-form input[name="username"]', TEST_USER)
+    page.fill('#login-form input[name="password"]', TEST_PASS)
+    page.click('#login-form button[type="submit"]')
+    # WAIT FOR THE NAVIGATION, not just a load state: click() starts the POST,
+    # but a load state can be satisfied by the document ALREADY on screen (the
+    # login page) and return before the response lands. Without this, the
+    # storage state would be captured while still on /auth/login/ -- no session.
+    try:
+        page.wait_for_url(lambda url: "/auth/login" not in url, timeout=TIMEOUT)
+    except Exception as exc:  # noqa: BLE001 -- re-raised with a usable message
+        raise AssertionError(
+            "login did not navigate away from /auth/login/ within "
+            f"{TIMEOUT}ms (still at {page.url!r}). Check "
+            f"SCITEX_E2E_TEST_USER / _TEST_PASS.\n"
+            f"{_login_page_diagnosis(page)}\n({exc})"
+        ) from exc
+
+
 @pytest.fixture(scope="session")
 def visitor_storage_state(browser_type, pw_base_url):
     """
-    Authenticate as visitor and save storage_state for reuse.
+    Authenticate as the EXPLICIT test user and save storage_state for reuse.
 
-    The storage state is saved to disk so subsequent test runs
-    can skip the login step if the session is still valid.
+    Historically misnamed "visitor": this logs in as ``$SCITEX_E2E_TEST_USER``,
+    a REGISTERED account -- not a pooled visitor. The saved state is reused only
+    if it still yields session role ``"user"`` at a warm-up route; otherwise a
+    fresh login is performed. Requiring the EXACT role (not merely "not
+    anonymous") is what stops a stale/anonymous state from silently running the
+    whole suite logged out, since a logged-out page still returns 200.
     """
-    state_file = STORAGE_STATE_DIR / "visitor_state.json"
+    state_file = STORAGE_STATE_DIR / (
+        f"test_user_state.v{_STORAGE_STATE_VERSION}.json"
+    )
+    from tests.e2e.playwright.page_ready import wait_for_page_ready
+    from tests.e2e.playwright.session_role_check import (
+        READ_SESSION_ROLE_JS,
+        VISITOR_WARMUP_ROUTE,
+        is_authenticated_user_role,
+    )
 
-    # Try to reuse existing state
-    if state_file.exists():
+    def _role_of(state_path):
+        """Return the session role a saved state yields at a warm-up route."""
         context = browser_type.launch().new_context(
             base_url=pw_base_url,
-            storage_state=str(state_file),
+            storage_state=str(state_path),
             ignore_https_errors=True,
         )
         page = context.new_page()
-        # Verify the session is still valid
-        page.goto("/")
-        if "login" not in page.url.lower():
-            # Session is still valid
-            browser = context.browser
-            page.close()
-            context.close()
-            browser.close()
-            return str(state_file)
+        page.goto(VISITOR_WARMUP_ROUTE)
+        wait_for_page_ready(page)
+        role = page.evaluate(READ_SESSION_ROLE_JS)
         page.close()
         context.close()
         context.browser.close()
+        return role
 
-    # Create fresh session by logging in
-    from tests.e2e.playwright.page_ready import wait_for_page_ready
+    # Reuse an existing state ONLY if it is still a registered-user session.
+    if state_file.exists() and is_authenticated_user_role(_role_of(state_file)):
+        return str(state_file)
 
+    # Fresh login as the explicit test user.
     browser = browser_type.launch()
     context = browser.new_context(
         base_url=pw_base_url,
@@ -252,118 +303,17 @@ def visitor_storage_state(browser_type, pw_base_url):
     page = context.new_page()
 
     page.goto("/auth/login/")
-    page.wait_for_load_state("domcontentloaded")
-    # Wait for body.app-ready which disables loading screen pointer-events.
-    # The safety-net script in global_base.html guarantees this within 3s
-    # even if the Vite bundle fails to load.
-    page.wait_for_function(
-        "document.body.classList.contains('app-ready')", timeout=15000
-    )
-    # SCOPED TO #login-form ON PURPOSE. `button[type="submit"]` is NOT unique on
-    # this page and page.click() is non-strict, so it takes the FIRST match in
-    # DOM order -- which is the LANGUAGE SWITCHER, not the login button.
-    #
-    # MEASURED 2026-09-06, job 101468563871 on develop 6db3b2f9. The login never
-    # completed and the diagnosis this fixture now prints said:
-    #     "NO error container carried visible text, which argues against
-    #      'credentials rejected' and toward 'the form was never submitted'."
-    #     first 300 chars on screen: "/ English (moon) Sign in Sign up Sign In
-    #      Username or Email * Password * Remember me ..."
-    # "English" is templates/global_base_partials/language_switcher.html's
-    # <button type="submit">, and it renders ABOVE the form. Clicking it submits
-    # set_language, whose hidden `next` is request.get_full_path -- so the page
-    # reloads BACK to /auth/login/. Unchanged URL, no error text, no POST to the
-    # login view. Every symptom, one cause.
-    #
-    # The form carries id="login-form" (auth_app/templates/auth_app/signin.html),
-    # so scoping is exact rather than positional. Do not "fix" this by taking
-    # .last or .nth(1): those are just as positional and break the next time a
-    # partial is added to the shared header.
-    page.fill('#login-form input[name="username"]', TEST_USER)
-    page.fill('#login-form input[name="password"]', TEST_PASS)
-    page.click('#login-form button[type="submit"]')
-    # NOT networkidle. THIS LINE IS WHY 14/14 MOBILE TESTS ERRORED AT SETUP.
-    #
-    # Measured 2026-09-06, job 101449817274:
-    #     E  playwright._impl._errors.TimeoutError: Timeout 30000ms exceeded.
-    #     E  "domcontentloaded" event fired
-    #     E  "load" event fired
-    # Both real load events fired. Only networkidle never came -- because the
-    # session this fixture has just created is a POOLED VISITOR, and a pooled
-    # visitor polls a heartbeat for as long as the page is open
-    # (PoolAllocator.extend_session_on_activity). "500 ms with no requests in
-    # flight" is a state it can never reach, so this wait could only ever time
-    # out, and every test depending on this fixture died before its first
-    # assertion.
-    #
-    # tests/e2e/playwright/page_ready.py was written for exactly this after the
-    # same exception took the screenshot capture down with 33 errors (CI run
-    # 31955719803, 2026-08-16). Its docstring even notes that this fixture
-    # already waits on body.app-ready for the login page -- which it does,
-    # eleven lines above. The helper was adopted by pooled_visitor_page in this
-    # same file and not here, and that gap is the whole defect.
-    # WAIT FOR THE NAVIGATION, NOT JUST FOR A LOAD STATE. `click()` starts the
-    # POST, but wait_for_load_state("load") can be satisfied by the document
-    # ALREADY on screen -- the login page -- and return before the response
-    # lands. Without this line the storage state below can be captured while
-    # still on /auth/login/, i.e. with no session at all.
-    try:
-        page.wait_for_url(lambda url: "/auth/login" not in url, timeout=TIMEOUT)
-    except Exception as exc:  # noqa: BLE001 -- re-raised with a usable message
-        raise AssertionError(
-            "login did not navigate away from /auth/login/ within "
-            f"{TIMEOUT}ms (still at {page.url!r}). Every test using this "
-            "fixture would otherwise run against a LOGGED-OUT site and still "
-            f"report 200. Check SCITEX_E2E_TEST_USER / _TEST_PASS.\n"
-            f"{_login_page_diagnosis(page)}\n({exc})"
-        ) from exc
-
+    _form_login(page)
     wait_for_page_ready(page)
 
-    # PROVE THE SESSION EXISTS BEFORE SAVING IT.
-    #
-    # MEASURED 2026-09-06, job 101458943232 -- the run that first executed this
-    # suite at all. Without this assertion the fixture completed happily and
-    # handed every test an ANONYMOUS session:
-    #     /apps/workspace/  rendered the public landing page ("Sign in")
-    #     /apps/store/      rendered with "Login to install" on every card
-    #     /apps/scholar/    rendered a shell stuck on "Loading..."
-    # and the suite reported 8 PASSED, because those tests assert
-    # `resp.status == 200` and a logged-out page returns 200. Five more
-    # SKIPPED with "No workspace pane element found on page" -- which is what
-    # a logged-out page looks like to a selector.
-    #
-    # That is worse than the crash this fixture used to produce: a loud error
-    # tells you nothing works; eight vacuous passes tell you everything does.
-    # #742 removed a job that was green over zero tests; this stops the same
-    # job going green over zero SESSIONS, which MIN_EXECUTED cannot detect
-    # because the tests genuinely do run.
-    #
-    # The role vocabulary is the product's own (body[data-session-role], see
-    # session_role_check.py). This fixture logs in as a REGISTERED ACCOUNT, so
-    # the expected role here is "user" -- deliberately NOT the pooled "visitor"
-    # that the screenshot capture requires, which is why this asserts the
-    # absence of a logged-out state rather than reusing assert_pooled_visitor.
-    from tests.e2e.playwright.session_role_check import (
-        READ_SESSION_ROLE_JS,
-        ROLE_ANONYMOUS,
-    )
-
+    # PROVE THE SESSION IS A REGISTERED USER BEFORE SAVING IT.
     role = page.evaluate(READ_SESSION_ROLE_JS)
-    if role in (ROLE_ANONYMOUS, ""):
+    if not is_authenticated_user_role(role):
         raise AssertionError(
             f"logged in as {TEST_USER!r} but the page reports session role "
-            f"{role!r} at {page.url!r}. "
-            + (
-                "An empty role means the page carries no data-session-role "
-                "attribute, so it does not extend global_base and cannot be "
-                "vouched for at all."
-                if role == ""
-                else "An anonymous role means the credentials were rejected "
-                "or the session cookie was not set."
-            )
-            + " REFUSING to save a session-less storage state: every test "
-            "using it would run against a logged-out site and still pass."
+            f"{role!r} at {page.url!r}. REFUSING to save a non-user storage "
+            "state: every test using it would run against the wrong session "
+            "(a logged-out / readonly / pooled page still returns 200)."
         )
 
     # Save storage state
@@ -423,25 +373,26 @@ def visitor_mobile_page(visitor_mobile_context):
     since it was written. That helper was sitting one fixture away the whole
     time; this is its adoption, not a new idea.
 
-    ROLE EXPECTED HERE IS "user", NOT "visitor". This chain logs in as a
-    REGISTERED ACCOUNT, so assert_pooled_visitor would be the wrong assertion --
-    it demands a pooled slot this fixture never asks for. What is asserted is
-    the absence of a LOGGED-OUT state, which is the weakest claim that still
-    catches the defect.
+    ROLE EXPECTED HERE IS "user", NOT "visitor". This chain authenticates as a
+    REGISTERED ACCOUNT (the explicit test user), so assert_pooled_visitor would
+    be the wrong assertion -- it demands a pooled slot this fixture never asks
+    for.
 
-    AND THE ROLE IT REPORTS DISCRIMINATES THE REMAINING CANDIDATES:
-        anonymous / ""    -> the session did not survive the context handoff
-        readonly_visitor  -> the visitor POOL is required after all, and
-                             #748's reasoning for omitting the provisioning
-                             ("this fixture logs in as a registered account")
-                             was wrong
-        user              -> the session is fine and the failure is elsewhere
+    The mobile context is made EXPLICITLY authenticated: if the stored session
+    did not carry into this context (mobile UA / is_mobile / has_touch / 390x844
+    profile), the fixture logs the test user in IN-CONTEXT and re-proves
+    role == "user" before yielding. Only if it still is not a user does it
+    raise. This is the migration off the Visitor-session handoff, consistent
+    with the removal of Visitor/read-only sessions: the authenticated test user
+    is the source of truth, and a logged-out page (which still returns 200) can
+    never be vouched for.
     """
     from tests.e2e.playwright.page_ready import wait_for_page_ready
     from tests.e2e.playwright.session_role_check import (
         READ_SESSION_ROLE_JS,
-        ROLE_ANONYMOUS,
         VISITOR_WARMUP_ROUTE,
+        authenticated_user_role_failure,
+        is_authenticated_user_role,
     )
 
     page = visitor_mobile_context.new_page()
@@ -452,23 +403,36 @@ def visitor_mobile_page(visitor_mobile_context):
     page.goto(VISITOR_WARMUP_ROUTE)
     wait_for_page_ready(page)
     role = page.evaluate(READ_SESSION_ROLE_JS)
-    if role in (ROLE_ANONYMOUS, ""):
+
+    if not is_authenticated_user_role(role):
+        # The stored session did not carry into THIS context (mobile UA /
+        # is_mobile / has_touch / 390x844). Make the context EXPLICITLY
+        # authenticated as the test user in-context, then re-prove it. This is
+        # the direct migration off the Visitor-session handoff: rather than
+        # relying on a saved state to survive the context switch, the mobile
+        # context performs its own login when the session is absent or wrong.
+        #
+        # The stored state is proven at save-time by visitor_storage_state; a
+        # context that still cannot hold it (cookie path/domain under the
+        # mobile profile) is healed here instead of running logged out.
+        page.goto("/auth/login/")
+        _form_login(page)
+        wait_for_page_ready(page)
+        role = page.evaluate(READ_SESSION_ROLE_JS)
+
+    # Prove the context is a registered USER before any test runs against it.
+    if not is_authenticated_user_role(role):
         raise AssertionError(
-            f"the MOBILE context has session role {role!r} at "
-            f"{page.url!r}, so every test using this fixture would run "
-            "against a LOGGED-OUT site and still report 200. The login "
-            "itself succeeded -- visitor_storage_state's own assertion "
-            "passed -- so the session was lost between the login context "
-            "and this one. "
-            + (
-                "An empty role means the page carries no data-session-role "
-                "attribute at all, so it does not extend global_base and "
-                "cannot be vouched for."
-                if role == ""
-                else "An anonymous role means the storage state did not "
-                "carry the session into this context."
-            )
+            f"the MOBILE context has session role {role!r} at {page.url!r} "
+            "after an in-context login, so every test using this fixture "
+            "would run against the wrong session. "
+            f"{authenticated_user_role_failure(role, 'the MOBILE context')}"
         )
+
+    # Leave the context on the warm-up route so the first test navigation is a
+    # same-session goto, not a redirect that could re-derive the role.
+    page.goto(VISITOR_WARMUP_ROUTE)
+    wait_for_page_ready(page)
 
     yield page
     page.close()
@@ -508,9 +472,10 @@ def visitor_desktop_page(visitor_desktop_context):
 #
 # The ``visitor_*`` fixtures above are misnamed: they FORM-LOG-IN as
 # ``$SCITEX_E2E_TEST_USER`` (default ``test-user``), i.e. a registered
-# account, and they assert nothing about the result — ``storage_state`` is
-# saved whether the login worked or not. They are kept as-is because the
-# mobile suites depend on them.
+# account. They are named "visitor" only for back-compat with the mobile
+# suites that consume them. As of the auth-fixture migration they VALIDATE the
+# result (require session role "user") on both save-time and the in-context
+# handoff, rather than saving whatever state the login produced.
 #
 # A real pooled visitor is obtained by NOT logging in: SciTeX assigns one
 # through ``VisitorAutoLoginMiddleware`` on the first workspace request from
