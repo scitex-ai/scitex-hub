@@ -134,19 +134,32 @@ export async function populateSectionDropdownDirect(
     console.log("[Writer] Sections count:", sections.length);
 
     if (sections.length === 0) {
+      // The same blank dropdown can mean four different things (compass §11
+      // Writer Initial State, TODO 158-161). Diagnose the exact cause — and for
+      // an Example/Demo project never show a bare "No manuscript selected".
+      const cfg = getWriterConfig();
       console.warn(
-        "[Writer] No sections found for document type:",
+        "[Writer] No sections for",
         docType,
         "configured:",
         docTypeConfigured,
+        "writerInitialized:",
+        cfg.writerInitialized,
+        "isDemo:",
+        cfg.isDemo,
       );
-      selectorText.textContent = "No sections found";
-      renderEmptyState(
-        dropdownContainer,
-        docType,
+      const diagnosis = diagnoseExampleProject(docType, {
+        sectionCount: 0,
         docTypeConfigured,
-        onFileSelectCallback,
-      );
+        writerInitialized: cfg.writerInitialized,
+      });
+      selectorText.textContent =
+        diagnosis.state === "no-manuscript"
+          ? "No manuscript selected"
+          : diagnosis.state === "uninitialized"
+            ? "Workspace not initialized"
+            : "No sections found";
+      renderExampleState(dropdownContainer, diagnosis);
       return;
     }
 
@@ -252,6 +265,99 @@ export function renderEmptyState(
   // visual surface. onFileSelect is accepted for call-site symmetry and future
   // wiring — not invoked here. (Referenced to keep the param meaningful.)
   void onFileSelect;
+}
+
+/**
+ * The four distinct initial states a Writer project (especially an Example /
+ * Demo project) can be in when its manuscript sections fail to populate
+ * (compass §11 Writer Initial State, TODO 158-161). Distinguishing them — with a
+ * cause and a next action for each — is what "do not show an example project
+ * with `No manuscript selected`" (159) actually requires: the same blank
+ * dropdown can mean four different things.
+ *
+ *   - auto-select : a manuscript IS present → select its first section (158);
+ *   - no-manuscript : the manuscript doc type is configured but has zero
+ *                     sections → the manuscript file is missing (159);
+ *   - uninitialized : the Writer workspace itself is not initialized — there
+ *                     is no manuscript structure at all → Initialize Writer
+ *                     (161 project-structure-not-initialized);
+ *   - not-enabled : the requested doc type is not enabled in the project →
+ *                     enable it first (161).
+ *
+ * Pure so it is unit-testable in isolation.
+ */
+export type ExampleProjectState =
+  | "auto-select"
+  | "no-manuscript"
+  | "uninitialized"
+  | "not-enabled";
+
+export interface ExampleProjectDiagnosis {
+  state: ExampleProjectState;
+  /** One-line reason, shown verbatim in the empty/error state. */
+  cause: string;
+  /** The concrete next action, shown verbatim in the empty/error state. */
+  nextAction: string;
+}
+
+export function diagnoseExampleProject(
+  docType: string,
+  options: {
+    sectionCount: number;
+    docTypeConfigured: boolean;
+    writerInitialized: boolean;
+  },
+): ExampleProjectDiagnosis {
+  const label = (docType || "this document type").replace(/[-_]/g, " ");
+  if (options.sectionCount > 0) {
+    return {
+      state: "auto-select",
+      cause: `A ${label} manuscript is present.`,
+      nextAction: "The first section is selected automatically — start writing.",
+    };
+  }
+  if (!options.writerInitialized) {
+    return {
+      state: "uninitialized",
+      cause: `The Writer workspace is not initialized — no ${label} structure exists yet.`,
+      nextAction:
+        "Next: initialize the workspace (Settings → Initialize Writer), or add a manuscript section.",
+    };
+  }
+  if (!options.docTypeConfigured) {
+    return {
+      state: "not-enabled",
+      cause: `The ${label} document type is not enabled in this project.`,
+      nextAction: `Next: enable the ${label} document type (Settings / document types), then add a section.`,
+    };
+  }
+  // writerInitialized && docTypeConfigured && sectionCount === 0
+  return {
+    state: "no-manuscript",
+    cause: `No ${label} is selected — this ${label} has no sections yet.`,
+    nextAction:
+      "Next: use the section list (the + icon) to add the first manuscript section.",
+  };
+}
+
+/**
+ * Render one of the four Example-Project initial states into the section
+ * dropdown. For `auto-select` there is nothing to render (the caller proceeds
+ * to populate + auto-select), so this is a no-op; the other three states show
+ * the diagnosis. Exported alongside {@link diagnoseExampleProject}.
+ */
+export function renderExampleState(
+  container: HTMLElement,
+  diagnosis: ExampleProjectDiagnosis,
+): void {
+  if (diagnosis.state === "auto-select") return;
+  const icon =
+    diagnosis.state === "uninitialized"
+      ? "fa-folder-open"
+      : diagnosis.state === "not-enabled"
+        ? "fa-triangle-exclamation"
+        : "fa-file-circle-plus";
+  container.innerHTML = `\n      <div class="section-empty" data-empty="${diagnosis.state}">\n        <i class="fas ${icon}" style="margin-bottom:8px;font-size:20px;"></i>\n        <div style="font-size:0.85rem;">${diagnosis.cause}</div>\n        <div style="font-size:0.75rem;margin-top:4px;"><strong>Next:</strong> ${diagnosis.nextAction}</div>\n      </div>\n    `;
 }
 
 /**
