@@ -439,7 +439,28 @@ all = [
     # published 31 versions; a hand-picked subset produces a confident wrong
     # boundary. Enumerate every release from the PyPI index, or do not quote a
     # boundary at all.
-    "scitex-ui>=0.16.0",
+    # RAISED 0.16.0 -> 0.20.0 on 2026-09-10. A THIRD contract now rides on this
+    # floor, and it is a TEST-ONLY import: tests/config
+    # /test_rendered_pages_have_a_route_away.py imports
+    # `scitex_ui.testing.assert_has_route_away`, the consumer-side assertion
+    # that a rendered page carries a route away. A test-only import is still a
+    # contract on the installed package -- if the floor admits a release
+    # without it, the guard that file exists to be fails at IMPORT time, or
+    # worse, is skipped, and a skip reads as a pass.
+    #
+    # MEASURED, not sampled. `scitex_ui/testing.py` was looked for in the
+    # PUBLISHED WHEELS of the last eight releases (never the git tree), with a
+    # positive control -- `mount.py`, present in every one of them, so an
+    # absence is a real absence and not a broken read:
+    #
+    #     0.16.0 / 0.17.0 / 0.18.0 / 0.19.0 / 0.19.1   ABSENT
+    #     0.20.0 onwards                               PRESENT
+    #
+    # 0.19.1 is therefore the last release the floor must exclude, and the
+    # boundary is asserted rather than named in prose (see ROUTE_AWAY_FLOOR /
+    # LAST_WITHOUT_ROUTE_AWAY in tests/config/test_shell_pane_contract_floor.py,
+    # which sweeps EVERY dependency group so the two copies cannot drift).
+    "scitex-ui>=0.20.0",
     # --- GUI (dearpygui-based modules) ---
     "dearpygui>=1.11",
     "cairosvg>=2.9.0",
@@ -543,12 +564,15 @@ dev = [
     # scitex-cards entry above.
     #
     # RAISED 0.8.0 -> 0.16.0 on 2026-08-18, in lockstep with the [all] entry.
+    # RAISED 0.16.0 -> 0.20.0 on 2026-09-10, also in lockstep: the
+    # route-away guard (tests/config/test_rendered_pages_have_a_route_away.py)
+    # imports `scitex_ui.testing` unguarded, which first ships in 0.20.0.
     # Do not raise one without the other: test_shell_pane_contract_floor.py
     # sweeps EVERY dependency group precisely so these two copies cannot drift
     # apart unnoticed. The measurement and the reasoning live on the [all]
     # entry -- read it there rather than duplicating it here, so there is one
     # place to correct when the next token moves.
-    "scitex-ui>=0.16.0",
+    "scitex-ui>=0.20.0",
 ]
 
 [project.scripts]
