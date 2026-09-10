@@ -29,20 +29,20 @@ try_editable_install() {
         return
     fi
 
-    # For figrecipe: always reinstall to pick up new files
-    if [ "$pkg_name" = "figrecipe" ]; then
-        echo_info "Installing $pkg_name (editable mode)..."
-        if ! uv pip install -e "$install_spec" --link-mode=copy 2>&1; then
-            echo_warning "$pkg_name install failed (non-fatal)"
-        fi
-        return
-    fi
-
-    # For others: skip if already installed in editable mode from the mount
-    if pip show "$pkg_name" 2>/dev/null | grep -q "Location:.*${pkg_name}"; then
-        echo -e "${GREEN}✅ $pkg_name already installed in editable mode${NC}"
+    # The migration sentinel persists outside the container, while
+    # site-packages does not.  Inspect the installed distribution itself so a
+    # recreated development container cannot silently fall back to its PyPI
+    # wheel even though the sibling checkout is mounted.
+    local editable_location
+    editable_location="$(
+        pip show "$pkg_name" 2>/dev/null \
+            | sed -n 's/^Editable project location: //p' \
+            | head -n 1
+    )"
+    if [ "$editable_location" = "$mount_path" ]; then
+        echo -e "${GREEN}✅ $pkg_name already editable from $mount_path${NC}"
     else
-        echo_info "Installing $pkg_name (editable mode)..."
+        echo_info "Installing $pkg_name editable from $mount_path..."
         if ! uv pip install -e "$install_spec" --link-mode=copy 2>&1; then
             echo_warning "$pkg_name install failed (non-fatal)"
         fi
@@ -99,13 +99,10 @@ if [ -f "/app/pyproject.toml" ]; then
     uv pip install -e "/app" --link-mode=copy 2>&1 || true
 fi
 
-# Install ecosystem packages (skip on hot-reload — packages persist in container)
+# Verify every mounted ecosystem package on each container start.  The
+# migration sentinel may survive a container recreation, but editable install
+# metadata lives in the recreated container and must be re-established.
 install_ecosystem_packages() {
-    if [ -f "$MIGRATION_SENTINEL" ]; then
-        echo_info "Hot-reload restart - skipping ecosystem package installations"
-        return
-    fi
-
     try_editable_install "/figrecipe" "figrecipe" "[all]"
     try_editable_install "/scitex-writer" "scitex-writer" "[all]"
     try_editable_install "/crossref-local" "crossref-local" "[all]"
