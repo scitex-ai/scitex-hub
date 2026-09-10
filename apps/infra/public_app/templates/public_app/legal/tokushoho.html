@@ -132,7 +132,6 @@
                                 <td class="muted-cell">{{ row.overage|default:"—" }}</td>
                                 <td>
                                     {% if row.included %}{{ row.included|join:"、" }}{% elif row.description %}{{ row.description }}{% endif %}
-                                    {% if row.price_note %}<br><span class="tokushoho-price-note">{{ row.price_note }}</span>{% endif %}
                                 </td>
                             </tr>
                             {% endfor %}

@@ -155,11 +155,6 @@
   background: var(--bg-muted, rgba(0, 0, 0, 0.02));
 }
 
-.tokushoho-price-note {
-  font-size: 0.85em;
-  color: var(--text-secondary);
-}
-
 /* ── Mobile ───────────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .tokushoho-table th,

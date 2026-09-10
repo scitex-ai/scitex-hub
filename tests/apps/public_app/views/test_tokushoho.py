@@ -173,12 +173,15 @@ class TestTokushohoPage:
                 f"pricing.json publishes {row['label']} at {row['price']}, but "
                 "the 特商法 page does not show it."
             )
-        # Assert — a discounted row says when the price ends and what follows,
-        # and every row states what it includes (特商法: サービスの内容)
+        # Assert — a discounted row shows its 定価 (list price) and 早期導入割引
+        # (discount) in their own columns; every row states what it includes
+        # (特商法: サービスの内容). (Operator 2026-09-10: the discount shows in
+        # the columns, not as a repeated note sentence in 備考.)
         noted = [row for row in rows if row["price_note"]]
         assert noted, "Control: no row carries a price_note today; the loop below is vacuous."
         for row in noted:
-            assert row["price_note"] in content, f"{row['label']}: {row['price_note']!r} not on the page"
+            assert row["list_price"] in content, f"{row['label']}: 定価 {row['list_price']!r} not in a column"
+            assert row["discount"] in content, f"{row['label']}: 早期導入割引 {row['discount']!r} not in a column"
         for row in rows:
             for item in row["included"]:
                 assert item in content, f"{row['label']}: included item {item!r} not on the page"
