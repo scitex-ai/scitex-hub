@@ -68,20 +68,28 @@
   margin-top: var(--spacing-md);
 }
 
-/* ── Full-width price table (販売価格・対価, broken out of the label column) ── */
+/* ── Full-width price table: its own section that SPLITS the two outer
+   label/value tables (company info above, payment terms below). The two cards
+   are 800px (.policy-container); this band spans the full .container width, so
+   it reads as a distinct, WIDER block breaking the stack into three. ── */
+.price-table-section {
+  padding: var(--spacing-md) 0;
+}
+
+.price-table-wrap {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-muted);
+  border-radius: var(--border-radius-lg, 8px);
+  padding: var(--spacing-md);
+  box-shadow: var(--box-shadow-sm);
+  overflow-x: auto; /* keep the 8 columns usable on narrow widths */
+}
+
 .tokushoho-price-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  margin: var(--spacing-lg) 0;
   font-size: 0.95em;
-}
-
-/* Standalone full-bleed instance gets its own outer frame + rounded corners */
-.tokushoho-price-table.full-bleed {
-  border: 1px solid var(--border-muted);
-  border-radius: var(--border-radius-lg, 8px);
-  overflow: hidden;
 }
 
 .tokushoho-price-table thead th {

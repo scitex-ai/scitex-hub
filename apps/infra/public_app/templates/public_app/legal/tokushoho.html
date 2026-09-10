@@ -97,9 +97,16 @@
                             </td>
                         </tr>
                     </table>
-                    {% if billing_plans %}
-                    {% else %}
-                    <table class="tokushoho-price-table full-bleed">
+                </div>
+            </div>
+        </div>
+    </section>
+    {% if billing_plans %}
+    {% else %}
+    <section class="price-table-section">
+        <div class="container">
+            <div class="price-table-wrap">
+                <table class="tokushoho-price-table">
                         <thead>
                             <tr>
                                 <th>{% trans "内容" %}</th>
@@ -143,7 +150,14 @@
                         {% trans "最新の価格は" %}<a href="{% url 'public_app:pricing' %}">{% trans "料金ページ" %}</a>{% trans "をご確認ください。" %}
                     </p>
                     {% endif %}
-                    <table class="tokushoho-table">
+            </div>
+        </div>
+    </section>
+    <section class="policy-section">
+        <div class="container">
+            <div class="policy-container">
+                <div class="policy-content">
+                <table class="tokushoho-table">
                         <tr>
                             <th>{% trans "商品代金以外の必要料金" %}</th>
                             <td>
