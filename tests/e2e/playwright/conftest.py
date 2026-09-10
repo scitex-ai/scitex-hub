@@ -269,19 +269,24 @@ def visitor_storage_state(browser_type, pw_base_url):
     from tests.e2e.playwright.page_ready import wait_for_page_ready
     from tests.e2e.playwright.session_role_check import (
         READ_SESSION_ROLE_JS,
-        VISITOR_WARMUP_ROUTE,
         is_authenticated_user_role,
     )
 
     def _role_of(state_path):
-        """Return the session role a saved state yields at a warm-up route."""
+        """Return the session role a saved state yields at "/" (root_dispatch).
+
+        "/" is on VisitorAutoLoginMiddleware's skip list, so a saved state that
+        is really a registered user reports "user" and a stale/anonymous state
+        reports "anonymous" — with no risk of being auto-allocated a visitor
+        slot (which /apps/home/ would do and would mask the loss).
+        """
         context = browser_type.launch().new_context(
             base_url=pw_base_url,
             storage_state=str(state_path),
             ignore_https_errors=True,
         )
         page = context.new_page()
-        page.goto(VISITOR_WARMUP_ROUTE)
+        page.goto("/")
         wait_for_page_ready(page)
         role = page.evaluate(READ_SESSION_ROLE_JS)
         page.close()
@@ -390,33 +395,36 @@ def visitor_mobile_page(visitor_mobile_context):
     from tests.e2e.playwright.page_ready import wait_for_page_ready
     from tests.e2e.playwright.session_role_check import (
         READ_SESSION_ROLE_JS,
-        VISITOR_WARMUP_ROUTE,
         authenticated_user_role_failure,
         is_authenticated_user_role,
     )
 
+    # Warm up at "/", NOT VISITOR_WARMUP_ROUTE ("/apps/home/").
+    #
+    # "/" is on VisitorAutoLoginMiddleware's skip list, so an UNAUTHENTICATED
+    # request there is served the landing page verbatim (role "anonymous") and
+    # a request WITH the test-user session is served the launcher (role
+    # "user") — a clean discriminator. VISITOR_WARMUP_ROUTE is NOT skip-listed:
+    # when the mobile profile has lost the session, a request to /apps/home/
+    # is auto-allocated a visitor slot (or redirected to /visitor-pool-full/),
+    # which reports a visitor-ish role and MASKS the very session-loss this
+    # fixture is proving. Warming up at the route the tests actually navigate
+    # (root_dispatch serves / and /chat/ from the same path) is what makes the
+    # role check honest.
     page = visitor_mobile_context.new_page()
-
-    # A route VisitorAutoLoginMiddleware acts on -- deliberately not "/", which
-    # it skips for unauthenticated requests, and which would therefore report a
-    # role that says nothing about whether a session was carried.
-    page.goto(VISITOR_WARMUP_ROUTE)
+    page.goto("/")
     wait_for_page_ready(page)
     role = page.evaluate(READ_SESSION_ROLE_JS)
 
     if not is_authenticated_user_role(role):
-        # The stored session did not carry into THIS context (mobile UA /
-        # is_mobile / has_touch / 390x844). Make the context EXPLICITLY
-        # authenticated as the test user in-context, then re-prove it. This is
-        # the direct migration off the Visitor-session handoff: rather than
-        # relying on a saved state to survive the context switch, the mobile
-        # context performs its own login when the session is absent or wrong.
-        #
-        # The stored state is proven at save-time by visitor_storage_state; a
-        # context that still cannot hold it (cookie path/domain under the
-        # mobile profile) is healed here instead of running logged out.
+        # The storage state did not carry into THIS mobile profile (is_mobile /
+        # has_touch / 390x844). Establish the session IN the mobile context
+        # rather than relying on a desktop-created state to survive the handoff,
+        # then re-prove it at the same clean route.
         page.goto("/auth/login/")
         _form_login(page)
+        wait_for_page_ready(page)
+        page.goto("/")
         wait_for_page_ready(page)
         role = page.evaluate(READ_SESSION_ROLE_JS)
 
@@ -429,9 +437,10 @@ def visitor_mobile_page(visitor_mobile_context):
             f"{authenticated_user_role_failure(role, 'the MOBILE context')}"
         )
 
-    # Leave the context on the warm-up route so the first test navigation is a
-    # same-session goto, not a redirect that could re-derive the role.
-    page.goto(VISITOR_WARMUP_ROUTE)
+    # Leave the context on "/" — the clean root_dispatch route every mobile
+    # test navigates — so the first test navigation is a same-session goto,
+    # not a redirect that could re-derive (or lose) the role.
+    page.goto("/")
     wait_for_page_ready(page)
 
     yield page
