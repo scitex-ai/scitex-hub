@@ -51,12 +51,17 @@ SCHOLAR_URL = "/apps/scholar/"
 # so leading with it opens the app on a blank list; Search is the thing they can
 # act on with no prior state, and it is how anything gets INTO the Library.
 FIRST_TAB = "search"
+EXPECTED_TABS = ["search", "library", "graph"]
+SEARCH_LABEL = "Search databases"
 
 _NAV_RE = re.compile(
     r'<nav[^>]*class="[^"]*scholar-tabs[^"]*"[^>]*>(.*?)</nav>',
     re.DOTALL,
 )
 _DATA_TAB_RE = re.compile(r'data-tab="([a-z0-9_-]+)"')
+_TAB_CONTENT_RE = re.compile(
+    r'<div[^>]*class="[^"]*scholar-tab-content[^"]*"[^>]*data-tab="([a-z0-9_-]+)"'
+)
 
 
 # ---------------------------------------------------------------------------
@@ -152,15 +157,15 @@ def _ts_const_str(src, const):
     return match.group(1) if match else None
 
 
-def _rendered_four_tab_order():
-    """The >=4-tab order declared by the template ``SCHOLAR_URL`` renders.
+def _rendered_tab_order():
+    """The tab order declared by the template ``SCHOLAR_URL`` renders.
 
     ``[]`` when there is none — ``test_that_template_declares_a_scholar_tab_bar``
     is the check that this is never silently empty.
     """
     for name in _template_names_rendered_by(_view_for(SCHOLAR_URL)):
         order = _tab_order(_template_file(name).read_text("utf-8"))
-        if order and len(order) >= 4:
+        if order:
             return order
     return []
 
@@ -243,22 +248,51 @@ class TestEveryCopyOfTheTabBarAgrees:
         # Arrange
         found = _templates_declaring_tabs()
         # Act
-        offenders = {
-            str(p): o for p, o in found.items() if o and o[0] != FIRST_TAB
-        }
+        offenders = {str(p): o for p, o in found.items() if o and o[0] != FIRST_TAB}
         # Assert
         assert offenders == {}, f"tab bars not leading with {FIRST_TAB!r}: {offenders}"
 
-    def test_the_four_tab_copies_are_identical(self):
+    def test_every_tab_copy_uses_the_product_navigation_contract(self):
         # The standalone page and the workspace SPA module pane are two live
         # surfaces of ONE app. They disagreed for a full day without anything
         # noticing.
         # Arrange
-        found = {p: o for p, o in _templates_declaring_tabs().items() if len(o) >= 4}
+        found = _templates_declaring_tabs()
         # Act
-        distinct = {tuple(o) for o in found.values()}
+        offenders = {
+            str(path): order for path, order in found.items() if order != EXPECTED_TABS
+        }
         # Assert
-        assert len(distinct) == 1, f"tab bars disagree: { {str(k): v for k, v in found.items()} }"
+        assert offenders == {}, f"tab bars violate {EXPECTED_TABS}: {offenders}"
+
+    def test_metadata_enrichment_is_not_a_top_level_tab(self):
+        found = _templates_declaring_tabs()
+        offenders = {
+            str(path): order for path, order in found.items() if "bibtex" in order
+        }
+        assert offenders == {}, f"Metadata Enrichment remains top-level: {offenders}"
+
+    def test_tab_panels_match_the_navigation_contract(self):
+        found = _templates_declaring_tabs()
+        offenders = {}
+        for path in found:
+            panels = _TAB_CONTENT_RE.findall(path.read_text("utf-8"))
+            if set(panels) != set(EXPECTED_TABS) or len(panels) != len(EXPECTED_TABS):
+                offenders[str(path)] = panels
+        assert offenders == {}, f"tab panels violate {EXPECTED_TABS}: {offenders}"
+
+    def test_search_tab_names_its_scope(self):
+        found = _templates_declaring_tabs()
+        offenders = {}
+        for path in found:
+            nav = _NAV_RE.search(path.read_text("utf-8"))
+            search_anchor = re.search(
+                r'<a[^>]*data-tab="search"[^>]*>(.*?)</a>', nav.group(1), re.DOTALL
+            )
+            label = re.sub(r"<[^>]+>", " ", search_anchor.group(1))
+            if SEARCH_LABEL not in " ".join(label.split()):
+                offenders[str(path)] = " ".join(label.split())
+        assert offenders == {}, f"Search scope is ambiguous: {offenders}"
 
 
 class TestTheTabSwitcherOpensOnSearch:
@@ -283,8 +317,7 @@ class TestTheTabSwitcherOpensOnSearch:
         sources = _ts_sources_declaring_tab_order()
         # Act
         defaults = {
-            str(p): _ts_const_str(p.read_text("utf-8"), "DEFAULT_TAB")
-            for p in sources
+            str(p): _ts_const_str(p.read_text("utf-8"), "DEFAULT_TAB") for p in sources
         }
         offenders = {k: v for k, v in defaults.items() if v != FIRST_TAB}
         # Assert
@@ -294,7 +327,7 @@ class TestTheTabSwitcherOpensOnSearch:
         # Cross-check: the JS whitelist and the template must be the same list,
         # so the two can never drift apart again in opposite directions.
         # Arrange
-        markup = _rendered_four_tab_order()
+        markup = _rendered_tab_order()
         # Act
         offenders = {
             str(p): _ts_const_list(p.read_text("utf-8"), "TAB_ORDER")

@@ -89,14 +89,11 @@
                        derives the template from the URLconf so that cannot recur.
                     {% endcomment %}
                     <a href="#search" class="scholar-tab" data-tab="search">
-                        <i class="fas fa-search"></i> Search
+                        <i class="fas fa-search"></i> Search databases
                     </a>
                     <a href="#library" class="scholar-tab" data-tab="library">
                         <i class="fas fa-book-reader"></i> Library
                         {% if library_count %}<span class="scholar-tab-badge">{{ library_count }}</span>{% endif %}
-                    </a>
-                    <a href="#bibtex" class="scholar-tab" data-tab="bibtex">
-                        <i class="fas fa-wand-magic-sparkles"></i> Metadata Enrichment
                     </a>
                     <a href="#graph" class="scholar-tab" data-tab="graph">
                         <i class="fas fa-project-diagram"></i> Citation Graph
@@ -134,28 +131,6 @@
                 {% if not forloop.last %},{% endif %}
             {% endfor %}
             ]'{% endif %}></div>
-    </div>
-    <!-- BibTeX Tab Content: 2-column layout (enrich | status tiles) -->
-    <div id="tab-bibtex" class="scholar-tab-content" data-tab="bibtex">
-        <div class="bibtex-main-content">
-            {% include "scholar_app/bibtex_partials/enrich.html" %}
-            <!-- AI2 Prompt Modal -->
-            {% if current_project %}
-                {% include "writer_app/compilation_view_partials/ai2_modal.html" %}
-            {% endif %}
-        </div>
-        <div class="h-resizer scholar-tab-resizer"
-             id="bibtex-resizer"
-             data-h-resizer
-             data-in-app
-             data-most-right
-             data-left=".bibtex-main-content"
-             data-right="#bibtex-controls-panel"
-             data-threshold="40"
-             data-storage-key="scholar-bibtex-split"></div>
-        <div class="bibtex-controls-inline" id="bibtex-controls-panel">
-            {% include "scholar_app/bibtex_partials/status_tiles.html" %}
-        </div>
     </div>
     <!-- Graph Tab Content: 2-column layout (graph | sidebar) -->
     <div id="tab-graph" class="scholar-tab-content" data-tab="graph">
