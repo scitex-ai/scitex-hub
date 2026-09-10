@@ -356,7 +356,38 @@ export function renderExampleState(
       : diagnosis.state === "not-enabled"
         ? "fa-triangle-exclamation"
         : "fa-file-circle-plus";
-  container.innerHTML = `\n      <div class="section-empty" data-empty="${diagnosis.state}">\n        <i class="fas ${icon}" style="margin-bottom:8px;font-size:20px;"></i>\n        <div style="font-size:0.85rem;">${diagnosis.cause}</div>\n        <div style="font-size:0.75rem;margin-top:4px;"><strong>Next:</strong> ${diagnosis.nextAction}</div>\n      </div>\n    `;
+
+  // Build with createElement + textContent (NO innerHTML string interpolation)
+  // so a hostile docType — which flows into diagnosis.cause/nextAction — is
+  // rendered as inert text, never reinterpreted as markup (CodeQL: DOM text
+  // reinterpreted as HTML). `state` is a closed union and `icon` is derived
+  // from it, so className/attribute assignments here carry no user input.
+  const wrap = document.createElement("div");
+  wrap.className = "section-empty";
+  wrap.dataset.empty = diagnosis.state;
+
+  const iconEl = document.createElement("i");
+  iconEl.classList.add("fas", icon);
+  iconEl.style.marginBottom = "8px";
+  iconEl.style.fontSize = "20px";
+
+  const causeEl = document.createElement("div");
+  causeEl.style.fontSize = "0.85rem";
+  causeEl.textContent = diagnosis.cause;
+
+  const nextEl = document.createElement("div");
+  nextEl.style.fontSize = "0.75rem";
+  nextEl.style.marginTop = "4px";
+  const nextLabel = document.createElement("strong");
+  nextLabel.textContent = "Next:";
+  nextEl.appendChild(nextLabel);
+  nextEl.appendChild(document.createTextNode(` ${diagnosis.nextAction}`));
+
+  wrap.appendChild(iconEl);
+  wrap.appendChild(causeEl);
+  wrap.appendChild(nextEl);
+
+  container.replaceChildren(wrap);
 }
 
 /**

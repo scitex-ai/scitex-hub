@@ -103,3 +103,56 @@ describe("renderExampleState", () => {
     expect(container.textContent).toMatch(/initialize the workspace/i);
   });
 });
+
+/**
+ * CodeQL regression: "DOM text reinterpreted as HTML". A hostile docType flows
+ * into diagnosis.cause / nextAction (via the ${label} interpolation). render
+ * MUST treat it as inert text — no element injection, no attribute/JS execution.
+ */
+describe("renderExampleState — hostile docType is NOT reinterpreted as HTML (CodeQL)", () => {
+  let container: HTMLElement;
+  beforeEach(() => {
+    container = makeContainer();
+  });
+
+  it("a markup/docType payload is rendered as text, not parsed as elements", () => {
+    const hostile =
+      '"><img src=x onerror="window.__xss_img=1">' +
+      '<script>window.__xss_script=1</script>' +
+      '<svg onload="window.__xss_svg=1">';
+    const diagnosis = diagnoseExampleProject(hostile, { ...base }); // → no-manuscript (configured, 0 sections)
+
+    renderExampleState(container, diagnosis);
+
+    // No injected live elements exist in the rendered container.
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.querySelector("script")).toBeNull();
+    expect(container.querySelector("svg")).toBeNull();
+    // The hostile string is present as inert TEXT (textContent), verbatim.
+    expect(container.textContent).toContain(hostile);
+    // No side-effect globals were executed.
+    const w = window as any;
+    expect(w.__xss_img).toBeUndefined();
+    expect(w.__xss_script).toBeUndefined();
+    expect(w.__xss_svg).toBeUndefined();
+  });
+
+  it("nextAction payload is inert too (only the single 'Next:' label is markup)", () => {
+    // Not-enabled state embeds the label in nextAction as well.
+    const hostile = '"><b onload="window.__xss_next=1">pwned';
+    const diagnosis = diagnoseExampleProject(hostile, {
+      ...base,
+      docTypeConfigured: false,
+    }); // → not-enabled
+    renderExampleState(container, diagnosis);
+    expect(container.querySelector("b[onload]")).toBeNull();
+    expect(container.textContent).toContain(hostile);
+    expect((window as any).__xss_next).toBeUndefined();
+  });
+
+  it("still renders the expected structure for a benign no-manuscript state", () => {
+    renderExampleState(container, diagnoseExampleProject("manuscript", base));
+    expect(container.querySelector('[data-empty="no-manuscript"]')).not.toBeNull();
+    expect(container.querySelector("strong")?.textContent).toBe("Next:");
+  });
+});
