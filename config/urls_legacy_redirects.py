@@ -41,10 +41,6 @@ urlpatterns = [
         "apps/apps/",
         RedirectView.as_view(url="/apps/store/", permanent=True, query_string=True),
     ),
-    path(
-        "apps/",
-        RedirectView.as_view(url="/apps/store/", permanent=True, query_string=True),
-    ),
 ]
 
 # EOF

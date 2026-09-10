@@ -76,6 +76,16 @@ def _scitex_storage_installed() -> bool:
         return False
 
 
+def _scitex_agent_container_installed() -> bool:
+    """True when SAC's optional Django dashboard is importable."""
+    from importlib.util import find_spec
+
+    try:
+        return find_spec("scitex_agent_container._django") is not None
+    except ModuleNotFoundError:
+        return False
+
+
 urlpatterns = [
     # Language selection. Django's set_language view writes the chosen language
     # to the session/cookie and redirects back to `next`. LocaleMiddleware then
@@ -122,6 +132,13 @@ urlpatterns = [
     path("console/", root_dispatch, name="pane-console", kwargs={"pane": "console"}),
     path("files/", root_dispatch, name="pane-files", kwargs={"pane": "editor"}),
     path("", include("apps.infra.public_app.urls")),
+    # /apps/ is the APPS HOME (launcher grid) for logged-in users — the same
+    # surface that lives at the root, NOT the App Store (/apps/store/). The old
+    # 301 here -> /apps/store/ made the landing page's "Apps" button land on the
+    # store (operator: "apps should be the home of the apps"). root_dispatch
+    # handles the split: anonymous -> landing, logged-in -> launcher (apps
+    # home). Placed before the tools include so /apps/tools/ still resolves.
+    path("apps/", root_dispatch, name="apps_home"),
     path("apps/", include(("apps.workspace.tools_app.urls", "tools_app"))),
     # --- Admin ---
     path("admin/", admin.site.urls),
@@ -205,6 +222,11 @@ urlpatterns = [
     *(
         [path("apps/storage/", include("apps.workspace.storage_app.urls"))]
         if _scitex_storage_installed()
+        else []
+    ),
+    *(
+        [path("apps/agents/", include("apps.workspace.agents_app.urls"))]
+        if _scitex_agent_container_installed()
         else []
     ),
     path(
