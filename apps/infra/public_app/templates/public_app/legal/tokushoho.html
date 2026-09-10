@@ -182,11 +182,14 @@
                         <tr>
                             <th>{% trans "返品・キャンセル" %}</th>
                             <td>
-                                {# 返品・キャンセル: operator ruling 2026-09-10 (trial model revision):
-                                   30-day trial; if continuing, charged from day 1 (retroactive) for
-                                   the first 30 days; if not continuing, email+card discarded in 7 days;
-                                   one trial per email/card identity; no proration after billing.
-                                   "メールのリンクは必要ありません" dropped per operator. #}
+                                {% comment %}
+                                返品・キャンセル: operator ruling 2026-09-10 (trial model revision).
+                                30-day trial; if continuing, the first 30 days are billed
+                                retroactively from the registration date; if not continuing,
+                                email+card discarded in 7 days; one trial per email/card
+                                identity; no proration after billing. The old "no email link
+                                needed" sentence was removed per operator.
+                                {% endcomment %}
                                 <ol>
                                     <li>{% trans "お申し込みから30日間が無料トライアル期間です。この期間内に継続を選択された場合、初回30日分を登録日から遡って課金し、以降は毎月の更新日に課金されます。" %}</li>
                                     <li>{% trans "課金開始後に解約された場合、日割りの返金はありません。解約は次回更新の停止であり、お支払い済みの期間の末日までご利用いただけます。" %}</li>
