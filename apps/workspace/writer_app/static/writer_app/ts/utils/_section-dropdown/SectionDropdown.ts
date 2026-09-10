@@ -101,26 +101,52 @@ export async function populateSectionDropdownDirect(
 
     const hierarchy = data.hierarchy;
     let sections: any[] = [];
+    // Tracks WHY the list is empty so the empty state can name the cause and
+    // the next action (compass §11 L391) instead of a bare "No sections found".
+    let docTypeConfigured = false;
 
     console.log("[Writer] Hierarchy received:", hierarchy);
     console.log("[Writer] Looking for docType:", docType);
 
-    if (docType === "shared" && hierarchy.shared) {
-      sections = hierarchy.shared.sections;
-    } else if (docType === "manuscript" && hierarchy.manuscript) {
-      sections = hierarchy.manuscript.sections;
-    } else if (docType === "supplementary" && hierarchy.supplementary) {
-      sections = hierarchy.supplementary.sections;
-    } else if (docType === "revision" && hierarchy.revision) {
-      sections = hierarchy.revision.sections;
+    if (docType === "shared") {
+      if (hierarchy.shared) {
+        docTypeConfigured = true;
+        sections = hierarchy.shared.sections || [];
+      }
+    } else if (docType === "manuscript") {
+      if (hierarchy.manuscript) {
+        docTypeConfigured = true;
+        sections = hierarchy.manuscript.sections || [];
+      }
+    } else if (docType === "supplementary") {
+      if (hierarchy.supplementary) {
+        docTypeConfigured = true;
+        sections = hierarchy.supplementary.sections || [];
+      }
+    } else if (docType === "revision") {
+      if (hierarchy.revision) {
+        docTypeConfigured = true;
+        sections = hierarchy.revision.sections || [];
+      }
     }
 
     console.log("[Writer] Sections extracted:", sections);
     console.log("[Writer] Sections count:", sections.length);
 
     if (sections.length === 0) {
-      console.warn("[Writer] No sections found for document type:", docType);
+      console.warn(
+        "[Writer] No sections found for document type:",
+        docType,
+        "configured:",
+        docTypeConfigured,
+      );
       selectorText.textContent = "No sections found";
+      renderEmptyState(
+        dropdownContainer,
+        docType,
+        docTypeConfigured,
+        onFileSelectCallback,
+      );
       return;
     }
 
@@ -192,6 +218,40 @@ export async function populateSectionDropdownDirect(
   } catch (error) {
     console.error("[Writer] Error populating section dropdown:", error);
   }
+}
+
+/**
+ * Cause-specific empty state for the section dropdown (compass §11 L391).
+ *
+ * "No sections found" can mean two different things, and the UI must say which
+ * one and what to do next:
+ *   - the document type IS configured but has zero sections  → "add a section";
+ *   - the document type is NOT configured in the project      → "enable it first"
+ *     (there is nothing to add yet because the doc type doesn't exist).
+ *
+ * Exported so the cause/next-action logic is unit-testable in isolation.
+ *
+ * @param container         the `section-selector-dropdown` container to render into
+ * @param docType           the requested document type
+ * @param docTypeConfigured whether the project defines that document type
+ * @param onFileSelect      optional callback wired to the "add" next action
+ */
+export function renderEmptyState(
+  container: HTMLElement,
+  docType: string,
+  docTypeConfigured: boolean,
+  onFileSelect?: ((sectionId: string, sectionName: string) => void) | null,
+): void {
+  const label = (docType || "this document type").replace(/[-_]/g, " ");
+  const has = (s: string) => s; // identity; keeps the message strings greppable
+  const html = docTypeConfigured
+    ? `\n      <div class="section-empty" data-empty="no-sections">\n        <i class="fas fa-file-circle-plus" style="margin-bottom:8px;font-size:20px;"></i>\n        <div>${has("No sections yet in the ")}<strong>${label}</strong>${has(" doc type.")}</div>\n        <div style="font-size:0.75rem;margin-top:4px;">Cause: this document type is configured but has no sections.</div>\n        <div style="font-size:0.75rem;margin-top:2px;">Next: use the section list (the + icon) to add your first section.</div>\n      </div>\n    `
+    : `\n      <div class="section-empty" data-empty="not-configured">\n        <i class="fas fa-triangle-exclamation" style="margin-bottom:8px;font-size:20px;"></i>\n        <div><strong>${label}</strong>${has(" is not enabled in this project.")}</div>\n        <div style="font-size:0.75rem;margin-top:4px;">Cause: this document type has no sections configured.</div>\n        <div style="font-size:0.75rem;margin-top:2px;">Next: enable the ${label} document type (Settings / document types), then add a section.</div>\n      </div>\n    `;
+  container.innerHTML = html;
+  // The dropdown has no add-section entry of its own; the container is the
+  // visual surface. onFileSelect is accepted for call-site symmetry and future
+  // wiring — not invoked here. (Referenced to keep the param meaningful.)
+  void onFileSelect;
 }
 
 /**
