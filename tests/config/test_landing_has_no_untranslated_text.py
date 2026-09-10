@@ -37,10 +37,45 @@ translated or explicitly added here with a reason.
 from __future__ import annotations
 
 import re
+import subprocess
+import sys
+from pathlib import Path
 
 import pytest
 from django.template.loader import render_to_string
 from django.utils import translation
+
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+
+
+@pytest.fixture(scope="module", autouse=True)
+def compiled_catalogs():
+    """Compile locale/**/*.po -> .mo before any assertion reads a catalog.
+
+    `*.mo` is gitignored (.gitignore:278), so a fresh checkout / CI runner has
+    catalogs in source form only. Without this the page renders the English
+    msgid under ja (Django resolves a missing translation by returning the
+    source string), and a brand-new {% trans %} string would read as
+    "untranslated" even after its translation is added to the .po. Uses the
+    project's own compile step (scripts/i18n/compile_catalogs.py) rather than
+    compilemessages, because msgfmt is absent from CI and the prod image.
+    """
+    script = PROJECT_ROOT / "scripts" / "i18n" / "compile_catalogs.py"
+    result = subprocess.run(
+        [sys.executable, str(script)],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, (
+        f"catalog compilation failed ({result.returncode}):\n"
+        f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+    )
+    # Django caches translation objects per language; anything loaded before
+    # the .mo existed would be an empty catalog that never reloads.
+    translation.trans_real._translations.clear()
+    yield
+
 
 # Partials that make up the public landing page. features/v01/* is absent on
 # purpose: measured 0 references, dead code.
