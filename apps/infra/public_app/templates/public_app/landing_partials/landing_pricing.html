@@ -11,11 +11,6 @@
 <section class="landing-section section-pricing" id="pricing">
     <div class="container">
         <h2 class="section-heading">{% trans "料金" %}</h2>
-        <p class="plan-sub">
-            {% trans "サブスクリプションは30日間無料トライアルです。継続される場合は初回分を登録日から遡って課金し、継続しない場合は登録情報が7日後に破棄されます。1メールアドレス/カードにつき1回のみ（メール認証とクレジットカード/デビットカードの登録が必要です）。詳細は" %}
-            <a href="{% url 'public_app:pricing' %}">{% trans "料金ページ" %}</a>{% trans "、" %}
-            <a href="{% url 'public_app:tokushoho' %}">{% trans "特定商取引法に基づく表記" %}</a>{% trans "をご覧ください。" %}
-        </p>
         <div class="pricing-grid">
             {% for group in published_price_groups %}
             {% for row in group.rows %}
@@ -24,6 +19,17 @@
                     <h3 class="plan-name">{{ row.label }}</h3>
                     <p class="pricing-price">{{ row.price }}{% if row.price_note %}<span class="period">{{ row.price_note }}</span>{% endif %}</p>
                 </div>
+                {% if row.category == "subscription" %}
+                <div class="pricing-trial">
+                    <span class="pricing-trial-badge">{% trans "30日間無料トライアル" %}</span>
+                    <ul class="pricing-trial-terms">
+                        <li><span class="pt-label">{% trans "継続" %}</span>{% trans "初回分を登録日から課金" %}</li>
+                        <li><span class="pt-label">{% trans "中断" %}</span>{% trans "登録情報は7日後に破棄" %}</li>
+                        <li><span class="pt-label">{% trans "回数" %}</span>{% trans "1 メール/カードにつき1回" %}</li>
+                        <li><span class="pt-label">{% trans "登録" %}</span>{% trans "メール認証 + クレジット/デビットカード" %}</li>
+                    </ul>
+                </div>
+                {% endif %}
                 {% if row.included %}
                 <div class="pricing-features">
                     <ul>
@@ -37,14 +43,19 @@
                 <p class="plan-sub">{{ row.description }}</p>
                 {% endif %}
                 <div class="pricing-action">
-                    <a href="{% url 'auth_app:signup' %}" class="btn btn-primary btn-block">{% trans "Start free for 30 days" %}</a>
+                    <a href="{% url 'auth_app:signup' %}" class="btn btn-primary btn-block">{% if row.category == "subscription" %}{% trans "30日間無料で始める" %}{% else %}{% trans "お見積り・お問い合わせ" %}{% endif %}</a>
                 </div>
             </div>
             {% endfor %}
             {% endfor %}
         </div>
         <div class="pricing-notes">
-            {% if tax_note %}<p class="pricing-note">{{ tax_note }}</p>{% endif %}
+            <p class="pricing-note">
+                {% trans "詳細は" %}
+                <a href="{% url 'public_app:pricing' %}">{% trans "料金ページ" %}</a>{% trans "、" %}
+                <a href="{% url 'public_app:tokushoho' %}">{% trans "特定商取引法に基づく表記" %}</a>{% trans "をご覧ください。" %}
+                {% if tax_note %}・{{ tax_note }}{% endif %}
+            </p>
             {% for note in pricing_notes %}
             <p class="pricing-note">{{ note }}</p>
             {% endfor %}
