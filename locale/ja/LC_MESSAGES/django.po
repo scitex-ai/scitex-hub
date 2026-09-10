@@ -148,6 +148,14 @@ msgstr "対話的な開発ワークスペース"
 msgid "Scientific figure editor"
 msgstr "科学図表エディタ"
 
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "On-Premise"
+msgstr "オンプレミス"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Run on your own machine — your data, your compute"
+msgstr "ご自身のマシンで実行 — データも計算もすべて手元で"
+
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_demos.html
 msgid "Local"
 msgstr "ローカル"
