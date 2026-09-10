@@ -218,7 +218,8 @@ def _format_compute_credit(attrs: dict[str, Any]) -> str:
 
 
 def _format_overage(attrs: dict[str, Any]) -> str:
-    """超過計算の表現。metered → 「従量課金（超過分のみ）」、無いと ''。"""
+    """超過計算の表現。SSOT は料金を未確定（'料金確定後に別ページで案内'）なので、
+    従量であることだけを示し、金額は捏造しない。metered → 「従量課金（超過分のみ）」。"""
     ov = attrs.get("overage", "")
     if str(ov).lower() == "metered":
         return "従量課金（超過分のみ）"
