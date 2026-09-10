@@ -105,49 +105,37 @@ class HeaderProjectSelectorIdsUniqueTest(TestCase):
         """``id="<element_id>"`` — the attribute form, not the bare string."""
         return 'id="{}"'.format(element_id).encode()
 
-    def test_toggle_id_appears_exactly_once(self):
-        # Arrange
+    def test_toggle_id_absent_from_header(self):
+        """The header project switcher was removed 2026-09-11 (operator: no
+        project switcher in the global header; selection lives on the
+        project/workspace surface). The toggle id must NOT render on ``/``."""
         marker = self._id_attribute("project-selector-toggle")
-        # Act
         content = self._rendered_home()
-        # Assert
-        assert content.count(marker) == 1
+        assert content.count(marker) == 0
 
-    def test_text_id_appears_exactly_once(self):
-        # Arrange
+    def test_text_id_absent_from_header(self):
         marker = self._id_attribute("project-selector-text")
-        # Act
         content = self._rendered_home()
-        # Assert
-        assert content.count(marker) == 1
+        assert content.count(marker) == 0
 
-    def test_dropdown_id_appears_exactly_once(self):
-        # Arrange
+    def test_dropdown_id_absent_from_header(self):
         marker = self._id_attribute("project-selector-dropdown")
-        # Act
         content = self._rendered_home()
-        # Assert
-        assert content.count(marker) == 1
+        assert content.count(marker) == 0
 
-    def test_every_selector_id_appears_exactly_once(self):
-        # Arrange
-        expected = {element_id: 1 for element_id in SELECTOR_IDS}
-        # Act
+    def test_no_selector_id_present_in_header(self):
         content = self._rendered_home()
         counts = {
             element_id: content.count(self._id_attribute(element_id))
             for element_id in SELECTOR_IDS
         }
-        # Assert
-        assert counts == expected
+        assert all(count == 0 for count in counts.values()), counts
 
-    def test_surviving_toggle_is_inside_the_live_inline_container(self):
-        # Arrange
-        collector = _AncestorClassCollector("project-selector-toggle")
-        # Act
-        collector.feed(self._rendered_home().decode("utf-8", "replace"))
-        # Assert
-        assert LIVE_CONTAINER_CLASS in collector.ancestor_classes
+    def test_no_live_inline_container_in_header(self):
+        """The .header-project-selector-inline container is gone too — not just
+        the inner ids, so a half-removed block can't leak back in."""
+        content = self._rendered_home().decode("utf-8", "replace")
+        assert 'class="header-project-selector-inline"' not in content
 
 
 if __name__ == "__main__":
