@@ -1,0 +1,83 @@
+{% extends 'global_base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}Billing - Settings - SciTeX Hub{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/layouts/settings-layout.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="settings-page">
+        <div class="settings-layout">
+            <aside class="settings-nav">
+                {% include 'accounts_app/partials/settings_nav.html' with active='billing' %}
+            </aside>
+            <main class="settings-content">
+                <div class="settings-header">
+                    <h1 class="settings-title">{% trans "Billing" %}</h1>
+                    <p class="settings-subtitle">
+                        {% trans "Card details are stored by Stripe, not by SciTeX. We keep only the last four digits and expiry for display." %}
+                    </p>
+                </div>
+
+                {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                            <div class="alert-banner alert-banner-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %} mb-3">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {# ---------- Unavailable: Stripe not configured ---------- #}
+                {% if state == 'unavailable' %}
+                    <div class="pricing-alpha-notice">
+                        <i class="fas fa-credit-card"></i>
+                        <div>
+                            <strong>{% trans "Billing unavailable" %}</strong>
+                            <p>
+                                {% trans "Card payment is not configured on this deployment. It begins after Stripe is set up and corporate review completes." %}
+                            </p>
+                        </div>
+                    </div>
+                {% else %}
+                    {# ---------- Saved card ---------- #}
+                    {% if state == 'saved' and default_card %}
+                        <div class="settings-card">
+                            <h2>{% trans "Payment method" %}</h2>
+                            <div class="billing-card-display">
+                                <i class="fab fa-cc-visa"></i>
+                                <span class="billing-card-brand">{{ default_card.brand|default:"card" }}</span>
+                                <span class="billing-card-last4">•••• {{ default_card.last4 }}</span>
+                                {% if default_card.exp_month and default_card.exp_year %}
+                                    <span class="billing-card-exp">{{ default_card.exp_month|slice:":2" }}/{{ default_card.exp_year|slice:":2" }}</span>
+                                {% endif %}
+                                <span class="billing-card-status billing-card-status-verified">
+                                    <i class="fas fa-check-circle"></i> {% trans "Verified" %}
+                                </span>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {# ---------- Add / replace card ---------- #}
+                    <div class="settings-card">
+                        <h2>
+                            {% if state == 'saved' %}{% trans "Add a new card" %}{% else %}{% trans "Add a card" %}{% endif %}
+                        </h2>
+                        <p>
+                            {% trans "You will be redirected to Stripe to enter your card securely. The card is checked with a zero-dollar validation; nothing is charged." %}
+                        </p>
+                        <form method="post" action="{% url 'public_app:billing_start_setup' %}" class="billing-setup-form">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-credit-card"></i>
+                                {% trans "Add card" %}
+                            </button>
+                        </form>
+                    </div>
+                {% endif %}
+            </main>
+        </div>
+    </div>
+{% endblock %}

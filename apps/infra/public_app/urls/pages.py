@@ -72,6 +72,7 @@ urlpatterns = [
     # Billing (Stripe scaffold; checkout is staff-only while testing,
     # webhook is CSRF-exempt but signature-verified)
     path("billing/checkout/", views.billing_checkout, name="billing_checkout"),
+    path("billing/start-setup/", views.start_card_setup, name="billing_start_setup"),
     path("billing/webhook/stripe/", views.stripe_webhook, name="stripe_webhook"),
     # Demo page
     path("demo/", views.demo, name="demo"),
