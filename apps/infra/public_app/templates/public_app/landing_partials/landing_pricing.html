@@ -43,7 +43,11 @@
                 <p class="plan-sub">{{ row.description }}</p>
                 {% endif %}
                 <div class="pricing-action">
-                    <a href="{% url 'auth_app:signup' %}" class="btn btn-primary btn-block">{% if row.category == "subscription" %}{% trans "30日間無料で始める" %}{% else %}{% trans "お見積り・お問い合わせ" %}{% endif %}</a>
+                    {% if row.category == "subscription" %}
+                    <a href="{% url 'auth_app:signup' %}" class="btn btn-primary btn-block">{% trans "30日間無料で始める" %}</a>
+                    {% else %}
+                    <a href="{% url 'public_app:contact' %}" class="btn btn-outline btn-block">{% trans "お問い合わせ" %}</a>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}
