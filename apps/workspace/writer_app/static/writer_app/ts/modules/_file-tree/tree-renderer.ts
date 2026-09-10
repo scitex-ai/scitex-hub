@@ -50,14 +50,25 @@ export class TreeRenderer {
   }
 
   /**
-   * Render file tree in the container
+   * Render file tree in the container.
+   *
+   * An EMPTY tree is explained with a cause + next action (compass §11 Initial
+   * State, TODO item 161) instead of a bare "No .tex files found" — the cause
+   * is derived from the current doctype/section filter held by the renderer.
    */
   render(nodes: FileTreeNode[]): void {
     if (nodes.length === 0) {
+      const state = this.filter.getState();
+      const { cause, nextAction } = explainFileTreeEmpty(
+        state.doctype,
+        state.section,
+      );
       this.container.innerHTML = `
         <div class="text-muted text-center py-3" style="font-size: 0.85rem;">
           <i class="fas fa-folder-open me-2"></i>
           <div style="margin-top: 0.5rem;">No .tex files found</div>
+          <div style="margin-top: 0.25rem; font-size: 0.78rem;">${cause}</div>
+          <div style="margin-top: 0.15rem; font-size: 0.78rem;"><strong>Next:</strong> ${nextAction}</div>
         </div>
       `;
       return;
@@ -213,4 +224,35 @@ export class TreeRenderer {
       );
     }
   }
+}
+
+/**
+ * Cause + next action for an EMPTY file tree (compass §11 Initial State,
+ * TODO item 161: explain "section file 不在 / Project 構造未初期化" rather than
+ * a bare "No .tex files found"). Pure so it is unit-testable in isolation.
+ *
+ * @param doctype the active document type (manuscript/supplementary/revision/shared)
+ * @param section the active section, or null when no section filter is applied
+ */
+export interface FileTreeEmptyDiagnosis {
+  cause: string;
+  nextAction: string;
+}
+
+export function explainFileTreeEmpty(
+  doctype: string = "manuscript",
+  section: string | null = null,
+): FileTreeEmptyDiagnosis {
+  if (section) {
+    return {
+      cause: `Cause: no "${section}.tex" file exists in the ${doctype} workspace.`,
+      nextAction:
+        "Next: create that section file in the project, or switch the section filter to one that already has a file.",
+    };
+  }
+  return {
+    cause: `Cause: the ${doctype} workspace has no .tex files yet — its structure is not initialized.`,
+    nextAction:
+      "Next: initialize the workspace (Settings → Initialize Writer) or add your first section file.",
+  };
 }
