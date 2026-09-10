@@ -229,3 +229,11 @@ input:checked + .slider:before {
 .pricing-action .btn-primary:hover {
   background: linear-gradient(135deg, #1d4ed8, #1e40af);
 }
+
+/* Card-required note under the subscription CTA */
+.pricing-card-note {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  text-align: center;
+  margin: 0.5rem 0 0;
+}
