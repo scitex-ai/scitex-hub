@@ -41,6 +41,7 @@ describe("diagnoseExampleProject (158-161: distinguish the four initial states)"
     expect(d.state).toBe("uninitialized");
     expect(d.cause).toMatch(/not initialized/i);
     expect(d.nextAction).toMatch(/initialize the workspace/i);
+    expect(d.nextAction).not.toMatch(/^Next:/i); // renderer adds the single "Next:" label
   });
 
   it("161: doc type not enabled → not-enabled (enable-doc-type next action)", () => {
@@ -49,6 +50,7 @@ describe("diagnoseExampleProject (158-161: distinguish the four initial states)"
     expect(d.cause).toContain("supplementary");
     expect(d.cause).toMatch(/not enabled/i);
     expect(d.nextAction).toMatch(/enable the supplementary document type/i);
+    expect(d.nextAction).not.toMatch(/^Next:/i);
   });
 
   it("priority: auto-select wins when sections exist even if uninitialized", () => {

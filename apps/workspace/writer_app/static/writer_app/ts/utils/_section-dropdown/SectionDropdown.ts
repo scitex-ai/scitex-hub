@@ -321,22 +321,21 @@ export function diagnoseExampleProject(
       state: "uninitialized",
       cause: `The Writer workspace is not initialized — no ${label} structure exists yet.`,
       nextAction:
-        "Next: initialize the workspace (Settings → Initialize Writer), or add a manuscript section.",
+        "initialize the workspace (Settings → Initialize Writer), or add a manuscript section",
     };
   }
   if (!options.docTypeConfigured) {
     return {
       state: "not-enabled",
       cause: `The ${label} document type is not enabled in this project.`,
-      nextAction: `Next: enable the ${label} document type (Settings / document types), then add a section.`,
+      nextAction: `enable the ${label} document type (Settings / document types), then add a section`,
     };
   }
   // writerInitialized && docTypeConfigured && sectionCount === 0
   return {
     state: "no-manuscript",
     cause: `No ${label} is selected — this ${label} has no sections yet.`,
-    nextAction:
-      "Next: use the section list (the + icon) to add the first manuscript section.",
+    nextAction: "use the section list (the + icon) to add the first manuscript section",
   };
 }
 
