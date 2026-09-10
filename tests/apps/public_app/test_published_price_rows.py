@@ -115,25 +115,24 @@ def test_no_catalogue_row_is_withheld_today() -> None:
 
 def test_the_subscription_rows_sell_at_the_launch_price_until_july_2027() -> None:
     """The real catalogue, on days either side of the Launch/Y1 window's end.
-    1,490 / 2,990 are 2,980 / 5,980 at 50%; the note carries business's final
-    form (2026-09-03 06:54Z; operator Telegram 6913/6915): list price and
-    discount first, then the period, then every later stage and finally the
-    list price from the day after the last window. Windows are selected BY
-    DATE, so on 2027-08-01 the Y2 (30%) window applies without anyone editing
-    a status flag; after Y3 ends (2029-08-01) the list price returns with no
-    note. Both directions, so a renderer that ignored the calendar fails on
-    one side and one that never stopped discounting on the other."""
+    1,490 / 2,990 are 2,980 / 5,980 at 50%; the note carries the list price,
+    the discount, and the current window's end (2026-09-10: the later stages
+    are no longer shown — the 定価 / 早期導入割引 have their own columns and the
+    operator ruled against displaying future-year prices). Windows are
+    selected BY DATE, so on 2027-08-01 the Y2 (30%) window applies without
+    anyone editing a status flag; after Y3 ends (2029-08-01) the list price
+    returns with no note. Both directions, so a renderer that ignored the
+    calendar fails on one side and one that never stopped discounting on the
+    other."""
     by_id = {r["id"]: r for r in published_price_rows(today=date(2026, 9, 2))}
     assert by_id["subscription-student"]["label"] == "サブスク・学術"
     assert by_id["subscription-student"]["price"] == "月額 1,490円"
     assert by_id["subscription-general"]["price"] == "月額 2,990円"
     assert by_id["subscription-student"]["price_note"] == (
         "定価 2,980円、早期導入割引 50%。2027年7月末までの早期導入価格。"
-        "2027年8月から 2,086円、2028年8月から 2,682円、2029年8月から 2,980円"
     ), by_id["subscription-student"]["price_note"]
     assert by_id["subscription-general"]["price_note"] == (
         "定価 5,980円、早期導入割引 50%。2027年7月末までの早期導入価格。"
-        "2027年8月から 4,186円、2028年8月から 5,382円、2029年8月から 5,980円"
     ), by_id["subscription-general"]["price_note"]
 
     by_id = {r["id"]: r for r in published_price_rows(today=date(2027, 8, 1))}
@@ -141,7 +140,6 @@ def test_the_subscription_rows_sell_at_the_launch_price_until_july_2027() -> Non
     assert by_id["subscription-general"]["price"] == "月額 4,186円"
     assert by_id["subscription-student"]["price_note"] == (
         "定価 2,980円、早期導入割引 30%。2028年7月末までの早期導入価格。"
-        "2028年8月から 2,682円、2029年8月から 2,980円"
     ), by_id["subscription-student"]["price_note"]
 
     by_id = {r["id"]: r for r in published_price_rows(today=date(2029, 8, 1))}
@@ -179,14 +177,14 @@ def test_a_window_is_selected_by_date_whatever_its_status_says() -> None:
         (inside,) = pricing.published_price_rows(today=date(2026, 9, 2))
         (outside,) = pricing.published_price_rows(today=date(2027, 1, 1))
     assert inside["price"] == "月額 500円", inside
-    assert inside["price_note"] == "定価 1,000円、早期導入割引 50%。2026年12月末までの早期導入価格。2027年1月から 1,000円", inside
+    assert inside["price_note"] == "定価 1,000円、早期導入割引 50%。2026年12月末までの早期導入価格。", inside
     assert outside["price"] == "月額 1,000円" and outside["price_note"] == "", outside
 
 
-def test_the_note_names_a_mid_month_end_and_every_later_stage() -> None:
+def test_the_note_names_a_mid_month_end_and_the_current_stage() -> None:
     """A mid-month end is named by the day (月末 is only for a last-of-month
-    end), a mid-month start likewise; the later windows are listed in date
-    order at their own percent; the list price follows the LAST window."""
+    end). The note states only the current window's end (2026-09-10: later
+    stages are not shown — they have their own columns / are future prices)."""
     from unittest import mock
     from apps.infra.public_app import pricing
 
@@ -199,7 +197,6 @@ def test_the_note_names_a_mid_month_end_and_every_later_stage() -> None:
     assert row["price"] == "月額 500円", row
     assert row["price_note"] == (
         "定価 1,000円、早期導入割引 50%。2026年12月15日までの早期導入価格。"
-        "2026年12月16日から 800円、2028年1月から 1,000円"
     ), row
 
 
@@ -251,11 +248,12 @@ def test_every_catalogue_attribute_renders_as_one_phrase() -> None:
 def test_the_subscription_rows_state_what_they_include() -> None:
     """Pins the upstream numbers the operator confirmed 2026-09-02 (50 GB,
     1,000円 compute credit, metered overage, user-set cap) so a copy of
-    business.yaml that dropped one fails here."""
+    business.yaml that dropped one fails here. The quotas are per-project
+    (basis: per_project, 2026-09-10)."""
     by_id = {r["id"]: r for r in published_price_rows(today=date(2026, 9, 2))}
     for row_id in ("subscription-student", "subscription-general"):
         text = "、".join(by_id[row_id]["included"])
-        for needle in ("ストレージ 50GB/月", "計算クレジット 1,000円相当/月", "超過分は従量課金", "月の上限は利用者が設定"):
+        for needle in ("ストレージ 50GB/プロジェクト/月", "計算クレジット 1,000円相当/プロジェクト/月", "超過分は従量課金", "月の上限は利用者が設定"):
             assert needle in text, (row_id, text)
     assert "対象: 大学・研究機関のメールアドレスを持つこと（学生・院生・教職員・研究員）" in "、".join(by_id["subscription-student"]["included"])
     assert "対象: " not in "、".join(by_id["subscription-general"]["included"])

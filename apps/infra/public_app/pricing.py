@@ -19,6 +19,7 @@ it looks like "we charge nothing".
 from __future__ import annotations
 
 import json
+import functools
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
@@ -94,13 +95,19 @@ _OVERAGE = {"metered": "超過分は従量課金"}
 _LIMIT_SET_BY = {"user": "月の上限は利用者が設定"}
 
 
-def _storage_text(value: dict[str, Any]) -> str:
+def _storage_text(value: dict[str, Any], basis: str = "") -> str:
     kind = f"（{value['type']}）" if value.get("type") else ""
-    return f"ストレージ {value['amount']:,}{_STORAGE_UNIT[value['unit']]}{kind}"
+    unit = _STORAGE_UNIT[value["unit"]]
+    if basis == "per_project":
+        unit = "GB/プロジェクト/月"
+    return f"ストレージ {value['amount']:,}{unit}{kind}"
 
 
-def _credit_text(value: dict[str, Any]) -> str:
-    return f"計算クレジット {value['amount']:,}{_CREDIT_UNIT[value['unit']]}"
+def _credit_text(value: dict[str, Any], basis: str = "") -> str:
+    unit = _CREDIT_UNIT[value["unit"]]
+    if basis == "per_project":
+        unit = "円相当/プロジェクト/月"
+    return f"計算クレジット {value['amount']:,}{unit}"
 
 
 _ATTRIBUTE_TEXT = {
@@ -113,22 +120,29 @@ _ATTRIBUTE_TEXT = {
 }
 
 
-def included_items(attributes: dict[str, Any]) -> list[str]:
+def included_items(attributes: dict[str, Any], basis: str = "") -> list[str]:
     """What a row includes, one short phrase per attribute, in catalogue order.
 
     Raises on an attribute name or value this module does not know: the
     catalogue is committed with the code that renders it, and the test that
     renders every row turns an unknown upstream field into a red CI rather
     than a silently shorter legal page.
+
+    ``basis`` (e.g. "per_project") is threaded into the storage/credit
+    phrasings so the included-list matches the dedicated columns.
     """
+    text = dict(_ATTRIBUTE_TEXT)
+    if basis:
+        text["included_storage"] = functools.partial(_storage_text, basis=basis)
+        text["included_compute_credit"] = functools.partial(_credit_text, basis=basis)
     items = []
     for key, value in attributes.items():
-        if key not in _ATTRIBUTE_TEXT:
+        if key not in text:
             raise ValueError(
                 f"unknown attribute {key!r} in pricing.json; add its wording to "
                 "_ATTRIBUTE_TEXT deliberately rather than dropping it from the page."
             )
-        items.append(_ATTRIBUTE_TEXT[key](value))
+        items.append(text[key](value))
     return items
 
 
@@ -328,7 +342,7 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
                 "storage": _format_included_storage(item.get("attributes", {}), basis),
                 "compute_credit": _format_compute_credit(item.get("attributes", {}), basis),
                 "overage": _format_overage(item.get("attributes", {})),
-                "included": included_items(item.get("attributes", {})),
+                "included": included_items(item.get("attributes", {}), basis),
                 # Pass-through of the upstream catalogue's descriptive fields, so
                 # /services/ can describe an offer in business.yaml's words.
                 "category": item.get("category", "service"),
