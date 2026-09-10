@@ -88,11 +88,13 @@
   color: var(--text-primary);
 }
 
-.tokushoho-price-table thead th:nth-child(1) { width: 18%; }
-.tokushoho-price-table thead th:nth-child(2) { width: 18%; }
-.tokushoho-price-table thead th:nth-child(3) { width: 12%; }
-.tokushoho-price-table thead th:nth-child(4) { width: 10%; }
-.tokushoho-price-table thead th:nth-child(5) { width: 42%; }
+.tokushoho-price-table thead th:nth-child(1) { width: 16%; }
+.tokushoho-price-table thead th:nth-child(2) { width: 15%; }
+.tokushoho-price-table thead th:nth-child(3) { width: 11%; }
+.tokushoho-price-table thead th:nth-child(4) { width: 8%; }
+.tokushoho-price-table thead th:nth-child(5) { width: 13%; }
+.tokushoho-price-table thead th:nth-child(6) { width: 13%; }
+.tokushoho-price-table thead th:nth-child(7) { width: 24%; }
 
 .tokushoho-price-table tbody td {
   border: none;
@@ -119,12 +121,7 @@
   white-space: nowrap;
 }
 
-/* The colspan note row (規模の大きい導入) — visually distinct */
-.tokushoho-price-table tbody tr:last-child td[colspan] {
-  color: var(--text-secondary);
-  font-size: 0.9em;
-  padding-top: var(--spacing-sm);
-}
+/* The colspan note row — (removed 2026-09-10: 規模の大きい導入 row dropped) */
 
 .tokushoho-price-note {
   font-size: 0.85em;

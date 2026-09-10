@@ -99,7 +99,9 @@
                                                 <th>{% trans "料金（税込）" %}</th>
                                                 <th>{% trans "定価" %}</th>
                                                 <th>{% trans "割引" %}</th>
-                                                <th>{% trans "含まれるもの・備考" %}</th>
+                                                <th>{% trans "ストレージ" %}</th>
+                                                <th>{% trans "計算クレジット" %}</th>
+                                                <th>{% trans "備考" %}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -109,15 +111,14 @@
                                                 <td class="price-cell">{{ row.price }}</td>
                                                 <td class="muted-cell">{{ row.list_price|default:"—" }}</td>
                                                 <td class="muted-cell">{{ row.discount|default:"—" }}</td>
+                                                <td class="muted-cell">{{ row.storage|default:"—" }}</td>
+                                                <td class="muted-cell">{{ row.compute_credit|default:"—" }}</td>
                                                 <td>
                                                     {% if row.included %}{{ row.included|join:"、" }}{% elif row.description %}{{ row.description }}{% endif %}
                                                     {% if row.price_note %}<br><span class="tokushoho-price-note">{{ row.price_note }}</span>{% endif %}
                                                 </td>
                                             </tr>
                                             {% endfor %}
-                                            <tr>
-                                                <td colspan="5">{% trans "規模の大きい導入（複数研究室など）：規模に応じてお見積り（規模が大きいほど1人あたりは安くなる形）" %}</td>
-                                            </tr>
                                         </tbody>
                                     </table>
                                     <p>
