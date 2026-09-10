@@ -331,6 +331,28 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
                 list_price_str = _yen(list_amount)
                 discount_str = f"−{window['percent']}%"
         basis = item.get("basis", "")
+        attrs = item.get("attributes", {})
+        storage_str = _format_included_storage(attrs, basis)
+        credit_str = _format_compute_credit(attrs, basis)
+        overage_str = _format_overage(attrs)
+        included = included_items(attrs, basis)
+        # 備考 cell: the included-list minus items that already have their own
+        # column (ストレージ / 計算クレジット / 超過計算) — otherwise the tokushoho
+        # table repeats the same numbers twice (operator 2026-09-10). Drop by
+        # source attribute key, not by rendered-string match.
+        _column_keys = {
+            "included_storage": storage_str,
+            "included_compute_credit": credit_str,
+            "overage": overage_str,
+        }
+        _drop = {
+            key
+            for key, rendered in _column_keys.items()
+            if rendered and key in attrs
+        }
+        remarks = included_items(
+            {k: v for k, v in attrs.items() if k not in _drop}, basis
+        )
         rows.append(
             {
                 "id": item["id"],
@@ -339,10 +361,11 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
                 "list_price": list_price_str,
                 "discount": discount_str,
                 "price_note": price_note,
-                "storage": _format_included_storage(item.get("attributes", {}), basis),
-                "compute_credit": _format_compute_credit(item.get("attributes", {}), basis),
-                "overage": _format_overage(item.get("attributes", {})),
-                "included": included_items(item.get("attributes", {}), basis),
+                "storage": storage_str,
+                "compute_credit": credit_str,
+                "overage": overage_str,
+                "included": included,
+                "remarks": remarks,
                 # Pass-through of the upstream catalogue's descriptive fields, so
                 # /services/ can describe an offer in business.yaml's words.
                 "category": item.get("category", "service"),

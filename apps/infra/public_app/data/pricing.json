@@ -94,7 +94,7 @@
       "unit": "per_hour",
       "available_from": "2026-08",
       "category": "service",
-      "description": "技術・研究相談。時間に応じて課金（最初の30分は無料）。"
+      "description": "技術・研究相談。Zoomまたは対面。時間に応じて課金（最初の30分は無料）。"
     },
     {
       "id": "translation",
