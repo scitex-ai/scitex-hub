@@ -181,8 +181,8 @@ def _yen(amount: int) -> str:
     return f"{amount:,}円"
 
 
-def _format_included_storage(attrs: dict[str, Any]) -> str:
-    """「50 GB / 月」from attributes.included_storage, or '' when absent."""
+def _format_included_storage(attrs: dict[str, Any], basis: str = "") -> str:
+    """「50 GB / 月」(per account) or 「50 GB / プロジェクト / 月」(per project)."""
     s = attrs.get("included_storage")
     if not isinstance(s, dict):
         return ""
@@ -190,13 +190,14 @@ def _format_included_storage(attrs: dict[str, Any]) -> str:
     if amount is None:
         return ""
     unit = str(unit)
+    per = " / プロジェクト" if basis == "per_project" else ""
     if "month" in unit.lower():
-        unit = unit.replace("month", "月").replace("GB/", "GB / ")
-    return f"{amount:,} {unit}".strip() if unit else f"{amount:,}"
+        return f"{amount:,} GB{per} / 月"
+    return f"{amount:,}{per}".strip()
 
 
-def _format_compute_credit(attrs: dict[str, Any]) -> str:
-    """「¥1,000相当 / 月」from attributes.included_compute_credit, or ''."""
+def _format_compute_credit(attrs: dict[str, Any], basis: str = "") -> str:
+    """「¥1,000相当 / 月」(per account) or 「¥1,000相当 / プロジェクト / 月」."""
     c = attrs.get("included_compute_credit")
     if not isinstance(c, dict):
         return ""
@@ -204,9 +205,9 @@ def _format_compute_credit(attrs: dict[str, Any]) -> str:
     if amount is None:
         return ""
     base = f"¥{amount:,}"
-    # unit is e.g. "JPY-equivalent/month" -> "/月"
+    per = " / プロジェクト" if basis == "per_project" else ""
     if "month" in str(unit).lower():
-        return f"{base}相当 / 月"
+        return f"{base}相当{per} / 月"
     return base
 
 
@@ -315,6 +316,7 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
                 price_note = _staged_price_note(item["policy"], policies, window, list_amount)
                 list_price_str = _yen(list_amount)
                 discount_str = f"−{window['percent']}%"
+        basis = item.get("basis", "")
         rows.append(
             {
                 "id": item["id"],
@@ -323,14 +325,15 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
                 "list_price": list_price_str,
                 "discount": discount_str,
                 "price_note": price_note,
-                "storage": _format_included_storage(item.get("attributes", {})),
-                "compute_credit": _format_compute_credit(item.get("attributes", {})),
+                "storage": _format_included_storage(item.get("attributes", {}), basis),
+                "compute_credit": _format_compute_credit(item.get("attributes", {}), basis),
                 "overage": _format_overage(item.get("attributes", {})),
                 "included": included_items(item.get("attributes", {})),
                 # Pass-through of the upstream catalogue's descriptive fields, so
                 # /services/ can describe an offer in business.yaml's words.
                 "category": item.get("category", "service"),
                 "description": item.get("description", ""),
+                "basis": basis,
                 "attributes": item.get("attributes", {}),
                 "price_is_floor": bool(item.get("price_is_floor", False)),
             }

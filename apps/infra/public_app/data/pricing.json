@@ -13,6 +13,7 @@
       "amount": 2980,
       "policy": "early-adopter",
       "unit": "month",
+      "basis": "per_project",
       "available_from": "2026-09",
       "category": "subscription",
       "attributes": {
@@ -37,6 +38,7 @@
       "amount": 5980,
       "policy": "early-adopter",
       "unit": "month",
+      "basis": "per_project",
       "available_from": "2026-09",
       "category": "subscription",
       "attributes": {
