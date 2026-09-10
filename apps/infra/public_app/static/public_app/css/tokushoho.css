@@ -76,6 +76,14 @@
   padding: var(--spacing-md) 0;
 }
 
+/* Section heading above the price table (e.g. 提供サービスと料金) */
+.price-table-heading {
+  margin: 0 0 var(--spacing-md);
+  font-size: 1.25em;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
 .price-table-wrap {
   background: var(--bg-surface);
   border: 1px solid var(--border-muted);
