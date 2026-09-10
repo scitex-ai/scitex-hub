@@ -15,6 +15,7 @@ LEGACY_APP_NAMES = [
     "scholar",
     "console",
     "writer",
+    "figrecipe",
     "workspace",
     "example",
     "notebook",
