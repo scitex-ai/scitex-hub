@@ -85,7 +85,8 @@
       "unit": "per_case",
       "available_from": "2026-08",
       "category": "service",
-      "description": "研究・アプリ開発等。個別見積。"
+      "description": "研究・アプリ開発等。個別見積。",
+      "from_price": true
     },
     {
       "id": "consulting",
@@ -94,7 +95,8 @@
       "unit": "per_hour",
       "available_from": "2026-08",
       "category": "service",
-      "description": "技術・研究相談。Zoomまたは対面。時間に応じて課金（最初の30分は無料）。"
+      "description": "技術・研究相談。Zoomまたは対面。時間に応じて課金（最初の30分は無料）。",
+      "from_price": true
     },
     {
       "id": "translation",

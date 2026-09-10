@@ -315,6 +315,7 @@ TEMPLATES = [
                 "config.context_processors.scitex_env",
                 "config.context_processors.writer_api_base",
                 "config.context_processors.mounted_app_launcher",
+                "config.context_processors.header_logo",
                 "apps.infra.workspace_app.context_processors.workspace_context",
             ],
             "loaders": [

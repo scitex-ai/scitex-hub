@@ -30,7 +30,7 @@
             {# cookie-consent / pool-full page) override this to a page that #}
             {# always renders (/landing/) — tapping the logo must never bounce #}
             {# back to the same page and read as a dead touch target. #}
-            <a href="{{ header_logo_href|default:'/' }}" class="header-logo" title="Home">
+            <a href="{{ header_logo_href|default:'/' }}" class="header-logo" title="{{ header_logo_title|default:'Home' }}">
                 <img src="{% static SCITEX_FAVICON %}"
                      alt="SciTeX{% if SCITEX_ENV_MARKER %} ({{ SCITEX_ENV_MARKER }}){% endif %}"
                      class="header-logo-icon" />

@@ -352,3 +352,21 @@ def scitex_env(request):
         # marker the tab title uses, so chrome and tab never disagree.
         "SCITEX_ENV_MARKER": branding.title_marker(env, settings.SCITEX_APP_MODE),
     }
+
+
+def header_logo(request):
+    """Logo link + tooltip based on the current page context.
+
+    - On the landing page (/landing/) → logo goes to / (Apps Home),
+      title "Go to Apps Home"
+    - Everywhere else (app launcher, /apps/*, /pricing/, /tokushoho/, …) →
+      logo goes to /landing/, title "Go to Landing Page"
+
+    The landing is the public marketing page; the rest of the site is the
+    product. The logo is the one cross-cutting nav element, so it always
+    points the visitor toward whichever half they are NOT currently in.
+    """
+    path = request.path
+    if path.startswith("/landing"):
+        return {"header_logo_href": "/", "header_logo_title": "Go to Apps Home"}
+    return {"header_logo_href": "/landing/", "header_logo_title": "Go to Landing Page"}
