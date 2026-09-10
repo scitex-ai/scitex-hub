@@ -57,10 +57,20 @@ class LauncherHomeTest(TestCase):
 
     def test_launcher_tiles_cover_launcher_visible_registry_modules(self):
         # Arrange — every registry module that opts INTO the launcher
-        # (show_in_launcher, the default) must render a tile.
+        # (show_in_launcher, the default) AND that this user may be shown must
+        # render a tile. The launcher also applies a release-channel gate:
+        # internal/WIP modules (visibility == "internal") are hidden from
+        # non-staff users (launcher.py: is_staff and mod.visibility check).
+        # This test user is a regular (non-staff) account, so internal modules
+        # (e.g. todo, storage) are correctly absent from the grid.
         from apps.infra.workspace_app.registry import get_all_modules
 
-        visible_names = {m.name for m in get_all_modules() if m.show_in_launcher}
+        is_staff = self.user.is_staff or self.user.is_superuser
+        visible_names = {
+            m.name
+            for m in get_all_modules()
+            if m.show_in_launcher and (is_staff or m.visibility != "internal")
+        }
         # Act
         resp = self.client.get("/")
         tile_names = {t["name"] for t in resp.context["tiles"]}

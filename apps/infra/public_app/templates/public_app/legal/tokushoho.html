@@ -131,7 +131,7 @@
                                 <td class="muted-cell">{{ row.compute_credit|default:"—" }}</td>
                                 <td class="muted-cell">{{ row.overage|default:"—" }}</td>
                                 <td>
-                                    {% if row.remarks %}{{ row.remarks|join:"、" }}{% elif row.included %}{{ row.included|join:"、" }}{% elif row.description %}{{ row.description }}{% endif %}
+                                    {% if row.included %}{{ row.included|join:"、" }}{% elif row.remarks %}{{ row.remarks|join:"、" }}{% elif row.description %}{{ row.description }}{% endif %}
                                 </td>
                             </tr>
                             {% endfor %}

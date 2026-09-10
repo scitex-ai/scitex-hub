@@ -65,12 +65,19 @@ class LandingHeroCtaTest(TestCase):
         # must not send a first-time visitor there.
         assert b'href="/apps/home/" class="hero-cta-button"' not in resp.content
 
-    def test_hero_cta_note_explains_no_signup(self):
+    def test_hero_cta_note_explains_trial_and_card_requirement(self):
         # Arrange: an anonymous visitor
         # Act
         resp = self.client.get("/landing/")
-        # Assert — subtext makes the "temporary, no sign-up" nature explicit
-        assert b"No sign-up needed" in resp.content
+        # Assert — signup-first (operator ruling 2026-09-10): the hero note
+        # states the 30-day trial, first-month billing, and that email
+        # verification + a card are required. The old "No sign-up needed"
+        # subtext is obsolete now that a free account needs a verified email
+        # and a usable card on file (card readiness, separate from Premium).
+        content = resp.content
+        assert b"30-day free trial" in content
+        assert b"billed for the first month" in content
+        assert b"Email verification and a card are required" in content
 
     def test_landing_offers_sign_up(self):
         # Arrange: an anonymous visitor

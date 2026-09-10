@@ -178,8 +178,13 @@ def test_enter_path_is_not_exact_skipped(skip_entries_by_name, enter_path):
     )
 
 
-def test_hero_cta_links_the_enter_route(hero_source, enter_path):
-    """The positive half of the CTA contract."""
+def test_hero_cta_no_longer_links_enter_route(hero_source, enter_path):
+    """The visitor-entry funnel was retired from the hero CTA (signup-first,
+    operator ruling 2026-09-10). The hero now links /auth/signup/ (asserted in
+    test_landing.py::test_hero_cta_targets_signup). /enter/ still exists as a
+    route for the visitor pool system, but the hero must not promote it —
+    a first-time visitor should sign up, not enter a pooled slot.
+    """
     # Arrange
     cta_marker = f'href="{enter_path}" class="hero-cta-button"'
 
@@ -187,9 +192,10 @@ def test_hero_cta_links_the_enter_route(hero_source, enter_path):
     has_enter_cta = cta_marker in hero_source
 
     # Assert
-    assert has_enter_cta, (
-        f"expected the hero CTA to link {enter_path}; marker {cta_marker!r} is "
-        f"absent from {HERO_REL}"
+    assert not has_enter_cta, (
+        f"hero CTA still links {enter_path} (visitor entry funnel); it should "
+        f"link /auth/signup/ instead (signup-first). Marker {cta_marker!r} "
+        f"present in {HERO_REL}."
     )
 
 

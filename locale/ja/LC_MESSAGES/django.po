@@ -69,6 +69,10 @@ msgid "Try SciTeX"
 msgstr "SciTeX を試す"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "30-day free trial. Continue and you'll be billed for the first month from day one. Email verification and a card are required."
+msgstr "30日間の無料トライアル。続行すると初回の1ヶ月分が請求されます。メール認証とカード登録が必要です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
 msgid "Sign up"
 msgstr "新規登録"
 
