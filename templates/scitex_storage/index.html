@@ -1,4 +1,4 @@
-{% extends "scitex_ui/standalone_shell.html" %}
+{% extends "scitex_app/app_shell.html" %}
 {% load static %}
 {% comment %}
 Hub-side presentation override for the upstream scitex-storage GUI plugin
@@ -37,7 +37,7 @@ mobile-UX defect (card hub-mobile-storage-unstyled-20260723).
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'storage_app/index.css' %}">
 {% endblock %}
-{% block app_content %}
+{% block scitex_app_content %}
     <div id="stx-storage-app" data-app-name="scitex_storage">
         <h1>SciTeX Storage</h1>
         <form class="stx-storage-path-form" method="get" action="">

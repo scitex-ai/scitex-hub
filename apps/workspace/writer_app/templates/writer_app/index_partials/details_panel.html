@@ -74,6 +74,16 @@
                 <div id="details-full-log" class="details-compilation-log">Compilation log will be shown here</div>
             </div>
         </div>
+        <!-- Import / Export — vendor integrations (Overleaf, Prism) grouped here
+             so they do not permanently occupy the Details pane as top-level
+             vendor entries (compass §11 L418/L419/L420, L656; mirrors the
+             Scholar library Import/Export pattern). -->
+        <div class="details-iec" data-iec-group>
+            <div class="details-iec__group-header">
+                <h6 class="details-section__title">
+                    <i class="fas fa-right-left"></i> Import / Export
+                </h6>
+            </div>
         <!-- Overleaf -->
         <div class="mig-card collapsed"
              data-section="overleaf"
@@ -161,6 +171,7 @@
                 </a>
             </div>
         </div>
+        </div><!-- /.details-iec (Import / Export group) -->
         <!-- Project Info Section -->
         <div class="details-section collapsed" data-section="project-info">
             <div class="details-section__header">

@@ -45,6 +45,9 @@ services:
       - ../../../../socialia:/socialia:cached
       - ../../../../scitex-ui:/scitex-ui:cached
       - ../../../../scitex-app:/scitex-app:cached
+      - ../../../../scitex-agent-container:/scitex-agent-container:cached
+      - ../../../../scitex-cards:/scitex-cards:cached
+      - ../../../../scitex-storage:/scitex-storage:cached
       - ../../../../scitex-plt:/scitex-plt:cached
       - ../../../../scitex-audio:/scitex-audio:cached
       - ../../../../scitex-dev:/scitex-dev:cached
@@ -80,6 +83,10 @@ services:
 
       # User workspace data directory (also serves as user home via symlink)
       - ../../../data/users:/app/data/users
+
+      # Read-only credential for the host SAC status API. /dev/null keeps the
+      # generic compose file usable when the optional dashboard is not set up.
+      - ${SCITEX_AGENT_CONTAINER_API_TOKEN_FILE_HOST:-/dev/null}:/run/secrets/sac-listen-token:ro
 
       # Singularity/Apptainer container images for secure PTY terminal
       - ../../../deployment/singularity:/app/singularity:ro
@@ -136,6 +143,12 @@ services:
       - SCITEX_WRITER_CACHE_DIR=/app/.cache
       # scitex-ui static dir for Vite alias resolution (avoids python3 discovery)
       - SCITEX_UI_STATIC=/scitex-ui/src/scitex_ui/static/scitex_ui
+      - SCITEX_AGENT_CONTAINER_API_URL=${SCITEX_AGENT_CONTAINER_API_URL:-}
+      - SCITEX_AGENT_CONTAINER_API_TOKEN_FILE=${SCITEX_AGENT_CONTAINER_API_TOKEN_FILE:-}
+      - SCITEX_AGENT_CONTAINER_LIFECYCLE_OPERATORS=${SCITEX_AGENT_CONTAINER_LIFECYCLE_OPERATORS:-}
+      # Never persist the SMTP credential in .env.dev. Operators must decrypt
+      # the local ~/.pw SSoT into the invoking shell before compose up/config.
+      - SCITEX_HUB_EMAIL_HOST_PASSWORD=${SCITEX_HUB_EMAIL_HOST_PASSWORD:?decrypt ~/.pw/no-reply@scitex.ai.gpg into the shell first}
 
     # Service dependencies
     depends_on:

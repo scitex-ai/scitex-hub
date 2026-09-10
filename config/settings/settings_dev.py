@@ -298,7 +298,22 @@ DATABASES = {
         # — same issue as production (see settings_prod.py).
         # Visitor middleware DB errors cascade to views.
         "ATOMIC_REQUESTS": False,
-        "CONN_MAX_AGE": 600,  # Connection pooling (10 minutes)
+        # CONN_MAX_AGE=0 by default in DEV. Dev runs a THREADED `runserver`
+        # (one thread per request); with CONN_MAX_AGE>0 each thread KEEPS its
+        # DB connection for the full idle window after the request, so idle
+        # pooled threads accumulate connections and exhaust
+        # max_connections=100 under browser/test traffic (measured incident
+        # 2026-09-10: 41->46 connections with no traffic, oldest idle >936s,
+        # routes 500 while /healthz stayed 200). CONN_MAX_AGE=0 closes the
+        # connection at the end of every request — the dev-safe policy that
+        # matches settings_prod. Keep it env-overridable so a dev who really
+        # wants pooled connections (e.g. a long-running shell) can set
+        # SCITEX_HUB_DB_CONN_MAX_AGE_DEV, but the default must not leak.
+        "CONN_MAX_AGE": int(os.environ.get("SCITEX_HUB_DB_CONN_MAX_AGE_DEV", "0")),
+        # Health-check the connection before use so a pooled connection that
+        # the server closed (or Postgres reaped) is reopened, not raised as a
+        # stale-connection 500. Mirrors settings_prod.
+        "CONN_HEALTH_CHECKS": True,
         "OPTIONS": {
             "connect_timeout": 10,
         },

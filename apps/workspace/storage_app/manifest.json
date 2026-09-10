@@ -17,6 +17,7 @@
   "body_class": "",
   "partial_template": "",
   "context_builder": "",
+  "renders_ui": true,
   "url": "/apps/storage/",
   "ai_hint": "Browse the user's storage across the machines they can reach.",
   "allowed_extensions": [],

@@ -29,10 +29,20 @@ try_editable_install() {
         return
     fi
 
-    # The migration sentinel persists outside the container, while
-    # site-packages does not.  Inspect the installed distribution itself so a
-    # recreated development container cannot silently fall back to its PyPI
-    # wheel even though the sibling checkout is mounted.
+    # For figrecipe: always reinstall to pick up new files
+    if [ "$pkg_name" = "figrecipe" ]; then
+        echo_info "Installing $pkg_name (editable mode)..."
+        if ! uv pip install -e "$install_spec" --link-mode=copy 2>&1; then
+            echo_warning "$pkg_name install failed (non-fatal)"
+        fi
+        return
+    fi
+
+    # For others: skip only when pip reports this exact checkout as the
+    # editable source. ``Location`` is site-packages even for editable installs;
+    # ``Editable project location`` is the field that identifies the checkout.
+    # head -n 1 guards a recreated dev container from matching a stale
+    # distribution and silently falling back to its PyPI wheel (#762).
     local editable_location
     editable_location="$(
         pip show "$pkg_name" 2>/dev/null \
@@ -40,7 +50,7 @@ try_editable_install() {
             | head -n 1
     )"
     if [ "$editable_location" = "$mount_path" ]; then
-        echo -e "${GREEN}✅ $pkg_name already editable from $mount_path${NC}"
+        echo -e "${GREEN}✅ $pkg_name already installed in editable mode${NC}"
     else
         echo_info "Installing $pkg_name editable from $mount_path..."
         if ! uv pip install -e "$install_spec" --link-mode=copy 2>&1; then
@@ -89,6 +99,13 @@ try_editable_install "/scitex-ui" "scitex-ui"
 
 # Install scitex-app (required: core SDK for app paths, preferences, cloud integration)
 try_editable_install "/scitex-app" "scitex-app"
+
+# Install the optional SAC fleet dashboard from its mounted checkout.
+try_editable_install "/scitex-agent-container" "scitex-agent-container" "[gui]"
+
+# Install package-owned workspace applications from their mounted checkouts.
+try_editable_install "/scitex-cards" "scitex-cards"
+try_editable_install "/scitex-storage" "scitex-storage" "[gui]"
 
 # Install scitex-container (required: terminal broker needs scitex_container.apptainer)
 try_editable_install "/scitex-container" "scitex-container"

@@ -253,6 +253,7 @@ _BUILTIN_MANIFEST_PATHS: list[str] = [
 for _pkg_names, _tile_manifest in (
     (("scitex_cards", "scitex_todo"), "workspace/todo_app/manifest.json"),
     (("scitex_storage",), "workspace/storage_app/manifest.json"),
+    (("scitex_agent_container",), "workspace/agents_app/manifest.json"),
 ):
     try:
         from importlib.util import find_spec as _find_spec

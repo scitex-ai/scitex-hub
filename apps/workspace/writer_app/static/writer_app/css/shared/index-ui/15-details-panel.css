@@ -331,3 +331,34 @@
   border-color: var(--workspace-border-default, #3a3a3a);
   margin: 8px 0;
 }
+
+/* Import / Export group — wraps the Overleaf + Prism vendor migration cards
+   under one neutral header so vendor names do not permanently occupy the
+   Details pane as top-level entries (compass §11 L418/L419/L420, L656).
+   Mirrors the Scholar library Import/Export pattern. */
+.details-iec {
+  margin: 6px 0 0 0;
+  border-top: 1px solid var(--workspace-border-subtle, rgba(128, 128, 128, 0.25));
+  padding-top: 6px;
+}
+
+.details-iec__group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+}
+
+.details-iec__group-header .details-section__title {
+  margin: 0;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--workspace-fg-muted, rgba(200, 200, 200, 0.8));
+  font-weight: 600;
+}
+
+.details-iec__group-header .details-section__title i {
+  margin-right: 6px;
+  font-size: 11px;
+}
