@@ -298,7 +298,15 @@ def _build_tiles(request) -> list[dict]:
     seen: set[str] = set()
 
     # 1. Workspace module registry — same source that builds the sidebar.
+    is_staff = request.user.is_authenticated and (
+        request.user.is_staff or request.user.is_superuser
+    )
     for mod in get_all_modules():
+        # Release-channel gate: internal/WIP apps are hidden from non-staff
+        # users (compass §8 L281-292, §21 L642-643). Staff see everything.
+        if not is_staff and mod.visibility == "internal":
+            seen.add(mod.name)
+            continue
         # Some registered modules are workspace panes / nav items, not
         # standalone launcher apps (Clew opens within a manuscript; comms
         # is reached from the workspace rather than the grid). They opt out

@@ -4,6 +4,7 @@
   "name": "todo",
   "label": "Cards",
   "app_name": "todo_app",
+  "visibility": "internal",
   "icon": "fas fa-diagram-project",
   "description": "Read-only board view of your project's task cards (scitex-todo store): kanban columns, dependency graph, and status colors.",
   "pip_package": "scitex-todo",

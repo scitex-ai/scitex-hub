@@ -100,6 +100,11 @@ class ModuleConfig:
     # anyone made, it just followed from a mistaken identity.
     show_in_launcher: bool = True
 
+    # Release-channel visibility. "public" (default) = visible to all users.
+    # "internal" = staff/operators only (WIP apps before dogfood is stable).
+    # The manifest is the SSoT; the AppsModule DB row can override per-deployment.
+    visibility: str = "public"
+
     # Runtime state (set by context processor, not persisted)
     is_active: bool = False
     is_dev: bool = False  # True for private (non-published) apps
@@ -341,6 +346,7 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
         availability=_resolve_availability(data),
         default_enabled=data.get("default_enabled", True),
         show_in_launcher=data.get("show_in_launcher", True),
+        visibility=data.get("visibility", "public"),
         ai_hint=data.get("ai_hint", ""),
         accent_color=data.get("accent_color", ""),
         docs_slug=data.get("docs_slug", ""),

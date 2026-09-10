@@ -4,6 +4,7 @@
   "name": "storage",
   "label": "Storage",
   "app_name": "storage_app",
+  "visibility": "internal",
   "icon": "fas fa-hard-drive",
   "description": "Browse your storage across the machines you can reach.",
   "pip_package": "scitex-storage",
