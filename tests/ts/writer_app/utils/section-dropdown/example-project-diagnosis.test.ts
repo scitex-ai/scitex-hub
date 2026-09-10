@@ -116,10 +116,14 @@ describe("renderExampleState — hostile docType is NOT reinterpreted as HTML (C
   });
 
   it("a markup/docType payload is rendered as text, not parsed as elements", () => {
+    // No '-' or '_' in the payload: diagnoseExampleProject turns the docType
+    // into a label via .replace(/[-_]/g, " "), so a dash/underscore-free payload
+    // survives that transform verbatim and lets us assert the raw markup is
+    // present as inert TEXT (while proving no live elements were created).
     const hostile =
-      '"><img src=x onerror="window.__xss_img=1">' +
-      '<script>window.__xss_script=1</script>' +
-      '<svg onload="window.__xss_svg=1">';
+      '"><img src=x onerror=window.XSSimg>' +
+      "<script>window.XSSscript</" + "script>" +
+      '<svg onload=window.XSSsvg>';
     const diagnosis = diagnoseExampleProject(hostile, { ...base }); // → no-manuscript (configured, 0 sections)
 
     renderExampleState(container, diagnosis);
@@ -128,26 +132,29 @@ describe("renderExampleState — hostile docType is NOT reinterpreted as HTML (C
     expect(container.querySelector("img")).toBeNull();
     expect(container.querySelector("script")).toBeNull();
     expect(container.querySelector("svg")).toBeNull();
-    // The hostile string is present as inert TEXT (textContent), verbatim.
-    expect(container.textContent).toContain(hostile);
+    // The hostile markup is present as inert TEXT (textContent), verbatim.
+    expect(container.textContent).toContain("onerror=window.XSSimg");
+    expect(container.textContent).toContain("window.XSSscript");
+    expect(container.textContent).toContain("onload=window.XSSsvg");
     // No side-effect globals were executed.
     const w = window as any;
-    expect(w.__xss_img).toBeUndefined();
-    expect(w.__xss_script).toBeUndefined();
-    expect(w.__xss_svg).toBeUndefined();
+    expect(w.XSSimg).toBeUndefined();
+    expect(w.XSSscript).toBeUndefined();
+    expect(w.XSSsvg).toBeUndefined();
   });
 
   it("nextAction payload is inert too (only the single 'Next:' label is markup)", () => {
     // Not-enabled state embeds the label in nextAction as well.
-    const hostile = '"><b onload="window.__xss_next=1">pwned';
+    const hostile = '"><b onload=window.XSSnext>pwned';
     const diagnosis = diagnoseExampleProject(hostile, {
       ...base,
       docTypeConfigured: false,
     }); // → not-enabled
     renderExampleState(container, diagnosis);
     expect(container.querySelector("b[onload]")).toBeNull();
-    expect(container.textContent).toContain(hostile);
-    expect((window as any).__xss_next).toBeUndefined();
+    expect(container.querySelector("b")).toBeNull();
+    expect(container.textContent).toContain("onload=window.XSSnext");
+    expect((window as any).XSSnext).toBeUndefined();
   });
 
   it("still renders the expected structure for a benign no-manuscript state", () => {
