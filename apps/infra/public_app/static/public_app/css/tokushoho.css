@@ -88,9 +88,11 @@
   color: var(--text-primary);
 }
 
-.tokushoho-price-table thead th:nth-child(1) { width: 28%; }
-.tokushoho-price-table thead th:nth-child(2) { width: 22%; }
-.tokushoho-price-table thead th:nth-child(3) { width: 50%; }
+.tokushoho-price-table thead th:nth-child(1) { width: 18%; }
+.tokushoho-price-table thead th:nth-child(2) { width: 18%; }
+.tokushoho-price-table thead th:nth-child(3) { width: 12%; }
+.tokushoho-price-table thead th:nth-child(4) { width: 10%; }
+.tokushoho-price-table thead th:nth-child(5) { width: 42%; }
 
 .tokushoho-price-table tbody td {
   border: none;
@@ -103,6 +105,18 @@
 
 .tokushoho-price-table tbody tr:last-child td {
   border-bottom: none;
+}
+
+/* Price column: the selling price, primary emphasis */
+.tokushoho-price-table .price-cell {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* 定価 / 割引 columns: secondary, muted so the selling price reads first */
+.tokushoho-price-table .muted-cell {
+  color: var(--text-secondary);
+  white-space: nowrap;
 }
 
 /* The colspan note row (規模の大きい導入) — visually distinct */

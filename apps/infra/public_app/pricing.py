@@ -289,17 +289,23 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
         # all stages first is what makes 「定価」 a stated future price rather
         # than a 景表法 dual-price claim; a struck-through pair stays out.
         amount, price_note = item["amount"], ""
+        list_price_str = ""
+        discount_str = ""
         if item.get("policy"):
             window = _active_window(item["policy"], policies, today)
             if window is not None:
                 list_amount = amount
                 amount = _discounted(list_amount, window["percent"])
                 price_note = _staged_price_note(item["policy"], policies, window, list_amount)
+                list_price_str = _yen(list_amount)
+                discount_str = f"−{window['percent']}%"
         rows.append(
             {
                 "id": item["id"],
                 "label": item["label"],
                 "price": format_amount(amount, unit, from_price),
+                "list_price": list_price_str,
+                "discount": discount_str,
                 "price_note": price_note,
                 "included": included_items(item.get("attributes", {})),
                 # Pass-through of the upstream catalogue's descriptive fields, so
