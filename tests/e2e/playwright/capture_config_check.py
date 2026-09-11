@@ -1,0 +1,366 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""A production acceptance screenshot must PROVE it is a picture of production.
+
+CARD: hub-screenshots-are-taken-with-debug-1-not-production-20260816.
+LEADER RULING 2026-09-11: "Production acceptance screenshots must be captured
+with DEBUG=0; DEBUG=1 screenshots may be supplemental but cannot satisfy
+production verification."
+
+THE DEFECT THIS EXISTS FOR. The capture job rendered every page with
+``settings.DEBUG`` True, and the artifact was therefore a photograph of a
+configuration that exists nowhere: Django's debug error pages instead of the
+production 500/404 templates, static served through the finders instead of the
+hashed production pipeline, and the dev-only footer bar
+(``global_footer.html``, ``{% if DEBUG %}``) visible along the bottom edge of
+the images that were about to go into a funding application.
+
+WHY A MARKER-BASED CHECK AND NOT A FLAG ASSERTION. Asserting "the workflow
+exports the production switch" is a statement about the workflow. The property
+that matters is a statement about the RENDERED PAGE: did the thing a reviewer
+is looking at come from a production configuration? So this module reads the
+captured HTML for evidence that can only appear when DEBUG is True, and refuses
+the capture when it finds any. That is the same shape as
+``assert_pooled_visitor`` (session_role_check.py): the guard runs against the
+artifact, in the consumer's context, not against a proxy for it.
+
+THE TWO MARKERS, and why they are evidence rather than a whitelist:
+
+1. The dev-only footer bar, keyed on ``footer-dev-tools`` and the six button
+   ids. Its template block is ``{% if DEBUG %}``, so its presence is a direct
+   statement that DEBUG was True for the request that produced this HTML. This
+   is the symptom the operator actually saw in the delivered artifact.
+
+2. The host Vite dev-server URL (``:5173/``). ``vite_script`` emits it under
+   ``settings.DEBUG and not VITE_USE_BUILD``; nothing serves 5173 on a runner,
+   so its presence means every platform entry failed to load. Measured
+   2026-08-17 on run 32054829708: the whole frontend was detached from every
+   screenshot this job had ever uploaded, and nothing errored.
+
+The assertion is deliberately about ``DEBUG``'s OBSERVABLE CONSEQUENCES rather
+than the flag's value: a capture can be taken with DEBUG=0 and still show a dev
+marker if the page was cached, served by another process, or read from the
+wrong file — and that capture is just as unfit to verify production.
+"""
+
+from __future__ import annotations
+
+import re
+from collections.abc import Sequence
+
+__all__ = [
+    "DEBUG_ONLY_MARKERS",
+    "DEV_SERVER_ASSET_RE",
+    "NotAProductionCaptureError",
+    "assert_production_capture",
+    "diagnose_capture_config",
+    "find_debug_only_markers",
+    "find_dev_server_asset_urls",
+]
+
+#: Substrings that exist in the rendered HTML ONLY under ``{% if DEBUG %}``
+#: (templates/global_base_partials/global_footer.html:117). Ids rather than
+#: human labels, because labels are translatable and ids are not: the capture
+#: runs with a visitor session whose language may be JA.
+DEBUG_ONLY_MARKERS = (
+    "footer-dev-tools",
+    "dev-tools-label",
+    "page-refresh-btn",
+    "clear-localstorage-btn",
+    "init-visitor-pool-btn",
+    "fill-visitor-slots-btn",
+    "free-visitor-slots-btn",
+    "cancel-all-jobs-btn",
+)
+
+#: The host Vite dev server, emitted only when DEBUG is on and VITE_USE_BUILD
+#: is off. Port-anchored so a legitimate link containing "5173" elsewhere does
+#: not fire.
+DEV_SERVER_ASSET_RE = re.compile(r":5173/")
+
+#: Where the captured page's configuration is written down, so a failure says
+#: which page was unfit rather than just "a page".
+WHAT_I_AM = "this page"
+
+
+class NotAProductionCaptureError(AssertionError):
+    """Raised when a captured page is not evidence of the production config."""
+
+
+def find_debug_only_markers(rendered_html: str) -> list[str]:
+    """Markers present in ``rendered_html`` that only a DEBUG page emits."""
+    return [marker for marker in DEBUG_ONLY_MARKERS if marker in rendered_html]
+
+
+def find_dev_server_asset_urls(rendered_html: str) -> list[str]:
+    """The host Vite dev-server URLs in ``rendered_html``, in order."""
+    return DEV_SERVER_ASSET_RE.findall(rendered_html)
+
+
+def diagnose_capture_config(
+    rendered_html: str,
+    *,
+    where: str = WHAT_I_AM,
+) -> list[str]:
+    """Every reason this page cannot verify production, as readable lines.
+
+    Returns an empty list when the page is fit. Returning reasons rather than
+    a bool keeps the failure message and the acceptance check reading the SAME
+    evidence — the defect class this whole card is about.
+    """
+    problems: list[str] = []
+    markers = find_debug_only_markers(rendered_html)
+    if markers:
+        problems.append(
+            f"{where}: the dev-only footer bar is present ({', '.join(markers)}). "
+            "That block is {% if DEBUG %} in "
+            "templates/global_base_partials/global_footer.html, so this page "
+            "was rendered with DEBUG=True and is not a picture of production."
+        )
+    dev_urls = find_dev_server_asset_urls(rendered_html)
+    if dev_urls:
+        problems.append(
+            f"{where}: {len(dev_urls)} asset URL(s) point at the Vite DEV "
+            "server (:5173/). Nothing serves that port in CI, so the frontend "
+            "was detached from this page — a screenshot of it cannot show "
+            "whether the product works."
+        )
+    return problems
+
+
+def assert_production_capture(
+    rendered_html: str,
+    *,
+    where: str = WHAT_I_AM,
+    debug_declared: bool | None = None,
+) -> None:
+    """Refuse a capture that does not evidence a production configuration.
+
+    :param rendered_html: the page's rendered HTML, as captured.
+    :param where: the page label used in the failure message.
+    :param debug_declared: the run's declared ``settings.DEBUG``, when the
+        caller has it. ``True`` is refused on the DECLARATION alone — the
+        point of the leader's ruling is that a DEBUG run may not satisfy
+        production verification even if this particular page happens to look
+        clean.
+
+    Fail-loud by construction: no parameters, no configuration and no
+    environment make this pass a DEBUG capture.
+    """
+    problems = diagnose_capture_config(rendered_html, where=where)
+    if debug_declared:
+        problems.insert(
+            0,
+            f"{where}: the capture declares DEBUG=True. Production acceptance "
+            "screenshots must be taken with DEBUG=0 (leader ruling "
+            "2026-09-11); a DEBUG capture may be supplemental, but it cannot "
+            "satisfy production verification.",
+        )
+    if problems:
+        raise NotAProductionCaptureError(
+            "REFUSING this capture — it is not evidence of the production "
+            "configuration, and a screenshot's whole value is fidelity:\n  "
+            + "\n  ".join(problems)
+            + "\nFix: run the acceptance capture with "
+            "SCITEX_HUB_DJANGO_DEBUG=0 (settings_dev.py:64 reads that name; a "
+            "bare `DEBUG` env var is read only by settings_prod/staging and is "
+            "INERT under settings_dev) and keep SCITEX_HUB_VITE_USE_BUILD=1 so "
+            "the built manifest is used."
+        )
+
+
+def assert_capture_sequence(
+    pages: Sequence[tuple[str, str]],
+    *,
+    debug_declared: bool | None = None,
+) -> None:
+    """Refuse the whole run if ANY captured page fails the check.
+
+    Separate from :func:`assert_production_capture` so a caller can report
+    every unfit page at once instead of failing on the first — a run that
+    uploads eleven good images and one DEBUG image is still an unfit artifact.
+    """
+    problems: list[str] = []
+    for where, rendered_html in pages:
+        try:
+            assert_production_capture(
+                rendered_html, where=where, debug_declared=debug_declared
+            )
+        except NotAProductionCaptureError as exc:
+            problems.append(str(exc))
+    if problems:
+        raise NotAProductionCaptureError("\n".join(problems))
+
+
+# ---------------------------------------------------------------------------
+# Browser problems are EVIDENCE, not decoration.
+#
+# LEADER HOLD 2026-09-11: "the report records HTTP 500 /apps/cards/graph ...
+# but BrowserProblemLog is reporting-only and 109 tests still pass". A capture
+# whose own report says a page's backend answered 500 has not verified that
+# page, and a green upload of it is the same class of lie as a DEBUG image.
+#
+# So HTTP >= 400 and page errors become HARD failures here. The one thing this
+# must NOT do is turn a KNOWN, ALREADY-CARDED base failure into a red the
+# capture cannot be rid of — that would get the check switched off. Known base
+# failures are therefore named explicitly, with the card that owns them, and
+# the capture asserts those stay exactly as they are: a new 500 fails, and a
+# known one DISAPPEARING also fails (an allowlist that outlives its cause is
+# how a guard rots — see cards-state-outside-the-database-is-disqualified).
+# ---------------------------------------------------------------------------
+
+#: ``(substring, owning card)`` for browser problems that are already known and
+#: owned elsewhere. Every entry needs a card id; an entry without one is a
+#: ``pytest.fail`` in the guard, not a silent pass.
+KNOWN_BASE_BROWSER_PROBLEMS: tuple[tuple[str, str], ...] = (
+    # MEASURED, not assumed. Every entry here was observed in BOTH this branch
+    # and the DEVELOP BASELINE capture (run 34522596918, SHA e882dcd91), or is
+    # explained by a mechanism verified in source — so each is a fact about the
+    # runner/app, not about this branch.
+    #
+    # THE RULE THAT MAKES THIS AN ALLOWLIST AND NOT A WAY TO BUY GREEN: a
+    # problem seen on only ONE side is NOT listed. That is why the baseline run
+    # is named in every entry rather than cited once in a comment.
+    #
+    # develop's own capture failed too (52 failed / 46 passed) and its report
+    # showed the SAME writer 404 and figrecipe 403 — plus a
+    # "/static/vite/*.js answered HTTP 500, no JavaScript ran" failure that does
+    # NOT appear on this branch.
+    (
+        "HTTP 500 http://127.0.0.1:8000/apps/cards/graph",
+        "hub-cards-graph-500-store-unconfigured-20260818",
+    ),
+    (
+        "HTTP 403 http://127.0.0.1:8000/apps/figrecipe/figrecipe/api/gallery/demo",
+        "hub-nginx-403s-the-figrecipe-api-prefix-20260816",
+    ),
+    # No PDF is compiled in CI, so the writer's preview endpoint 404s. Present
+    # on develop at base, not introduced here.
+    (
+        "HTTP 404 http://127.0.0.1:8000/apps/writer/api/project/11/pdf/preview-abstract-light.pdf",
+        "hub-acceptance-capture-base-browser-problems-20260911",
+    ),
+    # The citation-graph service is not running in CI; its health endpoint says
+    # so. A 503 from a health endpoint is the service REPORTING ITS STATE.
+    (
+        "HTTP 503 http://127.0.0.1:8000/apps/scholar/citation-graph/health/",
+        "hub-acceptance-capture-base-browser-problems-20260911",
+    ),
+    # MEDIA. /media/ is a gitignored RUNTIME VOLUME — `git ls-files media/`
+    # returns 0 files — and config/urls.py's production fallback
+    # (`if not settings.DEBUG: re_path(r"^media/(?P<path>.*)$", serve, ...)`)
+    # DOES serve it under DEBUG=0. So these are ABSENT FILES ON THE RUNNER, not
+    # a pipeline broken by the DEBUG flip. The thumbnail is additionally
+    # declared in DECLARED_ABSENT_MEDIA by exact src.
+    (
+        "HTTP 404 http://127.0.0.1:8000/media/videos/scitex-automated-research-demo-thumbnail.png",
+        "hub-acceptance-capture-base-browser-problems-20260911",
+    ),
+    (
+        "HTTP 404 http://127.0.0.1:8000/media/videos/scitex-automated-research-demo.mp4",
+        "hub-acceptance-capture-base-browser-problems-20260911",
+    ),
+    # The Gallery console error CARRIES NO STATUS CODE, so it cannot be matched
+    # to a carded problem by status the way its companions are. It is the same
+    # failure as the carded /apps/figrecipe/figrecipe/api/gallery/demo 403, so it
+    # is named explicitly here rather than excused by a generic rule.
+    (
+        "[Gallery] Could not open the demo figure",
+        "hub-nginx-403s-the-figrecipe-api-prefix-20260816",
+    ),
+)
+
+#: Substrings that make a browser problem a HARD failure regardless of any
+#: allowlist entry. Deliberately broader than the allowlist: a page error is
+#: never excusable by naming a URL.
+_HARD_PAGE_ERROR = "uncaught exception"
+
+
+def _status_code(problem: str) -> str | None:
+    """The HTTP status a browser problem is about, in either of its two forms.
+
+    The browser log records ONE failure TWICE: a structured line naming the URL
+    ("HTTP 404 http://...") and a URL-less console echo
+    ("console.error: Failed to load resource: the server responded with a status
+    of 404 (Not Found)"). Only the first can be matched to an entry by URL, so
+    the echo has to be recognised by status — otherwise an allowlisted problem
+    is still refused because of its own echo, which is what made this gate red
+    on a run where every problem was already carded.
+    """
+    match = re.search(r"HTTP\s+(\d{3})", problem)
+    if match:
+        return match.group(1)
+    match = re.search(r"status of (\d{3})", problem)
+    return match.group(1) if match else None
+
+
+def classify_browser_problems(
+    problems: Sequence[str],
+) -> tuple[list[str], list[tuple[str, str]]]:
+    """Split observed browser problems into ``(hard_failures, allowed)``.
+
+    ``hard_failures`` are problems the capture must not upload over;
+    ``allowed`` pairs each excused problem with the card that owns it, so the
+    artifact says WHO owns what it is not failing on.
+
+    The comparison is PER CALL, and each call is one page. That scoping is what
+    makes the echo rule safe: a console echo is excused only when the SAME page
+    already has a carded problem with the same status, so a NEW status on a page
+    is still a hard failure. Excusing echoes globally would excuse any 404
+    anywhere, which is the whole thing this gate exists to catch.
+    """
+    hard: list[str] = []
+    allowed: list[tuple[str, str]] = []
+
+    # Which statuses does THIS page already have carded?
+    carded_statuses = {
+        status
+        for problem in problems
+        if _HARD_PAGE_ERROR not in problem
+        and any(needle in problem for needle, _card in KNOWN_BASE_BROWSER_PROBLEMS)
+        if (status := _status_code(problem))
+    }
+
+    for problem in problems:
+        if _HARD_PAGE_ERROR in problem:
+            hard.append(problem)
+            continue
+        owner = next(
+            (card for needle, card in KNOWN_BASE_BROWSER_PROBLEMS if needle in problem),
+            None,
+        )
+        if owner is not None:
+            allowed.append((problem, owner))
+            continue
+        status = _status_code(problem)
+        if status is not None and status in carded_statuses:
+            allowed.append(
+                (problem, f"{status} already owned on this page (see its entry)")
+            )
+            continue
+        hard.append(problem)
+    return hard, allowed
+
+
+def assert_no_unowned_browser_problems(problems: Sequence[str]) -> None:
+    """Fail loudly when a captured page reported an unexplained problem.
+
+    Returns nothing on success. The message names each problem and, for the
+    known ones, the card that already owns it — so a reader can tell "this run
+    is broken" from "this run is honest about a known defect".
+    """
+    hard, allowed = classify_browser_problems(problems)
+    if hard:
+        raise NotAProductionCaptureError(
+            "REFUSING this capture — the browser reported problems that no "
+            "card owns, so the artifact would be an unverified upload:\n  "
+            + "\n  ".join(hard)
+            + "\nFix the cause, or if it is genuinely pre-existing add it to "
+            "KNOWN_BASE_BROWSER_PROBLEMS *with the card that owns it*."
+        )
+    if allowed:
+        # Not a failure: stated so a green run still says what it excused.
+        print(
+            "  excused (already-carded) browser problems: "
+            + "; ".join(f"{p} -> {c}" for p, c in allowed)
+        )

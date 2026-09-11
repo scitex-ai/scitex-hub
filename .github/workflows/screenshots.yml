@@ -210,14 +210,82 @@ jobs:
           # `_manifest_miss` RAISES under DEBUG, so a missing entry becomes a
           # loud 500 that test_page_is_served catches, rather than a page that
           # renders its shell over nothing.
+          # PRODUCTION ACCEPTANCE CAPTURES ARE DEBUG=0 (leader ruling
+          # 2026-09-11): "Production acceptance screenshots must be captured
+          # with DEBUG=0; DEBUG=1 screenshots may be supplemental but cannot
+          # satisfy production verification."
+          #
+          # THE LINE THIS REPLACES WAS INERT, which is why the capture ran at
+          # DEBUG=1 for so long without anyone being able to fix it by editing
+          # this file: it set a bare `DEBUG: "1"`, and settings_dev.py:64 reads
+          # SCITEX_HUB_DJANGO_DEBUG (default "True"). The bare name is read by
+          # settings_prod.py:49 and settings_staging.py:49 only. Deleting the
+          # old line would have changed nothing; naming the real switch is the
+          # change. tests/develop/test_screenshot_capture_config_guard.py pins
+          # both halves — the switch present, the inert name gone.
+          #
+          # WHAT DEGRADES QUIETLY AT DEBUG=0, stated because the comment above
+          # valued the opposite: `_manifest_miss` (vite.py:186-194) RAISES under
+          # DEBUG and only emits a console.error script otherwise, so a missing
+          # Vite entry is no longer a 500 here. The content assertions the
+          # capture already runs (visible content, non-empty #app-mount, no
+          # stuck loading placeholders) are what carry that load, and they are
+          # preserved deliberately.
+          # PRODUCTION-DERIVED ACCEPTANCE CONFIG, NOT settings_dev (leader HOLD
+          # 2026-09-11). settings_dev renders with plain StaticFilesStorage,
+          # WhiteNoise autorefresh and DevNoCacheMiddleware, so a DEBUG=0 run
+          # under it could not tell production static behaviour from dev's.
+          # settings_screenshots overlays the production posture (hashed,
+          # manifest-backed, strict) on the CI plumbing this job already sets.
+          #
+          # BOTH variable names, and that is not belt-and-braces: manage.py
+          # honours SCITEX_HUB_DJANGO_SETTINGS_MODULE, while plain Django
+          # (pytest in the capture step, tests/conftest.py's setdefault) reads
+          # DJANGO_SETTINGS_MODULE. Measured 2026-09-11 — with only the hub
+          # name set, a child interpreter still resolved settings_dev.
+          DJANGO_SETTINGS_MODULE: config.settings.settings_screenshots
+          SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_screenshots
           SCITEX_HUB_VITE_USE_BUILD: "1"
-          DEBUG: "1"
+          SCITEX_HUB_DJANGO_DEBUG: "0"
+          # DEBUG=0 ACTIVATES THE OPERATOR MAIL RAIL, so it needs a backend.
+          # MEASURED on this PR's first run (job 103097274649, 2026-09-11): with
+          # DEBUG=1 the `mail_admins` handler is filtered out by Django's
+          # `require_debug_false`; with DEBUG=0 it fires on the FIRST ERROR log,
+          # and settings_shared.py:442 defaults EMAIL_BACKEND to None when
+          # SCITEX_HUB_EMAIL_BACKEND is unset (staging defaults it, shared/dev
+          # do not). The chain that killed this step:
+          #     post_save -> gitea_repository.py:224 logger.error(...)
+          #       -> django/utils/log.py:135 AdminEmailHandler.send_mail
+          #       -> get_connection(settings.EMAIL_BACKEND=None)
+          #       -> import_string(None) -> AttributeError: 'NoneType' object
+          #          has no attribute 'rsplit'  -> exit 1
+          # locmem is Django's own in-memory backend: mail is exercised and
+          # dropped, no SMTP is attempted from a runner that has none. This
+          # makes the CI environment production-LIKE (what DEBUG=0 requires)
+          # rather than papering over the failure closer to the symptom.
+          SCITEX_HUB_EMAIL_BACKEND: django.core.mail.backends.locmem.EmailBackend
         run: |
           # -e: every command below is a precondition for a truthful
           # artifact. None of them may fail quietly.
           set -euo pipefail
 
           python manage.py migrate --run-syncdb
+          # COLLECTSTATIC IS REQUIRED BY DEBUG=0, and this is the second time the
+          # same shape has bitten this job: the flip to production-mode removes
+          # static serving that DEBUG was providing implicitly.
+          # MEASURED on this PR's run (job 103099211496, 2026-09-11): the capture
+          # RAN and failed with 21 browser errors, every one of them
+          #     "Refused to apply style from /static/public_app/css/landing/*.css
+          #      because its MIME type ('text/html') is not a supported stylesheet
+          #      MIME type"
+          # — i.e. the CSS URLs answered HTML. With DEBUG=1 django.contrib.staticfiles
+          # serves /static/ from the FINDERS. With DEBUG=0 that path is gone and
+          # WhiteNoise serves STATIC_ROOT instead; the workflow stages the built
+          # bundle into static/vite (a FINDER path, for the DEBUG case) and never
+          # ran collectstatic, so STATIC_ROOT held only what vite wrote and every
+          # app stylesheet fell through to the URLconf's catch-all and came back
+          # as HTML.
+          python manage.py collectstatic --noinput
 
           # The capture runs as a POOLED VISITOR, never a real account, so
           # the artifact can never contain someone's private project,
@@ -304,7 +372,24 @@ jobs:
           SCITEX_HUB_VISITOR_POOL_GITEA_ENABLED: "false"
           SCITEX_HUB_VITE_USE_BUILD: "1"
           SCITEX_BASE_URL: http://127.0.0.1:8000
-          DEBUG: "1"
+          # MUST MATCH THE SERVER STEP ABOVE: the acceptance capture is a
+          # production capture (DEBUG=0, leader ruling 2026-09-11), and the
+          # capture step's own assertion — capture_config_check
+          # .assert_production_capture — refuses the artifact if the page it
+          # photographed carries dev-only markers or Vite dev-server URLs.
+          # A mismatch between these two steps is exactly the drift that
+          # guard exists to make loud.
+          SCITEX_HUB_DJANGO_DEBUG: "0"
+          # Must match the server step: the capture asserts the same posture it
+          # photographed (hashed static pipeline, DEBUG off). BOTH names for the
+          # reason given on that step — this one runs plain pytest, which reads
+          # DJANGO_SETTINGS_MODULE, not the hub-prefixed alias.
+          DJANGO_SETTINGS_MODULE: config.settings.settings_screenshots
+          SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_screenshots
+          # Same reason as the server step: at DEBUG=0 the operator mail rail is
+          # live, and settings_shared.py:442 leaves EMAIL_BACKEND None unless
+          # this is set.
+          SCITEX_HUB_EMAIL_BACKEND: django.core.mail.backends.locmem.EmailBackend
         run: |
           # --browser chromium is REQUIRED, not decoration. tests/conftest.py's
           # pytest_collection_modifyitems skips everything under tests/e2e/
