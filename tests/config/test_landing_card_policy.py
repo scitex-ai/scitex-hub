@@ -24,7 +24,11 @@ from django.urls import include, path
 from django.utils import translation
 
 from apps.infra.auth_app.forms import SignupForm
-from apps.infra.public_app.pricing import load_pricing, published_price_groups
+from apps.infra.public_app.pricing import (
+    load_pricing,
+    published_price_groups,
+    published_price_rows,
+)
 from apps.infra.public_app.templatetags.landing_i18n import translate_dynamic
 
 REPO = Path(__file__).resolve().parents[2]
@@ -34,15 +38,15 @@ EXPECTED_FREE_FUNNEL = {
         "Create your free account and use SciTeX's free tier at no cost.",
         "Sign up free",
         "Creating an account does not activate this paid plan.",
-        "Academic subscription",
-        "Storage: 50 GB/project/month (Standard)",
+        "Sub · Academic",
+        "50 GB storage per project per month (Standard)",
     ),
     "ja": (
         "無料アカウントを作成して、SciTeX の無料プランをご利用いただけます。",
         "無料で登録",
         "アカウントを作成しても、この有料プランは開始されません。",
         "サブスク・学術",
-        "ストレージ 50GB/プロジェクト/月（Standard）",
+        "50 GB ストレージ / プロジェクト / 月 (Standard)",
     ),
 }
 
@@ -161,15 +165,21 @@ def _request(path: str):
 
 @override_settings(ROOT_URLCONF=__name__)
 def _rendered_landing(language: str) -> str:
+    # The context must be built INSIDE the override: published_price_groups()
+    # localizes price/price_note/included/storage at CALL time (2026-09-11),
+    # so baking it under the ambient test language would pin the wrong
+    # language into the render and make the test fail (or worse, pass) for
+    # reasons unrelated to what it asserts.
     pricing = load_pricing()
-    context = {
-        "published_price_groups": published_price_groups(),
-        "tax_note": pricing.get("tax_note", ""),
-        "pricing_notes": pricing["notes"],
-    }
+    request = _request("/landing/")
     with translation.override(language):
+        context = {
+            "published_price_groups": published_price_groups(),
+            "tax_note": pricing.get("tax_note", ""),
+            "pricing_notes": pricing["notes"],
+        }
         return render_to_string(
-            "public_app/landing.html", context, request=_request("/landing/")
+            "public_app/landing.html", context, request=request
         )
 
 
@@ -243,16 +253,26 @@ def test_pricing_ctas_are_generic_signup_not_paid_activation():
 @pytest.mark.parametrize(
     ("language", "expected", "forbidden"),
     [
-        ("en", "Storage: 50 GB/project/month (Standard)", "ストレージ"),
-        ("ja", "ストレージ 50GB/プロジェクト/月（Standard）", "Storage:"),
+        ("en", "50 GB storage per project per month (Standard)", "ストレージ"),
+        ("ja", "50 GB ストレージ / プロジェクト / 月 (Standard)", "Storage"),
     ],
 )
 def test_runtime_pricing_values_follow_the_active_language(
     language, expected, forbidden
 ):
-    source = "ストレージ 50GB/プロジェクト/月（Standard）"
+    """Call-time localization in published_price_rows() (2026-09-11).
+
+    The SSoT is English-source; the storage cell is computed by pricing.py and
+    translated when the active language is set. (This used to test
+    translate_dynamic on a JA source string — the double-translation path that
+    caused the en-callback bug and was removed from the landing template.)
+    """
     with translation.override(language):
-        rendered = translate_dynamic(source)
+        rendered = [
+            row["storage"]
+            for row in published_price_rows()
+            if row["id"] == "subscription-student"
+        ][0]
     assert rendered == expected and forbidden not in rendered
 
 
@@ -261,12 +281,17 @@ def test_english_pricing_has_no_japanese_literals():
     assert re.search(r"[\u3040-\u30ff\u3400-\u9fff]", pricing) is None
 
 
-def test_japanese_pricing_keeps_the_japanese_ssot_values():
+def test_japanese_landing_renders_the_japanese_pricing_strings():
+    """The JA landing shows the Japanese renderings of the EN-source SSoT.
+
+    (Renamed from ``..._keeps_the_japanese_ssot_values``: the SSoT is now
+    English-source — the Japanese text is the *rendered* catalog output, not
+    the stored value.)"""
     pricing = _visible_text(_section(_rendered_landing("ja"), "pricing"))
     expected = (
         "サブスク・学術",
         "月額 1,490円",
-        "ストレージ 50GB/プロジェクト/月（Standard）",
+        "50 GB ストレージ / プロジェクト / 月 (Standard)",
         "通常利用の範囲の通信",
     )
     assert all(value in pricing for value in expected)
