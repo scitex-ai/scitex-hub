@@ -105,6 +105,7 @@ fi
 install_ecosystem_packages() {
     try_editable_install "/figrecipe" "figrecipe" "[all]"
     try_editable_install "/scitex-writer" "scitex-writer" "[all]"
+    try_editable_install "/scitex-storage" "scitex-storage"
     try_editable_install "/crossref-local" "crossref-local" "[all]"
     try_editable_install "/openalex-local" "openalex-local" "[all]"
     try_editable_install "/socialia" "socialia" "[all]"
