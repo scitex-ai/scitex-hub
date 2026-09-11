@@ -162,6 +162,7 @@ jobs:
           SCITEX_HUB_REDIS_URL: redis://localhost:6379/0
           SCITEX_HUB_ENV: development
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
+          SCITEX_HUB_USER_DATA_ROOT: ${{ runner.temp }}/scitex-users
           # THIS RUNNER HAS NO GITEA. Declaring that is the supported way to
           # run the visitor pool without a git backend
           # (visitor_pool/gitea_integration.py:_gitea_enabled — "an explicit,
@@ -216,6 +217,8 @@ jobs:
           # -e: every command below is a precondition for a truthful
           # artifact. None of them may fail quietly.
           set -euo pipefail
+
+          mkdir -p "$SCITEX_HUB_USER_DATA_ROOT"
 
           python manage.py migrate --run-syncdb
 
@@ -296,6 +299,7 @@ jobs:
           SCITEX_HUB_REDIS_URL: redis://localhost:6379/0
           SCITEX_HUB_ENV: development
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
+          SCITEX_HUB_USER_DATA_ROOT: ${{ runner.temp }}/scitex-users
           # Same declarations as the step above: this runner has no Gitea and
           # no Vite dev server. Both must match the server step — the server
           # is the process that renders the <script> tags, but a mismatch here
