@@ -9,6 +9,28 @@ from unittest import mock
 import pytest
 
 
+class TestContainerPathInDjango:
+    """The Docker-visible alias is configurable independently of SLURM."""
+
+    @mock.patch.dict(
+        os.environ,
+        {"SCITEX_HUB_CONTAINER_PATH_IN_DJANGO": "/app/singularity/current"},
+        clear=False,
+    )
+    def test_explicit_docker_path_wins_over_legacy_setting(self):
+        import apps.workspace.console_app.views.terminal.config as cfg
+
+        with mock.patch.object(
+            cfg.settings,
+            "SINGULARITY_IMAGE_PATH",
+            "/legacy/current-sandbox",
+            create=True,
+        ):
+            cfg = importlib.reload(cfg)
+
+        assert cfg.BASE_CONTAINER_PATH == "/app/singularity/current"
+
+
 class TestDevReposParsing:
     """Test DEV_REPOS parsing from SCITEX_HUB_DEV_REPOS env var."""
 
