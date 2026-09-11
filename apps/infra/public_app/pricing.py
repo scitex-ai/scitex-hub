@@ -89,7 +89,7 @@ def format_amount(amount: int, unit: str = "once", from_price: bool = False) -> 
             "['month', 'once', 'per_case', 'per_hour']. Add the unit here "
             "deliberately rather than letting it render as a bare number."
         )
-    base = _unit_prefix(unit) + f"{amount:,}"
+    base = _unit_prefix(unit) + _yen(amount)
     return base + "+" if from_price else base
 
 
@@ -145,7 +145,10 @@ def _limit_set_by_text(key: str) -> str:
 
 
 def _eligibility_text(value: str) -> str:
-    return _("Eligibility: %(v)s") % {"v": value}
+    # The value is SSoT data (English-source), so translate it too; a value
+    # with no catalog entry returns unchanged (the source string), which is
+    # the correct behaviour for an English default.
+    return _("Eligibility: %(v)s") % {"v": _(value)}
 
 
 _ATTRIBUTE_TEXT = {
@@ -226,15 +229,26 @@ def _discounted(list_amount: int, percent: int) -> int:
 
 
 def _until_text(end: str) -> str:
-    """2027-07-31 -> 2027年7月末; a mid-month end names the day."""
+    """Localized early-adopter window end. EN msgid shows the English month
+    name ('End of July 2027'); the JA catalog re-renders the same date from the
+    numeric %(month_num)s/'%(day)s keys it also receives ('2027年7月末'). Python
+    % formatting tolerates the extra key, so the EN and JA msgstrs can differ
+    without the msgid changing."""
     last = date.fromisoformat(end)
+    d = {
+        "month": last.strftime("%B"),
+        "month_num": last.month,
+        "day": last.day,
+        "year": last.year,
+    }
     if (last + timedelta(days=1)).day == 1:
-        return f"{last.year}年{last.month}月末"
-    return f"{last.year}年{last.month}月{last.day}日"
+        return _("End of %(month)s %(year)s") % d
+    return _("%(month)s %(day)s, %(year)s") % d
 
 
 def _yen(amount: int) -> str:
-    return f"{amount:,}円"
+    """A yen amount, currency mark localized: ¥2,980 (EN) / 2,980円 (JA)."""
+    return _("¥%(amt)s") % {"amt": f"{amount:,}"}
 
 
 def _format_included_storage(attrs: dict[str, Any], basis: str = "") -> str:
@@ -281,7 +295,9 @@ def _staged_price_note(
 ) -> str:
     """The sentence a discounted row carries: the current window only.
 
-    定価 2,980円、早期導入割引 50%。2027年7月末までの早期導入価格。
+    EN source: "List price ¥2,980, early-adopter discount 50%. Early-adopter
+    price through end of July 2027." JA in the catalog:
+    "定価 2,980円、早期導入割引 50%。2027年7月末までの早期導入価格。"
 
     The LATER stages (2027年8月から 2,086円、2028年8月から …) were originally
     disclosed up front (2026-09-03, 景表法 dual-price protection), but the
@@ -289,10 +305,14 @@ def _staged_price_note(
     is already its own column, so the trailing schedule is dropped. Only the
     active window's end date remains.
     """
-    return (
-        f"定価 {_yen(list_amount)}、早期導入割引 {window['percent']}%。"
-        f"{_until_text(window['end'])}までの早期導入価格。"
-    )
+    return _(
+        "List price %(price)s, early-adopter discount %(percent)d%%. "
+        "Early-adopter price through %(until)s."
+    ) % {
+        "price": _yen(list_amount),
+        "percent": window["percent"],
+        "until": _until_text(window["end"]),
+    }
 
 
 def _render(row: dict[str, Any]) -> str:
@@ -426,7 +446,9 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
             if "included_compute_credit" in attrs
             else _format_compute_credit(attrs, basis)
         )
-        overage_str = _OVERAGE.get(attrs.get("overage")) or _format_overage(attrs)
+        overage_str = (
+            _overage_text(attrs["overage"]) if "overage" in attrs else ""
+        )
         included = included_items(attrs, basis)
         # 備考 cell: the included-list minus items that already have their own
         # column (ストレージ / 計算クレジット / 超過計算) — otherwise the tokushoho

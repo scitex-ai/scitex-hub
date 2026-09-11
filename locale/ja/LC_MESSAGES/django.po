@@ -558,6 +558,23 @@ msgid "Support SciTeX"
 msgstr "SciTeX を支援する"
 
 
+
+msgid "List price %(price)s, early-adopter discount %(percent)d%%. Early-adopter price through %(until)s."
+msgstr "定価 %(price)s、早期導入割引 %(percent)d%%。%(until)sまでの早期導入価格。"
+
+msgid "End of %(month)s %(year)s"
+msgstr "%(year)s年%(month_num)s月末"
+
+msgid "%(month)s %(day)s, %(year)s"
+msgstr "%(year)s年%(month_num)s月%(day)s日"
+
+msgid "¥%(amt)s"
+msgstr "%(amt)s円"
+
+msgid "University or research-institution email address (students, graduate students, faculty, researchers)"
+msgstr "大学・研究機関のメールアドレスを持つこと（学生・院生・教職員・研究員）"
+
+
 # Pricing i18n (English source, JA translations) — 2026-09-11
 msgid "Monthly"
 msgstr "月額"

@@ -29,7 +29,7 @@
         "included_traffic": "normal-use",
         "overage": "metered",
         "monthly_limit_set_by": "user",
-        "eligibility": "大学・研究機関のメールアドレスを持つこと（学生・院生・教職員・研究員）"
+        "eligibility": "University or research-institution email address (students, graduate students, faculty, researchers)"
       },
       "description": "For university and research-institution email addresses (students, graduate students, faculty, researchers)."
     },
