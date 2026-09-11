@@ -77,8 +77,8 @@ msgid "Sign in"
 msgstr "ログイン"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
-msgid "30-day free trial. Continue and you'll be billed for the first month from day one. Email verification is required; no card is needed until you start a paid plan."
-msgstr "30日間の無料トライアル。継続すると初月から課金されます。メール認証が必要です。カード情報は有料プラン開始まで不要です。"
+msgid "Free to sign up and free to use — no card needed. Payment details are requested only when you explicitly start a paid subscription or paid trial."
+msgstr "登録もご利用も無料です。カード情報は不要です。お支払い情報は、有料プランまたは有料トライアルを明示的に開始されるときにのみお願いします。"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
 msgid "Start free for 30 days"
