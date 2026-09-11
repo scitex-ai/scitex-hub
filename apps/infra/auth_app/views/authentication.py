@@ -287,11 +287,12 @@ def signup(request):
                         f"Failed to send verification email to {email}: {message}"
                     )
                     # Don't delete user - let them retry verification
-                    messages.warning(
-                        request,
-                        "Account created but verification email failed to send. "
-                        "Please contact support or try logging in later.",
-                    )
+                    # GENERIC, like every other signup outcome (PR #775 review).
+                    # A distinct "the email failed to send" told a caller that the
+                    # account had JUST been created — i.e. that the address was
+                    # NOT already registered. That is the same enumeration oracle
+                    # the collision paths were unified to close.
+                    messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
                     from django.urls import reverse
 
                     verify_url = reverse("auth_app:verify_email")
@@ -299,11 +300,8 @@ def signup(request):
             except Exception as e:
                 logger.error(f"Error during signup for {email}: {str(e)}")
                 # Don't delete user - keep the account
-                messages.warning(
-                    request,
-                    "Account created but there was an issue sending verification email. "
-                    "Please contact support or try logging in later.",
-                )
+                # GENERIC for the same reason as the branch above.
+                messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
                 from django.urls import reverse
 
                 verify_url = reverse("auth_app:verify_email")

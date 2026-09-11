@@ -70,8 +70,7 @@ class OidcIdentity:
     def __post_init__(self) -> None:
         if not (isinstance(self.issuer, str) and self.issuer.strip()):
             raise ValueError(
-                f"OidcIdentity.issuer must be a non-empty string "
-                f"(got {self.issuer!r})"
+                f"OidcIdentity.issuer must be a non-empty string (got {self.issuer!r})"
             )
         if not (isinstance(self.subject, str) and self.subject.strip()):
             raise ValueError(

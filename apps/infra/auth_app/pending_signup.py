@@ -222,6 +222,85 @@ def classify_pending_signup(
     return SignupCollision.ONE_SIDED, None
 
 
+def legacy_pending_candidates():
+    """Inactive users that MAY be pre-marker pending signups.
+
+    THIS IS A CANDIDATE SET, NEVER A VERDICT, and it must NOT be applied
+    automatically. The review's point, which is correct and which an earlier
+    version of this branch got wrong: an ADMIN-DISABLED account that never signed
+    in can ALSO carry an old matching unverified row. This predicate cannot tell
+    that apart from an abandoned signup, so auto-applying it would GRANT SIGNUP
+    AUTHORITY TO A SUSPENDED ACCOUNT — the exact thing this branch exists to
+    prevent.
+
+    So it lists ids. A human decides. ``reconcile_legacy_pending_signups``
+    applies that decision to EXPLICIT ids only, with provenance on the row.
+    """
+    from django.contrib.auth.models import User
+    from django.db.models import Exists, OuterRef
+    from django.db.models.functions import Lower
+
+    from .models import EmailVerification
+
+    matching_unverified = (
+        EmailVerification.objects.filter(user=OuterRef("pk"), is_verified=False)
+        .annotate(lowered=Lower("email"))
+        .filter(lowered=Lower(OuterRef("email")))
+    )
+    verified_history = EmailVerification.objects.filter(
+        user=OuterRef("pk"), is_verified=True
+    )
+    return (
+        User.objects.filter(is_active=False, last_login__isnull=True)
+        .exclude(password="")
+        .exclude(password__startswith="!")
+        .annotate(
+            has_matching_unverified=Exists(matching_unverified),
+            has_verified=Exists(verified_history),
+        )
+        .filter(has_matching_unverified=True, has_verified=False)
+        .order_by("pk")
+    )
+
+
+def legacy_evidence(user) -> list[str]:
+    """Readable evidence for one account, for the audit listing."""
+    from .models import EmailVerification
+
+    rows = list(EmailVerification.objects.filter(user=user).order_by("-created_at"))
+    return [
+        f"is_active={user.is_active}",
+        f"last_login={'never' if user.last_login is None else user.last_login}",
+        f"usable_password={user.has_usable_password()}",
+        f"joined={user.date_joined:%Y-%m-%d %H:%M}",
+        "verifications="
+        + (
+            ", ".join(
+                f"{r.email!r}/{'verified' if r.is_verified else 'unverified'}"
+                for r in rows
+            )
+            or "none"
+        ),
+    ]
+
+
+def legacy_ambiguous_inactive():
+    """Inactive users that are NOT candidates — reported, never reconciled.
+
+    The admin-disabled and otherwise-ambiguous shapes. Listing them is the point:
+    an operator SEES the accounts the inference cannot decide, instead of a
+    migration deciding silently on their behalf.
+    """
+    from django.contrib.auth.models import User
+
+    candidate_ids = list(legacy_pending_candidates().values_list("pk", flat=True))
+    return (
+        User.objects.filter(is_active=False)
+        .exclude(pk__in=candidate_ids)
+        .order_by("pk")
+    )
+
+
 def classify_and_reclaim(email: str, username: str = ""):
     """Classify, and REVALIDATE under a row lock. NEVER MUTATES.
 

@@ -63,11 +63,7 @@ def whoami(request):
     )
 
     issuers = sorted(
-        set(
-            LinkedIdentity.objects.filter(user=user).values_list(
-                "issuer", flat=True
-            )
-        )
+        set(LinkedIdentity.objects.filter(user=user).values_list("issuer", flat=True))
     )
 
     return JsonResponse(
@@ -79,9 +75,7 @@ def whoami(request):
             # Issuers only — never the subjects. Enough for the board to show
             # "signed in with Google", useless as a correlator.
             "issuers": issuers,
-            "instance": str(
-                getattr(settings, "SCITEX_INSTANCE_NAME", "") or ""
-            ),
+            "instance": str(getattr(settings, "SCITEX_INSTANCE_NAME", "") or ""),
         }
     )
 

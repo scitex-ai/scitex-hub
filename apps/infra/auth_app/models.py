@@ -222,6 +222,13 @@ class PendingSignup(models.Model):
     )
     email = models.EmailField()
     created_at = models.DateTimeField(auto_now_add=True)
+    #: PROVENANCE (PR #775 review). Null on a marker created by a real signup.
+    #: Set when an OPERATOR explicitly reconciled a legacy account, which is the
+    #: only way a pre-existing row may acquire signup authority — the evidence is
+    #: not self-authenticating, so a human decision is recorded on the row itself
+    #: rather than implied by its existence.
+    reconciled_at = models.DateTimeField(null=True, blank=True)
+    reconciled_by = models.CharField(max_length=255, blank=True, default="")
 
     class Meta:
         verbose_name = "Pending Signup"

@@ -478,21 +478,29 @@ def test_a_code_can_only_be_claimed_once_under_real_concurrency():
     lock = threading.Lock()
 
     def claim():
-        # Each thread re-reads the row the way a separate request would.
-        fresh = EmailVerification.objects.get(pk=verification.pk)
-        won = fresh.claim()
-        with lock:
-            results.append(won)
+        try:
+            # Each thread re-reads the row the way a separate request would.
+            fresh = EmailVerification.objects.get(pk=verification.pk)
+            won = fresh.claim()
+            with lock:
+                results.append(won)
+        finally:
+            from django.db import connection
 
-    # Act — more claimers than there is a code.
-    workers = [threading.Thread(target=claim) for _ in range(6)]
+            connection.close()
+
+    # Act — more claimers than there is a code. THREE, not more: this is a SHARED
+    # dev Postgres and each thread holds a connection, so a large fan-out hits
+    # "sorry, too many clients already" and fails for an environmental reason
+    # that looks like a logic failure. Three is still a genuine race.
+    workers = [threading.Thread(target=claim) for _ in range(3)]
     for worker in workers:
         worker.start()
     for worker in workers:
         worker.join()
 
     # Assert — EXACTLY one winner, whatever the interleaving.
-    assert len(results) == 6
+    assert len(results) == 3
     assert results.count(True) == 1
     verification.refresh_from_db()
     assert verification.is_verified is True
@@ -803,18 +811,26 @@ def test_concurrent_signups_for_one_identity_leave_exactly_one_row():
             result = "created"
         except IntegrityError:
             result = "rejected"
+        finally:
+            # WITHOUT THIS, every thread leaves a connection open and the dev
+            # Postgres reaches "sorry, too many clients already" — which fails
+            # the test for an environmental reason that looks like a logic bug.
+            from django.db import connection
+
+            connection.close()
         with lock:
             outcomes.append(result)
 
-    # Act
-    workers = [threading.Thread(target=attempt, args=(i,)) for i in range(6)]
+    # Act — THREE threads: see the note in the claim-race test above about the
+    # shared dev Postgres connection budget.
+    workers = [threading.Thread(target=attempt, args=(i,)) for i in range(3)]
     for worker in workers:
         worker.start()
     for worker in workers:
         worker.join()
 
     # Assert — exactly ONE row, whatever the interleaving.
-    assert len(outcomes) == 6
+    assert len(outcomes) == 3
     assert outcomes.count("created") == 1, f"outcomes: {outcomes}"
     assert User.objects.filter(username__iexact="racer").count() == 1
 
@@ -830,7 +846,7 @@ def test_concurrent_case_variant_usernames_collide_in_the_database():
     # Arrange
     from django.db import IntegrityError
 
-    variants = ["CaseRacer", "caseracer", "CASERACER", "cAsErAcEr", "caseraceR"]
+    variants = ["CaseRacer", "caseracer", "CASERACER"]
     outcomes: list[str] = []
     lock = threading.Lock()
 
@@ -844,6 +860,10 @@ def test_concurrent_case_variant_usernames_collide_in_the_database():
             result = "created"
         except IntegrityError:
             result = "rejected"
+        finally:
+            from django.db import connection
+
+            connection.close()
         with lock:
             outcomes.append(result)
 
