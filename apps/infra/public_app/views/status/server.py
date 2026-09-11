@@ -28,6 +28,8 @@ from concurrent.futures import ThreadPoolExecutor, wait
 
 from django.shortcuts import render
 
+from config.django_db_threads import close_database_connections_after
+
 from .compute_resources import check_container_runtime_status, check_slurm_status
 from .gitea_orgs import check_gitea_orgs
 from .health_checks import (
@@ -82,6 +84,7 @@ def _new_status_skeleton():
     }
 
 
+@close_database_connections_after
 def _run_check(fn, request=None):
     """Run one health check against a PRIVATE status dict and return it.
 
