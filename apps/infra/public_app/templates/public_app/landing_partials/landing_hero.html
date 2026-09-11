@@ -49,11 +49,6 @@
                            exactly what shipped to prod here.
                         {% endcomment %}
                         <a href="{% if user.is_authenticated %}/apps/{% else %}/auth/signup/{% endif %}" class="hero-cta-button">{% trans "Try SciTeX" %} <span class="hero-cta-arrow">&rarr;</span></a>
-                        {% if not user.is_authenticated %}
-                        <a href="/auth/login/" class="hero-link-button">
-                            <i class="fas fa-sign-in-alt"></i> {% trans "Sign in" %}
-                        </a>
-                        {% endif %}
                     </div>
                     {% if not user.is_authenticated %}
                     <p class="hero-cta-note">{% trans "Create your free account and use SciTeX's free tier at no cost." %}</p>
