@@ -492,3 +492,91 @@ def test_a_correct_guess_still_verifies_after_the_throttle_exists(client):
     assert response.status_code == 200
     verification.refresh_from_db()
     assert verification.is_verified is True
+
+
+# ---------------------------------------------------------------------------
+# PR #775 third review: evidence, locking, and races. These need the database.
+# ---------------------------------------------------------------------------
+
+
+def test_an_inactive_NON_PENDING_row_is_never_deleted_by_the_resume_path(client):
+    """An administrator-disabled account is inactive, has no pending signup
+    behind it, and used to satisfy the expired branch — which DELETED it."""
+    # Arrange — inactive, past the window, and NO verification row at all.
+    disabled = User.objects.create_user(
+        username="disabled_user",
+        email="disabled@example.com",
+        password="Gx7-quiet-harbour-42",
+        is_active=False,
+    )
+    User.objects.filter(pk=disabled.pk).update(
+        date_joined=timezone.now() - ps.PENDING_SIGNUP_WINDOW - timedelta(hours=3)
+    )
+    assert not EmailVerification.objects.filter(user=disabled).exists()
+    disabled_pk = disabled.pk
+
+    fields = _attacker_fields("disabled_user")
+    fields["email"] = "disabled@example.com"
+
+    # Act
+    client.post(reverse("auth_app:signup"), fields)
+
+    # Assert — the row SURVIVES. is_active=False was never proof of a signup.
+    assert User.objects.filter(pk=disabled_pk).exists(), (
+        "an inactive NON-PENDING row was deleted by the resume path"
+    )
+
+
+def test_a_proven_pending_row_IS_reclaimed():
+    """Control: the evidence requirement must not stop a real reclaim."""
+    # Arrange — inactive, expired, and WITH an unverified verification row.
+    victim = _victim()
+    User.objects.filter(pk=victim.pk).update(
+        date_joined=timezone.now() - ps.PENDING_SIGNUP_WINDOW - timedelta(hours=3)
+    )
+    EmailVerification.objects.create(user=victim, email=victim.email)
+
+    # Act
+    collision, _user = ps.classify_and_reclaim(victim.email, victim.username)
+
+    # Assert
+    assert collision is ps.SignupCollision.NONE
+    assert not User.objects.filter(pk=victim.pk).exists()
+
+
+def test_the_reclaim_service_cannot_double_delete():
+    """Two callers racing the same expired row: the second must find nothing
+    rather than acting on a stale classification."""
+    # Arrange
+    victim = _victim()
+    User.objects.filter(pk=victim.pk).update(
+        date_joined=timezone.now() - ps.PENDING_SIGNUP_WINDOW - timedelta(hours=3)
+    )
+    EmailVerification.objects.create(user=victim, email=victim.email)
+
+    # Act
+    first, _ = ps.classify_and_reclaim(victim.email, victim.username)
+    second, _ = ps.classify_and_reclaim(victim.email, victim.username)
+
+    # Assert — idempotent, and the row is gone exactly once.
+    assert first is ps.SignupCollision.NONE
+    assert second is ps.SignupCollision.NONE
+    assert not User.objects.filter(pk=victim.pk).exists()
+
+
+def test_a_row_verified_inside_the_window_is_not_reclaimed():
+    """The revalidation's whole reason for existing: a verification that lands
+    between the classification and the lock must WIN, not be deleted."""
+    # Arrange — the row LOOKS expired, but its verification is complete.
+    victim = _victim()
+    User.objects.filter(pk=victim.pk).update(
+        date_joined=timezone.now() - ps.PENDING_SIGNUP_WINDOW - timedelta(hours=3)
+    )
+    EmailVerification.objects.create(user=victim, email=victim.email, is_verified=True)
+
+    # Act
+    collision, _user = ps.classify_and_reclaim(victim.email, victim.username)
+
+    # Assert — untouched.
+    assert collision is ps.SignupCollision.INACTIVE_NOT_PENDING
+    assert User.objects.filter(pk=victim.pk).exists()

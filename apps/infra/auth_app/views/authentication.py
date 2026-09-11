@@ -94,16 +94,24 @@ def signup(request):
             # here, so the inactive-account branch was unreachable and its
             # "wait 1 hour for the account to expire" advice pointed at an
             # expiry nothing ever performed.
+            from django.db import IntegrityError
+
             from ..models import EmailVerification
             from ..pending_signup import (
                 SignupCollision,
-                classify_pending_signup,
+                classify_and_reclaim,
                 record_resend,
                 resend_allowed,
                 resend_budget_message,
             )
 
-            collision, existing_user = classify_pending_signup(email, username)
+            # ATOMIC, LOCKED, REVALIDATED (PR #775 third review). This used to
+            # classify and then delete/re-create with NOTHING held in between, so
+            # a concurrent verification could activate the row in that window and
+            # the expired branch would delete a live account. classify_and_reclaim
+            # re-reads the row under select_for_update and checks every
+            # precondition again before it removes anything.
+            collision, existing_user = classify_and_reclaim(email, username)
 
             if collision is SignupCollision.PENDING_EXPIRED and existing_user:
                 # I3: an EXPIRED pending signup is RESUMABLE, and it is decided
@@ -134,6 +142,7 @@ def signup(request):
                 SignupCollision.ACTIVE,
                 SignupCollision.SPLIT,
                 SignupCollision.ONE_SIDED,
+                SignupCollision.INACTIVE_NOT_PENDING,
             ):
                 # I1/I4: an ACTIVE account is never recreated and never deleted
                 # here; SPLIT means two different accounts hold the submitted
@@ -155,12 +164,27 @@ def signup(request):
                 return redirect(f"{verify_url}?email={email}")
 
             # Create inactive user (cannot log in until email verified)
-            user = User.objects.create_user(
-                username=username,
-                email=email,
-                password=password,
-                is_active=False,  # User inactive until email verified
-            )
+            #
+            # The insert can still LOSE A RACE (PR #775 third review): two
+            # concurrent signups can both classify NONE and both reach here. The
+            # database is the only arbiter that cannot race, so its verdict is
+            # taken as a collision and answered with the SAME generic response
+            # used everywhere else — never with a message that would confirm
+            # which value was taken.
+            try:
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                    is_active=False,  # User inactive until email verified
+                )
+            except IntegrityError:
+                logger.info("Signup insert lost a race; generic reply")
+                messages.info(request, _SIGNUP_RESPONSE_MESSAGE)
+                from django.urls import reverse
+
+                verify_url = reverse("auth_app:verify_email")
+                return redirect(f"{verify_url}?email={email}")
 
             # Create user profile (should be auto-created by signal, but ensure it exists)
             UserProfile.objects.get_or_create(user=user)

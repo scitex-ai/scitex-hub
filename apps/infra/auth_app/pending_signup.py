@@ -87,6 +87,32 @@ class SignupCollision(enum.Enum):
     #: reached the delete-and-recreate branch. A collision is a collision: the
     #: caller is given NO user, so it cannot act on a row it has not proven.
     ONE_SIDED = "one_sided"
+    #: INACTIVE, but with NO pending signup behind it — an administrator-disabled
+    #: account, or any other use of is_active=False that is not a signup.
+    #:
+    #: SECURITY (PR #775 third review): the classifier treated ANY
+    #: is_active=False row as a pending signup, so the expired branch would
+    #: DELETE a row that had merely been switched off. Pending is EVIDENCE.
+    INACTIVE_NOT_PENDING = "inactive_not_pending"
+
+
+def has_pending_evidence(user) -> bool:
+    """Whether this row actually has a pending signup behind it.
+
+    ``is_active=False`` alone does NOT prove that. An administrator disabling an
+    account, a deactivation for abuse, or any future non-signup use of the flag
+    all produce inactive rows with no signup behind them — and
+    :func:`classify_and_reclaim` DELETES on the expired branch. Requiring an
+    unverified ``EmailVerification`` is what separates "waiting to verify" from
+    "inactive for some other reason", and it is the difference between
+    reclaiming an abandoned signup and destroying somebody's account.
+
+    Kept as a module-level function (rather than inlined) so the tests that run
+    without a database can substitute it.
+    """
+    from .models import EmailVerification
+
+    return EmailVerification.objects.filter(user=user, is_verified=False).exists()
 
 
 def _by_email(email: str):
@@ -150,6 +176,12 @@ def classify_pending_signup(
         user = email_user
         if user.is_active:
             return SignupCollision.ACTIVE, user
+        # EVIDENCE, NOT THE FLAG (PR #775 third review). is_active=False is not
+        # proof of a pending signup: an administrator-disabled account is
+        # inactive too, and the expired branch DELETES. No pending verification,
+        # no pending signup — so this row is off-limits to the resume path.
+        if not has_pending_evidence(user):
+            return SignupCollision.INACTIVE_NOT_PENDING, None
         if pending_age(user) > PENDING_SIGNUP_WINDOW:
             return SignupCollision.PENDING_EXPIRED, user
         return SignupCollision.PENDING_LIVE, user
@@ -159,6 +191,49 @@ def classify_pending_signup(
     if email_user is not None and username_user is not None:
         return SignupCollision.SPLIT, None
     return SignupCollision.ONE_SIDED, None
+
+
+def classify_and_reclaim(email: str, username: str = ""):
+    """Classify, and REVALIDATE UNDER A ROW LOCK before removing anything.
+
+    PR #775 third review. The classification and the destructive step were
+    separated by nothing: ``classify`` -> look at the result -> ``delete()``. In
+    that window the row's owner can submit a correct code, which ACTIVATES the
+    row — and the delete then destroys an account that had just been verified.
+    Two concurrent signups can also both classify the same row and both act on
+    it.
+
+    So the removal happens here, inside one transaction, against a row re-read
+    with ``select_for_update``, and every precondition is checked AGAIN against
+    that locked row rather than against the earlier snapshot. A lock without
+    revalidation only makes a stale decision atomic.
+
+    Returns ``(collision, user)`` for the caller to act on. Note that
+    ``PENDING_EXPIRED`` is never returned: by the time this returns, a proven
+    stale row has already been removed and the caller sees ``NONE``.
+    """
+    from django.db import transaction
+
+    with transaction.atomic():
+        collision, user = classify_pending_signup(email, username)
+        if collision is not SignupCollision.PENDING_EXPIRED or user is None:
+            return collision, user
+
+        locked = User.objects.select_for_update().filter(pk=user.pk).first()
+        if locked is None:
+            # Someone else removed it first; a clean create is the right answer.
+            return SignupCollision.NONE, None
+
+        # REVALIDATE, do not trust the snapshot above.
+        if locked.is_active or not has_pending_evidence(locked):
+            # It became a real account (or was never a signup) while we looked.
+            return SignupCollision.INACTIVE_NOT_PENDING, None
+        if pending_age(locked) <= PENDING_SIGNUP_WINDOW:
+            # Someone resumed it inside the window while we looked.
+            return SignupCollision.PENDING_LIVE, locked
+
+        locked.delete()
+        return SignupCollision.NONE, None
 
 
 # ---------------------------------------------------------------------------

@@ -37,9 +37,16 @@ class _Row:
         self.date_joined = timezone.now() - age
 
 
-def _stub(monkeypatch, *, by_email=None, by_username=None):
+def _stub(monkeypatch, *, by_email=None, by_username=None, evidence=True):
+    """Stub the three database touches so classification runs without postgres.
+
+    ``evidence`` is the PENDING-SIGNUP PROOF — an unverified EmailVerification
+    behind the row. It defaults to True because most cases here are about the
+    collision shape; the tests that are about evidence pass False explicitly.
+    """
     monkeypatch.setattr(ps, "_by_email", lambda _email: by_email)
     monkeypatch.setattr(ps, "_by_username", lambda _username: by_username)
+    monkeypatch.setattr(ps, "has_pending_evidence", lambda _user: evidence)
 
 
 # ---------------------------------------------------------------------------
@@ -303,3 +310,86 @@ def test_the_code_validity_used_in_the_message_is_the_models_own():
     assert expected == 10
     assert f"valid for {expected} minutes" in authentication._SIGNUP_RESPONSE_MESSAGE
     assert "60 minutes" not in authentication._SIGNUP_RESPONSE_MESSAGE
+
+
+# ---------------------------------------------------------------------------
+# PR #775 third review: is_active=False is NOT proof of a pending signup.
+# ---------------------------------------------------------------------------
+
+
+def test_an_inactive_row_with_no_pending_evidence_is_not_a_pending_signup(monkeypatch):
+    """An administrator-disabled account is inactive and has no signup behind
+    it. Treating it as pending put it in reach of the expired branch, which
+    DELETES — so the fix has to be evidence, not the flag."""
+    # Arrange
+    disabled = _Row(1, email="victim@example.com", username="victim_pending")
+    _stub(monkeypatch, by_email=disabled, by_username=disabled, evidence=False)
+
+    # Act
+    collision, found = ps.classify_pending_signup(
+        "victim@example.com", "victim_pending"
+    )
+
+    # Assert
+    assert collision is ps.SignupCollision.INACTIVE_NOT_PENDING
+    assert found is None
+
+
+def test_an_inactive_row_with_no_evidence_is_not_resumable_even_when_expired(
+    monkeypatch,
+):
+    """The dangerous combination: inactive, past the window, no signup behind
+    it. This is the state the old code DELETED."""
+    # Arrange
+    disabled = _Row(
+        1,
+        email="victim@example.com",
+        username="victim_pending",
+        age=ps.PENDING_SIGNUP_WINDOW + timedelta(hours=3),
+    )
+    _stub(monkeypatch, by_email=disabled, by_username=disabled, evidence=False)
+
+    # Act
+    collision, found = ps.classify_pending_signup(
+        "victim@example.com", "victim_pending"
+    )
+
+    # Assert
+    assert collision is ps.SignupCollision.INACTIVE_NOT_PENDING
+    assert found is None
+
+
+def test_a_proven_pending_row_still_classifies_normally(monkeypatch):
+    """Positive control: the evidence requirement must not block real signups,
+    or every attack test would pass while the feature was dead."""
+    # Arrange
+    pending = _Row(1, email="p@example.com", username="p")
+    _stub(monkeypatch, by_email=pending, by_username=pending, evidence=True)
+
+    # Act
+    collision, found = ps.classify_pending_signup("p@example.com", "p")
+
+    # Assert
+    assert collision is ps.SignupCollision.PENDING_LIVE
+    assert found is pending
+
+
+def test_the_reclaim_service_locks_AND_revalidates():
+    """Source-level: locking alone only makes a STALE decision atomic.
+
+    The window that matters is between classifying and deleting; what closes it
+    is re-reading the row under select_for_update and re-checking every
+    precondition against THAT row.
+    """
+    # Arrange
+    import pathlib
+
+    source = pathlib.Path(ps.__file__).read_text(encoding="utf-8")
+    body = source[source.index("def classify_and_reclaim") :]
+
+    # Act / Assert
+    assert "select_for_update" in body
+    assert "transaction.atomic" in body
+    assert "has_pending_evidence(locked)" in body
+    assert "locked.is_active" in body
+    assert "locked.delete()" in body
