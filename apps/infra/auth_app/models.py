@@ -1,4 +1,3 @@
-import random
 import string
 from datetime import timedelta
 
@@ -181,6 +180,19 @@ class UserProfile(models.Model):
         return int((completed / len(fields)) * 100)
 
 
+#: How long a verification CODE is valid. The model's expiry, the message shown
+#: to the user and the template all read THIS, so they cannot disagree — the
+#: signup response used to promise 60 minutes while the model enforced 10.
+CODE_VALIDITY = timedelta(minutes=10)
+
+#: Wrong guesses allowed against ONE code before it is burned.
+#:
+#: A 6-digit code is only 10**6 possibilities. That is fine for a human typing
+#: it and trivially small for a script: with no counter, guessing was FREE and
+#: UNLIMITED. Throttling is what makes the keyspace meaningful.
+MAX_CODE_ATTEMPTS = 5
+
+
 class EmailVerification(models.Model):
     """Email verification for user registration"""
 
@@ -193,6 +205,9 @@ class EmailVerification(models.Model):
     verified_at = models.DateTimeField(null=True, blank=True)
     expires_at = models.DateTimeField()
     is_verified = models.BooleanField(default=False)
+    #: Wrong guesses recorded against THIS row. Persisted rather than cached so
+    #: a restart, a cache flush or a second worker cannot reset the budget.
+    attempts = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
         verbose_name = "Email Verification"
@@ -206,17 +221,40 @@ class EmailVerification(models.Model):
         if not self.code:
             self.code = self.generate_code()
         if not self.expires_at:
-            self.expires_at = timezone.now() + timedelta(minutes=10)
+            self.expires_at = timezone.now() + CODE_VALIDITY
         super().save(*args, **kwargs)
 
     @staticmethod
     def generate_code():
-        """Generate a 6-digit verification code"""
-        return "".join(random.choices(string.digits, k=6))
+        """Generate a 6-digit verification code.
+
+        SECURITY: ``secrets``, NOT ``random``. ``random`` is a Mersenne
+        Twister — deterministic from its internal state, and a handful of its
+        outputs is enough to reconstruct that state — so codes minted with it
+        are predictable to anyone who has observed a few. An OTP is a bearer
+        credential; it has to come from the CSPRNG.
+        """
+        import secrets
+
+        return "".join(secrets.choice(string.digits) for _ in range(6))
 
     def is_expired(self):
         """Check if verification code has expired"""
         return timezone.now() > self.expires_at
+
+    def register_failed_attempt(self) -> bool:
+        """Count one WRONG guess. Returns True when the code is now burned.
+
+        A burned code is given an expiry in the past, so the existing
+        ``is_expired`` check refuses it and the owner must request a fresh code
+        — which is itself rate limited. This is what turns "unlimited guesses
+        for ten minutes" into five.
+        """
+        self.attempts = (self.attempts or 0) + 1
+        if self.attempts >= MAX_CODE_ATTEMPTS:
+            self.expires_at = timezone.now()
+        self.save(update_fields=["attempts", "expires_at"])
+        return self.attempts >= MAX_CODE_ATTEMPTS
 
     def verify(self):
         """Mark verification as completed"""

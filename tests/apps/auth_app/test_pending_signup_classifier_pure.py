@@ -190,3 +190,116 @@ def test_nothing_matching_is_still_a_fresh_signup(monkeypatch):
     # Assert
     assert collision is ps.SignupCollision.NONE
     assert found is None
+
+
+# ---------------------------------------------------------------------------
+# The request-level tests must actually REACH the branches they claim to test.
+# ---------------------------------------------------------------------------
+
+
+def test_no_test_posts_a_field_the_signup_form_ignores():
+    """PR #775 re-review blocker 5.
+
+    The request tests posted ``confirm_password`` while ``SignupForm`` expects
+    ``password2``. The extra key is ignored and the REQUIRED one is missing, so
+    every such POST re-rendered the form with a 200 and the 302 assertions were
+    never reached — a test that exercises nothing proves nothing, and a fix's
+    safety must not rest on one.
+    """
+    import pathlib
+
+    here = pathlib.Path(__file__).parent
+    for name in (
+        "test_pending_signup_lifecycle.py",
+        "test_pending_signup_takeover_regression.py",
+    ):
+        text = (here / name).read_text(encoding="utf-8")
+        # Matches the KEY, not the bare word: both files contain explanatory
+        # comments quoting the wrong name, and a guard that trips on its own
+        # documentation is a false alarm rather than a catch.
+        assert '"confirm_password":' not in text, (
+            f"{name} posts a key SignupForm does not read, so its payload is "
+            "form-invalid and its assertions are never reached"
+        )
+
+
+def test_the_signup_form_expects_password2():
+    # Arrange
+    from apps.infra.auth_app.forms import SignupForm
+
+    # Act
+    names = set(SignupForm.base_fields)
+
+    # Assert
+    assert "password2" in names
+    assert "confirm_password" not in names
+
+
+def test_the_request_payload_shape_is_actually_form_valid():
+    """Runs the validator rather than restating its field list."""
+    # Arrange
+    from apps.infra.auth_app.forms import SignupForm
+
+    form = SignupForm(
+        data={
+            "username": "payload_probe",
+            "email": "payload_probe@example.com",
+            "password": "Gx7-quiet-harbour-42",
+            "password2": "Gx7-quiet-harbour-42",
+            "agree_terms": "on",
+        }
+    )
+
+    # Act / Assert — if this fails, every 302 assertion in the suite is dead.
+    assert form.is_valid(), form.errors
+
+
+def test_verification_codes_come_from_the_csprng_not_random():
+    """PR #775 re-review blocker 2.
+
+    ``random.choices`` is a Mersenne Twister: deterministic from its state, and
+    a handful of observed outputs is enough to reconstruct that state. An OTP is
+    a bearer credential, so it must come from the CSPRNG.
+    """
+    import pathlib
+
+    from apps.infra.auth_app import models as auth_models
+
+    # Arrange
+    source = pathlib.Path(auth_models.__file__).read_text(encoding="utf-8")
+    start = source.index("def generate_code")
+
+    # Act
+    body = source[start : start + 700]
+
+    # Assert
+    assert "secrets.choice" in body
+    assert "random.choices" not in body
+
+
+def test_a_generated_code_is_six_digits():
+    # Arrange
+    from apps.infra.auth_app.models import EmailVerification
+
+    # Act / Assert
+    for _ in range(25):
+        code = EmailVerification.generate_code()
+        assert len(code) == 6
+        assert code.isdigit()
+
+
+def test_the_code_validity_used_in_the_message_is_the_models_own():
+    """PR #775 re-review blocker 3: the response promised 60 minutes while the
+    model enforced 10. The message is now DERIVED, so this asserts the
+    derivation rather than a retyped number."""
+    # Arrange
+    from apps.infra.auth_app.models import CODE_VALIDITY
+    from apps.infra.auth_app.views import authentication
+
+    # Act
+    expected = int(CODE_VALIDITY.total_seconds() // 60)
+
+    # Assert
+    assert expected == 10
+    assert f"valid for {expected} minutes" in authentication._SIGNUP_RESPONSE_MESSAGE
+    assert "60 minutes" not in authentication._SIGNUP_RESPONSE_MESSAGE

@@ -66,7 +66,27 @@ def verify_email_api(request):
                 )
 
             # Verify the code
-            if verification.code != otp_code:
+            #
+            # Constant-time compare, and THROTTLED (PR #775 re-review). A
+            # 6-digit code is only 10**6 possibilities: with no counter,
+            # guessing was free and unlimited for the entire validity window,
+            # which is what made the small keyspace matter. Five wrong guesses
+            # burn the code; the owner then requests a fresh one, and that
+            # request is itself rate limited.
+            import secrets as _secrets
+
+            if not _secrets.compare_digest(verification.code, otp_code):
+                if verification.register_failed_attempt():
+                    return JsonResponse(
+                        {
+                            "success": False,
+                            "error": (
+                                "Too many incorrect attempts. Please request a "
+                                "new verification code."
+                            ),
+                        },
+                        status=429,
+                    )
                 return JsonResponse(
                     {
                         "success": False,
@@ -148,10 +168,43 @@ def verify_email_api(request):
         )
 
 
-@csrf_exempt
+#: THE ONE resend response. Every non-malformed request gets this exact body
+#: and status, whether or not an account exists, whether or not mail went out.
+#: Different bodies for found/not-found made the endpoint an enumeration oracle
+#: (PR #775 re-review).
+_RESEND_RESPONSE = {
+    "success": True,
+    "message": (
+        "If that address can be used for a SciTeX account, a new verification "
+        "code has been sent. Check your inbox and spam folder."
+    ),
+}
+
+
 @require_http_methods(["POST"])
 def resend_otp_api(request):
-    """API endpoint to resend OTP verification code"""
+    """API endpoint to resend OTP verification code.
+
+    SECURITY (PR #775 re-review). Three removals of ways this endpoint was more
+    useful to an attacker than to a user:
+
+    1. CSRF PROTECTION RESTORED. It was ``@csrf_exempt`` — a state-changing
+       POST (it mints a code and sends mail) that any third-party page could
+       fire on a visitor's behalf.
+    2. RATE LIMITED, and the budget is spent BEFORE the lookup, so a caller
+       probing addresses that do not exist pays exactly what a caller mailing a
+       real user pays. Previously unlimited: a mail-bomb at machine speed, and
+       a way to invalidate a victim's outstanding code at will.
+    3. ONE INDISTINGUISHABLE RESPONSE. "Account found" and "not found" used to
+       return different bodies. Now every non-malformed request gets the same
+       body and status. The 400 for a MISSING field is kept, because that is a
+       fact about the REQUEST, not about any account.
+
+    The code is bound to the ROW's own address (``user.email``), never to the
+    submitted string, so this endpoint cannot be aimed at a third party either.
+    """
+    from apps.infra.auth_app.pending_signup import record_resend, resend_allowed
+
     try:
         data = json.loads(request.body)
         email = data.get("email", "").strip()
@@ -161,59 +214,39 @@ def resend_otp_api(request):
                 {"success": False, "error": "Email is required."}, status=400
             )
 
-        # Find user with this email
-        try:
-            user = User.objects.get(email=email, is_active=False)
-        except User.DoesNotExist:
-            # Don't reveal if email exists or not for security
-            return JsonResponse(
-                {
-                    "success": True,
-                    "message": "If an account exists with this email, a new verification code has been sent.",
-                }
-            )
+        # Spend the budget FIRST, before any lookup.
+        if not resend_allowed(email):
+            return JsonResponse(_RESEND_RESPONSE, status=200)
+        record_resend(email)
 
-        # Delete old unverified verification records (don't mark as verified)
-        EmailVerification.objects.filter(email=email, is_verified=False).delete()
+        user = User.objects.filter(email__iexact=email, is_active=False).first()
+        if user is None:
+            return JsonResponse(_RESEND_RESPONSE, status=200)
 
-        # Create new verification
+        # Rotate: a fresh code invalidates the previous one, which is what
+        # asking for a new one means.
+        EmailVerification.objects.filter(
+            email__iexact=user.email, is_verified=False
+        ).delete()
+
         verification = EmailVerification.objects.create(
             user=user,
-            email=email,
+            email=user.email,
         )
 
-        # Send new verification email
         try:
             success, message = EmailService.send_otp_email(
-                email=email, otp_code=verification.code, verification_type="signup"
+                email=user.email,
+                otp_code=verification.code,
+                verification_type="signup",
             )
-
-            if success:
-                logger.info(f"Resent verification email to {email}")
-                return JsonResponse(
-                    {
-                        "success": True,
-                        "message": "A new verification code has been sent to your email.",
-                    }
-                )
-            else:
-                logger.error(
-                    f"Failed to resend verification email to {email}: {message}"
-                )
-                return JsonResponse(
-                    {
-                        "success": False,
-                        "error": "Failed to send verification email. Please try again.",
-                    },
-                    status=500,
-                )
-
+            if not success:
+                logger.error(f"Failed to resend verification email: {message}")
         except Exception as e:
-            logger.error(f"Error resending verification email to {email}: {str(e)}")
-            return JsonResponse(
-                {"success": False, "error": "An error occurred. Please try again."},
-                status=500,
-            )
+            # Sent or not, the caller is told the same thing: the send outcome
+            # must not be readable by someone who does not own the inbox.
+            logger.error(f"Error resending verification email: {str(e)}")
+        return JsonResponse(_RESEND_RESPONSE, status=200)
 
     except json.JSONDecodeError:
         return JsonResponse(

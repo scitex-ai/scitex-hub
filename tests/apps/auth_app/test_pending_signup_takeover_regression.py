@@ -51,7 +51,10 @@ def _attacker_fields(victim_username: str) -> dict:
         "username": victim_username,
         "email": ATTACKER_EMAIL,
         "password": ATTACKER_PASSWORD,
-        "confirm_password": ATTACKER_PASSWORD,
+        # password2, NOT confirm_password — see the note in
+        # test_pending_signup_lifecycle.py. A key the form ignores makes the
+        # form invalid, so the request never reaches the branch under test.
+        "password2": ATTACKER_PASSWORD,
         "agree_terms": "on",
     }
 
@@ -357,3 +360,135 @@ def test_the_exact_pair_still_classifies_as_pending_and_resumable():
     assert live_user is not None and live_user.pk == live.pk
     assert expired_collision is ps.SignupCollision.PENDING_EXPIRED
     assert expired_user is not None and expired_user.pk == expired.pk
+
+
+# ---------------------------------------------------------------------------
+# PR #775 re-review blockers 1 and 2: the LIVE resend endpoint and the guess
+# counter. These need the database and run in CI.
+# ---------------------------------------------------------------------------
+
+
+def test_the_resend_endpoint_is_no_longer_csrf_exempt():
+    """It was @csrf_exempt: a state-changing POST (mints a code, sends mail)
+    that any third-party page could fire on a visitor's behalf."""
+    # Arrange
+    import json
+
+    from django.test import Client
+
+    csrf_enforcing = Client(enforce_csrf_checks=True)
+
+    # Act
+    response = csrf_enforcing.post(
+        reverse("auth_app:api_resend_otp"),
+        data=json.dumps({"email": "victim@example.com"}),
+        content_type="application/json",
+    )
+
+    # Assert — no token, no action.
+    assert response.status_code == 403
+
+
+def test_the_resend_response_is_identical_whether_or_not_the_account_exists(client):
+    """Different bodies for found/not-found made it an enumeration oracle."""
+    # Arrange
+    import json
+
+    _victim()
+
+    # Act
+    existing = client.post(
+        reverse("auth_app:api_resend_otp"),
+        data=json.dumps({"email": "victim@example.com"}),
+        content_type="application/json",
+    )
+    missing = client.post(
+        reverse("auth_app:api_resend_otp"),
+        data=json.dumps({"email": "nobody_at_all@example.com"}),
+        content_type="application/json",
+    )
+
+    # Assert — byte-for-byte the same answer either way.
+    assert existing.status_code == 200
+    assert missing.status_code == 200
+    assert existing.json() == missing.json()
+
+
+def test_the_resend_endpoint_is_rate_limited_and_rotates_at_most_one_code(client):
+    """It was unlimited: a mail-bomb, and a way to invalidate a victim's
+    outstanding code at will."""
+    # Arrange
+    import json
+
+    from django.core.cache import cache
+
+    from apps.infra.auth_app import pending_signup
+
+    victim = _victim()
+    cache.clear()
+
+    # Act — far more requests than the budget allows.
+    responses = [
+        client.post(
+            reverse("auth_app:api_resend_otp"),
+            data=json.dumps({"email": victim.email}),
+            content_type="application/json",
+        )
+        for _ in range(pending_signup.RESENDS_ALLOWED_PER_WINDOW + 4)
+    ]
+
+    # Assert — uniform answers (no oracle), and the budget really did stop the
+    # sends: rotation means at most ONE outstanding code exists.
+    assert {r.status_code for r in responses} == {200}
+    assert EmailVerification.objects.filter(email=victim.email).count() <= 1
+    assert pending_signup.resend_allowed(victim.email) is False
+
+
+def test_five_wrong_guesses_burn_the_code(client):
+    """A 6-digit code is 10**6 possibilities. With no counter, guessing was
+    free and unlimited for the whole validity window."""
+    # Arrange
+    import json
+
+    from apps.infra.auth_app.models import MAX_CODE_ATTEMPTS
+
+    victim = _victim()
+    verification = EmailVerification.objects.create(user=victim, email=victim.email)
+
+    # Act — guess wrong, repeatedly, with a code that is not the real one.
+    wrong = "000000" if verification.code != "000000" else "111111"
+    last = None
+    for _ in range(MAX_CODE_ATTEMPTS):
+        last = client.post(
+            reverse("auth_app:api_verify_email"),
+            data=json.dumps({"email": victim.email, "otp_code": wrong}),
+            content_type="application/json",
+        )
+
+    # Assert — the code is burned and the attempts are on the ROW, so a restart
+    # or a second worker cannot reset the budget.
+    assert last is not None and last.status_code == 429
+    verification.refresh_from_db()
+    assert verification.attempts >= MAX_CODE_ATTEMPTS
+    assert verification.is_expired()
+
+
+def test_a_correct_guess_still_verifies_after_the_throttle_exists(client):
+    """The control: throttling must not block the legitimate owner."""
+    # Arrange
+    import json
+
+    victim = _victim()
+    verification = EmailVerification.objects.create(user=victim, email=victim.email)
+
+    # Act
+    response = client.post(
+        reverse("auth_app:api_verify_email"),
+        data=json.dumps({"email": victim.email, "otp_code": verification.code}),
+        content_type="application/json",
+    )
+
+    # Assert
+    assert response.status_code == 200
+    verification.refresh_from_db()
+    assert verification.is_verified is True

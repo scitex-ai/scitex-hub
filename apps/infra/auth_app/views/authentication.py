@@ -10,20 +10,26 @@ from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 
 from ..forms import LoginForm, SignupForm
-from ..models import UserProfile
+from ..models import CODE_VALIDITY, UserProfile
+
+#: How long a code is valid, RENDERED FROM THE MODEL'S OWN CONSTANT rather than
+#: retyped. The previous wording promised 60 minutes while the model enforced
+#: 10 — a false claim in a message whose entire job is to be truthful about
+#: what just happened. Deriving it means the two can never disagree again.
+_CODE_VALIDITY_MINUTES = int(CODE_VALIDITY.total_seconds() // 60)
 
 #: THE ONE response for a signup attempt, used by EVERY outcome: a fresh
-#: account, a resumed pending signup, a resend, an already-ACTIVE account and a
-#: SPLIT collision. Deliberately conditional — "if that address can be used" —
-#: because it has to be TRUE in all five cases, and because identical wording is
-#: what stops the endpoint being an account-enumeration oracle. The actionable
-#: routes (verify / sign in / reset) are offered to everyone, so offering them
-#: signals nothing about whether this particular address exists.
+#: account, a resumed pending signup, a resend, an already-ACTIVE account and
+#: the collision cases. Deliberately conditional — "if that address can be
+#: used" — because it has to be TRUE in all of them, and because identical
+#: wording is what stops the endpoint being an account-enumeration oracle. The
+#: actionable routes (verify / sign in / reset) are offered to everyone, so
+#: offering them signals nothing about whether this address exists.
 _SIGNUP_RESPONSE_MESSAGE = (
     "If that address can be used for a SciTeX account, we've sent a "
     "verification code to it — check your inbox and spam folder. The code is "
-    "valid for 60 minutes. If you already have an account, sign in instead, or "
-    "reset your password if you've forgotten it."
+    f"valid for {_CODE_VALIDITY_MINUTES} minutes. If you already have an "
+    "account, sign in instead, or reset your password if you've forgotten it."
 )
 
 

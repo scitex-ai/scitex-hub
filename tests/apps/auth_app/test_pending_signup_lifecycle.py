@@ -35,7 +35,11 @@ SIGNUP_FIELDS = {
     "username": "pending_probe",
     "email": "pending_probe@example.com",
     "password": "Gx7-quiet-harbour-42",
-    "confirm_password": "Gx7-quiet-harbour-42",
+    # password2, NOT confirm_password: SignupForm.base_fields has no such key,
+    # so posting it silently left the form INVALID and the 302 assertions below
+    # could never be reached (PR #775 re-review). Guarded by
+    # test_no_test_posts_a_field_the_form_ignores.
+    "password2": "Gx7-quiet-harbour-42",
     "agree_terms": "on",
 }
 
