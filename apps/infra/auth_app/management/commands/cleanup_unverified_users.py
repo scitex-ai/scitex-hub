@@ -1,9 +1,16 @@
-"""
-Management command to clean up unverified users (email verification expired).
+"""Management command to clean up unverified users (email verification expired).
 
 This helps free up email slots for users who:
 - Registered but never verified their email
 - Have expired verification codes
+
+NOTE (hub auth lifecycle P0): the SIGNUP REQUEST PATH NO LONGER DEPENDS ON THIS
+COMMAND. Expiry and resume are decided in ``auth_app.pending_signup`` when a
+signup is submitted, so a pending signup is resumable whether or not any sweep
+has ever run — the pending window used to live only here as an unscheduled
+manual command, which made "wait 1 hour for the account to expire" advice that
+nothing performed. This command remains useful for reclaiming abandoned
+addresses and for the audit below.
 
 Usage:
     python manage.py cleanup_unverified_users
@@ -12,10 +19,13 @@ Usage:
     python manage.py cleanup_unverified_users --email=user@example.com
 """
 
-from django.core.management.base import BaseCommand
-from django.contrib.auth.models import User
-from django.utils import timezone
 from datetime import timedelta
+
+from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand
+from django.utils import timezone
+
+from apps.infra.auth_app.pending_signup import PENDING_SIGNUP_WINDOW
 
 
 class Command(BaseCommand):
@@ -25,8 +35,13 @@ class Command(BaseCommand):
         parser.add_argument(
             "--hours",
             type=int,
-            default=1,
-            help="Delete unverified users older than this many hours (default: 1)",
+            default=int(PENDING_SIGNUP_WINDOW.total_seconds() // 3600),
+            help=(
+                "Delete unverified users older than this many hours "
+                f"(default: {int(PENDING_SIGNUP_WINDOW.total_seconds() // 3600)}, "
+                "derived from auth_app.pending_signup.PENDING_SIGNUP_WINDOW so "
+                "the sweep and the request path cannot drift apart)"
+            ),
         )
         parser.add_argument(
             "--dry-run",
@@ -104,6 +119,59 @@ class Command(BaseCommand):
                     self.style.ERROR(f"Errors encountered: {error_count}")
                 )
 
+        self._audit_active_accounts()
+
+    def _audit_active_accounts(self):
+        """Report, and NEVER mutate, ACTIVE accounts whose verification rows say
+        otherwise.
+
+        This is the invariant I1 check (``is_active=True`` IS a verified
+        account) and it exists because of live evidence: an active account can
+        carry a LATER, EXPIRED ``EmailVerification`` with ``is_verified=False``.
+        Nothing here deletes or edits anything — an active account holds real
+        data and, in the observed case, a real user. The point is to make the
+        contradiction visible and attributable instead of invisible, so the
+        repair is a deliberate decision rather than a sweep.
+        """
+        from apps.infra.auth_app.models import EmailVerification
+
+        self.stdout.write("\n" + "=" * 50)
+        self.stdout.write("AUDIT: active accounts with unverified verification rows")
+
+        active_with_stale = (
+            User.objects.filter(is_active=True)
+            .filter(auth_email_verifications__is_verified=False)
+            .distinct()
+        )
+        count = active_with_stale.count()
+
+        if count == 0:
+            self.stdout.write(
+                self.style.SUCCESS(
+                    "  OK: no active account carries an unverified verification row"
+                )
+            )
+            return
+
+        self.stdout.write(
+            self.style.WARNING(
+                f"  {count} active account(s) have unverified verification rows. "
+                "NOT modified by this command — review each deliberately."
+            )
+        )
+        for user in active_with_stale[:20]:
+            stale = EmailVerification.objects.filter(
+                user=user, is_verified=False
+            ).order_by("-created_at")
+            latest = stale.first()
+            self.stdout.write(
+                f"  - {user.username} (active since {user.date_joined:%Y-%m-%d}): "
+                f"{stale.count()} unverified row(s)"
+                + (f", latest {latest.created_at:%Y-%m-%d} expired" if latest else "")
+            )
+        if count > 20:
+            self.stdout.write(f"  ... and {count - 20} more")
+
     def _delete_specific_user(self, email, dry_run):
         """Delete a specific unverified user by email."""
         user = User.objects.filter(email=email, is_active=False).first()
@@ -139,7 +207,7 @@ class Command(BaseCommand):
         if verified:
             self.stdout.write(
                 self.style.WARNING(
-                    f"  SKIPPED: User has verified email but is_active=False (manual review needed)"
+                    "  SKIPPED: User has verified email but is_active=False (manual review needed)"
                 )
             )
             return

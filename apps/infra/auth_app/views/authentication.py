@@ -12,6 +12,43 @@ from django.shortcuts import redirect, render
 from ..forms import LoginForm, SignupForm
 from ..models import UserProfile
 
+#: THE ONE response for a signup attempt, used by EVERY outcome: a fresh
+#: account, a resumed pending signup, a resend, an already-ACTIVE account and a
+#: SPLIT collision. Deliberately conditional — "if that address can be used" —
+#: because it has to be TRUE in all five cases, and because identical wording is
+#: what stops the endpoint being an account-enumeration oracle. The actionable
+#: routes (verify / sign in / reset) are offered to everyone, so offering them
+#: signals nothing about whether this particular address exists.
+_SIGNUP_RESPONSE_MESSAGE = (
+    "If that address can be used for a SciTeX account, we've sent a "
+    "verification code to it — check your inbox and spam folder. The code is "
+    "valid for 60 minutes. If you already have an account, sign in instead, or "
+    "reset your password if you've forgotten it."
+)
+
+
+def _send_pending_signup_code(request, user, email, logger) -> bool:
+    """Issue a fresh verification code for a PENDING signup and mail it.
+
+    Shared by the resume path so a resent code is created exactly the way the
+    original one was — one code path, not two that can drift.
+    """
+    from apps.infra.project_app.services.email_service import EmailService
+
+    from ..models import EmailVerification
+
+    verification = EmailVerification.objects.create(user=user, email=email)
+    try:
+        success, message = EmailService.send_otp_email(
+            email=email, otp_code=verification.code, verification_type="signup"
+        )
+    except Exception as exc:  # pragma: no cover - provider failures
+        logger.error(f"Error re-sending verification for a pending signup: {exc}")
+        return False
+    if not success:
+        logger.error(f"Failed to re-send verification email: {message}")
+    return bool(success)
+
 
 def signup(request):
     """User signup view with email verification required."""
@@ -31,46 +68,60 @@ def signup(request):
             username = form.cleaned_data["username"]
             password = form.cleaned_data["password"]
 
-            # Check if email is already registered
-            existing_user = User.objects.filter(email=email).first()
-            if existing_user:
-                # Check if it's an unverified account with expired verification
-                if not existing_user.is_active:
-                    from datetime import timedelta
+            # LIFECYCLE DECISION (hub auth lifecycle P0). This block replaces a
+            # dead end: the form used to reject any existing row before we got
+            # here, so the inactive-account branch was unreachable and its
+            # "wait 1 hour for the account to expire" advice pointed at an
+            # expiry nothing ever performed.
+            from ..models import EmailVerification
+            from ..pending_signup import (
+                SignupCollision,
+                classify_pending_signup,
+                record_resend,
+                resend_allowed,
+                resend_budget_message,
+            )
 
-                    from django.utils import timezone
+            collision, existing_user = classify_pending_signup(email, username)
 
-                    from ..models import EmailVerification
+            if collision is SignupCollision.PENDING_EXPIRED and existing_user:
+                # I3: an EXPIRED pending signup is RESUMABLE, and it is decided
+                # HERE rather than by any sweep, so correctness does not depend
+                # on the unscheduled cleanup command having run. The stale row
+                # is inactive and never verified, so nothing of value is lost —
+                # this is the deletion the original code intended but could
+                # never reach. Falling through re-creates it with the values
+                # just submitted, which also fixes the typo'd-password dead end.
+                logger.info("Replacing expired pending signup")
+                existing_user.delete()
 
-                    # Check if verification has expired (default: 1 hour after registration)
-                    verification_timeout = timedelta(hours=1)
-                    account_expired = (
-                        timezone.now() - existing_user.date_joined
-                        > verification_timeout
-                    )
-
-                    if account_expired:
-                        # Delete the expired unverified account to allow re-registration
-                        logger.info(
-                            f"Deleting expired unverified account for email: {email}"
-                        )
-                        existing_user.delete()
-                    else:
-                        # Account not yet expired, prompt to verify
-                        messages.warning(
-                            request,
-                            "An unverified account exists with this email. "
-                            "Please check your inbox or wait 1 hour for the account to expire.",
-                        )
-                        from django.urls import reverse
-
-                        verify_url = reverse("auth_app:verify_email")
-                        return redirect(f"{verify_url}?email={email}")
-                else:
-                    messages.error(
-                        request, "An account with this email already exists."
-                    )
+            elif collision is SignupCollision.PENDING_LIVE:
+                # I2/I5: inside the window the account stands; the only useful
+                # action is another code, and that is rate limited per address.
+                if not resend_allowed(email):
+                    messages.warning(request, resend_budget_message())
                     return render(request, "auth_app/signup.html", {"form": form})
+                record_resend(email)
+                _send_pending_signup_code(request, existing_user, email, logger)
+                messages.info(request, _SIGNUP_RESPONSE_MESSAGE)
+                from django.urls import reverse
+
+                verify_url = reverse("auth_app:verify_email")
+                return redirect(f"{verify_url}?email={email}")
+
+            elif collision in (SignupCollision.ACTIVE, SignupCollision.SPLIT):
+                # I1/I4: an ACTIVE account is never recreated and never deleted
+                # here; SPLIT means two different accounts hold the submitted
+                # email and username, so neither "create" nor "resume" is
+                # correct and guessing would hijack a username or strand an
+                # address. Both answer with the SAME message a real signup gets,
+                # which is what stops the response being an enumeration oracle.
+                logger.info("Signup attempt matched an existing account; generic reply")
+                messages.info(request, _SIGNUP_RESPONSE_MESSAGE)
+                from django.urls import reverse
+
+                verify_url = reverse("auth_app:verify_email")
+                return redirect(f"{verify_url}?email={email}")
 
             # Create inactive user (cannot log in until email verified)
             user = User.objects.create_user(
@@ -123,7 +174,6 @@ def signup(request):
                 logger.info(f"No visitor project to claim for new user {username}")
 
             # Create email verification record
-            from ..models import EmailVerification
 
             verification = EmailVerification.objects.create(
                 user=user,
@@ -138,10 +188,11 @@ def signup(request):
 
                 if success:
                     logger.info(f"Verification email sent to {email}")
-                    messages.success(
-                        request,
-                        f"Account created! Please check {email} for a verification code. You have 1 hour to verify.",
-                    )
+                    # SAME message as every other outcome, deliberately — see
+                    # _SIGNUP_RESPONSE_MESSAGE. A distinct "Account created!"
+                    # here would be the enumeration oracle: identical wording
+                    # for create/resend/resume/already-active is the point.
+                    messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
                     # Redirect to email verification page
                     from django.urls import reverse
 
