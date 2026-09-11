@@ -77,12 +77,48 @@ msgid "Sign in"
 msgstr "ログイン"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
-msgid "Free for 30 days. Cancel anytime. Email verification and a card are required."
-msgstr "30日間無料・いつでも解約。メール認証とカード登録が必要です。"
+msgid "Create your free account and use SciTeX's free tier at no cost."
+msgstr "無料アカウントを作成して、SciTeX の無料プランをご利用いただけます。"
+
+#: apps/infra/auth_app/templates/auth_app/signup.html
+msgid "Create your account and use SciTeX's free tier at no cost."
+msgstr "アカウントを作成して、SciTeX の無料プランをご利用いただけます。"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
-msgid "Start free for 30 days"
-msgstr "30日間無料で始める"
+msgid "Pricing"
+msgstr "料金"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Sign up free"
+msgstr "無料で登録"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Creating an account does not activate this paid plan."
+msgstr "アカウントを作成しても、この有料プランは開始されません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Contact us"
+msgstr "お問い合わせ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "For details, see the"
+msgstr "詳細は"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "pricing page"
+msgstr "料金ページ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid " and "
+msgstr "、"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "legal notice required by Japan's Specified Commercial Transactions Act"
+msgstr "特定商取引法に基づく表記"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "."
+msgstr "をご覧ください。"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
 msgid "No sign-up needed — starts a temporary visitor workspace."

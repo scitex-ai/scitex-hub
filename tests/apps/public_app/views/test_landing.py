@@ -65,12 +65,14 @@ class LandingHeroCtaTest(TestCase):
         # must not send a first-time visitor there.
         assert b'href="/apps/home/" class="hero-cta-button"' not in resp.content
 
-    def test_hero_cta_note_explains_no_signup(self):
+    def test_hero_cta_note_promises_only_the_free_account_and_tier(self):
         # Arrange: an anonymous visitor
         # Act
         resp = self.client.get("/landing/")
-        # Assert — subtext makes the "temporary, no sign-up" nature explicit
-        assert b"No sign-up needed" in resp.content
+        # Assert — this is a pre-upgrade surface. It promises the free account
+        # and tier without introducing payment instruments or trial terms.
+        body = resp.content
+        assert b"Create your free account" in body
 
     def test_landing_offers_sign_up(self):
         # Arrange: an anonymous visitor

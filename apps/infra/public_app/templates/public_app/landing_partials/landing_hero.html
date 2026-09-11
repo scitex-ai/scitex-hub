@@ -27,13 +27,13 @@
                 <div class="hero-cta">
                     <div class="hero-cta-container">
                         {% comment %}
-                           Primary: explicitly START A VISITOR SESSION. Target /enter/ is a
-                           visitor-provisioning entry (NOT skip-listed by
-                           VisitorAutoLoginMiddleware), so choosing this allocates a slot; the
-                           view then sends the visitor to "/", which renders the APP LAUNCHER.
-                           Sign up / Sign in are the alternatives.
+                           Primary: SIGN UP (/auth/signup/). The visitor funnel is
+                           RETIRED policy, so this is no longer a visitor
+                           -provisioning entry and the /enter/ route is no longer
+                           its target — /enter/ may still exist for existing
+                           links, but nothing new should point at it.
 
-                           This used to point at /apps/home/, which also provisions but renders
+                           This used to point at /apps/home/, which provisions but renders
                            the Gitea-style REPOSITORY BROWSER — so the first thing a prospective
                            user saw after clicking was dotfiles and "No commit message". Do not
                            point it back there: /apps/home/ keeps that view on purpose (approved
@@ -50,7 +50,7 @@
                             <i class="fas fa-sign-in-alt"></i> {% trans "Sign in" %}
                         </a>
                     </div>
-                    <p class="hero-cta-note">{% trans "30-day free trial. Continue and you'll be billed for the first month from day one. Email verification and a card are required." %}</p>
+                    <p class="hero-cta-note">{% trans "Create your free account and use SciTeX's free tier at no cost." %}</p>
                 </div>
                 <div class="hero-links">
                     <a href="/apps/" class="hero-link-button">
