@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('auth_app', '0006_verifiedemail_linkedidentity_and_more'),
+        ("auth_app", "0006_verifiedemail_linkedidentity_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='emailverification',
-            name='attempts',
+            model_name="emailverification",
+            name="attempts",
             field=models.PositiveSmallIntegerField(default=0),
         ),
     ]

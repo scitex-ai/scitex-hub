@@ -138,7 +138,7 @@ def signup(request):
                     messages.warning(request, resend_budget_message())
                     return render(request, "auth_app/signup.html", {"form": form})
                 _send_pending_signup_code(request, existing_user, email, logger)
-                messages.info(request, _SIGNUP_RESPONSE_MESSAGE)
+                messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
                 from django.urls import reverse
 
                 verify_url = reverse("auth_app:verify_email")
@@ -153,7 +153,7 @@ def signup(request):
                     messages.warning(request, resend_budget_message())
                     return render(request, "auth_app/signup.html", {"form": form})
                 _send_pending_signup_code(request, existing_user, email, logger)
-                messages.info(request, _SIGNUP_RESPONSE_MESSAGE)
+                messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
                 from django.urls import reverse
 
                 verify_url = reverse("auth_app:verify_email")
@@ -178,7 +178,7 @@ def signup(request):
                 # change, no login. That is what stops the response being an
                 # enumeration oracle AND what stops it being a takeover.
                 logger.info("Signup attempt matched an existing account; generic reply")
-                messages.info(request, _SIGNUP_RESPONSE_MESSAGE)
+                messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
                 from django.urls import reverse
 
                 verify_url = reverse("auth_app:verify_email")
@@ -201,7 +201,7 @@ def signup(request):
                 )
             except IntegrityError:
                 logger.info("Signup insert lost a race; generic reply")
-                messages.info(request, _SIGNUP_RESPONSE_MESSAGE)
+                messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
                 from django.urls import reverse
 
                 verify_url = reverse("auth_app:verify_email")

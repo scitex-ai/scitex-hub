@@ -384,16 +384,32 @@ def test_the_fifth_wrong_attempt_and_a_correct_claim_have_only_two_terminal_stat
 def test_concurrent_case_variant_signup_requests_are_uniform_and_create_one_identity(
     monkeypatch,
 ):
-    """Four case-variant REQUESTS, each with its own client.
+    """FOUR case-variant REQUESTS released TOGETHER from a start barrier.
 
-    Asserts: uniform responses, and exactly ONE User, ONE PendingSignup for it,
-    ONE usable OTP, and ONE delivery side effect. The delivery count matters —
-    "one account" is not the same claim as "one email sent", and a request that
-    re-sent would still leave one account.
+    The previous version claimed four and defined three, had no barrier (so the
+    requests rarely overlapped at all), compared only status codes, and called an
+    OTP "usable" merely because is_verified was False. Each of those made the test
+    weaker than its own name. Now it asserts:
+
+      * four variants, released simultaneously from a threading.Barrier;
+      * uniform STATUS, LOCATION and MESSAGES across all four callers;
+      * exactly one User, one PendingSignup marker, one delivery side effect;
+      * and the surviving OTP is genuinely USABLE — unexpired, zero failed
+        attempts, and actually claimable.
     """
+    import django.contrib.messages as messages_module
     from django.test import Client
 
+    variants = [
+        ("RaceUser", "race@example.com"),
+        ("raceuser", "race@example.com"),
+        ("RACEUSER", "race@example.com"),
+        ("rAcEuSeR", "race@example.com"),
+    ]
+    barrier = threading.Barrier(len(variants))
     sent: list[dict] = []
+    responses: list[tuple[int, str]] = []
+    recorded: dict[int, list] = {}
     lock = threading.Lock()
 
     def _fake_send(**kwargs):
@@ -401,27 +417,30 @@ def test_concurrent_case_variant_signup_requests_are_uniform_and_create_one_iden
             sent.append(kwargs)
         return (True, "sent")
 
+    def _recorder(level: str):
+        def _record(_request, message, *_args, **_kwargs):
+            recorded.setdefault(threading.get_ident(), []).append((level, str(message)))
+
+        return _record
+
     monkeypatch.setattr(
         "apps.infra.project_app.services.email_service.EmailService.send_otp_email",
         staticmethod(_fake_send),
     )
-
-    variants = [
-        ("RaceUser", "race@example.com"),
-        ("raceuser", "race@example.com"),
-        ("RACEUSER", "race@example.com"),
-    ]
-    statuses: list[int] = []
+    for _level in ("success", "error", "warning", "info"):
+        monkeypatch.setattr(messages_module, _level, _recorder(_level))
 
     def _post(index: int):
         try:
             client = Client()
             username, email = variants[index]
+            # ALL FOUR in flight together, or the "concurrency" is a fiction.
+            barrier.wait()
             response = client.post(
                 reverse("auth_app:signup"), _payload(username, email)
             )
             with lock:
-                statuses.append(response.status_code)
+                responses.append((response.status_code, response.get("Location", "")))
         finally:
             # Per-thread connection close; see the note in the race test above.
             from django.db import connection
@@ -434,19 +453,35 @@ def test_concurrent_case_variant_signup_requests_are_uniform_and_create_one_iden
     for worker in workers:
         worker.join()
 
-    # Uniform responses: one shape for every caller, whatever happened.
-    assert len(statuses) == len(variants)
-    assert len(set(statuses)) == 1, f"responses differed: {statuses}"
+    # Uniform STATUS and LOCATION: one shape for every caller, whatever happened.
+    assert len(responses) == len(variants)
+    assert len(set(responses)) == 1, f"responses differed: {responses}"
 
+    # Uniform MESSAGES, captured per thread.
+    assert len(recorded) == len(variants), (
+        f"expected a message from each of {len(variants)} requests, got {len(recorded)}"
+    )
+    distinct_messages = {tuple(entries) for entries in recorded.values()}
+    assert len(distinct_messages) == 1, (
+        f"message bodies differed across callers: {distinct_messages}"
+    )
+
+    # Exactly ONE identity, ONE marker, ONE delivery.
     holders = User.objects.filter(username__iexact="raceuser")
     assert holders.count() == 1, (
         f"{holders.count()} accounts: {list(holders.values_list('username', flat=True))}"
     )
     holder = holders.get()
     assert PendingSignup.objects.filter(user=holder).count() == 1
-    usable = EmailVerification.objects.filter(user=holder, is_verified=False)
-    assert usable.count() == 1, f"{usable.count()} usable OTP rows"
     assert len(sent) == 1, f"{len(sent)} verification emails were sent"
+
+    # And the surviving OTP is ACTUALLY USABLE, not merely unverified.
+    helper = EmailVerification.objects.filter(user=holder, is_verified=False)
+    assert helper.count() == 1, f"{helper.count()} unverified OTP rows"
+    otp = helper.get()
+    assert otp.is_expired() is False, "the surviving OTP is already expired"
+    assert otp.attempts == 0, f"the surviving OTP has {otp.attempts} failed attempts"
+    assert otp.claim() is True, "the surviving OTP could not be claimed at all"
 
 
 # ---------------------------------------------------------------------------
@@ -509,3 +544,208 @@ def test_username_availability_stays_discoverable_by_design(client):
     payload = response.json()
     assert payload["available"] is False
     assert "taken" in payload.get("error", "").lower()
+
+
+# ---------------------------------------------------------------------------
+# Review blocker 1: the cleanup-vs-claim race, reproduced DETERMINISTICALLY.
+# ---------------------------------------------------------------------------
+
+
+def test_cleanup_skips_an_account_activated_between_selection_and_deletion():
+    """No threads and no timing luck — the interleaving is constructed exactly.
+
+    The sweep's real shape is SELECT-then-delete, and a correct OTP claim can
+    activate the account inside that window; the old code then deleted a LIVE
+    account its owner had just verified. This selects a stale pending signup,
+    ACTIVATES it the way a successful claim does, and only THEN runs the sweep's
+    per-user step on the already-selected object. The recheck under the lock must
+    refuse.
+    """
+    from datetime import timedelta
+
+    from apps.infra.auth_app.management.commands.cleanup_unverified_users import (
+        Command,
+    )
+
+    # Arrange — a STALE pending signup, exactly what the sweep exists to reclaim.
+    stale = User.objects.create_user(
+        username="race_cleanup",
+        email="race_cleanup@example.com",
+        password=PASSWORD,
+        is_active=False,
+    )
+    PendingSignup.objects.create(user=stale, email=stale.email)
+    EmailVerification.objects.create(user=stale, email=stale.email)
+    User.objects.filter(pk=stale.pk).update(
+        date_joined=timezone.now() - ps.PENDING_SIGNUP_WINDOW - timedelta(hours=5)
+    )
+    stale.refresh_from_db()
+
+    # The selection step: this user IS a candidate for deletion.
+    assert stale.pk in set(
+        User.objects.filter(is_active=False, pending_signup__isnull=False).values_list(
+            "pk", flat=True
+        )
+    )
+
+    # Act — the concurrent CORRECT claim lands: verified and activated.
+    User.objects.filter(pk=stale.pk).update(is_active=True)
+    Command()._process_user(
+        stale, dry_run=False, cutoff_date=timezone.now() - timedelta(hours=1)
+    )
+
+    # Assert — the sweep refused, and the now-LIVE account still exists.
+    assert User.objects.filter(pk=stale.pk).exists(), (
+        "the sweep deleted an account that was ACTIVE by the time it deleted — "
+        "the cleanup-vs-claim race"
+    )
+    stale.refresh_from_db()
+    assert stale.is_active is True
+
+
+def test_cleanup_still_reclaims_an_account_that_is_still_pending():
+    """Control: the recheck must not make the sweep inert."""
+    from datetime import timedelta
+
+    from apps.infra.auth_app.management.commands.cleanup_unverified_users import (
+        Command,
+    )
+
+    stale = User.objects.create_user(
+        username="race_cleanup_ok",
+        email="race_cleanup_ok@example.com",
+        password=PASSWORD,
+        is_active=False,
+    )
+    PendingSignup.objects.create(user=stale, email=stale.email)
+    EmailVerification.objects.create(user=stale, email=stale.email)
+    User.objects.filter(pk=stale.pk).update(
+        date_joined=timezone.now() - ps.PENDING_SIGNUP_WINDOW - timedelta(hours=5)
+    )
+    stale.refresh_from_db()
+
+    Command()._process_user(
+        stale, dry_run=False, cutoff_date=timezone.now() - timedelta(hours=1)
+    )
+
+    assert not User.objects.filter(pk=stale.pk).exists()
+
+
+# ---------------------------------------------------------------------------
+# Review blocker 2: candidates must exclude already-marked users, and --limit
+# must not be consumed by them.
+# ---------------------------------------------------------------------------
+
+
+def test_candidates_exclude_a_user_that_already_carries_a_marker():
+    """A current, genuine signup is NOT a legacy candidate.
+
+    Reporting it would mislabel it as pre-marker AND consume ``--limit``, hiding
+    the actual pre-marker records the operator is looking for.
+    """
+    marked = User.objects.create_user(
+        username="already_marked",
+        email="already_marked@example.com",
+        password=PASSWORD,
+        is_active=False,
+    )
+    PendingSignup.objects.create(user=marked, email=marked.email)
+    EmailVerification.objects.create(user=marked, email=marked.email)
+
+    assert marked.pk not in _candidate_ids()
+
+
+def test_limit_is_not_consumed_by_already_marked_users():
+    """The ordering is by pk, so ``--limit`` must return the OLDEST candidates.
+
+    Marked users are created FIRST here and would occupy the limit if they were
+    still listed — which is exactly the hiding the review described.
+    """
+    marked = []
+    for index in range(3):
+        user = User.objects.create_user(
+            username=f"marked{index}",
+            email=f"marked{index}@example.com",
+            password=PASSWORD,
+            is_active=False,
+        )
+        PendingSignup.objects.create(user=user, email=user.email)
+        EmailVerification.objects.create(user=user, email=user.email)
+        marked.append(user.pk)
+
+    unmarked = [_legacy_pending(f"cand{i}@example.com", f"cand{i}") for i in range(3)]
+
+    # Act — take only TWO, the way the audit's --limit does.
+    limited = list(ps.legacy_pending_candidates()[:2].values_list("pk", flat=True))
+
+    # Assert — the two OLDEST unmarked candidates, not the marked rows.
+    assert limited == sorted(u.pk for u in unmarked)[:2]
+    assert not (set(limited) & set(marked))
+
+
+# ---------------------------------------------------------------------------
+# Review blocker 4: SEMANTIC free-signup/activation no-card, no-billing gate.
+# ---------------------------------------------------------------------------
+
+
+def test_free_signup_has_no_card_or_billing_field():
+    """Semantic, not string-matching: the FORM and its fields carry no gate."""
+    from apps.infra.auth_app.forms import SignupForm
+
+    names = set(SignupForm.base_fields)
+    forbidden = {
+        "card",
+        "card_number",
+        "payment",
+        "payment_method",
+        "stripe",
+        "billing",
+        "billing_plan",
+        "plan",
+        "subscription",
+    }
+    assert not (names & forbidden), (
+        f"the signup form asks for {sorted(names & forbidden)} — free signup must "
+        "require no card or payment details"
+    )
+
+
+def test_a_cardless_pending_signup_activates_with_no_payment_record(client, settings):
+    """The FLOW, exercised: nothing paid, no plan configured, still activated."""
+    settings.BILLING_PLANS = []
+    user = _legacy_pending("cardless@example.com", "cardless")
+    PendingSignup.objects.create(user=user, email=user.email)
+    otp = EmailVerification.objects.get(user=user)
+
+    response = client.post(
+        reverse("auth_app:api_verify_email"),
+        data=json.dumps({"email": user.email, "otp_code": otp.code}),
+        content_type="application/json",
+    )
+
+    assert response.status_code == 200
+    user.refresh_from_db()
+    assert user.is_active is True, (
+        "activation was gated on something other than proving the address"
+    )
+
+
+def test_payment_collection_is_not_reachable_from_the_free_path(client, settings):
+    """Collection must sit behind an EXPLICIT paid action only.
+
+    Semantic: a plain GET of the checkout route must not start collection, and a
+    free user must not reach it — so neither signup nor activation can trigger
+    payment as a side effect of using the product for free.
+    """
+    settings.BILLING_PLANS = []
+    free_user = User.objects.create_user(
+        username="free_user", email="free_user@example.com", password=PASSWORD
+    )
+    client.force_login(free_user)
+
+    # Act / Assert — a GET is not an explicit paid action.
+    get_response = client.get("/billing/checkout/")
+    assert get_response.status_code != 200, (
+        "a bare GET reached checkout, so collection is not behind an explicit "
+        "paid action"
+    )

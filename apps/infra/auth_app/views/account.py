@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Account management views: email verification, account deletion."""
+
 from __future__ import annotations
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, logout

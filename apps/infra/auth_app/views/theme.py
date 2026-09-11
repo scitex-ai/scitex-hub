@@ -18,6 +18,7 @@ Theme resolution contract (card hub-theme-default-must-be-dark):
   the defaults, and their toggles are never persisted onto the shared
   account (the choice still sticks per-browser via localStorage).
 """
+
 from __future__ import annotations
 
 import json

@@ -175,8 +175,7 @@ class SciTexSocialAccountAdapter(DefaultSocialAccountAdapter):
 
         sociallogin.connect(request, existing_user)
         logger.info(
-            "Connected %s account to existing user %s on a provider-VERIFIED "
-            "address",
+            "Connected %s account to existing user %s on a provider-VERIFIED address",
             sociallogin.account.provider,
             existing_user.username,
         )

@@ -6,6 +6,7 @@ Auth app views - modular structure.
 This __init__.py re-exports all views to maintain backward compatibility
 with existing code that imports from apps.infra.auth_app.views.
 """
+
 from __future__ import annotations
 
 # Authentication views

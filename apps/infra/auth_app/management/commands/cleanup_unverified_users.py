@@ -102,7 +102,7 @@ class Command(BaseCommand):
 
         for user in unverified_users:
             try:
-                self._process_user(user, dry_run)
+                self._process_user(user, dry_run, cutoff_date)
                 if not dry_run:
                     deleted_count += 1
             except Exception as e:
@@ -198,34 +198,85 @@ class Command(BaseCommand):
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"Error processing user {email}: {e}"))
 
-    def _process_user(self, user, dry_run):
-        """Process a single user for deletion."""
-        from apps.infra.auth_app.models import EmailVerification
+    def _process_user(self, user, dry_run, cutoff_date=None):
+        """Delete ONE user under a ROW LOCK, rechecking every predicate.
 
-        # Check verification status
-        verifications = EmailVerification.objects.filter(user=user)
-        verified = verifications.filter(is_verified=True).exists()
+        THE RACE THIS CLOSES (review blocker 1). This used to READ the row, check
+        verification, and then call delete() — three separate steps with no lock
+        between them. A concurrent CORRECT OTP claim can activate the account in
+        that window, after which the delete removes an account its owner had just
+        verified. So the lock is taken FIRST, the row is re-read UNDER it, and
+        EVERY deletion predicate is re-evaluated against the LOCKED row
+        immediately before deletion. A predicate evaluated before the lock is a
+        snapshot, and a snapshot is exactly what the race exploits.
+        """
+        from django.db import transaction
 
-        self.stdout.write(f"\nProcessing: {user.username}")
-        self.stdout.write(f"  - Email: {user.email}")
-        self.stdout.write(f"  - Joined: {user.date_joined}")
-        self.stdout.write(f"  - Active: {user.is_active}")
-        self.stdout.write(f"  - Verified: {verified}")
+        from apps.infra.auth_app.models import EmailVerification, PendingSignup
 
-        if verified:
-            self.stdout.write(
-                self.style.WARNING(
-                    "  SKIPPED: User has verified email but is_active=False (manual review needed)"
+        with transaction.atomic():
+            locked = User.objects.select_for_update().filter(pk=user.pk).first()
+            if locked is None:
+                self.stdout.write(
+                    f"\nSKIPPED: user {user.pk} no longer exists (already swept)"
                 )
-            )
-            return
+                return
 
-        if not dry_run:
-            user.delete()
-            self.stdout.write(
-                self.style.SUCCESS(f"  Deleted: {user.username} ({user.email})")
-            )
-        else:
-            self.stdout.write(
-                self.style.WARNING(f"  [DRY RUN] Would delete: {user.username}")
-            )
+            verifications = EmailVerification.objects.filter(user=locked)
+            verified = verifications.filter(is_verified=True).exists()
+            has_marker = PendingSignup.objects.filter(user_id=locked.pk).exists()
+            past_cutoff = cutoff_date is None or locked.date_joined < cutoff_date
+
+            self.stdout.write(f"\nProcessing: {locked.username}")
+            self.stdout.write(f"  - Email: {locked.email}")
+            self.stdout.write(f"  - Joined: {locked.date_joined}")
+            self.stdout.write(f"  - Active: {locked.is_active}")
+            self.stdout.write(f"  - Verified: {verified}")
+            self.stdout.write(f"  - Has PendingSignup marker: {has_marker}")
+
+            # EVERY predicate below is rechecked UNDER THE LOCK. Any one of them
+            # means DO NOT DELETE.
+            if locked.is_active:
+                self.stdout.write(
+                    self.style.WARNING(
+                        "  SKIPPED: the account is ACTIVE — it was verified while "
+                        "this sweep was running, so deleting it would destroy an "
+                        "account its owner just confirmed (cleanup-vs-claim race)"
+                    )
+                )
+                return
+
+            if verified:
+                self.stdout.write(
+                    self.style.WARNING(
+                        "  SKIPPED: User has verified email but is_active=False (manual review needed)"
+                    )
+                )
+                return
+
+            if not has_marker:
+                self.stdout.write(
+                    self.style.WARNING(
+                        "  SKIPPED: no PendingSignup marker — this is not a signup, "
+                        "so it is not this sweep's to delete"
+                    )
+                )
+                return
+
+            if not past_cutoff:
+                self.stdout.write(
+                    self.style.WARNING(
+                        "  SKIPPED: no longer past the cutoff (rechecked under the lock)"
+                    )
+                )
+                return
+
+            if not dry_run:
+                locked.delete()
+                self.stdout.write(
+                    self.style.SUCCESS(f"  Deleted: {locked.username} ({locked.email})")
+                )
+            else:
+                self.stdout.write(
+                    self.style.WARNING(f"  [DRY RUN] Would delete: {locked.username}")
+                )

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Account switching functionality for multi-account support."""
+
 from __future__ import annotations
 from django.shortcuts import redirect
 from django.contrib.auth import logout, login

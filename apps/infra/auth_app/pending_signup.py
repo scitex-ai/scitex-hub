@@ -254,6 +254,11 @@ def legacy_pending_candidates():
         User.objects.filter(is_active=False, last_login__isnull=True)
         .exclude(password="")
         .exclude(password__startswith="!")
+        # ALREADY-MARKED USERS ARE NOT LEGACY CANDIDATES (review blocker 2). A
+        # current, genuine signup carries its authoritative marker; reporting it
+        # here would both mislabel it as pre-marker and consume --limit, hiding
+        # the actual pre-marker records the operator is looking for.
+        .filter(pending_signup__isnull=True)
         .annotate(
             has_matching_unverified=Exists(matching_unverified),
             has_verified=Exists(verified_history),

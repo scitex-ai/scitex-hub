@@ -65,8 +65,7 @@ class EmailVerdict:
     def __post_init__(self) -> None:
         if self.status not in VALID_STATUSES:
             raise EmailVerdictError(
-                f"invalid status {self.status!r}; must be one of "
-                f"{VALID_STATUSES}"
+                f"invalid status {self.status!r}; must be one of {VALID_STATUSES}"
             )
         if self.status == VERIFIED and not self.email:
             raise EmailVerdictError(
