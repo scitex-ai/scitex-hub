@@ -20,7 +20,6 @@ from .models import EmailVerification
 logger = logging.getLogger(__name__)
 
 
-@csrf_exempt
 @require_http_methods(["POST"])
 def verify_email_api(request):
     """API endpoint to verify email with OTP code"""
@@ -38,45 +37,126 @@ def verify_email_api(request):
                 status=400,
             )
 
-        # Find the most recent verification for this email
+        # RESOLVE BY THE TYPED MARKER FIRST (PR #775 seventh review, item 5).
+        # Scoping only by email let a LEGACY or CROSS-USER row with the same
+        # address SHADOW the real one — and be the row consumed, marking a
+        # stranger's verification used. The marker names the user the address
+        # belongs to, so the code sought is THEIR code. With no marker this is an
+        # email CHANGE (an active user), so it is scoped to the session's user
+        # rather than to whatever row shares the address.
         try:
-            verification = (
-                EmailVerification.objects.filter(email=email, is_verified=False)
-                .order_by("-created_at")
-                .first()
-            )
+            from apps.infra.auth_app.models import PendingSignup
+
+            marker = PendingSignup.objects.filter(email__iexact=email).first()
+            lookup = EmailVerification.objects.filter(is_verified=False)
+            if marker is not None:
+                # THE marker's user AND that user's EXACT row for this
+                # normalized address (item 3): a mismatched or legacy row of the
+                # same user must not stand in for the one being proved.
+                lookup = lookup.filter(user=marker.user, email__iexact=email.strip())
+            else:
+                change = request.session.get("pending_email_change") or {}
+                if change.get("new_email") == email and change.get("user_id"):
+                    # EXACT user AND the TARGET address (PR #775 review). An
+                    # email change must consume only THAT user's row for the
+                    # address they are moving TO — never a row that merely
+                    # shares the address, and never another user's.
+                    lookup = lookup.filter(
+                        user_id=change["user_id"], email__iexact=email.strip()
+                    )
+                else:
+                    lookup = lookup.filter(email__iexact=email)
+            verification = lookup.order_by("-created_at").first()
 
             if not verification:
-                return JsonResponse(
-                    {
-                        "success": False,
-                        "error": "No pending verification found for this email.",
-                    },
-                    status=404,
-                )
+                return JsonResponse(_VERIFY_FAILURE, status=400)
 
             # Check if verification has expired
             if verification.is_expired():
-                return JsonResponse(
-                    {
-                        "success": False,
-                        "error": "Verification code has expired. Please request a new one.",
-                    },
-                    status=400,
-                )
+                return JsonResponse(_VERIFY_FAILURE, status=400)
 
             # Verify the code
-            if verification.code != otp_code:
+            #
+            # Constant-time compare, and THROTTLED (PR #775 re-review). A
+            # 6-digit code is only 10**6 possibilities: with no counter,
+            # guessing was free and unlimited for the entire validity window,
+            # which is what made the small keyspace matter. Five wrong guesses
+            # burn the code; the owner then requests a fresh one, and that
+            # request is itself rate limited.
+            import secrets as _secrets
+
+            if not _secrets.compare_digest(verification.code, otp_code):
+                # The BURN is still enforced — the code is spent and the claim
+                # will refuse it — but the RESPONSE no longer says so. Answering
+                # "too many attempts" for an address that HAS a code while
+                # answering "no such code" for one that does not is an oracle
+                # reachable in five requests. A legitimate user who exhausts the
+                # budget is told to request a new code, which is the right next
+                # action regardless.
+                verification.register_failed_attempt()
+                return JsonResponse(_VERIFY_FAILURE, status=400)
+
+            # DO NOT ACTIVATE BLINDLY (PR #775 fifth review, P0).
+            #
+            # verify() marked the row verified and the caller then set
+            # is_active=True on whatever user the verification pointed at. That
+            # made a code minted for an ADMIN-DISABLED account silently undo the
+            # deactivation — a suspension bypass reachable with an email address.
+            #
+            # The gate has to run BEFORE verify(), because verify() itself
+            # creates the verified row that has_pending_evidence() treats as a
+            # disqualifying history. Email CHANGES are excluded: an active user
+            # re-verifying a new address legitimately HAS that history.
+            from apps.infra.auth_app.pending_signup import has_pending_evidence
+
+            pending_change = request.session.get("pending_email_change")
+            is_email_change = bool(
+                pending_change and pending_change.get("new_email") == email
+            )
+            if not is_email_change and not has_pending_evidence(
+                verification.user, verification.email
+            ):
+                logger.warning(
+                    "Refusing to activate a row with no pending signup behind it"
+                )
                 return JsonResponse(
                     {
                         "success": False,
-                        "error": "Invalid verification code. Please try again.",
+                        "error": (
+                            "This account cannot be activated from here. "
+                            "Please contact support."
+                        ),
                     },
                     status=400,
                 )
 
-            # Mark verification as complete
-            verification.verify()
+            # ATOMIC, SINGLE-USE CLAIM (PR #775 sixth review, P0). The fetch, the
+            # comparison and the marking used to run with NO lock held across
+            # them, so two concurrent requests carrying the same code could both
+            # pass the comparison and both activate — a reused code, and a second
+            # activation its owner never performed. F() only ever protected the
+            # wrong-attempt counter.
+            if not verification.claim():
+                logger.warning("Verification code already used or expired")
+                return JsonResponse(
+                    {
+                        "success": False,
+                        "error": (
+                            "This verification code has already been used or has "
+                            "expired. Please request a new one."
+                        ),
+                    },
+                    status=400,
+                )
+
+            # LIFECYCLE: the signup is OVER the moment it is verified, so the
+            # marker is DELETED here. It must not outlive the signup, or a later
+            # administrator deactivation of this account would find a pending
+            # marker and could be undone by the very path this fixes.
+            # (For an email CHANGE there is no marker and this is a no-op.)
+            from apps.infra.auth_app.models import PendingSignup
+
+            PendingSignup.objects.filter(user=verification.user).delete()
 
             # Check if this is an email change verification
             pending_change = request.session.get("pending_email_change")
@@ -148,10 +228,61 @@ def verify_email_api(request):
         )
 
 
-@csrf_exempt
+#: ONE response for EVERY private-email verification failure: no such pending
+#: verification, an expired code, a wrong code, or a burned one. Distinct bodies
+#: (and distinct statuses) told a caller whether an address had a code at all —
+#: the same enumeration the reset path had. The burn is still ENFORCED; only the
+#: response stopped advertising it.
+_VERIFY_FAILURE = {
+    "success": False,
+    "error": (
+        "That code could not be verified. Request a new one, or sign in if you "
+        "already have an account."
+    ),
+}
+
+#: THE ONE resend response. Every non-malformed request gets this exact body
+#: and status, whether or not an account exists, whether or not mail went out.
+#: Different bodies for found/not-found made the endpoint an enumeration oracle
+#: (PR #775 re-review).
+_RESEND_RESPONSE = {
+    "success": True,
+    "message": (
+        "If that address can be used for a SciTeX account, a new verification "
+        "code has been sent. Check your inbox and spam folder."
+    ),
+}
+
+
 @require_http_methods(["POST"])
 def resend_otp_api(request):
-    """API endpoint to resend OTP verification code"""
+    """API endpoint to resend OTP verification code.
+
+    SECURITY (PR #775 re-review). Three removals of ways this endpoint was more
+    useful to an attacker than to a user:
+
+    1. CSRF PROTECTION RESTORED. It was ``@csrf_exempt`` — a state-changing
+       POST (it mints a code and sends mail) that any third-party page could
+       fire on a visitor's behalf.
+    2. RATE LIMITED, and the budget is spent BEFORE the lookup, so a caller
+       probing addresses that do not exist pays exactly what a caller mailing a
+       real user pays. Previously unlimited: a mail-bomb at machine speed, and
+       a way to invalidate a victim's outstanding code at will.
+    3. ONE INDISTINGUISHABLE RESPONSE. "Account found" and "not found" used to
+       return different bodies. Now every non-malformed request gets the same
+       body and status. The 400 for a MISSING field is kept, because that is a
+       fact about the REQUEST, not about any account.
+
+    The code is bound to the ROW's own address (``user.email``), never to the
+    submitted string, so this endpoint cannot be aimed at a third party either.
+    """
+    from django.db import transaction
+
+    from apps.infra.auth_app.pending_signup import (
+        consume_resend_budget,
+        has_pending_evidence,
+    )
+
     try:
         data = json.loads(request.body)
         email = data.get("email", "").strip()
@@ -161,59 +292,82 @@ def resend_otp_api(request):
                 {"success": False, "error": "Email is required."}, status=400
             )
 
-        # Find user with this email
-        try:
-            user = User.objects.get(email=email, is_active=False)
-        except User.DoesNotExist:
-            # Don't reveal if email exists or not for security
-            return JsonResponse(
-                {
-                    "success": True,
-                    "message": "If an account exists with this email, a new verification code has been sent.",
-                }
+        # Spend the budget ATOMICALLY, before any lookup.
+        if not consume_resend_budget(email):
+            return JsonResponse(_RESEND_RESPONSE, status=200)
+
+        # RESOLVE VIA THE MARKER, NOT BY EMAIL (PR #775 seventh review, item 5).
+        # Matching users by email ALONE can pick a LEGACY or cross-user row that
+        # happens to share the address, and the code would then be minted for
+        # the wrong person. The marker names the user this address actually
+        # belongs to, so the code is minted for THAT user or for nobody.
+        from apps.infra.auth_app.models import PendingSignup
+
+        marker = PendingSignup.objects.filter(email__iexact=email).first()
+        user = marker.user if marker is not None else None
+
+        # PENDING EVIDENCE REQUIRED (PR #775 fifth review, P0).
+        #
+        # Matching on is_active=False ALONE was a deactivation bypass: an
+        # ADMIN-DISABLED account is inactive too, and this endpoint would mail it
+        # a code that the verify endpoint then used to switch it back on. An
+        # address was the only thing an attacker needed. No pending signup, no
+        # code — and the response stays the single generic one either way.
+        if user is None or user.is_active or not has_pending_evidence(user, email):
+            return JsonResponse(_RESEND_RESPONSE, status=200)
+
+        # DELIVERY FIRST, RETIRE SECOND (PR #775 fourth review). The old order
+        # retired the outstanding code and THEN minted a replacement, so a send
+        # failure left the user with NO working code: the failure mode of the
+        # recovery path was to make recovery impossible. The previous code is
+        # now retired only once the replacement has actually been delivered.
+        with transaction.atomic():
+            locked = User.objects.select_for_update().filter(pk=user.pk).first()
+            if locked is None:
+                return JsonResponse(_RESEND_RESPONSE, status=200)
+
+            # REVALIDATE UNDER THE LOCK (PR #775 eighth review, item 3). Every
+            # check above ran OUTSIDE the lock, so between them and here the
+            # account could have been activated, or its marker removed. Without
+            # this, a code gets minted for a row that is no longer a pending
+            # signup — the checks would have been a snapshot, not a guard.
+            from apps.infra.auth_app.models import PendingSignup as _Pending
+
+            still_pending = (
+                not locked.is_active
+                and _Pending.objects.filter(
+                    user=locked, email__iexact=email.strip()
+                ).exists()
+            )
+            if not still_pending:
+                return JsonResponse(_RESEND_RESPONSE, status=200)
+
+            verification = EmailVerification.objects.create(
+                user=locked,
+                email=locked.email,
             )
 
-        # Delete old unverified verification records (don't mark as verified)
-        EmailVerification.objects.filter(email=email, is_verified=False).delete()
-
-        # Create new verification
-        verification = EmailVerification.objects.create(
-            user=user,
-            email=email,
-        )
-
-        # Send new verification email
-        try:
-            success, message = EmailService.send_otp_email(
-                email=email, otp_code=verification.code, verification_type="signup"
-            )
-
-            if success:
-                logger.info(f"Resent verification email to {email}")
-                return JsonResponse(
-                    {
-                        "success": True,
-                        "message": "A new verification code has been sent to your email.",
-                    }
+            try:
+                success, message = EmailService.send_otp_email(
+                    email=locked.email,
+                    otp_code=verification.code,
+                    verification_type="signup",
                 )
-            else:
-                logger.error(
-                    f"Failed to resend verification email to {email}: {message}"
-                )
-                return JsonResponse(
-                    {
-                        "success": False,
-                        "error": "Failed to send verification email. Please try again.",
-                    },
-                    status=500,
-                )
+            except Exception as e:
+                success, message = False, str(e)
 
-        except Exception as e:
-            logger.error(f"Error resending verification email to {email}: {str(e)}")
-            return JsonResponse(
-                {"success": False, "error": "An error occurred. Please try again."},
-                status=500,
-            )
+            if not success:
+                # Roll the mint back and KEEP the code that already worked.
+                logger.error(f"Failed to resend verification email: {message}")
+                verification.delete()
+                return JsonResponse(_RESEND_RESPONSE, status=200)
+
+            # Delivered: only now retire the codes it supersedes.
+            EmailVerification.objects.filter(
+                email__iexact=locked.email, is_verified=False
+            ).exclude(pk=verification.pk).delete()
+
+        return JsonResponse(_RESEND_RESPONSE, status=200)
 
     except json.JSONDecodeError:
         return JsonResponse(

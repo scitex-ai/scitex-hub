@@ -16,7 +16,7 @@
                             Enter the 6-digit code sent to <strong id="user-email"></strong>
                         </p>
                         <p class="text-muted small">
-                            <i class="fas fa-clock"></i> Code expires in 10 minutes. Account expires in 1 hour if not verified.
+                            <i class="fas fa-clock"></i> Code expires in 10 minutes. An unverified signup is kept and can be resumed by requesting another code — it is not deleted on a timer.
                         </p>
                         <div class="alert-banner alert-banner-success"
                              id="success-msg"
@@ -233,7 +233,10 @@
 
       fetch("/auth/api/verify-email/", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ csrf_token }}",
+        },
         body: JSON.stringify({ email: email, otp_code: otpCode }),
       })
         .then((response) => response.json())
@@ -269,7 +272,10 @@
 
         fetch("/auth/api/resend-otp/", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}",
+          },
           body: JSON.stringify({ email: email }),
         })
           .then((response) => response.json())

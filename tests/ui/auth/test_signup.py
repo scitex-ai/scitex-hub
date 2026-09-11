@@ -161,10 +161,18 @@ class TestSignupValidation:
 class TestSignupDuplicates:
     """Tests for duplicate username/email handling."""
 
-    def test_signup_rejects_existing_username(
+    def test_signup_does_not_accept_a_taken_username_and_does_not_confirm_it(
         self, page: Page, base_url: str, test_credentials: dict, timestamp
     ):
-        """Signup should reject already taken username."""
+        """A taken username must not be accepted — and must not be CONFIRMED.
+
+        Rewritten for the hub auth lifecycle P0. This test previously asserted a
+        duplicate-username error appeared; that error was the enumeration oracle
+        itself (it told an anonymous visitor that a username exists), and it also
+        made the pending-signup resume branch unreachable. The invariants now are
+        (a) no second account is created and (b) the response does not reveal
+        whether the username exists.
+        """
         page.goto(f"{base_url}/auth/signup/")
         page.wait_for_timeout(1000)
 
@@ -184,11 +192,18 @@ class TestSignupDuplicates:
         page.click("button[type='submit']")
         page.wait_for_timeout(3000)
 
-        # Should show error about duplicate username
-        is_on_signup = "/auth/signup" in page.url or "/auth/register" in page.url
-        has_error = page.locator(".alert-danger, .error, .invalid-feedback").count() > 0
+        # NEW INVARIANTS (hub auth lifecycle P0). The old assertion looked for a
+        # duplicate-username error — which was the enumeration oracle itself.
+        body = page.content()
+        lowered = body.lower()
 
-        assert is_on_signup or has_error
+        # (a) No enumeration: the page never states that the username is taken.
+        assert "already taken" not in lowered
+        assert "already exists" not in lowered
+
+        # (b) No second account, and the visitor is not signed in as anyone.
+        assert "logout" not in lowered or "sign in" in lowered
+        assert page.locator("a[href*='logout'], form[action*='logout']").count() == 0
 
 
 class TestSignupSuccess:
