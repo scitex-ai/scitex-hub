@@ -233,6 +233,23 @@ jobs:
           # preserved deliberately.
           SCITEX_HUB_VITE_USE_BUILD: "1"
           SCITEX_HUB_DJANGO_DEBUG: "0"
+          # DEBUG=0 ACTIVATES THE OPERATOR MAIL RAIL, so it needs a backend.
+          # MEASURED on this PR's first run (job 103097274649, 2026-09-11): with
+          # DEBUG=1 the `mail_admins` handler is filtered out by Django's
+          # `require_debug_false`; with DEBUG=0 it fires on the FIRST ERROR log,
+          # and settings_shared.py:442 defaults EMAIL_BACKEND to None when
+          # SCITEX_HUB_EMAIL_BACKEND is unset (staging defaults it, shared/dev
+          # do not). The chain that killed this step:
+          #     post_save -> gitea_repository.py:224 logger.error(...)
+          #       -> django/utils/log.py:135 AdminEmailHandler.send_mail
+          #       -> get_connection(settings.EMAIL_BACKEND=None)
+          #       -> import_string(None) -> AttributeError: 'NoneType' object
+          #          has no attribute 'rsplit'  -> exit 1
+          # locmem is Django's own in-memory backend: mail is exercised and
+          # dropped, no SMTP is attempted from a runner that has none. This
+          # makes the CI environment production-LIKE (what DEBUG=0 requires)
+          # rather than papering over the failure closer to the symptom.
+          SCITEX_HUB_EMAIL_BACKEND: django.core.mail.backends.locmem.EmailBackend
         run: |
           # -e: every command below is a precondition for a truthful
           # artifact. None of them may fail quietly.
@@ -333,6 +350,11 @@ jobs:
           # A mismatch between these two steps is exactly the drift that
           # guard exists to make loud.
           SCITEX_HUB_DJANGO_DEBUG: "0"
+          # Same reason as the server step: at DEBUG=0 the operator mail rail is
+          # live, and settings_shared.py:442 leaves EMAIL_BACKEND None unless
+          # this is set. Kept identical to the server step so the two cannot
+          # drift (the workflow's own rule for this pair of blocks).
+          SCITEX_HUB_EMAIL_BACKEND: django.core.mail.backends.locmem.EmailBackend
         run: |
           # --browser chromium is REQUIRED, not decoration. tests/conftest.py's
           # pytest_collection_modifyitems skips everything under tests/e2e/

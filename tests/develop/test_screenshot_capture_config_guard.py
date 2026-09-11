@@ -77,9 +77,7 @@ class TestTheGuardAcceptsAProductionCapture:
         assert diagnose_capture_config(PRODUCTION_HTML, where=WHERE) == []
 
     def test_clean_html_is_still_accepted_when_the_run_declares_production(self):
-        assert_production_capture(
-            PRODUCTION_HTML, where=WHERE, debug_declared=False
-        )
+        assert_production_capture(PRODUCTION_HTML, where=WHERE, debug_declared=False)
 
 
 class TestTheGuardRefusesADebugCapture:
@@ -109,9 +107,7 @@ class TestTheGuardRefusesADebugCapture:
     def test_a_declared_debug_run_is_refused_even_on_a_clean_page(self):
         # The leader's ruling: the DECLARATION is disqualifying on its own.
         with pytest.raises(NotAProductionCaptureError) as excinfo:
-            assert_production_capture(
-                PRODUCTION_HTML, where=WHERE, debug_declared=True
-            )
+            assert_production_capture(PRODUCTION_HTML, where=WHERE, debug_declared=True)
         assert "declares DEBUG=True" in str(excinfo.value)
 
     def test_one_unfit_page_refuses_the_whole_run(self):
@@ -207,6 +203,31 @@ class TestTheAcceptanceWorkflowDeclaresProduction:
                 f"{marker!r} is no longer part of the capture command. The "
                 "DEBUG flip must not remove the visual, content or session "
                 "checks that make the artifact trustworthy."
+            )
+
+    def test_the_debug_off_capture_declares_an_email_backend(self):
+        """DEBUG=0 turns the operator mail rail ON, so a backend must be named.
+
+        MEASURED on this PR's first run (job 103097274649, 2026-09-11). With
+        DEBUG=1 Django's ``require_debug_false`` filter kept ``mail_admins``
+        silent; with DEBUG=0 the first ERROR log reached AdminEmailHandler,
+        settings_shared.py:442 defaults EMAIL_BACKEND to None when
+        SCITEX_HUB_EMAIL_BACKEND is unset, and ``import_string(None)`` raised
+
+            AttributeError: 'NoneType' object has no attribute 'rsplit'
+
+        which failed the "Migrate & start server" step before a single page was
+        captured. The environment must satisfy what DEBUG=0 requires; this pins
+        that so the same crash cannot return unnoticed.
+        """
+        for name in ("Migrate & start server", "Capture screenshots"):
+            env = self._env_of(name)
+            assert env.get("SCITEX_HUB_EMAIL_BACKEND"), (
+                f"{name} runs with DEBUG=0 but declares no "
+                "SCITEX_HUB_EMAIL_BACKEND. At DEBUG=0 the operator mail rail is "
+                "live and settings_shared.py:442 leaves EMAIL_BACKEND None, so "
+                "the first ERROR log becomes an AttributeError that kills the "
+                f"step. Env seen: {sorted(env)}"
             )
 
     @classmethod
