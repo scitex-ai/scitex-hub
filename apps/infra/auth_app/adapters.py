@@ -5,11 +5,12 @@ These adapters handle the integration between social login providers
 (Google, ORCID) and SciTeX's user system.
 """
 
-import re
 import logging
-from django.contrib.auth import get_user_model
+import re
+
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+from django.contrib.auth import get_user_model
 
 logger = logging.getLogger(__name__)
 User = get_user_model()

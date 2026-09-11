@@ -3,10 +3,11 @@
 """Account switching functionality for multi-account support."""
 
 from __future__ import annotations
-from django.shortcuts import redirect
-from django.contrib.auth import logout, login
-from django.http import JsonResponse, HttpResponseRedirect
+
 from django.contrib import messages
+from django.contrib.auth import login, logout
+from django.http import HttpResponseRedirect, JsonResponse
+from django.shortcuts import redirect
 
 
 def get_or_create_device_id(request):

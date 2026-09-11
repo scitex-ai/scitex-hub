@@ -3,10 +3,11 @@
 """Account management views: email verification, account deletion."""
 
 from __future__ import annotations
-from django.shortcuts import render, redirect
+
+from django.contrib import messages
 from django.contrib.auth import authenticate, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
+from django.shortcuts import redirect, render
 
 
 def verify_email(request):

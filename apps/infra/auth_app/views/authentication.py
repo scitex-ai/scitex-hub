@@ -111,7 +111,6 @@ def signup(request):
                 SignupCollision,
                 classify_and_reclaim,
                 consume_resend_budget,
-                resend_budget_message,
             )
 
             # ATOMIC, LOCKED, REVALIDATED (PR #775 third review). This used to
@@ -134,10 +133,18 @@ def signup(request):
                 # The request path now RE-ARMS the same row instead of replacing
                 # it. Purging an abandoned address stays the cleanup command's
                 # job, where it is deliberate and racing nothing.
-                if not consume_resend_budget(email):
-                    messages.warning(request, resend_budget_message())
-                    return render(request, "auth_app/signup.html", {"form": form})
-                _send_pending_signup_code(request, existing_user, email, logger)
+                # BUDGET EXHAUSTED MUST BE INDISTINGUISHABLE (PR #775 review, P0).
+                # This branch used to render HTTP 200 with a rate-limit warning
+                # while every other outcome returned 302 with the generic message,
+                # so an anonymous caller could tell "this address already has a
+                # pending signup" from any collision by STATUS CODE alone — even
+                # after the text was unified. The decision to skip the send is
+                # therefore internal: no code is sent, and the caller receives the
+                # same conditional response as every other outcome. The message is
+                # deliberately conditional ("if that address can be used …"), so it
+                # stays truthful without confirming anything.
+                if consume_resend_budget(email):
+                    _send_pending_signup_code(request, existing_user, email, logger)
                 messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
                 from django.urls import reverse
 
@@ -149,10 +156,18 @@ def signup(request):
                 # action is another code, and that is rate limited per address.
                 # ATOMIC spend (PR #775 fourth review): check-then-record let
                 # two parallel requests both pass the check and both send.
-                if not consume_resend_budget(email):
-                    messages.warning(request, resend_budget_message())
-                    return render(request, "auth_app/signup.html", {"form": form})
-                _send_pending_signup_code(request, existing_user, email, logger)
+                # BUDGET EXHAUSTED MUST BE INDISTINGUISHABLE (PR #775 review, P0).
+                # This branch used to render HTTP 200 with a rate-limit warning
+                # while every other outcome returned 302 with the generic message,
+                # so an anonymous caller could tell "this address already has a
+                # pending signup" from any collision by STATUS CODE alone — even
+                # after the text was unified. The decision to skip the send is
+                # therefore internal: no code is sent, and the caller receives the
+                # same conditional response as every other outcome. The message is
+                # deliberately conditional ("if that address can be used …"), so it
+                # stays truthful without confirming anything.
+                if consume_resend_budget(email):
+                    _send_pending_signup_code(request, existing_user, email, logger)
                 messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
                 from django.urls import reverse
 

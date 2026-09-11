@@ -220,7 +220,7 @@ def link_local_login(user) -> LinkResult:
     """
     from allauth.account.models import EmailAddress
 
-    from .verification import EmailVerdict, UNKNOWN, VERIFIED, normalize_email
+    from .verification import UNKNOWN, VERIFIED, EmailVerdict, normalize_email
 
     address = (
         EmailAddress.objects.filter(user=user, verified=True)

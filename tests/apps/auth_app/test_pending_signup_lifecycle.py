@@ -335,7 +335,15 @@ def test_an_active_account_is_neither_recreated_nor_deleted_by_a_signup(client):
 
 
 @pytest.mark.django_db
-def test_the_resend_budget_is_enforced_through_the_signup_view(client):
+def test_the_resend_budget_is_enforced_without_being_observable(client):
+    """The budget must still apply — and must NOT be reportable to the caller.
+
+    The previous version of this test asserted HTTP 200 with a rate-limit
+    warning. That assertion WAS the enumeration oracle: a pending address answered
+    differently from every collision, and exhausting the budget made the
+    difference reachable by simply repeating the POST. The budget is still spent
+    (no new code is sent); what changed is that the caller cannot see it.
+    """
     # Arrange — exhaust the budget for this address.
     _pending()
     cache.clear()
@@ -345,6 +353,16 @@ def test_the_resend_budget_is_enforced_through_the_signup_view(client):
     # Act
     response = client.post(reverse("auth_app:signup"), SIGNUP_FIELDS)
 
-    # Assert — rate limited, and the account was not duplicated.
-    assert response.status_code == 200
+    # Assert — the uniform public response, NOT a rendered page with a warning.
+    assert response.status_code == 302, (
+        f"a spent resend budget produced status {response.status_code}; a distinct "
+        "status for this branch is readable as 'this address is pending'"
+    )
+    from apps.infra.auth_app.models import EmailVerification
+
+    # And the account is neither duplicated nor stripped of its usable code.
     assert User.objects.filter(email="pending_probe@example.com").count() == 1
+    usable = EmailVerification.objects.filter(
+        user__email="pending_probe@example.com", is_verified=False
+    ).count()
+    assert usable == 1, f"expected exactly one usable code, found {usable}"
