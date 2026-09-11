@@ -464,14 +464,6 @@ all = [
     # Without this dep pytest exits 4 with "unrecognized arguments:
     # --timeout=120".
     "pytest-timeout>=2.0",
-    # pytest-matrix runs `pytest tests/ -n 4 --dist loadfile ...`. The flag is
-    # provided by pytest-xdist, so the plugin must be in the install graph or
-    # every leg exits 4 with "unrecognized arguments: -n 4". Measured on PR
-    # #771: the three legs ran 521s/897s/676s single-process on a runner with 4
-    # idle vCPUs while queue delay was 2-68s — the serial run was the cost.
-    # xdist is safe with the postgres service because pytest-django gives each
-    # worker its own suffixed test database (`_gw0`, `_gw1`, ...).
-    "pytest-xdist>=3.6",
     # --- Sphinx docs build (run by CI on tag) ---
     "sphinx>=7.0",
     "sphinx-rtd-theme>=2.0",
