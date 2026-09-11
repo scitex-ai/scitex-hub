@@ -131,7 +131,14 @@
                                 <td class="muted-cell">{{ row.compute_credit|default:"—" }}</td>
                                 <td class="muted-cell">{{ row.overage|default:"—" }}</td>
                                 <td>
-                                    {% if row.remarks %}{{ row.remarks|join:"、" }}{% elif row.included %}{{ row.included|join:"、" }}{% elif row.description %}{{ row.description }}{% endif %}
+                                    {# 備考. NO FALLBACK TO row.included: a row whose
+                                       attributes are ALL dedicated has an EMPTY
+                                       remarks list by design, and falling back to
+                                       the included list would repeat every
+                                       dedicated column (ストレージ / 計算クレジット /
+                                       超過計算) in this cell. If there is no remark,
+                                       say so with the description or nothing. #}
+                                    {% if row.remarks %}{{ row.remarks|join:"、" }}{% elif row.description %}{{ row.description }}{% endif %}
                                 </td>
                             </tr>
                             {% endfor %}

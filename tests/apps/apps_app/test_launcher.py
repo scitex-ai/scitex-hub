@@ -87,47 +87,63 @@ class LauncherHomeTest(TestCase):
         # Assert
         assert expected_names <= tile_names
 
-    def test_an_internal_module_is_hidden_from_non_staff_and_shown_to_staff(self):
+    def test_every_internal_module_is_hidden_from_non_staff_and_shown_to_staff(self):
         """THE OTHER DIRECTION — which a one-sided relaxation would not catch.
 
-        Correcting the premise above could equally be satisfied by a launcher
-        that tiles NOTHING, so this asserts the gate itself both ways: an
-        internal launcher module is ABSENT for a non-staff user and PRESENT for
-        staff. That makes the exclusion a decision rather than a missing tile.
+        Correcting the premise above could equally be satisfied by a launcher that
+        tiles NOTHING, so this asserts the gate itself, BOTH ways, for EVERY
+        internal module — not just whichever one happens to sort first. A single
+        sampled module would let the next internal app regress unnoticed.
+
+        ``todo`` is PINNED by name, because it is the module this whole failure was
+        reported for: if its classification ever changes, this test must be
+        updated DELIBERATELY rather than silently stop covering the original
+        defect.
         """
         # Arrange
         from apps.infra.workspace_app.registry import get_all_modules
 
+        modules = {m.name: m for m in get_all_modules()}
+        todo = modules.get("todo")
+        if todo is None:
+            # The todo manifest loads only when its package is importable on this
+            # host; skipping is honest, passing vacuously is not.
+            self.skipTest("the todo module is not registered on this host")
+
+        assert todo.visibility == "internal", (
+            "the 'todo' module must be classified INTERNAL — that classification "
+            "is exactly what hides it from non-staff users, and it is the "
+            "behaviour this regression was reported for. If the classification "
+            "changed on purpose, update this test deliberately."
+        )
+
         internal = sorted(
-            m.name
-            for m in get_all_modules()
-            if m.visibility == "internal" and m.show_in_launcher
+            name
+            for name, mod in modules.items()
+            if mod.visibility == "internal" and mod.show_in_launcher
         )
-        if not internal:
-            # No internal module on this host (the todo/storage manifests load
-            # only when their packages are importable) — nothing to assert, and
-            # skipping is honest rather than passing vacuously.
-            self.skipTest("no internal launcher module is registered on this host")
-        module_name = internal[0]
+        assert "todo" in internal, "todo is internal but not launcher-visible"
 
-        # Act / Assert — non-staff: absent.
-        resp = self.client.get("/")
-        assert module_name not in {t["name"] for t in resp.context["tiles"]}, (
-            f"{module_name!r} is internal and must not tile for a non-staff user"
-        )
+        # Act / Assert — non-staff: EVERY internal module is absent.
+        non_staff_tiles = {t["name"] for t in self.client.get("/").context["tiles"]}
+        for name in internal:
+            assert name not in non_staff_tiles, (
+                f"{name!r} is internal and must not tile for a non-staff user"
+            )
 
-        # Act / Assert — staff: present.
+        # Act / Assert — staff: EVERY internal module is present.
         staff_user = User.objects.create_user(
             username="launcher-staff",
             password="TestPass123!",  # pragma: allowlist secret
             is_staff=True,
         )
         self.client.force_login(staff_user)
-        resp = self.client.get("/")
-        assert module_name in {t["name"] for t in resp.context["tiles"]}, (
-            f"{module_name!r} is internal but must still tile for STAFF — its "
-            "absence for a regular user is a gate, not a missing feature"
-        )
+        staff_tiles = {t["name"] for t in self.client.get("/").context["tiles"]}
+        for name in internal:
+            assert name in staff_tiles, (
+                f"{name!r} is internal but must still tile for STAFF — its absence "
+                "for a regular user is a gate, not a missing feature"
+            )
 
     def test_clew_is_not_a_launcher_tile(self):
         # Arrange — Clew opens within a manuscript, not as a standalone

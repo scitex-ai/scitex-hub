@@ -263,6 +263,31 @@ def _render(row: dict[str, Any]) -> str:
     )
 
 
+def remarks_items(
+    attrs: dict[str, Any],
+    basis: str = "",
+    storage_text: str = "",
+    credit_text: str = "",
+    overage_text: str = "",
+) -> list[str]:
+    """備考 cell: the included list MINUS attributes that have their own column.
+
+    Pulled out of the row builder so it can be exercised with a SYNTHETIC
+    attribute set — which is the only way to test the case that matters: a row
+    whose attributes are ALL dedicated (storage / compute credit / overage) and
+    which therefore has an EMPTY 備考. If that emptiness is papered over by a
+    template fallback to the full included list, every dedicated column is
+    repeated in 備考 — the duplication this function exists to prevent.
+    """
+    column_texts = {
+        "included_storage": storage_text,
+        "included_compute_credit": credit_text,
+        "overage": overage_text,
+    }
+    drop = {key for key, rendered in column_texts.items() if rendered and key in attrs}
+    return included_items({k: v for k, v in attrs.items() if k not in drop}, basis)
+
+
 def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
     """The price list the 特定商取引法 page publishes, formatted, gated by date.
 
@@ -368,18 +393,9 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
         # 備考 cell: the included-list minus items that already have their own
         # column (ストレージ / 計算クレジット / 超過計算) — otherwise the tokushoho
         # table repeats the same numbers twice (operator 2026-09-10). Drop by
-        # source attribute key, not by rendered-string match.
-        _column_keys = {
-            "included_storage": storage_str,
-            "included_compute_credit": credit_str,
-            "overage": overage_str,
-        }
-        _drop = {
-            key for key, rendered in _column_keys.items() if rendered and key in attrs
-        }
-        remarks = included_items(
-            {k: v for k, v in attrs.items() if k not in _drop}, basis
-        )
+        # source attribute key, not by rendered-string match. Extracted so a
+        # SYNTHETIC all-dedicated row is testable (see remarks_items).
+        remarks = remarks_items(attrs, basis, storage_str, credit_str, overage_str)
         rows.append(
             {
                 "id": item["id"],
