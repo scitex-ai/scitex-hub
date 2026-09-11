@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""The visitor entry CTA must land on the LAUNCHER, not the repository browser.
+"""The /enter/ visitor route's behaviour, and the hero CTA's target.
+
+SCOPE CORRECTION 2026-09-11. The hero's primary CTA is now SIGN UP
+(/auth/signup/): the visitor funnel is retired policy, so the CTA assertions in
+this file assert the SIGNUP contract and explicitly reject /enter/. The /enter/
+ROUTE still exists and is still tested here (middleware skip lists, redirect
+behaviour) — it is the CTA that no longer points at it, and this file previously
+asserted that it did.
+
+The historical note below still explains why the CTA must not point at
+/apps/home/, which remains true.
 
 A visitor clicking "Enter as visitor" used to be sent to /apps/home/, which
 allocates a slot correctly but renders the Gitea-style repository browser — so
@@ -178,18 +188,47 @@ def test_enter_path_is_not_exact_skipped(skip_entries_by_name, enter_path):
     )
 
 
-def test_hero_cta_links_the_enter_route(hero_source, enter_path):
-    """The positive half of the CTA contract."""
+def test_hero_cta_links_the_signup_route(hero_source):
+    """OPERATOR POLICY: the hero's primary CTA is SIGN UP.
+
+    REWRITTEN 2026-09-11. This asserted ``href="/enter/" class="hero-cta-button"``.
+    The hero has linked /auth/signup/ since the visitor funnel was retired, so the
+    test was asserting a route the CTA no longer uses — it had been red ever since,
+    on every branch, and was being read as "base failure" rather than as a stale
+    expectation.
+    """
     # Arrange
-    cta_marker = f'href="{enter_path}" class="hero-cta-button"'
+    signup_marker = 'href="/auth/signup/" class="hero-cta-button"'
 
     # Act
-    has_enter_cta = cta_marker in hero_source
+    has_signup_cta = signup_marker in hero_source
 
     # Assert
-    assert has_enter_cta, (
-        f"expected the hero CTA to link {enter_path}; marker {cta_marker!r} is "
-        f"absent from {HERO_REL}"
+    assert has_signup_cta, (
+        f"expected the hero CTA to link the signup route; marker "
+        f"{signup_marker!r} is absent from {HERO_REL}"
+    )
+
+
+def test_hero_cta_does_not_link_the_retired_enter_route(hero_source):
+    """The negative half, on the SAME marker.
+
+    Paired deliberately: a negative assertion alone goes quiet if the CTA class is
+    ever renamed, while the positive sibling above would fail loudly. The /enter/
+    route still EXISTS and is still tested elsewhere in this file — it is the
+    CTA that no longer points at it.
+    """
+    # Arrange
+    retired_marker = 'href="/enter/" class="hero-cta-button"'
+
+    # Act
+    has_retired_cta = retired_marker in hero_source
+
+    # Assert
+    assert not has_retired_cta, (
+        "the hero CTA still points at the retired visitor-provisioning route "
+        f"/enter/; the primary CTA is signup ({retired_marker!r} found in "
+        f"{HERO_REL})"
     )
 
 
