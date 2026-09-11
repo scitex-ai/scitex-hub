@@ -1,6 +1,6 @@
 {% extends "global_base.html" %}
 
-{% load static %}
+{% load static landing_i18n %}
 {% load i18n %}
 
 {% block title %}
@@ -123,7 +123,7 @@
                         <tbody>
                             {% for row in published_price_rows %}
                             <tr>
-                                <td>{{ row.label }}</td>
+                                <td>{{ row.label|translate_dynamic }}</td>
                                 <td class="price-cell">{{ row.price }}</td>
                                 <td class="muted-cell">{{ row.list_price|default:"—" }}</td>
                                 <td class="muted-cell">{{ row.discount|default:"—" }}</td>
@@ -140,7 +140,7 @@
                                     this cell. If there is no remark, say so with
                                     the description or nothing.
                                     {% endcomment %}
-                                    {% if row.remarks %}{{ row.remarks|join:"、" }}{% elif row.description %}{{ row.description }}{% endif %}
+                                    {% if row.remarks %}{{ row.remarks|join:"、" }}{% elif row.description %}{{ row.description|translate_dynamic }}{% endif %}
                                 </td>
                             </tr>
                             {% endfor %}

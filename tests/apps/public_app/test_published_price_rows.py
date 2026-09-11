@@ -8,12 +8,48 @@ everything.
 """
 
 from datetime import date, timedelta
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+
+from django.utils import translation
 
 from apps.infra.public_app.pricing import (
     format_amount,
     load_pricing,
     published_price_rows,
 )
+
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+
+
+@pytest.fixture(scope="module", autouse=True)
+def compiled_catalogs():
+    """Compile locale/**/*.po -> .mo before any JA assertion reads a catalog.
+
+    The SSoT is now English-sourced (2026-09-11); the tests below pin the
+    JAPANESE catalog renderings, so the .mo must exist and Django's per-language
+    translation cache must be clear (same fixture the i18n landing tests use).
+    """
+    script = PROJECT_ROOT / "scripts" / "i18n" / "compile_catalogs.py"
+    result = subprocess.run(
+        [sys.executable, str(script)], cwd=PROJECT_ROOT,
+        capture_output=True, text=True,
+    )
+    assert result.returncode == 0, (
+        f"catalog compilation failed ({result.returncode}):\n"
+        f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+    )
+    translation.trans_real._translations.clear()
+    yield
+
+# The SSoT is now ENGLISH-sourced (2026-09-11: landing/pricing English by
+# default, JA only after selection). The exact rendered strings below are the
+# JAPANESE catalog translations, so pin them under translation.override("ja")
+# — that keeps every assertion meaningful (it still verifies the JA wording)
+# while the English default is covered by the landing i18n tests.
 
 
 def _catalogue():
@@ -84,7 +120,10 @@ def test_every_catalogue_unit_is_one_the_formatter_renders() -> None:
     future rows before formatting, so this walks the catalogue directly."""
     for row in _catalogue():
         rendered = format_amount(row["amount"], row.get("unit", "once"))
-        assert rendered.endswith("円"), (row["id"], rendered)
+        # A bare number must never ship: the rendered string carries more than
+        # the raw figure (a unit prefix in EN, or the currency suffix in JA).
+        assert rendered.strip() != f"{row['amount']:,}", (row["id"], rendered)
+        assert any(ch.isdigit() for ch in rendered), (row["id"], rendered)
 
 
 def test_a_withheld_row_is_not_published_whatever_its_date_says() -> None:
@@ -113,6 +152,7 @@ def test_no_catalogue_row_is_withheld_today() -> None:
     assert held == set(), held
 
 
+@translation.override("ja")
 def test_the_subscription_rows_sell_at_the_launch_price_until_july_2027() -> None:
     """The real catalogue, on days either side of the Launch/Y1 window's end.
     1,490 / 2,990 are 2,980 / 5,980 at 50%; the note carries the list price,
@@ -123,9 +163,15 @@ def test_the_subscription_rows_sell_at_the_launch_price_until_july_2027() -> Non
     anyone editing a status flag; after Y3 ends (2029-08-01) the list price
     returns with no note. Both directions, so a renderer that ignored the
     calendar fails on one side and one that never stopped discounting on the
-    other."""
+    other.
+
+    The SSoT is English-sourced; the label is translated at the template layer
+    (translate_dynamic), so it is asserted through that same filter rather than
+    read raw from the row."""
+    from apps.infra.public_app.templatetags.landing_i18n import translate_dynamic
+
     by_id = {r["id"]: r for r in published_price_rows(today=date(2026, 9, 2))}
-    assert by_id["subscription-student"]["label"] == "サブスク・学術"
+    assert translate_dynamic(by_id["subscription-student"]["label"]) == "サブスク・学術"
     assert by_id["subscription-student"]["price"] == "月額 1,490円"
     assert by_id["subscription-general"]["price"] == "月額 2,990円"
     assert by_id["subscription-student"]["price_note"] == (
@@ -159,6 +205,7 @@ def _policy_fixture(schedule, amount=1000):
     }
 
 
+@translation.override("ja")
 def test_a_window_is_selected_by_date_whatever_its_status_says() -> None:
     """Rule check independent of the data file. business.yaml's `status` marks
     which single phase is current and may not be set on two at once; the
@@ -181,6 +228,7 @@ def test_a_window_is_selected_by_date_whatever_its_status_says() -> None:
     assert outside["price"] == "月額 1,000円" and outside["price_note"] == "", outside
 
 
+@translation.override("ja")
 def test_the_note_names_a_mid_month_end_and_the_current_stage() -> None:
     """A mid-month end is named by the day (月末 is only for a last-of-month
     end). The note states only the current window's end (2026-09-10: later
@@ -245,15 +293,23 @@ def test_every_catalogue_attribute_renders_as_one_phrase() -> None:
     assert seen, "Control: no row carries attributes, so nothing was rendered."
 
 
+@translation.override("ja")
 def test_the_subscription_rows_state_what_they_include() -> None:
     """Pins the upstream numbers the operator confirmed 2026-09-02 (50 GB,
     1,000円 compute credit, metered overage, user-set cap) so a copy of
     business.yaml that dropped one fails here. The quotas are per-project
     (basis: per_project, 2026-09-10)."""
     by_id = {r["id"]: r for r in published_price_rows(today=date(2026, 9, 2))}
+    # The `included` list IS translated here (call-time gettext in pricing.py);
+    # under translation.override("ja") it yields the JA strings.
     for row_id in ("subscription-student", "subscription-general"):
         text = "、".join(by_id[row_id]["included"])
-        for needle in ("ストレージ 50GB/プロジェクト/月", "計算クレジット 1,000円相当/プロジェクト/月", "超過分は従量課金", "月の上限は利用者が設定"):
+        for needle in (
+            "50 GB ストレージ / プロジェクト / 月 (Standard)",
+            "1,000 円相当の計算クレジット / プロジェクト / 月",
+            "超過分は従量課金",
+            "月の上限は利用者が設定",
+        ):
             assert needle in text, (row_id, text)
     assert "対象: 大学・研究機関のメールアドレスを持つこと（学生・院生・教職員・研究員）" in "、".join(by_id["subscription-student"]["included"])
     assert "対象: " not in "、".join(by_id["subscription-general"]["included"])

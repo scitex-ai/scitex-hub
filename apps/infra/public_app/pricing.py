@@ -18,11 +18,13 @@ it looks like "we charge nothing".
 
 from __future__ import annotations
 
-import json
 import functools
+import json
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
+
+from django.utils.translation import gettext as _
 
 __all__ = [
     "PRICING_PATH",
@@ -36,12 +38,21 @@ __all__ = [
 
 PRICING_PATH = Path(__file__).resolve().parent / "data" / "pricing.json"
 
-# How a unit renders in front of the amount. ``once`` is the consulting bands'
-# bare figure; ``per_case`` / ``per_hour`` were added 2026-09-03 for the
-# published price list (オンプレ導入 1件, コンサル 1時間). An unknown unit raises in
-# format_amount rather than rendering a bare number that could be read as
-# monthly, one-off or hourly by whoever is looking.
-_UNIT_PREFIX = {"month": "月額 ", "once": "", "per_case": "1件 ", "per_hour": "1時間 "}
+# How a unit renders in front of the amount. English is the i18n SOURCE; JA
+# (and any future locale) is a catalog translation, applied at CALL time so it
+# follows the active language (gettext at import time would freeze to English).
+# An unknown unit raises rather than rendering a bare number that could be read
+# as monthly, one-off or hourly by whoever is looking.
+
+
+def _unit_prefix(unit: str) -> str:
+    if unit == "month":
+        return _("Monthly") + " "
+    if unit == "per_case":
+        return _("One-off") + " "
+    if unit == "per_hour":
+        return _("Hourly") + " "
+    return ""
 
 
 def load_pricing() -> dict[str, Any]:
@@ -66,57 +77,87 @@ def load_pricing() -> dict[str, Any]:
 def format_amount(amount: int, unit: str = "once", from_price: bool = False) -> str:
     """Render one amount the single agreed way.
 
-    ``0`` is free rather than "0円" — and it is free regardless of unit, since
-    "月額 無料" reads as a paid plan that happens to cost nothing.
+    ``0`` is free rather than "¥0" — and it is free regardless of unit.
+    English is the source; each pattern is a catalog string so JA renders the
+    conventional 月額/円 form. ``from_price`` appends "+" (and up).
     """
     if amount == 0:
-        return "無料"
-    if unit not in _UNIT_PREFIX:
+        return _("Free")
+    if unit not in ("month", "once", "per_case", "per_hour"):
         raise ValueError(
             f"unknown price unit {unit!r} in pricing.json; expected one of "
-            f"{sorted(_UNIT_PREFIX)}. Add the unit here deliberately rather "
-            "than letting it render as a bare number."
+            "['month', 'once', 'per_case', 'per_hour']. Add the unit here "
+            "deliberately rather than letting it render as a bare number."
         )
-    suffix = "円〜" if from_price else "円"
-    return f"{_UNIT_PREFIX[unit]}{amount:,}{suffix}"
+    base = _unit_prefix(unit) + _yen(amount)
+    return base + "+" if from_price else base
 
 
 # How one upstream attribute of a published row reads to a visitor. Keys are
 # business.yaml's attribute names, copied verbatim into pricing.json; the
 # phrasing is this module's, because prose written for a planning document is
-# not customer copy. Every value form is enumerated, so a value this table has
-# not seen fails the test that renders the whole catalogue instead of reaching
-# a legal page as an English token. 特商法 lists サービスの内容 alongside 価格;
-# this is where the 内容 comes from.
-_STORAGE_UNIT = {"GB/month": "GB/月"}
-_CREDIT_UNIT = {"JPY-equivalent/month": "円相当/月"}
-_TRAFFIC = {"normal-use": "通常利用の範囲の通信"}
-_OVERAGE = {"metered": "超過分は従量課金"}
-_LIMIT_SET_BY = {"user": "月の上限は利用者が設定"}
+# not customer copy. English is the source; JA in the catalog (applied at call
+# time). Every value form is enumerated, so a value this table has not seen
+# fails the test that renders the whole catalogue instead of reaching a legal
+# page untranslated.
+_TRAFFIC = {"normal-use": "traffic"}
+_OVERAGE = {"metered": "overage"}
+_LIMIT_SET_BY = {"user": "cap"}
 
 
 def _storage_text(value: dict[str, Any], basis: str = "") -> str:
-    kind = f"（{value['type']}）" if value.get("type") else ""
-    unit = _STORAGE_UNIT[value["unit"]]
+    kind = f" ({value['type']})" if value.get("type") else ""
     if basis == "per_project":
-        unit = "GB/プロジェクト/月"
-    return f"ストレージ {value['amount']:,}{unit}{kind}"
+        return _(
+            "%(amount)s GB storage per project per month%(kind)s"
+        ) % {"amount": f"{value['amount']:,}", "kind": kind}
+    return _("%(amount)s GB storage per month%(kind)s") % {
+        "amount": f"{value['amount']:,}",
+        "kind": kind,
+    }
 
 
 def _credit_text(value: dict[str, Any], basis: str = "") -> str:
-    unit = _CREDIT_UNIT[value["unit"]]
+    amount = f"{value['amount']:,}"
     if basis == "per_project":
-        unit = "円相当/プロジェクト/月"
-    return f"計算クレジット {value['amount']:,}{unit}"
+        return _("%(amount)s yen-equivalent compute credit per project per month") % {
+            "amount": amount
+        }
+    return _("%(amount)s yen-equivalent compute credit per month") % {"amount": amount}
+
+
+def _traffic_text(key: str) -> str:
+    if key == "normal-use":
+        return _("Traffic within normal use")
+    raise ValueError(f"unknown included_traffic value {key!r}")
+
+
+def _overage_text(key: str) -> str:
+    if key == "metered":
+        return _("Overage is metered")
+    raise ValueError(f"unknown overage value {key!r}")
+
+
+def _limit_set_by_text(key: str) -> str:
+    if key == "user":
+        return _("Monthly cap set by the user")
+    raise ValueError(f"unknown monthly_limit_set_by value {key!r}")
+
+
+def _eligibility_text(value: str) -> str:
+    # The value is SSoT data (English-source), so translate it too; a value
+    # with no catalog entry returns unchanged (the source string), which is
+    # the correct behaviour for an English default.
+    return _("Eligibility: %(v)s") % {"v": _(value)}
 
 
 _ATTRIBUTE_TEXT = {
     "included_storage": _storage_text,
     "included_compute_credit": _credit_text,
-    "included_traffic": _TRAFFIC.__getitem__,
-    "overage": _OVERAGE.__getitem__,
-    "monthly_limit_set_by": _LIMIT_SET_BY.__getitem__,
-    "eligibility": "対象: {}".format,
+    "included_traffic": _traffic_text,
+    "overage": _overage_text,
+    "monthly_limit_set_by": _limit_set_by_text,
+    "eligibility": _eligibility_text,
 }
 
 
@@ -188,15 +229,26 @@ def _discounted(list_amount: int, percent: int) -> int:
 
 
 def _until_text(end: str) -> str:
-    """2027-07-31 -> 2027年7月末; a mid-month end names the day."""
+    """Localized early-adopter window end. EN msgid shows the English month
+    name ('End of July 2027'); the JA catalog re-renders the same date from the
+    numeric %(month_num)s/'%(day)s keys it also receives ('2027年7月末'). Python
+    % formatting tolerates the extra key, so the EN and JA msgstrs can differ
+    without the msgid changing."""
     last = date.fromisoformat(end)
+    d = {
+        "month": last.strftime("%B"),
+        "month_num": last.month,
+        "day": last.day,
+        "year": last.year,
+    }
     if (last + timedelta(days=1)).day == 1:
-        return f"{last.year}年{last.month}月末"
-    return f"{last.year}年{last.month}月{last.day}日"
+        return _("End of %(month)s %(year)s") % d
+    return _("%(month)s %(day)s, %(year)s") % d
 
 
 def _yen(amount: int) -> str:
-    return f"{amount:,}円"
+    """A yen amount, currency mark localized: ¥2,980 (EN) / 2,980円 (JA)."""
+    return _("¥%(amt)s") % {"amt": f"{amount:,}"}
 
 
 def _format_included_storage(attrs: dict[str, Any], basis: str = "") -> str:
@@ -243,7 +295,9 @@ def _staged_price_note(
 ) -> str:
     """The sentence a discounted row carries: the current window only.
 
-    定価 2,980円、早期導入割引 50%。2027年7月末までの早期導入価格。
+    EN source: "List price ¥2,980, early-adopter discount 50%. Early-adopter
+    price through end of July 2027." JA in the catalog:
+    "定価 2,980円、早期導入割引 50%。2027年7月末までの早期導入価格。"
 
     The LATER stages (2027年8月から 2,086円、2028年8月から …) were originally
     disclosed up front (2026-09-03, 景表法 dual-price protection), but the
@@ -251,10 +305,14 @@ def _staged_price_note(
     is already its own column, so the trailing schedule is dropped. Only the
     active window's end date remains.
     """
-    return (
-        f"定価 {_yen(list_amount)}、早期導入割引 {window['percent']}%。"
-        f"{_until_text(window['end'])}までの早期導入価格。"
-    )
+    return _(
+        "List price %(price)s, early-adopter discount %(percent)d%%. "
+        "Early-adopter price through %(until)s."
+    ) % {
+        "price": _yen(list_amount),
+        "percent": window["percent"],
+        "until": _until_text(window["end"]),
+    }
 
 
 def _render(row: dict[str, Any]) -> str:
@@ -388,7 +446,9 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
             if "included_compute_credit" in attrs
             else _format_compute_credit(attrs, basis)
         )
-        overage_str = _OVERAGE.get(attrs.get("overage")) or _format_overage(attrs)
+        overage_str = (
+            _overage_text(attrs["overage"]) if "overage" in attrs else ""
+        )
         included = included_items(attrs, basis)
         # 備考 cell: the included-list minus items that already have their own
         # column (ストレージ / 計算クレジット / 超過計算) — otherwise the tokushoho

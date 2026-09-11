@@ -43,14 +43,14 @@ answered 405. So this is a real form with a CSRF token, not a link.
         {% if CURRENT_LANGUAGE == "ja" %}
             <input type="hidden" name="language" value="en" />
             <button type="submit"
-                    class="header-btn"
+                    class="footer-lang-btn"
                     data-tooltip="Switch to English">
                 <i class="fas fa-language"></i> English
             </button>
         {% else %}
             <input type="hidden" name="language" value="ja" />
             <button type="submit"
-                    class="header-btn"
+                    class="footer-lang-btn"
                     data-tooltip="日本語に切り替える">
                 <i class="fas fa-language"></i> 日本語
             </button>

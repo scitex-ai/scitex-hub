@@ -197,16 +197,19 @@ def test_hero_cta_links_the_signup_route(hero_source):
     on every branch, and was being read as "base failure" rather than as a stale
     expectation.
     """
-    # Arrange
-    signup_marker = 'href="/auth/signup/" class="hero-cta-button"'
+    # Arrange — the CTA is conditional: anonymous visitors link signup, signed-in
+    # users link /apps/ (operator 2026-09-11: "I am already signed in"). The
+    # ANONYMOUS branch must still be the signup route.
+    signup_marker = '{% else %}/auth/signup/'
+    cta_marker = 'class="hero-cta-button"'
 
     # Act
-    has_signup_cta = signup_marker in hero_source
+    has_signup_cta = signup_marker in hero_source and cta_marker in hero_source
 
     # Assert
     assert has_signup_cta, (
-        f"expected the hero CTA to link the signup route; marker "
-        f"{signup_marker!r} is absent from {HERO_REL}"
+        f"expected the hero CTA to link the signup route for anonymous visitors; "
+        f"marker {signup_marker!r} or the CTA class is absent from {HERO_REL}"
     )
 
 

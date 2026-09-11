@@ -3,50 +3,102 @@
    Landing-page pricing (compass 25.1: "Publish the Pricing table on the
    TOP/LANDING page so a user can tell what they get before signing in").
 
-   Rendered from data/pricing.json via the SAME helpers /pricing/ and
-   /services/ use — never a hand-written copy. test_pricing_ssot.py fails
-   on a literal amount in this file. Uses 11-pricing.css classes (already
-   loaded on the landing) + section-heading/landing-section (03-landing-sections.css).
+   Layout (operator 2026-09-11, "learn from the claude.ai plan page"):
+   a clean three-plan row —
+     1. Free    — no charge, "create your free account", Sign up. No invented
+                  feature list (free-tier contents are specified later).
+     2. Sub     — ONE card; Academic vs General is a small switcher inside it
+                  (was two sibling cards). Both variants' prices, notes and
+                  included lists come from the same SSOT rows (pricing.json
+                  subscription-student / subscription-general).
+     3. On-Prem — AGPL self-host free + commercial-license contact (SSOT
+                  tier 'onprem'). Individual service line items (Consulting,
+                  Contract Development, SciTeX Translation, Clew Verification)
+                  stay on /services/ — they are offerings, not plans.
+
+   Every amount renders from data/pricing.json through the same helpers
+   /pricing/ and /services/ use — never a hand-written copy. The Free card's
+   price renders through pricing.format_amount(0, 'once') ("Free"), so
+   test_pricing_ssot.py's no-literal scan stays green.
+
+   Uses 11-pricing.css classes (already loaded on the landing) +
+   section-heading/landing-section (03-landing-sections.css).
 {% endcomment %}
 <section class="landing-section section-pricing" id="pricing">
     <div class="container">
         <h2 class="section-heading">{% trans "Pricing" %}</h2>
-        <div class="pricing-grid">
-            {% for group in published_price_groups %}
-            {% for row in group.rows %}
-            <div class="pricing-card">
+        <div class="pricing-grid pricing-grid-plans">
+            {# ---- 1/3 Free ------------------------------------------------ #}
+            <div class="pricing-card pricing-card-free">
                 <div class="pricing-header">
-                    <h3 class="plan-name">{{ row.label|translate_dynamic }}</h3>
-                    <p class="pricing-price">{{ row.price|translate_dynamic }}{% if row.price_note %}<span class="period">{{ row.price_note|translate_dynamic }}</span>{% endif %}</p>
+                    <h3 class="plan-name">{% trans "Free" %}</h3>
+                    <p class="pricing-price">{{ free_price }}</p>
                 </div>
-                {% if row.included %}
                 <div class="pricing-features">
-                    <ul>
-                        {% for item in row.included %}
-                        <li>{{ item|translate_dynamic }}</li>
-                        {% endfor %}
-                    </ul>
+                    <p class="pricing-features-text">{% trans "Create your free account and use SciTeX's free tier at no cost." %}</p>
+                    <p class="pricing-coming-soon">{% trans "Contents of the free tier will be listed here." %}</p>
                 </div>
-                {% endif %}
-                {% if row.description %}
-                <p class="plan-sub">{{ row.description|translate_dynamic }}</p>
-                {% endif %}
                 <div class="pricing-action">
-                    {% if row.category == "subscription" %}
                     <a href="{% url 'auth_app:signup' %}" class="btn btn-primary btn-block">{% trans "Sign up free" %}</a>
-                    <p class="pricing-card-note">{% trans "Creating an account does not activate this paid plan." %}</p>
-                    {% else %}
-                    <a href="{% url 'public_app:contact' %}" class="btn btn-block">{% trans "Contact us" %}</a>
-                    {% endif %}
                 </div>
             </div>
-            {% endfor %}
-            {% endfor %}
+
+            {# ---- 2/3 Sub (Academic / General switcher) ------------------- #}
+            {% if sub_rows %}
+            <div class="pricing-card pricing-card-sub">
+                <div class="pricing-header">
+                    <h3 class="plan-name">{% trans "Sub" %}</h3>
+                    <p class="plan-sub">{% trans "For individuals" %}</p>
+                    <div class="plan-variant-switch" role="group" aria-label="{% trans "Plan variant" %}">
+                        <button type="button" class="variant-btn is-active" data-variant="academic" aria-pressed="true">{% trans "Academic" %}</button>
+                        <button type="button" class="variant-btn" data-variant="general" aria-pressed="false">{% trans "General" %}</button>
+                    </div>
+                </div>
+                {% for row in sub_rows %}
+                <div class="plan-variant plan-variant-{% if row.is_academic %}academic{% else %}general{% endif %}{% if not row.is_academic %} plan-variant-hidden{% endif %}" data-variant="{% if row.is_academic %}academic{% else %}general{% endif %}">
+                    <p class="pricing-price">{{ row.price }}{% if row.price_note %}<span class="period">{{ row.price_note }}</span>{% endif %}</p>
+                    {% if row.included %}
+                    <div class="pricing-features">
+                        <ul>
+                            {% for item in row.included %}
+                            <li>{{ item }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                <div class="pricing-action">
+                    <a href="{% url 'auth_app:signup' %}" class="btn btn-primary btn-block">{% trans "Sign up free" %}</a>
+                    <p class="pricing-card-note">{% trans "Creating an account does not activate this paid plan." %}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            {# ---- 3/3 On-Prem --------------------------------------------- #}
+            {% if onprem_tier %}
+            <div class="pricing-card pricing-card-onprem">
+                <div class="pricing-header">
+                    <h3 class="plan-name">{{ onprem_tier.name|translate_dynamic }}</h3>
+                    <p class="plan-sub">{{ onprem_tier.audience|translate_dynamic }}</p>
+                </div>
+                {% if onprem_tier.description %}
+                <div class="pricing-features">
+                    <p class="pricing-features-text">{{ onprem_tier.description|translate_dynamic }}</p>
+                </div>
+                {% endif %}
+                <div class="pricing-action">
+                    <a href="{% url 'public_app:contact' %}" class="btn btn-block">{% trans "Contact us" %}</a>
+                    <p class="pricing-card-note"><a href="{% url 'public_app:services' %}">{% trans "Services & add-ons" %}</a></p>
+                </div>
+            </div>
+            {% endif %}
         </div>
         <div class="pricing-notes">
             <p class="pricing-note">
                 {% trans "For details, see the" %}
                 <a href="{% url 'public_app:pricing' %}">{% trans "pricing page" %}</a>{% trans " and " %}
+                <a href="{% url 'public_app:services' %}">{% trans "services" %}</a>{% trans ", plus the " %}
                 <a href="{% url 'public_app:tokushoho' %}">{% trans "legal notice required by Japan's Specified Commercial Transactions Act" %}</a>{% trans "." %}
                 {% if tax_note %} {{ tax_note|translate_dynamic }}{% endif %}
             </p>
@@ -55,4 +107,26 @@
             {% endfor %}
         </div>
     </div>
+    {# Variant switch: pure display toggle (no data change, no persistence —
+       the landing must work without the Vite bundle). #}
+    <script>
+    (function () {
+        var sw = document.querySelector('.plan-variant-switch');
+        if (!sw) return;
+        var card = sw.closest('.pricing-card');
+        sw.addEventListener('click', function (e) {
+            var btn = e.target.closest('.variant-btn');
+            if (!btn) return;
+            var variant = btn.dataset.variant;
+            sw.querySelectorAll('.variant-btn').forEach(function (b) {
+                var on = b === btn;
+                b.classList.toggle('is-active', on);
+                b.setAttribute('aria-pressed', on ? 'true' : 'false');
+            });
+            card.querySelectorAll('.plan-variant').forEach(function (v) {
+                v.classList.toggle('plan-variant-hidden', v.dataset.variant !== variant);
+            });
+        });
+    })();
+    </script>
 </section>

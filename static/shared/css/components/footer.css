@@ -409,6 +409,37 @@
    small screen but not dropping it, so it moved rather than vanished. Anything
    that makes the launcher scroll instead would have to re-tune the pager,
    which sizes its pages against this same fixed viewport. */
+/* Global language switcher (footer, moved from the header 2026-09-11).
+   Reuses the footer's own token palette — no arbitrary colors. */
+.footer-language {
+  margin: var(--spacing-md) 0;
+}
+.footer-language .language-toggle-form {
+  display: inline-flex;
+  margin: 0;
+}
+.footer-lang-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--border-radius, 6px);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.footer-lang-btn:hover {
+  background: var(--bg-muted, rgba(0, 0, 0, 0.04));
+  border-color: var(--text-secondary, var(--border-default));
+}
+.footer-lang-btn i {
+  font-size: 0.9em;
+}
+
 @media (max-width: 768px) {
   body.workspace-page:not(.landing-page) .site-footer {
     display: none;

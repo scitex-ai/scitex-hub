@@ -556,3 +556,159 @@ msgstr "無断複製・転載を禁じます。"
 #: templates/global_base_partials/global_footer.html
 msgid "Support SciTeX"
 msgstr "SciTeX を支援する"
+
+
+
+msgid "List price %(price)s, early-adopter discount %(percent)d%%. Early-adopter price through %(until)s."
+msgstr "定価 %(price)s、早期導入割引 %(percent)d%%。%(until)sまでの早期導入価格。"
+
+msgid "End of %(month)s %(year)s"
+msgstr "%(year)s年%(month_num)s月末"
+
+msgid "%(month)s %(day)s, %(year)s"
+msgstr "%(year)s年%(month_num)s月%(day)s日"
+
+msgid "¥%(amt)s"
+msgstr "%(amt)s円"
+
+msgid "University or research-institution email address (students, graduate students, faculty, researchers)"
+msgstr "大学・研究機関のメールアドレスを持つこと（学生・院生・教職員・研究員）"
+
+
+# Pricing i18n (English source, JA translations) — 2026-09-11
+msgid "Monthly"
+msgstr "月額"
+
+msgid "One-off"
+msgstr "1件"
+
+msgid "Hourly"
+msgstr "1時間"
+
+msgid "Free"
+msgstr "無料"
+
+msgid "%(amount)s GB storage per project per month%(kind)s"
+msgstr "%(amount)s GB ストレージ / プロジェクト / 月%(kind)s"
+
+msgid "%(amount)s GB storage per month%(kind)s"
+msgstr "%(amount)s GB ストレージ / 月%(kind)s"
+
+msgid "%(amount)s yen-equivalent compute credit per project per month"
+msgstr "%(amount)s 円相当の計算クレジット / プロジェクト / 月"
+
+msgid "%(amount)s yen-equivalent compute credit per month"
+msgstr "%(amount)s 円相当の計算クレジット / 月"
+
+msgid "Traffic within normal use"
+msgstr "通常利用の範囲の通信"
+
+msgid "Overage is metered"
+msgstr "超過分は従量課金"
+
+msgid "Monthly cap set by the user"
+msgstr "月の上限は利用者が設定"
+
+msgid "Eligibility: %(v)s"
+msgstr "対象: %(v)s"
+
+msgid "Sub · Academic"
+msgstr "サブスク・学術"
+
+msgid "Sub · General"
+msgstr "サブスク・一般"
+
+msgid "On-Prem Setup"
+msgstr "オンプレ導入サポート"
+
+msgid "On-Prem Maintenance"
+msgstr "オンプレ保守サポート"
+
+msgid "Contract Development"
+msgstr "受託開発"
+
+msgid "Consulting"
+msgstr "コンサル"
+
+msgid "SciTeX Translation"
+msgstr "SciTeX 翻訳"
+
+msgid "Clew Verification"
+msgstr "Clew 検証"
+
+msgid "Sub"
+msgstr "サブスク"
+
+msgid "On-Prem"
+msgstr "オンプレ"
+
+msgid "Enterprise"
+msgstr "大規模"
+
+msgid "For individuals"
+msgstr "個人で使う"
+
+msgid "For labs and departments"
+msgstr "研究室・部門に入れる"
+
+msgid "Faculty / university scale (quote)"
+msgstr "学部・全学など（応相談）"
+
+msgid "Start quickly, stop anytime. Connect your own compute resources."
+msgstr "すぐ始められて、いつでも止められます。計算資源はご自身のものを繋いでいただけます。"
+
+msgid "The software itself is free under AGPL v3.0 — self-host in your own environment. Keep data in-house; per-site monthly. Commercial / non-AGPL licenses: contact us for individual discussion. Setup and maintenance support are priced below."
+msgstr "ソフトウェア自体は AGPL v3.0 で無料で、ご自身の環境（オンプレミス）に導入できます。データを外に出さず運用でき、人数が増えても月額は拠点単位です。商用・非AGPL 等他ライセンスは個別にご相談ください。導入・保守サポートは下の料金。"
+
+msgid "Larger scale means a lower per-person cost. We quote based on your configuration."
+msgstr "規模が大きいほど一人あたりは下がります。構成をうかがって個別にお見積りします。"
+
+msgid "For university and research-institution email addresses (students, graduate students, faculty, researchers)."
+msgstr "大学・研究機関のメールアドレスを持つこと（学生・院生・教職員・研究員）"
+
+msgid "For general use."
+msgstr "一般利用向け"
+
+msgid "On-premises deployment support. Quote based on scale."
+msgstr "オンプレミス導入支援。規模に応じて個別見積。"
+
+msgid "On-premises maintenance. Quote based on scale."
+msgstr "オンプレミス保守。規模に応じて個別見積。"
+
+msgid "Research and application development. Quote-based."
+msgstr "研究・アプリ開発等。個別見積。"
+
+msgid "Technical and research consulting. Billed by the hour, first 30 minutes free. Zoom or in-person."
+msgstr "技術・研究相談。時間に応じて課金（最初の30分は無料）。Zoomまたは対面。"
+
+# SSOT raw fields EN-sourced 2026-09-11 (pricing i18n)
+msgid "All displayed prices include tax."
+msgstr "表示価格はすべて税込(総額)です。"
+
+msgid "Move existing analyses and drafts into SciTeX format. Quoted per engagement; we accept orders from one. Anyone can request."
+msgstr "既存の解析・原稿を SciTeX 形式に移す。規模により個別見積だが、1 件から受け付ける。誰でも依頼できる。"
+
+msgid "Reproduction and verification runs (SciTeX-format compatible). Compute costs are billed separately by usage. We accept orders from one. Anyone can request."
+msgstr "再現・検証実行（SciTeX 形式に対応）。計算資源費等は別途従量。1 件から受け付ける。誰でも依頼できる。"
+
+msgid "External software, hardware, cloud, and generative-AI API costs are generally charged at cost."
+msgstr "ソフトウェア、ハードウェア、クラウド、生成 AI API 等の外部利用料は原則実費です。"
+
+msgid "We prioritize configurations that reuse your existing contracts and compute resources."
+msgstr "お客様自身の既存契約や計算資源を、そのまま利用できる構成を優先します。"
+
+msgid "SciTeX Cloud usage-based pricing will be published on a separate page once rates are finalized."
+msgstr "SciTeX Cloud の従量課金は、料金確定後に別ページでご案内します。"
+
+msgid "These prices are indicative. Contact us to adjust them to your budget and circumstances."
+msgstr "上記はいずれも目安です。ご予算や状況に合わせて調整できますので、気楽にご相談ください。"
+msgid "Academic"
+msgstr "学術"
+msgid "General"
+msgstr "一般"
+msgid "Plan variant"
+msgstr "プラン種別"
+msgid "Services & add-ons"
+msgstr "サービス・追加オプション"
+msgid "Contents of the free tier will be listed here."
+msgstr "無料プランの内容はここに掲載予定です。"

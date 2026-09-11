@@ -3,13 +3,13 @@
   "_amount_is_the_only_truth": "Store the NUMBER, never a formatted string. Rendering derives '無料' from amount 0, the '〜' suffix from from_price, the '月額' prefix from unit, and — for a row with `policy` — the selling price from `amount` (always the LIST price, as upstream's list_amount) and the active window in pricing_policies. Never write the discounted number here: 1,490 is 2,980 × 50%, and storing both is two representations of one fact, which is the duplication this file exists to remove.",
   "currency": "JPY",
   "tax_included": true,
-  "tax_note": "表示価格はすべて税込(総額)です。",
+  "tax_note": "All displayed prices include tax.",
   "updated": "2026-09-03",
   "_published_prices_are_the_tokushoho_list": "The price list the 特定商取引法 page publishes, and the ONLY list it publishes. Operator decision 2026-09-03, relayed by business. UPSTREAM: github.com/ywatanabe1989/scitex-business, scitex-kk/config/business.yaml (the BUSINESS repo — not scitex-ai/scitex-business, which is the engine package; same name, two orgs). Every row here was checked against that file on 2026-09-02: id, label, amount, interval, available_from. All amounts tax-INCLUDED, operator ruling 2026-09-03: 「税込みとしてだしましょう」. THE PUBLICATION RULE IS business.yaml's, verbatim, so an export can replace this hand-copy without changing what the page shows: a row is published iff `available_from` (YYYY-MM) is SET and <= the current month. No available_from = not for sale at a list price (business.yaml's 18 usage-billed rows — API, storage, compute, traffic — have none and are permanently excluded). A future month = in the catalogue, off the page, appears on its month with no code change — so a deploy is still the human gate on what a legal page says; the derivation is automatic, the publication is a diff someone reads. `status` is NOT a gate: all 26 upstream rows are `draft`, including the six on the page by decision. Labels follow the SSoT exactly (コンサル, not コンサルティング) because a hand-maintained exception on the page would be overwritten by the first mechanical export.",
   "published_prices": [
     {
       "id": "subscription-student",
-      "label": "サブスク・学術",
+      "label": "Sub · Academic",
       "amount": 2980,
       "policy": "early-adopter",
       "unit": "month",
@@ -29,12 +29,13 @@
         "included_traffic": "normal-use",
         "overage": "metered",
         "monthly_limit_set_by": "user",
-        "eligibility": "大学・研究機関のメールアドレスを持つこと（学生・院生・教職員・研究員）"
-      }
+        "eligibility": "University or research-institution email address (students, graduate students, faculty, researchers)"
+      },
+      "description": "For university and research-institution email addresses (students, graduate students, faculty, researchers)."
     },
     {
       "id": "subscription-general",
-      "label": "サブスク・一般",
+      "label": "Sub · General",
       "amount": 5980,
       "policy": "early-adopter",
       "unit": "month",
@@ -54,75 +55,76 @@
         "included_traffic": "normal-use",
         "overage": "metered",
         "monthly_limit_set_by": "user"
-      }
+      },
+      "description": "For general use."
     },
     {
       "id": "onprem-setup",
-      "label": "オンプレ導入サポート",
+      "label": "On-Prem Setup",
       "amount": 298000,
       "unit": "per_case",
       "available_from": "2026-08",
       "from_price": true,
       "category": "service",
-      "description": "オンプレミス導入支援。規模に応じて個別見積。",
+      "description": "On-premises deployment support. Quote based on scale.",
       "price_is_floor": true
     },
     {
       "id": "onprem-maintenance",
-      "label": "オンプレ保守サポート",
+      "label": "On-Prem Maintenance",
       "amount": 98000,
       "unit": "month",
       "available_from": "2026-08",
       "from_price": true,
       "category": "service",
-      "description": "オンプレミス保守。規模に応じて個別見積。",
+      "description": "On-premises maintenance. Quote based on scale.",
       "price_is_floor": true
     },
     {
       "id": "contract-development",
-      "label": "受託開発",
+      "label": "Contract Development",
       "amount": 198000,
       "unit": "per_case",
       "available_from": "2026-08",
       "category": "service",
-      "description": "研究・アプリ開発等。個別見積。",
+      "description": "Research and application development. Quote-based.",
       "from_price": true
     },
     {
       "id": "consulting",
-      "label": "コンサル",
+      "label": "Consulting",
       "amount": 9800,
       "unit": "per_hour",
       "available_from": "2026-08",
       "category": "service",
-      "description": "技術・研究相談。Zoomまたは対面。時間に応じて課金（最初の30分は無料）。",
+      "description": "Technical and research consulting. Billed by the hour, first 30 minutes free. Zoom or in-person.",
       "from_price": true
     },
     {
       "id": "translation",
-      "label": "SciTeX 翻訳",
+      "label": "SciTeX Translation",
       "amount": 98000,
       "unit": "per_case",
       "available_from": "2027-08",
       "category": "service",
-      "description": "既存の解析・原稿を SciTeX 形式に移す。規模により個別見積だが、1 件から受け付ける。誰でも依頼できる。"
+      "description": "Move existing analyses and drafts into SciTeX format. Quoted per engagement; we accept orders from one. Anyone can request."
     },
     {
       "id": "clew-verification",
-      "label": "Clew 検証",
+      "label": "Clew Verification",
       "amount": 98000,
       "unit": "per_case",
       "available_from": "2027-08",
       "category": "service",
-      "description": "再現・検証実行（SciTeX 形式に対応）。計算資源費等は別途従量。1 件から受け付ける。誰でも依頼できる。"
+      "description": "Reproduction and verification runs (SciTeX-format compatible). Compute costs are billed separately by usage. We accept orders from one. Anyone can request."
     }
   ],
   "_notes_are_verbatim": "The first three are the exact lines /services/ published before this file existed, copied character-for-character so migrating the template changes nothing visible. The fourth is NEW, added at the operator's request 2026-08-01:「目安ですので気楽にご相談ください、と書いておくと良いかもですね」— with bands as wide as 55,000〜220,000, a reader with no invitation to ask simply leaves.",
   "notes": [
-    "ソフトウェア、ハードウェア、クラウド、生成 AI API 等の外部利用料は原則実費です。",
-    "お客様自身の既存契約や計算資源を、そのまま利用できる構成を優先します。",
-    "SciTeX Cloud の従量課金は、料金確定後に別ページでご案内します。",
-    "上記はいずれも目安です。ご予算や状況に合わせて調整できますので、気楽にご相談ください。"
+    "External software, hardware, cloud, and generative-AI API costs are generally charged at cost.",
+    "We prioritize configurations that reuse your existing contracts and compute resources.",
+    "SciTeX Cloud usage-based pricing will be published on a separate page once rates are finalized.",
+    "These prices are indicative. Contact us to adjust them to your budget and circumstances."
   ],
   "_provenance": {
     "note": "HISTORY, not a price list. The 2024 invoices below anchored the consulting bands that this file carried until 2026-09-02 (see _consulting_bands_retired_2026_09_02). They are kept so the origin of those numbers is not lost; nothing renders from them.",
@@ -148,31 +150,31 @@
   "tiers": [
     {
       "id": "subscription",
-      "name": "サブスク",
-      "audience": "個人で使う",
+      "name": "Sub",
+      "audience": "For individuals",
       "rows": [
         "subscription-student",
         "subscription-general"
       ],
-      "description": "すぐ始められて、いつでも止められます。計算資源はご自身のものを繋いでいただけます。"
+      "description": "Start quickly, stop anytime. Connect your own compute resources."
     },
     {
       "id": "onprem",
-      "name": "オンプレ",
-      "audience": "研究室・部門に入れる",
+      "name": "On-Prem",
+      "audience": "For labs and departments",
       "rows": [
         "onprem-setup",
         "onprem-maintenance"
       ],
-      "description": "ソフトウェア自体は AGPL v3.0 で無料で、ご自身の環境（オンプレミス）に導入できます。データを外に出さず運用でき、人数が増えても月額は拠点単位です。商用・非AGPL 等他ライセンスは個別にご相談ください。導入・保守サポートは下の料金。"
+      "description": "The software itself is free under AGPL v3.0 — self-host in your own environment. Keep data in-house; per-site monthly. Commercial / non-AGPL licenses: contact us for individual discussion. Setup and maintenance support are priced below."
     },
     {
       "id": "large",
-      "name": "大規模",
-      "audience": "学部・全学など（応相談）",
+      "name": "Enterprise",
+      "audience": "Faculty / university scale (quote)",
       "rows": [],
       "quote_only": true,
-      "description": "規模が大きいほど一人あたりは下がります。構成をうかがって個別にお見積りします。"
+      "description": "Larger scale means a lower per-person cost. We quote based on your configuration."
     }
   ],
   "_pricing_policies": "Discount schedules, copied VERBATIM from business.yaml pricing_policies. A row that carries `policy` sells at its `amount` (the LIST price) minus the percent of the window whose DATES cover the day the page renders — selection is by date, exactly as the business engine's Price.from_mapping does it; `status` only marks which single phase is current (two may not be active at once) and is NOT read here (business, 2026-09-03 06:54Z, correcting their 00:02Z hold; the 50→30→10 taper is a settled decision, operator Telegram 6913). The page states, before the period: the list price and the discount (「定価 2,980円、早期導入割引 50%」 — operator Telegram 6915 wants 割引 named, because reducing a discount reads more honestly than raising a price later), then when the window ends, then every later stage at its own percent and finally the list price from the day after the last window. Disclosing all stages up front is what keeps 「定価」 a stated future price and not a 景表法 claim of past sales; a struck-through pair is still refused.",

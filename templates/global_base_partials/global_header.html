@@ -66,129 +66,11 @@
                     </svg>
                 </button>
             {% endif %}
-            <!-- Project Selector (authenticated users + visitors only) -->
-            <div class="header-project-selector-inline"
-                 {% if not user.is_authenticated and not visitor_username %}style="display: none"{% endif %}>
-                <button id="project-selector-toggle"
-                        class="project-selector-btn"
-                        {% if user.is_authenticated %}data-active-project-id="{% with active=user.profile.get_active_project %}{{ active.id|default:'' }}{% endwith %}"{% endif %}
-                        title="{% if user.is_authenticated %}Switch projects{% else %}Current project{% endif %}">
-                    <span id="project-selector-text" class="project-selector-text">
-                        {% if user.is_authenticated %}
-                            {% with active=user.profile.get_active_project %}{{ active.name|default:"No Projects" }}{% endwith %}
-                        {% elif visitor_username %}
-                            {{ project.name|default:"Handwritten Digits (Example)" }}
-                        {% else %}
-                            SciTeX
-                        {% endif %}
-                    </span>
-                    <svg width="12"
-                         height="12"
-                         viewBox="0 0 16 16"
-                         fill="currentColor"
-                         style="margin-left: 4px">
-                        <path d="M4 6l4 4 4-4H4z" />
-                    </svg>
-                </button>
-                <!-- Project Dropdown Menu -->
-                <div id="project-selector-dropdown"
-                     class="project-selector-dropdown"
-                     style="display: none">
-                    {% if user.is_authenticated %}
-                        {% if user.profile.get_user_projects %}
-                            <div class="dropdown-section">
-                                {% for project in user.profile.get_user_projects %}
-                                    <button type="button"
-                                            class="dropdown-project-item"
-                                            data-project-id="{{ project.id }}"
-                                            data-project-name="{{ project.name }}"
-                                            data-project-slug="{{ project.slug }}"
-                                            data-project-owner="{{ project.owner.username }}">
-                                        <span class="project-item-name">{{ project.name }}</span>
-                                        <div style="display: flex; align-items: center; gap: 4px; margin-left: auto">
-                                            <a href="/{{ project.owner.username }}/{{ project.slug }}/"
-                                               class="project-item-jump-btn"
-                                               title="Go to {{ project.name }} repository"
-                                               onclick="event.stopPropagation();"
-                                               target="_blank"
-                                               style="display: inline-flex;
-                                                      align-items: center;
-                                                      justify-content: center;
-                                                      width: 20px;
-                                                      height: 20px;
-                                                      border-radius: 3px;
-                                                      color: var(--text-muted);
-                                                      text-decoration: none;
-                                                      transition: all 0.15s ease">
-                                                <i class="fas fa-folder-open" style="font-size: 12px"></i>
-                                            </a>
-                                            <span class="project-item-check"
-                                                  style="display: {% if user.profile.last_active_repository and user.profile.last_active_repository.id == project.id %}inline-flex{% else %}none{% endif %};
-                                                         align-items: center;
-                                                         justify-content: center">
-                                                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                                                    <path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 11-1.06-1.06L12.72 4.22a.75.75 0 011.06 0z" />
-                                                </svg>
-                                            </span>
-                                        </div>
-                                    </button>
-                                {% endfor %}
-                            </div>
-                            <div class="dropdown-divider"></div>
-                        {% endif %}
-                        <a href="/new/" class="dropdown-project-item dropdown-create-new">
-                            <svg width="14"
-                                 height="14"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor"
-                                 style="margin-right: 6px">
-                                <path d="M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z" />
-                            </svg>
-                            <span>Create New Project</span>
-                        </a>
-                    {% elif visitor_username %}
-                        <div class="dropdown-section">
-                            <div class="dropdown-section-title">Current Project</div>
-                            <div class="dropdown-project-item" style="cursor: default; opacity: 0.9">
-                                <span class="project-item-name">{{ project.name|default:"Handwritten Digits (Example)" }}</span>
-                            </div>
-                        </div>
-                        <div class="dropdown-divider"></div>
-                        <a href="/auth/signup/" class="dropdown-project-item dropdown-create-new">
-                            <svg width="14"
-                                 height="14"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor"
-                                 style="margin-right: 6px">
-                                <path d="M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z" />
-                            </svg>
-                            <span>Sign up to save your work</span>
-                        </a>
-                    {% else %}
-                        <a href="/auth/signin/" class="dropdown-project-item dropdown-create-new">
-                            <svg width="14"
-                                 height="14"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor"
-                                 style="margin-right: 6px">
-                                <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z" />
-                                <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z" />
-                            </svg>
-                            <span>Sign in to access projects</span>
-                        </a>
-                        <a href="/auth/signup/" class="dropdown-project-item dropdown-create-new">
-                            <svg width="14"
-                                 height="14"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor"
-                                 style="margin-right: 6px">
-                                <path d="M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z" />
-                            </svg>
-                            <span>Sign up (Free)</span>
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
+            {% comment %} Project Selector removed 2026-09-11 per operator decision:
+               no project switcher in the global header. Project selection
+               belongs on the project/workspace surface (each app's own UI).
+               A minimal read-only current-project indicator may be evaluated
+               separately, but it must not be an interactive switcher.{% endcomment %}
             <!-- Module navigation handled by module_tab_bar.html below header -->
         </div>
         <!-- Center: Search -->
@@ -346,12 +228,6 @@
         </button>
         <!-- Right: Actions + User Menu -->
         <div class="header-right">
-            <!-- Language toggle. Placed FIRST in header-right on the operator's
-                 instruction (2026-08-23): 「1番下のフッターにあるよりもヘッダーに
-                 あったほうがいい」. It reuses .header-btn so it inherits the brand
-                 tokens rather than the browser's native widget styling, which is
-                 what made the previous <select> look out of place. -->
-            {% include 'global_base_partials/language_switcher.html' %}
             <!-- Theme Toggle (always visible) -->
             <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light/dark theme" data-tooltip="Toggle light/dark theme">
                 <i class="fas fa-adjust"></i>
@@ -360,56 +236,14 @@
             <button id="product-tour-btn" class="theme-toggle" aria-label="Product tour" data-tooltip="Product Tour">
                 <i class="fas fa-question-circle"></i>
             </button>
-            <!-- Keyboard Shortcuts Help (Alt+/ for modal, click for page) -->
-            <a href="/keyboard-shortcuts/"
-               id="shortcuts-help-btn"
-               aria-label="Keyboard shortcuts (Alt+/ for quick view)"
-               class="theme-toggle"
-               data-tooltip="Keyboard Shortcuts (Alt+/ for quick view)">
-                <i class="fas fa-keyboard"></i>
-            </a>
-            <!-- Notification Center (staff in prod, everyone in dev) -->
-            {% if DEBUG or user.is_staff %}
-                <div id="notification-center"
-                     class="header-notification-center"
-                     style="position: relative;
-                            display: inline-flex">
-                    <button id="notification-bell" class="theme-toggle" aria-label="Notifications" data-tooltip="Notifications">
-                        <i class="fas fa-bell"></i>
-                        <span id="notification-badge" class="notification-badge" style="display: none">0</span>
-                    </button>
-                    <div id="notification-dropdown" class="notification-dropdown" style="display: none">
-                        <div class="notification-header">
-                            <span>System Notifications</span>
-                            <button id="notification-clear" class="notification-clear-btn" title="Clear all">
-                                <i class="fas fa-check-double"></i>
-                            </button>
-                        </div>
-                        <div id="notification-list" class="notification-list">
-                            <div class="notification-empty">All systems operational</div>
-                        </div>
-                        <a href="{% url 'public_app:server_status' %}" class="notification-footer">View full status</a>
-                    </div>
-                </div>
-            {% endif %}
-            {% comment %}
-            The server-status icon used to sit here. Operator, Telegram
-            4864/4866/4869, 2026-09-05: take it out of the header — the
-            shortcuts are moving into a hamburger and status belongs in there
-            with them, so the header icon is not needed.
-            REACHABLE, NOT REMOVED: /server-status/ still exists and is still
-            linked from the footer and from the notification dropdown above.
-            This deletes a header ORNAMENT, not the page.
-            The TypeScript that polled it (static/shared/ts/components/
-            header.ts, "Server Health Status Live Indicator") is deliberately
-            LEFT IN PLACE. It is guarded by
-                if (serverStatusIndicator && serverStatusBtn) { ... }
-            so with the markup gone it simply never runs — no console error,
-            and one periodic fetch of the health endpoint per page stops. It
-            stays because the status is going INTO the hamburger next
-            (hub-header-declutter-hamburger-holds-shortcuts-and-server-status-
-            20260905), and it will want this code back with new ids.
-            {% endcomment %}
+            {% comment %} Keyboard Shortcuts + Notification Center removed from the header
+               2026-09-11 (operator: "Must not show keyboard shortcuts and
+               notification bell" in the top header; "Move the keyboard
+               shortcuts and notification to hamburger -> settings"). Both are
+               reachable from the hamburger menu: Keyboard Shortcuts (mobile
+               menu, below) and Server Status (staff, mobile menu). The
+               /keyboard-shortcuts/ and /server-status/ pages and their TS are
+               unchanged — only the header ornament goes.{% endcomment %}
             {% if is_visitor %}
                 <!-- Visitor Menu (Integrated badge + dropdown) -->
                 <div class="header-user-menu">
@@ -734,6 +568,21 @@
                             Settings
                         </a>
                         <div class="dropdown-divider"></div>
+                        <!-- Keyboard Shortcuts (relocated from the header 2026-09-11:
+                             operator wants it out of the top bar, into the menu) -->
+                        <a href="/keyboard-shortcuts/" class="dropdown-item">
+                            <i class="fas fa-keyboard" style="display: inline-block; vertical-align: text-bottom; margin-right: 8px; width: 16px; text-align: center;"></i>
+                            Keyboard Shortcuts
+                        </a>
+                        {% comment %} Server Status: staff/dev only — same gate as before it
+                           lived in the header notification bell.{% endcomment %}
+                        {% if DEBUG or user.is_staff %}
+                        <a href="{% url 'public_app:server_status' %}" class="dropdown-item">
+                            <i class="fas fa-bell" style="display: inline-block; vertical-align: text-bottom; margin-right: 8px; width: 16px; text-align: center;"></i>
+                            Server Status
+                        </a>
+                        {% endif %}
+                        <div class="dropdown-divider"></div>
                         <!-- Sign Out -->
                         <a href="/auth/logout/" class="dropdown-item">
                             <svg width="16"
@@ -763,6 +612,12 @@
             <i class="fas fa-adjust"></i>
             <span>Toggle Theme</span>
         </button>
+        {% comment %} Language switcher — also in the mobile menu because the footer is
+           hidden on mobile workspace pages (footer.css @media rule), so the
+           footer copy alone would be unreachable there. Same set_language POST
+           form, so it persists identically. (2026-09-11, switcher -> footer.){% endcomment %}
+        {% include 'global_base_partials/language_switcher.html' %}
+        <div class="mobile-menu-divider"></div>
         {# Developer-facing entries: shown to staff (and in dev), hidden for #}
         {# ordinary users/visitors so the menu stays focused (operator,      #}
         {# 2026-07-21). Same gate as the header notification center.         #}
