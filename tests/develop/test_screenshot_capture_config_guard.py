@@ -27,7 +27,10 @@ WHAT IT PROVES, in both directions, on every axis the guard has:
 
 from __future__ import annotations
 
+import os
 import re
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -35,13 +38,30 @@ import yaml
 
 from tests.e2e.playwright.capture_config_check import (
     DEBUG_ONLY_MARKERS,
+    KNOWN_BASE_BROWSER_PROBLEMS,
     NotAProductionCaptureError,
     assert_capture_sequence,
+    assert_no_unowned_browser_problems,
     assert_production_capture,
     diagnose_capture_config,
     find_debug_only_markers,
     find_dev_server_asset_urls,
 )
+from tests.e2e.playwright.content_check import BrowserProblemLog
+
+#: The CI-only values the screenshots job exports (see .github/workflows/
+#: screenshots.yml). Explicit, not inherited: the probe child must load the
+#: capture settings the way the job does, not the way this shell happens to.
+CHILD_ENV = {
+    "SCITEX_HUB_DJANGO_SECRET_KEY": "ci-test-secret-do-not-use-in-prod",  # pragma: allowlist secret
+    "SCITEX_HUB_DB_NAME_DEV": "scitex_test",
+    "SCITEX_HUB_DB_USER_DEV": "scitex",
+    "SCITEX_HUB_DB_PASSWORD_DEV": "scitex_test_pass",  # pragma: allowlist secret
+    "SCITEX_HUB_DB_HOST_DEV": "localhost",
+    "SCITEX_HUB_DB_PORT_DEV": "5432",
+    "SCITEX_HUB_GITEA_SSH_PORT_DEV": "2222",
+    "SCITEX_HUB_VITE_USE_BUILD": "1",
+}
 
 REPO = Path(__file__).resolve().parents[2]
 FOOTER_TEMPLATE = REPO / "templates" / "global_base_partials" / "global_footer.html"
@@ -253,6 +273,27 @@ class TestTheAcceptanceWorkflowDeclaresProduction:
             f".css URL. Add collectstatic before the server starts:\n{run[:400]}"
         )
 
+    def test_the_capture_runs_the_production_derived_settings_module(self):
+        """Not settings_dev: its static pipeline is not production's.
+
+        Leader HOLD 2026-09-11: a DEBUG=0 capture under settings_dev still used
+        plain StaticFilesStorage, WhiteNoise autorefresh and DevNoCache
+        middleware, so the artifact could not evidence production static
+        behaviour. Both the render step and the capture step must name the
+        production-derived module.
+        """
+        for name in ("Migrate & start server", "Capture screenshots"):
+            env = self._env_of(name)
+            assert (
+                env.get("SCITEX_HUB_DJANGO_SETTINGS_MODULE")
+                == "config.settings.settings_screenshots"
+            ), (
+                f"{name} does not run config.settings.settings_screenshots "
+                f"(env has {env.get('SCITEX_HUB_DJANGO_SETTINGS_MODULE')!r}). "
+                "settings_dev renders with dev static/caching posture, so the "
+                "artifact would not evidence production."
+            )
+
     @classmethod
     def _env_of(cls, fragment: str) -> dict:
         for step in cls._steps():
@@ -266,3 +307,135 @@ class TestTheAcceptanceWorkflowDeclaresProduction:
             if fragment.lower() in str(step.get("name", "")).lower():
                 return str(step.get("run") or "")
         raise AssertionError(f"no step named like {fragment!r} in screenshots.yml")
+
+
+# ---------------------------------------------------------------------------
+# The production-derived module must actually BE production-derived. These
+# import it in a child interpreter (the same technique the scitex-umbrella
+# guard uses) so a future edit cannot quietly revert it to dev posture and
+# leave the workflow pointing at a module that no longer means what it says.
+# ---------------------------------------------------------------------------
+
+
+def _capture_settings_probe(code: str) -> subprocess.CompletedProcess:
+    env = {**os.environ, **CHILD_ENV}
+    # BOTH names, mirroring the workflow: plain Django reads
+    # DJANGO_SETTINGS_MODULE, manage.py also honours the hub-prefixed alias.
+    env["DJANGO_SETTINGS_MODULE"] = "config.settings.settings_screenshots"
+    env["SCITEX_HUB_DJANGO_SETTINGS_MODULE"] = "config.settings.settings_screenshots"
+    return subprocess.run(
+        [sys.executable, "-c", code],
+        cwd=str(REPO),
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+
+
+def test_the_capture_settings_resolve_to_the_production_static_pipeline():
+    # Arrange / Act — import the real module under the CI env the job uses.
+    result = _capture_settings_probe(
+        "import django; django.setup()\n"
+        "from django.conf import settings as s\n"
+        "print('DEBUG', s.DEBUG)\n"
+        "print('STORAGE', s.STORAGES['staticfiles']['BACKEND'])\n"
+        "print('AUTOREFRESH', getattr(s, 'WHITENOISE_AUTOREFRESH', '<unset>'))\n"
+        "print('DEV_MW', [m for m in s.MIDDLEWARE "
+        "if 'DevNoCache' in m or 'BrowserReload' in m])\n"
+    )
+    # Assert
+    assert result.returncode == 0, result.stderr
+    out = result.stdout
+    assert "DEBUG False" in out, out
+    assert "STORAGE config.storage.HashedStaticFilesStorage" in out, out
+    assert "AUTOREFRESH False" in out, out
+    assert "DEV_MW []" in out, out
+
+
+def test_the_hashed_backend_is_the_same_one_prod_and_staging_use():
+    # Arrange — the identity that matters is that prod/staging opt in through
+    # the same helper, so this is a claim about ONE pipeline, not two.
+    # Act
+    prod = (REPO / "config" / "settings" / "settings_prod.py").read_text(
+        encoding="utf-8"
+    )
+    staging = (REPO / "config" / "settings" / "settings_staging.py").read_text(
+        encoding="utf-8"
+    )
+    capture = (REPO / "config" / "settings" / "settings_screenshots.py").read_text(
+        encoding="utf-8"
+    )
+    # Assert
+    for name, text in (("prod", prod), ("staging", staging), ("capture", capture)):
+        assert "hashed_storages(STORAGES)" in text, (
+            f"{name} does not opt into the shared hashed static pipeline; the "
+            "capture would then be evidencing a pipeline production does not run."
+        )
+
+
+class TestBrowserProblemsAreHardFailures:
+    """The second half of the HOLD: report-only problems must fail the run."""
+
+    def test_an_unowned_http_error_is_refused(self):
+        # Arrange — a 4xx/5xx with no card behind it.
+        problems = ["HTTP 500 http://127.0.0.1:8000/apps/writer/api/x/"]
+        # Act / Assert
+        with pytest.raises(AssertionError) as excinfo:
+            assert_no_unowned_browser_problems(problems)
+        assert "no card owns" in str(excinfo.value)
+
+    def test_a_page_error_is_refused_even_if_a_url_is_allowlisted(self):
+        # Arrange — uncaught exceptions are never excusable.
+        problems = ["uncaught exception: TypeError: x is not a function"]
+        # Act / Assert
+        with pytest.raises(AssertionError):
+            assert_no_unowned_browser_problems(problems)
+
+    def test_the_known_cards_graph_500_is_excused_and_still_printed(self, capsys):
+        # Arrange — the one measured base failure this capture must not own.
+        problems = ["HTTP 500 http://127.0.0.1:8000/apps/cards/graph"]
+        # Act
+        assert_no_unowned_browser_problems(problems)
+        # Assert — excused, and SAID SO on the run (a silent excusal is how an
+        # allowlist rots).
+        out = capsys.readouterr().out
+        assert "excused" in out and "hub-cards-graph-500-store-unconfigured" in out
+
+    def test_a_clean_page_reports_nothing(self):
+        assert_no_unowned_browser_problems([])
+
+    def test_every_excused_problem_names_an_owning_card(self):
+        for needle, card in KNOWN_BASE_BROWSER_PROBLEMS:
+            assert card and "-2026" in card, (
+                f"allowlist entry {needle!r} does not name an owning card id; an "
+                "exemption without an owner is how this guard gets disabled."
+            )
+
+    def test_browser_problem_log_still_records_http_errors(self):
+        # Control: the classifier is fed by a log that must actually record
+        # >=400 responses — otherwise every case above passes on an empty list
+        # and the guard certifies nothing. Asserts BEHAVIOUR, not source text:
+        # feed the log a synthetic response and read what it recorded.
+
+        class _Resp:
+            status = 500
+            url = "http://127.0.0.1:8000/apps/x/api/y/"
+
+        log = BrowserProblemLog()
+        log._on_response(_Resp())
+
+        # Assert
+        recorded = log.drain()
+        assert len(recorded) == 1, recorded
+        assert recorded[0] == "HTTP 500 http://127.0.0.1:8000/apps/x/api/y/"
+
+    def test_the_log_ignores_sub_400_responses(self):
+        # The other half of the control: a 200 must NOT be recorded, or the
+        # hard-failure test above would fail every clean page.
+        class _Ok:
+            status = 200
+            url = "http://127.0.0.1:8000/apps/x/"
+
+        log = BrowserProblemLog()
+        log._on_response(_Ok())
+        assert log.drain() == []

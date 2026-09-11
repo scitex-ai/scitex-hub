@@ -50,7 +50,10 @@ import os
 
 import pytest
 
-from tests.e2e.playwright.capture_config_check import assert_production_capture
+from tests.e2e.playwright.capture_config_check import (
+    assert_no_unowned_browser_problems,
+    assert_production_capture,
+)
 from tests.e2e.playwright.content_check import (
     PAGE_ELEMENT_SIGNALS,
     BrowserProblemLog,
@@ -204,6 +207,7 @@ def measured_content(pooled_visitor_page, content_report):
     is taken, so the report covers pages whose assertions later fail too.
     """
     cache = {}
+    problems_by_route = {}
     browser_problems = BrowserProblemLog()
     browser_problems.attach(pooled_visitor_page)
 
@@ -221,16 +225,31 @@ def measured_content(pooled_visitor_page, content_report):
             page.evaluate(FORCE_LIGHT)
             signals = read_content_signals(page, PAGE_ELEMENT_SIGNALS.get(route))
             cache[route] = signals
+            # KEPT as well as reported: the report is for a human, this cache is
+            # what test_page_has_no_unowned_browser_problems asserts on. Draining
+            # without keeping a copy is how "the report says HTTP 500" and "109
+            # tests pass" coexisted (leader HOLD 2026-09-11).
+            problems_by_route[route] = browser_problems.drain()
             content_report(
                 "%s\n%s"
                 % (
                     describe_signals("%s (%s)" % (title, route), signals),
-                    describe_browser_problems(browser_problems.drain()),
+                    describe_browser_problems(problems_by_route[route]),
                 )
             )
         return cache[route]
 
-    return _for
+    class _Measurements:
+        """The callable the tests use, plus the raw evidence behind it."""
+
+        problems_by_route: dict = {}
+
+        def __call__(self, route):
+            return _for(route)
+
+    measurements = _Measurements()
+    measurements.problems_by_route = problems_by_route
+    yield measurements
 
 
 @pytest.mark.parametrize("route,slug,title", PAGES, ids=[p[1] for p in PAGES])
@@ -379,6 +398,29 @@ class TestCapturedPageHasContent:
 
         # Assert
         assert problem == "", problem
+
+    def test_page_has_no_unowned_browser_problems(
+        self, measured_content, route, slug, title
+    ):
+        """The browser's own complaints must fail the capture, not decorate it.
+
+        CARD hub-screenshots-are-taken-with-debug-1-not-production-20260816;
+        leader HOLD 2026-09-11: the accepted artifact recorded an HTTP 500 for
+        /apps/cards/graph while 109 tests passed, because BrowserProblemLog was
+        reporting-only. HTTP >= 400 and page errors are now HARD failures.
+
+        KNOWN BASE FAILURES STAY DISTINCT: the cards-graph 500 is excused only
+        because a card already owns it (hub-cards-graph-500-store-unconfigured-
+        20260818), and the excusal is printed on every run so a green capture
+        still says what it did not verify. A NEW 4xx/5xx fails.
+        """
+        # Arrange — force the measurement (and therefore the drain) for this route.
+        measured_content(route)
+        problems = measured_content.problems_by_route.get(route, [])
+
+        # Act / Assert — raises NotAProductionCaptureError naming each unowned
+        # problem; prints the excused, carded ones.
+        assert_no_unowned_browser_problems(problems)
 
     def test_page_has_no_undeclared_absent_media(
         self, measured_content, route, slug, title

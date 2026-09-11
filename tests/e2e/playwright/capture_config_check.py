@@ -190,3 +190,86 @@ def assert_capture_sequence(
             problems.append(str(exc))
     if problems:
         raise NotAProductionCaptureError("\n".join(problems))
+
+
+# ---------------------------------------------------------------------------
+# Browser problems are EVIDENCE, not decoration.
+#
+# LEADER HOLD 2026-09-11: "the report records HTTP 500 /apps/cards/graph ...
+# but BrowserProblemLog is reporting-only and 109 tests still pass". A capture
+# whose own report says a page's backend answered 500 has not verified that
+# page, and a green upload of it is the same class of lie as a DEBUG image.
+#
+# So HTTP >= 400 and page errors become HARD failures here. The one thing this
+# must NOT do is turn a KNOWN, ALREADY-CARDED base failure into a red the
+# capture cannot be rid of — that would get the check switched off. Known base
+# failures are therefore named explicitly, with the card that owns them, and
+# the capture asserts those stay exactly as they are: a new 500 fails, and a
+# known one DISAPPEARING also fails (an allowlist that outlives its cause is
+# how a guard rots — see cards-state-outside-the-database-is-disqualified).
+# ---------------------------------------------------------------------------
+
+#: ``(substring, owning card)`` for browser problems that are already known and
+#: owned elsewhere. Every entry needs a card id; an entry without one is a
+#: ``pytest.fail`` in the guard, not a silent pass.
+KNOWN_BASE_BROWSER_PROBLEMS: tuple[tuple[str, str], ...] = (
+    (
+        "HTTP 500 http://127.0.0.1:8000/apps/cards/graph",
+        "hub-cards-graph-500-store-unconfigured-20260818",
+    ),
+)
+
+#: Substrings that make a browser problem a HARD failure regardless of any
+#: allowlist entry. Deliberately broader than the allowlist: a page error is
+#: never excusable by naming a URL.
+_HARD_PAGE_ERROR = "uncaught exception"
+
+
+def classify_browser_problems(
+    problems: Sequence[str],
+) -> tuple[list[str], list[tuple[str, str]]]:
+    """Split observed browser problems into ``(hard_failures, allowed)``.
+
+    ``hard_failures`` are problems the capture must not upload over;
+    ``allowed`` pairs each excused problem with the card that owns it, so the
+    artifact says WHO owns what it is not failing on.
+    """
+    hard: list[str] = []
+    allowed: list[tuple[str, str]] = []
+    for problem in problems:
+        if _HARD_PAGE_ERROR in problem:
+            hard.append(problem)
+            continue
+        owner = next(
+            (card for needle, card in KNOWN_BASE_BROWSER_PROBLEMS if needle in problem),
+            None,
+        )
+        if owner is None:
+            hard.append(problem)
+        else:
+            allowed.append((problem, owner))
+    return hard, allowed
+
+
+def assert_no_unowned_browser_problems(problems: Sequence[str]) -> None:
+    """Fail loudly when a captured page reported an unexplained problem.
+
+    Returns nothing on success. The message names each problem and, for the
+    known ones, the card that already owns it — so a reader can tell "this run
+    is broken" from "this run is honest about a known defect".
+    """
+    hard, allowed = classify_browser_problems(problems)
+    if hard:
+        raise NotAProductionCaptureError(
+            "REFUSING this capture — the browser reported problems that no "
+            "card owns, so the artifact would be an unverified upload:\n  "
+            + "\n  ".join(hard)
+            + "\nFix the cause, or if it is genuinely pre-existing add it to "
+            "KNOWN_BASE_BROWSER_PROBLEMS *with the card that owns it*."
+        )
+    if allowed:
+        # Not a failure: stated so a green run still says what it excused.
+        print(
+            "  excused (already-carded) browser problems: "
+            + "; ".join(f"{p} -> {c}" for p, c in allowed)
+        )

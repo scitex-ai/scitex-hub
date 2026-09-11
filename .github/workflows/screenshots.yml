@@ -231,6 +231,20 @@ jobs:
           # capture already runs (visible content, non-empty #app-mount, no
           # stuck loading placeholders) are what carry that load, and they are
           # preserved deliberately.
+          # PRODUCTION-DERIVED ACCEPTANCE CONFIG, NOT settings_dev (leader HOLD
+          # 2026-09-11). settings_dev renders with plain StaticFilesStorage,
+          # WhiteNoise autorefresh and DevNoCacheMiddleware, so a DEBUG=0 run
+          # under it could not tell production static behaviour from dev's.
+          # settings_screenshots overlays the production posture (hashed,
+          # manifest-backed, strict) on the CI plumbing this job already sets.
+          #
+          # BOTH variable names, and that is not belt-and-braces: manage.py
+          # honours SCITEX_HUB_DJANGO_SETTINGS_MODULE, while plain Django
+          # (pytest in the capture step, tests/conftest.py's setdefault) reads
+          # DJANGO_SETTINGS_MODULE. Measured 2026-09-11 — with only the hub
+          # name set, a child interpreter still resolved settings_dev.
+          DJANGO_SETTINGS_MODULE: config.settings.settings_screenshots
+          SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_screenshots
           SCITEX_HUB_VITE_USE_BUILD: "1"
           SCITEX_HUB_DJANGO_DEBUG: "0"
           # DEBUG=0 ACTIVATES THE OPERATOR MAIL RAIL, so it needs a backend.
@@ -366,10 +380,15 @@ jobs:
           # A mismatch between these two steps is exactly the drift that
           # guard exists to make loud.
           SCITEX_HUB_DJANGO_DEBUG: "0"
+          # Must match the server step: the capture asserts the same posture it
+          # photographed (hashed static pipeline, DEBUG off). BOTH names for the
+          # reason given on that step — this one runs plain pytest, which reads
+          # DJANGO_SETTINGS_MODULE, not the hub-prefixed alias.
+          DJANGO_SETTINGS_MODULE: config.settings.settings_screenshots
+          SCITEX_HUB_DJANGO_SETTINGS_MODULE: config.settings.settings_screenshots
           # Same reason as the server step: at DEBUG=0 the operator mail rail is
           # live, and settings_shared.py:442 leaves EMAIL_BACKEND None unless
-          # this is set. Kept identical to the server step so the two cannot
-          # drift (the workflow's own rule for this pair of blocks).
+          # this is set.
           SCITEX_HUB_EMAIL_BACKEND: django.core.mail.backends.locmem.EmailBackend
         run: |
           # --browser chromium is REQUIRED, not decoration. tests/conftest.py's
