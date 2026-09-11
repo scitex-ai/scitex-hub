@@ -45,6 +45,7 @@ services:
       - ../../../../socialia:/socialia:cached
       - ../../../../scitex-ui:/scitex-ui:cached
       - ../../../../scitex-app:/scitex-app:cached
+      - ../../../../scitex-agent-container:/scitex-agent-container:cached
       - ../../../../scitex-plt:/scitex-plt:cached
       - ../../../../scitex-audio:/scitex-audio:cached
       - ../../../../scitex-dev:/scitex-dev:cached
