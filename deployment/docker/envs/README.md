@@ -37,8 +37,9 @@ The development Compose stack binds that exact source read-only at the stable
 Docker path `/app/singularity/current`. Django validates the container through
 that alias, while `srun` receives the original host path. Docker is configured
 with `create_host_path: false`, so a typo or missing sandbox fails at startup
-instead of silently creating an empty directory. The host source may vary by
-node; the Docker-side path must not.
+instead of silently creating an empty directory. An unset value resolves to a
+deliberately nonexistent sentinel for the same fail-closed behavior. The host
+source may vary by node; the Docker-side path must not.
 
 Build the writable sandbox from a Hub worktree on scratch storage so the
 generated base image, sandbox, and temporary files do not consume the home

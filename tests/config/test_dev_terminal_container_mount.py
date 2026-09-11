@@ -20,7 +20,7 @@ def test_django_terminal_container_bind_is_exact_and_fail_closed():
 
     assert mount == {
         "type": "bind",
-        "source": "${SCITEX_HUB_SLURM_CONTAINER_PATH:?set SCITEX_HUB_SLURM_CONTAINER_PATH to the writable development sandbox}",
+        "source": "${SCITEX_HUB_SLURM_CONTAINER_PATH:-/nonexistent/scitex-hub-terminal-sandbox}",
         "target": "/app/singularity/current",
         "read_only": True,
         "bind": {"create_host_path": False},
@@ -39,7 +39,6 @@ def test_django_and_mount_share_the_same_host_source_variable():
     environment = compose["services"]["django"]["environment"]
 
     assert (
-        "SCITEX_HUB_SLURM_CONTAINER_PATH=${SCITEX_HUB_SLURM_CONTAINER_PATH:?set "
-        "SCITEX_HUB_SLURM_CONTAINER_PATH to the writable development sandbox}"
-        in environment
+        "SCITEX_HUB_SLURM_CONTAINER_PATH=${SCITEX_HUB_SLURM_CONTAINER_PATH:-"
+        "/nonexistent/scitex-hub-terminal-sandbox}" in environment
     )
