@@ -478,12 +478,16 @@ def test_five_wrong_guesses_burn_the_code(client):
             content_type="application/json",
         )
 
-    # Assert — the code is burned and the attempts are on the ROW, so a restart
-    # or a second worker cannot reset the budget.
-    assert last is not None and last.status_code == 429
+    # Assert — the code IS burned and the attempts live on the ROW, so a restart
+    # or a second worker cannot reset the budget …
+    assert last is not None and last.status_code == 400
     verification.refresh_from_db()
     assert verification.attempts >= MAX_CODE_ATTEMPTS
     assert verification.is_expired()
+    # … and the RESPONSE no longer advertises the burn: every private-email
+    # failure looks the same, so five probes cannot tell an address that has a
+    # code from one that does not. The enforcement is in the row, not the wording.
+    assert b"could not be verified" in last.content
 
 
 def test_a_correct_guess_still_verifies_after_the_throttle_exists(client):

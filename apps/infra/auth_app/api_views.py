@@ -69,23 +69,11 @@ def verify_email_api(request):
             verification = lookup.order_by("-created_at").first()
 
             if not verification:
-                return JsonResponse(
-                    {
-                        "success": False,
-                        "error": "No pending verification found for this email.",
-                    },
-                    status=404,
-                )
+                return JsonResponse(_VERIFY_FAILURE, status=400)
 
             # Check if verification has expired
             if verification.is_expired():
-                return JsonResponse(
-                    {
-                        "success": False,
-                        "error": "Verification code has expired. Please request a new one.",
-                    },
-                    status=400,
-                )
+                return JsonResponse(_VERIFY_FAILURE, status=400)
 
             # Verify the code
             #
@@ -98,24 +86,15 @@ def verify_email_api(request):
             import secrets as _secrets
 
             if not _secrets.compare_digest(verification.code, otp_code):
-                if verification.register_failed_attempt():
-                    return JsonResponse(
-                        {
-                            "success": False,
-                            "error": (
-                                "Too many incorrect attempts. Please request a "
-                                "new verification code."
-                            ),
-                        },
-                        status=429,
-                    )
-                return JsonResponse(
-                    {
-                        "success": False,
-                        "error": "Invalid verification code. Please try again.",
-                    },
-                    status=400,
-                )
+                # The BURN is still enforced — the code is spent and the claim
+                # will refuse it — but the RESPONSE no longer says so. Answering
+                # "too many attempts" for an address that HAS a code while
+                # answering "no such code" for one that does not is an oracle
+                # reachable in five requests. A legitimate user who exhausts the
+                # budget is told to request a new code, which is the right next
+                # action regardless.
+                verification.register_failed_attempt()
+                return JsonResponse(_VERIFY_FAILURE, status=400)
 
             # DO NOT ACTIVATE BLINDLY (PR #775 fifth review, P0).
             #
@@ -248,6 +227,19 @@ def verify_email_api(request):
             status=500,
         )
 
+
+#: ONE response for EVERY private-email verification failure: no such pending
+#: verification, an expired code, a wrong code, or a burned one. Distinct bodies
+#: (and distinct statuses) told a caller whether an address had a code at all —
+#: the same enumeration the reset path had. The burn is still ENFORCED; only the
+#: response stopped advertising it.
+_VERIFY_FAILURE = {
+    "success": False,
+    "error": (
+        "That code could not be verified. Request a new one, or sign in if you "
+        "already have an account."
+    ),
+}
 
 #: THE ONE resend response. Every non-malformed request gets this exact body
 #: and status, whether or not an account exists, whether or not mail went out.
