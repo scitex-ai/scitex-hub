@@ -43,7 +43,9 @@ from tests.e2e.playwright.capture_config_check import (
     assert_capture_sequence,
     assert_no_unowned_browser_problems,
     assert_production_capture,
+    classify_browser_problems,
     diagnose_capture_config,
+    KNOWN_BASE_BROWSER_PROBLEMS,
     find_debug_only_markers,
     find_dev_server_asset_urls,
 )
@@ -249,6 +251,84 @@ class TestTheAcceptanceWorkflowDeclaresProduction:
                 "the first ERROR log becomes an AttributeError that kills the "
                 f"step. Env seen: {sorted(env)}"
             )
+
+    def test_a_console_echo_of_a_carded_problem_is_allowed_on_that_page(self):
+        """The browser log records ONE failure TWICE.
+
+        A structured line carrying the URL, and a URL-less console echo. The
+        allowlist can only match the first by URL, so without this rule an
+        already-carded problem is refused because of its own echo — which is exactly
+        what made the capture red on a run where every problem was carded.
+        """
+        # Arrange
+        problems = [
+            "HTTP 404 http://127.0.0.1:8000/media/videos/scitex-automated-research-demo.mp4",
+            "console.error: Failed to load resource: the server responded with a "
+            "status of 404 (Not Found)",
+        ]
+
+        # Act
+        hard, allowed = classify_browser_problems(problems)
+
+        # Assert
+        assert hard == []
+        assert len(allowed) == 2
+
+    def test_a_console_echo_does_not_excuse_a_status_that_is_not_carded_on_that_page(
+        self,
+    ):
+        """THE CONTROL. Without this, the echo rule is a blanket 404 amnesty and the
+        gate stops catching the thing it exists to catch."""
+        # Arrange — the page has a carded 404, and a NEW 500.
+        problems = [
+            "HTTP 404 http://127.0.0.1:8000/media/videos/scitex-automated-research-demo.mp4",
+            "console.error: Failed to load resource: the server responded with a "
+            "status of 500 (Internal Server Error)",
+        ]
+
+        # Act
+        hard, allowed = classify_browser_problems(problems)
+
+        # Assert — the 404 echo is excused, the 500 is NOT.
+        assert len(hard) == 1
+        assert "500" in hard[0]
+        assert len(allowed) == 1
+
+    def test_a_console_echo_on_a_page_with_nothing_carded_is_still_hard(self):
+        """The other control: no carded problem on the page, no excuse."""
+        # Arrange
+        problems = [
+            "console.error: Failed to load resource: the server responded with a "
+            "status of 404 (Not Found)",
+        ]
+
+        # Act
+        hard, _allowed = classify_browser_problems(problems)
+
+        # Assert
+        assert len(hard) == 1
+
+    def test_the_gallery_console_error_is_owned_explicitly(self):
+        """It carries NO status code, so status matching cannot cover it. Naming it
+        is the honest option; a generic rule would excuse unrelated console errors.
+        """
+        # Arrange
+        problems = [
+            "console.error: [Gallery] Could not open the demo figure: Error: Forbidden"
+        ]
+
+        # Act
+        hard, allowed = classify_browser_problems(problems)
+
+        # Assert
+        assert hard == []
+        assert allowed[0][1].startswith("hub-nginx-403s")
+
+    def test_every_excused_problem_still_names_an_owner(self):
+        """The allowlist must never contain an entry that excuses nothing."""
+        for needle, card in KNOWN_BASE_BROWSER_PROBLEMS:
+            assert needle, "an empty needle would excuse everything"
+            assert card.startswith("hub-"), f"{needle!r} has no card"
 
     def test_the_debug_off_capture_builds_the_static_root(self):
         """DEBUG=0 serves static from STATIC_ROOT, so it must be built.

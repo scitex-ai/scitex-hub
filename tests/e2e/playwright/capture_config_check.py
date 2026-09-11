@@ -260,12 +260,38 @@ KNOWN_BASE_BROWSER_PROBLEMS: tuple[tuple[str, str], ...] = (
         "HTTP 404 http://127.0.0.1:8000/media/videos/scitex-automated-research-demo.mp4",
         "hub-acceptance-capture-base-browser-problems-20260911",
     ),
+    # The Gallery console error CARRIES NO STATUS CODE, so it cannot be matched
+    # to a carded problem by status the way its companions are. It is the same
+    # failure as the carded /apps/figrecipe/figrecipe/api/gallery/demo 403, so it
+    # is named explicitly here rather than excused by a generic rule.
+    (
+        "[Gallery] Could not open the demo figure",
+        "hub-nginx-403s-the-figrecipe-api-prefix-20260816",
+    ),
 )
 
 #: Substrings that make a browser problem a HARD failure regardless of any
 #: allowlist entry. Deliberately broader than the allowlist: a page error is
 #: never excusable by naming a URL.
 _HARD_PAGE_ERROR = "uncaught exception"
+
+
+def _status_code(problem: str) -> str | None:
+    """The HTTP status a browser problem is about, in either of its two forms.
+
+    The browser log records ONE failure TWICE: a structured line naming the URL
+    ("HTTP 404 http://...") and a URL-less console echo
+    ("console.error: Failed to load resource: the server responded with a status
+    of 404 (Not Found)"). Only the first can be matched to an entry by URL, so
+    the echo has to be recognised by status — otherwise an allowlisted problem
+    is still refused because of its own echo, which is what made this gate red
+    on a run where every problem was already carded.
+    """
+    match = re.search(r"HTTP\s+(\d{3})", problem)
+    if match:
+        return match.group(1)
+    match = re.search(r"status of (\d{3})", problem)
+    return match.group(1) if match else None
 
 
 def classify_browser_problems(
@@ -276,9 +302,25 @@ def classify_browser_problems(
     ``hard_failures`` are problems the capture must not upload over;
     ``allowed`` pairs each excused problem with the card that owns it, so the
     artifact says WHO owns what it is not failing on.
+
+    The comparison is PER CALL, and each call is one page. That scoping is what
+    makes the echo rule safe: a console echo is excused only when the SAME page
+    already has a carded problem with the same status, so a NEW status on a page
+    is still a hard failure. Excusing echoes globally would excuse any 404
+    anywhere, which is the whole thing this gate exists to catch.
     """
     hard: list[str] = []
     allowed: list[tuple[str, str]] = []
+
+    # Which statuses does THIS page already have carded?
+    carded_statuses = {
+        status
+        for problem in problems
+        if _HARD_PAGE_ERROR not in problem
+        and any(needle in problem for needle, _card in KNOWN_BASE_BROWSER_PROBLEMS)
+        if (status := _status_code(problem))
+    }
+
     for problem in problems:
         if _HARD_PAGE_ERROR in problem:
             hard.append(problem)
@@ -287,10 +329,16 @@ def classify_browser_problems(
             (card for needle, card in KNOWN_BASE_BROWSER_PROBLEMS if needle in problem),
             None,
         )
-        if owner is None:
-            hard.append(problem)
-        else:
+        if owner is not None:
             allowed.append((problem, owner))
+            continue
+        status = _status_code(problem)
+        if status is not None and status in carded_statuses:
+            allowed.append(
+                (problem, f"{status} already owned on this page (see its entry)")
+            )
+            continue
+        hard.append(problem)
     return hard, allowed
 
 
