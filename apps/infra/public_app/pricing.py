@@ -146,7 +146,9 @@ def included_items(attributes: dict[str, Any], basis: str = "") -> list[str]:
     return items
 
 
-def _active_window(policy: str, policies: dict[str, Any], today: date) -> dict[str, Any] | None:
+def _active_window(
+    policy: str, policies: dict[str, Any], today: date
+) -> dict[str, Any] | None:
     """The discount window of ``policy`` that covers ``today``, or None.
 
     Selection is BY DATE, as the business engine does it (business, 2026-09-03
@@ -162,7 +164,9 @@ def _active_window(policy: str, policies: dict[str, Any], today: date) -> dict[s
             "not define it; copy the schedule from business.yaml."
         )
     day = today.isoformat()
-    covering = [w for w in policies[policy]["schedule"] if w["start"] <= day <= w["end"]]
+    covering = [
+        w for w in policies[policy]["schedule"] if w["start"] <= day <= w["end"]
+    ]
     if len(covering) > 1:
         raise ValueError(
             f"pricing.json policy {policy!r} has {len(covering)} windows covering "
@@ -259,6 +263,31 @@ def _render(row: dict[str, Any]) -> str:
     )
 
 
+def remarks_items(
+    attrs: dict[str, Any],
+    basis: str = "",
+    storage_text: str = "",
+    credit_text: str = "",
+    overage_text: str = "",
+) -> list[str]:
+    """備考 cell: the included list MINUS attributes that have their own column.
+
+    Pulled out of the row builder so it can be exercised with a SYNTHETIC
+    attribute set — which is the only way to test the case that matters: a row
+    whose attributes are ALL dedicated (storage / compute credit / overage) and
+    which therefore has an EMPTY 備考. If that emptiness is papered over by a
+    template fallback to the full included list, every dedicated column is
+    repeated in 備考 — the duplication this function exists to prevent.
+    """
+    column_texts = {
+        "included_storage": storage_text,
+        "included_compute_credit": credit_text,
+        "overage": overage_text,
+    }
+    drop = {key for key, rendered in column_texts.items() if rendered and key in attrs}
+    return included_items({k: v for k, v in attrs.items() if k not in drop}, basis)
+
+
 def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
     """The price list the 特定商取引法 page publishes, formatted, gated by date.
 
@@ -327,32 +356,46 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
             if window is not None:
                 list_amount = amount
                 amount = _discounted(list_amount, window["percent"])
-                price_note = _staged_price_note(item["policy"], policies, window, list_amount)
+                price_note = _staged_price_note(
+                    item["policy"], policies, window, list_amount
+                )
                 list_price_str = _yen(list_amount)
                 discount_str = f"−{window['percent']}%"
         basis = item.get("basis", "")
         attrs = item.get("attributes", {})
-        storage_str = _format_included_storage(attrs, basis)
-        credit_str = _format_compute_credit(attrs, basis)
-        overage_str = _format_overage(attrs)
+        # DEDICATED COLUMNS RENDER THE *INCLUDED* PHRASINGS.
+        #
+        # These were built by a SECOND family of formatters
+        # (_format_included_storage / _format_compute_credit / _format_overage)
+        # that phrase the same attribute DIFFERENTLY from included_items(): the
+        # column said "50 GB / プロジェクト / 月" while the included list said
+        # "ストレージ 50GB/プロジェクト/月（Standard）". Because the 備考 cell
+        # deliberately EXCLUDES these attributes (they have their own column —
+        # see _drop below), the included phrasing rendered NOWHERE and the page
+        # under-reported what the plan includes.
+        #
+        # One attribute, one string, from ONE function: each column now takes its
+        # text from the same registry included_items() uses, so the two cannot
+        # drift and the text appears EXACTLY ONCE, in its own column. The 備考
+        # exclusion is untouched — that is what keeps it from appearing twice.
+        storage_str = (
+            _storage_text(attrs["included_storage"], basis)
+            if "included_storage" in attrs
+            else _format_included_storage(attrs, basis)
+        )
+        credit_str = (
+            _credit_text(attrs["included_compute_credit"], basis)
+            if "included_compute_credit" in attrs
+            else _format_compute_credit(attrs, basis)
+        )
+        overage_str = _OVERAGE.get(attrs.get("overage")) or _format_overage(attrs)
         included = included_items(attrs, basis)
         # 備考 cell: the included-list minus items that already have their own
         # column (ストレージ / 計算クレジット / 超過計算) — otherwise the tokushoho
         # table repeats the same numbers twice (operator 2026-09-10). Drop by
-        # source attribute key, not by rendered-string match.
-        _column_keys = {
-            "included_storage": storage_str,
-            "included_compute_credit": credit_str,
-            "overage": overage_str,
-        }
-        _drop = {
-            key
-            for key, rendered in _column_keys.items()
-            if rendered and key in attrs
-        }
-        remarks = included_items(
-            {k: v for k, v in attrs.items() if k not in _drop}, basis
-        )
+        # source attribute key, not by rendered-string match. Extracted so a
+        # SYNTHETIC all-dedicated row is testable (see remarks_items).
+        remarks = remarks_items(attrs, basis, storage_str, credit_str, overage_str)
         rows.append(
             {
                 "id": item["id"],

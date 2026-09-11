@@ -55,17 +55,95 @@ class LauncherHomeTest(TestCase):
         # Assert
         assert b'data-module="writer"' in resp.content
 
-    def test_launcher_tiles_cover_launcher_visible_registry_modules(self):
-        # Arrange — every registry module that opts INTO the launcher
-        # (show_in_launcher, the default) must render a tile.
+    def test_launcher_tiles_cover_the_modules_this_user_MAY_BE_SHOWN(self):
+        """The premise this test asserted was WRONG — the code is right.
+
+        It required every ``show_in_launcher`` module to render a tile, but the
+        launcher ALSO applies a release-channel gate: ``visibility == "internal"``
+        modules (todo, storage) are hidden from NON-STAFF users
+        (``apps/workspace/apps_app/views/launcher.py``: ``not is_staff and
+        mod.visibility == "internal"``). This test user is a regular account, so
+        those modules being absent is correct behaviour, and the old assertion
+        could only ever be satisfied by BREAKING that gate.
+
+        The mistake was asking the registry "what should be visible" WITHOUT the
+        same gate the view uses. Both sides now state the condition, and the
+        companion test below pins it from the other direction.
+        """
+        # Arrange
         from apps.infra.workspace_app.registry import get_all_modules
 
-        visible_names = {m.name for m in get_all_modules() if m.show_in_launcher}
+        is_staff = self.user.is_staff or self.user.is_superuser
+        expected_names = {
+            m.name
+            for m in get_all_modules()
+            if m.show_in_launcher and (is_staff or m.visibility != "internal")
+        }
+
         # Act
         resp = self.client.get("/")
         tile_names = {t["name"] for t in resp.context["tiles"]}
+
         # Assert
-        assert visible_names <= tile_names
+        assert expected_names <= tile_names
+
+    def test_every_internal_module_is_hidden_from_non_staff_and_shown_to_staff(self):
+        """THE OTHER DIRECTION — which a one-sided relaxation would not catch.
+
+        Correcting the premise above could equally be satisfied by a launcher that
+        tiles NOTHING, so this asserts the gate itself, BOTH ways, for EVERY
+        internal module — not just whichever one happens to sort first. A single
+        sampled module would let the next internal app regress unnoticed.
+
+        ``todo`` is PINNED by name, because it is the module this whole failure was
+        reported for: if its classification ever changes, this test must be
+        updated DELIBERATELY rather than silently stop covering the original
+        defect.
+        """
+        # Arrange
+        from apps.infra.workspace_app.registry import get_all_modules
+
+        modules = {m.name: m for m in get_all_modules()}
+        todo = modules.get("todo")
+        if todo is None:
+            # The todo manifest loads only when its package is importable on this
+            # host; skipping is honest, passing vacuously is not.
+            self.skipTest("the todo module is not registered on this host")
+
+        assert todo.visibility == "internal", (
+            "the 'todo' module must be classified INTERNAL — that classification "
+            "is exactly what hides it from non-staff users, and it is the "
+            "behaviour this regression was reported for. If the classification "
+            "changed on purpose, update this test deliberately."
+        )
+
+        internal = sorted(
+            name
+            for name, mod in modules.items()
+            if mod.visibility == "internal" and mod.show_in_launcher
+        )
+        assert "todo" in internal, "todo is internal but not launcher-visible"
+
+        # Act / Assert — non-staff: EVERY internal module is absent.
+        non_staff_tiles = {t["name"] for t in self.client.get("/").context["tiles"]}
+        for name in internal:
+            assert name not in non_staff_tiles, (
+                f"{name!r} is internal and must not tile for a non-staff user"
+            )
+
+        # Act / Assert — staff: EVERY internal module is present.
+        staff_user = User.objects.create_user(
+            username="launcher-staff",
+            password="TestPass123!",  # pragma: allowlist secret
+            is_staff=True,
+        )
+        self.client.force_login(staff_user)
+        staff_tiles = {t["name"] for t in self.client.get("/").context["tiles"]}
+        for name in internal:
+            assert name in staff_tiles, (
+                f"{name!r} is internal but must still tile for STAFF — its absence "
+                "for a regular user is a gate, not a missing feature"
+            )
 
     def test_clew_is_not_a_launcher_tile(self):
         # Arrange — Clew opens within a manuscript, not as a standalone
@@ -379,12 +457,9 @@ class DefaultPinSeedTest(TestCase):
         # Act
         get_pinned_module_names(self.user)
         # Assert
-        assert (
-            ModuleInstallation.objects.filter(
-                user=self.user, config__pinned=True
-            ).count()
-            == len(pinned)
-        )
+        assert ModuleInstallation.objects.filter(
+            user=self.user, config__pinned=True
+        ).count() == len(pinned)
 
     def test_seeded_rows_keep_the_default_tab_order(self):
         # Arrange — a seeded row is incidental, not an explicit drag-reorder
