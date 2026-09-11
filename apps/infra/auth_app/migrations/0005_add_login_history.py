@@ -6,6 +6,7 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
         ("auth_app", "0004_authenticateddevice_deviceaccount"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),

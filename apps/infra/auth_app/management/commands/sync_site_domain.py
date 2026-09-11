@@ -117,9 +117,7 @@ class Command(BaseCommand):
         Site.objects.clear_cache()
 
         if previous is None:
-            self.stdout.write(
-                self.style.SUCCESS(f"Site id={site_id} created as {configured!r}.")
-            )
+            self.stdout.write(self.style.SUCCESS(f"Site id={site_id} created as {configured!r}."))
         else:
             self.stdout.write(
                 self.style.SUCCESS(

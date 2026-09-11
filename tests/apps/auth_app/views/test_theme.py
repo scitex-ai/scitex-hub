@@ -58,7 +58,9 @@ def poisoned_visitor_get(client, django_user_model):
 @pytest.fixture
 def poisoned_readonly_get(client, django_user_model):
     """get-theme as the shared readonly-visitor with a stale light row."""
-    _login_with_saved_theme(client, django_user_model, "readonly-visitor", "light")
+    _login_with_saved_theme(
+        client, django_user_model, "readonly-visitor", "light"
+    )
     return client.get(GET_THEME).json()
 
 
@@ -72,7 +74,9 @@ def registered_light_get(client, django_user_model):
 @pytest.fixture
 def visitor_save(client, django_user_model):
     """save-theme(light) as a visitor slot whose profile row is dark."""
-    visitor = _login_with_saved_theme(client, django_user_model, "visitor-007", "dark")
+    visitor = _login_with_saved_theme(
+        client, django_user_model, "visitor-007", "dark"
+    )
     resp = client.post(
         SAVE_THEME,
         data=json.dumps({"theme": "light"}),
@@ -113,7 +117,9 @@ class TestGetThemeAnonymous:
 
 
 class TestGetThemeVisitor:
-    def test_visitor_slot_theme_is_dark_not_recycled_row(self, poisoned_visitor_get):
+    def test_visitor_slot_theme_is_dark_not_recycled_row(
+        self, poisoned_visitor_get
+    ):
         # Arrange
         data = poisoned_visitor_get
         # Act
@@ -163,9 +169,13 @@ class TestGetThemeRegistered:
         # Assert
         assert source == "profile"
 
-    def test_fresh_registered_profile_defaults_dark(self, client, django_user_model):
+    def test_fresh_registered_profile_defaults_dark(
+        self, client, django_user_model
+    ):
         # Arrange
-        user = django_user_model.objects.create_user(username="bob", password="x")
+        user = django_user_model.objects.create_user(
+            username="bob", password="x"
+        )
         client.force_login(user)
         # Act
         data = client.get(GET_THEME).json()
@@ -178,7 +188,9 @@ class TestSaveThemeAnonymous:
         # Arrange
         payload = json.dumps({"theme": "light"})
         # Act
-        resp = client.post(SAVE_THEME, data=payload, content_type="application/json")
+        resp = client.post(
+            SAVE_THEME, data=payload, content_type="application/json"
+        )
         # Assert
         assert resp.status_code == 401
 
@@ -236,7 +248,9 @@ class TestSaveThemeRegistered:
 
     def test_invalid_theme_value_rejected_400(self, client, django_user_model):
         # Arrange
-        user = django_user_model.objects.create_user(username="dave", password="x")
+        user = django_user_model.objects.create_user(
+            username="dave", password="x"
+        )
         client.force_login(user)
         # Act
         resp = client.post(

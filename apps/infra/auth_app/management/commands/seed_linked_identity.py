@@ -124,7 +124,9 @@ class Command(BaseCommand):
         self.stdout.write(f"new addresses   : {', '.join(new_emails) or '(none)'}")
 
         if dry_run:
-            self.stdout.write(self.style.WARNING("dry run — nothing written"))
+            self.stdout.write(
+                self.style.WARNING("dry run — nothing written")
+            )
             return
 
         with transaction.atomic():
@@ -138,7 +140,9 @@ class Command(BaseCommand):
                 subject=str(user.pk),
                 defaults={
                     "user": user,
-                    "verified_email": VerifiedEmail.objects.get(email=emails[0]),
+                    "verified_email": VerifiedEmail.objects.get(
+                        email=emails[0]
+                    ),
                     "host_at_name": instance_host_at_name(),
                 },
             )
@@ -162,7 +166,9 @@ class Command(BaseCommand):
             )
             self.stdout.write(f"  cards alias {email}: {extra.status}")
 
-        style = self.style.SUCCESS if result.cards_user_id else self.style.WARNING
+        style = (
+            self.style.SUCCESS if result.cards_user_id else self.style.WARNING
+        )
         self.stdout.write(
             style(
                 f"cards upsert    : {result.status} "
