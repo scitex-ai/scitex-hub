@@ -397,28 +397,49 @@ def visitor_mobile_page(visitor_mobile_context):
 
     page = visitor_mobile_context.new_page()
 
-    # A route VisitorAutoLoginMiddleware acts on -- deliberately not "/", which
-    # it skips for unauthenticated requests, and which would therefore report a
-    # role that says nothing about whether a session was carried.
+    def _snap(label):
+        """Authoritative cookie/role evidence for the mobile session handoff.
+
+        Captures the full cookie jar, the sessionid specifically, the current
+        URL and the rendered session role. This is the instrument that localizes
+        WHERE the test-user session is lost between the desktop storage_state
+        login and the mobile context -- the curl probe already proved the server
+        holds a session across /apps/home/ -> /chat/ -> /, so the loss is in the
+        browser profile (cookie not present, or page rendered logged-out).
+        """
+        cookies = page.context.cookies()
+        sess = next((c for c in cookies if c["name"] == "sessionid"), None)
+        role = page.evaluate(READ_SESSION_ROLE_JS)
+        print(
+            f"[mobile-auth-diag] {label}: url={page.url} "
+            f"cookies={[c['name'] for c in cookies]} "
+            f"sessionid={'PRESENT' if sess else 'ABSENT'} "
+            f"(domain={sess['domain'] if sess else '-'} "
+            f"path={sess['path'] if sess else '-'} "
+            f"secure={sess['secure'] if sess else '-'}) "
+            f"role={role!r}"
+        )
+        return role
+
+    _snap("A0 initial (storage_state handoff, pre-nav)")
     page.goto(VISITOR_WARMUP_ROUTE)
     wait_for_page_ready(page)
-    role = page.evaluate(READ_SESSION_ROLE_JS)
+    role = _snap("A1 after warm-up %s" % VISITOR_WARMUP_ROUTE)
 
     if not is_authenticated_user_role(role):
         # The stored session did not carry into THIS context (mobile UA /
-        # is_mobile / has_touch / 390x844). Make the context EXPLICITLY
-        # authenticated as the test user in-context, then re-prove it. This is
-        # the direct migration off the Visitor-session handoff: rather than
-        # relying on a saved state to survive the context switch, the mobile
-        # context performs its own login when the session is absent or wrong.
-        #
-        # The stored state is proven at save-time by visitor_storage_state; a
-        # context that still cannot hold it (cookie path/domain under the
-        # mobile profile) is healed here instead of running logged out.
+        # is_mobile / has_touch / 390x844). Establish the test-user session
+        # IN-CONTEXT, then re-prove it.
         page.goto("/auth/login/")
+        wait_for_page_ready(page)
+        _snap("B0 at login page")
         _form_login(page)
         wait_for_page_ready(page)
-        role = page.evaluate(READ_SESSION_ROLE_JS)
+        _snap("B1 after in-context login (post-redirect)")
+        # Re-prove on the warm-up route the tests actually use.
+        page.goto(VISITOR_WARMUP_ROUTE)
+        wait_for_page_ready(page)
+        role = _snap("B2 back at warm-up after login")
 
     # Prove the context is a registered USER before any test runs against it.
     if not is_authenticated_user_role(role):
@@ -426,13 +447,15 @@ def visitor_mobile_page(visitor_mobile_context):
             f"the MOBILE context has session role {role!r} at {page.url!r} "
             "after an in-context login, so every test using this fixture "
             "would run against the wrong session. "
-            f"{authenticated_user_role_failure(role, 'the MOBILE context')}"
+            f"{authenticated_user_role_failure(role, 'the MOBILE context')} "
+            "[cookie/role snapshots printed above as [mobile-auth-diag]]"
         )
 
     # Leave the context on the warm-up route so the first test navigation is a
     # same-session goto, not a redirect that could re-derive the role.
     page.goto(VISITOR_WARMUP_ROUTE)
     wait_for_page_ready(page)
+    _snap("C0 settled on warm-up route (yield point)")
 
     yield page
     page.close()
