@@ -114,6 +114,7 @@ install_ecosystem_packages() {
     try_editable_install "/scitex-scholar" "scitex-scholar" "[all]"
     try_editable_install "/scitex-container" "scitex-container"
     try_editable_install "/scitex-plt" "scitex-plt" "[all]"
+    try_editable_install "/scitex-agent-container" "scitex-agent-container" "[gui]"
 
     # Ensure pygments is available
     if ! python -c "import pygments" 2>/dev/null; then
@@ -122,3 +123,32 @@ install_ecosystem_packages() {
     fi
 }
 install_ecosystem_packages
+
+verify_optional_sac_dashboard() {
+    if [ ! -f "/scitex-agent-container/pyproject.toml" ]; then
+        echo_warning "Optional /scitex-agent-container source is unavailable; Agents app disabled"
+        return 0
+    fi
+
+    echo_info "Verifying the optional SAC dashboard mount..."
+    if python - <<'PY'
+import django
+
+django.setup()
+
+import scitex_agent_container._django  # noqa: F401
+from django.urls import resolve
+
+match = resolve("/apps/agents/")
+if match.view_name != "scitex_agent_container:index":
+    raise RuntimeError(
+        f"/apps/agents/ resolved to {match.view_name!r}, not the SAC dashboard"
+    )
+PY
+    then
+        echo_success "SAC dashboard imports and /apps/agents/ resolves"
+    else
+        echo_error "Mounted SAC source did not produce a usable /apps/agents/ route"
+        return 1
+    fi
+}

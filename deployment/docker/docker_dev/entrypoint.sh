@@ -262,6 +262,7 @@ for arg in "$@"; do
 done
 
 if [ "$IS_DJANGO_CONTAINER" = true ]; then
+    verify_optional_sac_dashboard
     # Start Vite servers (platform + dev app)
     start_platform_vite
     start_devapp_vite
