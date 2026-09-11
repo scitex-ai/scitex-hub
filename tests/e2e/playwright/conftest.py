@@ -527,6 +527,7 @@ def pooled_visitor_context(browser, pw_base_url):
     """
     context = browser.new_context(
         base_url=pw_base_url,
+        service_workers="block",
         viewport=DESKTOP["viewport"],
         # A browser UA is load-bearing, not cosmetic:
         # VisitorAutoLoginMiddleware skips non-browser user agents (curl,

@@ -42,6 +42,7 @@ import threading
 
 import pytest
 
+from tests.e2e.playwright.conftest import pooled_visitor_context
 from tests.e2e.playwright.content_check import (
     BrowserProblemLog,
     body_text_problem,
@@ -464,6 +465,31 @@ def test_screenshot_readiness_does_not_wait_for_global_load():
     wait_for_page_ready(page, wait_for_load=False)
 
     assert [kind for kind, *_rest in page.calls] == ["function", "timeout"]
+
+
+def test_pooled_screenshot_context_blocks_service_worker_navigation_cache():
+    class RecordingContext:
+        def set_default_timeout(self, timeout):
+            self.timeout = timeout
+
+        def close(self):
+            pass
+
+    class RecordingBrowser:
+        def __init__(self):
+            self.options = None
+
+        def new_context(self, **options):
+            self.options = options
+            return RecordingContext()
+
+    browser = RecordingBrowser()
+    fixture = pooled_visitor_context.__wrapped__(browser, "http://127.0.0.1:8000")
+
+    next(fixture)
+    fixture.close()
+
+    assert browser.options["service_workers"] == "block"
 
 
 # EOF
