@@ -175,27 +175,52 @@ def test_set_language_endpoint_is_routed():
 
 
 # ---------------------------------------------------------------------------
-# Automatic selection from the browser's Accept-Language header
+# English by default: Accept-Language no longer auto-selects Japanese
 # ---------------------------------------------------------------------------
+# 2026-09-11 supersedes the 2026-08-23 "automatic from browser preference"
+# decision: the landing must render English for an anonymous visitor even when
+# the browser advertises Accept-Language: ja. Japanese appears only after the
+# visitor explicitly selects it (footer switcher -> django_language cookie).
 @pytest.mark.parametrize(
-    ("header", "expected"),
+    "header",
     [
-        ("ja", "ja"),
-        ("ja-JP,ja;q=0.9,en;q=0.8", "ja"),
-        ("en-US,en;q=0.9", "en"),
-        # An unsupported language must fall back to English rather than 404 or
-        # half-translate. Operator, 2026-08-23: 「日本語、英語、意外は私が見ても
-        # わからないので今のところは非対応で問題ないです」
-        ("fr-FR,fr;q=0.9", "en"),
+        "ja",
+        "ja-JP,ja;q=0.9,en;q=0.8",
+        "en-US,en;q=0.9",
+        "fr-FR,fr;q=0.9",
     ],
 )
-def test_accept_language_header_selects_the_language(header, expected):
-    # Arrange
+def test_english_default_middleware_strips_language_preference(header):
+    """EnglishDefaultLanguageMiddleware removes the browser preference when
+    the visitor has made no explicit choice, so LocaleMiddleware falls through
+    to LANGUAGE_CODE (English) instead of auto-selecting from Accept-Language.
+    `get_language_from_request` alone would still pick ja — that is exactly the
+    hole the middleware closes, so apply it before resolving."""
+    from apps.infra.public_app.middlewares import EnglishDefaultLanguageMiddleware
+
     request = RequestFactory().get("/", HTTP_ACCEPT_LANGUAGE=header)
-    # Act
+    middleware = EnglishDefaultLanguageMiddleware(lambda r: r)
+    middleware(request)
     actual = translation.get_language_from_request(request, check_path=False)
-    # Assert
-    assert actual == expected, f"Accept-Language {header!r} chose {actual!r}"
+    assert actual == "en", (
+        f"Accept-Language {header!r} must NOT auto-select Japanese once the "
+        f"middleware strips it; expected 'en', got {actual!r}."
+    )
+
+
+def test_explicit_ja_cookie_is_preserved_despite_english_browser():
+    """An explicit django_language=ja (footer switcher) survives the middleware
+    and beats an en-advertising browser — the user's choice is honored."""
+    from apps.infra.public_app.middlewares import EnglishDefaultLanguageMiddleware
+
+    request = RequestFactory().get(
+        "/", HTTP_ACCEPT_LANGUAGE="en-US,en;q=0.9",
+        **{"HTTP_COOKIE": "django_language=ja"},
+    )
+    middleware = EnglishDefaultLanguageMiddleware(lambda r: r)
+    middleware(request)
+    actual = translation.get_language_from_request(request, check_path=False)
+    assert actual == "ja"
 
 
 # ---------------------------------------------------------------------------

@@ -243,8 +243,10 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     # i18n rails (F: tokushoho/commerce pages). Locale resolution must sit
     # after SessionMiddleware and before CommonMiddleware per Django docs.
-    # Scope decision: only legal/landing surfaces are authored in Japanese
-    # for now — the app interior stays untranslated.
+    # English by default: pin anonymous visitors to English until they
+    # explicitly choose a language (footer switcher sets the cookie). Runs
+    # BEFORE LocaleMiddleware so it can strip the Accept-Language preference.
+    "apps.infra.public_app.middlewares.EnglishDefaultLanguageMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
