@@ -309,6 +309,43 @@ class EmailVerification(models.Model):
         self.verified_at = timezone.now()
         self.save()
 
+    def claim(self) -> bool:
+        """Atomically consume this code. True ONLY for the first caller.
+
+        PR #775 sixth review, P0. The verify endpoint fetched the row, compared
+        the code, and only then marked the row verified — with NO lock held
+        across those three steps. Two concurrent requests carrying the SAME code
+        could therefore both pass the comparison and both proceed to activate:
+        a reused code, and a second activation its owner never performed.
+        Incrementing the wrong-attempt counter with F() did not touch this,
+        because both callers were CORRECT and neither incremented anything.
+
+        What actually has to be atomic is the CLAIM, not the whole request.
+        Holding a row lock across an entire POST would serialise signups against
+        a mail send; a compare-and-swap against the row is sufficient and does
+        not hold a lock while anything slow happens.
+
+        Returns False when the code was already used or has expired since it was
+        read, which is exactly the race this exists to lose safely.
+        """
+        from django.db import transaction
+
+        with transaction.atomic():
+            locked = (
+                type(self)
+                .objects.select_for_update()
+                .filter(pk=self.pk, is_verified=False)
+                .first()
+            )
+            if locked is None or locked.is_expired():
+                return False
+            locked.is_verified = True
+            locked.verified_at = timezone.now()
+            locked.save(update_fields=["is_verified", "verified_at"])
+            self.is_verified = True
+            self.verified_at = locked.verified_at
+            return True
+
 
 # Signal handlers for automatic profile creation and Gitea sync
 class AuthenticatedDevice(models.Model):

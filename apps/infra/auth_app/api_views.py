@@ -129,8 +129,24 @@ def verify_email_api(request):
                     status=400,
                 )
 
-            # Mark verification as complete
-            verification.verify()
+            # ATOMIC, SINGLE-USE CLAIM (PR #775 sixth review, P0). The fetch, the
+            # comparison and the marking used to run with NO lock held across
+            # them, so two concurrent requests carrying the same code could both
+            # pass the comparison and both activate — a reused code, and a second
+            # activation its owner never performed. F() only ever protected the
+            # wrong-attempt counter.
+            if not verification.claim():
+                logger.warning("Verification code already used or expired")
+                return JsonResponse(
+                    {
+                        "success": False,
+                        "error": (
+                            "This verification code has already been used or has "
+                            "expired. Please request a new one."
+                        ),
+                    },
+                    status=400,
+                )
 
             # LIFECYCLE: the signup is OVER the moment it is verified, so the
             # marker is DELETED here. It must not outlive the signup, or a later

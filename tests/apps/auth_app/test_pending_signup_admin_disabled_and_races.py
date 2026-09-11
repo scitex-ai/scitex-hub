@@ -408,3 +408,130 @@ def test_a_genuine_pending_signup_can_still_resend(client, monkeypatch):
     # Assert
     assert response.status_code == 200
     assert _codes(user.email).count() == 1
+
+
+# ---------------------------------------------------------------------------
+# PR #775 sixth review: rollback-safe send, single-use claim, recovery path.
+# ---------------------------------------------------------------------------
+
+_SEND = "apps.infra.project_app.services.email_service.EmailService.send_otp_email"
+
+
+def test_a_failed_signup_resume_send_preserves_the_previous_code(client, monkeypatch):
+    """The SIGNUP path's mint must roll back, exactly as resend's now does.
+
+    The verify endpoint picks the NEWEST unverified row, so a mint left in place
+    after a failed send strands the prior usable code behind a code nobody
+    received — the recovery path destroying recovery.
+    """
+    # Arrange
+    user = _pending()
+    previous_code = _codes(user.email).get().code
+    cache.clear()
+    monkeypatch.setattr(_SEND, staticmethod(lambda **kwargs: (False, "smtp down")))
+
+    # Act
+    response = client.post(
+        reverse("auth_app:signup"), _payload(user.username, user.email)
+    )
+
+    # Assert — the previous code survives, and no stranded mint remains.
+    assert response.status_code == 302
+    survivors = _codes(user.email)
+    assert survivors.count() == 1
+    assert survivors.get().code == previous_code
+
+
+def test_a_raising_signup_resume_send_preserves_the_previous_code(client, monkeypatch):
+    """The EXCEPTION path, not just the False path: both must roll back."""
+    # Arrange
+    user = _pending()
+    previous_code = _codes(user.email).get().code
+    cache.clear()
+
+    def _explode(**kwargs):
+        raise RuntimeError("smtp exploded")
+
+    monkeypatch.setattr(_SEND, staticmethod(_explode))
+
+    # Act
+    client.post(reverse("auth_app:signup"), _payload(user.username, user.email))
+
+    # Assert
+    survivors = _codes(user.email)
+    assert survivors.count() == 1
+    assert survivors.get().code == previous_code
+
+
+@pytest.mark.django_db(transaction=True)
+def test_a_code_can_only_be_claimed_once_under_real_concurrency():
+    """Two concurrent callers carrying the SAME code must not both win.
+
+    transaction=True on purpose: the default test wraps everything in a
+    transaction no other connection can see, so the threads would read nothing
+    and the test would pass without testing anything.
+    """
+    # Arrange
+    user = _pending()
+    verification = EmailVerification.objects.get(user=user)
+    results: list[bool] = []
+    lock = threading.Lock()
+
+    def claim():
+        # Each thread re-reads the row the way a separate request would.
+        fresh = EmailVerification.objects.get(pk=verification.pk)
+        won = fresh.claim()
+        with lock:
+            results.append(won)
+
+    # Act — more claimers than there is a code.
+    workers = [threading.Thread(target=claim) for _ in range(6)]
+    for worker in workers:
+        worker.start()
+    for worker in workers:
+        worker.join()
+
+    # Assert — EXACTLY one winner, whatever the interleaving.
+    assert len(results) == 6
+    assert results.count(True) == 1
+    verification.refresh_from_db()
+    assert verification.is_verified is True
+
+
+def test_a_used_code_cannot_be_claimed_again():
+    """The sequential half of the same invariant."""
+    # Arrange
+    user = _pending()
+    verification = EmailVerification.objects.get(user=user)
+
+    # Act
+    first = verification.claim()
+    second = EmailVerification.objects.get(pk=verification.pk).claim()
+
+    # Assert
+    assert first is True
+    assert second is False
+
+
+def test_the_password_typo_recovery_path_works_after_otp_proof(client):
+    """DEFINES the recovery path the review asked for.
+
+    The pending account keeps its ORIGINAL password — resume deliberately never
+    adopts a newly typed one, because a submitter has proved only that they can
+    type an address. So a user who mistyped their password at signup recovers
+    by: proving the ADDRESS (the OTP), which activates the account, then using
+    the standard password-reset rail. Proving the address is exactly what makes
+    that rail legitimate, which is why this asserts both halves.
+    """
+    # Arrange
+    user = _pending()
+    verification = EmailVerification.objects.get(user=user)
+
+    # Act — prove the address.
+    response = _verify(client, user.email, verification.code)
+
+    # Assert — activated, and the reset rail is reachable.
+    assert response.status_code == 200
+    user.refresh_from_db()
+    assert user.is_active is True
+    assert client.get(reverse("auth_app:forgot_password")).status_code == 200

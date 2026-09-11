@@ -58,17 +58,27 @@ def _send_pending_signup_code(request, user, email, logger) -> bool:
         )
         return False
 
+    # DELIVERY-FIRST, ROLLBACK-SAFE (PR #775 sixth review, P0). The mint used to
+    # be LEFT IN PLACE when the send failed or raised, and the verify endpoint
+    # picks the NEWEST unverified row — so a failed resume stranded the previous
+    # usable code behind a code nobody had received. The failure mode of the
+    # recovery path was to destroy recovery. This is the same defect that was
+    # fixed in resend_otp_api; this is its second call site, and the reason it
+    # was worth fixing twice is that fixing one call site is not fixing a class.
     verification = EmailVerification.objects.create(user=user, email=email)
     try:
         success, message = EmailService.send_otp_email(
             email=email, otp_code=verification.code, verification_type="signup"
         )
-    except Exception as exc:  # pragma: no cover - provider failures
+    except Exception as exc:
         logger.error(f"Error re-sending verification for a pending signup: {exc}")
+        verification.delete()
         return False
     if not success:
         logger.error(f"Failed to re-send verification email: {message}")
-    return bool(success)
+        verification.delete()
+        return False
+    return True
 
 
 def signup(request):
