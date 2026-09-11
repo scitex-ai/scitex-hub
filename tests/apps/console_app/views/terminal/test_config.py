@@ -4,9 +4,58 @@
 
 import importlib
 import os
+import subprocess
+import sys
+import textwrap
+from pathlib import Path
 from unittest import mock
 
 import pytest
+
+
+class TestContainerPathInDjango:
+    """The Docker-visible alias is configurable independently of SLURM."""
+
+    def test_explicit_docker_path_wins_over_legacy_setting(self):
+        config_path = (
+            Path(__file__).parents[5]
+            / "apps/workspace/console_app/views/terminal/config.py"
+        )
+        program = textwrap.dedent(
+            """
+            import importlib.util
+            import sys
+            import types
+
+            settings = types.SimpleNamespace(
+                SINGULARITY_IMAGE_PATH="/legacy/current-sandbox",
+                USER_DATA_ROOT="/legacy/users",
+            )
+            django = types.ModuleType("django")
+            django.__path__ = []
+            django_conf = types.ModuleType("django.conf")
+            django_conf.settings = settings
+            sys.modules["django"] = django
+            sys.modules["django.conf"] = django_conf
+
+            spec = importlib.util.spec_from_file_location("terminal_config_test", sys.argv[1])
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            if module.BASE_CONTAINER_PATH != "/app/singularity/current":
+                raise SystemExit(module.BASE_CONTAINER_PATH)
+            """
+        )
+        env = os.environ.copy()
+        env["SCITEX_HUB_CONTAINER_PATH_IN_DJANGO"] = "/app/singularity/current"
+        result = subprocess.run(
+            [sys.executable, "-c", program, str(config_path)],
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        assert result.returncode == 0, result.stderr or result.stdout
 
 
 class TestDevReposParsing:

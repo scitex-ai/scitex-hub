@@ -81,8 +81,16 @@ services:
       # User workspace data directory (also serves as user home via symlink)
       - ../../../data/users:/app/data/users
 
-      # Singularity/Apptainer container images for secure PTY terminal
-      - ../../../deployment/singularity:/app/singularity:ro
+      # The exact host artifact used by SLURM, exposed to Django at a stable
+      # path so validation does not depend on host directory layout.  Long
+      # syntax prevents Docker from creating an empty directory when the
+      # configured sandbox is missing.
+      - type: bind
+        source: ${SCITEX_HUB_SLURM_CONTAINER_PATH:-/nonexistent/scitex-hub-terminal-sandbox}
+        target: /app/singularity/current
+        read_only: true
+        bind:
+          create_host_path: false
 
       # SLURM access (connects to host SLURM for job scheduling)
       # Mount host's actual slurm.conf for consistency with munge auth
@@ -132,6 +140,8 @@ services:
       - PYTHONDONTWRITEBYTECODE=1
       - WATCHFILES_FORCE_POLLING=true  # For NFS/network filesystems
       - SCITEX_HUB_VITE_USE_BUILD=${SCITEX_HUB_VITE_USE_BUILD:-false}  # Set true to use pre-built JS (no Vite dev server)
+      - SCITEX_HUB_SLURM_CONTAINER_PATH=${SCITEX_HUB_SLURM_CONTAINER_PATH:-/nonexistent/scitex-hub-terminal-sandbox}
+      - SCITEX_HUB_CONTAINER_PATH_IN_DJANGO=/app/singularity/current
       # Shell-resolved only: never persisted to a checked-in .env. Operators
       # decrypt ~/.pw into the invoking shell before compose up/config.
       - SCITEX_HUB_EMAIL_HOST_PASSWORD=${SCITEX_HUB_EMAIL_HOST_PASSWORD:?decrypt ~/.pw/no-reply@scitex.ai.gpg into the shell first}
