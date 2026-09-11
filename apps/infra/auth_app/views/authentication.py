@@ -73,15 +73,36 @@ def signup(request):
                     return render(request, "auth_app/signup.html", {"form": form})
 
             # Create inactive user (cannot log in until email verified)
-            user = User.objects.create_user(
-                username=username,
-                email=email,
-                password=password,
-                is_active=False,  # User inactive until email verified
-            )
+            #
+            # ATOMIC WITH ITS CONSENT RECORD, deliberately (card
+            # hub-signup-flow-constraints-from-business-20260902 item 6): an
+            # account created without a record of WHICH terms it accepted is the
+            # exact state this change exists to make impossible, and a
+            # best-effort write here would recreate it silently whenever the
+            # legal files moved. Either both rows exist or neither does.
+            from django.db import transaction
 
-            # Create user profile (should be auto-created by signal, but ensure it exists)
-            UserProfile.objects.get_or_create(user=user)
+            from apps.infra.auth_app.consent import current_document_hashes
+            from apps.infra.auth_app.models import TermsConsent
+
+            with transaction.atomic():
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                    is_active=False,  # User inactive until email verified
+                )
+
+                # Create user profile (should be auto-created by signal, but ensure it exists)
+                UserProfile.objects.get_or_create(user=user)
+
+                # Record WHICH version of each accepted document, and WHEN.
+                # Hashes are computed from the CURRENT sources; a revision
+                # creates a new row rather than overwriting the old one.
+                for _key, _digest in sorted(current_document_hashes().items()):
+                    TermsConsent.objects.create(
+                        user=user, document=_key, content_hash=_digest
+                    )
 
             # Create Gitea user account (sync with Gitea)
             try:

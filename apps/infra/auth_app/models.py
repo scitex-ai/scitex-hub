@@ -407,3 +407,67 @@ def log_user_login(sender, request, user, **kwargs):
         logger.info(f"Login recorded: {user.username} via {method}")
     except Exception as e:
         logger.error(f"Failed to log login for {user.username}: {e}")
+
+
+class TermsConsent(models.Model):
+    """WHICH version of a legal document a user accepted, and when.
+
+    CARD hub-signup-flow-constraints-from-business-20260902, item 6:
+    ``SignupForm.agree_terms`` already requires the checkbox, but until this
+    model existed nothing recorded WHAT was agreed to — a grep for consent /
+    accepted_terms / terms_version / terms_hash / doc_hash across auth_app and
+    accounts_app returned nothing, so the accepted wording became
+    unrecoverable the moment the terms were revised.
+
+    APPEND-ONLY BY DESIGN, and deliberately NOT ``unique_together`` on
+    (user, document): a revision must create a NEW row, because the history —
+    "they accepted v1, later v2" — is the thing the requirement asks for. A
+    unique constraint would force an UPDATE and destroy exactly that evidence.
+
+    ``content_hash`` is the sha256 of the document's source text (see
+    ``auth_app.consent``), so it moves when the wording moves and is
+    recomputable from the repository. ``accepted_at`` is ``auto_now_add``: it
+    is the time of acceptance, which no caller should be able to backdate.
+    """
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="terms_consents",
+    )
+    #: Consent key — "terms" | "privacy" (see auth_app.consent.CONSENT_DOCUMENTS).
+    document = models.CharField(max_length=32)
+    #: sha256 hex of the document source at acceptance time.
+    content_hash = models.CharField(max_length=64)
+    accepted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-accepted_at", "-id"]
+        indexes = [
+            models.Index(
+                fields=["user", "document", "accepted_at"],
+                name="authapp_cons_user_doc_ts_idx",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.document}@{self.content_hash[:12]} for user {self.user_id}"
+
+    @classmethod
+    def record_signup_consent(cls, user) -> list["TermsConsent"]:
+        """Record the CURRENT hashes for every document accepted at signup.
+
+        One call, one timestamp source (``auto_now_add``), and every document
+        from ``consent.CONSENT_DOCUMENTS`` — so adding a document to the signup
+        form cannot leave the record silently short, which is the failure mode
+        of recording each document at its own call site.
+        """
+        from apps.infra.auth_app.consent import current_document_hashes
+
+        hashes = current_document_hashes()
+        records = []
+        for key, value in sorted(hashes.items()):
+            records.append(
+                cls.objects.create(user=user, document=key, content_hash=value)
+            )
+        return records
