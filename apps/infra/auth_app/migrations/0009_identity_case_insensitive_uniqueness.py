@@ -93,7 +93,23 @@ def normalise(text: str | None) -> str | None:
 
 
 def _ownership_sql(column: str) -> str:
-    """SQL for "the index under this name IS the one this migration builds"."""
+    """SQL for "the index under this name IS the one this migration builds".
+
+    Structure is checked with the catalog fields, not only the expression text.
+    ``pg_get_expr(indexprs, indrelid)`` renders ONLY the expression columns, so a
+    UNIQUE COMPOSITE ``(lower(username), email)`` renders exactly
+    ``lower((username)::text)`` — indistinguishable from ours by expression alone.
+    It would be accepted as ours, the CREATE would be skipped (leaving weaker
+    composite uniqueness, i.e. the policy unenforced), and the reversal would then
+    DELETE it. ``INCLUDE`` columns are invisible to ``indexprs`` for the same
+    reason. Hence:
+
+      * ``indnkeyatts = 1`` — exactly ONE key column;
+      * ``indnatts = 1`` — no INCLUDE columns either;
+      * ``indkey::text = '0'`` — that single key is an EXPRESSION (0 means
+        "expression", per indexprs), not a plain column. A composite renders
+        ``'0 2'``, so it is rejected here.
+    """
     if column == EMAIL_COLUMN:
         expression, predicate = EMAIL_EXPRESSION, f"= '{EMAIL_PREDICATE}'"
     else:
@@ -101,6 +117,9 @@ def _ownership_sql(column: str) -> str:
     return f"""(
             i.indisunique
         AND t.relname = 'auth_user'
+        AND i.indnkeyatts = 1
+        AND i.indnatts = 1
+        AND i.indkey::text = '0'
         AND {NORMALISE.format(value="pg_get_expr(i.indexprs, i.indrelid)")} = '{expression}'
         AND {NORMALISE.format(value="pg_get_expr(i.indpred, i.indrelid)")} {predicate}
     )"""
