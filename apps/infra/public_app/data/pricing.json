@@ -9,7 +9,7 @@
   "published_prices": [
     {
       "id": "subscription-student",
-      "label": "サブスク・学術",
+      "label": "Sub · Academic",
       "amount": 2980,
       "policy": "early-adopter",
       "unit": "month",
@@ -30,11 +30,12 @@
         "overage": "metered",
         "monthly_limit_set_by": "user",
         "eligibility": "大学・研究機関のメールアドレスを持つこと（学生・院生・教職員・研究員）"
-      }
+      },
+      "description": "For university and research-institution email addresses (students, graduate students, faculty, researchers)."
     },
     {
       "id": "subscription-general",
-      "label": "サブスク・一般",
+      "label": "Sub · General",
       "amount": 5980,
       "policy": "early-adopter",
       "unit": "month",
@@ -54,53 +55,54 @@
         "included_traffic": "normal-use",
         "overage": "metered",
         "monthly_limit_set_by": "user"
-      }
+      },
+      "description": "For general use."
     },
     {
       "id": "onprem-setup",
-      "label": "オンプレ導入サポート",
+      "label": "On-Prem Setup",
       "amount": 298000,
       "unit": "per_case",
       "available_from": "2026-08",
       "from_price": true,
       "category": "service",
-      "description": "オンプレミス導入支援。規模に応じて個別見積。",
+      "description": "On-premises deployment support. Quote based on scale.",
       "price_is_floor": true
     },
     {
       "id": "onprem-maintenance",
-      "label": "オンプレ保守サポート",
+      "label": "On-Prem Maintenance",
       "amount": 98000,
       "unit": "month",
       "available_from": "2026-08",
       "from_price": true,
       "category": "service",
-      "description": "オンプレミス保守。規模に応じて個別見積。",
+      "description": "On-premises maintenance. Quote based on scale.",
       "price_is_floor": true
     },
     {
       "id": "contract-development",
-      "label": "受託開発",
+      "label": "Contract Development",
       "amount": 198000,
       "unit": "per_case",
       "available_from": "2026-08",
       "category": "service",
-      "description": "研究・アプリ開発等。個別見積。",
+      "description": "Research and application development. Quote-based.",
       "from_price": true
     },
     {
       "id": "consulting",
-      "label": "コンサル",
+      "label": "Consulting",
       "amount": 9800,
       "unit": "per_hour",
       "available_from": "2026-08",
       "category": "service",
-      "description": "技術・研究相談。Zoomまたは対面。時間に応じて課金（最初の30分は無料）。",
+      "description": "Technical and research consulting. Billed by the hour, first 30 minutes free. Zoom or in-person.",
       "from_price": true
     },
     {
       "id": "translation",
-      "label": "SciTeX 翻訳",
+      "label": "SciTeX Translation",
       "amount": 98000,
       "unit": "per_case",
       "available_from": "2027-08",
@@ -109,7 +111,7 @@
     },
     {
       "id": "clew-verification",
-      "label": "Clew 検証",
+      "label": "Clew Verification",
       "amount": 98000,
       "unit": "per_case",
       "available_from": "2027-08",
@@ -148,31 +150,31 @@
   "tiers": [
     {
       "id": "subscription",
-      "name": "サブスク",
-      "audience": "個人で使う",
+      "name": "Sub",
+      "audience": "For individuals",
       "rows": [
         "subscription-student",
         "subscription-general"
       ],
-      "description": "すぐ始められて、いつでも止められます。計算資源はご自身のものを繋いでいただけます。"
+      "description": "Start quickly, stop anytime. Connect your own compute resources."
     },
     {
       "id": "onprem",
-      "name": "オンプレ",
-      "audience": "研究室・部門に入れる",
+      "name": "On-Prem",
+      "audience": "For labs and departments",
       "rows": [
         "onprem-setup",
         "onprem-maintenance"
       ],
-      "description": "ソフトウェア自体は AGPL v3.0 で無料で、ご自身の環境（オンプレミス）に導入できます。データを外に出さず運用でき、人数が増えても月額は拠点単位です。商用・非AGPL 等他ライセンスは個別にご相談ください。導入・保守サポートは下の料金。"
+      "description": "The software itself is free under AGPL v3.0 — self-host in your own environment. Keep data in-house; per-site monthly. Commercial / non-AGPL licenses: contact us for individual discussion. Setup and maintenance support are priced below."
     },
     {
       "id": "large",
-      "name": "大規模",
-      "audience": "学部・全学など（応相談）",
+      "name": "Enterprise",
+      "audience": "Faculty / university scale (quote)",
       "rows": [],
       "quote_only": true,
-      "description": "規模が大きいほど一人あたりは下がります。構成をうかがって個別にお見積りします。"
+      "description": "Larger scale means a lower per-person cost. We quote based on your configuration."
     }
   ],
   "_pricing_policies": "Discount schedules, copied VERBATIM from business.yaml pricing_policies. A row that carries `policy` sells at its `amount` (the LIST price) minus the percent of the window whose DATES cover the day the page renders — selection is by date, exactly as the business engine's Price.from_mapping does it; `status` only marks which single phase is current (two may not be active at once) and is NOT read here (business, 2026-09-03 06:54Z, correcting their 00:02Z hold; the 50→30→10 taper is a settled decision, operator Telegram 6913). The page states, before the period: the list price and the discount (「定価 2,980円、早期導入割引 50%」 — operator Telegram 6915 wants 割引 named, because reducing a discount reads more honestly than raising a price later), then when the window ends, then every later stage at its own percent and finally the list price from the day after the last window. Disclosing all stages up front is what keeps 「定価」 a stated future price and not a 景表法 claim of past sales; a struck-through pair is still refused.",

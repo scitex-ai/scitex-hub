@@ -1,6 +1,6 @@
 {% extends "global_base.html" %}
 
-{% load static %}
+{% load static landing_i18n %}
 {% load i18n %}
 
 {% block title %}
@@ -99,7 +99,7 @@
             <div class="pricing-cards-wrapper">
                 {% for tier in tiers %}
                 <article class="pricing-card pricing-tier-card{% if tier.id == 'onprem' %} pricing-tier-card-featured{% endif %}">
-                    <h3 class="plan-name">{{ tier.name }}<span class="plan-sub">{{ tier.audience }}</span></h3>
+                    <h3 class="plan-name">{{ tier.name|translate_dynamic }}<span class="plan-sub">{{ tier.audience|translate_dynamic }}</span></h3>
                     <dl class="pricing-tier-prices">
                         {% if tier.quote_only %}
                             <dt>{% trans "料金" %}</dt><dd class="plan-price">{{ free_price }}</dd>
@@ -107,13 +107,13 @@
                             <dt>{% trans "料金" %}</dt><dd class="plan-price">{% trans "準備中 — 確定後に掲載します。" %}</dd>
                         {% else %}
                             {% for row in tier.rows %}
-                                <dt>{{ row.label }}</dt>
+                                <dt>{{ row.label|translate_dynamic }}</dt>
                                 <dd class="plan-price">{{ row.price }}{% if row.price_note %}<span class="plan-sub">{{ row.price_note }}</span>{% endif %}</dd>
                             {% endfor %}
                         {% endif %}
                     </dl>
-                    <p class="plan-description">{{ tier.description }}</p>
-                    {% for row in tier.rows %}{% if row.description %}<p class="plan-note">{{ row.label }}：{{ row.description }}</p>{% endif %}{% if row.included %}<p class="plan-note">{{ row.label }}：{{ row.included|join:"、" }}</p>{% endif %}{% endfor %}
+                    <p class="plan-description">{{ tier.description|translate_dynamic }}</p>
+                    {% for row in tier.rows %}{% if row.description %}<p class="plan-note">{{ row.label|translate_dynamic }}: {{ row.description|translate_dynamic }}</p>{% endif %}{% if row.included %}<p class="plan-note">{{ row.label|translate_dynamic }}: {{ row.included|join:"、" }}</p>{% endif %}{% endfor %}
                     <div class="pricing-cta">
                         {% if tier.quote_only %}
                             <a href="{% url 'public_app:services' %}#inquiry" class="btn btn-outline-primary btn-block">{% trans "問い合わせ" %}</a>
@@ -146,7 +146,7 @@
                     {% for group in published_price_groups %}
                         {% for row in group.rows %}
                         <tr>
-                            <td>{{ row.label }}{% if row.included %}<br><span class="plan-sub">{{ row.included|join:"、" }}</span>{% endif %}</td>
+                            <td>{{ row.label|translate_dynamic }}{% if row.included %}<br><span class="plan-sub">{{ row.included|join:"、" }}</span>{% endif %}</td>
                             <td class="plan-price">{{ row.price }}{% if row.price_note %}<br><span class="plan-sub">{{ row.price_note }}</span>{% endif %}</td>
                         </tr>
                         {% endfor %}

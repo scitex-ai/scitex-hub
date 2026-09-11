@@ -1,5 +1,5 @@
 {% extends "global_base.html" %}
-{% load static %}
+{% load static landing_i18n %}
 {% load i18n %}
 
 {% block title %}サービス・料金 | Services - SciTeX{% endblock %}
@@ -104,7 +104,7 @@
             <div class="svc-plan-cards">
                 {% for tier in tiers %}
                 <article class="svc-plan-card{% if tier.id == 'onprem' %} svc-plan-card-featured{% endif %}">
-                    <p class="svc-plan-card-name">{{ tier.name }}<span class="svc-plan-card-sub">{{ tier.audience }}</span></p>
+                    <p class="svc-plan-card-name">{{ tier.name|translate_dynamic }}<span class="svc-plan-card-sub">{{ tier.audience|translate_dynamic }}</span></p>
                     <dl>
                         {% if tier.quote_only %}
                             <dt>料金</dt><dd class="svc-plan-price">応相談</dd>
@@ -114,13 +114,13 @@
                             <dt>料金</dt><dd class="svc-plan-price">{% trans "準備中 — 確定後に掲載します。" %}</dd>
                         {% else %}
                             {% for row in tier.rows %}
-                                <dt>{{ row.label }}</dt>
+                                <dt>{{ row.label|translate_dynamic }}</dt>
                                 <dd class="svc-plan-price">{{ row.price }}{% if row.price_note %}<span class="svc-plan-card-sub">{{ row.price_note }}</span>{% endif %}</dd>
                             {% endfor %}
                         {% endif %}
                     </dl>
-                    <p class="svc-card-lead">{{ tier.description }}</p>
-                    {% for row in tier.rows %}{% if row.description %}<p class="svc-muted">{{ row.label }}：{{ row.description }}</p>{% endif %}{% if row.included %}<p class="svc-muted">{{ row.label }}：{{ row.included|join:"、" }}</p>{% endif %}{% endfor %}
+                    <p class="svc-card-lead">{{ tier.description|translate_dynamic }}</p>
+                    {% for row in tier.rows %}{% if row.description %}<p class="svc-muted">{{ row.label|translate_dynamic }}: {{ row.description|translate_dynamic }}</p>{% endif %}{% if row.included %}<p class="svc-muted">{{ row.label|translate_dynamic }}: {{ row.included|join:"、" }}</p>{% endif %}{% endfor %}
                     <a href="#inquiry" class="svc-btn svc-btn-primary">問い合わせはこちら</a>
                 </article>
                 {% endfor %}
@@ -246,7 +246,7 @@
                         {% for group in published_price_groups %}
                             {% for row in group.rows %}
                             <tr>
-                                <td>{{ row.label }}{% if row.included %}<br><span class="svc-muted">{{ row.included|join:"、" }}</span>{% endif %}</td>
+                                <td>{{ row.label|translate_dynamic }}{% if row.included %}<br><span class="svc-muted">{{ row.included|join:"、" }}</span>{% endif %}</td>
                                 <td class="svc-price-cell">{{ row.price }}{% if row.price_note %}<br><span class="svc-muted">{{ row.price_note }}</span>{% endif %}</td>
                             </tr>
                             {% endfor %}

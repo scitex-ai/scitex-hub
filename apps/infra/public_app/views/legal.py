@@ -20,6 +20,7 @@ Handles contact, privacy policy, terms of use, cookie policy, and the
 
 from django.conf import settings
 from django.shortcuts import render
+from django.utils import translation
 from ..pricing import published_price_rows
 
 
@@ -142,9 +143,17 @@ def tokushoho(request):
         # views for hard-coded amounts. BILLING_PLANS stays empty on
         # purpose (checkout is shut); these are DISPLAY prices only, and
         # published_price_rows() already hides anything not yet for sale.
-        "published_price_rows": published_price_rows(),
+        #
+        # This is a JAPANESE legal page (特定商取引法に基づく表記): it must
+        # read in Japanese regardless of the site's English-default policy.
+        # The override is entered BEFORE published_price_rows() so the
+        # call-time gettext inside the pricing format layer bakes Japanese
+        # strings into the context (they are rendered verbatim in the
+        # template, not through {% trans %}).
     }
-    return render(request, "public_app/legal/tokushoho.html", context)
+    with translation.override("ja"):
+        context["published_price_rows"] = published_price_rows()
+        return render(request, "public_app/legal/tokushoho.html", context)
 
 
 # EOF

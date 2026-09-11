@@ -9,11 +9,21 @@ everything.
 
 from datetime import date, timedelta
 
+import pytest
+
+from django.utils import translation
+
 from apps.infra.public_app.pricing import (
     format_amount,
     load_pricing,
     published_price_rows,
 )
+
+# The SSoT is now ENGLISH-sourced (2026-09-11: landing/pricing English by
+# default, JA only after selection). The exact rendered strings below are the
+# JAPANESE catalog translations, so pin them under translation.override("ja")
+# — that keeps every assertion meaningful (it still verifies the JA wording)
+# while the English default is covered by the landing i18n tests.
 
 
 def _catalogue():
@@ -113,6 +123,7 @@ def test_no_catalogue_row_is_withheld_today() -> None:
     assert held == set(), held
 
 
+@translation.override("ja")
 def test_the_subscription_rows_sell_at_the_launch_price_until_july_2027() -> None:
     """The real catalogue, on days either side of the Launch/Y1 window's end.
     1,490 / 2,990 are 2,980 / 5,980 at 50%; the note carries the list price,
@@ -159,6 +170,7 @@ def _policy_fixture(schedule, amount=1000):
     }
 
 
+@translation.override("ja")
 def test_a_window_is_selected_by_date_whatever_its_status_says() -> None:
     """Rule check independent of the data file. business.yaml's `status` marks
     which single phase is current and may not be set on two at once; the
@@ -181,6 +193,7 @@ def test_a_window_is_selected_by_date_whatever_its_status_says() -> None:
     assert outside["price"] == "月額 1,000円" and outside["price_note"] == "", outside
 
 
+@translation.override("ja")
 def test_the_note_names_a_mid_month_end_and_the_current_stage() -> None:
     """A mid-month end is named by the day (月末 is only for a last-of-month
     end). The note states only the current window's end (2026-09-10: later
@@ -245,6 +258,7 @@ def test_every_catalogue_attribute_renders_as_one_phrase() -> None:
     assert seen, "Control: no row carries attributes, so nothing was rendered."
 
 
+@translation.override("ja")
 def test_the_subscription_rows_state_what_they_include() -> None:
     """Pins the upstream numbers the operator confirmed 2026-09-02 (50 GB,
     1,000円 compute credit, metered overage, user-set cap) so a copy of
