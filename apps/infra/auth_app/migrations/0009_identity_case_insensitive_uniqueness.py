@@ -108,14 +108,20 @@ def _ownership_sql(column: str) -> str:
       * ``indnatts = 1`` — no INCLUDE columns either;
       * ``indkey::text = '0'`` — that single key is an EXPRESSION (0 means
         "expression", per indexprs), not a plain column. A composite renders
-        ``'0 2'``, so it is rejected here.
+        ``'0 2'``, so it is rejected here;
+      * ``indisvalid`` — the index is actually USABLE. A failed
+        ``CREATE UNIQUE INDEX CONCURRENTLY`` leaves the index in place with the
+        name and shape we build but flagged invalid, enforcing NOTHING. Without
+        this, that wreckage is accepted as ours: the CREATE is skipped (policy
+        silently unenforced) and the reversal deletes an index it did not create.
     """
     if column == EMAIL_COLUMN:
         expression, predicate = EMAIL_EXPRESSION, f"= '{EMAIL_PREDICATE}'"
     else:
         expression, predicate = USERNAME_EXPRESSION, "IS NULL"
     return f"""(
-            i.indisunique
+            i.indisvalid
+        AND i.indisunique
         AND t.relname = 'auth_user'
         AND i.indnkeyatts = 1
         AND i.indnatts = 1
