@@ -211,3 +211,10 @@
     font-size: 0.9375rem;
   }
 }
+
+/* The section heading must clear the sticky global header when the #pricing
+   anchor scrolls it to the top (measured on the live landing 2026-09-11: the
+   "Pricing" title was half-clipped behind the nav). */
+.section-pricing {
+  scroll-margin-top: 5rem;
+}
