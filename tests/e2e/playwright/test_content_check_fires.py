@@ -52,6 +52,7 @@ from tests.e2e.playwright.content_check import (
     read_content_signals,
     stuck_placeholder_problem,
 )
+from tests.e2e.playwright.page_ready import wait_for_page_ready
 from tests.e2e.playwright.test_capture_screenshots import navigate_product_page
 
 # A real, valid 1x1 PNG. Served over HTTP so the healthy fixture's image
@@ -422,7 +423,7 @@ def test_a_clean_page_reports_no_browser_errors(problems_for):
     assert count == 0, problems
 
 
-def test_product_navigation_waits_for_dom_content_not_the_load_event():
+def test_product_navigation_returns_at_response_commit():
     """A stalled optional resource cannot block the product-readiness checks."""
 
     class RecordingPage:
@@ -440,8 +441,29 @@ def test_product_navigation_waits_for_dom_content_not_the_load_event():
     assert response == "response"
     assert page.call == (
         "/apps/figrecipe/",
-        {"wait_until": "domcontentloaded"},
+        {"wait_until": "commit"},
     )
+
+
+def test_screenshot_readiness_does_not_wait_for_global_load():
+    class RecordingPage:
+        def __init__(self):
+            self.calls = []
+
+        def wait_for_load_state(self, state):
+            raise AssertionError(f"global {state!r} wait is forbidden")
+
+        def wait_for_function(self, expression, **kwargs):
+            self.calls.append(("function", expression, kwargs))
+
+        def wait_for_timeout(self, timeout):
+            self.calls.append(("timeout", timeout))
+
+    page = RecordingPage()
+
+    wait_for_page_ready(page, wait_for_load=False)
+
+    assert [kind for kind, *_rest in page.calls] == ["function", "timeout"]
 
 
 # EOF

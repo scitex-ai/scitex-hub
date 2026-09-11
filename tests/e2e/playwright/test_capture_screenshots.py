@@ -189,13 +189,13 @@ FORCE_LIGHT = """
 def navigate_product_page(page, route):
     """Navigate without waiting for unrelated subresources to finish loading.
 
-    Product readiness is asserted separately by ``wait_for_page_ready``. Waiting
-    for Playwright's default ``load`` event made one stalled optional resource
-    poison the shared capture page: the first timeout was followed by a
-    30-second timeout for nearly every remaining assertion, even though the
-    server continued answering and 37 checks had already passed.
+    Product readiness is asserted separately by ``wait_for_page_ready``. Return
+    when the main-document response is committed so neither the global load
+    event nor DOMContentLoaded can be held hostage by the product's large
+    subresource graph. The hard hydration, content, and image checks still run
+    before accepting or photographing the page.
     """
-    return page.goto(route, wait_until="domcontentloaded")
+    return page.goto(route, wait_until="commit")
 
 
 @pytest.fixture(scope="session")
@@ -225,7 +225,9 @@ def measured_content(pooled_visitor_page, content_report):
             browser_problems.reset()
             navigate_product_page(page, route)
             wait_for_page_ready(
-                page, hydration_signal=route not in ROUTES_WITHOUT_GLOBAL_BASE
+                page,
+                hydration_signal=route not in ROUTES_WITHOUT_GLOBAL_BASE,
+                wait_for_load=False,
             )
             page.evaluate(FORCE_LIGHT)
             signals = read_content_signals(page, PAGE_ELEMENT_SIGNALS.get(route))
@@ -276,10 +278,12 @@ class TestProductScreenshots:
         page = pooled_visitor_page
         carries_marker = route not in ROUTES_WITHOUT_GLOBAL_BASE
         navigate_product_page(page, route)
-        wait_for_page_ready(page, hydration_signal=carries_marker)
+        wait_for_page_ready(
+            page, hydration_signal=carries_marker, wait_for_load=False
+        )
         if not carries_marker:
             navigate_product_page(page, VISITOR_WARMUP_ROUTE)
-            wait_for_page_ready(page)
+            wait_for_page_ready(page, wait_for_load=False)
 
         # Act
         role = page.evaluate(READ_SESSION_ROLE_JS)
@@ -302,7 +306,9 @@ class TestProductScreenshots:
         # is a condition it can never reach (measured 2026-08-16 in CI run
         # 31955719803: 30s timeout, 33 errors, nothing actually broken).
         wait_for_page_ready(
-            page, hydration_signal=route not in ROUTES_WITHOUT_GLOBAL_BASE
+            page,
+            hydration_signal=route not in ROUTES_WITHOUT_GLOBAL_BASE,
+            wait_for_load=False,
         )
         page.evaluate(FORCE_LIGHT)
 

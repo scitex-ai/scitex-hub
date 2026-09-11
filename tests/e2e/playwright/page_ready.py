@@ -15,8 +15,9 @@ simply one this page can never satisfy.
 
 WHAT IS USED INSTEAD, in order:
 
-1. ``load`` — subresources are in. Fires regardless of ongoing XHR, so a
-   live poller cannot stall it.
+1. ``load`` for ordinary callers. Screenshot capture deliberately skips this:
+   it starts its hard checks after the main response is committed, because a
+   large or stalled subresource graph is not product readiness.
 2. ``body.app-ready`` — the product's OWN hydration signal, added by
    ``main.ts initApp()`` and guaranteed within 3 s by the safety-net script
    in ``templates/global_base.html`` even when the Vite bundle fails. This
@@ -28,10 +29,9 @@ WHAT IS USED INSTEAD, in order:
    Measured 2026-08-16: reading a page mid-hydration produced four false
    "this is broken" reports in one session.
 
-No step here swallows a failure. Step 2 is the loud one; steps 1 and 3
-cannot fail in a way that hides a broken page, and the caller's own
-assertions (HTTP status, session role, non-blank body text) still run
-afterwards.
+No step here swallows a failure. Step 2 is the loud one; screenshot callers
+also retain their HTTP status, session-role, rendered-content, and image
+assertions before accepting the page.
 """
 
 from __future__ import annotations
@@ -49,7 +49,9 @@ APP_READY_JS = (
 )
 
 
-def wait_for_page_ready(page, *, hydration_signal: bool = True) -> None:
+def wait_for_page_ready(
+    page, *, hydration_signal: bool = True, wait_for_load: bool = True
+) -> None:
     """Block until ``page`` is hydrated and settled enough to be read.
 
     Args:
@@ -63,6 +65,10 @@ def wait_for_page_ready(page, *, hydration_signal: bool = True) -> None:
             ``test_capture_screenshots.ROUTES_WITHOUT_GLOBAL_BASE``), never
             decide per call site, because "this page is different" is how a
             check quietly becomes optional everywhere.
+        wait_for_load: whether to wait for the browser's global ``load`` event.
+            Screenshot capture passes ``False`` because it separately requires
+            the product hydration signal and checks rendered content and images;
+            an unrelated slow subresource must not block those checks.
 
     Raises:
         playwright TimeoutError: if a global_base page never reaches
@@ -70,9 +76,12 @@ def wait_for_page_ready(page, *, hydration_signal: bool = True) -> None:
             finish booting — and it must stop the capture rather than yield
             a PNG of a loading spinner.
     """
-    page.wait_for_load_state("load")
+    if wait_for_load:
+        page.wait_for_load_state("load")
     if hydration_signal:
         page.wait_for_function(APP_READY_JS, timeout=APP_READY_TIMEOUT_MS)
+    elif not wait_for_load:
+        page.wait_for_selector("body", state="attached", timeout=APP_READY_TIMEOUT_MS)
     page.wait_for_timeout(SETTLE_MS)
 
 
