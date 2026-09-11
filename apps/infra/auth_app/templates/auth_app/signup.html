@@ -1,6 +1,6 @@
 {% extends "auth_app/auth_base.html" %}
 
-{% load static %}
+{% load i18n static %}
 {% load socialaccount %}
 
 {% block title %}Create an Account - SciTeX{% endblock %}
@@ -11,6 +11,9 @@
     <div class="container auth-container">
         <div class="auth-form">
             <h2 class="mb-4">Sign Up</h2>
+            <p class="text-muted signup-card-policy">
+                {% trans "Free signup and free-tier use require no card. Payment details are requested only if you later explicitly start a paid subscription or paid trial." %}
+            </p>
             {% if form.errors %}
                 <div class="alert-banner alert-banner-danger"
                      style="margin-bottom: var(--spacing-md)">

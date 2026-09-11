@@ -12,3 +12,93 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+# Landing pricing data is authored in Japanese in the pricing SSoT. The
+# landing template translates these values at render time so the English page
+# does not expose the source language.
+msgid "サブスク・学術"
+msgstr "Academic subscription"
+
+msgid "サブスク・一般"
+msgstr "General subscription"
+
+msgid "月額 1,490円"
+msgstr "¥1,490/month"
+
+msgid "月額 2,990円"
+msgstr "¥2,990/month"
+
+msgid "定価 2,980円、早期導入割引 50%。2027年7月末までの早期導入価格。"
+msgstr "List price ¥2,980; 50% early-adopter discount. Early-adopter price through July 2027."
+
+msgid "定価 5,980円、早期導入割引 50%。2027年7月末までの早期導入価格。"
+msgstr "List price ¥5,980; 50% early-adopter discount. Early-adopter price through July 2027."
+
+msgid "ストレージ 50GB/プロジェクト/月（Standard）"
+msgstr "Storage: 50 GB/project/month (Standard)"
+
+msgid "計算クレジット 1,000円相当/プロジェクト/月"
+msgstr "Compute credit: ¥1,000 equivalent/project/month"
+
+msgid "通常利用の範囲の通信"
+msgstr "Network traffic within normal use"
+
+msgid "超過分は従量課金"
+msgstr "Metered billing for overages"
+
+msgid "月の上限は利用者が設定"
+msgstr "User-set monthly limit"
+
+msgid "対象: 大学・研究機関のメールアドレスを持つこと（学生・院生・教職員・研究員）"
+msgstr "Eligibility: verified university or research-institution email address (students, graduate students, faculty, and researchers)"
+
+msgid "オンプレ導入サポート"
+msgstr "On-premises deployment support"
+
+msgid "1件 298,000円〜"
+msgstr "From ¥298,000 per engagement"
+
+msgid "オンプレミス導入支援。規模に応じて個別見積。"
+msgstr "On-premises deployment support; quoted by scale."
+
+msgid "オンプレ保守サポート"
+msgstr "On-premises maintenance support"
+
+msgid "月額 98,000円〜"
+msgstr "From ¥98,000/month"
+
+msgid "オンプレミス保守。規模に応じて個別見積。"
+msgstr "On-premises maintenance; quoted by scale."
+
+msgid "受託開発"
+msgstr "Contract development"
+
+msgid "1件 198,000円〜"
+msgstr "From ¥198,000 per engagement"
+
+msgid "研究・アプリ開発等。個別見積。"
+msgstr "Research and application development; individual quote."
+
+msgid "コンサル"
+msgstr "Consulting"
+
+msgid "1時間 9,800円〜"
+msgstr "From ¥9,800/hour"
+
+msgid "技術・研究相談。Zoomまたは対面。時間に応じて課金（最初の30分は無料）。"
+msgstr "Technical and research consultation by Zoom or in person; billed by time (first 30 minutes free)."
+
+msgid "表示価格はすべて税込(総額)です。"
+msgstr "All displayed prices include tax."
+
+msgid "ソフトウェア、ハードウェア、クラウド、生成 AI API 等の外部利用料は原則実費です。"
+msgstr "External software, hardware, cloud, and generative AI API costs are generally charged at cost."
+
+msgid "お客様自身の既存契約や計算資源を、そのまま利用できる構成を優先します。"
+msgstr "We prioritize configurations that use your existing contracts and computing resources."
+
+msgid "SciTeX Cloud の従量課金は、料金確定後に別ページでご案内します。"
+msgstr "SciTeX Cloud usage-based pricing will be published separately after rates are finalized."
+
+msgid "上記はいずれも目安です。ご予算や状況に合わせて調整できますので、気楽にご相談ください。"
+msgstr "These prices are guides; contact us to discuss adjustments for your budget and circumstances."

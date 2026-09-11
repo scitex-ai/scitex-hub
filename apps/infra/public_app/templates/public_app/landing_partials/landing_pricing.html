@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n landing_i18n %}
 {% comment %}
    Landing-page pricing (compass 25.1: "Publish the Pricing table on the
    TOP/LANDING page so a user can tell what they get before signing in").
@@ -10,23 +10,23 @@
 {% endcomment %}
 <section class="landing-section section-pricing" id="pricing">
     <div class="container">
-        <h2 class="section-heading">{% trans "料金" %}</h2>
+        <h2 class="section-heading">{% trans "Pricing" %}</h2>
         <div class="pricing-grid">
             {% for group in published_price_groups %}
             {% for row in group.rows %}
             <div class="pricing-card">
                 <div class="pricing-header">
-                    <h3 class="plan-name">{{ row.label }}</h3>
-                    <p class="pricing-price">{{ row.price }}{% if row.price_note %}<span class="period">{{ row.price_note }}</span>{% endif %}</p>
+                    <h3 class="plan-name">{{ row.label|translate_dynamic }}</h3>
+                    <p class="pricing-price">{{ row.price|translate_dynamic }}{% if row.price_note %}<span class="period">{{ row.price_note|translate_dynamic }}</span>{% endif %}</p>
                 </div>
                 {% if row.category == "subscription" %}
                 <div class="pricing-trial">
-                    <span class="pricing-trial-badge">{% trans "30日間無料トライアル" %}</span>
+                    <span class="pricing-trial-badge">{% trans "Optional paid-plan trial: 30 days free" %}</span>
                     <ul class="pricing-trial-terms">
-                        <li><span class="pt-label">{% trans "継続" %}</span>{% trans "初回分を登録日から課金" %}</li>
-                        <li><span class="pt-label">{% trans "中断" %}</span>{% trans "登録情報は7日後に破棄" %}</li>
-                        <li><span class="pt-label">{% trans "回数" %}</span>{% trans "1 メール/カードにつき1回" %}</li>
-                        <li><span class="pt-label">{% trans "登録" %}</span>{% trans "メール認証 + クレジット/デビットカード" %}</li>
+                        <li><span class="pt-label">{% trans "Activation" %}</span>{% trans "Starts only after you explicitly select this paid plan or trial; trial data is deleted seven days after cancellation" %}</li>
+                        <li><span class="pt-label">{% trans "Billing" %}</span>{% trans "Any charge follows the terms you accept during that explicit paid action, never free signup" %}</li>
+                        <li><span class="pt-label">{% trans "Limit" %}</span>{% trans "One paid trial per verified email address and payment card" %}</li>
+                        <li><span class="pt-label">{% trans "Payment" %}</span>{% trans "Email verification and a credit or debit card when the paid plan or trial starts" %}</li>
                     </ul>
                 </div>
                 {% endif %}
@@ -34,20 +34,20 @@
                 <div class="pricing-features">
                     <ul>
                         {% for item in row.included %}
-                        <li>{{ item }}</li>
+                        <li>{{ item|translate_dynamic }}</li>
                         {% endfor %}
                     </ul>
                 </div>
                 {% endif %}
                 {% if row.description %}
-                <p class="plan-sub">{{ row.description }}</p>
+                <p class="plan-sub">{{ row.description|translate_dynamic }}</p>
                 {% endif %}
                 <div class="pricing-action">
                     {% if row.category == "subscription" %}
-                    <a href="{% url 'auth_app:signup' %}" class="btn btn-primary btn-block">{% trans "30日間無料で始める" %}</a>
-                    <p class="pricing-card-note">{% trans "クレジットカード / デビットカードの登録が必要です" %}</p>
+                    <a href="{% url 'auth_app:signup' %}" class="btn btn-primary btn-block">{% trans "Sign up free — no card needed" %}</a>
+                    <p class="pricing-card-note">{% trans "After signup, card details are requested only if you explicitly start this paid plan or its trial." %}</p>
                     {% else %}
-                    <a href="{% url 'public_app:contact' %}" class="btn btn-block">{% trans "お問い合わせ" %}</a>
+                    <a href="{% url 'public_app:contact' %}" class="btn btn-block">{% trans "Contact us" %}</a>
                     {% endif %}
                 </div>
             </div>
@@ -56,13 +56,13 @@
         </div>
         <div class="pricing-notes">
             <p class="pricing-note">
-                {% trans "詳細は" %}
-                <a href="{% url 'public_app:pricing' %}">{% trans "料金ページ" %}</a>{% trans "、" %}
-                <a href="{% url 'public_app:tokushoho' %}">{% trans "特定商取引法に基づく表記" %}</a>{% trans "をご覧ください。" %}
-                {% if tax_note %}・{{ tax_note }}{% endif %}
+                {% trans "For details, see the" %}
+                <a href="{% url 'public_app:pricing' %}">{% trans "pricing page" %}</a>{% trans " and " %}
+                <a href="{% url 'public_app:tokushoho' %}">{% trans "legal notice required by Japan's Specified Commercial Transactions Act" %}</a>{% trans "." %}
+                {% if tax_note %} {{ tax_note|translate_dynamic }}{% endif %}
             </p>
             {% for note in pricing_notes %}
-            <p class="pricing-note">{{ note }}</p>
+            <p class="pricing-note">{{ note|translate_dynamic }}</p>
             {% endfor %}
         </div>
     </div>

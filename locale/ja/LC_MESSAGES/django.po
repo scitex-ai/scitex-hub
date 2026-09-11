@@ -80,9 +80,81 @@ msgstr "ログイン"
 msgid "Free to sign up and free to use — no card needed. Payment details are requested only when you explicitly start a paid subscription or paid trial."
 msgstr "登録もご利用も無料です。カード情報は不要です。お支払い情報は、有料プランまたは有料トライアルを明示的に開始されるときにのみお願いします。"
 
+#: apps/infra/auth_app/templates/auth_app/signup.html
+msgid "Free signup and free-tier use require no card. Payment details are requested only if you later explicitly start a paid subscription or paid trial."
+msgstr "無料登録と無料プランの利用にカードは不要です。お支払い情報は、その後に有料プランまたは有料トライアルを明示的に開始する場合にのみお願いします。"
+
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
-msgid "Start free for 30 days"
-msgstr "30日間無料で始める"
+msgid "Pricing"
+msgstr "料金"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Optional paid-plan trial: 30 days free"
+msgstr "任意の有料プラントライアル：30日間無料"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Activation"
+msgstr "開始"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Starts only after you explicitly select this paid plan or trial; trial data is deleted seven days after cancellation"
+msgstr "この有料プランまたはトライアルを明示的に選択した場合にのみ開始します。中断したトライアルの登録情報は7日後に破棄します"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Billing"
+msgstr "課金"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Any charge follows the terms you accept during that explicit paid action, never free signup"
+msgstr "明示的な有料手続きで同意した条件に従ってのみ発生し、無料登録時には課金されません"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Limit"
+msgstr "回数"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "One paid trial per verified email address and payment card"
+msgstr "認証済みメールアドレスおよび決済カードにつき、有料トライアルは1回"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Payment"
+msgstr "決済"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Email verification and a credit or debit card when the paid plan or trial starts"
+msgstr "有料プランまたはトライアルの開始時に、メール認証とクレジットカードまたはデビットカードが必要です"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Sign up free — no card needed"
+msgstr "無料で登録（カード不要）"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "After signup, card details are requested only if you explicitly start this paid plan or its trial."
+msgstr "登録後、この有料プランまたはトライアルを明示的に開始する場合にのみ、カード情報をお願いします。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Contact us"
+msgstr "お問い合わせ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "For details, see the"
+msgstr "詳細は"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "pricing page"
+msgstr "料金ページ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid " and "
+msgstr "、"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "legal notice required by Japan's Specified Commercial Transactions Act"
+msgstr "特定商取引法に基づく表記"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "."
+msgstr "をご覧ください。"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
 msgid "No sign-up needed — starts a temporary visitor workspace."
