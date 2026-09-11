@@ -214,15 +214,15 @@ def _login_page_diagnosis(page) -> str:
 _STORAGE_STATE_VERSION = 2
 
 
-def _form_login(page, next_page: str = "/") -> None:
+def _form_login(page) -> None:
     """Perform the scoped login-form submission on ``page``.
 
     Shared by the session-scoped storage-state login and the mobile context's
     direct authentication, so the selectors and the post-submit navigation
     wait live in ONE place. Caller has already navigated ``page`` to
-    ``/auth/login/?next=<next_page>``; after submit the browser lands on
-    ``next_page`` (the view redirects to ``request.GET["next"]``,
-    authentication.py:235).
+    /auth/login/. After a successful login the browser leaves /auth/login
+    (the view redirects to "/" or ?next= -- the login FORM itself carries no
+    next field, so by default it lands at "/").
 
     The submit selector is SCOPED TO #login-form ON PURPOSE: button[type="submit"]
     is NOT unique on the page (the language switcher submits first in DOM order).
@@ -239,24 +239,20 @@ def _form_login(page, next_page: str = "/") -> None:
     page.fill('#login-form input[name="username"]', TEST_USER)
     page.fill('#login-form input[name="password"]', TEST_PASS)
     page.click('#login-form button[type="submit"]')
-    # WAIT FOR THE NAVIGATION, then PROVE the destination. Merely "left
-    # /auth/login" is not enough: a rejected login with ?next= can bounce the
-    # URL around. The view redirects to request.GET["next"]
-    # (authentication.py:235), so after a successful login the URL must carry
-    # the expected destination. This is the assertion that catches a bad
-    # credential / CSRF re-render as a LOGIN failure rather than letting a
-    # logged-out page through.
+    # WAIT FOR THE NAVIGATION away from the login page: click() starts the POST,
+    # but a load state can be satisfied by the document ALREADY on screen (the
+    # login page) and return before the response lands. Without this, the caller
+    # could proceed (and save a storage state) while still on /auth/login/ --
+    # i.e. with no session at all. A rejected login re-renders /auth/login
+    # (same URL), so "left /auth/login" is the login-succeeded signal.
     try:
-        page.wait_for_url(
-            lambda url: "/auth/login" not in url and next_page.rstrip("/") in url,
-            timeout=TIMEOUT,
-        )
+        page.wait_for_url(lambda url: "/auth/login" not in url, timeout=TIMEOUT)
     except Exception as exc:  # noqa: BLE001 -- re-raised with a usable message
         raise AssertionError(
-            f"login did not reach the expected destination {next_page!r} "
-            f"within {TIMEOUT}ms (landed at {page.url!r}). Either the "
-            "credentials were rejected, or CSRF re-rendered the login page. "
-            f"Check SCITEX_E2E_TEST_USER / _TEST_PASS.\n"
+            "login did not navigate away from /auth/login/ within "
+            f"{TIMEOUT}ms (still at {page.url!r}). Either the credentials were "
+            "rejected, or CSRF re-rendered the login page. Check "
+            f"SCITEX_E2E_TEST_USER / _TEST_PASS.\n"
             f"{_login_page_diagnosis(page)}\n({exc})"
         ) from exc
 
@@ -312,13 +308,14 @@ def visitor_storage_state(browser_type, pw_base_url):
     context.set_default_timeout(TIMEOUT)
     page = context.new_page()
 
-    page.goto("/auth/login/?next=/chat/")
-    _form_login(page, next_page="/chat/")
+    page.goto("/auth/login/")
+    _form_login(page)
     wait_for_page_ready(page)
 
-    # PROVE THE SESSION IS A REGISTERED USER BEFORE SAVING IT -- at /chat/,
-    # the route the workspace tests actually navigate, so the saved state is
-    # vouched for where it is used, not only on a different route.
+    # PROVE THE SESSION IS A REGISTERED USER BEFORE SAVING IT. The login lands
+    # at "/" (the form carries no next field), so validate there -- a
+    # skip-listed, non-pooling route, so an authenticated user reports "user"
+    # and a stale state reports "anonymous".
     role = page.evaluate(READ_SESSION_ROLE_JS)
     if not is_authenticated_user_role(role):
         raise AssertionError(
@@ -435,31 +432,35 @@ def visitor_mobile_page(visitor_mobile_context):
         return role
 
     # The mobile profile does NOT load the desktop storage_state (see
-    # visitor_mobile_context); it authenticates DIRECTLY. The previous handoff
-    # proved role=user only on the FIRST warm-up load, then did an unvalidated
-    # second goto before yield -- and the test's own /chat/ navigation ran
-    # logged out. So: log in, then PROVE role=user at /chat/ (the failing
-    # route) before yielding.
+    # visitor_mobile_context); it authenticates DIRECTLY. Login lands at "/"
+    # (the form carries no next field); the session cookie is then in THIS
+    # context's jar. We navigate to /chat/ -- the exact route the workspace
+    # tests use -- and PROVE role=user there before yielding. If the session
+    # does not hold at /chat/, we fail loudly here rather than hand every
+    # test a logged-out page that still returns 200.
     _snap("A0 fresh mobile context (pre-login)")
-    page.goto("/auth/login/?next=/chat/")
+    page.goto("/auth/login/")
     wait_for_page_ready(page)
-    _form_login(page, next_page="/chat/")
+    _form_login(page)
     wait_for_page_ready(page)
-    _snap("B1 after direct login (should be at /chat/)")
-    role = _snap("B2 role re-check at /chat/")
+    _snap("B1 after direct login (at /)")
+    # Navigate to the route under test and validate the session THERE.
+    page.goto("/chat/")
+    wait_for_page_ready(page)
+    role = _snap("B2 at /chat/ (session must hold)")
 
     if not is_authenticated_user_role(role):
         raise AssertionError(
             f"the MOBILE context has session role {role!r} at {page.url!r} "
-            "after a direct in-context login to /chat/, so every test using "
-            "this fixture would run against the wrong session. "
+            "after a direct in-context login, so every test using this "
+            "fixture would run against the wrong session. "
             f"{authenticated_user_role_failure(role, 'the MOBILE context')} "
             "[cookie/role snapshots printed above as [mobile-auth-diag]]"
         )
 
-    # Yield at /chat/ -- a VALIDATED, authenticated position. No unvalidated
-    # second goto: each test navigates from a proven session, so its own
-    # navigation cannot start from a dropped one.
+    # The session is now established IN THIS MOBILE CONTEXT and validated at
+    # /chat/. Each test navigates to its own route; the session cookie is in
+    # this context's jar and is sent on every subsequent request.
     yield page
     page.close()
 
