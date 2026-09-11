@@ -82,29 +82,38 @@ class TestMobileWorkspace:
     """Workspace module on iPhone 14 viewport."""
 
     def test_workspace_page_loads(self, visitor_mobile_page, screenshot):
-        """Workspace page loads on mobile."""
-        resp = visitor_mobile_page.goto("/apps/workspace/")
+        """Workspace page loads on mobile (canonical /chat/ route)."""
+        resp = visitor_mobile_page.goto("/chat/")
         screenshot(visitor_mobile_page, "workspace_mobile_loaded")
         assert resp.status == 200, f"Workspace page returned {resp.status}"
 
     def test_workspace_default_pane_visible(self, visitor_mobile_page, screenshot):
-        """Workspace shows a default pane on mobile load."""
-        visitor_mobile_page.goto("/apps/workspace/")
+        """Workspace shows the default (chat) pane on mobile load at /chat/.
+
+        /apps/workspace/ (module="chat") redirects to the canonical /chat/
+        route. The default pane there is #pane-chat, rendered active and
+        visible in the unified workspace layout.
+        """
+        visitor_mobile_page.goto("/chat/")
         wait_for_page_ready(visitor_mobile_page)
 
-        # Look for the primary/default pane
-        pane = visitor_mobile_page.locator(
-            "[data-testid='workspace-default-pane'], "
-            ".workspace-pane.active, "
-            ".workspace-pane:first-child, "
-            ".pane-container .pane.active, "
-            "[data-pane].active"
-        ).first
+        # The canonical active pane at /chat/ is #pane-chat.
+        try:
+            visitor_mobile_page.wait_for_selector(
+                "#pane-chat.workspace-pane.active", timeout=TIMEOUT
+            )
+        except Exception as exc:  # noqa: BLE001
+            screenshot(visitor_mobile_page, "workspace_default_pane_FAILED")
+            raise AssertionError(
+                "#pane-chat did not become the active pane at /chat/ within "
+                f"{TIMEOUT}ms.\nDOM evidence:\n{_chat_pane_dom_evidence(visitor_mobile_page)}\n({exc})"
+            ) from exc
 
-        if pane.count() == 0:
-            pytest.skip("No workspace pane element found on page")
-
-        assert pane.is_visible(), "Default workspace pane is not visible on mobile"
+        pane = visitor_mobile_page.locator("#pane-chat.workspace-pane.active")
+        assert pane.is_visible(), (
+            "Default chat pane is not visible on mobile. "
+            f"DOM evidence:\n{_chat_pane_dom_evidence(visitor_mobile_page)}"
+        )
         screenshot(visitor_mobile_page, "workspace_default_pane")
 
     def test_workspace_default_module_is_chat(self, visitor_mobile_page, screenshot):
@@ -197,8 +206,8 @@ class TestMobileWorkspace:
         )
 
     def test_workspace_no_horizontal_overflow(self, visitor_mobile_page):
-        """Workspace does not overflow horizontally on mobile."""
-        visitor_mobile_page.goto("/apps/workspace/")
+        """Workspace does not overflow horizontally on mobile at /chat/."""
+        visitor_mobile_page.goto("/chat/")
         wait_for_page_ready(visitor_mobile_page)
 
         overflow = visitor_mobile_page.evaluate(
@@ -213,20 +222,23 @@ class TestMobileWorkspace:
         ), "Workspace has horizontal overflow on mobile viewport (390px)"
 
     def test_workspace_pane_fills_viewport(self, visitor_mobile_page):
-        """Default pane fills most of the mobile viewport width."""
-        visitor_mobile_page.goto("/apps/workspace/")
+        """Default pane fills most of the mobile viewport width at /chat/."""
+        visitor_mobile_page.goto("/chat/")
         wait_for_page_ready(visitor_mobile_page)
 
-        pane = visitor_mobile_page.locator(
-            "[data-testid='workspace-default-pane'], "
-            ".workspace-pane.active, "
-            ".workspace-pane:first-child, "
-            ".pane-container .pane.active"
-        ).first
+        # Canonical active pane at /chat/ is #pane-chat (not a broad union,
+        # whose first match can be a hidden pane and give a misleading box).
+        try:
+            visitor_mobile_page.wait_for_selector(
+                "#pane-chat.workspace-pane.active", timeout=TIMEOUT
+            )
+        except Exception as exc:  # noqa: BLE001
+            raise AssertionError(
+                "#pane-chat did not become the active pane at /chat/ within "
+                f"{TIMEOUT}ms.\nDOM evidence:\n{_chat_pane_dom_evidence(visitor_mobile_page)}\n({exc})"
+            ) from exc
 
-        if pane.count() == 0:
-            pytest.skip("No workspace pane element found on page")
-
+        pane = visitor_mobile_page.locator("#pane-chat.workspace-pane.active")
         box = pane.bounding_box()
         if box is None:
             pytest.skip("Workspace pane not visible")
