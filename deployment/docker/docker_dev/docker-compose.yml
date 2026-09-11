@@ -132,6 +132,9 @@ services:
       - PYTHONDONTWRITEBYTECODE=1
       - WATCHFILES_FORCE_POLLING=true  # For NFS/network filesystems
       - SCITEX_HUB_VITE_USE_BUILD=${SCITEX_HUB_VITE_USE_BUILD:-false}  # Set true to use pre-built JS (no Vite dev server)
+      # Shell-resolved only: never persisted to a checked-in .env. Operators
+      # decrypt ~/.pw into the invoking shell before compose up/config.
+      - SCITEX_HUB_EMAIL_HOST_PASSWORD=${SCITEX_HUB_EMAIL_HOST_PASSWORD:?decrypt ~/.pw/no-reply@scitex.ai.gpg into the shell first}
       # scitex.writer specific
       - SCITEX_WRITER_CACHE_DIR=/app/.cache
       # scitex-ui static dir for Vite alias resolution (avoids python3 discovery)
@@ -296,6 +299,11 @@ services:
     environment:
       - SCITEX_HUB_DJANGO_SETTINGS_MODULE=config.settings.settings_dev
       - PYTHONUNBUFFERED=1
+      # Same shell-resolved credential as `django`: this service sends OTP
+      # mail asynchronously, so without it the worker reports auth_app.E001
+      # and signup verification mail fails while the web form looks healthy.
+      # Never persisted: operators decrypt ~/.pw into the shell first.
+      - SCITEX_HUB_EMAIL_HOST_PASSWORD=${SCITEX_HUB_EMAIL_HOST_PASSWORD:?decrypt ~/.pw/no-reply@scitex.ai.gpg into the shell first}
 
     depends_on:
       postgres:
@@ -407,6 +415,11 @@ services:
     environment:
       - SCITEX_HUB_DJANGO_SETTINGS_MODULE=config.settings.settings_dev
       - PYTHONUNBUFFERED=1
+      # Same shell-resolved credential as `django`: this service sends OTP
+      # mail asynchronously, so without it the worker reports auth_app.E001
+      # and signup verification mail fails while the web form looks healthy.
+      # Never persisted: operators decrypt ~/.pw into the shell first.
+      - SCITEX_HUB_EMAIL_HOST_PASSWORD=${SCITEX_HUB_EMAIL_HOST_PASSWORD:?decrypt ~/.pw/no-reply@scitex.ai.gpg into the shell first}
 
     depends_on:
       postgres:
