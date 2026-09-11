@@ -8,6 +8,54 @@ Verify the workspace default pane behavior on mobile viewport.
 
 import pytest
 from tests.e2e.playwright.page_ready import wait_for_page_ready
+from tests.e2e.playwright.conftest import TIMEOUT
+
+
+def _chat_pane_dom_evidence(page) -> str:
+    """Full DOM evidence for the chat-pane contract, for failure diagnosis.
+
+    Captures the id/classes/computed visibility/bounding box of #pane-chat and
+    its inner surface, the active pane, and body[data-initial-pane]. Read
+    without raising -- this runs inside the failure path and must never mask
+    the original error.
+    """
+    try:
+        return page.evaluate(
+            """
+            () => {
+                const info = (el) => {
+                    if (!el) return null;
+                    const r = el.getBoundingClientRect();
+                    const cs = getComputedStyle(el);
+                    return {
+                        id: el.id || null,
+                        classes: el.className || null,
+                        display: cs.display,
+                        visibility: cs.visibility,
+                        opacity: cs.opacity,
+                        box: { x: Math.round(r.x), y: Math.round(r.y),
+                                w: Math.round(r.width), h: Math.round(r.height) },
+                    };
+                };
+                return JSON.stringify({
+                    url: location.href,
+                    data_initial_pane: document.body.getAttribute('data-initial-pane'),
+                    data_session_role: document.body.getAttribute('data-session-role'),
+                    active_pane: info(document.querySelector('.workspace-pane.active')),
+                    pane_chat: info(document.querySelector('#pane-chat')),
+                    chat_surface: info(
+                        document.querySelector('#pane-chat .ws-ai-pane')
+                        || document.querySelector('#pane-chat #stx-shell-ai-panel')
+                    ),
+                    all_panes: Array.from(document.querySelectorAll('.workspace-pane'))
+                        .map(info),
+                }, null, 2);
+            }
+        """
+        )
+    except Exception as exc:  # noqa: BLE001 -- evidence must not mask the error
+        return f"<could not read DOM evidence: {exc}>"
+
 
 # WHY THESE TESTS DO NOT WAIT FOR `networkidle`
 #
@@ -34,74 +82,132 @@ class TestMobileWorkspace:
     """Workspace module on iPhone 14 viewport."""
 
     def test_workspace_page_loads(self, visitor_mobile_page, screenshot):
-        """Workspace page loads on mobile."""
-        resp = visitor_mobile_page.goto("/apps/workspace/")
+        """Workspace page loads on mobile (canonical /chat/ route)."""
+        resp = visitor_mobile_page.goto("/chat/")
         screenshot(visitor_mobile_page, "workspace_mobile_loaded")
         assert resp.status == 200, f"Workspace page returned {resp.status}"
 
     def test_workspace_default_pane_visible(self, visitor_mobile_page, screenshot):
-        """Workspace shows a default pane on mobile load."""
-        visitor_mobile_page.goto("/apps/workspace/")
+        """Workspace shows the default (chat) pane on mobile load at /chat/.
+
+        /apps/workspace/ (module="chat") redirects to the canonical /chat/
+        route. The default pane there is #pane-chat, rendered active and
+        visible in the unified workspace layout.
+        """
+        visitor_mobile_page.goto("/chat/")
         wait_for_page_ready(visitor_mobile_page)
 
-        # Look for the primary/default pane
-        pane = visitor_mobile_page.locator(
-            "[data-testid='workspace-default-pane'], "
-            ".workspace-pane.active, "
-            ".workspace-pane:first-child, "
-            ".pane-container .pane.active, "
-            "[data-pane].active"
-        ).first
+        # The canonical active pane at /chat/ is #pane-chat.
+        try:
+            visitor_mobile_page.wait_for_selector(
+                "#pane-chat.workspace-pane.active", timeout=TIMEOUT
+            )
+        except Exception as exc:  # noqa: BLE001
+            screenshot(visitor_mobile_page, "workspace_default_pane_FAILED")
+            raise AssertionError(
+                "#pane-chat did not become the active pane at /chat/ within "
+                f"{TIMEOUT}ms.\nDOM evidence:\n{_chat_pane_dom_evidence(visitor_mobile_page)}\n({exc})"
+            ) from exc
 
-        if pane.count() == 0:
-            pytest.skip("No workspace pane element found on page")
-
-        assert pane.is_visible(), "Default workspace pane is not visible on mobile"
+        pane = visitor_mobile_page.locator("#pane-chat.workspace-pane.active")
+        assert pane.is_visible(), (
+            "Default chat pane is not visible on mobile. "
+            f"DOM evidence:\n{_chat_pane_dom_evidence(visitor_mobile_page)}"
+        )
         screenshot(visitor_mobile_page, "workspace_default_pane")
 
     def test_workspace_default_module_is_chat(self, visitor_mobile_page, screenshot):
-        """Default module should be 'chat' after the DEFAULT_MODULE change."""
-        visitor_mobile_page.goto("/apps/workspace/")
+        """Default module is the ACTIVE, VISIBLE chat pane on /chat/.
+
+        The legacy 3-pane robot-icon chat shell was retired: /apps/workspace/
+        (module="chat") redirects to the canonical /chat/ route, where chat is
+        the active pane in the unified workspace layout (workspace_app/views.py
+        and global_base.html -- #pane-chat is server-rendered with the "active"
+        class and body[data-initial-pane="chat"] when request.initial_pane is
+        "chat").
+
+        The assertion targets the CANONICAL #pane-chat element specifically --
+        not a broad .workspace-pane.active union, whose first DOM match can be
+        the hidden #pane-module, which is how this test once read the wrong
+        pane. It also proves the chat surface is VISIBLE (non-zero bounding
+        box), and on failure captures full DOM evidence (id, classes, computed
+        display/visibility/opacity, bounding boxes, data-initial-pane, and a
+        screenshot) so a timing/contract regression is diagnosable from the
+        artifact rather than a bare "None".
+        """
+        visitor_mobile_page.goto("/chat/")
         wait_for_page_ready(visitor_mobile_page)
 
-        # The workspace shell marks the active module tab with .active class
-        # and each tab has a data-module attribute.
+        # Wait for the canonical chat pane to exist and be the active pane,
+        # then for its inner surface to have real layout. This is the timing
+        # the previous test skipped: it read the DOM before the chat pane was
+        # activated, so it caught the hidden module pane.
+        try:
+            visitor_mobile_page.wait_for_selector(
+                "#pane-chat.workspace-pane.active", timeout=TIMEOUT
+            )
+            # The visible chat surface on mobile is the inner AI panel; wait
+            # for it to be laid out (non-zero box) rather than just present.
+            visitor_mobile_page.wait_for_function(
+                """() => {
+                    const el = document.querySelector('#pane-chat .ws-ai-pane')
+                        || document.querySelector('#pane-chat #stx-shell-ai-panel')
+                        || document.querySelector('#pane-chat');
+                    if (!el) return false;
+                    const r = el.getBoundingClientRect();
+                    return r.width > 0 && r.height > 0;
+                }""",
+                timeout=TIMEOUT,
+            )
+        except Exception as exc:  # noqa: BLE001 -- re-raised with DOM evidence
+            evidence = _chat_pane_dom_evidence(visitor_mobile_page)
+            screenshot(visitor_mobile_page, "workspace_default_module_FAILED")
+            raise AssertionError(
+                "chat pane did not become the active, visible pane at /chat/ "
+                f"within {TIMEOUT}ms.\nDOM evidence:\n{evidence}\n({exc})"
+            ) from exc
+
         active_module = visitor_mobile_page.evaluate(
             """
             () => {
-                // Strategy 1: active tab button with data-module
-                const activeBtn = document.querySelector(
-                    '.module-tab-btn.active[data-module]'
+                // Canonical: the active pane's data-pane.
+                const activePane = document.querySelector(
+                    '.workspace-pane.active[data-pane]'
                 );
-                if (activeBtn) return activeBtn.getAttribute('data-module');
-
-                // Strategy 2: active tab button href containing module name
-                const activeBtnHref = document.querySelector(
-                    '.module-tab-btn.active[href]'
-                );
-                if (activeBtnHref) {
-                    const href = activeBtnHref.getAttribute('href');
-                    const match = href.match(/\\/apps\\/workspace\\/([^/]+)/);
-                    if (match) return match[1];
-                }
-
-                // Strategy 3: URL fragment or path
-                const path = window.location.pathname;
-                const match = path.match(/\\/apps\\/workspace\\/([^/]+)/);
-                if (match) return match[1];
-
-                return null;
+                if (activePane) return activePane.getAttribute('data-pane');
+                // Fallback: the body's initial-pane marker set by /chat/.
+                return document.body.getAttribute('data-initial-pane');
+            }
+        """
+        )
+        # Prove the chat pane is the active one AND its surface is visible.
+        pane_visible = visitor_mobile_page.evaluate(
+            """
+            () => {
+                const el = document.querySelector('#pane-chat .ws-ai-pane')
+                    || document.querySelector('#pane-chat #stx-shell-ai-panel')
+                    || document.querySelector('#pane-chat');
+                if (!el) return false;
+                const r = el.getBoundingClientRect();
+                const cs = getComputedStyle(el);
+                return r.width > 0 && r.height > 0
+                    && cs.display !== 'none' && cs.visibility !== 'hidden';
             }
         """
         )
         screenshot(visitor_mobile_page, "workspace_default_module")
-        assert (
-            active_module == "chat"
-        ), f"Expected default module 'chat', got '{active_module}'"
+        assert active_module == "chat", (
+            f"Expected the active pane to be 'chat', got '{active_module}'. "
+            f"DOM evidence:\n{_chat_pane_dom_evidence(visitor_mobile_page)}"
+        )
+        assert pane_visible, (
+            "The active chat pane is not visibly rendered (zero box or "
+            f"hidden). DOM evidence:\n{_chat_pane_dom_evidence(visitor_mobile_page)}"
+        )
 
     def test_workspace_no_horizontal_overflow(self, visitor_mobile_page):
-        """Workspace does not overflow horizontally on mobile."""
-        visitor_mobile_page.goto("/apps/workspace/")
+        """Workspace does not overflow horizontally on mobile at /chat/."""
+        visitor_mobile_page.goto("/chat/")
         wait_for_page_ready(visitor_mobile_page)
 
         overflow = visitor_mobile_page.evaluate(
@@ -116,20 +222,23 @@ class TestMobileWorkspace:
         ), "Workspace has horizontal overflow on mobile viewport (390px)"
 
     def test_workspace_pane_fills_viewport(self, visitor_mobile_page):
-        """Default pane fills most of the mobile viewport width."""
-        visitor_mobile_page.goto("/apps/workspace/")
+        """Default pane fills most of the mobile viewport width at /chat/."""
+        visitor_mobile_page.goto("/chat/")
         wait_for_page_ready(visitor_mobile_page)
 
-        pane = visitor_mobile_page.locator(
-            "[data-testid='workspace-default-pane'], "
-            ".workspace-pane.active, "
-            ".workspace-pane:first-child, "
-            ".pane-container .pane.active"
-        ).first
+        # Canonical active pane at /chat/ is #pane-chat (not a broad union,
+        # whose first match can be a hidden pane and give a misleading box).
+        try:
+            visitor_mobile_page.wait_for_selector(
+                "#pane-chat.workspace-pane.active", timeout=TIMEOUT
+            )
+        except Exception as exc:  # noqa: BLE001
+            raise AssertionError(
+                "#pane-chat did not become the active pane at /chat/ within "
+                f"{TIMEOUT}ms.\nDOM evidence:\n{_chat_pane_dom_evidence(visitor_mobile_page)}\n({exc})"
+            ) from exc
 
-        if pane.count() == 0:
-            pytest.skip("No workspace pane element found on page")
-
+        pane = visitor_mobile_page.locator("#pane-chat.workspace-pane.active")
         box = pane.bounding_box()
         if box is None:
             pytest.skip("Workspace pane not visible")
