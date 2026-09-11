@@ -627,60 +627,55 @@ def test_the_verify_endpoint_is_no_longer_csrf_exempt():
 # ---------------------------------------------------------------------------
 
 
-def test_a_legacy_same_email_row_cannot_shadow_the_real_pending_signup(client):
-    """Under the old email-only lookup this test FAILS: the legacy row is the
-    NEWEST, so ``order_by(-created_at).first()`` picked it and the real user's
-    code was compared against a stranger's."""
-    # Arrange — the REAL pending signup first (marker), then a legacy row that
-    # shares the address and carries the NEWEST verification.
+def test_a_mismatched_address_row_cannot_be_consumed_as_evidence(client):
+    """The shadowing risk that STILL exists after migration 0009.
+
+    Two users can no longer share a case-insensitive email, so the remaining
+    hazard is a row belonging to THIS user whose ADDRESS DIFFERS — a legacy or
+    mismatched artefact that is not evidence about the signup in front of us.
+    The lookup requires the marker's user AND that user's exact normalized
+    address, so such a row cannot be consumed for another address.
+    """
+    # Arrange — the real pending signup, plus a stale row on a different address.
     real = _pending(email="shared@example.com", username="real_pending")
-    legacy = User.objects.create_user(
-        username="legacy_row",
-        email="shared@example.com",
-        password=PASSWORD,
-        is_active=False,
+    mismatched = EmailVerification.objects.create(
+        user=real, email="old-address@example.com"
     )
-    legacy_code = EmailVerification.objects.create(
-        user=legacy, email="shared@example.com"
-    )
-    real_code = EmailVerification.objects.get(user=real).code
+    assert EmailVerification.objects.filter(user=real).count() == 2
 
-    # Act — the REAL user's code.
-    response = _verify(client, "shared@example.com", real_code)
+    # Act — submit the MISMATCHED row's code for the address being proved.
+    response = _verify(client, "shared@example.com", mismatched.code)
 
-    # Assert — the real account activated, and no stranger's row was consumed.
-    assert response.status_code == 200
+    # Assert — refused, nothing activated, and the stale row not consumed.
+    assert response.status_code != 200
     real.refresh_from_db()
-    legacy.refresh_from_db()
-    legacy_code.refresh_from_db()
-    assert real.is_active is True
-    assert legacy.is_active is False
-    assert legacy_code.is_verified is False, (
-        "a legacy/cross-user verification row was consumed"
+    mismatched.refresh_from_db()
+    assert real.is_active is False
+    assert mismatched.is_verified is False, (
+        "a mismatched-address row was consumed as evidence for another address"
     )
 
 
-def test_resend_mints_for_the_marker_holder_not_for_a_same_email_legacy_row(
+def test_resend_mints_for_the_marker_holder_not_from_a_mismatched_row(
     client, monkeypatch
 ):
-    # Arrange
+    # Arrange — a pending signup plus a stale row on a DIFFERENT address.
     real = _pending(email="shared2@example.com", username="real_two")
-    legacy = User.objects.create_user(
-        username="legacy_two",
-        email="shared2@example.com",
-        password=PASSWORD,
-        is_active=False,
-    )
+    EmailVerification.objects.create(user=real, email="old2@example.com")
     cache.clear()
     monkeypatch.setattr(_SEND, staticmethod(lambda **kwargs: (True, "sent")))
 
     # Act
     response = _resend(client, "shared2@example.com")
 
-    # Assert — the code is minted for the MARKER holder, never the legacy row.
+    # Assert — the mint is bound to the ROW's own address, never the stale one.
     assert response.status_code == 200
-    assert EmailVerification.objects.filter(user=real).count() == 1
-    assert EmailVerification.objects.filter(user=legacy).count() == 0
+    assert (
+        EmailVerification.objects.filter(
+            user=real, email__iexact="shared2@example.com"
+        ).count()
+        == 1
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -742,7 +737,6 @@ def test_the_preflight_audit_reports_and_changes_nothing():
     from io import StringIO
 
     from django.core.management import call_command
-    from django.db import transaction
 
     User.objects.create_user(
         username="audit_a", email="audit_a@example.com", password=PASSWORD
@@ -753,24 +747,113 @@ def test_the_preflight_audit_reports_and_changes_nothing():
 
     with connection.cursor() as cursor:
         cursor.execute("DROP INDEX IF EXISTS auth_user_email_lower_uniq")
-    try:
-        User.objects.create_user(
-            username="audit_b", email="AUDIT_A@example.com", password=PASSWORD
-        )
-        before = User.objects.count()
-        out = StringIO()
+    User.objects.create_user(
+        username="audit_b", email="AUDIT_A@example.com", password=PASSWORD
+    )
+    before = User.objects.count()
+    out = StringIO()
 
-        # Act
-        call_command("audit_identity_duplicates", stdout=out)
+    # Act
+    call_command("audit_identity_duplicates", stdout=out)
 
-        # Assert — it FOUND the collision and wrote nothing.
-        text = out.getvalue()
-        assert "audit_a@example.com" in text.lower()
-        assert "NOT READY" in text
-        assert User.objects.count() == before
-    finally:
-        with connection.cursor() as cursor:
-            cursor.execute(
-                "CREATE UNIQUE INDEX IF NOT EXISTS auth_user_email_lower_uniq "
-                "ON auth_user (lower(email)) WHERE email IS NOT NULL AND email <> ''"
+    # Assert — it FOUND the collision and wrote nothing.
+    #
+    # NOTE: no index restore in a `finally`. The dropped index AND the duplicate
+    # row both live inside this test's transaction, and PostgreSQL DDL is
+    # transactional, so the rollback restores the index. An explicit recreate
+    # here failed on the very duplicate the test had just made — the test would
+    # error in its own cleanup, which is what happened before.
+    text = out.getvalue()
+    assert "audit_a@example.com" in text.lower()
+    assert "NOT READY" in text
+    assert User.objects.count() == before
+
+
+# ---------------------------------------------------------------------------
+# TRUE CONCURRENT COLLISION — real Postgres, real threads.
+#
+# transaction=True on purpose: the default pytest-django transaction is
+# invisible to other connections, so the threads would read nothing and the test
+# would pass while testing nothing. Same trap, named again.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db(transaction=True)
+def test_concurrent_signups_for_one_identity_leave_exactly_one_row():
+    """The application's check is a READ and the insert is a separate statement,
+    so two concurrent signups can BOTH pass the check. The functional unique
+    index is what makes exactly one win — which is the entire argument for
+    putting the constraint in the database rather than trusting the view."""
+    # Arrange
+    from django.db import IntegrityError
+
+    outcomes: list[str] = []
+    lock = threading.Lock()
+
+    def attempt(_index: int):
+        try:
+            User.objects.create_user(
+                username="racer", email="racer@example.com", password=PASSWORD
             )
+            result = "created"
+        except IntegrityError:
+            result = "rejected"
+        with lock:
+            outcomes.append(result)
+
+    # Act
+    workers = [threading.Thread(target=attempt, args=(i,)) for i in range(6)]
+    for worker in workers:
+        worker.start()
+    for worker in workers:
+        worker.join()
+
+    # Assert — exactly ONE row, whatever the interleaving.
+    assert len(outcomes) == 6
+    assert outcomes.count("created") == 1, f"outcomes: {outcomes}"
+    assert User.objects.filter(username__iexact="racer").count() == 1
+
+
+@pytest.mark.django_db(transaction=True)
+def test_concurrent_case_variant_usernames_collide_in_the_database():
+    """`CaseRacer` and `caseracer` are the SAME identity by policy.
+
+    The constraint that existed was case-SENSITIVE, so the database would have
+    admitted BOTH while the application's iexact policy claimed the name was
+    taken. Exactly one must get through now.
+    """
+    # Arrange
+    from django.db import IntegrityError
+
+    variants = ["CaseRacer", "caseracer", "CASERACER", "cAsErAcEr", "caseraceR"]
+    outcomes: list[str] = []
+    lock = threading.Lock()
+
+    def attempt(index: int):
+        try:
+            User.objects.create_user(
+                username=variants[index],
+                email=f"variant{index}@example.com",
+                password=PASSWORD,
+            )
+            result = "created"
+        except IntegrityError:
+            result = "rejected"
+        with lock:
+            outcomes.append(result)
+
+    # Act
+    workers = [
+        threading.Thread(target=attempt, args=(i,)) for i in range(len(variants))
+    ]
+    for worker in workers:
+        worker.start()
+    for worker in workers:
+        worker.join()
+
+    # Assert — one normalized identity, one row.
+    assert outcomes.count("created") == 1, f"outcomes: {outcomes}"
+    holders = User.objects.filter(username__iexact="caseracer")
+    assert holders.count() == 1, (
+        f"case-variant duplicates exist: {list(holders.values_list('username', flat=True))}"
+    )
