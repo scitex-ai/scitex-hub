@@ -212,46 +212,45 @@ def classify_pending_signup(
 
 
 def classify_and_reclaim(email: str, username: str = ""):
-    """Classify, and REVALIDATE UNDER A ROW LOCK before removing anything.
+    """Classify, and REVALIDATE under a row lock. NEVER MUTATES.
 
-    PR #775 third review. The classification and the destructive step were
-    separated by nothing: ``classify`` -> look at the result -> ``delete()``. In
-    that window the row's owner can submit a correct code, which ACTIVATES the
-    row — and the delete then destroys an account that had just been verified.
-    Two concurrent signups can also both classify the same row and both act on
-    it.
+    (The name is historical: "reclaim" no longer deletes anything, and renaming
+    it mid-review would churn every call site for no safety gain. Read it as
+    "revalidate".)
 
-    So the removal happens here, inside one transaction, against a row re-read
-    with ``select_for_update``, and every precondition is checked AGAIN against
-    that locked row rather than against the earlier snapshot. A lock without
-    revalidation only makes a stale decision atomic.
+    PR #775 fifth review removed the last destructive step. This used to DELETE
+    the stale row and commit, leaving the VIEW to re-create it in a SEPARATE
+    transaction. Two things followed from that split:
 
-    Returns ``(collision, user)`` for the caller to act on. Note that
-    ``PENDING_EXPIRED`` is never returned: by the time this returns, a proven
-    stale row has already been removed and the caller sees ``NONE``.
+    * the freed username was up for grabs — a concurrent request could take it in
+      the gap, and the loser's create would then fail having already destroyed
+      the original row;
+    * a later create/profile failure left the old row, and any Gitea side effects
+      already performed for it, irreversibly gone with nothing to roll back to.
+
+    An abandoned address is now RE-ARMED in place rather than replaced. Purging
+    one is the cleanup command's job, where it is deliberate, reviewable, and
+    racing nothing.
     """
     from django.db import transaction
 
     with transaction.atomic():
         collision, user = classify_pending_signup(email, username)
-        if collision is not SignupCollision.PENDING_EXPIRED or user is None:
+        if user is None or collision not in (
+            SignupCollision.PENDING_LIVE,
+            SignupCollision.PENDING_EXPIRED,
+        ):
             return collision, user
 
+        # Re-read under the lock so the decision cannot rest on a stale row.
         locked = User.objects.select_for_update().filter(pk=user.pk).first()
         if locked is None:
-            # Someone else removed it first; a clean create is the right answer.
             return SignupCollision.NONE, None
-
-        # REVALIDATE, do not trust the snapshot above.
         if locked.is_active or not has_pending_evidence(locked, email):
-            # It became a real account (or was never a signup) while we looked.
             return SignupCollision.INACTIVE_NOT_PENDING, None
-        if pending_age(locked) <= PENDING_SIGNUP_WINDOW:
-            # Someone resumed it inside the window while we looked.
-            return SignupCollision.PENDING_LIVE, locked
-
-        locked.delete()
-        return SignupCollision.NONE, None
+        if pending_age(locked) > PENDING_SIGNUP_WINDOW:
+            return SignupCollision.PENDING_EXPIRED, locked
+        return SignupCollision.PENDING_LIVE, locked
 
 
 # ---------------------------------------------------------------------------

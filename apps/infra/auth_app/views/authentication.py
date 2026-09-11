@@ -113,15 +113,26 @@ def signup(request):
             collision, existing_user = classify_and_reclaim(email, username)
 
             if collision is SignupCollision.PENDING_EXPIRED and existing_user:
-                # I3: an EXPIRED pending signup is RESUMABLE, and it is decided
-                # HERE rather than by any sweep, so correctness does not depend
-                # on the unscheduled cleanup command having run. The stale row
-                # is inactive and never verified, so nothing of value is lost —
-                # this is the deletion the original code intended but could
-                # never reach. Falling through re-creates it with the values
-                # just submitted, which also fixes the typo'd-password dead end.
-                logger.info("Replacing expired pending signup")
-                existing_user.delete()
+                # RE-ARM IN PLACE — NO DESTRUCTIVE REPLACEMENT (PR #775 fifth
+                # review, P0). This branch deleted the stale row and let the flow
+                # re-create it. The two halves were SEPARATE transactions: the
+                # freed username was up for grabs by any concurrent request, and
+                # a create/profile failure destroyed the old row — plus the Gitea
+                # side effects already performed for it — with nothing to roll
+                # back to.
+                #
+                # The request path now RE-ARMS the same row instead of replacing
+                # it. Purging an abandoned address stays the cleanup command's
+                # job, where it is deliberate and racing nothing.
+                if not consume_resend_budget(email):
+                    messages.warning(request, resend_budget_message())
+                    return render(request, "auth_app/signup.html", {"form": form})
+                _send_pending_signup_code(request, existing_user, email, logger)
+                messages.info(request, _SIGNUP_RESPONSE_MESSAGE)
+                from django.urls import reverse
+
+                verify_url = reverse("auth_app:verify_email")
+                return redirect(f"{verify_url}?email={email}")
 
             elif collision is SignupCollision.PENDING_LIVE:
                 # I2/I5: inside the window the account stands; the only useful

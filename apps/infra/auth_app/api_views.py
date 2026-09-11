@@ -95,6 +95,40 @@ def verify_email_api(request):
                     status=400,
                 )
 
+            # DO NOT ACTIVATE BLINDLY (PR #775 fifth review, P0).
+            #
+            # verify() marked the row verified and the caller then set
+            # is_active=True on whatever user the verification pointed at. That
+            # made a code minted for an ADMIN-DISABLED account silently undo the
+            # deactivation — a suspension bypass reachable with an email address.
+            #
+            # The gate has to run BEFORE verify(), because verify() itself
+            # creates the verified row that has_pending_evidence() treats as a
+            # disqualifying history. Email CHANGES are excluded: an active user
+            # re-verifying a new address legitimately HAS that history.
+            from apps.infra.auth_app.pending_signup import has_pending_evidence
+
+            pending_change = request.session.get("pending_email_change")
+            is_email_change = bool(
+                pending_change and pending_change.get("new_email") == email
+            )
+            if not is_email_change and not has_pending_evidence(
+                verification.user, verification.email
+            ):
+                logger.warning(
+                    "Refusing to activate a row with no pending signup behind it"
+                )
+                return JsonResponse(
+                    {
+                        "success": False,
+                        "error": (
+                            "This account cannot be activated from here. "
+                            "Please contact support."
+                        ),
+                    },
+                    status=400,
+                )
+
             # Mark verification as complete
             verification.verify()
 
@@ -205,7 +239,10 @@ def resend_otp_api(request):
     """
     from django.db import transaction
 
-    from apps.infra.auth_app.pending_signup import consume_resend_budget
+    from apps.infra.auth_app.pending_signup import (
+        consume_resend_budget,
+        has_pending_evidence,
+    )
 
     try:
         data = json.loads(request.body)
@@ -221,7 +258,14 @@ def resend_otp_api(request):
             return JsonResponse(_RESEND_RESPONSE, status=200)
 
         user = User.objects.filter(email__iexact=email, is_active=False).first()
-        if user is None:
+        # PENDING EVIDENCE REQUIRED (PR #775 fifth review, P0).
+        #
+        # Matching on is_active=False ALONE was a deactivation bypass: an
+        # ADMIN-DISABLED account is inactive too, and this endpoint would mail it
+        # a code that the verify endpoint then used to switch it back on. An
+        # address was the only thing an attacker needed. No pending signup, no
+        # code — and the response stays the single generic one either way.
+        if user is None or not has_pending_evidence(user, email):
             return JsonResponse(_RESEND_RESPONSE, status=200)
 
         # DELIVERY FIRST, RETIRE SECOND (PR #775 fourth review). The old order

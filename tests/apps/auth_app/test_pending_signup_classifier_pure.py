@@ -393,7 +393,10 @@ def test_the_reclaim_service_locks_AND_revalidates():
     assert "transaction.atomic" in body
     assert "has_pending_evidence(locked, email)" in body
     assert "locked.is_active" in body
-    assert "locked.delete()" in body
+    # FIFTH REVIEW: the service must NOT delete. An abandoned address is
+    # re-armed in place; purging it is the cleanup command's job.
+    assert ".delete()" not in body
+    assert "PENDING_EXPIRED" in body
 
 
 # ---------------------------------------------------------------------------
