@@ -64,6 +64,7 @@ SINGLE_PATH_CASES = [
     ("tsconfig/tsconfig.app.json", ("npm_build",)),
     # NOOP — autoreload / template watcher / bind mount handle these
     ("apps/project_app/views.py", ()),
+    ("apps/infra/public_app/templatetags/landing_i18n.py", ()),
     ("templates/base.html", ()),
     ("static/css/main.css", ()),
     ("README.md", ()),

@@ -20,6 +20,7 @@ import socket
 from dotenv import load_dotenv
 
 from config import branding
+from config.dev_autoreload import install_templatetag_autoreload
 
 from ._logging_merge import merge_logging
 from .settings_shared import *
@@ -27,6 +28,7 @@ from .settings_shared import *
 # Environment identity -- drives the tab title marker "(dev)" and the GREEN
 # favicon. Literal, not env-var derived: running settings_dev IS development.
 SCITEX_ENV = branding.ENV_DEVELOPMENT
+install_templatetag_autoreload()
 
 
 # ---------------------------------------
