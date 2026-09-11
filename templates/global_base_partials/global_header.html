@@ -66,9 +66,9 @@
                     </svg>
                 </button>
             {% endif %}
-            <!-- Project Selector (authenticated users + visitors only) -->
+            <!-- Project Selector (authenticated users only — visitors are retired) -->
             <div class="header-project-selector-inline"
-                 {% if not user.is_authenticated and not visitor_username %}style="display: none"{% endif %}>
+                 {% if not user.is_authenticated %}style="display: none"{% endif %}>
                 <button id="project-selector-toggle"
                         class="project-selector-btn"
                         {% if user.is_authenticated %}data-active-project-id="{% with active=user.profile.get_active_project %}{{ active.id|default:'' }}{% endwith %}"{% endif %}
@@ -76,8 +76,6 @@
                     <span id="project-selector-text" class="project-selector-text">
                         {% if user.is_authenticated %}
                             {% with active=user.profile.get_active_project %}{{ active.name|default:"No Projects" }}{% endwith %}
-                        {% elif visitor_username %}
-                            {{ project.name|default:"Handwritten Digits (Example)" }}
                         {% else %}
                             SciTeX
                         {% endif %}
@@ -146,24 +144,6 @@
                             </svg>
                             <span>Create New Project</span>
                         </a>
-                    {% elif visitor_username %}
-                        <div class="dropdown-section">
-                            <div class="dropdown-section-title">Current Project</div>
-                            <div class="dropdown-project-item" style="cursor: default; opacity: 0.9">
-                                <span class="project-item-name">{{ project.name|default:"Handwritten Digits (Example)" }}</span>
-                            </div>
-                        </div>
-                        <div class="dropdown-divider"></div>
-                        <a href="/auth/signup/" class="dropdown-project-item dropdown-create-new">
-                            <svg width="14"
-                                 height="14"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor"
-                                 style="margin-right: 6px">
-                                <path d="M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z" />
-                            </svg>
-                            <span>Sign up to save your work</span>
-                        </a>
                     {% else %}
                         <a href="/auth/signin/" class="dropdown-project-item dropdown-create-new">
                             <svg width="14"
@@ -231,113 +211,11 @@
                 </div>
             </div>
         </div>
-        <!-- Mobile-only Read-Only / Visitor badge (tappable: occupancy + sign-in prompt) -->
-        {% if is_visitor %}
-            <button type="button"
-                    class="header-visitor-badge-mobile"
-                    id="header-visitor-badge-mobile"
-                    aria-haspopup="true"
-                    aria-expanded="false"
-                    {% if visitor_expires_at %}data-expires-at="{{ visitor_expires_at.isoformat }}"{% endif %}>
-                {% if is_readonly %}
-                    <i class="fas fa-lock header-visitor-badge-mobile-icon"></i>Read-Only
-                {% elif visitor_username %}
-                    <i class="fas fa-user-clock header-visitor-badge-mobile-icon"></i>Visitor #{{ visitor_username|slice:"8:" }}
-                {% else %}
-                    <i class="fas fa-user-clock header-visitor-badge-mobile-icon"></i>Visitor
-                {% endif %}
-                {% comment %} `ready`, not `allocated`: on a 390px badge a bare fraction has
-                   no room to explain itself, so it must be the number that
-                   governs. "14/16 in use" implied two spare while ready was 0. {% endcomment %}
-                {% if is_readonly and visitor_pool_status %}
-                    <span class="header-visitor-badge-mobile-slots">{{ visitor_pool_status.ready }}/{{ visitor_pool_status.total }} free</span>
-                {% endif %}
-                {% if visitor_expires_at %}
-                    <span class="header-visitor-badge-mobile-countdown"
-                          id="mobile-header-visitor-countdown">⏰ --:--</span>
-                {% endif %}
-            </button>
-            {# Inline hidden attr is load-bearing: the popover is re-parented #}
-            {# to <body> by the script below, and its default-hidden state must #}
-            {# NOT depend on the external stylesheet — with a stale/failed CSS #}
-            {# bundle the popover otherwise renders as a raw text blob over the #}
-            {# header on every page (nav-404 batch #6, double-banner report). #}
-            <div class="header-visitor-badge-popover"
-                 id="header-visitor-badge-popover"
-                 hidden
-                 role="dialog"
-                 aria-label="Visitor session details">
-                {% if is_readonly %}
-                    <strong>Read-only session</strong>
-                    <div>{{ readonly_visitor_reason_detail }}</div>
-                {% else %}
-                    <strong>Visitor session</strong>
-                    <div>Your work lasts only for this session.</div>
-                {% endif %}
-                {% comment %} `ready`, not `allocated`: allocation needs a slot that is free
-                   AND workspace_ready AND not quarantined. Reporting occupancy
-                   here contradicted the reason copy above whenever free != ready
-                   — "2 spare" next to "no slot was ready for you". {% endcomment %}
-                {% if is_readonly and visitor_pool_status %}
-                    <div class="header-visitor-badge-popover-slots">{{ visitor_pool_status.ready }} of {{ visitor_pool_status.total }} visitor slots available</div>
-                {% endif %}
-                <div class="header-visitor-badge-popover-actions">
-                    <a href="/auth/signup/" class="header-btn header-btn-primary">{% trans "Sign up" %}</a>
-                    <a href="/auth/login/?next={{ request.path }}" class="header-btn">{% trans "Log in" %}</a>
-                </div>
-            </div>
-            <!-- Inline handler: badge popover must work even if the JS bundle fails -->
-            <!-- hook-bypass: inline-script — visitor fail-loud UX must not depend on Vite -->
-            <script>
-            (function() {
-                var badge = document.getElementById('header-visitor-badge-mobile');
-                var pop = document.getElementById('header-visitor-badge-popover');
-                if (!badge || !pop) return;
-                // Escape the header's stacking context: .global-header is
-                // z-index:1000, BELOW the mobile sidebar rail (1010) and
-                // drawer (1100), so the popover rendered inside it was
-                // painted under the sidebar regardless of its own z-index.
-                // As a direct <body> child its z-index:10001 wins (same
-                // re-parenting fix as the launcher dock).
-                if (pop.parentElement !== document.body) {
-                    document.body.appendChild(pop);
-                }
-                function placePopover() {
-                    var rect = badge.getBoundingClientRect();
-                    var margin = 8;
-                    pop.style.top = (rect.bottom + 6) + 'px';
-                    // Shift horizontally to stay fully inside the viewport
-                    // on narrow screens (<=767px).
-                    var left = Math.max(
-                        margin,
-                        Math.min(rect.left, window.innerWidth - pop.offsetWidth - margin)
-                    );
-                    pop.style.left = left + 'px';
-                }
-                // The hidden attribute (set in the markup) is the CSS-free
-                // safety net: keep it in sync with .open so the popover can
-                // never sit visible-but-unstyled when the stylesheet is
-                // stale or fails to load.
-                badge.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    var open = pop.classList.toggle('open');
-                    if (open) { pop.removeAttribute('hidden'); } else { pop.setAttribute('hidden', ''); }
-                    badge.setAttribute('aria-expanded', open ? 'true' : 'false');
-                    if (open) placePopover();
-                });
-                window.addEventListener('resize', function() {
-                    if (pop.classList.contains('open')) placePopover();
-                });
-                document.addEventListener('click', function(e) {
-                    if (!badge.contains(e.target) && !pop.contains(e.target)) {
-                        pop.classList.remove('open');
-                        pop.setAttribute('hidden', '');
-                        badge.setAttribute('aria-expanded', 'false');
-                    }
-                });
-            })();
-            </script>
-        {% endif %}
+        <!-- Mobile-only Read-Only / Visitor badge removed 2026-09-11 (visitor
+             retirement, card drop-visitor-readonly-freemium-20260911): there is
+             no longer a visitor/readonly role, so the badge, popover, and its
+             inline handler are dead. Anonymous users get the Sign in / Sign up
+             buttons in the header-right and mobile menu below. -->
         <!-- Mobile Hamburger Button (visible only on mobile via CSS).
              Inline fail-safe wiring lives in global_header/hamburger_inline.html
              (included after the menu markup below). -->
@@ -410,230 +288,7 @@
             (hub-header-declutter-hamburger-holds-shortcuts-and-server-status-
             20260905), and it will want this code back with new ids.
             {% endcomment %}
-            {% if is_visitor %}
-                <!-- Visitor Menu (Integrated badge + dropdown) -->
-                <div class="header-user-menu">
-                    <button class="header-user-toggle visitor-button"
-                            id="visitor-menu-toggle"
-                            {% if visitor_expires_at %}data-expires-at="{{ visitor_expires_at.isoformat }}"{% endif %}>
-                        <svg width="16"
-                             height="16"
-                             viewBox="0 0 16 16"
-                             fill="currentColor"
-                             style="margin-right: 6px">
-                            <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
-                            <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z" />
-                        </svg>
-                        <span id="visitor-mode-text">
-                            {% if is_readonly %}
-                                Read-Only Mode
-                            {% elif visitor_username %}
-                                Visitor #{{ visitor_username|slice:"8:" }}
-                            {% else %}
-                                Visitor Mode
-                            {% endif %}
-                        </span>
-                        {% comment %} Report the ALLOCATABLE count, not occupancy.
-                           `allocated/total` answered the wrong question:
-                           allocation needs a slot that is free AND
-                           workspace_ready AND not quarantined — which is
-                           exactly `visitor_pool_status.ready`. Measured on prod
-                           2026-07-30 the badge read "14/16 in use", implying two
-                           spare, while `ready` was 0; every visitor correctly
-                           fell through to read-only and the UI appeared to
-                           contradict itself. The number was never wrong, it
-                           just was not the one that governs.
-                           Exposing occupancy here is DELIBERATE (see
-                           PoolOccupancyContextTest, "Pool occupancy is exposed
-                           next to the Read-Only badge") — so this keeps the
-                           feature and fixes the quantity. The WHY is carried
-                           separately by readonly_visitor_reason_detail, already
-                           rendered in the popovers below. {% endcomment %}
-                        {% if is_readonly and visitor_pool_status %}
-                            <span class="header-visitor-slots" id="visitor-pool-occupancy">{{ visitor_pool_status.ready }} of {{ visitor_pool_status.total }} visitor slots available</span>
-                        {% endif %}
-                        {% if visitor_expires_at %}
-                            <span id="visitor-countdown"
-                                  style="margin-left: 6px;
-                                         font-family: 'JetBrains Mono', monospace;
-                                         font-weight: 600;
-                                         font-size: 0.9em">⏰ --:--</span>
-                        {% endif %}
-                        <svg width="12"
-                             height="12"
-                             viewBox="0 0 16 16"
-                             fill="currentColor"
-                             style="margin-left: 6px">
-                            <path d="M4 6l4 4 4-4H4z" />
-                        </svg>
-                    </button>
-                    <div class="header-dropdown" id="visitor-menu-dropdown" style="display: none">
-                        <!-- Visitor Info Header -->
-                        <div class="dropdown-header">
-                            <div class="dropdown-user-info">
-                                <strong>Visitor Mode</strong>
-                                <div class="dropdown-user-username">{{ user.username }}</div>
-                            </div>
-                        </div>
-                        <div style="padding: 12px 16px;
-                                    font-size: 13px;
-                                    color: var(--text-primary);
-                                    line-height: 1.5;
-                                    background: var(--bg-muted);
-                                    border-radius: 6px;
-                                    margin: 8px">
-                            <svg width="14"
-                                 height="14"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor"
-                                 style="margin-right: 4px;
-                                        vertical-align: text-bottom;
-                                        color: var(--color-attention-fg)">
-                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
-                                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z" />
-                            </svg>
-                            {% if is_readonly %}
-                                {{ readonly_visitor_reason_detail }} You can view everything; sign up or log in to make changes.
-                                {% comment %} `ready`, not `allocated` — see the note on the
-                                   other popover. {% endcomment %}
-                                {% if visitor_pool_status %}
-                                    ({{ visitor_pool_status.ready }} of {{ visitor_pool_status.total }} visitor slots available.)
-                                {% endif %}
-                            {% else %}
-                                Your work will be kept only during this session. To save to disk for future sessions, create an account.
-                            {% endif %}
-                        </div>
-                        <!-- Allocated Resources -->
-                        <div style="padding: 8px 16px;
-                                    font-size: 12px;
-                                    color: var(--text-primary);
-                                    display: flex;
-                                    gap: 12px;
-                                    justify-content: center">
-                            <span title="CPU cores allocated">
-                                <i class="fas fa-microchip" style="margin-right: 4px; opacity: 0.7;"></i>
-                                {{ visitor_cpus|default:"2" }} CPU
-                            </span>
-                            <span title="Memory allocated">
-                                <i class="fas fa-memory" style="margin-right: 4px; opacity: 0.7;"></i>
-                                {{ visitor_memory_gb|default:"4" }} GB
-                            </span>
-                            <span title="Session duration">
-                                <i class="fas fa-clock" style="margin-right: 4px; opacity: 0.7;"></i>
-                                1 hour
-                            </span>
-                        </div>
-                        <div class="dropdown-divider"></div>
-                        <!-- Primary CTA: Sign Up -->
-                        <a href="/auth/signup/"
-                           class="dropdown-item"
-                           style="background: #238636;
-                                  color: white;
-                                  font-weight: 600;
-                                  text-align: center;
-                                  border-radius: 6px;
-                                  margin: 4px 8px;
-                                  width: calc(100% - 16px)">
-                            <svg width="16"
-                                 height="16"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor"
-                                 style="margin-right: 8px;
-                                        vertical-align: text-bottom">
-                                <path d="M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z" />
-                            </svg>
-                            Sign Up (Free)
-                        </a>
-                        <a href="/auth/signin/" class="dropdown-item" style="text-align: center">
-                            <svg width="16"
-                                 height="16"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor"
-                                 style="margin-right: 8px;
-                                        vertical-align: text-bottom">
-                                <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z" />
-                                <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z" />
-                            </svg>
-                            Sign In
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a href="/auth/logout/" class="dropdown-item visitor-end-session-link">
-                            <svg class="dropdown-item-icon"
-                                 width="14"
-                                 height="14"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z" />
-                                <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z" />
-                            </svg>
-                            End Visitor Session
-                        </a>
-                    </div>
-                </div>
-                <!-- Inline fallback: visitor menu + countdown work even if Vite/JS bundle fails to load -->
-                <script>
-                (function() {
-                    var btn = document.getElementById('visitor-menu-toggle');
-                    var dd = document.getElementById('visitor-menu-dropdown');
-                    if (btn && dd) {
-                        btn.setAttribute('data-inline-handler', 'true');
-                        btn.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
-                        });
-                        document.addEventListener('click', function(e) {
-                            if (!btn.contains(e.target) && !dd.contains(e.target)) {
-                                dd.style.display = 'none';
-                            }
-                        });
-                    }
-                    // Inline countdown fallback — runs only if Vite timer hasn't started within 3s
-                    var expiresAtStr = btn && btn.getAttribute('data-expires-at');
-                    if (!expiresAtStr) {
-                        var mobileBadge = document.querySelector('.header-visitor-badge-mobile');
-                        if (mobileBadge) expiresAtStr = mobileBadge.getAttribute('data-expires-at');
-                    }
-                    if (expiresAtStr) {
-                        var expiresAt = new Date(expiresAtStr);
-                        if (!isNaN(expiresAt.getTime())) {
-                            setTimeout(function() {
-                                // Only start if Vite hasn't already taken over (check if countdown shows time)
-                                var cs = document.getElementById('visitor-countdown');
-                                if (cs && cs.textContent.indexOf('--:--') !== -1) {
-                                    btn.setAttribute('data-inline-countdown', 'true');
-                                    var targets = [
-                                        document.getElementById('visitor-countdown'),
-                                        document.getElementById('mobile-header-visitor-countdown'),
-                                        document.getElementById('mobile-visitor-countdown')
-                                    ];
-                                    setInterval(function() {
-                                        var left = expiresAt.getTime() - Date.now();
-                                        if (left <= 0) {
-                                            targets.forEach(function(el) { if (el) { el.textContent = 'EXPIRED'; el.style.color = '#f44336'; } });
-                                            return;
-                                        }
-                                        var m = Math.floor((left % 3600000) / 60000);
-                                        var s = Math.floor((left % 60000) / 1000);
-                                        var t = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
-                                        targets.forEach(function(el) {
-                                            if (el) {
-                                                el.textContent = el.id === 'mobile-visitor-countdown' ? t : '\u23F0 ' + t;
-                                                el.style.color = left < 300000 ? '#f44336' : left < 900000 ? '#ff9800' : 'inherit';
-                                            }
-                                        });
-                                    }, 1000);
-                                }
-                            }, 3000);
-                        }
-                    }
-                })();
-                </script>
-                <!-- Visible Sign In / Sign Up buttons for visitors -->
-                <a href="/auth/signin/" class="header-btn" data-tooltip="Sign in to your account">{% trans "Sign in" %}</a>
-                <a href="/auth/signup/"
-                   class="header-btn header-btn-primary"
-                   data-tooltip="Create a new account">{% trans "Sign up" %}</a>
-            {% elif user.is_authenticated %}
+            {% if user.is_authenticated %}
                 <!-- User Menu -->
                 <div class="header-user-menu">
                     <button class="header-user-toggle" id="user-menu-toggle">
@@ -777,46 +432,14 @@
             </a>
         {% endif %}
         <div class="mobile-menu-divider"></div>
-        {% if is_visitor %}
-            <div class="mobile-menu-item mobile-menu-item--muted">
-                {% if is_readonly %}
-                    <i class="fas fa-lock"></i>
-                    <span id="mobile-visitor-info">Read-Only Mode</span>
-                {% elif visitor_username %}
-                    <i class="fas fa-user-clock"></i>
-                    <span id="mobile-visitor-info">Visitor #{{ visitor_username|slice:"8:" }}
-                        {% if visitor_expires_at %}
-                            — <span id="mobile-visitor-countdown"
-       data-expires-at="{{ visitor_expires_at.isoformat }}">--:--</span>
-                        {% endif %}
-                    </span>
-                {% else %}
-                    <i class="fas fa-user-clock"></i>
-                    <span id="mobile-visitor-info">Visitor Mode</span>
-                {% endif %}
-            </div>
-        {% endif %}
+        <!-- Visitor-mode row removed 2026-09-11 (visitor retirement): there is
+             no longer a visitor/readonly role. -->
         {% if user.is_authenticated %}
-            {% if not is_visitor %}
-                <div class="mobile-menu-item mobile-menu-item--user">
-                    <i class="fas fa-user-circle"></i>
-                    <span>@{{ user.username }}</span>
-                </div>
-            {% endif %}
+            <div class="mobile-menu-item mobile-menu-item--user">
+                <i class="fas fa-user-circle"></i>
+                <span>@{{ user.username }}</span>
+            </div>
             <div class="mobile-menu-divider"></div>
-            {% if is_visitor %}
-                <!-- Visitor sessions: Sign In / Sign Up FIRST (operator-confirmed 2026-07-07:
-                     visitors must always see the login path, not account-holder items) -->
-                <a href="/auth/signin/" class="mobile-menu-item">
-                    <i class="fas fa-sign-in-alt"></i>
-                    <span>Sign In</span>
-                </a>
-                <a href="/auth/signup/" class="mobile-menu-item">
-                    <i class="fas fa-user-plus"></i>
-                    <span>Sign Up</span>
-                </a>
-                <div class="mobile-menu-divider"></div>
-            {% endif %}
             <a href="/workspace/" class="mobile-menu-item">
                 <i class="fas fa-th-large"></i>
                 <span>Workspace</span>
@@ -837,29 +460,19 @@
                 <i class="fas fa-folder"></i>
                 <span>Files</span>
             </a>
-            {% if not is_visitor %}
-                <!-- Account-holder items: hidden for visitor sessions -->
-                <a href="/accounts/profile/" class="mobile-menu-item">
-                    <i class="fas fa-user"></i>
-                    <span>Profile</span>
-                </a>
-                <a href="/accounts/settings/" class="mobile-menu-item">
-                    <i class="fas fa-cog"></i>
-                    <span>Settings</span>
-                </a>
-            {% endif %}
+            <a href="/accounts/profile/" class="mobile-menu-item">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
+            <a href="/accounts/settings/" class="mobile-menu-item">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
             <div class="mobile-menu-divider"></div>
-            {% if is_visitor %}
-                <a href="/auth/logout/" class="mobile-menu-item">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>End Visitor Session</span>
-                </a>
-            {% else %}
-                <a href="/auth/logout/" class="mobile-menu-item">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Sign Out</span>
-                </a>
-            {% endif %}
+            <a href="/auth/logout/" class="mobile-menu-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sign Out</span>
+            </a>
         {% else %}
             <a href="/auth/signin/" class="mobile-menu-item">
                 <i class="fas fa-sign-in-alt"></i>

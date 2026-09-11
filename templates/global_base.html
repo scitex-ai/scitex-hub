@@ -84,7 +84,7 @@
     {% endcomment %}
     <body data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}"
           data-session-role="{{ session_role|default:'anonymous' }}"
-          data-user-type="{% if session_role == 'readonly_visitor' %}read-only{% elif session_role == 'visitor' %}visitor{% elif user.is_authenticated %}registered{% else %}anonymous{% endif %}"
+          data-user-type="{% if user.is_authenticated %}registered{% else %}anonymous{% endif %}"
           {% if user.is_authenticated %}data-current-username="{{ user.username }}"{% endif %}
           data-track-module="{% if active_module %}{{ active_module.get_track_module }}{% elif '/server-status' in request.path %}server_status{% elif '/explore/' in request.path %}explore{% elif '/workspace/' in request.path %}files{% endif %}"
           {% if request.initial_pane %}data-initial-pane="{{ request.initial_pane }}"{% endif %}

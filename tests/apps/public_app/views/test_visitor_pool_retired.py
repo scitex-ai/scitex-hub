@@ -160,3 +160,52 @@ class TestRoleDetectionApiSurvives:
         from apps.infra.project_app.services.visitor_pool import (  # noqa: F401
             VisitorPool,
         )
+
+
+class TestAnonymousFunnelAfterRetirement:
+    """Item 5 of the operator ruling: anonymous is NOT auto-logged-in; app
+    pages funnel to the public surface, and the marketing pages stay public.
+
+    DB-free on purpose: these routes (workspace_shell's redirect, the
+    marketing pages) need no ORM. The DB-backed arm — "a browser hitting
+    /apps/home/ or /apps/store/ gets 302 to /auth/login/, no visitor-001..N
+    row created" — runs in CI where Postgres exists.
+    """
+
+    @pytest.mark.parametrize(
+        "path", ["/landing/", "/pricing/", "/tokushoho/", "/contact/"]
+    )
+    def test_marketing_pages_stay_public_for_anonymous(self, path):
+        client = Client()
+        response = client.get(path, follow=True)
+        assert response.status_code == 200, (
+            f"{path} must stay publicly reachable for anonymous users "
+            f"(got {response.status_code}) — the pre-signup funnel depends on it."
+        )
+
+    def test_anonymous_workspace_is_funneled_to_landing_not_a_login_wall(self):
+        # workspace_shell deliberately redirects to /landing/ (not login) for
+        # anonymous users — the signup-first funnel.
+        client = Client()
+        response = client.get("/apps/workspace/", follow=False)
+        assert response.status_code == 302, response.status_code
+        assert response.headers["Location"] == "/landing/"
+
+    def test_anonymous_landing_header_has_no_visitor_badge(self):
+        # The visitor badge / popover markup is retired (item 4). An anonymous
+        # render of any page must not contain it — and because the whole header
+        # is shared, the landing page is the cheapest DB-free surface to check.
+        client = Client()
+        html = client.get("/landing/", follow=True).content.decode("utf-8")
+        for needle in (
+            "header-visitor-badge-mobile",
+            "header-visitor-badge-popover",
+            "visitor-menu-toggle",
+            "End Visitor Session",
+            "Read-Only Mode",
+        ):
+            assert needle not in html, (
+                f"retired visitor markup {needle!r} is still rendered on the "
+                "anonymous landing page."
+            )
+

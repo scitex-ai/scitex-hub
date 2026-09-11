@@ -188,9 +188,15 @@
       manuscriptTitle: {% if manuscript %}'{{ manuscript.title|escapejs }}'{% else %}'Untitled'{% endif %},
       userId: {% if user.is_authenticated %}{{ user.id }}{% else %}null{% endif %},
       username: {% if user.is_authenticated %}'{{ user.username|escapejs }}'{% else %}null{% endif %},
-      visitorUsername: {% if visitor_username %}'{{ visitor_username|escapejs }}'{% else %}null{% endif %},
+      // Visitor role is retired (2026-09-11): no visitor sessions exist, so these
+      // are always null/false. The keys stay (not deleted) because the Vite
+      // bundle reads them (ui.ts, collaborative/manager.ts, collaboration-panel.ts,
+      // FileTreeSetup.ts) and their `if (config.visitorUsername)` guards simply
+      // never fire — deleting would need a TS edit + rebuild, which is a
+      // separate, larger change than this retirement.
+      visitorUsername: null,
       isDemo: {% if is_demo %}true{% else %}false{% endif %},
-      isVisitor: {% if is_visitor %}true{% else %}false{% endif %},
+      isVisitor: false,
       isAuthenticated: {% if user.is_authenticated %}true{% else %}false{% endif %},
       writerInitialized: {% if writer_initialized %}true{% else %}false{% endif %},
       documentType: '{{ document_type|default:"manuscript" }}',  // Current document type

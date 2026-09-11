@@ -366,29 +366,27 @@ class TestPoolInitializerNamesProjectForHumans:
 
 
 class TestHeaderTemplateFallback:
-    """global_header.html renders ``project.name`` with a hardcoded default."""
+    """The header's project-name fallbacks never render the load-bearing slug.
 
-    def test_both_fallbacks_are_the_display_name(self, header_markup):
-        """Positive: both live sites render human text, not the slug.
+    History: #513 added a human-text fallback (``Handwritten Digits
+    (Example)``) at the visitor branch of the project selector so a nameless
+    visitor project never showed the raw ``default-project`` slug. The visitor
+    branch was DELETED 2026-09-11 (visitor retirement — there is no visitor
+    role), so the display-name fallback is gone from the header too. What
+    survives is the invariant this class was really for: the header never
+    renders the slug as a project name.
+    """
 
-        WAS THREE, NOW TWO — and this test caught the change, which is
-        exactly what it is for. #513 added the fallback at three sites; the
-        third lived inside the second, CSS-hidden copy of the project
-        selector (``.header-project-selector``, hidden by
-        ``header/02-layout.css:19-21``). This PR deletes that dead block, so
-        only the two LIVE sites remain.
-
-        Kept as ``== 2`` rather than ``>= 2``: an exact count fails at 1 and
-        at 3, so it is the presence assertion and the no-duplicate assertion
-        in one expression. ``>=`` would go quiet if a future edit
-        reintroduced the hidden copy.
-        """
+    def test_visitor_display_name_fallback_is_retired(self, header_markup):
+        """The ``Handwritten Digits (Example)`` fallback lived in the deleted
+        visitor branch — assert it is gone so a reintroduced visitor selector
+        doesn't silently ship the retired copy."""
         # Arrange
         human_fallback = f'|default:"{DISPLAY_NAME}"'
         # Act
         actual = header_markup.count(human_fallback)
         # Assert
-        assert actual == 2
+        assert actual == 0
 
     def test_no_fallback_renders_the_slug(self, header_markup):
         """Negative sibling, with the marker DERIVED from the live slug.
