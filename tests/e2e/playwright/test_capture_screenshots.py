@@ -46,8 +46,11 @@ fixture, so a long page is captured whole rather than cropped at the fold.
 
 from __future__ import annotations
 
+import os
+
 import pytest
 
+from tests.e2e.playwright.capture_config_check import assert_production_capture
 from tests.e2e.playwright.content_check import (
     PAGE_ELEMENT_SIGNALS,
     BrowserProblemLog,
@@ -243,6 +246,34 @@ class TestProductScreenshots:
         # a server error is not, and is what this is here to catch.
         status = response.status if response else 0
         assert status < 400, f"{title} ({route}) returned HTTP {status}"
+
+    def test_page_is_a_production_capture(
+        self, pooled_visitor_page, route, slug, title
+    ):
+        """The artifact must be a picture of PRODUCTION, not of the dev config.
+
+        CARD hub-screenshots-are-taken-with-debug-1-not-production-20260816;
+        leader ruling 2026-09-11. Checked PER PAGE, in the same seam as the
+        pooled-visitor assertion above, because the failure this guards against
+        is invisible in a green run: a DEBUG render looks like a working page
+        (the dev-only footer bar is styled, nothing errors) and only differs in
+        the details a reviewer would not question.
+        """
+        # Arrange
+        page = pooled_visitor_page
+        declared_debug = os.getenv("SCITEX_HUB_DJANGO_DEBUG", "").lower() in {
+            "true",
+            "1",
+            "yes",
+        }
+
+        # Act / Assert — raises NotAProductionCaptureError, which fails the job
+        # before the artifact is uploaded.
+        assert_production_capture(
+            page.content(),
+            where=f"{title} ({route})",
+            debug_declared=declared_debug,
+        )
 
     def test_page_is_a_pooled_visitor_session(
         self, pooled_visitor_page, route, slug, title

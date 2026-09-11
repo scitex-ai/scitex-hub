@@ -210,8 +210,29 @@ jobs:
           # `_manifest_miss` RAISES under DEBUG, so a missing entry becomes a
           # loud 500 that test_page_is_served catches, rather than a page that
           # renders its shell over nothing.
+          # PRODUCTION ACCEPTANCE CAPTURES ARE DEBUG=0 (leader ruling
+          # 2026-09-11): "Production acceptance screenshots must be captured
+          # with DEBUG=0; DEBUG=1 screenshots may be supplemental but cannot
+          # satisfy production verification."
+          #
+          # THE LINE THIS REPLACES WAS INERT, which is why the capture ran at
+          # DEBUG=1 for so long without anyone being able to fix it by editing
+          # this file: it set a bare `DEBUG: "1"`, and settings_dev.py:64 reads
+          # SCITEX_HUB_DJANGO_DEBUG (default "True"). The bare name is read by
+          # settings_prod.py:49 and settings_staging.py:49 only. Deleting the
+          # old line would have changed nothing; naming the real switch is the
+          # change. tests/develop/test_screenshot_capture_config_guard.py pins
+          # both halves — the switch present, the inert name gone.
+          #
+          # WHAT DEGRADES QUIETLY AT DEBUG=0, stated because the comment above
+          # valued the opposite: `_manifest_miss` (vite.py:186-194) RAISES under
+          # DEBUG and only emits a console.error script otherwise, so a missing
+          # Vite entry is no longer a 500 here. The content assertions the
+          # capture already runs (visible content, non-empty #app-mount, no
+          # stuck loading placeholders) are what carry that load, and they are
+          # preserved deliberately.
           SCITEX_HUB_VITE_USE_BUILD: "1"
-          DEBUG: "1"
+          SCITEX_HUB_DJANGO_DEBUG: "0"
         run: |
           # -e: every command below is a precondition for a truthful
           # artifact. None of them may fail quietly.
@@ -304,7 +325,14 @@ jobs:
           SCITEX_HUB_VISITOR_POOL_GITEA_ENABLED: "false"
           SCITEX_HUB_VITE_USE_BUILD: "1"
           SCITEX_BASE_URL: http://127.0.0.1:8000
-          DEBUG: "1"
+          # MUST MATCH THE SERVER STEP ABOVE: the acceptance capture is a
+          # production capture (DEBUG=0, leader ruling 2026-09-11), and the
+          # capture step's own assertion — capture_config_check
+          # .assert_production_capture — refuses the artifact if the page it
+          # photographed carries dev-only markers or Vite dev-server URLs.
+          # A mismatch between these two steps is exactly the drift that
+          # guard exists to make loud.
+          SCITEX_HUB_DJANGO_DEBUG: "0"
         run: |
           # --browser chromium is REQUIRED, not decoration. tests/conftest.py's
           # pytest_collection_modifyitems skips everything under tests/e2e/
