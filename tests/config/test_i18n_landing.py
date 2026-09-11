@@ -476,3 +476,32 @@ def test_switcher_returns_to_the_current_page(switcher_html):
     actual = switcher_html
     # Assert
     assert expected in actual
+
+
+def test_no_raw_multiline_django_comments_in_header_partial():
+    """A multi-line {# #} is NOT a valid Django comment — Django's {# #} is
+    single-line only, so a block whose opening {# and closing #} are on
+    different lines renders VERBATIM to every visitor (operator-observed on
+    PR #769, 2026-09-11). The header partial must use {% comment %} for
+    anything spanning lines. Scans the template source (no DB needed)."""
+    from pathlib import Path
+
+    header = (Path(__file__).resolve().parents[2] / "templates" / "global_base_partials" / "global_header.html").read_text(encoding="utf-8")
+    lines = header.splitlines()
+    offenders = []
+    open_line = None
+    for i, line in enumerate(lines, 1):
+        # A {# that is not closed by #} on the same line opens a raw block.
+        if open_line is None and "{#" in line and "#}" not in line:
+            # ignore {% comment %} (valid multi-line) lines
+            if "{% comment %}" not in line:
+                open_line = i
+        elif open_line is not None and "#}" in line:
+            offenders.append((open_line, i))
+            open_line = None
+    if open_line is not None:
+        offenders.append((open_line, len(lines)))
+    assert not offenders, (
+        f"multi-line raw {{# #}} comment(s) would render verbatim: "
+        f"{[f'lines {a}-{b}' for a, b in offenders]}"
+    )

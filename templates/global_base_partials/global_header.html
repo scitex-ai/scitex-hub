@@ -66,11 +66,11 @@
                     </svg>
                 </button>
             {% endif %}
-            {# Project Selector removed 2026-09-11 per operator decision:
+            {% comment %} Project Selector removed 2026-09-11 per operator decision:
                no project switcher in the global header. Project selection
                belongs on the project/workspace surface (each app's own UI).
                A minimal read-only current-project indicator may be evaluated
-               separately, but it must not be an interactive switcher. #}
+               separately, but it must not be an interactive switcher.{% endcomment %}
             <!-- Module navigation handled by module_tab_bar.html below header -->
         </div>
         <!-- Center: Search -->
@@ -236,14 +236,14 @@
             <button id="product-tour-btn" class="theme-toggle" aria-label="Product tour" data-tooltip="Product Tour">
                 <i class="fas fa-question-circle"></i>
             </button>
-            {# Keyboard Shortcuts + Notification Center removed from the header
+            {% comment %} Keyboard Shortcuts + Notification Center removed from the header
                2026-09-11 (operator: "Must not show keyboard shortcuts and
                notification bell" in the top header; "Move the keyboard
                shortcuts and notification to hamburger -> settings"). Both are
                reachable from the hamburger menu: Keyboard Shortcuts (mobile
                menu, below) and Server Status (staff, mobile menu). The
                /keyboard-shortcuts/ and /server-status/ pages and their TS are
-               unchanged — only the header ornament goes. #}
+               unchanged — only the header ornament goes.{% endcomment %}
             {% if is_visitor %}
                 <!-- Visitor Menu (Integrated badge + dropdown) -->
                 <div class="header-user-menu">
@@ -574,8 +574,8 @@
                             <i class="fas fa-keyboard" style="display: inline-block; vertical-align: text-bottom; margin-right: 8px; width: 16px; text-align: center;"></i>
                             Keyboard Shortcuts
                         </a>
-                        {# Server Status: staff/dev only — same gate as before it
-                           lived in the header notification bell. #}
+                        {% comment %} Server Status: staff/dev only — same gate as before it
+                           lived in the header notification bell.{% endcomment %}
                         {% if DEBUG or user.is_staff %}
                         <a href="{% url 'public_app:server_status' %}" class="dropdown-item">
                             <i class="fas fa-bell" style="display: inline-block; vertical-align: text-bottom; margin-right: 8px; width: 16px; text-align: center;"></i>
@@ -612,10 +612,10 @@
             <i class="fas fa-adjust"></i>
             <span>Toggle Theme</span>
         </button>
-        {# Language switcher — also in the mobile menu because the footer is
+        {% comment %} Language switcher — also in the mobile menu because the footer is
            hidden on mobile workspace pages (footer.css @media rule), so the
            footer copy alone would be unreachable there. Same set_language POST
-           form, so it persists identically. (2026-09-11, switcher -> footer.) #}
+           form, so it persists identically. (2026-09-11, switcher -> footer.){% endcomment %}
         {% include 'global_base_partials/language_switcher.html' %}
         <div class="mobile-menu-divider"></div>
         {# Developer-facing entries: shown to staff (and in dev), hidden for #}
