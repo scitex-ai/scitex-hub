@@ -46,8 +46,6 @@ fixture, so a long page is captured whole rather than cropped at the fold.
 
 from __future__ import annotations
 
-import os
-
 import pytest
 
 from tests.e2e.playwright.content_check import (
@@ -94,7 +92,7 @@ ROUTES_WITHOUT_GLOBAL_BASE = frozenset({"/apps/cards/"})
 # project page, Writer, Scholar, FigRecipe, Tools and the App Store
 # ("App Storeは絶対見せる"), plus Cards and Chat. Adding a page here is one
 # line and it is picked up by both jobs.
-ALL_PAGES = [
+PAGES = [
     ("/", "00-workspace-home", "Workspace home"),
     ("/apps/home/", "01-projects", "Projects"),
     ("/apps/writer/", "02-writer", "Writer"),
@@ -108,32 +106,7 @@ ALL_PAGES = [
     ("/landing/", "10-landing", "Landing"),
 ]
 
-
-def pages_for_shard(pages, shard_index: int, shard_count: int):
-    """Return one deterministic, disjoint round-robin partition of pages."""
-    if shard_count < 1:
-        raise ValueError("screenshot shard count must be at least 1")
-    if not 0 <= shard_index < shard_count:
-        raise ValueError(
-            f"screenshot shard index {shard_index} is outside [0, {shard_count})"
-        )
-    return [
-        page
-        for position, page in enumerate(pages)
-        if position % shard_count == shard_index
-    ]
-
-
-SCREENSHOT_SHARD_COUNT = int(os.getenv("SCITEX_SCREENSHOT_SHARD_COUNT", "1"))
-SCREENSHOT_SHARD_INDEX = int(os.getenv("SCITEX_SCREENSHOT_SHARD_INDEX", "0"))
-PAGES = pages_for_shard(ALL_PAGES, SCREENSHOT_SHARD_INDEX, SCREENSHOT_SHARD_COUNT)
-if not PAGES:
-    raise ValueError(
-        f"screenshot shard {SCREENSHOT_SHARD_INDEX}/{SCREENSHOT_SHARD_COUNT} has no pages"
-    )
-
-ROUTES = {route: (slug, title) for route, slug, title in ALL_PAGES}
-ACTIVE_ROUTES = frozenset(route for route, _slug, _title in PAGES)
+ROUTES = {route: (slug, title) for route, slug, title in PAGES}
 
 WRITER_ROUTE = "/apps/writer/"
 FIGRECIPE_ROUTE = "/apps/figrecipe/"
@@ -412,11 +385,6 @@ class TestWriterShowsAManuscript:
     of Writer that contains no writing is not a screenshot of Writer.
     """
 
-    pytestmark = pytest.mark.skipif(
-        WRITER_ROUTE not in ACTIVE_ROUTES,
-        reason="Writer belongs to the other route shard",
-    )
-
     def test_file_selector_resolved(self, measured_content):
         # Arrange
         signals = measured_content(WRITER_ROUTE)
@@ -451,11 +419,6 @@ class TestFigRecipeShowsAGallery:
     state that has to fail, because present-and-empty is what a page looks
     like when its front end never booted.
     """
-
-    pytestmark = pytest.mark.skipif(
-        FIGRECIPE_ROUTE not in ACTIVE_ROUTES,
-        reason="FigRecipe belongs to the other route shard",
-    )
 
     def test_mount_point_is_not_empty(self, measured_content):
         # Arrange

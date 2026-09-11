@@ -596,13 +596,7 @@ def content_report():
     """
     from tests.e2e.playwright.content_check import threshold_banner
 
-    shard_index = os.getenv("SCITEX_SCREENSHOT_SHARD_INDEX")
-    report_name = (
-        f"content-report.shard-{shard_index}.txt"
-        if shard_index is not None
-        else "content-report.txt"
-    )
-    path = SCREENSHOT_DIR / report_name
+    path = SCREENSHOT_DIR / "content-report.txt"
     SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
     path.write_text(
         "Content measured per captured page. FOUND / NOT FOUND is stated\n"
