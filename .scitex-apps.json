@@ -23,11 +23,11 @@
       "pip_package": "scitex-writer"
     },
     {
-      "name": "scitex-todo",
+      "name": "scitex-cards",
       "source": "sibling",
       "git_url": "https://github.com/scitex-ai/scitex-cards.git",
       "git_ref": "develop",
-      "pip_package": "scitex-todo"
+      "pip_package": "scitex-cards"
     },
     {
       "name": "scitex-storage",
