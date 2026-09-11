@@ -98,6 +98,34 @@ TEXT_LINK_FLOOR = Version("0.14.1")
 #: number nothing checks.
 LAST_WITHOUT_TEXT_LINK = Version("0.14.0")
 
+#: The release that first ships ``scitex_ui/testing.py`` -- the consumer-side
+#: ``assert_has_route_away``.
+#:
+#: THIRD contract on this floor, added 2026-09-10, and the reason it is a
+#: DECLARED floor rather than a comment: hub's route-away guard
+#: (tests/config/test_rendered_pages_have_a_route_away.py) imports that module
+#: UNGUARDED, exactly like this file imports ``scitex_ui``. A floor that admits
+#: a release without it makes the guard die at import time -- or, if someone
+#: "fixes" that with importorskip, makes it SKIP, which is a pass in the
+#: report and nothing at all in the suite.
+#:
+#: Measured 2026-09-10 by looking for ``scitex_ui/testing.py`` in the PUBLISHED
+#: WHEELS of the last eight releases -- never the git tree -- with ``mount.py``
+#: as the positive control (present in every one, so an absence here is a real
+#: absence and not a broken read):
+#:
+#:     0.16.0 / 0.17.0 / 0.18.0 / 0.19.0 / 0.19.1   ABSENT
+#:     0.20.0 onwards                               PRESENT
+#:
+#: Enumerate releases rather than sampling them: the --text-link boundary below
+#: was reported wrong by two agents who sampled instead.
+ROUTE_AWAY_FLOOR = Version("0.20.0")
+
+#: The last release WITHOUT ``scitex_ui/testing.py``. Same role as
+#: LAST_WITHOUT_PANES: it makes the exclusion test assert a real boundary
+#: instead of naming a number nothing checks.
+LAST_WITHOUT_ROUTE_AWAY = Version("0.19.1")
+
 #: What the pin must actually be, and it is deliberately ABOVE both contracts.
 #:
 #: 0.14.1 is all hub strictly needs. We declare 0.16.0 because a floor is read
@@ -106,7 +134,14 @@ LAST_WITHOUT_TEXT_LINK = Version("0.14.0")
 #: ``shell/theme.css``, so one token needs two different floors depending on
 #: which file a consumer links. 0.16.0 is the first release good on every token
 #: in both layers. A version that needs no caveat beats the justifiable minimum.
-DECLARED_FLOOR = Version("0.16.0")
+#:
+#: 0.20.0 since 2026-09-10, because the floor now answers to three contracts
+#: and the highest one wins: the route-away guard's unguarded import of
+#: ``scitex_ui.testing`` (ROUTE_AWAY_FLOOR) sits two releases above the token
+#: contract. Asserting this constant also asserts the floor still ADMITS it, so
+#: a floor raised past every satisfying release fails here rather than silently
+#: dropping hub off versions that work.
+DECLARED_FLOOR = Version("0.20.0")
 
 #: A pane name scitex-ui does not know. Any value outside PANE_NAMES works;
 #: this one is obviously synthetic so a reader does not mistake it for a real
@@ -194,6 +229,34 @@ def test_declared_floor_excludes_every_release_without_the_link_token(
         f"resolves to nothing and the WCAG link-contrast fix silently does not "
         f"arrive -- with no 404, no exception and no failing check. Raise each "
         f"floor to {DECLARED_FLOOR}."
+    )
+
+
+def test_declared_floor_excludes_every_release_without_the_route_away_helper(
+    scitex_ui_requirements: list[tuple[str, Requirement]],
+) -> None:
+    # Arrange — the THIRD contract, and the first on this floor that is about a
+    # TEST-ONLY import. The guard imports `scitex_ui.testing` unguarded, so a
+    # release without that module does not render a wrong colour or answer 500:
+    # the guard cannot be COLLECTED. A suite that cannot collect is louder than
+    # a silent token, but a floor that permits it is still a floor violation,
+    # and the tempting repair (importorskip) turns it into a skip.
+    # Act
+    permissive = [
+        (group, str(req.specifier))
+        for group, req in scitex_ui_requirements
+        if req.specifier.contains(LAST_WITHOUT_ROUTE_AWAY)
+    ]
+
+    # Assert
+    assert permissive == [], (
+        f"these pyproject.toml groups declare a scitex-ui range permitting "
+        f"{LAST_WITHOUT_ROUTE_AWAY}, a release with no "
+        f"'scitex_ui/testing.py': {permissive}. tests/config"
+        f"/test_rendered_pages_have_a_route_away.py imports that module "
+        f"unguarded, so on such a release the route-away guard is not a weak "
+        f"check -- it is no check at all. Raise each floor to "
+        f"{ROUTE_AWAY_FLOOR}."
     )
 
 
