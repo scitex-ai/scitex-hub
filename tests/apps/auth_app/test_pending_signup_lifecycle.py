@@ -101,8 +101,8 @@ def test_the_view_decides_the_lifecycle_rather_than_the_form():
     with open(authentication.__file__, encoding="utf-8") as handle:
         text = handle.read()
 
-    # Assert
-    assert "classify_pending_signup" in text
+    # Assert — the view delegates the lifecycle decision to the service.
+    assert "classify_and_reclaim" in text
 
 
 def test_the_form_no_longer_rejects_existing_rows():

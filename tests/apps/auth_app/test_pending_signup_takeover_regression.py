@@ -60,13 +60,23 @@ def _attacker_fields(victim_username: str) -> dict:
 
 
 def _victim(username="victim_pending", email="victim@example.com", age=None):
-    """A disposable PENDING row owned by the victim."""
+    """A disposable PENDING row owned by the victim.
+
+    The unverified EmailVerification is the EVIDENCE that makes this a pending
+    signup rather than merely an inactive account — without it the classifier
+    correctly refuses it, and the resume assertions here would silently become
+    collision assertions. It was missing from this fixture (the lifecycle file's
+    equivalent had it); the DB run is what exposed the gap.
+    """
+    from apps.infra.auth_app.models import EmailVerification
+
     user = User.objects.create_user(
         username=username,
         email=email,
         password="victim-original-password-1",
         is_active=False,
     )
+    EmailVerification.objects.create(user=user, email=email)
     if age is not None:
         User.objects.filter(pk=user.pk).update(date_joined=timezone.now() - age)
         user.refresh_from_db()
