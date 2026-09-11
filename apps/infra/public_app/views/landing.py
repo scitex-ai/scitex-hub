@@ -75,14 +75,34 @@ def index(request):
     # closed" rather than reconnecting, and the transaction's work is lost.
     if not connection.in_atomic_block:
         connection.close()
-    from ..pricing import load_pricing, published_price_groups
+    from ..pricing import (
+        format_amount,
+        load_pricing,
+        published_price_rows,
+        tier_rows,
+    )
 
+    # Three-plan landing row (operator 2026-09-11, "learn from claude.ai"):
+    # Free | Sub (Academic/General switcher in ONE card) | On-Prem.
+    # Individual service line items stay on /services/ — they are offerings,
+    # not plans.
+    rows = published_price_rows()
+    sub_rows = [
+        {**r, "is_academic": r["id"] == "subscription-student"}
+        for r in rows
+        if r["category"] == "subscription"
+    ]
+    onprem_tier = next(
+        (t for t in tier_rows() if t["id"] == "onprem"), None
+    )
     context = {
         "ecosystem_versions": _get_ecosystem_versions(),
-        # Pricing columns on the landing (compass 25.1: "Publish the Pricing
-        # table on the TOP/LANDING page"). Rendered from the SSOT via the same
-        # helpers /pricing/ and /services/ use — never a hand-written copy.
-        "published_price_groups": published_price_groups(),
+        # Pricing columns on the landing (compass 25.1). Rendered from the
+        # SSOT via the same helpers /pricing/ and /services/ use — never a
+        # hand-written copy.
+        "free_price": format_amount(0, "once"),
+        "sub_rows": sub_rows,
+        "onprem_tier": onprem_tier,
         "tax_note": load_pricing().get("tax_note", ""),
         "pricing_notes": load_pricing()["notes"],
     }

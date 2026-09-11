@@ -111,6 +111,64 @@
   margin: 0.25rem 0;
 }
 
+/* Three-plan row (operator 2026-09-11, "learn from claude.ai"): Free | Sub |
+   On-Prem — exactly three columns on desktop, stacked on mobile. */
+.pricing-grid-plans {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* Academic / General variant switcher inside the Sub card */
+.plan-variant-switch {
+  display: inline-flex;
+  margin: var(--spacing-sm) 0 0;
+  padding: 2px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-full);
+}
+
+.variant-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: 0.375rem 0.875rem;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: background-color var(--transition-normal),
+    color var(--transition-normal);
+}
+
+.variant-btn.is-active {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.plan-variant-hidden {
+  display: none;
+}
+
+.plan-variant .pricing-features {
+  padding-top: 0;
+}
+
+.pricing-features-text,
+.pricing-coming-soon {
+  margin: 0 0 var(--spacing-xs);
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  overflow-wrap: break-word;
+}
+
+.pricing-coming-soon {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
 /* Brand-blue CTA on the landing pricing cards (matches the hero button — the
    one arbitrary colour the operator approved, 2026-09-10). */
 .pricing-action .btn-primary {
@@ -136,6 +194,12 @@
 @media (max-width: 768px) {
   .pricing-grid {
     grid-template-columns: 1fr;
+  }
+
+  .pricing-grid-plans {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+    margin-inline: auto;
   }
 
   .pricing-card {

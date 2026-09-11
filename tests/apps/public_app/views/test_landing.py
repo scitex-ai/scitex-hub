@@ -85,8 +85,11 @@ class LandingHeroCtaTest(TestCase):
         # Arrange: an anonymous visitor
         # Act
         resp = self.client.get("/landing/")
-        # Assert — Sign in alternative points at the real auth URL
-        assert b"/auth/login/" in resp.content
+        # Assert — sign-in is reachable from the global header. The hero's own
+        # "Sign in" link was removed (operator 2026-09-11: "we don't need signin
+        # button in the landing hero as try scitex will handle it"), so this
+        # now points at the header's /auth/signin/ rather than the old /auth/login/.
+        assert b"/auth/signin/" in resp.content
 
 
 if __name__ == "__main__":

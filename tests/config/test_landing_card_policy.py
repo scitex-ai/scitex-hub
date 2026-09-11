@@ -34,18 +34,22 @@ from apps.infra.public_app.templatetags.landing_i18n import translate_dynamic
 REPO = Path(__file__).resolve().parents[2]
 
 EXPECTED_FREE_FUNNEL = {
+    # Three-plan landing row (operator 2026-09-11, claude.ai-style):
+    # Free | Sub (Academic/General switcher) | On-Prem. The Free card is the
+    # free funnel entry; the Sub academic price + a feature line prove the
+    # paid plans render from the SSoT in the active language.
     "en": (
+        "Free",
         "Create your free account and use SciTeX's free tier at no cost.",
         "Sign up free",
-        "Creating an account does not activate this paid plan.",
-        "Sub · Academic",
+        "Monthly ¥1,490",
         "50 GB storage per project per month (Standard)",
     ),
     "ja": (
+        "無料",
         "無料アカウントを作成して、SciTeX の無料プランをご利用いただけます。",
         "無料で登録",
-        "アカウントを作成しても、この有料プランは開始されません。",
-        "サブスク・学術",
+        "月額 1,490円",
         "50 GB ストレージ / プロジェクト / 月 (Standard)",
     ),
 }
@@ -87,6 +91,7 @@ _PUBLIC_NAMES = (
     "recruit",
     "releases",
     "server_status",
+    "services",
     "setup",
     "terms",
     "tokushoho",
@@ -165,16 +170,28 @@ def _request(path: str):
 
 @override_settings(ROOT_URLCONF=__name__)
 def _rendered_landing(language: str) -> str:
-    # The context must be built INSIDE the override: published_price_groups()
+    # The context must be built INSIDE the override: published_price_rows()
     # localizes price/price_note/included/storage at CALL time (2026-09-11),
     # so baking it under the ambient test language would pin the wrong
     # language into the render and make the test fail (or worse, pass) for
     # reasons unrelated to what it asserts.
+    from apps.infra.public_app.pricing import format_amount, tier_rows
+
     pricing = load_pricing()
     request = _request("/landing/")
     with translation.override(language):
+        rows = published_price_rows()
+        sub_rows = [
+            {**r, "is_academic": r["id"] == "subscription-student"}
+            for r in rows
+            if r["category"] == "subscription"
+        ]
         context = {
-            "published_price_groups": published_price_groups(),
+            "free_price": format_amount(0, "once"),
+            "sub_rows": sub_rows,
+            "onprem_tier": next(
+                (t for t in tier_rows() if t["id"] == "onprem"), None
+            ),
             "tax_note": pricing.get("tax_note", ""),
             "pricing_notes": pricing["notes"],
         }
@@ -289,7 +306,8 @@ def test_japanese_landing_renders_the_japanese_pricing_strings():
     the stored value.)"""
     pricing = _visible_text(_section(_rendered_landing("ja"), "pricing"))
     expected = (
-        "サブスク・学術",
+        "サブスク",
+        "学術",
         "月額 1,490円",
         "50 GB ストレージ / プロジェクト / 月 (Standard)",
         "通常利用の範囲の通信",

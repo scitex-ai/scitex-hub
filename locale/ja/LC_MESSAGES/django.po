@@ -702,4 +702,13 @@ msgstr "SciTeX Cloud の従量課金は、料金確定後に別ページでご�
 
 msgid "These prices are indicative. Contact us to adjust them to your budget and circumstances."
 msgstr "上記はいずれも目安です。ご予算や状況に合わせて調整できますので、気楽にご相談ください。"
-
+msgid "Academic"
+msgstr "学術"
+msgid "General"
+msgstr "一般"
+msgid "Plan variant"
+msgstr "プラン種別"
+msgid "Services & add-ons"
+msgstr "サービス・追加オプション"
+msgid "Contents of the free tier will be listed here."
+msgstr "無料プランの内容はここに掲載予定です。"

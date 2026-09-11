@@ -558,23 +558,27 @@ def _landing(client_cookie=None):
 
 def test_landing_pricing_renders_fully_english_by_default():
     html = _landing()
-    # lang + EN price format (call-time gettext) + EN included + EN tax note
+    # lang + three-plan row (Free | Sub | On-Prem) + EN price (call-time
+    # gettext) + EN included + EN tax note + the Academic/General switcher
     assert '<html lang="en"' in html
+    assert "Free" in html
     assert "Monthly ¥1,490" in html
-    assert "Sub · Academic" in html
+    assert 'data-variant="academic"' in html and 'data-variant="general"' in html
     assert "Traffic within normal use" in html
     assert "All displayed prices include tax" in html
     # NO Japanese data leaks into the English default
-    for ja in ("サブスク・学術", "月額 1,490円", "通常利用の範囲の通信", "表示価格はすべて税込"):
+    for ja in ("サブスク", "月額 1,490円", "通常利用の範囲の通信", "表示価格はすべて税込"):
         assert ja not in html, f"Japanese {ja!r} leaked into the English default landing"
 
 
 def test_landing_pricing_renders_fully_japanese_when_selected():
     html = _landing(client_cookie="ja")
-    # lang + JA price (call-time) + JA included + JA tax note + JA price_note date
+    # lang + JA price (call-time) + JA included + JA tax note + JA price_note
+    # date + the JA variant switcher (学術 / 一般)
     assert '<html lang="ja"' in html
     assert "月額 1,490円" in html
-    assert "サブスク・学術" in html
+    assert "サブスク" in html
+    assert "学術" in html and "一般" in html
     assert "通常利用の範囲の通信" in html
     assert "超過分は従量課金" in html
     assert "表示価格はすべて税込" in html
