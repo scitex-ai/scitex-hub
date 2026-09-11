@@ -681,3 +681,96 @@ def test_resend_mints_for_the_marker_holder_not_for_a_same_email_legacy_row(
     assert response.status_code == 200
     assert EmailVerification.objects.filter(user=real).count() == 1
     assert EmailVerification.objects.filter(user=legacy).count() == 0
+
+
+# ---------------------------------------------------------------------------
+# PR #775 eighth review: DATABASE-ENFORCED case-insensitive uniqueness.
+# ---------------------------------------------------------------------------
+
+
+def test_the_database_rejects_a_case_variant_username():
+    """The application policy is iexact; the only constraint used to be
+    case-SENSITIVE, so `Foo` and `foo` could BOTH be created and no
+    IntegrityError was ever raised to catch."""
+    # Arrange
+    from django.db import IntegrityError, transaction
+
+    User.objects.create_user(
+        username="CaseUser", email="case_a@example.com", password=PASSWORD
+    )
+
+    # Act / Assert
+    with pytest.raises(IntegrityError):
+        with transaction.atomic():
+            User.objects.create_user(
+                username="caseuser", email="case_b@example.com", password=PASSWORD
+            )
+
+
+def test_the_database_rejects_a_case_variant_email():
+    # Arrange
+    from django.db import IntegrityError, transaction
+
+    User.objects.create_user(
+        username="email_one", email="Shared@Example.com", password=PASSWORD
+    )
+
+    # Act / Assert
+    with pytest.raises(IntegrityError):
+        with transaction.atomic():
+            User.objects.create_user(
+                username="email_two", email="shared@example.com", password=PASSWORD
+            )
+
+
+def test_a_blank_email_is_still_shareable():
+    """CONTROL: the index is partial (`WHERE email <> ''`) because blank is the
+    absence of an address, not a value two users may not share."""
+    # Arrange
+    first = User.objects.create_user(username="blank_one", email="", password=PASSWORD)
+
+    # Act
+    second = User.objects.create_user(username="blank_two", email="", password=PASSWORD)
+
+    # Assert
+    assert first.pk and second.pk
+
+
+def test_the_preflight_audit_reports_and_changes_nothing():
+    """The reconciliation policy depends on this command being READ-ONLY."""
+    # Arrange
+    from io import StringIO
+
+    from django.core.management import call_command
+    from django.db import transaction
+
+    User.objects.create_user(
+        username="audit_a", email="audit_a@example.com", password=PASSWORD
+    )
+    # Create the collision the indexes forbid by bypassing them, so the audit has
+    # something to find: the same address with different case.
+    from django.db import connection
+
+    with connection.cursor() as cursor:
+        cursor.execute("DROP INDEX IF EXISTS auth_user_email_lower_uniq")
+    try:
+        User.objects.create_user(
+            username="audit_b", email="AUDIT_A@example.com", password=PASSWORD
+        )
+        before = User.objects.count()
+        out = StringIO()
+
+        # Act
+        call_command("audit_identity_duplicates", stdout=out)
+
+        # Assert — it FOUND the collision and wrote nothing.
+        text = out.getvalue()
+        assert "audit_a@example.com" in text.lower()
+        assert "NOT READY" in text
+        assert User.objects.count() == before
+    finally:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "CREATE UNIQUE INDEX IF NOT EXISTS auth_user_email_lower_uniq "
+                "ON auth_user (lower(email)) WHERE email IS NOT NULL AND email <> ''"
+            )

@@ -50,7 +50,10 @@ def verify_email_api(request):
             marker = PendingSignup.objects.filter(email__iexact=email).first()
             lookup = EmailVerification.objects.filter(is_verified=False)
             if marker is not None:
-                lookup = lookup.filter(user=marker.user)
+                # THE marker's user AND that user's EXACT row for this
+                # normalized address (item 3): a mismatched or legacy row of the
+                # same user must not stand in for the one being proved.
+                lookup = lookup.filter(user=marker.user, email__iexact=email.strip())
             else:
                 change = request.session.get("pending_email_change") or {}
                 if change.get("new_email") == email and change.get("user_id"):
@@ -323,6 +326,22 @@ def resend_otp_api(request):
         with transaction.atomic():
             locked = User.objects.select_for_update().filter(pk=user.pk).first()
             if locked is None:
+                return JsonResponse(_RESEND_RESPONSE, status=200)
+
+            # REVALIDATE UNDER THE LOCK (PR #775 eighth review, item 3). Every
+            # check above ran OUTSIDE the lock, so between them and here the
+            # account could have been activated, or its marker removed. Without
+            # this, a code gets minted for a row that is no longer a pending
+            # signup — the checks would have been a snapshot, not a guard.
+            from apps.infra.auth_app.models import PendingSignup as _Pending
+
+            still_pending = (
+                not locked.is_active
+                and _Pending.objects.filter(
+                    user=locked, email__iexact=email.strip()
+                ).exists()
+            )
+            if not still_pending:
                 return JsonResponse(_RESEND_RESPONSE, status=200)
 
             verification = EmailVerification.objects.create(
