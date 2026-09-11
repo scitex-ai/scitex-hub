@@ -77,8 +77,8 @@ msgid "Sign in"
 msgstr "ログイン"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
-msgid "Free for 30 days. Cancel anytime. Email verification and a card are required."
-msgstr "30日間無料・いつでも解約。メール認証とカード登録が必要です。"
+msgid "30-day free trial. Continue and you'll be billed for the first month from day one. Email verification is required; no card is needed until you start a paid plan."
+msgstr "30日間の無料トライアル。継続すると初月から課金されます。メール認証が必要です。カード情報は有料プラン開始まで不要です。"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
 msgid "Start free for 30 days"
