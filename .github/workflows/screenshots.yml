@@ -322,11 +322,57 @@ jobs:
           # watched fail is not a gate, and "the assertions got stricter"
           # is not evidence: the assertions they replaced were also green
           # while photographing a blank FigRecipe.
+          set -euo pipefail
+
+          # Prove the content checks fail on known-bad pages once. The route
+          # shards below exercise the same checks against the real product;
+          # duplicating this control in every shard adds work but no evidence.
           python -m pytest \
             tests/e2e/playwright/test_content_check_fires.py \
-            tests/e2e/playwright/test_capture_screenshots.py \
             --browser chromium \
             -v --tb=short -rs -o "addopts=" --timeout=120
+
+          capture_shard() {
+            shard_index="$1"
+            SCITEX_SCREENSHOT_SHARD_INDEX="$shard_index" \
+            SCITEX_SCREENSHOT_SHARD_COUNT=2 \
+              python -m pytest \
+                tests/e2e/playwright/test_capture_screenshots.py \
+                --browser chromium \
+                -v --tb=short -rs -o "addopts=" --timeout=120 \
+                > "$RUNNER_TEMP/screenshots-shard-${shard_index}.log" 2>&1
+          }
+
+          capture_shard 0 &
+          shard_0_pid=$!
+          capture_shard 1 &
+          shard_1_pid=$!
+
+          capture_status=0
+          if ! wait "$shard_0_pid"; then
+            capture_status=1
+          fi
+          if ! wait "$shard_1_pid"; then
+            capture_status=1
+          fi
+
+          cat "$RUNNER_TEMP/screenshots-shard-0.log"
+          cat "$RUNNER_TEMP/screenshots-shard-1.log"
+
+          report_dir=GITIGNORED/e2e_screenshots
+          report="$report_dir/content-report.txt"
+          : > "$report"
+          for shard_index in 0 1; do
+            shard_report="$report_dir/content-report.shard-${shard_index}.txt"
+            if [ ! -f "$shard_report" ]; then
+              echo "!! MISSING: screenshot shard $shard_index produced no content report. !!" >> "$report"
+              capture_status=1
+              continue
+            fi
+            cat "$shard_report" >> "$report"
+          done
+
+          exit "$capture_status"
 
       - name: Content report
         # ALWAYS, like the artifact upload. On a green run this is the only
