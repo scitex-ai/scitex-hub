@@ -19,17 +19,6 @@
                     <h3 class="plan-name">{{ row.label|translate_dynamic }}</h3>
                     <p class="pricing-price">{{ row.price|translate_dynamic }}{% if row.price_note %}<span class="period">{{ row.price_note|translate_dynamic }}</span>{% endif %}</p>
                 </div>
-                {% if row.category == "subscription" %}
-                <div class="pricing-trial">
-                    <span class="pricing-trial-badge">{% trans "Optional paid-plan trial: 30 days free" %}</span>
-                    <ul class="pricing-trial-terms">
-                        <li><span class="pt-label">{% trans "Activation" %}</span>{% trans "Starts only after you explicitly select this paid plan or trial; trial data is deleted seven days after cancellation" %}</li>
-                        <li><span class="pt-label">{% trans "Billing" %}</span>{% trans "Any charge follows the terms you accept during that explicit paid action, never free signup" %}</li>
-                        <li><span class="pt-label">{% trans "Limit" %}</span>{% trans "One paid trial per verified email address and payment card" %}</li>
-                        <li><span class="pt-label">{% trans "Payment" %}</span>{% trans "Email verification and a credit or debit card when the paid plan or trial starts" %}</li>
-                    </ul>
-                </div>
-                {% endif %}
                 {% if row.included %}
                 <div class="pricing-features">
                     <ul>
@@ -44,8 +33,8 @@
                 {% endif %}
                 <div class="pricing-action">
                     {% if row.category == "subscription" %}
-                    <a href="{% url 'auth_app:signup' %}" class="btn btn-primary btn-block">{% trans "Sign up free — no card needed" %}</a>
-                    <p class="pricing-card-note">{% trans "After signup, card details are requested only if you explicitly start this paid plan or its trial." %}</p>
+                    <a href="{% url 'auth_app:signup' %}" class="btn btn-primary btn-block">{% trans "Sign up free" %}</a>
+                    <p class="pricing-card-note">{% trans "Creating an account does not activate this paid plan." %}</p>
                     {% else %}
                     <a href="{% url 'public_app:contact' %}" class="btn btn-block">{% trans "Contact us" %}</a>
                     {% endif %}

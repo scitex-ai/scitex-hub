@@ -65,23 +65,14 @@ class LandingHeroCtaTest(TestCase):
         # must not send a first-time visitor there.
         assert b'href="/apps/home/" class="hero-cta-button"' not in resp.content
 
-    def test_hero_cta_note_states_no_card_until_an_explicit_paid_action(self):
+    def test_hero_cta_note_promises_only_the_free_account_and_tier(self):
         # Arrange: an anonymous visitor
         # Act
         resp = self.client.get("/landing/")
-        # Assert — the note states the OPERATOR RULE: free signup and free use
-        # need no card, and payment details are asked for only on a SEPARATE,
-        # EXPLICIT paid action.
-        #
-        # REWRITTEN 2026-09-11. This asserted "No sign-up needed", which described
-        # the retired visitor era — signup IS required now, so the assertion had
-        # become a claim about a product that no longer exists. It asserts the
-        # policy that is actually true instead.
+        # Assert — this is a pre-upgrade surface. It promises the free account
+        # and tier without introducing payment instruments or trial terms.
         body = resp.content
-        assert b"no card needed" in body
-        assert b"explicitly start a paid subscription" in body
-        # And the earlier passive automatic-conversion wording is GONE.
-        assert b"you'll be billed for the first month" not in body
+        assert b"Create your free account" in body
 
     def test_landing_offers_sign_up(self):
         # Arrange: an anonymous visitor

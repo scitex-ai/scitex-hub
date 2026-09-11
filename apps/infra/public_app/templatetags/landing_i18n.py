@@ -1,7 +1,7 @@
 """Translation helpers for visitor-facing values loaded from data files."""
 
 from django import template
-from django.utils.translation import gettext
+from django.utils.translation import get_language, gettext
 
 register = template.Library()
 
@@ -9,4 +9,7 @@ register = template.Library()
 @register.filter
 def translate_dynamic(value):
     """Translate a runtime string such as a pricing SSoT display value."""
-    return gettext(str(value))
+    text = str(value)
+    if (get_language() or "").split("-", 1)[0] == "ja":
+        return text
+    return gettext(text)
