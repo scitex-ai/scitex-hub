@@ -57,7 +57,13 @@ def verify_email_api(request):
             else:
                 change = request.session.get("pending_email_change") or {}
                 if change.get("new_email") == email and change.get("user_id"):
-                    lookup = lookup.filter(user_id=change["user_id"])
+                    # EXACT user AND the TARGET address (PR #775 review). An
+                    # email change must consume only THAT user's row for the
+                    # address they are moving TO — never a row that merely
+                    # shares the address, and never another user's.
+                    lookup = lookup.filter(
+                        user_id=change["user_id"], email__iexact=email.strip()
+                    )
                 else:
                     lookup = lookup.filter(email__iexact=email)
             verification = lookup.order_by("-created_at").first()

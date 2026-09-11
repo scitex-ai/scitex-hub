@@ -753,8 +753,13 @@ def test_the_preflight_audit_reports_and_changes_nothing():
     before = User.objects.count()
     out = StringIO()
 
-    # Act
-    call_command("audit_identity_duplicates", stdout=out)
+    # Act — it now GATES as well as reports (PR #775 review item 2): automation
+    # must be able to act on NOT READY, so the command exits nonzero rather than
+    # merely printing.
+    from django.core.management.base import CommandError
+
+    with pytest.raises(CommandError):
+        call_command("audit_identity_duplicates", stdout=out)
 
     # Assert — it FOUND the collision and wrote nothing.
     #

@@ -21,7 +21,7 @@ Usage:
 """
 
 from django.contrib.auth.models import User
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.db.models.functions import Lower
 
 
@@ -66,6 +66,13 @@ class Command(BaseCommand):
                     "WILL FAIL until these are reconciled by hand. Nothing was "
                     "changed by this command."
                 )
+            )
+            # NONZERO EXIT, so automation can GATE on this (PR #775 review). A
+            # report that only prints is a report no pipeline can act on: the
+            # command would exit 0 on a database that cannot take the index.
+            raise CommandError(
+                f"NOT READY: {blockers} colliding identity value(s). Reconcile "
+                "them, then migrate. Nothing was changed."
             )
         else:
             self.stdout.write(
