@@ -96,12 +96,39 @@ def _inactive_not_pending(email: str, username: str):
     )
 
 
+def _split(email: str, username: str):
+    """SPLIT: the username and the address belong to DIFFERENT accounts.
+
+    Two rows, so neither side is the account the other describes.
+    """
+    User.objects.create_user(
+        username=username, email=f"other-{username}@example.com", password=PASSWORD
+    )
+    User.objects.create_user(
+        username=f"{username}-other", email=email, password=PASSWORD
+    )
+
+
+def _one_sided(email: str, username: str):
+    """ONE_SIDED: only the address is taken; the username is free.
+
+    The reviewer asked for this case even though the view currently shares one
+    collision branch for it — the point of the regression is the RESPONSE, so a
+    future change that splits the branch cannot silently reintroduce a difference.
+    """
+    User.objects.create_user(
+        username=f"{username}-other", email=email, password=PASSWORD
+    )
+
+
 #: The lifecycles a caller must not be able to tell apart.
 LIFECYCLES = {
     "pending_live": lambda email, username: _pending(email, username, expired=False),
     "pending_expired": lambda email, username: _pending(email, username, expired=True),
     "active": _active,
     "inactive_not_pending": _inactive_not_pending,
+    "split": _split,
+    "one_sided": _one_sided,
 }
 
 

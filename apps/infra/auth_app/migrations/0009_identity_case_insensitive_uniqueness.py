@@ -16,33 +16,35 @@ that, because no error is raised.
 A functional index on ``lower(...)`` is what makes the two agree. PostgreSQL
 gives that for free; it is exactly why the operator rule matters here.
 
-A PREEXISTING INDEX UNDER THE SAME NAME IS NOT ASSUMED TO BE OURS
-``CREATE UNIQUE INDEX IF NOT EXISTS`` checks the NAME only. A preexisting index
-carrying one of these names with a DIFFERENT definition would therefore make this
-migration report success while the policy it exists to enforce was never created
-— silently unguarded, which is the worst of the outcomes. So before creating, any
-same-named index whose definition does not match is dropped, and the CREATE
-follows.
+OWNERSHIP IS DECIDED STRUCTURALLY, NOT BY NAME OR BY A SUBSTRING
+``CREATE UNIQUE INDEX IF NOT EXISTS`` checks the NAME only. So a preexisting
+index carrying one of our names but NOT being our index would make this migration
+report success while the policy it exists to enforce was never created — silently
+unguarded — and the reversal would then DELETE AN INDEX THAT IS NOT OURS.
 
-HOW "IS IT OURS" IS DECIDED — and the trap in it. PostgreSQL does NOT render the
-definition the way it was written. ``ON auth_user (lower(username))`` comes back
-as::
+Earlier revisions of this file matched on a substring of ``pg_get_indexdef``
+(``lower(`` plus the column name). That is not ownership, and it accepted exactly
+the two shapes that matter:
 
-    ... USING btree (lower((username)::text))
+  * a same-named **NON-UNIQUE** index on ``lower(username)`` — matches the
+    substring, so the CREATE is skipped and uniqueness stays UNENFORCED while the
+    migration reports success;
+  * the email index with a **wrong predicate** — e.g. one that does not exclude
+    blanks, so the index does not mean what this migration promises.
 
-so a guard searching for the literal ``lower(username)`` matches NEITHER our own
-index NOR a wrong one — it answers "not ours" for everything, which silently
-turns the reversal into a no-op and, worse, would make the CREATE path drop an
-index it had just built. The match is therefore on the two things that survive
-rendering: the presence of ``lower(`` and the column name.
-
-The REVERSE is guarded in the same spirit: it drops an index ONLY when that index
-IS the one this migration created, so reversing cannot remove an unrelated index
-that merely happens to share the name.
+Ownership now requires ALL of the following, read from the system catalogs:
+  1. it is UNIQUE (``pg_index.indisunique``);
+  2. it is on ``auth_user`` (not another table that happens to share the name);
+  3. its expression is exactly ``lower(<column>)``;
+  4. for ``email`` only, its predicate is exactly the not-blank one;
+     for ``username``, it has no predicate at all.
+Comparisons are on a NORMALISED rendering, because PostgreSQL rewrites what it
+was given — ``ON auth_user (lower(username))`` comes back as
+``lower((username)::text)`` — so the normalisation strips casts, punctuation and
+whitespace from BOTH sides.
 
 STATEMENTS ARE A LIST, deliberately. Each entry is executed on its own, so a
-failure names the exact statement that failed and no multi-statement string has
-to be passed through a driver in one call.
+failure names the exact statement that failed.
 
 PREFLIGHT, AND WHY THIS MIGRATION FAILS LOUD
 ``CREATE UNIQUE INDEX`` ERRORS if existing rows already collide. That is
@@ -56,14 +58,8 @@ three outcomes. So the policy is:
   2. RECONCILE — merge or rename the colliding rows. There is no automatic
      reconciliation on purpose: two accounts that differ only in case are two
      real people or one duplicated person, and only a human can tell which.
-     Merging accounts is a destructive, judgement-bearing act; it must not be
-     something a migration does to production unattended.
   3. MIGRATE — apply this migration. If a duplicate was missed it FAILS with
-     PostgreSQL's own error naming the offending value, which is the loudest
-     and most precise signal available.
-
-``email`` is indexed ``WHERE email <> ''`` because blank is the legitimate
-absence of an address, not a value two users may not share.
+     PostgreSQL's own error naming the offending value.
 """
 
 from django.conf import settings
@@ -75,40 +71,63 @@ EMAIL_INDEX = "auth_user_email_lower_uniq"
 USERNAME_COLUMN = "username"
 EMAIL_COLUMN = "email"
 
+#: PostgreSQL's own rendering of our predicates, normalised the same way the
+#: check normalises the candidate. ``''::text`` collapses to nothing and the
+#: casts disappear, hence ``emailisnotnullandemail<>``.
+USERNAME_EXPRESSION = "lowerusername"
+EMAIL_EXPRESSION = "loweremail"
+EMAIL_PREDICATE = "emailisnotnullandemail<>"
 
-def looks_like_ours(definition: str, column: str) -> bool:
-    """Is ``definition`` the lower()-based index this migration builds for ``column``?
-
-    Deliberately NOT a check for ``lower(column)``: PostgreSQL renders the index as
-    ``lower((username)::text)``, so the written form does not appear in its own
-    ``pg_get_indexdef`` output. Requiring ``lower(`` AND the column survives that
-    rendering, and still rejects a plain case-sensitive index on the same column.
-    """
-    return "lower(" in definition and column in definition
+#: Strip casts, then everything that is not a letter, digit or angle bracket.
+#: Applied identically on both sides of the comparison.
+NORMALISE = "regexp_replace(regexp_replace(lower({value}), '::text', '', 'g'), '[^a-z0-9<>]', '', 'g')"
 
 
-def _is_ours_sql(column: str) -> str:
-    """The same decision expressed in SQL, over the ``existing_def`` variable."""
-    return f"(position('lower(' in existing_def) > 0 AND position('{column}' in existing_def) > 0)"
+def normalise(text: str | None) -> str | None:
+    """The same normalisation in Python, so tests compare on identical terms."""
+    if text is None:
+        return None
+    return "".join(
+        ch for ch in text.lower().replace("::text", "") if ch.isalnum() or ch in "<>"
+    )
+
+
+def _ownership_sql(column: str) -> str:
+    """SQL for "the index under this name IS the one this migration builds"."""
+    if column == EMAIL_COLUMN:
+        expression, predicate = EMAIL_EXPRESSION, f"= '{EMAIL_PREDICATE}'"
+    else:
+        expression, predicate = USERNAME_EXPRESSION, "IS NULL"
+    return f"""(
+            i.indisunique
+        AND t.relname = 'auth_user'
+        AND {NORMALISE.format(value="pg_get_expr(i.indexprs, i.indrelid)")} = '{expression}'
+        AND {NORMALISE.format(value="pg_get_expr(i.indpred, i.indrelid)")} {predicate}
+    )"""
+
+
+_LOOKUP = """
+    SELECT {ownership} INTO is_ours
+      FROM pg_index i
+      JOIN pg_class c ON c.oid = i.indexrelid
+      JOIN pg_class t ON t.oid = i.indrelid
+      JOIN pg_namespace n ON n.oid = c.relnamespace
+     WHERE c.relname = '{name}'
+       AND n.nspname = current_schema();
+"""
 
 
 def _drop_if_not_ours(name: str, column: str) -> str:
     """Drop ``name`` only when it exists and is NOT the index we are about to build."""
+    lookup = _LOOKUP.format(ownership=_ownership_sql(column), name=name)
     return f"""
 DO $$
 DECLARE
-    existing_def text;
+    is_ours boolean;
 BEGIN
-    SELECT pg_get_indexdef(c.oid)
-      INTO existing_def
-      FROM pg_class c
-      JOIN pg_namespace n ON n.oid = c.relnamespace
-     WHERE c.relname = '{name}'
-       AND n.nspname = current_schema();
-
-    IF existing_def IS NOT NULL
-       AND NOT {_is_ours_sql(column)} THEN
-        RAISE NOTICE 'replacing same-named but non-matching index {name}: %', existing_def;
+    {lookup}
+    IF is_ours IS FALSE THEN
+        RAISE NOTICE 'replacing index {name}: it exists but is not the unique lower({column}) index on auth_user';
         DROP INDEX {name};
     END IF;
 END $$;
@@ -117,20 +136,14 @@ END $$;
 
 def _drop_only_if_ours(name: str, column: str) -> str:
     """Drop ``name`` only when it IS the index this migration creates."""
+    lookup = _LOOKUP.format(ownership=_ownership_sql(column), name=name)
     return f"""
 DO $$
 DECLARE
-    existing_def text;
+    is_ours boolean;
 BEGIN
-    SELECT pg_get_indexdef(c.oid)
-      INTO existing_def
-      FROM pg_class c
-      JOIN pg_namespace n ON n.oid = c.relnamespace
-     WHERE c.relname = '{name}'
-       AND n.nspname = current_schema();
-
-    IF existing_def IS NOT NULL
-       AND {_is_ours_sql(column)} THEN
+    {lookup}
+    IF is_ours IS TRUE THEN
         DROP INDEX {name};
     END IF;
 END $$;

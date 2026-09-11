@@ -1,20 +1,21 @@
-"""Migration 0009 must not trust an index merely because the NAME matches.
+"""Migration 0009 ownership is decided STRUCTURALLY, not by name or substring.
 
-``CREATE UNIQUE INDEX IF NOT EXISTS`` checks the name only. A preexisting index
-under one of these names with a DIFFERENT definition would therefore make the
-migration report success while the case-insensitive policy it exists to enforce
-was never created — silently unguarded, which is the worst of the outcomes. The
-same care applies in reverse: dropping by name alone could remove an index that
-belongs to something else.
+``CREATE UNIQUE INDEX IF NOT EXISTS`` checks the name only, so a preexisting index
+under one of our names but NOT being our index would make the migration report
+success while the policy was never created — and the reversal would then DELETE AN
+INDEX THAT IS NOT OURS.
+
+An earlier revision matched on a substring of ``pg_get_indexdef`` (``lower(`` plus
+the column name). That accepted exactly the two shapes that matter, and both are
+asserted here in BOTH directions:
+
+  * a same-named NON-UNIQUE index on ``lower(username)`` — the CREATE is skipped
+    and uniqueness stays UNENFORCED while the migration reports success;
+  * the email index with the WRONG PREDICATE — e.g. one that does not exclude
+    blanks, so it does not mean what the migration promises.
 
 These tests drive the migration's OWN statements against the real database, so
-they measure the behaviour rather than the shape of the script. Statements run one
-at a time, exactly as the migration does.
-
-NOTE ON THE ASSERTIONS. They use the migration's own ``looks_like_ours`` rather
-than searching for the written form ``lower(username)``: PostgreSQL renders the
-index as ``lower((username)::text)``, so the written form appears in NEITHER a
-correct nor an incorrect index.
+they measure behaviour rather than the shape of the script.
 """
 
 from __future__ import annotations
@@ -43,7 +44,6 @@ def _run(statements) -> None:
 
 
 def _index_definition(name: str) -> str | None:
-    """The index's real definition, straight from PostgreSQL — or None if absent."""
     with connection.cursor() as cursor:
         cursor.execute(
             """
@@ -59,6 +59,23 @@ def _index_definition(name: str) -> str | None:
         return row[0] if row else None
 
 
+def _is_unique(name: str) -> bool:
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT i.indisunique
+              FROM pg_index i
+              JOIN pg_class c ON c.oid = i.indexrelid
+              JOIN pg_namespace n ON n.oid = c.relnamespace
+             WHERE c.relname = %s
+               AND n.nspname = current_schema()
+            """,
+            [name],
+        )
+        row = cursor.fetchone()
+        return bool(row and row[0])
+
+
 @pytest.fixture(autouse=True)
 def _restore_our_indexes():
     """Leave the database holding the REAL indexes, whatever a test did to it."""
@@ -68,60 +85,85 @@ def _restore_our_indexes():
     _run(mod.CREATE_STATEMENTS)
 
 
-@pytest.mark.django_db(transaction=True)
-def test_the_migration_can_recognise_its_own_index():
-    """Precondition for every guard below: our index IS recognisable as ours.
+# ---------------------------------------------------------------------------
+# The ownership predicate itself.
+# ---------------------------------------------------------------------------
 
-    Without this, a guard that answered "not ours" for everything would make the
-    reversal a silent no-op — which is exactly the bug this pair of guards is
-    meant to prevent, and it is invisible unless asserted directly.
+
+@pytest.mark.django_db(transaction=True)
+def test_the_migration_recognises_its_own_index():
+    """Precondition for every guard: our index IS identifiable as ours.
+
+    A predicate that answered "not ours" for everything would make the reversal a
+    silent no-op and the CREATE path drop an index it had just built — invisible
+    unless asserted directly.
     """
     _exec(f"DROP INDEX IF EXISTS {USERNAME_INDEX}")
     _run(mod.CREATE_STATEMENTS)
 
     definition = _index_definition(USERNAME_INDEX)
     assert definition is not None
-    assert mod.looks_like_ours(definition, mod.USERNAME_COLUMN), (
-        "the migration cannot recognise the index it just created, so every "
-        f"guard built on this predicate is wrong: {definition}"
+    assert _is_unique(USERNAME_INDEX), f"our own index is not unique: {definition}"
+    # The normalisation must agree with PostgreSQL's rendering.
+    assert mod.normalise("lower((username)::text)") == mod.USERNAME_EXPRESSION
+
+
+# ---------------------------------------------------------------------------
+# Forward: a same-named foreign index must be REPLACED.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db(transaction=True)
+def test_a_non_unique_same_named_lower_index_is_replaced():
+    """THE COUNTEREXAMPLE. Non-unique, same expression, same name.
+
+    A substring check calls this "ours", skips the CREATE, and leaves uniqueness
+    UNENFORCED while the migration reports success.
+    """
+    _exec(f"DROP INDEX IF EXISTS {USERNAME_INDEX}")
+    _exec(f"CREATE INDEX {USERNAME_INDEX} ON auth_user (lower(username))")
+    assert not _is_unique(USERNAME_INDEX), "precondition: the decoy must be non-unique"
+
+    _run(mod.CREATE_STATEMENTS)
+
+    assert _is_unique(USERNAME_INDEX), (
+        "a non-unique same-named index on lower(username) was ACCEPTED as ours, so "
+        "CREATE ... IF NOT EXISTS skipped and the case-insensitive uniqueness "
+        "policy is silently unenforced"
     )
 
 
 @pytest.mark.django_db(transaction=True)
-def test_a_preexisting_same_named_wrong_index_is_replaced_not_trusted():
-    """A name matching must not be mistaken for a definition matching."""
+def test_a_wrong_predicate_email_index_is_replaced():
+    """THE OTHER COUNTEREXAMPLE. Unique and on lower(email), but the wrong predicate.
+
+    ``WHERE email IS NOT NULL`` only — it does not exclude blanks, so it does not
+    mean what this migration promises.
+    """
+    _exec(f"DROP INDEX IF EXISTS {EMAIL_INDEX}")
+    _exec(
+        f"CREATE UNIQUE INDEX {EMAIL_INDEX} ON auth_user (lower(email)) "
+        "WHERE email IS NOT NULL"
+    )
+
+    _run(mod.CREATE_STATEMENTS)
+
+    definition = _index_definition(EMAIL_INDEX)
+    assert definition is not None and "<>" in definition, (
+        "a same-named email index with the WRONG PREDICATE was accepted as ours, "
+        f"so the blank-excluding uniqueness policy was never created: {definition}"
+    )
+
+
+@pytest.mark.django_db(transaction=True)
+def test_a_plain_case_sensitive_index_is_still_replaced():
+    """The original decoy, kept: no lower() at all."""
     _exec(f"DROP INDEX IF EXISTS {USERNAME_INDEX}")
-    # A same-named index with the WRONG definition: case-SENSITIVE, not unique.
     _exec(f"CREATE INDEX {USERNAME_INDEX} ON auth_user (username)")
 
-    before = _index_definition(USERNAME_INDEX)
-    assert before is not None and not mod.looks_like_ours(
-        before, mod.USERNAME_COLUMN
-    ), f"precondition not established, got: {before}"
-
     _run(mod.CREATE_STATEMENTS)
 
-    after = _index_definition(USERNAME_INDEX)
-    assert after is not None, "the migration left no index at all"
-    assert mod.looks_like_ours(after, mod.USERNAME_COLUMN), (
-        "the preexisting same-named index was TRUSTED and the CREATE skipped, so "
-        f"the case-insensitive policy is silently unenforced: {after}"
-    )
-    assert "UNIQUE" in after.upper(), f"the replacement is not UNIQUE: {after}"
-
-
-@pytest.mark.django_db(transaction=True)
-def test_the_email_index_is_also_replaced_when_the_name_is_taken():
-    """Same guarantee for the second index — the fix must be a class, not one site."""
-    _exec(f"DROP INDEX IF EXISTS {EMAIL_INDEX}")
-    _exec(f"CREATE INDEX {EMAIL_INDEX} ON auth_user (email)")
-
-    _run(mod.CREATE_STATEMENTS)
-
-    after = _index_definition(EMAIL_INDEX)
-    assert after is not None and mod.looks_like_ours(after, mod.EMAIL_COLUMN), (
-        f"the email index was skipped because its name was taken: {after}"
-    )
+    assert _is_unique(USERNAME_INDEX)
 
 
 @pytest.mark.django_db(transaction=True)
@@ -134,9 +176,14 @@ def test_our_own_index_survives_a_rerun():
     _run(mod.CREATE_STATEMENTS)
 
     assert _index_definition(USERNAME_INDEX) == first, (
-        "a second run did not recognise our own index — the guard is wrong and "
-        "the reverse would be a no-op too"
+        "a second run did not recognise our own index — then the reverse would be "
+        "a no-op too"
     )
+
+
+# ---------------------------------------------------------------------------
+# Reverse: a same-named foreign index must SURVIVE.
+# ---------------------------------------------------------------------------
 
 
 @pytest.mark.django_db(transaction=True)
@@ -148,29 +195,54 @@ def test_reverse_removes_the_index_this_migration_created():
     _run(mod.DROP_STATEMENTS)
 
     assert _index_definition(USERNAME_INDEX) is None, (
-        "the reverse migration left our index behind — the 'is it ours' predicate "
-        "does not match the definition PostgreSQL actually renders"
+        "the reverse left our index behind — the ownership predicate does not "
+        "match the definition PostgreSQL actually renders"
     )
     assert _index_definition(EMAIL_INDEX) is None
 
 
 @pytest.mark.django_db(transaction=True)
-def test_reverse_does_not_drop_a_same_named_index_that_is_not_ours():
-    """CONTROL — reversing must not remove a stranger's index.
+def test_reverse_does_not_drop_a_non_unique_same_named_lower_index():
+    """CONTROL for the counterexample: a name is not ownership, even with lower().
 
-    Without this direction, a reverse that unconditionally ran ``DROP INDEX
-    IF EXISTS`` would pass the test above while quietly deleting an unrelated
-    index that happened to share the name.
+    This is the direction that matters most, because the failure is destructive:
+    reversing would DELETE an index the migration never created.
     """
     _exec(f"DROP INDEX IF EXISTS {USERNAME_INDEX}")
-    _exec(f"CREATE INDEX {USERNAME_INDEX} ON auth_user (username)")
-    assert _index_definition(USERNAME_INDEX) is not None
+    _exec(f"CREATE INDEX {USERNAME_INDEX} ON auth_user (lower(username))")
 
     _run(mod.DROP_STATEMENTS)
 
-    survivor = _index_definition(USERNAME_INDEX)
-    assert survivor is not None, (
-        "the reverse migration dropped an index that was NOT created by this "
-        "migration — a name is not ownership"
+    assert _index_definition(USERNAME_INDEX) is not None, (
+        "the reverse DELETED a same-named, non-unique index that this migration "
+        "never created"
     )
-    assert not mod.looks_like_ours(survivor, mod.USERNAME_COLUMN)
+    assert not _is_unique(USERNAME_INDEX), "the decoy was altered, not just kept"
+
+
+@pytest.mark.django_db(transaction=True)
+def test_reverse_does_not_drop_a_wrong_predicate_email_index():
+    """CONTROL: the email guard must also reject a wrong-predicate index."""
+    _exec(f"DROP INDEX IF EXISTS {EMAIL_INDEX}")
+    _exec(
+        f"CREATE UNIQUE INDEX {EMAIL_INDEX} ON auth_user (lower(email)) "
+        "WHERE email IS NOT NULL"
+    )
+
+    _run(mod.DROP_STATEMENTS)
+
+    assert _index_definition(EMAIL_INDEX) is not None, (
+        "the reverse DELETED a same-named email index whose predicate is not the "
+        "one this migration creates"
+    )
+
+
+@pytest.mark.django_db(transaction=True)
+def test_reverse_does_not_drop_a_plain_same_named_index():
+    """CONTROL: the original, simplest foreign index is left alone too."""
+    _exec(f"DROP INDEX IF EXISTS {USERNAME_INDEX}")
+    _exec(f"CREATE INDEX {USERNAME_INDEX} ON auth_user (username)")
+
+    _run(mod.DROP_STATEMENTS)
+
+    assert _index_definition(USERNAME_INDEX) is not None
