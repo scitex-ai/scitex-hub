@@ -256,6 +256,22 @@ jobs:
           set -euo pipefail
 
           python manage.py migrate --run-syncdb
+          # COLLECTSTATIC IS REQUIRED BY DEBUG=0, and this is the second time the
+          # same shape has bitten this job: the flip to production-mode removes
+          # static serving that DEBUG was providing implicitly.
+          # MEASURED on this PR's run (job 103099211496, 2026-09-11): the capture
+          # RAN and failed with 21 browser errors, every one of them
+          #     "Refused to apply style from /static/public_app/css/landing/*.css
+          #      because its MIME type ('text/html') is not a supported stylesheet
+          #      MIME type"
+          # — i.e. the CSS URLs answered HTML. With DEBUG=1 django.contrib.staticfiles
+          # serves /static/ from the FINDERS. With DEBUG=0 that path is gone and
+          # WhiteNoise serves STATIC_ROOT instead; the workflow stages the built
+          # bundle into static/vite (a FINDER path, for the DEBUG case) and never
+          # ran collectstatic, so STATIC_ROOT held only what vite wrote and every
+          # app stylesheet fell through to the URLconf's catch-all and came back
+          # as HTML.
+          python manage.py collectstatic --noinput
 
           # The capture runs as a POOLED VISITOR, never a real account, so
           # the artifact can never contain someone's private project,

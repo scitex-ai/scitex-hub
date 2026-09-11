@@ -230,6 +230,29 @@ class TestTheAcceptanceWorkflowDeclaresProduction:
                 f"step. Env seen: {sorted(env)}"
             )
 
+    def test_the_debug_off_capture_builds_the_static_root(self):
+        """DEBUG=0 serves static from STATIC_ROOT, so it must be built.
+
+        MEASURED on this PR's second run (job 103099211496, 2026-09-11): the
+        capture RAN and failed with 21 browser errors, every one
+
+            Refused to apply style from /static/public_app/css/landing/*.css
+            because its MIME type ('text/html') is not a supported stylesheet
+            MIME type
+
+        — the CSS URLs answered HTML, because the DEBUG=1 finder path is gone at
+        DEBUG=0, WhiteNoise falls back to STATIC_ROOT, and nothing had run
+        collectstatic. Second instance of the same shape (the first was the
+        operator mail rail needing an EMAIL_BACKEND): production-mode removes
+        something DEBUG was supplying implicitly.
+        """
+        run = self._run_of("Migrate & start server")
+        assert "collectstatic" in run, (
+            "the DEBUG=0 capture never builds STATIC_ROOT, so every app "
+            "stylesheet 404s into the catch-all and returns HTML under a "
+            f".css URL. Add collectstatic before the server starts:\n{run[:400]}"
+        )
+
     @classmethod
     def _env_of(cls, fragment: str) -> dict:
         for step in cls._steps():
