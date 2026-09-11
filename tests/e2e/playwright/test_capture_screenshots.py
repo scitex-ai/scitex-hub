@@ -186,6 +186,18 @@ FORCE_LIGHT = """
 """
 
 
+def navigate_product_page(page, route):
+    """Navigate without waiting for unrelated subresources to finish loading.
+
+    Product readiness is asserted separately by ``wait_for_page_ready``. Waiting
+    for Playwright's default ``load`` event made one stalled optional resource
+    poison the shared capture page: the first timeout was followed by a
+    30-second timeout for nearly every remaining assertion, even though the
+    server continued answering and 37 checks had already passed.
+    """
+    return page.goto(route, wait_until="domcontentloaded")
+
+
 @pytest.fixture(scope="session")
 def measured_content(pooled_visitor_page, content_report):
     """Measure a route's content ONCE, and let every check read that read.
@@ -211,7 +223,7 @@ def measured_content(pooled_visitor_page, content_report):
             # Reset immediately BEFORE the navigation, so what is collected
             # belongs to this route and not to the tail of the last one.
             browser_problems.reset()
-            page.goto(route)
+            navigate_product_page(page, route)
             wait_for_page_ready(
                 page, hydration_signal=route not in ROUTES_WITHOUT_GLOBAL_BASE
             )
@@ -237,7 +249,7 @@ class TestProductScreenshots:
         page = pooled_visitor_page
 
         # Act
-        response = page.goto(route)
+        response = navigate_product_page(page, route)
 
         # Assert — a redirect is fine (sign-in walls, canonical paths);
         # a server error is not, and is what this is here to catch.
@@ -263,10 +275,10 @@ class TestProductScreenshots:
         # Arrange
         page = pooled_visitor_page
         carries_marker = route not in ROUTES_WITHOUT_GLOBAL_BASE
-        page.goto(route)
+        navigate_product_page(page, route)
         wait_for_page_ready(page, hydration_signal=carries_marker)
         if not carries_marker:
-            page.goto(VISITOR_WARMUP_ROUTE)
+            navigate_product_page(page, VISITOR_WARMUP_ROUTE)
             wait_for_page_ready(page)
 
         # Act
@@ -280,7 +292,7 @@ class TestProductScreenshots:
     ):
         # Arrange
         page = pooled_visitor_page
-        page.goto(route)
+        navigate_product_page(page, route)
         # Wait for the product's own hydration signal, not `load` and not
         # `networkidle` — see tests/e2e/playwright/page_ready.py. These pages
         # hydrate after load, and photographing them too early captures empty
