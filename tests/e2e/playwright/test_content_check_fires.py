@@ -441,7 +441,7 @@ def test_product_navigation_returns_at_response_commit():
     assert response == "response"
     assert page.call == (
         "/apps/figrecipe/",
-        {"wait_until": "commit"},
+        {"wait_until": "commit", "timeout": 15_000},
     )
 
 

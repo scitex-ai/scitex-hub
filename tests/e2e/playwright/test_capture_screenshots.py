@@ -195,7 +195,7 @@ def navigate_product_page(page, route):
     subresource graph. The hard hydration, content, and image checks still run
     before accepting or photographing the page.
     """
-    return page.goto(route, wait_until="commit")
+    return page.goto(route, wait_until="commit", timeout=15_000)
 
 
 @pytest.fixture(scope="session")

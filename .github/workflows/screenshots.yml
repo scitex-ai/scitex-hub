@@ -326,11 +326,11 @@ jobs:
           # watched fail is not a gate, and "the assertions got stricter"
           # is not evidence: the assertions they replaced were also green
           # while photographing a blank FigRecipe.
-          python -m pytest \
+          timeout --signal=TERM --kill-after=30s 12m python -m pytest \
             tests/e2e/playwright/test_content_check_fires.py \
             tests/e2e/playwright/test_capture_screenshots.py \
             --browser chromium \
-            -v --tb=short -rs -o "addopts=" --timeout=120
+            -v --tb=short -rs -o "addopts=" --timeout=120 --maxfail=1
 
       - name: Content report
         # ALWAYS, like the artifact upload. On a green run this is the only
