@@ -247,6 +247,7 @@ def test_signup_with_the_checkbox_records_consent_for_every_document():
     # test's subject; the record is.)
     user = User.objects.filter(username="with-consent-user").first()
     assert user is not None, "signup did not create the account"
-    stored = {r.document: r.content_hash for r in TermsConsent.objects.filter(user=user)}
+    stored = {
+        r.document: r.content_hash for r in TermsConsent.objects.filter(user=user)
+    }
     assert stored == consent.current_document_hashes()
-
