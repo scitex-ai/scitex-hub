@@ -155,9 +155,9 @@
             </table>
         </div>
         <div class="pricing-notes">
-            {% if tax_note %}<p class="pricing-note">{{ tax_note }}</p>{% endif %}
+            {% if tax_note %}<p class="pricing-note">{{ tax_note|translate_dynamic }}</p>{% endif %}
             {% for note in pricing_notes %}
-            <p class="pricing-note">{{ note }}</p>
+            <p class="pricing-note">{{ note|translate_dynamic }}</p>
             {% endfor %}
         </div>
     </div>

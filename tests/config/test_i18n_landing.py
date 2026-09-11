@@ -42,7 +42,7 @@ from pathlib import Path
 import pytest
 from django.conf import settings
 from django.template.loader import render_to_string
-from django.test import RequestFactory
+from django.test import Client, RequestFactory
 from django.urls import NoReverseMatch, reverse
 from django.utils import translation
 
@@ -530,3 +530,55 @@ def test_no_raw_multiline_django_comments_in_header_partial():
         f"multi-line raw {{# #}} comment(s) would render verbatim: "
         f"{[f'lines {a}-{b}' for a, b in offenders]}"
     )
+
+
+# ---------------------------------------------------------------------------
+# The rendered pricing page is fully localized in BOTH directions.
+#
+# This is the assertion class the 66 pricing/SSOT tests could not catch: they
+# check pricing.py's output (already translated) and the template label (a real
+# JA msgid), but never the RENDERED PAGE. The bug they missed (found 2026-09-11
+# via a live switch-click) was a DOUBLE translation: pricing.py localizes
+# price/price_note/included at call time, and landing_pricing.html applied
+# |translate_dynamic to those already-JA strings again. The JA catalog has no
+# JA msgids, so Django fell back to the en catalog's stale develop-era reverse
+# mappings (msgid "月額 1,490円" -> "¥1,490/month") and reverted them to English
+# on the Japanese page. The rendered-page check below fails if that regresses.
+# ---------------------------------------------------------------------------
+def _landing(client_cookie=None):
+    from django.test import Client
+
+    c = Client()
+    if client_cookie:
+        c.cookies["django_language"] = client_cookie
+    return c.get(
+        "/landing/", HTTP_ACCEPT_LANGUAGE="ja-JP,ja;q=0.9,en;q=0.5"
+    ).content.decode("utf-8", "replace")
+
+
+def test_landing_pricing_renders_fully_english_by_default():
+    html = _landing()
+    # lang + EN price format (call-time gettext) + EN included + EN tax note
+    assert '<html lang="en"' in html
+    assert "Monthly ¥1,490" in html
+    assert "Sub · Academic" in html
+    assert "Traffic within normal use" in html
+    assert "All displayed prices include tax" in html
+    # NO Japanese data leaks into the English default
+    for ja in ("サブスク・学術", "月額 1,490円", "通常利用の範囲の通信", "表示価格はすべて税込"):
+        assert ja not in html, f"Japanese {ja!r} leaked into the English default landing"
+
+
+def test_landing_pricing_renders_fully_japanese_when_selected():
+    html = _landing(client_cookie="ja")
+    # lang + JA price (call-time) + JA included + JA tax note + JA price_note date
+    assert '<html lang="ja"' in html
+    assert "月額 1,490円" in html
+    assert "サブスク・学術" in html
+    assert "通常利用の範囲の通信" in html
+    assert "超過分は従量課金" in html
+    assert "表示価格はすべて税込" in html
+    assert "2027年7月末までの早期導入価格" in html
+    # NO English data (neither the new EN format nor the OLD en-callback format)
+    for en in ("Monthly ¥1,490", "¥1,490/month", "Traffic within normal use", "All displayed prices"):
+        assert en not in html, f"English {en!r} leaked into the Japanese landing"

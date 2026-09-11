@@ -680,3 +680,26 @@ msgstr "研究・アプリ開発等。個別見積。"
 
 msgid "Technical and research consulting. Billed by the hour, first 30 minutes free. Zoom or in-person."
 msgstr "技術・研究相談。時間に応じて課金（最初の30分は無料）。Zoomまたは対面。"
+
+# SSOT raw fields EN-sourced 2026-09-11 (pricing i18n)
+msgid "All displayed prices include tax."
+msgstr "表示価格はすべて税込(総額)です。"
+
+msgid "Move existing analyses and drafts into SciTeX format. Quoted per engagement; we accept orders from one. Anyone can request."
+msgstr "既存の解析・原稿を SciTeX 形式に移す。規模により個別見積だが、1 件から受け付ける。誰でも依頼できる。"
+
+msgid "Reproduction and verification runs (SciTeX-format compatible). Compute costs are billed separately by usage. We accept orders from one. Anyone can request."
+msgstr "再現・検証実行（SciTeX 形式に対応）。計算資源費等は別途従量。1 件から受け付ける。誰でも依頼できる。"
+
+msgid "External software, hardware, cloud, and generative-AI API costs are generally charged at cost."
+msgstr "ソフトウェア、ハードウェア、クラウド、生成 AI API 等の外部利用料は原則実費です。"
+
+msgid "We prioritize configurations that reuse your existing contracts and compute resources."
+msgstr "お客様自身の既存契約や計算資源を、そのまま利用できる構成を優先します。"
+
+msgid "SciTeX Cloud usage-based pricing will be published on a separate page once rates are finalized."
+msgstr "SciTeX Cloud の従量課金は、料金確定後に別ページでご案内します。"
+
+msgid "These prices are indicative. Contact us to adjust them to your budget and circumstances."
+msgstr "上記はいずれも目安です。ご予算や状況に合わせて調整できますので、気楽にご相談ください。"
+

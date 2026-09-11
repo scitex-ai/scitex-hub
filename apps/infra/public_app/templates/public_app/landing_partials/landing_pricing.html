@@ -17,13 +17,13 @@
             <div class="pricing-card">
                 <div class="pricing-header">
                     <h3 class="plan-name">{{ row.label|translate_dynamic }}</h3>
-                    <p class="pricing-price">{{ row.price|translate_dynamic }}{% if row.price_note %}<span class="period">{{ row.price_note|translate_dynamic }}</span>{% endif %}</p>
+                    <p class="pricing-price">{{ row.price }}{% if row.price_note %}<span class="period">{{ row.price_note }}</span>{% endif %}</p>
                 </div>
                 {% if row.included %}
                 <div class="pricing-features">
                     <ul>
                         {% for item in row.included %}
-                        <li>{{ item|translate_dynamic }}</li>
+                        <li>{{ item }}</li>
                         {% endfor %}
                     </ul>
                 </div>

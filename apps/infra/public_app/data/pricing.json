@@ -3,7 +3,7 @@
   "_amount_is_the_only_truth": "Store the NUMBER, never a formatted string. Rendering derives '無料' from amount 0, the '〜' suffix from from_price, the '月額' prefix from unit, and — for a row with `policy` — the selling price from `amount` (always the LIST price, as upstream's list_amount) and the active window in pricing_policies. Never write the discounted number here: 1,490 is 2,980 × 50%, and storing both is two representations of one fact, which is the duplication this file exists to remove.",
   "currency": "JPY",
   "tax_included": true,
-  "tax_note": "表示価格はすべて税込(総額)です。",
+  "tax_note": "All displayed prices include tax.",
   "updated": "2026-09-03",
   "_published_prices_are_the_tokushoho_list": "The price list the 特定商取引法 page publishes, and the ONLY list it publishes. Operator decision 2026-09-03, relayed by business. UPSTREAM: github.com/ywatanabe1989/scitex-business, scitex-kk/config/business.yaml (the BUSINESS repo — not scitex-ai/scitex-business, which is the engine package; same name, two orgs). Every row here was checked against that file on 2026-09-02: id, label, amount, interval, available_from. All amounts tax-INCLUDED, operator ruling 2026-09-03: 「税込みとしてだしましょう」. THE PUBLICATION RULE IS business.yaml's, verbatim, so an export can replace this hand-copy without changing what the page shows: a row is published iff `available_from` (YYYY-MM) is SET and <= the current month. No available_from = not for sale at a list price (business.yaml's 18 usage-billed rows — API, storage, compute, traffic — have none and are permanently excluded). A future month = in the catalogue, off the page, appears on its month with no code change — so a deploy is still the human gate on what a legal page says; the derivation is automatic, the publication is a diff someone reads. `status` is NOT a gate: all 26 upstream rows are `draft`, including the six on the page by decision. Labels follow the SSoT exactly (コンサル, not コンサルティング) because a hand-maintained exception on the page would be overwritten by the first mechanical export.",
   "published_prices": [
@@ -107,7 +107,7 @@
       "unit": "per_case",
       "available_from": "2027-08",
       "category": "service",
-      "description": "既存の解析・原稿を SciTeX 形式に移す。規模により個別見積だが、1 件から受け付ける。誰でも依頼できる。"
+      "description": "Move existing analyses and drafts into SciTeX format. Quoted per engagement; we accept orders from one. Anyone can request."
     },
     {
       "id": "clew-verification",
@@ -116,15 +116,15 @@
       "unit": "per_case",
       "available_from": "2027-08",
       "category": "service",
-      "description": "再現・検証実行（SciTeX 形式に対応）。計算資源費等は別途従量。1 件から受け付ける。誰でも依頼できる。"
+      "description": "Reproduction and verification runs (SciTeX-format compatible). Compute costs are billed separately by usage. We accept orders from one. Anyone can request."
     }
   ],
   "_notes_are_verbatim": "The first three are the exact lines /services/ published before this file existed, copied character-for-character so migrating the template changes nothing visible. The fourth is NEW, added at the operator's request 2026-08-01:「目安ですので気楽にご相談ください、と書いておくと良いかもですね」— with bands as wide as 55,000〜220,000, a reader with no invitation to ask simply leaves.",
   "notes": [
-    "ソフトウェア、ハードウェア、クラウド、生成 AI API 等の外部利用料は原則実費です。",
-    "お客様自身の既存契約や計算資源を、そのまま利用できる構成を優先します。",
-    "SciTeX Cloud の従量課金は、料金確定後に別ページでご案内します。",
-    "上記はいずれも目安です。ご予算や状況に合わせて調整できますので、気楽にご相談ください。"
+    "External software, hardware, cloud, and generative-AI API costs are generally charged at cost.",
+    "We prioritize configurations that reuse your existing contracts and compute resources.",
+    "SciTeX Cloud usage-based pricing will be published on a separate page once rates are finalized.",
+    "These prices are indicative. Contact us to adjust them to your budget and circumstances."
   ],
   "_provenance": {
     "note": "HISTORY, not a price list. The 2024 invoices below anchored the consulting bands that this file carried until 2026-09-02 (see _consulting_bands_retired_2026_09_02). They are kept so the origin of those numbers is not lost; nothing renders from them.",
