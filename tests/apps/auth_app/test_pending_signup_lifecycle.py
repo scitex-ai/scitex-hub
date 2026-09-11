@@ -45,10 +45,20 @@ SIGNUP_FIELDS = {
 
 
 def _pending(email="pending_probe@example.com", username="pending_probe", age=None):
-    """A disposable PENDING signup (inactive, unverified)."""
+    """A disposable PENDING signup: inactive AND with pending EVIDENCE.
+
+    The EmailVerification row is not decoration. PR #775's fourth review made an
+    unverified verification row the DEFINITION of a pending signup, so a fixture
+    with only is_active=False is an inactive non-pending account — which is the
+    state the resume path must refuse. Omitting it here would have quietly
+    turned every resume assertion below into a collision assertion.
+    """
+    from apps.infra.auth_app.models import EmailVerification
+
     user = User.objects.create_user(
         username=username, email=email, password="Gx7-quiet-harbour-42", is_active=False
     )
+    EmailVerification.objects.create(user=user, email=email)
     if age is not None:
         # date_joined is auto_now_add: must be moved with an UPDATE.
         User.objects.filter(pk=user.pk).update(date_joined=timezone.now() - age)

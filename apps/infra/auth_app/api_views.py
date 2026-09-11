@@ -203,7 +203,9 @@ def resend_otp_api(request):
     The code is bound to the ROW's own address (``user.email``), never to the
     submitted string, so this endpoint cannot be aimed at a third party either.
     """
-    from apps.infra.auth_app.pending_signup import record_resend, resend_allowed
+    from django.db import transaction
+
+    from apps.infra.auth_app.pending_signup import consume_resend_budget
 
     try:
         data = json.loads(request.body)
@@ -214,38 +216,49 @@ def resend_otp_api(request):
                 {"success": False, "error": "Email is required."}, status=400
             )
 
-        # Spend the budget FIRST, before any lookup.
-        if not resend_allowed(email):
+        # Spend the budget ATOMICALLY, before any lookup.
+        if not consume_resend_budget(email):
             return JsonResponse(_RESEND_RESPONSE, status=200)
-        record_resend(email)
 
         user = User.objects.filter(email__iexact=email, is_active=False).first()
         if user is None:
             return JsonResponse(_RESEND_RESPONSE, status=200)
 
-        # Rotate: a fresh code invalidates the previous one, which is what
-        # asking for a new one means.
-        EmailVerification.objects.filter(
-            email__iexact=user.email, is_verified=False
-        ).delete()
+        # DELIVERY FIRST, RETIRE SECOND (PR #775 fourth review). The old order
+        # retired the outstanding code and THEN minted a replacement, so a send
+        # failure left the user with NO working code: the failure mode of the
+        # recovery path was to make recovery impossible. The previous code is
+        # now retired only once the replacement has actually been delivered.
+        with transaction.atomic():
+            locked = User.objects.select_for_update().filter(pk=user.pk).first()
+            if locked is None:
+                return JsonResponse(_RESEND_RESPONSE, status=200)
 
-        verification = EmailVerification.objects.create(
-            user=user,
-            email=user.email,
-        )
-
-        try:
-            success, message = EmailService.send_otp_email(
-                email=user.email,
-                otp_code=verification.code,
-                verification_type="signup",
+            verification = EmailVerification.objects.create(
+                user=locked,
+                email=locked.email,
             )
+
+            try:
+                success, message = EmailService.send_otp_email(
+                    email=locked.email,
+                    otp_code=verification.code,
+                    verification_type="signup",
+                )
+            except Exception as e:
+                success, message = False, str(e)
+
             if not success:
+                # Roll the mint back and KEEP the code that already worked.
                 logger.error(f"Failed to resend verification email: {message}")
-        except Exception as e:
-            # Sent or not, the caller is told the same thing: the send outcome
-            # must not be readable by someone who does not own the inbox.
-            logger.error(f"Error resending verification email: {str(e)}")
+                verification.delete()
+                return JsonResponse(_RESEND_RESPONSE, status=200)
+
+            # Delivered: only now retire the codes it supersedes.
+            EmailVerification.objects.filter(
+                email__iexact=locked.email, is_verified=False
+            ).exclude(pk=verification.pk).delete()
+
         return JsonResponse(_RESEND_RESPONSE, status=200)
 
     except json.JSONDecodeError:

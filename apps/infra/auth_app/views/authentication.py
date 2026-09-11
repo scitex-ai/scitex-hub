@@ -100,8 +100,7 @@ def signup(request):
             from ..pending_signup import (
                 SignupCollision,
                 classify_and_reclaim,
-                record_resend,
-                resend_allowed,
+                consume_resend_budget,
                 resend_budget_message,
             )
 
@@ -127,10 +126,11 @@ def signup(request):
             elif collision is SignupCollision.PENDING_LIVE:
                 # I2/I5: inside the window the account stands; the only useful
                 # action is another code, and that is rate limited per address.
-                if not resend_allowed(email):
+                # ATOMIC spend (PR #775 fourth review): check-then-record let
+                # two parallel requests both pass the check and both send.
+                if not consume_resend_budget(email):
                     messages.warning(request, resend_budget_message())
                     return render(request, "auth_app/signup.html", {"form": form})
-                record_resend(email)
                 _send_pending_signup_code(request, existing_user, email, logger)
                 messages.info(request, _SIGNUP_RESPONSE_MESSAGE)
                 from django.urls import reverse

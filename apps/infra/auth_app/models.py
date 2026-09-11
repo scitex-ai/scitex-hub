@@ -250,10 +250,18 @@ class EmailVerification(models.Model):
         — which is itself rate limited. This is what turns "unlimited guesses
         for ten minutes" into five.
         """
-        self.attempts = (self.attempts or 0) + 1
-        if self.attempts >= MAX_CODE_ATTEMPTS:
-            self.expires_at = timezone.now()
-        self.save(update_fields=["attempts", "expires_at"])
+        # ATOMIC INCREMENT (PR #775 fourth review). Read-modify-write is a
+        # lost-update: N parallel guesses each read the same value, each write
+        # that value + 1, and the cap is never reached. F() makes the increment
+        # the DATABASE's arithmetic, so every guess counts.
+        from django.db.models import F
+
+        type(self).objects.filter(pk=self.pk).update(attempts=F("attempts") + 1)
+        self.refresh_from_db(fields=["attempts", "expires_at"])
+
+        if self.attempts >= MAX_CODE_ATTEMPTS and not self.is_expired():
+            type(self).objects.filter(pk=self.pk).update(expires_at=timezone.now())
+            self.refresh_from_db(fields=["expires_at"])
         return self.attempts >= MAX_CODE_ATTEMPTS
 
     def verify(self):

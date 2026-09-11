@@ -96,23 +96,41 @@ class SignupCollision(enum.Enum):
     INACTIVE_NOT_PENDING = "inactive_not_pending"
 
 
-def has_pending_evidence(user) -> bool:
-    """Whether this row actually has a pending signup behind it.
+def has_pending_evidence(user, email: str = "") -> bool:
+    """Whether this row has a CURRENT pending signup behind it.
 
     ``is_active=False`` alone does NOT prove that. An administrator disabling an
     account, a deactivation for abuse, or any future non-signup use of the flag
     all produce inactive rows with no signup behind them — and
     :func:`classify_and_reclaim` DELETES on the expired branch. Requiring an
     unverified ``EmailVerification`` is what separates "waiting to verify" from
-    "inactive for some other reason", and it is the difference between
-    reclaiming an abandoned signup and destroying somebody's account.
+    "inactive for some other reason".
+
+    PR #775 fourth review tightened what counts as evidence; ANY unverified row
+    was too weak in two ways:
+
+    * **A verified row anywhere in the history disqualifies the account.** An
+      ACTIVE user whose stale unverified rows linger — the exact shape of the
+      live account this slice started from — would otherwise classify as
+      pending, and an admin disabling that account later would make it
+      REACHABLE BY THE DELETE BRANCH. Owning the address once is evidence of
+      having been a real account, not of being an unfinished signup.
+    * **The evidence must be for the SAME address being resumed.** An unverified
+      row for some other address says nothing about the signup in front of us;
+      it is a historical artefact, not proof.
 
     Kept as a module-level function (rather than inlined) so the tests that run
     without a database can substitute it.
     """
     from .models import EmailVerification
 
-    return EmailVerification.objects.filter(user=user, is_verified=False).exists()
+    if EmailVerification.objects.filter(user=user, is_verified=True).exists():
+        return False
+
+    pending = EmailVerification.objects.filter(user=user, is_verified=False)
+    if email:
+        pending = pending.filter(email__iexact=email.strip())
+    return pending.exists()
 
 
 def _by_email(email: str):
@@ -180,7 +198,7 @@ def classify_pending_signup(
         # proof of a pending signup: an administrator-disabled account is
         # inactive too, and the expired branch DELETES. No pending verification,
         # no pending signup — so this row is off-limits to the resume path.
-        if not has_pending_evidence(user):
+        if not has_pending_evidence(user, email):
             return SignupCollision.INACTIVE_NOT_PENDING, None
         if pending_age(user) > PENDING_SIGNUP_WINDOW:
             return SignupCollision.PENDING_EXPIRED, user
@@ -225,7 +243,7 @@ def classify_and_reclaim(email: str, username: str = ""):
             return SignupCollision.NONE, None
 
         # REVALIDATE, do not trust the snapshot above.
-        if locked.is_active or not has_pending_evidence(locked):
+        if locked.is_active or not has_pending_evidence(locked, email):
             # It became a real account (or was never a signup) while we looked.
             return SignupCollision.INACTIVE_NOT_PENDING, None
         if pending_age(locked) <= PENDING_SIGNUP_WINDOW:
@@ -257,6 +275,31 @@ def record_resend(email: str) -> None:
     key = _rl_key(email)
     used = int(cache.get(key, 0)) + 1
     cache.set(key, used, timeout=int(PENDING_SIGNUP_WINDOW.total_seconds()))
+
+
+def consume_resend_budget(email: str) -> bool:
+    """Spend one resend ATOMICALLY and report whether it was allowed.
+
+    PR #775 fourth review. ``resend_allowed()`` then ``record_resend()`` is a
+    check-then-act: two parallel requests both see room, both increment, and the
+    cap is bypassed — a mail-bomb is exactly the workload that runs in parallel.
+    ``cache.add`` followed by ``cache.incr`` is one atomic step per caller, so
+    the Nth caller is the one refused rather than all of them racing.
+
+    This is the function the request paths use. ``resend_allowed`` remains for
+    read-only reporting.
+    """
+    key = _rl_key(email)
+    window = int(PENDING_SIGNUP_WINDOW.total_seconds())
+    if cache.add(key, 1, timeout=window):
+        return True  # counter created AND spent in one step
+    try:
+        used = cache.incr(key)
+    except ValueError:
+        # The key expired between add and incr: start a fresh window.
+        cache.set(key, 1, timeout=window)
+        return True
+    return used <= RESENDS_ALLOWED_PER_WINDOW
 
 
 def clear_resend_budget(email: str) -> None:

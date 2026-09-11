@@ -46,7 +46,8 @@ def _stub(monkeypatch, *, by_email=None, by_username=None, evidence=True):
     """
     monkeypatch.setattr(ps, "_by_email", lambda _email: by_email)
     monkeypatch.setattr(ps, "_by_username", lambda _username: by_username)
-    monkeypatch.setattr(ps, "has_pending_evidence", lambda _user: evidence)
+    # Two parameters: the check is about the submitted ADDRESS, not just the row.
+    monkeypatch.setattr(ps, "has_pending_evidence", lambda _user, _email="": evidence)
 
 
 # ---------------------------------------------------------------------------
@@ -390,6 +391,116 @@ def test_the_reclaim_service_locks_AND_revalidates():
     # Act / Assert
     assert "select_for_update" in body
     assert "transaction.atomic" in body
-    assert "has_pending_evidence(locked)" in body
+    assert "has_pending_evidence(locked, email)" in body
     assert "locked.is_active" in body
     assert "locked.delete()" in body
+
+
+# ---------------------------------------------------------------------------
+# PR #775 fourth review: tighter evidence, atomic counters.
+# ---------------------------------------------------------------------------
+
+
+def test_the_budget_is_spent_atomically():
+    """check-then-record let two parallel callers both pass; cache.add then
+    cache.incr is one atomic step per caller, so exactly the cap gets through."""
+    # Arrange
+    from django.core.cache import cache
+
+    cache.clear()
+    email = "atomic_probe@example.com"
+
+    # Act — more callers than the cap allows.
+    results = [
+        ps.consume_resend_budget(email)
+        for _ in range(ps.RESENDS_ALLOWED_PER_WINDOW + 3)
+    ]
+
+    # Assert — the cap is exact, and the refusal starts on the next call.
+    assert results.count(True) == ps.RESENDS_ALLOWED_PER_WINDOW
+    assert results[ps.RESENDS_ALLOWED_PER_WINDOW] is False
+    assert results[-1] is False
+
+
+def test_the_budget_is_per_address_when_spent_atomically():
+    # Arrange
+    from django.core.cache import cache
+
+    cache.clear()
+
+    # Act
+    for _ in range(ps.RESENDS_ALLOWED_PER_WINDOW + 2):
+        ps.consume_resend_budget("full@example.com")
+
+    # Assert — one exhausted address must not lock out another.
+    assert ps.consume_resend_budget("fresh@example.com") is True
+
+
+def test_the_evidence_check_matches_the_address_and_excludes_histories():
+    """Source-level guard for PR #775 fourth review.
+
+    ANY unverified row was too weak: an ACTIVE account with stale unverified
+    history, later admin-disabled, must NOT become pending/deletable. Two
+    conditions carry that: a verified row anywhere disqualifies the account, and
+    the unverified row must be for the SAME address being resumed.
+    """
+    # Arrange
+    import pathlib
+
+    source = pathlib.Path(ps.__file__).read_text(encoding="utf-8")
+    body = source[
+        source.index("def has_pending_evidence") : source.index("def _by_email")
+    ]
+
+    # Act / Assert
+    assert "is_verified=True" in body, "verified history must disqualify"
+    assert "email__iexact" in body, "evidence must match the submitted address"
+
+
+def test_the_classifier_asks_the_evidence_check_about_the_address():
+    """The callers must pass the email, or the address match is dead code."""
+    # Arrange
+    import pathlib
+
+    source = pathlib.Path(ps.__file__).read_text(encoding="utf-8")
+
+    # Act / Assert
+    assert "has_pending_evidence(user, email)" in source
+    assert "has_pending_evidence(locked, email)" in source
+
+
+def test_the_attempt_counter_increments_in_the_database_not_in_python():
+    """A read-modify-write is a lost update: parallel guesses each read the same
+    value and the cap is never reached. F() makes it the database's arithmetic."""
+    # Arrange
+    import pathlib
+
+    from apps.infra.auth_app import models as auth_models
+
+    source = pathlib.Path(auth_models.__file__).read_text(encoding="utf-8")
+    body = source[source.index("def register_failed_attempt") :][:900]
+
+    # Act / Assert
+    assert 'F("attempts") + 1' in body
+    assert "self.save(update_fields=" not in body
+
+
+def test_the_resend_retires_the_old_code_only_after_delivery():
+    """Source-level ordering guard: the delete must FOLLOW the send, so a send
+    failure cannot destroy the only working code."""
+    # Arrange
+    import pathlib
+
+    from apps.infra.auth_app import api_views
+
+    source = pathlib.Path(api_views.__file__).read_text(encoding="utf-8")
+    start = source.index("def resend_otp_api")
+    body = source[start : start + 8000]
+
+    # Act
+    send_at = body.index("send_otp_email")
+    delete_at = body.index("verification.delete()")
+
+    # Assert — the rollback delete is after the send; the retire is later still.
+    assert send_at < delete_at
+    assert body.index(".exclude(pk=verification.pk).delete()") > send_at
