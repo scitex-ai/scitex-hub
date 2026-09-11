@@ -620,3 +620,64 @@ def test_the_verify_endpoint_is_no_longer_csrf_exempt():
     assert response.status_code == 403
     user.refresh_from_db()
     assert user.is_active is False
+
+
+# ---------------------------------------------------------------------------
+# PR #775 seventh review, item 5: resolve by the MARKER, not by email.
+# ---------------------------------------------------------------------------
+
+
+def test_a_legacy_same_email_row_cannot_shadow_the_real_pending_signup(client):
+    """Under the old email-only lookup this test FAILS: the legacy row is the
+    NEWEST, so ``order_by(-created_at).first()`` picked it and the real user's
+    code was compared against a stranger's."""
+    # Arrange — the REAL pending signup first (marker), then a legacy row that
+    # shares the address and carries the NEWEST verification.
+    real = _pending(email="shared@example.com", username="real_pending")
+    legacy = User.objects.create_user(
+        username="legacy_row",
+        email="shared@example.com",
+        password=PASSWORD,
+        is_active=False,
+    )
+    legacy_code = EmailVerification.objects.create(
+        user=legacy, email="shared@example.com"
+    )
+    real_code = EmailVerification.objects.get(user=real).code
+
+    # Act — the REAL user's code.
+    response = _verify(client, "shared@example.com", real_code)
+
+    # Assert — the real account activated, and no stranger's row was consumed.
+    assert response.status_code == 200
+    real.refresh_from_db()
+    legacy.refresh_from_db()
+    legacy_code.refresh_from_db()
+    assert real.is_active is True
+    assert legacy.is_active is False
+    assert legacy_code.is_verified is False, (
+        "a legacy/cross-user verification row was consumed"
+    )
+
+
+def test_resend_mints_for_the_marker_holder_not_for_a_same_email_legacy_row(
+    client, monkeypatch
+):
+    # Arrange
+    real = _pending(email="shared2@example.com", username="real_two")
+    legacy = User.objects.create_user(
+        username="legacy_two",
+        email="shared2@example.com",
+        password=PASSWORD,
+        is_active=False,
+    )
+    cache.clear()
+    monkeypatch.setattr(_SEND, staticmethod(lambda **kwargs: (True, "sent")))
+
+    # Act
+    response = _resend(client, "shared2@example.com")
+
+    # Assert — the code is minted for the MARKER holder, never the legacy row.
+    assert response.status_code == 200
+    assert EmailVerification.objects.filter(user=real).count() == 1
+    assert EmailVerification.objects.filter(user=legacy).count() == 0

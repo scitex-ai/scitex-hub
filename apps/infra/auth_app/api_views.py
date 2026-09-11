@@ -37,13 +37,27 @@ def verify_email_api(request):
                 status=400,
             )
 
-        # Find the most recent verification for this email
+        # RESOLVE BY THE TYPED MARKER FIRST (PR #775 seventh review, item 5).
+        # Scoping only by email let a LEGACY or CROSS-USER row with the same
+        # address SHADOW the real one — and be the row consumed, marking a
+        # stranger's verification used. The marker names the user the address
+        # belongs to, so the code sought is THEIR code. With no marker this is an
+        # email CHANGE (an active user), so it is scoped to the session's user
+        # rather than to whatever row shares the address.
         try:
-            verification = (
-                EmailVerification.objects.filter(email=email, is_verified=False)
-                .order_by("-created_at")
-                .first()
-            )
+            from apps.infra.auth_app.models import PendingSignup
+
+            marker = PendingSignup.objects.filter(email__iexact=email).first()
+            lookup = EmailVerification.objects.filter(is_verified=False)
+            if marker is not None:
+                lookup = lookup.filter(user=marker.user)
+            else:
+                change = request.session.get("pending_email_change") or {}
+                if change.get("new_email") == email and change.get("user_id"):
+                    lookup = lookup.filter(user_id=change["user_id"])
+                else:
+                    lookup = lookup.filter(email__iexact=email)
+            verification = lookup.order_by("-created_at").first()
 
             if not verification:
                 return JsonResponse(
@@ -281,7 +295,16 @@ def resend_otp_api(request):
         if not consume_resend_budget(email):
             return JsonResponse(_RESEND_RESPONSE, status=200)
 
-        user = User.objects.filter(email__iexact=email, is_active=False).first()
+        # RESOLVE VIA THE MARKER, NOT BY EMAIL (PR #775 seventh review, item 5).
+        # Matching users by email ALONE can pick a LEGACY or cross-user row that
+        # happens to share the address, and the code would then be minted for
+        # the wrong person. The marker names the user this address actually
+        # belongs to, so the code is minted for THAT user or for nobody.
+        from apps.infra.auth_app.models import PendingSignup
+
+        marker = PendingSignup.objects.filter(email__iexact=email).first()
+        user = marker.user if marker is not None else None
+
         # PENDING EVIDENCE REQUIRED (PR #775 fifth review, P0).
         #
         # Matching on is_active=False ALONE was a deactivation bypass: an
@@ -289,7 +312,7 @@ def resend_otp_api(request):
         # a code that the verify endpoint then used to switch it back on. An
         # address was the only thing an attacker needed. No pending signup, no
         # code — and the response stays the single generic one either way.
-        if user is None or not has_pending_evidence(user, email):
+        if user is None or user.is_active or not has_pending_evidence(user, email):
             return JsonResponse(_RESEND_RESPONSE, status=200)
 
         # DELIVERY FIRST, RETIRE SECOND (PR #775 fourth review). The old order
