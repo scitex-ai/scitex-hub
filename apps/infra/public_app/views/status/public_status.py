@@ -25,6 +25,8 @@ from datetime import datetime, timezone
 from django.http import JsonResponse
 from django.shortcuts import render
 
+from config.django_db_threads import close_database_connections_after
+
 from .health_checks import (
     check_api_services,
     check_database,
@@ -35,6 +37,7 @@ from .health_checks import (
 logger = logging.getLogger("scitex")
 
 
+@close_database_connections_after
 def _run_check_safe(fn, status_data):
     """Run a health check, catching exceptions to prevent page failure."""
     try:
