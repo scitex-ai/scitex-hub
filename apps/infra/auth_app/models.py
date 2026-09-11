@@ -337,7 +337,17 @@ class EmailVerification(models.Model):
                 .filter(pk=self.pk, is_verified=False)
                 .first()
             )
-            if locked is None or locked.is_expired():
+            # ATTEMPTS MUST BE HONOURED HERE (PR #775 seventh review). The
+            # wrong-attempt threshold and the successful claim were TWO separate
+            # transitions, so a caller holding a BURNED code could still claim
+            # it: the threshold had been crossed but nothing consulted it on the
+            # success path. One locked transition now decides both, which is the
+            # only way the threshold means anything.
+            if (
+                locked is None
+                or locked.is_expired()
+                or locked.attempts >= MAX_CODE_ATTEMPTS
+            ):
                 return False
             locked.is_verified = True
             locked.verified_at = timezone.now()

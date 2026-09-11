@@ -80,10 +80,15 @@ class Command(BaseCommand):
 
         # Find inactive users (excluding visitors) who joined before cutoff
         # These users registered but never verified their email
+        # PENDING-SIGNUP EVIDENCE REQUIRED (PR #775 seventh review). Deleting on
+        # is_active=False ALONE destroys ADMIN-DISABLED accounts: they are
+        # inactive too, and unlike a pending signup they hold data and a real
+        # user. The sweep may reclaim ONLY rows carrying the typed marker.
         unverified_users = (
             User.objects.filter(
                 is_active=False,
                 date_joined__lt=cutoff_date,
+                pending_signup__isnull=False,
             )
             .exclude(username__startswith="visitor-")
             .exclude(username__startswith="guest-")
@@ -174,7 +179,10 @@ class Command(BaseCommand):
 
     def _delete_specific_user(self, email, dry_run):
         """Delete a specific unverified user by email."""
-        user = User.objects.filter(email=email, is_active=False).first()
+        # Marker required here too, for the same reason as the bulk sweep.
+        user = User.objects.filter(
+            email__iexact=email, is_active=False, pending_signup__isnull=False
+        ).first()
 
         if not user:
             self.stdout.write(

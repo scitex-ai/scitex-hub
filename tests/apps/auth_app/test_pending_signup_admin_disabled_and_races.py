@@ -535,3 +535,88 @@ def test_the_password_typo_recovery_path_works_after_otp_proof(client):
     user.refresh_from_db()
     assert user.is_active is True
     assert client.get(reverse("auth_app:forgot_password")).status_code == 200
+
+
+# ---------------------------------------------------------------------------
+# PR #775 seventh review: the sweep's marker requirement, a burned code, CSRF.
+# ---------------------------------------------------------------------------
+
+
+def test_the_cleanup_sweep_cannot_delete_an_admin_disabled_account():
+    """The sweep selected on is_active=False ALONE, so it would delete a
+    suspended account — the same confusion of "inactive" with "unfinished
+    signup" that the verify path had."""
+    # Arrange — inactive, expired, and with NO marker.
+    from io import StringIO
+
+    from django.core.management import call_command
+
+    disabled = _disabled()
+    User.objects.filter(pk=disabled.pk).update(
+        date_joined=timezone.now() - ps.PENDING_SIGNUP_WINDOW - timedelta(hours=5)
+    )
+
+    # Act
+    call_command("cleanup_unverified_users", "--hours=1", stdout=StringIO())
+
+    # Assert — survives. is_active=False was never proof of a signup.
+    assert User.objects.filter(pk=disabled.pk).exists(), (
+        "the sweep deleted an admin-disabled account"
+    )
+
+
+def test_the_cleanup_sweep_still_reclaims_a_genuine_pending_signup():
+    """Control: the marker requirement must not disable the sweep entirely."""
+    # Arrange
+    from io import StringIO
+
+    from django.core.management import call_command
+
+    expired = _pending(age=ps.PENDING_SIGNUP_WINDOW + timedelta(hours=5))
+    expired_pk = expired.pk
+
+    # Act
+    call_command("cleanup_unverified_users", "--hours=1", stdout=StringIO())
+
+    # Assert — the real pending signup IS reclaimed.
+    assert not User.objects.filter(pk=expired_pk).exists()
+
+
+def test_a_burned_code_cannot_be_claimed_even_with_the_right_code():
+    """The attempt threshold and the successful claim were two separate
+    transitions, so a caller holding a BURNED code could still claim it."""
+    # Arrange
+    user = _pending()
+    verification = EmailVerification.objects.get(user=user)
+    for _ in range(MAX_CODE_ATTEMPTS):
+        verification.register_failed_attempt()
+
+    # Act — the claim must consult the attempts it can see under the lock.
+    fresh = EmailVerification.objects.get(pk=verification.pk)
+
+    # Assert
+    assert fresh.claim() is False
+    fresh.refresh_from_db()
+    assert fresh.is_verified is False
+
+
+def test_the_verify_endpoint_is_no_longer_csrf_exempt():
+    """A state-changing POST that ACTIVATES an account was csrf_exempt."""
+    # Arrange
+    from django.test import Client
+
+    user = _pending()
+    verification = EmailVerification.objects.get(user=user)
+    csrf_enforcing = Client(enforce_csrf_checks=True)
+
+    # Act
+    response = csrf_enforcing.post(
+        reverse("auth_app:api_verify_email"),
+        data=json.dumps({"email": user.email, "otp_code": verification.code}),
+        content_type="application/json",
+    )
+
+    # Assert — no token, no activation.
+    assert response.status_code == 403
+    user.refresh_from_db()
+    assert user.is_active is False

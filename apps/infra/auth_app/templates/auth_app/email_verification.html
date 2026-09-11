@@ -233,7 +233,10 @@
 
       fetch("/auth/api/verify-email/", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ csrf_token }}",
+        },
         body: JSON.stringify({ email: email, otp_code: otpCode }),
       })
         .then((response) => response.json())

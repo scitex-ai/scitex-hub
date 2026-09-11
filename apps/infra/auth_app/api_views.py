@@ -20,7 +20,6 @@ from .models import EmailVerification
 logger = logging.getLogger(__name__)
 
 
-@csrf_exempt
 @require_http_methods(["POST"])
 def verify_email_api(request):
     """API endpoint to verify email with OTP code"""
