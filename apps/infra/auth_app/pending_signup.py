@@ -76,6 +76,17 @@ class SignupCollision(enum.Enum):
     ACTIVE = "active"
     #: Two DIFFERENT accounts hold the submitted email and username.
     SPLIT = "split"
+    #: Exactly ONE of the two matched, and they do not identify the same row.
+    #:
+    #: SECURITY (PR #775 hold, account takeover): this state exists because the
+    #: one-sided case used to fall through to ``user = email_user or
+    #: username_user``, treating whichever row matched as the submitter's own.
+    #: POST attacker_email + victim_pending_username then classified as
+    #: PENDING_LIVE with the VICTIM's row, and the caller minted an OTP bound to
+    #: the victim while mailing it to the attacker. After expiry the same input
+    #: reached the delete-and-recreate branch. A collision is a collision: the
+    #: caller is given NO user, so it cannot act on a row it has not proven.
+    ONE_SIDED = "one_sided"
 
 
 def _by_email(email: str):
@@ -112,19 +123,42 @@ def classify_pending_signup(
     if email_user is None and username_user is None:
         return SignupCollision.NONE, None
 
-    if email_user is not None and username_user is not None:
-        if email_user.pk != username_user.pk:
-            return SignupCollision.SPLIT, None
+    # EXACT BOTH-VALUES PAIR ONLY (PR #775 security hold).
+    #
+    # A row may be treated as "the same pending signup" ONLY when it holds BOTH
+    # the submitted email AND the submitted username. Every other combination is
+    # a collision and returns NO user.
+    #
+    # The previous shape was:
+    #     if both and different: SPLIT
+    #     user = email_user or username_user      # <-- the takeover
+    # which made POST attacker_email + victim_pending_username return
+    # (PENDING_LIVE, victim). The caller then created an EmailVerification with
+    # user=victim, email=attacker and mailed the code to the attacker — a code
+    # that verifies the VICTIM's row, i.e. account takeover. Past the window the
+    # same input reached the delete-and-recreate branch and let the attacker
+    # take the victim's username outright.
+    #
+    # The asymmetry is deliberate: proving ownership of one field must not be
+    # enough to act, because the two fields are supplied by different parties —
+    # the username by whoever asks, the email by whoever can read it.
+    if (
+        email_user is not None
+        and username_user is not None
+        and email_user.pk == username_user.pk
+    ):
         user = email_user
-    else:
-        user = email_user or username_user
+        if user.is_active:
+            return SignupCollision.ACTIVE, user
+        if pending_age(user) > PENDING_SIGNUP_WINDOW:
+            return SignupCollision.PENDING_EXPIRED, user
+        return SignupCollision.PENDING_LIVE, user
 
-    assert user is not None  # narrowed above; keeps type checkers honest
-    if user.is_active:
-        return SignupCollision.ACTIVE, user
-    if pending_age(user) > PENDING_SIGNUP_WINDOW:
-        return SignupCollision.PENDING_EXPIRED, user
-    return SignupCollision.PENDING_LIVE, user
+    # Crossed (two different rows) and one-sided are both collisions, and both
+    # are reported with user=None so no caller can mutate anything from them.
+    if email_user is not None and username_user is not None:
+        return SignupCollision.SPLIT, None
+    return SignupCollision.ONE_SIDED, None
 
 
 # ---------------------------------------------------------------------------

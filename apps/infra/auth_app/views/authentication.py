@@ -37,6 +37,21 @@ def _send_pending_signup_code(request, user, email, logger) -> bool:
 
     from ..models import EmailVerification
 
+    # DEFENCE IN DEPTH (PR #775 security hold). The classifier no longer hands
+    # out a row the submitter has not proven, but the invariant belongs HERE as
+    # well as there: a verification code is only ever minted for the identity
+    # that will RECEIVE it. Binding user=<one row> with email=<someone else> IS
+    # the takeover, so this refuses rather than trusting its caller — a future
+    # call site must not be able to reintroduce the bug by accident.
+    if (getattr(user, "email", "") or "").strip().lower() != (
+        email or ""
+    ).strip().lower():
+        logger.error(
+            "REFUSING to mint a verification code: the pending row's own email "
+            "does not match the address the code would be sent to."
+        )
+        return False
+
     verification = EmailVerification.objects.create(user=user, email=email)
     try:
         success, message = EmailService.send_otp_email(
@@ -109,13 +124,23 @@ def signup(request):
                 verify_url = reverse("auth_app:verify_email")
                 return redirect(f"{verify_url}?email={email}")
 
-            elif collision in (SignupCollision.ACTIVE, SignupCollision.SPLIT):
+            elif collision in (
+                SignupCollision.ACTIVE,
+                SignupCollision.SPLIT,
+                SignupCollision.ONE_SIDED,
+            ):
                 # I1/I4: an ACTIVE account is never recreated and never deleted
                 # here; SPLIT means two different accounts hold the submitted
-                # email and username, so neither "create" nor "resume" is
-                # correct and guessing would hijack a username or strand an
-                # address. Both answer with the SAME message a real signup gets,
-                # which is what stops the response being an enumeration oracle.
+                # email and username; ONE_SIDED means only one of them matched
+                # anything at all (PR #775 security hold — this used to be
+                # treated as the matched row's own signup, which let a POST of
+                # attacker_email + victim_username mint an OTP bound to the
+                # victim and mail it to the attacker).
+                #
+                # All three answer with the SAME message a real signup gets and
+                # touch NOTHING: no send, no delete, no password, no email
+                # change, no login. That is what stops the response being an
+                # enumeration oracle AND what stops it being a takeover.
                 logger.info("Signup attempt matched an existing account; generic reply")
                 messages.info(request, _SIGNUP_RESPONSE_MESSAGE)
                 from django.urls import reverse
