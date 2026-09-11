@@ -26,7 +26,6 @@ from django.utils import translation
 from apps.infra.auth_app.forms import SignupForm
 from apps.infra.public_app.pricing import (
     load_pricing,
-    published_price_groups,
     published_price_rows,
 )
 from apps.infra.public_app.templatetags.landing_i18n import translate_dynamic
@@ -175,7 +174,7 @@ def _rendered_landing(language: str) -> str:
     # so baking it under the ambient test language would pin the wrong
     # language into the render and make the test fail (or worse, pass) for
     # reasons unrelated to what it asserts.
-    from apps.infra.public_app.pricing import format_amount, tier_rows
+    from apps.infra.public_app.pricing import tier_rows
 
     pricing = load_pricing()
     request = _request("/landing/")
@@ -187,7 +186,6 @@ def _rendered_landing(language: str) -> str:
             if r["category"] == "subscription"
         ]
         context = {
-            "free_price": format_amount(0, "once"),
             "sub_rows": sub_rows,
             "onprem_tier": next(
                 (t for t in tier_rows() if t["id"] == "onprem"), None

@@ -76,7 +76,6 @@ def index(request):
     if not connection.in_atomic_block:
         connection.close()
     from ..pricing import (
-        format_amount,
         load_pricing,
         published_price_rows,
         tier_rows,
@@ -100,7 +99,6 @@ def index(request):
         # Pricing columns on the landing (compass 25.1). Rendered from the
         # SSOT via the same helpers /pricing/ and /services/ use — never a
         # hand-written copy.
-        "free_price": format_amount(0, "once"),
         "sub_rows": sub_rows,
         "onprem_tier": onprem_tier,
         "tax_note": load_pricing().get("tax_note", ""),
