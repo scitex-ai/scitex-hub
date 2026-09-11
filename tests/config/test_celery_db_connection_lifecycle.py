@@ -1,24 +1,19 @@
 """Regression for the Celery PostgreSQL connection leak (issue #777).
 
-WHAT THIS FILE HAS TO PROVE, and why earlier versions did not.
-The leak is a ONE-PROCESS, MANY-THREADS accumulation: ``--pool=threads`` keeps its
-worker threads alive, each holds its own thread-local PostgreSQL backend, and
-nothing returns it — measured live at 30 idle backends. A regression for it must
-therefore (a) keep a pool ALIVE while measuring, (b) fail when postrun cleanup is
-absent, and (c) do both without depending on timing luck.
+WHAT THIS MUST PROVE. The leak is a ONE-PROCESS, MANY-THREADS accumulation:
+``--pool=threads`` keeps worker threads alive, each holds a thread-local backend,
+and nothing returns it. So the tests use
+  * REAL worker threads,
+  * driven by REAL Celery signal dispatch (not by calling the private handler —
+    otherwise a handler that is never REGISTERED would pass), and
+  * measured SERVER-SIDE, because ``connections`` is thread-local and cannot see
+    another thread's backend at all.
 
 An earlier version closed every thread's connections in a ``finally`` and counted
-AFTER joining. That passes with no handler at all, because joining tears the
-thread state down before the measurement: it was unfalsifiable.
-
-TASKS ARE DRIVEN THROUGH THE REAL CELERY SIGNALS, not by calling the private
-handler function. That is the difference between testing cleanup and testing that
-cleanup is REGISTERED — a handler that is never wired up would satisfy the latter.
-The no-cleanup control therefore DISCONNECTS the receiver, which is the only way
-to model "postrun cleanup is absent" faithfully.
-
-Django's ``connections`` object is THREAD-LOCAL, so no test can see other threads
-through it; every claim about the SERVER is made against ``pg_stat_activity``.
+AFTER joining; that passes with no handler at all, because joining tears the thread
+state down before the measurement. Another gated the database reading on a
+thread-local threshold, which suppressed it in exactly the many-threads case it
+existed to reveal.
 """
 
 from __future__ import annotations
@@ -26,7 +21,6 @@ from __future__ import annotations
 import logging
 import threading
 import time
-from types import SimpleNamespace
 
 import pytest
 from celery.signals import task_postrun, task_prerun
@@ -48,7 +42,6 @@ class _Task:
 
 
 def _use_the_database() -> None:
-    """One task execution as far as the database is concerned: acquire and use."""
     with connections["default"].cursor() as cursor:
         cursor.execute("SELECT 1")
         cursor.fetchone()
@@ -62,12 +55,9 @@ def _run_a_task(*, task_name: str = "tests.task") -> None:
     task_postrun.send(sender=sender)
 
 
-def _server_side_backend_count() -> int:
-    """PostgreSQL's view of how many backends serve this database.
-
-    Read with this thread's connections CLOSED first, so the query's own backend
-    is the same +1 in every measurement and cancels out of a comparison.
-    """
+def _database_backend_count() -> int:
+    """PostgreSQL's view. Read with this thread's connections closed first, so the
+    query's own backend is the same +1 in every measurement and cancels out."""
     connections.close_all()
     with connections["default"].cursor() as cursor:
         cursor.execute(
@@ -76,36 +66,13 @@ def _server_side_backend_count() -> int:
         return cursor.fetchone()[0]
 
 
-def _without_postrun_cleanup():
-    """Context manager that DISCONNECTS the cell's postrun receiver.
+def _parked_pool(*, use_cleanup: bool):
+    """A REAL thread pool that stays ALIVE while measured.
 
-    The only faithful model of "postrun cleanup is absent": not a flag the
-    handler checks, but the handler not being attached at all.
-    """
-    import contextlib
-
-    @contextlib.contextmanager
-    def _ctx():
-        task_postrun.disconnect(lifecycle._close_connections_after_task)
-        try:
-            yield
-        finally:
-            task_postrun.connect(
-                lifecycle._close_connections_after_task,
-                weak=False,
-            )
-
-    return _ctx()
-
-
-def _hold_a_pool_alive(*, use_cleanup: bool):
-    """Run a REAL pool that stays alive until told to stop.
-
-    Threads run ``ROUNDS`` tasks each, then PARK. While parked, whatever they are
-    still holding is genuinely held — the state the production leak lived in, and
-    the only state in which it can be measured. Joined-then-measured cannot see it.
-
-    Returns (measure, stop).
+    Threads each run ``ROUNDS`` tasks through the real signals, then PARK. While
+    parked, whatever they still hold is genuinely held — the state the live leak
+    lives in, and the only state where it can be measured. Joined-then-measured
+    cannot see it. Returns (measure, stop).
     """
     parked = threading.Barrier(CONCURRENCY + 1)
     release = threading.Event()
@@ -113,11 +80,13 @@ def _hold_a_pool_alive(*, use_cleanup: bool):
     def _worker() -> None:
         try:
             for _ in range(ROUNDS):
-                _use_the_database()
                 if use_cleanup:
-                    lifecycle._close_connections_after_task(
-                        sender=SimpleNamespace(name="tests.pooled_task")
-                    )
+                    _run_a_task(task_name="tests.pooled_task")
+                else:
+                    task_prerun.send(sender=_Task("tests.pooled_task"))
+                    _use_the_database()
+                    # postrun deliberately NOT dispatched: the cleanup that lives
+                    # there is the thing under test.
             parked.wait(timeout=30)
             release.wait(timeout=30)
         finally:
@@ -128,8 +97,8 @@ def _hold_a_pool_alive(*, use_cleanup: bool):
         thread.start()
 
     def measure() -> int:
-        parked.wait(timeout=30)  # every thread finished its tasks and parked
-        return _server_side_backend_count()
+        parked.wait(timeout=30)
+        return _database_backend_count()
 
     def stop() -> None:
         release.set()
@@ -140,57 +109,54 @@ def _hold_a_pool_alive(*, use_cleanup: bool):
 
 
 # ---------------------------------------------------------------------------
-# Deterministic: repeated tasks on ONE thread, driven through the signals.
+# Real threads, real signals, deterministic repeats.
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.django_db(transaction=True)
 def test_repeated_tasks_never_accumulate_on_a_worker_thread():
-    """REPEATS tasks, and after EVERY one the thread holds nothing.
-
-    No timing luck and no second thread: a count that returns to zero after each
-    task cannot climb, which is the property the live leak violated.
-    """
+    """REPEATS tasks on ONE thread; after EVERY one the thread holds nothing."""
     for iteration in range(REPEATS):
         _run_a_task(task_name=f"tests.repeat_{iteration}")
 
         held = lifecycle.thread_connection_count()
         assert held == 0, (
             f"after task {iteration + 1} of {REPEATS} the thread still held {held} "
-            "connection(s); repeated tasks must not accumulate — this is the live "
-            "leak's shape"
+            "connection(s); repeated tasks must not accumulate"
         )
 
 
 @pytest.mark.django_db(transaction=True)
-def test_the_same_repeats_accumulate_when_the_postrun_cleanup_is_absent():
-    """CONTROL — proves the repeats above are not passing for free.
+def test_the_same_repeats_accumulate_when_postrun_cleanup_is_absent():
+    """CONTROL — the repeats above must not pass for free.
 
-    With the postrun receiver DISCONNECTED, the identical workload must leave the
-    thread holding its backend through every task. If this ever reads 0, the test
-    above is measuring the harness rather than the cleanup.
+    The postrun RECEIVER is disconnected rather than a flag flipped, which is the
+    only faithful model of "postrun cleanup is absent".
     """
-    with _without_postrun_cleanup():
+    task_postrun.disconnect(lifecycle._close_connections_after_task)
+    try:
         for iteration in range(REPEATS):
-            _run_a_task(task_name=f"tests.leaky_{iteration}")
+            sender = _Task(f"tests.leaky_{iteration}")
+            task_prerun.send(sender=sender)
+            _use_the_database()
 
             held = lifecycle.thread_connection_count()
             assert held == 1, (
                 f"without postrun cleanup the thread held {held} after task "
-                f"{iteration + 1}; it must hold exactly one, never release it, and "
-                "never accumulate a second (Django reuses a thread's connection)"
+                f"{iteration + 1}; it must hold exactly one and never release it"
             )
-    connections.close_all()
+    finally:
+        task_postrun.connect(
+            lifecycle._close_connections_after_task,
+            weak=False,
+            dispatch_uid="celery_db_lifecycle.close_after_task",
+        )
+        connections.close_all()
 
 
 @pytest.mark.django_db(transaction=True)
 def test_a_task_that_raises_still_releases_its_connection():
-    """POSTRUN MUST BE FINALLY-SHAPED: a failing task releases too.
-
-    Celery sends ``task_postrun`` whether the task returned or raised, so cleanup
-    attached there runs in both cases. A handler that only ran on success would
-    leak exactly when tasks are failing — the moment the worker is least healthy.
-    """
+    """POSTRUN IS FINALLY-SHAPED: a failing task releases too."""
     sender = _Task("tests.failing_task")
     task_prerun.send(sender=sender)
     _use_the_database()
@@ -208,46 +174,49 @@ def test_a_task_that_raises_still_releases_its_connection():
 
 
 # ---------------------------------------------------------------------------
-# The live shape: one process, a parked thread pool, measured server-side.
+# The live shape: parked pool, server-side, BOTH arms compared directly.
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.django_db(transaction=True)
-def test_a_parked_pool_bounds_the_server_side_count():
-    """THE FIX, measured where the leak showed up (30 idle backends)."""
-    before = _server_side_backend_count()
-    measure, stop = _hold_a_pool_alive(use_cleanup=True)
-    try:
-        after = measure()
-    finally:
-        stop()
+def test_cleanup_removes_the_leak_the_pool_would_otherwise_hold():
+    """Both arms in one test, compared with a STRICT inequality.
 
-    assert after <= before + 1, (
-        f"{TOTAL_TASKS} task executions across a parked {CONCURRENCY}-thread pool "
-        f"left the database serving {after - before} extra backend(s) (before="
-        f"{before}, after={after}); a parked pool must hold none"
-    )
-
-
-@pytest.mark.django_db(transaction=True)
-def test_a_parked_pool_without_cleanup_IS_grown_and_so_the_bound_can_fail():
-    """CONTROL — and the reason the bound above is not vacuous.
-
-    An earlier version of this file closed every connection in a ``finally`` and
-    counted after joining, which made this assertion unfalsifiable: it passed with
-    no handler at all. This arm is what stops that regressing again.
+    Asserting each arm against a constant independently allows the test to pass
+    when the two numbers are EQUAL — which is precisely the case that means the
+    cleanup did nothing. Comparing them directly removes that escape: equality
+    fails.
     """
-    before = _server_side_backend_count()
-    measure, stop = _hold_a_pool_alive(use_cleanup=False)
+    before = _database_backend_count()
+    measure, stop = _parked_pool(use_cleanup=True)
     try:
-        after = measure()
+        after_clean = measure()
     finally:
         stop()
+    clean_growth = after_clean - before
 
-    assert after >= before + CONCURRENCY, (
-        f"a parked pool that never released only moved the backend count from "
-        f"{before} to {after}; each parked thread should still hold one, so this "
-        "measurement cannot see the leak and the bound above proves nothing"
+    before = _database_backend_count()
+    measure, stop = _parked_pool(use_cleanup=False)
+    try:
+        after_leaky = measure()
+    finally:
+        stop()
+    leaky_growth = after_leaky - before
+
+    assert clean_growth <= 1, (
+        f"a parked pool WITH cleanup left {clean_growth} extra backend(s); each "
+        "task must return its backend, so a parked pool should hold none "
+        "(the +1 allowance is the measuring connection itself)"
+    )
+    assert leaky_growth > clean_growth, (
+        f"the pool WITHOUT cleanup grew by {leaky_growth} and the pool WITH it by "
+        f"{clean_growth}. These must differ — if they are equal, the cleanup is not "
+        "the thing being measured and the assertion above proves nothing"
+    )
+    assert leaky_growth >= CONCURRENCY, (
+        f"a parked pool that never released grew by only {leaky_growth}; each "
+        f"parked thread should still hold one ({CONCURRENCY}), so this measurement "
+        "cannot see the leak at all"
     )
 
 
@@ -258,12 +227,11 @@ def test_a_parked_pool_without_cleanup_IS_grown_and_so_the_bound_can_fail():
 
 @pytest.mark.django_db(transaction=True)
 def test_a_task_age_shorter_than_conn_max_age_is_honoured(monkeypatch):
-    """THE BUG: ``close_if_unusable_or_obsolete()`` measures DJANGO's CONN_MAX_AGE.
+    """A 1-second budget releases a connection older than 1 second.
 
-    That setting is 600 here, so a connection younger than 600s survived a
-    ``CELERY_DB_CONN_MAX_AGE`` asking for it to be dropped: a configured value
-    that looked honoured and changed nothing. With the age applied directly, a
-    1-second budget releases a connection older than 1 second.
+    The old code delegated to ``close_if_unusable_or_obsolete()``, which measures
+    Django's ``CONN_MAX_AGE`` (600 here), so this connection was kept and the
+    setting did nothing.
     """
     monkeypatch.setenv("CELERY_DB_CONN_MAX_AGE", "1")
     _use_the_database()
@@ -277,19 +245,37 @@ def test_a_task_age_shorter_than_conn_max_age_is_honoured(monkeypatch):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_a_task_age_longer_than_the_connection_age_keeps_it(monkeypatch):
-    """CONTROL: a connection younger than the budget is KEPT.
+def test_the_task_age_still_works_when_conn_max_age_is_none(monkeypatch):
+    """CONN_MAX_AGE=None must NOT disable the Celery age.
 
-    Without this, an unconditional ``conn.close()`` would satisfy the test above
-    while silently defeating persistent task connections for anyone who
-    configures them.
+    That setting leaves Django's ``close_at`` unset, which is exactly the
+    configuration where deriving the age from Django is impossible — and where a
+    delegation-based implementation silently kept every connection forever.
     """
+    monkeypatch.setenv("CELERY_DB_CONN_MAX_AGE", "1")
+    conn = connections["default"]
+    monkeypatch.setitem(conn.settings_dict, "CONN_MAX_AGE", None)
+    monkeypatch.setattr(conn, "close_at", None, raising=False)
+
+    _use_the_database()
+    time.sleep(1.2)
+
+    assert lifecycle.release_thread_connections() == 1, (
+        "with CONN_MAX_AGE=None a connection older than the Celery budget was "
+        "kept, so a non-zero CELERY_DB_CONN_MAX_AGE is a no-op in that config"
+    )
+    connections.close_all()
+
+
+@pytest.mark.django_db(transaction=True)
+def test_a_task_age_longer_than_the_connection_age_keeps_it(monkeypatch):
+    """CONTROL: a connection younger than the budget is KEPT."""
     monkeypatch.setenv("CELERY_DB_CONN_MAX_AGE", "3600")
     _use_the_database()
 
     assert lifecycle.release_thread_connections() == 0, (
-        "a fresh connection was released despite a 3600s task budget, so "
-        "CELERY_DB_CONN_MAX_AGE is not honoured in this direction"
+        "a fresh connection was released despite a 3600s task budget, so the "
+        "setting is not honoured in this direction"
     )
     assert lifecycle.thread_connection_count() == 1
     connections.close_all()
@@ -306,103 +292,114 @@ def test_zero_task_age_releases_every_task(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
+# The created-connection receiver must actually be attached.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db(transaction=True)
+def test_a_new_connection_is_stamped_so_its_age_is_known():
+    """The receiver must be STRONGLY retained and actually firing.
+
+    Django's ``connect()`` stores a weak reference by default, so a receiver can be
+    collected and stop firing without anything failing — the age then reads as
+    unknown and a configured budget silently keeps every connection. Asserting the
+    stamp directly is what makes that visible.
+    """
+    connections.close_all()
+    _use_the_database()
+
+    conn = connections["default"]
+    assert getattr(conn, "_celery_created_at", None) is not None, (
+        "a newly created connection carries no stamp, so the connection_created "
+        "receiver is not firing and CELERY_DB_CONN_MAX_AGE cannot be applied"
+    )
+    connections.close_all()
+
+
+# ---------------------------------------------------------------------------
 # Telemetry: two numbers, named for what they actually measure.
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.django_db
-def test_telemetry_reports_the_THREAD_count_by_name(caplog):
-    """The cheap number is reported as a THREAD count, not a process count."""
+def test_telemetry_names_both_numbers_honestly(caplog):
+    """Neither number may be presented as a process count."""
     _use_the_database()
 
     with caplog.at_level(logging.INFO, logger=lifecycle.__name__):
-        observed = lifecycle.record_task_boundary(
-            task_name="tests.telemetry", phase="postrun"
-        )
+        lifecycle.record_task_boundary(task_name="tests.telemetry", phase="postrun")
 
-    assert observed >= 1
     messages = [record.getMessage() for record in caplog.records]
     assert any(
-        "phase=postrun" in message and "thread_connections=" in message
-        for message in messages
-    ), f"no usable thread-scoped telemetry was emitted: {messages}"
-    assert any("tests.telemetry" in message for message in messages), (
-        "the task name is not logged, so a growing thread cannot be attributed"
-    )
-    assert not any("open_connections=" in message for message in messages), (
-        "telemetry still labels a thread-local count as if it were process-wide"
-    )
+        "thread_connections=" in m and "database_connections=" in m for m in messages
+    ), f"telemetry did not report both numbers distinctly: {messages}"
+    assert any("tests.telemetry" in m for m in messages), "the task name is not logged"
+    assert not any(
+        "open_connections=" in m or "process_connections=" in m for m in messages
+    ), "telemetry still labels a thread-local or database-wide count as a process one"
 
     connections.close_all()
 
 
-@pytest.mark.django_db
-def test_process_telemetry_can_see_more_than_this_thread():
-    """The process-wide number is genuinely server-side, not thread-local.
-
-    The live leak is a TOTAL of ~30 backends across a pool. A thread-local count
-    can only ever report this thread's one connection, so if the two numbers agree
-    the "process" figure is not measuring what it claims.
-    """
+@pytest.mark.django_db(transaction=True)
+def test_the_database_number_can_see_more_than_this_thread():
+    """It is genuinely database-wide, not thread-local."""
     _use_the_database()
     in_thread = lifecycle.thread_connection_count()
 
-    server_side = lifecycle.process_connection_count()
+    on_database = lifecycle.database_connection_count()
 
-    assert server_side is not None, "the authoritative count could not be read"
-    assert server_side >= in_thread, (
-        f"server-side count ({server_side}) is below this thread's own count "
-        f"({in_thread}), so it is not a server-wide measurement"
+    assert on_database is not None, "the database count could not be read"
+    assert on_database >= in_thread, (
+        f"database count ({on_database}) is below this thread's own count "
+        f"({in_thread}), so it is not a database-wide measurement"
     )
     connections.close_all()
 
 
 @pytest.mark.django_db
-def test_telemetry_escalates_and_only_then_pays_for_the_server_query(
+def test_the_database_number_is_read_on_every_boundary_not_suppressed(
     caplog, monkeypatch
 ):
-    """Alerting is loud, and the expensive number is fetched only when it matters."""
-    monkeypatch.setattr(lifecycle, "warn_threshold", lambda: 0)
+    """A HEALTHY thread-local count must not suppress the database reading.
+
+    Gating it on the thread-local threshold hid the real leak: many threads each
+    holding one never make any single thread cross the threshold, so the expensive
+    reading was skipped in exactly the case it existed to expose.
+    """
     called = {"n": 0}
-    real = lifecycle.process_connection_count
+    real = lifecycle.database_connection_count
 
     def _spy():
         called["n"] += 1
         return real()
 
-    monkeypatch.setattr(lifecycle, "process_connection_count", _spy)
+    monkeypatch.setattr(lifecycle, "database_connection_count", _spy)
+    _use_the_database()
+
+    with caplog.at_level(logging.INFO, logger=lifecycle.__name__):
+        lifecycle.record_task_boundary(task_name="tests.quiet", phase="postrun")
+
+    assert called["n"] == 1, (
+        "the database count was not read on a boundary whose thread-local count "
+        "looked healthy, so a many-threads leak would be invisible"
+    )
+    connections.close_all()
+
+
+@pytest.mark.django_db
+def test_telemetry_escalates_when_the_DATABASE_is_above_the_threshold(
+    caplog, monkeypatch
+):
+    """Alerting keys off the database number, not the thread-local one."""
+    monkeypatch.setattr(lifecycle, "warn_threshold", lambda: 0)
     _use_the_database()
 
     with caplog.at_level(logging.INFO, logger=lifecycle.__name__):
         lifecycle.record_task_boundary(task_name="tests.loud", phase="postrun")
 
     assert any(record.levelno >= logging.WARNING for record in caplog.records), (
-        "crossing the threshold logged nothing at WARNING level, so exhaustion "
-        "would arrive unannounced"
-    )
-    assert called["n"] == 1, (
-        "the server-side count was not read when the threshold was crossed, so the "
-        "warning cannot say whether the SERVER is filling up"
-    )
-    connections.close_all()
-
-
-@pytest.mark.django_db
-def test_the_server_query_is_not_paid_for_when_nothing_is_wrong(caplog, monkeypatch):
-    """CONTROL: below the threshold, telemetry stays free."""
-    called = {"n": 0}
-
-    def _spy():
-        called["n"] += 1
-        return 0
-
-    monkeypatch.setattr(lifecycle, "process_connection_count", _spy)
-    _use_the_database()
-
-    with caplog.at_level(logging.INFO, logger=lifecycle.__name__):
-        lifecycle.record_task_boundary(task_name="tests.quiet", phase="postrun")
-
-    assert called["n"] == 0, (
-        "a healthy task boundary paid for a server-side query on every task"
+        "the database being over the threshold logged nothing at WARNING level, so "
+        "exhaustion would arrive unannounced"
     )
     connections.close_all()
