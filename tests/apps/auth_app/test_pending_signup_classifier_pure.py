@@ -455,8 +455,8 @@ def test_the_evidence_check_matches_the_address_and_excludes_histories():
         source.index("def has_pending_evidence") : source.index("def _by_email")
     ]
 
-    # Act / Assert
-    assert "is_verified=True" in body, "verified history must disqualify"
+    # Assert
+    assert "PendingSignup" in body, "the marker must be the authority"
     assert "email__iexact" in body, "evidence must match the submitted address"
 
 

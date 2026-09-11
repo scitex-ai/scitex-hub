@@ -68,7 +68,7 @@ def _victim(username="victim_pending", email="victim@example.com", age=None):
     collision assertions. It was missing from this fixture (the lifecycle file's
     equivalent had it); the DB run is what exposed the gap.
     """
-    from apps.infra.auth_app.models import EmailVerification
+    from apps.infra.auth_app.models import EmailVerification, PendingSignup
 
     user = User.objects.create_user(
         username=username,
@@ -76,6 +76,9 @@ def _victim(username="victim_pending", email="victim@example.com", age=None):
         password="victim-original-password-1",
         is_active=False,
     )
+    # Marker + issued code: the marker is the authoritative pending state, the
+    # code is what the resume tests exercise.
+    PendingSignup.objects.create(user=user, email=email)
     EmailVerification.objects.create(user=user, email=email)
     if age is not None:
         User.objects.filter(pk=user.pk).update(date_joined=timezone.now() - age)
@@ -342,11 +345,11 @@ def test_the_exact_pair_still_resumes_an_expired_pending_signup(client):
     fields["email"] = "victim@example.com"
     response = client.post(reverse("auth_app:signup"), fields)
 
-    # Assert — the resume path still works: the stale row is replaced and a
-    # fresh pending row exists under the same identity.
+    # Assert — the resume path still works, and the row is RE-ARMED IN PLACE
+    # rather than replaced: same pk, same identity, still pending.
     assert response.status_code == 302
-    assert not User.objects.filter(pk=stale_pk).exists()
-    fresh = User.objects.get(username="victim_pending")
+    assert User.objects.filter(pk=stale_pk).exists()
+    fresh = User.objects.get(pk=stale_pk)
     assert fresh.email == "victim@example.com"
     assert fresh.is_active is False
 
@@ -547,11 +550,12 @@ def test_a_proven_pending_row_IS_reclaimed():
     EmailVerification.objects.create(user=victim, email=victim.email)
 
     # Act
-    collision, _user = ps.classify_and_reclaim(victim.email, victim.username)
+    collision, found = ps.classify_and_reclaim(victim.email, victim.username)
 
-    # Assert
-    assert collision is ps.SignupCollision.NONE
-    assert not User.objects.filter(pk=victim.pk).exists()
+    # Assert — reported as resumable, and NOTHING was deleted.
+    assert collision is ps.SignupCollision.PENDING_EXPIRED
+    assert found is not None and found.pk == victim.pk
+    assert User.objects.filter(pk=victim.pk).exists()
 
 
 def test_the_reclaim_service_cannot_double_delete():
@@ -568,17 +572,25 @@ def test_the_reclaim_service_cannot_double_delete():
     first, _ = ps.classify_and_reclaim(victim.email, victim.username)
     second, _ = ps.classify_and_reclaim(victim.email, victim.username)
 
-    # Assert — idempotent, and the row is gone exactly once.
-    assert first is ps.SignupCollision.NONE
-    assert second is ps.SignupCollision.NONE
-    assert not User.objects.filter(pk=victim.pk).exists()
+    # Assert — idempotent BECAUSE it deletes nothing: both callers see the same
+    # row and neither can take a second destructive action on it.
+    assert first is ps.SignupCollision.PENDING_EXPIRED
+    assert second is ps.SignupCollision.PENDING_EXPIRED
+    assert User.objects.filter(pk=victim.pk).exists()
 
 
 def test_a_row_verified_inside_the_window_is_not_reclaimed():
     """The revalidation's whole reason for existing: a verification that lands
     between the classification and the lock must WIN, not be deleted."""
-    # Arrange — the row LOOKS expired, but its verification is complete.
-    victim = _victim()
+    # Arrange — the row LOOKS expired, but its verification is complete. Built
+    # WITHOUT the marker on purpose: the marker is now the authority, so a row
+    # with verified history and no marker is simply not a pending signup.
+    victim = User.objects.create_user(
+        username="verified_inside",
+        email="verified_inside@example.com",
+        password="Gx7-quiet-harbour-42",
+        is_active=False,
+    )
     User.objects.filter(pk=victim.pk).update(
         date_joined=timezone.now() - ps.PENDING_SIGNUP_WINDOW - timedelta(hours=3)
     )

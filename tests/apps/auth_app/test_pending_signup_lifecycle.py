@@ -53,11 +53,15 @@ def _pending(email="pending_probe@example.com", username="pending_probe", age=No
     state the resume path must refuse. Omitting it here would have quietly
     turned every resume assertion below into a collision assertion.
     """
-    from apps.infra.auth_app.models import EmailVerification
+    from apps.infra.auth_app.models import EmailVerification, PendingSignup
 
     user = User.objects.create_user(
         username=username, email=email, password="Gx7-quiet-harbour-42", is_active=False
     )
+    # The AUTHORITATIVE marker — this, NOT the OTP row, is what makes the account
+    # a pending signup. The issued code is created too, because a real pending
+    # signup has both; the marker is what authorises the resume/verify paths.
+    PendingSignup.objects.create(user=user, email=email)
     EmailVerification.objects.create(user=user, email=email)
     if age is not None:
         # date_joined is auto_now_add: must be moved with an UPDATE.
@@ -290,11 +294,12 @@ def test_an_expired_pending_signup_can_be_resumed_by_signing_up_again(client):
     # Act
     response = client.post(reverse("auth_app:signup"), SIGNUP_FIELDS)
 
-    # Assert — the signup is accepted (not "already exists"), the stale row is
-    # replaced, and a NEW pending row exists.
+    # Assert — the signup is accepted (not "already exists") and the row is
+    # RE-ARMED IN PLACE: same pk, still inactive. No destructive replacement, so
+    # there is never a window in which the username is free for another request.
     assert response.status_code == 302
-    assert not User.objects.filter(pk=stale_pk).exists()
-    assert User.objects.get(username="pending_probe").is_active is False
+    assert User.objects.filter(pk=stale_pk).exists()
+    assert User.objects.get(pk=stale_pk).is_active is False
 
 
 @pytest.mark.django_db

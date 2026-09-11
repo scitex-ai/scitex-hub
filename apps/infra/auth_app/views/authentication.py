@@ -10,7 +10,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 
 from ..forms import LoginForm, SignupForm
-from ..models import CODE_VALIDITY, UserProfile
+from ..models import CODE_VALIDITY, PendingSignup, UserProfile
 
 #: How long a code is valid, RENDERED FROM THE MODEL'S OWN CONSTANT rather than
 #: retyped. The previous wording promised 60 minutes while the model enforced
@@ -199,6 +199,14 @@ def signup(request):
 
             # Create user profile (should be auto-created by signal, but ensure it exists)
             UserProfile.objects.get_or_create(user=user)
+
+            # THE TYPED MARKER (PR #775 fifth review). This is the ONE place a
+            # PendingSignup may be created, and it is what makes this account a
+            # SIGNUP AWAITING VERIFICATION rather than merely an inactive row.
+            # The verify, resend and cleanup paths all require it. Resend and
+            # email-change deliberately never create one — that separation is
+            # what stops a suspended account acquiring signup authority.
+            PendingSignup.objects.create(user=user, email=email)
 
             # Create Gitea user account (sync with Gitea)
             try:

@@ -29,7 +29,11 @@ from django.utils import timezone
 
 from apps.infra.auth_app import pending_signup as ps
 from apps.infra.auth_app.forms import SignupForm
-from apps.infra.auth_app.models import MAX_CODE_ATTEMPTS, EmailVerification
+from apps.infra.auth_app.models import (
+    MAX_CODE_ATTEMPTS,
+    EmailVerification,
+    PendingSignup,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -61,10 +65,14 @@ def _disabled(email="disabled@example.com", username="disabled_user"):
 
 
 def _pending(email="pending@example.com", username="pending_user", age=None):
-    """A genuine pending signup: inactive AND with unverified evidence."""
+    """A genuine pending signup: inactive, WITH the typed marker, plus a code."""
     user = User.objects.create_user(
         username=username, email=email, password=PASSWORD, is_active=False
     )
+    # The marker is what makes this a pending SIGNUP; the code is what a real
+    # pending signup has been issued. _disabled() below deliberately creates
+    # neither the marker nor — for the bypass tests — any authority.
+    PendingSignup.objects.create(user=user, email=email)
     EmailVerification.objects.create(user=user, email=email)
     if age is not None:
         User.objects.filter(pk=user.pk).update(date_joined=timezone.now() - age)
@@ -194,9 +202,12 @@ def test_stale_unverified_history_does_not_make_an_active_account_pending():
 
 
 def test_evidence_for_a_different_address_does_not_count():
-    # Arrange — an unverified row, but for somebody else's address.
+    # Arrange — a marker, but for somebody else's address. Legacy/corrupt data
+    # must not authorise a resume for the address actually being submitted.
+    from apps.infra.auth_app.models import PendingSignup
+
     account = _disabled(email="mine@example.com", username="mine")
-    EmailVerification.objects.create(user=account, email="someone_else@example.com")
+    PendingSignup.objects.create(user=account, email="someone_else@example.com")
 
     # Act / Assert
     assert ps.has_pending_evidence(account, "mine@example.com") is False

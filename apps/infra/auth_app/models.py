@@ -193,6 +193,45 @@ CODE_VALIDITY = timedelta(minutes=10)
 MAX_CODE_ATTEMPTS = 5
 
 
+class PendingSignup(models.Model):
+    """Authoritative marker: this user is a SIGNUP awaiting verification.
+
+    WHY THIS TABLE EXISTS (PR #775). "Pending" used to be INFERRED, from
+    ``is_active=False`` plus an ``EmailVerification`` row. That shape cannot
+    carry intent: signup, resend and email-change all create verification rows,
+    and nothing records which one did. So a merely SUSPENDED account that
+    happened to have a stale verification row satisfied the pending-signup test,
+    passed the verify endpoint's gate, and was REACTIVATED — a deactivation
+    bypass reachable with an email address.
+
+    "Is this user mid-signup?" is authoritative state, so it is stored as one
+    instead of being guessed from an ambiguous row.
+
+    INVARIANTS (all four are load-bearing):
+      * created ONLY by the signup flow;
+      * ``OneToOne`` to the user, carrying the address the signup was for;
+      * DELETED on successful verification, and by cleanup;
+      * NEVER created by resend, and never by an email change.
+
+    An administrator-disabled account therefore has no row, and no code path
+    may create one for it — which is what closes the bypass.
+    """
+
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name="pending_signup"
+    )
+    email = models.EmailField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Pending Signup"
+        verbose_name_plural = "Pending Signups"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.email} (pending since {self.created_at:%Y-%m-%d})"
+
+
 class EmailVerification(models.Model):
     """Email verification for user registration"""
 

@@ -122,13 +122,24 @@ def has_pending_evidence(user, email: str = "") -> bool:
     Kept as a module-level function (rather than inlined) so the tests that run
     without a database can substitute it.
     """
-    from .models import EmailVerification
+    from .models import PendingSignup
 
-    if EmailVerification.objects.filter(user=user, is_verified=True).exists():
-        return False
-
-    pending = EmailVerification.objects.filter(user=user, is_verified=False)
+    # AUTHORITATIVE, TYPED (PR #775 fifth review). This is NOT inferred from an
+    # EmailVerification row any more. That shape cannot distinguish "a signup
+    # awaiting verification" from "a SUSPENDED account that merely has a stale
+    # OTP row", and the verify endpoint used exactly that inference to
+    # reactivate suspended accounts.
+    #
+    # The verified-history check is deliberately GONE rather than kept as a
+    # second line of defence: the marker row is DELETED on successful
+    # verification, so a user who ever verified has no row. Re-deriving it from
+    # history would be a second, weaker source of truth for the same question —
+    # and two sources is how the first version of this check went wrong.
+    pending = PendingSignup.objects.filter(user=user)
     if email:
+        # The marker must be for the SAME address being resumed. A row naming a
+        # different address is legacy or corrupt data and must not authorise
+        # anything.
         pending = pending.filter(email__iexact=email.strip())
     return pending.exists()
 

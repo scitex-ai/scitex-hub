@@ -132,6 +132,15 @@ def verify_email_api(request):
             # Mark verification as complete
             verification.verify()
 
+            # LIFECYCLE: the signup is OVER the moment it is verified, so the
+            # marker is DELETED here. It must not outlive the signup, or a later
+            # administrator deactivation of this account would find a pending
+            # marker and could be undone by the very path this fixes.
+            # (For an email CHANGE there is no marker and this is a no-op.)
+            from apps.infra.auth_app.models import PendingSignup
+
+            PendingSignup.objects.filter(user=verification.user).delete()
+
             # Check if this is an email change verification
             pending_change = request.session.get("pending_email_change")
             if pending_change and pending_change.get("new_email") == email:
