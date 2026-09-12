@@ -37,6 +37,10 @@ VISIBILITY_CHOICES = [
     ("private", "Private"),
     ("unlisted", "Unlisted"),
     ("public", "Public"),
+    # Release-channel visibility (registry.py:103, launcher.py:307): "internal"
+    # = staff/operators only (WIP apps before dogfood is stable). The launcher
+    # already gates on it; the store listing must too.
+    ("internal", "Internal (staff only)"),
 ]
 
 # Launcher-tile availability (card hub-launcher-tile-availability-states).
