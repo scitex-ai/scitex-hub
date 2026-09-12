@@ -1260,3 +1260,105 @@ msgstr "GitHub："
 
 msgid "Email:"
 msgstr "メール:"
+
+msgid "Publications Using SciTeX"
+msgstr "SciTeX を使った出版物"
+
+msgid "Research papers published using SciTeX tools."
+msgstr "SciTeX ツールで公開された研究論文。"
+
+msgid "Impact"
+msgstr "インパクト"
+
+msgid "Publication Count"
+msgstr "出版物数"
+
+msgid "Institutions"
+msgstr "機関数"
+
+msgid "Countries"
+msgstr "国数"
+
+msgid "Published Works"
+msgstr "公開された成果"
+
+msgid "Paper"
+msgstr "論文"
+
+msgid "Code"
+msgstr "コード"
+
+msgid "No publications yet."
+msgstr "まだ出版物はありません。"
+
+msgid "Submit Your Work"
+msgstr "成果を送信する"
+
+msgid "Published research using SciTeX? We'd love to feature it."
+msgstr "SciTeX を使った研究を公開しましたか？ぜひ紹介させてください。"
+
+msgid "Email"
+msgstr "メール"
+
+msgid "DOI or Link"
+msgstr "DOI またはリンク"
+
+msgid "Submit"
+msgstr "送信"
+
+msgid "Security & Trust | SciTeX"
+msgstr "セキュリティと信頼 | SciTeX"
+
+msgid "Security & Trust"
+msgstr "セキュリティと信頼"
+
+msgid "Security you can"
+msgstr "セキュリティを"
+
+msgid "verify"
+msgstr "検証できる"
+
+msgid "SciTeX is built so your projects, files, and compute stay yours. Below are the protections we actively implement in code — each one backed by automated tests that run on every commit."
+msgstr "SciTeX は、あなたのプロジェクト、ファイル、計算リソースがあなたのものであるよう構築されています。以下は、コードで積極的に実装している保護です — 各項目はコミットごとに実行される自動化テストで裏付けられています。"
+
+msgid "automated security regression tests"
+msgstr "自動セキュリティ回帰テスト"
+
+msgid "· last verified"
+msgstr "・最終検証"
+
+msgid "(commit %(commit)s)"
+msgstr "(コミット %(commit)s)"
+
+msgid "Tenant Isolation"
+msgstr "テナント分離"
+
+msgid "Sandboxed Compute"
+msgstr "サンドボックス化された計算"
+
+msgid "Least Privilege"
+msgstr "最小権限"
+
+msgid "Tested Every Commit"
+msgstr "コミットごとにテスト"
+
+msgid "What we do"
+msgstr "私たちの取り組み"
+
+msgid "Protections we implement"
+msgstr "実装している保護"
+
+msgid "Every item below reflects code that ships today, guarded by the"
+msgstr "以下の各項目は、今日出荷しているコードを反映し、上記の"
+
+msgid "automated security tests above across"
+msgstr "自動セキュリティテストが"
+
+msgid "focused suites."
+msgstr "集中スイートで保護しています。"
+
+msgid "This page describes protections we actively maintain in code and keep under automated testing. Questions about our security practices?"
+msgstr "このページでは、コードで積極的に維持し、自動テストの対象としている保護について説明しています。セキュリティに関するお問い合わせは。"
+
+msgid "SciTeX Tools"
+msgstr "SciTeX ツール"

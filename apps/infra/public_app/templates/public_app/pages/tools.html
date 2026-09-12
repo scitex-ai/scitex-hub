@@ -2,7 +2,7 @@
 
 {% load static vite tree_preseed %}
 
-{% block title %}SciTeX Tools{% endblock %}
+{% block title %}{% trans "SciTeX Tools" %}{% endblock %}
 {% block meta_description %}
     Free browser-based tools for
     researchers: bookmarklets for element inspection, citation scraping, and more.
@@ -90,7 +90,7 @@
             <div class="tools-content-body" id="tools-content-body">
                 <div class="tools-placeholder" id="tools-placeholder">
                     <i class="fas fa-wrench"></i>
-                    <p>Select a tool from the list</p>
+                    <p>{% trans "Select a tool from the list" %}</p>
                 </div>
                 <iframe id="tools-iframe" class="tools-iframe" src="" frameborder="0" hidden></iframe>
             </div>
