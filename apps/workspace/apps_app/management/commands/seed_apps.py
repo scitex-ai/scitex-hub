@@ -88,7 +88,12 @@ def ensure_builtin_modules(author_username="ywatanabe"):
             "availability": mod.availability or "available",
             "is_builtin": True,
             "is_verified": True,
-            "visibility": "public",
+            # Release-channel visibility comes from the manifest (SSoT).
+            # A manifest without the key defaults to "public" (registry.py:349).
+            # "internal" = staff/operators only (WIP apps) — the launcher
+            # already gates on this (launcher.py:307); the store listing must
+            # too (card compass-impl-app-visibility-gate-20260910, P0).
+            "visibility": mod.visibility or "public",
             "status": "wip" if mod.name in _WIP_MODULES else "stable",
         }
 

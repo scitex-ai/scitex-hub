@@ -126,14 +126,17 @@ def browse_context(request, current_project=None):
     )
     from django.db.models import Q
 
-    # Base: public apps always visible
+    # Base: public apps always visible. "internal" is deliberately NOT in the
+    # base — it is staff/operators-only (WIP apps before dogfood is stable),
+    # added to the staff branch below (card compass-impl-app-visibility-gate).
     visibility_q = Q(visibility="public")
 
     if request.user.is_authenticated:
         # Unlisted: authenticated users can see with direct link — show to author + staff
         visibility_q |= Q(visibility="unlisted", author=request.user)
         if request.user.is_staff:
-            visibility_q |= Q(visibility__in=["unlisted", "private"])
+            # Staff/operators see unlisted + private + internal (WIP apps).
+            visibility_q |= Q(visibility__in=["unlisted", "private", "internal"])
         else:
             # Private: author or shared-org members
             from apps.infra.organizations_app.models import Organization
