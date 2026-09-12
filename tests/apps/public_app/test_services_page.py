@@ -121,11 +121,20 @@ class TestServicesGet:
                 assert row["price_note"] in content, f"{row['label']}: {row['price_note']!r} not on /services/"
             for item in row["included"]:
                 assert item in content, f"{row['label']}: included item {item!r} not on /services/"
-        assert "税込" in content
+        # The tax note is English by default (the page is EN-source since
+        # 2026-09-11; JA only after explicit selection) — assert the EN needle.
+        assert "All displayed prices include tax" in content
 
     def test_get_no_longer_prices_retired_offers(self, client, services_url):
         # Arrange
-        retired_tier_names = ("Individual", "Enterprise")  # the old three-tier table
+        # The old Individual / Lab / Enterprise three-tier table was retired
+        # 2026-08-28. "Individual" (capital-I, the old tier name) is gone; the
+        # 2024-invoice BANDS (11,000 / 33,000 / 110,000) are the real retired-
+        # offer evidence. Deliberately NOT asserting on the words "Lab" or
+        # "Enterprise" — both are live now: "Lab & Organization" is a service
+        # heading and "Enterprise" is the current On-Prem/Enterprise tier name,
+        # so a bare substring check would false-positive on legitimate copy.
+        retired_tier_names = ("Individual",)
         retired_band_amounts = ("11,000", "33,000", "110,000")  # 2024-invoice bands
         # Act
         content = client.get(services_url).content.decode()
