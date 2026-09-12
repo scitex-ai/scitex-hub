@@ -76,6 +76,8 @@ def index(request):
     if not connection.in_atomic_block:
         connection.close()
     from ..pricing import (
+        _limit_set_by_text,
+        _overage_text,
         load_pricing,
         published_price_rows,
         tier_rows,
@@ -86,11 +88,29 @@ def index(request):
     # Individual service line items stay on /services/ — they are offerings,
     # not plans.
     rows = published_price_rows()
-    sub_rows = [
-        {**r, "is_academic": r["id"] == "subscription-student"}
-        for r in rows
-        if r["category"] == "subscription"
-    ]
+    # "Overage is metered" / "Monthly cap set by the user" are standard service
+    # guarantees, not differentiators — disclosed on /tokushoho/, not the
+    # marketing card (operator 2026-09-12). Identified via the same source
+    # functions the SSoT renders them with (deterministic across languages).
+    _standard_guarantees = {
+        _overage_text("metered"),
+        _limit_set_by_text("user"),
+    }
+    # The landing card always shows USD (operator 2026-09-12: "drop the yen at
+    # all; always use USD for clarity") — $19/mo/user academic, $39/mo/user
+    # non-academic. The JPY amount + the approximated yen reference live on
+    # /tokushoho/ (the legal page), which keeps the SSoT JPY values.
+    sub_rows = []
+    for r in rows:
+        if r["category"] != "subscription":
+            continue
+        row = {**r, "is_academic": r["id"] == "subscription-student"}
+        row["included"] = [
+            item for item in row.get("included", []) if item not in _standard_guarantees
+        ]
+        if r.get("usd_amount") is not None:
+            row["price"] = f"${r['usd_amount']}/mo/user"
+        sub_rows.append(row)
     onprem_tier = next(
         (t for t in tier_rows() if t["id"] == "onprem"), None
     )

@@ -37,10 +37,13 @@
                     <p class="plan-sub">{% trans "No charge" %}</p>
                 </div>
                 <div class="pricing-body">
-                    <p class="pricing-price plan-fee">{% trans "¥0" %}</p>
+                    <p class="pricing-price plan-fee">{% trans "$0" %}</p>
                     <div class="pricing-features">
-                        <p class="pricing-features-text">{% trans "Create your free account and use SciTeX's free tier at no cost." %}</p>
-                        <p class="pricing-coming-soon">{% trans "Contents of the free tier will be listed here." %}</p>
+                        <ul>
+                            <li>{% trans "30-day free trial" %}</li>
+                            <li>{% trans "All core features" %}</li>
+                            <li>{% trans "Credit or debit card required" %}</li>
+                        </ul>
                     </div>
                     <div class="pricing-action">
                         <a href="{% url 'auth_app:signup' %}" class="btn btn-primary btn-block">{% trans "Sign up free" %}</a>
@@ -53,10 +56,10 @@
             <div class="pricing-card pricing-card-sub">
                 <div class="pricing-header">
                     <div class="plan-title-row">
-                        <h3 class="plan-name">{% trans "Subscription" %}</h3>
+                        <h3 class="plan-name">{% trans "Pro" %}</h3>
                         <div class="plan-variant-switch" role="group" aria-label="{% trans "Plan variant" %}">
                             <button type="button" class="variant-btn is-active" data-variant="academic" aria-pressed="true">{% trans "Academic" %}</button>
-                            <button type="button" class="variant-btn" data-variant="general" aria-pressed="false">{% trans "General" %}</button>
+                            <button type="button" class="variant-btn" data-variant="general" aria-pressed="false">{% trans "Non-Academic" %}</button>
                         </div>
                     </div>
                     <p class="plan-sub">{% trans "For individuals" %}</p>
@@ -86,22 +89,44 @@
             </div>
             {% endif %}
 
-            {# ---- 3/3 On-Prem --------------------------------------------- #}
+            {# ---- 3/3 On-Prem (AGPL / Commercial switcher) ---------------- #}
             {% if onprem_tier %}
             <div class="pricing-card pricing-card-onprem">
                 <div class="pricing-header">
                     <div class="plan-title-row">
                         <h3 class="plan-name">{{ onprem_tier.name|translate_dynamic }}</h3>
+                        <div class="plan-variant-switch" role="group" aria-label="{% trans "License type" %}">
+                            <button type="button" class="variant-btn is-active" data-variant="agpl" aria-pressed="true">{% trans "AGPL" %}</button>
+                            <button type="button" class="variant-btn" data-variant="custom" aria-pressed="false">{% trans "Custom License" %}</button>
+                        </div>
                     </div>
                     <p class="plan-sub">{{ onprem_tier.audience|translate_dynamic }}</p>
                 </div>
                 <div class="pricing-body">
-                    <p class="pricing-price plan-fee">{% trans "¥ Ask" %}<span class="period">{% trans "AGPL self-host is free" %}</span></p>
-                    {% if onprem_tier.description %}
-                    <div class="pricing-features">
-                        <p class="pricing-features-text">{{ onprem_tier.description|translate_dynamic }}</p>
+                    <div class="plan-variants">
+                        {# AGPL variant #}
+                        <div class="plan-variant plan-variant-agpl" data-variant="agpl">
+                            <p class="pricing-price plan-fee">{% trans "Free" %}<span class="period">{% trans "AGPL v3.0 · Self-host" %}</span></p>
+                            <div class="pricing-features">
+                                <ul>
+                                    <li>{% trans "Free under AGPL v3.0" %}</li>
+                                    <li>{% trans "Self-host in your own environment" %}</li>
+                                    <li>{% trans "Keep data in-house" %}</li>
+                                </ul>
+                            </div>
+                        </div>
+                        {# Custom License variant #}
+                        <div class="plan-variant plan-variant-custom plan-variant-hidden" data-variant="custom">
+                            <p class="pricing-price plan-fee">{% trans "Contact us" %}<span class="period">{% trans "Non-AGPL · Custom license" %}</span></p>
+                            <div class="pricing-features">
+                                <ul>
+                                    <li>{% trans "Custom license contract" %}</li>
+                                    <li>{% trans "For your organization or the community" %}</li>
+                                    <li>{% trans "Setup and maintenance support" %}</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
-                    {% endif %}
                     <div class="pricing-action">
                         <a href="{% url 'public_app:contact' %}" class="btn btn-block">{% trans "Contact us" %}</a>
                         <p class="pricing-card-note"><a href="{% url 'public_app:services' %}">{% trans "Services & add-ons" %}</a></p>
@@ -116,31 +141,28 @@
                 <a href="{% url 'public_app:pricing' %}">{% trans "pricing page" %}</a>{% trans " and " %}
                 <a href="{% url 'public_app:services' %}">{% trans "services" %}</a>{% trans ", plus the " %}
                 <a href="{% url 'public_app:tokushoho' %}">{% trans "legal notice required by Japan's Specified Commercial Transactions Act" %}</a>{% trans "." %}
-                {% if tax_note %} {{ tax_note|translate_dynamic }}{% endif %}
+                ({% trans "tax included" %})
             </p>
-            {% for note in pricing_notes %}
-            <p class="pricing-note">{{ note|translate_dynamic }}</p>
-            {% endfor %}
         </div>
     </div>
     {% comment %} Variant switch: pure display toggle (no data change, no
        persistence — the landing must work without the Vite bundle). {% endcomment %}
     <script>
     (function () {
-        var sw = document.querySelector('.plan-variant-switch');
-        if (!sw) return;
-        var card = sw.closest('.pricing-card');
-        sw.addEventListener('click', function (e) {
-            var btn = e.target.closest('.variant-btn');
-            if (!btn) return;
-            var variant = btn.dataset.variant;
-            sw.querySelectorAll('.variant-btn').forEach(function (b) {
-                var on = b === btn;
-                b.classList.toggle('is-active', on);
-                b.setAttribute('aria-pressed', on ? 'true' : 'false');
-            });
-            card.querySelectorAll('.plan-variant').forEach(function (v) {
-                v.classList.toggle('plan-variant-hidden', v.dataset.variant !== variant);
+        document.querySelectorAll('.plan-variant-switch').forEach(function (sw) {
+            var card = sw.closest('.pricing-card');
+            sw.addEventListener('click', function (e) {
+                var btn = e.target.closest('.variant-btn');
+                if (!btn) return;
+                var variant = btn.dataset.variant;
+                sw.querySelectorAll('.variant-btn').forEach(function (b) {
+                    var on = b === btn;
+                    b.classList.toggle('is-active', on);
+                    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+                });
+                card.querySelectorAll('.plan-variant').forEach(function (v) {
+                    v.classList.toggle('plan-variant-hidden', v.dataset.variant !== variant);
+                });
             });
         });
     })();

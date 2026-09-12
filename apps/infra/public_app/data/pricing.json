@@ -11,6 +11,7 @@
       "id": "subscription-student",
       "label": "Subscription · Academic",
       "amount": 2980,
+      "usd_amount": 19,
       "policy": "early-adopter",
       "unit": "month",
       "basis": "per_user",
@@ -18,13 +19,14 @@
       "category": "subscription",
       "attributes": {
         "included_storage": {
-          "amount": 50,
+          "amount": 30,
           "unit": "GB/month",
-          "type": "Standard"
+          "type": "Standard speed"
         },
         "included_compute_credit": {
           "amount": 1000,
-          "unit": "JPY-equivalent/month"
+          "unit": "JPY-equivalent/month",
+          "usd_amount": 10
         },
         "included_traffic": "normal-use",
         "overage": "metered",
@@ -37,6 +39,7 @@
       "id": "subscription-general",
       "label": "Subscription · General",
       "amount": 5980,
+      "usd_amount": 39,
       "policy": "early-adopter",
       "unit": "month",
       "basis": "per_user",
@@ -44,13 +47,14 @@
       "category": "subscription",
       "attributes": {
         "included_storage": {
-          "amount": 50,
+          "amount": 30,
           "unit": "GB/month",
-          "type": "Standard"
+          "type": "Standard speed"
         },
         "included_compute_credit": {
           "amount": 1000,
-          "unit": "JPY-equivalent/month"
+          "unit": "JPY-equivalent/month",
+          "usd_amount": 10
         },
         "included_traffic": "normal-use",
         "overage": "metered",

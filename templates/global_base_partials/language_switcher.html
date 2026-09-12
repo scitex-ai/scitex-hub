@@ -17,39 +17,67 @@ menu that already hangs off the right side of the header.
 {% endcomment %}
 
 {% get_current_language as CURRENT_LANGUAGE %}
-{% get_available_languages as AVAILABLE_LANGUAGES %}
-
-{% if AVAILABLE_LANGUAGES|length > 1 %}
-    <div class="lang-select" id="lang-select">
-        <button type="button"
-                class="header-btn lang-select-trigger"
-                id="lang-select-trigger"
-                aria-haspopup="true"
-                aria-expanded="false"
-                data-tooltip="Language">
-            <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none"
-                 style="display: inline-block; vertical-align: -2px">
-                <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3" />
-                <ellipse cx="8" cy="8" rx="3" ry="6.5" stroke="currentColor" stroke-width="1.1" />
-                <line x1="1.5" y1="8" x2="14.5" y2="8" stroke="currentColor" stroke-width="1.1" />
-            </svg>
-            <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true" fill="currentColor"
-                 style="display: inline-block; vertical-align: -1px; margin-left: 3px">
-                <path d="M4 6l4 4 4-4H4z" />
-            </svg>
-        </button>
-        <div class="header-dropdown lang-select-menu" id="lang-select-menu" style="display: none">
-            {% for lang_code in AVAILABLE_LANGUAGES %}
-                <form action="{% url 'set_language' %}" method="post" class="lang-select-item">
-                    {% csrf_token %}
-                    <input type="hidden" name="next" value="{{ request.get_full_path }}" />
-                    <input type="hidden" name="language" value="{{ lang_code }}" />
-                    <button type="submit" class="lang-select-link">
-                        <i class="fas fa-check lang-select-check{% if lang_code == CURRENT_LANGUAGE %} is-on{% endif %}"></i>
-                        {% if lang_code == "ja" %}日本語{% elif lang_code == "en" %}English{% else %}{{ lang_code }}{% endif %}
-                    </button>
-                </form>
-            {% endfor %}
-        </div>
+<div class="lang-select" id="lang-select">
+    <button type="button"
+            class="header-btn lang-select-trigger"
+            id="lang-select-trigger"
+            aria-haspopup="true"
+            aria-expanded="false"
+            data-tooltip="Language">
+        <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none"
+             style="display: inline-block; vertical-align: -2px">
+            <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3" />
+            <ellipse cx="8" cy="8" rx="3" ry="6.5" stroke="currentColor" stroke-width="1.1" />
+            <line x1="1.5" y1="8" x2="14.5" y2="8" stroke="currentColor" stroke-width="1.1" />
+        </svg>
+        <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true" fill="currentColor"
+             style="display: inline-block; vertical-align: -1px; margin-left: 3px">
+            <path d="M4 6l4 4 4-4H4z" />
+        </svg>
+    </button>
+    <div class="header-dropdown lang-select-menu" id="lang-select-menu" style="display: none">
+        <form action="{% url 'set_language' %}" method="post" class="lang-select-item">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+            <input type="hidden" name="language" value="en" />
+            <button type="submit" class="lang-select-link">
+                <i class="fas fa-check lang-select-check{% if CURRENT_LANGUAGE == "en" %} is-on{% endif %}"></i>
+                English
+            </button>
+        </form>
+        <form action="{% url 'set_language' %}" method="post" class="lang-select-item">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+            <input type="hidden" name="language" value="ja" />
+            <button type="submit" class="lang-select-link">
+                <i class="fas fa-check lang-select-check{% if CURRENT_LANGUAGE == "ja" %} is-on{% endif %}"></i>
+                日本語
+            </button>
+        </form>
     </div>
-{% endif %}
+</div>
+    <script>
+    (function () {
+        var trigger = document.getElementById("lang-select-trigger");
+        var menu = document.getElementById("lang-select-menu");
+        if (!trigger || !menu) return;
+        trigger.addEventListener("click", function (e) {
+            e.stopPropagation();
+            var open = menu.style.display !== "none";
+            menu.style.display = open ? "none" : "block";
+            trigger.setAttribute("aria-expanded", open ? "false" : "true");
+        });
+        document.addEventListener("click", function (e) {
+            if (!trigger.contains(e.target) && !menu.contains(e.target)) {
+                menu.style.display = "none";
+                trigger.setAttribute("aria-expanded", "false");
+            }
+        });
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") {
+                menu.style.display = "none";
+                trigger.setAttribute("aria-expanded", "false");
+            }
+        });
+    })();
+    </script>

@@ -39,8 +39,8 @@
 }
 
 .plan-name {
-  font-size: 1.125rem;
-  font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 700;
   margin: 0;
   color: var(--text-primary);
 }
@@ -227,19 +227,6 @@
 .pricing-coming-soon {
   color: var(--text-muted);
   font-style: italic;
-}
-
-/* Brand-blue CTA on the landing pricing cards (matches the hero button — the
-   one arbitrary colour the operator approved, 2026-09-10). */
-.pricing-action .btn-primary {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  border-color: transparent;
-  color: var(--text-inverse);
-}
-
-.pricing-action .btn-primary:hover {
-  background: linear-gradient(135deg, #1d4ed8, #1e40af);
-  color: var(--text-inverse);
 }
 
 /* Card-required note under the subscription CTA */

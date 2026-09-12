@@ -90,3 +90,62 @@
 [data-theme="dark"] .dropdown-item i {
   color: var(--scitex-color-06) !important; /* #b5c7d1 - pale for icons */
 }
+
+/* =========================
+   Language selector dropdown (operator 2026-09-12: a multi-language
+   dropdown at the FAR RIGHT of the header, not a 2-state toggle).
+   ========================= */
+.lang-select {
+  position: relative;
+  display: inline-flex;
+}
+
+.lang-select-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The menu is a .header-dropdown (absolute, top:100%, right:0). Position it
+   relative to the .lang-select wrapper so it hangs off the globe button, not
+   the whole header-right cluster. */
+.lang-select-menu {
+  min-width: 150px;
+  padding: 4px 0;
+}
+
+.lang-select-item {
+  margin: 0;
+}
+
+.lang-select-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 16px;
+  background: transparent;
+  border: 0;
+  color: var(--text-primary);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.lang-select-link:hover {
+  background: var(--bg-muted);
+  color: var(--text-primary);
+}
+
+.lang-select-check {
+  width: 16px;
+  text-align: center;
+  color: var(--text-primary);
+  opacity: 0;
+}
+
+.lang-select-check.is-on {
+  opacity: 1;
+  color: var(--text-link);
+}

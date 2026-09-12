@@ -652,6 +652,27 @@ msgstr "サブスク・一般"
 msgid "Subscription"
 msgstr "サブスクリプション"
 
+msgid "Pro"
+msgstr "プロ"
+
+msgid "Non-Academic"
+msgstr "非学術"
+
+msgid "$0"
+msgstr "$0"
+
+msgid "30-day free trial"
+msgstr "30日間の無料トライアル"
+
+msgid "All core features"
+msgstr "主要機能すべて利用可能"
+
+msgid "Credit card required"
+msgstr "クレジットカードが必要です"
+
+msgid "Credit or debit card required"
+msgstr "クレジットカード / デビットカードが必要です"
+
 msgid "No charge"
 msgstr "無料"
 
@@ -666,6 +687,42 @@ msgstr "¥ お問い合わせ"
 
 msgid "AGPL self-host is free"
 msgstr "AGPL でのセルフホストは無料"
+
+msgid "License type"
+msgstr "ライセンスの種類"
+
+msgid "AGPL"
+msgstr "AGPL"
+
+msgid "Commercial"
+msgstr "カスタムライセンス"
+
+msgid "Custom License"
+msgstr "カスタムライセンス"
+
+msgid "AGPL v3.0 · Self-host"
+msgstr "AGPL v3.0 · セルフホスト"
+
+msgid "Free under AGPL v3.0"
+msgstr "AGPL v3.0 で無料"
+
+msgid "Self-host in your own environment"
+msgstr "ご自身の環境でセルフホスト"
+
+msgid "Keep data in-house"
+msgstr "データを社内に保持"
+
+msgid "Non-AGPL · Custom license"
+msgstr "非 AGPL · カスタムライセンス"
+
+msgid "Custom license contract"
+msgstr "カスタムライセンス契約"
+
+msgid "For your organization or the community"
+msgstr "組織やコミュニティ向け"
+
+msgid "Setup and maintenance support"
+msgstr "セットアップ・維持管理サポート"
 
 msgid "On-Prem"
 msgstr "オンプレ"

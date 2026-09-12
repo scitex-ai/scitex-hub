@@ -434,21 +434,17 @@ def test_switcher_posts_rather_than_gets(switcher_html):
     assert expected in actual
 
 
-def test_switcher_offers_the_other_language_under_ja(switcher_html):
-    """A TOGGLE names its DESTINATION, so under ja the label is English.
-
-    The control changed shape on the operator's instruction (2026-08-23): it was
-    a <select> in the footer offering both languages; it is now a toggle in the
-    header offering the one you are not in. These tests changed with it rather
-    than being loosened — the old "offers both" assertion would now be asserting
-    a control that no longer exists.
+def test_switcher_lists_all_configured_languages(switcher_html):
+    """A DROPDOWN lists every configured language (operator 2026-09-12: the
+    2-state toggle became a multi-language dropdown), so under ja BOTH
+    English and 日本語 appear, each as a real set_language form.
     """
     # Arrange
-    expected = "English"
+    expected = ("English", "日本語")
     # Act
     actual = switcher_html
     # Assert
-    assert expected in actual
+    assert all(name in actual for name in expected)
 
 
 def test_switcher_submits_the_other_language_under_ja(switcher_html):
@@ -479,14 +475,14 @@ def test_switcher_submits_japanese_under_en(switcher_en_html):
     assert expected in actual
 
 
-def test_switcher_reuses_the_footer_button_class(switcher_html):
+def test_switcher_reuses_the_header_button_class(switcher_html):
     """No bespoke colours. The operator rejected the first version for looking
-    unlike its neighbours 「ブランドのカラーと合ってない」; reusing a shared
-    button class is what makes it inherit the brand tokens. (2026-09-11: the
-    switcher moved from the header to the footer, so the class it reuses is
-    now .footer-lang-btn, styled from the footer token palette.)"""
+    unlike its neighbours; reusing a shared button class is what makes it
+    inherit the brand tokens. (2026-09-12: the 2-state toggle became a
+    multi-language dropdown whose trigger reuses .header-btn, the same class
+    Sign in / Sign up use.)"""
     # Arrange
-    expected = 'class="footer-lang-btn"'
+    expected = 'class="header-btn'
     # Act
     actual = switcher_html
     # Assert
@@ -558,11 +554,12 @@ def _landing(client_cookie=None):
 
 def test_landing_pricing_renders_fully_english_by_default():
     html = _landing()
-    # lang + three-plan row (Free | Sub | On-Prem) + EN price (call-time
-    # gettext) + EN included + EN tax note + the Academic/General switcher
+    # lang + three-plan row (Free | Subscription | On-Prem) + EN price in
+    # USD (operator 2026-09-12: English shows dollars) + EN included + EN tax
+    # note + the Academic/General switcher
     assert '<html lang="en"' in html
     assert "Free" in html
-    assert "Monthly ¥1,490" in html
+    assert "$19/mo/user" in html and "$39/mo/user" in html
     assert 'data-variant="academic"' in html and 'data-variant="general"' in html
     assert "Traffic within normal use" in html
     assert "All displayed prices include tax" in html
@@ -573,16 +570,14 @@ def test_landing_pricing_renders_fully_english_by_default():
 
 def test_landing_pricing_renders_fully_japanese_when_selected():
     html = _landing(client_cookie="ja")
-    # lang + JA price (call-time) + JA included + JA tax note + JA price_note
-    # date + the JA variant switcher (学術 / 一般)
+    # lang + JA price in JPY (English uses USD; JA keeps the SSoT yen values)
+    # + JA included + JA tax note + the JA variant switcher (学術 / 一般)
     assert '<html lang="ja"' in html
     assert "月額 1,490円" in html
     assert "サブスク" in html
     assert "学術" in html and "一般" in html
     assert "通常利用の範囲の通信" in html
-    assert "超過分は従量課金" in html
     assert "表示価格はすべて税込" in html
-    assert "2027年7月末までの早期導入価格" in html
-    # NO English data (neither the new EN format nor the OLD en-callback format)
-    for en in ("Monthly ¥1,490", "¥1,490/month", "Traffic within normal use", "All displayed prices"):
+    # NO English data (neither the USD price nor the EN included items) leaks
+    for en in ("$19/mo/user", "$39/mo/user", "Monthly ¥1,490", "Traffic within normal use", "All displayed prices"):
         assert en not in html, f"English {en!r} leaked into the Japanese landing"

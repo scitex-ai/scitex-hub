@@ -118,6 +118,9 @@ def _storage_text(value: dict[str, Any], basis: str = "") -> str:
 
 
 def _credit_text(value: dict[str, Any], basis: str = "") -> str:
+    # JPY by default — this feeds the raw SSoT (published_price_rows), which
+    # /tokushoho/ and /services/ render in the SSoT currency. The LANDING card
+    # swaps this to USD in the view (operator 2026-09-12: "always use USD").
     amount = f"{value['amount']:,}"
     if basis == "per_project":
         return _("%(amount)s yen-equivalent compute credit per project per month") % {
@@ -469,6 +472,7 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
                 "overage": overage_str,
                 "included": included,
                 "remarks": remarks,
+                "usd_amount": item.get("usd_amount"),
                 # Pass-through of the upstream catalogue's descriptive fields, so
                 # /services/ can describe an offer in business.yaml's words.
                 "category": item.get("category", "service"),
