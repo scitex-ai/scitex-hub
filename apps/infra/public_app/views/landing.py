@@ -53,10 +53,10 @@ def _get_ecosystem_versions():
 def _pricing_rows_for_landing() -> list[dict]:
     """The subscription rows for the landing card.
 
-    The SSoT (published_price_rows) now renders USD as the primary price
-    and the compute credit as "$10 compute credit" globally. The landing
-    card additionally hides the standard-guarantee items (overage/cap)
-    which are disclosed on /tokushoho/ but not advertised on the card.
+    The SSoT (published_price_rows) now renders USD as the primary price and
+    the compute credit in USD globally. The landing card additionally hides
+    the standard-guarantee items (overage/cap) which are disclosed on
+    /tokushoho/ but not advertised on the card.
     """
     from ..pricing import _limit_set_by_text, _overage_text, published_price_rows
 

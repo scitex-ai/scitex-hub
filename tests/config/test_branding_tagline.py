@@ -26,8 +26,11 @@ from __future__ import annotations
 from config import branding
 from config.context_processors import site_branding
 
-EXPECTED_PRIMARY = "Research Automation for AI and Humans"
-EXPECTED_SECONDARY = "Open-source Scientific Research Automation Ecosystem"
+EXPECTED_PRIMARY = "Open-source Ecosystem for Scientific Research"
+# The operator revised the tagline 2026-09-12: the two lines were collapsed to
+# the single primary above; the secondary was dropped ("" — still exposed by the
+# context processor so the hero's <p> renders empty, not errors).
+EXPECTED_SECONDARY = ""
 
 
 # ---------------------------------------------------------------------------
@@ -51,22 +54,24 @@ def test_secondary_tagline_is_the_operator_text():
     assert actual == expected
 
 
-def test_secondary_tagline_spells_scientific_correctly():
-    """Positive half of the spelling pair -- see the module docstring."""
+def test_tagline_spells_scientific_correctly():
+    """Positive half of the spelling pair -- see the module docstring. The
+    tagline is now a single primary line (the secondary was dropped
+    2026-09-12), so the "Scientific" guard points at the primary."""
     # Arrange
     expected_word = "Scientific"
     # Act
-    actual = branding.SITE_TAGLINE_SECONDARY
+    actual = branding.SITE_TAGLINE
     # Assert
     assert expected_word in actual
 
 
-def test_secondary_tagline_does_not_carry_the_scitentific_typo():
+def test_tagline_does_not_carry_the_scitentific_typo():
     """Negative half. Non-vacuous: the test above proves the string exists."""
     # Arrange
     typo = "scitentific"
     # Act
-    actual = branding.SITE_TAGLINE_SECONDARY.lower()
+    actual = branding.SITE_TAGLINE.lower()
     # Assert
     assert typo not in actual
 
