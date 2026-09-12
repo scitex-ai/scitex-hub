@@ -1362,3 +1362,297 @@ msgstr "このページでは、コードで積極的に維持し、自動テス
 
 msgid "SciTeX Tools"
 msgstr "SciTeX ツール"
+
+msgid "Support open science by funding SciTeX development. Donate via GitHub Sponsors, Buy Me a Coffee, or future Stripe payments."
+msgstr "SciTeX の開発資金をご支援いただくことでオープンサイエンスを支えてください。GitHub Sponsors、Buy Me a Coffee、今後の Stripe 支払いからご寄付いただけます。"
+
+msgid "Support Open Science"
+msgstr "オープンサイエンスを支える"
+
+msgid "Help us build free, open-source tools that make scientific research accessible to everyone."
+msgstr "すべての人に科学研究を届ける、無料のオープンソースツールづくりにお手伝いください。"
+
+msgid "is an open-source research platform licensed under AGPL v3.0."
+msgstr "は AGPL v3.0 ライセンスで提供されるオープンソースの研究プラットフォームです。"
+
+msgid "We believe that the tools powering scientific discovery should be free and accessible to every researcher, regardless of their institution or funding."
+msgstr "科学的発見を支えるツールは、所属機関や資金状況にかかわらず、すべての研究者に無料でアクセス可能であるべきだと私たちは考えます。"
+
+msgid "Your support directly funds server costs, development, and keeping SciTeX free for the research community."
+msgstr "ご支援はサーバーコスト、開発、研究コミュニティへの SciTeX の無料提供に直接使われます。"
+
+msgid "Recommended"
+msgstr "おすすめ"
+
+msgid "GitHub Sponsors"
+msgstr "GitHub Sponsors"
+
+msgid "Recurring or one-time sponsorships through GitHub. GitHub matches contributions for eligible projects."
+msgstr "GitHub を通じた定期または一回きりのスポンサーシップ。対象プロジェクトには GitHub がマッチングします。"
+
+msgid "Sponsor on GitHub"
+msgstr "GitHub でスポンサーする"
+
+msgid "Buy Me a Coffee"
+msgstr "Buy Me a Coffee"
+
+msgid "Quick one-time contributions to show your support. Every coffee helps keep the servers running."
+msgstr "支援を示すための手軽な一回きりの寄付。一杯のコーヒーがサーバーの稼働を助けます。"
+
+msgid "Buy a Coffee"
+msgstr "コーヒーを買う"
+
+msgid "Direct Payment"
+msgstr "直接支払い"
+
+msgid "Credit card and bank transfer support via Stripe. Currently pending the Stripe Japan application."
+msgstr "Stripe によるクレジットカード・銀行振込。現在は Stripe 日本申請の審査中です。"
+
+msgid "Coming Soon"
+msgstr "近日公開"
+
+msgid "Suggested Support Tiers"
+msgstr "支援ティア（目安）"
+
+msgid "/ month"
+msgstr "/ 月"
+
+msgid "Supporter"
+msgstr "サポーター"
+
+msgid "Buy us a coffee each month"
+msgstr "毎月コーヒーを一杯"
+
+msgid "Researcher"
+msgstr "研究者"
+
+msgid "Cover one user's server costs"
+msgstr "1 ユーザー分サーバーコストを賄う"
+
+msgid "Lab Sponsor"
+msgstr "ラボスポンサー"
+
+msgid "Fund infrastructure for a research group"
+msgstr "研究グループのインフラを資金提供"
+
+msgid "Patron"
+msgstr "パトロン"
+
+msgid "Any amount makes a difference"
+msgstr "少額でも意義があります"
+
+msgid "How Your Support Helps"
+msgstr "ご支援の使途"
+
+msgid "Server Infrastructure"
+msgstr "サーバーインフラ"
+
+msgid "Cloud hosting, compute resources, and storage for the research platform"
+msgstr "研究プラットフォームのクラウドホスティング、計算リソース、ストレージ"
+
+msgid "Development"
+msgstr "開発"
+
+msgid "New features, bug fixes, and maintaining the open-source codebase"
+msgstr "新機能、バグ修正、オープンソースコードベースの維持"
+
+msgid "Research Access"
+msgstr "研究へのアクセス"
+
+msgid "Keeping SciTeX free for researchers at underfunded institutions"
+msgstr "資金の乏しい機関の研究者に対して SciTeX を無料で保つ"
+
+msgid "Tutorials, guides, and training materials for the community"
+msgstr "コミュニティ向けのチュートリアル、ガイド、研修資料"
+
+msgid "Every Contribution Counts"
+msgstr "すべての貢献が意味を持つ"
+
+msgid "Whether it is $5 or $500, your support keeps open science moving forward."
+msgstr "5 ドルでも 500 ドルでも、ご支援がオープンサイエンスを前進させます。"
+
+msgid "View Pricing Plans"
+msgstr "料金プランを見る"
+
+msgid "Self-Hosting Guide - Deploy SciTeX Hub Anywhere"
+msgstr "セルフホスティングガイド - どこでも SciTeX Hub をデプロイ"
+
+msgid "Deploy your own SciTeX Hub instance — a complete research platform with literature management, manuscript writing, visualization, and AI agent support."
+msgstr "独自の SciTeX Hub インスタンスをデプロイ — 文献管理、原稿執筆、可視化、AI エージェント対応を備えた完全な研究プラットフォーム。"
+
+msgid "Run your own SciTeX Hub — locally, on a home server, or in the cloud."
+msgstr "独自の SciTeX Hub をローカル、ホームサーバー、またはクラウドで実行。"
+
+msgid "What You Get"
+msgstr "得られるもの"
+
+msgid "SciTeX Hub is a self-hostable research platform."
+msgstr "SciTeX Hub はセルフホスト可能な研究プラットフォームです。"
+
+msgid "gives you a full Django application with:"
+msgstr "で完全な Django アプリケーションが利用できます:"
+
+msgid "Literature search across CrossRef, PubMed, arXiv, and OpenAlex. BibTeX management and citation tracking."
+msgstr "CrossRef、PubMed、arXiv、OpenAlex 横断の文献検索。BibTeX 管理と引用トラッキング。"
+
+msgid "LaTeX manuscript editor with BibTeX integration, figure/table management, and IMRAD templates."
+msgstr "BibTeX 連携、図表管理、IMRAD テンプレートを備えた LaTeX 原稿エディタ。"
+
+msgid "Data visualization and interactive figure editing."
+msgstr "データ可視化とインタラクティブな図表編集。"
+
+msgid "Web-based terminal for running Python and Bash in isolated containers."
+msgstr "分離コンテナで Python と Bash を実行するウェブベースのターミナル。"
+
+msgid "Project file browser with GitHub-style"
+msgstr "GitHub スタイルのプロジェクトファイルブラウザ。"
+
+msgid "URLs."
+msgstr "URL"
+
+msgid "Research Tools"
+msgstr "研究ツール"
+
+msgid "Statistics, PDF manipulation, citation scraping, QR generation, and more at"
+msgstr "統計、PDF 操作、引用スクレイピング、QR 生成など、以下から:"
+
+msgid "23 tools for AI agents (Claude, Cursor, etc.) to search literature, manage citations, generate figures, and run statistics."
+msgstr "AI エージェント (Claude、Cursor など) が文献検索、引用管理、図表生成、統計実行を行うための 23 のツール。"
+
+msgid "Ecosystem Overview"
+msgstr "エコシステム概要"
+
+msgid "SciTeX Ecosystem Diagram"
+msgstr "SciTeX エコシステム図"
+
+msgid "Architecture"
+msgstr "アーキテクチャ"
+
+msgid "Docker containers, fully orchestrated:"
+msgstr "Docker コンテナで、完全にオーケストレーション:"
+
+msgid "Web application and REST API"
+msgstr "ウェブアプリケーションと REST API"
+
+msgid "Database for all application data"
+msgstr "すべてのアプリケーションデータのデータベース"
+
+msgid "Cache and Celery message broker"
+msgstr "キャッシュと Celery メッセージブローカー"
+
+msgid "Self-hosted Git server for project repositories"
+msgstr "プロジェクトリポジトリ用のセルフホスト Git サーバー"
+
+msgid "Async task workers for background jobs"
+msgstr "バックグラウンドジョブの非同期タスクワーカー"
+
+msgid "Privacy-focused analytics (no external tracking)"
+msgstr "プライバシー重視の解析（外部トラッキングなし）"
+
+msgid "Optional local databases for offline paper search:"
+msgstr "オフライン論文検索用の任意のローカルデータベース:"
+
+msgid "167M+ papers in a local database. Fast, offline metadata search with citation graph analysis."
+msgstr "ローカルデータベースに 1.67 億以上の論文。引用グラフ分析付きの高速オフラインメタデータ検索。"
+
+msgid "284M+ scholarly works with full-text search, abstracts, and impact factors."
+msgstr "全文検索、抄録、インパクトファクターを備えた 2.84 億以上の学術論文。"
+
+msgid "Infrastructure Deployment"
+msgstr "インフラデプロイ"
+
+msgid "Complete infrastructure stack showing Docker services, host services, and network architecture."
+msgstr "Docker サービス、ホストサービス、ネットワークアーキテクチャを示す完全なインフラスタック。"
+
+msgid "Infrastructure Deployment Diagram"
+msgstr "インフラデプロイ図"
+
+msgid "Quick Start"
+msgstr "クイックスタート"
+
+msgid "Three commands to get everything running:"
+msgstr "3 つのコマンドですべてを起動:"
+
+msgid "Access at"
+msgstr "アクセス:"
+
+msgid "Test user:"
+msgstr "テストユーザー:"
+
+msgid "the password is printed by"
+msgstr "パスワードは以下によって表示されます"
+
+msgid "on first run, or set"
+msgstr "初回実行時に表示されます。または設定"
+
+msgid "to choose it yourself"
+msgstr "で自分で選択"
+
+msgid "Prerequisites"
+msgstr "前提条件"
+
+msgid "Linux, macOS, or Windows (WSL2)"
+msgstr "Linux、macOS、または Windows (WSL2)"
+
+msgid "Docker 24.0+ with Docker Compose v2"
+msgstr "Docker Compose v2 付き Docker 24.0+"
+
+msgid "Git 2.30+"
+msgstr "Git 2.30+"
+
+msgid "4 GB RAM minimum (8 GB recommended)"
+msgstr "RAM 最低 4GB (8GB 推奨)"
+
+msgid "Development Setup"
+msgstr "開発セットアップ"
+
+msgid "Clone and configure"
+msgstr "クローンと設定"
+
+msgid "Set secret key"
+msgstr "シークレットキーを設定"
+
+msgid "edit"
+msgstr "編集"
+
+msgid "Start services"
+msgstr "サービスの起動"
+
+msgid "Production Setup"
+msgstr "本番セットアップ"
+
+msgid "For deploying on a home server, NAS, or VPS:"
+msgstr "ホームサーバー、NAS、VPS へのデプロイ:"
+
+msgid "Create production environment"
+msgstr "本番環境の作成"
+
+msgid "Configure for production"
+msgstr "本番向けに設定"
+
+msgid "Start production"
+msgstr "本番を起動"
+
+msgid "CLI-Only Install"
+msgstr "CLI のみインストール"
+
+msgid "Use the CLI and MCP server without Docker:"
+msgstr "Docker なしで CLI と MCP サーバーを使用:"
+
+msgid "MCP Server for AI Agents"
+msgstr "AI エージェント用 MCP サーバー"
+
+msgid "Connect AI assistants (Claude, Cursor, etc.) to your SciTeX instance:"
+msgstr "AI アシスタント (Claude、Cursor など) を SciTeX インスタンスに接続:"
+
+msgid "Common Commands"
+msgstr "よく使うコマンド"
+
+msgid "Full Documentation"
+msgstr "完全なドキュメント"
+
+msgid "For configuration reference, troubleshooting, and architecture details, see the"
+msgstr "設定リファレンス、トラブルシューティング、アーキテクチャ詳細については、"
+
+msgid "full documentation"
+msgstr "完全なドキュメント"

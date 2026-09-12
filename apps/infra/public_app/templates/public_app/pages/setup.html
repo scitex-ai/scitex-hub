@@ -1,8 +1,9 @@
 {% extends "global_base.html" %}
+{% load i18n %}
 
-{% block title %}Self-Hosting Guide - Deploy SciTeX Hub Anywhere{% endblock %}
+{% block title %}{% trans "Self-Hosting Guide - Deploy SciTeX Hub Anywhere" %}{% endblock %}
 {% block meta_description %}
-    Deploy your own SciTeX Hub instance — a complete research platform with literature management, manuscript writing, visualization, and AI agent support.
+    {% trans "Deploy your own SciTeX Hub instance — a complete research platform with literature management, manuscript writing, visualization, and AI agent support." %}
 {% endblock %}
 {% block extra_css %}
     {% load static %}
@@ -13,135 +14,135 @@
 {% block content %}
     <div class="about-container">
         <header class="minimal-hero">
-            <h1 class="minimal-hero-title">Self-Hosting Guide</h1>
-            <p class="setup-subtitle">Run your own SciTeX Hub — locally, on a home server, or in the cloud.</p>
+            <h1 class="minimal-hero-title">{% trans "Self-Hosting Guide" %}</h1>
+            <p class="setup-subtitle">{% trans "Run your own SciTeX Hub — locally, on a home server, or in the cloud." %}</p>
         </header>
         <article class="about-narrative">
             <!-- What You Get -->
             <section class="about-section">
-                <h2>What You Get</h2>
+                <h2>{% trans "What You Get" %}</h2>
                 <p>
-                    SciTeX Hub is a self-hostable research platform.
-                    One <code>make start</code> gives you a full Django application with:
+                    {% trans "SciTeX Hub is a self-hostable research platform." %}
+                    One <code>make start</code> {% trans "gives you a full Django application with:" %}
                 </p>
                 <ul class="setup-list">
                     <li>
-                        <strong>Scholar</strong> — Literature search across CrossRef, PubMed, arXiv, and OpenAlex. BibTeX management and citation tracking.
+                        <strong>Scholar</strong> — {% trans "Literature search across CrossRef, PubMed, arXiv, and OpenAlex. BibTeX management and citation tracking." %}
                     </li>
                     <li>
-                        <strong>Writer</strong> — LaTeX manuscript editor with BibTeX integration, figure/table management, and IMRAD templates.
+                        <strong>Writer</strong> — {% trans "LaTeX manuscript editor with BibTeX integration, figure/table management, and IMRAD templates." %}
                     </li>
                     <li>
-                        <strong>Vis</strong> — Data visualization and interactive figure editing.
+                        <strong>Vis</strong> — {% trans "Data visualization and interactive figure editing." %}
                     </li>
                     <li>
-                        <strong>Console</strong> — Web-based terminal for running Python and Bash in isolated containers.
+                        <strong>Console</strong> — {% trans "Web-based terminal for running Python and Bash in isolated containers." %}
                     </li>
                     <li>
-                        <strong>Hub</strong> — Project file browser with GitHub-style <code>/username/project/</code> URLs.
+                        <strong>Hub</strong> — {% trans "Project file browser with GitHub-style" %} <code>/username/project/</code> {% trans "URLs." %}
                     </li>
                     <li>
-                        <strong>Research Tools</strong> — Statistics, PDF manipulation, citation scraping, QR generation, and more at <a href="{% url 'tools_app:tools' %}">/tools/</a>.
+                        <strong>{% trans "Research Tools" %}</strong> — {% trans "Statistics, PDF manipulation, citation scraping, QR generation, and more at" %} <a href="{% url 'tools_app:tools' %}">/tools/</a>.
                     </li>
                     <li>
-                        <strong>MCP Server</strong> — 23 tools for AI agents (Claude, Cursor, etc.) to search literature, manage citations, generate figures, and run statistics.
+                        <strong>MCP Server</strong> — {% trans "23 tools for AI agents (Claude, Cursor, etc.) to search literature, manage citations, generate figures, and run statistics." %}
                     </li>
                 </ul>
             </section>
             <!-- Ecosystem Diagram -->
             <section class="about-section">
-                <h2>Ecosystem Overview</h2>
+                <h2>{% trans "Ecosystem Overview" %}</h2>
                 <img src="{% static 'public_app/images/workflow.svg' %}"
-                     alt="SciTeX Ecosystem Diagram"
+                     alt="{% trans 'SciTeX Ecosystem Diagram' %}"
                      class="setup-diagram-img"
                      loading="lazy" />
             </section>
             <!-- Architecture -->
             <section class="about-section">
-                <h2>Architecture</h2>
-                <p>Docker containers, fully orchestrated:</p>
+                <h2>{% trans "Architecture" %}</h2>
+                <p>{% trans "Docker containers, fully orchestrated:" %}</p>
                 <ul class="setup-list">
                     <li>
-                        <strong>Django</strong> (port 8000) — Web application and REST API
+                        <strong>Django</strong> (port 8000) — {% trans "Web application and REST API" %}
                     </li>
                     <li>
-                        <strong>PostgreSQL</strong> — Database for all application data
+                        <strong>PostgreSQL</strong> — {% trans "Database for all application data" %}
                     </li>
                     <li>
-                        <strong>Redis</strong> — Cache and Celery message broker
+                        <strong>Redis</strong> — {% trans "Cache and Celery message broker" %}
                     </li>
                     <li>
-                        <strong>Gitea</strong> (port 3000) — Self-hosted Git server for project repositories
+                        <strong>Gitea</strong> (port 3000) — {% trans "Self-hosted Git server for project repositories" %}
                     </li>
                     <li>
-                        <strong>Celery</strong> — Async task workers for background jobs
+                        <strong>Celery</strong> — {% trans "Async task workers for background jobs" %}
                     </li>
                     <li>
-                        <strong>Umami</strong> (port 3300) — Privacy-focused analytics (no external tracking)
+                        <strong>Umami</strong> (port 3300) — {% trans "Privacy-focused analytics (no external tracking)" %}
                     </li>
                 </ul>
-                <p>Optional local databases for offline paper search:</p>
+                <p>{% trans "Optional local databases for offline paper search:" %}</p>
                 <ul class="setup-list">
                     <li>
-                        <strong>CrossRef Local</strong> — 167M+ papers in a local database. Fast, offline metadata search with citation graph analysis.
+                        <strong>CrossRef Local</strong> — {% trans "167M+ papers in a local database. Fast, offline metadata search with citation graph analysis." %}
                     </li>
                     <li>
-                        <strong>OpenAlex Local</strong> — 284M+ scholarly works with full-text search, abstracts, and impact factors.
+                        <strong>OpenAlex Local</strong> — {% trans "284M+ scholarly works with full-text search, abstracts, and impact factors." %}
                     </li>
                 </ul>
             </section>
             <!-- Infrastructure Deployment Diagram -->
             <section class="about-section">
-                <h2>Infrastructure Deployment</h2>
-                <p>Complete infrastructure stack showing Docker services, host services, and network architecture.</p>
+                <h2>{% trans "Infrastructure Deployment" %}</h2>
+                <p>{% trans "Complete infrastructure stack showing Docker services, host services, and network architecture." %}</p>
                 <div class="setup-architecture-diagram">
                     <img src="{% static 'public_app/images/architecture/ARCHITECTURE_02.svg' %}"
-                         alt="Infrastructure Deployment Diagram"
+                         alt="{% trans 'Infrastructure Deployment Diagram' %}"
                          class="setup-architecture-svg"
                          loading="lazy" />
                 </div>
             </section>
             <!-- Quick Start -->
             <section class="about-section">
-                <h2>Quick Start</h2>
-                <p>Three commands to get everything running:</p>
+                <h2>{% trans "Quick Start" %}</h2>
+                <p>{% trans "Three commands to get everything running:" %}</p>
                 <pre><code>git clone https://github.com/scitex-ai/scitex-hub.git
 cd scitex-hub
 make start</code></pre>
                 <p>
-                    Access at <a href="http://localhost:8000">localhost:8000</a>.
-                    Test user: <code>test-user</code> — the password is printed by
-                    <code>init_test_user</code> on first run, or set
-                    <code>SCITEX_HUB_TEST_USER_PASSWORD</code> to choose it yourself
+                    {% trans "Access at" %} <a href="http://localhost:8000">localhost:8000</a>.
+                    {% trans "Test user:" %} <code>test-user</code> — {% trans "the password is printed by" %}
+                    <code>init_test_user</code> {% trans "on first run, or set" %}
+                    <code>SCITEX_HUB_TEST_USER_PASSWORD</code> {% trans "to choose it yourself" %}
                 </p>
             </section>
             <!-- Prerequisites -->
             <section class="about-section">
-                <h2>Prerequisites</h2>
+                <h2>{% trans "Prerequisites" %}</h2>
                 <ul class="setup-list">
-                    <li>Linux, macOS, or Windows (WSL2)</li>
-                    <li>Docker 24.0+ with Docker Compose v2</li>
-                    <li>Git 2.30+</li>
-                    <li>4 GB RAM minimum (8 GB recommended)</li>
+                    <li>{% trans "Linux, macOS, or Windows (WSL2)" %}</li>
+                    <li>{% trans "Docker 24.0+ with Docker Compose v2" %}</li>
+                    <li>{% trans "Git 2.30+" %}</li>
+                    <li>{% trans "4 GB RAM minimum (8 GB recommended)" %}</li>
                 </ul>
             </section>
             <!-- Development Setup -->
             <section class="about-section">
-                <h2>Development Setup</h2>
+                <h2>{% trans "Development Setup" %}</h2>
                 <ol class="setup-steps">
                     <li>
-                        <strong>Clone and configure</strong>
+                        <strong>{% trans "Clone and configure" %}</strong>
                         <pre><code>git clone https://github.com/scitex-ai/scitex-hub.git
 cd scitex-hub
 cp deployment/docker/envs/.env.example deployment/docker/envs/.env.dev</code></pre>
                     </li>
                     <li>
-                        <strong>Set secret key</strong> (edit <code>.env.dev</code>)
+                        <strong>{% trans "Set secret key" %}</strong> ({% trans "edit" %} <code>.env.dev</code>)
                         <pre><code>SCITEX_HUB_DJANGO_SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')
 SCITEX_HUB_POSTGRES_PASSWORD=your-dev-password</code></pre>
                     </li>
                     <li>
-                        <strong>Start services</strong>
+                        <strong>{% trans "Start services" %}</strong>
                         <pre><code>make start
 make status</code></pre>
                     </li>
@@ -149,22 +150,22 @@ make status</code></pre>
             </section>
             <!-- Production Setup -->
             <section class="about-section">
-                <h2>Production Setup</h2>
-                <p>For deploying on a home server, NAS, or VPS:</p>
+                <h2>{% trans "Production Setup" %}</h2>
+                <p>{% trans "For deploying on a home server, NAS, or VPS:" %}</p>
                 <ol class="setup-steps">
                     <li>
-                        <strong>Create production environment</strong>
+                        <strong>{% trans "Create production environment" %}</strong>
                         <pre><code>cp deployment/docker/envs/.env.example deployment/docker/envs/.env.prod</code></pre>
                     </li>
                     <li>
-                        <strong>Configure for production</strong> (edit <code>.env.prod</code>)
+                        <strong>{% trans "Configure for production" %}</strong> ({% trans "edit" %} <code>.env.prod</code>)
                         <pre><code>DEBUG=False
 SCITEX_HUB_DOMAIN=scitex.example.com
 SCITEX_HUB_SITE_URL=https://scitex.example.com
 SCITEX_HUB_ENABLE_SSL_REDIRECT=true</code></pre>
                     </li>
                     <li>
-                        <strong>Start production</strong>
+                        <strong>{% trans "Start production" %}</strong>
                         <pre><code>make ENV=prod start
 make ENV=prod status</code></pre>
                     </li>
@@ -172,8 +173,8 @@ make ENV=prod status</code></pre>
             </section>
             <!-- CLI Only -->
             <section class="about-section">
-                <h2>CLI-Only Install</h2>
-                <p>Use the CLI and MCP server without Docker:</p>
+                <h2>{% trans "CLI-Only Install" %}</h2>
+                <p>{% trans "Use the CLI and MCP server without Docker:" %}</p>
                 <pre><code>pip install scitex-hub              # CLI only
 pip install scitex-hub[mcp]         # CLI + MCP server
 pip install scitex-hub[all]         # Everything
@@ -183,15 +184,15 @@ scitex-hub --help</code></pre>
             </section>
             <!-- MCP -->
             <section class="about-section">
-                <h2>MCP Server for AI Agents</h2>
-                <p>Connect AI assistants (Claude, Cursor, etc.) to your SciTeX instance:</p>
+                <h2>{% trans "MCP Server for AI Agents" %}</h2>
+                <p>{% trans "Connect AI assistants (Claude, Cursor, etc.) to your SciTeX instance:" %}</p>
                 <pre><code>scitex-hub mcp start                # Start MCP server
 scitex-hub mcp doctor               # Diagnose setup
 scitex-hub mcp installation          # Client config</code></pre>
             </section>
             <!-- Common Commands -->
             <section class="about-section">
-                <h2>Common Commands</h2>
+                <h2>{% trans "Common Commands" %}</h2>
                 <pre><code>make start                    # Start development
 make stop                     # Stop all services
 make restart                  # Restart services
@@ -202,10 +203,10 @@ make help                     # All available commands</code></pre>
             </section>
             <!-- Full Docs Link -->
             <section class="about-section">
-                <h2>Full Documentation</h2>
+                <h2>{% trans "Full Documentation" %}</h2>
                 <p>
-                    For configuration reference, troubleshooting, and architecture details, see the
-                    <a href="/apps/docs/#pkg-scitex-hub" class="setup-external-link">full documentation</a>.
+                    {% trans "For configuration reference, troubleshooting, and architecture details, see the" %}
+                    <a href="/apps/docs/#pkg-scitex-hub" class="setup-external-link">{% trans "full documentation" %}</a>.
                 </p>
             </section>
         </article>
