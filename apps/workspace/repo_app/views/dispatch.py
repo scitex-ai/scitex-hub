@@ -50,6 +50,14 @@ def root_dispatch(request, pane=None, session_token=None):
     )
 
     if get_session_role(request) == ROLE_ANONYMOUS:
+        # The landing page is the site's marketing entry (bare "/"), but the
+        # hero CTA points at "/apps/" — the apps home. An anonymous user
+        # reaching /apps/ has clearly chosen to try the product, so funnel
+        # them to sign-up rather than bounce them back to the landing page
+        # (operator 2026-09-12: CTA -> /apps/, logged-in -> apps, anonymous
+        # -> /auth/signup/).
+        if request.path.rstrip("/") == "/apps":
+            return redirect("auth_app:signup")
         return redirect("public_app:landing")
 
     if session_token is not None:
