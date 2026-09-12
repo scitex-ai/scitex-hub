@@ -163,7 +163,7 @@ def test_the_subscription_rows_show_flat_usd() -> None:
 
     by_id = {r["id"]: r for r in published_price_rows(today=date(2026, 9, 2))}
     # Label is translated at the template layer, not on the SSoT row.
-    assert translate_dynamic(by_id["subscription-student"]["label"]) == "サブスク・学術"
+    assert translate_dynamic(by_id["subscription-student"]["label"]) == "サブスクリプション・学術"
     # Public price is flat USD, regardless of the calendar date.
     for today in (date(2026, 9, 2), date(2027, 8, 1), date(2029, 8, 1)):
         rows = {r["id"]: r for r in published_price_rows(today=today)}

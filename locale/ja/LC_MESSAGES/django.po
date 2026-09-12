@@ -617,16 +617,16 @@ msgid "Eligibility: %(v)s"
 msgstr "対象: %(v)s"
 
 msgid "Sub · Academic"
-msgstr "サブスク・学術"
+msgstr "サブスクリプション・学術"
 
 msgid "Sub · General"
-msgstr "サブスク・一般"
+msgstr "サブスクリプション・一般"
 
 msgid "On-Prem Setup"
-msgstr "オンプレ導入サポート"
+msgstr "オンプレミス導入サポート"
 
 msgid "On-Prem Maintenance"
-msgstr "オンプレ保守サポート"
+msgstr "オンプレミス保守サポート"
 
 msgid "Contract Development"
 msgstr "受託開発"
@@ -641,13 +641,13 @@ msgid "Clew Verification"
 msgstr "Clew 検証"
 
 msgid "Sub"
-msgstr "サブスク"
+msgstr "サブスクリプション"
 
 msgid "Subscription · Academic"
-msgstr "サブスク・学術"
+msgstr "サブスクリプション・学術"
 
 msgid "Subscription · General"
-msgstr "サブスク・一般"
+msgstr "サブスクリプション・一般"
 
 msgid "Subscription"
 msgstr "サブスクリプション"
@@ -734,7 +734,7 @@ msgid "Setup and maintenance support"
 msgstr "セットアップ・維持管理サポート"
 
 msgid "On-Prem"
-msgstr "オンプレ"
+msgstr "オンプレミス"
 
 msgid "Enterprise"
 msgstr "大規模"
