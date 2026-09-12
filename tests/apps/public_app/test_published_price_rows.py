@@ -305,7 +305,7 @@ def test_the_subscription_rows_state_what_they_include() -> None:
     for row_id in ("subscription-student", "subscription-general"):
         text = "、".join(by_id[row_id]["included"])
         for needle in (
-            "50 GB ストレージ / 月 (Standard)",
+            "32 GB ストレージ / 月 (Standard speed)",
             "1,000 円相当の計算クレジット / 月",
             "超過分は従量課金",
             "月の上限は利用者が設定",

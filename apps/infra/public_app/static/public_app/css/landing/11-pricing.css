@@ -152,10 +152,11 @@
   margin: 0.25rem 0;
 }
 
-/* Three-plan row (operator 2026-09-11, "learn from claude.ai"): Free | Sub |
-   On-Prem — exactly three columns on desktop, stacked on mobile. */
+/* Two-plan row (operator 2026-09-12: the Free pane is dropped — Pro's
+   30-day free trial covers it): Pro | On-Prem. Two columns on desktop,
+   stacked on mobile. */
 .pricing-grid-plans {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 /* Academic / General variant switcher — top-right of the Subscription card
@@ -245,8 +246,6 @@
 
   .pricing-grid-plans {
     grid-template-columns: 1fr;
-    max-width: 480px;
-    margin-inline: auto;
   }
 
   .pricing-card {

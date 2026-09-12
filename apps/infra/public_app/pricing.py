@@ -118,9 +118,12 @@ def _storage_text(value: dict[str, Any], basis: str = "") -> str:
 
 
 def _credit_text(value: dict[str, Any], basis: str = "") -> str:
-    # JPY by default — this feeds the raw SSoT (published_price_rows), which
-    # /tokushoho/ and /services/ render in the SSoT currency. The LANDING card
-    # swaps this to USD in the view (operator 2026-09-12: "always use USD").
+    # USD primary (operator 2026-09-12: "use dollars, never yen"). Every
+    # published row carries a usd_amount; the JPY equivalent stays on the
+    # tokushoho legal reference, not in this benefit line.
+    usd = value.get("usd_amount")
+    if usd is not None:
+        return _("$%(amt)s compute credit") % {"amt": f"{usd:,}"}
     amount = f"{value['amount']:,}"
     if basis == "per_project":
         return _("%(amount)s yen-equivalent compute credit per project per month") % {
@@ -349,6 +352,18 @@ def remarks_items(
     return included_items({k: v for k, v in attrs.items() if k not in drop}, basis)
 
 
+def _usd_price(amount: int, unit: str, from_price: bool) -> str:
+    """A USD price, the single public-facing currency (operator 2026-09-12:
+    "use dollars, never use yen"). ``amount`` is the USD figure. ``from_price``
+    (e.g. on-prem setup) renders "from $X"."""
+    base = _("$%(amt)s") % {"amt": f"{amount:,}"}
+    if unit == "month":
+        base += _("/mo")
+    elif unit == "per_hour":
+        base += _("/hr")
+    return (_("from ") + base) if from_price else base
+
+
 def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
     """The price list the 特定商取引法 page publishes, formatted, gated by date.
 
@@ -417,9 +432,11 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
             if window is not None:
                 list_amount = amount
                 amount = _discounted(list_amount, window["percent"])
-                price_note = _staged_price_note(
-                    item["policy"], policies, window, list_amount
-                )
+                # The "List price ¥X, early-adopter discount…" note is a JPY
+                # promo detail — dropped 2026-09-12 (operator: the card shows
+                # the clean USD price; the ¥ figure lives only as the legal
+                # reference). The discounted `amount` is still applied.
+                price_note = ""
                 list_price_str = _yen(list_amount)
                 discount_str = f"−{window['percent']}%"
         basis = item.get("basis", "")
@@ -459,11 +476,24 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
         # source attribute key, not by rendered-string match. Extracted so a
         # SYNTHETIC all-dedicated row is testable (see remarks_items).
         remarks = remarks_items(attrs, basis, storage_str, credit_str, overage_str)
+        # Public price is USD (operator 2026-09-12: "use dollars, never yen").
+        # Every row carries a usd_amount; the JPY amount stays as a reference
+        # (price_jpy) for the tokushoho legal disclosure, which must state the
+        # yen figure with an approximated-rate note.
+        usd_amount = item.get("usd_amount")
+        if usd_amount is not None:
+            price_str = _usd_price(usd_amount, unit, from_price)
+        else:
+            # No USD figure (should not happen — every published row has one);
+            # fall back to the SSoT currency so a missing conversion is visible
+            # rather than silently dropped.
+            price_str = format_amount(amount, unit, from_price)
         rows.append(
             {
                 "id": item["id"],
                 "label": item["label"],
-                "price": format_amount(amount, unit, from_price),
+                "price": price_str,
+                "price_jpy": _yen(item["amount"]),
                 "list_price": list_price_str,
                 "discount": discount_str,
                 "price_note": price_note,

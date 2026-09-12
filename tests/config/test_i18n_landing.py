@@ -554,30 +554,33 @@ def _landing(client_cookie=None):
 
 def test_landing_pricing_renders_fully_english_by_default():
     html = _landing()
-    # lang + three-plan row (Free | Subscription | On-Prem) + EN price in
-    # USD (operator 2026-09-12: English shows dollars) + EN included + EN tax
-    # note + the Academic/General switcher
+    # Two-plan row (Free pane dropped 2026-09-12): Pro | On-Prem. Prices are
+    # ALWAYS USD on the marketing card (operator: "drop the yen at all").
     assert '<html lang="en"' in html
-    assert "Free" in html
+    assert "Pro" in html and "On-Prem" in html
     assert "$19/mo/user" in html and "$39/mo/user" in html
     assert 'data-variant="academic"' in html and 'data-variant="general"' in html
+    assert "30-day free trial" in html
+    assert "32 GB storage per month (Standard speed)" in html
+    assert "$10 compute credit" in html
     assert "Traffic within normal use" in html
-    assert "All displayed prices include tax" in html
-    # NO Japanese data leaks into the English default
-    for ja in ("サブスク", "月額 1,490円", "通常利用の範囲の通信", "表示価格はすべて税込"):
+    # NO Japanese price data leaks into the English default
+    for ja in ("プロ", "月額 1,490円", "通常利用の範囲の通信", "円相当"):
         assert ja not in html, f"Japanese {ja!r} leaked into the English default landing"
 
 
 def test_landing_pricing_renders_fully_japanese_when_selected():
     html = _landing(client_cookie="ja")
-    # lang + JA price in JPY (English uses USD; JA keeps the SSoT yen values)
-    # + JA included + JA tax note + the JA variant switcher (学術 / 一般)
+    # JA renders the plan copy Japanese, but prices stay USD (operator:
+    # "always use USD for clarity" — the yen reference lives on /tokushoho/).
     assert '<html lang="ja"' in html
-    assert "月額 1,490円" in html
-    assert "サブスク" in html
-    assert "学術" in html and "一般" in html
+    assert "プロ" in html and "オンプレ" in html
+    assert "$19/mo/user" in html and "$39/mo/user" in html
+    assert "学術" in html and "非学術" in html
+    assert "30日間の無料トライアル" in html
+    assert "32 GB ストレージ / 月 (Standard speed)" in html
+    assert "$10 compute credit" in html
     assert "通常利用の範囲の通信" in html
-    assert "表示価格はすべて税込" in html
-    # NO English data (neither the USD price nor the EN included items) leaks
-    for en in ("$19/mo/user", "$39/mo/user", "Monthly ¥1,490", "Traffic within normal use", "All displayed prices"):
-        assert en not in html, f"English {en!r} leaked into the Japanese landing"
+    # NO Japanese yen price (the SSoT yen values) leaks onto the USD card
+    for jp in ("月額 1,490円", "円相当の計算クレジット"):
+        assert jp not in html, f"JPY {jp!r} leaked onto the USD landing"

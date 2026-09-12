@@ -50,6 +50,34 @@ def _get_ecosystem_versions():
     return versions
 
 
+def _pricing_rows_for_landing() -> list[dict]:
+    """The subscription rows for the landing card.
+
+    The SSoT (published_price_rows) now renders USD as the primary price
+    and the compute credit as "$10 compute credit" globally. The landing
+    card additionally hides the standard-guarantee items (overage/cap)
+    which are disclosed on /tokushoho/ but not advertised on the card.
+    """
+    from ..pricing import _limit_set_by_text, _overage_text, published_price_rows
+
+    rows = published_price_rows()
+    _standard_guarantees = {
+        _overage_text("metered"),
+        _limit_set_by_text("user"),
+    }
+    sub_rows = []
+    for r in rows:
+        if r["category"] != "subscription":
+            continue
+        row = {**r, "is_academic": r["id"] == "subscription-student"}
+        row["included"] = [
+            item for item in row.get("included", [])
+            if item not in _standard_guarantees
+        ]
+        sub_rows.append(row)
+    return sub_rows
+
+
 @transaction.non_atomic_requests
 def index(request):
     """
@@ -75,42 +103,11 @@ def index(request):
     # closed" rather than reconnecting, and the transaction's work is lost.
     if not connection.in_atomic_block:
         connection.close()
-    from ..pricing import (
-        _limit_set_by_text,
-        _overage_text,
-        load_pricing,
-        published_price_rows,
-        tier_rows,
-    )
+    from ..pricing import load_pricing, tier_rows
 
-    # Three-plan landing row (operator 2026-09-11, "learn from claude.ai"):
-    # Free | Sub (Academic/General switcher in ONE card) | On-Prem.
-    # Individual service line items stay on /services/ — they are offerings,
-    # not plans.
-    rows = published_price_rows()
-    # "Overage is metered" / "Monthly cap set by the user" are standard service
-    # guarantees, not differentiators — disclosed on /tokushoho/, not the
-    # marketing card (operator 2026-09-12). Identified via the same source
-    # functions the SSoT renders them with (deterministic across languages).
-    _standard_guarantees = {
-        _overage_text("metered"),
-        _limit_set_by_text("user"),
-    }
-    # The landing card always shows USD (operator 2026-09-12: "drop the yen at
-    # all; always use USD for clarity") — $19/mo/user academic, $39/mo/user
-    # non-academic. The JPY amount + the approximated yen reference live on
-    # /tokushoho/ (the legal page), which keeps the SSoT JPY values.
-    sub_rows = []
-    for r in rows:
-        if r["category"] != "subscription":
-            continue
-        row = {**r, "is_academic": r["id"] == "subscription-student"}
-        row["included"] = [
-            item for item in row.get("included", []) if item not in _standard_guarantees
-        ]
-        if r.get("usd_amount") is not None:
-            row["price"] = f"${r['usd_amount']}/mo/user"
-        sub_rows.append(row)
+    # Two-plan landing row (operator 2026-09-12): the Free pane is dropped —
+    # Cloud (Academic / Non-Academic switcher) + On-Prem (AGPL / Custom).
+    sub_rows = _pricing_rows_for_landing()
     onprem_tier = next(
         (t for t in tier_rows() if t["id"] == "onprem"), None
     )

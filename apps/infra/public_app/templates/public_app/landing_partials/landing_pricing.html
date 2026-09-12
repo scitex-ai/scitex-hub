@@ -28,35 +28,12 @@
     <div class="container">
         <h2 class="section-heading">{% trans "Pricing" %}</h2>
         <div class="pricing-grid pricing-grid-plans">
-            {# ---- 1/3 Free ------------------------------------------------ #}
-            <div class="pricing-card pricing-card-free">
-                <div class="pricing-header">
-                    <div class="plan-title-row">
-                        <h3 class="plan-name">{% trans "Free" %}</h3>
-                    </div>
-                    <p class="plan-sub">{% trans "No charge" %}</p>
-                </div>
-                <div class="pricing-body">
-                    <p class="pricing-price plan-fee">{% trans "$0" %}</p>
-                    <div class="pricing-features">
-                        <ul>
-                            <li>{% trans "30-day free trial" %}</li>
-                            <li>{% trans "All core features" %}</li>
-                            <li>{% trans "Credit or debit card required" %}</li>
-                        </ul>
-                    </div>
-                    <div class="pricing-action">
-                        <a href="{% url 'auth_app:signup' %}" class="btn btn-primary btn-block">{% trans "Sign up free" %}</a>
-                    </div>
-                </div>
-            </div>
-
-            {# ---- 2/3 Subscription (Academic / General switcher, top-right) #}
+            {# ---- 1/2 Pro (Academic / Non-Academic switcher, top-right) ---- #}
             {% if sub_rows %}
             <div class="pricing-card pricing-card-sub">
                 <div class="pricing-header">
                     <div class="plan-title-row">
-                        <h3 class="plan-name">{% trans "Pro" %}</h3>
+                        <h3 class="plan-name">{% trans "Cloud" %}</h3>
                         <div class="plan-variant-switch" role="group" aria-label="{% trans "Plan variant" %}">
                             <button type="button" class="variant-btn is-active" data-variant="academic" aria-pressed="true">{% trans "Academic" %}</button>
                             <button type="button" class="variant-btn" data-variant="general" aria-pressed="false">{% trans "Non-Academic" %}</button>
@@ -69,15 +46,14 @@
                     {% for row in sub_rows %}
                     <div class="plan-variant plan-variant-{% if row.is_academic %}academic{% else %}general{% endif %}{% if not row.is_academic %} plan-variant-hidden{% endif %}" data-variant="{% if row.is_academic %}academic{% else %}general{% endif %}">
                         <p class="pricing-price plan-fee">{{ row.price }}</p>
-                        {% if row.included %}
                         <div class="pricing-features">
                             <ul>
+                                <li>{% trans "30-day free trial" %}</li>
                                 {% for item in row.included %}
                                 <li>{{ item }}</li>
                                 {% endfor %}
                             </ul>
                         </div>
-                        {% endif %}
                     </div>
                     {% endfor %}
                     </div>
@@ -89,7 +65,7 @@
             </div>
             {% endif %}
 
-            {# ---- 3/3 On-Prem (AGPL / Commercial switcher) ---------------- #}
+            {# ---- 2/2 On-Prem (AGPL / Custom License switcher) ------------ #}
             {% if onprem_tier %}
             <div class="pricing-card pricing-card-onprem">
                 <div class="pricing-header">

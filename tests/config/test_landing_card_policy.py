@@ -33,23 +33,24 @@ from apps.infra.public_app.templatetags.landing_i18n import translate_dynamic
 REPO = Path(__file__).resolve().parents[2]
 
 EXPECTED_FREE_FUNNEL = {
-    # Three-plan landing row (operator 2026-09-11, claude.ai-style):
-    # Free | Sub (Academic/General switcher) | On-Prem. The Free card is the
-    # free funnel entry; the Sub academic price + a feature line prove the
-    # paid plans render from the SSoT in the active language.
+    # Two-plan landing row (operator 2026-09-12): the Free pane is DROPPED —
+    # Pro's 30-day free trial is the funnel entry. Pro (Academic/Non-Academic
+    # switcher) + On-Prem (AGPL/Custom). The Pro price + a feature line prove
+    # the paid plans render from the SSoT in the active language. Prices are
+    # USD (always) on the marketing card; JPY lives on /tokushoho/.
     "en": (
-        "Free",
-        "Create your free account and use SciTeX's free tier at no cost.",
+        "Pro",
+        "30-day free trial",
         "Sign up free",
-        "Monthly ¥1,490",
-        "50 GB storage per month (Standard)",
+        "$19/mo/user",
+        "32 GB storage per month (Standard speed)",
     ),
     "ja": (
-        "無料",
-        "無料アカウントを作成して、SciTeX の無料プランをご利用いただけます。",
+        "プロ",
+        "30日間の無料トライアル",
         "無料で登録",
-        "月額 1,490円",
-        "50 GB ストレージ / 月 (Standard)",
+        "$19/mo/user",
+        "32 GB ストレージ / 月 (Standard speed)",
     ),
 }
 
@@ -58,12 +59,15 @@ EXPECTED_SIGNUP_POLICY = {
     "ja": "アカウントを作成して、SciTeX の無料プランをご利用いただけます。",
 }
 
+# Terms that must NOT appear on the SIGNUP page (before the user consents) —
+# they would pressure a pre-account visitor with payment/trial terms. The
+# landing PRICING card DOES state "30-day free trial" (it's the Pro plan's
+# feature, operator 2026-09-12), so the trial phrases are not in this list —
+# only the pre-consent payment pressure terms are.
 PRE_ACTION_PAID_DISCLOSURES = (
-    "30-day free trial",
     "optional paid-plan trial",
     "credit or debit card",
     "payment card",
-    "30日間無料トライアル",
     "有料プラントライアル",
     "クレジットカード",
     "デビットカード",
@@ -262,14 +266,17 @@ def test_pricing_ctas_are_generic_signup_not_paid_activation():
     hrefs = re.findall(
         r'<a href="([^"]+)" class="btn btn-primary btn-block">', pricing_html
     )
-    assert hrefs == ["/auth/signup/", "/auth/signup/"]
+    # Free pane is dropped (operator 2026-09-12): Pro's 30-day free trial is the
+    # entry, so the Pro CTA is the single signup button. It must still be the
+    # generic /auth/signup/ (no card / paid activation on the landing).
+    assert hrefs == ["/auth/signup/"]
 
 
 @pytest.mark.parametrize(
     ("language", "expected", "forbidden"),
     [
-        ("en", "50 GB storage per month (Standard)", "ストレージ"),
-        ("ja", "50 GB ストレージ / 月 (Standard)", "Storage"),
+        ("en", "32 GB storage per month (Standard speed)", "ストレージ"),
+        ("ja", "32 GB ストレージ / 月 (Standard speed)", "Storage"),
     ],
 )
 def test_runtime_pricing_values_follow_the_active_language(

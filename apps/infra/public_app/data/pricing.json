@@ -19,7 +19,7 @@
       "category": "subscription",
       "attributes": {
         "included_storage": {
-          "amount": 30,
+          "amount": 32,
           "unit": "GB/month",
           "type": "Standard speed"
         },
@@ -47,7 +47,7 @@
       "category": "subscription",
       "attributes": {
         "included_storage": {
-          "amount": 30,
+          "amount": 32,
           "unit": "GB/month",
           "type": "Standard speed"
         },
@@ -71,7 +71,8 @@
       "from_price": true,
       "category": "service",
       "description": "On-premises deployment support. Quote based on scale.",
-      "price_is_floor": true
+      "price_is_floor": true,
+      "usd_amount": 1990
     },
     {
       "id": "onprem-maintenance",
@@ -82,7 +83,8 @@
       "from_price": true,
       "category": "service",
       "description": "On-premises maintenance. Quote based on scale.",
-      "price_is_floor": true
+      "price_is_floor": true,
+      "usd_amount": 650
     },
     {
       "id": "contract-development",
@@ -92,7 +94,8 @@
       "available_from": "2026-08",
       "category": "service",
       "description": "Research and application development. Quote-based.",
-      "from_price": true
+      "from_price": true,
+      "usd_amount": 1320
     },
     {
       "id": "consulting",
@@ -102,7 +105,8 @@
       "available_from": "2026-08",
       "category": "service",
       "description": "Technical and research consulting. Billed by the hour, first 30 minutes free. Zoom or in-person.",
-      "from_price": true
+      "from_price": true,
+      "usd_amount": 65
     },
     {
       "id": "translation",
@@ -111,7 +115,8 @@
       "unit": "per_case",
       "available_from": "2027-08",
       "category": "service",
-      "description": "Move existing analyses and drafts into SciTeX format. Quoted per engagement; we accept orders from one. Anyone can request."
+      "description": "Move existing analyses and drafts into SciTeX format. Quoted per engagement; we accept orders from one. Anyone can request.",
+      "usd_amount": 650
     },
     {
       "id": "clew-verification",
@@ -120,7 +125,8 @@
       "unit": "per_case",
       "available_from": "2027-08",
       "category": "service",
-      "description": "Reproduction and verification runs (SciTeX-format compatible). Compute costs are billed separately by usage. We accept orders from one. Anyone can request."
+      "description": "Reproduction and verification runs (SciTeX-format compatible). Compute costs are billed separately by usage. We accept orders from one. Anyone can request.",
+      "usd_amount": 650
     }
   ],
   "_notes_are_verbatim": "The first three are the exact lines /services/ published before this file existed, copied character-for-character so migrating the template changes nothing visible. The fourth is NEW, added at the operator's request 2026-08-01:「目安ですので気楽にご相談ください、と書いておくと良いかもですね」— with bands as wide as 55,000〜220,000, a reader with no invitation to ask simply leaves.",

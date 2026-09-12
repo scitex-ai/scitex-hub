@@ -655,6 +655,9 @@ msgstr "サブスクリプション"
 msgid "Pro"
 msgstr "プロ"
 
+msgid "Cloud"
+msgstr "クラウド"
+
 msgid "Non-Academic"
 msgstr "非学術"
 
