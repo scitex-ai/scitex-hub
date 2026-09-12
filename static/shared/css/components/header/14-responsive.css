@@ -366,6 +366,20 @@
     font-size: 0.9rem;
   }
 
+  /* Section label ("Settings") — a non-interactive heading that groups the
+     app's reference/developer entries (Keyboard Shortcuts, Server Status). */
+  .mobile-header-menu .mobile-menu-item--section {
+    display: block;
+    padding: 8px 16px 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    cursor: default;
+    min-height: 0;
+  }
+
   /* Show header collapse toggle on mobile (double-click or button to collapse) */
   .header-collapse-toggle {
     display: flex !important;

@@ -267,14 +267,25 @@
         {# Developer-facing entries: shown to staff (and in dev), hidden for #}
         {# ordinary users/visitors so the menu stays focused (operator,      #}
         {# 2026-07-21). Same gate as the header notification center.         #}
+        {# "Settings" grouping (operator ledger Header item, 2026-09-13): the #}
+        {# app's reference/developer entries now live under a labelled        #}
+        {# "Settings" section rather than loose at the top. Keyboard          #}
+        {# Shortcuts is UN-GATED — it is a public reference page                #}
+        {# (/keyboard-shortcuts/ = 200 anonymous), so a normal user can        #}
+        {# reach it; only Server Status stays staff/dev-gated (it is a          #}
+        {# diagnostic, not a help page). The "notification" half of this item   #}
+        {# is decision-pending: the bell was removed by the operator's          #}
+        {# header-declutter directive, so re-adding notification chrome         #}
+        {# would contradict that ruling — not done here.                        #}
+        <div class="mobile-menu-item mobile-menu-item--section">Settings</div>
+        <a href="/keyboard-shortcuts/" class="mobile-menu-item mobile-menu-item--indent">
+            <i class="fas fa-keyboard"></i>
+            <span>Keyboard Shortcuts</span>
+        </a>
         {% if DEBUG or user.is_staff %}
-            <a href="{% url 'public_app:server_status' %}" class="mobile-menu-item">
+            <a href="{% url 'public_app:server_status' %}" class="mobile-menu-item mobile-menu-item--indent">
                 <i class="fas fa-server"></i>
                 <span>Server Status</span>
-            </a>
-            <a href="/keyboard-shortcuts/" class="mobile-menu-item">
-                <i class="fas fa-keyboard"></i>
-                <span>Keyboard Shortcuts</span>
             </a>
         {% endif %}
         <div class="mobile-menu-divider"></div>
