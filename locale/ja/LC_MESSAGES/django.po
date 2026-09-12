@@ -1656,3 +1656,357 @@ msgstr "設定リファレンス、トラブルシューティング、アーキ
 
 msgid "full documentation"
 msgstr "完全なドキュメント"
+
+msgid "Privacy Policy - SciTeX"
+msgstr "プライバシーポリシー - SciTeX"
+
+msgid "Privacy Policy"
+msgstr "プライバシーポリシー"
+
+msgid "Learn how we collect, use, and protect your information"
+msgstr "情報の収集、利用、保護の仕組みを詳しく"
+
+msgid "Introduction"
+msgstr "はじめに"
+
+msgid "At SciTeX, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform. Please read this privacy policy carefully. If you do not agree with the terms of this privacy policy, please do not access the site."
+msgstr "SciTeX ではプライバシーを大切にしています。このプライバシーポリシーは、当社プラットフォームの利用時に、いかに情報を収集・利用・開示・保護するかを説明します。本ポリシーをよくお読みください。本ポリシーの内容にご同意いただけない場合は、本サイトへのアクセスをお控えください。"
+
+msgid "We reserve the right to make changes to this Privacy Policy at any time and for any reason. We will alert you about any changes by updating the Last Updated date of this privacy policy. You are encouraged to periodically review this privacy policy to stay informed of updates."
+msgstr "当社はいつでもこのプライバシーポリシーを変更する権利を留保します。変更の際は、本ポリシーの「最終更新日」を更新してお知らせします。最新の内容をご確認いただくよう、定期的に本ポリシーをご覧ください。"
+
+msgid "This Privacy Policy applies to the SciTeX platform and all related services, including but not limited to SciTeX Hub, SciTeX Code, SciTeX Doc, SciTeX Engine, and SciTeX Viz."
+msgstr "本プライバシーポリシーは、SciTeX プラットフォームおよび SciTeX Hub、SciTeX Code、SciTeX Doc、SciTeX Engine、SciTeX Viz に限らず、すべての関連サービスに適用されます。"
+
+msgid "Collection of Your Information"
+msgstr "情報の収集"
+
+msgid "We may collect information about you in a variety of ways. The information we may collect via the SciTeX platform includes:"
+msgstr "当社はさまざまな方法であなたの情報を収集する可能性があります。SciTeX プラットフォームを通じて収集する情報は次のとおりです:"
+
+msgid "Personal Data"
+msgstr "個人情報"
+
+msgid "Personally identifiable information that you voluntarily provide to us when registering for an account, such as:"
+msgstr "アカウント登録時に任意でご提供いただく個人情報。例えば次のとおり:"
+
+msgid "Email address"
+msgstr "メールアドレス"
+
+msgid "First and last name"
+msgstr "姓と名"
+
+msgid "Institution or organization"
+msgstr "所属機関・組織"
+
+msgid "Job title or academic position"
+msgstr "職位・学術上の肩書き"
+
+msgid "Profile picture (optional)"
+msgstr "プロフィール写真（任意）"
+
+msgid "Research interests (optional)"
+msgstr "研究関心（任意）"
+
+msgid "Derivative Data"
+msgstr "派生データ"
+
+msgid "Information our servers automatically collect when you access the platform, such as:"
+msgstr "プラットフォームへのアクセス時にサーバーが自動的に収集する情報。例えば次のとおり:"
+
+msgid "Your IP address"
+msgstr "あなたの IP アドレス"
+
+msgid "Browser type"
+msgstr "ブラウザの種類"
+
+msgid "Operating system"
+msgstr "オペレーティングシステム"
+
+msgid "Access times"
+msgstr "アクセス時刻"
+
+msgid "Pages viewed"
+msgstr "閲覧したページ"
+
+msgid "Links clicked"
+msgstr "クリックしたリンク"
+
+msgid "The page you visited before navigating to our platform"
+msgstr "当社のプラットフォームに移動する前に訪問したページ"
+
+msgid "Research Data"
+msgstr "研究データ"
+
+msgid "When you use SciTeX for your research, we may process research data that you upload, create, or manage on the platform, including:"
+msgstr "SciTeX を研究に使用する場合、プラットフォームでアップロード・作成・管理する研究データを処理することがあります。例えば次のとおり:"
+
+msgid "Scientific documents and papers"
+msgstr "科学文書・論文"
+
+msgid "Research notes and annotations"
+msgstr "研究ノート・アノテーション"
+
+msgid "Data sets"
+msgstr "データセット"
+
+msgid "Analysis code"
+msgstr "解析コード"
+
+msgid "Visualizations"
+msgstr "可視化結果"
+
+msgid "Financial Data"
+msgstr "財務情報"
+
+msgid "If you subscribe to our paid plans, we may collect financial information, such as:"
+msgstr "有料プランをご契約いただいた場合、次のような財務情報を収集する可能性があります:"
+
+msgid "Credit card information (processed securely through our payment processors)"
+msgstr "クレジットカード情報（決済代行を通じて安全に処理されます）"
+
+msgid "Billing address"
+msgstr "請求先住所"
+
+msgid "Subscription details"
+msgstr "サブスクリプションの詳細"
+
+msgid "All financial information is stored by our payment processor, and you are encouraged to review their privacy policy and contact them directly for responses to your questions."
+msgstr "財務情報はすべて決済代行が保管します。ご質問がある場合は、そちらのプライバシーポリシーをご確認のうえ、直接お問い合わせください。"
+
+msgid "Use of Your Information"
+msgstr "情報の利用"
+
+msgid "Having accurate information about you permits us to provide you with a smooth, efficient, and customized experience. Specifically, we may use information collected about you via the platform to:"
+msgstr "正確な情報があることで、スムーズで効率的な、あなたに合った体験を提供できます。具体的には、プラットフォームを通じて収集した情報を以下に使用することがあります:"
+
+msgid "Create and manage your account"
+msgstr "アカウントの作成と管理"
+
+msgid "Provide and maintain our services"
+msgstr "サービスの提供と維持"
+
+msgid "Process payments and subscriptions"
+msgstr "支払いとサブスクリプションの処理"
+
+msgid "Send you service notifications and updates"
+msgstr "サービス通知・更新情報をお送りする"
+
+msgid "Respond to customer service requests"
+msgstr "カスタマーサービスへの対応"
+
+msgid "Improve our platform and user experience"
+msgstr "プラットフォームとユーザー体験の改善"
+
+msgid "Monitor usage and analyze trends"
+msgstr "利用状況の監視と傾向分析"
+
+msgid "Develop new features and services"
+msgstr "新機能・新サービスの開発"
+
+msgid "Prevent fraudulent transactions and monitor against errors"
+msgstr "不正取引の防止とエラーの監視"
+
+msgid "Send you marketing and promotional communications (with opt-out options)"
+msgstr "マーケティング・プロモーション連絡をお送りする（オプトアウト可能）"
+
+msgid "Disclosure of Your Information"
+msgstr "情報の開示"
+
+msgid "We may share information we have collected about you in certain situations. Your information may be disclosed as follows:"
+msgstr "特定の状況下で、収集したあなたの情報を共有する可能性があります。情報開示は次のとおりです:"
+
+msgid "By Law or to Protect Rights"
+msgstr "法律に基づく場合または権利を保護するため"
+
+msgid "If we believe the release of information about you is necessary to respond to legal process, to investigate or remedy potential violations of our policies, or to protect the rights, property, and safety of others, we may share your information as permitted or required by any applicable law, rule, or regulation."
+msgstr "法的な要請への対応、ポリシー違反の調査・是正、または他者の権利・財産・安全の保護のために、あなたの情報開示が必要と判断した場合、適用される法律・規則・条項が許可または要求する範囲で情報を共有することがあります。"
+
+msgid "Third-Party Service Providers"
+msgstr "サードパーティのサービスプロバイダー"
+
+msgid "We may share your information with third parties that perform services for us or on our behalf, including:"
+msgstr "当社のために、または当社に代わってサービスを行うサードパーティと、あなたの情報を共有する場合があります。例えば次のとおり:"
+
+msgid "Payment processing"
+msgstr "決済処理"
+
+msgid "Data analysis"
+msgstr "データ分析"
+
+msgid "Email delivery"
+msgstr "メール送信"
+
+msgid "Hosting services"
+msgstr "ホスティングサービス"
+
+msgid "Customer service"
+msgstr "カスタマーサービス"
+
+msgid "Marketing assistance"
+msgstr "マーケティング支援"
+
+msgid "Marketing Communications"
+msgstr "マーケティング連絡"
+
+msgid "With your consent, or with an opportunity for you to withdraw consent, we may share your information with third parties for marketing purposes."
+msgstr "あなたの同意があり、または同意を撤回する機会がある場合、マーケティング目的でサードパーティとあなたの情報を共有する場合があります。"
+
+msgid "Interactions with Other Users"
+msgstr "他のユーザーとのやり取り"
+
+msgid "If you interact with other users of the platform, those users may see your profile, research interests, and activity related to the platform."
+msgstr "プラットフォームの他のユーザーとやり取りした場合、そのユーザーがあなたのプロフィール、研究関心、プラットフォーム関連の活動を確認できる場合があります。"
+
+msgid "Business Transfers"
+msgstr "事業譲渡"
+
+msgid "If we are involved in a merger, acquisition, or asset sale, your information may be transferred as part of that transaction. We will notify you before your information is transferred and becomes subject to a different Privacy Policy."
+msgstr "合併・買収・資産譲渡に関与する場合、あなたの情報はその取引の一部として移転する可能性があります。情報が移転し、別のプライバシーポリシーの対象となる前に通知します。"
+
+msgid "Security of Your Information"
+msgstr "情報のセキュリティ"
+
+msgid "We use administrative, technical, and physical security measures to help protect your personal information. While we have taken reasonable steps to secure the personal information you provide to us, please be aware that despite our efforts, no security measures are perfect or impenetrable, and no method of data transmission can be guaranteed against any intercepting or other type of misuse."
+msgstr "行政的・技術的・物理的なセキュリティ対策により、あなたの個人情報を保護しています。ご提供いただく個人情報の保護に合理的な措置を講じているものの、どんな努力をしてもセキュリティ対策は完全ではなく、データの送信方法は傍受やその他の不正利用から完全に保証されるものではないことをご理解ください。"
+
+msgid "Cookies and Tracking Technologies"
+msgstr "クッキーとトラッキング技術"
+
+msgid "SciTeX uses only essential cookies required for the platform to function (session management and security). We do not use tracking cookies, advertising cookies, or third-party analytics cookies."
+msgstr "SciTeX が使用するクッキーは、プラットフォームの動作に不可欠なもの（セッション管理とセキュリティ）のみです。トラッキングクッキー、広告クッキー、サードパーティの解析クッキーは使用しません。"
+
+msgid "For analytics, we use Umami, a privacy-focused solution that does not use cookies or collect personal data. This means no consent banner is required and your browsing is not tracked across websites."
+msgstr "解析には、プライバシー重視でクッキーを使用せず個人データを収集しない Umami を使用しています。そのため同意バナーは不要で、あなたの閲覧はサイト間で追跡されません。"
+
+msgid "Analytics Services"
+msgstr "解析サービス"
+
+msgid "We use"
+msgstr "当社が使用するのは"
+
+msgid ", a privacy-focused analytics solution. Unlike traditional analytics platforms, Umami:"
+msgstr " — プライバシー重視の解析ソリューションです。従来の解析プラットフォームと異なり、Umami は:"
+
+msgid "Does not use cookies"
+msgstr "クッキーを使用しない"
+
+msgid "Does not collect personal data or IP addresses"
+msgstr "個人データや IP アドレスを収集しない"
+
+msgid "Does not track users across websites"
+msgstr "ユーザーをサイト間で追跡しない"
+
+msgid "Is fully GDPR compliant without requiring consent banners"
+msgstr "同意バナーを必要とせず完全に GDPR に準拠している"
+
+msgid "Umami collects only anonymous, aggregate statistics such as page views, referrer sources, device types, and general geographic regions. This data cannot be used to identify individual users."
+msgstr "Umami が収集するのは、ページビュー、リファラー、デバイス種別、大まかな地理圏など、匿名化・集計された統計のみです。このデータから個人を特定することはできません。"
+
+msgid "Account Security Logging"
+msgstr "アカウントセキュリティログ"
+
+msgid "For your security, we maintain a log of account login activity, including:"
+msgstr "セキュリティのために、アカウントのログイン記録（以下を含む）を保持します:"
+
+msgid "Date and time of login"
+msgstr "ログイン日時"
+
+msgid "IP address"
+msgstr "IP アドレス"
+
+msgid "Browser/device information"
+msgstr "ブラウザ・デバイス情報"
+
+msgid "Login method (password, Google, GitHub)"
+msgstr "ログイン方法（パスワード、Google、GitHub）"
+
+msgid "This information helps protect your account from unauthorized access and allows you to review your login history. You may request deletion of this data by contacting us."
+msgstr "この情報はアカウントの不正アクセス防止に役立ち、ログイン履歴の確認を可能にします。お問い合わせにより、このデータの削除を請求できます。"
+
+msgid "Aggregate Data and Promotional Use"
+msgstr "集計データとプロモーション利用"
+
+msgid "We may use anonymous, aggregate statistics derived from usage data for promotional and informational purposes, such as:"
+msgstr "利用データから得られた匿名化・集計された統計を、プロモーション・情報提供目的で使用することがあります。例えば次のとおり:"
+
+msgid "Publishing the total number of registered users"
+msgstr "登録ユーザー総数の公開"
+
+msgid "Reporting general platform usage statistics"
+msgstr "プラットフォーム利用統計の報告"
+
+msgid "Creating case studies about platform adoption (without identifying individuals)"
+msgstr "プラットフォーム採用に関する事例研究の作成（個人を特定しない）"
+
+msgid "Sharing growth metrics with investors or partners"
+msgstr "投資家・パートナーへの成長指標の共有"
+
+msgid "This aggregate data cannot be used to identify any individual user. We will never publicly disclose individual user information or activity without explicit consent."
+msgstr "この集計データから個人ユーザーを特定することはできません。明示的な同意なしに個人ユーザーの情報や活動を公開することはありません。"
+
+msgid "Your Data Protection Rights"
+msgstr "あなたのデータ保護の権利"
+
+msgid "Depending on your location, you may have certain rights regarding your personal information, including:"
+msgstr "所在地により、個人情報に関する特定の権利を有する場合があります。例えば次のとおり:"
+
+msgid "Right to Access"
+msgstr "アクセス権"
+
+msgid "- You have the right to request copies of your personal information."
+msgstr " — 個人情報のコピーの提供を請求する権利があります。"
+
+msgid "Right to Rectification"
+msgstr "訂正権"
+
+msgid "- You have the right to request that we correct any information you believe is inaccurate or complete information you believe is incomplete."
+msgstr " — 不正確であると思われる情報の訂正、または不完全であると思われる情報の補完を請求する権利があります。"
+
+msgid "Right to Erasure"
+msgstr "消去権"
+
+msgid "- You have the right to request that we erase your personal information, under certain conditions."
+msgstr " — 特定の条件のもとで、個人情報の消去を請求する権利があります。"
+
+msgid "Right to Restrict Processing"
+msgstr "利用制限権"
+
+msgid "- You have the right to request that we restrict the processing of your personal information, under certain conditions."
+msgstr " — 特定の条件のもとで、個人情報の利用制限を請求する権利があります。"
+
+msgid "Right to Object to Processing"
+msgstr "異議申立て権"
+
+msgid "- You have the right to object to our processing of your personal information, under certain conditions."
+msgstr " — 特定の条件のもとで、個人情報の処理に異議を申立てる権利があります。"
+
+msgid "Right to Data Portability"
+msgstr "データ携帯権"
+
+msgid "- You have the right to request that we transfer the data we have collected to another organization, or directly to you, under certain conditions."
+msgstr " — 特定の条件のもとで、収集したデータを別の組織に、またはあなた自身に直接移管するよう請求する権利があります。"
+
+msgid "If you make a request, we have one month to respond to you. If you would like to exercise any of these rights, please contact us using the contact information provided below."
+msgstr "請求があった場合、1 か月以内にお答えします。これらの権利を行使されたい場合は、以下の連絡先までお問い合わせください。"
+
+msgid "Children's Information"
+msgstr "児童の個人情報"
+
+msgid "The SciTeX platform is not directed to children under the age of 13. We do not knowingly collect personal information from children under 13. If you become aware that a child has provided us with personal information without parental consent, please contact us, and we will take steps to remove such information and terminate the child's account."
+msgstr "SciTeX プラットフォームは 13 歳未満の児童を対象としていません。13 歳未満の児童の個人情報を意図的に収集することはありません。保護者の同意なく児童が個人情報を提供したことに気づいた場合はご連絡ください。該当情報の削除とアカウントの終了に向けて措置を講じます。"
+
+msgid "Contact Us"
+msgstr "お問い合わせ"
+
+msgid "If you have questions or comments about this Privacy Policy, please contact us at:"
+msgstr "このプライバシーポリシーに関するご質問・ご意見は、下記までお問い合わせください:"
+
+msgid "Last Updated:"
+msgstr "最終更新:"
+
+msgid "January 29, 2026"
+msgstr "2026 年 1 月 29 日"
+
+msgid "This is the Japanese reference version of the Privacy Policy. The English version is the governing document."
+msgstr "これはプライバシーポリシーの日本語参考訳です。英語版が正式な文書です。"

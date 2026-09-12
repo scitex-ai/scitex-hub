@@ -1,11 +1,9 @@
 {% extends "global_base.html" %}
 
 {% load static %}
+{% load i18n %}
 
-{% block title %}
-    Privacy
-    Policy - SciTeX
-{% endblock %}
+{% block title %}{% trans "Privacy Policy - SciTeX" %}{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
     <style>
@@ -89,290 +87,233 @@
             color: var(--text-secondary);
             line-height: 1.8;
         }
+
+        .lang-ref-note {
+            margin: 0.75rem auto 0;
+            max-width: 800px;
+            padding: 0.55rem 0.9rem;
+            font-size: 0.85rem;
+            color: var(--text-muted, #666);
+            background: var(--bg-muted, #f4f5f7);
+            border-left: 3px solid var(--border-muted, #d0d4d9);
+            border-radius: 0 6px 6px 0;
+        }
     </style>
 {% endblock %}
 {% block content %}
     <div class="container pt-4">
         <header class="minimal-hero">
-            <h1 class="minimal-hero-title">Privacy Policy</h1>
-            <p class="minimal-hero-subtitle">Learn how we collect, use, and protect your information</p>
+            <h1 class="minimal-hero-title">{% trans "Privacy Policy" %}</h1>
+            <p class="minimal-hero-subtitle">{% trans "Learn how we collect, use, and protect your information" %}</p>
+            <p class="lang-ref-note">
+                {% trans "This is the Japanese reference version of the Privacy Policy. The English version is the governing document." %}
+            </p>
         </header>
     </div>
     <section class="policy-section">
         <div class="container policy-container">
             <div class="policy-content">
                 <article>
-                    <h2 id="introduction">Introduction</h2>
+                    <h2 id="introduction">{% trans "Introduction" %}</h2>
                     <p>
-                        At SciTeX, we take your privacy seriously. This Privacy Policy
-                        explains how we collect, use, disclose, and safeguard your information
-                        when you use our platform. Please read this privacy policy carefully.
-                        If you do not agree with the terms of this privacy policy, please do
-                        not access the site.
+                        {% trans "At SciTeX, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our platform. Please read this privacy policy carefully. If you do not agree with the terms of this privacy policy, please do not access the site." %}
                     </p>
                     <p>
-                        We reserve the right to make changes to this Privacy Policy at any
-                        time and for any reason. We will alert you about any changes by
-                        updating the "Last Updated" date of this privacy policy. You are
-                        encouraged to periodically review this privacy policy to stay informed
-                        of updates.
+                        {% trans "We reserve the right to make changes to this Privacy Policy at any time and for any reason. We will alert you about any changes by updating the Last Updated date of this privacy policy. You are encouraged to periodically review this privacy policy to stay informed of updates." %}
                     </p>
                     <div class="highlight"
                          role="note"
                          aria-label="Important information about policy coverage">
                         <p>
-                            This Privacy Policy applies to the SciTeX platform and all related
-                            services, including but not limited to SciTeX Hub, SciTeX Code,
-                            SciTeX Doc, SciTeX Engine, and SciTeX Viz.
+                            {% trans "This Privacy Policy applies to the SciTeX platform and all related services, including but not limited to SciTeX Hub, SciTeX Code, SciTeX Doc, SciTeX Engine, and SciTeX Viz." %}
                         </p>
                     </div>
-                    <h2 id="information-collection">Collection of Your Information</h2>
+                    <h2 id="information-collection">{% trans "Collection of Your Information" %}</h2>
                     <p>
-                        We may collect information about you in a variety of ways. The
-                        information we may collect via the SciTeX platform includes:
+                        {% trans "We may collect information about you in a variety of ways. The information we may collect via the SciTeX platform includes:" %}
                     </p>
-                    <h3 id="personal-data">Personal Data</h3>
+                    <h3 id="personal-data">{% trans "Personal Data" %}</h3>
                     <p>
-                        Personally identifiable information that you voluntarily provide to us
-                        when registering for an account, such as:
+                        {% trans "Personally identifiable information that you voluntarily provide to us when registering for an account, such as:" %}
                     </p>
                     <ul>
-                        <li>Email address</li>
-                        <li>First and last name</li>
-                        <li>Institution or organization</li>
-                        <li>Job title or academic position</li>
-                        <li>Profile picture (optional)</li>
-                        <li>Research interests (optional)</li>
+                        <li>{% trans "Email address" %}</li>
+                        <li>{% trans "First and last name" %}</li>
+                        <li>{% trans "Institution or organization" %}</li>
+                        <li>{% trans "Job title or academic position" %}</li>
+                        <li>{% trans "Profile picture (optional)" %}</li>
+                        <li>{% trans "Research interests (optional)" %}</li>
                     </ul>
-                    <h3 id="derivative-data">Derivative Data</h3>
+                    <h3 id="derivative-data">{% trans "Derivative Data" %}</h3>
                     <p>
-                        Information our servers automatically collect when you access the
-                        platform, such as:
+                        {% trans "Information our servers automatically collect when you access the platform, such as:" %}
                     </p>
                     <ul>
-                        <li>Your IP address</li>
-                        <li>Browser type</li>
-                        <li>Operating system</li>
-                        <li>Access times</li>
-                        <li>Pages viewed</li>
-                        <li>Links clicked</li>
-                        <li>The page you visited before navigating to our platform</li>
+                        <li>{% trans "Your IP address" %}</li>
+                        <li>{% trans "Browser type" %}</li>
+                        <li>{% trans "Operating system" %}</li>
+                        <li>{% trans "Access times" %}</li>
+                        <li>{% trans "Pages viewed" %}</li>
+                        <li>{% trans "Links clicked" %}</li>
+                        <li>{% trans "The page you visited before navigating to our platform" %}</li>
                     </ul>
-                    <h3 id="research-data">Research Data</h3>
+                    <h3 id="research-data">{% trans "Research Data" %}</h3>
                     <p>
-                        When you use SciTeX for your research, we may process research data
-                        that you upload, create, or manage on the platform, including:
+                        {% trans "When you use SciTeX for your research, we may process research data that you upload, create, or manage on the platform, including:" %}
                     </p>
                     <ul>
-                        <li>Scientific documents and papers</li>
-                        <li>Research notes and annotations</li>
-                        <li>Data sets</li>
-                        <li>Analysis code</li>
-                        <li>Visualizations</li>
+                        <li>{% trans "Scientific documents and papers" %}</li>
+                        <li>{% trans "Research notes and annotations" %}</li>
+                        <li>{% trans "Data sets" %}</li>
+                        <li>{% trans "Analysis code" %}</li>
+                        <li>{% trans "Visualizations" %}</li>
                     </ul>
-                    <h3 id="financial-data">Financial Data</h3>
+                    <h3 id="financial-data">{% trans "Financial Data" %}</h3>
                     <p>
-                        If you subscribe to our paid plans, we may collect financial
-                        information, such as:
+                        {% trans "If you subscribe to our paid plans, we may collect financial information, such as:" %}
                     </p>
                     <ul>
                         <li>
-                            Credit card information (processed securely through our payment
-                            processors)
+                            {% trans "Credit card information (processed securely through our payment processors)" %}
                         </li>
-                        <li>Billing address</li>
-                        <li>Subscription details</li>
+                        <li>{% trans "Billing address" %}</li>
+                        <li>{% trans "Subscription details" %}</li>
                     </ul>
                     <p>
-                        All financial information is stored by our payment processor, and you
-                        are encouraged to review their privacy policy and contact them
-                        directly for responses to your questions.
+                        {% trans "All financial information is stored by our payment processor, and you are encouraged to review their privacy policy and contact them directly for responses to your questions." %}
                     </p>
-                    <h2 id="information-use">Use of Your Information</h2>
+                    <h2 id="information-use">{% trans "Use of Your Information" %}</h2>
                     <p>
-                        Having accurate information about you permits us to provide you with a
-                        smooth, efficient, and customized experience. Specifically, we may use
-                        information collected about you via the platform to:
+                        {% trans "Having accurate information about you permits us to provide you with a smooth, efficient, and customized experience. Specifically, we may use information collected about you via the platform to:" %}
                     </p>
                     <ul>
-                        <li>Create and manage your account</li>
-                        <li>Provide and maintain our services</li>
-                        <li>Process payments and subscriptions</li>
-                        <li>Send you service notifications and updates</li>
-                        <li>Respond to customer service requests</li>
-                        <li>Improve our platform and user experience</li>
-                        <li>Monitor usage and analyze trends</li>
-                        <li>Develop new features and services</li>
-                        <li>Prevent fraudulent transactions and monitor against errors</li>
+                        <li>{% trans "Create and manage your account" %}</li>
+                        <li>{% trans "Provide and maintain our services" %}</li>
+                        <li>{% trans "Process payments and subscriptions" %}</li>
+                        <li>{% trans "Send you service notifications and updates" %}</li>
+                        <li>{% trans "Respond to customer service requests" %}</li>
+                        <li>{% trans "Improve our platform and user experience" %}</li>
+                        <li>{% trans "Monitor usage and analyze trends" %}</li>
+                        <li>{% trans "Develop new features and services" %}</li>
+                        <li>{% trans "Prevent fraudulent transactions and monitor against errors" %}</li>
                         <li>
-                            Send you marketing and promotional communications (with opt-out
-                            options)
+                            {% trans "Send you marketing and promotional communications (with opt-out options)" %}
                         </li>
                     </ul>
-                    <h2 id="information-disclosure">Disclosure of Your Information</h2>
+                    <h2 id="information-disclosure">{% trans "Disclosure of Your Information" %}</h2>
                     <p>
-                        We may share information we have collected about you in certain
-                        situations. Your information may be disclosed as follows:
+                        {% trans "We may share information we have collected about you in certain situations. Your information may be disclosed as follows:" %}
                     </p>
-                    <h3 id="legal-disclosure">By Law or to Protect Rights</h3>
+                    <h3 id="legal-disclosure">{% trans "By Law or to Protect Rights" %}</h3>
                     <p>
-                        If we believe the release of information about you is necessary to
-                        respond to legal process, to investigate or remedy potential
-                        violations of our policies, or to protect the rights, property, and
-                        safety of others, we may share your information as permitted or
-                        required by any applicable law, rule, or regulation.
+                        {% trans "If we believe the release of information about you is necessary to respond to legal process, to investigate or remedy potential violations of our policies, or to protect the rights, property, and safety of others, we may share your information as permitted or required by any applicable law, rule, or regulation." %}
                     </p>
-                    <h3 id="third-party-providers">Third-Party Service Providers</h3>
+                    <h3 id="third-party-providers">{% trans "Third-Party Service Providers" %}</h3>
                     <p>
-                        We may share your information with third parties that perform services
-                        for us or on our behalf, including:
+                        {% trans "We may share your information with third parties that perform services for us or on our behalf, including:" %}
                     </p>
                     <ul>
-                        <li>Payment processing</li>
-                        <li>Data analysis</li>
-                        <li>Email delivery</li>
-                        <li>Hosting services</li>
-                        <li>Customer service</li>
-                        <li>Marketing assistance</li>
+                        <li>{% trans "Payment processing" %}</li>
+                        <li>{% trans "Data analysis" %}</li>
+                        <li>{% trans "Email delivery" %}</li>
+                        <li>{% trans "Hosting services" %}</li>
+                        <li>{% trans "Customer service" %}</li>
+                        <li>{% trans "Marketing assistance" %}</li>
                     </ul>
-                    <h3 id="marketing">Marketing Communications</h3>
+                    <h3 id="marketing">{% trans "Marketing Communications" %}</h3>
                     <p>
-                        With your consent, or with an opportunity for you to withdraw consent,
-                        we may share your information with third parties for marketing
-                        purposes.
+                        {% trans "With your consent, or with an opportunity for you to withdraw consent, we may share your information with third parties for marketing purposes." %}
                     </p>
-                    <h3 id="user-interactions">Interactions with Other Users</h3>
+                    <h3 id="user-interactions">{% trans "Interactions with Other Users" %}</h3>
                     <p>
-                        If you interact with other users of the platform, those users may see
-                        your profile, research interests, and activity related to the
-                        platform.
+                        {% trans "If you interact with other users of the platform, those users may see your profile, research interests, and activity related to the platform." %}
                     </p>
-                    <h3 id="business-transfers">Business Transfers</h3>
+                    <h3 id="business-transfers">{% trans "Business Transfers" %}</h3>
                     <p>
-                        If we are involved in a merger, acquisition, or asset sale, your
-                        information may be transferred as part of that transaction. We will
-                        notify you before your information is transferred and becomes subject
-                        to a different Privacy Policy.
+                        {% trans "If we are involved in a merger, acquisition, or asset sale, your information may be transferred as part of that transaction. We will notify you before your information is transferred and becomes subject to a different Privacy Policy." %}
                     </p>
-                    <h2 id="information-security">Security of Your Information</h2>
+                    <h2 id="information-security">{% trans "Security of Your Information" %}</h2>
                     <p>
-                        We use administrative, technical, and physical security measures to
-                        help protect your personal information. While we have taken reasonable
-                        steps to secure the personal information you provide to us, please be
-                        aware that despite our efforts, no security measures are perfect or
-                        impenetrable, and no method of data transmission can be guaranteed
-                        against any interception or other type of misuse.
+                        {% trans "We use administrative, technical, and physical security measures to help protect your personal information. While we have taken reasonable steps to secure the personal information you provide to us, please be aware that despite our efforts, no security measures are perfect or impenetrable, and no method of data transmission can be guaranteed against any interception or other type of misuse." %}
                     </p>
-                    <h2 id="cookies">Cookies and Tracking Technologies</h2>
+                    <h2 id="cookies">{% trans "Cookies and Tracking Technologies" %}</h2>
                     <p>
-                        SciTeX uses only essential cookies required for the platform to function
-                        (session management and security). We do not use tracking cookies,
-                        advertising cookies, or third-party analytics cookies.
+                        {% trans "SciTeX uses only essential cookies required for the platform to function (session management and security). We do not use tracking cookies, advertising cookies, or third-party analytics cookies." %}
                     </p>
                     <p>
-                        For analytics, we use Umami, a privacy-focused solution that does not
-                        use cookies or collect personal data. This means no consent banner is
-                        required and your browsing is not tracked across websites.
+                        {% trans "For analytics, we use Umami, a privacy-focused solution that does not use cookies or collect personal data. This means no consent banner is required and your browsing is not tracked across websites." %}
                     </p>
-                    <h3 id="analytics">Analytics Services</h3>
+                    <h3 id="analytics">{% trans "Analytics Services" %}</h3>
                     <p>
-                        We use <a href="https://umami.is" target="_blank" rel="noopener">Umami</a>,
-                        a privacy-focused analytics solution. Unlike traditional analytics platforms,
-                        Umami:
+                        {% trans "We use" %} <a href="https://umami.is" target="_blank" rel="noopener">Umami</a> {% trans ", a privacy-focused analytics solution. Unlike traditional analytics platforms, Umami:" %}
                     </p>
                     <ul>
-                        <li>Does not use cookies</li>
-                        <li>Does not collect personal data or IP addresses</li>
-                        <li>Does not track users across websites</li>
-                        <li>Is fully GDPR compliant without requiring consent banners</li>
+                        <li>{% trans "Does not use cookies" %}</li>
+                        <li>{% trans "Does not collect personal data or IP addresses" %}</li>
+                        <li>{% trans "Does not track users across websites" %}</li>
+                        <li>{% trans "Is fully GDPR compliant without requiring consent banners" %}</li>
                     </ul>
                     <p>
-                        Umami collects only anonymous, aggregate statistics such as page views,
-                        referrer sources, device types, and general geographic regions. This data
-                        cannot be used to identify individual users.
+                        {% trans "Umami collects only anonymous, aggregate statistics such as page views, referrer sources, device types, and general geographic regions. This data cannot be used to identify individual users." %}
                     </p>
-                    <h3 id="login-history">Account Security Logging</h3>
-                    <p>For your security, we maintain a log of account login activity, including:</p>
+                    <h3 id="login-history">{% trans "Account Security Logging" %}</h3>
+                    <p>{% trans "For your security, we maintain a log of account login activity, including:" %}</p>
                     <ul>
-                        <li>Date and time of login</li>
-                        <li>IP address</li>
-                        <li>Browser/device information</li>
-                        <li>Login method (password, Google, GitHub)</li>
+                        <li>{% trans "Date and time of login" %}</li>
+                        <li>{% trans "IP address" %}</li>
+                        <li>{% trans "Browser/device information" %}</li>
+                        <li>{% trans "Login method (password, Google, GitHub)" %}</li>
                     </ul>
                     <p>
-                        This information helps protect your account from unauthorized access and
-                        allows you to review your login history. You may request deletion of this
-                        data by contacting us.
+                        {% trans "This information helps protect your account from unauthorized access and allows you to review your login history. You may request deletion of this data by contacting us." %}
                     </p>
-                    <h3 id="aggregate-data">Aggregate Data and Promotional Use</h3>
+                    <h3 id="aggregate-data">{% trans "Aggregate Data and Promotional Use" %}</h3>
                     <p>
-                        We may use anonymous, aggregate statistics derived from usage data for
-                        promotional and informational purposes, such as:
+                        {% trans "We may use anonymous, aggregate statistics derived from usage data for promotional and informational purposes, such as:" %}
                     </p>
                     <ul>
-                        <li>Publishing the total number of registered users</li>
-                        <li>Reporting general platform usage statistics</li>
-                        <li>Creating case studies about platform adoption (without identifying individuals)</li>
-                        <li>Sharing growth metrics with investors or partners</li>
+                        <li>{% trans "Publishing the total number of registered users" %}</li>
+                        <li>{% trans "Reporting general platform usage statistics" %}</li>
+                        <li>{% trans "Creating case studies about platform adoption (without identifying individuals)" %}</li>
+                        <li>{% trans "Sharing growth metrics with investors or partners" %}</li>
                     </ul>
                     <p>
-                        This aggregate data cannot be used to identify any individual user.
-                        We will never publicly disclose individual user information or activity
-                        without explicit consent.
+                        {% trans "This aggregate data cannot be used to identify any individual user. We will never publicly disclose individual user information or activity without explicit consent." %}
                     </p>
-                    <h2 id="data-rights">Your Data Protection Rights</h2>
+                    <h2 id="data-rights">{% trans "Your Data Protection Rights" %}</h2>
                     <p>
-                        Depending on your location, you may have certain rights regarding your
-                        personal information, including:
+                        {% trans "Depending on your location, you may have certain rights regarding your personal information, including:" %}
                     </p>
                     <ul>
                         <li>
-                            <strong>Right to Access</strong> - You have the right to request
-                            copies of your personal information.
+                            <strong>{% trans "Right to Access" %}</strong> {% trans "- You have the right to request copies of your personal information." %}
                         </li>
                         <li>
-                            <strong>Right to Rectification</strong> - You have the right to
-                            request that we correct any information you believe is inaccurate or
-                            complete information you believe is incomplete.
+                            <strong>{% trans "Right to Rectification" %}</strong> {% trans "- You have the right to request that we correct any information you believe is inaccurate or complete information you believe is incomplete." %}
                         </li>
                         <li>
-                            <strong>Right to Erasure</strong> - You have the right to request
-                            that we erase your personal information, under certain conditions.
+                            <strong>{% trans "Right to Erasure" %}</strong> {% trans "- You have the right to request that we erase your personal information, under certain conditions." %}
                         </li>
                         <li>
-                            <strong>Right to Restrict Processing</strong> - You have the right
-                            to request that we restrict the processing of your personal
-                            information, under certain conditions.
+                            <strong>{% trans "Right to Restrict Processing" %}</strong> {% trans "- You have the right to request that we restrict the processing of your personal information, under certain conditions." %}
                         </li>
                         <li>
-                            <strong>Right to Object to Processing</strong> - You have the right
-                            to object to our processing of your personal information, under
-                            certain conditions.
+                            <strong>{% trans "Right to Object to Processing" %}</strong> {% trans "- You have the right to object to our processing of your personal information, under certain conditions." %}
                         </li>
                         <li>
-                            <strong>Right to Data Portability</strong> - You have the right to
-                            request that we transfer the data we have collected to another
-                            organization, or directly to you, under certain conditions.
+                            <strong>{% trans "Right to Data Portability" %}</strong> {% trans "- You have the right to request that we transfer the data we have collected to another organization, or directly to you, under certain conditions." %}
                         </li>
                     </ul>
                     <p>
-                        If you make a request, we have one month to respond to you. If you
-                        would like to exercise any of these rights, please contact us using
-                        the contact information provided below.
+                        {% trans "If you make a request, we have one month to respond to you. If you would like to exercise any of these rights, please contact us using the contact information provided below." %}
                     </p>
-                    <h2 id="childrens-info">Children's Information</h2>
+                    <h2 id="childrens-info">{% trans "Children's Information" %}</h2>
                     <p>
-                        The SciTeX platform is not directed to children under the age of 13.
-                        We do not knowingly collect personal information from children under
-                        13. If you become aware that a child has provided us with personal
-                        information without parental consent, please contact us, and we will
-                        take steps to remove such information and terminate the child's
-                        account.
+                        {% trans "The SciTeX platform is not directed to children under the age of 13. We do not knowingly collect personal information from children under 13. If you become aware that a child has provided us with personal information without parental consent, please contact us, and we will take steps to remove such information and terminate the child's account." %}
                     </p>
-                    <h2 id="contact">Contact Us</h2>
+                    <h2 id="contact">{% trans "Contact Us" %}</h2>
                     <p>
-                        If you have questions or comments about this Privacy Policy, please
-                        contact us at:
+                        {% trans "If you have questions or comments about this Privacy Policy, please contact us at:" %}
                     </p>
                     {% comment %} No postal address here on purpose — see the identical
                        note in terms_of_use.html. The previous entry was a
@@ -384,15 +325,15 @@
                     <address>
                         SciTeX
                         <br />
-                        Email:
+                        {% trans "Email:" %}
                         <a href="mailto:{{ LEGAL_EMAIL }}" aria-label="Email SciTeX at {{ LEGAL_EMAIL }}">{{ LEGAL_EMAIL }}</a>
                     </address>
                 </article>
             </div>
             <div class="policy-meta">
                 <p>
-                    <strong>Last Updated:</strong>
-                    <time datetime="2026-01-29">January 29, 2026</time>
+                    <strong>{% trans "Last Updated:" %}</strong>
+                    <time datetime="2026-01-29">{% trans "January 29, 2026" %}</time>
                 </p>
             </div>
         </div>
