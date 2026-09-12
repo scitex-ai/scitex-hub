@@ -172,9 +172,15 @@ def test_the_subscription_rows_show_flat_usd() -> None:
         # No JPY staged-discount note is shown on the public price.
         assert rows["subscription-student"]["price_note"] == ""
         assert rows["subscription-general"]["price_note"] == ""
-    # The JPY amount is preserved as the legal reference, not dropped.
-    assert by_id["subscription-student"]["price_jpy"] == "2,980円"
-    assert by_id["subscription-general"]["price_jpy"] == "5,980円"
+    # The JPY amount is no longer stored on the row (USD is the SSoT); it
+    # survives only as the SSoT list amount, used as the yen-reference fallback
+    # when the live FX rate is unavailable. Under JA the format is "N,NNN円".
+    assert by_id["subscription-student"]["_jpy_list"] == "2,980円"
+    assert by_id["subscription-general"]["_jpy_list"] == "5,980円"
+    # The 定価 (list price) column is now USD, derived from sale + discount
+    # ($19 at 50% off -> $38 list; $39 -> $78).
+    assert by_id["subscription-student"]["list_price"] == "$38/mo"
+    assert by_id["subscription-general"]["list_price"] == "$78/mo"
 
 
 def _policy_fixture(schedule, amount=1000):

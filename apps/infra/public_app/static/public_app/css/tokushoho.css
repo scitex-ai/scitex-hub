@@ -111,15 +111,81 @@
   color: var(--text-primary);
 }
 
-/* 8 columns: 内容 / 料金 / 定価 / 早期導入割引 / ストレージ / 計算クレジット / 超過計算 / 備考 */
-.tokushoho-price-table thead th:nth-child(1) { width: 13%; }
-.tokushoho-price-table thead th:nth-child(2) { width: 14%; }
-.tokushoho-price-table thead th:nth-child(3) { width: 10%; }
-.tokushoho-price-table thead th:nth-child(4) { width: 11%; }
+/* 7 columns: 内容 / 料金(税込) / 円換算(参考) / ストレージ / 計算クレジット / 超過計算 / 備考 */
+.tokushoho-price-table thead th:nth-child(1) { width: 15%; }
+.tokushoho-price-table thead th:nth-child(2) { width: 18%; }
+.tokushoho-price-table thead th:nth-child(3) { width: 12%; }
+.tokushoho-price-table thead th:nth-child(4) { width: 14%; }
 .tokushoho-price-table thead th:nth-child(5) { width: 12%; }
-.tokushoho-price-table thead th:nth-child(6) { width: 14%; }
-.tokushoho-price-table thead th:nth-child(7) { width: 14%; }
-.tokushoho-price-table thead th:nth-child(8) { width: 12%; }
+.tokushoho-price-table thead th:nth-child(6) { width: 11%; }
+.tokushoho-price-table thead th:nth-child(7) { width: 18%; }
+
+/* The 料金 column shows a struck-through USD list price next to a bold green
+   sale price + a discount badge (operator 2026-09-13: strikethrough, green
+   for the discount). USD is the SSoT; the list price is derived from the
+   sale price + the active window's percent. */
+.tokushoho-list-price {
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-right: 0.4rem;
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
+
+.tokushoho-sale-price {
+  color: var(--success-color, #16a34a);
+  font-weight: 700;
+  font-size: 1.05em;
+}
+
+.tokushoho-discount-badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.78em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--success-color, #16a34a);
+  background: #e7f6ec;              /* solid light-green, no color-mix */
+  border: 1px solid var(--success-color, #16a34a);
+  border-radius: 999px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+[data-theme="dark"] .tokushoho-discount-badge {
+  color: var(--success-color, #6ba89a);
+  background: rgba(107, 168, 154, 0.15);
+  border-color: var(--success-color, #6ba89a);
+}
+
+/* 備考 as a compact list (was a comma-joined blob that overflowed the narrow
+   column; operator 2026-09-13: "shown in a better format"). */
+.tokushoho-remarks-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tokushoho-remarks-list li {
+  padding-left: 0.9rem;
+  position: relative;
+  margin-bottom: 0.25rem;
+}
+.tokushoho-remarks-list li::before {
+  content: "·";
+  position: absolute;
+  left: 0;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+/* The FX-rate explanation under the table. */
+.tokushoho-fx-note {
+  margin: 0.75rem 0 0.5rem;
+  font-size: 0.85em;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
 
 .tokushoho-price-table tbody td {
   border: none;

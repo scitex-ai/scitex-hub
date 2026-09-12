@@ -89,10 +89,10 @@
                                         {% endfor %}
                                     </ul>
                                     <p>
-                                        {% trans "最新の価格は" %}<a href="{% url 'public_app:pricing' %}">{% trans "料金ページ" %}</a>{% trans "をご確認ください。価格はすべて税込(総額)表示です。" %}
+                                        {% trans "最新の価格は" %}<a href="{% url 'public_app:pricing' %}">{% trans "料金ページ" %}</a>{% trans "をご確認ください。価格はすべて税込 (総額) 表示です。" %}
                                     </p>
                                 {% else %}
-                                    <p>{% trans "下表を参照してください。価格はすべて税込(総額)表示です。" %}</p>
+                                    <p>{% trans "下表を参照してください。価格はすべて税込 (総額) 表示です。" %}</p>
                                 {% endif %}
                             </td>
                         </tr>
@@ -111,10 +111,8 @@
                         <thead>
                             <tr>
                                 <th>{% trans "内容" %}</th>
-                                <th>{% trans "料金（USD）" %}</th>
+                                <th>{% trans "料金（税込）" %}</th>
                                 <th>{% trans "円換算（参考）" %}</th>
-                                <th>{% trans "定価" %}</th>
-                                <th>{% trans "早期導入割引" %}</th>
                                 <th>{% trans "ストレージ" %}</th>
                                 <th>{% trans "計算クレジット" %}</th>
                                 <th>{% trans "超過計算" %}</th>
@@ -125,31 +123,53 @@
                             {% for row in published_price_rows %}
                             <tr>
                                 <td>{{ row.label|translate_dynamic }}</td>
-                                <td class="price-cell">{{ row.price }}</td>
+                                <td class="price-cell">
+                                    {% if row.list_price %}
+                                        <s class="tokushoho-list-price">{{ row.list_price }}</s>
+                                        <span class="tokushoho-sale-price">{{ row.price }}</span>
+                                        <span class="tokushoho-discount-badge">{{ row.discount }}</span>
+                                    {% else %}
+                                        <span class="tokushoho-sale-price">{{ row.price }}</span>
+                                    {% endif %}
+                                </td>
                                 <td class="muted-cell">{{ row.price_jpy }}</td>
-                                <td class="muted-cell">{{ row.list_price|default:"—" }}</td>
-                                <td class="muted-cell">{{ row.discount|default:"—" }}</td>
                                 <td class="muted-cell">{{ row.storage|default:"—" }}</td>
                                 <td class="muted-cell">{{ row.compute_credit|default:"—" }}</td>
                                 <td class="muted-cell">{{ row.overage|default:"—" }}</td>
                                 <td>
                                     {% comment %}
-                                    備考. NO FALLBACK TO row.included: a row whose
+                                    備考. Rendered as a list (not a comma-joined
+                                    blob) so the narrow column stays readable.
+                                    NO FALLBACK TO row.included: a row whose
                                     attributes are ALL dedicated has an EMPTY
-                                    remarks list by design, and falling back to the
-                                    included list would repeat every dedicated
-                                    column (ストレージ / 計算クレジット / 超過計算) in
-                                    this cell. If there is no remark, say so with
-                                    the description or nothing.
+                                    remarks list by design, and falling back to
+                                    the included list would repeat every dedicated
+                                    column in this cell.
                                     {% endcomment %}
-                                    {% if row.remarks %}{{ row.remarks|join:"、" }}{% elif row.description %}{{ row.description|translate_dynamic }}{% endif %}
+                                    {% if row.remarks %}
+                                        <ul class="tokushoho-remarks-list">
+                                            {% for remark in row.remarks %}
+                                            <li>{{ remark }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% elif row.description %}
+                                        {{ row.description|translate_dynamic }}
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
-                    <p>
-                        {% trans "料金はUSD建てで表示しています。「円換算（参考）」列は概算であり、実際の請求はUSDで行われます。" %}
+                    <p class="tokushoho-fx-note">
+                        {% if fx_rate_display %}
+                            {% blocktrans with rate=fx_rate_display date=fx_as_of_display %}
+                            料金はUSD建てで表示しています。「円換算（参考）」列は、為替レート
+                            1ドル = {{ rate }}円（{{ date }}時点）× USD金額 で求めた概算です。
+                            実際の請求はUSDで行われます。
+                            {% endblocktrans %}
+                        {% else %}
+                            {% trans "料金はUSD建てで表示しています。「円換算（参考）」列は概算であり、実際の請求はUSDで行われます。" %}
+                        {% endif %}
                     </p>
                     <p>
                         {% trans "超過計算：利用者の設定した月間上限を超えた計算・ストレージ分のみを従量課金します。課金単価は料金確定後に別途お知らせします。" %}

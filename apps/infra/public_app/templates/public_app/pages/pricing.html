@@ -46,7 +46,7 @@
             <div class="pricing-alpha-notice pricing-paid-plans">
                 <i class="fas fa-credit-card"></i>
                 <div>
-                    <strong>{% trans "有料プラン(税込) — operator testing" %}</strong>
+                    <strong>{% trans "有料プラン (税込) — operator testing" %}</strong>
                     <ul class="pricing-paid-plans-list">
                         {% for plan in billing_plans %}
                             <li>
@@ -79,7 +79,7 @@
                 <div>
                     <strong>{% trans "有料プランは準備中です" %}</strong>
                     <p>
-                        {% trans "提供開始時に税込(総額)価格をこのページに掲載します。" %}
+                        {% trans "提供開始時に税込 (総額) 価格をこのページに掲載します。" %}
                         Paid plans are in preparation; tax-inclusive prices will be listed here.
                         <a href="{% url 'public_app:contact' %}">{% trans "お問い合わせ" %}</a> /
                         <a href="{% url 'public_app:tokushoho' %}">{% trans "特定商取引法に基づく表記" %}</a>

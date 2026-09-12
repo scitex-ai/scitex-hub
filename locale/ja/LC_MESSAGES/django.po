@@ -689,7 +689,7 @@ msgid "License"
 msgstr "ライセンス"
 
 msgid "Try SciTeX™ Cloud with 30-day Free Trial"
-msgstr "30日間無料トライアルで SciTeX™ Cloud を試す"
+msgstr "30日間無料トライアルで SciTeX™ クラウドを試す"
 
 msgid "¥ Ask"
 msgstr "¥ お問い合わせ"
@@ -777,7 +777,7 @@ msgstr "技術・研究相談。時間に応じて課金（最初の30分は無�
 
 # SSOT raw fields EN-sourced 2026-09-11 (pricing i18n)
 msgid "All displayed prices include tax."
-msgstr "表示価格はすべて税込(総額)です。"
+msgstr "表示価格はすべて税込 (総額) です。"
 
 msgid "Move existing analyses and drafts into SciTeX format. Quoted per engagement; we accept orders from one. Anyone can request."
 msgstr "既存の解析・原稿を SciTeX 形式に移す。規模により個別見積だが、1 件から受け付ける。誰でも依頼できる。"

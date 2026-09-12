@@ -364,6 +364,71 @@ def _usd_price(amount: int, unit: str, from_price: bool) -> str:
     return (_("from ") + base) if from_price else base
 
 
+def get_usd_jpy_rate() -> dict:
+    """The live USD→JPY rate, fetched from a public FX API, cached for 60 min.
+
+    The tokushoho page shows the yen figure as a DERIVED REFERENCE
+    (operator 2026-09-12: "price_jpy should be artifacts … USD is the SSoT;
+    the referential yen must be calculated from the latest ratio and explained
+    how to calculated"). We compute it from the current rate rather than
+    storing a fixed JPY value. If the API is unreachable the rate is ``None``
+    and the caller falls back to the SSoT JPY list amount so the legal page
+    still shows a yen reference (and the page never 500s).
+
+    A module-level 60-minute cache avoids a network call on every page load.
+    """
+    import time
+
+    import requests
+
+    global _FX_RATE_CACHE
+    now = time.time()
+    cached = _FX_RATE_CACHE
+    if cached and (now - cached[0]) < 3600:
+        return cached[1]
+    try:
+        resp = requests.get("https://open.er-api.com/v6/latest/USD", timeout=5)
+        resp.raise_for_status()
+        data = resp.json()
+        result = {
+            "rate": float(data["rates"]["JPY"]),
+            "as_of": data.get("time_last_update_utc", ""),
+            "source": "open.er-api.com",
+        }
+    except Exception:  # noqa: BLE001 — any failure degrades to the SSoT JPY
+        result = {"rate": None, "as_of": "", "source": ""}
+    _FX_RATE_CACHE = (now, result)
+    return result
+
+
+_FX_RATE_CACHE: tuple | None = None
+
+
+def usd_to_jpy(usd_amount: int, rate: float) -> int:
+    """Convert a USD amount to yen at the given rate, rounded to the nearest
+    10 yen (a clean reference figure: $19 × 153.76 → ¥2,921 → ¥2,920)."""
+    return int(round(usd_amount * rate / 10.0)) * 10
+
+
+def annotate_jpy_reference(rows: list[dict], rate: float | None) -> list[dict]:
+    """Attach a computed ``price_jpy`` to each row, from the live rate.
+
+    USD is the SSoT; the yen is a derived reference. With a rate, each row's
+    yen = round(usd_amount × rate) to the nearest 10 yen. Without a rate
+    (FX API unreachable) it falls back to the SSoT list amount so the legal
+    page always shows a yen reference. Mutates and returns ``rows``.
+    """
+    for row in rows:
+        usd = row.get("usd_amount")
+        prefix = "〜" if row.get("is_from_price") else ""
+        if rate and usd:
+            jpy = usd_to_jpy(usd, rate)
+            row["price_jpy"] = f"{prefix}{jpy:,}円"
+        else:
+            row["price_jpy"] = f"{prefix}{row.get('_jpy_list', '—')}"
+    return rows
+
+
 def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
     """The price list the 特定商取引法 page publishes, formatted, gated by date.
 
@@ -437,8 +502,18 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
                 # the clean USD price; the ¥ figure lives only as the legal
                 # reference). The discounted `amount` is still applied.
                 price_note = ""
-                list_price_str = _yen(list_amount)
-                discount_str = f"−{window['percent']}%"
+                # 定価 (list price) is USD: the SSoT `amount` is JPY list, so
+                # derive the USD list from the USD sale price and the active
+                # discount (sale = list × (1 − pct)). E.g. $19 at 50% → $38.
+                # Rendered struck-through on the page next to the green sale
+                # price (operator 2026-09-13: use strikethrough, not a JPY note).
+                usd_sale = item.get("usd_amount")
+                if usd_sale and window["percent"]:
+                    usd_list = int(round(usd_sale / (1 - window["percent"] / 100)))
+                    list_price_str = _usd_price(usd_list, unit, False)
+                else:
+                    list_price_str = ""
+                discount_str = f"{window['percent']}% OFF"
         basis = item.get("basis", "")
         attrs = item.get("attributes", {})
         # DEDICATED COLUMNS RENDER THE *INCLUDED* PHRASINGS.
@@ -477,23 +552,20 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
         # SYNTHETIC all-dedicated row is testable (see remarks_items).
         remarks = remarks_items(attrs, basis, storage_str, credit_str, overage_str)
         # Public price is USD (operator 2026-09-12: "use dollars, never yen").
-        # Every row carries a usd_amount; the JPY amount stays as a reference
-        # (price_jpy) for the tokushoho legal disclosure, which must state the
-        # yen figure with an approximated-rate note.
+        # The JPY equivalent is a DERIVED ARTIFACT computed by the tokushoho
+        # view from the live exchange rate — it is NOT stored in the SSoT.
+        # (Removing the old price_jpy = _yen(item["amount"]) so the row dict
+        #  no longer carries a hard-coded yen value.)
         usd_amount = item.get("usd_amount")
         if usd_amount is not None:
             price_str = _usd_price(usd_amount, unit, from_price)
         else:
-            # No USD figure (should not happen — every published row has one);
-            # fall back to the SSoT currency so a missing conversion is visible
-            # rather than silently dropped.
             price_str = format_amount(amount, unit, from_price)
         rows.append(
             {
                 "id": item["id"],
                 "label": item["label"],
                 "price": price_str,
-                "price_jpy": _yen(item["amount"]),
                 "list_price": list_price_str,
                 "discount": discount_str,
                 "price_note": price_note,
@@ -503,6 +575,13 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
                 "included": included,
                 "remarks": remarks,
                 "usd_amount": item.get("usd_amount"),
+                # Whether this is a floor price ("from $X") — the tokushoho
+                # yen reference prefixes "〜" for these.
+                "is_from_price": bool(item.get("from_price", False)),
+                # SSoT JPY list amount, used ONLY as the yen-reference fallback
+                # when the live FX rate is unavailable (the reference is normally
+                # computed from usd_amount × the live rate, not this value).
+                "_jpy_list": (_yen(item["amount"]) if item.get("amount") else "—"),
                 # Pass-through of the upstream catalogue's descriptive fields, so
                 # /services/ can describe an offer in business.yaml's words.
                 "category": item.get("category", "service"),

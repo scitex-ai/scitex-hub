@@ -21,7 +21,7 @@ Handles contact, privacy policy, terms of use, cookie policy, and the
 from django.conf import settings
 from django.shortcuts import render
 from django.utils import translation
-from ..pricing import published_price_rows
+from ..pricing import annotate_jpy_reference, get_usd_jpy_rate, published_price_rows
 
 
 def donate(request):
@@ -152,7 +152,28 @@ def tokushoho(request):
         # template, not through {% trans %}).
     }
     with translation.override("ja"):
-        context["published_price_rows"] = published_price_rows()
+        rows = published_price_rows()
+        # The yen reference is a DERIVED ARTIFACT (USD is the SSoT): fetch the
+        # live rate and compute each row's yen from usd_amount × rate. The
+        # rate + as-of date are shown on the page so the method is transparent.
+        fx = get_usd_jpy_rate()
+        annotate_jpy_reference(rows, fx["rate"])
+        context["fx_rate"] = fx["rate"]
+        # Display-ready values for the page note: rate to 1 decimal, and the
+        # rate's as-of date in JST (a JP legal page, not UTC).
+        context["fx_rate_display"] = f"{fx['rate']:.1f}" if fx["rate"] else None
+        if fx["as_of"]:
+            try:
+                from datetime import datetime, timedelta, timezone
+
+                jst = timezone(timedelta(hours=9))
+                dt = datetime.strptime(fx["as_of"], "%a, %d %b %Y %H:%M:%S %z")
+                context["fx_as_of_display"] = dt.astimezone(jst).strftime("%Y年%m月%d日")
+            except ValueError:
+                context["fx_as_of_display"] = fx["as_of"]
+        else:
+            context["fx_as_of_display"] = ""
+        context["published_price_rows"] = rows
         return render(request, "public_app/legal/tokushoho.html", context)
 
 

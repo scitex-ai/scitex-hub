@@ -95,7 +95,7 @@ COMPANY_ADDRESS = (
     or ""
 )
 # Representative phone — operator-confirmed 2026-07-18 (Telegram 1536).
-COMPANY_PHONE = _getenv_alias("SCITEX_HUB_COMPANY_PHONE", "080-4022-3567") or ""
+COMPANY_PHONE = _getenv_alias("SCITEX_HUB_COMPANY_PHONE", "+81-80-4022-3567") or ""
 # Public contact for the 特定商取引法 disclosure — operator-confirmed
 # 2026-07-30 (「メールは info@scitex.ai で大丈夫です」), and they had already
 # confirmed the mailbox delivers (「info@scitex.ai はもちろん届きますよ」).

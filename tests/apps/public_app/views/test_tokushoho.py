@@ -17,6 +17,7 @@ Covers:
 
 import importlib
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -215,13 +216,27 @@ class TestTokushohoPage:
                 f"pricing.json publishes {row['label']} (-> {row['label_ja']}) at "
                 f"{row['price']}, but the 特商法 page does not show it."
             )
-        # Assert — every row states its yen reference (the 円換算（参考） column,
-        # operator 2026-09-12: the legal page shows USD with an approximated
-        # yen reference) and what it includes (特商法: サービスの内容).
+        # Assert — the yen reference is a DERIVED artifact (operator 2026-09-13:
+        # "price_jpy should be artifacts … USD is the SSoT"), computed in the
+        # view from the live FX rate, so its exact value is non-deterministic.
+        # We assert the deterministic structure instead: the 円換算（参考）
+        # column is present, the FX method (rate + formula) is explained, and
+        # every row shows a USD price plus a yen reference.
+        assert "円換算（参考）" in content, "the 円換算（参考） column header is missing"
+        assert "USD" in content and "円" in content
+        # The rate explanation: "1ドル = N円" + the formula + the as-of date.
+        assert re.search(r"1ドル = \d+(\.\d+)?円", content), "the FX rate is not explained"
+        assert "計算式" in content or "四捨五入" in content, "the conversion method is not explained"
         for row in rows:
-            assert row["price_jpy"] in content, (
-                f"{row['label']}: yen reference {row['price_jpy']!r} not in the 円換算 column"
-            )
+            # USD price (deterministic) must be on the page…
+            assert row["price"] in content, f"{row['label']}: USD price {row['price']!r} missing"
+            # …and that row must carry a yen reference (digits + 円, non-empty).
+        # Every row has a non-empty yen reference in its column (the "from"
+        # rows prefix it with 〜, e.g. 〜307,500円).
+        yen_cells = re.findall(r">〜?\d[\d,]*円<", content)
+        assert len(yen_cells) >= len(rows), (
+            f"expected >= {len(rows)} yen reference cells, found {len(yen_cells)}: {yen_cells}"
+        )
         for row in rows:
             for item in row["included"]:
                 assert item in content, f"{row['label']}: included item {item!r} not on the page"
@@ -393,8 +408,9 @@ class TestCommerceSettingsDefaults:
         module = commerce_settings_clean_env
         # Act
         module = importlib.reload(module)
-        # Assert: operator-confirmed representative number (2026-07-18)
-        assert module.COMPANY_PHONE == "080-4022-3567"
+        # Assert: operator-confirmed representative number (2026-07-18; +81
+        # international form added 2026-09-13).
+        assert module.COMPANY_PHONE == "+81-80-4022-3567"
 
     def test_company_contact_email_defaults_to_confirmed_address(
         self, commerce_settings_clean_env
