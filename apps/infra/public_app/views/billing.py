@@ -36,13 +36,17 @@ environment and are never logged or echoed in responses.
 import hashlib
 import hmac
 import json
+import logging
 import time
 
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+
+logger = logging.getLogger("scitex")
 
 # Max allowed age (seconds) of a webhook signature timestamp — mirrors
 # stripe-python's DEFAULT_TOLERANCE. Prevents replay of captured payloads.
@@ -222,7 +226,61 @@ def stripe_webhook(request):
         event_id=event_id,
         defaults={"event_type": event_type, "payload": event},
     )
+
+    # Card setup: a verified, completed setup-mode session is the zero-dollar
+    # usability validation. Persist the card here (signature already verified
+    # above), so a card is only ever marked usable on a genuine Stripe event.
+    if event_type == "checkout.session.completed":
+        from ..services import stripe_setup
+
+        stripe_client = stripe_setup.build_stripe_client(
+            settings.STRIPE_SECRET_KEY
+        )
+        row = stripe_setup.apply_setup_completed(event, stripe_client=stripe_client)
+        if row is not None:
+            logger.info(
+                "Card setup completed for user %s (pm %s)",
+                row.user_id,
+                row.stripe_payment_method_id,
+            )
+
     return JsonResponse({"received": True, "created": created})
+
+
+@login_required
+@require_POST
+def start_card_setup(request):
+    """Start hosted card registration for the logged-in user.
+
+    Opens a Stripe Checkout session in ``mode="setup"``: the user enters their
+    card ONLY on Stripe's page, so SciTeX never sees PAN/CVC. A signed
+    ``checkout.session.completed`` webhook (handled in :func:`stripe_webhook`)
+    is what marks the card ``is_usable`` — the zero-dollar setup success is the
+    usability validation. Fail-loud, matching the rest of this module: 503
+    while the Stripe secret key is unconfigured.
+    """
+    if not settings.STRIPE_SECRET_KEY:
+        return _service_unavailable(
+            "SCITEX_HUB_STRIPE_SECRET_KEY is not configured. Card setup is "
+            "disabled until Stripe keys are set in the environment "
+            "(SECRET/.env.*)."
+        )
+
+    from ..services import stripe_setup
+
+    stripe_client = stripe_setup.build_stripe_client(settings.STRIPE_SECRET_KEY)
+    if stripe_client is None:
+        return _service_unavailable(
+            "Stripe could not be initialised with the configured key."
+        )
+
+    session = stripe_setup.start_card_setup(
+        request.user,
+        stripe_client=stripe_client,
+        success_url=request.build_absolute_uri("/accounts/settings/billing/?setup=success"),
+        cancel_url=request.build_absolute_uri("/accounts/settings/billing/?setup=cancelled"),
+    )
+    return redirect(session.url)
 
 
 # EOF

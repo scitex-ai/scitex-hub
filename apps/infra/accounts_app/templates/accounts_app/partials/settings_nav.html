@@ -62,6 +62,15 @@
         <span>Privacy & Analytics</span>
     </a>
 </div>
+<!-- Billing -->
+<div class="settings-nav-section">
+    <div class="settings-nav-header">Billing</div>
+    <a href="{% url 'accounts_app:billing' %}"
+       class="settings-nav-item {% if active == 'billing' %}active{% endif %}">
+        <i class="fas fa-credit-card"></i>
+        <span>Payment method</span>
+    </a>
+</div>
 <!-- Repositories (Advanced) -->
 <div class="settings-nav-section">
     <div class="settings-nav-header">Repositories</div>

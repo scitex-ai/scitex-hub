@@ -26,7 +26,11 @@ from .api import (
 from .landing import index, premium_subscription
 
 # Billing (Stripe scaffold)
-from .billing import billing_checkout, stripe_webhook
+from .billing import (
+    billing_checkout,
+    start_card_setup,
+    stripe_webhook,
+)
 
 # Legal pages
 from .legal import (
@@ -113,6 +117,7 @@ __all__ = [
     "tokushoho",
     # Billing
     "billing_checkout",
+    "start_card_setup",
     "stripe_webhook",
     # Status
     "server_status",

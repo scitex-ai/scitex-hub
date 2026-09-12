@@ -9,6 +9,7 @@ from .views import (
     api_keys,
     appearance_settings,
     auto_response_prefs_api,
+    billing_settings,
     git_integrations,
     mcp_settings,
     mcp_settings_api,
@@ -47,6 +48,8 @@ urlpatterns = [
     path("settings/api-keys/", api_keys, name="api_keys"),
     # Repositories
     path("settings/repository-health/", repository_health, name="repository_health"),
+    # Billing (Stripe-hosted card setup; card data never touches SciTeX)
+    path("settings/billing/", billing_settings, name="billing"),
     # API Endpoints
     path(
         "api/ssh-keys/generate/",
