@@ -1,32 +1,22 @@
-"""The header badge's context projection must carry every key its templates read.
+"""No template may read ``visitor_pool_status`` while the visitor badge is retired.
 
-WHY THIS TEST EXISTS. Django renders a missing dict key as the empty string
-(``string_if_invalid`` defaults to ``""``). So when the projection in
-``project_app.context_processors`` drops a key that a template reads, the page
-renders SILENTLY WRONG — no exception, no log, no failing assertion anywhere —
-and the only symptom is a gap in a sentence.
+This is the post-retirement successor to the badge-projection test. The original
+version (2026-07-30) guarded against the header badge reading a key that the
+context projection did not carry — Django renders a missing dict key as the
+empty string, so the badge shipped with a blank count for a month. The badge
+itself was REMOVED 2026-09-11 (visitor retirement, card
+drop-visitor-readonly-freemium-20260911): there is no visitor/readonly role
+anymore, so no template should read ``visitor_pool_status.<key>`` at all.
 
-That is exactly what happened. On 2026-07-30 the badge was deliberately changed
-from ``allocated`` to ``ready`` (see the comment in global_header.html:
-allocation requires a slot that is free AND workspace_ready AND not
-quarantined, which only ``ready`` expresses). The projection was not changed
-with it. Measured on production 2026-08-28, the badge read:
-
-    <div class="header-visitor-badge-popover-slots"> of 16 visitor slots available</div>
-
-An EMPTY count — not "0 of 16". Django prints an integer 0 as "0", so a blank is
-the tell that the key is ABSENT rather than zero. It had been like that for
-roughly a month, on the page investors are pointed at.
-
-The test SCANS THE TEMPLATES rather than hard-coding a key list, so a future
-template that reads a new key fails here instead of shipping a blank.
+The scan direction is therefore inverted: any template that starts reading a
+pool-status key fails here, which is the exact moment someone has
+re-introduced visitor-badge markup without restoring the context processor —
+the same silent-blank failure mode the original test guarded against, just
+arriving from the other side.
 """
 
 import re
 from pathlib import Path
-
-from apps.infra.project_app.context_processors import VISITOR_POOL_STATUS_KEYS
-from apps.infra.project_app.services.visitor_pool.pool_health import measure_pool
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SEARCH_ROOTS = (REPO_ROOT / "templates", REPO_ROOT / "apps")
@@ -43,58 +33,13 @@ def _keys_templates_read() -> set[str]:
     return keys
 
 
-def test_the_scan_finds_the_known_reader() -> None:
-    """Control: the scanner must find the badge that motivated this test.
-
-    Without this, an empty scan (a moved template, a renamed variable) would
-    make the real assertion below pass for free — a gate that cannot fail.
-    """
+def test_no_template_reads_the_retired_pool_status() -> None:
     keys = _keys_templates_read()
-    assert keys, (
-        "No template reads visitor_pool_status.<key> anywhere under "
-        f"{[str(r) for r in SEARCH_ROOTS]}. Either the badge was removed (delete "
-        "this test) or the scan is pointed at the wrong tree — do NOT let an "
-        "empty scan satisfy the projection test below."
-    )
-    assert "ready" in keys, (
-        "Expected the header badge to read visitor_pool_status.ready. If the "
-        "badge deliberately moved to another quantity, update this control."
-    )
-
-
-def test_projection_carries_every_key_the_templates_read() -> None:
-    missing = _keys_templates_read() - set(VISITOR_POOL_STATUS_KEYS)
-    assert not missing, (
-        f"Templates read visitor_pool_status.{sorted(missing)} but the header "
-        f"projection only carries {sorted(VISITOR_POOL_STATUS_KEYS)}. Django "
-        "renders a missing key as the empty string, so this ships as a blank in "
-        "the rendered sentence with no error. Add the key to "
-        "VISITOR_POOL_STATUS_KEYS in project_app.context_processors."
-    )
-
-
-def test_the_pool_status_source_supplies_every_projected_key() -> None:
-    """The projection indexes its source with ``[]``; a key the source does not
-    return raises KeyError inside the cache loader, which the caller swallows
-    into "occupancy hidden". That degrades to a MISSING badge rather than a
-    blank one — quieter, and just as wrong.
-
-    Read against ``measure_pool``, the single function that builds the dict,
-    rather than against a stand-in whose keys we would be choosing ourselves.
-    """
-    import inspect
-
-    returned = set(
-        re.findall(r'^\s{8}"([a-z_]+)":', inspect.getsource(measure_pool), re.M)
-    )
-    assert "ready" in returned, (
-        "Control: measure_pool's return literal was not parsed — the scan below "
-        "cannot be trusted. Its shape changed; fix this reader."
-    )
-    unavailable = set(VISITOR_POOL_STATUS_KEYS) - returned
-    assert not unavailable, (
-        f"The header projection asks measure_pool for {sorted(unavailable)}, "
-        f"which it does not return (it returns {sorted(returned)}). The badge "
-        "would disappear entirely via the except branch in "
-        "_visitor_pool_status_cached."
+    assert not keys, (
+        "Templates read visitor_pool_status.<key> "
+        f"({sorted(keys)}) but the visitor badge that consumed it was retired "
+        "2026-09-11. Re-introducing the badge without restoring "
+        "project_app.context_processors._visitor_pool_status_cached will "
+        "ship a blank count — the exact silent failure the predecessor of "
+        "this test guarded against."
     )
