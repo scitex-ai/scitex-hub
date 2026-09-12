@@ -69,10 +69,11 @@ class LandingHeroCtaTest(TestCase):
         # Arrange: an anonymous visitor
         # Act
         resp = self.client.get("/landing/")
-        # Assert — this is a pre-upgrade surface. It promises the free account
-        # and tier without introducing payment instruments or trial terms.
+        # Assert — the hero CTA says "Try SciTeX for Free" (operator 2026-09-12:
+        # "Try SciTeX -> Try SciTeX for Free") and the old free-account note is
+        # gone (the CTA itself is the promise).
         body = resp.content
-        assert b"Create your free account" in body
+        assert b"Try SciTeX for Free" in body
 
     def test_landing_offers_sign_up(self):
         # Arrange: an anonymous visitor

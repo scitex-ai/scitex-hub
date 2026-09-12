@@ -38,8 +38,7 @@ from django.test import TestCase
 
 LANDING_URL = "/landing/"
 
-EXPECTED_PRIMARY_TAGLINE = "Research Automation for AI and Humans"
-EXPECTED_SECONDARY_TAGLINE = "Open-source Scientific Research Automation Ecosystem"
+EXPECTED_PRIMARY_TAGLINE = "Open-source Ecosystem for Scientific Research"
 
 # The six labels the operator listed, in the order they were listed.
 EXPECTED_DEVELOPER_LINKS = (
@@ -86,26 +85,27 @@ class LandingTaglineTest(TestCase):
         # Assert
         assert EXPECTED_PRIMARY_TAGLINE in resp.content.decode()
 
-    def test_secondary_tagline_is_rendered(self):
-        """Guards the empty-variable failure described in the module docstring."""
+    def test_secondary_tagline_is_dropped(self):
+        """The operator revised the tagline to a single line (2026-09-12); the
+        secondary was dropped. The hero must not render a secondary paragraph
+        at all (an empty <p> reads as a layout gap)."""
         # Arrange
         url = LANDING_URL
         # Act
         resp = self.client.get(url)
-        # Assert
-        assert EXPECTED_SECONDARY_TAGLINE in resp.content.decode()
+        # Assert — no secondary tagline element on the page
+        assert 'hero-tagline-secondary' not in resp.content.decode()
 
-    def test_secondary_tagline_paragraph_is_not_blank(self):
-        """A missing context key renders <p class="..."></p> -- no error, no
-        text. Assert the element carries content, not merely that it exists."""
+    def test_hero_shows_the_single_primary_tagline(self):
+        """Non-vacuity: the primary tagline is on the page (the secondary was
+        dropped, so the hero shows one tagline line, not two)."""
         # Arrange
         url = LANDING_URL
         # Act
-        resp = self.client.get(url)
+        html = self.client.get(url).content.decode()
         # Assert
-        assert not re.search(
-            r'<p class="hero-tagline-secondary">\s*</p>', resp.content.decode()
-        )
+        assert EXPECTED_PRIMARY_TAGLINE in html
+        assert "hero-tagline-secondary" not in html
 
     def test_rendered_page_does_not_carry_the_scitentific_typo(self):
         """Non-vacuous: test_secondary_tagline_is_rendered proves the line is
