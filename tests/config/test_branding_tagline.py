@@ -25,6 +25,7 @@ from __future__ import annotations
 
 from config import branding
 from config.context_processors import site_branding
+from django.utils import translation
 
 EXPECTED_PRIMARY = "Open-source Ecosystem for Scientific Research"
 # The operator revised the tagline 2026-09-12: the two lines were collapsed to
@@ -82,11 +83,14 @@ def test_tagline_does_not_carry_the_scitentific_typo():
 def test_context_processor_exposes_the_secondary_tagline():
     """Without this key the hero renders an EMPTY paragraph, not an error --
     Django resolves an unknown template variable to "". That silent blank is
-    exactly why this is asserted rather than assumed."""
+    exactly why this is asserted rather than assumed. Pinned to EN: the tagline
+    goes through gettext, so a prior test leaking JA as the active language
+    would otherwise make the assertion order-dependent."""
     # Arrange
     request = None  # site_branding ignores the request
     # Act
-    context = site_branding(request)
+    with translation.override("en"):
+        context = site_branding(request)
     # Assert
     assert context["SITE_TAGLINE_SECONDARY"] == EXPECTED_SECONDARY
 
@@ -94,8 +98,9 @@ def test_context_processor_exposes_the_secondary_tagline():
 def test_context_processor_still_exposes_the_primary_tagline():
     # Arrange
     request = None
-    # Act
-    context = site_branding(request)
+    # Act — EN-pinned for the same reason as the secondary test above.
+    with translation.override("en"):
+        context = site_branding(request)
     # Assert
     assert context["SITE_TAGLINE"] == EXPECTED_PRIMARY
 
