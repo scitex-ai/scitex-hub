@@ -482,6 +482,46 @@ class BillingEvent(models.Model):
         return f"{self.event_type} ({self.event_id})"
 
 
+class PaymentMethod(models.Model):
+    """A user's validated card, stored as Stripe identifiers + safe display
+    metadata ONLY (never PAN/CVC — the card is captured on Stripe's hosted
+    Checkout ``mode="setup"`` page).
+
+    ``is_usable`` is flipped true by the SIGNED ``checkout.session.completed``
+    webhook (a zero-dollar setup success is the usability validation), and the
+    newest validated card is ``is_default``. See services/stripe_setup.py.
+    """
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="payment_methods"
+    )
+    # Stripe identifiers (safe to store; not card data)
+    stripe_customer_id = models.CharField(max_length=255, blank=True, default="")
+    stripe_payment_method_id = models.CharField(max_length=255, unique=True)
+    # Safe display metadata (brand / last4 / expiry — never the number)
+    brand = models.CharField(max_length=32, blank=True, default="")
+    last4 = models.CharField(max_length=4, blank=True, default="")
+    exp_month = models.PositiveSmallIntegerField(null=True, blank=True)
+    exp_year = models.PositiveSmallIntegerField(null=True, blank=True)
+    # Validation / usage state
+    is_usable = models.BooleanField(default=False)
+    is_default = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user", "-created_at"]),
+        ]
+        verbose_name = "Payment Method"
+        verbose_name_plural = "Payment Methods"
+
+    def __str__(self):
+        shown = f"{self.brand} •••• {self.last4}" if self.last4 else self.stripe_payment_method_id
+        return f"{self.user.username} — {shown}"
+
+
 class ServiceInquiry(models.Model):
     """A services-page inquiry (問い合わせ).
 
