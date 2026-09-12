@@ -9,13 +9,41 @@ Covers the load-bearing constraints from the design spec:
 - Email is sent ONLY when SERVICES_INQUIRY_EMAIL is set, and NEVER to recruit@.
 """
 
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 from django.core import mail
 from django.urls import reverse
+from django.utils import translation
 
 from apps.infra.public_app.models import ServiceInquiry
+
+PROJECT_ROOT = Path(__file__).resolve().parents[3]  # tests/apps/public_app/ -> repo root
+
+
+@pytest.fixture(scope="module", autouse=True)
+def compiled_catalogs():
+    """Compile locale/**/*.po -> .mo before any JA assertion reads a catalog.
+
+    /services/ renders EN by default, but the test
+    test_get_renders_japanese_when_selected uses ``translation.override("ja")``
+    to verify the JA catalogue is complete. The JA strings only exist in the
+    compiled .mo, which is gitignored and NOT compiled by the CI pytest step
+    (no msgfmt). Same fixture as test_tokushoho / test_i18n_landing.
+    """
+    script = PROJECT_ROOT / "scripts" / "i18n" / "compile_catalogs.py"
+    result = subprocess.run(
+        [sys.executable, str(script)], cwd=PROJECT_ROOT,
+        capture_output=True, text=True,
+    )
+    assert result.returncode == 0, (
+        f"catalog compilation failed ({result.returncode}):\n"
+        f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+    )
+    translation.trans_real._translations.clear()
+    yield
 
 
 @pytest.fixture
