@@ -34,6 +34,19 @@ function generateFilePath(section: any, docType: string): string {
 }
 
 /**
+ * Derive the display filename from a section's path or name.
+ * e.g. "01_manuscript/contents/01_abstract.tex" → "01_abstract.tex"
+ *      "manuscript/abstract" (no path) → "abstract.tex"
+ */
+function sectionFileName(section: any): string {
+  if (section.path) {
+    const parts = String(section.path).split("/");
+    return parts[parts.length - 1] || "section.tex";
+  }
+  return `${section.name || section.id}.tex`;
+}
+
+/**
  * Generate HTML for a single section item
  *
  * @param section - Section object
@@ -51,6 +64,7 @@ function renderSectionItem(
   const isViewOnly = section.view_only === true;
   const isCompiledPdf = section.name === "compiled_pdf";
   const sectionLabel = section.label;
+  const fileName = sectionFileName(section);
 
   // Don't show toggle for view-only sections (like compiled_pdf)
   const showToggle = !isViewOnly && (isOptional || isExcluded);
@@ -67,6 +81,11 @@ function renderSectionItem(
             <span class="section-drag-handle" style="${isCompiledPdf ? "visibility: hidden;" : ""}" title="Drag to reorder">⋮⋮</span>
             ${!isCompiledPdf ? `<span class="section-page-number" style="color: var(--color-fg-muted); font-size: 0.75rem; min-width: 20px;">${index + 1}</span>` : ""}
             <span class="section-item-name">${sectionLabel}</span>
+            ${
+              !isCompiledPdf
+                ? `<span class="section-file-hint" title="${filePath}" data-file="${fileName}">${fileName}</span>`
+                : ""
+            }
             ${
               showToggle
                 ? `
@@ -87,7 +106,7 @@ function renderSectionItem(
                 `
                     : ""
                 }
-                <a href="${filePath}" class="btn btn-xs btn-outline-secondary" title="Go to ${sectionLabel} file" onclick="event.stopPropagation();" target="_blank">
+                <a href="${filePath}" class="btn btn-xs btn-outline-secondary" title="Open ${fileName} in the file viewer" onclick="event.stopPropagation();" target="_blank">
                     <i class="fas fa-folder-open"></i>
                 </a>
                 <button class="btn btn-xs btn-outline-secondary" data-action="download-section" title="Download ${sectionLabel} PDF" onclick="event.stopPropagation();">

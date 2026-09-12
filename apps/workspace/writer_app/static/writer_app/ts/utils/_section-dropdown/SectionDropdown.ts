@@ -101,26 +101,65 @@ export async function populateSectionDropdownDirect(
 
     const hierarchy = data.hierarchy;
     let sections: any[] = [];
+    // Tracks WHY the list is empty so the empty state can name the cause and
+    // the next action (compass §11 L391) instead of a bare "No sections found".
+    let docTypeConfigured = false;
 
     console.log("[Writer] Hierarchy received:", hierarchy);
     console.log("[Writer] Looking for docType:", docType);
 
-    if (docType === "shared" && hierarchy.shared) {
-      sections = hierarchy.shared.sections;
-    } else if (docType === "manuscript" && hierarchy.manuscript) {
-      sections = hierarchy.manuscript.sections;
-    } else if (docType === "supplementary" && hierarchy.supplementary) {
-      sections = hierarchy.supplementary.sections;
-    } else if (docType === "revision" && hierarchy.revision) {
-      sections = hierarchy.revision.sections;
+    if (docType === "shared") {
+      if (hierarchy.shared) {
+        docTypeConfigured = true;
+        sections = hierarchy.shared.sections || [];
+      }
+    } else if (docType === "manuscript") {
+      if (hierarchy.manuscript) {
+        docTypeConfigured = true;
+        sections = hierarchy.manuscript.sections || [];
+      }
+    } else if (docType === "supplementary") {
+      if (hierarchy.supplementary) {
+        docTypeConfigured = true;
+        sections = hierarchy.supplementary.sections || [];
+      }
+    } else if (docType === "revision") {
+      if (hierarchy.revision) {
+        docTypeConfigured = true;
+        sections = hierarchy.revision.sections || [];
+      }
     }
 
     console.log("[Writer] Sections extracted:", sections);
     console.log("[Writer] Sections count:", sections.length);
 
     if (sections.length === 0) {
-      console.warn("[Writer] No sections found for document type:", docType);
-      selectorText.textContent = "No sections found";
+      // The same blank dropdown can mean four different things (compass §11
+      // Writer Initial State, TODO 158-161). Diagnose the exact cause — and for
+      // an Example/Demo project never show a bare "No manuscript selected".
+      const cfg = getWriterConfig();
+      console.warn(
+        "[Writer] No sections for",
+        docType,
+        "configured:",
+        docTypeConfigured,
+        "writerInitialized:",
+        cfg.writerInitialized,
+        "isDemo:",
+        cfg.isDemo,
+      );
+      const diagnosis = diagnoseExampleProject(docType, {
+        sectionCount: 0,
+        docTypeConfigured,
+        writerInitialized: cfg.writerInitialized,
+      });
+      selectorText.textContent =
+        diagnosis.state === "no-manuscript"
+          ? "No manuscript selected"
+          : diagnosis.state === "uninitialized"
+            ? "Workspace not initialized"
+            : "No sections found";
+      renderExampleState(dropdownContainer, diagnosis);
       return;
     }
 
@@ -192,6 +231,163 @@ export async function populateSectionDropdownDirect(
   } catch (error) {
     console.error("[Writer] Error populating section dropdown:", error);
   }
+}
+
+/**
+ * Cause-specific empty state for the section dropdown (compass §11 L391).
+ *
+ * "No sections found" can mean two different things, and the UI must say which
+ * one and what to do next:
+ *   - the document type IS configured but has zero sections  → "add a section";
+ *   - the document type is NOT configured in the project      → "enable it first"
+ *     (there is nothing to add yet because the doc type doesn't exist).
+ *
+ * Exported so the cause/next-action logic is unit-testable in isolation.
+ *
+ * @param container         the `section-selector-dropdown` container to render into
+ * @param docType           the requested document type
+ * @param docTypeConfigured whether the project defines that document type
+ * @param onFileSelect      optional callback wired to the "add" next action
+ */
+export function renderEmptyState(
+  container: HTMLElement,
+  docType: string,
+  docTypeConfigured: boolean,
+  onFileSelect?: ((sectionId: string, sectionName: string) => void) | null,
+): void {
+  const label = (docType || "this document type").replace(/[-_]/g, " ");
+  const has = (s: string) => s; // identity; keeps the message strings greppable
+  const html = docTypeConfigured
+    ? `\n      <div class="section-empty" data-empty="no-sections">\n        <i class="fas fa-file-circle-plus" style="margin-bottom:8px;font-size:20px;"></i>\n        <div>${has("No sections yet in the ")}<strong>${label}</strong>${has(" doc type.")}</div>\n        <div style="font-size:0.75rem;margin-top:4px;">Cause: this document type is configured but has no sections.</div>\n        <div style="font-size:0.75rem;margin-top:2px;">Next: use the section list (the + icon) to add your first section.</div>\n      </div>\n    `
+    : `\n      <div class="section-empty" data-empty="not-configured">\n        <i class="fas fa-triangle-exclamation" style="margin-bottom:8px;font-size:20px;"></i>\n        <div><strong>${label}</strong>${has(" is not enabled in this project.")}</div>\n        <div style="font-size:0.75rem;margin-top:4px;">Cause: this document type has no sections configured.</div>\n        <div style="font-size:0.75rem;margin-top:2px;">Next: enable the ${label} document type (Settings / document types), then add a section.</div>\n      </div>\n    `;
+  container.innerHTML = html;
+  // The dropdown has no add-section entry of its own; the container is the
+  // visual surface. onFileSelect is accepted for call-site symmetry and future
+  // wiring — not invoked here. (Referenced to keep the param meaningful.)
+  void onFileSelect;
+}
+
+/**
+ * The four distinct initial states a Writer project (especially an Example /
+ * Demo project) can be in when its manuscript sections fail to populate
+ * (compass §11 Writer Initial State, TODO 158-161). Distinguishing them — with a
+ * cause and a next action for each — is what "do not show an example project
+ * with `No manuscript selected`" (159) actually requires: the same blank
+ * dropdown can mean four different things.
+ *
+ *   - auto-select : a manuscript IS present → select its first section (158);
+ *   - no-manuscript : the manuscript doc type is configured but has zero
+ *                     sections → the manuscript file is missing (159);
+ *   - uninitialized : the Writer workspace itself is not initialized — there
+ *                     is no manuscript structure at all → Initialize Writer
+ *                     (161 project-structure-not-initialized);
+ *   - not-enabled : the requested doc type is not enabled in the project →
+ *                     enable it first (161).
+ *
+ * Pure so it is unit-testable in isolation.
+ */
+export type ExampleProjectState =
+  | "auto-select"
+  | "no-manuscript"
+  | "uninitialized"
+  | "not-enabled";
+
+export interface ExampleProjectDiagnosis {
+  state: ExampleProjectState;
+  /** One-line reason, shown verbatim in the empty/error state. */
+  cause: string;
+  /** The concrete next action, shown verbatim in the empty/error state. */
+  nextAction: string;
+}
+
+export function diagnoseExampleProject(
+  docType: string,
+  options: {
+    sectionCount: number;
+    docTypeConfigured: boolean;
+    writerInitialized: boolean;
+  },
+): ExampleProjectDiagnosis {
+  const label = (docType || "this document type").replace(/[-_]/g, " ");
+  if (options.sectionCount > 0) {
+    return {
+      state: "auto-select",
+      cause: `A ${label} manuscript is present.`,
+      nextAction: "The first section is selected automatically — start writing.",
+    };
+  }
+  if (!options.writerInitialized) {
+    return {
+      state: "uninitialized",
+      cause: `The Writer workspace is not initialized — no ${label} structure exists yet.`,
+      nextAction:
+        "initialize the workspace (Settings → Initialize Writer), or add a manuscript section",
+    };
+  }
+  if (!options.docTypeConfigured) {
+    return {
+      state: "not-enabled",
+      cause: `The ${label} document type is not enabled in this project.`,
+      nextAction: `enable the ${label} document type (Settings / document types), then add a section`,
+    };
+  }
+  // writerInitialized && docTypeConfigured && sectionCount === 0
+  return {
+    state: "no-manuscript",
+    cause: `No ${label} is selected — this ${label} has no sections yet.`,
+    nextAction: "use the section list (the + icon) to add the first manuscript section",
+  };
+}
+
+/**
+ * Render one of the four Example-Project initial states into the section
+ * dropdown. For `auto-select` there is nothing to render (the caller proceeds
+ * to populate + auto-select), so this is a no-op; the other three states show
+ * the diagnosis. Exported alongside {@link diagnoseExampleProject}.
+ */
+export function renderExampleState(
+  container: HTMLElement,
+  diagnosis: ExampleProjectDiagnosis,
+): void {
+  if (diagnosis.state === "auto-select") return;
+  const icon =
+    diagnosis.state === "uninitialized"
+      ? "fa-folder-open"
+      : diagnosis.state === "not-enabled"
+        ? "fa-triangle-exclamation"
+        : "fa-file-circle-plus";
+
+  // Build with createElement + textContent (NO innerHTML string interpolation)
+  // so a hostile docType — which flows into diagnosis.cause/nextAction — is
+  // rendered as inert text, never reinterpreted as markup (CodeQL: DOM text
+  // reinterpreted as HTML). `state` is a closed union and `icon` is derived
+  // from it, so className/attribute assignments here carry no user input.
+  const wrap = document.createElement("div");
+  wrap.className = "section-empty";
+  wrap.dataset.empty = diagnosis.state;
+
+  const iconEl = document.createElement("i");
+  iconEl.classList.add("fas", icon);
+  iconEl.style.marginBottom = "8px";
+  iconEl.style.fontSize = "20px";
+
+  const causeEl = document.createElement("div");
+  causeEl.style.fontSize = "0.85rem";
+  causeEl.textContent = diagnosis.cause;
+
+  const nextEl = document.createElement("div");
+  nextEl.style.fontSize = "0.75rem";
+  nextEl.style.marginTop = "4px";
+  const nextLabel = document.createElement("strong");
+  nextLabel.textContent = "Next:";
+  nextEl.appendChild(nextLabel);
+  nextEl.appendChild(document.createTextNode(` ${diagnosis.nextAction}`));
+
+  wrap.appendChild(iconEl);
+  wrap.appendChild(causeEl);
+  wrap.appendChild(nextEl);
+
+  container.replaceChildren(wrap);
 }
 
 /**

@@ -241,6 +241,26 @@
   font-size: 0.8rem;
 }
 
+/* The real .tex filename shown inline next to the section label so the
+   manuscript↔file relationship is visible without opening the file tree /
+   shell (compass §11 Initial State, TODO 163/164). Subtle monospace suffix. */
+.section-file-hint {
+  flex: 0 0 auto;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: "Consolas", "Monaco", monospace;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  opacity: 0.75;
+  padding-left: 8px;
+}
+
+.section-item:hover .section-file-hint {
+  opacity: 1;
+}
+
 .section-item-toggle {
   display: flex;
   align-items: center;
