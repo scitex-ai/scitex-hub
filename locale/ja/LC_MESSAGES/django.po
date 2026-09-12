@@ -1050,3 +1050,141 @@ msgstr "状態"
 
 msgid "Alpha. Core workflow is functional, but the verification pipeline is still in development. Expect breaking changes."
 msgstr "アルファ。コアのワークフローは機能していますが、検証パイプラインは開発中です。互換性のない変更がある可能性があります。"
+
+msgid "Why Open Source Matters"
+msgstr "オープンソースがなぜ大事か"
+
+msgid "Why Open Source Matters - SciTeX"
+msgstr "オープンソースがなぜ大事か - SciTeX"
+
+msgid "SciTeX is 100% open source under AGPL-3.0. Learn why open source matters for scientific research tools."
+msgstr "SciTeX は AGPL-3.0 で 100% オープンソースです。研究ツールにオープンソースがなぜ大事かを学びましょう。"
+
+msgid "The Problem with Closed Tools"
+msgstr "クローズドなツールの問題点"
+
+msgid "Research software often disappears. Companies shut down, products get discontinued, pricing changes. When that happens, years of workflows, data formats, and institutional knowledge become obsolete."
+msgstr "研究ソフトはしばしば姿を消します。会社が閉鎖され、製品が終了し、価格が変わります。そうなると、何年もかけて築いたワークフロー、データ形式、組織知識が陳腐化します。"
+
+msgid "Closed tools also create invisible dependencies. You can't verify what's happening to your data. You can't adapt the tool to your specific needs. You're trusting a black box with your research."
+msgstr "クローズドなツールは目に見えない依存関係も生みます。データに何が起きているか検証できません。自分のニーズに合わせてツールを調整できません。ブラックボックスに研究を任せることになります。"
+
+msgid "Our Commitment"
+msgstr "私たちのコミットメント"
+
+msgid "SciTeX is"
+msgstr "SciTeX は"
+
+msgid "100% open source"
+msgstr "100% オープンソースです"
+
+msgid "Every line of code—from the Python toolkit to this cloud platform—is publicly available, auditable, and modifiable. We believe research infrastructure should be owned by the community, not locked behind corporate walls."
+msgstr "Python ツールキットからこのクラウドプラットフォームまで、コードのすべてが公開され、監査・修正が可能です。研究インフラは企業に閉じ込められるのではなく、コミュニティのものであるべきだと私たちは考えます。"
+
+msgid "Licensed under AGPL-3.0"
+msgstr "AGPL-3.0 ライセンスの下で提供"
+
+msgid "Why AGPL-3.0"
+msgstr "なぜ AGPL-3.0 か"
+
+msgid "Ensures perpetual freedom."
+msgstr "永続的な自由を保証します。"
+
+msgid "The GNU Affero General Public License guarantees that SciTeX—and any derivative works—will remain open source forever. No one can take this code and make it proprietary."
+msgstr "GNU Affero General Public License は、SciTeX およびその派生作品が永遠にオープンソースであることを保証します。誰もこのコードをプロプライエタリ化することはできません。"
+
+msgid "Protects the network effect."
+msgstr "ネットワーク効果を保護します。"
+
+msgid "Even if someone runs a modified version as a service, they must share their improvements. The community benefits from every enhancement."
+msgstr "誰かが修正版をサービスとして提供した場合でも、その改良を共有しなければなりません。すべての強化がコミュニティの利益になります。"
+
+msgid "Your outputs are yours."
+msgstr "成果物はあなたのものです。"
+
+msgid "The license applies to the software, not to the papers, figures, or data you create with it. Your research remains your intellectual property."
+msgstr "ライセンスはソフトウェアに適用され、それで作成した論文、図表、データには適用されません。あなたの研究はあなたの知的財産のままです。"
+
+msgid "What This Means for Researchers"
+msgstr "研究者にとっての意味"
+
+msgid "Reproducibility without dependency."
+msgstr "依存に縛られない再現性。"
+
+msgid "Your workflows can be reproduced by anyone, anywhere, forever—not contingent on a company's survival or pricing decisions."
+msgstr "あなたのワークフローは、どこでも誰でも、永遠に再現できます。企業の存続や価格決定に左右されることはありません。"
+
+msgid "Transparency in computation."
+msgstr "計算の透明性。"
+
+msgid "See exactly how your data is processed. Audit the statistics. Verify the transformations. No hidden algorithms."
+msgstr "データがどのように処理されるかを正確に確認できます。統計を検査し、変換を検証します。隠されたアルゴリズムはありません。"
+
+msgid "Freedom to adapt."
+msgstr "適応の自由。"
+
+msgid "Need a specific feature for your lab? Fork the code. Modify it. Contribute back if you want. You're not waiting on a product roadmap."
+msgstr "ラボに必要な機能がありますか？コードをフォークして、修正して、望めば貢献してください。製品ロードマップを待っている必要はありません。"
+
+msgid "No vendor lock-in."
+msgstr "ベンダーロックインなし。"
+
+msgid "Export your data anytime. Self-host if needed. Switch tools without losing years of work."
+msgstr "いつでもデータをエクスポートできます。必要であればセルフホスト。何年もかけた仕事を失わずにツールを変更できます。"
+
+msgid "Long-term Vision for Science"
+msgstr "科学のための長期ビジョン"
+
+msgid "Science advances through shared knowledge. The tools we use to produce science should follow the same principle. Closed research infrastructure creates artificial barriers—between labs, between institutions, between generations of researchers."
+msgstr "科学は共有された知識を通じて前進します。科学を生み出すためのツールも同じ原則に従うべきです。クローズドな研究インフラは、ラボ同士、機関同士、世代をまたぐ研究者の間に人為的な障壁を生みます。"
+
+msgid "We envision a future where research tools are public goods: maintained by the community, improved by practitioners, trusted because they're transparent. Where a graduate student in any country has access to the same infrastructure as well-funded institutions."
+msgstr "研究ツールが公共財になる未来を私たちは描いています。コミュニティによって維持され、実践者によって改善され、透明だから信頼できる。どの国の大学院生でも、十分な資金を持つ機関と同じインフラにアクセスできる未来。"
+
+msgid "Open source isn't just a license choice. It's a commitment to making scientific computing more equitable, more reproducible, and more durable."
+msgstr "オープンソースは単なるライセンスの選択ではありません。科学計算をもっと公平に、もっと再現可能に、もっと持続可能にするというコミットメントです。"
+
+msgid "Explore the Code"
+msgstr "コードを見る"
+
+msgid "Everything is on GitHub. Browse, fork, contribute."
+msgstr "すべてが GitHub にあります。閲覧、フォーク、貢献。"
+
+msgid "scitex (Python)"
+msgstr "scitex (Python)"
+
+msgid "scitex-hub"
+msgstr "scitex-hub"
+
+msgid "All Repositories"
+msgstr "すべてのリポジトリ"
+
+msgid "Join Us"
+msgstr "参加する"
+
+msgid "Open source thrives on community. Report bugs, suggest features, submit pull requests, or just star the repo. Every contribution—code, documentation, or feedback—helps build better tools for everyone."
+msgstr "オープンソースはコミュニティによって成り立ちます。バグを報告し、機能を提案し、プルリクエストを送り、またはリポジトリにスターを付けるだけ。すべての貢献—コード、ドキュメント、フィードバック—が、すべての人にとってより良いツールの構築を助けます。"
+
+msgid "Report Issues"
+msgstr "問題を報告"
+
+msgid "Discussions"
+msgstr "ディスカッション"
+
+msgid "Four Freedoms for Research"
+msgstr "研究のための4つの自由"
+
+msgid "0. The freedom to run your research anywhere — your machine, your terms."
+msgstr "0. どこでも研究を実行する自由 — あなたのマシン、あなたの条件で。"
+
+msgid "1. The freedom to study how every step works — from raw data to final manuscript."
+msgstr "1. すべてのステップがどのように動作するか調べる自由 — 生データから最終原稿まで。"
+
+msgid "2. The freedom to redistribute your workflows, not just your papers."
+msgstr "2. 論文だけでなくワークフローも再配布する自由。"
+
+msgid "3. The freedom to modify any module and share improvements with the community."
+msgstr "3. あらゆるモジュールを修正し、改善をコミュニティと共有する自由。"
+
+msgid "AGPL-3.0 — because research infrastructure deserves the same freedoms as the software it runs on."
+msgstr "AGPL-3.0 — 研究インフラは、それが動作するソフトウェアと同じだけの自由を値打ちとするからです。"
