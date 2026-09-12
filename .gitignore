@@ -942,3 +942,11 @@ GITIGNORE/
 # Pinned by tests/develop/test_worktrees_are_ignored_by_tracked_rule.py, which
 # asserts the rule's SOURCE is this file rather than a local exclude.
 .worktrees/
+
+# WIP test files: import modules that don't exist in the repo yet
+# (apps.infra.auth_app.checks, apps.workspace.agents_app). They must NOT be
+# committed until their source modules land — re-adding them breaks pytest
+# collection on all 3 arms. (Re-added by 'git add -A' on 2026-09-12; ignored
+# here as a durable guard. Remove each line when its module is merged.)
+tests/config/test_agent_container_mount.py
+tests/apps/auth_app/test_email_delivery_check.py
