@@ -114,6 +114,16 @@
   padding: 4px 0;
 }
 
+/* In the footer (operator 2026-09-12: switcher lives at the footer, not the
+   header), the menu must open UPWARD — the button is at the bottom of the
+   page, so top:100% would hang it below the viewport edge. Flip to
+   bottom:100% for the footer instance; the header instance (if one ever
+   returns) keeps top:100%. */
+.site-footer .lang-select-menu {
+  top: auto;
+  bottom: 100%;
+}
+
 .lang-select-item {
   margin: 0;
 }
