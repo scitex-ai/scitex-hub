@@ -69,11 +69,11 @@ class LandingHeroCtaTest(TestCase):
         # Arrange: an anonymous visitor
         # Act
         resp = self.client.get("/landing/")
-        # Assert — the hero CTA says "Try SciTeX for Free" (operator 2026-09-12:
-        # "Try SciTeX -> Try SciTeX for Free") and the old free-account note is
-        # gone (the CTA itself is the promise).
+        # Assert — the hero CTA states the 30-day trial (operator 2026-09-12:
+        # "Try SciTeX® Cloud with 30-day Free Trial") and the old free-account
+        # note is gone (the CTA itself is the promise).
         body = resp.content
-        assert b"Try SciTeX for Free" in body
+        assert "Try SciTeX® Cloud with 30-day Free Trial".encode() in body
 
     def test_landing_offers_sign_up(self):
         # Arrange: an anonymous visitor

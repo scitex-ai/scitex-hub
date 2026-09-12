@@ -688,8 +688,8 @@ msgstr "無料"
 msgid "License"
 msgstr "ライセンス"
 
-msgid "Try SciTeX for Free"
-msgstr "SciTeX を無料で試す"
+msgid "Try SciTeX® Cloud with 30-day Free Trial"
+msgstr "30日間無料トライアルで SciTeX® Cloud を試す"
 
 msgid "¥ Ask"
 msgstr "¥ お問い合わせ"

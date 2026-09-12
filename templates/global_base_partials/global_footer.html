@@ -21,11 +21,13 @@
                         <a href="https://www.youtube.com/@SciTeX-Official" title="YouTube"><i class="fab fa-youtube"></i></a>
                     </div>
                     <p class="footer-contact">
-                        <a href="mailto:{{ CONTACT_EMAIL }}"><i class="fas fa-envelope"></i> {{ CONTACT_EMAIL }}</a>
+                        <a href="mailto:{{ CONTACT_EMAIL }}">{{ CONTACT_EMAIL }}</a>
                     </p>
                     <p class="footer-copyright">
                         &copy; 2025–2026 SciTeX. {% trans "All rights reserved." %} <span class="footer-version">v{{ SCITEX_HUB_VERSION }}</span>
                     </p>
+                    <!-- Language selector (operator 2026-09-12 ledger #32: footer, not header) -->
+                    {% include 'global_base_partials/language_switcher.html' %}
                 </div>
                 <!-- Column 2: Community -->
                 <div class="footer-section">
@@ -58,6 +60,9 @@
                 <div class="footer-section">
                     <h3>{% trans "Developers" %}</h3>
                     <ul class="footer-links">
+                        <li>
+                            <a href="/docs/">{% trans "Docs" %}</a>
+                        </li>
                         <li>
                             <a href="{% url 'public_app:api_docs' %}">{% trans "Web API Docs" %}</a>
                         </li>
