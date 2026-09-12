@@ -164,7 +164,8 @@
                         {% if fx_rate_display %}
                             {% blocktrans with rate=fx_rate_display date=fx_as_of_display %}
                             料金はUSD建てで表示しています。「円換算（参考）」列は、為替レート
-                            1ドル = {{ rate }}円（{{ date }}時点）× USD金額 で求めた概算です。
+                            1ドル = {{ rate }}円（{{ date }}時点）× USD金額 を求めた概算です
+                            （10円単位で四捨五入）。
                             実際の請求はUSDで行われます。
                             {% endblocktrans %}
                         {% else %}

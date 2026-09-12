@@ -140,8 +140,16 @@ def _untranslated_words(text):
         # Version strings are data, not copy, and the value changes with every
         # release — allowlisting the literal would go stale immediately. Matched
         # as a SHAPE so v0.1.0 in the test context and v0.19.0 on the live site
-        # are both covered.
+        # are both covered. A chunk may be a version plus an adjacent allowed
+        # word ("v0.1.0 English" — the footer's version span sits next to the
+        # language switcher), so strip the version tokens and re-check the rest
+        # rather than requiring the whole chunk to be a version.
         if _VERSION.fullmatch(chunk):
+            continue
+        no_version = _VERSION.sub(" ", chunk)
+        if no_version.strip():
+            chunk = no_version.strip(" .,—→")
+        else:
             continue
         # A run may be an allowed token plus punctuation, or several allowed
         # tokens in a row ("Docker Singularity SLURM"). Only report a run that

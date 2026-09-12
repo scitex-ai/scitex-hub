@@ -168,7 +168,7 @@ class TestTokushohoPage:
         # Act
         content = client.get(url).content.decode("utf-8")
         # Assert
-        assert "080-4022-3567" in content
+        assert "+81-80-4022-3567" in content
 
     def test_tokushoho_without_billing_plans_publishes_the_price_list(
         self, client, settings
