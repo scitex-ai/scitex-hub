@@ -2223,3 +2223,198 @@ msgstr "プラットフォームに関する苦情を解決するため、また
 
 msgid "January 22, 2026"
 msgstr "2026 年 1 月 22 日"
+
+msgid "Cookie Policy - SciTeX"
+msgstr "クッキーポリシー - SciTeX"
+
+msgid "Cookie Policy"
+msgstr "クッキーポリシー"
+
+msgid "Understanding how we use cookies to improve your experience"
+msgstr "体験を向上させるためにクッキー如何利用するか"
+
+msgid "About This Cookie Policy"
+msgstr "本クッキーポリシーについて"
+
+msgid "This Cookie Policy explains how SciTeX (\"we,\" \"us,\" and \"our\") uses cookies and similar technologies to recognize you when you visit our website at"
+msgstr "本クッキーポリシーは、SciTeX（「当社」「私ども」「我々」といいます）が、https://scitex.ai への訪問時にあなたを認識するためにクッキーや類似技術如何利用するかを説明します。"
+
+msgid "It explains what these technologies are and why we use them, as well as your rights to control our use of them."
+msgstr "これらの技術が何か、なぜ使用しているか、そしてそれらの利用を管理するあなたの権利について説明します。"
+
+msgid "This Cookie Policy applies to the SciTeX platform and all related services, including SciTeX Hub, SciTeX Code, SciTeX Scholar, SciTeX Writer, and SciTeX Viz."
+msgstr "本クッキーポリシーは、SciTeX プラットフォームおよび SciTeX Hub、SciTeX Code、SciTeX Scholar、SciTeX Writer、SciTeX Viz に限らず、すべての関連サービスに適用されます。"
+
+msgid "What Are Cookies?"
+msgstr "クッキーとは"
+
+msgid "Cookies are small data files that are placed on your computer or mobile device when you visit a website. Cookies are widely used by website owners to make their websites work efficiently and provide reporting information."
+msgstr "クッキーは、ウェブサイトへの訪問時にあなたのコンピューターまたはモバイル端末に置かれる小さなデータファイルです。クッキーは、ウェブサイト所有者によってウェブサイトを効率的に動作させ、レポート情報提供するためによく使用されます。"
+
+msgid "Cookies set by the website owner (in this case, SciTeX) are called first-party cookies. Cookies set by parties other than the website owner are called third-party cookies. Third-party cookies enable third-party features or functionality to be provided on or through the website."
+msgstr "ウェブサイト所有者（この場合は SciTeX）が設定するクッキーは「ファーストパーティクッキー」と呼ばれ、ウェブサイト所有者以外の第三者が設定するクッキーは「サードパーティクッキー」と呼ばれます。サードパーティクッキーは、ウェブサイト上またはウェブサイトを通じてサードパーティの機能やサービスを提供することを可能にします。"
+
+msgid "Types of Cookies We Use"
+msgstr "当社が使用するクッキーの種類"
+
+msgid "SciTeX uses only"
+msgstr "SciTeX が使用するのは"
+
+msgid "essential cookies"
+msgstr "不可欠なクッキー"
+
+msgid "that are necessary for the website to function. We do not use any tracking, advertising, or third-party analytics cookies."
+msgstr "のみで、これはウェブサイトの動作に必要です。トラッキングクッキー、広告クッキー、サードパーティの解析クッキーは使用しません。"
+
+msgid "Essential Cookies:"
+msgstr "不可欠なクッキー:"
+
+msgid "These cookies are necessary for the website to function and cannot be switched off in our systems. They are only set in response to actions made by you which amount to a request for services, such as logging in or filling in forms."
+msgstr "これらのクッキーはウェブサイトの動作に不可欠で、当社のシステムではオフにできません。ログインやフォーム入力など、サービス利用の要求にあたるあなたの操作に応じてのみ設定されます。"
+
+msgid "Privacy-First Analytics:"
+msgstr "プライバシー重視の解析:"
+
+msgid "We use Umami, a privacy-focused analytics solution that does not use cookies or collect personal data. This means you can browse SciTeX without being tracked across websites."
+msgstr "クッキーを使用せず個人データを収集しないプライバシー重視の解析ソリューション Umami を使用しています。そのため、サイト間で追跡されることなく SciTeX を閲覧できます。"
+
+msgid "Cookies We Use"
+msgstr "使用するクッキー"
+
+msgid "The specific cookies we use on the SciTeX platform include:"
+msgstr "SciTeX プラットフォームで使用する具体的なクッキーは次のとおりです:"
+
+msgid "Cookie Name"
+msgstr "クッキー名"
+
+msgid "Type"
+msgstr "種類"
+
+msgid "Purpose"
+msgstr "目的"
+
+msgid "Duration"
+msgstr "有効期間"
+
+msgid "Essential"
+msgstr "不可欠"
+
+msgid "Used to identify your session and maintain login status"
+msgstr "セッションの識別とログイン状態の維持に使用"
+
+msgid "Session"
+msgstr "セッション"
+
+msgid "Helps protect against Cross-Site Request Forgery attacks"
+msgstr "クロスサイトリクエストフォージェリー攻撃からの保護に役立ちます"
+
+msgid "Note:"
+msgstr "注:"
+
+msgid "We use localStorage (browser storage) for user preferences like theme settings. This is not a cookie and does not track you across websites."
+msgstr "テーマ設定などのユーザー設定には localStorage（ブラウザ保存領域）を使用します。これはクッキーではなく、サイト間であなたを追跡しません。"
+
+msgid "How We Use Cookies"
+msgstr "クッキーの利用"
+
+msgid "We use cookies for the following purposes:"
+msgstr "クッキーは以下の目的で使用します:"
+
+msgid "Authentication and Security"
+msgstr "認証とセキュリティ"
+
+msgid "We use cookies to identify you when you visit our website and as you navigate our platform, and to help us determine if you are logged in. This assists us in providing you with a better experience and improving the security of our services."
+msgstr "クッキーは、ウェブサイトへの訪問時およびプラットフォームの操作時にあなたを識別し、ログインしているかどうかの判定に使用します。これにより、より良い体験の提供とサービスのセキュリティ向上に役立ちます。"
+
+msgid "Personalization"
+msgstr "パーソナライズ"
+
+msgid "We use cookies to store information about your preferences and to personalize the platform for you, including remembering your preferred dark/light mode, language preferences, and custom dashboard layouts."
+msgstr "クッキーはあなたの設定情報を保存し、プラットフォームをパーソナライズするために使用します。例えば、好むダーク/ライトモード、言語設定、カスタムダッシュボードレイアウトを記憶します。"
+
+msgid "Analytics"
+msgstr "解析"
+
+msgid "We use Umami, a privacy-focused analytics platform that does not use cookies. Umami collects anonymous, aggregate data about page visits without tracking individual users or storing personal information."
+msgstr "クッキーを使用しないプライバシー重視の解析プラットフォーム Umami を使用しています。Umami は個人ユーザーを追跡せず個人情報を保存することなく、ページ訪問に関する匿名化・集計されたデータを収集します。"
+
+msgid "Research Functionality"
+msgstr "研究機能"
+
+msgid "We remember your preferences (such as theme and recent research context) using your browser's local storage, not cookies. This is stored only on your device, does not track you across websites, and is never sent to our servers."
+msgstr "設定（テーマや最近の研究コンテキストなど）はクッキーではなくブラウザのローカルストレージで記憶します。これはあなたの端末にのみ保存され、サイト間で追跡されることはなく、当社のサーバーに送信されることもありません。"
+
+msgid "Your Cookie Choices and Control"
+msgstr "あなたのクッキーの選択と制御"
+
+msgid "You have the right to decide whether to accept or reject cookies. You can exercise your cookie preferences by using the controls in your web browser."
+msgstr "クッキーを受け入れるか拒否するかを決定する権利があります。ウェブブラウザのコントロールを使用して、クッキー設定を行使できます。"
+
+msgid "Browser Controls"
+msgstr "ブラウザのコントロール"
+
+msgid "Most browsers allow you to control cookies through their settings preferences. However, if you limit the ability of websites to set cookies, you may impact your overall user experience. Below you can find instructions on how to manage cookies in popular browsers:"
+msgstr "ほとんどのブラウザは、設定を通じてクッキーを制御できます。ただし、ウェブサイトがクッキーを設定する能力を制限すると、全体としてのユーザー体験に影響を与える可能性があります。人気ブラウザでのクッキー管理方法は次のとおりです:"
+
+msgid "Changes to This Cookie Policy"
+msgstr "本クッキーポリシーの変更"
+
+msgid "We may update this Cookie Policy from time to time to reflect changes in technology, regulation, or our business practices. Any changes will be posted on this page with an updated revision date. If we make significant changes, we will notify you either through email or by a prominent notice on our platform prior to the change becoming effective."
+msgstr "技術、規制、または当社の業務慣行の変化を反映するため、このクッキーポリシーを随時更新する場合があります。変更は改訂日を更新して本ページに掲載されます。重要な変更を行う場合は、変更の有効化前に、メールまたはプラットフォーム上の目立った通知でお知らせします。"
+
+msgid "If you have any questions about our use of cookies or this Cookie Policy, please contact us at:"
+msgstr "クッキーの利用や本クッキーポリシーについてご質問がある場合は、下記までお問い合わせください:"
+
+msgid "For more information about our data handling practices, please read our"
+msgstr "データ取り扱いに関する詳細は、"
+
+msgid "and"
+msgstr "および"
+
+msgid "Click the menu icon (3 dots) in the browser's top-right corner"
+msgstr "ブラウザの右上にあるメニューアイコン（3 点）をクリック"
+
+msgid "Select \"Settings\""
+msgstr "「設定」を選択"
+
+msgid "Click \"Privacy and security\" in the left sidebar"
+msgstr "左サイドバーの「プライバシーとセキュリティ」をクリック"
+
+msgid "Click \"Cookies and other site data\""
+msgstr "「クッキーとその他のサイトデータ」をクリック"
+
+msgid "Adjust your cookie settings as needed"
+msgstr "必要に応じてクッキー設定を調整"
+
+msgid "Click the menu button (3 lines) in the top-right corner"
+msgstr "右上のメニューボタン（3 本線）をクリック"
+
+msgid "Select \"Options\" (Windows) or \"Preferences\" (Mac)"
+msgstr "「オプション」（Windows）または「環境設定」（Mac）を選択"
+
+msgid "Select \"Privacy & Security\" from the left menu"
+msgstr "左メニューから「プライバシーとセキュリティ」を選択"
+
+msgid "Scroll to the \"Cookies and Site Data\" section"
+msgstr "「クッキーとサイトデータ」セクションにスクロール"
+
+msgid "Click \"Safari\" in the top menu bar"
+msgstr "上部メニューバーの「Safari」をクリック"
+
+msgid "Select \"Preferences\""
+msgstr "「環境設定」を選択"
+
+msgid "Click the \"Privacy\" tab"
+msgstr "「プライバシー」タブをクリック"
+
+msgid "Adjust your cookie settings under \"Cookies and website data\""
+msgstr "「クッキーとウェブサイトデータ」でクッキー設定を調整"
+
+msgid "Click the menu button (3 dots) in the top-right corner"
+msgstr "右上のメニューボタン（3 点）をクリック"
+
+msgid "Click \"Cookies and site permissions\""
+msgstr "「クッキーとサイトの権限」をクリック"
+
+msgid "Click \"Manage and delete cookies and site data\""
+msgstr "「クッキーとサイトデータの管理と削除」をクリック"
