@@ -106,8 +106,8 @@
             {% endfor %}
         </div>
     </div>
-    {# Variant switch: pure display toggle (no data change, no persistence —
-       the landing must work without the Vite bundle). #}
+    {% comment %} Variant switch: pure display toggle (no data change, no
+       persistence — the landing must work without the Vite bundle). {% endcomment %}
     <script>
     (function () {
         var sw = document.querySelector('.plan-variant-switch');
