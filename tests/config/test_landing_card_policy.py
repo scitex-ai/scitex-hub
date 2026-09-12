@@ -42,14 +42,14 @@ EXPECTED_FREE_FUNNEL = {
         "Create your free account and use SciTeX's free tier at no cost.",
         "Sign up free",
         "Monthly ¥1,490",
-        "50 GB storage per project per month (Standard)",
+        "50 GB storage per month (Standard)",
     ),
     "ja": (
         "無料",
         "無料アカウントを作成して、SciTeX の無料プランをご利用いただけます。",
         "無料で登録",
         "月額 1,490円",
-        "50 GB ストレージ / プロジェクト / 月 (Standard)",
+        "50 GB ストレージ / 月 (Standard)",
     ),
 }
 
@@ -268,8 +268,8 @@ def test_pricing_ctas_are_generic_signup_not_paid_activation():
 @pytest.mark.parametrize(
     ("language", "expected", "forbidden"),
     [
-        ("en", "50 GB storage per project per month (Standard)", "ストレージ"),
-        ("ja", "50 GB ストレージ / プロジェクト / 月 (Standard)", "Storage"),
+        ("en", "50 GB storage per month (Standard)", "ストレージ"),
+        ("ja", "50 GB ストレージ / 月 (Standard)", "Storage"),
     ],
 )
 def test_runtime_pricing_values_follow_the_active_language(
@@ -307,7 +307,7 @@ def test_japanese_landing_renders_the_japanese_pricing_strings():
         "サブスク",
         "学術",
         "月額 1,490円",
-        "50 GB ストレージ / プロジェクト / 月 (Standard)",
+        "50 GB ストレージ / 月 (Standard)",
         "通常利用の範囲の通信",
     )
     assert all(value in pricing for value in expected)

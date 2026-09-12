@@ -34,21 +34,43 @@
 
 .pricing-header {
   padding: var(--spacing-lg);
-  text-align: center;
+  text-align: left;
   border-bottom: 1px solid var(--border-default);
 }
 
 .plan-name {
   font-size: 1.125rem;
   font-weight: 600;
-  margin: 0 0 0.25rem;
+  margin: 0;
   color: var(--text-primary);
+}
+
+/* Title row: plan name left, optional switcher right. Every card uses the
+   same two-row header (title-row + subtitle), so the titles and the
+   dividers align across all three cards regardless of which header
+   elements are present. */
+.plan-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-xs);
+}
+
+/* The body wrapper is the flex column: features flex-grow to fill, action
+   pins to the bottom. This keeps the CTA row aligned across cards even
+   when one card's features are shorter than another's. */
+.pricing-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: var(--spacing-lg) var(--spacing-lg) 0;
 }
 
 .plan-sub {
   font-size: 0.875rem;
   color: var(--text-muted);
-  margin: 0.25rem 0;
+  margin: 0.25rem 0 0;
 }
 
 .pricing-price {
@@ -60,6 +82,25 @@
   margin-top: 0.25rem;
   font-size: 0.8125rem;
   color: var(--text-muted);
+}
+
+/* Prominent fee line (operator 2026-09-12: "the fee should be shown more
+   apperantly like $0/mo/user, ¥ Ask"). Every card leads with the number —
+   Free → ¥0, Subscription → the per-month price, On-Prem → ¥ Ask. Large and
+   bold so it reads before the feature list; the .period sub-line keeps the
+   qualifier (period / discount / AGPL note) small and muted. */
+.plan-fee {
+  margin: 0 0 var(--spacing-md);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+
+.plan-fee .period {
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 400;
 }
 
 .pricing-features {
@@ -117,10 +158,12 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-/* Academic / General variant switcher inside the Sub card */
+/* Academic / General variant switcher — top-right of the Subscription card
+   (operator 2026-09-12: "the switcher should be in top right of the
+   Subscription card"). Sits in .plan-title-row as the right-aligned element. */
 .plan-variant-switch {
   display: inline-flex;
-  margin: var(--spacing-sm) 0 0;
+  flex-shrink: 0;
   padding: 2px;
   background: var(--bg-muted);
   border: 1px solid var(--border-default);
@@ -148,7 +191,24 @@
 }
 
 .plan-variant-hidden {
-  display: none;
+  /* NOT display:none — a display:none variant is removed from the grid, so the
+     shared cell (and the card) would resize when switching Academic<->General.
+     visibility:hidden keeps the variant laid out (it still sizes the grid track
+     to the taller of the two) while hiding it, so the card height is stable. */
+  visibility: hidden;
+}
+
+/* Grid-stacker: both variants occupy the SAME grid cell, so the cell (and the
+   card) is sized to the TALLER variant. Switching Academic<->General only
+   toggles visibility — it never resizes the card (operator 2026-09-12: "do
+   not change the height of the cards when switched to general"). */
+.plan-variants {
+  display: grid;
+  flex: 1 1 auto;
+  align-content: start;
+}
+.plan-variant {
+  grid-area: 1 / 1;
 }
 
 .plan-variant .pricing-features {

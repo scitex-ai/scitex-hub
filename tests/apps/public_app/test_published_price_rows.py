@@ -297,16 +297,16 @@ def test_every_catalogue_attribute_renders_as_one_phrase() -> None:
 def test_the_subscription_rows_state_what_they_include() -> None:
     """Pins the upstream numbers the operator confirmed 2026-09-02 (50 GB,
     1,000円 compute credit, metered overage, user-set cap) so a copy of
-    business.yaml that dropped one fails here. The quotas are per-project
-    (basis: per_project, 2026-09-10)."""
+    business.yaml that dropped one fails here. Basis is per_user
+    (operator 2026-09-12: "storage per month is for the user not for a project")."""
     by_id = {r["id"]: r for r in published_price_rows(today=date(2026, 9, 2))}
     # The `included` list IS translated here (call-time gettext in pricing.py);
     # under translation.override("ja") it yields the JA strings.
     for row_id in ("subscription-student", "subscription-general"):
         text = "、".join(by_id[row_id]["included"])
         for needle in (
-            "50 GB ストレージ / プロジェクト / 月 (Standard)",
-            "1,000 円相当の計算クレジット / プロジェクト / 月",
+            "50 GB ストレージ / 月 (Standard)",
+            "1,000 円相当の計算クレジット / 月",
             "超過分は従量課金",
             "月の上限は利用者が設定",
         ):

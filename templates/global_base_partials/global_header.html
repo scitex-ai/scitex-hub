@@ -121,70 +121,19 @@
         </button>
         <!-- Right: Actions + User Menu -->
         <div class="header-right">
-            <!-- Language toggle. Placed FIRST in header-right on the operator's
-                 instruction (2026-08-23): 「1番下のフッターにあるよりもヘッダーに
-                 あったほうがいい」. It reuses .header-btn so it inherits the brand
-                 tokens rather than the browser's native widget styling, which is
-                 what made the previous <select> look out of place. -->
-            {% include 'global_base_partials/language_switcher.html' %}
-            <!-- Theme Toggle (always visible) -->
+            <!-- Theme Toggle (always visible). A half-filled circle — the
+                 unambiguous "appearance" mark, replacing fa-adjust which read
+                 as neither sun nor moon (operator 2026-09-12). -->
             <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light/dark theme" data-tooltip="Toggle light/dark theme">
-                <i class="fas fa-adjust"></i>
+                <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none">
+                    <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5" />
+                    <path d="M8 1 a7 7 0 0 1 0 14 z" fill="currentColor" />
+                </svg>
             </button>
             <!-- Product Tour -->
             <button id="product-tour-btn" class="theme-toggle" aria-label="Product tour" data-tooltip="Product Tour">
                 <i class="fas fa-question-circle"></i>
             </button>
-            <!-- Notification Center (staff in prod, everyone in dev) -->
-            {% if DEBUG or user.is_staff %}
-                <div id="notification-center"
-                     class="header-notification-center"
-                     style="position: relative;
-                            display: inline-flex">
-                    <button id="notification-bell" class="theme-toggle" aria-label="Notifications" data-tooltip="Notifications">
-                        <i class="fas fa-bell"></i>
-                        <span id="notification-badge" class="notification-badge" style="display: none">0</span>
-                    </button>
-                    <div id="notification-dropdown" class="notification-dropdown" style="display: none">
-                        <div class="notification-header">
-                            <span>System Notifications</span>
-                            <button id="notification-clear" class="notification-clear-btn" title="Clear all">
-                                <i class="fas fa-check-double"></i>
-                            </button>
-                        </div>
-                        <div id="notification-list" class="notification-list">
-                            <div class="notification-empty">All systems operational</div>
-                        </div>
-                        <a href="{% url 'public_app:server_status' %}" class="notification-footer">View full status</a>
-                    </div>
-                </div>
-            {% endif %}
-            {% comment %}
-            The server-status icon used to sit here. Operator, Telegram
-            4864/4866/4869, 2026-09-05: take it out of the header — the
-            shortcuts are moving into a hamburger and status belongs in there
-            with them, so the header icon is not needed.
-            REACHABLE, NOT REMOVED: /server-status/ still exists and is still
-            linked from the footer and from the notification dropdown above.
-            This deletes a header ORNAMENT, not the page.
-            The TypeScript that polled it (static/shared/ts/components/
-            header.ts, "Server Health Status Live Indicator") is deliberately
-            LEFT IN PLACE. It is guarded by
-                if (serverStatusIndicator && serverStatusBtn) { ... }
-            so with the markup gone it simply never runs — no console error,
-            and one periodic fetch of the health endpoint per page stops. It
-            stays because the status is going INTO the hamburger next
-            (hub-header-declutter-hamburger-holds-shortcuts-and-server-status-
-            20260905), and it will want this code back with new ids.
-            {% endcomment %}
-            {% comment %} Keyboard Shortcuts + Notification Center removed from the header
-               2026-09-11 (operator: "Must not show keyboard shortcuts and
-               notification bell" in the top header; "Move the keyboard
-               shortcuts and notification to hamburger -> settings"). Both are
-               reachable from the hamburger menu: Keyboard Shortcuts (mobile
-               menu, below) and Server Status (staff, mobile menu). The
-               /keyboard-shortcuts/ and /server-status/ pages and their TS are
-               unchanged — only the header ornament goes.{% endcomment %}
             {% if user.is_authenticated %}
                 <!-- User Menu -->
                 <div class="header-user-menu">
@@ -307,6 +256,8 @@
                 <a href="/auth/signin/" class="header-btn" data-tooltip="Sign in to your account">{% trans "Sign in" %}</a>
                 <a href="/auth/signup/" class="header-btn" data-tooltip="Create a new account">{% trans "Sign up" %}</a>
             {% endif %}
+            <!-- Language selector: far right of the header (operator 2026-09-12) -->
+            {% include 'global_base_partials/language_switcher.html' %}
         </div>
     </div>
     <!-- Mobile Header Menu Overlay (visible only when hamburger is tapped) -->

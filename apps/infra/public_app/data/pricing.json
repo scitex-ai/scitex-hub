@@ -9,11 +9,11 @@
   "published_prices": [
     {
       "id": "subscription-student",
-      "label": "Sub · Academic",
+      "label": "Subscription · Academic",
       "amount": 2980,
       "policy": "early-adopter",
       "unit": "month",
-      "basis": "per_project",
+      "basis": "per_user",
       "available_from": "2026-09",
       "category": "subscription",
       "attributes": {
@@ -35,11 +35,11 @@
     },
     {
       "id": "subscription-general",
-      "label": "Sub · General",
+      "label": "Subscription · General",
       "amount": 5980,
       "policy": "early-adopter",
       "unit": "month",
-      "basis": "per_project",
+      "basis": "per_user",
       "available_from": "2026-09",
       "category": "subscription",
       "attributes": {
@@ -121,9 +121,6 @@
   ],
   "_notes_are_verbatim": "The first three are the exact lines /services/ published before this file existed, copied character-for-character so migrating the template changes nothing visible. The fourth is NEW, added at the operator's request 2026-08-01:「目安ですので気楽にご相談ください、と書いておくと良いかもですね」— with bands as wide as 55,000〜220,000, a reader with no invitation to ask simply leaves.",
   "notes": [
-    "External software, hardware, cloud, and generative-AI API costs are generally charged at cost.",
-    "We prioritize configurations that reuse your existing contracts and compute resources.",
-    "SciTeX Cloud usage-based pricing will be published on a separate page once rates are finalized.",
     "These prices are indicative. Contact us to adjust them to your budget and circumstances."
   ],
   "_provenance": {

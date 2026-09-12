@@ -31,45 +31,57 @@
             {# ---- 1/3 Free ------------------------------------------------ #}
             <div class="pricing-card pricing-card-free">
                 <div class="pricing-header">
-                    <h3 class="plan-name">{% trans "Free" %}</h3>
+                    <div class="plan-title-row">
+                        <h3 class="plan-name">{% trans "Free" %}</h3>
+                    </div>
+                    <p class="plan-sub">{% trans "No charge" %}</p>
                 </div>
-                <div class="pricing-features">
-                    <p class="pricing-features-text">{% trans "Create your free account and use SciTeX's free tier at no cost." %}</p>
-                    <p class="pricing-coming-soon">{% trans "Contents of the free tier will be listed here." %}</p>
-                </div>
-                <div class="pricing-action">
-                    <a href="{% url 'auth_app:signup' %}" class="btn btn-primary btn-block">{% trans "Sign up free" %}</a>
+                <div class="pricing-body">
+                    <p class="pricing-price plan-fee">{% trans "¥0" %}</p>
+                    <div class="pricing-features">
+                        <p class="pricing-features-text">{% trans "Create your free account and use SciTeX's free tier at no cost." %}</p>
+                        <p class="pricing-coming-soon">{% trans "Contents of the free tier will be listed here." %}</p>
+                    </div>
+                    <div class="pricing-action">
+                        <a href="{% url 'auth_app:signup' %}" class="btn btn-primary btn-block">{% trans "Sign up free" %}</a>
+                    </div>
                 </div>
             </div>
 
-            {# ---- 2/3 Sub (Academic / General switcher) ------------------- #}
+            {# ---- 2/3 Subscription (Academic / General switcher, top-right) #}
             {% if sub_rows %}
             <div class="pricing-card pricing-card-sub">
                 <div class="pricing-header">
-                    <h3 class="plan-name">{% trans "Sub" %}</h3>
+                    <div class="plan-title-row">
+                        <h3 class="plan-name">{% trans "Subscription" %}</h3>
+                        <div class="plan-variant-switch" role="group" aria-label="{% trans "Plan variant" %}">
+                            <button type="button" class="variant-btn is-active" data-variant="academic" aria-pressed="true">{% trans "Academic" %}</button>
+                            <button type="button" class="variant-btn" data-variant="general" aria-pressed="false">{% trans "General" %}</button>
+                        </div>
+                    </div>
                     <p class="plan-sub">{% trans "For individuals" %}</p>
-                    <div class="plan-variant-switch" role="group" aria-label="{% trans "Plan variant" %}">
-                        <button type="button" class="variant-btn is-active" data-variant="academic" aria-pressed="true">{% trans "Academic" %}</button>
-                        <button type="button" class="variant-btn" data-variant="general" aria-pressed="false">{% trans "General" %}</button>
-                    </div>
                 </div>
-                {% for row in sub_rows %}
-                <div class="plan-variant plan-variant-{% if row.is_academic %}academic{% else %}general{% endif %}{% if not row.is_academic %} plan-variant-hidden{% endif %}" data-variant="{% if row.is_academic %}academic{% else %}general{% endif %}">
-                    <p class="pricing-price">{{ row.price }}{% if row.price_note %}<span class="period">{{ row.price_note }}</span>{% endif %}</p>
-                    {% if row.included %}
-                    <div class="pricing-features">
-                        <ul>
-                            {% for item in row.included %}
-                            <li>{{ item }}</li>
-                            {% endfor %}
-                        </ul>
+                <div class="pricing-body">
+                    <div class="plan-variants">
+                    {% for row in sub_rows %}
+                    <div class="plan-variant plan-variant-{% if row.is_academic %}academic{% else %}general{% endif %}{% if not row.is_academic %} plan-variant-hidden{% endif %}" data-variant="{% if row.is_academic %}academic{% else %}general{% endif %}">
+                        <p class="pricing-price plan-fee">{{ row.price }}</p>
+                        {% if row.included %}
+                        <div class="pricing-features">
+                            <ul>
+                                {% for item in row.included %}
+                                <li>{{ item }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
                     </div>
-                    {% endif %}
-                </div>
-                {% endfor %}
-                <div class="pricing-action">
-                    <a href="{% url 'auth_app:signup' %}" class="btn btn-primary btn-block">{% trans "Sign up free" %}</a>
-                    <p class="pricing-card-note">{% trans "Creating an account does not activate this paid plan." %}</p>
+                    {% endfor %}
+                    </div>
+                    <div class="pricing-action">
+                        <a href="{% url 'auth_app:signup' %}" class="btn btn-primary btn-block">{% trans "Sign up free" %}</a>
+                        <p class="pricing-card-note">{% trans "Creating an account does not activate this paid plan." %}</p>
+                    </div>
                 </div>
             </div>
             {% endif %}
@@ -78,17 +90,22 @@
             {% if onprem_tier %}
             <div class="pricing-card pricing-card-onprem">
                 <div class="pricing-header">
-                    <h3 class="plan-name">{{ onprem_tier.name|translate_dynamic }}</h3>
+                    <div class="plan-title-row">
+                        <h3 class="plan-name">{{ onprem_tier.name|translate_dynamic }}</h3>
+                    </div>
                     <p class="plan-sub">{{ onprem_tier.audience|translate_dynamic }}</p>
                 </div>
-                {% if onprem_tier.description %}
-                <div class="pricing-features">
-                    <p class="pricing-features-text">{{ onprem_tier.description|translate_dynamic }}</p>
-                </div>
-                {% endif %}
-                <div class="pricing-action">
-                    <a href="{% url 'public_app:contact' %}" class="btn btn-block">{% trans "Contact us" %}</a>
-                    <p class="pricing-card-note"><a href="{% url 'public_app:services' %}">{% trans "Services & add-ons" %}</a></p>
+                <div class="pricing-body">
+                    <p class="pricing-price plan-fee">{% trans "¥ Ask" %}<span class="period">{% trans "AGPL self-host is free" %}</span></p>
+                    {% if onprem_tier.description %}
+                    <div class="pricing-features">
+                        <p class="pricing-features-text">{{ onprem_tier.description|translate_dynamic }}</p>
+                    </div>
+                    {% endif %}
+                    <div class="pricing-action">
+                        <a href="{% url 'public_app:contact' %}" class="btn btn-block">{% trans "Contact us" %}</a>
+                        <p class="pricing-card-note"><a href="{% url 'public_app:services' %}">{% trans "Services & add-ons" %}</a></p>
+                    </div>
                 </div>
             </div>
             {% endif %}

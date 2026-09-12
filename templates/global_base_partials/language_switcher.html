@@ -1,59 +1,55 @@
 {% load i18n %}
 
 {% comment %}
-Language toggle — HEADER, and a TOGGLE rather than a dropdown.
+Language selector — a dropdown (operator 2026-09-12: "should be considered as a
+multiple-language dropdown instead of a japanese/english toggle; make it
+simple, do not show 'nihongo' or so"). It sits at the FAR RIGHT of the header.
 
-Both of those are the operator's calls (2026-08-23), after seeing the first
-version in the footer:
-  「1番下のフッターにあるよりもヘッダーにあったほうがいいと思う」
-  「言語選択のドロップダウンがすごくダサイ…他のエレメントがどのように
-    作られているのかっていうのを見てもらって真似してもらっていいですか？」
+The trigger is a globe icon + a chevron (no word), so it never shows the
+current language name. The menu lists every configured language by its ENGLISH
+name (English / 日本語 / …) with a check on the active one. Still a real POST
+to set_language (Django 4.0+ answers a GET with 405), with a CSRF token and a
+`next` so the reader stays on their page.
 
-WHY A TOGGLE AND NOT A <select>. Exactly two languages are configured, and the
-operator has ruled out adding more 「日本語、英語、意外は…非対応で問題ない」. A
-select is the right control for choosing among many; for two it is one extra
-click and a widget the browser styles its own way — which is precisely why the
-first version looked foreign to the rest of the header. He also called it a
-トグル himself.
-
-NO NEW COLOURS. This reuses `.header-btn`, the same class Sign in / Sign up use,
-so it inherits --border-default / --text-primary / --scitex-color-04 and the
-dark-mode handling for free. Nothing here hardcodes a colour; that was the
-actual defect in the dropdown, which rendered in the browser's native palette.
-
-THE LABEL IS THE DESTINATION, NOT THE CURRENT STATE. Showing 「日本語」 while
-English is active tells the reader what the button DOES. A control labelled with
-the state you are already in makes the reader guess.
-
-STILL A POST. `set_language` has required POST since Django 4.0; a GET is
-answered 405. So this is a real form with a CSRF token, not a link.
+Uses no colour of its own: the trigger reuses .header-btn (same as Sign in /
+Sign up); the menu reuses the .header-dropdown look so it matches the user
+menu that already hangs off the right side of the header.
 {% endcomment %}
 
 {% get_current_language as CURRENT_LANGUAGE %}
 {% get_available_languages as AVAILABLE_LANGUAGES %}
 
 {% if AVAILABLE_LANGUAGES|length > 1 %}
-    <form action="{% url 'set_language' %}"
-          method="post"
-          class="language-toggle-form">
-        {% csrf_token %}
-        {# Return to the page the visitor is on. Without this, set_language #}
-        {# redirects to "/" and the reader loses their place.               #}
-        <input type="hidden" name="next" value="{{ request.get_full_path }}" />
-        {% if CURRENT_LANGUAGE == "ja" %}
-            <input type="hidden" name="language" value="en" />
-            <button type="submit"
-                    class="footer-lang-btn"
-                    data-tooltip="Switch to English">
-                <i class="fas fa-language"></i> English
-            </button>
-        {% else %}
-            <input type="hidden" name="language" value="ja" />
-            <button type="submit"
-                    class="footer-lang-btn"
-                    data-tooltip="日本語に切り替える">
-                <i class="fas fa-language"></i> 日本語
-            </button>
-        {% endif %}
-    </form>
+    <div class="lang-select" id="lang-select">
+        <button type="button"
+                class="header-btn lang-select-trigger"
+                id="lang-select-trigger"
+                aria-haspopup="true"
+                aria-expanded="false"
+                data-tooltip="Language">
+            <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none"
+                 style="display: inline-block; vertical-align: -2px">
+                <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3" />
+                <ellipse cx="8" cy="8" rx="3" ry="6.5" stroke="currentColor" stroke-width="1.1" />
+                <line x1="1.5" y1="8" x2="14.5" y2="8" stroke="currentColor" stroke-width="1.1" />
+            </svg>
+            <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true" fill="currentColor"
+                 style="display: inline-block; vertical-align: -1px; margin-left: 3px">
+                <path d="M4 6l4 4 4-4H4z" />
+            </svg>
+        </button>
+        <div class="header-dropdown lang-select-menu" id="lang-select-menu" style="display: none">
+            {% for lang_code in AVAILABLE_LANGUAGES %}
+                <form action="{% url 'set_language' %}" method="post" class="lang-select-item">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+                    <input type="hidden" name="language" value="{{ lang_code }}" />
+                    <button type="submit" class="lang-select-link">
+                        <i class="fas fa-check lang-select-check{% if lang_code == CURRENT_LANGUAGE %} is-on{% endif %}"></i>
+                        {% if lang_code == "ja" %}日本語{% elif lang_code == "en" %}English{% else %}{{ lang_code }}{% endif %}
+                    </button>
+                </form>
+            {% endfor %}
+        </div>
+    </div>
 {% endif %}

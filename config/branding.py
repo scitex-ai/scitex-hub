@@ -66,9 +66,9 @@ SITE_NAME = "SciTeX"
 #
 # Translation therefore happens at the USE SITE, in the context processor, where
 # there is a request and an active language. See config/context_processors.py.
-SITE_TAGLINE = gettext_noop("Research Automation for AI and Humans")
+SITE_TAGLINE = gettext_noop("Open-source Ecosystem for Scientific Research")
 SITE_TAGLINE_SECONDARY = gettext_noop(
-    "Open-source Scientific Research Automation Ecosystem"
+    ""
 )
 SITE_DESCRIPTION = gettext_noop(
     "Python toolkit + MCP server for literature search, "

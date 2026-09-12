@@ -58,6 +58,10 @@ msgid "Open-source Scientific Research Automation Ecosystem"
 msgstr "オープンソースの科学研究自動化エコシステム"
 
 #: config/branding.py
+msgid "Open-source Ecosystem for Scientific Research"
+msgstr "科学研究のためのオープンソース・エコシステム"
+
+#: config/branding.py
 msgid ""
 "Python toolkit + MCP server for literature search, statistics, "
 "visualization, and manuscript writing."
@@ -638,6 +642,30 @@ msgstr "Clew 検証"
 
 msgid "Sub"
 msgstr "サブスク"
+
+msgid "Subscription · Academic"
+msgstr "サブスク・学術"
+
+msgid "Subscription · General"
+msgstr "サブスク・一般"
+
+msgid "Subscription"
+msgstr "サブスクリプション"
+
+msgid "No charge"
+msgstr "無料"
+
+msgid "License"
+msgstr "ライセンス"
+
+msgid "Try SciTeX for Free"
+msgstr "SciTeX を無料で試す"
+
+msgid "¥ Ask"
+msgstr "¥ お問い合わせ"
+
+msgid "AGPL self-host is free"
+msgstr "AGPL でのセルフホストは無料"
 
 msgid "On-Prem"
 msgstr "オンプレ"

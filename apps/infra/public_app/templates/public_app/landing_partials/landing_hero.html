@@ -48,24 +48,15 @@
                            comment and renders VERBATIM to every visitor — which is
                            exactly what shipped to prod here.
                         {% endcomment %}
-                        <a href="{% if user.is_authenticated %}/apps/{% else %}/auth/signup/{% endif %}" class="hero-cta-button">{% trans "Try SciTeX" %} <span class="hero-cta-arrow">&rarr;</span></a>
+                        <a href="{% if user.is_authenticated %}/apps/{% else %}/auth/signup/{% endif %}" class="hero-cta-button">{% trans "Try SciTeX for Free" %} <span class="hero-cta-arrow">&rarr;</span></a>
                     </div>
-                    {% if not user.is_authenticated %}
-                    <p class="hero-cta-note">{% trans "Create your free account and use SciTeX's free tier at no cost." %}</p>
-                    {% endif %}
                 </div>
                 <div class="hero-links">
-                    <a href="/apps/" class="hero-link-button">
-                        <i class="fas fa-th-large"></i> {% trans "Apps" %}
-                    </a>
                     <a href="/docs/" class="hero-link-button">
                         <i class="fas fa-book"></i> {% trans "Docs" %}
                     </a>
                     <a href="/docs/#agpl-v3" class="hero-link-button">
-                        <i class="fas fa-lock-open"></i> {% trans "Open Source (AGPL v3.0)" %}
-                    </a>
-                    <a href="/donate/" class="hero-link-button">
-                        <i class="fas fa-heart"></i> {% trans "Support Us" %}
+                        <i class="fas fa-lock-open"></i> {% trans "License" %}
                     </a>
                 </div>
                 <div class="warning-banner"
