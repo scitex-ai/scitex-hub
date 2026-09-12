@@ -40,8 +40,10 @@ LANDING_URL = "/landing/"
 
 EXPECTED_PRIMARY_TAGLINE = "Open-source Ecosystem for Scientific Research"
 
-# The six labels the operator listed, in the order they were listed.
+# The developer footer links, in the order they render ("Docs" added by the
+# operator 2026-09-12 when the hero Docs button was moved to the footer).
 EXPECTED_DEVELOPER_LINKS = (
+    "Docs",
     "Web API Docs",
     "Web API Tests",
     "Releases",
