@@ -125,33 +125,12 @@ def index_view(request):
     For visitor users: provides demo workspace
     If visitor pool is exhausted: redirect to visitor-pool-full page
     """
-    # Check if user is not authenticated (visitor allocation may have failed)
+    # Check if user is not authenticated (visitor pool retired 2026-09-10 —
+    # anonymous browsers are no longer auto-allocated into visitor-00N).
+    # Signup-first contract: they must sign in (or create an account from the
+    # login page) before entering the workspace.
     if not request.user.is_authenticated:
-        # Check if this is a browser request (has typical browser User-Agent)
-        user_agent = request.META.get("HTTP_USER_AGENT", "")
-        is_browser = any(
-            browser in user_agent
-            for browser in ["Mozilla", "Chrome", "Safari", "Firefox", "Edge", "Opera"]
-        )
-
-        if is_browser:
-            # Browser request but not authenticated — visitor allocation failed.
-            # This could be pool exhausted OR a bug in the allocation code.
-            # Log as error (not info) to make failures visible per no-fallbacks policy.
-            logger.error(
-                "[Hub] Browser request not authenticated — visitor allocation failed. "
-                "Check middleware logs for root cause."
-            )
-            return redirect("public_app:visitor_pool_full")
-
-        # Non-browser request - return empty page
-        return render(
-            request,
-            "repo_app/index.html",
-            {
-                "is_visitor": True,
-            },
-        )
+        return redirect("auth_app:signin")
 
     # Handle ?view=profile&username=X — render profile inside Hub
     view_mode = request.GET.get("view", "")
@@ -176,7 +155,7 @@ def index_view(request):
 def explore_view(request):
     """GET /explore/ — Hub with Explore tab pre-selected."""
     if not request.user.is_authenticated:
-        return redirect("public_app:visitor_pool_full")
+        return redirect("auth_app:signin")
     context = build_hub_context(request)
     context["hub_initial_mode"] = "explore"
     return render(request, "repo_app/index.html", context)
@@ -185,7 +164,7 @@ def explore_view(request):
 def current_project_view(request):
     """GET /current-project/ — Hub with Current Project tab pre-selected."""
     if not request.user.is_authenticated:
-        return redirect("public_app:visitor_pool_full")
+        return redirect("auth_app:signin")
     current_project = get_current_project(request, user=request.user)
     context = build_hub_context(request, current_project=current_project)
     context["hub_initial_mode"] = "projects"
