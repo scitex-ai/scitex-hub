@@ -1,9 +1,10 @@
 {% extends "global_base.html" %}
 
 {% load static %}
+{% load i18n %}
 
-{% block title %}Contributors - SciTeX{% endblock %}
-{% block meta_description %}Contributors to SciTeX and how to join the community.{% endblock %}
+{% block title %}{% trans "Contributors - SciTeX" %}{% endblock %}
+{% block meta_description %}{% trans "Contributors to SciTeX and how to join the community." %}{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'public_app/css/about/00-about.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/about/02-context.css' %}" />
@@ -100,11 +101,11 @@
 {% block content %}
     <div class="about-container">
         <header class="minimal-hero">
-            <h1 class="minimal-hero-title">Contributors</h1>
+            <h1 class="minimal-hero-title">{% trans "Contributors" %}</h1>
         </header>
         <article class="about-narrative">
             <section class="about-section">
-                <h2>Current Contributors</h2>
+                <h2>{% trans "Current Contributors" %}</h2>
                 <div class="contributors-list">
                     <div class="contributor-item">
                         <div class="contributor-avatar">
@@ -113,11 +114,11 @@
                         <div class="contributor-details">
                             <div class="contributor-name">
                                 Yusuke Watanabe
-                                <span class="founder-badge">Founder</span>
+                                <span class="founder-badge">{% trans "Founder" %}</span>
                             </div>
                             <div class="contributor-role">ywatanabe@scitex.ai</div>
                             <div class="contributor-bio">
-                                Neuroscientist building tools to make research more reproducible. Believes scientific computing should be open, verifiable, and accessible to everyone.
+                                {% trans "Neuroscientist building tools to make research more reproducible. Believes scientific computing should be open, verifiable, and accessible to everyone." %}
                             </div>
                         </div>
                     </div>
@@ -127,55 +128,55 @@
                         </div>
                         <div class="contributor-details">
                             <div class="contributor-name">Claude Code</div>
-                            <div class="contributor-role">AI pair programmer</div>
+                            <div class="contributor-role">{% trans "AI pair programmer" %}</div>
                             <div class="contributor-bio">
-                                Anthropic's AI assistant. Helps with code, documentation, and problem-solving across the entire codebase.
+                                {% trans "Anthropic's AI assistant. Helps with code, documentation, and problem-solving across the entire codebase." %}
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
             <section class="about-section">
-                <h2>Core Members</h2>
+                <h2>{% trans "Core Members" %}</h2>
                 <p style="color: var(--text-secondary); font-style: italic;">
-                    No core members yet—you could be the first. We're looking for researchers and developers who want to shape the future of scientific computing tools.
+                    {% trans "No core members yet—you could be the first. We're looking for researchers and developers who want to shape the future of scientific computing tools." %}
                 </p>
             </section>
             <section class="about-section">
-                <h2>How to Contribute</h2>
+                <h2>{% trans "How to Contribute" %}</h2>
                 <div class="contribute-ways">
                     <div class="contribute-way">
-                        <h3>Use it and report issues</h3>
-                        <p>Deploy SciTeX, try it with your workflow, tell us what breaks or what's missing.</p>
+                        <h3>{% trans "Use it and report issues" %}</h3>
+                        <p>{% trans "Deploy SciTeX, try it with your workflow, tell us what breaks or what's missing." %}</p>
                     </div>
                     <div class="contribute-way">
-                        <h3>Code contributions</h3>
-                        <p>Fix bugs, add features, improve performance. The codebase is on GitHub under AGPL-3.0.</p>
+                        <h3>{% trans "Code contributions" %}</h3>
+                        <p>{% trans "Fix bugs, add features, improve performance. The codebase is on GitHub under AGPL-3.0." %}</p>
                     </div>
                     <div class="contribute-way">
-                        <h3>Documentation</h3>
-                        <p>Write tutorials, improve API docs, explain concepts. Good docs lower the barrier to entry.</p>
+                        <h3>{% trans "Documentation" %}</h3>
+                        <p>{% trans "Write tutorials, improve API docs, explain concepts. Good docs lower the barrier to entry." %}</p>
                     </div>
                     <div class="contribute-way">
-                        <h3>Design and UX</h3>
-                        <p>Help make the interface clearer and more intuitive. Researchers shouldn't need a manual.</p>
+                        <h3>{% trans "Design and UX" %}</h3>
+                        <p>{% trans "Help make the interface clearer and more intuitive. Researchers shouldn't need a manual." %}</p>
                     </div>
                     <div class="contribute-way">
-                        <h3>Domain expertise</h3>
-                        <p>Tell us what your field needs. Different disciplines have different workflows and requirements.</p>
+                        <h3>{% trans "Domain expertise" %}</h3>
+                        <p>{% trans "Tell us what your field needs. Different disciplines have different workflows and requirements." %}</p>
                     </div>
                     <div class="contribute-way">
-                        <h3>Spread the word</h3>
-                        <p>If you find SciTeX useful, tell colleagues. Open source grows through word of mouth.</p>
+                        <h3>{% trans "Spread the word" %}</h3>
+                        <p>{% trans "If you find SciTeX useful, tell colleagues. Open source grows through word of mouth." %}</p>
                     </div>
                 </div>
             </section>
             <section class="about-section">
-                <h2>Get in Touch</h2>
+                <h2>{% trans "Get in Touch" %}</h2>
                 <p>
-                    GitHub: <a href="https://github.com/ywatanabe1989" target="_blank">github.com/ywatanabe1989</a>
+                    {% trans "GitHub:" %} <a href="https://github.com/ywatanabe1989" target="_blank">github.com/ywatanabe1989</a>
                     <br />
-                    Email: <a href="mailto:{{ CONTACT_EMAIL }}">{{ CONTACT_EMAIL }}</a>
+                    {% trans "Email:" %} <a href="mailto:{{ CONTACT_EMAIL }}">{{ CONTACT_EMAIL }}</a>
                 </p>
             </section>
         </article>

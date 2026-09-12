@@ -1188,3 +1188,75 @@ msgstr "3. あらゆるモジュールを修正し、改善をコミュニティ
 
 msgid "AGPL-3.0 — because research infrastructure deserves the same freedoms as the software it runs on."
 msgstr "AGPL-3.0 — 研究インフラは、それが動作するソフトウェアと同じだけの自由を値打ちとするからです。"
+
+msgid "Contributors - SciTeX"
+msgstr "貢献者 - SciTeX"
+
+msgid "Contributors to SciTeX and how to join the community."
+msgstr "SciTeX の貢献者と、コミュニティに参加する方法。"
+
+msgid "Current Contributors"
+msgstr "現在の貢献者"
+
+msgid "Founder"
+msgstr "創業者"
+
+msgid "Neuroscientist building tools to make research more reproducible. Believes scientific computing should be open, verifiable, and accessible to everyone."
+msgstr "研究をより再現可能にするツールを開発する神経科学者。科学計算は開かれ、検証可能で、すべての人にアクセス可能であるべきだと信じています。"
+
+msgid "AI pair programmer"
+msgstr "AI ペアプログラマー"
+
+msgid "Anthropic's AI assistant. Helps with code, documentation, and problem-solving across the entire codebase."
+msgstr "Anthropic の AI アシスタント。コードベース全体のコード、ドキュメント、問題解決を支援します。"
+
+msgid "Core Members"
+msgstr "コアメンバー"
+
+msgid "No core members yet—you could be the first. We're looking for researchers and developers who want to shape the future of scientific computing tools."
+msgstr "コアメンバーはまだいません—あなたが初めての人になるかもしれません。科学計算ツールの未来を形づくりたい研究者や開発者を募集しています。"
+
+msgid "How to Contribute"
+msgstr "貢献する方法"
+
+msgid "Use it and report issues"
+msgstr "使ってみて問題を報告する"
+
+msgid "Deploy SciTeX, try it with your workflow, tell us what breaks or what's missing."
+msgstr "SciTeX をデプロイして、自分のワークフローで試してみて、壊れている点や不足している点を教えてください。"
+
+msgid "Code contributions"
+msgstr "コードへの貢献"
+
+msgid "Fix bugs, add features, improve performance. The codebase is on GitHub under AGPL-3.0."
+msgstr "バグを修正し、機能を追加し、パフォーマンスを改善してください。コードベースは GitHub の AGPL-3.0 の下にあります。"
+
+msgid "Write tutorials, improve API docs, explain concepts. Good docs lower the barrier to entry."
+msgstr "チュートリアルを書き、API ドキュメントを改善し、概念を説明してください。良いドキュメントは参入障壁を下げます。"
+
+msgid "Design and UX"
+msgstr "デザインと UX"
+
+msgid "Help make the interface clearer and more intuitive. Researchers shouldn't need a manual."
+msgstr "インターフェースをより明確で直感的にするお手伝いをしてください。研究者がマニュアルを必要とすることはないはずです。"
+
+msgid "Domain expertise"
+msgstr "専門分野の知識"
+
+msgid "Tell us what your field needs. Different disciplines have different workflows and requirements."
+msgstr "あなたの分野に必要なものを教えてください。分野によってワークフローや要件は異なります。"
+
+msgid "Spread the word"
+msgstr "広める"
+
+msgid "If you find SciTeX useful, tell colleagues. Open source grows through word of mouth."
+msgstr "SciTeX が役に立ったと思ったら、同僚に教えてください。オープンソースは口コミで広がります。"
+
+msgid "Get in Touch"
+msgstr "お問い合わせ"
+
+msgid "GitHub:"
+msgstr "GitHub："
+
+msgid "Email:"
+msgstr "メール:"
