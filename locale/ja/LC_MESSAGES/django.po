@@ -2010,3 +2010,216 @@ msgstr "2026 年 1 月 29 日"
 
 msgid "This is the Japanese reference version of the Privacy Policy. The English version is the governing document."
 msgstr "これはプライバシーポリシーの日本語参考訳です。英語版が正式な文書です。"
+
+msgid "Terms of Use - SciTeX"
+msgstr "利用規約 - SciTeX"
+
+msgid "Terms of Use"
+msgstr "利用規約"
+
+msgid "Please read these terms carefully before using our platform"
+msgstr "プラットフォームの利用前に、これらの規約をよくお読みください"
+
+msgid "This is the Japanese reference version of the Terms of Use. The English version is the governing document."
+msgstr "これは利用規約の日本語参考訳です。英語版が正式な文書です。"
+
+msgid "Agreement to Terms"
+msgstr "規約への同意"
+
+msgid "These Terms of Use constitute a legally binding agreement made between you, whether personally or on behalf of an entity (\"you\") and SciTeX (\"we,\" \"us,\" or \"our\"), concerning your access to and use of the SciTeX platform and all associated services."
+msgstr "本利用規約は、あなた（個人または団体のために行動する場合を含む、「あなた」といいます）と SciTeX（「当社」「私ども」「我々」といいます）の間で、SciTeX プラットフォームおよび関連するすべてのサービスへのアクセスと利用に関して締結される法的拘束力のある合意を構成します。"
+
+msgid "By accessing or using the SciTeX platform, you agree to be bound by these Terms of Use. If you disagree with any part of the terms, then you may not access the platform."
+msgstr "SciTeX プラットフォームにアクセスし、または利用することにより、あなたは本利用規約に拘束されることに同意したものとみなされます。規約のいかなる部分にも同意できない場合は、プラットフォームへのアクセスをしないでください。"
+
+msgid "We reserve the right to change these Terms of Use at any time. We will notify you of any changes by posting the new Terms of Use on this page and updating the Last Updated date. Your continued use of the platform following the posting of revised Terms of Use means that you accept and agree to the changes."
+msgstr "当社はいつでも本利用規約を変更する権利を留保します。変更の際は、本ページに新しい利用規約を掲載し、最終更新日を更新することでお知らせします。改正された利用規約の掲載後にプラットフォームの利用を継続された場合は、その変更を受け入れ、同意したものとみなされます。"
+
+msgid "Intellectual Property Rights"
+msgstr "知的財産権"
+
+msgid "Unless otherwise indicated, the SciTeX platform is our proprietary property and all source code, databases, functionality, software, website designs, audio, video, text, photographs, and graphics on the platform (collectively, the \"Content\") and the trademarks, service marks, and logos contained therein (the \"Marks\") are owned or controlled by us or licensed to us, and are protected by copyright and trademark laws and various other intellectual property rights."
+msgstr "特段の表示がない限り、SciTeX プラットフォームは当社の固有財産であり、プラットフォーム上のすべてのソースコード、データベース、機能、ソフトウェア、ウェブサイト設計、音声、映像、テキスト、写真、グラフィック（総称して「コンテンツ」）およびそこに含まれる商標、サービスマーク、ロゴ（「マーク」）は、当社が所有または管理しているか、当社にライセンスされており、著作権法・商標法およびその他の各種知的財産権によって保護されています。"
+
+msgid "SciTeX codebase is fully open and available at no cost as long as customers can utilize it independently. Our code is open-source and can be freely used, modified, and distributed according to the terms of our license. For users who prefer not to manage their own installations, we offer a web interface as a service for a fee."
+msgstr "SciTeX のコードベースは、お客様が独自に利用可能である限り、完全に公開され無償で提供されます。当社のコードはオープンソースであり、ライセンスの条項に従って自由に使用・修正・配布できます。自分の環境の管理を避けたいユーザーには、有償でウェブインターフェースをサービスとして提供しています。"
+
+msgid "Provided that you are eligible to use the platform, you are granted a limited license to access and use the platform and to download or print a copy of any portion of the Content to which you have properly gained access solely for your personal, non-commercial use. We reserve all rights not expressly granted to you in and to the platform, the Content, and the Marks."
+msgstr "プラットフォームの利用資格があることを条件に、あなたはプラットフォームへのアクセス・利用、および正当にアクセスを許されたコンテンツの一部のダウンロードまたは印刷を、個人・非商用目的のみに限って行う限定的なライセンスを付与されます。プラットフォーム、コンテンツ、マークに関してあなたが明示的に付与されていないすべての権利は、当社に留保されます。"
+
+msgid "User Representations"
+msgstr "ユーザーの表明"
+
+msgid "By using the SciTeX platform, you represent and warrant that:"
+msgstr "SciTeX プラットフォームを使用することで、あなたは次のとおり表明し、保証します:"
+
+msgid "You have the legal capacity and you agree to comply with these Terms of Use."
+msgstr "あなたは法的能力を有し、本利用規約を遵守することに同意します。"
+
+msgid "You are not a minor in the jurisdiction in which you reside, or if a minor, you have received parental permission to use the platform."
+msgstr "あなたは居住地の管轄区域において未成年ではなく、未成年である場合は、プラットフォームの利用に親権者の許可を得ています。"
+
+msgid "You will not access the platform through automated or non-human means, whether through a bot, script, or otherwise."
+msgstr "あなたは、bot やスクリプトなど、自動的にまたは人間以外による手段でプラットフォームにアクセスしません。"
+
+msgid "You will not use the platform for any illegal or unauthorized purpose."
+msgstr "あなたは、違法または無断の目的でプラットフォームを使用しません。"
+
+msgid "Your use of the platform will not violate any applicable law or regulation."
+msgstr "あなたのプラットフォームの利用は、いかなる適用される法律または規制にも違反しません。"
+
+msgid "If you provide any information that is untrue, inaccurate, not current, or incomplete, we have the right to suspend or terminate your account and refuse any and all current or future use of the platform (or any portion thereof)."
+msgstr "あなたが虚偽、不正確、最新でない、または不完全な情報を提供した場合、当社はあなたのアカウントを停止または終了し、プラットフォーム（またはその一部）の現在および将来の利用をすべて拒否する権利を有します。"
+
+msgid "User Registration"
+msgstr "ユーザー登録"
+
+msgid "You may be required to register with the platform. You agree to keep your password confidential and will be responsible for all use of your account and password. We reserve the right to remove, reclaim, or change a username you select if we determine, in our sole discretion, that such username is inappropriate, obscene, or otherwise objectionable."
+msgstr "プラットフォームへの登録が必要になる場合があります。あなたのパスワードを秘密に保つことに同意し、あなたのアカウントとパスワードのすべての利用について責任を負います。当社が、当社の単独の判断において、あなたが選択したユーザー名が不適切・わいせつ・その他差し支えると判断した場合、そのユーザー名を削除・回収・変更する権利を留保します。"
+
+msgid "User Content"
+msgstr "ユーザーコンテンツ"
+
+msgid "Content Ownership"
+msgstr "コンテンツの所有"
+
+msgid "You retain all rights to your research data, documents, code, and other content that you upload, post, or otherwise make available on the platform (\"User Content\"). By uploading User Content, you grant us a non-exclusive, royalty-free, worldwide license to use, copy, modify, and display your User Content in connection with the operation of the SciTeX platform and providing services to you."
+msgstr "あなたがアップロード・投稿・その他プラットフォームで利用可能にさせる研究データ、文書、コード、その他のコンテンツ（「ユーザーコンテンツ」）については、すべての権利をあなたが保持します。ユーザーコンテンツをアップロードすることにより、あなたは SciTeX プラットフォームの運営およびあなたへのサービス提供に関連して、あなたのユーザーコンテンツを使用・複製・修正・表示するため、独占的でない、ロイヤルティフリー、全世界的なライセンスを当社に付与します。"
+
+msgid "Content Responsibility"
+msgstr "コンテンツへの責任"
+
+msgid "You are solely responsible for your User Content. You represent and warrant that:"
+msgstr "あなたのユーザーコンテンツについて、あなたは唯一の責任を負います。あなたは次のとおり表明し、保証します:"
+
+msgid "You own the User Content or have the right to use it and grant us the rights and license as provided in these Terms of Use."
+msgstr "ユーザーコンテンツを所有しているか、使用権を有しており、本利用規約に定める権利・ライセンスを当社に付与できます。"
+
+msgid "The User Content does not violate the privacy rights, publicity rights, copyrights, contract rights, or any other rights of any person."
+msgstr "ユーザーコンテンツは、いかなる者においても、プライバシー権、パブリシティ権、著作権、契約上の権利、その他いかなる権利も侵害しません。"
+
+msgid "The User Content does not contain any material that solicits personal information from anyone under the age of 18 or exploit people under the age of 18 in a sexual or violent manner."
+msgstr "ユーザーコンテンツは、18 歳未満の者から個人情報を求めたり、18 歳未満の者を性的・暴力的に利用するような材料を含まない。"
+
+msgid "The User Content does not violate any applicable law, regulation, or rule."
+msgstr "ユーザーコンテンツは、適用される法律、規制、ルールをいずれも違反しない。"
+
+msgid "Content Review"
+msgstr "コンテンツの審査"
+
+msgid "We do not review all User Content before it is posted on the platform, and cannot ensure prompt removal of objectionable User Content after it has been posted. Accordingly, we assume no liability for any action or inaction regarding User Content."
+msgstr "ユーザーコンテンツのすべてをプラットフォームへの投稿前に審査するわけではなく、投稿後の差し支えのあるユーザーコンテンツの即時削除を保証することはできません。したがって、ユーザーコンテンツに関するいかなる作為・不作為について当社は何らの責任も負いません。"
+
+msgid "Prohibited Activities"
+msgstr "禁止事項"
+
+msgid "You may not access or use the platform for any purpose other than that for which we make the platform available. The platform may not be used in connection with any commercial endeavors except those that are specifically endorsed or approved by us."
+msgstr "当社の提供目的以外の目的でプラットフォームにアクセスし、または利用することはできません。当社が特に承認・認可したものを除き、商用活動に関連してプラットフォームを使用することはできません。"
+
+msgid "As a user of the platform, you agree not to:"
+msgstr "プラットフォームのユーザーとして、あなたは次のことをしないことに同意します:"
+
+msgid "Systematically retrieve data or other content from the platform to create or compile, directly or indirectly, a collection, compilation, database, or directory without written permission from us."
+msgstr "当社の書面による許可なく、プラットフォームからデータ或其他コンテンツを体系的に取得し、直接または間接的にコレクション・コンパイル・データベース・ディレクトリを作成または編纂すること。"
+
+msgid "Make any unauthorized use of the platform, including collecting usernames and/or email addresses of users by electronic or other means for the purpose of sending unsolicited email, or creating user accounts by automated means or under false pretenses."
+msgstr "無断でプラットフォームを使用すること。これには、無断メール送信の目的で電子的手段或其他の方法によりユーザー名および/またはメールアドレスを収集すること、または自動化された手段や虚偽の口実によってユーザーアカウントを作成することが含まれます。"
+
+msgid "Use the platform in a manner inconsistent with any applicable laws or regulations."
+msgstr "適用される法律または規制に適合しない方法でプラットフォームを使用すること。"
+
+msgid "Trick, defraud, or mislead us and other users, especially in any attempt to learn sensitive account information such as user passwords."
+msgstr "当社或其他ユーザーを騙す、詐欺行為を行う、誤解を招くこと、特にユーザーパスワードなどの機微なアカウント情報を取得しようとする試み。"
+
+msgid "Engage in any automated use of the system, such as using scripts to send messages or upload content."
+msgstr "スクリプトを使用してメッセージを送信したりコンテンツをアップロードしたりするなど、システムの自動化された利用を行うこと。"
+
+msgid "Attempt to impersonate another user or person or use the username of another user."
+msgstr "他のユーザーまたは人物になりすまそうとすること、または他のユーザーのユーザー名を使用すること。"
+
+msgid "Upload or transmit (or attempt to upload or to transmit) viruses, Trojan horses, or other malicious code that interferes with the platform's operation."
+msgstr "プラットフォームの運営を妨害するウイルス、トロイの木馬、或其他の悪意あるコードをアップロードまたは送信（またはその試行）すること。"
+
+msgid "Upload or transmit (or attempt to upload or to transmit) any material that acts as a passive or active information collection or transmission mechanism without proper authorization."
+msgstr "正当な許可なく、受動的または能動的な情報収集・送信メカニズムとして機能するいかなる材料もアップロードまたは送信（またはその試行）すること。"
+
+msgid "Use any automated system, including scripts, bots, or scrapers to access the platform, except as explicitly permitted."
+msgstr "明示的に許可されている場合を除き、スクリプト、bot、スクレイパーを含むいかなる自動化システムも使用してプラットフォームにアクセスすること。"
+
+msgid "Subscription Terms"
+msgstr "サブスクリプションの条項"
+
+msgid "Payment"
+msgstr "支払い"
+
+msgid "We accept the following forms of payment:"
+msgstr "当社は以下の支払い方法を受理します:"
+
+msgid "Visa"
+msgstr "Visa"
+
+msgid "Mastercard"
+msgstr "Mastercard"
+
+msgid "American Express"
+msgstr "American Express"
+
+msgid "Discover"
+msgstr "Discover"
+
+msgid "You agree to provide current, complete, and accurate purchase and account information for all purchases made via the platform. You further agree to promptly update account and payment information, including email address, payment method, and payment card expiration date, so that we can complete your transactions and contact you as needed."
+msgstr "プラットフォーム経由で行うすべての購入について、最新・完全・正確な購入情報およびアカウント情報を提供することに同意します。さらに、当社が取引を完了し、必要に応じて連絡できるよう、メールアドレス、支払い方法、クレジットカード有効期限日を含むアカウント情報および支払い情報を速やかに更新することに同意します。"
+
+msgid "Free Trial"
+msgstr "無料トライアル"
+
+msgid "We may, at our sole discretion, offer a subscription with a free trial for a limited period of time. At the end of the free trial period, you will be automatically charged the applicable subscription fee unless you cancel your subscription."
+msgstr "当社は当社の単独の判断により、一定期間の無料トライアル付きサブスクリプションを提供する場合があります。無料トライアル期間の終了時、サブスクリプションを解約されない限り、適用されるサブスクリプション料金が自動的に課金されます。"
+
+msgid "Cancellation"
+msgstr "解約"
+
+msgid "You can cancel your subscription at any time by logging into your account. Your cancellation will take effect at the end of the current paid term. If you are unsatisfied with our services, please email us at"
+msgstr "アカウントにログインすることで、いつでもサブスクリプションを解約できます。解約は現在の有料期間の終了時に生效します。当社サービスにご満足いただけない場合は、以下のメールアドレスまでお問い合わせください:"
+
+msgid "Termination"
+msgstr "終了"
+
+msgid "We may terminate or suspend your account and bar access to the platform immediately, without prior notice or liability, under our sole discretion, for any reason whatsoever and without limitation, including but not limited to a breach of the Terms."
+msgstr "当社は、当社の単独の判断により、理由を問わず、規約の違反を含むがそれに限らない、いかなる理由においても、事前の通知または責任なしで、あなたのアカウントを即時終了または停止し、プラットフォームへのアクセスを拒否する場合があります。"
+
+msgid "If you wish to terminate your account, you may simply discontinue using the platform, or contact us at"
+msgstr "アカウントを終了したい場合は、単にプラットフォームの利用を中止するか、以下のメールアドレスまでお問い合わせください:"
+
+msgid "All provisions of the Terms which by their nature should survive termination shall survive termination, including, without limitation, ownership provisions, warranty disclaimers, indemnity, and limitations of liability."
+msgstr "その性質上、終了後も存続すべき規約のすべての条項は、所有権条項、免責事項、補償、責任の制限を含むがそれに限らず、終了後も存続します。"
+
+msgid "Limitation of Liability"
+msgstr "責任の制限"
+
+msgid "In no event will we be liable to you or any third party for any direct, indirect, consequential, exemplary, incidental, special, or punitive damages, including lost profit, lost revenue, loss of data, or other damages arising from your use of the platform, even if we have been advised of the possibility of such damages."
+msgstr "当社はその可能性について通知を受けた場合であっても、あなたのプラットフォームの使用から生じた利益の喪失、収益の喪失、データの喪失、或其他の損害を含む、直接的・間接的・結果的・懲戒的・偶発的・特別・罰金的いかなる損害についても、あなたまたは第三者に対して一切責任を負いません。"
+
+msgid "Indemnification"
+msgstr "補償"
+
+msgid "You agree to defend, indemnify, and hold us harmless from and against any loss, damage, liability, claim, or demand, including reasonable attorneys' fees and expenses, made by any third party due to or arising out of: (1) your use of the platform; (2) breach of these Terms of Use; (3) any breach of your representations and warranties set forth in these Terms of Use; (4) your violation of the rights of a third party, including but not limited to intellectual property rights; or (5) any overt harmful act toward any other user of the platform with whom you connected via the platform."
+msgstr "次のいずれかから生じる、第三者によるいかなる損失・損害・責任・請求・要求（合理的な弁護士費用および費用を含む）からも、当社を防御し、補償し、無害化するのに同意します: (1) あなたによるプラットフォームの利用; (2) 本利用規約の違反; (3) 本利用規約に定めるあなたの表明・保証のいかなる違反; (4) 第三者の権利（知的財産権を含むがそれに限らない）の侵害; (5) あなたがプラットフォーム経由でつながった他のプラットフォームユーザーに対する明白な有害行為。"
+
+msgid "Governing Law"
+msgstr "準拠法"
+
+msgid "These Terms of Use and your use of the platform are governed by and construed in accordance with the laws of Japan (日本法), without regard to its conflict of law principles."
+msgstr "本利用規約およびあなたのプラットフォームの使用は、日本法（日本法）の準則に従い、その法律抵触の原則を無視して解釈されます。"
+
+msgid "Dispute Resolution"
+msgstr "紛争解決"
+
+msgid "Any legal action of whatever nature brought by either you or us shall be commenced or prosecuted exclusively in the Shizuoka District Court (静岡地方裁判所) in Japan, which is the district court with jurisdiction over our registered office, and you hereby consent to that exclusive jurisdiction and waive any objection to it."
+msgstr "あなたまたは当社によって提起される、いかなる性質の法的措置も、当社の本店所在地を管轄する静岡地方裁判所（静岡地方裁判所）に排他的に提起または進行されるものとし、あなたはここにその排他的管轄に同意し、それに対するいかなる異議も放棄します。"
+
+msgid "In order to resolve a complaint regarding the platform or to receive further information regarding use of the platform, please contact us at:"
+msgstr "プラットフォームに関する苦情を解決するため、またはプラットフォームの利用に関する追加情報を得るため、以下のメールアドレスまでお問い合わせください:"
+
+msgid "January 22, 2026"
+msgstr "2026 年 1 月 22 日"
