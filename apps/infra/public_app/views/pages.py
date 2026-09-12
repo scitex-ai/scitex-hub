@@ -18,6 +18,7 @@ from pathlib import Path
 
 from django.http import Http404
 from django.shortcuts import render
+from django.utils.translation import gettext as _
 
 from .pages_data import KEYBOARD_SHORTCUTS_DATA, OG_BASE_URL, VIDEO_CATALOG
 
@@ -158,9 +159,9 @@ def services(request):
             "budget": (request.POST.get("budget") or "").strip(),
         }
         if not form["name"]:
-            errors["name"] = "お名前をご記入ください。"
+            errors["name"] = _("Please enter your name.")
         if not form["request"]:
-            errors["request"] = "ご相談内容をご記入ください。"
+            errors["request"] = _("Please enter what you would like to discuss.")
         if not errors:
             from ..models import ServiceInquiry
 

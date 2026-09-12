@@ -9,13 +9,41 @@ Covers the load-bearing constraints from the design spec:
 - Email is sent ONLY when SERVICES_INQUIRY_EMAIL is set, and NEVER to recruit@.
 """
 
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 from django.core import mail
 from django.urls import reverse
+from django.utils import translation
 
 from apps.infra.public_app.models import ServiceInquiry
+
+PROJECT_ROOT = Path(__file__).resolve().parents[3]  # tests/apps/public_app/ -> repo root
+
+
+@pytest.fixture(scope="module", autouse=True)
+def compiled_catalogs():
+    """Compile locale/**/*.po -> .mo before any JA assertion reads a catalog.
+
+    /services/ renders EN by default, but the test
+    test_get_renders_japanese_when_selected uses ``translation.override("ja")``
+    to verify the JA catalogue is complete. The JA strings only exist in the
+    compiled .mo, which is gitignored and NOT compiled by the CI pytest step
+    (no msgfmt). Same fixture as test_tokushoho / test_i18n_landing.
+    """
+    script = PROJECT_ROOT / "scripts" / "i18n" / "compile_catalogs.py"
+    result = subprocess.run(
+        [sys.executable, str(script)], cwd=PROJECT_ROOT,
+        capture_output=True, text=True,
+    )
+    assert result.returncode == 0, (
+        f"catalog compilation failed ({result.returncode}):\n"
+        f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+    )
+    translation.trans_real._translations.clear()
+    yield
 
 
 @pytest.fixture
@@ -67,63 +95,104 @@ class TestServicesGet:
         # Arrange
         # Act
         resp = client.get(services_url)
-        # Assert
-        assert "解析相談・コードレビュー" in resp.content.decode()
+        # Assert (EN default; the SSoT + static copy are English-source since
+        # 2026-09-12 — JA rendering is asserted in test_get_renders_japanese)
+        assert "Analysis consultation & code review" in resp.content.decode()
 
     def test_get_shows_transparency_section(self, client, services_url):
         # Arrange
         # Act
         resp = client.get(services_url)
         # Assert: external usage fees are billed at cost (pricing transparency)
-        assert "外部利用料" in resp.content.decode()
+        assert "external charges" in resp.content.decode()
 
     def test_get_shows_pricing_ladder(self, client, services_url):
         # Arrange
         # Act
         resp = client.get(services_url)
         # Assert
-        assert "料金の目安" in resp.content.decode()
+        assert "Indicative pricing" in resp.content.decode()
 
     def test_get_offers_a_free_first_consult(self, client, services_url):
         # Arrange
         # Act
         resp = client.get(services_url)
         # Assert
-        assert "無料" in resp.content.decode()
+        assert "30 minutes free" in resp.content.decode()
 
     def test_get_leads_with_no_lock_in_positioning(self, client, services_url):
         # Arrange
         # Act
         resp = client.get(services_url)
         # Assert
-        assert "囲い込" in resp.content.decode()
+        assert "lock-in" in resp.content.decode()
+
+    def test_get_renders_japanese_when_selected(self, client, services_url):
+        # The page must render fully Japanese under an explicit selection
+        # (the JA catalogue carries every EN msgid), not just English by
+        # default — the mirror of the landing's rendered-page i18n guard.
+        #
+        # JA is selected the way the app does it: the ``django_language=ja``
+        # cookie (footer switcher). We do NOT use ``translation.override("ja")``
+        # here — the ``client.get()`` middleware chain (LocaleMiddleware) resets
+        # the language to the request's, so a test-process override would be
+        # discarded and the page would render EN.
+        response = client.get(
+            services_url, HTTP_COOKIE="django_language=ja"
+        )
+        content = response.content.decode()
+        for needle in ("研究に集中できる環境", "料金の目安", "問い合わせはこちら", "応相談", "サブスク"):
+            assert needle in content, f"{needle!r} missing from the Japanese /services/"
 
     def test_get_prices_the_same_catalogue_as_tokushoho(self, client, services_url):
         """2026-09-02: /services/ and /tokushoho/ read ONE list. Until then this
         page rendered the 2024-invoice consulting bands and a three-tier table
         whose middle tier (Lab) business had retired on 2026-08-28 — two public
         pages, one pricing.json, two disjoint price sets. The operator's words
-        on seeing it: 「値段はめちゃくちゃだった」."""
+        on seeing it: 「値段はめちゃくちゃだった」.
+
+        The price rows are computed in the SAME language the page renders in
+        (EN by default; JA only after explicit selection) — otherwise a
+        JA-formatted price (「月額 1,490円」) is compared against an
+        EN-rendered page (「¥1,490/month」) and the match fails. Both arms are
+        asserted below.
+        """
         # Arrange
         from apps.infra.public_app.pricing import published_price_rows
 
-        rows = published_price_rows()
-        assert rows, "Control: an empty catalogue would satisfy the loop below vacuously."
-        # Act
-        content = client.get(services_url).content.decode()
-        # Assert — every published row, by label AND price, is on the page
-        for row in rows:
-            assert row["label"] in content and row["price"] in content, (
-                f"{row['label']} {row['price']} is in pricing.json but not on /services/."
-            )
-        for row in rows:
-            if row["price_note"]:
-                assert row["price_note"] in content, f"{row['label']}: {row['price_note']!r} not on /services/"
-            for item in row["included"]:
-                assert item in content, f"{row['label']}: included item {item!r} not on /services/"
-        # The tax note is English by default (the page is EN-source since
-        # 2026-09-11; JA only after explicit selection) — assert the EN needle.
-        assert "All displayed prices include tax" in content
+        def assert_catalogue_on_page(content, lang):
+            # price / price_note / included items are language-dependent — the
+            # page renders each in its OWN language — so we compare the
+            # catalogue formatted in that same language. The tier LABEL is
+            # deliberately NOT asserted: it is translated in the template
+            # (「Sub · Academic」 → 「サブスク・学術」) but returned raw from
+            # published_price_rows(), so a cross-language label match is
+            # impossible. The price is the row's identity.
+            with translation.override(lang):
+                rows = published_price_rows()
+            assert rows, "Control: an empty catalogue would satisfy the loop below vacuously."
+            for row in rows:
+                assert row["price"] in content, (
+                    f"price {row['price']!r} (tier {row['label']!r}) not on the {lang} /services/ page"
+                )
+                if row["price_note"]:
+                    assert row["price_note"] in content, (
+                        f"{row['label']}: {row['price_note']!r} not on /services/ ({lang})"
+                    )
+                for item in row["included"]:
+                    assert item in content, (
+                        f"{row['label']}: included item {item!r} not on /services/ ({lang})"
+                    )
+
+        # Act/Assert — EN default (no cookie)
+        en_content = client.get(services_url).content.decode()
+        assert_catalogue_on_page(en_content, "en")
+        assert "All displayed prices include tax" in en_content
+
+        # Act/Assert — JA (cookie-selected)
+        ja_content = client.get(services_url, HTTP_COOKIE="django_language=ja").content.decode()
+        assert_catalogue_on_page(ja_content, "ja")
+        assert "税込" in ja_content
 
     def test_get_no_longer_prices_retired_offers(self, client, services_url):
         # Arrange
@@ -146,8 +215,9 @@ class TestServicesGet:
         assert content.count('<article class="svc-plan-card') == 3, "exactly three tiers"
 
     def test_get_shows_the_three_tiers_business_wrote(self, client, services_url):
-        # Arrange
-        expected = ("サブスク", "オンプレ", "大規模", "応相談", "問い合わせはこちら")
+        # Arrange (EN source — the SSOT tier names since 2026-09-11; the
+        # quote_only tier shows "By request", each tier links "Inquire here").
+        expected = ("Sub", "On-Prem", "Enterprise", "By request", "Inquire here")
         # Act
         content = client.get(services_url).content.decode()
         # Assert
@@ -167,7 +237,7 @@ class TestServicesInquiryValid:
         # Arrange
         # Act
         # Assert
-        assert "受け付けました" in posted_valid.content.decode()
+        assert "We've received your inquiry" in posted_valid.content.decode()
 
     def test_valid_post_persists_one_inquiry(self, posted_valid):
         # Arrange
@@ -194,7 +264,7 @@ class TestServicesInquiryInvalid:
         # Arrange
         # Act
         # Assert
-        assert "ご記入ください" in posted_invalid.content.decode()
+        assert "Please enter your name." in posted_invalid.content.decode()
 
     def test_invalid_post_saves_nothing(self, posted_invalid):
         # Arrange
