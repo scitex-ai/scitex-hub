@@ -131,10 +131,16 @@ class TestServicesGet:
         # The page must render fully Japanese under an explicit selection
         # (the JA catalogue carries every EN msgid), not just English by
         # default — the mirror of the landing's rendered-page i18n guard.
-        from django.utils import translation
-
-        with translation.override("ja"):
-            content = client.get(services_url).content.decode()
+        #
+        # JA is selected the way the app does it: the ``django_language=ja``
+        # cookie (footer switcher). We do NOT use ``translation.override("ja")``
+        # here — the ``client.get()`` middleware chain (LocaleMiddleware) resets
+        # the language to the request's, so a test-process override would be
+        # discarded and the page would render EN.
+        response = client.get(
+            services_url, HTTP_COOKIE="django_language=ja"
+        )
+        content = response.content.decode()
         for needle in ("研究に集中できる環境", "料金の目安", "問い合わせはこちら", "応相談", "サブスク"):
             assert needle in content, f"{needle!r} missing from the Japanese /services/"
 
