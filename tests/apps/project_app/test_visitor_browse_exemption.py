@@ -403,15 +403,19 @@ class ExemptPathStillRendersTest(_AllocatablePoolTestCase):
         # Assert
         assert response.status_code == 200
 
-    def test_hub_enumeration_does_not_bounce_to_pool_full(self):
-        # Arrange: index_view redirects a logged-out browser to
-        # /visitor-pool-full/; the shared read-only identity keeps the
-        # exempted request out of that bounce.
+    def test_hub_enumeration_redirects_anonymous_to_signin(self):
+        # Arrange: the visitor pool is retired (2026-09-10). An anonymous
+        # browser hitting /apps/home/ (with or without ?project=<id>) must be
+        # redirected to the sign-in page — NOT to the retired
+        # /visitor-pool-full/ (which is a 410). The read-only browse identity
+        # that previously let this render 200 without a slot no longer exists;
+        # signup-first is the contract.
         url = "/apps/home/"
         # Act
         response = self.client.get(url, {"project": "31337"})
-        # Assert
-        assert response.status_code == 200
+        # Assert — 302 to the login page, explicitly not to pool-full
+        assert response.status_code == 302
+        assert response.url == "/auth/signin/"
 
     def test_exempt_render_still_allocates_nothing(self):
         # Arrange
