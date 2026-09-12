@@ -69,6 +69,9 @@ urlpatterns = [
     path("cookies/", views.cookie_policy, name="cookies"),
     # 特定商取引法に基づく表記 (legally required before charging JP customers)
     path("tokushoho/", views.tokushoho, name="tokushoho"),
+    # English reference version (supplementary; the JA page stays the
+    # legally binding disclosure for Japanese consumers)
+    path("tokushoho-en/", views.tokushoho_en, name="tokushoho_en"),
     # Billing (Stripe scaffold; checkout is staff-only while testing,
     # webhook is CSRF-exempt but signature-verified)
     path("billing/checkout/", views.billing_checkout, name="billing_checkout"),

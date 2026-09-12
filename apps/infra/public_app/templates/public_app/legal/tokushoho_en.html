@@ -1,0 +1,230 @@
+{% extends "global_base.html" %}
+
+{% load static landing_i18n %}
+{% load i18n %}
+
+{% block title %}
+    Specified Commercial Transactions Act Disclosures
+    - SciTeX
+{% endblock %}
+{% block meta_description %}
+    SciTeX's Specified Commercial Transactions Act (Tokushoho) disclosures: seller,
+    responsible officer, address, payment methods, returns and cancellation.
+{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/tokushoho.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="container py-4">
+        <header class="minimal-hero">
+            <h1 class="minimal-hero-title">{% trans "Specified Commercial Transactions Act Disclosures" %}</h1>
+        </header>
+        <p class="tokushoho-lang-note">
+            {% trans "This is the English reference version. The legally binding disclosure for Japanese consumers is the Japanese page:" %}
+            <a href="{% url 'public_app:tokushoho' %}">{% trans "特定商取引法に基づく表記" %}</a>.
+        </p>
+    </div>
+    <section class="policy-section">
+        <div class="container">
+            <div class="policy-container">
+                <div class="policy-content">
+                    <table class="tokushoho-table">
+                        <tr>
+                            <th>{% trans "Seller" %}</th>
+                            <td>{{ company_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "Responsible officer" %}</th>
+                            <td>{{ company_representative }}</td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "Address" %}</th>
+                            <td>
+                                {% if company_address %}
+                                    {{ company_address }}
+                                {% else %}
+                                    <span class="tokushoho-pending">{% trans "To be published — will be listed once confirmed." %}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "Company phone number" %}</th>
+                            <td>
+                                {% if company_phone %}
+                                    {{ company_phone }}
+                                {% else %}
+                                    <span class="tokushoho-pending">{% trans "To be published — will be listed once confirmed. Until then, please contact us by email." %}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "Email address" %}</th>
+                            <td>
+                                {% if company_contact_email %}
+                                    <!--email_off--><a href="mailto:{{ company_contact_email }}">{{ company_contact_email }}</a><!--/email_off-->
+                                {% else %}
+                                    <span class="tokushoho-pending">{% trans "To be published — will be listed once confirmed." %}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "Sale price and consideration" %}</th>
+                            <td>
+                                {% if billing_plans %}
+                                    <ul>
+                                        {% for plan in billing_plans %}
+                                            <li>
+                                                {{ plan.name }}: ¥{{ plan.price_tax_included }}{% trans "(tax included)" %}
+                                                {% if plan.interval == "month" %}
+                                                    {% trans "/ month" %}
+                                                {% elif plan.interval == "year" %}
+                                                    {% trans "/ year" %}
+                                                {% endif %}
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                    <p>
+                                        {% trans "Please see the " %}<a href="{% url 'public_app:pricing' %}">{% trans "pricing page" %}</a>{% trans " for the latest prices. All prices are shown tax-inclusive (total)." %}
+                                    </p>
+                                {% else %}
+                                    <p>{% trans "Please refer to the table below. All prices are shown tax-inclusive (total)." %}</p>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% if billing_plans %}
+    {% else %}
+    <section class="price-table-section">
+        <div class="container">
+            <h2 class="price-table-heading">{% trans "Services and pricing" %}</h2>
+            <div class="price-table-wrap">
+                <table class="tokushoho-price-table">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Item" %}</th>
+                                <th>{% trans "Price (tax incl.)" %}</th>
+                                <th>{% trans "Yen (reference)" %}</th>
+                                <th>{% trans "Storage" %}</th>
+                                <th>{% trans "Compute credit" %}</th>
+                                <th>{% trans "Overage" %}</th>
+                                <th>{% trans "Notes" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in published_price_rows %}
+                            <tr>
+                                <td>{{ row.label|translate_dynamic }}</td>
+                                <td class="price-cell">
+                                    {% if row.list_price %}
+                                        <s class="tokushoho-list-price">{{ row.list_price }}</s>
+                                        <span class="tokushoho-sale-price">{{ row.price }}</span>
+                                        <span class="tokushoho-discount-badge">{{ row.discount }}</span>
+                                    {% else %}
+                                        <span class="tokushoho-sale-price">{{ row.price }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="muted-cell">{{ row.price_jpy }}</td>
+                                <td class="muted-cell">{{ row.storage|default:"—" }}</td>
+                                <td class="muted-cell">{{ row.compute_credit|default:"—" }}</td>
+                                <td class="muted-cell">{{ row.overage|default:"—" }}</td>
+                                <td>
+                                    {% if row.remarks %}
+                                        <ul class="tokushoho-remarks-list">
+                                            {% for remark in row.remarks %}
+                                            <li>{{ remark }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% elif row.description %}
+                                        {{ row.description|translate_dynamic }}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <p class="tokushoho-fx-note">
+                        {% if fx_rate_display %}
+                            {% blocktrans with rate=fx_rate_display date=fx_as_of_display %}
+                            Prices are denominated in USD. The "Yen (reference)" column is an
+                            approximation computed as 1 US dollar = {{ rate }} yen (as of
+                            {{ date }}) × the USD amount, rounded to the nearest 10 yen.
+                            Actual billing is performed in USD.
+                            {% endblocktrans %}
+                        {% else %}
+                            {% trans "Prices are denominated in USD. The 'Yen (reference)' column is an approximation; actual billing is performed in USD." %}
+                        {% endif %}
+                    </p>
+                    <p>
+                        {% trans "Overage: we bill only for compute and storage that exceed the monthly cap you set. The per-unit billing rate is notified separately once pricing is finalized." %}
+                    </p>
+                    {% endif %}
+            </div>
+        </div>
+    </section>
+    <section class="policy-section">
+        <div class="container">
+            <div class="policy-container">
+                <div class="policy-content">
+                <table class="tokushoho-table">
+                        <tr>
+                            <th>{% trans "Fees other than the price" %}</th>
+                            <td>
+                                {% trans "Consumption tax (all displayed prices are tax-inclusive). Internet connection and communication costs required to use this service are at the customer's expense. For in-person consulting, travel and fees are at the customer's expense." %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "Payment method" %}</th>
+                            <td>
+                                {% trans "Credit/debit card payment (Stripe), or bank transfer (invoice)." %}
+                                <br>
+                                <!--email_off-->{% trans "Online card payment begins after the payment processor (Stripe) completes its review. Until then, please direct your order or quote request to info@scitex.ai." %}<!--/email_off-->
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "Timing of payment" %}</th>
+                            <td>
+                                {% trans "Subscription (recurring billing): at signup you register an email address and a credit/debit card. The 30 days after registration are a free trial. If you choose to continue during the trial, the first 30 days are billed retroactively from the registration date, and thereafter you are billed on the monthly renewal date. If you do not continue, the registered email and card details are retained in our database and discarded after 7 days. One 30-day trial may be used per email address or card." %}
+                                <br>
+                                {% trans "Pay-per-use (on-premises setup support, contract development, consulting): after a quote and contract, payment is due by the date stated on the invoice (card or bank transfer). On-premises maintenance (monthly): payment is due by the date stated on each monthly invoice." %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "Service provision timing" %}</th>
+                            <td>{% trans "Subscription: available immediately after signup (card registration) is complete. Setup support, maintenance, contract development and consulting: provided on the schedule agreed at the time of contract." %}</td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "Returns and cancellation" %}</th>
+                            <td>
+                                <ol>
+                                    <li>{% trans "The 30 days from signup are a free trial. If you choose to continue during this period, the first 30 days are billed retroactively from the registration date, and thereafter you are billed on the monthly renewal date." %}</li>
+                                    <li>{% trans "If you cancel after billing has started, there is no pro-rata refund. Cancellation stops the next renewal; you can use the service until the end of the period you have paid for." %}</li>
+                                    <li>{% trans "One 30-day trial may be used per email address or card." %}</li>
+                                </ol>
+                                <p>
+                                    {% trans "Because this service is digital content and an online service, we do not accept returns or refunds for a change of mind after the service has started." %}
+                                </p>
+                                <p>
+                                    {% trans "If your registered email address becomes unusable, or your card details change, please contact us at the phone number or email above and we will deal with it individually." %}
+                                </p>
+                                <p>
+                                    {% trans "If we are unable to provide the service due to circumstances attributable to us, we will respond in accordance with applicable law." %}
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>{% trans "System requirements" %}</th>
+                            <td>
+                                {% trans "The latest version of a modern web browser (Google Chrome, Mozilla Firefox, Apple Safari, Microsoft Edge) and an internet connection." %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

@@ -991,3 +991,62 @@ msgstr "お名前をご記入ください。"
 msgid "Please enter what you would like to discuss."
 msgstr "ご相談内容をご記入ください。"
 
+msgid "About SciTeX - Tools for Research Automation and Verification"
+msgstr "SciTeX について - 研究の自動化と検証のためのツール"
+
+msgid "SciTeX provides end-to-end research automation from data to paper, with automated verification to reduce reviewer burden."
+msgstr "SciTeX はデータから論文まで、レビューアの負担を減らす自動化検証付きの研究自動化をエンドツーエンドで提供します。"
+
+msgid "Alpha Release: Active development. Expect breaking changes."
+msgstr "アルファリリース: 開発は継続中です。互換性のない変更がある可能性があります。"
+
+msgid "About SciTeX"
+msgstr "SciTeX について"
+
+msgid "Background"
+msgstr "背景"
+
+msgid "Paper production is getting faster. LLMs have made writing more efficient, and publication volume is growing. Meanwhile, reviewer burden keeps increasing—time is spent on mechanical checks like whether code runs or numbers match."
+msgstr "論文の制作は速くなっています。LLM の登場で執筆が効率化され、発表数も増えています。一方でレビュアーの負担は増大しており、コードが動作するか、数値が一致するかといった機械的な確認に時間が取られています。"
+
+msgid "What SciTeX Does"
+msgstr "SciTeX がすること"
+
+msgid "End-to-end pipeline from data to paper."
+msgstr "データから論文までのエンドツーエンドのパイプライン。"
+
+msgid "Analysis code, figures, and manuscripts are connected in a single workflow. Numbers in the manuscript reference analysis outputs directly—no manual transcription. Figures can be regenerated from source data."
+msgstr "解析コード、図表、原稿が一つのワークフローでつながります。原稿の数は解析出力を直接参照するため、手書きの転記はありません。図表はソースデータから再生成できます。"
+
+msgid "Automated verification."
+msgstr "自動検証。"
+
+msgid "Checks whether code runs, outputs match, and results are reproducible. Maintains a state of \"reproduced,\" not just \"reproducible.\""
+msgstr "コードが動作するか、出力が一致するか、結果が再現可能かを検証します。「再現可能 (reproducible)」ではなく「再現済み (reproduced)」の状態を維持します。"
+
+msgid "Human-AI interoperability."
+msgstr "人間と AI の相互運用性。"
+
+msgid "Code written by humans is readable by AI. Actions taken by AI are recorded as code. Both work in the same format."
+msgstr "人間が書いたコードは AI が読め、AI が行った操作はコードとして記録されます。両者が同じ形式で動作します。"
+
+msgid "Work anywhere."
+msgstr "どこでも動作。"
+
+msgid "Humans or agents, cloud or local, self-hosted or SSH. Same tools, same workflow."
+msgstr "人間でもエージェントでも、クラウドでもローカルでも、セルフホストでも SSH でも。同じツール、同じワークフロー。"
+
+msgid "LLM-provider agnostic."
+msgstr "LLM プロバイダを問わず。"
+
+msgid "Use whatever AI tools you prefer. No vendor lock-in."
+msgstr "お好みの AI ツールが使えます。ベンダーロックインはありません。"
+
+msgid "AGPL-3.0 for users' freedom. Outputs belong to you."
+msgstr "利用者の自由のための AGPL-3.0。成果物はあなたのものです。"
+
+msgid "Status"
+msgstr "状態"
+
+msgid "Alpha. Core workflow is functional, but the verification pipeline is still in development. Expect breaking changes."
+msgstr "アルファ。コアのワークフローは機能していますが、検証パイプラインは開発中です。互換性のない変更がある可能性があります。"

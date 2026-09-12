@@ -123,13 +123,26 @@ def cookie_policy(request):
     return render(request, "public_app/legal/cookie_policy.html")
 
 
-def tokushoho(request):
-    """特定商取引法に基づく表記 (Specified Commercial Transactions Act).
+def _tokushoho_context(as_of_format: str) -> dict:
+    """Shared context for the tokushoho pages (JA legally-binding + EN reference).
 
     All values are config-driven (config/settings/settings_commerce.py,
-    env keys SCITEX_HUB_COMPANY_*). Unfinalized values (public email)
-    stay empty in the environment and the template renders an explicit
-    準備中 notice — never a fake value.
+    env keys SCITEX_HUB_COMPANY_*). Unfinalized values (public email) stay
+    empty in the environment and the template renders an explicit 準備中 /
+    "To be published" notice — never a fake value.
+
+    Prices come from data/pricing.json, never from literals in the
+    template — test_pricing_ssot.py scans this app's templates and views for
+    hard-coded amounts. BILLING_PLANS stays empty on purpose (checkout is
+    shut); these are DISPLAY prices only, and published_price_rows() already
+    hides anything not yet for sale.
+
+    ``as_of_format`` is a strftime pattern for the FX rate's as-of date —
+    the JA page renders it JST-style (%Y年%m月%d日), the EN page in a
+    locale-neutral form. Callers that need the pricing layer's call-time
+    gettext to bake Japanese strings into the row context (the JA page)
+    invoke this from INSIDE ``translation.override("ja")``; the EN page
+    invokes it from the default (English) locale.
     """
     context = {
         "company_name": settings.COMPANY_NAME,
@@ -138,43 +151,59 @@ def tokushoho(request):
         "company_phone": settings.COMPANY_PHONE,
         "company_contact_email": settings.COMPANY_CONTACT_EMAIL,
         "billing_plans": settings.BILLING_PLANS,
-        # Prices come from data/pricing.json, never from literals in the
-        # template — test_pricing_ssot.py scans this app's templates and
-        # views for hard-coded amounts. BILLING_PLANS stays empty on
-        # purpose (checkout is shut); these are DISPLAY prices only, and
-        # published_price_rows() already hides anything not yet for sale.
-        #
-        # This is a JAPANESE legal page (特定商取引法に基づく表記): it must
-        # read in Japanese regardless of the site's English-default policy.
-        # The override is entered BEFORE published_price_rows() so the
-        # call-time gettext inside the pricing format layer bakes Japanese
-        # strings into the context (they are rendered verbatim in the
-        # template, not through {% trans %}).
     }
-    with translation.override("ja"):
-        rows = published_price_rows()
-        # The yen reference is a DERIVED ARTIFACT (USD is the SSoT): fetch the
-        # live rate and compute each row's yen from usd_amount × rate. The
-        # rate + as-of date are shown on the page so the method is transparent.
-        fx = get_usd_jpy_rate()
-        annotate_jpy_reference(rows, fx["rate"])
-        context["fx_rate"] = fx["rate"]
-        # Display-ready values for the page note: rate to 1 decimal, and the
-        # rate's as-of date in JST (a JP legal page, not UTC).
-        context["fx_rate_display"] = f"{fx['rate']:.1f}" if fx["rate"] else None
-        if fx["as_of"]:
-            try:
-                from datetime import datetime, timedelta, timezone
+    rows = published_price_rows()
+    # The yen reference is a DERIVED ARTIFACT (USD is the SSoT): fetch the
+    # live rate and compute each row's yen from usd_amount × rate. The
+    # rate + as-of date are shown on the page so the method is transparent.
+    fx = get_usd_jpy_rate()
+    annotate_jpy_reference(rows, fx["rate"])
+    context["fx_rate"] = fx["rate"]
+    # Display-ready values for the page note: rate to 1 decimal, and the
+    # rate's as-of date formatted by the caller.
+    context["fx_rate_display"] = f"{fx['rate']:.1f}" if fx["rate"] else None
+    if fx["as_of"]:
+        try:
+            from datetime import datetime
 
-                jst = timezone(timedelta(hours=9))
-                dt = datetime.strptime(fx["as_of"], "%a, %d %b %Y %H:%M:%S %z")
-                context["fx_as_of_display"] = dt.astimezone(jst).strftime("%Y年%m月%d日")
-            except ValueError:
-                context["fx_as_of_display"] = fx["as_of"]
-        else:
-            context["fx_as_of_display"] = ""
-        context["published_price_rows"] = rows
+            dt = datetime.strptime(fx["as_of"], "%a, %d %b %Y %H:%M:%S %z")
+            context["fx_as_of_display"] = dt.strftime(as_of_format)
+        except ValueError:
+            context["fx_as_of_display"] = fx["as_of"]
+    else:
+        context["fx_as_of_display"] = ""
+    context["published_price_rows"] = rows
+    return context
+
+
+def tokushoho(request):
+    """特定商取引法に基づく表記 (Specified Commercial Transactions Act).
+
+    This is a JAPANESE legal page: it must read in Japanese regardless of the
+    site's English-default policy, so the whole render is wrapped in
+    translation.override("ja") — entered BEFORE _tokushoho_context() so the
+    call-time gettext inside the pricing format layer bakes Japanese strings
+    into the row context (rendered verbatim in the template).
+    """
+    with translation.override("ja"):
+        context = _tokushoho_context(as_of_format="%Y年%m月%d日")
         return render(request, "public_app/legal/tokushoho.html", context)
+
+
+def tokushoho_en(request):
+    """English reference version of the 特定商取引法 disclosure.
+
+    A supplementary, non-legally-binding translation for international
+    readers. The legally binding disclosure for Japanese consumers remains
+    the Japanese page (``tokushoho``) — this view renders the EN-sourced
+    template under the site's default (English) locale, so no override is
+    needed. The template carries a link back to the Japanese page.
+    """
+    # Locale-neutral as-of date: the EN page is not a JP legal artifact, so
+    # show the rate's date as-is (the FX source's UTC timestamp) rather than
+    # forcing JST.
+    context = _tokushoho_context(as_of_format="%b %d, %Y")
+    return render(request, "public_app/legal/tokushoho_en.html", context)
 
 
 # EOF

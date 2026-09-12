@@ -221,6 +221,24 @@
   background: var(--bg-muted, rgba(0, 0, 0, 0.02));
 }
 
+/* English reference version of the tokushoho disclosure (operator 2026-09-13,
+   Option C): a supplementary translation that links back to the legally
+   binding Japanese page. Understated so the back-link reads as a note, not a
+   competing heading. */
+.tokushoho-lang-note {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.9rem;
+  color: var(--text-muted, #666);
+  background: var(--bg-muted, #f4f5f7);
+  border-left: 3px solid var(--border-muted, #d0d4d9);
+  border-radius: 0 6px 6px 0;
+}
+.tokushoho-lang-note a {
+  color: var(--text-primary, #1a1a1a);
+  font-weight: 600;
+}
+
 /* ── Mobile ───────────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .tokushoho-table th,

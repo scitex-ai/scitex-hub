@@ -40,6 +40,7 @@ from .legal import (
     privacy_policy,
     terms_of_use,
     tokushoho,
+    tokushoho_en,
 )
 
 # Information pages
@@ -115,6 +116,7 @@ __all__ = [
     "terms_of_use",
     "cookie_policy",
     "tokushoho",
+    "tokushoho_en",
     # Billing
     "billing_checkout",
     "start_card_setup",
