@@ -153,46 +153,28 @@ def test_no_catalogue_row_is_withheld_today() -> None:
 
 
 @translation.override("ja")
-def test_the_subscription_rows_sell_at_the_launch_price_until_july_2027() -> None:
-    """The real catalogue, on days either side of the Launch/Y1 window's end.
-    1,490 / 2,990 are 2,980 / 5,980 at 50%; the note carries the list price,
-    the discount, and the current window's end (2026-09-10: the later stages
-    are no longer shown — the 定価 / 早期導入割引 have their own columns and the
-    operator ruled against displaying future-year prices). Windows are
-    selected BY DATE, so on 2027-08-01 the Y2 (30%) window applies without
-    anyone editing a status flag; after Y3 ends (2029-08-01) the list price
-    returns with no note. Both directions, so a renderer that ignored the
-    calendar fails on one side and one that never stopped discounting on the
-    other.
-
-    The SSoT is English-sourced; the label is translated at the template layer
-    (translate_dynamic), so it is asserted through that same filter rather than
-    read raw from the row."""
+def test_the_subscription_rows_show_flat_usd() -> None:
+    """Operator 2026-09-12: the public price is USD, never yen. The two
+    subscription rows carry a usd_amount ($19 academic / $39 non-academic) and
+    render it flat — the old JPY early-adopter discount window no longer drives
+    the displayed price, so it carries no staged price_note. The JPY amount
+    survives only as the tokushoho legal reference (price_jpy)."""
     from apps.infra.public_app.templatetags.landing_i18n import translate_dynamic
 
     by_id = {r["id"]: r for r in published_price_rows(today=date(2026, 9, 2))}
+    # Label is translated at the template layer, not on the SSoT row.
     assert translate_dynamic(by_id["subscription-student"]["label"]) == "サブスク・学術"
-    assert by_id["subscription-student"]["price"] == "月額 1,490円"
-    assert by_id["subscription-general"]["price"] == "月額 2,990円"
-    assert by_id["subscription-student"]["price_note"] == (
-        "定価 2,980円、早期導入割引 50%。2027年7月末までの早期導入価格。"
-    ), by_id["subscription-student"]["price_note"]
-    assert by_id["subscription-general"]["price_note"] == (
-        "定価 5,980円、早期導入割引 50%。2027年7月末までの早期導入価格。"
-    ), by_id["subscription-general"]["price_note"]
-
-    by_id = {r["id"]: r for r in published_price_rows(today=date(2027, 8, 1))}
-    assert by_id["subscription-student"]["price"] == "月額 2,086円"
-    assert by_id["subscription-general"]["price"] == "月額 4,186円"
-    assert by_id["subscription-student"]["price_note"] == (
-        "定価 2,980円、早期導入割引 30%。2028年7月末までの早期導入価格。"
-    ), by_id["subscription-student"]["price_note"]
-
-    by_id = {r["id"]: r for r in published_price_rows(today=date(2029, 8, 1))}
-    assert by_id["subscription-student"]["price"] == "月額 2,980円"
-    assert by_id["subscription-general"]["price"] == "月額 5,980円"
-    assert by_id["subscription-student"]["price_note"] == ""
-    assert by_id["subscription-general"]["price_note"] == ""
+    # Public price is flat USD, regardless of the calendar date.
+    for today in (date(2026, 9, 2), date(2027, 8, 1), date(2029, 8, 1)):
+        rows = {r["id"]: r for r in published_price_rows(today=today)}
+        assert rows["subscription-student"]["price"] == "$19/mo"
+        assert rows["subscription-general"]["price"] == "$39/mo"
+        # No JPY staged-discount note is shown on the public price.
+        assert rows["subscription-student"]["price_note"] == ""
+        assert rows["subscription-general"]["price_note"] == ""
+    # The JPY amount is preserved as the legal reference, not dropped.
+    assert by_id["subscription-student"]["price_jpy"] == "2,980円"
+    assert by_id["subscription-general"]["price_jpy"] == "5,980円"
 
 
 def _policy_fixture(schedule, amount=1000):
@@ -223,29 +205,12 @@ def test_a_window_is_selected_by_date_whatever_its_status_says() -> None:
     with mock.patch.object(pricing, "load_pricing", return_value=fake):
         (inside,) = pricing.published_price_rows(today=date(2026, 9, 2))
         (outside,) = pricing.published_price_rows(today=date(2027, 1, 1))
+    # No usd_amount on the fixture row, so the JPY amount renders — enough to
+    # prove the window discounts by date (1000 -> 500 inside, 1000 outside).
     assert inside["price"] == "月額 500円", inside
-    assert inside["price_note"] == "定価 1,000円、早期導入割引 50%。2026年12月末までの早期導入価格。", inside
-    assert outside["price"] == "月額 1,000円" and outside["price_note"] == "", outside
-
-
-@translation.override("ja")
-def test_the_note_names_a_mid_month_end_and_the_current_stage() -> None:
-    """A mid-month end is named by the day (月末 is only for a last-of-month
-    end). The note states only the current window's end (2026-09-10: later
-    stages are not shown — they have their own columns / are future prices)."""
-    from unittest import mock
-    from apps.infra.public_app import pricing
-
-    chained = _policy_fixture([
-        {"label": "a", "start": "2026-01-01", "end": "2026-12-15", "percent": 50, "status": "active"},
-        {"label": "b", "start": "2026-12-16", "end": "2027-12-31", "percent": 20, "status": "proposed"},
-    ])
-    with mock.patch.object(pricing, "load_pricing", return_value=chained):
-        (row,) = pricing.published_price_rows(today=date(2026, 9, 2))
-    assert row["price"] == "月額 500円", row
-    assert row["price_note"] == (
-        "定価 1,000円、早期導入割引 50%。2026年12月15日までの早期導入価格。"
-    ), row
+    assert outside["price"] == "月額 1,000円", outside
+    # The staged JPY note is no longer shown on the public price (2026-09-12).
+    assert inside["price_note"] == "" and outside["price_note"] == ""
 
 
 def test_a_fractional_yen_discount_is_refused() -> None:
@@ -306,7 +271,7 @@ def test_the_subscription_rows_state_what_they_include() -> None:
         text = "、".join(by_id[row_id]["included"])
         for needle in (
             "32 GB ストレージ / 月 (Standard speed)",
-            "1,000 円相当の計算クレジット / 月",
+            "$10 の計算クレジット",
             "超過分は従量課金",
             "月の上限は利用者が設定",
         ):

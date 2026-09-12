@@ -111,7 +111,8 @@
                         <thead>
                             <tr>
                                 <th>{% trans "内容" %}</th>
-                                <th>{% trans "料金（税込）" %}</th>
+                                <th>{% trans "料金（USD）" %}</th>
+                                <th>{% trans "円換算（参考）" %}</th>
                                 <th>{% trans "定価" %}</th>
                                 <th>{% trans "早期導入割引" %}</th>
                                 <th>{% trans "ストレージ" %}</th>
@@ -125,6 +126,7 @@
                             <tr>
                                 <td>{{ row.label|translate_dynamic }}</td>
                                 <td class="price-cell">{{ row.price }}</td>
+                                <td class="muted-cell">{{ row.price_jpy }}</td>
                                 <td class="muted-cell">{{ row.list_price|default:"—" }}</td>
                                 <td class="muted-cell">{{ row.discount|default:"—" }}</td>
                                 <td class="muted-cell">{{ row.storage|default:"—" }}</td>
@@ -146,6 +148,9 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                    <p>
+                        {% trans "料金はUSD建てで表示しています。円換算（参考）列は為替レート 150円/ドル での目安であり、実際の請求はUSDで行われます。" %}
+                    </p>
                     <p>
                         {% trans "超過計算：利用者の設定した月間上限を超えた計算・ストレージ分のみを従量課金します。課金単価は料金確定後に別途お知らせします。" %}
                     </p>

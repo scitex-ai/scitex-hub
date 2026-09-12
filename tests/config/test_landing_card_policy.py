@@ -39,17 +39,17 @@ EXPECTED_FREE_FUNNEL = {
     # the paid plans render from the SSoT in the active language. Prices are
     # USD (always) on the marketing card; JPY lives on /tokushoho/.
     "en": (
-        "Pro",
+        "Cloud",
         "30-day free trial",
         "Sign up free",
-        "$19/mo/user",
+        "$19/mo",
         "32 GB storage per month (Standard speed)",
     ),
     "ja": (
-        "プロ",
+        "クラウド",
         "30日間の無料トライアル",
         "無料で登録",
-        "$19/mo/user",
+        "$19/mo",
         "32 GB ストレージ / 月 (Standard speed)",
     ),
 }
@@ -307,10 +307,10 @@ def test_japanese_landing_renders_the_japanese_pricing_strings():
     the stored value.)"""
     pricing = _visible_text(_section(_rendered_landing("ja"), "pricing"))
     expected = (
-        "サブスク",
+        "クラウド",
         "学術",
-        "月額 1,490円",
-        "50 GB ストレージ / 月 (Standard)",
+        "$19/mo",
+        "32 GB ストレージ / 月 (Standard speed)",
         "通常利用の範囲の通信",
     )
     assert all(value in pricing for value in expected)

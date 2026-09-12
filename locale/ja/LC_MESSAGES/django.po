@@ -661,6 +661,12 @@ msgstr "クラウド"
 msgid "Non-Academic"
 msgstr "非学術"
 
+msgid "$10 compute credit"
+msgstr "$10 の計算クレジット"
+
+msgid "$%(amt)s compute credit"
+msgstr "$%(amt)s の計算クレジット"
+
 msgid "$0"
 msgstr "$0"
 
