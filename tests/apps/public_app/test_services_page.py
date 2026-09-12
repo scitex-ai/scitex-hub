@@ -127,11 +127,14 @@ class TestServicesGet:
 
     def test_get_no_longer_prices_retired_offers(self, client, services_url):
         # Arrange
-        # The Lab tier (middle of the old Individual/Lab/Enterprise table) was
-        # retired by business 2026-08-28; Individual is gone too. "Enterprise"
-        # SURVIVES as a live tier name (the Sub/On-Prem/Enterprise axis), so it
-        # must NOT be asserted absent — it is legitimately on the page.
-        retired_tier_names = ("Individual", "Lab")
+        # The old Individual / Lab / Enterprise three-tier table was retired
+        # 2026-08-28. "Individual" (capital-I, the old tier name) is gone; the
+        # 2024-invoice BANDS (11,000 / 33,000 / 110,000) are the real retired-
+        # offer evidence. Deliberately NOT asserting on the words "Lab" or
+        # "Enterprise" — both are live now: "Lab & Organization" is a service
+        # heading and "Enterprise" is the current On-Prem/Enterprise tier name,
+        # so a bare substring check would false-positive on legitimate copy.
+        retired_tier_names = ("Individual",)
         retired_band_amounts = ("11,000", "33,000", "110,000")  # 2024-invoice bands
         # Act
         content = client.get(services_url).content.decode()

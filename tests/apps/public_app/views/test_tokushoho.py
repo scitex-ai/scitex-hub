@@ -299,10 +299,18 @@ class TestTokushohoPage:
         with mock.patch.object(pricing, "load_pricing", return_value=spliced):
             content = client.get(reverse("public_app:tokushoho")).content.decode("utf-8")
 
-        # Assert — control: the real catalogue still renders through the patch
-        assert control["label"] in content, (
-            f"control row {control['label']!r} missing: the patched catalogue did "
-            "not reach the page, so the unreleased assertion below proves nothing."
+        # Assert — control: the real catalogue still renders through the patch.
+        # The page forces translation.override("ja"), so the control row's label
+        # renders as its JAPANESE translation, not the EN source. Compare the
+        # JA rendering (the 2026-09-11 English-source SSoT switch).
+        from apps.infra.public_app.templatetags.landing_i18n import translate_dynamic
+
+        with translation.override("ja"):
+            control_label = translate_dynamic(control["label"])
+        assert control_label in content, (
+            f"control row {control['label']!r} (-> {control_label!r}) missing: "
+            "the patched catalogue did not reach the page, so the unreleased "
+            "assertion below proves nothing."
         )
 
         # Assert — retired
