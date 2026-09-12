@@ -149,25 +149,50 @@ class TestServicesGet:
         page rendered the 2024-invoice consulting bands and a three-tier table
         whose middle tier (Lab) business had retired on 2026-08-28 — two public
         pages, one pricing.json, two disjoint price sets. The operator's words
-        on seeing it: 「値段はめちゃくちゃだった」."""
+        on seeing it: 「値段はめちゃくちゃだった」.
+
+        The price rows are computed in the SAME language the page renders in
+        (EN by default; JA only after explicit selection) — otherwise a
+        JA-formatted price (「月額 1,490円」) is compared against an
+        EN-rendered page (「¥1,490/month」) and the match fails. Both arms are
+        asserted below.
+        """
         # Arrange
         from apps.infra.public_app.pricing import published_price_rows
 
-        rows = published_price_rows()
-        assert rows, "Control: an empty catalogue would satisfy the loop below vacuously."
-        # Act
-        content = client.get(services_url).content.decode()
-        # Assert — every published row, by label AND price, is on the page
-        for row in rows:
-            assert row["label"] in content and row["price"] in content, (
-                f"{row['label']} {row['price']} is in pricing.json but not on /services/."
-            )
-        for row in rows:
-            if row["price_note"]:
-                assert row["price_note"] in content, f"{row['label']}: {row['price_note']!r} not on /services/"
-            for item in row["included"]:
-                assert item in content, f"{row['label']}: included item {item!r} not on /services/"
-        assert "All displayed prices include tax" in content
+        def assert_catalogue_on_page(content, lang):
+            # price / price_note / included items are language-dependent — the
+            # page renders each in its OWN language — so we compare the
+            # catalogue formatted in that same language. The tier LABEL is
+            # deliberately NOT asserted: it is translated in the template
+            # (「Sub · Academic」 → 「サブスク・学術」) but returned raw from
+            # published_price_rows(), so a cross-language label match is
+            # impossible. The price is the row's identity.
+            with translation.override(lang):
+                rows = published_price_rows()
+            assert rows, "Control: an empty catalogue would satisfy the loop below vacuously."
+            for row in rows:
+                assert row["price"] in content, (
+                    f"price {row['price']!r} (tier {row['label']!r}) not on the {lang} /services/ page"
+                )
+                if row["price_note"]:
+                    assert row["price_note"] in content, (
+                        f"{row['label']}: {row['price_note']!r} not on /services/ ({lang})"
+                    )
+                for item in row["included"]:
+                    assert item in content, (
+                        f"{row['label']}: included item {item!r} not on /services/ ({lang})"
+                    )
+
+        # Act/Assert — EN default (no cookie)
+        en_content = client.get(services_url).content.decode()
+        assert_catalogue_on_page(en_content, "en")
+        assert "All displayed prices include tax" in en_content
+
+        # Act/Assert — JA (cookie-selected)
+        ja_content = client.get(services_url, HTTP_COOKIE="django_language=ja").content.decode()
+        assert_catalogue_on_page(ja_content, "ja")
+        assert "税込" in ja_content
 
     def test_get_no_longer_prices_retired_offers(self, client, services_url):
         # Arrange
