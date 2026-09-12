@@ -67,36 +67,48 @@ class TestServicesGet:
         # Arrange
         # Act
         resp = client.get(services_url)
-        # Assert
-        assert "解析相談・コードレビュー" in resp.content.decode()
+        # Assert (EN default; the SSoT + static copy are English-source since
+        # 2026-09-12 — JA rendering is asserted in test_get_renders_japanese)
+        assert "Analysis consultation & code review" in resp.content.decode()
 
     def test_get_shows_transparency_section(self, client, services_url):
         # Arrange
         # Act
         resp = client.get(services_url)
         # Assert: external usage fees are billed at cost (pricing transparency)
-        assert "外部利用料" in resp.content.decode()
+        assert "external charges" in resp.content.decode()
 
     def test_get_shows_pricing_ladder(self, client, services_url):
         # Arrange
         # Act
         resp = client.get(services_url)
         # Assert
-        assert "料金の目安" in resp.content.decode()
+        assert "Indicative pricing" in resp.content.decode()
 
     def test_get_offers_a_free_first_consult(self, client, services_url):
         # Arrange
         # Act
         resp = client.get(services_url)
         # Assert
-        assert "無料" in resp.content.decode()
+        assert "30 minutes free" in resp.content.decode()
 
     def test_get_leads_with_no_lock_in_positioning(self, client, services_url):
         # Arrange
         # Act
         resp = client.get(services_url)
         # Assert
-        assert "囲い込" in resp.content.decode()
+        assert "lock-in" in resp.content.decode()
+
+    def test_get_renders_japanese_when_selected(self, client, services_url):
+        # The page must render fully Japanese under an explicit selection
+        # (the JA catalogue carries every EN msgid), not just English by
+        # default — the mirror of the landing's rendered-page i18n guard.
+        from django.utils import translation
+
+        with translation.override("ja"):
+            content = client.get(services_url).content.decode()
+        for needle in ("研究に集中できる環境", "料金の目安", "問い合わせはこちら", "応相談", "サブスク"):
+            assert needle in content, f"{needle!r} missing from the Japanese /services/"
 
     def test_get_prices_the_same_catalogue_as_tokushoho(self, client, services_url):
         """2026-09-02: /services/ and /tokushoho/ read ONE list. Until then this
@@ -121,8 +133,6 @@ class TestServicesGet:
                 assert row["price_note"] in content, f"{row['label']}: {row['price_note']!r} not on /services/"
             for item in row["included"]:
                 assert item in content, f"{row['label']}: included item {item!r} not on /services/"
-        # The tax note is English by default (the page is EN-source since
-        # 2026-09-11; JA only after explicit selection) — assert the EN needle.
         assert "All displayed prices include tax" in content
 
     def test_get_no_longer_prices_retired_offers(self, client, services_url):
@@ -146,8 +156,9 @@ class TestServicesGet:
         assert content.count('<article class="svc-plan-card') == 3, "exactly three tiers"
 
     def test_get_shows_the_three_tiers_business_wrote(self, client, services_url):
-        # Arrange
-        expected = ("サブスク", "オンプレ", "大規模", "応相談", "問い合わせはこちら")
+        # Arrange (EN source — the SSOT tier names since 2026-09-11; the
+        # quote_only tier shows "By request", each tier links "Inquire here").
+        expected = ("Sub", "On-Prem", "Enterprise", "By request", "Inquire here")
         # Act
         content = client.get(services_url).content.decode()
         # Assert
@@ -167,7 +178,7 @@ class TestServicesInquiryValid:
         # Arrange
         # Act
         # Assert
-        assert "受け付けました" in posted_valid.content.decode()
+        assert "We've received your inquiry" in posted_valid.content.decode()
 
     def test_valid_post_persists_one_inquiry(self, posted_valid):
         # Arrange
@@ -194,7 +205,7 @@ class TestServicesInquiryInvalid:
         # Arrange
         # Act
         # Assert
-        assert "ご記入ください" in posted_invalid.content.decode()
+        assert "Please enter your name." in posted_invalid.content.decode()
 
     def test_invalid_post_saves_nothing(self, posted_invalid):
         # Arrange
