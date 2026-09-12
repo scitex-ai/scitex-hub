@@ -17,9 +17,42 @@ Covers:
 
 import importlib
 import os
+import subprocess
+import sys
+from pathlib import Path
 
 import pytest
 from django.urls import reverse
+from django.utils import translation
+
+from apps.infra.public_app.templatetags.landing_i18n import translate_dynamic
+
+PROJECT_ROOT = Path(__file__).resolve().parents[4]  # tests/apps/public_app/views/ -> repo root
+
+
+@pytest.fixture(scope="module", autouse=True)
+def compiled_catalogs():
+    """Compile locale/**/*.po -> .mo before any JA assertion reads a catalog.
+
+    /tokushoho/ forces ``translation.override("ja")`` and renders the EN-source
+    pricing SSoT through translate_dynamic / call-time gettext. The JA strings
+    only exist in the compiled .mo, which is gitignored and NOT compiled by the
+    CI pytest step (no msgfmt). Without this the forced-JA page renders the
+    English source and every JA pricing assertion fails — the missing-catalog
+    failure this file is meant to catch. Same fixture as test_i18n_landing /
+    test_published_price_rows.
+    """
+    script = PROJECT_ROOT / "scripts" / "i18n" / "compile_catalogs.py"
+    result = subprocess.run(
+        [sys.executable, str(script)], cwd=PROJECT_ROOT,
+        capture_output=True, text=True,
+    )
+    assert result.returncode == 0, (
+        f"catalog compilation failed ({result.returncode}):\n"
+        f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+    )
+    translation.trans_real._translations.clear()
+    yield
 
 TEST_PLANS = [
     {
@@ -157,7 +190,16 @@ class TestTokushohoPage:
         from apps.infra.public_app.pricing import published_price_rows
 
         settings.BILLING_PLANS = []
-        rows = published_price_rows()
+        # The view wraps the whole render in translation.override("ja"), so the
+        # page shows the JAPANESE translations of the EN-source SSoT. Compute the
+        # rows the same way (under ja) — otherwise the baked price/storage/
+        # included fields come out English and don't match the page. row["label"]
+        # is not baked; the page renders it through translate_dynamic, so
+        # translate it here too (the 2026-09-11 English-source SSoT switch).
+        with translation.override("ja"):
+            rows = published_price_rows()
+            for row in rows:
+                row["label_ja"] = translate_dynamic(row["label"])
         assert rows, (
             "Control: published_price_rows() returned nothing, so every price "
             "assertion below would pass vacuously. pricing.json lost its "
@@ -169,9 +211,9 @@ class TestTokushohoPage:
 
         # Assert
         for row in rows:
-            assert row["label"] in content and row["price"] in content, (
-                f"pricing.json publishes {row['label']} at {row['price']}, but "
-                "the 特商法 page does not show it."
+            assert row["label_ja"] in content and row["price"] in content, (
+                f"pricing.json publishes {row['label']} (-> {row['label_ja']}) at "
+                f"{row['price']}, but the 特商法 page does not show it."
             )
         # Assert — a discounted row shows its 定価 (list price) and 早期導入割引
         # (discount) in their own columns; every row states what it includes
