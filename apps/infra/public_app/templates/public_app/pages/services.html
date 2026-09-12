@@ -2,18 +2,16 @@
 {% load static landing_i18n %}
 {% load i18n %}
 
-{% block title %}サービス・料金 | Services - SciTeX{% endblock %}
+{% block title %}{% trans "Services & Pricing | Services - SciTeX" %}{% endblock %}
 {% block meta_description %}
-    SciTeX は、文献、解析、Figure、執筆、データ管理、計算環境を横断して、研究者と研究組織の
-    ワークフローを整えるオープンな研究基盤です。既存の PC・NAS・サーバー・HPC を活かしながら、
-    必要な部分だけを接続・自動化します。まずは初回相談 30 分無料から。
+    {% trans "SciTeX is an open research platform that ties together literature, analysis, figures, writing, data management, and the compute environment across your research workflow. It builds on the PCs, NAS, servers, and HPC you already have, connecting and automating only the parts you need. Start with a free 30-minute first consultation." %}
 {% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'public_app/css/services.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/services-detail.css' %}" />
 {% endblock %}
 {% block content %}
-    <div class="svc-page" lang="ja">
+    <div class="svc-page">
 
         <!-- ============================================================ -->
         <!-- Hero + workflow panel                                        -->
@@ -21,50 +19,47 @@
         <section class="svc-hero">
             <div class="svc-hero-main">
                 <span class="svc-eyebrow">Open Research Infrastructure</span>
-                <h1 class="svc-hero-title">研究に集中できる環境を、<span class="svc-accent-text">仕組みから。</span></h1>
+                <h1 class="svc-hero-title">{% trans "An environment where you can focus on your research, built from the ground up." %}</h1>
                 <p class="svc-hero-copy">
-                    SciTeX は、文献、解析、Figure、執筆、データ管理、計算環境を横断して、
-                    研究者と研究組織のワークフローを整えるオープンな研究基盤です。既存の PC、NAS、
-                    サーバー、HPC を活かしながら、必要な部分だけを接続・自動化します。
+                    {% trans "SciTeX is an open research platform that ties together literature, analysis, figures, writing, data management, and the compute environment across your research workflow. It builds on the PCs, NAS, servers, and HPC you already have, connecting and automating only the parts you need." %}
                 </p>
                 <div class="svc-hero-actions">
-                    <a href="#inquiry" class="svc-btn svc-btn-primary">相談内容を整理する</a>
-                    <a href="#tiers" class="svc-btn svc-btn-ghost">料金を見る</a>
+                    <a href="#inquiry" class="svc-btn svc-btn-primary">{% trans "Organize your consultation" %}</a>
+                    <a href="#tiers" class="svc-btn svc-btn-ghost">{% trans "See pricing" %}</a>
                 </div>
                 <p class="svc-hero-note">
-                    初回相談 30 分無料。契約を前提とせず、自分でできること・SciTeX が支援できることを
-                    分けてご案内します。
+                    {% trans "First consultation: 30 minutes free. Without any commitment to a contract, we'll walk through what you can handle yourself and where SciTeX can help." %}
                 </p>
             </div>
-            <aside class="svc-hero-panel" aria-label="SciTeX 導入フロー">
+            <aside class="svc-hero-panel" aria-label='{% trans "SciTeX onboarding flow" %}'>
                 <p class="svc-panel-title">From fragmented work to reproducible workflow</p>
                 <div class="svc-flow">
                     <div class="svc-flow-item">
                         <span class="svc-flow-num">01</span>
                         <div>
-                            <strong>現状を整理</strong>
-                            <span>コード、データ、設備、運用上の制約を確認します。</span>
+                            <strong>{% trans "Take stock" %}</strong>
+                            <span>{% trans "We confirm your code, data, equipment, and operational constraints." %}</span>
                         </div>
                     </div>
                     <div class="svc-flow-item">
                         <span class="svc-flow-num">02</span>
                         <div>
-                            <strong>小さく接続</strong>
-                            <span>一つの作業や研究工程から試験導入します。</span>
+                            <strong>{% trans "Connect a little" %}</strong>
+                            <span>{% trans "A pilot on a single task or research step." %}</span>
                         </div>
                     </div>
                     <div class="svc-flow-item">
                         <span class="svc-flow-num">03</span>
                         <div>
-                            <strong>再現可能にする</strong>
-                            <span>環境、コード、データ、Figure を再生成できる形に整えます。</span>
+                            <strong>{% trans "Make it reproducible" %}</strong>
+                            <span>{% trans "We shape the environment, code, data, and figures so they can be regenerated." %}</span>
                         </div>
                     </div>
                     <div class="svc-flow-item">
                         <span class="svc-flow-num">04</span>
                         <div>
-                            <strong>研究者に残す</strong>
-                            <span>データや設定は手元に残り、支援後も継続利用できます。</span>
+                            <strong>{% trans "Leave it to the researchers" %}</strong>
+                            <span>{% trans "Data and settings stay with you, and you can keep using them after our support ends." %}</span>
                         </div>
                     </div>
                 </div>
@@ -80,25 +75,24 @@
         </div>
 
         <!-- ============================================================ -->
-        <!-- 段階別プラン (サブスク / オンプレ / 大規模) — data/pricing.json tiers -->
+        <!-- Tiered plans (Sub / On-Prem / Enterprise) — data/pricing.json tiers -->
         <!-- ============================================================ -->
         <section class="svc-section" id="tiers">
             <p class="svc-kicker">Plans</p>
-            <h2>個人から研究組織まで、必要な範囲だけ。</h2>
+            <h2>{% trans "From individuals to research organizations — only the scope you need." %}</h2>
             <p class="svc-section-desc">
-                最初から大規模な導入を前提にせず、課題の大きさと組織の状況に合わせて支援範囲を
-                設計します。
+                {% trans "We don't assume a large-scale rollout from day one. We design the scope of support to fit the size of your problem and your organization." %}
             </p>
             {% comment %}
             Three tiers, from data/pricing.json `tiers`, in business's words
-            (2026-09-02): the axis is "use it yourself" (サブスク) / "install it in
-            an organisation" (オンプレ) / "department or university scale"
-            (大規模, quote only). Each tier CITES published_prices rows; the
+            (2026-09-02): the axis is "use it yourself" (Sub) / "install it in
+            an organisation" (On-Prem) / "department or university scale"
+            (Enterprise, quote only). Each tier CITES published_prices rows; the
             amounts below are rendered from those rows, never typed here —
             test_pricing_ssot.py fails on a literal. The previous three-column
             table (Individual / Lab / Enterprise) is gone: business retired the
             Lab tier on 2026-08-28 and this page kept pricing it for five days.
-            Every tier links to the same inquiry form; for 大規模 that is the
+            Every tier links to the same inquiry form; for Enterprise that is the
             only entry.
             {% endcomment %}
             <div class="svc-plan-cards">
@@ -107,11 +101,11 @@
                     <p class="svc-plan-card-name">{{ tier.name|translate_dynamic }}<span class="svc-plan-card-sub">{{ tier.audience|translate_dynamic }}</span></p>
                     <dl>
                         {% if tier.quote_only %}
-                            <dt>料金</dt><dd class="svc-plan-price">応相談</dd>
+                            <dt>{% trans "Rate" %}</dt><dd class="svc-plan-price">{% trans "By request" %}</dd>
                         {% elif not tier.rows %}
                             {% comment %} every cited row is gated off (withheld, or not yet
                             available) — the same wording /tokushoho/ uses for an unsettled value {% endcomment %}
-                            <dt>料金</dt><dd class="svc-plan-price">{% trans "準備中 — 確定後に掲載します。" %}</dd>
+                            <dt>{% trans "Rate" %}</dt><dd class="svc-plan-price">{% trans "In preparation — we'll publish it once confirmed." %}</dd>
                         {% else %}
                             {% for row in tier.rows %}
                                 <dt>{{ row.label|translate_dynamic }}</dt>
@@ -120,8 +114,8 @@
                         {% endif %}
                     </dl>
                     <p class="svc-card-lead">{{ tier.description|translate_dynamic }}</p>
-                    {% for row in tier.rows %}{% if row.description %}<p class="svc-muted">{{ row.label|translate_dynamic }}: {{ row.description|translate_dynamic }}</p>{% endif %}{% if row.included %}<p class="svc-muted">{{ row.label|translate_dynamic }}: {{ row.included|join:"、" }}</p>{% endif %}{% endfor %}
-                    <a href="#inquiry" class="svc-btn svc-btn-primary">問い合わせはこちら</a>
+                    {% for row in tier.rows %}{% if row.description %}<p class="svc-muted">{{ row.label|translate_dynamic }}: {{ row.description|translate_dynamic }}</p>{% endif %}{% if row.included %}<p class="svc-muted">{{ row.label|translate_dynamic }}: {{ row.included|join:" · " }}</p>{% endif %}{% endfor %}
+                    <a href="#inquiry" class="svc-btn svc-btn-primary">{% trans "Inquire here" %}</a>
                 </article>
                 {% endfor %}
             </div>
@@ -129,54 +123,53 @@
 
         <section class="svc-section" id="services">
             <p class="svc-kicker">Services</p>
-            <h2>研究ワークフローを、部分ではなく流れで整える。</h2>
+            <h2>{% trans "Bring order to your research workflow — as a flow, not in pieces." %}</h2>
             <p class="svc-section-desc">
-                単発のコード修正から、研究室全体のデータ・計算環境まで。既存資産を活かしながら、
-                必要な部分だけを支援します。
+                {% trans "From a one-off code fix to the data and compute environment of an entire lab. We build on your existing assets and support only what you need." %}
             </p>
             <div class="svc-cards">
                 <article class="svc-card">
                     <div class="svc-card-icon">01</div>
                     <h3>Research Workflow</h3>
-                    <p class="svc-card-lead">解析、Figure、文献、執筆を再現可能な流れにまとめます。</p>
+                    <p class="svc-card-lead">{% trans "We bring analysis, figures, literature, and writing into a reproducible flow." %}</p>
                     <ul class="svc-card-list">
-                        <li><strong>解析相談・コードレビュー</strong><span>Python／R コード、解析設計、再現性、処理速度を確認します。</span></li>
-                        <li><strong>定型解析の自動化</strong><span>前処理、集計、統計解析、レポート生成を自動化します。</span></li>
-                        <li><strong>再生成できる Figure</strong><span>元データとコードから修正・再生成できる論文用 Figure を構築します。</span></li>
-                        <li><strong>文献・執筆環境</strong><span>検索、引用管理、原稿作成、共同編集の流れを整えます。</span></li>
+                        <li><strong>{% trans "Analysis consultation & code review" %}</strong><span>{% trans "We review Python/R code, analysis design, reproducibility, and runtime." %}</span></li>
+                        <li><strong>{% trans "Automating routine analysis" %}</strong><span>{% trans "We automate preprocessing, aggregation, statistical analysis, and report generation." %}</span></li>
+                        <li><strong>{% trans "Regenerable figures" %}</strong><span>{% trans "We build paper-ready figures that can be corrected and regenerated from the original data and code." %}</span></li>
+                        <li><strong>{% trans "Literature & writing environment" %}</strong><span>{% trans "We set up the flow for search, citation management, drafting, and collaborative editing." %}</span></li>
                     </ul>
                 </article>
                 <article class="svc-card">
                     <div class="svc-card-icon">02</div>
                     <h3>Research Computing</h3>
-                    <p class="svc-card-lead">手元の PC から HPC まで、安全で再現可能な計算環境を構築します。</p>
+                    <p class="svc-card-lead">{% trans "From your desktop PC to HPC, we build a safe, reproducible compute environment." %}</p>
                     <ul class="svc-card-list">
-                        <li><strong>Linux・Docker・Apptainer</strong><span>研究コードを別の PC やサーバーでも動かせる環境にまとめます。</span></li>
-                        <li><strong>SSH・HPC・リモート計算</strong><span>大学の計算資源、研究室サーバー、手元の PC を安全につなぎます。</span></li>
-                        <li><strong>NAS・バックアップ</strong><span>研究データの保存、移行、監視、バックアップ方針を設計します。</span></li>
-                        <li><strong>SciTeX Station</strong><span>必要なソフトウェアを導入した小型計算機を、すぐ使える状態に整えます。</span></li>
+                        <li><strong>{% trans "Linux, Docker, Apptainer" %}</strong><span>{% trans "We package your research code into an environment that runs on other PCs and servers." %}</span></li>
+                        <li><strong>{% trans "SSH, HPC, remote compute" %}</strong><span>{% trans "We securely connect university compute resources, lab servers, and your own PC." %}</span></li>
+                        <li><strong>{% trans "NAS & backup" %}</strong><span>{% trans "We design storage, migration, monitoring, and backup policy for your research data." %}</span></li>
+                        <li><strong>{% trans "SciTeX Station" %}</strong><span>{% trans "We prepare a small computer with the software you need, ready to use." %}</span></li>
                     </ul>
                 </article>
                 <article class="svc-card">
                     <div class="svc-card-icon">03</div>
                     <h3>AI &amp; Automation</h3>
-                    <p class="svc-card-lead">機密性と運用コストを見ながら、生成 AI と自動化を導入します。</p>
+                    <p class="svc-card-lead">{% trans "We introduce generative AI and automation while weighing confidentiality and operating cost." %}</p>
                     <ul class="svc-card-list">
-                        <li><strong>生成 AI・コーディングエージェント</strong><span>ChatGPT、Claude Code、Codex、ローカルモデル等を導入します。</span></li>
-                        <li><strong>ローカル・オンプレミス AI</strong><span>研究データを外部へ出さずに利用できる環境を構築します。</span></li>
-                        <li><strong>紙資料の OCR・自動整理</strong><span>スキャン、分類、命名、保存までを自動化します。</span></li>
-                        <li><strong>研究データ・ファイル整理</strong><span>容量、更新日、重複、使用頻度に応じて保存先を再設計します。</span></li>
+                        <li><strong>{% trans "Generative AI & coding agents" %}</strong><span>{% trans "We bring in ChatGPT, Claude Code, Codex, local models, and more." %}</span></li>
+                        <li><strong>{% trans "Local / on-prem AI" %}</strong><span>{% trans "We build an environment where your research data stays in-house." %}</span></li>
+                        <li><strong>{% trans "OCR & auto-organizing paper materials" %}</strong><span>{% trans "We automate scanning, classification, naming, and archiving." %}</span></li>
+                        <li><strong>{% trans "Research data & file organization" %}</strong><span>{% trans "We redesign where things live, based on size, update date, duplication, and usage." %}</span></li>
                     </ul>
                 </article>
                 <article class="svc-card">
                     <div class="svc-card-icon">04</div>
                     <h3>Lab &amp; Organization</h3>
-                    <p class="svc-card-lead">研究室や組織の実際の運用に合わせて、小さく導入し、継続できる形にします。</p>
+                    <p class="svc-card-lead">{% trans "We match the real operation of your lab or organization, rolling out in a small, sustainable way." %}</p>
                     <ul class="svc-card-list">
-                        <li><strong>小規模実証・PoC</strong><span>まず一つの研究工程を対象に、効果と運用負荷を確認します。</span></li>
-                        <li><strong>専用ツール・プラグイン開発</strong><span>Scholar、Writer、FigRecipe、Storage、Tasks 等を組み合わせます。</span></li>
-                        <li><strong>NDA・オンサイト対応</strong><span>機密データや研究設備を扱う場合は、現地導入にも対応します。</span></li>
-                        <li><strong>継続的な技術支援</strong><span>専任技術者を置くほどではない組織に、相談先として伴走します。</span></li>
+                        <li><strong>{% trans "Small-scale proof & PoC" %}</strong><span>{% trans "We start with one research step to confirm the effect and operational load." %}</span></li>
+                        <li><strong>{% trans "Dedicated tools & plugin development" %}</strong><span>{% trans "We combine Scholar, Writer, FigRecipe, Storage, Tasks, and more." %}</span></li>
+                        <li><strong>{% trans "NDA & on-site support" %}</strong><span>{% trans "For confidential data and research equipment, we also support on-site deployment." %}</span></li>
+                        <li><strong>{% trans "Ongoing technical support" %}</strong><span>{% trans "For organizations that don't need a dedicated engineer, we walk alongside as your point of contact." %}</span></li>
                     </ul>
                 </article>
             </div>
@@ -187,34 +180,34 @@
         <!-- ============================================================ -->
         <section class="svc-section svc-principles-section">
             <p class="svc-kicker">Principles</p>
-            <h2>支援後も、研究者の手元に残る。</h2>
+            <h2>{% trans "Even after support, it stays with the researchers." %}</h2>
             <p class="svc-section-desc">
-                SciTeX は、特定ベンダーへの囲い込みや、不透明な外部利用料を前提にしません。
+                {% trans "SciTeX does not assume lock-in to a particular vendor or opaque external charges." %}
             </p>
             <div class="svc-principles">
                 <div class="svc-principle">
-                    <strong>既存資産を活かす</strong>
-                    <p>新しい契約や機器を増やす前に、現在の PC、NAS、サーバー、HPC を活用します。</p>
+                    <strong>{% trans "Use your existing assets" %}</strong>
+                    <p>{% trans "Before adding new contracts or equipment, we put your current PCs, NAS, servers, and HPC to work." %}</p>
                 </div>
                 <div class="svc-principle">
                     <strong>Open Source First</strong>
-                    <p>無料・オープンソースで解決できる部分は、その方法を明確にお伝えします。</p>
+                    <p>{% trans "Where free or open-source tools solve the problem, we tell you exactly how." %}</p>
                 </div>
                 <div class="svc-principle">
                     <strong>Vendor Neutral</strong>
-                    <p>特定の AI、クラウド、ファイル形式へのロックインを前提にしません。</p>
+                    <p>{% trans "We don't assume lock-in to a specific AI, cloud, or file format." %}</p>
                 </div>
                 <div class="svc-principle">
-                    <strong>データはお客様のもの</strong>
-                    <p>データ、コード、設定ファイルは、支援終了後もお客様が保持できます。</p>
+                    <strong>{% trans "Your data is yours" %}</strong>
+                    <p>{% trans "You keep the data, code, and configuration files even after support ends." %}</p>
                 </div>
                 <div class="svc-principle">
-                    <strong>小さく始める</strong>
-                    <p>大規模契約ではなく、小さな相談や一工程の試験導入から始めます。</p>
+                    <strong>{% trans "Start small" %}</strong>
+                    <p>{% trans "Rather than a large contract, we start with a small consultation or a single-step pilot." %}</p>
                 </div>
                 <div class="svc-principle">
-                    <strong>事前に範囲を明確化</strong>
-                    <p>正式な作業開始前に、対応範囲、費用、外部利用料を確認します。</p>
+                    <strong>{% trans "Clarify scope up front" %}</strong>
+                    <p>{% trans "Before formal work begins, we confirm the scope, cost, and any external charges." %}</p>
                 </div>
             </div>
         </section>
@@ -224,14 +217,14 @@
         <!-- ============================================================ -->
         <section class="svc-section" id="pricing">
             <p class="svc-kicker">Pricing</p>
-            <h2>料金の目安</h2>
+            <h2>{% trans "Indicative pricing" %}</h2>
             <p class="svc-section-desc">
-                正式な作業前に対応範囲と金額をご提示します。
+                {% trans "We present the scope and the price before any formal work begins." %}
             </p>
             <div class="svc-price-wrap">
                 <table class="svc-price-table">
                     <thead>
-                        <tr><th scope="col">内容</th><th scope="col">料金の目安</th></tr>
+                        <tr><th scope="col">{% trans "Contents" %}</th><th scope="col">{% trans "Indicative pricing" %}</th></tr>
                     </thead>
                     {% comment %}
                     Amounts come from data/pricing.json. Never write a literal
@@ -246,7 +239,7 @@
                         {% for group in published_price_groups %}
                             {% for row in group.rows %}
                             <tr>
-                                <td>{{ row.label|translate_dynamic }}{% if row.included %}<br><span class="svc-muted">{{ row.included|join:"、" }}</span>{% endif %}</td>
+                                <td>{{ row.label|translate_dynamic }}{% if row.included %}<br><span class="svc-muted">{{ row.included|join:" · " }}</span>{% endif %}</td>
                                 <td class="svc-price-cell">{{ row.price }}{% if row.price_note %}<br><span class="svc-muted">{{ row.price_note }}</span>{% endif %}</td>
                             </tr>
                             {% endfor %}
@@ -267,41 +260,45 @@
         <!-- ============================================================ -->
         <section class="svc-section" id="inquiry">
             <p class="svc-kicker">Contact</p>
-            <h2>何を頼めばよいか分からない段階でも大丈夫です。</h2>
+            <h2>{% trans "It's fine even if you're not sure what to ask for." %}</h2>
             {% if submitted %}
                 <div class="svc-form-success" role="status">
-                    お問い合わせを受け付けました。ありがとうございます。担当より折り返しご連絡します。
+                    {% trans "We've received your inquiry. Thank you — a member of our team will be in touch." %}
                 </div>
             {% endif %}
             <div class="svc-contact">
                 <div class="svc-contact-lead">
                     <p>
-                        現在の作業方法や困っていることを伺い、SciTeX が対応できること、ご自身で無料でできること、
-                        別のサービスを利用した方がよいことを分けてお伝えします。
+                        {% trans "We hear about how you work today and where you're stuck, then walk you through what SciTeX can handle, what you can do for free yourself, and where another service is the better fit." %}
                     </p>
                     <ul class="svc-checklist">
-                        <li>初回相談 30 分無料</li>
-                        <li>契約を前提としない課題整理</li>
-                        <li>作業開始前に料金と対応範囲を提示</li>
+                        <li>{% trans "First consultation: 30 minutes free" %}</li>
+                        <li>{% trans "Problem scoping with no contract commitment" %}</li>
+                        <li>{% trans "Pricing and scope presented before work begins" %}</li>
                     </ul>
                 </div>
                 <form class="svc-form" method="post" action="{% url 'public_app:services' %}#inquiry">
                     {% csrf_token %}
                     <div class="svc-field">
-                        <label for="svc-name">お名前 <span class="svc-req">必須</span></label>
+                        <label for="svc-name">{% trans "Name" %} <span class="svc-req">{% trans "Required" %}</span></label>
                         <input type="text" id="svc-name" name="name" value="{{ form.name }}"
-                               maxlength="120" required placeholder="山田 太郎" />
+                               maxlength="120" required placeholder='{% trans "Taro Yamada" %}' />
                         {% if errors.name %}<p class="svc-error">{{ errors.name }}</p>{% endif %}
                     </div>
                     <div class="svc-field">
-                        <label for="svc-affil">ご所属（任意）</label>
+                        <label for="svc-affil">{% trans "Affiliation (optional)" %}</label>
                         <input type="text" id="svc-affil" name="affiliation"
                                value="{{ form.affiliation }}" maxlength="200"
-                               placeholder="〇〇大学 △△研究室 / 株式会社□□" />
+                               placeholder='{% trans "University of XX, Lab YY / Inc. ZZ" %}' />
                     </div>
                     <div class="svc-field">
-                        <label for="svc-budget">ご予算感（任意）</label>
+                        <label for="svc-budget">{% trans "Indicative budget (optional)" %}</label>
                         <select id="svc-budget" name="budget">
+                            <!-- Budget option values are stored verbatim on
+                                 ServiceInquiry (and emailed to the operator, who
+                                 reads Japanese) — label == value by design, so
+                                 the displayed and stored strings never diverge.
+                                 These stay Japanese in both languages. -->
                             <option value="未定"{% if form.budget == "未定" or not form.budget %} selected{% endif %}>未定</option>
                             <option value="3万円未満"{% if form.budget == "3万円未満" %} selected{% endif %}>3万円未満</option>
                             <option value="3万円〜10万円"{% if form.budget == "3万円〜10万円" %} selected{% endif %}>3万円〜10万円</option>
@@ -310,14 +307,14 @@
                         </select>
                     </div>
                     <div class="svc-field">
-                        <label for="svc-request">ご相談内容 <span class="svc-req">必須</span></label>
+                        <label for="svc-request">{% trans "What you'd like to discuss" %} <span class="svc-req">{% trans "Required" %}</span></label>
                         <textarea id="svc-request" name="request" rows="6" required
-                                  placeholder="いま困っていること、やりたいことをお聞かせください。">{{ form.request }}</textarea>
+                                  placeholder='{% trans "Tell us what's bothering you now and what you'd like to do." %}'>{{ form.request }}</textarea>
                         {% if errors.request %}<p class="svc-error">{{ errors.request }}</p>{% endif %}
                     </div>
-                    <button type="submit" class="svc-submit">相談を送信する</button>
+                    <button type="submit" class="svc-submit">{% trans "Send inquiry" %}</button>
                     <p class="svc-form-note">
-                        ご相談いただいたからといって、契約を前提に話を進めることはありません。
+                        {% trans "Inquiring does not lead to a contract — no obligation is assumed from reaching out." %}
                     </p>
                 </form>
             </div>
