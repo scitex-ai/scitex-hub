@@ -72,7 +72,7 @@
       "category": "service",
       "description": "On-premises deployment support. Quote based on scale.",
       "price_is_floor": true,
-      "usd_amount": 1990
+      "usd_amount": 2000
     },
     {
       "id": "onprem-maintenance",
@@ -95,7 +95,7 @@
       "category": "service",
       "description": "Research and application development. Quote-based.",
       "from_price": true,
-      "usd_amount": 1320
+      "usd_amount": 1300
     },
     {
       "id": "consulting",

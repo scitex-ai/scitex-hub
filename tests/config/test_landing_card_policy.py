@@ -179,16 +179,12 @@ def _rendered_landing(language: str) -> str:
     # language into the render and make the test fail (or worse, pass) for
     # reasons unrelated to what it asserts.
     from apps.infra.public_app.pricing import tier_rows
+    from apps.infra.public_app.views.landing import _pricing_rows_for_landing
 
     pricing = load_pricing()
     request = _request("/landing/")
     with translation.override(language):
-        rows = published_price_rows()
-        sub_rows = [
-            {**r, "is_academic": r["id"] == "subscription-student"}
-            for r in rows
-            if r["category"] == "subscription"
-        ]
+        sub_rows = _pricing_rows_for_landing()
         context = {
             "sub_rows": sub_rows,
             "onprem_tier": next(
