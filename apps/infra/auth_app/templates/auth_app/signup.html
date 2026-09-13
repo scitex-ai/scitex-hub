@@ -161,9 +161,6 @@
                     <div class="password-rule invalid" id="rule-special">
                         <i class="fas fa-times"></i> At least one special character (!@#$%^&*)
                     </div>
-                    <div class="password-rule invalid" id="rule-match">
-                        <i class="fas fa-times"></i> Passwords match
-                    </div>
                 </div>
                 <div class="form-check mb-3">
                     {{ form.agree_terms }}
@@ -397,7 +394,13 @@
       const hasInput = password.length > 0 && confirmPass.length > 0;
       const passwordsMatch = password === confirmPass && password.length > 0;
 
-      updatePasswordRule(ruleMatch, passwordsMatch, hasInput);
+      // The "Passwords match" rule was removed from the UI (operator 2026-09-13:
+      // confirming by typing the same password twice is obvious); the Confirm
+      // Password field + server-side match validation still enforce it. The
+      // element is now optional, so guard against it being absent.
+      if (ruleMatch) {
+        updatePasswordRule(ruleMatch, passwordsMatch, hasInput);
+      }
     }
 
     // Check password strength
