@@ -23,6 +23,32 @@ _RESET_RESPONSE = (
 )
 
 
+def _reset_feedback(request, email: str, registered: bool, sent: bool) -> None:
+    """Queue the on-screen feedback for a password-reset request.
+
+    PRODUCTION (DEBUG=False): the single indistinguishable _RESET_RESPONSE for
+    every outcome — a caller must not be able to tell whether an address is
+    registered or whether a send succeeded (both are facts about the inbox
+    owner, not the requester). This is the enumeration-oracle guard.
+
+    DEBUG (this dev server): the real outcome, so an operator debugging mail
+    delivery sees "sent to X" vs "no account for X" vs "send failed (…)"
+    instead of the generic line. The DEBUG value is never served to real
+    visitors (the live site runs DEBUG=False), so the guard holds in
+    production. (operator 2026-09-13: the generic banner alone made the reset
+    path look broken — no feedback at all.)
+    """
+    if not settings.DEBUG:
+        messages.success(request, _RESET_RESPONSE)
+        return
+    if not registered:
+        messages.warning(request, f"(debug) No account for {email}; no email sent.")
+    elif sent:
+        messages.success(request, f"(debug) Password reset email sent to {email}.")
+    else:
+        messages.error(request, f"(debug) Send FAILED for {email} — see server log.")
+
+
 def forgot_password(request):
     """Forgot password page with email sending."""
     import logging
@@ -53,7 +79,7 @@ def forgot_password(request):
             )
             if user is None:
                 logger.info("Password reset requested for an unregistered address")
-                messages.success(request, _RESET_RESPONSE)
+                _reset_feedback(request, email, registered=False, sent=False)
                 return render(request, "auth_app/forgot_password.html")
 
             # Generate password reset token
@@ -146,23 +172,22 @@ The SciTeX Team
                     html_message=html_message,
                 )
                 logger.info(f"Password reset email sent successfully to {email}")
-                messages.success(request, _RESET_RESPONSE)
+                _reset_feedback(request, email, registered=True, sent=True)
             except Exception as e:
                 logger.error(
                     f"Failed to send password reset email: {str(e)}", exc_info=True
                 )
                 # The SEND outcome is not disclosed either: whether a mailbox
                 # accepted a message is a fact about its owner. The requester is
-                # told one thing, always.
-                messages.success(request, _RESET_RESPONSE)
+                # told one thing, always — except in DEBUG, where the real
+                # failure is shown so mail problems are visible, not silent.
+                _reset_feedback(request, email, registered=True, sent=False)
 
         except User.DoesNotExist:
             logger.info(f"Password reset requested for non-existent email: {email}")
-            # For security, don't reveal if email exists
-            messages.success(
-                request,
-                "If an account with this email exists, you will receive password reset instructions.",
-            )
+            # For security, don't reveal if email exists (DEBUG shows the real
+            # outcome; production stays generic).
+            _reset_feedback(request, email, registered=False, sent=False)
 
     return render(request, "auth_app/forgot_password.html")
 
