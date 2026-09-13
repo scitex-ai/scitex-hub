@@ -1,15 +1,18 @@
 /**
  * Tests for the Example-Project initial-state diagnosis in
- * apps/writer_app/static/writer_app/ts/utils/_section-dropdown/SectionDropdown.ts
+ * apps/workspace/writer_app/static/writer_app/ts/utils/_section-dropdown/SectionDropdown.ts
  * (compass §11 Writer Initial State, TODO 158-161).
+ *
+ * Only TWO states are reachable in the section dropdown (the reviewer's finding
+ * #4): auto-select (sections exist) and no-manuscript (configured but empty).
+ * "uninitialized" is the full-page index.html block and "not-enabled" cannot
+ * occur because the backend scanner always pre-creates every doc-type key.
  */
 import { describe, it, expect, beforeEach } from "vitest";
 import {
   diagnoseExampleProject,
   renderExampleState,
 } from "@writer_app/utils/_section-dropdown/SectionDropdown";
-
-const base = { sectionCount: 0, docTypeConfigured: true, writerInitialized: true };
 
 function makeContainer(): HTMLElement {
   const el = document.createElement("div");
@@ -18,63 +21,54 @@ function makeContainer(): HTMLElement {
   return el;
 }
 
-describe("diagnoseExampleProject (158-161: distinguish the four initial states)", () => {
-  it("158: when a manuscript IS present (sectionCount>0) → auto-select, never an error", () => {
-    const d = diagnoseExampleProject("manuscript", { ...base, sectionCount: 3 });
+describe("diagnoseExampleProject (158-159: the two reachable states)", () => {
+  it("158: sections present → auto-select (cause says a manuscript is present, next = auto-selected)", () => {
+    const d = diagnoseExampleProject("manuscript", { sectionCount: 3 });
     expect(d.state).toBe("auto-select");
     expect(d.cause).toContain("manuscript");
     expect(d.cause).toContain("present");
     expect(d.nextAction).toMatch(/selected automatically/i);
   });
 
-  it("159: configured but zero sections + workspace initialized → no-manuscript (not a bare 'No manuscript selected')", () => {
-    const d = diagnoseExampleProject("manuscript", base); // initialized, configured, 0 sections
+  it("159: configured but zero sections → no-manuscript (never a bare 'No manuscript selected')", () => {
+    const d = diagnoseExampleProject("manuscript", { sectionCount: 0 });
     expect(d.state).toBe("no-manuscript");
     expect(d.cause).toMatch(/No manuscript is selected/i);
     expect(d.cause).toMatch(/no sections yet/i);
-    expect(d.cause).not.toMatch(/manuscript manuscript/i); // no doubled word
-    expect(d.nextAction).toMatch(/add the first manuscript section/i);
+    expect(d.cause).not.toMatch(/manuscript manuscript/i);
+    // next action points at the REAL control (verified: data-action="new-section"
+    // in the section dropdown footer opens #add-section-modal).
+    expect(d.nextAction).toMatch(/Add New Section/i);
   });
 
-  it("161: workspace not initialized → uninitialized (cause + Initialize Writer next action)", () => {
-    const d = diagnoseExampleProject("manuscript", { ...base, writerInitialized: false });
-    expect(d.state).toBe("uninitialized");
-    expect(d.cause).toMatch(/not initialized/i);
-    expect(d.nextAction).toMatch(/initialize the workspace/i);
-    expect(d.nextAction).not.toMatch(/^Next:/i); // renderer adds the single "Next:" label
-  });
-
-  it("161: doc type not enabled → not-enabled (enable-doc-type next action)", () => {
-    const d = diagnoseExampleProject("supplementary", { ...base, docTypeConfigured: false });
-    expect(d.state).toBe("not-enabled");
+  it("respects a non-manuscript docType in the message", () => {
+    const d = diagnoseExampleProject("supplementary", { sectionCount: 0 });
+    expect(d.state).toBe("no-manuscript");
     expect(d.cause).toContain("supplementary");
-    expect(d.cause).toMatch(/not enabled/i);
-    expect(d.nextAction).toMatch(/enable the supplementary document type/i);
-    expect(d.nextAction).not.toMatch(/^Next:/i);
   });
 
-  it("priority: auto-select wins when sections exist even if uninitialized", () => {
-    const d = diagnoseExampleProject("manuscript", { ...base, sectionCount: 2, writerInitialized: false });
-    expect(d.state).toBe("auto-select");
+  it("defaults to manuscript when docType omitted", () => {
+    const d = diagnoseExampleProject("", { sectionCount: 0 });
+    expect(d.cause).not.toContain("this document type this document type");
+  });
+});
+
+describe("diagnoseExampleProject — only the two reachable states are produced", () => {
+  it("never returns an unreachable state (uninitialized / not-enabled)", () => {
+    // The reviewer flagged that a 4-state model claimed unreachable states.
+    // For every combination the live code can pass in, only the two real states
+    // may come back.
+    for (const count of [0, 1, 5]) {
+      const d = diagnoseExampleProject("manuscript", { sectionCount: count });
+      expect(["auto-select", "no-manuscript"]).toContain(d.state);
+    }
   });
 
-  it("priority: uninitialized wins over no-manuscript (no structure yet beats configured-but-empty)", () => {
-    const d = diagnoseExampleProject("manuscript", { ...base, writerInitialized: false });
-    expect(d.state).toBe("uninitialized");
-  });
-
-  it("always returns a non-empty cause AND next action for every state", () => {
-    const cases: Array<[string, typeof base]> = [
-      ["manuscript", { ...base, sectionCount: 1 }],
-      ["manuscript", { ...base }],
-      ["manuscript", { ...base, writerInitialized: false }],
-      ["revision", { ...base, docTypeConfigured: false }],
-    ];
-    for (const [dt, opts] of cases) {
-      const d = diagnoseExampleProject(dt, opts);
+  it("always returns a non-empty cause AND next action", () => {
+    for (const count of [0, 1]) {
+      const d = diagnoseExampleProject("manuscript", { sectionCount: count });
       expect(d.cause.length).toBeGreaterThan(0);
       expect(d.nextAction.length).toBeGreaterThan(0);
-      expect(["auto-select", "no-manuscript", "uninitialized", "not-enabled"]).toContain(d.state);
     }
   });
 });
@@ -86,21 +80,15 @@ describe("renderExampleState", () => {
   });
 
   it("auto-select renders nothing (caller proceeds to populate + select)", () => {
-    renderExampleState(container, diagnoseExampleProject("manuscript", { ...base, sectionCount: 1 }));
+    renderExampleState(container, diagnoseExampleProject("manuscript", { sectionCount: 1 }));
     expect(container.querySelector(".section-empty")).toBeNull();
   });
 
   it("no-manuscript renders the diagnosis with data-empty='no-manuscript'", () => {
-    renderExampleState(container, diagnoseExampleProject("manuscript", base));
+    renderExampleState(container, diagnoseExampleProject("manuscript", { sectionCount: 0 }));
     expect(container.querySelector('[data-empty="no-manuscript"]')).not.toBeNull();
     expect(container.textContent).toMatch(/No manuscript is selected/i);
     expect(container.textContent).toMatch(/Next:/i);
-  });
-
-  it("uninitialized renders data-empty='uninitialized' + Initialize Writer action", () => {
-    renderExampleState(container, diagnoseExampleProject("manuscript", { ...base, writerInitialized: false }));
-    expect(container.querySelector('[data-empty="uninitialized"]')).not.toBeNull();
-    expect(container.textContent).toMatch(/initialize the workspace/i);
   });
 });
 
@@ -124,7 +112,7 @@ describe("renderExampleState — hostile docType is NOT reinterpreted as HTML (C
       '"><img src=x onerror=window.XSSimg>' +
       "<script>window.XSSscript</" + "script>" +
       '<svg onload=window.XSSsvg>';
-    const diagnosis = diagnoseExampleProject(hostile, { ...base }); // → no-manuscript (configured, 0 sections)
+    const diagnosis = diagnoseExampleProject(hostile, { sectionCount: 0 }); // → no-manuscript
 
     renderExampleState(container, diagnosis);
 
@@ -144,12 +132,9 @@ describe("renderExampleState — hostile docType is NOT reinterpreted as HTML (C
   });
 
   it("nextAction payload is inert too (only the single 'Next:' label is markup)", () => {
-    // Not-enabled state embeds the label in nextAction as well.
+    // No-manuscript nextAction embeds the docType label.
     const hostile = '"><b onload=window.XSSnext>pwned';
-    const diagnosis = diagnoseExampleProject(hostile, {
-      ...base,
-      docTypeConfigured: false,
-    }); // → not-enabled
+    const diagnosis = diagnoseExampleProject(hostile, { sectionCount: 0 }); // → no-manuscript
     renderExampleState(container, diagnosis);
     expect(container.querySelector("b[onload]")).toBeNull();
     expect(container.querySelector("b")).toBeNull();
@@ -158,7 +143,7 @@ describe("renderExampleState — hostile docType is NOT reinterpreted as HTML (C
   });
 
   it("still renders the expected structure for a benign no-manuscript state", () => {
-    renderExampleState(container, diagnoseExampleProject("manuscript", base));
+    renderExampleState(container, diagnoseExampleProject("manuscript", { sectionCount: 0 }));
     expect(container.querySelector('[data-empty="no-manuscript"]')).not.toBeNull();
     expect(container.querySelector("strong")?.textContent).toBe("Next:");
   });
