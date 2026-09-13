@@ -104,3 +104,50 @@ def test_fails_loudly_with_no_pool(capsys, db):
 
     with pytest.raises(SystemExit):
         call_command("mint_visitor_session", verbosity=0)
+
+
+def test_output_file_writes_clean_resolvable_key(capsys, pooled_visitor, tmp_path):
+    """The real CI path (run ae3aad2fb): `mint_visitor_session --output <file>`
+    writes ONLY the session key to the file — no stdout pollution (the 150-char
+    corruption that broke run 34730332276 came from capturing stdout) — and the
+    file's key resolves to the pooled visitor through the configured engine. The
+    command's internal round-trip (exists + auth-field match, d6b0ba86a) already
+    ran before the file was written; re-verify here the way the server does."""
+    from apps.infra.project_app.services.visitor_pool.session_role import (
+        ROLE_VISITOR,
+        get_session_role,
+    )
+    from django.core.management import call_command
+
+    out_file = tmp_path / "screenshot_visitor_session"
+    capsys.readouterr()
+    call_command("mint_visitor_session", output=str(out_file), verbosity=0)
+
+    key = out_file.read_text().strip()
+    # Clean cookie-safe shape: non-empty alphanumeric 16-64 (accepts the 32-char
+    # cache-backend and 40-char db-backend keys; rejects the 150-char stdout
+    # value).
+    assert key and 16 <= len(key) <= 64 and key.isalnum()
+
+    store = _store_for(key)
+    assert store["_auth_user_id"] == str(pooled_visitor.pk)
+    assert _request_as(store).user.username == "visitor-001"
+    assert get_session_role(_request_as(store)) == ROLE_VISITOR
+
+
+def test_mint_refuses_when_session_not_persisted(capsys, pooled_visitor, monkeypatch):
+    """Round-trip failure mode (d6b0ba86a): if the configured engine does not
+    persist a key, the command raises RuntimeError (and never writes an output
+    file) rather than hand the capture a session the server cannot resolve."""
+    from django.conf import settings
+    from django.core.management import call_command
+
+    engine = importlib.import_module(settings.SESSION_ENGINE)
+
+    class _NoPersistStore(engine.SessionStore):
+        def create(self):  # simulate the backend failing to assign a key
+            pass
+
+    monkeypatch.setattr(engine, "SessionStore", _NoPersistStore)
+    with pytest.raises(RuntimeError, match="was not persisted"):
+        call_command("mint_visitor_session", verbosity=0)
