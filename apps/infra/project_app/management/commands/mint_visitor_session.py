@@ -66,9 +66,47 @@ def mint_visitor_session_key(days: int = 2) -> str:
     if not store.session_key:
         raise RuntimeError(
             f"Session for {visitor.username} was not persisted by the "
-            f"{settings.SESSION_ENGINE} engine — the capture would photograph "
-            "as anonymous."
+            f"{settings.SESSION_ENGINE} engine — the capture would "
+            "photograph as anonymous."
         )
+
+    # DETERMINISTIC BACKEND ROUND-TRIP (card hub-product-screenshot-visitor-
+    # regression-20260913, coordinator feedback c_77d660de9db1): before writing
+    # the key to the output file, prove the server-side read path can resolve
+    # it. A fresh SessionStore(session_key=key).load() must return the same
+    # auth id / backend / hash, and exists(key) must be True. This stays in the
+    # sync management-command process (not the async conftest) and gives the
+    # B→A feedback loop the operator requires: if the server's session engine
+    # cannot read back what we just wrote, we fail HERE, not 22 pages into the
+    # capture as 'anonymous'.
+    readback = engine.SessionStore(session_key=store.session_key)
+    readback.load()
+    if not readback.exists(store.session_key):
+        raise RuntimeError(
+            f"Session key {store.session_key[:8]}… was written via "
+            f"{settings.SESSION_ENGINE} but does not round-trip: "
+            "SessionStore.exists() returned False. The running server will "
+            "not resolve this key — the capture would photograph as anonymous."
+        )
+    if readback.get("_auth_user_id") != str(visitor.pk):
+        raise RuntimeError(
+            f"Session round-trip mismatch: expected _auth_user_id="
+            f"{visitor.pk}, got {readback.get('_auth_user_id')!r}"
+        )
+    if readback.get("_auth_user_backend") != (
+        "django.contrib.auth.backends.ModelBackend"
+    ):
+        raise RuntimeError(
+            f"Session round-trip mismatch: _auth_user_backend="
+            f"{readback.get('_auth_user_backend')!r}"
+        )
+    if readback.get("_auth_user_hash") != visitor.get_session_auth_hash():
+        raise RuntimeError(
+            "Session round-trip mismatch: _auth_user_hash does not match "
+            f"visitor.get_session_auth_hash() (the user's password changed "
+            "between mint and read-back, or the hash was not persisted)"
+        )
+
     return store.session_key
 
 
