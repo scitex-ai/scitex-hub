@@ -20,7 +20,11 @@ from django.http import Http404
 from django.shortcuts import render
 from django.utils.translation import gettext as _
 
-from .pages_data import KEYBOARD_SHORTCUTS_DATA, OG_BASE_URL, VIDEO_CATALOG
+from .pages_data import (
+    OG_BASE_URL,
+    VIDEO_CATALOG,
+    translated_shortcuts_data,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -334,13 +338,15 @@ def pricing(request):
 
 def keyboard_shortcuts(request):
     """Keyboard shortcuts reference page with tabs by context and search."""
+    # Per-request, active-language data (EN msgids translated; keys/icons untouched).
+    contexts = translated_shortcuts_data()
     # Calculate total shortcuts
     total_shortcuts = sum(
-        len(s["shortcuts"]) for ctx in KEYBOARD_SHORTCUTS_DATA for s in ctx["sections"]
+        len(s["shortcuts"]) for ctx in contexts for s in ctx["sections"]
     )
 
     context = {
-        "contexts": KEYBOARD_SHORTCUTS_DATA,
+        "contexts": contexts,
         "total_shortcuts": total_shortcuts,
     }
 

@@ -7,10 +7,15 @@ Contains data definitions for video catalog.
 Re-exports keyboard shortcuts from pages_shortcuts module.
 """
 
-from .pages_shortcuts import KEYBOARD_SHORTCUTS_DATA
+from .pages_shortcuts import KEYBOARD_SHORTCUTS_DATA, translated_shortcuts_data
 
 # Re-export for backward compatibility
-__all__ = ["VIDEO_CATALOG", "KEYBOARD_SHORTCUTS_DATA", "OG_BASE_URL"]
+__all__ = [
+    "VIDEO_CATALOG",
+    "KEYBOARD_SHORTCUTS_DATA",
+    "translated_shortcuts_data",
+    "OG_BASE_URL",
+]
 
 
 # Base URL for OG images (used for absolute URLs in meta tags)

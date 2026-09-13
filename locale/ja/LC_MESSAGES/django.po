@@ -2607,3 +2607,244 @@ msgstr "API ドキュメント、SDK、GitHub でのオープンソース貢献"
 
 msgid "Explore on GitHub"
 msgstr "GitHub で見る"
+
+# Keyboard shortcuts page (keyboard_shortcuts.html + pages_shortcuts.py, 2026-09-13)
+msgid "Keyboard Shortcuts - SciTeX"
+msgstr "キーボードショートカット - SciTeX"
+
+msgid "Complete keyboard shortcuts reference for SciTeX Hub. Navigate between modules, edit figures, manage files, and more."
+msgstr "SciTeX Hub のキーボードショートカット一覧。モジュール間の移動、図の編集、ファイル管理など。"
+
+msgid "Keyboard Shortcuts"
+msgstr "キーボードショートカット"
+
+msgid "Master SciTeX with efficient keyboard navigation"
+msgstr "効率的なキーボード操作で SciTeX を使いこなそう"
+
+msgid "Search shortcuts..."
+msgstr "ショートカットを検索..."
+
+msgid "No shortcuts found matching your search."
+msgstr "検索に一致するショートカットが見つかりません。"
+
+msgid "Press Alt+/ anywhere to open the quick shortcuts modal"
+msgstr "どこでも Alt+/ を押してクイックショートカットを表示"
+
+msgid "Global"
+msgstr "グローバル"
+
+msgid "Files"
+msgstr "ファイル"
+
+msgid "Available everywhere in SciTeX"
+msgstr "SciTeX 内のどこでも使用可能"
+
+msgid "File browser"
+msgstr "ファイルブラウザ"
+
+msgid "Literature search"
+msgstr "文献検索"
+
+msgid "Figure editor"
+msgstr "図の編集"
+
+msgid "Document editor"
+msgstr "文書エディタ"
+
+msgid "Global Navigation"
+msgstr "グローバルナビゲーション"
+
+msgid "Navigation"
+msgstr "ナビゲーション"
+
+msgid "File Actions"
+msgstr "ファイル操作"
+
+msgid "Citations"
+msgstr "引用"
+
+msgid "Basic"
+msgstr "基本"
+
+msgid "Align (Alt+A → ...)"
+msgstr "整列 (Alt+A → ...)"
+
+msgid "Align by Axis (Alt+Shift+A → ...)"
+msgstr "軸で整列 (Alt+Shift+A → ...)"
+
+msgid "Size (Alt+Z → ...)"
+msgstr "サイズ (Alt+Z → ...)"
+
+msgid "Arrange"
+msgstr "配置"
+
+msgid "View"
+msgstr "表示"
+
+msgid "Group"
+msgstr "グループ化"
+
+msgid "Document"
+msgstr "文書"
+
+msgid "Insert"
+msgstr "挿入"
+
+msgid "Zen Mode"
+msgstr "Zen モード"
+
+msgid "Open item"
+msgstr "アイテムを開く"
+
+msgid "Parent folder"
+msgstr "親フォルダ"
+
+msgid "Focus search"
+msgstr "検索にフォーカス"
+
+msgid "New file"
+msgstr "新規ファイル"
+
+msgid "New folder"
+msgstr "新規フォルダ"
+
+msgid "Rename"
+msgstr "名前を変更"
+
+msgid "Delete"
+msgstr "削除"
+
+msgid "Search"
+msgstr "検索"
+
+msgid "Save to library"
+msgstr "ライブラリに保存"
+
+msgid "Copy citation"
+msgstr "引用をコピー"
+
+msgid "Copy object"
+msgstr "オブジェクトをコピー"
+
+msgid "Paste object"
+msgstr "オブジェクトを貼り付け"
+
+msgid "Duplicate"
+msgstr "複製"
+
+msgid "Undo"
+msgstr "元に戻す"
+
+msgid "Redo"
+msgstr "やり直す"
+
+msgid "Delete selected"
+msgstr "選択を削除"
+
+msgid "Move 1px"
+msgstr "1px 移動"
+
+msgid "Move 10px"
+msgstr "10px 移動"
+
+msgid "Left"
+msgstr "左"
+
+msgid "Right"
+msgstr "右"
+
+msgid "Top"
+msgstr "上"
+
+msgid "Bottom"
+msgstr "下"
+
+msgid "Distribute H (equal)"
+msgstr "水平方向 等間隔"
+
+msgid "Distribute V (equal)"
+msgstr "垂直方向 等間隔"
+
+msgid "Center horizontal"
+msgstr "水平 中央揃え"
+
+msgid "Center vertical"
+msgstr "垂直 中央揃え"
+
+msgid "Y-Axis (Left edge)"
+msgstr "Y 軸 (左端)"
+
+msgid "Right edge"
+msgstr "右端"
+
+msgid "Top edge"
+msgstr "上端"
+
+msgid "X-Axis (Bottom edge)"
+msgstr "X 軸 (下端)"
+
+msgid "Horizontal center"
+msgstr "水平 中央"
+
+msgid "Vertical center"
+msgstr "垂直 中央"
+
+msgid "Stack vertically"
+msgstr "垂直にスタック"
+
+msgid "Match Size"
+msgstr "サイズに合わせる"
+
+msgid "Match Width"
+msgstr "幅に合わせる"
+
+msgid "Match Height (Tall)"
+msgstr "高さに合わせる"
+
+msgid "Multiple Crop"
+msgstr "複数クロップ"
+
+msgid "Bring to Front"
+msgstr "最前面へ"
+
+msgid "Send to Back"
+msgstr "最背面へ"
+
+msgid "Zoom in"
+msgstr "拡大"
+
+msgid "Zoom out"
+msgstr "縮小"
+
+msgid "Fit to window"
+msgstr "ウィンドウに合わせる"
+
+msgid "Toggle grid"
+msgstr "グリッドの切替"
+
+msgid "Toggle theme"
+msgstr "テーマの切替"
+
+msgid "Ungroup"
+msgstr "グループ解除"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Bold"
+msgstr "太字"
+
+msgid "Italic"
+msgstr "斜体"
+
+msgid "Insert link"
+msgstr "リンクを挿入"
+
+msgid "Citation"
+msgstr "引用"
+
+msgid "Equation"
+msgstr "数式"
+
+msgid "Figure"
+msgstr "図"

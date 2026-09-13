@@ -1,9 +1,9 @@
 {% extends "global_base.html" %}
+{% load i18n %}
 
-{% block title %}Keyboard Shortcuts - SciTeX{% endblock %}
+{% block title %}{% trans "Keyboard Shortcuts - SciTeX" %}{% endblock %}
 {% block meta_description %}
-    Complete keyboard shortcuts reference for SciTeX Hub.
-    Navigate between modules, edit figures, manage files, and more.
+    {% trans "Complete keyboard shortcuts reference for SciTeX Hub. Navigate between modules, edit figures, manage files, and more." %}
 {% endblock %}
 {% block extra_css %}
     {% load static %}
@@ -303,14 +303,14 @@
             <div class="shortcuts-header">
                 <h1>
                     <i class="fas fa-keyboard"></i>
-                    Keyboard Shortcuts
+                    {% trans "Keyboard Shortcuts" %}
                 </h1>
-                <p>Master SciTeX with efficient keyboard navigation</p>
+                <p>{% trans "Master SciTeX with efficient keyboard navigation" %}</p>
             </div>
             <!-- Search -->
             <div class="shortcuts-search">
                 <i class="fas fa-search search-icon"></i>
-                <input type="text" id="searchInput" placeholder="Search shortcuts..." />
+                <input type="text" id="searchInput" placeholder="{% trans 'Search shortcuts...' %}" />
                 <span class="search-hint">Ctrl+K</span>
             </div>
             <!-- Tab Navigation -->
@@ -355,11 +355,11 @@
             <!-- No Results -->
             <div class="no-results" id="noResults">
                 <i class="fas fa-search"></i>
-                <p>No shortcuts found matching your search.</p>
+                <p>{% trans "No shortcuts found matching your search." %}</p>
             </div>
             <div class="shortcuts-footer">
                 <p>
-                    Press <kbd>Alt+/</kbd> anywhere to open the quick shortcuts modal
+                    {% blocktrans %}Press <kbd>Alt+/</kbd> anywhere to open the quick shortcuts modal{% endblocktrans %}
                 </p>
             </div>
         </div>
