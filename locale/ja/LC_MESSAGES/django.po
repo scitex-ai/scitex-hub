@@ -2418,3 +2418,192 @@ msgstr "「クッキーとサイトの権限」をクリック"
 
 msgid "Click \"Manage and delete cookies and site data\""
 msgstr "「クッキーとサイトデータの管理と削除」をクリック"
+
+msgid "Marketplace Terms - SciTeX"
+msgstr "マーケットプレイス利用規約 - SciTeX"
+
+msgid "Marketplace Submission Terms"
+msgstr "マーケットプレイス提出規約"
+
+msgid "Last updated: February 2026"
+msgstr "最終更新: 2026 年 2 月"
+
+msgid "1. Submission Requirements"
+msgstr "1. 提出要件"
+
+msgid "By submitting an app to the SciTeX Marketplace, you agree to the following:"
+msgstr "SciTeX マーケットプレイスにアプリを提出することで、あなたは次の事項に同意します:"
+
+msgid "Your app does not contain malicious code, backdoors, or security vulnerabilities."
+msgstr "アプリには、悪意あるコード、バックドア、セキュリティの脆弱性を含んでいないこと。"
+
+msgid "Your app includes a valid"
+msgstr "アプリに有効な"
+
+msgid "file with a recognized open-source license (AGPL-3.0, MIT, Apache-2.0, or BSD-3-Clause)."
+msgstr "ファイルが含まれており、認識されたオープンソースライセンス (AGPL-3.0, MIT, Apache-2.0, または BSD-3-Clause) を有すること。"
+
+msgid "Your app includes a"
+msgstr "アプリに"
+
+msgid "with a clear description of its functionality."
+msgstr "が、機能の明確な説明とともに含まれていること。"
+
+msgid "Your app passes the automated validation checks (structure, security scan)."
+msgstr "アプリが自動検証チェック（構造、セキュリティスキャン）をパスすること。"
+
+msgid "You have the right to distribute the code under the chosen license."
+msgstr "選択したライセンスの下でコードを配布する権利を有すること。"
+
+msgid "2. Code of Conduct"
+msgstr "2. 行動規範"
+
+msgid "App authors must adhere to the following standards:"
+msgstr "アプリの著者は、次の基準を遵守する必要があります:"
+
+msgid "No harmful content:"
+msgstr "有害なコンテンツの禁止:"
+
+msgid "Apps must not contain hate speech, harassment, or content that promotes violence."
+msgstr "アプリには、ヘイトスピーチ、ハラスメント、または暴力を助長するコンテンツを含めてはなりません。"
+
+msgid "No data exfiltration:"
+msgstr "データの流出の禁止:"
+
+msgid "Apps must not collect, transmit, or store user data without explicit consent and clear documentation."
+msgstr "アプリは、明示的な同意と明確なドキュメントなしに、ユーザーデータを収集・送信・保存してはなりません。"
+
+msgid "No resource abuse:"
+msgstr "リソースの乱用の禁止:"
+
+msgid "Apps must not intentionally consume excessive CPU, memory, or network resources."
+msgstr "アプリは、意図的に過剰な CPU、メモリ、またはネットワークリソースを消費してはなりません。"
+
+msgid "Transparency:"
+msgstr "透明性:"
+
+msgid "Apps must clearly document what they do, including any external API calls or network activity."
+msgstr "アプリは、外部 API 呼び出しやネットワークアクティビティを含む、何をすることを明確にドキュメント化する必要があります。"
+
+msgid "Respect for users:"
+msgstr "ユーザーへの配慮:"
+
+msgid "Apps must not interfere with other installed modules or degrade the user experience."
+msgstr "アプリは、他のインストールされたモジュールを妨げたり、ユーザー体験を低下させたりしてはなりません。"
+
+msgid "3. Review Process"
+msgstr "3. レビュープロセス"
+
+msgid "All submissions are reviewed by the SciTeX team before publication:"
+msgstr "すべての提出は、公開前に SciTeX チームによってレビューされます:"
+
+msgid "Automated security scanning for dangerous patterns."
+msgstr "危険なパターンに対する自動セキュリティスキャン。"
+
+msgid "Manual review of code structure and functionality."
+msgstr "コード構造と機能の手動レビュー。"
+
+msgid "Validation of license compliance."
+msgstr "ライセンス準拠性の検証。"
+
+msgid "Review typically completes within 3-5 business days."
+msgstr "レビューは通常 3〜5 営業日以内に完了します。"
+
+msgid "Submissions may be rejected with feedback. Authors may address issues and resubmit."
+msgstr "提出はフィードバックを伴って却下される場合があります。著者は問題に対処して再提出できます。"
+
+msgid "4. Takedown Policy"
+msgstr "4. 削除ポリシー"
+
+msgid "SciTeX reserves the right to remove any published app for the following reasons:"
+msgstr "SciTeX は、次の理由により、公開されたアプリを削除する権利を留保します:"
+
+msgid "Security vulnerability discovered after publication."
+msgstr "公開後に発見されたセキュリティの脆弱性。"
+
+msgid "Violation of these terms or the code of conduct."
+msgstr "これらの規約または行動規範の違反。"
+
+msgid "Valid DMCA or intellectual property complaint."
+msgstr "正当な DMCA または知的財産権の苦情。"
+
+msgid "App becomes abandoned and poses a security risk."
+msgstr "アプリが放棄され、セキュリティ上のリスクを及ぼす場合。"
+
+msgid "Authors will be notified via email before takedown when possible, with an opportunity to address the issue."
+msgstr "可能であれば、削除前に著者にメールで通知し、問題に対処する機会を与えます。"
+
+msgid "5. Licensing"
+msgstr "5. ライセンス"
+
+msgid "See"
+msgstr "詳細は"
+
+msgid "SciTeX App Maker License Exception"
+msgstr "SciTeX App Maker License Exception"
+
+msgid "for details on the three-tier licensing model. Apps using the SciTeX workspace API are not derivative works of the AGPL-licensed core."
+msgstr "3 層のライセンスモデルの詳細を参照してください。SciTeX ワークスペース API を使用するアプリは、AGPL ライセンスのコアに派生作品ではありません。"
+
+msgid "6. Changes to Terms"
+msgstr "6. 規約の変更"
+
+msgid "These terms may be updated from time to time. Continued use of the marketplace after changes constitutes acceptance of the updated terms."
+msgstr "これらの規約は、時折更新される場合があります。変更後のマーケットプレイスの継続利用は、更新された規約の受諾を意味します。"
+
+msgid "How can we help?"
+msgstr "お手伝いできることはありますか？"
+
+msgid "Sales & Demos"
+msgstr "販売とデモ"
+
+msgid "Talk to sales"
+msgstr "営業に話す"
+
+msgid "Help & Support"
+msgstr "ヘルプとサポート"
+
+msgid "Contact support"
+msgstr "サポートに問い合わせる"
+
+msgid "General Contact"
+msgstr "一般のお問い合わせ"
+
+msgid "Send us an email"
+msgstr "メールを送る"
+
+msgid "More Resources"
+msgstr "その他のリソース"
+
+msgid "Join our Community"
+msgstr "コミュニティに参加"
+
+msgid "Join Slack community"
+msgstr "Slack コミュニティに参加"
+
+msgid "Email Us Directly"
+msgstr "直接メールする"
+
+msgid "Prefer email? Send us a message at hello@scitex.ai"
+msgstr "メールを好みますか？ hello@scitex.ai までメッセージをお送りください。"
+
+msgid "Send an email"
+msgstr "メールを送信"
+
+msgid "Browse Documentation"
+msgstr "ドキュメントを見る"
+
+msgid "Find feature overviews, guides, and tutorials for all SciTeX tools"
+msgstr "すべての SciTeX ツールの機能概要、ガイド、チュートリアルを探す"
+
+msgid "View documentation"
+msgstr "ドキュメントを見る"
+
+msgid "Developer Resources"
+msgstr "開発者向けリソース"
+
+msgid "API documentation, SDKs, and open-source contributions on GitHub"
+msgstr "API ドキュメント、SDK、GitHub でのオープンソース貢献"
+
+msgid "Explore on GitHub"
+msgstr "GitHub で見る"

@@ -1,6 +1,7 @@
 {% extends "global_base.html" %}
 
 {% load static %}
+{% load i18n %}
 
 {% block title %}
     Contact —
@@ -290,7 +291,7 @@
 {% block content %}
     <div class="demos-container">
         <header class="minimal-hero">
-            <h1 class="minimal-hero-title">How can we help?</h1>
+            <h1 class="minimal-hero-title">{% trans "How can we help?" %}</h1>
             <p class="minimal-hero-subtitle">
                 Get in touch with our team for demos, technical support, or product
                 questions.
@@ -304,13 +305,13 @@
             <div class="contact-card-icon">
                 <i class="fas fa-users"></i>
             </div>
-            <h3>Sales & Demos</h3>
+            <h3>{% trans "Sales & Demos" %}</h3>
             <p>
                 Explore institutional plans, request a demo, or discuss enterprise
                 solutions for your research team.
             </p>
             <a href="mailto:sales@scitex.ai" class="contact-card-btn">
-                Talk to sales <i class="fas fa-arrow-right"></i>
+                {% trans "Talk to sales" %} <i class="fas fa-arrow-right"></i>
             </a>
         </div>
         <!-- Help & Support -->
@@ -318,13 +319,13 @@
             <div class="contact-card-icon">
                 <i class="fas fa-headset"></i>
             </div>
-            <h3>Help & Support</h3>
+            <h3>{% trans "Help & Support" %}</h3>
             <p>
                 Ask product questions, report problems, or share feedback to help us
                 improve.
             </p>
             <a href="mailto:{{ CONTACT_EMAIL }}" class="contact-card-btn">
-                Contact support <i class="fas fa-arrow-right"></i>
+                {% trans "Contact support" %} <i class="fas fa-arrow-right"></i>
             </a>
         </div>
         <!-- General Inquiries -->
@@ -332,13 +333,13 @@
             <div class="contact-card-icon">
                 <i class="fas fa-comments"></i>
             </div>
-            <h3>General Contact</h3>
+            <h3>{% trans "General Contact" %}</h3>
             <p>
                 Questions about partnerships, media inquiries, or anything else? We'd love
                 to hear from you.
             </p>
             <a href="mailto:hello@scitex.ai" class="contact-card-btn">
-                Send us an email <i class="fas fa-arrow-right"></i>
+                {% trans "Send us an email" %} <i class="fas fa-arrow-right"></i>
             </a>
         </div>
     </div>
@@ -387,12 +388,12 @@
     </div>
     <!-- Additional Resources -->
     <div class="contact-resources">
-        <h2 class="resources-title">More Resources</h2>
+        <h2 class="resources-title">{% trans "More Resources" %}</h2>
         <div class="resources-grid">
             <!-- Community -->
             <div class="resource-item">
                 <h4>
-                    <i class="fab fa-slack" style="margin-right: 0.5rem; color: var(--_scitex-04)"></i>Join our Community
+                    <i class="fab fa-slack" style="margin-right: 0.5rem; color: var(--_scitex-04)"></i>{% trans "Join our Community" %}
                 </h4>
                 <p>
                     Connect with researchers worldwide and share knowledge in our Slack
@@ -400,37 +401,37 @@
                 </p>
                 <a href="https://join.slack.com/t/scitex-ai/shared_invite/zt-2zbwx67n3-L6aaBdGKPMYZbBxl6yjXRA"
                    target="_blank">
-                    Join Slack community <i class="fas fa-external-link-alt"></i>
+                    {% trans "Join Slack community" %} <i class="fas fa-external-link-alt"></i>
                 </a>
             </div>
             <!-- Email -->
             <div class="resource-item">
                 <h4>
-                    <i class="fas fa-envelope" style="margin-right: 0.5rem; color: var(--_scitex-04)"></i>Email Us Directly
+                    <i class="fas fa-envelope" style="margin-right: 0.5rem; color: var(--_scitex-04)"></i>{% trans "Email Us Directly" %}
                 </h4>
-                <p>Prefer email? Send us a message at hello@scitex.ai</p>
+                <p>{% trans "Prefer email? Send us a message at hello@scitex.ai" %}</p>
                 <a href="mailto:hello@scitex.ai">
-                    Send an email <i class="fas fa-arrow-right"></i>
+                    {% trans "Send an email" %} <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
             <!-- Documentation -->
             <div class="resource-item">
                 <h4>
-                    <i class="fas fa-book" style="margin-right: 0.5rem; color: var(--_scitex-04)"></i>Browse Documentation
+                    <i class="fas fa-book" style="margin-right: 0.5rem; color: var(--_scitex-04)"></i>{% trans "Browse Documentation" %}
                 </h4>
-                <p>Find feature overviews, guides, and tutorials for all SciTeX tools</p>
+                <p>{% trans "Find feature overviews, guides, and tutorials for all SciTeX tools" %}</p>
                 <a href="{% url 'docs_app:index' %}">
-                    View documentation <i class="fas fa-arrow-right"></i>
+                    {% trans "View documentation" %} <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
             <!-- Developer Resources -->
             <div class="resource-item">
                 <h4>
-                    <i class="fab fa-github" style="margin-right: 0.5rem; color: var(--_scitex-04)"></i>Developer Resources
+                    <i class="fab fa-github" style="margin-right: 0.5rem; color: var(--_scitex-04)"></i>{% trans "Developer Resources" %}
                 </h4>
-                <p>API documentation, SDKs, and open-source contributions on GitHub</p>
+                <p>{% trans "API documentation, SDKs, and open-source contributions on GitHub" %}</p>
                 <a href="https://github.com/SciTeX-AI" target="_blank">
-                    Explore on GitHub <i class="fas fa-external-link-alt"></i>
+                    {% trans "Explore on GitHub" %} <i class="fas fa-external-link-alt"></i>
                 </a>
             </div>
         </div>
