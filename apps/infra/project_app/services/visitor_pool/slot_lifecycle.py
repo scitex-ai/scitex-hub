@@ -224,21 +224,32 @@ def reset_and_verify_slot(
         quarantine_slot(allocation, f"reset failed: {exc}")
         return False
 
-    allocation.refresh_from_db()
-    allocation.quarantined = False
-    allocation.quarantined_at = None
-    allocation.quarantine_reason = ""
-    allocation.is_active = False
-    allocation.workspace_ready = True
-    allocation.save(
-        update_fields=[
-            "quarantined",
-            "quarantined_at",
-            "quarantine_reason",
-            "is_active",
-            "workspace_ready",
-        ]
-    )
+    # Return the slot to the pool ATOMICALLY. Wrap the read-modify-write in a
+    # transaction and take the row lock (select_for_update) so a concurrent
+    # allocator / releaser / reconcile cannot interleave with this flip and
+    # leave (workspace_ready, quarantined) in a torn state. This is the same
+    # lock the allocation path already uses (pool_manager's
+    # select_for_update(skip_locked=True)); the reset/verify path previously
+    # omitted it, making it the one write in the pipeline without the guard.
+    with transaction.atomic():
+        locked = (
+            VisitorAllocation.objects.select_for_update().get(pk=allocation.pk)
+        )
+        locked.quarantined = False
+        locked.quarantined_at = None
+        locked.quarantine_reason = ""
+        locked.is_active = False
+        locked.workspace_ready = True
+        locked.save(
+            update_fields=[
+                "quarantined",
+                "quarantined_at",
+                "quarantine_reason",
+                "is_active",
+                "workspace_ready",
+            ]
+        )
+        allocation = locked
     logger.info(
         f"[VisitorPool] Slot visitor-{allocation.visitor_number:03d} verified "
         f"clean and returned to pool"
