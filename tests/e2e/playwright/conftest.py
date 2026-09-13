@@ -528,60 +528,42 @@ def pooled_visitor_context(browser, pw_base_url):
     The visitor session is bound EXPLICITLY, not by auto-login. The
     visitor-retirement merge (#764) removed VisitorAutoLoginMiddleware, which
     used to pool an anonymous browser into a writable visitor slot. Instead the
-    conftest MINTS the session in-process (apps.infra.project_app...
-    .mint_visitor_session_key) — the same Django process, same DB, same
-    SCITEX_HUB_REDIS_URL as the server, so the session lands in the store the
-    server reads (CI runs Redis; settings_dev falls back to db when it does
-    not) — then injects the resulting 40-char key as the sessionid cookie, so
-    every page renders as data-session-role='visitor'.
+    WORKFLOW's sync server step mints a logged-in session for a pooled visitor
+    (`manage.py mint_visitor_session --output <file>` — sync, has the DB + the
+    pool + the same SCITEX_HUB_REDIS_URL as the server) and the capture step
+    passes its key as SCITEX_SCREENSHOT_SESSION. THIS fixture reads that key
+    (no DB query here — the capture process is async/Channels, so a DB call
+    would raise SynchronousOnlyOperation) and injects it as the sessionid
+    cookie, so every page renders as data-session-role='visitor'.
 
-    Why in-process, not a `manage.py mint_visitor_session` step feeding a file/
-    env var (run 34730332276 root cause): a management command's stdout also
-    carries settings-import-time prints (the Redis-fallback warning), so
-    capturing it as the key produced a 150-char value the server could not
-    resolve — the warm-up still read 'anonymous'. Minting here keeps the key a
-    clean 40-char in-memory string with no cross-process boundary.
+    Why a FILE, not stdout (run 34730332276 root cause): a management
+    command's stdout also carries settings-import-time prints (the
+    Redis-fallback warning), so capturing stdout as the key produced a 150-char
+    value the server could not resolve. `--output` writes the clean 40-char key
+    straight to a file.
 
     REQUIRED_ROLE stays 'visitor' — the warm-up assertion is unchanged (card
     hub-product-screenshot-visitor-regression-20260913).
     """
     import hashlib
+    import os
 
     from django.conf import settings
 
-    from apps.infra.project_app.management.commands.mint_visitor_session import (
-        mint_visitor_session_key,
+    visitor_key = os.getenv("SCITEX_SCREENSHOT_SESSION", "").strip()
+    _key_sha = (
+        hashlib.sha256(visitor_key.encode()).hexdigest()[:12]
+        if visitor_key
+        else "-"
     )
-
-    # Mint + VERIFY the session in-process before the browser sees it: a
-    # key that does not round-trip to the visitor here would photograph as
-    # anonymous on the server, so fail now with the exact mismatch.
-    visitor_key = mint_visitor_session_key()
-    import importlib as _il
-
-    from django.contrib.auth.middleware import AuthenticationMiddleware
-    from django.test import RequestFactory
-
-    from apps.infra.project_app.services.visitor_pool.session_role import (
-        ROLE_VISITOR,
-        get_session_role,
-    )
-
-    _store = _il.import_module(settings.SESSION_ENGINE).SessionStore(
-        session_key=visitor_key
-    )
-    _store.load()
-    _probe = RequestFactory().get("/")
-    _probe.session = _store
-    AuthenticationMiddleware(lambda r: None).process_request(_probe)
-    _probe_role = get_session_role(_probe)
-    _key_sha = hashlib.sha256(visitor_key.encode()).hexdigest()[:12]
-    if _probe_role != ROLE_VISITOR:
+    if not visitor_key or len(visitor_key) != 40:
         raise RuntimeError(
-            "minted visitor session does not round-trip to role 'visitor' "
-            f"(got {_probe_role!r}, engine={settings.SESSION_ENGINE}, "
-            f"key len={len(visitor_key)}, sha[:12]={_key_sha}); refusing to "
-            "photograph as anonymous"
+            "SCITEX_SCREENSHOT_SESSION is missing or not a 40-char session key "
+            f"(len={len(visitor_key)}, sha256[:12]={_key_sha}). The capture "
+            "cannot bind to a pooled visitor and would photograph as "
+            "anonymous. The workflow's server step must run "
+            "`manage.py mint_visitor_session --output <file>` and the capture "
+            "step must export its contents as SCITEX_SCREENSHOT_SESSION."
         )
 
     context = browser.new_context(

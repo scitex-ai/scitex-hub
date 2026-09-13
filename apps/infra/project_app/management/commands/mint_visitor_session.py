@@ -75,11 +75,28 @@ def mint_visitor_session_key(days: int = 2) -> str:
 class Command(BaseCommand):
     help = (
         "Mint a logged-in session for the first pooled visitor (visitor-NNN) "
-        "and print its session key, for the Product Screenshots capture."
+        "and write its session key, for the Product Screenshots capture."
     )
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--output",
+            default="",
+            help=(
+                "Write the session key to this file (one line) instead of "
+                "stdout. PREFERRED for the CI workflow: a management command's "
+                "stdout also carries settings-import-time prints, so capturing "
+                "stdout as the key corrupts it (run 34730332276, len=150). "
+                "Writing the key straight to a file has no such boundary."
+            ),
+        )
+
     def handle(self, *args, **options):
-        # stdout = the session key and nothing else (manual-use path; the
-        # conftest calls mint_visitor_session_key directly and never parses
-        # this).
-        print(mint_visitor_session_key())
+        key = mint_visitor_session_key()
+        if options["output"]:
+            with open(options["output"], "w", encoding="utf-8") as fh:
+                fh.write(key + "\n")
+            self.stdout.write(f"wrote visitor session key to {options['output']}")
+        else:
+            # Manual-use path: stdout = the key and nothing else.
+            print(key)
