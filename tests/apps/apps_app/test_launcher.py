@@ -87,34 +87,40 @@ class LauncherHomeTest(TestCase):
         # Assert
         assert expected_names <= tile_names
 
-    def test_every_internal_module_is_hidden_from_non_staff_and_shown_to_staff(self):
-        """THE OTHER DIRECTION — which a one-sided relaxation would not catch.
+    def test_internal_modules_gate_on_the_release_channel_not_staff(self):
+        """Internal modules tile for staff and for non-staff on the dev channel,
+        and are hidden from non-staff on the prod channel — the RELEASE-CHANNEL
+        gate, not an admin-role gate.
 
-        Correcting the premise above could equally be satisfied by a launcher that
-        tiles NOTHING, so this asserts the gate itself, BOTH ways, for EVERY
-        internal module — not just whichever one happens to sort first. A single
-        sampled module would let the next internal app regress unnoticed.
+        THE PREMISE THIS TEST USED TO ASSERT WAS OVERTURNED. It previously
+        required internal modules (todo, storage) to be hidden from EVERY
+        non-staff user. Card hub-cards-internal-entitlement-20260913
+        (operator ruling 2026-09-13) redefined "internal" as a
+        SCITEX_HUB_INTERNAL_APPS_RELEASED channel property, not a staff
+        property: on the development deployment every authenticated team member
+        sees internal apps. Commit 2ae414e53 shipped the gate change but did not
+        update this test, so it red-lined against its own old premise.
 
-        ``todo`` is PINNED by name, because it is the module this whole failure was
-        reported for: if its classification ever changes, this test must be
-        updated DELIBERATELY rather than silently stop covering the original
-        defect.
+        The pure predicate (can_view_internal_app) is already covered
+        dedicatedly and non-DB-gated in
+        tests/apps/apps_app/test_internal_app_channel.py. This launcher test
+        asserts the CHANNEL behaviour end-to-end through the real view — both
+        ways, for EVERY internal module — so a one-sided relaxation (tile
+        nothing, or tile internal for non-staff on prod) is still caught.
         """
-        # Arrange
         from apps.infra.workspace_app.registry import get_all_modules
 
         modules = {m.name: m for m in get_all_modules()}
         todo = modules.get("todo")
         if todo is None:
-            # The todo manifest loads only when its package is importable on this
-            # host; skipping is honest, passing vacuously is not.
+            # The todo manifest loads only when its package is importable on
+            # this host; skipping is honest, passing vacuously is not.
             self.skipTest("the todo module is not registered on this host")
 
         assert todo.visibility == "internal", (
-            "the 'todo' module must be classified INTERNAL — that classification "
-            "is exactly what hides it from non-staff users, and it is the "
-            "behaviour this regression was reported for. If the classification "
-            "changed on purpose, update this test deliberately."
+            "the 'todo' module must be classified INTERNAL — that is the gate's "
+            "input (the release channel decides who sees it). If the "
+            "classification changed on purpose, update this test deliberately."
         )
 
         internal = sorted(
@@ -124,25 +130,45 @@ class LauncherHomeTest(TestCase):
         )
         assert "todo" in internal, "todo is internal but not launcher-visible"
 
-        # Act / Assert — non-staff: EVERY internal module is absent.
-        non_staff_tiles = {t["name"] for t in self.client.get("/").context["tiles"]}
+        # self.user is a regular (non-staff) account, already logged in.
+
+        # PRODUCTION CHANNEL (release flag off): non-staff sees NO internal
+        # module — the original staff-gate behaviour, now driven by the flag.
+        with self.settings(SCITEX_HUB_INTERNAL_APPS_RELEASED=False):
+            non_staff_prod = {
+                t["name"] for t in self.client.get("/").context["tiles"]
+            }
         for name in internal:
-            assert name not in non_staff_tiles, (
-                f"{name!r} is internal and must not tile for a non-staff user"
+            assert name not in non_staff_prod, (
+                f"{name!r} is internal but must NOT tile for a non-staff user "
+                "when the release channel is off (prod)"
             )
 
-        # Act / Assert — staff: EVERY internal module is present.
+        # DEV CHANNEL (release flag on): non-staff sees EVERY internal module —
+        # the operator's dev-deployment contract.
+        with self.settings(SCITEX_HUB_INTERNAL_APPS_RELEASED=True):
+            non_staff_dev = {
+                t["name"] for t in self.client.get("/").context["tiles"]
+            }
+        for name in internal:
+            assert name in non_staff_dev, (
+                f"{name!r} is internal and the dev channel is ON, so it MUST "
+                "tile for an authenticated non-staff team member"
+            )
+
+        # STAFF sees internal modules regardless of the channel (operators).
         staff_user = User.objects.create_user(
             username="launcher-staff",
             password="TestPass123!",  # pragma: allowlist secret
             is_staff=True,
         )
         self.client.force_login(staff_user)
-        staff_tiles = {t["name"] for t in self.client.get("/").context["tiles"]}
+        with self.settings(SCITEX_HUB_INTERNAL_APPS_RELEASED=False):
+            staff_tiles = {t["name"] for t in self.client.get("/").context["tiles"]}
         for name in internal:
             assert name in staff_tiles, (
-                f"{name!r} is internal but must still tile for STAFF — its absence "
-                "for a regular user is a gate, not a missing feature"
+                f"{name!r} is internal but must still tile for STAFF even when "
+                "the release channel is off"
             )
 
     def test_clew_is_not_a_launcher_tile(self):
