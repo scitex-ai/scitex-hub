@@ -65,13 +65,15 @@
                         <rect x="27" y="16" width="2" height="4" rx="1" fill="white" />
                     </svg>
                 </button>
-                {# App Launcher (compass L624) — the scitex-ui AppLauncher
-                     component. The app list + visibility come from the
-                     header_app_launcher context processor (same gate as the
-                     workspace launcher grid: can_view_internal_app release-
-                     channel + show_in_launcher + availability). The component
-                     owns the pattern; navigation is wired below to the app's
-                     own URL. #}
+                {% comment %}
+                App Launcher (compass L624) — the scitex-ui AppLauncher
+                component. The app list + visibility come from the
+                header_app_launcher context processor (same gate as the
+                workspace launcher grid: can_view_internal_app release-
+                channel + show_in_launcher + availability). The component
+                owns the pattern; navigation is wired below to the app's
+                own URL.
+                {% endcomment %}
                 <div id="global-apps"></div>
                 <link rel="stylesheet"
                       href="{% static 'scitex_ui/css/app/app-launcher.css' %}" />
