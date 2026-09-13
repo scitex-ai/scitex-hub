@@ -153,12 +153,13 @@ export async function populateSectionDropdownDirect(
         docTypeConfigured,
         writerInitialized: cfg.writerInitialized,
       });
-      selectorText.textContent =
-        diagnosis.state === "no-manuscript"
-          ? "No manuscript selected"
-          : diagnosis.state === "uninitialized"
-            ? "Workspace not initialized"
-            : "No sections found";
+      // The collapsed toggle label stays a single neutral string. The
+      // state-specific CAUSE + next action live in the diagnosis panel that
+      // renderExampleState paints below — NOT re-spelled in the label. (Item 159
+      // forbids a bare "No manuscript selected"; the review flagged that exact
+      // copy here. The panel already distinguishes no-manuscript / uninitialized
+      // / not-enabled without repeating it in the collapsed control.)
+      selectorText.textContent = "No sections";
       renderExampleState(dropdownContainer, diagnosis);
       return;
     }

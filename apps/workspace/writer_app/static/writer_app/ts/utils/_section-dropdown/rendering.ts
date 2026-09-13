@@ -47,6 +47,34 @@ function sectionFileName(section: any): string {
 }
 
 /**
+ * Escape a value for safe insertion into an HTML string. The section objects
+ * (label, name, path, id) come from the backend filesystem scan — the section
+ * filename is derived from a real .tex filename on disk, so it is TAINTED input,
+ * not a trusted constant. Interpolating it raw into innerHTML (as the filename
+ * hint does) is a DOM-text-reinterpreted-as-HTML sink (the same class CodeQL
+ * flagged in renderExampleState, and what the review called out for the new
+ * filename HTML). Escape it so a hostile/odd filename can't inject markup.
+ */
+function escapeHtml(text: unknown): string {
+  return String(text ?? "").replace(/[&<>"']/g, (ch) => {
+    switch (ch) {
+      case "&":
+        return "&amp;";
+      case "<":
+        return "&lt;";
+      case ">":
+        return "&gt;";
+      case '"':
+        return "&quot;";
+      case "'":
+        return "&#39;";
+      default:
+        return ch;
+    }
+  });
+}
+
+/**
  * Generate HTML for a single section item
  *
  * @param section - Section object
@@ -71,19 +99,27 @@ function renderSectionItem(
 
   const filePath = generateFilePath(section, docType);
 
+  // Escape the backend-derived (tainted) values before interpolating them into
+  // innerHTML — the filename/path/label come from a filesystem scan, so a hostile
+  // .tex filename must not be able to inject markup (see escapeHtml).
+  const escLabel = escapeHtml(sectionLabel);
+  const escFileName = escapeHtml(fileName);
+  const escFilePath = escapeHtml(filePath);
+  const escSectionId = escapeHtml(section.id);
+
   return `
         <div class="section-item ${isExcluded ? "excluded" : ""} section-item-with-actions"
-             data-section-id="${section.id}"
+             data-section-id="${escSectionId}"
              data-index="${index}"
              data-optional="${isOptional}"
              draggable="${!isCompiledPdf}"
-             title="${isCompiledPdf ? "View " + sectionLabel : "Switch to " + sectionLabel}">
+             title="${isCompiledPdf ? "View " + escLabel : "Switch to " + escLabel}">
             <span class="section-drag-handle" style="${isCompiledPdf ? "visibility: hidden;" : ""}" title="Drag to reorder">⋮⋮</span>
             ${!isCompiledPdf ? `<span class="section-page-number" style="color: var(--color-fg-muted); font-size: 0.75rem; min-width: 20px;">${index + 1}</span>` : ""}
-            <span class="section-item-name">${sectionLabel}</span>
+            <span class="section-item-name">${escLabel}</span>
             ${
               !isCompiledPdf
-                ? `<span class="section-file-hint" title="${filePath}" data-file="${fileName}">${fileName}</span>`
+                ? `<span class="section-file-hint" title="${escFilePath}" data-file="${escFileName}">${escFileName}</span>`
                 : ""
             }
             ${
@@ -100,16 +136,16 @@ function renderSectionItem(
                 ${
                   isCompiledPdf
                     ? `
-                    <button class="btn btn-xs btn-outline-secondary" data-action="compile-full" title="Compile ${sectionLabel} PDF" onclick="event.stopPropagation();">
+                    <button class="btn btn-xs btn-outline-secondary" data-action="compile-full" title="Compile ${escLabel} PDF" onclick="event.stopPropagation();">
                         <i class="fas fa-file-pdf"></i>
                     </button>
                 `
                     : ""
                 }
-                <a href="${filePath}" class="btn btn-xs btn-outline-secondary" title="Open ${fileName} in the file viewer" onclick="event.stopPropagation();" target="_blank">
+                <a href="${escFilePath}" class="btn btn-xs btn-outline-secondary" title="Open ${escFileName} in the file viewer" onclick="event.stopPropagation();" target="_blank">
                     <i class="fas fa-folder-open"></i>
                 </a>
-                <button class="btn btn-xs btn-outline-secondary" data-action="download-section" title="Download ${sectionLabel} PDF" onclick="event.stopPropagation();">
+                <button class="btn btn-xs btn-outline-secondary" data-action="download-section" title="Download ${escLabel} PDF" onclick="event.stopPropagation();">
                     <i class="fas fa-download"></i>
                 </button>
             </div>
