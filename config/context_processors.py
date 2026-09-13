@@ -370,3 +370,78 @@ def header_logo(request):
     if path.startswith("/landing"):
         return {"header_logo_href": "/", "header_logo_title": "Go to Apps Home"}
     return {"header_logo_href": "/landing/", "header_logo_title": "Go to Landing Page"}
+
+
+# App-launcher tile icons (compass L624). The scitex-ui AppLauncher component
+# renders the tile icon as TEXT (textContent), so a FontAwesome class would not
+# work; each app gets an emoji here. Any app not in this map falls back to the
+# component's own grid glyph (田), so an unknown/renamed app never breaks the
+# launcher.
+_APP_ICON = {
+    "writer": "✍️",
+    "scholar": "🎓",
+    "figrecipe": "📊",
+    "home": "📁",
+    "store": "🛒",
+    "console": "💻",
+    "storage": "🗄️",
+    "docs": "📖",
+    "discovery": "🧭",
+    "todo": "🗂️",
+    "tools": "🔧",
+    "comms": "💬",
+    "clew": "🧵",
+}
+
+
+def header_app_launcher(request):
+    """Apps offered in the global-header AppLauncher (compass L624).
+
+    The app LIST comes from the workspace module registry, gated by the EXACT
+    same visibility rules the workspace launcher grid uses (see
+    ``_build_tiles`` in ``apps/workspace/apps_app/views/launcher.py``): an
+    ``internal``-visibility app is hidden unless ``can_view_internal_app``
+    (the release-channel entitlement) passes, ``show_in_launcher`` opts a
+    module out of the grid, and a ``coming_soon`` app must not navigate. So
+    the header launcher can never leak an app the user is not entitled to —
+    the component owns the pattern only; the data + routes stay here.
+
+    Authenticated users get the launcher; anonymous users get an empty list
+    (the component renders "No apps available" and the trigger stays inert).
+    The ``current`` app is the module whose URL owns ``request.path``, so the
+    active app is highlighted on the trigger.
+    """
+    if not getattr(request, "user", None) or not request.user.is_authenticated:
+        return {"header_apps": [], "header_current_app": None}
+
+    from apps.infra.workspace_app.registry import (
+        extract_module_from_path,
+        get_all_modules,
+    )
+    from apps.workspace.apps_app.views.helpers import can_view_internal_app
+
+    can_internal = can_view_internal_app(request.user)
+    current_id = extract_module_from_path(request.path)
+
+    apps = []
+    for mod in get_all_modules():
+        # Release-channel gate (internal apps hidden unless entitled) — same
+        # as the workspace grid.
+        if not can_internal and mod.visibility == "internal":
+            continue
+        # Grid opt-out — same as the workspace grid.
+        if not mod.show_in_launcher:
+            continue
+        # A coming-soon app must not navigate (a tap is fine, navigation is not).
+        availability = getattr(mod, "availability", "") or ""
+        if availability == "coming_soon":
+            continue
+        apps.append(
+            {
+                "id": mod.name,
+                "name": mod.label or mod.name,
+                "icon": _APP_ICON.get(mod.name, ""),
+                "url": mod.get_url(),
+            }
+        )
+    return {"header_apps": apps, "header_current_app": current_id}
