@@ -206,10 +206,17 @@
 .plan-variants {
   display: grid;
   flex: 1 1 auto;
-  align-content: start;
+  align-content: stretch; /* NOT start: the variant row must fill the body so
+     .pricing-features can flex-grow and pin the CTA to the card bottom.
+     With `start` the row is content-height, the CTA floats, and two equal-
+     height cards with different feature counts land their CTAs 17px apart
+     on mobile (measured 2026-09-13, hub-mobile-pwa-visual-polish). */
 }
 .plan-variant {
   grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column; /* + .pricing-features flex-grow:1 -> CTA bottom-pinned */
+  min-height: 0;
 }
 
 .plan-variant .pricing-features {
