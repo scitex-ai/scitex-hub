@@ -30,6 +30,16 @@ from .settings_shared import *
 SCITEX_ENV = branding.ENV_DEVELOPMENT
 install_templatetag_autoreload()
 
+# Deployment contract (card hub-cards-internal-entitlement-20260913,
+# operator 2026-09-13): accounts allowed to log in to the development
+# deployment are the SciTeX team, so "internal"-visibility apps are released
+# to every authenticated user here — a release-channel decision, not an
+# is_staff/is_superuser promotion. Env-overridable to False to exercise the
+# production hiding on a dev box. (settings_shared defaults it False.)
+SCITEX_HUB_INTERNAL_APPS_RELEASED = (
+    os.getenv("SCITEX_HUB_INTERNAL_APPS_RELEASED", "true") or "true"
+).lower() in ("1", "true", "yes", "on")
+
 
 # ---------------------------------------
 # Functions

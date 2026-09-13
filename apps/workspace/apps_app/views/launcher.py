@@ -26,7 +26,7 @@ from apps.infra.workspace_app.registry import get_all_modules
 
 from ..models import AppsModule, ModuleInstallation
 from ..services.manifest_display import prettify_module_name
-from .helpers import ensure_builtin_modules
+from .helpers import can_view_internal_app, ensure_builtin_modules
 
 logger = logging.getLogger(__name__)
 
@@ -298,13 +298,15 @@ def _build_tiles(request) -> list[dict]:
     seen: set[str] = set()
 
     # 1. Workspace module registry — same source that builds the sidebar.
-    is_staff = request.user.is_authenticated and (
-        request.user.is_staff or request.user.is_superuser
-    )
+    # "internal" visibility is a RELEASE-CHANNEL gate, not an admin-role gate
+    # (card hub-cards-internal-entitlement-20260913): on a development
+    # deployment every authenticated team member sees internal apps (the
+    # channel flag), anonymous users never do; staff see them everywhere.
+    can_internal = can_view_internal_app(request.user)
     for mod in get_all_modules():
-        # Release-channel gate: internal/WIP apps are hidden from non-staff
-        # users (compass §8 L281-292, §21 L642-643). Staff see everything.
-        if not is_staff and mod.visibility == "internal":
+        # Release-channel gate: internal/WIP apps are hidden when the user is
+        # not entitled (compass §8 L281-292, §21 L642-643).
+        if not can_internal and mod.visibility == "internal":
             seen.add(mod.name)
             continue
         # Some registered modules are workspace panes / nav items, not

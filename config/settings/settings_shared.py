@@ -228,6 +228,20 @@ elif _scitex_hub_env in ("prod",):
     _scitex_hub_env = "production"
 SCITEX_UI_ELEMENT_INSPECTOR = _scitex_hub_env in ("development", "staging")
 
+# ── Internal-app release channel ────────────────────────────────────────
+# Whether "internal"-visibility apps (Cards, Storage, todo, …) are released
+# to EVERY authenticated user on this deployment — not just staff. Operator
+# ruling (card hub-cards-internal-entitlement-20260913, 2026-09-13): internal
+# is a release-channel property, not an admin-role property. Accounts allowed
+# to log in to a development deployment are the SciTeX team, so the dev
+# settings module forces this True; production keeps it False (internal apps
+# hidden unless a deployment deliberately releases them). Staff always see
+# internal apps regardless (see can_view_internal_app). Env-overridable so a
+# specific deployment can opt in without a code change.
+SCITEX_HUB_INTERNAL_APPS_RELEASED = (
+    _getenv_alias("SCITEX_HUB_INTERNAL_APPS_RELEASED", "false") or "false"
+).lower() in ("1", "true", "yes", "on")
+
 # ── On-site agent auth (HMAC shared secret) ────────────────────────────
 # Shared with the MCP client running inside the user's agent container
 # (scitex_hub._mcp_tools.api.get_on_site_env injects the same value as

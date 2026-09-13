@@ -7,6 +7,8 @@ from __future__ import annotations
 import logging
 import types
 
+from django.conf import settings
+
 from apps.infra.workspace_app.registry import get_module
 
 from ..models import (
@@ -76,6 +78,25 @@ def ensure_builtin_modules():
     except Exception:
         logger.exception("[apps] Failed to auto-seed built-in modules")
     _builtins_ensured = True
+
+
+def can_view_internal_app(user) -> bool:
+    """Whether ``user`` may see/open an ``internal``-visibility app.
+
+    Operator ruling (card hub-cards-internal-entitlement-20260913, 2026-09-13):
+    "internal" is a RELEASE-CHANNEL property, not an admin-role property. On a
+    development deployment (where every authenticated account is a SciTeX team
+    member), every authenticated user sees internal apps; anonymous users stay
+    redirected. On production, internal apps stay hidden unless the deployment
+    opts in via SCITEX_HUB_INTERNAL_APPS_RELEASED. Staff always see internal
+    apps on any deployment (operators). DEBUG is deliberately NOT the switch —
+    it is observed, not the product contract.
+    """
+    if not user.is_authenticated:
+        return False
+    if user.is_staff:
+        return True
+    return bool(getattr(settings, "SCITEX_HUB_INTERNAL_APPS_RELEASED", False))
 
 
 def can_view_module(user, app_module):
