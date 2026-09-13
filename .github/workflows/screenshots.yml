@@ -247,6 +247,20 @@ jobs:
           # of browser time on a capture that could only be wrong.
           python manage.py assert_visitor_pool_ready
 
+          # Mint a deterministic pooled-visitor session for the capture (card
+          # hub-product-screenshot-visitor-regression-20260913). #764 removed
+          # VisitorAutoLoginMiddleware, which used to auto-pool the capture's
+          # anonymous browser into a visitor slot — so the capture now
+          # photographs as 'anonymous' and fails the correct
+          # data-session-role='visitor' warm-up assertion. Instead the capture's
+          # Playwright context injects THIS session as the sessionid cookie, so
+          # every page renders as a writable pooled visitor. REQUIRED_ROLE is
+          # unchanged; nothing is weakened. Written to RUNNER_TEMP (shared with
+          # the capture step) — stdout is the session key and nothing else.
+          python manage.py mint_visitor_session \
+            > "$RUNNER_TEMP/screenshot_visitor_session.txt"
+          test -s "$RUNNER_TEMP/screenshot_visitor_session.txt"
+
           # `from_docker` is manage.py's own escape hatch, not a trick to get
           # around it: the guard at manage.py:19-23 fires on a bare
           # `runserver`, and manage.py:70-73 strips this token before Django
@@ -310,6 +324,14 @@ jobs:
           SCITEX_BASE_URL: http://127.0.0.1:8000
           DEBUG: "1"
         run: |
+          # The pooled-visitor session minted by the server step (same DB +
+          # SECRET_KEY). The Playwright capture context injects this as the
+          # sessionid cookie so every page photographs as a writable pooled
+          # visitor — REQUIRED_ROLE stays 'visitor'. (card
+          # hub-product-screenshot-visitor-regression-20260913.)
+          export SCITEX_SCREENSHOT_SESSION="$(tr -d '[:space:]' < "$RUNNER_TEMP/screenshot_visitor_session.txt")"
+          test -n "$SCITEX_SCREENSHOT_SESSION"
+
           # --browser chromium is REQUIRED, not decoration. tests/conftest.py's
           # pytest_collection_modifyitems skips everything under tests/e2e/
           # unless --browser was passed explicitly ("E2E/browser test skipped in

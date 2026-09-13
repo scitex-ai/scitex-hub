@@ -524,7 +524,21 @@ def pooled_visitor_context(browser, pw_base_url):
     failure caused entirely by the test's own shape. One context = one
     slot = one continuous visitor session, which is also what the
     screenshots should depict.
+
+    The visitor session is bound EXPLICITLY, not by auto-login. The
+    visitor-retirement merge (#764) removed VisitorAutoLoginMiddleware,
+    which used to pool an anonymous browser into a writable visitor slot.
+    Instead, the screenshots workflow mints a logged-in session for a pooled
+    visitor (manage.py mint_visitor_session, DB-backed) and passes its key
+    via SCITEX_SCREENSHOT_SESSION; we inject it as the sessionid cookie so
+    every page renders as data-session-role='visitor'. REQUIRED_ROLE stays
+    'visitor' — the warm-up assertion is unchanged (card
+    hub-product-screenshot-visitor-regression-20260913).
     """
+    import os
+
+    from django.conf import settings
+
     context = browser.new_context(
         base_url=pw_base_url,
         service_workers="block",
@@ -538,6 +552,27 @@ def pooled_visitor_context(browser, pw_base_url):
         has_touch=DESKTOP["has_touch"],
         ignore_https_errors=True,
     )
+    # Bind the context to the minted pooled-visitor session.
+    visitor_session = os.getenv("SCITEX_SCREENSHOT_SESSION", "").strip()
+    cookie_name = getattr(settings, "SESSION_COOKIE_NAME", "sessionid")
+    if visitor_session:
+        context.add_cookies(
+            [
+                {
+                    "name": cookie_name,
+                    "value": visitor_session,
+                    "url": pw_base_url,
+                }
+            ]
+        )
+    else:
+        raise RuntimeError(
+            "SCITEX_SCREENSHOT_SESSION is not set — the capture cannot be bound "
+            "to a pooled visitor. Run `manage.py mint_visitor_session` in the "
+            "server env and export its session key as SCITEX_SCREENSHOT_SESSION "
+            "before the capture. (VisitorAutoLoginMiddleware no longer auto-"
+            "pools anonymous browsers since #764.)"
+        )
     context.set_default_timeout(TIMEOUT)
     yield context
     context.close()
