@@ -247,6 +247,21 @@ jobs:
           # of browser time on a capture that could only be wrong.
           python manage.py assert_visitor_pool_ready
 
+          # Mint a deterministic pooled-visitor session for the capture (card
+          # hub-product-screenshot-visitor-regression-20260913). #764 removed
+          # VisitorAutoLoginMiddleware, which used to auto-pool the capture's
+          # anonymous browser into a visitor slot. The capture is ASYNC
+          # (Channels) so it cannot query the DB itself (SynchronousOnlyOperation);
+          # the sync server step mints here — same DB + SCITEX_HUB_REDIS_URL as
+          # the runserver below, so the session lands in the store the server
+          # reads. --output writes the clean 40-char key to a FILE: capturing
+          # this command's STDOUT as the key corrupted it (run 34730332276 —
+          # stdout also carries the settings Redis-fallback warning, so the
+          # 'key' was 150 chars). The capture step reads the file.
+          python manage.py mint_visitor_session \
+            --output "$RUNNER_TEMP/screenshot_visitor_session.txt"
+          test -s "$RUNNER_TEMP/screenshot_visitor_session.txt"
+
           # `from_docker` is manage.py's own escape hatch, not a trick to get
           # around it: the guard at manage.py:19-23 fires on a bare
           # `runserver`, and manage.py:70-73 strips this token before Django
@@ -310,6 +325,17 @@ jobs:
           SCITEX_BASE_URL: http://127.0.0.1:8000
           DEBUG: "1"
         run: |
+          # Read the pooled-visitor session key minted by the server step and
+          # export it for the conftest, which injects it as the sessionid
+          # cookie so every page photographs as a writable pooled visitor.
+          # Read from the FILE (not the mint command's stdout — stdout also
+          # carries settings-import prints; see the server-step comment). The
+          # conftest needs the same DB + SCITEX_HUB_REDIS_URL as the server,
+          # both set in this step's env above. (card
+          # hub-product-screenshot-visitor-regression-20260913.)
+          export SCITEX_SCREENSHOT_SESSION="$(cat "$RUNNER_TEMP/screenshot_visitor_session.txt")"
+          test -n "$SCITEX_SCREENSHOT_SESSION"
+
           # --browser chromium is REQUIRED, not decoration. tests/conftest.py's
           # pytest_collection_modifyitems skips everything under tests/e2e/
           # unless --browser was passed explicitly ("E2E/browser test skipped in

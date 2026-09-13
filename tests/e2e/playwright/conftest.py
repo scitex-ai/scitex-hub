@@ -524,7 +524,59 @@ def pooled_visitor_context(browser, pw_base_url):
     failure caused entirely by the test's own shape. One context = one
     slot = one continuous visitor session, which is also what the
     screenshots should depict.
+
+    The visitor session is bound EXPLICITLY, not by auto-login. The
+    visitor-retirement merge (#764) removed VisitorAutoLoginMiddleware, which
+    used to pool an anonymous browser into a writable visitor slot. Instead the
+    WORKFLOW's sync server step mints a logged-in session for a pooled visitor
+    (`manage.py mint_visitor_session --output <file>` — sync, has the DB + the
+    pool + the same SCITEX_HUB_REDIS_URL as the server) and the capture step
+    passes its key as SCITEX_SCREENSHOT_SESSION. THIS fixture reads that key
+    (no DB query here — the capture process is async/Channels, so a DB call
+    would raise SynchronousOnlyOperation) and injects it as the sessionid
+    cookie, so every page renders as data-session-role='visitor'.
+
+    Why a FILE, not stdout (run 34730332276 root cause): a management
+    command's stdout also carries settings-import-time prints (the
+    Redis-fallback warning), so capturing stdout as the key produced a 150-char
+    value the server could not resolve. `--output` writes the clean 40-char key
+    straight to a file.
+
+    REQUIRED_ROLE stays 'visitor' — the warm-up assertion is unchanged (card
+    hub-product-screenshot-visitor-regression-20260913).
     """
+    import hashlib
+    import os
+
+    from django.conf import settings
+
+    visitor_key = os.getenv("SCITEX_SCREENSHOT_SESSION", "").strip()
+    _key_sha = (
+        hashlib.sha256(visitor_key.encode()).hexdigest()[:12]
+        if visitor_key
+        else "-"
+    )
+    # Validate the key shape WITHOUT guessing an exact length (Django cache
+    # backend keys are 32 chars, db backend keys are 40 — both are valid; the
+    # previous corruption produced 150). Accept non-empty alphanumeric/hex
+    # strings of 16–64 chars: wide enough for any backend, narrow enough to
+    # reject a stdout-polluted 150-char value.
+    if (
+        not visitor_key
+        or len(visitor_key) < 16
+        or len(visitor_key) > 64
+        or not visitor_key.isalnum()
+    ):
+        raise RuntimeError(
+            f"SCITEX_SCREENSHOT_SESSION is missing or malformed "
+            f"(len={len(visitor_key)}, sha256[:12]={_key_sha}, "
+            f"alnum={visitor_key.isalnum() if visitor_key else 'n/a'}). "
+            "The capture cannot bind to a pooled visitor and would photograph "
+            "as anonymous. The workflow's server step must run "
+            "`manage.py mint_visitor_session --output <file>` and the capture "
+            "step must export its contents as SCITEX_SCREENSHOT_SESSION."
+        )
+
     context = browser.new_context(
         base_url=pw_base_url,
         service_workers="block",
@@ -537,6 +589,10 @@ def pooled_visitor_context(browser, pw_base_url):
         is_mobile=DESKTOP["is_mobile"],
         has_touch=DESKTOP["has_touch"],
         ignore_https_errors=True,
+    )
+    cookie_name = getattr(settings, "SESSION_COOKIE_NAME", "sessionid")
+    context.add_cookies(
+        [{"name": cookie_name, "value": visitor_key, "url": pw_base_url}]
     )
     context.set_default_timeout(TIMEOUT)
     yield context
@@ -563,6 +619,40 @@ def pooled_visitor_page(pooled_visitor_context):
     page.goto(VISITOR_WARMUP_ROUTE)
     wait_for_page_ready(page)
     role = page.evaluate(READ_SESSION_ROLE_JS)
+    if role != "visitor":
+        # Non-secret boundary evidence (card hub-product-screenshot-visitor-
+        # regression-20260913). The session is now minted IN-PROCESS (no env
+        # var / file), so the boundaries to name are: did the browser carry
+        # the injected sessionid cookie at the warm-up URL, and what role did
+        # the server resolve it to? Cookie value is sha'd, never printed.
+        import hashlib
+
+        try:
+            cookies = page.context.cookies(pw_base_url)
+        except Exception:
+            cookies = []
+        sess = next(
+            (c for c in cookies if c.get("name") == "sessionid"),
+            None,
+        )
+        cookie_sha = (
+            hashlib.sha256(sess["value"].encode()).hexdigest()[:12]
+            if sess and sess.get("value")
+            else "absent"
+        )
+        print(
+            "\n[pooled_visitor] WARM-UP ROLE MISMATCH — boundary evidence:\n"
+            f"  base URL              : {pw_base_url}\n"
+            f"  warm-up route         : {VISITOR_WARMUP_ROUTE}\n"
+            f"  sessionid cookie present in browser: {'yes' if sess else 'NO'} "
+            f"(len={len(sess['value']) if sess and sess.get('value') else 0}, "
+            f"sha256[:12]={cookie_sha})\n"
+            f"  rendered data-session-role: {role!r} (expected 'visitor')\n"
+            "  meaning: cookie absent => Playwright did not send it (url/"
+            "domain/path scope); cookie present but role anonymous => the "
+            "running server's session engine cannot resolve the key (mint and "
+            "server used different stores)."
+        )
     assert_pooled_visitor(role, f"visitor warm-up ({VISITOR_WARMUP_ROUTE})")
     yield page
     page.close()

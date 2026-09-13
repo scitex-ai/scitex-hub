@@ -186,6 +186,7 @@ def _is_user_profile_path(path: str) -> bool:
         # It only happened when SIGNED IN — anonymous visitors take another
         # branch and get a working footer — so every casual check looked fine.
         "tokushoho",
+        "tokushoho-en",
         "recruit",
         "services",
         "security",
