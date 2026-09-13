@@ -526,18 +526,63 @@ def pooled_visitor_context(browser, pw_base_url):
     screenshots should depict.
 
     The visitor session is bound EXPLICITLY, not by auto-login. The
-    visitor-retirement merge (#764) removed VisitorAutoLoginMiddleware,
-    which used to pool an anonymous browser into a writable visitor slot.
-    Instead, the screenshots workflow mints a logged-in session for a pooled
-    visitor (manage.py mint_visitor_session, DB-backed) and passes its key
-    via SCITEX_SCREENSHOT_SESSION; we inject it as the sessionid cookie so
-    every page renders as data-session-role='visitor'. REQUIRED_ROLE stays
-    'visitor' — the warm-up assertion is unchanged (card
+    visitor-retirement merge (#764) removed VisitorAutoLoginMiddleware, which
+    used to pool an anonymous browser into a writable visitor slot. Instead the
+    conftest MINTS the session in-process (apps.infra.project_app...
+    .mint_visitor_session_key) — the same Django process, same DB, same
+    SCITEX_HUB_REDIS_URL as the server, so the session lands in the store the
+    server reads (CI runs Redis; settings_dev falls back to db when it does
+    not) — then injects the resulting 40-char key as the sessionid cookie, so
+    every page renders as data-session-role='visitor'.
+
+    Why in-process, not a `manage.py mint_visitor_session` step feeding a file/
+    env var (run 34730332276 root cause): a management command's stdout also
+    carries settings-import-time prints (the Redis-fallback warning), so
+    capturing it as the key produced a 150-char value the server could not
+    resolve — the warm-up still read 'anonymous'. Minting here keeps the key a
+    clean 40-char in-memory string with no cross-process boundary.
+
+    REQUIRED_ROLE stays 'visitor' — the warm-up assertion is unchanged (card
     hub-product-screenshot-visitor-regression-20260913).
     """
-    import os
+    import hashlib
 
     from django.conf import settings
+
+    from apps.infra.project_app.management.commands.mint_visitor_session import (
+        mint_visitor_session_key,
+    )
+
+    # Mint + VERIFY the session in-process before the browser sees it: a
+    # key that does not round-trip to the visitor here would photograph as
+    # anonymous on the server, so fail now with the exact mismatch.
+    visitor_key = mint_visitor_session_key()
+    import importlib as _il
+
+    from django.contrib.auth.middleware import AuthenticationMiddleware
+    from django.test import RequestFactory
+
+    from apps.infra.project_app.services.visitor_pool.session_role import (
+        ROLE_VISITOR,
+        get_session_role,
+    )
+
+    _store = _il.import_module(settings.SESSION_ENGINE).SessionStore(
+        session_key=visitor_key
+    )
+    _store.load()
+    _probe = RequestFactory().get("/")
+    _probe.session = _store
+    AuthenticationMiddleware(lambda r: None).process_request(_probe)
+    _probe_role = get_session_role(_probe)
+    _key_sha = hashlib.sha256(visitor_key.encode()).hexdigest()[:12]
+    if _probe_role != ROLE_VISITOR:
+        raise RuntimeError(
+            "minted visitor session does not round-trip to role 'visitor' "
+            f"(got {_probe_role!r}, engine={settings.SESSION_ENGINE}, "
+            f"key len={len(visitor_key)}, sha[:12]={_key_sha}); refusing to "
+            "photograph as anonymous"
+        )
 
     context = browser.new_context(
         base_url=pw_base_url,
@@ -552,27 +597,10 @@ def pooled_visitor_context(browser, pw_base_url):
         has_touch=DESKTOP["has_touch"],
         ignore_https_errors=True,
     )
-    # Bind the context to the minted pooled-visitor session.
-    visitor_session = os.getenv("SCITEX_SCREENSHOT_SESSION", "").strip()
     cookie_name = getattr(settings, "SESSION_COOKIE_NAME", "sessionid")
-    if visitor_session:
-        context.add_cookies(
-            [
-                {
-                    "name": cookie_name,
-                    "value": visitor_session,
-                    "url": pw_base_url,
-                }
-            ]
-        )
-    else:
-        raise RuntimeError(
-            "SCITEX_SCREENSHOT_SESSION is not set — the capture cannot be bound "
-            "to a pooled visitor. Run `manage.py mint_visitor_session` in the "
-            "server env and export its session key as SCITEX_SCREENSHOT_SESSION "
-            "before the capture. (VisitorAutoLoginMiddleware no longer auto-"
-            "pools anonymous browsers since #764.)"
-        )
+    context.add_cookies(
+        [{"name": cookie_name, "value": visitor_key, "url": pw_base_url}]
+    )
     context.set_default_timeout(TIMEOUT)
     yield context
     context.close()
@@ -600,27 +628,37 @@ def pooled_visitor_page(pooled_visitor_context):
     role = page.evaluate(READ_SESSION_ROLE_JS)
     if role != "visitor":
         # Non-secret boundary evidence (card hub-product-screenshot-visitor-
-        # regression-20260913): on failure, name exactly which boundary broke —
-        # was the session key exported, what cookie name/value-shape was
-        # injected, what URL did we hit, and what role did the server resolve?
-        # The session key itself is never printed (length + sha prefix only).
+        # regression-20260913). The session is now minted IN-PROCESS (no env
+        # var / file), so the boundaries to name are: did the browser carry
+        # the injected sessionid cookie at the warm-up URL, and what role did
+        # the server resolve it to? Cookie value is sha'd, never printed.
         import hashlib
-        import os
 
-        raw = os.getenv("SCITEX_SCREENSHOT_SESSION", "").strip()
-        digest = hashlib.sha256(raw.encode()).hexdigest()[:12] if raw else "-"
+        try:
+            cookies = page.context.cookies(pw_base_url)
+        except Exception:
+            cookies = []
+        sess = next(
+            (c for c in cookies if c.get("name") == "sessionid"),
+            None,
+        )
+        cookie_sha = (
+            hashlib.sha256(sess["value"].encode()).hexdigest()[:12]
+            if sess and sess.get("value")
+            else "absent"
+        )
         print(
             "\n[pooled_visitor] WARM-UP ROLE MISMATCH — boundary evidence:\n"
-            f"  SCITEX_SCREENSHOT_SESSION exported? {'yes' if raw else 'NO'} "
-            f"(len={len(raw)}, sha256[:12]={digest})\n"
-            f"  cookie name           : sessionid\n"
-            f"  base URL              : {BASE_URL}\n"
+            f"  base URL              : {pw_base_url}\n"
             f"  warm-up route         : {VISITOR_WARMUP_ROUTE}\n"
-            f"  resolved data-session-role: {role!r} (expected 'visitor')\n"
-            "  meaning: if the key is exported but the role is anonymous, the\n"
-            "  running server's session engine cannot resolve it — the minted\n"
-            "  session must have been written to a different store than the one\n"
-            "  the server reads (e.g. ORM/db row vs cache engine)."
+            f"  sessionid cookie present in browser: {'yes' if sess else 'NO'} "
+            f"(len={len(sess['value']) if sess and sess.get('value') else 0}, "
+            f"sha256[:12]={cookie_sha})\n"
+            f"  rendered data-session-role: {role!r} (expected 'visitor')\n"
+            "  meaning: cookie absent => Playwright did not send it (url/"
+            "domain/path scope); cookie present but role anonymous => the "
+            "running server's session engine cannot resolve the key (mint and "
+            "server used different stores)."
         )
     assert_pooled_visitor(role, f"visitor warm-up ({VISITOR_WARMUP_ROUTE})")
     yield page
