@@ -467,10 +467,18 @@ def test_screenshot_readiness_does_not_wait_for_global_load():
     assert [kind for kind, *_rest in page.calls] == ["function", "timeout"]
 
 
-def test_pooled_screenshot_context_blocks_service_worker_navigation_cache():
+def test_pooled_screenshot_context_blocks_service_worker_navigation_cache(
+    monkeypatch,
+):
     class RecordingContext:
+        def __init__(self):
+            self.cookies = None
+
         def set_default_timeout(self, timeout):
             self.timeout = timeout
+
+        def add_cookies(self, cookies):
+            self.cookies = cookies
 
         def close(self):
             pass
@@ -478,10 +486,15 @@ def test_pooled_screenshot_context_blocks_service_worker_navigation_cache():
     class RecordingBrowser:
         def __init__(self):
             self.options = None
+            self.context = RecordingContext()
 
         def new_context(self, **options):
             self.options = options
-            return RecordingContext()
+            return self.context
+
+    # A deterministic key so the injected cookie is assertable. The conftest
+    # reads this env var (it refuses an empty/malformed one).
+    monkeypatch.setenv("SCITEX_SCREENSHOT_SESSION", "a" * 32)
 
     browser = RecordingBrowser()
     fixture = pooled_visitor_context.__wrapped__(browser, "http://127.0.0.1:8000")
@@ -489,7 +502,19 @@ def test_pooled_screenshot_context_blocks_service_worker_navigation_cache():
     next(fixture)
     fixture.close()
 
+    # The context opts out of service-worker-driven navigation caching.
     assert browser.options["service_workers"] == "block"
+    # The pooled-visitor sessionid cookie is injected into the context, so
+    # every photographed page renders as a real visitor (not anonymous).
+    cookies = browser.context.cookies
+    assert cookies is not None
+    assert cookies == [
+        {
+            "name": "sessionid",
+            "value": "a" * 32,
+            "url": "http://127.0.0.1:8000",
+        }
+    ]
 
 
 # EOF
