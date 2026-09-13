@@ -598,6 +598,30 @@ def pooled_visitor_page(pooled_visitor_context):
     page.goto(VISITOR_WARMUP_ROUTE)
     wait_for_page_ready(page)
     role = page.evaluate(READ_SESSION_ROLE_JS)
+    if role != "visitor":
+        # Non-secret boundary evidence (card hub-product-screenshot-visitor-
+        # regression-20260913): on failure, name exactly which boundary broke —
+        # was the session key exported, what cookie name/value-shape was
+        # injected, what URL did we hit, and what role did the server resolve?
+        # The session key itself is never printed (length + sha prefix only).
+        import hashlib
+        import os
+
+        raw = os.getenv("SCITEX_SCREENSHOT_SESSION", "").strip()
+        digest = hashlib.sha256(raw.encode()).hexdigest()[:12] if raw else "-"
+        print(
+            "\n[pooled_visitor] WARM-UP ROLE MISMATCH — boundary evidence:\n"
+            f"  SCITEX_SCREENSHOT_SESSION exported? {'yes' if raw else 'NO'} "
+            f"(len={len(raw)}, sha256[:12]={digest})\n"
+            f"  cookie name           : sessionid\n"
+            f"  base URL              : {BASE_URL}\n"
+            f"  warm-up route         : {VISITOR_WARMUP_ROUTE}\n"
+            f"  resolved data-session-role: {role!r} (expected 'visitor')\n"
+            "  meaning: if the key is exported but the role is anonymous, the\n"
+            "  running server's session engine cannot resolve it — the minted\n"
+            "  session must have been written to a different store than the one\n"
+            "  the server reads (e.g. ORM/db row vs cache engine)."
+        )
     assert_pooled_visitor(role, f"visitor warm-up ({VISITOR_WARMUP_ROUTE})")
     yield page
     page.close()

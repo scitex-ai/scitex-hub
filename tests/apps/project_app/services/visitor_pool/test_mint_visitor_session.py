@@ -3,13 +3,21 @@
 
 Card hub-product-screenshot-visitor-regression-20260913. The Product Screenshots
 capture no longer relies on VisitorAutoLoginMiddleware (removed by #764); it
-injects the session this command mints as the browser's sessionid cookie. These
-tests prove the command picks the first visitor, mints a session that actually
-authenticates as that user, and that the resulting request reads role 'visitor'
-(the exact thing the capture's warm-up assertion checks).
+injects the session this command mints as the browser's sessionid cookie. The
+command writes through settings.SESSION_ENGINE (the cache backend on this
+deployment, NOT the database) — a first cut that wrote an ORM Session row was
+invisible to the running server and the warm-up still read 'anonymous'.
 
-DB-gated (needs the visitor pool + session table); runs in CI.
+These tests prove, through the SAME engine the server reads:
+  - the command mints a session that resolves to the pooled visitor,
+  - a request carrying it reads get_session_role == 'visitor' (the exact thing
+    the capture's warm-up assertion checks),
+  - no pool -> the command refuses.
+
+DB- + cache-gated (needs the visitor user + the session engine); runs in CI.
 """
+
+import importlib
 
 import pytest
 
@@ -18,69 +26,80 @@ pytestmark = pytest.mark.django_db
 
 @pytest.fixture
 def pooled_visitor(db):
-    """Create a deterministic pooled visitor user (the pool's shape)."""
+    """A deterministic pooled visitor user (the pool's username shape)."""
     from django.contrib.auth import get_user_model
 
     User = get_user_model()
-    user = User.objects.create_user(
+    return User.objects.create_user(
         username="visitor-001",
         email="visitor-001@example.com",
         password="unusable-password",
     )
-    return user
 
 
-def _run(capsys, pooled_visitor):
+def _store_for(key):
+    """A fresh session store bound to ``key`` on the CONFIGURED engine —
+    exactly the path AuthenticationMiddleware uses to resolve a browser's
+    sessionid cookie."""
+    from django.conf import settings
+
+    engine = importlib.import_module(settings.SESSION_ENGINE)
+    store = engine.SessionStore(session_key=key)
+    store.load()
+    return store
+
+
+def _run(capsys):
     from django.core.management import call_command
 
-    out = []
-    with capsys.disabled():
-        call_command("mint_visitor_session", verbosity=0)
+    capsys.readouterr()  # clear
+    call_command("mint_visitor_session", verbosity=0)
     return capsys.readouterr().out.strip()
 
 
-def test_mints_a_session_that_authenticates_as_the_visitor(capsys, pooled_visitor):
-    key = _run(capsys, pooled_visitor)
-    assert key, "the command must print a session key"
-
-    # A request carrying that session reads back as the pooled visitor.
-    from django.contrib.sessions.models import Session
+def _request_as(session_store):
+    """A request authenticated through the store, the way the server does it."""
+    from django.contrib.auth.middleware import AuthenticationMiddleware
     from django.test import RequestFactory
 
-    session = Session.objects.get(session_key=key)
     req = RequestFactory().get("/apps/home/")
-    req.session = session  # AuthenticationMiddleware binds req.session -> req.user
-    from django.contrib.auth.middleware import AuthenticationMiddleware
+    req.session = session_store
+    AuthenticationMiddleware(lambda r: None).process_request(req)
+    return req
 
-    mw = AuthenticationMiddleware(lambda r: None)
-    mw.process_request(req)
+
+def test_minted_session_resolves_to_the_visitor(capsys, pooled_visitor):
+    from django.conf import settings
+
+    key = _run(capsys)
+    assert key, "the command must print a session key"
+
+    store = _store_for(key)
+    assert store["_auth_user_id"] == str(pooled_visitor.pk)
+    assert store["_auth_user_backend"] in settings.AUTHENTICATION_BACKENDS
+
+    req = _request_as(store)
     assert req.user.is_authenticated
     assert req.user.username == "visitor-001"
 
 
-def test_the_minted_session_reads_role_visitor(capsys, pooled_visitor):
-    """The capture's warm-up asserts data-session-role == 'visitor'; that is
-    driven by get_session_role -> get_user_role, which keys on the username
-    prefix. Prove the minted session lands in that role, not user/anonymous."""
-    key = _run(capsys, pooled_visitor)
-    from django.contrib.sessions.models import Session
-    from django.test import RequestFactory
-    from django.contrib.auth.middleware import AuthenticationMiddleware
-
+def test_minted_session_reads_role_visitor(capsys, pooled_visitor):
+    """The capture's warm-up asserts data-session-role == 'visitor'; that value
+    is driven by get_session_role -> get_user_role (username prefix). Prove the
+    minted session lands in that role — not user/anonymous/readonly."""
     from apps.infra.project_app.services.visitor_pool.session_role import (
         ROLE_VISITOR,
         get_session_role,
     )
 
-    req = RequestFactory().get("/apps/home/")
-    req.session = Session.objects.get(session_key=key)
-    AuthenticationMiddleware(lambda r: None).process_request(req)
+    key = _run(capsys)
+    req = _request_as(_store_for(key))
     assert get_session_role(req) == ROLE_VISITOR
 
 
 def test_fails_loudly_with_no_pool(capsys, db):
     """No pooled visitor -> the command refuses (exit 1) rather than minting a
-    session for the wrong identity."""
+    session for the wrong identity (e.g. a real account or readonly-visitor)."""
     from django.core.management import call_command
 
     with pytest.raises(SystemExit):

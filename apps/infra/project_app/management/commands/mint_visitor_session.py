@@ -10,10 +10,19 @@ warm-up assertion.
 
 This command restores the capture's identity DETERMINISTICALLY and EXPLICITLY:
 it picks the first pooled visitor user (visitor-NNN, created by
-create_visitor_pool), opens a real Django session authenticated as that user,
-and prints the session key. The capture step injects that session key into the
-browser as the ``sessionid`` cookie, so every photographed page renders as a
-writable pooled visitor. REQUIRED_ROLE stays 'visitor' — nothing is weakened.
+create_visitor_pool), opens a REAL session authenticated as that user through
+the CONFIGURED session engine, and prints the session key. The capture step
+injects that key into the browser as the ``sessionid`` cookie, so every
+photographed page renders as a writable pooled visitor. REQUIRED_ROLE stays
+'visitor' — nothing is weakened.
+
+CRITICAL (first fix did not hold): the session MUST be written through
+``settings.SESSION_ENGINE`` — on this deployment that is the cache backend
+(Redis in CI), NOT the database. An ORM ``Session`` row is invisible to a
+cache-backed engine, so the browser carries a key the server cannot resolve
+and the warm-up still reads 'anonymous'. ``SessionStore`` is the uniform API
+across backends (db/cache/cache_db/file), so the command works on any of
+them.
 
 Prints ONLY the session key on stdout (the workflow redirects it to a file /
 env var), so it is safe to capture.
@@ -21,13 +30,11 @@ env var), so it is safe to capture.
 
 from __future__ import annotations
 
-import pickle
-from datetime import timedelta
+import importlib
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.sessions.models import Session
 from django.core.management.base import BaseCommand
-from django.utils import timezone
 
 
 class Command(BaseCommand):
@@ -35,14 +42,6 @@ class Command(BaseCommand):
         "Mint a logged-in session for the first pooled visitor (visitor-NNN) "
         "and print its session key, for the Product Screenshots capture."
     )
-
-    def add_arguments(self, parser):
-        parser.add_argument(
-            "--days",
-            type=int,
-            default=2,
-            help="Session lifetime in days (default 2 — covers the capture run).",
-        )
 
     def handle(self, *args, **options):
         User = get_user_model()
@@ -59,21 +58,26 @@ class Command(BaseCommand):
             )
             raise SystemExit(1)
 
-        # A real Django session authenticated as the visitor. Django's
-        # AuthenticationMiddleware reads _auth_user_id/_auth_user_backend/
-        # _auth_user_hash on every request, so the browser that carries this
-        # sessionid renders as `visitor` (get_user_role: username startswith
-        # 'visitor-').
-        session = Session()
-        session.session_data = pickle.dumps(
-            {
-                "_auth_user_id": str(visitor.pk),
-                "_auth_user_backend": "django.contrib.auth.backends.ModelBackend",
-                "_auth_user_hash": visitor.get_session_auth_hash(),
-            }
+        # Open the session through the CONFIGURED engine (cache on this
+        # deployment, not db) — see the module docstring. _auth_user_backend
+        # must name a backend in settings.AUTHENTICATION_BACKENDS, which
+        # includes django.contrib.auth.backends.ModelBackend.
+        engine = importlib.import_module(settings.SESSION_ENGINE)
+        store = engine.SessionStore()
+        store["_auth_user_id"] = str(visitor.pk)
+        store["_auth_user_backend"] = (
+            "django.contrib.auth.backends.ModelBackend"
         )
-        session.expire_date = timezone.now() + timedelta(days=options["days"])
-        session.save()
+        store["_auth_user_hash"] = visitor.get_session_auth_hash()
+        store.create()
+
+        if not store.session_key:
+            self.stderr.write(
+                f"Session for {visitor.username} was not persisted by the "
+                f"{settings.SESSION_ENGINE} engine — the capture would "
+                "photograph as anonymous."
+            )
+            raise SystemExit(1)
 
         # stdout = the session key and nothing else.
-        print(session.session_key)
+        print(store.session_key)
