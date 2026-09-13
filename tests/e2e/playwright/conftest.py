@@ -556,12 +556,23 @@ def pooled_visitor_context(browser, pw_base_url):
         if visitor_key
         else "-"
     )
-    if not visitor_key or len(visitor_key) != 40:
+    # Validate the key shape WITHOUT guessing an exact length (Django cache
+    # backend keys are 32 chars, db backend keys are 40 — both are valid; the
+    # previous corruption produced 150). Accept non-empty alphanumeric/hex
+    # strings of 16–64 chars: wide enough for any backend, narrow enough to
+    # reject a stdout-polluted 150-char value.
+    if (
+        not visitor_key
+        or len(visitor_key) < 16
+        or len(visitor_key) > 64
+        or not visitor_key.isalnum()
+    ):
         raise RuntimeError(
-            "SCITEX_SCREENSHOT_SESSION is missing or not a 40-char session key "
-            f"(len={len(visitor_key)}, sha256[:12]={_key_sha}). The capture "
-            "cannot bind to a pooled visitor and would photograph as "
-            "anonymous. The workflow's server step must run "
+            f"SCITEX_SCREENSHOT_SESSION is missing or malformed "
+            f"(len={len(visitor_key)}, sha256[:12]={_key_sha}, "
+            f"alnum={visitor_key.isalnum() if visitor_key else 'n/a'}). "
+            "The capture cannot bind to a pooled visitor and would photograph "
+            "as anonymous. The workflow's server step must run "
             "`manage.py mint_visitor_session --output <file>` and the capture "
             "step must export its contents as SCITEX_SCREENSHOT_SESSION."
         )
