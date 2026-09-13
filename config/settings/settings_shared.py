@@ -340,6 +340,7 @@ TEMPLATES = [
                 "config.context_processors.writer_api_base",
                 "config.context_processors.mounted_app_launcher",
                 "config.context_processors.header_logo",
+                "config.context_processors.header_app_launcher",
                 "apps.infra.workspace_app.context_processors.workspace_context",
             ],
             "loaders": [

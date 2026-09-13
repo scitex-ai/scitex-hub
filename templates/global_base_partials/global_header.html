@@ -65,6 +65,56 @@
                         <rect x="27" y="16" width="2" height="4" rx="1" fill="white" />
                     </svg>
                 </button>
+                {# App Launcher (compass L624) — the scitex-ui AppLauncher
+                     component. The app list + visibility come from the
+                     header_app_launcher context processor (same gate as the
+                     workspace launcher grid: can_view_internal_app release-
+                     channel + show_in_launcher + availability). The component
+                     owns the pattern; navigation is wired below to the app's
+                     own URL. #}
+                <div id="global-apps"></div>
+                <link rel="stylesheet"
+                      href="{% static 'scitex_ui/css/app/app-launcher.css' %}" />
+                {{ header_apps|json_script:"global-apps-data" }}
+                {{ header_current_app|json_script:"global-apps-current" }}
+                <script type="module">
+                    (async () => {
+                        try {
+                            const mod = await import(
+                                "{% static 'scitex_ui/js/app/app-launcher.js' %}"
+                            );
+                            const { AppLauncher, APP_LAUNCHER_SELECT } = mod;
+                            const container = document.getElementById("global-apps");
+                            if (!container) return;
+                            const apps = JSON.parse(
+                                document.getElementById("global-apps-data").textContent
+                            );
+                            if (!apps || !apps.length) return;
+                            const current = JSON.parse(
+                                document.getElementById("global-apps-current").textContent
+                            );
+                            const urlById = Object.fromEntries(apps.map((a) => [a.id, a.url]));
+                            const launcher = new AppLauncher({
+                                container,
+                                apps: apps.map((a) => ({
+                                    id: a.id,
+                                    name: a.name,
+                                    icon: a.icon || undefined,
+                                })),
+                                current,
+                            });
+                            container.addEventListener(APP_LAUNCHER_SELECT, (e) => {
+                                const url = urlById[e.detail.appId];
+                                if (url) window.location.href = url;
+                            });
+                        } catch (err) {
+                            // A launcher failure must never break the page: the
+                            // rest of the header (logo, search, user menu) and the
+                            // workspace launcher grid still navigate.
+                            console.warn("app-launcher init failed", err);
+                        }
+                    })();
+                </script>
             {% endif %}
             <!-- Module navigation handled by module_tab_bar.html below header -->
         </div>
