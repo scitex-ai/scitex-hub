@@ -98,11 +98,14 @@ def test_minted_session_reads_role_visitor(capsys, pooled_visitor):
 
 
 def test_fails_loudly_with_no_pool(capsys, db):
-    """No pooled visitor -> the command refuses (exit 1) rather than minting a
-    session for the wrong identity (e.g. a real account or readonly-visitor)."""
+    """No pooled visitor -> the command refuses (raises) rather than minting a
+    session for the wrong identity (e.g. a real account or readonly-visitor).
+    mint_visitor_session_key raises LookupError (propagated by handle, not
+    caught), so call_command surfaces it — the command never returns a key
+    for an absent pool."""
     from django.core.management import call_command
 
-    with pytest.raises(SystemExit):
+    with pytest.raises(LookupError):
         call_command("mint_visitor_session", verbosity=0)
 
 
