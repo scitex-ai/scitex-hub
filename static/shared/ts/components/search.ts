@@ -1,312 +1,264 @@
-/**
- * Global Search TypeScript
- * Handles global search, autocomplete, and search modal functionality
- */
+/** Header command palette: grouped jump-to results from /api/search/. */
 
-interface SearchSuggestion {
-  type?: string;
-  url: string;
-  icon?: string;
+import {
+  isOpenPaletteShortcut,
+  nextActiveIndex,
+  paletteActionForKey,
+} from "./_search-navigation";
+
+interface SearchResult {
   title: string;
-  subtitle?: string;
+  subtitle: string;
+  url: string;
+  icon: string;
 }
 
-interface AutocompleteResponse {
-  suggestions: SearchSuggestion[];
+interface SearchGroup {
+  key: string;
+  label: string;
+  results: SearchResult[];
 }
 
-function initializeSearch(): void {
-  // Global search functionality with autocomplete
-  const globalSearch = document.getElementById("global-search") as HTMLInputElement;
+interface SearchResponse {
+  groups: SearchGroup[];
+}
 
-  if (globalSearch) {
-    // Submit on Enter
-    globalSearch.addEventListener("keypress", function (e: KeyboardEvent) {
-      if (e.key === "Enter") {
-        const query = this.value.trim();
-        if (query) {
-          window.location.href = `/search/?q=${encodeURIComponent(query)}`;
-        }
-      }
-    });
+const TYPING_DEBOUNCE_MS = 120;
 
-    // Autocomplete (debounced)
-    let autocompleteTimeout: number;
-    globalSearch.addEventListener("input", function (this: HTMLInputElement) {
-      clearTimeout(autocompleteTimeout);
-      const query = this.value.trim();
+function isEditableTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  return (
+    target.isContentEditable ||
+    ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)
+  );
+}
 
-      if (query.length < 2) {
-        hideAutocomplete();
-        return;
-      }
+function buildResultLink(
+  result: SearchResult,
+  optionId: string,
+): HTMLAnchorElement {
+  const link = document.createElement("a");
+  link.className = "search-modal-result-item";
+  link.id = optionId;
+  link.href = result.url;
+  link.setAttribute("role", "option");
+  link.setAttribute("aria-selected", "false");
 
-      autocompleteTimeout = window.setTimeout(async () => {
-        try {
-          const response = await fetch(
-            `/search/api/autocomplete/?q=${encodeURIComponent(query)}`,
-          );
-          const data: AutocompleteResponse = await response.json();
-          showAutocomplete(data.suggestions);
-        } catch (err) {
-          console.error("Autocomplete error:", err);
-        }
-      }, 300); // 300ms debounce
-    });
+  const icon = document.createElement("i");
+  icon.className = `search-modal-result-icon ${result.icon}`;
+  icon.setAttribute("aria-hidden", "true");
+
+  const content = document.createElement("span");
+  content.className = "search-modal-result-content";
+  const title = document.createElement("span");
+  title.className = "search-modal-result-title";
+  title.textContent = result.title;
+  content.append(title);
+  if (result.subtitle) {
+    const subtitle = document.createElement("span");
+    subtitle.className = "search-modal-result-subtitle";
+    subtitle.textContent = result.subtitle;
+    content.append(subtitle);
   }
 
-  // Autocomplete UI helpers - GitHub-style grouped results
-  function showAutocomplete(suggestions: SearchSuggestion[]): void {
-    let dropdown = document.getElementById("search-autocomplete") as HTMLElement;
+  link.append(icon, content);
+  return link;
+}
 
-    if (!dropdown) {
-      dropdown = document.createElement("div");
-      dropdown.id = "search-autocomplete";
-      dropdown.style.cssText = `
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        background: var(--bg-page);
-        border: 1px solid var(--border-default);
-        border-radius: 6px;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-        max-height: 500px;
-        overflow-y: auto;
-        z-index: 1000;
-        margin-top: 8px;
-      `;
-      const searchContainer = document.querySelector(".header-search");
-      if (searchContainer) {
-        searchContainer.appendChild(dropdown);
-      }
+function initializeHeaderSearch(): void {
+  const modal = document.getElementById("search-modal");
+  const input = document.getElementById(
+    "search-modal-input",
+  ) as HTMLInputElement | null;
+  const resultsBox = document.getElementById("search-modal-results");
+  if (!modal || !input || !resultsBox) return;
+  // The header is its own stacking context; at body level the palette sits above the site dock.
+  document.body.append(modal);
+
+  const endpoint = modal.dataset.endpoint ?? "/api/search/";
+  const noResultsText = modal.dataset.noResultsText ?? "";
+  const hintText = resultsBox.textContent?.trim() ?? "";
+
+  let resultLinks: HTMLAnchorElement[] = [];
+  let activeIndex = -1;
+  let typingTimer: number | undefined;
+  let pendingRequest: AbortController | null = null;
+  let openerElement: HTMLElement | null = null;
+
+  function showMessage(text: string): void {
+    const message = document.createElement("p");
+    message.className = "search-modal-hint";
+    message.textContent = text;
+    resultsBox!.replaceChildren(message);
+    resultLinks = [];
+    setActiveIndex(-1);
+  }
+
+  function setActiveIndex(index: number): void {
+    resultLinks[activeIndex]?.classList.remove("is-active");
+    resultLinks[activeIndex]?.setAttribute("aria-selected", "false");
+    activeIndex = index;
+    const activeLink = resultLinks[activeIndex];
+    if (activeLink) {
+      activeLink.classList.add("is-active");
+      activeLink.setAttribute("aria-selected", "true");
+      activeLink.scrollIntoView({ block: "nearest" });
+      input!.setAttribute("aria-activedescendant", activeLink.id);
+    } else {
+      input!.removeAttribute("aria-activedescendant");
     }
+  }
 
-    if (suggestions.length === 0) {
-      hideAutocomplete();
+  function renderGroups(groups: SearchGroup[]): void {
+    if (groups.length === 0) {
+      showMessage(noResultsText);
       return;
     }
+    const fragment = document.createDocumentFragment();
+    resultLinks = [];
+    for (const group of groups) {
+      const section = document.createElement("div");
+      section.className = "search-modal-group";
+      section.setAttribute("role", "group");
+      const heading = document.createElement("div");
+      heading.className = "search-modal-section-header";
+      heading.id = `search-group-${group.key}`;
+      heading.textContent = group.label;
+      section.setAttribute("aria-labelledby", heading.id);
+      section.append(heading);
+      for (const result of group.results) {
+        const link = buildResultLink(
+          result,
+          `search-option-${resultLinks.length}`,
+        );
+        resultLinks.push(link);
+        section.append(link);
+      }
+      fragment.append(section);
+    }
+    resultsBox!.replaceChildren(fragment);
+    activeIndex = -1;
+    setActiveIndex(0);
+  }
 
-    // Group suggestions by type
-    const grouped: Record<string, SearchSuggestion[]> = suggestions.reduce(
-      (acc, item) => {
-        const type = item.type || "other";
-        if (!acc[type]) acc[type] = [];
-        acc[type].push(item);
-        return acc;
-      },
-      {} as Record<string, SearchSuggestion[]>
+  async function fetchResults(query: string): Promise<void> {
+    pendingRequest?.abort();
+    pendingRequest = new AbortController();
+    try {
+      const response = await fetch(
+        `${endpoint}?q=${encodeURIComponent(query)}`,
+        {
+          headers: { Accept: "application/json" },
+          signal: pendingRequest.signal,
+        },
+      );
+      if (!response.ok) return;
+      const data: SearchResponse = await response.json();
+      if (input!.value.trim() === query) renderGroups(data.groups);
+    } catch (error) {
+      if ((error as Error).name !== "AbortError")
+        console.error("Header search failed:", error);
+    }
+  }
+
+  function openPalette(opener: HTMLElement | null): void {
+    if (!modal!.hidden) return;
+    openerElement = opener;
+    modal!.hidden = false;
+    input!.setAttribute("aria-expanded", "true");
+    document.body.classList.add("search-modal-open");
+    input!.focus();
+  }
+
+  function closePalette(): void {
+    if (modal!.hidden) return;
+    modal!.hidden = true;
+    pendingRequest?.abort();
+    window.clearTimeout(typingTimer);
+    input!.value = "";
+    input!.setAttribute("aria-expanded", "false");
+    document.body.classList.remove("search-modal-open");
+    showMessage(hintText);
+    openerElement?.focus();
+  }
+
+  document
+    .querySelectorAll<HTMLElement>("[data-search-open]")
+    .forEach((opener) => {
+      opener.addEventListener("click", () => openPalette(opener));
+    });
+  modal
+    .querySelectorAll<HTMLElement>("[data-search-close]")
+    .forEach((closer) => {
+      closer.addEventListener("click", closePalette);
+    });
+
+  input.addEventListener("input", () => {
+    window.clearTimeout(typingTimer);
+    const query = input.value.trim();
+    if (!query) {
+      pendingRequest?.abort();
+      showMessage(hintText);
+      return;
+    }
+    typingTimer = window.setTimeout(
+      () => fetchResults(query),
+      TYPING_DEBOUNCE_MS,
     );
-
-    // Render grouped results
-    let html = "";
-    const typeLabels: Record<string, string> = {
-      users: "Owners",
-      repositories: "Repositories",
-      other: "Other",
-    };
-
-    Object.keys(grouped).forEach((type) => {
-      const label = typeLabels[type] || type;
-      html += `
-        <div style="padding: 8px 12px 4px; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
-          ${label}
-        </div>
-      `;
-
-      grouped[type].forEach((s) => {
-        html += `
-          <a href="${s.url}" class="search-result-item" style=" display: flex; align-items: center; gap: 12px; padding: 8px 12px; color: var(--text-primary); text-decoration: none; border-bottom: 1px solid var(--border-muted); " onmouseover="this.style.background='var(--bg-muted)'" onmouseout="this.style.background='transparent'">
-            <span style="font-size: 16px; opacity: 0.7;">${s.icon || "📄"}</span>
-            <div style="flex: 1; min-width: 0;">
-              <div style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${s.title}</div>
-              ${s.subtitle ? `<div style="font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${s.subtitle}</div>` : ""}
-            </div>
-            <div style="font-size: 12px; color: var(--text-muted); white-space: nowrap;">Jump to</div>
-          </a>
-        `;
-      });
-    });
-
-    dropdown.innerHTML = html;
-    dropdown.style.display = "block";
-  }
-
-  function hideAutocomplete(): void {
-    const dropdown = document.getElementById("search-autocomplete");
-    if (dropdown) {
-      dropdown.style.display = "none";
-    }
-  }
-
-  // Close autocomplete on click outside
-  document.addEventListener("click", function (e: MouseEvent) {
-    const target = e.target as HTMLElement;
-    if (!document.querySelector(".header-search")?.contains(target)) {
-      hideAutocomplete();
-    }
   });
 
-  // Search Modal Management
-  const searchModal = document.getElementById("search-modal") as HTMLElement;
-  const searchModalInput = document.getElementById("search-modal-input") as HTMLInputElement;
-  const searchModalResults = document.getElementById("search-modal-results") as HTMLElement;
-  const globalSearchInput = document.getElementById("global-search") as HTMLInputElement;
-
-  // Open modal when clicking header search or pressing "/"
-  function openSearchModal(): void {
-    if (searchModal) {
-      searchModal.style.display = "block";
-      document.body.style.overflow = "hidden";
-      setTimeout(() => {
-        if (searchModalInput) {
-          searchModalInput.focus();
-        }
-      }, 100);
+  modal.addEventListener("keydown", (event: KeyboardEvent) => {
+    const action = paletteActionForKey(event.key);
+    if (!action) return;
+    if (action === "close") {
+      event.preventDefault();
+      closePalette();
+      return;
     }
-  }
-
-  // Close modal
-  function closeSearchModal(): void {
-    if (searchModal) {
-      searchModal.style.display = "none";
-      document.body.style.overflow = "";
-      if (searchModalInput) {
-        searchModalInput.value = "";
+    if (action === "open") {
+      const activeLink = resultLinks[activeIndex];
+      if (activeLink && event.target === input) {
+        event.preventDefault();
+        window.location.assign(activeLink.href);
       }
-      if (searchModalResults) {
-        searchModalResults.innerHTML = "";
-      }
+      return;
     }
-  }
-
-  // Click on header search input
-  if (globalSearchInput) {
-    globalSearchInput.addEventListener("click", function (e: MouseEvent) {
-      e.preventDefault();
-      openSearchModal();
-    });
-  }
-
-  // Search keyboard shortcuts: only "/" to open global modal
-  // Note: Ctrl+K is reserved for page-specific search (browse, profile, etc.)
-  document.addEventListener("keydown", function (e: KeyboardEvent) {
-    // "/" to open modal (only if not in an input/textarea)
-    if (
-      e.key === "/" &&
-      !["INPUT", "TEXTAREA"].includes((document.activeElement as HTMLElement)?.tagName)
-    ) {
-      e.preventDefault();
-      openSearchModal();
-    }
-
-    // Close modal on Escape
-    if (
-      e.key === "Escape" &&
-      searchModal &&
-      searchModal.style.display === "block"
-    ) {
-      closeSearchModal();
-    }
+    if ((action === "first" || action === "last") && event.target === input)
+      return;
+    event.preventDefault();
+    setActiveIndex(nextActiveIndex(activeIndex, action, resultLinks.length));
   });
 
-  // Close modal when clicking backdrop
-  if (searchModal) {
-    searchModal.addEventListener("click", function (e: MouseEvent) {
-      const target = e.target as HTMLElement;
+  // Capture phase: "/" must win over page handlers that navigate to /search/.
+  window.addEventListener(
+    "keydown",
+    (event: KeyboardEvent) => {
       if (
-        target.classList.contains("search-modal-backdrop") ||
-        target.classList.contains("search-modal")
-      ) {
-        closeSearchModal();
-      }
-    });
-  }
-
-  // Search modal input handler
-  if (searchModalInput) {
-    let searchTimeout: number;
-    searchModalInput.addEventListener("input", function (this: HTMLInputElement) {
-      clearTimeout(searchTimeout);
-      const query = this.value.trim();
-
-      if (query.length < 2) {
-        if (searchModalResults) {
-          searchModalResults.innerHTML = "";
-        }
+        event.key !== "/" ||
+        !isOpenPaletteShortcut(event, isEditableTarget(event.target))
+      )
         return;
-      }
+      event.preventDefault();
+      event.stopPropagation();
+      openPalette(document.activeElement as HTMLElement | null);
+    },
+    true,
+  );
 
-      searchTimeout = window.setTimeout(async () => {
-        try {
-          const response = await fetch(
-            `/search/api/autocomplete/?q=${encodeURIComponent(query)}`,
-          );
-          const data: AutocompleteResponse = await response.json();
-          showModalResults(data.suggestions || []);
-        } catch (err) {
-          console.error("Search error:", err);
-        }
-      }, 200);
-    });
-  }
-
-  // Show results in modal
-  function showModalResults(suggestions: SearchSuggestion[]): void {
-    if (!searchModalResults) return;
-
-    if (suggestions.length === 0) {
-      searchModalResults.innerHTML =
-        '<div style="padding: 24px; text-align: center; color: var(--text-muted);">No results found</div>';
+  // Bubble phase: page-specific Ctrl/Cmd+K handlers run first and may claim the key.
+  window.addEventListener("keydown", (event: KeyboardEvent) => {
+    if (
+      event.key === "/" ||
+      !isOpenPaletteShortcut(event, isEditableTarget(event.target))
+    )
       return;
-    }
-
-    // Group suggestions by type
-    const grouped: Record<string, SearchSuggestion[]> = suggestions.reduce(
-      (acc, item) => {
-        const type = item.type || "other";
-        if (!acc[type]) acc[type] = [];
-        acc[type].push(item);
-        return acc;
-      },
-      {} as Record<string, SearchSuggestion[]>
-    );
-
-    // Render grouped results
-    let html = "";
-    const typeLabels: Record<string, string> = {
-      users: "Owners",
-      repositories: "Repositories",
-      other: "Other",
-    };
-
-    Object.keys(grouped).forEach((type) => {
-      const label = typeLabels[type] || type;
-      html += `
-        <div class="search-modal-section-header">${label}</div>
-      `;
-
-      grouped[type].forEach((s) => {
-        html += `
-          <a href="${s.url}" class="search-modal-result-item">
-            <span class="search-modal-result-icon">${s.icon || "📄"}</span>
-            <div class="search-modal-result-content">
-              <div class="search-modal-result-title">${s.title}</div>
-              ${s.subtitle ? `<div class="search-modal-result-subtitle">${s.subtitle}</div>` : ""}
-            </div>
-            <div class="search-modal-result-action">Jump to</div>
-          </a>
-        `;
-      });
-    });
-
-    searchModalResults.innerHTML = html;
-  }
+    event.preventDefault();
+    openPalette(document.activeElement as HTMLElement | null);
+  });
 }
 
-// Initialize immediately if DOM is ready, otherwise wait
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeSearch);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initializeHeaderSearch);
 } else {
-  initializeSearch();
+  initializeHeaderSearch();
 }
