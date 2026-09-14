@@ -4,6 +4,7 @@
   "name": "figrecipe",
   "label": "FigRecipe",
   "app_name": "figrecipe_app",
+  "scope": "project",
   "icon": "fas fa-palette",
   "description": "Interactive figure editor: create and edit publication-ready matplotlib plots with drag-and-drop layout, statistical annotations, and multi-panel composition.",
   "pip_package": "figrecipe",
