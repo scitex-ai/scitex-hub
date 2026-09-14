@@ -17,3 +17,14 @@ def test_dev_settings_disable_server_side_cursors_for_pgbouncer():
 
     # Assert
     assert disabled is True
+
+
+def test_dev_settings_without_schema_env_leave_search_path_default():
+    # Arrange
+    options = settings.DATABASES["default"]["OPTIONS"]
+
+    # Act
+    has_options = "options" in options
+
+    # Assert
+    assert has_options is False

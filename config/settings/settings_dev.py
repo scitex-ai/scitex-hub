@@ -328,6 +328,14 @@ DATABASES = {
         "DISABLE_SERVER_SIDE_CURSORS": True,
         "OPTIONS": {
             "connect_timeout": 10,
+            # On the shared store server the hub lives in its own schema of the
+            # store database (the fleet's per-tenant pattern), so the schema is
+            # chosen per connection. PgBouncer there tracks search_path.
+            **(
+                {"options": f"-c search_path={os.environ['SCITEX_HUB_DB_SCHEMA_DEV']}"}
+                if os.environ.get("SCITEX_HUB_DB_SCHEMA_DEV")
+                else {}
+            ),
         },
     }
 }
