@@ -121,7 +121,8 @@ form.create-form-card .form-label {
   font-size: 0.875rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: #e6edf3;
+  /* Was #e6edf3: near-white labels on the light theme's light card. */
+  color: var(--color-fg-default, #e6edf3);
 }
 
 form.create-form-card .form-label .required {

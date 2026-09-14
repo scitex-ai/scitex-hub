@@ -3,14 +3,12 @@
 {% load i18n static landing_i18n %}
 {% load socialaccount %}
 
-{% block title %}Create an Account - SciTeX{% endblock %}
-{% block meta_description %}
-    Join SciTeX - the open-source platform for scientific research. Create your account and start a 30-day SciTeX Cloud trial for managing, analyzing, and publishing your research.
-{% endblock %}
+{% block title %}{% trans "Create an Account" %} - SciTeX{% endblock %}
+{% block meta_description %}{% trans "Join SciTeX, the open-source platform for scientific research. Create your account and start a 30-day SciTeX Cloud trial for managing, analyzing, and publishing your research." %}{% endblock %}
 {% block auth_content %}
     <div class="container auth-container">
         <div class="auth-form">
-            <h2 class="mb-4">Sign Up</h2>
+            <h2 class="mb-4">{% trans "Sign Up" %}</h2>
             {% comment %}
             Card rule (operator 2026-09-14, 「はい、カード登録必須です」): a
             credit/debit card is registered at signup, as /tokushoho/ states.
@@ -29,7 +27,7 @@
                         <div class="warning-banner-content">
                             <i class="warning-banner-icon fas fa-exclamation-circle"></i>
                             <div class="warning-banner-text">
-                                <div class="warning-banner-title">Form Errors</div>
+                                <div class="warning-banner-title">{% trans "Form Errors" %}</div>
                                 <div class="warning-banner-description">
                                     <ul class="mb-0" style="margin-left: 1rem">
                                         {% for field, errors in form.errors.items %}
@@ -65,9 +63,9 @@
                     <div class="warning-banner-content">
                         <i class="warning-banner-icon fas fa-exclamation-circle"></i>
                         <div class="warning-banner-text">
-                            <div class="warning-banner-title">Error</div>
+                            <div class="warning-banner-title">{% trans "Error" %}</div>
                             <div class="warning-banner-description">
-                                <span id="error-message">Something went wrong. Please try again.</span>
+                                <span id="error-message">{% trans "Something went wrong. Please try again." %}</span>
                             </div>
                         </div>
                     </div>
@@ -80,7 +78,7 @@
                 {% csrf_token %}
                 <div class="form-group mb-3">
                     <label for="{{ form.username.id_for_label }}" class="form-label">
-                        Username <span class="text-danger">*</span>
+                        {% trans "Username" %} <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
                         {{ form.username }}
@@ -89,14 +87,14 @@
                         </span>
                     </div>
                     <div class="form-text">
-                        <small class="text-muted">Your profile URL will be: scitex.ai/<span id="username-preview">username</span></small>
+                        <small class="text-muted">{% trans "Your profile URL will be:" %} scitex.ai/<span id="username-preview">username</span></small>
                     </div>
                     <div id="username-feedback" class="small" style="display: none; margin-top: 0.5rem"></div>
                     {% if form.username.errors %}<div class="text-danger small">{{ form.username.errors.0 }}</div>{% endif %}
                 </div>
                 <div class="form-group mb-3">
                     <label for="{{ form.email.id_for_label }}" class="form-label">
-                        Email <span class="text-danger">*</span>
+                        {% trans "Email" %} <span class="text-danger">*</span>
                     </label>
                     {{ form.email }}
                     <div class="form-text email-example">
@@ -114,7 +112,7 @@
                 </div>
                 <div class="form-group mb-2">
                     <label for="{{ form.password.id_for_label }}" class="form-label">
-                        Password <span class="text-danger">*</span>
+                        {% trans "Password" %} <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
                         {{ form.password }}
@@ -126,7 +124,7 @@
                 </div>
                 <div class="form-group mb-2">
                     <label for="{{ form.password2.id_for_label }}" class="form-label">
-                        Confirm Password <span class="text-danger">*</span>
+                        {% trans "Confirm Password" %} <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
                         {{ form.password2 }}
@@ -138,34 +136,35 @@
                 </div>
                 <!-- Password Requirements -->
                 <div class="password-rules mb-3">
-                    <div class="password-rules-title">Password Requirements:</div>
+                    <div class="password-rules-title">{% trans "Password Requirements:" %}</div>
                     <div class="password-rule invalid" id="rule-length">
-                        <i class="fas fa-times"></i> At least 8 characters
+                        <i class="fas fa-times"></i> {% trans "At least 8 characters" %}
                     </div>
                     <div class="password-rule invalid" id="rule-lowercase">
-                        <i class="fas fa-times"></i> At least one lowercase letter
+                        <i class="fas fa-times"></i> {% trans "At least one lowercase letter" %}
                     </div>
                     <div class="password-rule invalid" id="rule-uppercase">
-                        <i class="fas fa-times"></i> At least one uppercase letter
+                        <i class="fas fa-times"></i> {% trans "At least one uppercase letter" %}
                     </div>
                     <div class="password-rule invalid" id="rule-number">
-                        <i class="fas fa-times"></i> At least one number
+                        <i class="fas fa-times"></i> {% trans "At least one number" %}
                     </div>
                     <div class="password-rule invalid" id="rule-special">
-                        <i class="fas fa-times"></i> At least one special character (!@#$%^&*)
+                        <i class="fas fa-times"></i> {% trans "At least one special character" %} (!@#$%^&amp;*)
                     </div>
                 </div>
                 <div class="form-check mb-3">
                     {{ form.agree_terms }}
                     <label class="form-check-label" for="{{ form.agree_terms.id_for_label }}">
-                        I agree to the
-                        <a href="/terms/" target="_blank" class="text-link">Terms of Use</a>
-                        and
-                        <a href="/privacy/" target="_blank" class="text-link">Privacy Policy</a>
+                        {% trans "Terms of Use" as terms_label %}
+                        {% trans "Privacy Policy" as privacy_label %}
+                        {% blocktrans trimmed with terms='<a href="/terms/" target="_blank" class="text-link">'|add:terms_label|add:'</a>'|safe privacy='<a href="/privacy/" target="_blank" class="text-link">'|add:privacy_label|add:'</a>'|safe %}
+                            I agree to the {{ terms }} and {{ privacy }}
+                        {% endblocktrans %}
                     </label>
                     {% if form.agree_terms.errors %}<div class="text-danger small">{{ form.agree_terms.errors.0 }}</div>{% endif %}
                 </div>
-                <button type="submit" class="btn btn-success w-100">Create Account</button>
+                <button type="submit" class="btn btn-success w-100">{% trans "Create Account" %}</button>
             </form>
             {# Same derivation as signin.html -- see the note there. A provider #}
             {# gets a button exactly when allauth can actually serve its login. #}
@@ -173,7 +172,7 @@
             {% if socialaccount_providers %}
                 <!-- Social Login Divider (inside the guard: a divider above nothing is its own defect) -->
                 <div class="social-login-divider">
-                    <span>or sign up with</span>
+                    <span>{% trans "or sign up with" %}</span>
                 </div>
                 <!-- Social Login Buttons -->
                 <div class="social-login-buttons">
@@ -207,8 +206,8 @@
             {% endif %}
             <div class="text-center mt-3">
                 <p>
-                    Already have an account?
-                    <a href="{% url 'auth_app:signin' %}" class="text-link">Sign In</a>
+                    {% trans "Already have an account?" %}
+                    <a href="{% url 'auth_app:signin' %}" class="text-link">{% trans "Sign In" %}</a>
                 </p>
             </div>
         </div>

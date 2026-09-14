@@ -1,22 +1,52 @@
 /* Profile page styles */
 
+/* Banner (site audit 2026-09-14, D8). It was a fixed light blue
+   (--scitex-color-07) in both themes while the heading took the theme's
+   heading colour, so in dark mode the username was near-white on light blue.
+   Every colour here is a theme token, and the banner is one compact row. */
 .profile-header {
-  background-color: var(--scitex-color-07);
-  padding: 2rem 0;
-  margin-bottom: 2rem;
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border-default);
+  padding: 1.25rem 0;
+  margin-bottom: 1.5rem;
+}
+
+.profile-header-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.profile-header-text {
+  min-width: 0;
+}
+
+.profile-header h1 {
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem;
+  overflow-wrap: anywhere;
+}
+
+.profile-meta {
+  color: var(--text-secondary);
+  margin: 0;
+  font-size: 0.875rem;
 }
 
 .profile-avatar {
-  width: 120px;
-  height: 120px;
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
   background-color: var(--scitex-color-05);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 3rem;
+  font-size: 1.75rem;
   color: var(--text-inverse);
-  margin: 0 auto 1rem;
 }
 
 .profile-section {
@@ -155,20 +185,21 @@
 
 .stats-card-collaborations {
   background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  /* The gradient is light in BOTH themes, so its text must not follow the
+     theme's text tokens (they turn near-white in dark mode). */
+  --stats-on-light: #1f2328;
 }
 
-.stats-card-collaborations .stats-number {
-  color: var(--text-primary);
-}
-
+.stats-card-collaborations .stats-number,
 .stats-card-collaborations .stats-label {
-  color: var(--text-secondary);
+  color: var(--stats-on-light);
 }
 
 .stats-card-collaborations .stats-breakdown {
   margin-top: 0.5rem;
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  color: var(--stats-on-light);
+  opacity: 0.8;
 }
 
 .stats-quick-actions {

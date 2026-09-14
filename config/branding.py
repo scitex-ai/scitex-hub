@@ -290,9 +290,37 @@ PANE_NAMES = {
     "/files/": "Files",
 }
 
+# Account pages and the create-project page. They are about the USER, not a
+# project, yet the workspace context processor still hands them the last
+# project the user opened (so the side panes can show it). The tab used to
+# take that as its detail: /accounts/settings/ssh-keys/, /accounts/profile/,
+# /new/ and /console/ all read "dotfiles — SciTeX (dev)" on the dev preview
+# (site audit 2026-09-14). These pages name themselves instead.
+ACCOUNT_PAGE_NAMES = {
+    "/accounts/settings/": "Settings",
+    "/accounts/profile/": "Profile",
+    "/new/": "New project",
+}
+
+# Paths whose tab must never borrow the AMBIENT project (current_project /
+# project from context processors). An explicit page_title_detail from a view
+# still applies. /console/ is a host shell, not a project view.
+NON_PROJECT_PREFIXES = (
+    "/accounts/",
+    "/auth/",
+    "/new/",
+    "/console/",
+    "/apps/console/",
+)
+
 # Everything that can name a tab. Apps win over sections on an exact tie;
 # in practice their prefixes are disjoint.
-PATH_LABELS = {**SECTION_NAMES, **PANE_NAMES, **APP_NAMES}
+PATH_LABELS = {**SECTION_NAMES, **ACCOUNT_PAGE_NAMES, **PANE_NAMES, **APP_NAMES}
+
+
+def is_project_scoped(path):
+    """Return False for pages that must not name the ambient project."""
+    return not (path or "").startswith(NON_PROJECT_PREFIXES)
 
 # Environment -> the parenthetical shown in the tab. Production is unmarked:
 # the public site reads simply "<App> — SciTeX".

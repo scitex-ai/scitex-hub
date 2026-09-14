@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 
 from django import forms
+from django.utils.translation import gettext_lazy as _
 
 
 class SignupForm(forms.Form):
@@ -16,7 +17,7 @@ class SignupForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "Choose a username (e.g., john-doe-42)",
+                "placeholder": _("Choose a username (e.g., john-doe-42)"),
             }
         ),
         help_text="Username may only contain alphanumeric characters, hyphens, and underscores. Cannot begin or end with a hyphen.",
@@ -28,14 +29,14 @@ class SignupForm(forms.Form):
     )
     password = forms.CharField(
         widget=forms.PasswordInput(
-            attrs={"class": "form-control", "placeholder": "Create a strong password"}
+            attrs={"class": "form-control", "placeholder": _("Create a strong password")}
         )
     )
     password2 = forms.CharField(
         widget=forms.PasswordInput(
-            attrs={"class": "form-control", "placeholder": "Confirm your password"}
+            attrs={"class": "form-control", "placeholder": _("Confirm your password")}
         ),
-        label="Confirm Password",
+        label=_("Confirm Password"),
     )
     agree_terms = forms.BooleanField(
         required=True,
