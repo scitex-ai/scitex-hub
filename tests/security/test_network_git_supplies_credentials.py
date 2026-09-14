@@ -79,7 +79,11 @@ WRAPPER_NAME = "run_git_command"
 #: Below this, the scan found too little to be believed -- an empty walk must
 #: fail rather than read as "no offenders". Set well under the count observed
 #: when the file was written (7) so ordinary deletions do not break the suite.
-MIN_EXPECTED_NETWORK_GIT_CALLS = 3
+#: Lowered 3 -> 2 on 2026-09-14 when the unused duplicate
+#: apps/infra/gitea_app/services/git_service.py was deleted: its call sites were
+#: copies of project_app's, and the live tree now holds exactly 2 (project_app
+#: git_service fetch + project_init_helpers push). 2 still fails an empty walk.
+MIN_EXPECTED_NETWORK_GIT_CALLS = 2
 
 
 def _is_subprocess_run(call: ast.Call) -> bool:
