@@ -253,11 +253,24 @@ _BUILTIN_MANIFEST_PATHS: list[str] = [
 for _pkg_names, _tile_manifest in (
     (("scitex_cards", "scitex_todo"), "workspace/todo_app/manifest.json"),
     (("scitex_storage",), "workspace/storage_app/manifest.json"),
+    (
+        ("scitex_agent_container._django",),
+        "workspace/agents_app/manifest.json",
+    ),
 ):
     try:
         from importlib.util import find_spec as _find_spec
 
-        if any(_find_spec(_name) is not None for _name in _pkg_names):
+        # A submodule probe raises ModuleNotFoundError when its parent package
+        # is absent. Absence is the expected state for optional apps, not an
+        # exceptional registry failure worth a traceback on every boot.
+        def _available(_name: str) -> bool:
+            try:
+                return _find_spec(_name) is not None
+            except ModuleNotFoundError:
+                return False
+
+        if any(_available(_name) for _name in _pkg_names):
             _BUILTIN_MANIFEST_PATHS.append(_tile_manifest)
     except Exception:
         logger.exception("[registry] %s tile probe failed", _pkg_names[0])

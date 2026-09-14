@@ -77,11 +77,16 @@ def _scitex_storage_installed() -> bool:
 
 
 def _scitex_agent_container_installed() -> bool:
-    """True when SAC's optional Django dashboard is importable."""
+    """True when SAC's optional Django dashboard URL contract is importable.
+
+    Probe the include target, not merely the top-level distribution: an older
+    scitex-agent-container checkout can be installed without shipping the
+    dashboard at all.
+    """
     from importlib.util import find_spec
 
     try:
-        return find_spec("scitex_agent_container._django") is not None
+        return find_spec("scitex_agent_container._django.urls") is not None
     except ModuleNotFoundError:
         return False
 
