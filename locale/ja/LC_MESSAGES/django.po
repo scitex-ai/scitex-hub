@@ -5421,3 +5421,44 @@ msgstr "プランが有効になりました。ご契約ありがとうござい
 #: apps/infra/public_app/views/billing.py
 msgid "Your plan will end at the close of the current billing period."
 msgstr "プランは現在の請求期間の終了時に終了します。"
+
+# Home first-run checklist (card hub-first-10-minutes-onboarding-flow-20260914).
+#: apps/workspace/apps_app/templates/apps_app/partials/first_run_checklist.html
+msgid "Getting started"
+msgstr "はじめに"
+
+#: apps/workspace/apps_app/services/first_run.py
+msgid "Create your first project"
+msgstr "最初のプロジェクトを作成"
+
+#: apps/workspace/apps_app/services/first_run.py
+msgid "Open the sample data"
+msgstr "サンプルデータを開く"
+
+#: apps/workspace/apps_app/services/first_run.py
+msgid "Make a figure"
+msgstr "図を作成"
+
+#: apps/workspace/apps_app/services/first_run.py
+msgid "Draft your manuscript"
+msgstr "原稿を書き始める"
+
+#: apps/workspace/apps_app/services/first_run.py
+msgid "Add references"
+msgstr "参考文献を追加"
+
+#: apps/workspace/apps_app/services/first_run.py
+msgid "Ask the AI agent"
+msgstr "AIエージェントに頼む"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/first_run_checklist.html
+msgid "Done"
+msgstr "完了"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/first_run_checklist.html
+msgid "Dismiss"
+msgstr "閉じる"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/first_run_checklist.html
+msgid "Dismiss getting started"
+msgstr "「はじめに」を閉じる"

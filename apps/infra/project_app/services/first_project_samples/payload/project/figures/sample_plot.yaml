@@ -1,0 +1,295 @@
+figrecipe: '1.0'
+id: fig_b4b72dcf
+created: '2026-09-14T20:25:25.450688'
+matplotlib_version: 3.11.2
+figure:
+  figsize:
+    - 2.7559055118110236
+    - 2.1653543307086616
+  dpi: 100
+  nrows: 1
+  ncols: 1
+  style:
+    axes_width_mm: 40
+    axes_height_mm: 28
+    axes_thickness_mm: 0.2
+    margins_left_mm: 1
+    margins_right_mm: 1
+    margins_bottom_mm: 1
+    margins_top_mm: 1
+    spacing_horizontal_mm: 10
+    spacing_vertical_mm: 15
+    ticks_length_mm: 0.8
+    ticks_thickness_mm: 0.2
+    ticks_direction: "out"
+    ticks_n_ticks_min: 3
+    ticks_n_ticks_max: 4
+    lines_trace_mm: 0.12
+    lines_linewidth_mm: 0.8
+    lines_signal_linewidth_mm: 0.12
+    lines_errorbar_mm: 0.12
+    lines_errorbar_cap_mm: 0.8
+    lines_grid_mm: 0.12
+    markers_size_mm: 0.8
+    markers_scatter_mm: 0.8
+    markers_flier_mm: 0.8
+    markers_edge_width_mm:
+    boxplot_line_mm: 0.2
+    boxplot_whisker_mm: 0.2
+    boxplot_cap_mm: 0.2
+    boxplot_median_mm: 0.2
+    boxplot_median_color: "black"
+    boxplot_flier_edge_mm: 0.2
+    violinplot_line_mm: 0.2
+    violinplot_inner: "box"
+    violinplot_box_width_mm: 1.5
+    violinplot_whisker_mm: 0.2
+    violinplot_median_mm: 0.8
+    barplot_edge_mm: 0.2
+    histogram_edge_mm: 0.2
+    pie_text_pt: 6
+    pie_show_axes: false
+    imshow_show_axes: false
+    imshow_show_labels: false
+    fonts_family: "Arial"
+    fonts_axis_label_pt: 7
+    fonts_tick_label_pt: 7
+    fonts_title_pt: 8
+    fonts_suptitle_pt: 7
+    fonts_legend_pt: 6
+    fonts_annotation_pt: 6
+    padding_label_pt: 2.0
+    padding_tick_pt: 2.0
+    padding_title_pt: 4.0
+    output_dpi: 300
+    display_dpi: 100
+    output_transparent: false
+    output_format: "png"
+    theme_mode: "light"
+    theme_colors:
+      figure_bg: "white"
+      axes_bg: "white"
+      legend_bg: "white"
+      text: "black"
+      spine: "black"
+      tick: "black"
+      grid: "#cccccc"
+    color_palette:
+      -   - 0
+          - 128
+          - 192
+      -   - 255
+          - 70
+          - 50
+      -   - 20
+          - 180
+          - 20
+      -   - 230
+          - 160
+          - 20
+      -   - 200
+          - 50
+          - 255
+      -   - 20
+          - 200
+          - 200
+      -   - 228
+          - 94
+          - 50
+      -   - 255
+          - 150
+          - 200
+    behavior_hide_top_spine: true
+    behavior_hide_right_spine: true
+    behavior_grid: false
+    behavior_auto_scale_axes: true
+    behavior_constrained_layout: true
+    behavior_check_overlap: true
+    colorbar:
+      auto: true
+      outline_mm: 0.2
+      n_ticks_min: 3
+      n_ticks_max: 4
+      shrink: 1.0
+      aspect: 20
+    margin_left_mm: 1
+    margin_right_mm: 1
+    margin_bottom_mm: 1
+    margin_top_mm: 1
+    space_w_mm: 10
+    space_h_mm: 15
+    tick_length_mm: 0.8
+    tick_thickness_mm: 0.2
+    n_ticks_min: 3
+    n_ticks_max: 4
+    trace_thickness_mm: 0.12
+    marker_size_mm: 0.8
+    font_family: "Arial"
+    axis_font_size_pt: 7
+    tick_font_size_pt: 7
+    title_font_size_pt: 8
+    suptitle_font_size_pt: 7
+    legend_font_size_pt: 6
+    label_pad_pt: 2.0
+    tick_pad_pt: 2.0
+    title_pad_pt: 4.0
+    dpi: 100
+    savefig_dpi: 300
+    theme: "light"
+    hide_top_spine: true
+    hide_right_spine: true
+    grid: false
+    auto_scale_axes: true
+    constrained_layout: true
+  rcparams:
+    axes.labelsize: 7.0
+    axes.prop_cycle:
+      __cycler__:
+        color:
+          -   - 0.0
+              - 0.5019607843137255
+              - 0.7529411764705882
+          -   - 1.0
+              - 0.27450980392156865
+              - 0.19607843137254902
+          -   - 0.0784313725490196
+              - 0.7058823529411765
+              - 0.0784313725490196
+          -   - 0.9019607843137255
+              - 0.6274509803921569
+              - 0.0784313725490196
+          -   - 0.7843137254901961
+              - 0.19607843137254902
+              - 1.0
+          -   - 0.0784313725490196
+              - 0.7843137254901961
+              - 0.7843137254901961
+          -   - 0.8941176470588236
+              - 0.3686274509803922
+              - 0.19607843137254902
+          -   - 1.0
+              - 0.5882352941176471
+              - 0.7843137254901961
+    axes.titlesize: 8.0
+    boxplot.flierprops.markersize: 2.267716535433071
+    boxplot.medianprops.color: "black"
+    figure.titlesize: 7.0
+    font.sans-serif:
+      - Arial
+      - DejaVu Sans
+      - Liberation Sans
+      - Helvetica
+      - sans-serif
+    grid.linewidth: 0.3401574803149607
+    legend.edgecolor: "black"
+    legend.facecolor: "white"
+    legend.fancybox: false
+    legend.fontsize: 6.0
+    legend.framealpha: 1.0
+    legend.labelcolor: "black"
+    legend.title_fontsize: 6.0
+    lines.linewidth: 2.267716535433071
+    lines.markersize: 2.267716535433071
+    xtick.labelsize: 7.0
+    ytick.labelsize: 7.0
+  constrained_layout: true
+  crop_info:
+    left: 0
+    upper: 0
+    right: 826
+    lower: 649
+    original_width: 826
+    original_height: 649
+    new_width: 826
+    new_height: 649
+  content_bbox:
+    - 0.015120257142857143
+    - 0.019243963636363624
+    - 0.9697594857142856
+    - 0.9615120727272727
+  content_size_mm:
+    - 67.883164
+    - 52.883163999999994
+  mm_layout:
+    axes_width_mm: 40
+    axes_height_mm: 28
+    margin_left_mm: 20
+    margin_right_mm: 10
+    margin_bottom_mm: 15
+    margin_top_mm: 12
+    space_w_mm: 10
+    space_h_mm: 15
+    crop_margin_left_mm: 1
+    crop_margin_right_mm: 1
+    crop_margin_bottom_mm: 1
+    crop_margin_top_mm: 1
+axes:
+  r0c0:
+    calls:
+      - id: plot_000
+        function: plot
+        args:
+          - name: x
+            data: sample_plot_data/plot_000_x.csv
+            dtype: int64
+          - name: y
+            data: sample_plot_data/plot_000_y.csv
+            dtype: float64
+        kwargs:
+          marker: o
+          label: response
+          clip_on: false
+          color:
+            - 0.0
+            - 0.5019607843137255
+            - 0.7529411764705882
+        timestamp: '2026-09-14T20:25:25.481843'
+    decorations:
+      - id: set_xlabel_000
+        function: set_xlabel
+        args:
+          - name: xlabel
+            data: Dose (mg)
+        kwargs: {}
+        timestamp: '2026-09-14T20:25:25.485639'
+      - id: set_ylabel_000
+        function: set_ylabel
+        args:
+          - name: ylabel
+            data: Response (a.u.)
+        kwargs: {}
+        timestamp: '2026-09-14T20:25:25.490059'
+      - id: set_title_000
+        function: set_title
+        args:
+          - name: label
+            data: Sample dose-response
+        kwargs: {}
+        timestamp: '2026-09-14T20:25:25.493607'
+      - id: legend_000
+        function: legend
+        args: []
+        kwargs:
+          loc: best
+        timestamp: '2026-09-14T20:25:25.499334'
+    bbox:
+      - 0.10158635492311507
+      - 0.14371928323863636
+      - 0.8832933879340276
+      - 0.7611945419507575
+    final_xlim:
+      - -0.35000000000000003
+      - 7.35
+    final_ylim:
+      - 0.445
+      - 8.255
+    final_spines:
+      top: false
+      right: false
+      left: true
+      bottom: true
+    bbox_uncropped:
+      - 0.10158635492311509
+      - 0.14371928323863634
+      - 0.8832933879340276
+      - 0.7611945419507575

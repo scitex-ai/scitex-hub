@@ -22,6 +22,7 @@ from django.utils import timezone
 from apps.infra.workspace_app.registry import get_all_modules
 
 from ..models import AppsModule, ModuleInstallation
+from ..services.first_run import checklist_context, is_new_user
 from ..services.launcher_dock import get_dock_apps
 from ..services.launcher_links import get_launcher_links, get_link_tile_orders
 from ..services.manifest_display import prettify_module_name
@@ -348,7 +349,15 @@ def launcher_context(request) -> dict:
     tiles = _build_tiles(request)
     dock_apps = set(get_dock_apps(request.user))
     grid_tiles = [tile for tile in tiles if tile["name"] not in dock_apps]
+    is_guest = is_guest_launcher_user(request.user)
     return {
+        "first_run": (
+            checklist_context(request.user)
+            if request.user.is_authenticated
+            and not is_guest
+            and is_new_user(request.user)
+            else None
+        ),
         # Every app the user can open, wherever it sits (grid or dock).
         "tiles": tiles,
         # The grid: 4-column group bands holding only the apps NOT in the dock.
@@ -359,7 +368,7 @@ def launcher_context(request) -> dict:
         "installed_count": sum(1 for t in tiles if t["is_installed"]),
         "max_pins": MAX_PINNED_MODULES,
         # Guest mode: visitors see tiles + a prominent Sign in / Sign up CTA.
-        "is_guest_launcher": is_guest_launcher_user(request.user),
+        "is_guest_launcher": is_guest,
         # ...but a writable pool visitor and a read-only fallback are NOT the
         # same experience, so the copy must differ (operator, 2026-07-12).
         "guest_role": guest_role_for(request.user),

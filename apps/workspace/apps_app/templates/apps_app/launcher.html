@@ -42,6 +42,9 @@
                 </div>
             </div>
         {% endif %}
+        {% if first_run %}
+            {% include "apps_app/partials/first_run_checklist.html" %}
+        {% endif %}
         <div class="launcher-section-head">
             <h2>All apps</h2>
         </div>
