@@ -50,7 +50,7 @@ def api_submit_job(request):
         "cpus": 2,
         "memory_gb": 4,
         "time_limit": "01:00:00",
-        "partition": "normal",
+        "partition": "compute",
         "env_vars": {"DEBUG": "1"}
     }
 
@@ -58,7 +58,7 @@ def api_submit_job(request):
         {
             "success": true,
             "job_id": 42,
-            "partition": "normal",
+            "partition": "compute",
             "message": "Job 42 submitted successfully"
         }
     """
@@ -93,7 +93,7 @@ def api_submit_job(request):
             container_path=container_path,
             workspace=user_workspace,
             job_name=job_name,
-            partition=data.get("partition", "normal"),
+            partition=data.get("partition", "compute"),
             cpus=data.get("cpus", 1),
             memory_gb=data.get("memory_gb", 4),
             time_limit=data.get("time_limit", "01:00:00"),
