@@ -610,7 +610,7 @@
                     onclick="document.getElementById('signup-warning-modal').classList.remove('active')">
                 Continue Browsing
             </button>
-            <a href="/accounts/signup/"
+            <a href="{% url 'auth_app:signup' %}"
                class="file-modal-btn file-modal-btn-primary signup-warning-link">
                 <i class="fas fa-user-plus signup-warning-link-icon"></i>
                 Sign Up Free
