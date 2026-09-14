@@ -637,7 +637,16 @@ RUN uv pip install --system --no-cache \
     # convergence adds no new contract, so raising the floor would be
     # over-raising (tests/config/test_shell_pane_contract_floor.py says so).
     # Hub consumes nothing yet from 0.20.x (utils/effects.css, dim, route-away).
-    "scitex-writer==2.42.0" \
+    # 2.43.0 (2026-09-14, scitex-writer PR #389): the leaf accepts the PROJECT
+    # ROOT the hub's WorkingDirScopedView passes and composes the workspace via
+    # workspace_layout.resolve_workspace(). 2.42.0 composed root/00_shared and
+    # raised FileNotFoundError on every editor-v2 compile. Pin and leaf landed
+    # in one coordinated window.
+    # 2.43.1 (2026-09-14, scitex-writer PR #392): workspaces clone the template
+    # from scitex-ai/develop and refresh vendored scripts, so a fresh workspace
+    # no longer fails "missing tools xlsx2csv/csv2latex". Verified on dev:
+    # ensure_workspace + manuscript compile produced a 5-page PDF.
+    "scitex-writer==2.43.1" \
     # 0.7.1 (2026-09-03): clone_scitex_minimal returns CloneOutcome.failed(reason=...)
     # instead of a bare False, so a failed visitor reset records WHY it failed
     # (prod 2026-08-31: "the template reported NO reason"). Verified against the
