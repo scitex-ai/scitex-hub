@@ -7,16 +7,28 @@ import logging
 from django.shortcuts import redirect, render
 
 from apps.infra.project_app.models import Project
+from apps.infra.project_app.services.project_tree_ui import (
+    build_project_tree_context,
+    nav_projects,
+    wants_repository_view,
+)
 from apps.infra.project_app.services.project_utils import get_current_project
 
 logger = logging.getLogger(__name__)
 
 
-def build_hub_context(request, current_project=None):
+def build_hub_context(request, current_project=None, include_file_browser=False):
     """Build hub-specific template context for both full page and partial views.
 
     When current_project is set, shows project file browser (GitHub-style).
     When no project, shows dashboard with project cards.
+
+    ``include_file_browser=True`` adds the GitHub-style screen's data —
+    directory listing, README render, the FULL branch list (213 branches for
+    one live project), social counts, Gitea clone URLs. Only ?view=repository
+    renders it, so it is opt-in: the file-tree Project UI (and this app's
+    manifest context_builder, used for the in-page module partial) renders
+    none of it, and it dominated the page (227 KB on /apps/home/).
     """
 
     # No "module_icon" here. The icon comes from this app's manifest, resolved
@@ -63,6 +75,8 @@ def build_hub_context(request, current_project=None):
         :6
     ]
     context["user_projects"] = user_projects
+    # Full list for the file-tree look project list (index_partial.html).
+    context["project_nav_projects"] = nav_projects(request)
     context["projects_count"] = Project.objects.filter(owner=request.user).count()
     context["needs_project_creation"] = context["projects_count"] == 0
 
@@ -97,7 +111,7 @@ def build_hub_context(request, current_project=None):
         )
 
     # When a project is selected, add file browser data
-    if current_project:
+    if current_project and include_file_browser:
         _add_file_browser_context(request, current_project, context)
 
         # Check dev-install status for app repos
@@ -148,7 +162,39 @@ def index_view(request):
         if request.user.is_authenticated
         else None
     )
-    context = build_hub_context(request, current_project=current_project)
+    if wants_repository_view(request):
+        # The GitHub-style screen stays reachable, retired gradually.
+        context = build_hub_context(
+            request, current_project=current_project, include_file_browser=True
+        )
+        return render(request, "repo_app/index.html", context)
+    return render_project_tree_ui(request, current_project)
+
+
+def render_project_tree_ui(request, current_project, url_owner=None, **tree_kwargs):
+    """Render the Explorer/Finder-style Project UI inside the hub page.
+
+    ONE shell for every project entry point (operator, 2026-09-14): My
+    Projects (/apps/home/), opening a project (/<owner>/<slug>/) and its
+    /tree/ and /blob/ deep links. The workspace editor pane — file tree +
+    viewer — is server-rendered active; the tree pane lists the viewer's
+    projects with the current one expanded; the module pane carries only the
+    same list. The GitHub-style data (branch list, README, social counts) is
+    not built. ``url_owner`` is the owner segment of the URL (an org slug for
+    org-owned projects); ``tree_kwargs`` go to ``build_project_tree_context``.
+    """
+    request.initial_pane = "editor"
+    context = build_hub_context(
+        request, current_project=current_project, include_file_browser=False
+    )
+    context.update(build_project_tree_context(request, current_project, **tree_kwargs))
+    if current_project is not None:
+        from apps.infra.organizations_app.models import Organization
+
+        owner_slug = url_owner or current_project.owner.username
+        if Organization.objects.filter(slug=owner_slug).exists():
+            context["is_org_context"] = True
+            context["org_slug"] = owner_slug
     return render(request, "repo_app/index.html", context)
 
 
@@ -166,7 +212,11 @@ def current_project_view(request):
     if not request.user.is_authenticated:
         return redirect("auth_app:signin")
     current_project = get_current_project(request, user=request.user)
-    context = build_hub_context(request, current_project=current_project)
+    if not wants_repository_view(request):
+        return render_project_tree_ui(request, current_project)
+    context = build_hub_context(
+        request, current_project=current_project, include_file_browser=True
+    )
     context["hub_initial_mode"] = "projects"
     return render(request, "repo_app/index.html", context)
 

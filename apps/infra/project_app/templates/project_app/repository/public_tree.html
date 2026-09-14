@@ -1,0 +1,32 @@
+{% extends 'global_base.html' %}
+
+{% load static i18n %}
+
+{% comment %}
+Anonymous visitor on a PUBLIC project: the same Explorer/Finder-style Project
+UI signed-in users get (workspace file tree + viewer), read-only. Both reads it
+makes are already open to anonymous visitors for public projects:
+  /<owner>/<slug>/api/file-tree/        (project_app.views.api.file_tree)
+  /api/workspace/file-content/<path>    (workspace_api.views.file_content)
+The workspace shell (sidebar, chat, console) is a signed-in surface, so the two
+panes are placed on a standalone page. The GitHub-style screen stays at
+?view=repository.
+{% endcomment %}
+{% block content %}
+    <div class="public-project-tree" data-project-tree-public>
+        <div class="public-project-tree__bar">
+            <span class="public-project-tree__name">
+                <i class="fas fa-folder-open" aria-hidden="true"></i>
+                {{ project.effective_owner_slug }} / {{ project.name }}
+            </span>
+            {% if project.description %}
+                <span class="public-project-tree__description">{{ project.description|truncatechars:160 }}</span>
+            {% endif %}
+            <a class="public-project-tree__signin" href="{% url 'auth_app:signin' %}?next={{ request.path|urlencode }}">{% trans "Sign in" %}</a>
+        </div>
+        <div class="editor-split-layout public-project-tree__split">
+            <div class="editor-split-left">{% include 'global_base_partials/workspace_worktree_pane.html' %}</div>
+            <div class="editor-split-right">{% include 'global_base_partials/workspace_viewer_pane.html' %}</div>
+        </div>
+    </div>
+{% endblock %}

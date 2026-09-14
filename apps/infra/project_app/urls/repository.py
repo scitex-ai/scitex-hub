@@ -25,6 +25,7 @@ from ..views.directory_views import (
 from ..views.projects import (
     project_detail,
 )
+from ..views.projects.detail import project_tree_or_blob
 from ..views.repository.api import (
     api_app_scaffold,
     api_app_status,
@@ -115,6 +116,13 @@ urlpatterns = [
     # Commit detail - GitHub-style /commit/<commit-hash>/
     # /<username>/<slug>/commit/<commit-hash>/
     path("commit/<str:commit_hash>/", commit_detail, name="commit_detail"),
+    # GitHub-style folder deep links - /tree/<branch>/<folder-path>
+    # Open the file-tree Project UI with that folder expanded. Registered here
+    # because this package (not the shadowed project_app/urls.py module, which
+    # also declares it) is what Django imports; without it the catch-all below
+    # took "tree/<branch>/..." as a literal directory path.
+    path("tree/<str:branch>/", project_tree_or_blob, name="tree_root"),
+    path("tree/<str:branch>/<path:path>", project_tree_or_blob, name="tree_browse"),
     # Dynamic directory browsing - catches ANY directory path (MUST BE LAST!)
     # /<username>/<slug>/<any-directory>/
     # /<username>/<slug>/<any-directory>/<any-subdirectory>/...

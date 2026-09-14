@@ -3196,3 +3196,62 @@ msgstr "マイプロジェクト"
 msgctxt "app name"
 msgid "Public Projects"
 msgstr "パブリックプロジェクト"
+
+# Unified file-tree Project UI (operator 2026-09-14): My Projects and Public
+# Projects share one Explorer/Finder-style tree.
+#: templates/global_base_partials/project_tree_list.html
+#: apps/workspace/discovery_app/templates/discovery_app/discovery_partial.html
+msgid "Projects"
+msgstr "プロジェクト"
+
+#: templates/global_base_partials/project_tree_list.html
+msgid "No projects yet"
+msgstr "プロジェクトはまだありません"
+
+#: templates/global_base_partials/project_tree_list.html
+msgid "New project"
+msgstr "新規プロジェクト"
+
+#: templates/global_base_partials/project_tree_list.html
+msgid "Stars"
+msgstr "スター"
+
+#: apps/workspace/discovery_app/templates/discovery_app/explore_content.html
+msgid "No public projects yet."
+msgstr "公開プロジェクトはまだありません。"
+
+#: templates/global_base_partials/workspace_worktree_tree.html
+msgid "No files yet"
+msgstr "ファイルはまだありません"
+
+#: templates/global_base_partials/workspace_worktree_tree.html
+msgid "Upload"
+msgstr "アップロード"
+
+#: templates/global_base_partials/workspace_viewer_pane.html
+msgid "No file selected"
+msgstr "ファイルが選択されていません"
+
+#: templates/global_base_partials/workspace_viewer_pane.html
+msgid "Select a file in the tree"
+msgstr "ツリーからファイルを選択してください"
+
+#: apps/infra/accounts_app/templates/accounts_app/partials/settings_nav.html
+msgid "Public profile"
+msgstr "公開プロフィール"
+
+#: apps/workspace/repo_app/templates/repo_app/partials/user_profile_content.html
+msgid "Your projects"
+msgstr "あなたのプロジェクト"
+
+#: apps/workspace/repo_app/templates/repo_app/partials/user_profile_content.html
+msgid "No matching projects"
+msgstr "一致するプロジェクトはありません"
+
+#: apps/workspace/repo_app/templates/repo_app/partials/user_profile_content.html
+msgid "No visible projects"
+msgstr "表示できるプロジェクトはありません"
+
+#: apps/workspace/discovery_app/templates/discovery_app/explore_content.html
+msgid "projects"
+msgstr "件のプロジェクト"

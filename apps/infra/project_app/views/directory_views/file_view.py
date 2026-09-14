@@ -53,6 +53,21 @@ def project_file_view(request, username, slug, file_path):
         messages.error(request, "You don't have permission to access this file.")
         return redirect("project_app:detail", username=username, slug=slug)
 
+    # A plain /blob/<path> link opens the file-tree Project UI with the file
+    # open in the viewer (operator 2026-09-14: one Project UI on every entry
+    # point). Explicit modes (?mode=raw|download|edit|blame) and
+    # ?view=repository keep the GitHub-style file screen below.
+    if not request.GET.get("mode") and not request.GET.get("view"):
+        from ..projects.detail import render_project_tree
+
+        return render_project_tree(
+            request,
+            project,
+            username,
+            open_file=file_path,
+            repository_view_url=f"/{username}/{slug}/blob/{file_path}?view=repository",
+        )
+
     # Get file context
     result = get_file_context(request, username, slug, file_path)
     if result is None:

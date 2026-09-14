@@ -1,0 +1,244 @@
+/**
+ * Project UI — the project list in the file-tree look.
+ *
+ * One Explorer/Finder-style component for My Projects, Public Projects and an
+ * open project (operator 2026-09-14). Rows reuse the workspace file tree's own
+ * wft-* classes (scitex-ui workspace-files-tree CSS); this file only adds what
+ * an <a> row, the nested live tree, the empty state and the anonymous public
+ * page need.
+ *
+ * Markup: templates/global_base_partials/project_tree_list.html,
+ *         templates/global_base_partials/workspace_worktree_tree.html,
+ *         apps/infra/project_app/templates/project_app/repository/public_tree.html
+ */
+
+.ws-project-list {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0;
+}
+
+.ws-project-row {
+  text-decoration: none;
+  color: inherit;
+  min-height: 28px;
+}
+
+.ws-project-row:hover,
+.ws-project-row:focus-visible {
+  text-decoration: none;
+}
+
+.ws-project-row .wft-name {
+  min-width: 0;
+}
+
+.ws-project-row__owner {
+  color: var(--color-fg-muted, #8b949e);
+  font-weight: 400;
+  margin-right: 2px;
+}
+
+.ws-project-row__stars,
+.ws-project-row__badge {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: var(--color-fg-muted, #8b949e);
+}
+
+.ws-project-row__description {
+  padding: 0 8px 4px 24px;
+  font-size: 0.78rem;
+  color: var(--color-fg-muted, #8b949e);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ws-project-row__install {
+  margin: 0 8px 6px 24px;
+}
+
+/* ── Empty states ─────────────────────────────────────────────────────── */
+
+.ws-project-list__empty,
+.ws-tree-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 1.5rem 1rem;
+  color: var(--text-muted, #8b949e);
+  text-align: center;
+}
+
+.ws-tree-empty[hidden] {
+  display: none;
+}
+
+/* A project with no directory yet makes the tree API answer "Project
+   directory not found". For the viewer that is the same fact as "No files
+   yet", so show only the empty state. */
+.ws-project-row__tree:has(> .ws-tree-empty:not([hidden])) .wft-error {
+  display: none;
+}
+
+.ws-project-list__empty i,
+.ws-tree-empty i {
+  font-size: 1.75rem;
+  opacity: 0.4;
+}
+
+.ws-tree-empty__title {
+  font-weight: 500;
+  color: var(--text-secondary, #c9d1d9);
+}
+
+.ws-tree-empty__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.ws-tree-empty__btn,
+.ws-project-list__new {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-size: 0.85rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.ws-tree-empty__btn:hover,
+.ws-project-list__new:hover {
+  background: var(--color-canvas-subtle, rgba(127, 127, 127, 0.1));
+  text-decoration: none;
+}
+
+/* ── Live tree nested under its project row ───────────────────────────── */
+/* The tree area scrolls as one list, so the tree grows to its content
+   instead of filling 100% of a box of its own. */
+
+.ws-worktree-pane--projects .ws-worktree-tree-area {
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.ws-project-row__tree .workspace-files-tree {
+  height: auto;
+  overflow: visible;
+  border-bottom: none;
+  background-color: transparent;
+}
+
+.ws-project-row__tree .wft-content {
+  overflow: visible;
+}
+
+.ws-project-row__tree .wft-tree {
+  padding-bottom: 16px;
+}
+
+/* ── Public Projects list and the My Projects module pane ─────────────── */
+
+.discovery-tab-content .ws-project-list,
+.ws-project-module-list {
+  max-width: 960px;
+}
+
+.ws-project-module-list {
+  padding: 1rem;
+}
+
+/* ── Anonymous visitor on a public project: standalone tree + viewer ──── */
+
+.public-project-tree {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--header-height, 56px));
+  min-height: 420px;
+}
+
+.public-project-tree__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border-default, #30363d);
+}
+
+.public-project-tree__name {
+  font-weight: 600;
+}
+
+.public-project-tree__description {
+  flex: 1 1 200px;
+  min-width: 0;
+  color: var(--text-muted, #8b949e);
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.public-project-tree__signin {
+  margin-left: auto;
+  font-size: 0.85rem;
+}
+
+.public-project-tree__split {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Same pane chrome as inside the workspace (workspace-shell.css scopes these
+   overrides to .workspace-pane, which this standalone page has none of). */
+.public-project-tree .panel-toggle-btn,
+.public-project-tree .stx-shell-sidebar__title {
+  display: none !important;
+}
+
+.public-project-tree .stx-shell-sidebar__title-full {
+  display: inline !important;
+}
+
+.public-project-tree .stx-shell-sidebar {
+  width: 100% !important;
+  height: 100%;
+}
+
+/* ── Phone width (~390px) ─────────────────────────────────────────────── */
+/* The editor split already stacks (workspace-shell.css). Give rows a touch
+   target and keep long names/descriptions from widening the pane. */
+
+@media (max-width: 768px) {
+  .ws-project-row {
+    min-height: 36px;
+  }
+
+  .ws-project-row__description {
+    white-space: normal;
+  }
+
+  .public-project-tree {
+    height: auto;
+    min-height: calc(100vh - var(--header-height, 56px));
+  }
+
+  .public-project-tree__split {
+    height: 70vh;
+  }
+
+  .public-project-tree__description {
+    flex-basis: 100%;
+    order: 3;
+  }
+}

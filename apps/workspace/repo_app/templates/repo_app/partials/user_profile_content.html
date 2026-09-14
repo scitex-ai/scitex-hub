@@ -1,7 +1,7 @@
 {% comment %}
 Hub inline user profile — returned by /hub/api/user-profile/?username=X
 {% endcomment %}
-{% load static %}
+{% load static i18n %}
 
 <div class="hub-content">
     <div class="hub-user-profile">
@@ -134,9 +134,9 @@ Hub inline user profile — returned by /hub/api/user-profile/?username=X
                 <div class="hub-repos-header">
                     <h3>
                         {% if is_own_projects %}
-                            Your Repositories
+                            {% trans "Your projects" %}
                         {% else %}
-                            Repositories
+                            {% trans "Projects" %}
                         {% endif %}
                     </h3>
                     <div class="hub-repo-filter-wrap">
@@ -154,7 +154,7 @@ Hub inline user profile — returned by /hub/api/user-profile/?username=X
                         </a>
                     {% endif %}
                 </div>
-                <div id="hub-repo-no-results" class="hub-hidden hub-repo-no-results">No matching repositories</div>
+                <div id="hub-repo-no-results" class="hub-hidden hub-repo-no-results">{% trans "No matching projects" %}</div>
                 {% if projects %}
                     {% for project in projects %}
                         {# data-project-url: a card opens the project's default #}
@@ -190,7 +190,7 @@ Hub inline user profile — returned by /hub/api/user-profile/?username=X
                         </div>
                     {% endfor %}
                 {% else %}
-                    <p class="text-muted">No visible repositories</p>
+                    <p class="text-muted">{% trans "No visible projects" %}</p>
                 {% endif %}
             </div>
         </div>

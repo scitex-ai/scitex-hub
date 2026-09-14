@@ -10,10 +10,15 @@ from __future__ import annotations
 
 import logging
 
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 
 from ...decorators import project_access_required
 from ...models import ProjectFork, ProjectStar, ProjectWatch
+from ...services.project_tree_ui import (
+    REPOSITORY_VIEW,
+    build_project_tree_context,
+    wants_repository_view,
+)
 from .detail_helpers import (
     get_branches,
     get_directory_contents,
@@ -21,9 +26,6 @@ from .detail_helpers import (
 )
 
 logger = logging.getLogger(__name__)
-
-# ?view=<this> keeps the GitHub-style repository screen (secondary link).
-REPOSITORY_VIEW = "repository"
 
 
 @project_access_required
@@ -43,27 +45,30 @@ def project_detail(request, username, slug):
     # project available in request.project from decorator
     project = request.project
 
+    # The Explorer/Finder-style file tree is the DEFAULT Project UI, for the
+    # user's own projects and for public projects alike, signed in or not
+    # (operator TODO 186/188/190-192, 2026-09-14). The GitHub-style repository
+    # screen is kept, reachable with ?view=repository, and retired gradually
+    # (TODO 189). Read access was enforced by @project_access_required, and
+    # again by the tree/file-content APIs the page calls.
+    # Any explicit ?view= (repository, concatenated) or ?mode= (writer, code,
+    # viz) keeps its own screen below.
+    if not request.GET.get("view") and not request.GET.get("mode"):
+        return render_project_tree(request, project, username)
+
     # Authenticated users → hub workspace with project pre-selected
     if request.user.is_authenticated:
-        # The Explorer/Finder-style file tree is the DEFAULT Project UI, for the
-        # user's own projects and for public projects alike (operator TODO
-        # 186/188/190-192, 2026-09-14). The page below already carries the
-        # workspace editor pane — file tree + viewer — bound to request.project
-        # (set by @project_access_required, read access enforced there and in
-        # the tree/file-content APIs). Opening it as the initial pane is the
-        # whole switch. The GitHub-style repository screen is kept, reachable
-        # with ?view=repository, and retired gradually (TODO 189).
-        if request.GET.get("view") != REPOSITORY_VIEW:
-            request.initial_pane = "editor"
         # Check if this is an org-owned repo — if so, mark it so the template
-        # hides the personal "My | Settings" hub mode tabs (GitHub-style).
+        # shows the "org | project" hub mode tabs (GitHub-style).
         from apps.infra.organizations_app.models import Organization
 
         is_org_context = Organization.objects.filter(slug=username).exists()
 
         from apps.workspace.repo_app.views.index import build_hub_context
 
-        context = build_hub_context(request, current_project=project)
+        context = build_hub_context(
+            request, current_project=project, include_file_browser=True
+        )
         if is_org_context:
             context["is_org_context"] = True
             context["org_slug"] = username
@@ -211,19 +216,49 @@ def project_detail(request, username, slug):
 
 @project_access_required
 def project_tree_or_blob(request, username, slug, branch=None, path=None):
-    """GitHub-style tree/blob URLs — render via hub for authenticated users."""
-    project = request.project
-    if request.user.is_authenticated:
-        from apps.infra.organizations_app.models import Organization
-        from apps.workspace.repo_app.views.index import build_hub_context
+    """GitHub-style /tree/<branch>/<path> URLs — the tree UI, folder expanded.
 
-        context = build_hub_context(request, current_project=project)
-        if Organization.objects.filter(slug=username).exists():
-            context["is_org_context"] = True
-            context["org_slug"] = username
-        return render(request, "repo_app/index.html", context)
-    # Unauthenticated: fall through to standalone project detail
-    return project_detail(request, username, slug)
+    The tree shows the project's working copy, so ``branch`` does not select
+    what is listed; it is accepted so links shaped like GitHub's keep working.
+    ``?view=repository`` opens the GitHub-style directory screen instead.
+    """
+    project = request.project
+    folder = (path or "").strip("/")
+    if wants_repository_view(request):
+        if folder:
+            return redirect(f"/{username}/{slug}/{folder}/")
+        return redirect(f"/{username}/{slug}/?view={REPOSITORY_VIEW}")
+    return render_project_tree(
+        request,
+        project,
+        username,
+        focus_path=folder,
+        repository_view_url=(
+            f"/{username}/{slug}/{folder}/"
+            if folder
+            else f"/{username}/{slug}/?view={REPOSITORY_VIEW}"
+        ),
+    )
+
+
+def render_project_tree(request, project, username, **tree_kwargs):
+    """The one Project UI for ``project``, for any viewer with read access.
+
+    Signed-in viewers get it inside the workspace (file tree + viewer pane,
+    their projects listed alongside). Anonymous visitors — who only reach
+    here for a PUBLIC project — get the same tree and viewer, read-only, on a
+    standalone page: the workspace shell itself is a signed-in surface.
+    """
+    if request.user.is_authenticated:
+        from apps.workspace.repo_app.views.index import render_project_tree_ui
+
+        return render_project_tree_ui(
+            request, project, url_owner=username, **tree_kwargs
+        )
+    context = {"current_project": project, "project": project}
+    context.update(build_project_tree_context(request, project, **tree_kwargs))
+    context["project_tree_public_read"] = True
+    return render(request, "project_app/repository/public_tree.html", context)
 
 
 def _get_trip_contents(project):

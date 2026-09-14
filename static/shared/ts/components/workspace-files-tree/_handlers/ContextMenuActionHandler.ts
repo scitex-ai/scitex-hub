@@ -15,6 +15,7 @@ import type { ClipboardHandler } from "./ClipboardHandler";
 import type { UndoRedoHandler } from "./UndoRedoHandler";
 import type { FileActions } from "./FileActions";
 import type { GitActions } from "./GitActions";
+import { isWriteAction } from "../_ReadOnly";
 
 export interface ContextMenuActionCallbacks {
   isItemDirectory: (path: string) => boolean;
@@ -76,6 +77,8 @@ export class ContextMenuActionHandler {
    * Handle a context menu action
    */
   async handle(action: string, path: string): Promise<void> {
+    // Read-only tree: writes are never dispatched, whatever asked for them.
+    if (this.config.readOnly && isWriteAction(action)) return;
     switch (action) {
       case "cut":
         console.log("[ContextMenuAction] Cut:", path);

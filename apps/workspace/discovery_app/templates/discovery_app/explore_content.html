@@ -2,82 +2,11 @@
 Discovery explore content — returned by /discovery/api/explore/?tab=...
 Also included directly in discovery_partial.html for initial render.
 {% endcomment %}
-{% load static %}
+{% load static i18n %}
 
 {% if tab == 'repositories' %}
-    {% if repositories %}
-        {% for repo in repositories %}
-            <div class="project-card mb-3">
-                <div class="project-card-header">
-                    <h3 class="discovery-repo-title">
-                        <a href="/{{ repo.effective_owner_slug }}/{{ repo.slug }}/">
-                            {% if repo.is_org_owned and repo.org_owner.avatar %}
-                                <img src="{{ repo.org_owner.avatar.url }}"
-                                     class="discovery-owner-badge-img"
-                                     alt="{{ repo.org_owner.name }}" />
-                            {% elif repo.is_org_owned and repo.org_owner.avatar_static_url %}
-                                <img src="{% static repo.org_owner.avatar_static_url %}"
-                                     class="discovery-owner-badge-img"
-                                     alt="{{ repo.org_owner.name }}" />
-                            {% elif repo.is_org_owned %}
-                                <span class="discovery-owner-badge"><i class="fas fa-building"></i></span>
-                            {% elif repo.owner_org and repo.owner_org.avatar %}
-                                <img src="{{ repo.owner_org.avatar.url }}"
-                                     class="discovery-owner-badge-img"
-                                     alt="{{ repo.owner_org.name }}" />
-                            {% elif repo.owner_org and repo.owner_org.avatar_static_url %}
-                                <img src="{% static repo.owner_org.avatar_static_url %}"
-                                     class="discovery-owner-badge-img"
-                                     alt="{{ repo.owner_org.name }}" />
-                            {% elif repo.owner_org %}
-                                <span class="discovery-owner-badge"><i class="fas fa-building"></i></span>
-                            {% elif repo.owner.profile.avatar %}
-                                <img src="{{ repo.owner.profile.avatar.url }}"
-                                     class="discovery-owner-badge-img"
-                                     alt="{{ repo.owner.username }}" />
-                            {% else %}
-                                <span class="discovery-owner-badge">{{ repo.owner.username|slice:":1"|upper }}</span>
-                            {% endif %}
-                            <span class="discovery-repo-owner-part">{{ repo.effective_owner_slug }}</span>
-                            <span class="discovery-repo-sep">/</span>
-                            <span class="discovery-repo-name-part">{{ repo.name }}</span>
-                        </a>
-                    </h3>
-                    <div class="project-card-badges">
-                        {% if repo.is_app %}
-                            <span class="badge badge-app" title="SciTeX App"><i class="fas fa-puzzle-piece"></i> App</span>
-                        {% endif %}
-                        <span class="badge badge-{{ repo.visibility }}">{{ repo.visibility }}</span>
-                    </div>
-                </div>
-                <div class="project-card-body">
-                    {% if repo.description %}<p class="text-muted">{{ repo.description|truncatewords:20 }}</p>{% endif %}
-                    {% if repo.topics_list %}
-                        <div class="project-topics">
-                            {% for topic in repo.topics_list %}<span class="topic-tag">{{ topic }}</span>{% endfor %}
-                        </div>
-                    {% endif %}
-                    <div class="project-meta">
-                        {% if repo.primary_language %}<span class="language-badge">{{ repo.primary_language }}</span>{% endif %}
-                        <span class="meta-item"><i class="fas fa-star"></i> {{ repo.star_count }}</span>
-                        <span class="meta-item">Updated {{ repo.updated_at|timesince }} ago</span>
-                        {% if repo.is_app %}
-                            <button type="button"
-                                    class="btn btn-sm dev-install-btn"
-                                    data-action="dev-install"
-                                    data-owner="{{ repo.effective_owner_slug }}"
-                                    data-repo="{{ repo.slug }}"
-                                    title="Install privately in your workspace">
-                                <i class="fas fa-download"></i> Private Install
-                            </button>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
-    {% else %}
-        <p class="discovery-empty">No public repositories yet. Be the first to create one!</p>
-    {% endif %}
+    {# Same Explorer/Finder list look as My Projects (project_tree_list.html). #}
+    {% include "global_base_partials/project_tree_list.html" with projects=repositories show_owner=True show_meta=True empty_text=_("No public projects yet.") %}
 {% elif tab == 'users' %}
     <div class="projects-grid">
         {% if users %}
@@ -97,7 +26,7 @@ Also included directly in discovery_partial.html for initial render.
                             </div>
                             <p class="discovery-user-handle">@{{ u.username }}</p>
                             <div class="project-meta">
-                                <span class="meta-item"><i class="fas fa-book"></i> {{ u.repo_count }} repos</span>
+                                <span class="meta-item"><i class="fas fa-book"></i> {{ u.repo_count }} {% trans "projects" %}</span>
                                 <span class="meta-item"><i class="fas fa-users"></i> {{ u.follower_count }} followers</span>
                             </div>
                         </div>

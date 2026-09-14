@@ -13,6 +13,11 @@ import { initGitStatusToggle } from "./_GitStatusToggle";
 import { initModuleFilterButtons } from "./_ModuleFilterButtons";
 import { initSortToggle } from "./_SortToggle";
 import {
+  applyDeepLink,
+  isReadOnlyMount,
+  wireEmptyState,
+} from "./_ProjectTreeUI";
+import {
   initMonitorToggle,
   initRepoMonitor,
   RepoMonitorClient,
@@ -142,17 +147,25 @@ export async function autoInitWorktreePanes(): Promise<void> {
     if (slug && username) {
       const onFileSelect = window.scitexOnFileSelect || (() => {});
 
+      const readOnly = isReadOnlyMount(pane);
       const tree = new WorkspaceFilesTree({
         mode: "hub" as WorkspaceMode,
         containerId: pane.id,
         ownerUsername: username,
         projectSlug: slug,
-        showFolderActions: true,
+        showFolderActions: !readOnly,
         showGitStatus: true,
+        readOnly,
         onFileSelect,
       });
 
       await tree.initialize();
+      // Project UI: empty state + /tree/ and /blob/ deep links (_ProjectTreeUI.ts)
+      wireEmptyState(pane, tree, {
+        ownerUsername: username,
+        projectSlug: slug,
+      });
+      void applyDeepLink(pane, tree);
 
       initHiddenFilesToggle(tree);
       initGitStatusToggle(tree);
@@ -189,11 +202,17 @@ export async function autoInitWorktreePanes(): Promise<void> {
       // Update DOM data attributes
       pane.dataset.projectSlug = newProjectSlug;
       pane.dataset.username = newOwnerUsername;
+      // The header selector switches among the user's OWN projects; a
+      // read-only flag rendered for the previous project no longer applies.
+      delete pane.dataset.readOnly;
 
       // Update sidebar title (worktree pane)
       const worktreePane =
         pane.closest(".ws-worktree-pane") || pane.parentElement?.parentElement;
-      const titleSelectors = [".stx-shell-sidebar__title-expanded", ".stx-shell-sidebar__title-full"];
+      const titleSelectors = [
+        ".stx-shell-sidebar__title-expanded",
+        ".stx-shell-sidebar__title-full",
+      ];
       for (const sel of titleSelectors) {
         const titleEl = worktreePane?.querySelector(sel) as HTMLElement;
         if (titleEl) {
