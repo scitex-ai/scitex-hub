@@ -35,7 +35,7 @@ services:
       - ../../../../scitex-clew:/scitex-clew:cached
       - ../../../../scitex-tunnel:/scitex-tunnel:cached
       - ../../../../scitex-container:/scitex-container:cached
-      - ../../../../scitex-agent-container:/scitex-agent-container:cached
+      - ${SCITEX_AGENT_CONTAINER_SOURCE_DIR:-../../../../scitex-agent-container}:/scitex-agent-container:cached
       - ../../../../scitex-dataset:/scitex-dataset:cached
       - ../../../../scitex-linter:/scitex-linter:cached
       - ../../../../scitex-scholar:/scitex-scholar:cached
@@ -287,7 +287,7 @@ services:
       - ../../../../scitex-clew:/scitex-clew:cached
       - ../../../../scitex-tunnel:/scitex-tunnel:cached
       - ../../../../scitex-container:/scitex-container:cached
-      - ../../../../scitex-agent-container:/scitex-agent-container:cached
+      - ${SCITEX_AGENT_CONTAINER_SOURCE_DIR:-../../../../scitex-agent-container}:/scitex-agent-container:cached
       - ../../../../scitex-dataset:/scitex-dataset:cached
       - ../../../../scitex-linter:/scitex-linter:cached
       - ../../../../scitex-scholar:/scitex-scholar:cached
@@ -406,7 +406,7 @@ services:
       - ../../../../scitex-clew:/scitex-clew:cached
       - ../../../../scitex-tunnel:/scitex-tunnel:cached
       - ../../../../scitex-container:/scitex-container:cached
-      - ../../../../scitex-agent-container:/scitex-agent-container:cached
+      - ${SCITEX_AGENT_CONTAINER_SOURCE_DIR:-../../../../scitex-agent-container}:/scitex-agent-container:cached
       - ../../../../scitex-dataset:/scitex-dataset:cached
       - ../../../../scitex-linter:/scitex-linter:cached
       - ../../../../scitex-scholar:/scitex-scholar:cached

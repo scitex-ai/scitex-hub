@@ -29,11 +29,13 @@ ENV_EXAMPLES = (
 DEV_STACKS = (
     (
         REPO_ROOT / "deployment/docker/docker_dev/docker-compose.yml",
-        "../../../../scitex-agent-container:/scitex-agent-container:cached",
+        "${SCITEX_AGENT_CONTAINER_SOURCE_DIR:-../../../../scitex-agent-container}:"
+        "/scitex-agent-container:cached",
     ),
     (
         REPO_ROOT / "deployment/docker/docker-compose.override.yml",
-        "../../../scitex-agent-container:/scitex-agent-container:cached",
+        "${SCITEX_AGENT_CONTAINER_SOURCE_DIR:-../../../scitex-agent-container}:"
+        "/scitex-agent-container:cached",
     ),
 )
 PYTHON_SERVICES = ("django", "celery_worker", "celery_beat")
@@ -130,6 +132,7 @@ def test_env_templates_document_listener_without_embedding_its_bearer(
     template = env_example.read_text(encoding="utf-8")
 
     assert "SCITEX_AGENT_CONTAINER_API_URL=http://host.docker.internal:7878" in template
+    assert "SCITEX_AGENT_CONTAINER_SOURCE_DIR=" in template
     assert "SCITEX_AGENT_CONTAINER_API_TOKEN_FILE_HOST=" in template
     assert "SCITEX_AGENT_CONTAINER_API_TOKEN=" not in template
 

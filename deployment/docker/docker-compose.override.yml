@@ -44,7 +44,7 @@ services:
       - ../../../openalex-local:/openalex-local:cached
       - ../../../scitex-scholar:/scitex-scholar:cached
       - ../../../scitex-container:/scitex-container:cached
-      - ../../../scitex-agent-container:/scitex-agent-container:cached
+      - ${SCITEX_AGENT_CONTAINER_SOURCE_DIR:-../../../scitex-agent-container}:/scitex-agent-container:cached
       - ../../../scitex-clew:/scitex-clew:cached
       - ../../../scitex-plt:/scitex-plt:cached
       - ../../../scitex-audio:/scitex-audio:cached
@@ -182,7 +182,7 @@ services:
       - ../../../openalex-local:/openalex-local:cached
       - ../../../scitex-scholar:/scitex-scholar:cached
       - ../../../scitex-container:/scitex-container:cached
-      - ../../../scitex-agent-container:/scitex-agent-container:cached
+      - ${SCITEX_AGENT_CONTAINER_SOURCE_DIR:-../../../scitex-agent-container}:/scitex-agent-container:cached
       - ../../../scitex-clew:/scitex-clew:cached
       - ../../../scitex-plt:/scitex-plt:cached
       - ../../../scitex-audio:/scitex-audio:cached
@@ -279,7 +279,7 @@ services:
       - ../../../openalex-local:/openalex-local:cached
       - ../../../scitex-scholar:/scitex-scholar:cached
       - ../../../scitex-container:/scitex-container:cached
-      - ../../../scitex-agent-container:/scitex-agent-container:cached
+      - ${SCITEX_AGENT_CONTAINER_SOURCE_DIR:-../../../scitex-agent-container}:/scitex-agent-container:cached
       - ../../../scitex-clew:/scitex-clew:cached
       - ../../../scitex-plt:/scitex-plt:cached
       - ../../../scitex-audio:/scitex-audio:cached
