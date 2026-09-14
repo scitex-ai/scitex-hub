@@ -171,6 +171,26 @@ def test_new_project_type_picker_label_under_japanese(signed_in_client):
     assert re.search(r'<label[^>]*for="create-type-select"[^>]*>\s*プロジェクトの種類', html)
 
 
+@pytest.mark.django_db
+def test_new_project_name_field_says_project_name_under_english(signed_in_client):
+    # Arrange
+    path = reverse("project_create")
+    # Act
+    html = _get(signed_in_client, path, "en")
+    # Assert
+    assert re.search(r'<label[^>]*for="name"[^>]*>\s*Project name', html)
+
+
+@pytest.mark.django_db
+def test_new_project_name_field_says_project_name_under_japanese(signed_in_client):
+    # Arrange
+    path = reverse("project_create")
+    # Act
+    html = _get(signed_in_client, path, "ja")
+    # Assert
+    assert re.search(r'<label[^>]*for="name"[^>]*>\s*プロジェクト名', html)
+
+
 def test_new_project_css_stacks_to_one_full_width_column_on_phones():
     # Arrange
     css = CREATE_CSS.read_text(encoding="utf-8")

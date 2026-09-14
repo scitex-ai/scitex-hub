@@ -4892,8 +4892,8 @@ msgstr "空のプロジェクト"
 msgid "WIP"
 msgstr "開発中"
 
-msgid "Repository Name"
-msgstr "リポジトリ名"
+msgid "Project name"
+msgstr "プロジェクト名"
 
 msgid "Choose a clear name (lowercase, hyphens for spaces)."
 msgstr "わかりやすい名前を付けてください（小文字、空白の代わりにハイフン）。"
