@@ -37,6 +37,23 @@
   white-space: nowrap;
 }
 
+/* Phones: the storage table ran 34px past a 390px viewport because prices
+   such as "Included with active compute" could not wrap. */
+@media (max-width: 480px) {
+  .pricing-rate-table {
+    font-size: 0.82rem;
+  }
+
+  .pricing-rate-table th,
+  .pricing-rate-table td {
+    padding: 0.35rem 0.4rem;
+  }
+
+  .pricing-rate-table .plan-price {
+    white-space: normal;
+  }
+}
+
 .pricing-coming-soon {
   display: inline-block;
   margin-left: 0.5rem;
