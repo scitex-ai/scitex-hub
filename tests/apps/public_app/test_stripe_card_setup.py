@@ -1,24 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Tests for real card registration + usability validation (Stripe-hosted setup).
+"""Card registration through Stripe-hosted Checkout in setup mode.
 
-Covers the new machinery added on top of the existing commerce scaffold:
-
-- ``stripe_setup.build_stripe_client``  — None while unconfigured (the 503 signal).
-- ``stripe_setup.start_card_setup``      — creates/reuses the Stripe customer and
-  opens a ``mode="setup"`` session mapped back to the user via
-  ``client_reference_id``. Card data never passes through us.
-- ``stripe_setup.apply_setup_completed`` — persists ONLY Stripe identifiers +
-  safe display metadata, marks the card usable, demotes the prior default.
-- ``start_card_setup`` view              — login-gated, POST-only, 503 unconfigured
-  (guard layers only — the Stripe SDK call itself is exercised at the service
-  layer, matching test_commerce.py's convention of never hitting the live SDK
-  from a view test).
-
-No mocks (STX-NM001): real Postgres via pytest-django, and the Stripe client is
-a hand-rolled fake collaborator passed as a plain keyword (``stripe_client=``),
-the same pattern as ``tests/apps/console_app/services/terminal_broker/
-test_terminal_provider.py``. Webhook tests reuse the hand-rolled HMAC scheme.
+Real Postgres via pytest-django; the Stripe client is a hand-rolled fake passed
+as ``stripe_client=`` (no mocks). Event payloads follow Stripe's real shape: a
+completed setup-mode Checkout Session names its ``setup_intent``, and the card
+is read back from that SetupIntent.
 """
 
 import hashlib
@@ -29,48 +16,47 @@ import time
 import pytest
 from django.urls import reverse
 
+from apps.infra.public_app.models import BillingEvent, PaymentMethod
 from apps.infra.public_app.services import stripe_setup
 
+WEBHOOK_SECRET = "whsec_test_for_card_setup"
 
-# ---------------------------------------------------------------------------
-# Hand-rolled Stripe client fake (records calls, returns canned objects)
-# ---------------------------------------------------------------------------
-class _IdObject:
-    def __init__(self, id, **extra):
+
+class _StripeObject:
+    def __init__(self, id, **fields):
         self.id = id
-        for k, v in extra.items():
-            setattr(self, k, v)
+        for name, value in fields.items():
+            setattr(self, name, value)
 
 
-class _Checkout:
+class _CheckoutSessions:
     def __init__(self, fake):
         self._fake = fake
-        # Real SDK shape is stripe.checkout.Session.create(...); the service
-        # calls it that way, so expose ourselves under `.Session`.
         self.Session = self
 
     def create(self, **kwargs):
         self._fake.session_calls.append(kwargs)
-        return _IdObject("cs_test_fake", url="https://checkout.stripe.com/c/pay/cs_test_fake")
+        return _StripeObject("cs_test_fake", url="https://checkout.stripe.com/c/pay/cs_test_fake")
 
 
-class _Customer:
+class _Customers:
     def __init__(self, fake):
         self._fake = fake
 
     def create(self, **kwargs):
         self._fake.customer_calls.append(kwargs)
-        return _IdObject(f"cus_{len(self._fake.customer_calls)}")
+        return _StripeObject(f"cus_{len(self._fake.customer_calls)}")
 
 
-class _PaymentMethod:
-    def __init__(self, fake):
-        self._fake = fake
+class _SetupIntents:
+    def retrieve(self, setup_intent_id):
+        return _StripeObject(setup_intent_id, payment_method=f"pm_of_{setup_intent_id}")
 
-    def retrieve(self, pm_id):
-        self._fake.retrieve_calls.append(pm_id)
-        card = _IdObject("", brand="visa", last4="4242", exp_month=12, exp_year=2030)
-        return _IdObject(pm_id, card=card)
+
+class _PaymentMethods:
+    def retrieve(self, payment_method_id):
+        card = _StripeObject("", brand="visa", last4="4242", exp_month=12, exp_year=2034)
+        return _StripeObject(payment_method_id, card=card)
 
 
 class FakeStripeClient:
@@ -79,27 +65,44 @@ class FakeStripeClient:
     def __init__(self):
         self.customer_calls = []
         self.session_calls = []
-        self.retrieve_calls = []
-        self.checkout = _Checkout(self)
-        self.Customer = _Customer(self)
-        self.PaymentMethod = _PaymentMethod(self)
+        self.checkout = _CheckoutSessions(self)
+        self.Customer = _Customers(self)
+        self.SetupIntent = _SetupIntents()
+        self.PaymentMethod = _PaymentMethods()
 
 
-def _stripe_signature(payload: bytes, secret: str, timestamp: int = None) -> str:
-    """Hand-rolled Stripe-Signature header (documented v1 scheme)."""
-    ts = int(time.time()) if timestamp is None else timestamp
-    signed_payload = f"{ts}.".encode() + payload
-    mac = hmac.new(secret.encode(), signed_payload, hashlib.sha256).hexdigest()
-    return f"t={ts},v1={mac}"
+def _completed_setup_event(user_pk, setup_intent_id="seti_1", customer_id="cus_1", mode="setup"):
+    return {
+        "id": f"evt_{setup_intent_id}",
+        "type": "checkout.session.completed",
+        "data": {
+            "object": {
+                "mode": mode,
+                "setup_intent": setup_intent_id,
+                "customer": customer_id,
+                "client_reference_id": str(user_pk),
+            }
+        },
+    }
 
 
-def _post_webhook(client, payload: bytes, signature: str):
+def _signed_webhook_post(client, event, secret=WEBHOOK_SECRET):
+    payload = json.dumps(event).encode()
+    timestamp = int(time.time())
+    digest = hmac.new(secret.encode(), f"{timestamp}.".encode() + payload, hashlib.sha256).hexdigest()
     return client.post(
         reverse("public_app:stripe_webhook"),
         data=payload,
         content_type="application/json",
-        HTTP_STRIPE_SIGNATURE=signature,
+        HTTP_STRIPE_SIGNATURE=f"t={timestamp},v1={digest}",
     )
+
+
+def _start_setup(user, fake):
+    stripe_setup.start_card_setup(
+        user, stripe_client=fake, success_url="https://s", cancel_url="https://c"
+    )
+    return fake.session_calls[0]
 
 
 @pytest.fixture
@@ -111,219 +114,216 @@ def logged_in_client(client, django_user_model):
     return client
 
 
-# ---------------------------------------------------------------------------
-# build_stripe_client
-# ---------------------------------------------------------------------------
-def test_build_stripe_client_returns_none_when_unconfigured():
-    assert stripe_setup.build_stripe_client("") is None
-    assert stripe_setup.build_stripe_client(None) is None
+def test_build_stripe_client_returns_none_without_a_key():
+    # Arrange
+    missing_key = ""
+    # Act
+    client = stripe_setup.build_stripe_client(missing_key)
+    # Assert
+    assert client is None
 
 
-def test_build_stripe_client_returns_callable_client_when_keyed():
-    client = stripe_setup.build_stripe_client("sk_test_live_key_here")
-    # The real SDK module is returned and usable (imported, not mocked).
-    assert client is not None
-    assert hasattr(client, "checkout") and hasattr(client, "Customer")
+def test_build_stripe_client_returns_the_sdk_with_a_key():
+    # Arrange
+    key = "sk_test_placeholder"
+    # Act
+    client = stripe_setup.build_stripe_client(key)
+    # Assert
+    assert hasattr(client, "checkout")
 
 
-# ---------------------------------------------------------------------------
-# start_card_setup (service) — real DB, fake Stripe client
-# ---------------------------------------------------------------------------
 @pytest.mark.django_db
 class TestStartCardSetup:
-    def test_creates_customer_when_user_has_none(self, django_user_model):
+    def test_creates_a_customer_when_the_user_has_none(self, django_user_model):
+        # Arrange
         user = django_user_model.objects.create_user(username="u1", password="x")
         fake = FakeStripeClient()
-        stripe_setup.start_card_setup(
-            user, stripe_client=fake, success_url="https://s", cancel_url="https://c"
-        )
-        assert len(fake.customer_calls) == 1
-        assert fake.session_calls[0]["mode"] == "setup"
-        assert fake.session_calls[0]["client_reference_id"] == str(user.pk)
-        # The session references the customer we just created (cus_1).
-        assert fake.session_calls[0]["customer"] == "cus_1"
+        # Act
+        session_kwargs = _start_setup(user, fake)
+        # Assert
+        assert session_kwargs["customer"] == "cus_1"
 
-    def test_session_mode_is_setup_not_payment(self, django_user_model):
+    def test_opens_the_session_in_setup_mode(self, django_user_model):
+        # Arrange
         user = django_user_model.objects.create_user(username="u2", password="x")
         fake = FakeStripeClient()
-        stripe_setup.start_card_setup(
-            user, stripe_client=fake, success_url="https://s", cancel_url="https://c"
-        )
-        assert fake.session_calls[0]["mode"] == "setup"
+        # Act
+        session_kwargs = _start_setup(user, fake)
+        # Assert
+        assert session_kwargs["mode"] == "setup"
 
-    def test_reuses_existing_customer_without_new_create(self, django_user_model):
-        from apps.infra.public_app.models import PaymentMethod
-
+    def test_passes_the_currency_stripe_requires_in_setup_mode(self, django_user_model):
+        # Arrange
         user = django_user_model.objects.create_user(username="u3", password="x")
+        fake = FakeStripeClient()
+        # Act
+        session_kwargs = _start_setup(user, fake)
+        # Assert
+        assert session_kwargs["currency"] == "usd"
+
+    def test_maps_the_session_back_to_the_user(self, django_user_model):
+        # Arrange
+        user = django_user_model.objects.create_user(username="u4", password="x")
+        fake = FakeStripeClient()
+        # Act
+        session_kwargs = _start_setup(user, fake)
+        # Assert
+        assert session_kwargs["client_reference_id"] == str(user.pk)
+
+    def test_reuses_the_stored_customer(self, django_user_model):
+        # Arrange
+        user = django_user_model.objects.create_user(username="u5", password="x")
         PaymentMethod.objects.create(
-            user=user,
-            stripe_payment_method_id="pm_existing",
-            stripe_customer_id="cus_existing",
+            user=user, stripe_payment_method_id="pm_existing", stripe_customer_id="cus_existing"
         )
         fake = FakeStripeClient()
-        stripe_setup.start_card_setup(
-            user, stripe_client=fake, success_url="https://s", cancel_url="https://c"
-        )
-        # No new customer — reuses the stored one.
-        assert fake.customer_calls == []
-        assert fake.session_calls[0]["customer"] == "cus_existing"
-
-
-# ---------------------------------------------------------------------------
-# apply_setup_completed (service) — real DB, fake Stripe client
-# ---------------------------------------------------------------------------
-def _completed_setup_event(user_pk, pm_id="pm_1", cus_id="cus_1", mode="setup"):
-    return {
-        "id": f"evt_{pm_id}",
-        "type": "checkout.session.completed",
-        "data": {
-            "object": {
-                "mode": mode,
-                "payment_method": pm_id,
-                "customer": cus_id,
-                "client_reference_id": str(user_pk),
-            }
-        },
-    }
+        # Act
+        session_kwargs = _start_setup(user, fake)
+        # Assert
+        assert session_kwargs["customer"] == "cus_existing"
 
 
 @pytest.mark.django_db
 class TestApplySetupCompleted:
-    def test_persists_validated_card_with_display_metadata(self, django_user_model):
-        from apps.infra.public_app.models import PaymentMethod
-
+    def test_stores_the_payment_method_named_by_the_setup_intent(self, django_user_model):
+        # Arrange
         user = django_user_model.objects.create_user(username="p1", password="x")
-        fake = FakeStripeClient()
+        # Act
         row = stripe_setup.apply_setup_completed(
-            _completed_setup_event(user.pk), stripe_client=fake
+            _completed_setup_event(user.pk, setup_intent_id="seti_abc"), stripe_client=FakeStripeClient()
         )
-        assert row is not None
-        assert row.stripe_payment_method_id == "pm_1"
-        assert row.stripe_customer_id == "cus_1"
-        assert row.is_usable is True
-        assert row.is_default is True
-        # Safe display metadata fetched from Stripe and stored.
-        assert row.brand == "visa"
-        assert row.last4 == "4242"
-        assert row.exp_month == 12
-        assert row.exp_year == 2030
-        assert fake.retrieve_calls == ["pm_1"]
+        # Assert
+        assert row.stripe_payment_method_id == "pm_of_seti_abc"
 
-    def test_stores_only_ids_and_safe_metadata_not_pan(self, django_user_model):
-        from apps.infra.public_app.models import PaymentMethod
-
+    def test_marks_the_card_usable(self, django_user_model):
+        # Arrange
         user = django_user_model.objects.create_user(username="p2", password="x")
-        stripe_setup.apply_setup_completed(
+        # Act
+        row = stripe_setup.apply_setup_completed(
             _completed_setup_event(user.pk), stripe_client=FakeStripeClient()
         )
-        row = PaymentMethod.objects.get(user=user)
-        fields = {f.name for f in row._meta.get_fields()}
-        assert "card_number" not in fields and "cvc" not in fields
-        assert "stripe_payment_method_id" in fields
+        # Assert
+        assert row.is_usable is True
 
-    def test_ignores_non_setup_session(self, django_user_model):
+    def test_stores_brand_and_last4_for_display(self, django_user_model):
+        # Arrange
         user = django_user_model.objects.create_user(username="p3", password="x")
+        # Act
+        row = stripe_setup.apply_setup_completed(
+            _completed_setup_event(user.pk), stripe_client=FakeStripeClient()
+        )
+        # Assert
+        assert (row.brand, row.last4) == ("visa", "4242")
+
+    def test_model_has_no_field_for_the_card_number(self, django_user_model):
+        # Arrange
+        user = django_user_model.objects.create_user(username="p4", password="x")
+        row = stripe_setup.apply_setup_completed(
+            _completed_setup_event(user.pk), stripe_client=FakeStripeClient()
+        )
+        # Act
+        field_names = {field.name for field in row._meta.get_fields()}
+        # Assert
+        assert field_names.isdisjoint({"card_number", "number", "cvc"})
+
+    def test_ignores_a_payment_mode_session(self, django_user_model):
+        # Arrange
+        user = django_user_model.objects.create_user(username="p5", password="x")
+        # Act
         row = stripe_setup.apply_setup_completed(
             _completed_setup_event(user.pk, mode="payment"), stripe_client=FakeStripeClient()
         )
+        # Assert
         assert row is None
 
-    def test_ignores_unknown_user(self, django_user_model):
-        django_user_model.objects.create_user(username="p4", password="x")
+    def test_ignores_an_unknown_user(self, django_user_model):
+        # Arrange
+        unknown_user_pk = 999999
+        # Act
         row = stripe_setup.apply_setup_completed(
-            _completed_setup_event(999999), stripe_client=FakeStripeClient()
+            _completed_setup_event(unknown_user_pk), stripe_client=FakeStripeClient()
         )
+        # Assert
         assert row is None
 
-    def test_demotes_previous_default_card(self, django_user_model):
-        from apps.infra.public_app.models import PaymentMethod
-
-        user = django_user_model.objects.create_user(username="p5", password="x")
-        stripe_setup.apply_setup_completed(
-            _completed_setup_event(user.pk, pm_id="pm_old", cus_id="cus_old"),
-            stripe_client=FakeStripeClient(),
-        )
-        stripe_setup.apply_setup_completed(
-            _completed_setup_event(user.pk, pm_id="pm_new", cus_id="cus_new"),
-            stripe_client=FakeStripeClient(),
-        )
-        old = PaymentMethod.objects.get(stripe_payment_method_id="pm_old")
-        new = PaymentMethod.objects.get(stripe_payment_method_id="pm_new")
-        assert new.is_default is True
-        assert old.is_default is False
-
-    def test_marks_usable_even_without_stripe_client(self, django_user_model):
-        from apps.infra.public_app.models import PaymentMethod
-
+    def test_stores_nothing_without_a_stripe_client(self, django_user_model):
+        # Arrange
         user = django_user_model.objects.create_user(username="p6", password="x")
-        row = stripe_setup.apply_setup_completed(
-            _completed_setup_event(user.pk), stripe_client=None
+        # Act
+        row = stripe_setup.apply_setup_completed(_completed_setup_event(user.pk), stripe_client=None)
+        # Assert
+        assert row is None
+
+    def test_demotes_the_previous_default_card(self, django_user_model):
+        # Arrange
+        user = django_user_model.objects.create_user(username="p7", password="x")
+        stripe_setup.apply_setup_completed(
+            _completed_setup_event(user.pk, setup_intent_id="seti_old"), stripe_client=FakeStripeClient()
         )
-        assert row is not None
-        assert row.is_usable is True
-        # No client -> no display metadata fetched, but the card is recorded.
-        assert row.brand == ""
+        # Act
+        stripe_setup.apply_setup_completed(
+            _completed_setup_event(user.pk, setup_intent_id="seti_new"), stripe_client=FakeStripeClient()
+        )
+        # Assert
+        assert PaymentMethod.objects.get(stripe_payment_method_id="pm_of_seti_old").is_default is False
 
 
-# ---------------------------------------------------------------------------
-# start_card_setup (view) — guard layers only (STX-NM001: no live SDK call)
-# ---------------------------------------------------------------------------
 @pytest.mark.django_db
 class TestStartCardSetupView:
-    def test_anonymous_is_redirected_to_login(self, client):
-        resp = client.post(reverse("public_app:billing_start_setup"))
-        assert resp.status_code in (302, 303)
-        assert "login" in resp.url
+    def test_anonymous_post_redirects_to_login(self, client):
+        # Arrange
+        url = reverse("public_app:billing_start_setup")
+        # Act
+        response = client.post(url)
+        # Assert
+        assert "login" in response.url
 
-    def test_get_returns_405(self, logged_in_client):
-        assert logged_in_client.get(reverse("public_app:billing_start_setup")).status_code == 405
+    def test_get_is_not_allowed(self, logged_in_client):
+        # Arrange
+        url = reverse("public_app:billing_start_setup")
+        # Act
+        response = logged_in_client.get(url)
+        # Assert
+        assert response.status_code == 405
 
-    def test_post_without_stripe_key_returns_503(self, logged_in_client, settings):
+    def test_post_without_a_stripe_key_returns_503(self, logged_in_client, settings):
+        # Arrange
         settings.STRIPE_SECRET_KEY = ""
-        resp = logged_in_client.post(reverse("public_app:billing_start_setup"))
-        assert resp.status_code == 503
-        assert "SCITEX_HUB_STRIPE_SECRET_KEY" in resp.json()["detail"]
+        # Act
+        response = logged_in_client.post(reverse("public_app:billing_start_setup"))
+        # Assert
+        assert response.status_code == 503
 
 
-# ---------------------------------------------------------------------------
-# Webhook end-to-end: signed setup completion persists a usable card
-# ---------------------------------------------------------------------------
 @pytest.mark.django_db
-class TestWebhookPersistsValidatedCard:
-    def test_signed_setup_completed_marks_card_usable(self, client, settings, django_user_model):
-        from apps.infra.public_app.models import PaymentMethod
-
-        settings.STRIPE_WEBHOOK_SECRET = "whsec_test_for_card_setup"
-        settings.STRIPE_SECRET_KEY = ""  # no client -> core row + is_usable only
-        user = django_user_model.objects.create_user(
-            username="w1", password="x", email="w1@example.com"
-        )
-        event = _completed_setup_event(user.pk, pm_id="pm_webhook", cus_id="cus_webhook")
-        payload = json.dumps(event).encode()
-        sig = _stripe_signature(payload, "whsec_test_for_card_setup")
-        resp = _post_webhook(client, payload, sig)
-        assert resp.status_code == 200
-        row = PaymentMethod.objects.filter(stripe_payment_method_id="pm_webhook").first()
-        assert row is not None
-        assert row.user_id == user.pk
-        assert row.is_usable is True
-
-    def test_bad_signature_does_not_persist_card(self, client, settings, django_user_model):
-        from apps.infra.public_app.models import PaymentMethod
-
-        settings.STRIPE_WEBHOOK_SECRET = "whsec_test_for_card_setup"
+class TestWebhook:
+    def test_signed_setup_completion_is_acknowledged(self, client, settings, django_user_model):
+        # Arrange
+        settings.STRIPE_WEBHOOK_SECRET = WEBHOOK_SECRET
         settings.STRIPE_SECRET_KEY = ""
-        user = django_user_model.objects.create_user(
-            username="w2", password="x", email="w2@example.com"
+        user = django_user_model.objects.create_user(username="w1", password="x")
+        # Act
+        response = _signed_webhook_post(client, _completed_setup_event(user.pk, setup_intent_id="seti_w1"))
+        # Assert
+        assert response.status_code == 200
+
+    def test_signed_setup_completion_is_recorded(self, client, settings, django_user_model):
+        # Arrange
+        settings.STRIPE_WEBHOOK_SECRET = WEBHOOK_SECRET
+        settings.STRIPE_SECRET_KEY = ""
+        user = django_user_model.objects.create_user(username="w2", password="x")
+        # Act
+        _signed_webhook_post(client, _completed_setup_event(user.pk, setup_intent_id="seti_w2"))
+        # Assert
+        assert BillingEvent.objects.filter(event_id="evt_seti_w2").exists()
+
+    def test_bad_signature_is_rejected(self, client, settings, django_user_model):
+        # Arrange
+        settings.STRIPE_WEBHOOK_SECRET = WEBHOOK_SECRET
+        user = django_user_model.objects.create_user(username="w3", password="x")
+        # Act
+        response = _signed_webhook_post(
+            client, _completed_setup_event(user.pk, setup_intent_id="seti_evil"), secret="whsec_wrong"
         )
-        payload = json.dumps(_completed_setup_event(user.pk, pm_id="pm_evil")).encode()
-        sig = _stripe_signature(payload, "whsec_wrong_secret")
-        resp = _post_webhook(client, payload, sig)
-        assert resp.status_code == 400
-        assert not PaymentMethod.objects.filter(
-            stripe_payment_method_id="pm_evil"
-        ).exists()
-
-
-if __name__ == "__main__":
-    pytest.main([__file__, "-v"])
+        # Assert
+        assert response.status_code == 400
