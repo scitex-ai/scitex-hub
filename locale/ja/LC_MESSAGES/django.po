@@ -4638,3 +4638,47 @@ msgstr "MCP ツールの設定を保存しました。次に Claude Code を起�
 #: apps/infra/accounts_app/views/mcp_settings_views.py
 msgid "MCP tool preferences saved."
 msgstr "MCP ツールの設定を保存しました。"
+
+#: apps/infra/accounts_app/views/ai_setup.py
+msgid "Skills"
+msgstr "スキル"
+
+#: apps/infra/accounts_app/views/ai_setup.py
+msgid "Specialized capabilities that guide AI behavior"
+msgstr "AI の振る舞いを導く専門機能"
+
+#: apps/infra/accounts_app/views/ai_setup.py
+msgid "Commands"
+msgstr "コマンド"
+
+#: apps/infra/accounts_app/views/ai_setup.py
+msgid "Slash commands that trigger predefined workflows"
+msgstr "定義済みのワークフローを呼び出すスラッシュコマンド"
+
+#: apps/infra/accounts_app/views/ai_setup.py
+msgid "Hooks"
+msgstr "フック"
+
+#: apps/infra/accounts_app/views/ai_setup.py
+msgid "Automated actions triggered by events"
+msgstr "イベントをきっかけに自動で実行される処理"
+
+#: apps/infra/accounts_app/views/ai_setup.py
+msgid "MCP Servers"
+msgstr "MCP サーバー"
+
+#: apps/infra/accounts_app/views/ai_setup.py
+msgid "Model Context Protocol servers and tools"
+msgstr "Model Context Protocol のサーバーとツール"
+
+#: apps/infra/accounts_app/views/ai_setup.py
+msgid "CLI Commands"
+msgstr "CLI コマンド"
+
+#: apps/infra/accounts_app/views/ai_setup.py
+msgid "Command-line tools in the terminal environment"
+msgstr "ターミナル環境で使えるコマンドラインツール"
+
+#: apps/infra/accounts_app/views/ai_setup.py
+msgid "API keys and model preferences for AI backends"
+msgstr "AI バックエンド用の API キーとモデル設定"
