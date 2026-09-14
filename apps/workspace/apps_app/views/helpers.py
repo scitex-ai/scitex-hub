@@ -91,9 +91,17 @@ def ensure_builtin_modules():
             created, _ = seed_builtins()
         if created:
             logger.info("[apps] Auto-seeded %d built-in modules", created)
+        # Mark ensured ONLY after a successful sync. A transient failure
+        # (DB blip, migration mid-flight) must NOT set the flag, or this
+        # process would never retry and could keep serving stale
+        # visibility rows (the resync-retry gap the review flagged).
+        _builtins_ensured = True
     except Exception:
-        logger.exception("[apps] Failed to auto-seed built-in modules")
-    _builtins_ensured = True
+        logger.exception(
+            "[apps] Failed to auto-seed built-in modules; _builtins_ensured "
+            "stays False so the next call retries (a transient failure must "
+            "not permanently skip the visibility resync in this process)."
+        )
 
 
 def can_view_internal_app(user) -> bool:
@@ -182,6 +190,14 @@ def browse_context(request, current_project=None):
     if request.user.is_authenticated:
         # Unlisted: authenticated users can see with direct link — show to author + staff
         visibility_q |= Q(visibility="unlisted", author=request.user)
+        # Internal is a RELEASE-CHANNEL decision (can_view_internal_app): staff
+        # always, and a regular user on a RELEASED deployment. It is consulted
+        # for EVERY authenticated user here — not only inside the is_staff
+        # branch — so an ordinary authenticated dev (flag true on dev) sees the
+        # internal builtins in the store, matching the can_view_module policy.
+        # Anonymous never reaches this branch, so internal stays hidden from them.
+        if can_view_internal_app(request.user):
+            visibility_q |= Q(visibility="internal")
         if request.user.is_staff:
             # Staff/operators see unlisted + private + internal (WIP apps).
             visibility_q |= Q(visibility__in=["unlisted", "private", "internal"])

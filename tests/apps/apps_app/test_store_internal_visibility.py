@@ -59,24 +59,50 @@ class StoreInternalVisibilityTest(TestCase):
         names = self._names(self.anon)
         assert "storevis-pub" in names, "a public app must show for anonymous users"
         assert "storevis-internal" not in names, (
-            "an internal (staff-only) app leaked into the anonymous store listing"
+            "an internal app leaked into the ANONYMOUS store listing — "
+            "internal is gated on can_view_internal_app (anonymous is always False)"
         )
         assert "storevis-private" not in names
 
-    def test_regular_user_sees_public_not_internal(self):
-        names = self._names(self.regular)
+    def test_regular_user_internal_hidden_when_not_released(self):
+        # Flag FALSE: an internal app is NOT released to non-staff, so an
+        # ordinary authenticated user must not see it. (Pinned, so it does not
+        # pass "for the wrong reason" on a dev deployment that defaults true.)
+        from django.test import override_settings
+
+        with override_settings(SCITEX_HUB_INTERNAL_APPS_RELEASED=False):
+            names = self._names(self.regular)
         assert "storevis-pub" in names
         assert "storevis-internal" not in names, (
-            "an internal app is staff-only; a non-staff authenticated user must "
-            "not see it"
+            "with SCITEX_HUB_INTERNAL_APPS_RELEASED=False a non-staff "
+            "authenticated user must not see internal apps"
         )
 
-    def test_staff_sees_internal(self):
-        names = self._names(self.staff)
+    def test_regular_user_internal_visible_when_released(self):
+        # Flag TRUE (the dev default per the operator's 2026-09-13 ruling: on a
+        # development deployment every authenticated user sees internal apps):
+        # an ordinary authenticated user DOES see the internal app in the store.
+        from django.test import override_settings
+
+        with override_settings(SCITEX_HUB_INTERNAL_APPS_RELEASED=True):
+            names = self._names(self.regular)
         assert "storevis-internal" in names, (
-            "staff must see internal apps (that is the operator view)"
+            "with SCITEX_HUB_INTERNAL_APPS_RELEASED=True a non-staff "
+            "authenticated user must see internal apps (dev team-member ruling)"
         )
         assert "storevis-pub" in names
+
+    def test_staff_sees_internal(self):
+        # Staff sees internal regardless of the flag (operators).
+        from django.test import override_settings
+
+        for flag in (True, False):
+            with override_settings(SCITEX_HUB_INTERNAL_APPS_RELEASED=flag):
+                names = self._names(self.staff)
+            assert "storevis-internal" in names, (
+                f"staff must see internal apps (flag={flag})"
+            )
+            assert "storevis-pub" in names
 
 
 class TestOwnerHubChromeStaffOnly:
