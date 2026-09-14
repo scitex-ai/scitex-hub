@@ -1,45 +1,46 @@
-"""Settings > Billing — card registration + usability status surface.
+"""Settings > Billing: trial status, saved card, paid plan, cancel, and portal.
 
-Shows the logged-in user their saved, validated card (safe display metadata
-only: brand / last4 / expiry) and lets them add a new one via Stripe's hosted
-``mode="setup"`` Checkout. Card data is captured on Stripe's page, so SciTeX
-never sees PAN/CVC.
-
-States (fail-loud, no fake data — mirrors the commerce page):
-  * Stripe unconfigured (no secret key)  -> "unavailable"
-  * configured, no saved card            -> "add card"
-  * configured, saved usable card        -> show brand/last4/exp
-Sign-in itself is card-free; this page is only ever reached by a logged-in
-user.
+Card data is entered only on the billing provider's hosted pages, so SciTeX
+never sees PAN/CVC. With no provider keys configured the page says card
+registration opens soon, never an error.
 """
 
-from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
+from django.utils import timezone
+
+from apps.infra.public_app.services.billing_provider import (
+    card_registration_is_open,
+    get_billing_provider,
+    subscription_pricing_rows,
+    trial_window,
+)
 
 
 @login_required
 def billing_settings(request):
-    stripe_configured = bool(settings.STRIPE_SECRET_KEY)
-    cards = (
-        request.user.payment_methods.order_by("-created_at")
-        if stripe_configured
-        else []
-    )
+    if not card_registration_is_open():
+        return render(request, "accounts_app/billing_settings.html", {"state": "soon"})
+
+    user = request.user
+    cards = list(user.payment_methods.order_by("-created_at"))
     default_card = next((c for c in cards if c.is_default and c.is_usable), None)
-
-    if not stripe_configured:
-        state = "unavailable"
-    elif default_card is not None:
-        state = "saved"
-    else:
-        state = "add"
-
+    current_subscription = next(
+        (s for s in user.plan_subscriptions.all() if s.is_current), None
+    )
+    _, trial_end = trial_window(user)
+    labels = {row["id"]: row["label"] for row in subscription_pricing_rows()}
     context = {
-        "stripe_configured": stripe_configured,
-        "state": state,
+        "state": "saved" if default_card else "add",
         "default_card": default_card,
         "cards": cards,
+        "trial_end": trial_end,
+        "trial_active": timezone.now() < trial_end,
+        "plans": get_billing_provider().subscribable_plans(),
+        "current_subscription": current_subscription,
+        "current_plan_label": labels.get(getattr(current_subscription, "pricing_id", ""), ""),
+        "welcome": request.GET.get("welcome") == "1",
+        "setup_result": request.GET.get("setup", ""),
     }
     return render(request, "accounts_app/billing_settings.html", context)
 

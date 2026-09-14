@@ -77,6 +77,9 @@ urlpatterns = [
     path("billing/checkout/", views.billing_checkout, name="billing_checkout"),
     path("billing/start-setup/", views.start_card_setup, name="billing_start_setup"),
     path("billing/webhook/stripe/", views.stripe_webhook, name="stripe_webhook"),
+    path("billing/subscribe/", views.start_subscription, name="billing_subscribe"),
+    path("billing/cancel/", views.cancel_subscription, name="billing_cancel"),
+    path("billing/portal/", views.open_billing_portal, name="billing_portal"),
     # Demo page
     path("demo/", views.demo, name="demo"),
     # Web API documentation

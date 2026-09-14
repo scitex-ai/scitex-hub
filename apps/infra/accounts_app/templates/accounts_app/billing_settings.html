@@ -30,12 +30,11 @@
                     </div>
                 {% endif %}
 
-                {# ---------- Unavailable: Stripe not configured ---------- #}
-                {% if state == 'unavailable' %}
-                    <div class="pricing-alpha-notice">
+                {% if state == 'soon' %}
+                    <div class="pricing-alpha-notice" data-billing-state="soon">
                         <i class="fas fa-credit-card"></i>
                         <div>
-                            <strong>{% trans "Payment is not available yet" %}</strong>
+                            <strong>{% trans "Card registration opens soon" %}</strong>
                             {% url 'public_app:contact' as contact_href %}
                             <p>
                                 {% blocktrans trimmed %}You can't add a payment card here yet. If you'd like to subscribe or have a question about billing, please <a href="{{ contact_href }}">contact us</a>.{% endblocktrans %}
@@ -43,26 +42,45 @@
                         </div>
                     </div>
                 {% else %}
-                    {# ---------- Saved card ---------- #}
+                    {% if welcome %}
+                        <div class="alert-banner alert-banner-info mb-3">
+                            {% trans "Welcome! Add a card to start your 30-day trial. Nothing is charged during the trial." %}
+                        </div>
+                    {% endif %}
+
+                    <div class="settings-card" data-billing-section="trial">
+                        <h2>{% trans "Trial" %}</h2>
+                        {% if current_subscription %}
+                            <p>{% trans "Your trial has been converted to a paid plan." %}</p>
+                        {% elif trial_active %}
+                            <p>{% blocktrans with end=trial_end|date:"Y-m-d" %}Your free trial is active until {{ end }}. Nothing is charged unless you choose a plan.{% endblocktrans %}</p>
+                        {% else %}
+                            <p>{% blocktrans with end=trial_end|date:"Y-m-d" %}Your free trial ended on {{ end }}.{% endblocktrans %}</p>
+                        {% endif %}
+                    </div>
+
                     {% if state == 'saved' and default_card %}
-                        <div class="settings-card">
+                        <div class="settings-card" data-billing-section="card">
                             <h2>{% trans "Payment method" %}</h2>
                             <div class="billing-card-display">
-                                <i class="fab fa-cc-visa"></i>
+                                <i class="fas fa-credit-card"></i>
                                 <span class="billing-card-brand">{{ default_card.brand|default:"card" }}</span>
                                 <span class="billing-card-last4">•••• {{ default_card.last4 }}</span>
                                 {% if default_card.exp_month and default_card.exp_year %}
-                                    <span class="billing-card-exp">{{ default_card.exp_month|slice:":2" }}/{{ default_card.exp_year|slice:":2" }}</span>
+                                    <span class="billing-card-exp">{{ default_card.exp_month|stringformat:"02d" }}/{{ default_card.exp_year }}</span>
                                 {% endif %}
                                 <span class="billing-card-status billing-card-status-verified">
                                     <i class="fas fa-check-circle"></i> {% trans "Verified" %}
                                 </span>
                             </div>
                         </div>
+                    {% elif setup_result == 'success' %}
+                        <div class="alert-banner alert-banner-info mb-3">
+                            {% trans "Card received. Stripe is confirming it; refresh this page in a few seconds." %}
+                        </div>
                     {% endif %}
 
-                    {# ---------- Add / replace card ---------- #}
-                    <div class="settings-card">
+                    <div class="settings-card" data-billing-section="add-card">
                         <h2>
                             {% if state == 'saved' %}{% trans "Add a new card" %}{% else %}{% trans "Add a card" %}{% endif %}
                         </h2>
@@ -77,6 +95,52 @@
                             </button>
                         </form>
                     </div>
+
+                    <div class="settings-card" data-billing-section="plan">
+                        <h2>{% trans "Plan" %}</h2>
+                        {% if current_subscription %}
+                            <p>
+                                {{ current_plan_label }} — {{ current_subscription.status }}
+                                {% if current_subscription.current_period_end %}
+                                    {% if current_subscription.cancel_at_period_end %}
+                                        {% blocktrans with end=current_subscription.current_period_end|date:"Y-m-d" %}Ends on {{ end }}; it will not renew.{% endblocktrans %}
+                                    {% else %}
+                                        {% blocktrans with end=current_subscription.current_period_end|date:"Y-m-d" %}Renews on {{ end }}.{% endblocktrans %}
+                                    {% endif %}
+                                {% endif %}
+                            </p>
+                            {% if not current_subscription.cancel_at_period_end %}
+                                <form method="post" action="{% url 'public_app:billing_cancel' %}" class="billing-cancel-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="subscription_pk" value="{{ current_subscription.pk }}">
+                                    <button type="submit" class="btn btn-outline-danger">{% trans "Cancel plan" %}</button>
+                                </form>
+                            {% endif %}
+                        {% elif not default_card %}
+                            <p>{% trans "Add a card first; then you can choose a plan here." %}</p>
+                        {% elif plans %}
+                            <p>{% trans "Prices include tax. Choosing a plan during the trial bills the first month from your registration date." %}</p>
+                            {% for plan in plans %}
+                                <form method="post" action="{% url 'public_app:billing_subscribe' %}" class="billing-plan-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="pricing_id" value="{{ plan.pricing_id }}">
+                                    <button type="submit" class="btn btn-outline-primary">{{ plan.label }} — {{ plan.price_text }}</button>
+                                </form>
+                            {% endfor %}
+                        {% else %}
+                            <p>{% trans "Online plan selection opens soon." %}</p>
+                        {% endif %}
+                    </div>
+
+                    {% if default_card %}
+                        <div class="settings-card" data-billing-section="portal">
+                            <h2>{% trans "Invoices and payment details" %}</h2>
+                            <form method="post" action="{% url 'public_app:billing_portal' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-secondary">{% trans "Open billing portal" %}</button>
+                            </form>
+                        </div>
+                    {% endif %}
                 {% endif %}
             </main>
         </div>
