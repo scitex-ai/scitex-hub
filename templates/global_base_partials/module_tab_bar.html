@@ -1,4 +1,4 @@
-{% load module_icons %}
+{% load i18n module_icons %}
 
 {% comment %}
 Module tab bar — workspace navigation shown on all module pages.
@@ -16,7 +16,7 @@ Order is determined by each module's `order` field in registry.py.
                data-app-accent="{{ mod.name }}"
                aria-label="{{ mod.label }}">
                 {% module_icon mod.name %}
-                <span class="tab-label">{{ mod.label }}</span>
+                <span class="tab-label">{% trans mod.label context "app name" %}</span>
                 {# Deployed version next to the active app's name (dev-loop aid). #}
                 {% if mod.is_active and mod.version %}<span class="tab-version" title="Deployed version">v{{ mod.version }}</span>{% endif %}
                 {% if mod.status == "wip" or mod.name == "apps" %}

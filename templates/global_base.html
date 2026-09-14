@@ -147,7 +147,9 @@
                     <!-- Console pane: JS moves AI panel here in console mode -->
                     <div class="workspace-pane" id="pane-console" data-pane="console"></div>
                     <!-- Editor pane (file tree left + viewer/editor right) -->
-                    <div class="workspace-pane" id="pane-editor" data-pane="editor">
+                    {# Server-renders active when a view asks for it — opening a #}
+                    {# project (/<owner>/<slug>/) lands on this file tree by default. #}
+                    <div class="workspace-pane{% if request.initial_pane == 'editor' %} active{% endif %}" id="pane-editor" data-pane="editor">
                         <div class="editor-split-layout">
                             <div class="editor-split-left">
                                 {% block workspace_worktree_pane %}
@@ -160,7 +162,7 @@
                     <!-- Module pane (active module content). Default-active on
                          every workspace page EXCEPT /chat/, where the chat pane
                          above takes over. -->
-                    <div class="workspace-pane{% if request.initial_pane != 'chat' %} active{% endif %}" id="pane-module" data-pane="module">
+                    <div class="workspace-pane{% if request.initial_pane != 'chat' and request.initial_pane != 'editor' %} active{% endif %}" id="pane-module" data-pane="module">
                     {% else %}
                         <!-- Non-workspace pages: standard layout with header -->
                         {% if not workspace_has_panes or not user.is_authenticated %}

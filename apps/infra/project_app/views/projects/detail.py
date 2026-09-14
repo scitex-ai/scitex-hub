@@ -22,6 +22,9 @@ from .detail_helpers import (
 
 logger = logging.getLogger(__name__)
 
+# ?view=<this> keeps the GitHub-style repository screen (secondary link).
+REPOSITORY_VIEW = "repository"
+
 
 @project_access_required
 def project_detail(request, username, slug):
@@ -42,6 +45,16 @@ def project_detail(request, username, slug):
 
     # Authenticated users → hub workspace with project pre-selected
     if request.user.is_authenticated:
+        # The Explorer/Finder-style file tree is the DEFAULT Project UI, for the
+        # user's own projects and for public projects alike (operator TODO
+        # 186/188/190-192, 2026-09-14). The page below already carries the
+        # workspace editor pane — file tree + viewer — bound to request.project
+        # (set by @project_access_required, read access enforced there and in
+        # the tree/file-content APIs). Opening it as the initial pane is the
+        # whole switch. The GitHub-style repository screen is kept, reachable
+        # with ?view=repository, and retired gradually (TODO 189).
+        if request.GET.get("view") != REPOSITORY_VIEW:
+            request.initial_pane = "editor"
         # Check if this is an org-owned repo — if so, mark it so the template
         # hides the personal "My | Settings" hub mode tabs (GitHub-style).
         from apps.infra.organizations_app.models import Organization
