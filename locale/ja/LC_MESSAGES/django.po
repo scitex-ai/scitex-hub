@@ -402,6 +402,91 @@ msgstr "セルフホスティング手順"
 msgid "Server Status"
 msgstr "サーバー稼働状況"
 
+#: apps/infra/public_app/templates/public_app/server_status.html
+msgid "Check the current status of SciTeX Hub services and infrastructure."
+msgstr "SciTeX Hub のサービスとインフラの現在の稼働状況を確認できます。"
+
+#: apps/infra/public_app/templates/public_app/server_status.html
+msgid "Real-time monitoring of SciTeX Hub infrastructure and services"
+msgstr "SciTeX Hub のインフラとサービスをリアルタイムで監視しています"
+
+#: apps/infra/public_app/templates/public_app/public_status.html
+msgid "SciTeX Status"
+msgstr "SciTeX 稼働状況"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/overall_label.html
+msgid "All Systems Operational"
+msgstr "すべてのシステムが正常に稼働しています"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/overall_label.html
+msgid "Degraded performance"
+msgstr "一部のサービスでパフォーマンスが低下しています"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/overall_label.html
+msgid "Partial System Outage"
+msgstr "一部のシステムが停止しています"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/overall_label.html
+msgid "Major System Outage"
+msgstr "大規模なシステム障害が発生しています"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/public_services.html
+msgid "Uptime over the past 90 days."
+msgstr "過去 90 日間の稼働率です。"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/public_services.html
+msgid "Operational"
+msgstr "正常"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/public_services.html
+msgid "Degraded"
+msgstr "低下"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/public_services.html
+msgid "Down"
+msgstr "停止"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/public_services.html
+msgid "90 days ago"
+msgstr "90 日前"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/public_services.html
+#, python-format
+msgid "%(pct)s%% uptime"
+msgstr "稼働率 %(pct)s%%"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/public_services.html
+msgid "Today"
+msgstr "今日"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/public_services.html
+msgid "Last checked:"
+msgstr "最終確認:"
+
+#: apps/infra/public_app/templates/public_app/public_status.html
+#, python-format
+msgid "Day %(n)s"
+msgstr "%(n)s 日目"
+
+#: apps/infra/public_app/templates/public_app/public_status.html
+msgid "Past Incidents"
+msgstr "過去の障害"
+
+#: apps/infra/public_app/templates/public_app/public_status.html
+msgid "No incidents reported."
+msgstr "報告された障害はありません。"
+
+#: apps/infra/public_app/templates/public_app/public_status.html
+msgid "Detailed Status"
+msgstr "詳細な稼働状況"
+
+#. Service names from apps/infra/public_app/views/status/public_status.py
+msgid "Web Application"
+msgstr "ウェブアプリケーション"
+
+msgid "Database"
+msgstr "データベース"
+
 #: templates/global_base_partials/global_footer.html
 msgid "Terms"
 msgstr "利用規約"
