@@ -19,6 +19,7 @@ export default defineConfig({
       // writer/console/etc. source files that import "@/utils/..." resolve
       // under vitest.
       "@": path.resolve(__dirname, "static/shared/ts"),
+      "@utils": path.resolve(__dirname, "static/shared/ts/utils"),
       // App aliases for imports
       "@apps_app": path.resolve(
         __dirname,

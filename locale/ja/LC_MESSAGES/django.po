@@ -5260,6 +5260,17 @@ msgctxt "app name"
 msgid "Settings"
 msgstr "設定"
 
+# Short dock captions (apps/infra/workspace_app/site_dock.py DOCK_SHORT_LABELS).
+#: templates/global_base_partials/site_dock.html
+msgctxt "app name"
+msgid "Projects"
+msgstr "プロジェクト"
+
+#: templates/global_base_partials/site_dock.html
+msgctxt "app name"
+msgid "Apps"
+msgstr "アプリ"
+
 #: templates/global_base_partials/site_dock.html
 msgid "Dock"
 msgstr "ドック"

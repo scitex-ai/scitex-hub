@@ -201,13 +201,14 @@ class SiteDockOnEveryPageTest(TestCase):
         # Assert
         assert len(sizes) == 2 and min(sizes) >= 44
 
-    def test_dock_shows_icons_only(self):
+    def test_dock_apps_carry_short_captions_under_their_icons(self):
+        # Operator 2026-09-14 (iPhone Home): icon-only buttons were unreadable.
         # Arrange
         dock = _dock_html(self.client.get("/apps/").content)
         # Act
-        visible_text = re.sub(r"<[^>]+>", "", dock).strip()
-        # Assert — names live in aria-label / title, never as text
-        assert visible_text == ""
+        captions = re.findall(r'<span class="site-dock-app-label"[^>]*>([^<]+)</span>', dock)
+        # Assert
+        assert captions == ["Home", "Projects", "Chat", "Apps"]
 
     def test_dock_home_button_is_the_house(self):
         # Arrange

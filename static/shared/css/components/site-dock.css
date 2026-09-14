@@ -4,9 +4,12 @@
    Markup: templates/global_base_partials/site_dock.html
    Behaviour: static/shared/ts/components/site-dock.ts
 
-   Icons only (names live in aria-label + title). Fixed to the bottom centre by
-   default, above everything else on the page. The grabber drags it anywhere;
-   a dragged dock carries .site-dock--floating and inline left/top.
+   Every app is its tile icon (the Home tile's size) with a short caption under
+   it. Grip on the left, Back / Forward together on the right; on a phone those
+   controls take a second row so the apps get the full width. Fixed to the
+   bottom centre by default, above everything else on the page. The grabber
+   drags it anywhere; a dragged dock carries .site-dock--floating and inline
+   left/top.
 
    This file must also work on LEAF pages that do not load the hub's design
    tokens (SiteDockMiddleware injects the dock there), so every colour has a
@@ -14,9 +17,15 @@
    ============================================================ */
 
 :root {
-  --site-dock-item: 48px;
-  /* The app icon inside a 48px slot: room left over for the active highlight. */
-  --site-dock-icon: 38px;
+  --site-dock-item: 44px;
+  /* The Home tile's icon size at this width (launcher/mobile.css). */
+  --site-dock-icon: 64px;
+  --site-dock-label-size: 10.5px;
+  --site-dock-label-line: 13px;
+  /* One app button: icon, caption, and a little room for the active highlight. */
+  --site-dock-app-height: calc(
+    var(--site-dock-icon) + var(--site-dock-label-line) + 9px
+  );
   --site-dock-pad: 6px;
   /* Width: the Home grid's panels (operator 2026-09-14, after the iOS home
      screen, whose dock shares the icon grid's side margins). launcher.css
@@ -25,7 +34,9 @@
      dock itself, which lines the edges up exactly at every width. */
   --site-dock-width: min(calc(100vw - 20px), 632px);
   --site-dock-gap: 10px;
-  --site-dock-height: calc(var(--site-dock-item) + 2 * var(--site-dock-pad));
+  --site-dock-height: calc(
+    var(--site-dock-app-height) + 2 * var(--site-dock-pad)
+  );
   /* The band the dock occupies at the bottom of the viewport, plus breathing
      room and the iOS home-bar inset. Pages reserve exactly this much (below). */
   --site-dock-clearance: calc(
@@ -147,11 +158,35 @@ body:has(> .site-dock:not(.site-dock--floating)) {
   height: 100%;
 }
 
-/* A full dock (see DOCK_CAPACITY) narrows its slots rather than overflowing. */
+/* Every app button is the same size: icon over caption. A full dock (see
+   DOCK_CAPACITY) narrows the caption column, never the icon. */
 .site-dock-apps .site-dock-app {
-  flex: 0 1 var(--site-dock-item);
-  min-width: 40px;
+  flex: 0 1 calc(var(--site-dock-icon) + 24px);
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 3px;
+  width: auto;
+  min-width: 44px;
+  height: var(--site-dock-app-height);
+  padding-top: 3px;
+  box-sizing: border-box;
   -webkit-touch-callout: none;
+}
+
+.site-dock-app-label {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--site-dock-label-size);
+  line-height: var(--site-dock-label-line);
+  color: var(--site-dock-fg);
+  pointer-events: none;
+}
+
+.site-dock-app.is-active .site-dock-app-label {
+  color: var(--site-dock-fg-active);
 }
 
 /* Where a grid app would land while it is dragged over the dock. */
@@ -253,9 +288,16 @@ body:has(> .site-dock:not(.site-dock--floating)) {
   background: var(--site-dock-active-bg);
 }
 
-/* Back / Forward: narrower chevrons at the ends, dimmed when they cannot go. */
+/* Back / Forward: side by side at the RIGHT end (operator 2026-09-14: grip on
+   the left, arrows on the right), 44px tap targets, dimmed when they cannot
+   go. `order` moves Back without changing the markup's reading order. */
 .site-dock-history {
-  width: 34px;
+  width: 44px;
+  order: 2;
+}
+
+.site-dock-history[data-dock-forward] {
+  order: 3;
 }
 
 .site-dock-history i {
@@ -327,18 +369,67 @@ body:has(> .site-dock:not(.site-dock--floating)) {
   outline-offset: -2px;
 }
 
-/* Very narrow phones: tighten the slots so the whole dock still fits. */
-@media (max-width: 360px) {
+@media (min-width: 768px) {
   :root {
-    --site-dock-item: 42px;
-    --site-dock-icon: 34px;
+    --site-dock-icon: 68px;
+  }
+}
+
+/* Phones: the apps take the whole first row; the grip (left, stretching to
+   the centre so the whole strip drags) and the arrows (right) share a slim
+   second row. */
+@media (max-width: 640px) {
+  :root {
+    --site-dock-icon: 60px;
+    --site-dock-height: calc(
+      var(--site-dock-app-height) + 1px + var(--site-dock-item) + 2 *
+        var(--site-dock-pad)
+    );
+  }
+
+  .site-dock {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-rows: var(--site-dock-app-height) var(--site-dock-item);
+    gap: 0;
+    padding-block: var(--site-dock-pad);
+  }
+
+  .site-dock-apps {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    border-bottom: 1px solid var(--site-dock-border);
+  }
+
+  .site-dock-grabber {
+    grid-column: 1;
+    grid-row: 2;
+    justify-content: flex-start;
+    width: auto;
+    margin: 0;
+    padding-left: 13px;
+  }
+
+  .site-dock-grabber::after {
+    display: none;
   }
 
   .site-dock-history {
-    width: 28px;
+    grid-row: 2;
+    grid-column: 2;
+    height: var(--site-dock-item);
   }
 
-  /* The grip keeps its 44px hit area even here. */
+  .site-dock-history[data-dock-forward] {
+    grid-column: 3;
+  }
+}
+
+/* Very narrow phones: a smaller icon so five apps still fit one row. */
+@media (max-width: 360px) {
+  :root {
+    --site-dock-icon: 52px;
+  }
 }
 
 @media print {
