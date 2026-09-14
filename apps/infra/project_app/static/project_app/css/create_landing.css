@@ -184,6 +184,18 @@ form.create-form-card textarea.form-control {
   transition: border-color 0.2s ease;
 }
 
+/* `.form-group label` would otherwise stack the radio above its text. */
+.create-visibility .option-item {
+  display: flex;
+  margin: 0;
+}
+
+.create-visibility {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+
 .option-item:hover {
   border-color: var(--color-border-muted, #484f58);
 }

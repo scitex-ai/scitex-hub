@@ -3665,6 +3665,22 @@ msgstr "キャンセル"
 msgid "Private"
 msgstr "非公開"
 
+#: apps/infra/project_app/templates/project_app/projects/create.html
+msgid "Public"
+msgstr "公開"
+
+#: apps/infra/project_app/templates/project_app/projects/create.html
+msgid "Visibility"
+msgstr "公開範囲"
+
+#: apps/infra/project_app/templates/project_app/projects/create.html
+msgid "Only you and collaborators you add can see this project."
+msgstr "あなたと、追加した共同作業者だけがこのプロジェクトを閲覧できます。"
+
+#: apps/infra/project_app/templates/project_app/projects/create.html
+msgid "Anyone on the internet can see this project."
+msgstr "インターネット上の誰でもこのプロジェクトを閲覧できます。"
+
 #: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
 msgid "Change Email"
 msgstr "メールアドレスの変更"
