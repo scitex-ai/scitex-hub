@@ -1,0 +1,178 @@
+/* ---------- Planned apps (planned_apps.py) ----------
+   The tile is a <button>. Element-qualified so the browser's button chrome
+   (iOS light theme: border, fill, system-blue text) never wins; it must look
+   exactly like an app tile (operator iPhone, 2026-09-14). The "Coming soon"
+   line takes the version line's place, so the row height does not change. */
+button.launcher-tile.launcher-tile--planned {
+  -webkit-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 14px;
+  box-shadow: none;
+  background: transparent;
+  font: inherit;
+  color: var(--workspace-text-secondary);
+  text-align: center;
+  text-decoration: none;
+}
+
+button.launcher-tile.launcher-tile--planned:hover {
+  background: transparent;
+}
+
+button.launcher-tile.launcher-tile--planned:focus-visible {
+  outline: 2px solid var(--app-accent-hub, #6a5a8a);
+  outline-offset: 2px;
+}
+
+.launcher-tile--planned .launcher-tile-soon {
+  display: block;
+  margin-top: -4px;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 400;
+  text-decoration: none;
+  color: var(--workspace-text-muted, var(--workspace-text-secondary, #8b93a1));
+  opacity: 0.7;
+}
+
+/* Planned-app sheet: a bottom sheet on a phone, a small dialog on desktop. */
+.planned-sheet {
+  width: min(360px, calc(100vw - 32px));
+  padding: 20px;
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 18px;
+  background: var(--workspace-bg-elevated, var(--workspace-bg-secondary, #fff));
+  color: var(--workspace-text-primary);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+}
+
+.planned-sheet::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.planned-sheet-close-form {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  margin: 0;
+}
+
+.planned-sheet-close {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--workspace-text-secondary);
+  cursor: pointer;
+}
+
+.planned-sheet-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-right: 28px;
+}
+
+.planned-sheet-icon {
+  --launcher-icon-size: 56px;
+  flex: 0 0 auto;
+  opacity: 0.6;
+  filter: saturate(0.5);
+}
+
+.planned-sheet-title {
+  margin: 0 0 6px;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.planned-sheet-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--workspace-bg-tertiary, rgba(128, 128, 128, 0.15));
+  color: var(--workspace-text-secondary);
+}
+
+.planned-sheet-description {
+  margin: 14px 0 18px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--workspace-text-secondary);
+}
+
+.planned-sheet-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.planned-sheet-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--workspace-text-primary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.planned-sheet-btn:hover {
+  text-decoration: none;
+  background: var(--workspace-bg-tertiary, rgba(128, 128, 128, 0.12));
+}
+
+.planned-sheet-btn--primary {
+  border-color: transparent;
+  background: var(--app-accent-hub, #6a5a8a);
+  color: #fff;
+}
+
+.planned-sheet-btn--primary:hover {
+  background: var(--app-accent-hub, #6a5a8a);
+  filter: brightness(1.08);
+}
+
+.planned-sheet-btn--done,
+.planned-sheet-btn--done:hover {
+  cursor: default;
+  filter: none;
+  opacity: 0.75;
+}
+
+.planned-sheet-note {
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--workspace-text-secondary);
+}
+
+@media (max-width: 767px) {
+  .planned-sheet {
+    width: 100%;
+    max-width: 100%;
+    margin: auto 0 0;
+    border-radius: 18px 18px 0 0;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+}

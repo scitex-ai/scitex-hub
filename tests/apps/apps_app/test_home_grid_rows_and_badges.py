@@ -153,7 +153,7 @@ class HomePagesTest(TestCase):
         # Arrange
         groups = self._groups()
         # Act
-        names = [cell.get("name") for cell in groups[0]["cells"]]
+        names = [c.get("name") for c in groups[0]["cells"] if not c.get("is_planned")]
         # Assert
         assert names == ["home", "discovery", "agents", "todo", "storage"]
 
@@ -166,14 +166,26 @@ class HomePagesTest(TestCase):
         # Assert
         assert first_row == ["home", "discovery", "agents", "todo"]
 
-    def test_work_group_leaves_no_empty_cell_for_the_missing_stats_app(self):
+    def test_missing_stats_app_is_a_coming_soon_tile_not_an_empty_cell(self):
         # Walkthrough 2026-09-14: the held Stats gap read as a broken grid.
         # Arrange
         groups = self._groups()
         # Act
-        cells = [c.get("name") for c in groups[1]["cells"]]
+        cells = [
+            (c.get("name"), bool(c.get("is_planned")))
+            for c in groups[1]["cells"]
+            if not c.get("is_planned") or c.get("name") == "stats"
+        ]
         # Assert
-        assert cells == ["scholar", "figrecipe", "writer", "chat", "tools", "create-app"]
+        assert cells == [
+            ("scholar", False),
+            ("figrecipe", False),
+            ("stats", True),
+            ("writer", False),
+            ("chat", False),
+            ("tools", False),
+            ("create-app", False),
+        ]
 
     def test_home_renders_no_empty_slot_cell(self):
         # Arrange

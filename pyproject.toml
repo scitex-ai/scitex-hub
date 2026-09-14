@@ -55,7 +55,9 @@ dependencies = [
     # scope-meta injection (apps/infra/workspace_app/scope_meta.py, #801) calls.
     # On 0.22.1 the guarded import falls back to "no marker" silently. Verified
     # with uv against the published 0.23.0 wheel: import ok, function present.
-    "scitex-app>=0.23.0",
+    # >=0.25.0 (2026-09-14): `scitex_app.i18n` (gettext settings + translations
+    # CLI, scitex-app #194) for the EN/JA leaf-app catalogs.
+    "scitex-app>=0.25.0",
     "scitex-config>=0.3.6",
     # `scitex-session` is consumed via the umbrella as `scitex.session.INJECTED`
     # (settings_shared.py / settings_auth.py / config/routing.py).
@@ -451,7 +453,11 @@ all = [
     # launcher app, #803). Boundary is exact rather than sampled: the token was
     # added by scitex-ui PR #228 and 0.20.3 is the first release after 0.20.2
     # (release list read 2026-09-14; scitex-ui confirmed 0.20.3 on PyPI 10:05Z).
-    "scitex-ui>=0.20.3",
+    #
+    # RAISED 0.20.3 -> 0.21.0 on 2026-09-14: first release with the
+    # `scitex_project_picker` template tag + `scitex_ui.project_scope` (#232) and
+    # the `scitex_js_catalog` gettext tag (#231), which hub's project picker uses.
+    "scitex-ui>=0.21.0",
     # --- GUI (dearpygui-based modules) ---
     "dearpygui>=1.11",
     "cairosvg>=2.9.0",
@@ -561,8 +567,9 @@ dev = [
     # apart unnoticed. The measurement and the reasoning live on the [all]
     # entry -- read it there rather than duplicating it here, so there is one
     # place to correct when the next token moves. RAISED 0.16.0 -> 0.20.3 on
-    # 2026-09-14 in lockstep with [all] (--app-accent-agents).
-    "scitex-ui>=0.20.3",
+    # 2026-09-14 in lockstep with [all] (--app-accent-agents). RAISED 0.20.3 ->
+    # 0.21.0 the same day in lockstep with [all] (project picker, gettext tag).
+    "scitex-ui>=0.21.0",
 ]
 
 [project.scripts]

@@ -23,6 +23,7 @@ when no project resolves.
 
 from __future__ import annotations
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import redirect
@@ -79,9 +80,32 @@ def viewer_page(request):
     return inject_scope_meta(response, "writer")
 
 
+_SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS", "TRACE"})
+
+
+def _is_cross_origin_write(request):
+    # Browsers always send Origin on a cross-site POST; a missing header means
+    # a non-browser client, which cannot ride the victim's session anyway.
+    if request.method in _SAFE_METHODS:
+        return False
+    origin = request.headers.get("Origin")
+    if origin is None:
+        return False
+    same = f"{request.scheme}://{request.get_host()}"
+    return origin != same and origin not in settings.CSRF_TRUSTED_ORIGINS
+
+
 @login_required
 def api_dispatch(request, endpoint):
+    if _is_cross_origin_write(request):
+        return JsonResponse({"error": "Cross-origin request refused"}, status=403)
     return _api_view(request, endpoint)
+
+
+# The writer's bundled frontend sends no CSRF token, so the leaf marks
+# api_dispatch csrf_exempt; follow the leaf's decision (functools.wraps and
+# login_required do not carry it) and rely on the Origin check above instead.
+api_dispatch.csrf_exempt = getattr(_raw_api_dispatch, "csrf_exempt", False)
 
 
 urlpatterns = [

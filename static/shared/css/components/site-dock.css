@@ -349,8 +349,9 @@ body:has(> .site-dock:not(.site-dock--floating)) {
   pointer-events: none;
 }
 
-/* The phone's wide grip bar; desktop shows the glyph instead. */
-.site-dock-grabber-bar {
+/* The phone's wide grip: the glyph's dots tiled across the handle; desktop
+   shows the glyph itself. */
+.site-dock-grabber-dots {
   display: none;
   pointer-events: none;
 }
@@ -379,7 +380,7 @@ body:has(> .site-dock:not(.site-dock--floating)) {
 }
 
 /* Phones: the apps take the whole first row, in equal cells. The second row is
-   [<] far left, a wide grip bar filling the centre, [>] far right
+   [<] far left, a wide dotted grip filling the centre, [>] far right
    (operator 2026-09-14: the small grid-dots grip was hard to hit with a
    finger). */
 @media (max-width: 640px) {
@@ -433,18 +434,26 @@ body:has(> .site-dock:not(.site-dock--floating)) {
     display: none;
   }
 
-  .site-dock-grabber-bar {
+  /* Operator 2026-09-14: a plain bar did not read as "grab here"; two rows of
+     the old grip's dots spread across the handle do. `round` spaces the dots
+     evenly so none is cut at the edges. */
+  .site-dock-grabber-dots {
     display: block;
-    width: min(100% - 24px, 180px);
-    height: 5px;
-    border-radius: 3px;
-    background: var(--site-dock-fg);
-    opacity: 0.45;
+    width: calc(100% - 16px);
+    height: 14px;
+    background-image: radial-gradient(
+      circle,
+      var(--site-dock-fg) 1.6px,
+      transparent 2.1px
+    );
+    background-size: 8px 7px;
+    background-repeat: round;
+    opacity: 0.6;
   }
 
-  .site-dock-grabber:hover .site-dock-grabber-bar,
-  .site-dock--dragging .site-dock-grabber-bar {
-    opacity: 0.8;
+  .site-dock-grabber:hover .site-dock-grabber-dots,
+  .site-dock--dragging .site-dock-grabber-dots {
+    opacity: 0.95;
   }
 
   .site-dock-history {
