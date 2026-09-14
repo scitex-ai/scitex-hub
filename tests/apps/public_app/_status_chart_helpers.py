@@ -20,6 +20,8 @@ import importlib
 from datetime import timedelta
 from pathlib import Path
 
+from django.contrib.auth import get_user_model
+from django.test import TestCase
 from django.utils import timezone
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -40,6 +42,21 @@ CHART_METRICS = (
     "visitor_pool",
     "active_users",
 )
+
+
+class StaffClientTestCase(TestCase):
+    """TestCase whose ``self.client`` is signed in as an instance admin.
+
+    Host metrics (the series endpoint, the chart page) are staff-only since the
+    2026-09-14 site audit; the chart contract tests exercise the admin view.
+    """
+
+    def setUp(self):
+        super().setUp()
+        staff = get_user_model().objects.create_user(
+            username="status-chart-staff", password="x", is_staff=True
+        )
+        self.client.force_login(staff)
 
 
 def code_lines_naming(source: str, names: tuple[str, ...]) -> list[str]:

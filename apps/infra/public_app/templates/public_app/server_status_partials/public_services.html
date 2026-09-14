@@ -1,0 +1,48 @@
+{% comment %}
+Public half of /server-status/ for anyone who is not an instance admin
+(site audit 2026-09-14). Overall state + per-service state + 90-day uptime,
+from the same cached data as /status/ and /api/public-status/. No host
+metrics, no chart containers, no script: nothing here calls an admin-only
+endpoint.
+{% endcomment %}
+<div class="public-services" id="publicServices">
+    <div class="public-services__banner public-services__banner--{{ status.overall }}">
+        {% if status.overall == "operational" %}
+            All Systems Operational
+        {% elif status.overall == "degraded" %}
+            Partial System Outage
+        {% else %}
+            Major System Outage
+        {% endif %}
+    </div>
+    <p class="public-services__note">Uptime over the past 90 days.</p>
+    <ul class="public-services__list">
+        {% for svc in status.services %}
+            <li class="public-services__row">
+                <div class="public-services__head">
+                    <span class="public-services__name">{{ svc.name }}</span>
+                    <span class="public-services__state public-services__state--{{ svc.status }}">
+                        {% if svc.status == "operational" %}
+                            Operational
+                        {% elif svc.status == "degraded" %}
+                            Degraded
+                        {% else %}
+                            Down
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="public-services__bar" aria-hidden="true">
+                    {% for day in svc.uptime_days %}<span class="public-services__day public-services__day--{{ day }}"></span>{% endfor %}
+                </div>
+                <div class="public-services__labels">
+                    <span>90 days ago</span>
+                    <span>{{ svc.uptime_pct }}% uptime</span>
+                    <span>Today</span>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+    <p class="public-services__note">
+        Last checked: <time>{{ status.checked_at }}</time>
+    </p>
+</div>

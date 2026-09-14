@@ -36,12 +36,15 @@ from __future__ import annotations
 import json
 
 import pytest
-from django.test import TestCase
+from ._status_chart_helpers import (
+    CHART_METRICS,
+    SERIES_URL,
+    StaffClientTestCase,
+    seed_metrics,
+)
 
-from ._status_chart_helpers import CHART_METRICS, SERIES_URL, seed_metrics
 
-
-class TestSeriesEndpointServesData(TestCase):
+class TestSeriesEndpointServesData(StaffClientTestCase):
     """One JSON read feeds all eight panels."""
 
     @classmethod
@@ -202,7 +205,7 @@ class TestSeriesEndpointServesData(TestCase):
         assert all(v is None for v in gpu_values)
 
 
-class TestSeriesEndpointReportsFreshness(TestCase):
+class TestSeriesEndpointReportsFreshness(StaffClientTestCase):
     """A window whose newest row is recent must say so."""
 
     @classmethod
@@ -231,7 +234,7 @@ class TestSeriesEndpointReportsFreshness(TestCase):
         assert payload["latest_sample_age_seconds"] <= payload["stale_after_seconds"]
 
 
-class TestSeriesEndpointFlagsStaleData(TestCase):
+class TestSeriesEndpointFlagsStaleData(StaffClientTestCase):
     """Prod's actual 2026-07-30 state: rows exist, but hours old.
 
     A stale window still holds REAL data so it must be drawn — but it must be
@@ -274,7 +277,7 @@ class TestSeriesEndpointFlagsStaleData(TestCase):
         assert payload["charts"]["cpu"]["available"] is True
 
 
-class TestSeriesEndpointRefusesWhenEmpty(TestCase):
+class TestSeriesEndpointRefusesWhenEmpty(StaffClientTestCase):
     """Missing metrics must be loud, not a flat zero line."""
 
     def test_no_rows_returns_service_unavailable(self):
@@ -308,7 +311,7 @@ class TestSeriesEndpointRefusesWhenEmpty(TestCase):
         assert payload["latest_sample_at"] is None
 
 
-class TestEmptyWindowDistinguishesStoppedFromNeverRan(TestCase):
+class TestEmptyWindowDistinguishesStoppedFromNeverRan(StaffClientTestCase):
     """An empty 1h window while older rows exist means "stopped", not "never"."""
 
     @classmethod

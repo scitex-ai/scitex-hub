@@ -30,6 +30,7 @@ from django.shortcuts import render
 
 from config.django_db_threads import close_database_connections_after
 
+from .access import is_instance_admin
 from .compute_resources import check_container_runtime_status, check_slurm_status
 from .gitea_orgs import check_gitea_orgs
 from .health_checks import (
@@ -42,6 +43,7 @@ from .health_checks import (
 )
 from .helpers import check_registered_users_count, check_visitor_pool_status
 from .package_versions import check_package_versions
+from .public_status import _get_status_data
 from .system_metrics import check_system_resources
 
 logger = logging.getLogger(__name__)
@@ -194,6 +196,18 @@ def server_status(request, checks=None, deadline_seconds=None):
     ``checks`` / ``deadline_seconds`` are injectable for tests; URL
     routing calls this with the defaults.
     """
+    if not is_instance_admin(getattr(request, "user", None)):
+        # Host metrics, charts and internal details are for instance admins
+        # (site audit 2026-09-14). Everyone else gets the public service list
+        # — the same cached data as /status/ — and the template renders no
+        # chart containers and loads no chart script, so the page never calls
+        # an admin-only endpoint and never logs a 403.
+        context = {
+            "is_instance_admin": False,
+            "public_status": _get_status_data(),
+        }
+        return render(request, "public_app/server_status.html", context)
+
     if checks is None:
         checks = {name: globals()[name] for name in _CHECK_PLACEMENTS}
     if deadline_seconds is None:
@@ -202,6 +216,7 @@ def server_status(request, checks=None, deadline_seconds=None):
     status_data = _collect_status_data(request, checks, deadline_seconds)
 
     context = {
+        "is_instance_admin": True,
         "status_data": status_data,
     }
 
