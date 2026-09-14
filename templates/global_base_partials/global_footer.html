@@ -66,9 +66,11 @@
                         <li>
                             <a href="{% url 'public_app:api_docs' %}">{% trans "Web API Docs" %}</a>
                         </li>
-                        <li>
-                            <a href="{% url 'dev_app:tests_category' category='web-api' %}">{% trans "Web API Tests" %}</a>
-                        </li>
+                        {% if user.is_staff or user.is_superuser %}
+                            <li>
+                                <a href="{% url 'dev_app:tests_category' category='web-api' %}">{% trans "Web API Tests" %}</a>
+                            </li>
+                        {% endif %}
                         <li>
                             <a href="{% url 'public_app:releases' %}">{% trans "Releases" %}</a>
                         </li>
@@ -76,9 +78,15 @@
                             <a href="https://github.com/scitex-ai/scitex-hub/issues"
                                target="_blank">{% trans "Bug Reports" %}</a>
                         </li>
-                        <li>
-                            <a href="{% url 'dev_app:design' %}">{% trans "Design System" %}</a>
-                        </li>
+                        {% comment %}
+                            /dev/ pages are admin-only on prod (dev_app/access.py), so the
+                            two dev links above and here are shown to staff only.
+                        {% endcomment %}
+                        {% if user.is_staff or user.is_superuser %}
+                            <li>
+                                <a href="{% url 'dev_app:design' %}">{% trans "Design System" %}</a>
+                            </li>
+                        {% endif %}
                         <li>
                             <a href="{% url 'public_app:server_status' %}">{% trans "Server Status" %}</a>
                         </li>

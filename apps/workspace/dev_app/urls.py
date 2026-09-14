@@ -13,6 +13,7 @@ __DIR__ = os.path.dirname(__FILE__)
 
 from django.urls import path
 
+from apps.workspace.dev_app.access import dev_admin_only
 from apps.workspace.dev_app.views.console_logger import get_console_logs, log_console
 
 from . import views
@@ -178,5 +179,10 @@ urlpatterns = [
         name="design_all",
     ),
 ]
+
+# Gate every route above: admins only when DEBUG is off, 404 for everyone else.
+# Applied here, in one place, so a route added later cannot skip the gate.
+for _pattern in urlpatterns:
+    _pattern.callback = dev_admin_only(_pattern.callback)
 
 # EOF
