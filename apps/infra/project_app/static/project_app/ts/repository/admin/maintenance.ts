@@ -1,36 +1,23 @@
 /**
- * Repository Maintenance Admin Tool
- * Manages repository health monitoring, orphan detection, and sync operations
+ * Project Health maintenance tool
+ * Manages project health monitoring, orphan detection, and sync operations
  * @module repository/admin/maintenance
  */
 
-import {
-  HealthData,
-  PendingAction,
-  FilterType,
-  RepositoryIssue,
-} from "./types";
-import {
-  renderHealthStatus,
-  renderIssues,
-  applyFilter,
-  escapeHtml,
-} from "./rendering";
-import {
-  showDialog,
-  closeDialog,
-  showError,
-  getCSRFToken,
-} from "./ui";
+import { HealthData, PendingAction, FilterType } from "./types";
+import { renderHealthStatus, renderIssues, applyFilter } from "./rendering";
+import { showDialog, closeDialog, showError, getCSRFToken } from "./ui";
 import {
   confirmRestore,
   restoreRepository,
   getRestoreProjectName,
 } from "./backup";
 import { confirmDelete, deleteRepository } from "./cleanup";
+import { createEl, DIALOG_NAME_STYLE } from "./dom";
+import { t } from "./i18n";
 
 /**
- * Shows confirmation dialog for repository sync
+ * Shows confirmation dialog for project sync
  */
 function confirmSync(projectSlug: string): PendingAction {
   const pendingAction: PendingAction = {
@@ -40,13 +27,18 @@ function confirmSync(projectSlug: string): PendingAction {
 
   const dialogMessageEl = document.getElementById("dialog-message");
   if (dialogMessageEl) {
-    dialogMessageEl.innerHTML = `
-            <p>Sync this repository with Gitea?</p>
-            <p style="margin: 1rem 0; font-family: monospace; background: var(--color-canvas-subtle); padding: 0.5rem; border-radius: 0.25rem; word-break: break-all;">
-                ${escapeHtml(projectSlug)}
-            </p>
-            <p>This will re-clone the repository from Gitea if the local directory is missing.</p>
-        `;
+    dialogMessageEl.replaceChildren(
+      createEl("p", {
+        text: t("dialog.sync.question", "Sync this project with Gitea?"),
+      }),
+      createEl("p", { text: projectSlug, style: DIALOG_NAME_STYLE }),
+      createEl("p", {
+        text: t(
+          "dialog.sync.detail",
+          "This will re-clone the repository from Gitea if the local directory is missing.",
+        ),
+      }),
+    );
   }
 
   showDialog();
@@ -61,7 +53,7 @@ async function syncRepository(
   username: string,
   onSuccess: () => void,
 ): Promise<void> {
-  console.log("[Repository Maintenance] Syncing repository:", projectSlug);
+  console.log("[Project Health] Syncing repository:", projectSlug);
 
   try {
     const response = await fetch(`/${username}/api/repository-sync/`, {
@@ -78,11 +70,13 @@ async function syncRepository(
     if (data.success) {
       setTimeout(() => onSuccess(), 500);
     } else {
-      showError(data.message || data.error);
+      showError(
+        data.message || data.error || t("error.sync", "Failed to sync project"),
+      );
     }
   } catch (error) {
-    console.error("[Repository Maintenance] Error:", error);
-    showError("Failed to sync repository");
+    console.error("[Project Health] Error:", error);
+    showError(t("error.sync", "Failed to sync project"));
   }
 }
 
@@ -101,7 +95,7 @@ class RepositoryMaintenance {
 
   private init(): void {
     document.addEventListener("DOMContentLoaded", () => {
-      console.log("[Repository Maintenance] Initializing");
+      console.log("[Project Health] Initializing");
       this.loadUsername();
       this.setupDialogBackdropClose();
       this.loadRepositoryHealth();
@@ -112,9 +106,9 @@ class RepositoryMaintenance {
     const usernameEl = document.querySelector("[data-username]");
     if (usernameEl) {
       this.username = usernameEl.getAttribute("data-username") || "";
-      console.log("[Repository Maintenance] Username:", this.username);
+      console.log("[Project Health] Username:", this.username);
     } else {
-      console.error("[Repository Maintenance] Username not found");
+      console.error("[Project Health] Username not found");
     }
   }
 
@@ -135,11 +129,12 @@ class RepositoryMaintenance {
       this.handleConfirmRestore(name);
     (window as any).confirmDelete = (name: string) =>
       this.handleConfirmDelete(name);
-    (window as any).confirmSync = (name: string) => this.handleConfirmSync(name);
+    (window as any).confirmSync = (name: string) =>
+      this.handleConfirmSync(name);
   }
 
   private async loadRepositoryHealth(): Promise<void> {
-    console.log("[Repository Maintenance] Loading repository health");
+    console.log("[Project Health] Loading repository health");
 
     try {
       const response = await fetch(`/${this.username}/api/repository-health/`);
@@ -149,11 +144,13 @@ class RepositoryMaintenance {
         this.healthData = data;
         this.renderHealth(data);
       } else {
-        showError(data.error || "Failed to load repository health");
+        showError(
+          data.error || t("error.load", "Failed to load project health"),
+        );
       }
     } catch (error) {
-      console.error("[Repository Maintenance] Error:", error);
-      showError("Failed to connect to server");
+      console.error("[Project Health] Error:", error);
+      showError(t("error.connect", "Failed to connect to server"));
     }
   }
 
@@ -178,7 +175,7 @@ class RepositoryMaintenance {
 
   private applyFilter(filter: FilterType): void {
     this.currentFilter = filter;
-    console.log("[Repository Maintenance] Applying filter:", filter);
+    console.log("[Project Health] Applying filter:", filter);
 
     // Update health cards to show active state
     if (this.healthData) {

@@ -1,14 +1,15 @@
 /**
- * Repository cleanup operations
+ * Orphaned-repository cleanup operations
  * @module repository/admin/cleanup
  */
 
 import { PendingAction } from "./types";
-import { escapeHtml } from "./rendering";
+import { createEl, DIALOG_NAME_STYLE, labelledParagraph } from "./dom";
+import { t } from "./i18n";
 import { showDialog, getCSRFToken, showError } from "./ui";
 
 /**
- * Shows confirmation dialog for repository deletion
+ * Shows confirmation dialog for deleting an orphaned Gitea repository
  */
 export function confirmDelete(repositoryName: string): PendingAction {
   const pendingAction: PendingAction = {
@@ -18,13 +19,22 @@ export function confirmDelete(repositoryName: string): PendingAction {
 
   const dialogMessageEl = document.getElementById("dialog-message");
   if (dialogMessageEl) {
-    dialogMessageEl.innerHTML = `
-            <p>Are you sure you want to delete this orphaned repository?</p>
-            <p style="margin: 1rem 0; font-family: monospace; background: var(--color-canvas-subtle); padding: 0.5rem; border-radius: 0.25rem; word-break: break-all;">
-                ${escapeHtml(repositoryName)}
-            </p>
-            <p><strong>Warning:</strong> This action cannot be undone. The repository will be permanently deleted from Gitea.</p>
-        `;
+    dialogMessageEl.replaceChildren(
+      createEl("p", {
+        text: t(
+          "dialog.delete.question",
+          "Are you sure you want to delete this orphaned repository?",
+        ),
+      }),
+      createEl("p", { text: repositoryName, style: DIALOG_NAME_STYLE }),
+      labelledParagraph(
+        t("dialog.warning_label", "Warning:"),
+        t(
+          "dialog.delete.warning",
+          "This action cannot be undone. The repository will be permanently deleted from Gitea.",
+        ),
+      ),
+    );
   }
 
   showDialog();
@@ -32,14 +42,14 @@ export function confirmDelete(repositoryName: string): PendingAction {
 }
 
 /**
- * Deletes a repository from Gitea
+ * Deletes an orphaned repository from Gitea
  */
 export async function deleteRepository(
   repositoryName: string,
   username: string,
   onSuccess: () => void,
 ): Promise<void> {
-  console.log("[Repository Maintenance] Deleting repository:", repositoryName);
+  console.log("[Project Health] Deleting repository:", repositoryName);
 
   try {
     const response = await fetch(`/${username}/api/repository-cleanup/`, {
@@ -56,10 +66,14 @@ export async function deleteRepository(
     if (data.success) {
       setTimeout(() => onSuccess(), 500);
     } else {
-      showError(data.message || data.error);
+      showError(
+        data.message ||
+          data.error ||
+          t("error.delete", "Failed to delete repository"),
+      );
     }
   } catch (error) {
-    console.error("[Repository Maintenance] Error:", error);
-    showError("Failed to delete repository");
+    console.error("[Project Health] Error:", error);
+    showError(t("error.delete", "Failed to delete repository"));
   }
 }
