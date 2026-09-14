@@ -14,8 +14,16 @@
    ============================================================ */
 
 :root {
-  --site-dock-item: 44px;
+  --site-dock-item: 48px;
+  /* The app icon inside a 48px slot: room left over for the active highlight. */
+  --site-dock-icon: 38px;
   --site-dock-pad: 6px;
+  /* Width: the Home grid's panels (operator 2026-09-14, after the iOS home
+     screen, whose dock shares the icon grid's side margins). launcher.css
+     pads a phone grid by 10px a side and caps a desktop grid at 632px; on
+     Home, launcher/pager.ts also measures the grid and sets these two on the
+     dock itself, which lines the edges up exactly at every width. */
+  --site-dock-width: min(calc(100vw - 20px), 632px);
   --site-dock-gap: 10px;
   --site-dock-height: calc(var(--site-dock-item) + 2 * var(--site-dock-pad));
   /* The band the dock occupies at the bottom of the viewport, plus breathing
@@ -63,7 +71,7 @@ body:has(> .site-dock:not(.site-dock--floating)) {
 
 .site-dock {
   position: fixed;
-  left: 50%;
+  left: var(--site-dock-center, 50%);
   bottom: calc(var(--site-dock-gap) + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
   /* Above page chrome (header 1000, launcher popover 1200, zen mode 10000). */
@@ -72,6 +80,9 @@ body:has(> .site-dock:not(.site-dock--floating)) {
   align-items: center;
   gap: 2px;
   box-sizing: border-box;
+  /* A fixed height at every width: a wider dock spaces its icons out, it never
+     grows taller. */
+  width: var(--site-dock-width);
   height: var(--site-dock-height);
   max-width: calc(100vw - 16px);
   padding: var(--site-dock-pad);
@@ -123,6 +134,33 @@ body:has(> .site-dock:not(.site-dock--floating)) {
 .site-dock-item i {
   font-size: 21px;
   pointer-events: none;
+}
+
+/* The app buttons take whatever the grip and the two arrows leave, and space
+   themselves evenly across it (the arrows and grip stay simple glyphs). */
+.site-dock-apps {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: space-evenly;
+  min-width: 0;
+  height: 100%;
+}
+
+/* The Home tile's own icon (shared/css/components/app-icon.css), dock-sized.
+   The glyph scales with the box, as on the tile (26px in a 64px icon). */
+.site-dock-app .site-dock-app-icon {
+  --launcher-icon-size: var(--site-dock-icon);
+  border-radius: calc(var(--site-dock-icon) * 0.25);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+}
+
+.site-dock-app .site-dock-app-icon i {
+  font-size: calc(var(--site-dock-icon) * 0.42);
+  color: #fff;
 }
 
 .site-dock-item:hover,
@@ -223,7 +261,8 @@ body:has(> .site-dock:not(.site-dock--floating)) {
 /* Very narrow phones: tighten the slots so the whole dock still fits. */
 @media (max-width: 360px) {
   :root {
-    --site-dock-item: 40px;
+    --site-dock-item: 42px;
+    --site-dock-icon: 34px;
   }
 
   .site-dock-history {

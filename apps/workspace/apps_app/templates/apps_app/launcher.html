@@ -9,6 +9,8 @@
     {# PREVIOUS grid/mobile.css after the Home + dock redesign deployed: arrows #}
     {# rendered as unstyled white buttons, the globe badge at full icon size,  #}
     {# and desktop-only tiles still dimmed (operator iPhone, 2026-09-14).      #}
+    {# The icon box + category palette is shared with the site dock. #}
+    <link rel="stylesheet" href="{% static 'shared/css/components/app-icon.css' %}?v={{ build_id }}" />
     <link rel="stylesheet" href="{% static 'apps_app/css/launcher/core.css' %}?v={{ build_id }}" />
     <link rel="stylesheet" href="{% static 'apps_app/css/launcher/grid.css' %}?v={{ build_id }}" />
     <link rel="stylesheet" href="{% static 'apps_app/css/launcher/mobile.css' %}?v={{ build_id }}" />
@@ -56,10 +58,11 @@
             </button>
             <div class="launcher-grid" id="launcher-grid">
                 {# One band per group (Foundation / Work / System, operator    #}
-                {# 2026-09-14): a 4-column grid with a soft group tint. Labels  #}
-                {# are aria-only for now (data-group carries the key, so a CSS  #}
-                {# ::before can show them later). pager.ts re-packs the bands   #}
-                {# into pages without ever splitting a row.                      #}
+                {# 2026-09-14): a 4-column grid with a soft group tint. The     #}
+                {# translated aria-label is ALSO the visible band label        #}
+                {# (grid.css ::before, in the band padding, never a grid cell). #}
+                {# pager.ts re-packs the bands into pages without splitting a  #}
+                {# row.                                                          #}
                 {% for group in groups %}
                     <div class="launcher-group" role="group" data-group="{{ group.key }}" aria-label="{% trans group.label %}">
                         {% for tile in group.cells %}

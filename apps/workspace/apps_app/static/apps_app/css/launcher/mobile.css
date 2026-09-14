@@ -55,7 +55,15 @@
 
   .launcher-group {
     gap: 12px 24px;
-    padding: 10px 12px;
+    /* The label's headroom is mostly taken back from the band's own vertical
+       padding (was 10px/10px), so all three groups still fit ONE page at
+       1440x900 — with the labels, in EN and JA. */
+    padding: calc(2px + var(--launcher-group-label-room)) 12px 6px;
+  }
+
+  .launcher-group[aria-label]::before {
+    top: 5px;
+    left: 16px;
   }
 }
 
@@ -70,8 +78,17 @@
   padding-bottom: 0;
 }
 
+/* flex-direction: row is LOAD-BEARING. The un-paged grid (grid.css) is a
+   COLUMN of group bands, and this rule used to inherit that: every page then
+   stacked VERTICALLY inside a box with overflow-y: hidden, so the scroller was
+   exactly one page wide (scrollWidth == clientWidth), page 2 sat hidden BELOW
+   page 1, and a horizontal swipe had nothing to scroll. The dots still said
+   "2 pages" (operator iPhone, 2026-09-14). Measured the same in WebKit and
+   Chromium; desktop only looked fine because everything fits one page there. */
 .launcher-grid--paged {
   display: flex;
+  flex-direction: row;
+  align-items: stretch;
   flex-wrap: nowrap;
   gap: 0;
   margin-bottom: 0;
@@ -92,6 +109,7 @@
    The dots under the grid are the paging affordance, as on iOS. */
 .launcher-page {
   flex: 0 0 100%;
+  min-width: 100%;
   scroll-snap-align: start;
   /* Never leave a page straddling the fold on a fast flick. */
   scroll-snap-stop: always;
@@ -238,8 +256,13 @@
      style, so the page maths cannot drift from the layout). */
   .launcher-group {
     gap: 12px 4px;
-    padding: 10px 4px;
+    padding: calc(10px + var(--launcher-group-label-room)) 4px 10px;
     border-radius: 20px;
+  }
+
+  .launcher-group[aria-label]::before {
+    top: 7px;
+    left: 12px;
   }
 
   .launcher-page {
