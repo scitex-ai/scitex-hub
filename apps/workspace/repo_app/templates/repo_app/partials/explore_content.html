@@ -30,7 +30,7 @@ Returned by /hub/api/explore/?tab=repositories|users
                 <div class="project-card mb-3">
                     <div class="project-card-header">
                         <h3>
-                            <a href="#" class="hub-explore-repo" data-project-id="{{ repo.id }}">{{ repo.owner.username }}/{{ repo.name }}</a>
+                            <a href="/{{ repo.effective_owner_slug }}/{{ repo.slug }}/" class="hub-explore-repo" data-project-id="{{ repo.id }}">{{ repo.owner.username }}/{{ repo.name }}</a>
                         </h3>
                         <div>
                             {% if repo.is_app %}

@@ -1,6 +1,6 @@
 {% extends "global_base.html" %}
 
-{% load static vite %}
+{% load i18n static vite %}
 
 {% block title %}Home{% endblock %}
 {% block extra_css %}
@@ -68,7 +68,7 @@
                     <span class="launcher-tile-icon" data-tile-category="{{ tile.category }}">
                         <i class="{{ tile.icon_fa }}" aria-hidden="true"></i>
                     </span>
-                    <span class="launcher-tile-name">{{ tile.label }}</span>
+                    <span class="launcher-tile-name">{% trans tile.label context "app name" %}</span>
                     {% if tile.version_label %}<span class="launcher-tile-version">{{ tile.version_label }}</span>{% endif %}
                 </a>
             {% endfor %}

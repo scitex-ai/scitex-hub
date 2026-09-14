@@ -18,6 +18,16 @@
                     {% endif %}
                 </span>
                 <div class="stx-shell-sidebar__header-actions ws-worktree-actions">
+                    {% if current_project %}
+                        {# Secondary route to the GitHub-style repository screen, #}
+                        {# which is no longer the default Project UI (TODO 189). #}
+                        <a class="stx-shell-ai-action-btn"
+                           data-nav="repository-view"
+                           href="/{{ current_project.owner.username }}/{{ current_project.slug }}/?view=repository"
+                           title="Repository view">
+                            <i class="fas fa-code-branch"></i>
+                        </a>
+                    {% endif %}
                     <button class="stx-shell-ai-action-btn"
                             title="Keyboard Shortcuts"
                             onclick="window.showShortcutsModal()">

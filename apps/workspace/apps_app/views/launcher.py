@@ -27,6 +27,8 @@ from apps.infra.workspace_app.registry import get_all_modules
 from ..models import AppsModule, ModuleInstallation
 from ..services.manifest_display import prettify_module_name
 from .helpers import can_view_internal_app, ensure_builtin_modules
+from .launcher_order import DEFAULT_LAUNCHER_ORDER  # noqa: F401  (re-export)
+from .launcher_order import default_order_value as _default_order_value
 
 logger = logging.getLogger(__name__)
 
@@ -36,31 +38,8 @@ MAX_PINNED_MODULES = 5
 # Store apps published within this window get a NEW badge.
 NEW_BADGE_DAYS = 14
 
-# Curated default tile order. The raw registry order read "weird" to the
-# operator (Telegram 992/997, 2026-07-12); this gives the research apps a
-# natural first-screen order. Modules not listed sort after these by label.
-# A per-user drag-reorder (api_reorder) overrides this entirely.
-#
-# THIS LIST — not the manifests — is what a user sees. _build_tiles enumerates
-# get_all_modules() (manifest `order`) but then re-sorts every tile through
-# _default_order_value(), so editing a manifest's `order` moves nothing on the
-# grid. Both are kept in step anyway: leaving them to disagree is what made
-# that easy to get wrong. Operator, Telegram 4794, 2026-09-05:
-# 「順番はスカラフィグレシピライター」 — Scholar, FigRecipe, Writer.
-DEFAULT_LAUNCHER_ORDER = [
-    "home",
-    "scholar",
-    "figrecipe",
-    "writer",
-    "console",
-    "discovery",
-    "clew",
-    "tools",
-    "docs",
-    "todo",
-    "store",
-]
-_DEFAULT_ORDER_INDEX = {name: i for i, name in enumerate(DEFAULT_LAUNCHER_ORDER)}
+# The curated tile order lives in launcher_order.py (shared with the header
+# AppLauncher); re-exported here so existing imports keep working.
 
 # Model defaults for the tab_order columns. A row still holding the default
 # was created incidentally (e.g. by pinning), not by an explicit launcher
@@ -70,19 +49,6 @@ _DEV_DEFAULT_TAB_ORDER = 95
 
 # The sidebar renders its own Home entry, so pinning "home" would double it.
 _SIDEBAR_HOME_MODULE = "home"
-
-
-def _default_order_value(name: str) -> int:
-    """Curated launcher position (lower sorts earlier).
-
-    Curated apps occupy 10..110; anything uncurated sorts after them (by
-    label). Reorder positions written by api_reorder live at 1000+, well
-    clear of both, so an explicit user choice always wins.
-    """
-    idx = _DEFAULT_ORDER_INDEX.get(name)
-    if idx is not None:
-        return (idx + 1) * 10
-    return 500_000
 
 
 def _version_label(version: str) -> str:

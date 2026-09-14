@@ -1,6 +1,6 @@
 <!-- Edit Breadcrumb Partial -->
 <nav class="breadcrumb">
-    <a href="/{{ project.owner.username }}/projects/">Projects</a> /
+    <a href="/{{ project.owner.username }}/projects/">{% if project.owner == user %}My Projects{% else %}Projects{% endif %}</a> /
     <a href="/{{ project.owner.username }}/{{ project.slug }}/">{{ project.name }}</a>
     / Edit
 </nav>

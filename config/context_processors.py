@@ -418,7 +418,10 @@ def header_app_launcher(request):
         extract_module_from_path,
         get_all_modules,
     )
+    from django.utils.translation import pgettext
+
     from apps.workspace.apps_app.views.helpers import can_view_internal_app
+    from apps.workspace.apps_app.views.launcher_order import default_order_value
 
     can_internal = can_view_internal_app(request.user)
     current_id = extract_module_from_path(request.path)
@@ -439,9 +442,15 @@ def header_app_launcher(request):
         apps.append(
             {
                 "id": mod.name,
-                "name": mod.label or mod.name,
+                # Translated at render time: "My Projects" -> 「マイプロジェクト」
+                # under ja. A label with no catalog entry comes back unchanged.
+                "name": pgettext("app name", mod.label) if mod.label else mod.name,
                 "icon": _APP_ICON.get(mod.name, ""),
                 "url": mod.get_url(),
             }
         )
+    # Same curated order as the workspace launcher grid (launcher_order.py),
+    # so the header and the grid cannot disagree on which apps lead. The sort
+    # is stable, so uncurated apps keep their registry order after the rest.
+    apps.sort(key=lambda app: default_order_value(app["id"]))
     return {"header_apps": apps, "header_current_app": current_id}

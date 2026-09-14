@@ -109,13 +109,22 @@ function initHub(): void {
     // Me tab: project dropdown item selection (no navigation — just sets active project)
     if (handleMeProjectSelect(target, e)) return;
 
-    // Full-area project card click (entire card is hit target)
+    // Full-area project card click (entire card is hit target).
+    // Opening a project from My Projects lands on the same Project UI as
+    // opening it from Public Projects: a full navigation to /<owner>/<slug>/,
+    // whose default view is the file tree. The in-page GitHub-style browse
+    // below is kept only as a fallback for cards rendered without a URL.
     const projectCard = target.closest(
       ".hub-project-card-link",
     ) as HTMLElement | null;
     if (projectCard) {
       e.preventDefault();
       e.stopPropagation();
+      const projectUrl = projectCard.dataset.projectUrl || "";
+      if (projectUrl) {
+        window.location.href = projectUrl;
+        return;
+      }
       const pid = projectCard.dataset.projectId || "";
       if (!pid) return;
       const currentPid =
