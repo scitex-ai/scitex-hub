@@ -385,4 +385,24 @@ class DevInstallation(models.Model):
         return f"dev__{self.source_owner}__{self.source_repo}"
 
 
+class FirstRunProgress(models.Model):
+    """Per-user progress through the Home "Getting started" checklist."""
+
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name="first_run_progress"
+    )
+    # {step_key: ISO-8601 timestamp of the moment the step was completed}
+    completed_steps = models.JSONField(default=dict, blank=True)
+    dismissed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "First-run progress"
+        verbose_name_plural = "First-run progress"
+
+    def __str__(self):
+        return f"{self.user.username}: {len(self.completed_steps)} steps done"
+
+
 # EOF
