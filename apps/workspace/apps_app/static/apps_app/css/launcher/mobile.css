@@ -30,27 +30,38 @@
 /* Desktop: the same 4-column grid, centred and scaled up so it does not read
    as sparse on a wide screen. */
 @media (min-width: 768px) {
+  /* Sized so all three groups (5 rows) fit ONE page at 1440x900. */
   .launcher {
-    max-width: 720px;
+    max-width: 680px;
+    padding-top: 16px;
+  }
+
+  .launcher-tile {
+    padding: 6px 4px 4px;
   }
 
   .launcher-tile-icon {
-    --launcher-icon-size: 76px;
+    --launcher-icon-size: 68px;
   }
 
   .launcher-tile-icon > i {
-    font-size: 32px;
+    font-size: 28px;
   }
 
   .launcher-tile-name {
-    font-size: 13.5px;
+    font-size: 13px;
     max-width: 130px;
   }
 
   .launcher-group {
-    gap: 26px 28px;
-    padding: 16px 14px;
+    gap: 12px 24px;
+    padding: 10px 12px;
   }
+}
+
+/* The groups replace the "All apps" heading at every width. */
+.launcher-section-head {
+  display: none;
 }
 
 /* A paged launcher ends at the dots: pages are already sized to stop above the
