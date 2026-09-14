@@ -197,7 +197,7 @@ def test_authenticated_routes_delegate_to_the_upstream_contract(
     monkeypatch: pytest.MonkeyPatch, view, path: str, expected_name: str, kwargs: dict
 ) -> None:
     request = RequestFactory().get(path)
-    request.user = SimpleNamespace(is_authenticated=True)
+    request.user = SimpleNamespace(is_authenticated=True, is_staff=True)
     calls = []
 
     def fake_delegate(view_name, delegated_request, *args, **delegated_kwargs):
