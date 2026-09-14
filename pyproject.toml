@@ -65,7 +65,9 @@ dependencies = [
     # (upstream gap, ywatanabe1989/scitex-python). Declare it directly
     # so the import works in any install graph.
     "scitex-session>=0.1.6",
-    "scitex-writer>=2.42.0",
+    # >=2.43.0: the root->workspace contract (PR #389). The hub hands leaves the
+    # project root; older writers compose root/00_shared and fail to compile.
+    "scitex-writer>=2.43.1",
     # >=1.9.0 is a MOUNT requirement, not a feature preference. Below it the
     # leaf's client JS builds API urls from the SITE ROOT
     # (static/scholar/js/graph/citation-graph.js: fetch("/api/graph/health")),
