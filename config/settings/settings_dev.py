@@ -310,7 +310,17 @@ DATABASES = {
         # — same issue as production (see settings_prod.py).
         # Visitor middleware DB errors cascade to views.
         "ATOMIC_REQUESTS": False,
-        "CONN_MAX_AGE": 600,  # Connection pooling (10 minutes)
+        # CONN_MAX_AGE=0, NOT 600: this server is ASGI (daphne via runserver),
+        # and Django documents that persistent connections must be disabled
+        # under ASGI. Each request runs its sync code in a per-request thread,
+        # so a "persistent" connection is never reused: it is orphaned when the
+        # request ends and stays open on Postgres until garbage collection
+        # happens to reach it. Measured on compute-03 dev, 2026-09-14: one
+        # runserver process held 36 idle backends 21 minutes after starting,
+        # and parallel browsing walked the server into max_connections=100
+        # ("too many clients", site-audit blocker D2). 0 closes the connection
+        # at request_finished, matching settings_prod/settings_staging.
+        "CONN_MAX_AGE": 0,
         "OPTIONS": {
             "connect_timeout": 10,
         },
