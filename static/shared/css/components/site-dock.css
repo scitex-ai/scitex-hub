@@ -440,15 +440,19 @@ body:has(> .site-dock:not(.site-dock--floating)) {
   .site-dock-grabber-dots {
     display: block;
     width: calc(100% - 16px);
-    height: 14px;
-    background-image: radial-gradient(
-      circle,
-      var(--site-dock-fg) 1.6px,
-      transparent 2.1px
-    );
-    background-size: 8px 7px;
+    height: 18px;
+    /* Square blocks, not dots or a bar: a bar reads as a seek/scroll bar. */
+    background-image: linear-gradient(90deg, var(--site-dock-fg) 7px, transparent 7px);
+    background-size: 11px 11px;
     background-repeat: round;
-    opacity: 0.6;
+    -webkit-mask-image: linear-gradient(#000 7px, transparent 7px);
+    mask-image: linear-gradient(#000 7px, transparent 7px);
+    -webkit-mask-size: 11px 11px;
+    mask-size: 11px 11px;
+    -webkit-mask-repeat: round;
+    mask-repeat: round;
+    border-radius: 2px;
+    opacity: 0.55;
   }
 
   .site-dock-grabber:hover .site-dock-grabber-dots,
