@@ -1,0 +1,66 @@
+/* Compact SSOT rate card, included-resources list and beta policies.
+   Shared by /pricing/, /services/ and /tokushoho/ (pricing_partials/*.html). */
+
+.pricing-rate-card,
+.pricing-included,
+.pricing-policies {
+  margin-block: var(--spacing-md, 1rem);
+}
+
+.pricing-rate-card-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 1.25rem 0 0.5rem;
+  color: var(--text-primary);
+}
+
+.pricing-rate-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.pricing-rate-table th,
+.pricing-rate-table td {
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid var(--border-muted);
+  text-align: left;
+  vertical-align: top;
+}
+
+.pricing-rate-table thead th {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.pricing-rate-table .plan-price {
+  white-space: nowrap;
+}
+
+.pricing-coming-soon {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid var(--border-muted);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--bg-muted);
+}
+
+.pricing-policy-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--text-primary);
+}
+
+.pricing-policy-list li {
+  margin-bottom: 0.3rem;
+}
+
+.svc-rate-card summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: var(--spacing-md, 1rem);
+}

@@ -13,6 +13,7 @@
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/tokushoho.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/pricing-rate-card.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="container py-4">
@@ -124,13 +125,7 @@
                             <tr>
                                 <td>{{ row.label|translate_dynamic }}</td>
                                 <td class="price-cell">
-                                    {% if row.list_price %}
-                                        <s class="tokushoho-list-price">{{ row.list_price }}</s>
-                                        <span class="tokushoho-sale-price">{{ row.price }}</span>
-                                        <span class="tokushoho-discount-badge">{{ row.discount }}</span>
-                                    {% else %}
-                                        <span class="tokushoho-sale-price">{{ row.price }}</span>
-                                    {% endif %}
+                                    <span class="tokushoho-sale-price">{{ row.price }}</span>
                                 </td>
                                 <td class="muted-cell">{{ row.price_jpy }}</td>
                                 <td class="muted-cell">{{ row.storage|default:"—" }}</td>
@@ -173,8 +168,10 @@
                         {% endif %}
                     </p>
                     <p>
-                        {% trans "超過計算：利用者の設定した月間上限を超えた計算・ストレージ分のみを従量課金します。課金単価は料金確定後に別途お知らせします。" %}
+                        {% trans "超過分：プランに含まれる量を超えたストレージとインターネット送信（egress）は、下記の料金表に従って従量課金します。計算クレジット・月間上限（利用者設定）・GPU／外部計算資源の課金は近日提供です。ベータ期間中は契約上の SLA はありません。" %}
                     </p>
+                    <h3 class="price-table-heading">{% trans "従量料金（ストレージ・通信・計算）" %}</h3>
+                    {% include "public_app/pricing_partials/rate_card.html" %}
                     {% endif %}
             </div>
         </div>
@@ -187,7 +184,7 @@
                         <tr>
                             <th>{% trans "商品代金以外の必要料金" %}</th>
                             <td>
-                                {% trans "消費税(表示価格はすべて税込です)。本サービスの利用に必要なインターネット接続料金・通信費はお客様のご負担となります。対面でのコンサルの場合、交通費および手数料はお客様のご負担となります。" %}
+                                {% trans "消費税(表示価格はすべて税込です)。本サービスの利用に必要なインターネット接続料金・通信費はお客様のご負担となります。対面での作業に伴う交通費および特別な経費は、別途お見積りのうえお客様のご負担となります。" %}
                             </td>
                         </tr>
                         <tr>
@@ -203,12 +200,12 @@
                             <td>
                                 {% trans "サブスクリプション(定期課金): お申し込み時にメールアドレスとクレジットカード/デビットカードをご登録いただきます。登録後30日間が無料トライアル期間です。トライアル期間内に継続を選択された場合、初回30日分を登録日から遡って課金し、以降は毎月の更新日に課金されます。継続しなかった場合、登録したメールアドレスとカード情報は当方のデータベースに保持され、7日後に破棄されます。同一のメールアドレスまたはカード情報では、30日間トライアルを一度しか利用できません。" %}
                                 <br>
-                                {% trans "都度払い(オンプレ導入サポート・受託開発・コンサル): お見積り・ご契約後、請求書に記載の期日までにお支払いいただきます(クレジットカード決済または銀行振込)。オンプレ保守サポート(月額): 毎月、請求書に記載の期日までにお支払いいただきます。" %}
+                                {% trans "都度払い(セルフホスト導入サポート・カスタム開発・コンサルティング): お見積り・ご契約後、請求書に記載の期日までにお支払いいただきます(クレジットカード決済または銀行振込)。セルフホスト保守サポート(月額)・商用ライセンス(年額): 請求書に記載の期日までにお支払いいただきます。" %}
                             </td>
                         </tr>
                         <tr>
                             <th>{% trans "サービス提供時期" %}</th>
-                            <td>{% trans "サブスクリプション: お申し込み(カード登録)完了後、直ちにご利用いただけます。導入支援・保守・受託開発・コンサル: ご契約時に取り決めた日程で提供します。" %}</td>
+                            <td>{% trans "サブスクリプション: お申し込み(カード登録)完了後、直ちにご利用いただけます。導入サポート・保守サポート・カスタム開発・コンサルティング・商用ライセンス: ご契約時に取り決めた日程で提供します。" %}</td>
                         </tr>
                         <tr>
                             <th>{% trans "返品・キャンセル" %}</th>

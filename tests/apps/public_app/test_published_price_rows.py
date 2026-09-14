@@ -123,7 +123,8 @@ def test_every_catalogue_unit_is_one_the_formatter_renders() -> None:
         # A bare number must never ship: the rendered string carries more than
         # the raw figure (a unit prefix in EN, or the currency suffix in JA).
         assert rendered.strip() != f"{row['amount']:,}", (row["id"], rendered)
-        assert any(ch.isdigit() for ch in rendered), (row["id"], rendered)
+        # A free row (the AGPL / Academic self-hosted licenses) renders "Free".
+        assert row["amount"] == 0 or any(ch.isdigit() for ch in rendered), (row["id"], rendered)
 
 
 def test_a_withheld_row_is_not_published_whatever_its_date_says() -> None:
@@ -154,98 +155,30 @@ def test_no_catalogue_row_is_withheld_today() -> None:
 
 @translation.override("ja")
 def test_the_subscription_rows_show_flat_usd() -> None:
-    """Operator 2026-09-12: the public price is USD, never yen. The two
-    subscription rows carry a usd_amount ($19 academic / $39 non-academic) and
-    render it flat — the old JPY early-adopter discount window no longer drives
-    the displayed price, so it carries no staged price_note. The JPY amount
-    survives only as the tokushoho legal reference (price_jpy)."""
-    from apps.infra.public_app.templatetags.landing_i18n import translate_dynamic
-
-    by_id = {r["id"]: r for r in published_price_rows(today=date(2026, 9, 2))}
-    # Label is translated at the template layer, not on the SSoT row.
-    assert translate_dynamic(by_id["subscription-student"]["label"]) == "サブスクリプション・学術"
-    # Public price is flat USD, regardless of the calendar date.
-    for today in (date(2026, 9, 2), date(2027, 8, 1), date(2029, 8, 1)):
-        rows = {r["id"]: r for r in published_price_rows(today=today)}
-        assert rows["subscription-student"]["price"] == "$19/mo"
-        assert rows["subscription-general"]["price"] == "$39/mo"
-        # No JPY staged-discount note is shown on the public price.
-        assert rows["subscription-student"]["price_note"] == ""
-        assert rows["subscription-general"]["price_note"] == ""
-    # The JPY amount is no longer stored on the row (USD is the SSoT); it
-    # survives only as the SSoT list amount, used as the yen-reference fallback
-    # when the live FX rate is unavailable. Under JA the format is "N,NNN円".
-    assert by_id["subscription-student"]["_jpy_list"] == "2,980円"
-    assert by_id["subscription-general"]["_jpy_list"] == "5,980円"
-    # The 定価 (list price) column is now USD, derived from sale + discount
-    # ($19 at 50% off -> $38 list; $39 -> $78).
-    assert by_id["subscription-student"]["list_price"] == "$38/mo"
-    assert by_id["subscription-general"]["list_price"] == "$78/mo"
-
-
-def _policy_fixture(schedule, amount=1000):
-    return {
-        "pricing_policies": {"p": {"schedule": schedule}},
-        "published_prices": [
-            {"id": "row", "label": "A", "amount": amount, "unit": "month",
-             "available_from": "2000-01", "policy": "p"},
-        ],
-    }
+    """SSOT Provisional v1.0 (2026-09-14): Cloud Academic $19/mo and Cloud
+    Standard $39/mo, flat, whatever the calendar date. The early-adopter
+    discount schedule and the stored JPY list amounts were removed with it."""
+    # Arrange
+    days = (date(2026, 9, 2), date(2027, 8, 1), date(2029, 8, 1))
+    # Act
+    prices = [
+        tuple(r["price"] for r in published_price_rows(today=d) if r["category"] == "subscription")
+        for d in days
+    ]
+    # Assert
+    assert prices == [("$19/mo", "$39/mo")] * len(days)
 
 
 @translation.override("ja")
-def test_a_window_is_selected_by_date_whatever_its_status_says() -> None:
-    """Rule check independent of the data file. business.yaml's `status` marks
-    which single phase is current and may not be set on two at once; the
-    engine (Price.from_mapping) selects the phase whose dates cover the day,
-    and so does this renderer (business, 2026-09-03 06:54Z). A window marked
-    `proposed` that covers today therefore DOES discount — the 50→30→10 taper
-    is a settled decision, not a plan — and a day no window covers sells at
-    the list price with no note."""
-    from unittest import mock
-    from apps.infra.public_app import pricing
+def test_the_academic_cloud_label_translates_to_japanese() -> None:
+    # Arrange
+    from apps.infra.public_app.templatetags.landing_i18n import translate_dynamic
 
-    fake = _policy_fixture([
-        {"label": "x", "start": "2026-01-01", "end": "2026-12-31", "percent": 50, "status": "proposed"},
-    ])
-    with mock.patch.object(pricing, "load_pricing", return_value=fake):
-        (inside,) = pricing.published_price_rows(today=date(2026, 9, 2))
-        (outside,) = pricing.published_price_rows(today=date(2027, 1, 1))
-    # No usd_amount on the fixture row, so the JPY amount renders — enough to
-    # prove the window discounts by date (1000 -> 500 inside, 1000 outside).
-    assert inside["price"] == "月額 500円", inside
-    assert outside["price"] == "月額 1,000円", outside
-    # The staged JPY note is no longer shown on the public price (2026-09-12).
-    assert inside["price_note"] == "" and outside["price_note"] == ""
-
-
-def test_a_fractional_yen_discount_is_refused() -> None:
-    from unittest import mock
-
-    import pytest
-
-    from apps.infra.public_app import pricing
-
-    fake = _policy_fixture([
-        {"label": "x", "start": "2000-01-01", "end": "2999-12-31", "percent": 50, "status": "active"},
-    ], amount=999)
-    with mock.patch.object(pricing, "load_pricing", return_value=fake):
-        with pytest.raises(ValueError, match="whole yen"):
-            pricing.published_price_rows(today=date(2026, 9, 2))
-
-
-def test_a_row_citing_an_undefined_policy_is_refused() -> None:
-    from unittest import mock
-
-    import pytest
-
-    from apps.infra.public_app import pricing
-
-    fake = _policy_fixture([])
-    fake["pricing_policies"] = {}
-    with mock.patch.object(pricing, "load_pricing", return_value=fake):
-        with pytest.raises(ValueError, match="pricing_policies"):
-            pricing.published_price_rows(today=date(2026, 9, 2))
+    by_id = {r["id"]: r for r in published_price_rows(today=date(2026, 9, 2))}
+    # Act
+    label = translate_dynamic(by_id["subscription-student"]["label"])
+    # Assert
+    assert label == "SciTeX Cloud Academic（学術）"
 
 
 def test_every_catalogue_attribute_renders_as_one_phrase() -> None:
@@ -266,39 +199,34 @@ def test_every_catalogue_attribute_renders_as_one_phrase() -> None:
 
 @translation.override("ja")
 def test_the_subscription_rows_state_what_they_include() -> None:
-    """Pins the upstream numbers the operator confirmed 2026-09-02 (50 GB,
-    1,000円 compute credit, metered overage, user-set cap) so a copy of
-    business.yaml that dropped one fails here. Basis is per_user
-    (operator 2026-09-12: "storage per month is for the user not for a project")."""
-    by_id = {r["id"]: r for r in published_price_rows(today=date(2026, 9, 2))}
-    # The `included` list IS translated here (call-time gettext in pricing.py);
-    # under translation.override("ja") it yields the JA strings.
-    for row_id in ("subscription-student", "subscription-general"):
-        text = "、".join(by_id[row_id]["included"])
-        for needle in (
-            "32 GB ストレージ / 月 (Standard speed)",
-            "$10 の計算クレジット",
-            "超過分は従量課金",
-            "月の上限は利用者が設定",
-        ):
-            assert needle in text, (row_id, text)
-    assert "対象: 大学・研究機関のメールアドレスを持つこと（学生・院生・教職員・研究員）" in "、".join(by_id["subscription-student"]["included"])
-    assert "対象: " not in "、".join(by_id["subscription-general"]["included"])
+    """Pins SSOT v1.0 §2 (32 GB Cool, $10 credit — coming soon, 100 GB egress,
+    30-day trial, metered overage, user-set cap — coming soon)."""
+    # Arrange
+    needles = (
+        "30日間の無料トライアル",
+        "Cool ストレージ 32 GB 込み",
+        "計算クレジット $10 / 請求サイクル（近日提供）",
+        "インターネットへの送信 100 GB",
+        "含まれる量を超えたストレージと送信は従量課金",
+        "月間の利用上限を利用者が設定（近日提供）",
+    )
+    # Act
+    missing = [
+        (row["id"], needle)
+        for row in published_price_rows(today=date(2026, 9, 2))
+        if row["category"] == "subscription"
+        for needle in needles
+        if needle not in "、".join(row["included"])
+    ]
+    # Assert
+    assert missing == []
 
 
-def test_overlapping_windows_are_refused() -> None:
-    """Two windows covering the same day is an upstream data error; the page
-    must not silently pick one (the first in file order would win)."""
-    from unittest import mock
-
-    import pytest
-
-    from apps.infra.public_app import pricing
-
-    fake = _policy_fixture([
-        {"label": "a", "start": "2026-01-01", "end": "2026-12-31", "percent": 50, "status": "active"},
-        {"label": "b", "start": "2026-06-01", "end": "2027-12-31", "percent": 30, "status": "proposed"},
-    ])
-    with mock.patch.object(pricing, "load_pricing", return_value=fake):
-        with pytest.raises(ValueError, match="must not overlap"):
-            pricing.published_price_rows(today=date(2026, 9, 2))
+@translation.override("ja")
+def test_only_the_academic_cloud_row_states_an_eligibility_rule() -> None:
+    # Arrange
+    rows = published_price_rows(today=date(2026, 9, 2))
+    # Act
+    eligible = [r["id"] for r in rows if any(i.startswith("対象: ") for i in r["included"])]
+    # Assert
+    assert eligible == ["subscription-student"]

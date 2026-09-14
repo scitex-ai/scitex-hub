@@ -2848,3 +2848,332 @@ msgstr "数式"
 
 msgid "Figure"
 msgstr "図"
+
+
+# SciTeX Services SSOT Provisional v1.0 (USD) — /pricing/, /services/, rate card (2026-09-14)
+msgid "from %(price)s"
+msgstr "%(price)s〜"
+
+msgid "%(text)s (Coming soon)"
+msgstr "%(text)s（近日提供）"
+
+msgid "%(amount)s GB %(tier)s storage included"
+msgstr "%(tier)s ストレージ %(amount)s GB 込み"
+
+msgid "%(amt)s compute credit per billing cycle"
+msgstr "計算クレジット %(amt)s / 請求サイクル"
+
+msgid "%(days)s-day free trial with %(storage)s GB Cool storage and a %(credit)s trial compute credit (credit: Coming soon)"
+msgstr "%(days)s日間の無料トライアル（Cool ストレージ %(storage)s GB、トライアル計算クレジット %(credit)s。クレジットは近日提供）"
+
+msgid "%(amount)s GB internet egress per billing cycle; ingress and internal SciTeX traffic are free"
+msgstr "インターネットへの送信 %(amount)s GB / 請求サイクル（受信と SciTeX 内部の通信は無料）"
+
+msgid "Storage and egress above the included amounts are metered"
+msgstr "含まれる量を超えたストレージと送信は従量課金"
+
+msgid "Monthly spending cap set by the user"
+msgstr "月間の利用上限を利用者が設定"
+
+msgid "SciTeX Cloud Academic"
+msgstr "SciTeX Cloud Academic（学術）"
+
+msgid "SciTeX Cloud Standard"
+msgstr "SciTeX Cloud Standard（一般）"
+
+msgid "SciTeX Self-Hosted — AGPL v3.0"
+msgstr "SciTeX セルフホスト — AGPL v3.0"
+
+msgid "SciTeX Self-Hosted — Academic License"
+msgstr "SciTeX セルフホスト — アカデミックライセンス"
+
+msgid "SciTeX Self-Hosted — Commercial License"
+msgstr "SciTeX セルフホスト — 商用ライセンス"
+
+msgid "SciTeX Self-Hosted Setup Support"
+msgstr "SciTeX セルフホスト導入サポート"
+
+msgid "SciTeX Self-Hosted Maintenance Support"
+msgstr "SciTeX セルフホスト保守サポート"
+
+msgid "SciTeX Custom Development"
+msgstr "SciTeX カスタム開発"
+
+msgid "SciTeX Consulting"
+msgstr "SciTeX コンサルティング"
+
+msgid "For eligible academic and research users."
+msgstr "対象となる学術・研究利用者向け。"
+
+msgid "For general and commercial users. Hosted at scitex.ai."
+msgstr "一般・商用利用者向け。scitex.ai でホストします。"
+
+msgid "For anyone. AGPL v3.0 terms apply."
+msgstr "どなたでも利用できます。AGPL v3.0 の条件が適用されます。"
+
+msgid "For universities and public research institutions. Internal non-commercial research and education; private modifications allowed. Support is not included."
+msgstr "大学・公的研究機関向け。機関内の非商用の研究・教育に利用でき、非公開の改変も可能です。サポートは含まれません。"
+
+msgid "For companies and proprietary use. Internal proprietary use; OEM or resale requires a separate agreement. Support is not included."
+msgstr "企業・プロプライエタリ利用向け。組織内での独自利用が可能です。OEM・再販には別途契約が必要です。サポートは含まれません。"
+
+msgid "One environment; standard install; domain/TLS; basic auth; one storage integration; one compute integration; smoke test; handover notes."
+msgstr "1 環境、標準インストール、ドメイン／TLS、基本認証、ストレージ連携 1 件、計算資源連携 1 件、動作確認、引き継ぎ資料。"
+
+msgid "Upgrade assistance; dependency and security update assistance; operational triage; compatibility checks; up to 4 support hours per month (unused hours do not roll over). Target first response: 1 business day, best effort unless a separate SLA is signed. Additional work: $100/hr unless separately quoted."
+msgstr "アップグレード支援、依存関係・セキュリティ更新の支援、運用上の切り分け、互換性確認、月 4 時間までのサポート（未使用時間の繰り越しなし）。初回応答の目標は 1 営業日で、別途 SLA を締結しない限りベストエフォートです。追加作業は、別途見積りがない限り $100/時間です。"
+
+msgid "Apps, workflows, integrations, automation, agents and research tooling."
+msgstr "アプリ、ワークフロー、連携、自動化、エージェント、研究ツール。"
+
+msgid "AI, HPC, research software, SciTeX architecture and workflow design. First 30 minutes free."
+msgstr "AI、HPC、研究ソフトウェア、SciTeX のアーキテクチャ、ワークフロー設計。最初の 30 分は無料。"
+
+msgid "SciTeX Cloud"
+msgstr "SciTeX クラウド"
+
+msgid "Hosted at scitex.ai"
+msgstr "scitex.ai でホスト"
+
+msgid "Cloud Academic and Cloud Standard have the same product features; Academic pricing is eligibility-based."
+msgstr "Cloud Academic と Cloud Standard の機能は同じです。Academic は対象資格にもとづく価格です。"
+
+msgid "SciTeX Self-Hosted"
+msgstr "SciTeX セルフホスト"
+
+msgid "Run SciTeX in your own environment"
+msgstr "ご自身の環境で SciTeX を運用"
+
+msgid "Keep data in-house. OEM, resale or a SciTeX-based third-party commercial service requires a Commercial License or separate written permission. Support is not included in the license."
+msgstr "データを組織内に保持できます。OEM、再販、SciTeX を用いた第三者向け商用サービスの提供には、商用ライセンスまたは別途書面による許諾が必要です。ライセンスにサポートは含まれません。"
+
+msgid "Professional services"
+msgstr "プロフェッショナルサービス"
+
+msgid "Setup, maintenance, development and consulting"
+msgstr "導入・保守・開発・コンサルティング"
+
+msgid "In-person travel and extraordinary expenses are quoted separately."
+msgstr "対面での作業に伴う交通費・特別な経費は別途お見積りします。"
+
+msgid "Included with active compute"
+msgstr "計算の実行中は料金に含む"
+
+msgid "%(price)s / GB-month"
+msgstr "%(price)s / GB・月"
+
+msgid "Highest-speed job and scratch storage"
+msgstr "最高速のジョブ用・一時作業用ストレージ"
+
+msgid "Temporary; not intended as durable storage"
+msgstr "一時的な領域で、永続保存には向きません"
+
+msgid "High-speed persistent storage for active datasets"
+msgstr "利用中のデータセット向けの高速な永続ストレージ"
+
+msgid "Persistent"
+msgstr "永続"
+
+msgid "Default user storage"
+msgstr "標準のユーザーストレージ"
+
+msgid "32 GB included with paid Cloud plans"
+msgstr "有料 Cloud プランに 32 GB 込み"
+
+msgid "Long-term, infrequently accessed archive"
+msgstr "長期保管・低頻度アクセス向けのアーカイブ"
+
+msgid "Restore delay may apply"
+msgstr "復元に時間がかかる場合があります"
+
+msgid "Internet ingress"
+msgstr "インターネットからの受信"
+
+msgid "Transfer inside SciTeX infrastructure"
+msgstr "SciTeX 基盤内の転送"
+
+msgid "Internet egress included per paid billing cycle"
+msgstr "有料プランの請求サイクルごとに含まれるインターネット送信"
+
+msgid "Egress above included amount"
+msgstr "含まれる量を超えた送信"
+
+msgid "%(price)s / GB"
+msgstr "%(price)s / GB"
+
+msgid "%(price)s / GPU-hour"
+msgstr "%(price)s / GPU時間"
+
+msgid "1 Compute Credit = %(price)s of metered SciTeX compute usage."
+msgstr "1 計算クレジット = SciTeX の従量計算利用 %(price)s 分。"
+
+msgid "1 CPU Unit = 1 vCPU + 4 GiB RAM, at %(price)s per CPU Unit-hour."
+msgstr "1 CPU ユニット = 1 vCPU + 4 GiB RAM、1 CPU ユニット時間あたり %(price)s。"
+
+msgid "Additional memory beyond the standard ratio: %(price)s / GiB-hour."
+msgstr "標準比率を超える追加メモリ: %(price)s / GiB時間。"
+
+msgid "GPU is billed by GPU model-hour; standard host CPU/RAM for normal GPU use is included."
+msgstr "GPU は GPU モデルごとの利用時間で課金します。通常の GPU 利用に必要なホスト側の CPU／RAM は含まれます。"
+
+msgid "If a resource is unavailable at the published rate, you may choose external compute: actual provider cost + %(pct)s%% service fee, shown and locked before the job starts."
+msgstr "公表料金で資源を用意できない場合は、外部の計算資源を選択できます。料金は提供元の実費 + %(pct)s%% のサービス料で、ジョブ開始前に提示・確定します。"
+
+msgid "Compute billing"
+msgstr "計算資源の課金"
+
+msgid "Eligible institution: university, public research institute, or equivalent nonprofit academic institution."
+msgstr "対象機関: 大学、公的研究機関、またはこれらに準ずる非営利の学術機関。"
+
+msgid "Internal research and education: allowed."
+msgstr "機関内での研究・教育: 可。"
+
+msgid "Institution-specific private modifications: allowed."
+msgstr "機関独自の非公開の改変: 可。"
+
+msgid "Industry-sponsored research remains eligible when SciTeX is used internally by the academic institution."
+msgstr "企業からの資金による研究も、学術機関の内部で SciTeX を利用する限り対象です。"
+
+msgid "Direct access or use by a commercial partner, resale, OEM, or providing a SciTeX-based third-party commercial service requires a Commercial License or separate written permission."
+msgstr "商業パートナーによる直接のアクセス・利用、再販、OEM、SciTeX を用いた第三者向け商用サービスの提供には、商用ライセンスまたは別途書面による許諾が必要です。"
+
+msgid "Support is not included in the license."
+msgstr "ライセンスにサポートは含まれません。"
+
+msgid "No contractual uptime SLA for SciTeX Cloud during beta. Internal operational target: 99.0% monthly availability."
+msgstr "ベータ期間中、SciTeX Cloud に契約上の稼働率 SLA はありません。社内の運用目標は月間稼働率 99.0% です。"
+
+msgid "No contractual durability SLA during beta. Hot storage is temporary; move data to persistent storage if you need to keep it."
+msgstr "ベータ期間中、契約上のデータ耐久性 SLA はありません。Hot ストレージは一時領域のため、保持が必要なデータは永続ストレージへ移してください。"
+
+msgid "Cloud support: best effort, target first response within 2 business days."
+msgstr "Cloud のサポート: ベストエフォート。初回応答の目標は 2 営業日以内です。"
+
+msgid "Paid Self-Hosted Maintenance: target first response within 1 business day."
+msgstr "有料のセルフホスト保守サポート: 初回応答の目標は 1 営業日以内です。"
+
+msgid "Unused compute credit does not roll over."
+msgstr "未使用の計算クレジットは繰り越されません。"
+
+msgid "Public rates are reviewed once per month and stay fixed until the next rate-card update. A running job never changes price."
+msgstr "公表料金は月に一度見直し、次の料金表更新まで固定です。実行中のジョブの料金が途中で変わることはありません。"
+
+msgid "During beta, unusually high traffic may be rate-limited or quoted separately if it threatens service quality."
+msgstr "ベータ期間中、サービス品質に影響するほど通信量が多い場合は、帯域を制限するか別途お見積りすることがあります。"
+
+msgid "Storage tiers"
+msgstr "ストレージ階層"
+
+msgid "Tier"
+msgstr "階層"
+
+msgid "Use"
+msgstr "用途"
+
+msgid "Price"
+msgstr "料金"
+
+msgid "Notes"
+msgstr "備考"
+
+msgid "Network"
+msgstr "通信"
+
+msgid "Coming soon"
+msgstr "近日提供"
+
+msgid "CPU size"
+msgstr "CPU サイズ"
+
+msgid "Resources"
+msgstr "リソース"
+
+msgid "GPU"
+msgstr "GPU"
+
+msgid "Academic License boundary"
+msgstr "アカデミックライセンスの適用範囲"
+
+msgid "Support and service quality during beta"
+msgstr "ベータ期間中のサポートとサービス品質"
+
+msgid "Included with SciTeX Cloud (Academic and Standard)"
+msgstr "SciTeX Cloud に含まれるもの（Academic・Standard 共通）"
+
+msgid "Creating an account does not start a paid subscription."
+msgstr "アカウントを作成しても、有料のサブスクリプションは開始されません。"
+
+msgid "Rate card: storage, network and compute"
+msgstr "料金表: ストレージ・通信・計算"
+
+msgid "Undecided"
+msgstr "未定"
+
+msgid "Licenses"
+msgstr "ライセンス"
+
+msgid "Commercial License"
+msgstr "商用ライセンス"
+
+msgid "Pricing - SciTeX"
+msgstr "料金 - SciTeX"
+
+msgid "SciTeX pricing in USD: SciTeX Cloud Academic and Standard, SciTeX Self-Hosted licenses, professional services, and the storage, network and compute rate card."
+msgstr "SciTeX の料金（USD）: SciTeX Cloud Academic・Standard、SciTeX セルフホストのライセンス、プロフェッショナルサービス、ストレージ・通信・計算の料金表。"
+
+msgid "All prices are in USD. Rates are reviewed once a month and stay fixed until the next rate-card update."
+msgstr "料金はすべて USD 建てです。料金は月に一度見直し、次の料金表更新まで固定です。"
+
+msgid "Paid plans (tax included) — operator testing"
+msgstr "有料プラン（税込）— 運営者テスト中"
+
+msgid "(tax included)"
+msgstr "（税込）"
+
+msgid "/ year"
+msgstr "/ 年"
+
+msgid "(Stripe keys not configured — checkout disabled)"
+msgstr "（Stripe キー未設定のため決済は無効）"
+
+msgid "Online card payment is in preparation"
+msgstr "オンラインのカード決済は準備中です"
+
+msgid "Prices are published. Card payment opens after Stripe's corporate review; until then, please contact us to start a plan or request a quote."
+msgstr "料金は公開済みです。カード決済は Stripe の法人審査を経て開始します。それまでのお申し込み・お見積りはお問い合わせください。"
+
+msgid "Specified Commercial Transactions Act disclosure"
+msgstr "特定商取引法に基づく表記"
+
+msgid "Rate card"
+msgstr "料金表"
+
+msgid "How is my data handled during beta?"
+msgstr "ベータ期間中、データはどう扱われますか？"
+
+msgid "There is no contractual uptime or durability SLA during beta, so please back up important work. For full control, self-host SciTeX or run it locally with"
+msgstr "ベータ期間中は契約上の稼働率・データ耐久性の SLA がないため、重要な作業はバックアップしてください。すべてを手元で管理したい場合は、SciTeX をセルフホストするか、ローカルで次のコマンドをお使いください:"
+
+msgid "Can I self-host SciTeX?"
+msgstr "SciTeX はセルフホストできますか？"
+
+msgid "Yes. SciTeX Self-Hosted is free under AGPL v3.0, and universities and public research institutions can use the free Academic License. Proprietary use needs the Commercial License."
+msgstr "はい。SciTeX セルフホストは AGPL v3.0 のもとで無料です。大学・公的研究機関は無料のアカデミックライセンスも利用できます。プロプライエタリな利用には商用ライセンスが必要です。"
+
+msgid "When does billing start?"
+msgstr "課金はいつ始まりますか？"
+
+msgid "SciTeX Cloud plans start with a 30-day free trial, and creating an account does not start a paid subscription. Online card payment opens after Stripe's corporate review (see the"
+msgstr "SciTeX Cloud のプランは 30 日間の無料トライアルから始まり、アカウントを作成しただけでは有料のサブスクリプションは開始されません。オンラインのカード決済は Stripe の法人審査を経て開始します（詳しくは"
+
+msgid "How can I support SciTeX today?"
+msgstr "今、SciTeX を応援するには？"
+
+msgid "Donate"
+msgstr "寄付"
+
+msgid "Create an account to keep your work"
+msgstr "作業を続けるためにアカウントを作成"
+
+msgid "Try as a visitor"
+msgstr "Visitor として試す"

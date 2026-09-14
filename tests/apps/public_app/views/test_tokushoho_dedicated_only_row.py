@@ -40,7 +40,7 @@ OVERAGE = _REAL["overage"]
 
 #: A GENUINE non-dedicated attribute: it has no column of its own, so it must
 #: still reach 備考. Built through the public helper with a real catalogue value.
-NON_DEDICATED = included_items({"included_traffic": "normal-use"})[0]
+NON_DEDICATED = included_items({"included_egress": {"amount": 100}})[0]
 
 
 def _row(*, remarks, included):

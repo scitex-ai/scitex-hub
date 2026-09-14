@@ -22,6 +22,7 @@ from django.conf import settings
 from django.shortcuts import render
 from django.utils import translation
 from ..pricing import annotate_jpy_reference, get_usd_jpy_rate, published_price_rows
+from ..pricing_pages import rate_card
 
 
 def donate(request):
@@ -173,6 +174,9 @@ def _tokushoho_context(as_of_format: str) -> dict:
     else:
         context["fx_as_of_display"] = ""
     context["published_price_rows"] = rows
+    # The metered rates (storage tiers, egress, compute — the latter labelled
+    # coming soon) are prices too, so the 特商法 page states them as well.
+    context["rate_card"] = rate_card()
     return context
 
 

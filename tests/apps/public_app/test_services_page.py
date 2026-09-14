@@ -141,7 +141,7 @@ class TestServicesGet:
             services_url, HTTP_COOKIE="django_language=ja"
         )
         content = response.content.decode()
-        for needle in ("研究に集中できる環境", "料金の目安", "問い合わせはこちら", "応相談", "サブスク"):
+        for needle in ("研究に集中できる環境", "料金の目安", "問い合わせはこちら", "SciTeX クラウド", "近日提供"):
             assert needle in content, f"{needle!r} missing from the Japanese /services/"
 
     def test_get_prices_the_same_catalogue_as_tokushoho(self, client, services_url):
@@ -217,7 +217,7 @@ class TestServicesGet:
     def test_get_shows_the_three_tiers_business_wrote(self, client, services_url):
         # Arrange (EN source — the SSOT tier names since 2026-09-11; the
         # quote_only tier shows "By request", each tier links "Inquire here").
-        expected = ("Sub", "On-Prem", "Enterprise", "By request", "Inquire here")
+        expected = ("SciTeX Cloud", "SciTeX Self-Hosted", "Professional services", "Inquire here")
         # Act
         content = client.get(services_url).content.decode()
         # Assert

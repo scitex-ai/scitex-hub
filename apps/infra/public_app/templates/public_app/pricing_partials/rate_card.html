@@ -1,0 +1,94 @@
+{% load i18n %}
+{% comment %}
+   Compact metered rate card (SSOT Provisional v1.0 §3-5), shared by /pricing/,
+   /services/ and /tokushoho/. Every value comes from pricing_pages.rate_card()
+   — no amount is typed here (test_pricing_ssot.py scans this file). Tier names
+   only: pricing.json carries no internal hardware mapping, so none can render.
+   Compute billing is not live, so its block carries the coming-soon label.
+   Context: rate_card; optional rate_card_class (wrapper class for page styling).
+{% endcomment %}
+<div class="pricing-rate-card {{ rate_card_class|default:'' }}" id="rate-card">
+    <h3 class="pricing-rate-card-title">{% trans "Storage tiers" %}</h3>
+    <div class="table-responsive">
+        <table class="pricing-rate-table" data-rate-card="storage">
+            <thead>
+                <tr>
+                    <th scope="col">{% trans "Tier" %}</th>
+                    <th scope="col">{% trans "Use" %}</th>
+                    <th scope="col">{% trans "Price" %}</th>
+                    <th scope="col">{% trans "Notes" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tier in rate_card.storage %}
+                <tr>
+                    <th scope="row" class="pricing-storage-tier">{{ tier.name }}</th>
+                    <td>{{ tier.meaning }}</td>
+                    <td class="plan-price">{{ tier.price }}</td>
+                    <td>{{ tier.note }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <h3 class="pricing-rate-card-title">{% trans "Network" %}</h3>
+    <div class="table-responsive">
+        <table class="pricing-rate-table" data-rate-card="network">
+            <tbody>
+                {% for line in rate_card.network %}
+                <tr>
+                    <th scope="row">{{ line.label }}</th>
+                    <td class="plan-price">{{ line.price }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <h3 class="pricing-rate-card-title">
+        {{ rate_card.compute.label }}
+        {% if rate_card.compute.coming_soon %}<span class="pricing-coming-soon">{% trans "Coming soon" %}</span>{% endif %}
+    </h3>
+    <p class="plan-note">{{ rate_card.compute.credit_line }} {{ rate_card.compute.cpu_unit_line }}</p>
+    <div class="table-responsive">
+        <table class="pricing-rate-table" data-rate-card="compute">
+            <thead>
+                <tr>
+                    <th scope="col">{% trans "CPU size" %}</th>
+                    <th scope="col">{% trans "Resources" %}</th>
+                    <th scope="col">{% trans "Rate" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for size in rate_card.compute.cpu_sizes %}
+                <tr>
+                    <th scope="row">{{ size.name }}</th>
+                    <td>{{ size.resources }}</td>
+                    <td class="plan-price">{{ size.price }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p class="plan-note">{{ rate_card.compute.memory_line }}</p>
+    <div class="table-responsive">
+        <table class="pricing-rate-table" data-rate-card="gpu">
+            <thead>
+                <tr>
+                    <th scope="col">{% trans "GPU" %}</th>
+                    <th scope="col">{% trans "Rate" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for gpu in rate_card.compute.gpus %}
+                <tr>
+                    <th scope="row">{{ gpu.name }}</th>
+                    <td class="plan-price">{{ gpu.price }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p class="plan-note">{{ rate_card.compute.gpu_line }} {{ rate_card.compute.external_line }}</p>
+</div>

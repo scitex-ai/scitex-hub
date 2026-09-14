@@ -43,14 +43,14 @@ EXPECTED_FREE_FUNNEL = {
         "30-day free trial",
         "Sign up free",
         "$19/mo",
-        "32 GB storage per month (Standard speed)",
+        "32 GB Cool storage included",
     ),
     "ja": (
         "クラウド",
         "30日間の無料トライアル",
         "無料で登録",
         "$19/mo",
-        "32 GB ストレージ / 月 (Standard speed)",
+        "Cool ストレージ 32 GB 込み",
     ),
 }
 
@@ -188,7 +188,7 @@ def _rendered_landing(language: str) -> str:
         context = {
             "sub_rows": sub_rows,
             "onprem_tier": next(
-                (t for t in tier_rows() if t["id"] == "onprem"), None
+                (t for t in tier_rows() if t["id"] == "selfhosted"), None
             ),
             "tax_note": pricing.get("tax_note", ""),
             "pricing_notes": pricing["notes"],
@@ -271,8 +271,8 @@ def test_pricing_ctas_are_generic_signup_not_paid_activation():
 @pytest.mark.parametrize(
     ("language", "expected", "forbidden"),
     [
-        ("en", "32 GB storage per month (Standard speed)", "ストレージ"),
-        ("ja", "32 GB ストレージ / 月 (Standard speed)", "Storage"),
+        ("en", "32 GB Cool storage included", "ストレージ"),
+        ("ja", "Cool ストレージ 32 GB 込み", "storage"),
     ],
 )
 def test_runtime_pricing_values_follow_the_active_language(
@@ -310,7 +310,7 @@ def test_japanese_landing_renders_the_japanese_pricing_strings():
         "クラウド",
         "学術",
         "$19/mo",
-        "32 GB ストレージ / 月 (Standard speed)",
-        "通常利用の範囲の通信",
+        "Cool ストレージ 32 GB 込み",
+        "インターネットへの送信",
     )
     assert all(value in pricing for value in expected)

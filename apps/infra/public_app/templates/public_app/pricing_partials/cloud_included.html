@@ -1,0 +1,18 @@
+{% load i18n %}
+{% comment %}
+   What SciTeX Cloud includes (SSOT §2), shared by /pricing/ and /services/.
+   Items come from the Cloud rows' attributes via pricing_pages.shared_included();
+   unbuilt features (compute credit, spending cap) already carry the
+   coming-soon label in their text. Context: cloud_included.
+{% endcomment %}
+{% if cloud_included %}
+<div class="pricing-included" id="included">
+    <h3 class="pricing-rate-card-title">{% trans "Included with SciTeX Cloud (Academic and Standard)" %}</h3>
+    <ul class="pricing-policy-list">
+        {% for item in cloud_included %}
+        <li>{{ item }}</li>
+        {% endfor %}
+    </ul>
+    <p class="plan-note">{% trans "Creating an account does not start a paid subscription." %}</p>
+</div>
+{% endif %}

@@ -233,9 +233,11 @@ class TestTokushohoPage:
             # …and that row must carry a yen reference (digits + 円, non-empty).
         # Every row has a non-empty yen reference in its column (the "from"
         # rows prefix it with 〜, e.g. 〜307,500円).
+        # Free rows (the AGPL / Academic self-hosted licenses) show "—".
+        priced = [row for row in rows if row["usd_amount"]]
         yen_cells = re.findall(r">〜?\d[\d,]*円<", content)
-        assert len(yen_cells) >= len(rows), (
-            f"expected >= {len(rows)} yen reference cells, found {len(yen_cells)}: {yen_cells}"
+        assert len(yen_cells) >= len(priced), (
+            f"expected >= {len(priced)} yen reference cells, found {len(yen_cells)}: {yen_cells}"
         )
         for row in rows:
             for item in row["included"]:
@@ -253,7 +255,7 @@ class TestTokushohoPage:
             "日割りの返金はありません",
             "お支払い済みの期間の末日までご利用いただけます",
             "個別対応します",
-            "サブスクリプション・学術",
+            "SciTeX Cloud Academic（学術）",
         ):
             assert needle in content, f"{needle!r} missing from the 特商法 page"
         # The old "free 30 days then auto-bill on day 31" model is gone.

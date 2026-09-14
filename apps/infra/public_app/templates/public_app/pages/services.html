@@ -9,6 +9,7 @@
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'public_app/css/services.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/services-detail.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/pricing-rate-card.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="svc-page">
@@ -84,41 +85,33 @@
                 {% trans "We don't assume a large-scale rollout from day one. We design the scope of support to fit the size of your problem and your organization." %}
             </p>
             {% comment %}
-            Three tiers, from data/pricing.json `tiers`, in business's words
-            (2026-09-02): the axis is "use it yourself" (Sub) / "install it in
-            an organisation" (On-Prem) / "department or university scale"
-            (Enterprise, quote only). Each tier CITES published_prices rows; the
-            amounts below are rendered from those rows, never typed here —
-            test_pricing_ssot.py fails on a literal. The previous three-column
-            table (Individual / Lab / Enterprise) is gone: business retired the
-            Lab tier on 2026-08-28 and this page kept pricing it for five days.
-            Every tier links to the same inquiry form; for Enterprise that is the
-            only entry.
+            Three plan groups from data/pricing.json `tiers` (SciTeX Services
+            SSOT — Provisional v1.0, USD): SciTeX Cloud / SciTeX Self-Hosted /
+            Professional services. Each group CITES published_prices rows; the
+            amounts are rendered from those rows, never typed here —
+            test_pricing_ssot.py fails on a literal.
             {% endcomment %}
             <div class="svc-plan-cards">
                 {% for tier in tiers %}
-                <article class="svc-plan-card{% if tier.id == 'onprem' %} svc-plan-card-featured{% endif %}">
+                <article class="svc-plan-card{% if tier.id == 'cloud' %} svc-plan-card-featured{% endif %}">
                     <p class="svc-plan-card-name">{{ tier.name|translate_dynamic }}<span class="svc-plan-card-sub">{{ tier.audience|translate_dynamic }}</span></p>
                     <dl>
-                        {% if tier.quote_only %}
-                            <dt>{% trans "Rate" %}</dt><dd class="svc-plan-price">{% trans "By request" %}</dd>
-                        {% elif not tier.rows %}
-                            {% comment %} every cited row is gated off (withheld, or not yet
-                            available) — the same wording /tokushoho/ uses for an unsettled value {% endcomment %}
+                        {% if not tier.rows %}
                             <dt>{% trans "Rate" %}</dt><dd class="svc-plan-price">{% trans "In preparation — we'll publish it once confirmed." %}</dd>
                         {% else %}
                             {% for row in tier.rows %}
                                 <dt>{{ row.label|translate_dynamic }}</dt>
-                                <dd class="svc-plan-price">{{ row.price }}{% if row.price_note %}<span class="svc-plan-card-sub">{{ row.price_note }}</span>{% endif %}</dd>
+                                <dd class="svc-plan-price">{{ row.price }}</dd>
                             {% endfor %}
                         {% endif %}
                     </dl>
                     <p class="svc-card-lead">{{ tier.description|translate_dynamic }}</p>
-                    {% for row in tier.rows %}{% if row.description %}<p class="svc-muted">{{ row.label|translate_dynamic }}: {{ row.description|translate_dynamic }}</p>{% endif %}{% if row.included %}<p class="svc-muted">{{ row.label|translate_dynamic }}: {{ row.included|join:" · " }}</p>{% endif %}{% endfor %}
+                    {% for row in tier.rows %}{% if row.description %}<p class="svc-muted">{{ row.label|translate_dynamic }}: {{ row.description|translate_dynamic }}</p>{% endif %}{% endfor %}
                     <a href="#inquiry" class="svc-btn svc-btn-primary">{% trans "Inquire here" %}</a>
                 </article>
                 {% endfor %}
             </div>
+            {% include "public_app/pricing_partials/cloud_included.html" %}
         </section>
 
         <section class="svc-section" id="services">
@@ -228,19 +221,16 @@
                     </thead>
                     {% comment %}
                     Amounts come from data/pricing.json. Never write a literal
-                    price here — /services/ and /landing/ drifted 2.7x apart
-                    exactly because each page kept its own copy.
-                    MUST be {% comment %}, not a multi-line {# #}: Django's
-                    tag_re has no re.DOTALL, so a multi-line hash comment is not
-                    a comment at all — it renders as visible text AND
-                    interpolates the variables inside it.
+                    price here. MUST be {% comment %}, not a multi-line {# #}:
+                    Django's tag_re has no re.DOTALL, so a multi-line hash
+                    comment renders as visible text.
                     {% endcomment %}
                     <tbody>
                         {% for group in published_price_groups %}
                             {% for row in group.rows %}
                             <tr>
-                                <td>{{ row.label|translate_dynamic }}{% if row.included %}<br><span class="svc-muted">{{ row.included|join:" · " }}</span>{% endif %}</td>
-                                <td class="svc-price-cell">{{ row.price }}{% if row.price_note %}<br><span class="svc-muted">{{ row.price_note }}</span>{% endif %}</td>
+                                <td>{{ row.label|translate_dynamic }}</td>
+                                <td class="svc-price-cell">{{ row.price }}</td>
                             </tr>
                             {% endfor %}
                         {% endfor %}
@@ -253,6 +243,11 @@
                 <p class="svc-price-note">{{ note|translate_dynamic }}</p>
                 {% endfor %}
             </div>
+            <details class="svc-rate-card">
+                <summary>{% trans "Rate card: storage, network and compute" %}</summary>
+                {% include "public_app/pricing_partials/rate_card.html" %}
+            </details>
+            {% include "public_app/pricing_partials/policies.html" %}
         </section>
 
         <!-- ============================================================ -->
@@ -295,15 +290,13 @@
                         <label for="svc-budget">{% trans "Indicative budget (optional)" %}</label>
                         <select id="svc-budget" name="budget">
                             <!-- Budget option values are stored verbatim on
-                                 ServiceInquiry (and emailed to the operator, who
-                                 reads Japanese) — label == value by design, so
-                                 the displayed and stored strings never diverge.
-                                 These stay Japanese in both languages. -->
-                            <option value="未定"{% if form.budget == "未定" or not form.budget %} selected{% endif %}>未定</option>
-                            <option value="3万円未満"{% if form.budget == "3万円未満" %} selected{% endif %}>3万円未満</option>
-                            <option value="3万円〜10万円"{% if form.budget == "3万円〜10万円" %} selected{% endif %}>3万円〜10万円</option>
-                            <option value="10万円〜50万円"{% if form.budget == "10万円〜50万円" %} selected{% endif %}>10万円〜50万円</option>
-                            <option value="50万円以上"{% if form.budget == "50万円以上" %} selected{% endif %}>50万円以上</option>
+                                 ServiceInquiry (and emailed to the operator), so
+                                 value == the SSOT string (pricing.json
+                                 inquiry_budget_options, USD). Only the first
+                                 option ("Undecided") is translated for display. -->
+                            {% for option in budget_options %}
+                            <option value="{{ option }}"{% if form.budget == option or not form.budget and forloop.first %} selected{% endif %}>{% if forloop.first %}{{ option|translate_dynamic }}{% else %}{{ option }}{% endif %}</option>
+                            {% endfor %}
                         </select>
                     </div>
                     <div class="svc-field">

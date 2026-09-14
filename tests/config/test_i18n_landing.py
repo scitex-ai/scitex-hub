@@ -557,13 +557,13 @@ def test_landing_pricing_renders_fully_english_by_default():
     # Two-plan row (Free pane dropped 2026-09-12): Cloud | On-Prem. Prices are
     # ALWAYS USD on the marketing card (operator: "drop the yen at all").
     assert '<html lang="en"' in html
-    assert "Cloud" in html and "On-Prem" in html
+    assert "Cloud" in html and "SciTeX Self-Hosted" in html
     assert "$19/mo" in html and "$39/mo" in html
     assert 'data-variant="academic"' in html and 'data-variant="general"' in html
     assert "30-day free trial" in html
-    assert "32 GB storage per month (Standard speed)" in html
-    assert "$10 compute credit" in html
-    assert "Traffic within normal use" in html
+    assert "32 GB Cool storage included" in html
+    assert "$10 compute credit per billing cycle (Coming soon)" in html
+    assert "internet egress per billing cycle" in html
     # NO Japanese price data leaks into the English default
     for ja in ("クラウド", "月額 1,490円", "通常利用の範囲の通信", "円相当"):
         assert ja not in html, f"Japanese {ja!r} leaked into the English default landing"
@@ -574,13 +574,13 @@ def test_landing_pricing_renders_fully_japanese_when_selected():
     # JA renders the plan copy Japanese, but prices stay USD (operator:
     # "always use USD for clarity" — the yen reference lives on /tokushoho/).
     assert '<html lang="ja"' in html
-    assert "クラウド" in html and "オンプレ" in html
+    assert "クラウド" in html and "セルフホスト" in html
     assert "$19/mo" in html and "$39/mo" in html
     assert "学術" in html and "非学術" in html
     assert "30日間の無料トライアル" in html
-    assert "32 GB ストレージ / 月 (Standard speed)" in html
-    assert "$10 の計算クレジット" in html
-    assert "通常利用の範囲の通信" in html
+    assert "Cool ストレージ 32 GB 込み" in html
+    assert "計算クレジット $10 / 請求サイクル（近日提供）" in html
+    assert "インターネットへの送信" in html
     # NO Japanese yen price (the SSoT yen values) leaks onto the USD card
     for jp in ("月額 1,490円", "円相当の計算クレジット"):
         assert jp not in html, f"JPY {jp!r} leaked onto the USD landing"

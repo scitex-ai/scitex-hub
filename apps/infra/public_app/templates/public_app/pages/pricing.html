@@ -3,58 +3,47 @@
 {% load static landing_i18n %}
 {% load i18n %}
 
-{% block title %}
-    Pricing -
-    SciTeX
-{% endblock %}
+{% block title %}{% trans "Pricing - SciTeX" %}{% endblock %}
 {% block meta_description %}
-    SciTeX pricing - subscription and on-premise plans, rendered from the
-    single source of truth so this page and the 特定商取引法 page always agree.
+    {% trans "SciTeX pricing in USD: SciTeX Cloud Academic and Standard, SciTeX Self-Hosted licenses, professional services, and the storage, network and compute rate card." %}
 {% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/pricing.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/pricing-alpha.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/pricing-rate-card.css' %}" />
 {% endblock %}
 {% block content %}
+    {% comment %}
+    Every plan, price, included resource and rate on this page renders from
+    data/pricing.json (SciTeX Services SSOT — Provisional v1.0, USD) through
+    pricing_pages.pricing_page_context(), the same builder /services/ uses.
+    test_pricing_ssot.py fails on a literal amount in this file.
+    English is the msgid; Japanese is in locale/ja/LC_MESSAGES/django.po.
+    {% endcomment %}
     <div class="container py-4">
-        <!-- Hero Section -->
         <header class="minimal-hero">
-            <h1 class="minimal-hero-title">{% trans "料金" %} / Pricing</h1>
-            <p class="minimal-hero-sub">{% trans "すべての価格は data/pricing.json（単一の情報源）から表示されます。" %}</p>
+            <h1 class="minimal-hero-title">{% trans "Pricing" %}</h1>
+            <p class="minimal-hero-sub">{% trans "All prices are in USD. Rates are reviewed once a month and stay fixed until the next rate-card update." %}</p>
         </header>
     </div>
 
     <div class="container py-4">
-        <!-- Subscription state (announced but billing not yet open). This block
-             stays truthful via pricing.json _subscription_status.state; it is the
-             same fact the 特商法 page and BILLING_PLANS (empty) carry. -->
-        <div class="pricing-alpha-notice">
-            <i class="fas fa-flask"></i>
-            <div>
-                <strong>{% trans "サブスクリプション" %}</strong>
-                <p>
-                    {% trans "料金は公開済みです。カードによる課金は準備中（Stripe の法人審査を経て開始）。「有料プランは準備中です」は /services/ と /tokushoho/ とで同じ状態を示します。" %}
-                </p>
-            </div>
-        </div>
-
         {% if billing_plans and user.is_staff %}
             <!-- Config-driven paid plans (SCITEX_HUB_BILLING_PLANS). STAFF-ONLY
-                 while billing is in testing (operator directive 2026-07-08);
-                 prices are tax-inclusive 税込 per 総額表示義務. -->
+                 while billing is in testing (operator directive 2026-07-08). -->
             <div class="pricing-alpha-notice pricing-paid-plans">
                 <i class="fas fa-credit-card"></i>
                 <div>
-                    <strong>{% trans "有料プラン (税込) — operator testing" %}</strong>
+                    <strong>{% trans "Paid plans (tax included) — operator testing" %}</strong>
                     <ul class="pricing-paid-plans-list">
                         {% for plan in billing_plans %}
                             <li>
-                                {{ plan.name }}: ¥{{ plan.price_tax_included }}{% trans "(税込)" %}
+                                {{ plan.name }}: ¥{{ plan.price_tax_included }}{% trans "(tax included)" %}
                                 {% if plan.interval == "month" %}
-                                    {% trans "/ 月" %}
+                                    {% trans "/ month" %}
                                 {% elif plan.interval == "year" %}
-                                    {% trans "/ 年" %}
+                                    {% trans "/ year" %}
                                 {% endif %}
                                 {% if stripe_configured %}
                                     <form method="post"
@@ -73,52 +62,43 @@
                 </div>
             </div>
         {% elif not billing_plans %}
-            <!-- Honest empty state: billing not open yet. -->
+            <!-- Honest state (pricing.json _subscription_status): prices are
+                 published, card billing is not open yet. /tokushoho/ says the same. -->
             <div class="pricing-alpha-notice pricing-paid-plans-pending">
-                <i class="fas fa-yen-sign"></i>
+                <i class="fas fa-flask"></i>
                 <div>
-                    <strong>{% trans "有料プランは準備中です" %}</strong>
+                    <strong>{% trans "Online card payment is in preparation" %}</strong>
                     <p>
-                        {% trans "提供開始時に税込 (総額) 価格をこのページに掲載します。" %}
-                        Paid plans are in preparation; tax-inclusive prices will be listed here.
-                        <a href="{% url 'public_app:contact' %}">{% trans "お問い合わせ" %}</a> /
-                        <a href="{% url 'public_app:tokushoho' %}">{% trans "特定商取引法に基づく表記" %}</a>
+                        {% trans "Prices are published. Card payment opens after Stripe's corporate review; until then, please contact us to start a plan or request a quote." %}
+                        <a href="{% url 'public_app:contact' %}">{% trans "Contact us" %}</a> /
+                        <a href="{% url 'public_app:tokushoho' %}">{% trans "Specified Commercial Transactions Act disclosure" %}</a>
                     </p>
                 </div>
             </div>
         {% endif %}
 
-        <!-- ============================================================ -->
-        <!-- Plan tiers — rendered from data/pricing.json `tiers`        -->
-        <!-- (the same source /services/ reads). The five retired plans  -->
-        <!-- (Visitor/Registered/Pro/Team/Lab/Enterprise) that this page -->
-        <!-- hard-coded are gone: pricing.json removed them 2026-08-28/  -->
-        <!-- 09-02 and this template must not keep its own copy.        -->
-        <!-- ============================================================ -->
+        <!-- Plans: SciTeX Cloud / SciTeX Self-Hosted / Professional services -->
         <section class="pricing-tiers">
             <div class="pricing-cards-wrapper">
                 {% for tier in tiers %}
-                <article class="pricing-card pricing-tier-card{% if tier.id == 'onprem' %} pricing-tier-card-featured{% endif %}">
+                <article class="pricing-card pricing-tier-card{% if tier.id == 'cloud' %} pricing-tier-card-featured{% endif %}">
                     <h3 class="plan-name">{{ tier.name|translate_dynamic }}<span class="plan-sub">{{ tier.audience|translate_dynamic }}</span></h3>
                     <dl class="pricing-tier-prices">
-                        {% if tier.quote_only %}
-                            <dt>{% trans "料金" %}</dt><dd class="plan-price">{{ free_price }}</dd>
-                        {% elif not tier.rows %}
-                            <dt>{% trans "料金" %}</dt><dd class="plan-price">{% trans "準備中 — 確定後に掲載します。" %}</dd>
+                        {% if not tier.rows %}
+                            <dt>{% trans "Rate" %}</dt><dd class="plan-price">{% trans "In preparation — we'll publish it once confirmed." %}</dd>
                         {% else %}
                             {% for row in tier.rows %}
                                 <dt>{{ row.label|translate_dynamic }}</dt>
-                                <dd class="plan-price">{{ row.price }}{% if row.price_note %}<span class="plan-sub">{{ row.price_note }}</span>{% endif %}</dd>
+                                <dd class="plan-price">{{ row.price }}{% if row.description %}<span class="plan-sub">{{ row.description|translate_dynamic }}</span>{% endif %}</dd>
                             {% endfor %}
                         {% endif %}
                     </dl>
                     <p class="plan-description">{{ tier.description|translate_dynamic }}</p>
-                    {% for row in tier.rows %}{% if row.description %}<p class="plan-note">{{ row.label|translate_dynamic }}: {{ row.description|translate_dynamic }}</p>{% endif %}{% if row.included %}<p class="plan-note">{{ row.label|translate_dynamic }}: {{ row.included|join:"、" }}</p>{% endif %}{% endfor %}
                     <div class="pricing-cta">
-                        {% if tier.quote_only %}
-                            <a href="{% url 'public_app:services' %}#inquiry" class="btn btn-outline-primary btn-block">{% trans "問い合わせ" %}</a>
+                        {% if tier.id == 'cloud' %}
+                            <a href="{% url 'auth_app:signup' %}" class="btn btn-outline-primary btn-block">{% trans "Sign up free" %}</a>
                         {% else %}
-                            <a href="{% url 'public_app:services' %}#inquiry" class="btn btn-outline-primary btn-block">{% trans "問い合わせ" %}</a>
+                            <a href="{% url 'public_app:services' %}#inquiry" class="btn btn-outline-primary btn-block">{% trans "Inquire here" %}</a>
                         {% endif %}
                     </div>
                 </article>
@@ -127,33 +107,8 @@
         </section>
     </div>
 
-    <!-- ============================================================ -->
-    <!-- Price table — content | price, from published_price_groups   -->
-    <!-- (the same list /services/ and /tokushoho/ render). No amount -->
-    <!-- is typed here; the SSoT guard fails on a literal.            -->
-    <!-- ============================================================ -->
     <div class="container py-4">
-        <h2 class="pricing-section-title">{% trans "料金の目安" %}</h2>
-        <div class="table-responsive">
-            <table class="comparison-table comparison-table-compact pricing-content-table">
-                <thead>
-                    <tr>
-                        <th scope="col">{% trans "内容" %}</th>
-                        <th scope="col">{% trans "料金の目安" %}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for group in published_price_groups %}
-                        {% for row in group.rows %}
-                        <tr>
-                            <td>{{ row.label|translate_dynamic }}{% if row.included %}<br><span class="plan-sub">{{ row.included|join:"、" }}</span>{% endif %}</td>
-                            <td class="plan-price">{{ row.price }}{% if row.price_note %}<br><span class="plan-sub">{{ row.price_note }}</span>{% endif %}</td>
-                        </tr>
-                        {% endfor %}
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        {% include "public_app/pricing_partials/cloud_included.html" %}
         <div class="pricing-notes">
             {% if tax_note %}<p class="pricing-note">{{ tax_note|translate_dynamic }}</p>{% endif %}
             {% for note in pricing_notes %}
@@ -162,20 +117,13 @@
         </div>
     </div>
 
-    <!-- Self-host / commercial services — stated concisely (compass 25.1).
-         These are service FACTS (free / paid / contact), not price literals,
-         so the SSoT guard does not fire; the actual amounts remain in the
-         table above from pricing.json. -->
     <div class="container py-4">
-        <h2 class="pricing-section-title">{% trans "セルフホスト / サービス" %}</h2>
-        <ul class="pricing-selfhost-list">
-            <li><strong>{% trans "セルフホスト / オンプレミス" %}</strong>：{% trans "ソフトウェアは AGPL-3.0 で無料。" %}</li>
-            <li><strong>{% trans "導入支援 (Installation / Setup / Migration)" %}</strong>：{% trans "有料" %}</li>
-            <li><strong>{% trans "保守・メンテナンス・定期サポート" %}</strong>：{% trans "有料" %}</li>
-            <li><strong>{% trans "デュアルライセンス" %}</strong>：{% trans "お問い合わせ" %}</li>
-            <li><strong>{% trans "カスタムアプリ開発 (SciTeX App 受託開発)" %}</strong>：{% trans "お問い合わせ" %}</li>
-        </ul>
-        <p class="plan-note">{% trans "金額は上の料金表（pricing.json から表示）を参照してください。" %}</p>
+        <h2 class="pricing-section-title">{% trans "Rate card" %}</h2>
+        {% include "public_app/pricing_partials/rate_card.html" %}
+    </div>
+
+    <div class="container py-4">
+        {% include "public_app/pricing_partials/policies.html" %}
     </div>
 
     <!-- FAQ Section -->
@@ -184,38 +132,26 @@
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 <div class="faq-item">
-                    <h5>
-                        <i class="fas fa-question-circle"></i> {% trans "Alpha 中に自分のデータはどう扱われますか？" %}
-                    </h5>
+                    <h5><i class="fas fa-question-circle"></i> {% trans "How is my data handled during beta?" %}</h5>
+                    <p>{% trans "There is no contractual uptime or durability SLA during beta, so please back up important work. For full control, self-host SciTeX or run it locally with" %} <code>pip install scitex</code>.</p>
+                </div>
+                <div class="faq-item">
+                    <h5><i class="fas fa-question-circle"></i> {% trans "Can I self-host SciTeX?" %}</h5>
+                    <p>{% trans "Yes. SciTeX Self-Hosted is free under AGPL v3.0, and universities and public research institutions can use the free Academic License. Proprietary use needs the Commercial License." %}</p>
+                </div>
+                <div class="faq-item">
+                    <h5><i class="fas fa-question-circle"></i> {% trans "When does billing start?" %}</h5>
                     <p>
-                        {% trans "保証はありません。重要な作業はバックアップしてください。本番ではセルフホストするか、ローカルで " %}<code>pip install scitex</code>{% trans " をお使いください。" %}
+                        {% trans "SciTeX Cloud plans start with a 30-day free trial, and creating an account does not start a paid subscription. Online card payment opens after Stripe's corporate review (see the" %}
+                        <a href="{% url 'public_app:tokushoho' %}">{% trans "Specified Commercial Transactions Act disclosure" %}</a>).
                     </p>
                 </div>
                 <div class="faq-item">
-                    <h5>
-                        <i class="fas fa-question-circle"></i> {% trans "SciTeX はセルフホストできますか？" %}
-                    </h5>
+                    <h5><i class="fas fa-question-circle"></i> {% trans "How can I support SciTeX today?" %}</h5>
                     <p>
-                        {% trans "はい。AGPL-3.0 ライセンスのもと 100% オープンソースです。ご自身のインフラで無料でセルフホストできます。" %}
-                    </p>
-                </div>
-                <div class="faq-item">
-                    <h5>
-                        <i class="fas fa-question-circle"></i> {% trans "課金はいつ始まりますか？" %}
-                    </h5>
-                    <p>
-                        {% trans "サブスクリプションは登録から 30 日間無料、初回の月額課金は 31 日目から、いつでも解約できます。カード決済は Stripe の法人審査を経て開始します（" %}<a href="{% url 'public_app:tokushoho' %}">{% trans "特定商取引法に基づく表記" %}</a>{% trans "）。" %}
-                    </p>
-                </div>
-                <div class="faq-item">
-                    <h5>
-                        <i class="fas fa-question-circle"></i> {% trans "今はどうやって SciTeX を応援できますか？" %}
-                    </h5>
-                    <p>
-                        {% trans "次のいずれかで SciTeX の開発を応援できます：" %}
-                        <a href="https://github.com/sponsors/ywatanabe1989">GitHub Sponsors</a> {% trans "または" %}
-                        <a href="https://buymeacoffee.com/ywatanabe">Buy Me a Coffee</a>{% trans "。" %}
-                        <a href="{% url 'public_app:donate' %}">{% trans "寄付ページ" %}</a>{% trans "で詳細をご覧ください。" %}
+                        <a href="https://github.com/sponsors/ywatanabe1989">GitHub Sponsors</a> /
+                        <a href="https://buymeacoffee.com/ywatanabe">Buy Me a Coffee</a> —
+                        <a href="{% url 'public_app:donate' %}">{% trans "Donate" %}</a>
                     </p>
                 </div>
             </div>
@@ -225,16 +161,11 @@
     <!-- CTA Section -->
     <section class="pricing-cta-section">
         <div class="container text-center">
-            <h2>{% trans "SciTeX を試す" %}</h2>
-            <p class="lead">{% trans "作業を続けるためにアカウントを作成" %}</p>
+            <h2>{% trans "Try SciTeX" %}</h2>
+            <p class="lead">{% trans "Create an account to keep your work" %}</p>
             <div class="mt-4">
-                <a href="{% url 'writer_app:index' %}" class="btn btn-outline-light btn-lg mx-2">{% trans "Visitor として試す" %}</a>
-                <a href="{% url 'auth_app:signup' %}" class="btn btn-light btn-lg mx-2">{% trans "無料で登録" %}</a>
-            </div>
-            <div class="mt-3">
-                <a href="{% url 'public_app:donate' %}" class="btn btn-link text-light">
-                    <i class="fas fa-heart"></i> {% trans "オープンサイエンスを支援 — 寄付" %}
-                </a>
+                <a href="{% url 'writer_app:index' %}" class="btn btn-outline-light btn-lg mx-2">{% trans "Try as a visitor" %}</a>
+                <a href="{% url 'auth_app:signup' %}" class="btn btn-light btn-lg mx-2">{% trans "Sign up free" %}</a>
             </div>
         </div>
     </section>
