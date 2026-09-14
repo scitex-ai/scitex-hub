@@ -36,6 +36,10 @@ ENDPOINT_LIMITS = {
     # depth per dev's 53b830f4 spec). Tight cap because every miss
     # costs the attacker a real bcrypt round on the server.
     "account_token_mint": {"requests": 5, "window": 60},
+    # GET /api/me/ ("who is this credential"). Cheap, read-only, but it is
+    # also a key-validity oracle, so it gets a bounded bucket rather than
+    # the tier default.
+    "api_me": {"requests": 120, "window": 60},
 }
 
 

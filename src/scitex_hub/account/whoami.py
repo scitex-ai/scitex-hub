@@ -14,7 +14,7 @@ from ._auth import resolve_bearer, resolve_server
 
 
 def whoami(*, server: str | None = None, request_fn=None) -> dict:
-    """Return the username + email the cached bearer authenticates as.
+    """Return the identity the cached bearer authenticates as.
 
     Args:
         server: Override server URL. Defaults to
@@ -25,8 +25,9 @@ def whoami(*, server: str | None = None, request_fn=None) -> dict:
             the real transport produces.
 
     Returns:
-        Dict with at least ``username`` and ``email`` (server may add
-        more fields like ``id`` or ``is_staff``).
+        Dict with exactly ``id`` (opaque UUID), ``username``,
+        ``is_staff``, ``is_superuser``, ``plan``, ``key_id`` and
+        ``expires_at`` (no email).
 
     Raises:
         RuntimeError: No bearer token resolved (not logged in), token
@@ -35,7 +36,7 @@ def whoami(*, server: str | None = None, request_fn=None) -> dict:
     Example:
         >>> from scitex_hub.account.whoami import whoami
         >>> whoami()
-        {'username': 'ywatanabe', 'email': 'ywatanabe@scitex.ai'}
+        {'id': '6f1c…', 'username': 'ywatanabe', 'is_staff': True, ...}
     """
     bearer = resolve_bearer()
     server_url = resolve_server(server)
