@@ -40,15 +40,16 @@ LANDING_URL = "/landing/"
 
 EXPECTED_PRIMARY_TAGLINE = "Open-source Ecosystem for Scientific Research"
 
-# The developer footer links, in the order they render ("Docs" added by the
-# operator 2026-09-12 when the hero Docs button was moved to the footer).
+# The developer footer links an ANONYMOUS visitor sees, in the order they
+# render ("Docs" added by the operator 2026-09-12 when the hero Docs button was
+# moved to the footer). "Web API Tests" and "Design System" point at /dev/,
+# which is admin-only on prod, so they render for staff only (site audit
+# 2026-09-14); see tests/apps/dev_app/test_dev_app_admin_only.py.
 EXPECTED_DEVELOPER_LINKS = (
     "Docs",
     "Web API Docs",
-    "Web API Tests",
     "Releases",
     "Bug Reports",
-    "Design System",
     "Server Status",
 )
 
@@ -105,9 +106,8 @@ class LandingTaglineTest(TestCase):
         url = LANDING_URL
         # Act
         html = self.client.get(url).content.decode()
-        # Assert
+        # Assert (the absence half is test_secondary_tagline_is_dropped)
         assert EXPECTED_PRIMARY_TAGLINE in html
-        assert "hero-tagline-secondary" not in html
 
     def test_rendered_page_does_not_carry_the_scitentific_typo(self):
         """Non-vacuous: test_secondary_tagline_is_rendered proves the line is
