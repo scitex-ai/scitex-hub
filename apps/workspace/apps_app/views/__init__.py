@@ -1,6 +1,7 @@
 """Apps views package."""
 
 from .api import (
+    api_dock,
     api_fork,
     api_install,
     api_list_public,
@@ -39,6 +40,7 @@ __all__ = [
     "api_unstar",
     "api_review",
     "api_reorder",
+    "api_dock",
     "api_submit_for_review",
     "api_review_submission",
     "api_update_config",

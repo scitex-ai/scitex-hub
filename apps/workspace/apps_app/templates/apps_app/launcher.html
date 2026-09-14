@@ -84,6 +84,15 @@
         {# one highlighted). Rendered empty and hidden so a no-JS launcher shows   #}
         {# a plain grid and nothing pretending to page.                            #}
         <div class="launcher-dots" id="launcher-dots" role="tablist" aria-label="{% trans 'App pages' %}" hidden></div>
+        {# Tiles for docked apps: dragging one out of the dock puts its tile back on the grid. #}
+        <template id="launcher-dock-tiles">
+            {% for group in launcher_groups %}
+                <div class="launcher-group" data-group="{{ group.key }}" role="group" aria-label="{% trans group.label %}"></div>
+            {% endfor %}
+            {% for tile in dock_tiles %}
+                {% include "apps_app/partials/launcher_tile.html" %}
+            {% endfor %}
+        </template>
     </div>
     {# The dock is no longer part of this page: global_base.html renders it on #}
     {# EVERY page (global_base_partials/site_dock.html).                        #}

@@ -3,27 +3,24 @@
 """The site-wide dock: which buttons it shows, where they go, which is active.
 
 Operator, 2026-09-14 (iPhone home-screen screenshots as the reference): ONE dock
-on every page, phone and desktop alike, icons only. In order: Home, My Projects,
-Chat, App Store. Back and Forward sit at the far ends and are drawn by the
-template.
+on every page, phone and desktop alike, icons only. Back and Forward sit at the
+far ends and are drawn by the template.
+
+Which apps sit between the arrows is the user's own choice, stored server-side
+(apps_app/services/launcher_dock.py): Home, My Projects, Chat and App Store
+until they drag something else in. An app in the dock is not on the Home grid.
 
 Every icon and URL is read from the thing the button opens, never retyped here,
 so a dock button can never disagree with the grid tile for the same app:
-  * My Projects and App Store come from their workspace manifests (registry);
-  * Chat comes from its launcher link manifest (apps_app/launcher_links/chat.json);
+  * workspace apps come from their manifests (registry);
+  * Chat and Settings come from their launcher link manifests;
+  * store apps outside the registry come from their catalogue row;
   * Home is the launcher grid itself, which has no tile and so no manifest, and
     it is the one constant here: fa-house, the operator's Home icon.
 
-Each button is drawn as the SAME coloured app icon as its Home tile (operator,
-2026-09-14): the icon's ``category`` picks the gradient from
-shared/css/components/app-icon.css, read from the same manifest as the glyph.
-Home has no tile, so it gets its own ``home`` swatch (the hub accent).
-
-The dock used to live inside the launcher template only. On any other page it
-disappeared, and its "Files" button went to /files/ rather than My Projects
-(operator report, 2026-09-14). Rendering it from the base template, and from
-SiteDockMiddleware on leaf pages that do not use the base template, is what
-keeps it on every page.
+Each button draws the SAME coloured app icon as its Home tile: the ``category``
+picks the gradient from shared/css/components/app-icon.css. Home has no tile,
+so it gets its own ``home`` swatch (the hub accent).
 """
 
 from __future__ import annotations
@@ -41,6 +38,7 @@ DOCK_MARKER = "data-site-dock"
 
 @dataclass(frozen=True)
 class DockItem:
+    #: The app's launcher tile name, or ``launcher`` for the Home button.
     key: str
     label: str
     icon: str
@@ -50,61 +48,66 @@ class DockItem:
     category: str = "other"
 
 
-def _is_active(key: str, path: str) -> bool:
-    if key == "home":
+def _is_active(key: str, url: str, path: str) -> bool:
+    from apps.workspace.apps_app.services.launcher_dock import HOME_BUTTON
+
+    if key == HOME_BUTTON:
         return path in ("/", HOME_URL)
-    prefixes = {
-        "projects": ("/apps/home/",),
-        "chat": ("/chat/",),
-        "store": ("/apps/store/",),
-    }
-    return path.startswith(prefixes.get(key, ()))
+    return bool(url) and url != HOME_URL and path.startswith(url)
 
 
-def dock_items(path: str) -> list[DockItem]:
-    """The dock's app buttons, in the operator's order, for a request path."""
+def _dock_item(name: str, path: str) -> DockItem | None:
+    """The dock button for one app name, or None when no such app exists."""
     from apps.infra.workspace_app.registry import get_module
+    from apps.workspace.apps_app.models import AppsModule
+    from apps.workspace.apps_app.services.launcher_dock import HOME_BUTTON
     from apps.workspace.apps_app.services.launcher_links import get_launcher_link
+    from apps.workspace.apps_app.services.manifest_display import (
+        prettify_module_name,
+    )
 
-    projects = get_module("home")
-    store = get_module("store")
-    chat = get_launcher_link("chat")
+    def catalogue_row():
+        return AppsModule.objects.filter(module_name=name).first()
 
-    items = [
-        ("home", "Home", HOME_ICON, HOME_URL, HOME_CATEGORY),
-        (
-            "projects",
-            "My Projects",
-            projects.icon_fa if projects else "fas fa-folder",
-            projects.get_url() if projects else "/apps/home/",
-            (projects.category if projects else "") or "other",
-        ),
-        (
-            "chat",
-            "Chat",
-            chat.icon if chat else "fas fa-comment",
-            chat.url if chat else "/chat/",
-            (chat.category if chat else "") or "other",
-        ),
-        (
-            "store",
-            "App Store",
-            store.icon_fa if store else "fas fa-table-cells-large",
-            store.get_url() if store else "/apps/store/",
-            (store.category if store else "") or "other",
-        ),
-    ]
-    return [
-        DockItem(
-            key=key,
-            label=label,
-            icon=icon,
-            url=url,
-            active=_is_active(key, path),
-            category=category,
+    if name == HOME_BUTTON:
+        fields = ("Home", HOME_ICON, HOME_URL, HOME_CATEGORY)
+    elif module := get_module(name):
+        # Same precedence as the grid tile: manifest category, then the catalogue row.
+        row = None if module.category else catalogue_row()
+        fields = (
+            module.label,
+            module.icon_fa or "fas fa-puzzle-piece",
+            module.get_url(),
+            module.category or (row.category if row else ""),
         )
-        for key, label, icon, url, category in items
-    ]
+    elif link := get_launcher_link(name):
+        fields = (link.label, link.icon, link.url, link.category)
+    elif row := catalogue_row():
+        fields = (
+            row.label or prettify_module_name(name),
+            row.icon or "fas fa-puzzle-piece",
+            f"/apps/store/{name}/",
+            row.category,
+        )
+    else:
+        return None
+    label, icon, url, category = fields
+    return DockItem(
+        key=name,
+        label=label,
+        icon=icon,
+        url=url,
+        active=_is_active(name, url, path),
+        category=category or "other",
+    )
+
+
+def dock_items(path: str, user=None) -> list[DockItem]:
+    """The dock's app buttons, in the user's order, for a request path."""
+    from apps.workspace.apps_app.services.launcher_dock import get_dock_apps
+
+    items = (_dock_item(name, path) for name in get_dock_apps(user))
+    return [item for item in items if item is not None]
 
 
 def should_render_dock(request) -> bool:

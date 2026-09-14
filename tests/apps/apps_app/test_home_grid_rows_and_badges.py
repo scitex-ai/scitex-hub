@@ -15,6 +15,7 @@ Split from test_home_dock_redesign.py (line budget). Pins:
 Real client, real ORM, real templates; no mocks.
 """
 
+import json
 import re
 from html.parser import HTMLParser
 from pathlib import Path
@@ -119,6 +120,13 @@ class HomePagesTest(TestCase):
 
     def setUp(self):
         self.client.force_login(self.user)
+        # These tests pin the layout of a grid holding every app, so only Home stays docked.
+        self.client.get("/apps/")
+        self.client.post(
+            "/apps/store/api/dock/",
+            data=json.dumps({"dock": ["launcher"]}),
+            content_type="application/json",
+        )
 
     def test_home_renders_page_dots_with_desktop_arrows(self):
         # Arrange

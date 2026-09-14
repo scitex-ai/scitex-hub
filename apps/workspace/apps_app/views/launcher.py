@@ -22,6 +22,7 @@ from django.utils import timezone
 from apps.infra.workspace_app.registry import get_all_modules
 
 from ..models import AppsModule, ModuleInstallation
+from ..services.launcher_dock import get_dock_apps
 from ..services.launcher_links import get_launcher_links, get_link_tile_orders
 from ..services.manifest_display import prettify_module_name
 from .helpers import (
@@ -30,7 +31,7 @@ from .helpers import (
 )
 from .launcher_order import DEFAULT_LAUNCHER_ORDER  # noqa: F401  (re-export)
 from .launcher_order import default_order_value as _default_order_value
-from .launcher_order import group_cells, group_of, group_rank
+from .launcher_order import LAUNCHER_GROUPS, group_cells, group_of, group_rank
 
 # Sidebar pin state lives in launcher_pins.py; re-exported so existing imports
 # (views/__init__.py, the workspace context processor, tests) keep working.
@@ -345,11 +346,16 @@ def launcher_context(request) -> dict:
     """Template context for the launcher home page."""
     ensure_builtin_modules()
     tiles = _build_tiles(request)
+    dock_apps = set(get_dock_apps(request.user))
+    grid_tiles = [tile for tile in tiles if tile["name"] not in dock_apps]
     return {
+        # Every app the user can open, wherever it sits (grid or dock).
         "tiles": tiles,
-        # Groups of 4-column cells (launcher_order.group_cells), each rendered
-        # as its own role="group" band.
-        "groups": group_cells(tiles),
+        # The grid: 4-column group bands holding only the apps NOT in the dock.
+        "groups": group_cells(grid_tiles),
+        # Kept in a <template> so dragging an app out of the dock can restore its tile.
+        "dock_tiles": [tile for tile in tiles if tile["name"] in dock_apps],
+        "launcher_groups": LAUNCHER_GROUPS,
         "installed_count": sum(1 for t in tiles if t["is_installed"]),
         "max_pins": MAX_PINNED_MODULES,
         # Guest mode: visitors see tiles + a prominent Sign in / Sign up CTA.
