@@ -4797,3 +4797,370 @@ msgstr "リポジトリを削除できませんでした"
 
 msgid "Failed to restore project"
 msgstr "プロジェクトを復元できませんでした"
+
+# First-run surfaces: sign-in, sign-up, /new/, /accounts/profile/
+msgid "Sign in to your SciTeX account to access your research tools, documents, and settings."
+msgstr "SciTeX アカウントにログインして、研究ツール、文書、設定にアクセスします。"
+
+msgid "Username or Email"
+msgstr "ユーザー名またはメールアドレス"
+
+msgid "Password"
+msgstr "パスワード"
+
+msgid "Remember me"
+msgstr "ログイン状態を保持する"
+
+msgid "Forgot password?"
+msgstr "パスワードをお忘れですか？"
+
+msgid "or continue with"
+msgstr "または次の方法で続行"
+
+msgid "Don't have an account?"
+msgstr "アカウントをお持ちでない方は"
+
+msgid "Create an Account"
+msgstr "アカウントの作成"
+
+msgid "Join SciTeX, the open-source platform for scientific research. Create your account and start a 30-day SciTeX Cloud trial for managing, analyzing, and publishing your research."
+msgstr "オープンソースの科学研究プラットフォーム SciTeX に参加しましょう。アカウントを作成し、研究の管理・解析・公開に使える SciTeX Cloud の 30 日間トライアルを始められます。"
+
+msgid "Form Errors"
+msgstr "入力内容にエラーがあります"
+
+msgid "Error"
+msgstr "エラー"
+
+msgid "Something went wrong. Please try again."
+msgstr "問題が発生しました。もう一度お試しください。"
+
+msgid "Your profile URL will be:"
+msgstr "プロフィールの URL:"
+
+msgid "Confirm Password"
+msgstr "パスワード（確認）"
+
+msgid "Choose a username (e.g., john-doe-42)"
+msgstr "ユーザー名を入力（例: john-doe-42）"
+
+msgid "Create a strong password"
+msgstr "推測されにくいパスワードを入力"
+
+msgid "Confirm your password"
+msgstr "パスワードをもう一度入力"
+
+msgid "I agree to the %(terms)s and %(privacy)s"
+msgstr "%(terms)sと%(privacy)sに同意します"
+
+msgid "Create Account"
+msgstr "アカウントを作成"
+
+msgid "or sign up with"
+msgstr "または次の方法で登録"
+
+msgid "Already have an account?"
+msgstr "すでにアカウントをお持ちの方は"
+
+msgid "Create New Project"
+msgstr "新規プロジェクトの作成"
+
+msgid "Create new project"
+msgstr "新しいプロジェクトを作成"
+
+msgid "Project type"
+msgstr "プロジェクトの種類"
+
+msgid "SciTeX Minimal"
+msgstr "SciTeX Minimal（最小構成）"
+
+msgid "SciTeX Full"
+msgstr "SciTeX Full（フル構成）"
+
+msgid "SciTeX App"
+msgstr "SciTeX アプリ"
+
+msgid "Import from GitHub/GitLab"
+msgstr "GitHub/GitLab からインポート"
+
+msgid "Remote (HPC / Server)"
+msgstr "リモート（HPC / サーバー）"
+
+msgid "Blank Project"
+msgstr "空のプロジェクト"
+
+msgid "WIP"
+msgstr "開発中"
+
+msgid "Repository Name"
+msgstr "リポジトリ名"
+
+msgid "Choose a clear name (lowercase, hyphens for spaces)."
+msgstr "わかりやすい名前を付けてください（小文字、空白の代わりにハイフン）。"
+
+msgid "Repository URL"
+msgstr "リポジトリ URL"
+
+msgid "HTTPS or SSH:"
+msgstr "HTTPS または SSH:"
+
+msgid "or"
+msgstr "または"
+
+msgid "Description"
+msgstr "説明"
+
+msgid "(optional)"
+msgstr "（任意）"
+
+msgid "A brief description of your project..."
+msgstr "プロジェクトの簡単な説明…"
+
+msgid "Minimal project with writer + scholar workspaces"
+msgstr "Writer と Scholar のワークスペースを備えた最小構成のプロジェクト"
+
+msgid "Full scientific workflow with data analysis, experiments, and paper writing"
+msgstr "データ解析・実験・論文執筆までを含む科学研究のフルワークフロー"
+
+msgid "Pip-installable Python package for building reusable SciTeX apps"
+msgstr "再利用できる SciTeX アプリを作るための pip でインストール可能な Python パッケージ"
+
+msgid "Pip-installable Python package for building reusable SciTeX workspace modules"
+msgstr "再利用できる SciTeX ワークスペースモジュールを作るための pip でインストール可能な Python パッケージ"
+
+msgid "Optional Settings"
+msgstr "オプション設定"
+
+msgid "Auto-configured by App Maker"
+msgstr "App Maker が自動で設定します"
+
+msgid "Icon"
+msgstr "アイコン"
+
+msgid "Filter icons..."
+msgstr "アイコンを絞り込み…"
+
+msgid "Click an icon above, or type a Font Awesome class."
+msgstr "上のアイコンをクリックするか、Font Awesome のクラス名を入力してください。"
+
+msgid "Browse icons"
+msgstr "アイコン一覧"
+
+msgid "Subtitle"
+msgstr "サブタイトル"
+
+msgid "A short tagline for your app"
+msgstr "アプリの短いキャッチコピー"
+
+msgid "Summary"
+msgstr "概要"
+
+msgid "(1 line)"
+msgstr "（1 行）"
+
+msgid "What does this app do in one sentence?"
+msgstr "このアプリでできることを一文で"
+
+msgid "AGPL-3.0 (default)"
+msgstr "AGPL-3.0（既定）"
+
+msgid "Capabilities / Skills"
+msgstr "機能 / スキル"
+
+msgid "(for agents and humans)"
+msgstr "（エージェントと人の両方向け）"
+
+msgid "Comma-separated list of what this app can do."
+msgstr "このアプリでできることをカンマ区切りで入力します。"
+
+msgid "Supported Filetypes"
+msgstr "対応ファイル形式"
+
+msgid "Comma-separated extensions. If set, the file tree filters to these types."
+msgstr "拡張子をカンマ区切りで入力します。指定すると、ファイルツリーはこれらの形式だけを表示します。"
+
+msgid "Mark as WIP"
+msgstr "開発中として表示"
+
+msgid "Shows a WIP badge in the Apps browser. Uncheck when ready for production."
+msgstr "アプリ一覧に「開発中」バッジを表示します。公開できる状態になったらチェックを外してください。"
+
+msgid "Create from JSON / YAML"
+msgstr "JSON / YAML から作成"
+
+msgid "(for agents)"
+msgstr "（エージェント向け）"
+
+msgid "Parse & Fill"
+msgstr "解析して入力"
+
+msgid "Paste a JSON or YAML manifest and click Parse & Fill to fill in the fields above."
+msgstr "JSON または YAML のマニフェストを貼り付けて「解析して入力」を押すと、上の項目に入力されます。"
+
+msgid "Paste JSON or YAML first"
+msgstr "先に JSON または YAML を貼り付けてください"
+
+msgid "Invalid JSON/YAML"
+msgstr "JSON/YAML の形式が正しくありません"
+
+msgid "Fields populated"
+msgstr "項目に入力しました"
+
+msgid "Access Token"
+msgstr "アクセストークン"
+
+msgid "(for private repos)"
+msgstr "（非公開リポジトリ用）"
+
+msgid "Using saved token"
+msgstr "保存済みのトークンを使用"
+
+msgid "Enter token for private repos"
+msgstr "非公開リポジトリ用のトークンを入力"
+
+msgid "Token saved."
+msgstr "トークンは保存済みです。"
+
+msgid "Profile settings"
+msgstr "プロフィール設定"
+
+msgid "Create token:"
+msgstr "トークンを作成:"
+
+msgid "Initialize with SciTeX"
+msgstr "SciTeX で初期化"
+
+msgid "Initialize SciTeX structure"
+msgstr "SciTeX の構成を作成する"
+
+msgid "Add Writer, Scholar, Code, and Viz directories."
+msgstr "Writer・Scholar・Code・Viz のディレクトリを追加します。"
+
+msgid "Remote credential"
+msgstr "リモート認証情報"
+
+msgid "Select a remote system..."
+msgstr "リモートシステムを選択…"
+
+msgid "Remote path"
+msgstr "リモートパス"
+
+msgid "Absolute path on the remote system."
+msgstr "リモートシステム上の絶対パスです。"
+
+msgid "Connection mode"
+msgstr "接続方式"
+
+msgid "on-demand SSH (recommended)"
+msgstr "必要なときだけ SSH で接続（推奨）"
+
+msgid "persistent mount (faster browsing)"
+msgstr "常時マウント（閲覧が高速）"
+
+msgid "Switchable later in project settings."
+msgstr "あとからプロジェクト設定で切り替えられます。"
+
+msgid "Add a remote credential to connect to HPC or servers."
+msgstr "HPC やサーバーに接続するには、リモート認証情報を追加してください。"
+
+msgid "Create project"
+msgstr "プロジェクトを作成"
+
+msgid "Import project"
+msgstr "プロジェクトをインポート"
+
+msgid "Connect remote"
+msgstr "リモートに接続"
+
+msgid "documentation"
+msgstr "ドキュメント"
+
+msgid "My Profile"
+msgstr "マイプロフィール"
+
+msgid "Member since %(date)s"
+msgstr "%(date)s から利用"
+
+msgid "Profile Information"
+msgstr "プロフィール情報"
+
+msgid "Edit Profile"
+msgstr "プロフィールを編集"
+
+msgid "First Name"
+msgstr "名"
+
+msgid "Last Name"
+msgstr "姓"
+
+msgid "Not set"
+msgstr "未設定"
+
+msgid "Academic Title"
+msgstr "肩書き"
+
+msgid "Department"
+msgstr "部署"
+
+msgid "Research Interests"
+msgstr "研究分野"
+
+msgid "Account Status"
+msgstr "アカウントの状態"
+
+msgid "Danger Zone"
+msgstr "取り消せない操作"
+
+msgid "Allocated Resources"
+msgstr "割り当てられたリソース"
+
+msgid "%(count)s local"
+msgstr "ローカル %(count)s"
+
+msgid "%(count)s remote"
+msgstr "リモート %(count)s"
+
+msgid "Storage Used"
+msgstr "使用中のストレージ"
+
+msgid "Local projects only"
+msgstr "ローカルプロジェクトのみ"
+
+msgid "%(count)s workspace"
+msgstr "ワークスペース %(count)s"
+
+msgid "%(count)s Git"
+msgstr "Git %(count)s"
+
+msgid "For remote projects"
+msgstr "リモートプロジェクト用"
+
+msgid "Active Services"
+msgstr "稼働中のサービス"
+
+msgid "TensorBoard, Jupyter, etc."
+msgstr "TensorBoard、Jupyter など"
+
+msgid "Collaborations"
+msgstr "共同作業"
+
+msgid "Projects you collaborate on"
+msgstr "共同作業中のプロジェクト"
+
+msgid "Manage SSH Keys"
+msgstr "SSH キーを管理"
+
+msgid "Privacy Settings"
+msgstr "プライバシー設定"
+
+msgid "Make profile public"
+msgstr "プロフィールを公開する"
+
+msgid "Show email to other users"
+msgstr "他のユーザーにメールアドレスを表示する"
+
+msgid "Allow messages from other users"
+msgstr "他のユーザーからのメッセージを許可する"
+
+msgid "Settings sections"
+msgstr "設定の項目"

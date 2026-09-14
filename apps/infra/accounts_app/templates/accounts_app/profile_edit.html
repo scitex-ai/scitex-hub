@@ -394,7 +394,9 @@
     const suggestionsDiv = document.getElementById("location-suggestions");
     let citiesData = [];
 
-    fetch("/static/data/cities_timezones.json")
+    // The data file lives at static/shared/data/; the old hard-coded
+    // /static/data/ path 404'd on every visit (site audit 2026-09-14).
+    fetch("{% static 'shared/data/cities_timezones.json' %}")
       .then((response) => response.json())
       .then((data) => { citiesData = data; })
       .catch((err) => console.error("Failed to load cities data:", err));

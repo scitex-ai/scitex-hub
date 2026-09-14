@@ -22,7 +22,7 @@ from config import branding
 register = template.Library()
 
 
-def _detail_from_context(context):
+def _detail_from_context(context, path=""):
     """Extract the page-level detail (project name / username), or None.
 
     Precedence:
@@ -49,6 +49,13 @@ def _detail_from_context(context):
     explicit = context.get("page_title_detail")
     if explicit:
         return explicit
+
+    # Account pages, /new/ and the console are not about a project; the
+    # project in their context is only the last one the user opened, and
+    # naming it in the tab mislabelled them ("dotfiles — SciTeX (dev)" on
+    # Settings; site audit 2026-09-14). See branding.NON_PROJECT_PREFIXES.
+    if not branding.is_project_scoped(path):
+        return None
 
     for key in ("current_project", "project"):
         obj = context.get(key)
@@ -79,7 +86,7 @@ def page_title(context):
 
     return branding.page_title(
         app=branding.app_for_path(path),
-        detail=_detail_from_context(context),
+        detail=_detail_from_context(context, path),
         env=settings.SCITEX_ENV,
         mode=settings.SCITEX_APP_MODE,
     )

@@ -1,20 +1,39 @@
 {% extends 'global_base.html' %}
 
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Create New Project - SciTeX Hub{% endblock %}
+{% block title %}{% trans "Create New Project" %} - SciTeX Hub{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'project_app/css/project_app.css' %}" />
     <link rel="stylesheet" href="{% static 'shared/css/common.css' %}" />
     <link rel="stylesheet" href="{% static 'project_app/css/create_landing.css' %}" />
     <link rel="stylesheet" href="{% static 'project_app/css/create_remote.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/create_mobile.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="create-page"
          data-ai-hint="Project creation form with tabbed options: SciTeX Minimal, Full, App, Import, Remote, TRIP, Blank">
         {% include 'project_app/projects/create_partials/create_breadcrumb.html' %}
-        <h1 class="create-title">Create new project</h1>
+        <h1 class="create-title">{% trans "Create new project" %}</h1>
         <div class="create-two-col">
+            {% comment %}
+            PHONES (<=768px): the tab column below kept its 220px desktop width
+            beside the form, leaving the form card 107px wide at 390px (site
+            audit 2026-09-14, D3). On phones the tab list is hidden and this
+            one-line picker drives the same switchTab(); the form takes the
+            full width. create_landing.css shows one or the other.
+            {% endcomment %}
+            <div class="create-type-picker">
+                <label class="form-label" for="create-type-select">{% trans "Project type" %}</label>
+                <select id="create-type-select" class="form-control create-type-select">
+                    <option value="minimal" selected>{% trans "SciTeX Minimal" %} ({% trans "Recommended" %})</option>
+                    <option value="full">{% trans "SciTeX Full" %} ({% trans "WIP" %})</option>
+                    <option value="app">{% trans "SciTeX App" %}</option>
+                    <option value="import">{% trans "Import from GitHub/GitLab" %}</option>
+                    <option value="remote">{% trans "Remote (HPC / Server)" %}</option>
+                    <option value="blank">{% trans "Blank Project" %}</option>
+                </select>
+            </div>
             <!-- Left: Menu -->
             <nav class="create-sidebar" role="tablist">
                 <button type="button"
@@ -22,37 +41,37 @@
                         role="tab"
                         data-tab="minimal"
                         aria-selected="true">
-                    SciTeX Minimal
-                    <span class="badge badge-success create-menu-badge">Recommended</span>
+                    {% trans "SciTeX Minimal" %}
+                    <span class="badge badge-success create-menu-badge">{% trans "Recommended" %}</span>
                 </button>
                 <button type="button"
                         class="create-menu-item"
                         role="tab"
                         data-tab="full"
                         aria-selected="false">
-                    SciTeX Full
-                    <span class="badge badge-wip create-menu-badge">WIP</span>
+                    {% trans "SciTeX Full" %}
+                    <span class="badge badge-wip create-menu-badge">{% trans "WIP" %}</span>
                 </button>
                 <button type="button"
                         class="create-menu-item"
                         role="tab"
                         data-tab="app"
-                        aria-selected="false">SciTeX App</button>
+                        aria-selected="false">{% trans "SciTeX App" %}</button>
                 <button type="button"
                         class="create-menu-item"
                         role="tab"
                         data-tab="import"
-                        aria-selected="false">Import from GitHub/GitLab</button>
+                        aria-selected="false">{% trans "Import from GitHub/GitLab" %}</button>
                 <button type="button"
                         class="create-menu-item"
                         role="tab"
                         data-tab="remote"
-                        aria-selected="false">Remote (HPC / Server)</button>
+                        aria-selected="false">{% trans "Remote (HPC / Server)" %}</button>
                 <button type="button"
                         class="create-menu-item"
                         role="tab"
                         data-tab="blank"
-                        aria-selected="false">Blank Project</button>
+                        aria-selected="false">{% trans "Blank Project" %}</button>
             </nav>
             <!-- Right: Form -->
             <div class="create-main">
@@ -69,7 +88,7 @@
                     <div class="tab-fields" data-for-tab="import" style="display: none">
                         <div class="form-group">
                             <label class="form-label" for="git_url">
-                                Repository URL <span class="required">*</span>
+                                {% trans "Repository URL" %} <span class="required">*</span>
                             </label>
                             <input type="text"
                                    name="git_url"
@@ -80,8 +99,8 @@
                                    required
                                    disabled />
                             <p class="help-text">
-                                HTTPS or SSH:
-                                <code>https://github.com/user/repo</code> or
+                                {% trans "HTTPS or SSH:" %}
+                                <code>https://github.com/user/repo</code> {% trans "or" %}
                                 <code>git@github.com:user/repo.git</code>
                             </p>
                         </div>
@@ -90,19 +109,20 @@
                     {% include 'project_app/projects/create_partials/create_name_field.html' %}
                     <div class="form-group">
                         <label class="form-label form-label-optional" for="description">
-                            Description <span class="label-hint">(optional)</span>
+                            {% trans "Description" %} <span class="label-hint">{% trans "(optional)" %}</span>
                         </label>
                         <textarea name="description"
                                   id="description"
                                   class="form-control"
-                                  placeholder="A brief description of your project...">{{ description|default:'' }}</textarea>
+                                  placeholder="{% trans "A brief description of your project..." %}">{{ description|default:'' }}</textarea>
                     </div>
                     <!-- ===== SciTeX Minimal ===== -->
                     <div class="tab-fields" data-for-tab="minimal">
                         <input type="hidden" name="init_scitex" value="true" />
                         <div class="form-group">
                             <p class="option-description">
-                                {{ template_map.minimal.description|default:"Minimal project with writer + scholar workspaces" }}
+                                {# Descriptions come from scitex.template in English; the known ones are in the catalog. #}
+                                {% trans template_map.minimal.description|default:"Minimal project with writer + scholar workspaces" %}
                             </p>
                             {% if template_map.minimal.tree %}<pre class="template-tree">{{ template_map.minimal.tree }}</pre>{% endif %}
                         </div>
@@ -112,7 +132,7 @@
                         <input type="hidden" name="init_scitex" value="true" disabled />
                         <div class="form-group">
                             <p class="option-description">
-                                {{ template_map.research.description|default:"Full scientific workflow with data analysis, experiments, and paper writing" }}
+                                {% trans template_map.research.description|default:"Full scientific workflow with data analysis, experiments, and paper writing" %}
                             </p>
                             {% if template_map.research.tree %}<pre class="template-tree">{{ template_map.research.tree }}</pre>{% endif %}
                         </div>
@@ -125,21 +145,21 @@
                         <input type="hidden" name="init_scitex" value="true" disabled />
                         <div class="form-group">
                             <p class="option-description">
-                                {{ template_map.app.description|default:"Pip-installable Python package for building reusable SciTeX workspace modules" }}
+                                {% trans template_map.app.description|default:"Pip-installable Python package for building reusable SciTeX workspace modules" %}
                             </p>
                         </div>
                         <!-- Optional settings (collapsed by default — most set by App Maker AI) -->
                         <details class="app-optional-details">
                             <summary class="app-optional-summary">
-                                <i class="fas fa-sliders-h"></i> Optional Settings
-                                <span class="app-optional-hint">Auto-configured by App Maker</span>
+                                <i class="fas fa-sliders-h"></i> {% trans "Optional Settings" %}
+                                <span class="app-optional-hint">{% trans "Auto-configured by App Maker" %}</span>
                             </summary>
                             <div class="app-optional-fields">
                                 <!-- Icon -->
                                 <div class="form-group"
                                      data-ai-hint="Font Awesome icon selector for the app module tab">
                                     <label class="form-label form-label-optional" for="app_icon">
-                                        Icon <span class="label-hint">(Font Awesome)</span>
+                                        {% trans "Icon" %} <span class="label-hint">(Font Awesome)</span>
                                     </label>
                                     <div class="app-icon-picker">
                                         <span class="app-icon-preview" id="app-icon-preview">
@@ -156,7 +176,7 @@
                                     <input type="text"
                                            class="form-control app-icon-filter"
                                            id="app-icon-filter"
-                                           placeholder="Filter icons..."
+                                           placeholder="{% trans "Filter icons..." %}"
                                            disabled
                                            style="margin-bottom: 0.5rem;
                                                   font-size: 0.75rem;
@@ -368,39 +388,39 @@
                                         </button>
                                     </div>
                                     <p class="help-text">
-                                        Click an icon above, or type a custom
-                                        <a href="https://fontawesome.com/icons?d=gallery&s=solid" target="_blank">FA class</a>.
+                                        {% trans "Click an icon above, or type a Font Awesome class." %}
+                                        <a href="https://fontawesome.com/icons?d=gallery&s=solid" target="_blank">{% trans "Browse icons" %}</a>
                                     </p>
                                 </div>
                                 <!-- Subtitle -->
                                 <div class="form-group" data-ai-hint="Short tagline for the app">
-                                    <label class="form-label form-label-optional" for="app_subtitle">Subtitle</label>
+                                    <label class="form-label form-label-optional" for="app_subtitle">{% trans "Subtitle" %}</label>
                                     <input type="text"
                                            name="app_subtitle"
                                            id="app_subtitle"
                                            class="form-control"
-                                           placeholder="A short tagline for your app"
+                                           placeholder="{% trans "A short tagline for your app" %}"
                                            maxlength="80"
                                            disabled />
                                 </div>
                                 <!-- About -->
                                 <div class="form-group" data-ai-hint="One-line description of what the app does">
                                     <label class="form-label form-label-optional" for="app_about">
-                                        About <span class="label-hint">(1 line)</span>
+                                        {% trans "Summary" %} <span class="label-hint">{% trans "(1 line)" %}</span>
                                     </label>
                                     <input type="text"
                                            name="app_about"
                                            id="app_about"
                                            class="form-control"
-                                           placeholder="What does this app do in one sentence?"
+                                           placeholder="{% trans "What does this app do in one sentence?" %}"
                                            maxlength="200"
                                            disabled />
                                 </div>
                                 <!-- License -->
                                 <div class="form-group" data-ai-hint="License selection, AGPL-3.0 by default">
-                                    <label class="form-label form-label-optional" for="app_license">License</label>
+                                    <label class="form-label form-label-optional" for="app_license">{% trans "License" %}</label>
                                     <select name="app_license" id="app_license" class="form-control" disabled>
-                                        <option value="AGPL-3.0" selected>AGPL-3.0 (default)</option>
+                                        <option value="AGPL-3.0" selected>{% trans "AGPL-3.0 (default)" %}</option>
                                         <option value="GPL-3.0">GPL-3.0</option>
                                         <option value="MIT">MIT</option>
                                         <option value="Apache-2.0">Apache-2.0</option>
@@ -414,8 +434,8 @@
                                 <div class="form-group"
                                      data-ai-hint="Capabilities for agents and humans, comma-separated skills">
                                     <label class="form-label form-label-optional" for="app_capabilities">
-                                        Capabilities / Skills
-                                        <span class="label-hint">(for agents and humans)</span>
+                                        {% trans "Capabilities / Skills" %}
+                                        <span class="label-hint">{% trans "(for agents and humans)" %}</span>
                                     </label>
                                     <textarea name="app_capabilities"
                                               id="app_capabilities"
@@ -423,27 +443,27 @@
                                               placeholder="data-visualization, csv-import, statistical-analysis"
                                               rows="2"
                                               disabled></textarea>
-                                    <p class="help-text">Comma-separated list of what this app can do.</p>
+                                    <p class="help-text">{% trans "Comma-separated list of what this app can do." %}</p>
                                 </div>
                                 <!-- Supported Filetypes -->
                                 <div class="form-group"
                                      data-ai-hint="Optional file extension filter for the workspace file tree">
-                                    <label class="form-label form-label-optional" for="app_filetypes">Supported Filetypes</label>
+                                    <label class="form-label form-label-optional" for="app_filetypes">{% trans "Supported Filetypes" %}</label>
                                     <input type="text"
                                            name="app_filetypes"
                                            id="app_filetypes"
                                            class="form-control"
                                            placeholder=".csv, .json, .xlsx, .tsv"
                                            disabled />
-                                    <p class="help-text">Comma-separated extensions. If set, the file tree filters to these types.</p>
+                                    <p class="help-text">{% trans "Comma-separated extensions. If set, the file tree filters to these types." %}</p>
                                 </div>
                                 <!-- WIP State -->
                                 <div class="form-group" data-ai-hint="Mark app as work-in-progress">
                                     <label class="option-item" style="margin:0">
                                         <input type="checkbox" name="app_wip" value="true" checked disabled />
                                         <div class="option-content">
-                                            <div class="option-label">Mark as WIP</div>
-                                            <div class="option-description">Shows a WIP badge in the Apps browser. Uncheck when ready for production.</div>
+                                            <div class="option-label">{% trans "Mark as WIP" %}</div>
+                                            <div class="option-description">{% trans "Shows a WIP badge in the Apps browser. Uncheck when ready for production." %}</div>
                                         </div>
                                     </label>
                                 </div>
@@ -452,8 +472,8 @@
                                      data-ai-hint="Paste JSON or YAML manifest to auto-fill all fields">
                                     <label class="form-label form-label-optional">
                                         <i class="fas fa-file-code label-icon"></i>
-                                        Create from JSON / YAML
-                                        <span class="label-hint">(for agents)</span>
+                                        {% trans "Create from JSON / YAML" %}
+                                        <span class="label-hint">{% trans "(for agents)" %}</span>
                                     </label>
                                     <textarea name="app_manifest_raw"
                                               id="app_manifest_raw"
@@ -470,14 +490,14 @@
                                                 disabled
                                                 style="font-size:0.75rem;
                                                        padding:0.375rem 0.75rem">
-                                            <i class="fas fa-magic"></i> Parse &amp; Fill
+                                            <i class="fas fa-magic"></i> {% trans "Parse & Fill" %}
                                         </button>
                                         <span id="app-manifest-status"
                                               style="font-size:0.75rem;
                                                      line-height:2;
                                                      color:var(--color-fg-muted)"></span>
                                     </div>
-                                    <p class="help-text">Paste a JSON or YAML manifest and click "Parse & Fill" to auto-populate the form fields above.</p>
+                                    <p class="help-text">{% trans "Paste a JSON or YAML manifest and click Parse & Fill to fill in the fields above." %}</p>
                                 </div>
                             </div>
                         </details>
@@ -486,34 +506,34 @@
                     <div class="tab-fields" data-for-tab="import" style="display: none">
                         <div class="form-group">
                             <label class="form-label" for="github_token">
-                                Access Token
-                                <span style="color: var(--color-fg-muted)">(for private repos)</span>
+                                {% trans "Access Token" %}
+                                <span style="color: var(--color-fg-muted)">{% trans "(for private repos)" %}</span>
                             </label>
                             <input type="password"
                                    name="github_token"
                                    id="github_token"
                                    class="form-control"
-                                   placeholder="{% if user.profile.github_token %}Using saved token{% else %}Enter token for private repos{% endif %}"
+                                   placeholder="{% if user.profile.github_token %}{% trans "Using saved token" %}{% else %}{% trans "Enter token for private repos" %}{% endif %}"
                                    disabled />
                             <p class="help-text">
                                 {% if user.profile.github_token %}
-                                    Token saved in
-                                    <a href="{% url 'accounts_app:profile_edit' %}">profile settings</a>
+                                    {% trans "Token saved." %}
+                                    <a href="{% url 'accounts_app:profile_edit' %}">{% trans "Profile settings" %}</a>
                                 {% else %}
-                                    Create token:
+                                    {% trans "Create token:" %}
                                     <a href="https://github.com/settings/tokens" target="_blank">GitHub</a> |
                                     <a href="https://gitlab.com/-/profile/personal_access_tokens" target="_blank">GitLab</a>
                                 {% endif %}
                             </p>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Initialize with SciTeX</label>
+                            <label class="form-label">{% trans "Initialize with SciTeX" %}</label>
                             <div class="option-group">
                                 <label class="option-item">
                                     <input type="checkbox" name="init_scitex" value="true" checked disabled />
                                     <div class="option-content">
-                                        <div class="option-label">Initialize SciTeX structure</div>
-                                        <div class="option-description">Add Writer, Scholar, Code, and Viz directories.</div>
+                                        <div class="option-label">{% trans "Initialize SciTeX structure" %}</div>
+                                        <div class="option-description">{% trans "Add Writer, Scholar, Code, and Viz directories." %}</div>
                                     </div>
                                 </label>
                             </div>
@@ -524,14 +544,14 @@
                         {% if remote_credentials %}
                             <div class="form-group">
                                 <label class="form-label" for="remote_credential_id">
-                                    Remote credential <span class="required">*</span>
+                                    {% trans "Remote credential" %} <span class="required">*</span>
                                 </label>
                                 <select name="remote_credential_id"
                                         id="remote_credential_id"
                                         class="form-control"
                                         required
                                         disabled>
-                                    <option value="">Select a remote system...</option>
+                                    <option value="">{% trans "Select a remote system..." %}</option>
                                     {% for cred in remote_credentials %}
                                         <option value="{{ cred.id }}">{{ cred.name }} ({{ cred.ssh_username }}@{{ cred.ssh_host }})</option>
                                     {% endfor %}
@@ -539,7 +559,7 @@
                             </div>
                             <div class="form-group">
                                 <label class="form-label" for="remote_path">
-                                    Remote path <span class="required">*</span>
+                                    {% trans "Remote path" %} <span class="required">*</span>
                                 </label>
                                 <input type="text"
                                        name="remote_path"
@@ -548,26 +568,26 @@
                                        placeholder="/home/username/projects/my-project"
                                        required
                                        disabled />
-                                <p class="help-text">Absolute path on the remote system.</p>
+                                <p class="help-text">{% trans "Absolute path on the remote system." %}</p>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Connection mode</label>
+                                <label class="form-label">{% trans "Connection mode" %}</label>
                                 <div class="create-radio-group">
                                     <label class="create-radio-label">
                                         <input type="radio" name="connection_mode" value="trip" checked disabled />
-                                        <strong>TRIP</strong> — on-demand SSH (recommended)
+                                        <strong>TRIP</strong> — {% trans "on-demand SSH (recommended)" %}
                                     </label>
                                     <label class="create-radio-label">
                                         <input type="radio" name="connection_mode" value="sshfs" disabled />
-                                        <strong>SSHFS</strong> — persistent mount (faster browsing)
+                                        <strong>SSHFS</strong> — {% trans "persistent mount (faster browsing)" %}
                                     </label>
                                 </div>
-                                <p class="help-text">Switchable later in project settings.</p>
+                                <p class="help-text">{% trans "Switchable later in project settings." %}</p>
                             </div>
                         {% else %}
                             <div class="create-no-credentials">
-                                <p>Add a remote credential to connect to HPC or servers.</p>
-                                <a href="{% url 'accounts_app:remote_credentials' %}" class="btn btn-primary">Add Remote Credential</a>
+                                <p>{% trans "Add a remote credential to connect to HPC or servers." %}</p>
+                                <a href="{% url 'accounts_app:remote_credentials' %}" class="btn btn-primary">{% trans "Add Remote Credential" %}</a>
                             </div>
                         {% endif %}
                     </div>
@@ -575,14 +595,14 @@
                     <div class="tab-fields" data-for-tab="blank" style="display: none"></div>
                     <!-- Form Actions -->
                     <div class="form-actions">
-                        <a href="/{{ user.username }}/projects/" class="btn btn-secondary">Cancel</a>
-                        <button type="submit" class="btn btn-primary" id="create-submit-btn">Create project</button>
+                        <a href="/{{ user.username }}/projects/" class="btn btn-secondary">{% trans "Cancel" %}</a>
+                        <button type="submit" class="btn btn-primary" id="create-submit-btn">{% trans "Create project" %}</button>
                     </div>
                 </form>
                 <div class="create-help-text">
                     <p>
                         CLI: <code>scitex project create my-project</code>
-                        (<a href="https://scitex.ai/docs/cli" target="_blank">docs</a>)
+                        (<a href="https://scitex.ai/docs/cli" target="_blank">{% trans "documentation" %}</a>)
                     </p>
                 </div>
             </div>
@@ -593,14 +613,21 @@
     {% include 'project_app/projects/create_partials/create_scripts.html' %}
     <script>
     (function () {
+        var LABEL_CREATE = "{% trans 'Create project' as t %}{{ t|escapejs }}";
+        var LABEL_IMPORT = "{% trans 'Import project' as t %}{{ t|escapejs }}";
+        var LABEL_REMOTE = "{% trans 'Connect remote' as t %}{{ t|escapejs }}";
         var TAB_CONFIG = {
-            minimal: { initType: "template", projectType: "local", templateType: "minimal",  label: "Create project" },
-            full:    { initType: "template", projectType: "local", templateType: "research", label: "Create project" },
-            app:     { initType: "template", projectType: "local", templateType: "app",      label: "Create project" },
-            import:  { initType: "github",   projectType: "local", templateType: "",          label: "Import project" },
-            remote:  { initType: "",          projectType: "trip", templateType: "",          label: "Connect remote" },
-            blank:   { initType: "gitea",     projectType: "local", templateType: "",          label: "Create project" },
+            minimal: { initType: "template", projectType: "local", templateType: "minimal",  label: LABEL_CREATE },
+            full:    { initType: "template", projectType: "local", templateType: "research", label: LABEL_CREATE },
+            app:     { initType: "template", projectType: "local", templateType: "app",      label: LABEL_CREATE },
+            import:  { initType: "github",   projectType: "local", templateType: "",          label: LABEL_IMPORT },
+            remote:  { initType: "",          projectType: "trip", templateType: "",          label: LABEL_REMOTE },
+            blank:   { initType: "gitea",     projectType: "local", templateType: "",          label: LABEL_CREATE },
         };
+        var MSG_PASTE_FIRST = "{% trans 'Paste JSON or YAML first' as t %}{{ t|escapejs }}";
+        var MSG_INVALID = "{% trans 'Invalid JSON/YAML' as t %}{{ t|escapejs }}";
+        var MSG_FILLED = "{% trans 'Fields populated' as t %}{{ t|escapejs }}";
+        var typeSelect = document.getElementById("create-type-select");
 
         var form = document.getElementById("create-project-form");
         var items = document.querySelectorAll(".create-menu-item");
@@ -619,6 +646,7 @@
                 t.classList.toggle("active", active);
                 t.setAttribute("aria-selected", active);
             });
+            if (typeSelect && typeSelect.value !== name) typeSelect.value = name;
 
             document.querySelectorAll(".tab-fields").forEach(function (el) {
                 var show = el.dataset.forTab === name;
@@ -653,6 +681,11 @@
                 switchTab(t.dataset.tab);
             });
         });
+        if (typeSelect) {
+            typeSelect.addEventListener("change", function () {
+                switchTab(typeSelect.value);
+            });
+        }
 
         // Live icon preview for SciTeX App tab
         var iconInput = document.getElementById("app_icon");
@@ -703,7 +736,7 @@
         if (parseBtn && manifestArea) {
             parseBtn.addEventListener("click", function () {
                 var raw = manifestArea.value.trim();
-                if (!raw) { manifestStatus.textContent = "Paste JSON or YAML first"; return; }
+                if (!raw) { manifestStatus.textContent = MSG_PASTE_FIRST; return; }
                 var data;
                 try {
                     data = JSON.parse(raw);
@@ -723,7 +756,7 @@
                         });
                         if (Object.keys(data).length === 0) throw new Error("empty");
                     } catch (e2) {
-                        manifestStatus.textContent = "Invalid JSON/YAML";
+                        manifestStatus.textContent = MSG_INVALID;
                         manifestStatus.style.color = "#dc3545";
                         return;
                     }
@@ -757,7 +790,7 @@
                         });
                     }
                 }
-                manifestStatus.textContent = "Fields populated";
+                manifestStatus.textContent = MSG_FILLED;
                 manifestStatus.style.color = "#28a745";
             });
         }
