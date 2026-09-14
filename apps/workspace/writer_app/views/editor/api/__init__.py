@@ -50,6 +50,7 @@ from .files import (
     synctex_reverse_lookup,
     thumbnail_view,
 )
+from .status import manuscript_status_view
 
 # Media operations
 from .media import (
@@ -112,6 +113,7 @@ __all__ = [
     "presence_list_view",
     "synctex_reverse_lookup",
     "thumbnail_view",
+    "manuscript_status_view",
     # Media operations
     "figures_api",
     "tables_api",

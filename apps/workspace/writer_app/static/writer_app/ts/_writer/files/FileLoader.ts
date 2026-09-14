@@ -5,6 +5,33 @@
 
 import { showToast } from "../../utils/index";
 import { getWriterConfig } from "../../_helpers";
+import {
+  fetchManuscriptStatus,
+  ManuscriptStatusFetcher,
+} from "./ManuscriptStatus";
+
+export interface FileLoaderDependencies {
+  getManuscriptStatus: ManuscriptStatusFetcher;
+  fetchFile: typeof fetch;
+}
+
+const defaultDependencies: FileLoaderDependencies = {
+  getManuscriptStatus: fetchManuscriptStatus,
+  fetchFile: (...args) => fetch(...args),
+};
+
+async function manuscriptExists(
+  projectId: number | string,
+  getManuscriptStatus: ManuscriptStatusFetcher,
+): Promise<boolean> {
+  try {
+    return (await getManuscriptStatus(projectId)).exists;
+  } catch (error) {
+    // Status unknown: fall back to the plain load rather than hiding a real manuscript.
+    console.warn("[FileLoader] Manuscript status unavailable:", error);
+    return true;
+  }
+}
 
 /**
  * Load .tex file content from server
@@ -12,6 +39,7 @@ import { getWriterConfig } from "../../_helpers";
 export async function loadTexFile(
   filePath: string,
   editor: any,
+  dependencies: FileLoaderDependencies = defaultDependencies,
 ): Promise<void> {
   console.log("[FileLoader] Loading .tex file:", filePath);
 
@@ -22,8 +50,18 @@ export async function loadTexFile(
     return;
   }
 
+  if (
+    !(await manuscriptExists(
+      config.projectId,
+      dependencies.getManuscriptStatus,
+    ))
+  ) {
+    console.log("[FileLoader] No manuscript yet, skipping load:", filePath);
+    return;
+  }
+
   try {
-    const response = await fetch(
+    const response = await dependencies.fetchFile(
       `/apps/writer/api/project/${config.projectId}/read-tex-file/?path=${encodeURIComponent(filePath)}`,
     );
 
@@ -41,6 +79,12 @@ export async function loadTexFile(
     }
 
     const data = await response.json();
+
+    if (data.success && data.exists === false) {
+      console.log("[FileLoader] File does not exist yet:", filePath);
+      return;
+    }
+
     console.log(
       "[FileLoader] File loaded successfully, length:",
       data.content?.length || 0,

@@ -303,15 +303,15 @@ def read_tex_file_view(request, project_id):
             )
 
         if not full_path.exists():
-            return JsonResponse(
-                {"success": False, "error": f"File not found: {file_path}"}, status=404
-            )
+            # An absent file is an answer, not an error; a 404 here spams the editor console.
+            return JsonResponse({"success": True, "exists": False, "path": file_path})
 
         try:
             content = full_path.read_text(encoding="utf-8")
             return JsonResponse(
                 {
                     "success": True,
+                    "exists": True,
                     "content": content,
                     "path": file_path,
                     "filename": full_path.name,
