@@ -1,153 +1,80 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Tests for apps/docs_app/views.py"""
+"""Tests for apps/workspace/docs_app/views.py — the Overview landing page.
+
+Site audit (card hub-site-audit-2-defect-backlog-20260914): /apps/docs/ opened
+on "MCP Tools (Local)", a power-user page. A first-time visitor must land on an
+overview instead.
+
+The .mo catalogs are gitignored, so the Japanese render test compiles them with
+the project's babel-based script first (same approach as
+tests/config/test_i18n_settings_services_landing.py).
+"""
+
+from __future__ import annotations
+
+import subprocess
+import sys
+from pathlib import Path
 
 import pytest
+from django.template.loader import render_to_string
+from django.test import Client
+from django.utils import translation
 
-# from apps.workspace.docs_app.views import ...
+from apps.workspace.docs_app._context_builders import build_page_context
+from apps.workspace.docs_app.views import DOCS_PAGES, build_docs_context
 
-
-class TestPlaceholder:
-    """Placeholder test class - replace with actual tests."""
-
-    def test_placeholder_pending_implementation(self):
-        """Placeholder test - implement actual tests."""
-        # Arrange
-        # Act
-        # Assert
-        pytest.skip("Not implemented yet")
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+OVERVIEW_TEMPLATE = "docs_app/docs_overview.html"
+JAPANESE_HEADING = "SciTeX Hub へようこそ"
 
 
-if __name__ == "__main__":
-    import os
+@pytest.fixture
+def compiled_catalogs():
+    """Compile locale/**/*.po -> .mo so the ja render reads the real catalog."""
+    script = PROJECT_ROOT / "scripts" / "i18n" / "compile_catalogs.py"
+    result = subprocess.run(
+        [sys.executable, str(script)], cwd=PROJECT_ROOT, capture_output=True, text=True
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    translation.trans_real._translations.clear()
+    yield
 
-    import pytest
 
-    pytest.main([os.path.abspath(__file__)])
+def test_first_docs_page_is_overview():
+    # Arrange
+    first_page = DOCS_PAGES[0]
+    # Act
+    slug = first_page["slug"]
+    # Assert
+    assert slug == "overview"
 
-# --------------------------------------------------------------------------------
-# Start of Source Code from: apps/docs_app/views.py
-# --------------------------------------------------------------------------------
-# #!/usr/bin/env python3
-# # -*- coding: utf-8 -*-
-# # File: /home/ywatanabe/proj/scitex-hub/apps/docs_app/views.py
-#
-# from django.shortcuts import render, redirect
-# from django.http import Http404, HttpResponse
-# from django.conf import settings
-# from pathlib import Path
-#
-#
-# # Documentation paths
-# DOC_PATHS = {
-#     "python": "../scitex-code/docs/sphinx/build/html",  # scitex PyPI package
-# }
-#
-#
-# def docs_index(request):
-#     """Documentation landing page."""
-#     context = {
-#         "modules": [
-#             {
-#                 "name": "Python Package",
-#                 "slug": "python",
-#                 "description": "SciTeX Python package (pip install scitex)",
-#                 "icon": "scitex_logos/scitex-icons/scitex-icon-navy.svg",
-#                 "available": _check_docs_available("python"),
-#             },
-#             {
-#                 "name": "REST API",
-#                 "slug": "api",
-#                 "description": "REST API reference for SciTeX Hub",
-#                 "icon": "scitex_logos/scitex-icons/scitex-icon-navy.svg",
-#                 "available": True,  # Always available (static HTML)
-#             },
-#         ]
-#     }
-#     return render(request, "docs_app/docs_index.html", context)
-#
-#
-# def docs_python(request):
-#     """Serve SciTeX Python package documentation."""
-#     return _serve_module_docs(request, "python", "index.html")
-#
-#
-# def docs_api(request):
-#     """Serve REST API documentation page."""
-#     return render(request, "public_app/pages/api_docs.html")
-#
-#
-# def docs_page(request, module, page):
-#     """Serve a specific documentation page."""
-#     return _serve_module_docs(request, module, page)
-#
-#
-# def _check_docs_available(module):
-#     """Check if documentation is built and available for a module."""
-#     if module not in DOC_PATHS:
-#         return False
-#
-#     doc_path = Path(settings.BASE_DIR) / DOC_PATHS[module]
-#     return doc_path.exists() and (doc_path / "index.html").exists()
-#
-#
-# def _serve_module_docs(request, module, page="index.html"):
-#     """Serve documentation files for a specific module."""
-#     if module not in DOC_PATHS:
-#         raise Http404("Module documentation not found")
-#
-#     # Construct the full path to the documentation file
-#     doc_base = Path(settings.BASE_DIR) / DOC_PATHS[module]
-#     doc_file = doc_base / page
-#
-#     # If docs not built, redirect to GitHub README
-#     if not doc_base.exists() or not doc_file.exists():
-#         github_urls = {
-#             "python": "https://github.com/ywatanabe1989/SciTeX-Code#readme",
-#         }
-#         return redirect(github_urls.get(module, "https://github.com/SciTeX-AI"))
-#
-#     # Security: ensure the path is within the documentation directory
-#     try:
-#         doc_file = doc_file.resolve()
-#         doc_base = doc_base.resolve()
-#         if not str(doc_file).startswith(str(doc_base)):
-#             raise Http404("Invalid documentation path")
-#     except (ValueError, OSError):
-#         raise Http404("Invalid documentation path")
-#
-#     # Read and serve the file
-#     if doc_file.suffix == ".html":
-#         with open(doc_file, "r", encoding="utf-8") as f:
-#             content = f.read()
-#
-#         # Wrap in SciTeX template
-#         context = {
-#             "module": module,
-#             "module_name": module.capitalize(),
-#             "doc_content": content,
-#             "page": page,
-#         }
-#         return render(request, "docs_app/docs_page.html", context)
-#     else:
-#         # Serve static files (CSS, JS, images) directly
-#         content_types = {
-#             ".css": "text/css",
-#             ".js": "application/javascript",
-#             ".png": "image/png",
-#             ".jpg": "image/jpeg",
-#             ".jpeg": "image/jpeg",
-#             ".gif": "image/gif",
-#             ".svg": "image/svg+xml",
-#             ".woff": "font/woff",
-#             ".woff2": "font/woff2",
-#             ".ttf": "font/ttf",
-#         }
-#         content_type = content_types.get(doc_file.suffix, "application/octet-stream")
-#
-#         with open(doc_file, "rb") as f:
-#             return HttpResponse(f.read(), content_type=content_type)
 
-# --------------------------------------------------------------------------------
-# End of Source Code from: apps/docs_app/views.py
-# --------------------------------------------------------------------------------
+def test_docs_index_context_defaults_to_overview():
+    # Arrange
+    request = None
+    # Act
+    context = build_docs_context(request)
+    # Assert
+    assert context["active_doc"] == "overview"
+
+
+@pytest.mark.django_db
+def test_overview_content_returns_200():
+    # Arrange
+    client = Client()
+    # Act
+    response = client.get("/apps/docs/content/overview/")
+    # Assert
+    assert response.status_code == 200
+
+
+def test_overview_renders_japanese_heading_under_ja(compiled_catalogs):
+    # Arrange
+    context = build_page_context("overview")
+    # Act
+    with translation.override("ja"):
+        html = render_to_string(OVERVIEW_TEMPLATE, context)
+    # Assert
+    assert JAPANESE_HEADING in html
