@@ -203,7 +203,8 @@ class CitationGraphService:
 
             result = {
                 "status": "healthy" if summary else "degraded",
-                "mode": "http" if self.builder.db_path is None else "db",
+                "mode": "http",
+                "api_url": self.builder.api_url,
                 "cached": False,
             }
             if not summary:

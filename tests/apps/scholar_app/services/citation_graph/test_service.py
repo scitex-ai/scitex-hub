@@ -2,20 +2,36 @@
 # -*- coding: utf-8 -*-
 """Tests for apps/scholar_app/services/citation_graph/service.py"""
 
-import pytest
+from django.core.cache import cache
 
-# from apps.workspace.scholar_app.services.citation_graph.service import ...
+from apps.workspace.scholar_app.services.citation_graph.service import (
+    CitationGraphService,
+)
 
 
-class TestPlaceholder:
-    """Placeholder test class - replace with actual tests."""
+class _HttpBuilder:
+    """The HTTP-only builder shape: api_url, no db_path."""
 
-    def test_placeholder_pending_implementation(self):
-        """Placeholder test - implement actual tests."""
-        # Arrange
-        # Act
-        # Assert
-        pytest.skip("Not implemented yet")
+    api_url = "http://relay.test:31291"
+
+    def get_paper_summary(self, doi):
+        return {"doi": doi}
+
+
+def test_health_check_reports_healthy_for_http_only_builder():
+    # Arrange
+    cache.delete("citation_graph:health_status")
+    service = CitationGraphService.__new__(CitationGraphService)
+    service.builder = _HttpBuilder()
+    # Act
+    status = service.health_check()
+    # Assert
+    assert status == {
+        "status": "healthy",
+        "mode": "http",
+        "api_url": "http://relay.test:31291",
+        "cached": False,
+    }
 
 
 if __name__ == "__main__":
