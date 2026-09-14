@@ -173,11 +173,13 @@
         </button>
         <!-- Right: Actions + User Menu -->
         <div class="header-right">
-            <!-- Theme Toggle (always visible). A half-filled circle — the
-                 unambiguous "appearance" mark, replacing fa-adjust which read
-                 as neither sun nor moon (operator 2026-09-12). -->
-            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle light/dark theme" data-tooltip="Toggle light/dark theme">
-                <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none">
+            <!-- Theme Toggle (always visible). A single half-filled circle —
+                 the "appearance" mark, replacing the sun/moon pair (operator
+                 TODO). theme-switcher.ts keeps this icon and only updates the
+                 aria-label with the current state; the label is required
+                 because the icon alone is less self-explanatory. -->
+            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode" data-tooltip="Toggle dark mode">
+                <svg class="theme-toggle-icon-half-circle" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none">
                     <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5" />
                     <path d="M8 1 a7 7 0 0 1 0 14 z" fill="currentColor" />
                 </svg>
@@ -313,8 +315,8 @@
     <!-- Mobile Header Menu Overlay (visible only when hamburger is tapped) -->
     <div class="mobile-header-menu" id="mobile-header-menu">
         <button class="mobile-menu-item" id="mobile-theme-toggle-btn">
-            <i class="fas fa-adjust"></i>
-            <span>Toggle Theme</span>
+            <i class="fas fa-circle-half-stroke" aria-hidden="true"></i>
+            <span>Toggle dark mode</span>
         </button>
         {# Developer-facing entries: shown to staff (and in dev), hidden for #}
         {# ordinary users/visitors so the menu stays focused (operator,      #}
