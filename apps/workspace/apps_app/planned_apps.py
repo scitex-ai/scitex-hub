@@ -41,8 +41,6 @@ class PlannedApp:
         return self.description_ja if language.startswith("ja") else self.description_en
 
 
-# "publish" (発信) is the group #863 adds; until it exists, launcher_order.group_of
-# places Live Paper and Agentic Journal in Work.
 PLANNED_APPS: tuple[PlannedApp, ...] = (
     PlannedApp(
         "files",
@@ -88,7 +86,7 @@ PLANNED_APPS: tuple[PlannedApp, ...] = (
         "Slides",
         "スライド",
         "fas fa-chalkboard",
-        "work",
+        "publish",
         "visualization",
         "Build talk slides from your figures and manuscripts.",
         "図や原稿から発表用スライドを作成します。",

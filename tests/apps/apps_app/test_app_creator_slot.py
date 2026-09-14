@@ -15,7 +15,8 @@ from django.test import TestCase
 
 def _work_band(html: str) -> str:
     start = html.index('data-group="work" aria-label')
-    return html[start : html.index('data-group="system" aria-label', start)]
+    end = re.compile(r'class="launcher-group" role="group" data-group="(?!work")')
+    return html[start : end.search(html, start).start()]
 
 
 def _cells(html: str) -> list[tuple[str, str]]:

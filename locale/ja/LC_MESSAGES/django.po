@@ -645,8 +645,6 @@ msgstr "無断複製・転載を禁じます。"
 msgid "Support SciTeX"
 msgstr "SciTeX を支援する"
 
-
-
 msgid "List price %(price)s, early-adopter discount %(percent)d%%. Early-adopter price through %(until)s."
 msgstr "定価 %(price)s、早期導入割引 %(percent)d%%。%(until)sまでの早期導入価格。"
 
@@ -661,7 +659,6 @@ msgstr "%(amt)s円"
 
 msgid "University or research-institution email address (students, graduate students, faculty, researchers)"
 msgstr "大学・研究機関のメールアドレスを持つこと（学生・院生・教職員・研究員）"
-
 
 # Pricing i18n (English source, JA translations) — 2026-09-11
 msgid "Monthly"
@@ -887,7 +884,6 @@ msgid "Services & add-ons"
 msgstr "サービス・追加オプション"
 msgid "Contents of the free tier will be listed here."
 msgstr "無料プランの内容はここに掲載予定です。"
-
 
 # /services/ page EN-sourced 2026-09-12 (card services-page-i18n-20260911)
 
@@ -2929,7 +2925,6 @@ msgstr "数式"
 
 msgid "Figure"
 msgstr "図"
-
 
 # SciTeX Services SSOT Provisional v1.0 (USD) — /pricing/, /services/, rate card (2026-09-14)
 msgid "from %(price)s"
@@ -5429,6 +5424,10 @@ msgstr "基盤"
 msgid "Work"
 msgstr "作業"
 
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+msgid "Publish"
+msgstr "発信"
+
 # "System" is already in this catalog (システム); the launcher reuses it.
 
 #: apps/workspace/apps_app/templates/apps_app/launcher.html
@@ -5603,6 +5602,84 @@ msgstr "閉じる"
 msgid "Dismiss getting started"
 msgstr "「はじめに」を閉じる"
 
+# Slides app (card hub-slides-app-agent-aware-20260914).
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgctxt "app name"
+msgid "Slides"
+msgstr "スライド"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Unsaved changes"
+msgstr "未保存の変更があります"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Could not save"
+msgstr "保存できませんでした"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Deck name"
+msgstr "スライド名"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "No image files found in this project."
+msgstr "このプロジェクトに画像ファイルがありません。"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Pick a deck or create one."
+msgstr "スライドを選ぶか、新しく作成してください。"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Read only: you cannot edit this project."
+msgstr "閲覧のみ: このプロジェクトは編集できません。"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Deck"
+msgstr "スライド"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "New deck"
+msgstr "新しいスライド"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "New deck from project"
+msgstr "プロジェクトから作成"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Insert figure"
+msgstr "図を挿入"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Export PDF"
+msgstr "PDFに書き出し"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Editor"
+msgstr "エディタ"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Slide Markdown"
+msgstr "スライドのMarkdown"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Title"
+msgstr "タイトル"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Next slide"
+msgstr "次のスライド"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Close"
+msgstr "閉じる"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Slides live in a project. Choose one:"
+msgstr "スライドはプロジェクトに保存されます。プロジェクトを選んでください:"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "You have no projects yet."
+msgstr "まだプロジェクトがありません。"
+
 #: apps/workspace/apps_app/templates/apps_app/partials/first_run_checklist.html
 msgid "Don't show again"
 msgstr "今後表示しない"
@@ -5619,10 +5696,6 @@ msgstr "はじめにを再表示"
 msgctxt "app name"
 msgid "App Creator"
 msgstr "アプリクリエイター"
-
-#: apps/workspace/apps_app/templates/apps_app/partials/launcher_planned_sheet.html
-msgid "Close"
-msgstr "閉じる"
 
 #: apps/workspace/apps_app/templates/apps_app/partials/launcher_planned_sheet.html
 msgid "Notify me"

@@ -63,9 +63,9 @@ class PlannedAppTileTest(TestCase):
         # Arrange
         url = "/apps/"
         # Act
-        tile = _planned_tile(self.client.get(url).content.decode("utf-8"), "slides")
+        tile = _planned_tile(self.client.get(url).content.decode("utf-8"), "grant-writer")
         # Assert
-        assert 'data-create-url="/apps/create/?name=Slides&amp;brief=slides&amp;' in tile
+        assert 'data-create-url="/apps/create/?name=Grant+Writer&amp;brief=grant-writer&amp;' in tile
 
 
 class PlannedAppInterestTest(TestCase):
