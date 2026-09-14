@@ -5,8 +5,9 @@
    Behaviour: static/shared/ts/components/site-dock.ts
 
    Every app is its tile icon (the Home tile's size) with a short caption under
-   it. Grip on the left, Back / Forward together on the right; on a phone those
-   controls take a second row so the apps get the full width. Fixed to the
+   it. Back at the far left, Forward at the far right, the grip beside Back; on
+   a phone those controls take a second row, [<] [wide grip] [>], so the apps
+   get the full width. Fixed to the
    bottom centre by default, above everything else on the page. The grabber
    drags it anywhere; a dragged dock carries .site-dock--floating and inline
    left/top.
@@ -290,16 +291,10 @@ body:has(> .site-dock:not(.site-dock--floating)) {
   background: var(--site-dock-active-bg);
 }
 
-/* Back / Forward: side by side at the RIGHT end (operator 2026-09-14: grip on
-   the left, arrows on the right), 44px tap targets, dimmed when they cannot
-   go. `order` moves Back without changing the markup's reading order. */
+/* Back / Forward: Back at the far LEFT, Forward at the far RIGHT (operator
+   2026-09-14), 44px tap targets, dimmed when they cannot go. */
 .site-dock-history {
   width: 44px;
-  order: 2;
-}
-
-.site-dock-history[data-dock-forward] {
-  order: 3;
 }
 
 .site-dock-history i {
@@ -313,8 +308,8 @@ body:has(> .site-dock:not(.site-dock--floating)) {
   transform: none;
 }
 
-/* Grip: a drag-handle glyph (fa-grip-vertical) at the dock's LEFT end, in
-   flow, with a 44x44 hit area. The first version was a thin bar overhanging
+/* Grip: a drag-handle glyph (fa-grip-vertical) just right of Back, in flow,
+   with a 44x44 hit area. The first version was a thin bar overhanging
    the top edge, which the operator could not recognise as draggable
    (2026-09-14). A separator line sets it apart from the navigation buttons. */
 .site-dock-grabber {
@@ -354,6 +349,12 @@ body:has(> .site-dock:not(.site-dock--floating)) {
   pointer-events: none;
 }
 
+/* The phone's wide grip bar; desktop shows the glyph instead. */
+.site-dock-grabber-bar {
+  display: none;
+  pointer-events: none;
+}
+
 .site-dock-grabber:hover,
 .site-dock-grabber:focus-visible {
   opacity: 1;
@@ -377,9 +378,10 @@ body:has(> .site-dock:not(.site-dock--floating)) {
   }
 }
 
-/* Phones: the apps take the whole first row; the grip (left, stretching to
-   the centre so the whole strip drags) and the arrows (right) share a slim
-   second row. */
+/* Phones: the apps take the whole first row, in equal cells. The second row is
+   [<] far left, a wide grip bar filling the centre, [>] far right
+   (operator 2026-09-14: the small grid-dots grip was hard to hit with a
+   finger). */
 @media (max-width: 640px) {
   :root {
     --site-dock-icon: 60px;
@@ -391,7 +393,7 @@ body:has(> .site-dock:not(.site-dock--floating)) {
 
   .site-dock {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
     grid-template-rows: var(--site-dock-app-height) var(--site-dock-item);
     gap: 0;
     padding-block: var(--site-dock-pad);
@@ -419,21 +421,35 @@ body:has(> .site-dock:not(.site-dock--floating)) {
   }
 
   .site-dock-grabber {
-    grid-column: 1;
+    grid-column: 2;
     grid-row: 2;
-    justify-content: flex-start;
     width: auto;
-    margin: 0;
-    padding-left: 13px;
+    margin: 0 4px;
+    opacity: 1;
   }
 
-  .site-dock-grabber::after {
+  .site-dock-grabber::after,
+  .site-dock-grabber i {
     display: none;
+  }
+
+  .site-dock-grabber-bar {
+    display: block;
+    width: min(100% - 24px, 180px);
+    height: 5px;
+    border-radius: 3px;
+    background: var(--site-dock-fg);
+    opacity: 0.45;
+  }
+
+  .site-dock-grabber:hover .site-dock-grabber-bar,
+  .site-dock--dragging .site-dock-grabber-bar {
+    opacity: 0.8;
   }
 
   .site-dock-history {
     grid-row: 2;
-    grid-column: 2;
+    grid-column: 1;
     height: var(--site-dock-item);
   }
 

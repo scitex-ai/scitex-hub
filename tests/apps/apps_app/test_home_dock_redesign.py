@@ -192,6 +192,18 @@ class SiteDockOnEveryPageTest(TestCase):
         # Assert
         assert (grip.group(1), "fa-grip" in grip.group(2)) == ("Move dock", True)
 
+    def test_dock_reads_back_grip_apps_forward(self):
+        # Operator 2026-09-14: Back far left, Forward far right, grip between.
+        # Arrange
+        dock = _dock_html(self.client.get("/apps/").content)
+        # Act
+        order = sorted(
+            ("data-dock-back", "data-dock-grabber", "data-dock-apps", "data-dock-forward"),
+            key=dock.index,
+        )
+        # Assert
+        assert order == ["data-dock-back", "data-dock-grabber", "data-dock-apps", "data-dock-forward"]
+
     def test_dock_grip_hit_area_is_at_least_44px(self):
         # Arrange
         css = _site_css("site-dock.css")

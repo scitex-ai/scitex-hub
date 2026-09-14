@@ -168,3 +168,29 @@ def test_phone_dock_gives_the_apps_their_own_row():
     rule = re.search(r"\.site-dock-apps\s*\{([^}]*)\}", phone).group(1)
     # Assert
     assert re.search(r"grid-column:\s*1\s*/\s*-1", rule)
+
+
+def test_phone_second_row_is_back_grip_forward():
+    # Operator 2026-09-14: [<] far left, wide grip in the centre, [>] far right.
+    # Arrange
+    phone = _media_block(_dock_css(), "@media (max-width: 640px)")
+    # Act
+    columns = tuple(
+        re.search(selector + r"\s*\{[^}]*?grid-column:\s*(\d+)", phone).group(1)
+        for selector in (
+            r"\.site-dock-history",
+            r"\.site-dock-grabber",
+            r"\.site-dock-history\[data-dock-forward\]",
+        )
+    )
+    # Assert
+    assert columns == ("1", "2", "3")
+
+
+def test_phone_grip_fills_the_centre_between_44px_arrows():
+    # Arrange
+    phone = _media_block(_dock_css(), "@media (max-width: 640px)")
+    # Act
+    rule = re.search(r"\.site-dock\s*\{([^}]*)\}", phone).group(1)
+    # Assert
+    assert re.search(r"grid-template-columns:\s*44px\s+minmax\(0,\s*1fr\)\s+44px", rule)
