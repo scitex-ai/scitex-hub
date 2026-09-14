@@ -321,8 +321,21 @@ DATABASES = {
         # ("too many clients", site-audit blocker D2). 0 closes the connection
         # at request_finished, matching settings_prod/settings_staging.
         "CONN_MAX_AGE": 0,
+        # Dev is moving onto the scitex store server behind PgBouncer in
+        # transaction mode (scitex-primary:55432), where a server-side cursor
+        # opened by QuerySet.iterator() can land on a different backend than
+        # its FETCH. Matches settings_prod; harmless against a direct postgres.
+        "DISABLE_SERVER_SIDE_CURSORS": True,
         "OPTIONS": {
             "connect_timeout": 10,
+            # On the shared store server the hub lives in its own schema of the
+            # store database (the fleet's per-tenant pattern), so the schema is
+            # chosen per connection. PgBouncer there tracks search_path.
+            **(
+                {"options": f"-c search_path={os.environ['SCITEX_HUB_DB_SCHEMA_DEV']}"}
+                if os.environ.get("SCITEX_HUB_DB_SCHEMA_DEV")
+                else {}
+            ),
         },
     }
 }
