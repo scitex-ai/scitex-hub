@@ -26,6 +26,13 @@ setTimeout(function() {
   var items = document.querySelectorAll('#ai-setup-content .stx-app-miller__item');
   var detail = document.getElementById('ai-setup-detail-col');
   if (!detail || !items.length) return;
+  // Item names come from the DOM; set them as text so they are never parsed as HTML.
+  function showEmpty(text) {
+    var box = document.createElement('div');
+    box.className = 'stx-app-miller__detail-empty';
+    box.textContent = text;
+    detail.replaceChildren(box);
+  }
   items.forEach(function(item) {
     item.addEventListener('click', function() {
       items.forEach(function(i) { i.classList.remove('stx-app-miller__item--active'); });
@@ -43,10 +50,10 @@ setTimeout(function() {
               : '\x3cpre>' + data.content.replace(/&/g, '&amp;').replace(/\x3c/g, '&lt;').replace(/\x3e/g, '&gt;') + '\x3c/pre>';
             detail.innerHTML = '\x3cdiv class="stx-app-miller__detail-content">' + html + '\x3c/div>';
           } else {
-            detail.innerHTML = '\x3cdiv class="stx-app-miller__detail-empty">{% trans "No detail for" as no_detail_label %}{{ no_detail_label|escapejs }} ' + name + '\x3c/div>';
+            showEmpty('{% trans "No detail for" as no_detail_label %}{{ no_detail_label|escapejs }} ' + name);
           }
         })
-        .catch(function() { detail.innerHTML = '\x3cdiv class="stx-app-miller__detail-empty">{% trans "Failed" as failed_label %}{{ failed_label|escapejs }}\x3c/div>'; });
+        .catch(function() { showEmpty('{% trans "Failed" as failed_label %}{{ failed_label|escapejs }}'); });
     });
   });
 }, 0);
