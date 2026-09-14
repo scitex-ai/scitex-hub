@@ -5349,3 +5349,75 @@ msgstr "Console"
 #: templates/global_base_partials/global_header.html
 msgid "Sign Out"
 msgstr "ログアウト"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
+msgid "Card registration opens soon"
+msgstr "カード登録はまもなく開始します"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
+msgid "Welcome! Add a card to start your 30-day trial. Nothing is charged during the trial."
+msgstr "ようこそ。カードを登録して 30 日間のトライアルを開始してください。トライアル期間中の請求はありません。"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
+msgid "Trial"
+msgstr "トライアル"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
+msgid "Your trial has been converted to a paid plan."
+msgstr "トライアルは有料プランに移行しました。"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
+msgid "Your free trial is active until %(end)s. Nothing is charged unless you choose a plan."
+msgstr "無料トライアルは %(end)s まで有効です。プランを選択しない限り請求はありません。"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
+msgid "Your free trial ended on %(end)s."
+msgstr "無料トライアルは %(end)s に終了しました。"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
+msgid "Card received. Stripe is confirming it; refresh this page in a few seconds."
+msgstr "カードを受け付けました。Stripe で確認中です。数秒後にこのページを再読み込みしてください。"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
+msgid "Plan"
+msgstr "プラン"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
+msgid "Ends on %(end)s; it will not renew."
+msgstr "%(end)s に終了し、更新されません。"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
+msgid "Renews on %(end)s."
+msgstr "%(end)s に更新されます。"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
+msgid "Cancel plan"
+msgstr "プランを解約"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
+msgid "Add a card first; then you can choose a plan here."
+msgstr "先にカードを登録すると、ここでプランを選択できます。"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
+msgid "Prices include tax. Choosing a plan during the trial bills the first month from your registration date."
+msgstr "価格はすべて税込です。トライアル期間中にプランを選択すると、初回 1 か月分を登録日から課金します。"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
+msgid "Online plan selection opens soon."
+msgstr "オンラインでのプラン選択はまもなく開始します。"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
+msgid "Invoices and payment details"
+msgstr "請求書とお支払い情報"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
+msgid "Open billing portal"
+msgstr "お支払いポータルを開く"
+
+#: apps/infra/public_app/views/billing.py
+msgid "Your plan is active. Thank you for subscribing."
+msgstr "プランが有効になりました。ご契約ありがとうございます。"
+
+#: apps/infra/public_app/views/billing.py
+msgid "Your plan will end at the close of the current billing period."
+msgstr "プランは現在の請求期間の終了時に終了します。"
