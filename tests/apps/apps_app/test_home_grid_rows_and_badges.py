@@ -155,7 +155,15 @@ class HomePagesTest(TestCase):
         # Act
         names = [c.get("name") for c in groups[0]["cells"] if not c.get("is_planned")]
         # Assert
-        assert names == ["home", "agents", "todo", "storage"]
+        assert names == ["home", "agents", "todo", "storage", "files"]
+
+    def test_files_placeholder_is_gone_once_the_files_app_exists(self):
+        # Arrange
+        groups = self._groups()
+        # Act
+        names = [c.get("name") for g in groups for c in g["cells"] if c.get("is_planned")]
+        # Assert
+        assert "files" not in names
 
     def test_first_row_is_exactly_the_four_infrastructure_apps(self):
         # Rows of 4 at every width: the first band's first row.

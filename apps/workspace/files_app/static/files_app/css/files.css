@@ -1,0 +1,509 @@
+/* Files app (/apps/files/). Phone-first: one list, 44px tap targets,
+   actions in a bottom sheet; desktop adds a side preview. */
+
+.files-app,
+.files-layer {
+  --files-tap: 44px;
+  --files-radius: 10px;
+  --files-bg: var(--workspace-bg-primary, var(--bg-primary, #fff));
+  --files-surface: var(--workspace-bg-secondary, #f6f7f9);
+  --files-surface-2: var(--workspace-bg-tertiary, #eceef2);
+  --files-border: var(--workspace-border-default, var(--border-color, #d9dde3));
+  --files-text: var(--workspace-text-primary, var(--text-primary, #1d2330));
+  --files-muted: var(--workspace-text-muted, var(--text-muted, #6b7280));
+  --files-accent: var(--accent, #3b6fd8);
+  --files-danger: var(--color-danger, #d64545);
+}
+
+.files-app {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  /* Keeps the scrolling places row from widening the workspace pane. */
+  contain: inline-size;
+  min-width: 0;
+  padding-block: 16px 96px;
+  padding-inline: 16px;
+  color: var(--files-text);
+  position: relative;
+}
+
+.files-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.files-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.files-toolbar {
+  display: flex;
+  gap: 8px;
+}
+
+.files-hidden-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.files-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--files-tap);
+  padding: 0 16px;
+  border: 1px solid var(--files-border);
+  border-radius: var(--files-radius);
+  background: var(--files-surface);
+  color: var(--files-text);
+  font: inherit;
+  font-size: 0.95rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.files-btn:hover {
+  filter: brightness(1.12);
+}
+
+.files-btn:focus-visible,
+.files-place:focus-visible,
+.files-row-main:focus-visible,
+.files-row-more:focus-visible,
+.files-crumb:focus-visible,
+.files-sheet-action:focus-visible {
+  outline: 2px solid var(--files-accent);
+  outline-offset: 2px;
+}
+
+.files-btn-primary {
+  background: var(--files-accent);
+  border-color: var(--files-accent);
+  color: #fff;
+}
+
+.files-btn-danger {
+  background: var(--files-danger);
+  border-color: var(--files-danger);
+  color: #fff;
+}
+
+.files-places {
+  display: flex;
+  max-width: 100%;
+  gap: 8px;
+  margin-top: 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.files-place {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--files-tap);
+  padding: 0 14px;
+  border: 1px solid var(--files-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--files-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.files-place.is-active {
+  background: var(--files-accent);
+  border-color: var(--files-accent);
+  color: #fff;
+}
+
+.files-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  margin-top: 12px;
+  color: var(--files-muted);
+}
+
+.files-crumb {
+  min-height: var(--files-tap);
+  padding: 0 8px;
+  border: 0;
+  background: transparent;
+  color: var(--files-accent);
+  font: inherit;
+  cursor: pointer;
+}
+
+.files-crumb[aria-current="page"] {
+  color: var(--files-text);
+  font-weight: 600;
+}
+
+.files-status {
+  min-height: 1.2em;
+  margin: 4px 0;
+  color: var(--files-muted);
+  font-size: 0.9rem;
+}
+
+.files-status-error {
+  color: var(--files-danger);
+}
+
+.files-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.files-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--files-border);
+  border-radius: var(--files-radius);
+  background: var(--files-bg);
+  overflow: hidden;
+}
+
+.files-row {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--files-border);
+}
+
+.files-row:last-child {
+  border-bottom: 0;
+}
+
+.files-row-main {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 56px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.files-row-main:hover,
+.files-row-more:hover {
+  background: var(--files-surface);
+}
+
+.files-row-icon {
+  width: 24px;
+  color: var(--files-accent);
+  font-size: 1.15rem;
+  text-align: center;
+}
+
+.files-row-text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.files-row-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.files-row-meta {
+  color: var(--files-muted);
+  font-size: 0.8rem;
+}
+
+.files-row-more {
+  width: 52px;
+  min-height: var(--files-tap);
+  border: 0;
+  background: transparent;
+  color: var(--files-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.files-empty {
+  padding: 32px 16px;
+  color: var(--files-muted);
+  text-align: center;
+}
+
+.files-preview {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--files-border);
+  border-radius: var(--files-radius);
+  background: var(--files-bg);
+  overflow: hidden;
+}
+
+.files-preview[hidden] {
+  display: none;
+}
+
+.files-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 4px 4px 12px;
+  border-bottom: 1px solid var(--files-border);
+}
+
+.files-preview-name {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.files-icon-btn {
+  width: var(--files-tap);
+  height: var(--files-tap);
+  border: 0;
+  border-radius: var(--files-radius);
+  background: transparent;
+  color: var(--files-text);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.files-preview-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  overflow: auto;
+}
+
+.files-preview-media {
+  max-width: 100%;
+  max-height: 70vh;
+  align-self: center;
+  object-fit: contain;
+}
+
+.files-preview-audio {
+  width: 100%;
+}
+
+.files-preview-frame {
+  width: 100%;
+  height: 70vh;
+  border: 0;
+}
+
+.files-preview-text {
+  max-height: 70vh;
+  margin: 0;
+  padding: 12px;
+  border-radius: 6px;
+  background: var(--files-surface);
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow: auto;
+}
+
+.files-preview-none {
+  color: var(--files-muted);
+}
+
+.files-preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.files-drop-hint {
+  position: fixed;
+  inset: 16px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px dashed var(--files-accent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--files-bg) 85%, transparent);
+  font-size: 1.2rem;
+  pointer-events: none;
+}
+
+.files-drop-hint[hidden],
+.files-sheet-backdrop[hidden] {
+  display: none;
+}
+
+.files-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  /* Above the site dock (z-index 10050), which would cover the last actions. */
+  z-index: 10100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgb(0 0 0 / 45%);
+}
+
+.files-sheet {
+  width: 100%;
+  max-height: 85vh;
+  padding: 8px 16px calc(16px + env(safe-area-inset-bottom));
+  border-radius: 16px 16px 0 0;
+  background: var(--files-bg);
+  color: var(--files-text);
+  overflow-y: auto;
+}
+
+.files-sheet-grip {
+  width: 40px;
+  height: 4px;
+  margin: 4px auto 8px;
+  border-radius: 2px;
+  background: var(--files-border);
+}
+
+.files-sheet-title {
+  margin: 4px 0 8px;
+  overflow: hidden;
+  font-size: 1rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.files-sheet-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.files-sheet-action {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 52px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.files-sheet-action i {
+  width: 22px;
+  text-align: center;
+}
+
+.files-sheet-action:hover {
+  background: var(--files-surface);
+}
+
+.files-sheet-action.is-danger {
+  color: var(--files-danger);
+}
+
+.files-sheet-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.files-sheet-input {
+  min-height: var(--files-tap);
+  padding: 0 12px;
+  border: 1px solid var(--files-border);
+  border-radius: var(--files-radius);
+  background: var(--files-surface);
+  color: var(--files-text);
+  font: inherit;
+  font-size: 16px; /* below 16px iOS zooms the page on focus */
+}
+
+.files-sheet-message {
+  margin: 0 0 12px;
+}
+
+.files-sheet-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 767px) {
+  .files-title {
+    font-size: 1.2rem;
+  }
+
+  .files-toolbar {
+    flex: 1 1 100%;
+  }
+
+  .files-toolbar .files-btn {
+    flex: 1;
+  }
+
+  /* Phone: the preview replaces the list in the page flow. */
+  .files-previewing .files-list {
+    display: none;
+  }
+
+  .files-preview-content {
+    padding-bottom: 112px; /* clear the site dock */
+  }
+}
+
+@media (min-width: 768px) {
+  .files-sheet-backdrop {
+    align-items: center;
+  }
+
+  .files-sheet {
+    width: min(420px, calc(100% - 32px));
+    border-radius: 16px;
+  }
+
+  .files-sheet-grip {
+    display: none;
+  }
+
+  .files-previewing .files-body {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    align-items: start;
+  }
+
+  .files-previewing .files-preview {
+    position: sticky;
+    top: 16px;
+    max-height: calc(100vh - 32px);
+  }
+}

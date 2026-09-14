@@ -26,6 +26,7 @@ _CATEGORY_MAP = {
     "docs": "reference",
     "todo": "utility",
     "storage": "data",
+    "files": "data",
 }
 
 # Module descriptions
@@ -42,6 +43,7 @@ _DESCRIPTIONS = {
     "docs": "Documentation hub — Python packages, MCP tools, API reference, and self-hosting guide.",
     "todo": "Read-only board view of your project's task cards (scitex-todo store) — kanban columns, dependency graph, and status colors.",
     "storage": "Browse your storage across the machines you can reach.",
+    "files": "Your whole SciTeX workspace: Downloads, Recordings and every project folder.",
 }
 
 # Modules under active development
