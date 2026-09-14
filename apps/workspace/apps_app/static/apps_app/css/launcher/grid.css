@@ -1,13 +1,60 @@
 /* ---------- App grid ----------
    --launcher-cols is the ONE column count: the flat (no-JS) grid and every
    page of the pager use it, and launcher/pager.ts reads it back to size pages,
-   so the page maths cannot drift from what CSS lays out. */
+   so the page maths cannot drift from what CSS lays out.
+
+   4 at EVERY width (operator, 2026-09-14): the launcher order is designed in
+   rows of 4, one group per row (views/launcher_order.py LAUNCHER_GROUPS), and
+   empty .launcher-slot cells finish a short group's row. 6 columns made the
+   groups interleave. On a desktop the grid is centred at a max-width with
+   larger icons instead (below). */
 .launcher-grid {
-  --launcher-cols: 6;
-  display: grid;
-  grid-template-columns: repeat(var(--launcher-cols), 1fr);
-  gap: 26px 14px;
+  --launcher-cols: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   margin-bottom: 12px;
+}
+
+/* ---------- Group bands (operator, 2026-09-14) ----------
+   Foundation / Work / System, each its own 4-column grid on a soft tinted
+   rounded band, like iOS widget stacks. App icon colours are unchanged; the
+   tint is low-alpha so tile names keep their contrast. Three distinct hues,
+   with a light and a dark variant. */
+.launcher-group {
+  --launcher-band: transparent;
+  display: grid;
+  grid-template-columns: repeat(var(--launcher-cols, 4), minmax(0, 1fr));
+  grid-auto-rows: min-content;
+  align-content: start;
+  gap: 22px 8px;
+  padding: 12px 8px;
+  border-radius: 24px;
+  background: var(--launcher-band);
+}
+
+.launcher-group[data-group="foundation"] {
+  --launcher-band: rgba(59, 130, 246, 0.08); /* blue */
+}
+
+.launcher-group[data-group="work"] {
+  --launcher-band: rgba(16, 185, 129, 0.08); /* green */
+}
+
+.launcher-group[data-group="system"] {
+  --launcher-band: rgba(245, 158, 11, 0.09); /* amber */
+}
+
+[data-theme="dark"] .launcher-group[data-group="foundation"] {
+  --launcher-band: rgba(96, 165, 250, 0.1);
+}
+
+[data-theme="dark"] .launcher-group[data-group="work"] {
+  --launcher-band: rgba(52, 211, 153, 0.09);
+}
+
+[data-theme="dark"] .launcher-group[data-group="system"] {
+  --launcher-band: rgba(251, 191, 36, 0.09);
 }
 
 .launcher-tile {
@@ -336,95 +383,4 @@
 .launcher-tile.popover-anchor .launcher-tile-icon {
   outline: 2px solid var(--app-accent-hub, #6a5a8a);
   outline-offset: 3px;
-}
-
-/* ---------- Edit / rearrange mode (iPhone-home jiggle + drag) ----------
-   Long-press (touch) or the right-click "Rearrange" action toggles
-   .edit-mode on the grid: every tile wiggles and can be dragged to a new
-   slot. Order persists via POST api/reorder/ on exit (see launcher.ts). */
-@keyframes launcher-jiggle {
-  0% {
-    transform: rotate(-1.15deg);
-  }
-  50% {
-    transform: rotate(1.15deg);
-  }
-  100% {
-    transform: rotate(-1.15deg);
-  }
-}
-
-.launcher-grid.edit-mode .launcher-tile {
-  animation: launcher-jiggle 0.24s ease-in-out infinite;
-  cursor: grab;
-  /* A press that starts on a tile drags it — never scrolls the page. */
-  touch-action: none;
-}
-
-/* Stagger the phase so tiles don't wiggle in lockstep (more organic). */
-.launcher-grid.edit-mode .launcher-tile:nth-child(2n) {
-  animation-duration: 0.26s;
-  animation-delay: -0.13s;
-}
-
-.launcher-grid.edit-mode .launcher-tile:nth-child(3n) {
-  animation-duration: 0.22s;
-  animation-delay: -0.07s;
-}
-
-/* The hover lift fights the jiggle — suppress it while editing. */
-.launcher-grid.edit-mode .launcher-tile:hover .launcher-tile-icon {
-  transform: none;
-}
-
-/* The tile being dragged: KEEPS wiggling (iOS does — the icon under your
-   finger goes on jiggling), floats above, scales up. It inherits the
-   launcher-jiggle animation from the .edit-mode rule above; do NOT set
-   `animation: none` here (that froze the very tile you are moving). The
-   jiggle rotates the TILE while the scale/shadow below lift the ICON, so
-   the two transforms never fight. */
-.launcher-grid.edit-mode .launcher-tile.dragging {
-  z-index: 5;
-  cursor: grabbing;
-  opacity: 0.96;
-  /* Let elementFromPoint see the tile beneath the one being dragged. */
-  pointer-events: none;
-}
-
-.launcher-grid.edit-mode .launcher-tile.dragging .launcher-tile-icon {
-  transform: scale(1.14);
-  box-shadow:
-    0 18px 44px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
-}
-
-/* NOTE: the floating "Done" pill was REMOVED (operator, 2026-07-13: it read
-   as meaningless). Edit mode now exits by tapping anywhere OUTSIDE a tile,
-   or Escape — see launcher.ts. Do not reintroduce a Done button. */
-
-/* Reduced motion: drop the wobble, but NEVER leave edit mode invisible.
-   A bare `animation: none` here removed the only signal that the grid had
-   become editable — a user with "reduce motion" on (a very common setting)
-   long-pressed and saw nothing happen. Keep the affordance, lose the motion:
-   a frozen alternating tilt plus a dashed ring reads as "these are pick-up-able"
-   without anything moving. Drag-to-reorder is unaffected either way. */
-@media (prefers-reduced-motion: reduce) {
-  .launcher-grid.edit-mode .launcher-tile {
-    animation: none;
-    transform: rotate(-1.2deg);
-  }
-
-  .launcher-grid.edit-mode .launcher-tile:nth-child(2n) {
-    transform: rotate(1.2deg);
-  }
-
-  .launcher-grid.edit-mode .launcher-tile .launcher-tile-icon {
-    outline: 2px dashed var(--app-accent-hub, #6a5a8a);
-    outline-offset: 3px;
-  }
-
-  /* The lifted tile stays upright so it reads as "held". */
-  .launcher-grid.edit-mode .launcher-tile.dragging {
-    transform: none;
-  }
 }

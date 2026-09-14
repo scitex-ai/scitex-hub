@@ -6,7 +6,9 @@ Captures /apps/, /apps/home/, /apps/discovery/ and a leaf page
 1920x1080, in dark and light, signed in as the probe user. Writes PNGs to --out
 and prints one JSON geometry probe per capture, covering what the operator
 checked by eye on 2026-09-14:
-  * first-row tile count (a single column at 1920 was reported);
+  * first-row tile count and modules (a single column at 1920 was reported;
+    the first row must be the 4 Foundation apps at every width);
+  * the group bands per page (Foundation / Work / System);
   * whether "ALL APPS" is clipped under the header;
   * visible page arrows (must be 0 on the phone);
   * globe and desktop-only badge size as a fraction of the icon;
@@ -73,6 +75,8 @@ PROBE = """() => {
     .map(el => (el.id || String(el.className)).slice(0, 40)) : null;
   return {
     firstRowTiles: firstRow, tiles: tiles.length,
+    firstRowModules: tiles.filter(t => Math.abs(Math.round(t.getBoundingClientRect().top) - firstTop) < 4).map(t => t.dataset.module),
+    bands: [...document.querySelectorAll('.launcher-group')].map(b => (b.dataset.group || '-') + ':' + b.querySelectorAll('.launcher-tile').length + (b.getBoundingClientRect().right > innerWidth ? '(offscreen)' : '')),
     pageDisplay: page ? getComputedStyle(page).display + ' cols=' + getComputedStyle(page).gridTemplateColumns.split(' ').length : null,
     pages: document.querySelectorAll('.launcher-page').length,
     arrowsVisible: [...document.querySelectorAll('.launcher-page-arrow')].filter(vis).length,

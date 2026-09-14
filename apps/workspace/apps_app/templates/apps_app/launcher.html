@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="{% static 'apps_app/css/launcher/core.css' %}?v={{ build_id }}" />
     <link rel="stylesheet" href="{% static 'apps_app/css/launcher/grid.css' %}?v={{ build_id }}" />
     <link rel="stylesheet" href="{% static 'apps_app/css/launcher/mobile.css' %}?v={{ build_id }}" />
+    <link rel="stylesheet" href="{% static 'apps_app/css/launcher/edit-mode.css' %}?v={{ build_id }}" />
 {% endblock %}
 {% block content %}
     <div class="launcher" id="app-launcher" data-max-pins="{{ max_pins }}">
@@ -54,36 +55,17 @@
                 <i class="fas fa-chevron-left" aria-hidden="true"></i>
             </button>
             <div class="launcher-grid" id="launcher-grid">
-                {% for tile in tiles %}
-                    {# Availability is a registry/catalog FIELD (operator, Telegram #}
-                    {# 1483) — the template only renders it. Coming-soon tiles get #}
-                    {# no href at all: an <a> without href neither navigates nor   #}
-                    {# focuses as a link, while the press-in tap effect survives.  #}
-                    <a {% if tile.is_launchable %}href="{{ tile.launch_url }}"{% else %}aria-disabled="true"{% endif %}
-                       class="launcher-tile"
-                       draggable="false"
-                       data-module="{{ tile.name }}"
-                       data-category="{{ tile.category }}"
-                       data-label="{{ tile.label }}"
-                       data-availability="{{ tile.availability }}"
-                       data-installed="{% if tile.is_installed %}1{% else %}0{% endif %}"
-                       data-pinned="{% if tile.is_pinned %}1{% else %}0{% endif %}"
-                       data-detail-url="{{ tile.detail_url }}"
-                       data-version="{{ tile.version }}"
-                       {% if tile.is_link %}data-link-only="1"{% endif %}
-                       {% if tile.is_dev_only %}data-dev-only="1"{% endif %}
-                       title="{{ tile.label }}{% if tile.version_label %} {{ tile.version_label }}{% endif %}{% if tile.availability == 'coming_soon' %} — Coming Soon{% endif %}{% if tile.description %} — {{ tile.description }}{% endif %}">
-                        {% if tile.is_installed %}<span class="launcher-dot-installed" title="Installed"></span>{% endif %}
-                        <span class="launcher-tile-icon" data-tile-category="{{ tile.category }}">
-                            <i class="{{ tile.icon_fa }}" aria-hidden="true"></i>
-                            {% if tile.icon_badge %}
-                                <span class="launcher-tile-icon-badge" aria-hidden="true"><i class="{{ tile.icon_badge }}"></i></span>
-                            {% endif %}
-                            {% include "apps_app/partials/launcher_tile_badges.html" %}
-                        </span>
-                        <span class="launcher-tile-name">{% trans tile.label context "app name" %}</span>
-                        {% if tile.version_label %}<span class="launcher-tile-version">{{ tile.version_label }}</span>{% endif %}
-                    </a>
+                {# One band per group (Foundation / Work / System, operator    #}
+                {# 2026-09-14): a 4-column grid with a soft group tint. Labels  #}
+                {# are aria-only for now (data-group carries the key, so a CSS  #}
+                {# ::before can show them later). pager.ts re-packs the bands   #}
+                {# into pages without ever splitting a row.                      #}
+                {% for group in groups %}
+                    <div class="launcher-group" role="group" data-group="{{ group.key }}" aria-label="{% trans group.label %}">
+                        {% for tile in group.cells %}
+                            {% include "apps_app/partials/launcher_tile.html" %}
+                        {% endfor %}
+                    </div>
                 {% endfor %}
             </div>
             <button type="button"

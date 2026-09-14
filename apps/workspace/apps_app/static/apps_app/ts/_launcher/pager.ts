@@ -19,6 +19,8 @@
  * scroll-snap does the actual paging (launcher/mobile.css).
  */
 
+import { packGroups, planSignature } from "./group-pack";
+
 // Never build a page shorter than this; below it, paging is worse than nothing.
 const MIN_PAGE_HEIGHT = 200;
 // Drag within this many px of an edge for EDGE_DWELL_MS to flip the page.
@@ -61,19 +63,23 @@ export function computePageLayout(input: PageLayoutInput): PageLayout {
 }
 
 /**
- * Column count for the current viewport. launcher/grid.css declares it as
- * --launcher-cols (6, 5 at <=960px, 4 at <=640px); the same breakpoints are
- * the fallback where the custom property cannot be read (jsdom).
+ * The grid is 4 columns at EVERY width (operator 2026-09-14: the launcher
+ * order is designed in rows of 4, one group per row; 6 columns interleaved
+ * the groups). launcher/grid.css declares it as --launcher-cols; 4 is also
+ * the fallback where the property cannot be read (jsdom, pre-layout).
  */
-export function readColumns(grid: HTMLElement, viewportWidth: number): number {
+export const LAUNCHER_COLUMNS = 4;
+
+export function readColumns(
+  grid: HTMLElement,
+  _viewportWidth?: number,
+): number {
   const declared = parseInt(
     getComputedStyle(grid).getPropertyValue("--launcher-cols"),
     10,
   );
   if (Number.isFinite(declared) && declared > 0) return declared;
-  if (viewportWidth <= 640) return 4;
-  if (viewportWidth <= 960) return 5;
-  return 6;
+  return LAUNCHER_COLUMNS;
 }
 
 /** Below this width the arrows never show (matches launcher/mobile.css). */
@@ -103,8 +109,7 @@ export class LauncherPager {
   private edgeDir: -1 | 1 | 0 = 0;
   // Last computed page capacity, so a re-measure that changes nothing does not
   // rebuild the DOM (the ResizeObserver below can fire often).
-  private lastPerPage = 0;
-  private lastPageCount = 0;
+  private lastSignature = "";
 
   constructor(
     grid: HTMLElement,
@@ -168,11 +173,21 @@ export class LauncherPager {
     return this.grid.classList.contains("launcher-grid--paged");
   }
 
-  /** Every tile, in flat visual order, regardless of page. */
+  /**
+   * Every grid CELL, in flat visual order, regardless of page: the tiles plus
+   * the empty .launcher-slot cells that keep each group on its own row. Slots
+   * count toward a page's capacity, so page boundaries stay on row boundaries.
+   */
   private tiles(): HTMLElement[] {
     return Array.from(
-      this.grid.querySelectorAll<HTMLElement>(".launcher-tile"),
+      this.grid.querySelectorAll<HTMLElement>(".launcher-tile, .launcher-slot"),
     );
+  }
+
+  /** Gap between two bands on a page (launcher/mobile.css .launcher-page row-gap). */
+  private pageGap(): string {
+    const page = this.grid.querySelector<HTMLElement>(".launcher-page");
+    return page ? getComputedStyle(page).rowGap : "12";
   }
 
   private pageCount(): number {
@@ -191,44 +206,87 @@ export class LauncherPager {
    * that after a drop moved a tile between pages.
    */
   private page(force = false): void {
-    const tiles = this.tiles();
-    if (!tiles.length) return;
+    const cells = this.tiles();
+    if (!cells.length) return;
 
-    const { perPage, pageCount } = computePageLayout({
-      available: this.availableHeight(),
-      tileHeight: tiles[0].offsetHeight,
-      rowGap: parseFloat(getComputedStyle(this.grid).rowGap) || 22,
-      cols: readColumns(this.grid, window.innerWidth),
-      tileCount: tiles.length,
+    // Cells grouped by their band (Foundation / Work / System). A grid without
+    // bands (tests, older markup) is one unlabelled group.
+    const groups: { key: string; label: string; cells: HTMLElement[] }[] = [];
+    cells.forEach((cell) => {
+      const band = cell.closest<HTMLElement>(".launcher-group");
+      const key = band?.dataset.group ?? "";
+      const label = band?.getAttribute("aria-label") ?? "";
+      const last = groups[groups.length - 1];
+      if (last && last.key === key) last.cells.push(cell);
+      else groups.push({ key, label, cells: [cell] });
     });
+
+    const band = this.grid.querySelector<HTMLElement>(".launcher-group");
+    const bandStyle = band ? getComputedStyle(band) : null;
+    const gridStyle = getComputedStyle(this.grid);
+    const rowGap =
+      parseFloat(bandStyle?.rowGap ?? "") || parseFloat(gridStyle.rowGap) || 22;
+    const plan = packGroups(
+      groups.map((g) => ({
+        key: g.key,
+        label: g.label,
+        count: g.cells.length,
+      })),
+      {
+        available: this.availableHeight(),
+        cols: readColumns(this.grid, window.innerWidth),
+        rowHeight:
+          this.grid.querySelector<HTMLElement>(".launcher-tile")
+            ?.offsetHeight ?? 0,
+        rowGap,
+        bandPadding: bandStyle
+          ? (parseFloat(bandStyle.paddingTop) || 0) +
+            (parseFloat(bandStyle.paddingBottom) || 0)
+          : 0,
+        groupGap: parseFloat(this.pageGap()) || 0,
+      },
+    );
+    const signature = planSignature(plan);
     const scrollLeft = this.grid.scrollLeft;
 
     this.grid.classList.add("launcher-grid--paged");
 
     if (
       !force &&
-      perPage === this.lastPerPage &&
-      pageCount === this.lastPageCount &&
+      signature === this.lastSignature &&
       this.grid.querySelector(".launcher-page")
     ) {
       return;
     }
-    this.lastPerPage = perPage;
-    this.lastPageCount = pageCount;
+    this.lastSignature = signature;
 
-    this.grid
-      .querySelectorAll(".launcher-page")
-      .forEach((page) => page.remove());
-
-    for (let i = 0; i < pageCount; i++) {
+    // Old CONTAINERS only (pages, bands); a flat grid's cells are direct
+    // children too, and they are about to be moved, not removed.
+    const cellSet = new Set<Element>(cells);
+    const old = Array.from(this.grid.children).filter((el) => !cellSet.has(el));
+    plan.forEach((chunks) => {
       const page = document.createElement("div");
       page.className = "launcher-page";
-      tiles.slice(i * perPage, (i + 1) * perPage).forEach((t) => {
-        page.appendChild(t);
+      chunks.forEach((chunk) => {
+        const source = groups.find((g) => g.key === chunk.key);
+        if (!source) return;
+        const bandEl = document.createElement("div");
+        bandEl.className = "launcher-group";
+        if (chunk.key) {
+          bandEl.dataset.group = chunk.key;
+          bandEl.setAttribute("role", "group");
+          if (chunk.label) bandEl.setAttribute("aria-label", chunk.label);
+        }
+        source.cells.slice(chunk.start, chunk.end).forEach((c) => {
+          bandEl.appendChild(c);
+        });
+        page.appendChild(bandEl);
       });
       this.grid.appendChild(page);
-    }
+    });
+    old.forEach((el) => el.remove());
 
+    const pageCount = plan.length;
     this.buildDots(pageCount);
     // Keep the reader where they were across a relayout (e.g. rotation).
     this.grid.scrollLeft = scrollLeft;

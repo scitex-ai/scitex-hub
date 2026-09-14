@@ -5280,6 +5280,17 @@ msgstr "戻る"
 msgid "Forward"
 msgstr "進む"
 
+# Home grid groups (aria-label only for now; operator 2026-09-14).
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+msgid "Foundation"
+msgstr "基盤"
+
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+msgid "Work"
+msgstr "作業"
+
+# "System" is already in this catalog (システム); the launcher reuses it.
+
 #: apps/workspace/apps_app/templates/apps_app/launcher.html
 msgid "Previous page"
 msgstr "前のページ"

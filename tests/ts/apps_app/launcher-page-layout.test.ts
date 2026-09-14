@@ -36,15 +36,17 @@ describe("computePageLayout", () => {
     expect(layout).toEqual({ rows: 2, perPage: 8, pageCount: 2 });
   });
 
-  it("uses six columns on a 1440px desktop", () => {
+  it("keeps four columns on a desktop, varying only the rows that fit", () => {
+    // Operator 2026-09-14: the same app sits at the same grid position on every
+    // device, so only the ROW count per page may differ with viewport height.
     const layout = computePageLayout({
-      available: 640,
-      tileHeight: 112,
-      rowGap: 26,
-      cols: 6,
+      available: 700,
+      tileHeight: 130,
+      rowGap: 30,
+      cols: 4,
       tileCount: 16,
     });
-    expect(layout).toEqual({ rows: 4, perPage: 24, pageCount: 1 });
+    expect(layout).toEqual({ rows: 4, perPage: 16, pageCount: 1 });
   });
 
   it("never returns zero rows, even with no room at all", () => {

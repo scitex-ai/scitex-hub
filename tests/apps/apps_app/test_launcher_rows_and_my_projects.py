@@ -44,26 +44,25 @@ from apps.workspace.apps_app.views.launcher_order import (
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 
 EXPECTED_TILE_ORDER = [
-    # infrastructure
+    # FOUNDATION (operator groups, 2026-09-14 16:3xZ)
     "My Projects",
     "Public Projects",
     "Agents",
     "Cards",
-    # applications (Stats keeps its slot until its app lands)
+    "Storage",
+    # WORK (Stats keeps its slot until its app lands)
     "Scholar",
     "FigRecipe",
     "stats",
     "Writer",
-    # chat / settings / tools
     "Chat",
-    "Settings",
     "Tools",
     "Console",
     "Clew",
-    # last
+    # SYSTEM
+    "Settings",
     "Docs",
     "App Store",
-    "Storage",
 ]
 
 

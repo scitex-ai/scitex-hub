@@ -30,6 +30,7 @@ from .helpers import (
 )
 from .launcher_order import DEFAULT_LAUNCHER_ORDER  # noqa: F401  (re-export)
 from .launcher_order import default_order_value as _default_order_value
+from .launcher_order import group_cells, group_of, group_rank
 
 # Sidebar pin state lives in launcher_pins.py; re-exported so existing imports
 # (views/__init__.py, the workspace context processor, tests) keep working.
@@ -324,14 +325,19 @@ def _build_tiles(request) -> list[dict]:
         )
         seen.add(link.name)
 
-    # Apply order: explicit per-user positions win; otherwise the curated
-    # default. Ties break by label so the grid render is deterministic.
+    # Apply order: the GROUP first (groups never interleave, operator
+    # 2026-09-14), then explicit per-user positions, then the curated default.
+    # Ties break by label so the grid render is deterministic.
     tiles.sort(
         key=lambda t: (
+            group_rank(t["name"]),
             user_orders.get(t["name"], _default_order_value(t["name"])),
             t["label"].lower(),
         )
     )
+    for tile in tiles:
+        tile["user_ordered"] = tile["name"] in user_orders
+        tile["group"] = group_of(tile["name"])
     return tiles
 
 
@@ -341,6 +347,9 @@ def launcher_context(request) -> dict:
     tiles = _build_tiles(request)
     return {
         "tiles": tiles,
+        # Groups of 4-column cells (launcher_order.group_cells), each rendered
+        # as its own role="group" band.
+        "groups": group_cells(tiles),
         "installed_count": sum(1 for t in tiles if t["is_installed"]),
         "max_pins": MAX_PINNED_MODULES,
         # Guest mode: visitors see tiles + a prominent Sign in / Sign up CTA.
