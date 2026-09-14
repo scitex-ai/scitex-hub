@@ -152,6 +152,11 @@ urlpatterns = [
         name="first_run_dismiss",
     ),
     path(
+        "apps/getting-started/reshow/",
+        first_run_views.reshow,
+        name="first_run_reshow",
+    ),
+    path(
         "apps/getting-started/<str:step_key>/",
         first_run_views.follow_step,
         name="first_run_step",
@@ -272,6 +277,7 @@ urlpatterns = [
     ),
     path("apps/llm/", include(("apps.infra.llm_app.urls", "llm_app"))),
     path("apps/clew/", include(("apps.workspace.clew_app.urls", "clew_app"))),
+    path("apps/slides/", include(("apps.workspace.slides_app.urls", "slides_app"))),
     path("apps/store/", include(("apps.workspace.apps_app.urls", "apps_app"))),
     path("apps/comms/", include(("apps.workspace.comms_app.urls", "comms_app"))),
     # --- Dev-installed app modules (/apps/dev__<owner>__<repo>/) ---

@@ -176,6 +176,19 @@
   background: rgba(177, 186, 196, 0.08);
 }
 
+.chat-welcome-btn.recording,
+#pane-chat .stx-shell-ai-mic.recording {
+  color: #fff;
+  background: var(--color-danger, #da3633);
+  animation: chat-mic-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes chat-mic-pulse {
+  50% {
+    opacity: 0.7;
+  }
+}
+
 /* ── Quick action shortcuts ────────────────────────────────── */
 .chat-welcome-shortcuts {
   display: flex;

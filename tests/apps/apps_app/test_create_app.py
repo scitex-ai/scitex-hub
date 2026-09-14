@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""+ Create app: private project scaffold, safe "Apply to file", owner-only private run."""
+"""App Creator: private project scaffold, safe "Apply to file", owner-only private run."""
 
 import json
 import tempfile
@@ -62,6 +62,30 @@ class CreateAppPageTest(_DataRootTestCase):
 
         # Assert
         assert response.status_code == 200
+
+    def test_create_page_prefills_name_and_description_from_the_query(self):
+        # Arrange
+        self.client.force_login(self.owner)
+
+        # Act
+        form = self.client.get(
+            "/apps/create/", {"name": "Stats", "description": "Run tests"}
+        ).context["form"]
+
+        # Assert
+        assert (form["name"], form["description"]) == ("Stats", "Run tests")
+
+    def test_create_page_prefills_the_planned_brief_by_id(self):
+        # Arrange
+        from apps.workspace.apps_app.planned_apps import PLANNED_BY_ID
+
+        self.client.force_login(self.owner)
+
+        # Act
+        form = self.client.get("/apps/create/", {"brief": "stats"}).context["form"]
+
+        # Assert
+        assert form["description"] == PLANNED_BY_ID["stats"].brief
 
     def test_create_makes_a_private_project(self):
         # Arrange

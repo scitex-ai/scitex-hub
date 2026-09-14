@@ -4,13 +4,7 @@
     <link rel="stylesheet" href="{% static 'shared/css/components/app-icon.css' %}?v={{ build_id }}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/site-dock.css' %}?v={{ build_id }}" />
     <nav class="site-dock" id="site-dock" data-site-dock data-dock-capacity="{{ site_dock_capacity }}" aria-label="{% trans 'Dock' %}">
-        <button type="button"
-                class="site-dock-grabber"
-                data-dock-grabber
-                aria-label="{% trans 'Move dock' %}"
-                title="{% trans 'Move dock (double-click to reset)' %}">
-            <i class="fas fa-grip-vertical" aria-hidden="true"></i>
-        </button>
+        {# Order: Back, grip, apps, Forward. On a phone the apps take row 1 and row 2 reads [<] [grip] [>]. #}
         <button type="button"
                 class="site-dock-item site-dock-history"
                 data-dock-back
@@ -18,6 +12,14 @@
                 title="{% trans 'Back' %}"
                 disabled>
             <i class="fas fa-chevron-left" aria-hidden="true"></i>
+        </button>
+        <button type="button"
+                class="site-dock-grabber"
+                data-dock-grabber
+                aria-label="{% trans 'Move dock' %}"
+                title="{% trans 'Move dock (double-click to reset)' %}">
+            <i class="fas fa-grip-vertical" aria-hidden="true"></i>
+            <span class="site-dock-grabber-dots" aria-hidden="true"></span>
         </button>
         <span class="site-dock-apps" data-dock-apps>
             {% for item in site_dock_items %}
@@ -31,6 +33,7 @@
                     <span class="launcher-tile-icon site-dock-app-icon" data-tile-category="{{ item.category }}" aria-hidden="true">
                         <i class="{{ item.icon }}" aria-hidden="true"></i>
                     </span>
+                    <span class="site-dock-app-label" aria-hidden="true">{% trans item.caption context 'app name' %}</span>
                 </a>
             {% endfor %}
         </span>

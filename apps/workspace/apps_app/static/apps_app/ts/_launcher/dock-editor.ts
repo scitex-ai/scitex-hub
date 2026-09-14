@@ -290,7 +290,11 @@ export class DockEditor {
     ).filter((band) => band.dataset.group === group);
     const lastBand = bands[bands.length - 1];
     if (lastBand) {
-      lastBand.appendChild(tile);
+      // The App Creator "+" slot stays the group's last cell.
+      lastBand.insertBefore(
+        tile,
+        lastBand.querySelector(".launcher-slot--add"),
+      );
       return;
     }
     this.newBandFor(group).appendChild(tile);
@@ -415,5 +419,10 @@ export function dockButtonFromTile(tile: HTMLElement): HTMLAnchorElement {
   const glyph = tile.querySelector(".launcher-tile-icon > i")?.cloneNode(false);
   if (glyph) icon.appendChild(glyph);
   button.appendChild(icon);
+  const label = document.createElement("span");
+  label.className = "site-dock-app-label";
+  label.setAttribute("aria-hidden", "true");
+  label.textContent = name;
+  button.appendChild(label);
   return button;
 }

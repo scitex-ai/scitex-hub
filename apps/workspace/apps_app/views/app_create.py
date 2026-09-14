@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""+ Create app: the create page, the app workspace and its three actions."""
+"""App Creator: the create page, the app workspace and its three actions."""
 
 from __future__ import annotations
 
@@ -33,13 +33,23 @@ logger = logging.getLogger(__name__)
 _MAX_HISTORY = 10
 
 
+def _planned_brief(params) -> str:
+    """The starter brief of the planned app named by ``brief`` (an id), if any."""
+    from ..planned_apps import PLANNED_BY_ID
+
+    planned = PLANNED_BY_ID.get(params.get("brief", ""))
+    return planned.brief if planned else ""
+
+
 @login_required
 @require_http_methods(["GET", "POST"])
 def create_page(request):
+    # GET prefill comes from a planned app's "Build this app" link.
+    source = request.POST if request.method == "POST" else request.GET
     form = {
-        "name": request.POST.get("name", ""),
-        "description": request.POST.get("description", ""),
-        "starter": request.POST.get("starter", DEFAULT_STARTER),
+        "name": source.get("name", ""),
+        "description": source.get("description", "") or _planned_brief(source),
+        "starter": source.get("starter", DEFAULT_STARTER),
     }
     error = None
     if request.method == "POST":

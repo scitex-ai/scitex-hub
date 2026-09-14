@@ -1,12 +1,12 @@
 {% extends "global_base.html" %}
 {% load static i18n %}
-{% block title %}{% trans "Create app" %}{% endblock %}
+{% block title %}{% trans "App Creator" context "app name" %}{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'apps_app/css/appmaker.css' %}?v={{ build_id }}" />
 {% endblock %}
 {% block content %}
     <div class="appmaker appmaker-narrow">
-        <h1 class="appmaker-title">{% trans "Create an app" %}</h1>
+        <h1 class="appmaker-title">{% trans "App Creator" context "app name" %}</h1>
         <p class="appmaker-lead">
             {% trans "Build a tool for your own experiment. An AI agent helps you write it, and you can run it privately before sharing." %}
         </p>
