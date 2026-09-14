@@ -20,12 +20,11 @@ SHOW_MOTD = os.environ.get("SCITEX_HUB_SHOW_MOTD", "true").lower() != "false"
 # Container Configuration
 # =============================================================================
 
-# Base Apptainer image (shared by all users)
-# For direct Apptainer execution inside Docker container
-BASE_CONTAINER_PATH = getattr(
-    settings,
-    "SINGULARITY_IMAGE_PATH",
-    "/app/singularity/current-sandbox",
+# Base Apptainer image as seen by the Django container.  This is deliberately
+# separate from ``SLURM_CONTAINER_PATH``: SLURM needs the source's host path,
+# while Docker exposes that same source at a stable, host-neutral alias.
+BASE_CONTAINER_PATH = os.environ.get("SCITEX_HUB_CONTAINER_PATH_IN_DJANGO") or getattr(
+    settings, "SINGULARITY_IMAGE_PATH", "/app/singularity/current-sandbox"
 )
 
 # User data directory (inside Docker container)
