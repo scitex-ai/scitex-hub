@@ -102,13 +102,10 @@ _KNOWN_MISSING: dict[str, str] = {
     # So: keep future entries xfail(strict), and give each a removal CONDITION
     # rather than only a reason. A reason explains why the debt exists; a
     # condition tells the test when to stop believing it.
-    "agents": (
-        "added 2026-09-14 with the Agents launcher app (PR #803); the token "
-        "belongs to scitex-ui, requested by DM 09:19Z. REMOVE WHEN scitex-ui "
-        "declares --app-accent-agents in primitives/colors/_{light,dark}.css "
-        "and hub's scitex-ui floor includes that release (this xfail then "
-        "XPASSes and fails, naming itself stale)."
-    ),
+    #
+    # "agents" was here for one day (2026-09-14, PR #803 -> removed when
+    # scitex-ui 0.20.3 shipped --app-accent-agents and hub's floor was raised to
+    # it). Same pattern: it left under its own removal condition.
 }
 
 

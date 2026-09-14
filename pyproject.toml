@@ -444,7 +444,12 @@ all = [
     # published 31 versions; a hand-picked subset produces a confident wrong
     # boundary. Enumerate every release from the PyPI index, or do not quote a
     # boundary at all.
-    "scitex-ui>=0.16.0",
+    #
+    # RAISED 0.16.0 -> 0.20.3 on 2026-09-14 for --app-accent-agents (the Agents
+    # launcher app, #803). Boundary is exact rather than sampled: the token was
+    # added by scitex-ui PR #228 and 0.20.3 is the first release after 0.20.2
+    # (release list read 2026-09-14; scitex-ui confirmed 0.20.3 on PyPI 10:05Z).
+    "scitex-ui>=0.20.3",
     # --- GUI (dearpygui-based modules) ---
     "dearpygui>=1.11",
     "cairosvg>=2.9.0",
@@ -553,8 +558,9 @@ dev = [
     # sweeps EVERY dependency group precisely so these two copies cannot drift
     # apart unnoticed. The measurement and the reasoning live on the [all]
     # entry -- read it there rather than duplicating it here, so there is one
-    # place to correct when the next token moves.
-    "scitex-ui>=0.16.0",
+    # place to correct when the next token moves. RAISED 0.16.0 -> 0.20.3 on
+    # 2026-09-14 in lockstep with [all] (--app-accent-agents).
+    "scitex-ui>=0.20.3",
 ]
 
 [project.scripts]
