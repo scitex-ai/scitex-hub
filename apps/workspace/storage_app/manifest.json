@@ -5,7 +5,7 @@
   "label": "Storage",
   "app_name": "storage_app",
   "visibility": "internal",
-  "icon": "fas fa-hard-drive",
+  "icon": "fas fa-database",
   "description": "Browse your storage across the machines you can reach.",
   "pip_package": "scitex-storage",
   "license": "AGPL-3.0",

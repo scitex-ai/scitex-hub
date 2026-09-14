@@ -9,9 +9,9 @@
  *   jiggles — including the one you are dragging — and can be dragged to a
  *   new slot. Tapping anywhere OUTSIDE a tile (or Escape) exits; there is
  *   deliberately no "Done" pill. The order persists via POST api/reorder/.
- * - On mobile the tiles are laid out in horizontal PAGES that fit above the
- *   dock (see _launcher/pager.ts). Drag a tile to the left/right edge and hold
- *   to carry it to the next page.
+ * - At every width the tiles are laid out in horizontal PAGES that fit above
+ *   the dock (see _launcher/pager.ts). Drag a tile to the left/right edge and
+ *   hold to carry it to the next page.
  * - Pin to sidebar persists via POST /apps/store/api/<module>/pin/.
  *
  * The drag code is deliberately page-AGNOSTIC: it inserts relative to the tile
@@ -25,7 +25,12 @@ import { showToast } from "@utils/ui";
 import { getCsrf } from "./_launcher/csrf";
 import { LauncherPager } from "./_launcher/pager";
 import { LauncherPopover } from "./_launcher/popover";
+import { SwapDwell } from "./_launcher/swap-dwell";
 import { shouldSwap } from "./_launcher/swap-intent";
+
+// Fallbacks for the travel custom properties in launcher/edit-mode.css.
+const TRAVEL_MS = 320;
+const TRAVEL_EASING = "cubic-bezier(0.2, 0.8, 0.2, 1)";
 
 // Hold this long before the grid enters jiggle/edit mode.
 const LONG_PRESS_MS = 420;
@@ -33,32 +38,22 @@ const LONG_PRESS_MS = 420;
 // On a paged grid this is also what lets a horizontal SWIPE turn the page
 // instead of picking a tile up.
 const MOVE_CANCEL_PX = 10;
-// Must match the launcher mobile breakpoint (launcher/mobile.css): the
-// same width that swaps the sidebar for the dock also decides where
-// "desktop-only" starts to matter, so badge and behaviour cannot disagree.
-const MOBILE_BREAKPOINT_QUERY = "(max-width: 767px)";
 
 /**
  * Availability gate — the tile state is a registry/catalog FIELD rendered
  * into data-availability (operator, Telegram 1483: communicate can/cannot
  * AT the icon). Coming-soon tiles already carry no href (server-side);
- * blocking here is defence in depth. Desktop-only tiles keep their href,
- * but a phone tap gets an explanatory toast instead of a dead-end app.
+ * blocking here is defence in depth.
+ *
+ * Desktop-only tiles are NOT blocked any more, on any screen. Operator,
+ * 2026-09-14: those apps will get mobile layouts, so the stance is "not yet",
+ * not "never" — the badge says "Mobile layout coming soon" and the tile opens.
  * Returns true when the launch was blocked.
  */
 function blockUnavailableLaunch(e: Event, tile: HTMLElement): boolean {
   const availability = tile.dataset.availability || "available";
   if (availability === "coming_soon") {
     e.preventDefault();
-    return true;
-  }
-  if (
-    availability === "desktop_only" &&
-    window.matchMedia(MOBILE_BREAKPOINT_QUERY).matches
-  ) {
-    e.preventDefault();
-    const label = tile.dataset.label || "This app";
-    showToast(`${label} is desktop-only — open it on a larger screen.`, "info");
     return true;
   }
   return false;
@@ -81,6 +76,9 @@ class AppLauncher {
   // the travel is decided against positions that are about to stop existing.
   // Timestamp (performance.now()) at which the current travel ends; 0 = idle.
   private travelUntil = 0;
+  // Time hysteresis before a swap (see _launcher/swap-dwell.ts).
+  private dwell = new SwapDwell<HTMLElement>();
+  private dwellTimer: number | null = null;
 
   // Bound drag handlers so add/removeEventListener pair up.
   private onDragMove = (e: PointerEvent) => this.handleDragMove(e);
@@ -155,7 +153,8 @@ class AppLauncher {
         target &&
         !target.closest(".launcher-tile") &&
         !target.closest(".launcher-dots") &&
-        !target.closest(".launcher-dock")
+        !target.closest(".launcher-page-arrow") &&
+        !target.closest(".site-dock")
       ) {
         this.exitEditMode();
       }
@@ -260,8 +259,29 @@ class AppLauncher {
       e.clientX,
       e.clientY,
     ) as HTMLElement | null;
-    const over = under?.closest<HTMLElement>(".launcher-tile") || null;
-    if (!over || over === this.dragTile || !this.grid.contains(over)) {
+    const hit = under?.closest<HTMLElement>(".launcher-tile") || null;
+    // Reorder WITHIN a group only (operator 2026-09-14): an app never drops
+    // into another group's band.
+    const sameGroup =
+      !!hit &&
+      (hit.dataset.group ?? "") === (this.dragTile.dataset.group ?? "");
+    const over =
+      hit && hit !== this.dragTile && sameGroup && this.grid.contains(hit)
+        ? hit
+        : null;
+
+    // Dwell: reorder only once the pointer has STAYED over this slot for
+    // DWELL_MS, so icons do not shuffle while a finger sweeps across them
+    // (operator, 2026-09-14). A pointer that rests still fires no further
+    // pointermove, so re-check when the dwell would complete.
+    const wait = this.dwell.update(over, performance.now());
+    this.clearDwellTimer();
+    if (!over || wait === null) return;
+    if (wait > 0) {
+      this.dwellTimer = window.setTimeout(() => {
+        this.dwellTimer = null;
+        if (this.dragTile) this.handleDragMove(e);
+      }, wait + 1);
       return;
     }
 
@@ -294,6 +314,7 @@ class AppLauncher {
       return;
     }
 
+    this.dwell.reset();
     this.reorderWithTravel(() => {
       if (from < to) {
         host.insertBefore(dragged, over.nextSibling);
@@ -301,6 +322,31 @@ class AppLauncher {
         host.insertBefore(dragged, over);
       }
     });
+  }
+
+  private clearDwellTimer(): void {
+    if (this.dwellTimer !== null) {
+      clearTimeout(this.dwellTimer);
+      this.dwellTimer = null;
+    }
+  }
+
+  /** Travel duration + easing, from launcher/edit-mode.css (0 under reduced motion). */
+  private travel(): { duration: number; easing: string } {
+    const style = getComputedStyle(this.grid);
+    const declared = parseFloat(style.getPropertyValue("--launcher-travel-ms"));
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const duration = reduced
+      ? 0
+      : Number.isFinite(declared)
+        ? declared
+        : TRAVEL_MS;
+    const easing =
+      style.getPropertyValue("--launcher-travel-easing").trim() ||
+      TRAVEL_EASING;
+    return { duration, easing };
   }
 
   /**
@@ -317,9 +363,10 @@ class AppLauncher {
    * the tile would stop wobbling mid-drag. Compositing ADDS our translate on
    * top of whatever rotation is running, so both survive.
    *
-   * The travel is kept even under prefers-reduced-motion — it is not
-   * decoration, it is the feedback that tells you where the tile went; hiding
-   * it is what causes the startle. We only shorten it.
+   * Duration and easing come from launcher/edit-mode.css: 320ms on
+   * cubic-bezier(0.2, 0.8, 0.2, 1), slow enough to follow (operator,
+   * 2026-09-14: the 200ms jump was startling). Under prefers-reduced-motion
+   * the move is instant, as the operator asked.
    */
   private reorderWithTravel(mutate: () => void): void {
     const tiles = Array.from(
@@ -330,10 +377,8 @@ class AppLauncher {
 
     mutate();
 
-    const reduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    const duration = reduced ? 120 : 200;
+    const { duration, easing } = this.travel();
+    if (duration <= 0) return;
     // Hold the next decision until these tiles have landed: while they travel,
     // elementFromPoint reports their animated boxes, so a reorder decided now
     // would be decided against positions that are already obsolete.
@@ -353,7 +398,7 @@ class AppLauncher {
         ],
         {
           duration,
-          easing: "cubic-bezier(0.2, 0, 0, 1)",
+          easing,
           composite: "add",
         },
       );
@@ -366,6 +411,8 @@ class AppLauncher {
       return;
     }
     this.dragTile.classList.remove("dragging");
+    this.clearDwellTimer();
+    this.dwell.reset();
     this.dragTile = null;
     this.dragPointerId = null;
     this.pager.cancelEdgeTurn();
@@ -409,31 +456,21 @@ class AppLauncher {
   }
 }
 
-/**
- * Re-parent the mobile dock to <body>. position:fixed resolves against
- * the nearest transformed/zoomed ancestor, and the dock is rendered
- * inside the workspace pane stack — a transform or CSS zoom anywhere up
- * that chain (e.g. context-zoom) makes the "fixed" dock float mid-screen
- * (operator's live iOS screenshot, msgs 608-610). <body> has no such
- * ancestor, so the dock reliably pins to the viewport bottom.
- */
-function anchorDockToViewport(): void {
-  const dock = document.querySelector<HTMLElement>(".launcher-dock");
-  if (dock && dock.parentElement !== document.body) {
-    document.body.appendChild(dock);
-  }
-}
-
 function initLauncher(): void {
-  // Must run BEFORE the pager measures: the pager sizes its pages against the
-  // dock's rect, and the dock only sits at the viewport bottom once re-parented.
-  anchorDockToViewport();
-
+  // The dock is the SITE dock now (shared/components/site-dock.ts anchors it
+  // to <body> and restores a dragged position); the pager measures its rect.
   const grid = document.getElementById("launcher-grid");
   const dots = document.getElementById("launcher-dots");
   if (!grid || !dots) return;
 
-  const pager = new LauncherPager(grid, dots);
+  const pager = new LauncherPager(grid, dots, {
+    prev: document.getElementById(
+      "launcher-page-prev",
+    ) as HTMLButtonElement | null,
+    next: document.getElementById(
+      "launcher-page-next",
+    ) as HTMLButtonElement | null,
+  });
   pager.init();
   new AppLauncher(grid, pager).init();
 }

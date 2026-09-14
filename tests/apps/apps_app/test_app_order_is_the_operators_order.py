@@ -153,12 +153,16 @@ def test_scholar_comes_before_writer_on_the_grid():
 
 
 def test_no_other_app_sits_between_scholar_and_writer_on_the_grid():
-    """Console used to split the three apart; they must read as one group."""
+    """Console used to split the three apart; they must read as one group.
+
+    The one exception is the reserved Stats slot: operator, 2026-09-14, the
+    applications row is Scholar, FigRecipe, Stats, Writer.
+    """
     # Arrange
     positions = {name: i for i, name in enumerate(DEFAULT_LAUNCHER_ORDER)}
     span = DEFAULT_LAUNCHER_ORDER[positions["scholar"] : positions["writer"] + 1]
     # Act
-    intruders = [name for name in span if name not in RESEARCH_APPS]
+    intruders = [name for name in span if name not in (*RESEARCH_APPS, "stats")]
     # Assert
     assert intruders == [], f"{intruders} sit between Scholar and Writer"
 

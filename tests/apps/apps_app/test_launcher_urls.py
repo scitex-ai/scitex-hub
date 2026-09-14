@@ -11,6 +11,8 @@ All tests use the real Django test client against the real ORM — no
 mocks (same conventions as test_launcher.py).
 """
 
+import re
+
 from django.contrib.auth.models import User
 from django.test import TestCase
 
@@ -128,8 +130,12 @@ class LauncherTileUrlTest(TestCase):
         url = "/"
         # Act
         resp = self.client.get(url)
-        # Assert — the mobile dock Chat entry targets the chat pane
-        assert b'href="/chat/" class="launcher-dock-item"' in resp.content
+        # Assert — the site dock's Chat entry targets the chat pane (the dock
+        # moved from the launcher template to every page on 2026-09-14)
+        assert re.search(
+            rb'<a href="/chat/"\s+class="site-dock-item[^"]*"\s+data-dock-item="chat"',
+            resp.content,
+        )
 
 
 class UserAppModuleUrlTest(TestCase):

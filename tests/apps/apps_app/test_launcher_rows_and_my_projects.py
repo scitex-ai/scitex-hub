@@ -1,23 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # File: tests/apps/apps_app/test_launcher_rows_and_my_projects.py
-"""Launcher rows and the "My Projects" / "Public Projects" names.
+"""Launcher groups and the "My Projects" / "Public Projects" names.
 
 Operator, 2026-09-14:
   * "Projects" is "My Projects" (JA 「マイプロジェクト」); the existing Explore
     app is relabelled "Public Projects" (JA 「パブリックプロジェクト」) — same
     URL, same module name.
-  * Row 1 (infrastructure): My Projects, Public Projects, Agents, Cards.
-  * Row 2 (research): Scholar, FigRecipe, [Stats — not an app yet], Writer.
-  * Row 3 (settings / other): Tools (Console, Clew if ever shown).
-  * Last row: Docs, App Store, Storage.
+  * Infrastructure: My Projects, Public Projects, Agents, Cards.
+  * Applications: Scholar, FigRecipe, [Stats — its own app later], Writer.
+  * Then: Chat, Settings, Tools (Console, Clew if ever shown).
+  * Last: Docs, App Store, Storage.
 
 WHY LABELS ARE READ FROM THE MANIFEST FILES, NOT THE REGISTRY
 Agents and Cards are optional plugin tiles: the registry only knows them where
 their package is installed, and in CI the registry has been measured reading
 order=50 for every manifest (see test_app_order_is_the_operators_order.py). The
 curated list is what the grid sorts by, and the manifest files are the SSoT for
-labels, so joining those two is the deterministic statement of what a user sees.
+labels (workspace manifests plus the launcher LINK manifests for Chat and
+Settings), so joining those is the deterministic statement of what a user sees.
+
+The header "Apps" dropdown these tests used to read was removed on 2026-09-14;
+the same statements are now made against the grid itself.
 """
 
 import json
@@ -29,45 +33,54 @@ import pytest
 from django.contrib.auth.models import User
 from django.test import RequestFactory, TestCase
 from django.utils import translation
+from django.utils.translation import pgettext
 
+from apps.workspace.apps_app.views.launcher import launcher_context
 from apps.workspace.apps_app.views.launcher_order import (
     DEFAULT_LAUNCHER_ORDER,
     default_order_value,
 )
-from config.context_processors import header_app_launcher
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 
 EXPECTED_TILE_ORDER = [
-    # row 1 — infrastructure
+    # FOUNDATION (operator groups, 2026-09-14 16:3xZ)
     "My Projects",
     "Public Projects",
     "Agents",
     "Cards",
-    # row 2 — research (Stats slots in between FigRecipe and Writer later)
+    "Storage",
+    # WORK (Stats keeps its slot until its app lands)
     "Scholar",
     "FigRecipe",
+    "stats",
     "Writer",
-    # row 3 — settings / other
+    "Chat",
     "Tools",
     "Console",
     "Clew",
-    # last row
+    # SYSTEM
+    "Settings",
     "Docs",
     "App Store",
-    "Storage",
 ]
 
 
 def _manifest_labels():
     labels = {}
-    for path in sorted((_REPO_ROOT / "apps" / "workspace").glob("*/manifest.json")):
+    manifests = sorted((_REPO_ROOT / "apps" / "workspace").glob("*/manifest.json"))
+    links = sorted(
+        (_REPO_ROOT / "apps" / "workspace" / "apps_app" / "launcher_links").glob(
+            "*.json"
+        )
+    )
+    for path in manifests + links:
         data = json.loads(path.read_text(encoding="utf-8"))
         labels[data["name"]] = data["label"]
     return labels
 
 
-def test_curated_launcher_reads_infra_then_research_then_other_then_last_row():
+def test_curated_launcher_reads_infra_then_apps_then_chat_settings_tools_then_last():
     # Arrange
     labels = _manifest_labels()
     # Act
@@ -76,7 +89,7 @@ def test_curated_launcher_reads_infra_then_research_then_other_then_last_row():
     assert tile_names == EXPECTED_TILE_ORDER
 
 
-class HeaderLauncherTest(TestCase):
+class GridLauncherTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.staff = User.objects.create_user(
@@ -85,26 +98,27 @@ class HeaderLauncherTest(TestCase):
             is_staff=True,
         )
 
-    def _header_apps(self):
-        request = RequestFactory().get("/")
+    def _tiles(self):
+        request = RequestFactory().get("/apps/")
         request.user = self.staff
-        return header_app_launcher(request)["header_apps"]
+        request.session = {}
+        return launcher_context(request)["tiles"]
 
-    def test_header_launcher_follows_the_curated_grid_order(self):
+    def test_grid_follows_the_curated_order(self):
         # Arrange
-        ids = [app["id"] for app in self._header_apps()]
+        names = [tile["name"] for tile in self._tiles()]
         # Act
-        curated = sorted(ids, key=default_order_value)
+        curated = sorted(names, key=default_order_value)
         # Assert
-        assert ids == curated
+        assert names == curated
 
-    def test_header_launcher_names_the_projects_app_my_projects(self):
+    def test_grid_names_the_projects_app_my_projects(self):
         # Arrange
-        apps = self._header_apps()
+        tiles = self._tiles()
         # Act
-        names = {app["id"]: app["name"] for app in apps}
+        labels = {tile["name"]: tile["label"] for tile in tiles}
         # Assert
-        assert names.get("home") == "My Projects"
+        assert labels.get("home") == "My Projects"
 
     def test_mobile_menu_offers_my_projects(self):
         # Arrange
@@ -125,30 +139,46 @@ def _compiled_catalogs():
     translation.trans_real._translations.clear()
 
 
-@pytest.mark.django_db
-def test_header_launcher_names_my_projects_in_japanese(compiled_catalogs):
-    # Arrange
-    user = User.objects.create_user(username="launcher-rows-ja", is_staff=True)
-    request = RequestFactory().get("/")
+def _tile_label(username, name):
+    user = User.objects.create_user(username=username, is_staff=True)
+    request = RequestFactory().get("/apps/")
     request.user = user
-    # Act
-    with translation.override("ja"):
-        apps = header_app_launcher(request)["header_apps"]
-    # Assert
-    assert {a["id"]: a["name"] for a in apps}.get("home") == "マイプロジェクト"
+    request.session = {}
+    tiles = launcher_context(request)["tiles"]
+    return next(tile["label"] for tile in tiles if tile["name"] == name)
 
 
 @pytest.mark.django_db
-def test_header_launcher_names_public_projects_in_japanese(compiled_catalogs):
-    # Arrange
-    user = User.objects.create_user(username="launcher-rows-ja2", is_staff=True)
-    request = RequestFactory().get("/")
-    request.user = user
+def test_grid_names_my_projects_in_japanese(compiled_catalogs):
+    # Arrange — the grid renders {% trans tile.label context "app name" %}
+    label = _tile_label("launcher-rows-ja", "home")
     # Act
     with translation.override("ja"):
-        apps = header_app_launcher(request)["header_apps"]
+        rendered = pgettext("app name", label)
     # Assert
-    assert {a["id"]: a["name"] for a in apps}.get("discovery") == "パブリックプロジェクト"
+    assert rendered == "マイプロジェクト"
+
+
+@pytest.mark.django_db
+def test_grid_names_public_projects_in_japanese(compiled_catalogs):
+    # Arrange
+    label = _tile_label("launcher-rows-ja2", "discovery")
+    # Act
+    with translation.override("ja"):
+        rendered = pgettext("app name", label)
+    # Assert
+    assert rendered == "パブリックプロジェクト"
+
+
+@pytest.mark.django_db
+def test_grid_names_settings_in_japanese(compiled_catalogs):
+    # Arrange
+    label = _tile_label("launcher-rows-ja3", "settings")
+    # Act
+    with translation.override("ja"):
+        rendered = pgettext("app name", label)
+    # Assert
+    assert rendered == "設定"
 
 
 # EOF

@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 """Curated default launcher order — the one list every launcher surface sorts by.
 
-Extracted from ``launcher.py`` so the workspace grid, the sidebar default pins
-and the global-header AppLauncher (``config.context_processors``) can share it
-without importing the whole launcher view module.
+Extracted from ``launcher.py`` so the workspace grid and the sidebar default
+pins can share it without importing the whole launcher view module. (The
+global-header "Apps" dropdown that also read it was removed on 2026-09-14: the
+logo and the dock's Home button are the way back to the grid.)
 """
 
 from __future__ import annotations
@@ -21,47 +22,125 @@ from __future__ import annotations
 # that easy to get wrong. Operator, Telegram 4794, 2026-09-05:
 # 「順番はスカラフィグレシピライター」 — Scholar, FigRecipe, Writer.
 #
-# Operator, 2026-09-14: the FIRST row is the infrastructure everyone uses —
-# My Projects, Public Projects, Agents, Cards — and the research row follows:
-# Scholar, FigRecipe, Stats, Writer. Stats has no launcher app yet; when it
-# lands, insert its module name between "figrecipe" and "writer" here and give
-# its manifest "order": 27 (figrecipe is 25, writer 30). Then a settings/other
-# row (Tools, and Console/Clew if they are ever shown), and last Docs, App
-# Store, Storage (operator, 2026-09-14 10:49Z).
-DEFAULT_LAUNCHER_ORDER = [
-    # infrastructure row
-    "home",  # My Projects
-    "discovery",  # Public Projects
-    "agents",
-    "todo",  # Cards
-    # research row
-    "scholar",
-    "figrecipe",
-    "writer",
-    # settings / other row (console and clew are opted out of the grid via
-    # show_in_launcher=false, so only Tools shows today)
-    "tools",
-    "console",
-    "clew",
-    # last row
-    "docs",
-    "store",  # App Store
-    "storage",
-]
+# GROUPS (operator, 2026-09-14 16:3xZ). The Home grid is 4 columns at every
+# width so an app sits at the same position on every device. Apps are grouped,
+# each group starts a new row and gets a soft colour band, and a group's last
+# row keeps its empty cells rather than pulling the next group's app up:
+#   FOUNDATION (基盤): My Projects, Public Projects, Agents, Cards, Storage
+#   WORK (作業):       Scholar, FigRecipe, Stats (reserved), Writer, Chat, Tools
+#   SYSTEM (システム): Settings, Docs, App Store
+# Within a group the order is the operator's earlier order (infrastructure,
+# then Scholar-FigRecipe-Stats-Writer, then Chat/Settings/Tools, then
+# Docs/App Store/Storage). No visible labels yet; each group carries
+# role="group" and an aria-label, so labels are one CSS change away.
+#
+# "stats" holds its slot although no Stats app exists yet (another agent is
+# building it): its cell stays empty, and the day the module lands it fills
+# that cell without touching this list. Give its manifest "order": 27
+# (figrecipe is 25, writer 30). Chat and Settings are link tiles
+# (services/launcher_links.py). Console and Clew opt out of the grid via
+# show_in_launcher=false.
+from dataclasses import dataclass
+
+LAUNCHER_COLUMNS = 4
+
+
+@dataclass(frozen=True)
+class LauncherGroup:
+    key: str
+    label: str  # translated at render time ({% trans %})
+    members: tuple[str, ...]
+
+
+LAUNCHER_GROUPS: tuple[LauncherGroup, ...] = (
+    LauncherGroup(
+        "foundation",
+        "Foundation",
+        ("home", "discovery", "agents", "todo", "storage"),
+    ),
+    LauncherGroup(
+        "work",
+        "Work",
+        (
+            "scholar",
+            "figrecipe",
+            "stats",  # reserved slot; no app yet
+            "writer",
+            "chat",  # link tile -> /chat/
+            "tools",
+            "console",
+            "clew",
+        ),
+    ),
+    LauncherGroup(
+        "system",
+        "System",
+        ("settings", "docs", "store"),  # settings = link tile; store = App Store
+    ),
+)
+
+#: Uncurated apps (community store apps, dev installs) are applications.
+DEFAULT_GROUP = "work"
+
+#: Cells a group keeps even when the app is not installed yet.
+RESERVED_SLOTS = frozenset({"stats"})
+
+DEFAULT_LAUNCHER_ORDER = [name for group in LAUNCHER_GROUPS for name in group.members]
+_GROUP_OF = {name: group.key for group in LAUNCHER_GROUPS for name in group.members}
+_GROUP_RANK = {group.key: i for i, group in enumerate(LAUNCHER_GROUPS)}
 _DEFAULT_ORDER_INDEX = {name: i for i, name in enumerate(DEFAULT_LAUNCHER_ORDER)}
 
 
 def default_order_value(name: str) -> int:
     """Curated launcher position (lower sorts earlier).
 
-    Curated apps occupy 10..120; anything uncurated sorts after them (by
+    Curated apps occupy 10..170; anything uncurated sorts after them (by
     label). Reorder positions written by api_reorder live at 1000+, well
-    clear of both, so an explicit user choice always wins.
+    clear of both, so an explicit user choice always wins WITHIN a group.
     """
     idx = _DEFAULT_ORDER_INDEX.get(name)
     if idx is not None:
         return (idx + 1) * 10
     return 500_000
 
+
+def group_of(name: str) -> str:
+    """The group key an app belongs to."""
+    return _GROUP_OF.get(name, DEFAULT_GROUP)
+
+
+def group_rank(name: str) -> int:
+    """Sort rank of an app's group (groups never interleave)."""
+    return _GROUP_RANK[group_of(name)]
+
+
+def group_cells(tiles: list[dict]) -> list[dict]:
+    """The tiles as groups of grid cells, in group order.
+
+    ``tiles`` must already be sorted (group first, then position). Returns
+    ``[{"key", "label", "cells"}]``; a reserved slot whose app is not present
+    becomes an empty cell ``{"is_slot": True, "slot": name}`` at its position,
+    so the apps after it keep their columns. A group with no tiles is omitted.
+    """
+    present = {tile["name"] for tile in tiles}
+    groups = []
+    for group in LAUNCHER_GROUPS:
+        members = [t for t in tiles if group_of(t["name"]) == group.key]
+        if not members:
+            continue
+        cells: list[dict] = []
+        # A group the user has drag-reordered keeps THEIR order, without the
+        # reserved gap (it would land somewhere they did not put it).
+        curated = not any(t.get("user_ordered") for t in members)
+        for tile in members:
+            if curated and tile["name"] in _DEFAULT_ORDER_INDEX:
+                before = group.members[: group.members.index(tile["name"])]
+                for name in before:
+                    held = any(c.get("slot") == name for c in cells)
+                    if name in RESERVED_SLOTS and name not in present and not held:
+                        cells.append({"is_slot": True, "slot": name})
+            cells.append(tile)
+        groups.append({"key": group.key, "label": group.label, "cells": cells})
+    return groups
 
 # EOF

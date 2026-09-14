@@ -1,0 +1,105 @@
+/* ============================================================
+   App Launcher — edit / rearrange mode (iPhone-home jiggle + drag)
+
+   Long-press (touch) or the right-click "Rearrange" action toggles .edit-mode
+   on the grid: every tile wiggles and can be dragged to a new slot. The order
+   persists SERVER-SIDE per user via POST api/reorder/ on exit (launcher.ts),
+   so a reorder made on the phone shows identically on the desktop.
+
+   The WIGGLE is unchanged (operator, 2026-09-14 16:34Z: iOS-like is fine).
+   The SWAP is what was startling: displaced icons jumped. launcher.ts now
+   waits for the pointer to dwell ~150ms over a slot before reordering, then
+   slides the displaced icons (FLIP) over --launcher-travel-ms on
+   --launcher-travel-easing. Under prefers-reduced-motion the travel is 0 and
+   there is no wiggle.
+   Exit: tap empty space or press Escape. There is no Done pill: the operator
+   removed it on 2026-07-13 because it read as meaningless.
+   ============================================================ */
+
+.launcher-grid {
+  --launcher-travel-ms: 320;
+  --launcher-travel-easing: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes launcher-jiggle {
+  0% {
+    transform: rotate(-1.15deg);
+  }
+  50% {
+    transform: rotate(1.15deg);
+  }
+  100% {
+    transform: rotate(-1.15deg);
+  }
+}
+
+.launcher-grid.edit-mode .launcher-tile {
+  animation: launcher-jiggle 0.24s ease-in-out infinite;
+  cursor: grab;
+  /* A press that starts on a tile drags it — never scrolls the page. */
+  touch-action: none;
+}
+
+/* Stagger the phase so tiles don't wiggle in lockstep (more organic). */
+.launcher-grid.edit-mode .launcher-tile:nth-child(2n) {
+  animation-duration: 0.26s;
+  animation-delay: -0.13s;
+}
+
+.launcher-grid.edit-mode .launcher-tile:nth-child(3n) {
+  animation-duration: 0.22s;
+  animation-delay: -0.07s;
+}
+
+/* The hover lift fights the jiggle — suppress it while editing. */
+.launcher-grid.edit-mode .launcher-tile:hover .launcher-tile-icon {
+  transform: none;
+}
+
+/* The tile being dragged KEEPS wiggling (iOS does), floats above, and its icon
+   lifts. The jiggle rotates the TILE while the scale/shadow lift the ICON, so
+   the two transforms never fight. */
+.launcher-grid.edit-mode .launcher-tile.dragging {
+  z-index: 5;
+  cursor: grabbing;
+  opacity: 0.96;
+  /* Let elementFromPoint see the tile beneath the one being dragged. */
+  pointer-events: none;
+}
+
+.launcher-grid.edit-mode .launcher-tile.dragging .launcher-tile-icon {
+  transform: scale(1.08);
+  box-shadow:
+    0 16px 36px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+/* Reduced motion: no wiggle and instant moves, but NEVER an invisible edit
+   mode. A bare `animation: none` once removed the only signal that the grid
+   had become editable, so a static tilt and a dashed ring mark the tiles. */
+@media (prefers-reduced-motion: reduce) {
+  .launcher-grid {
+    --launcher-travel-ms: 0;
+  }
+
+  .launcher-grid.edit-mode .launcher-tile {
+    animation: none;
+    transform: rotate(-1.2deg);
+  }
+
+  .launcher-grid.edit-mode .launcher-tile:nth-child(2n) {
+    transform: rotate(1.2deg);
+  }
+
+  .launcher-grid.edit-mode .launcher-tile .launcher-tile-icon {
+    outline: 2px dashed var(--app-accent-hub, #6a5a8a);
+    outline-offset: 3px;
+  }
+
+  /* The lifted tile stays upright so it reads as "held". */
+  .launcher-grid.edit-mode .launcher-tile.dragging {
+    transform: none;
+  }
+}
+
+/* EOF */

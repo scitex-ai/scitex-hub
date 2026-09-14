@@ -307,14 +307,14 @@
      dock, so the last entry was permanently untappable.
 
      That is the same defect this PR removes from the footer, one layer up:
-     the legal route would exist, render, and not be reachable. Scoped to
-     :has(.launcher-dock) because only launcher pages carry the dock —
-     elsewhere the menu already reaches the viewport edge safely.
-     --launcher-dock-clearance is the launcher's own single source of truth
-     for this band (apps_app/css/launcher/mobile.css), and it ships with the
-     dock; the literal fallback covers the var being absent. */
-  body:has(.launcher-dock) .mobile-header-menu {
-    padding-bottom: var(--launcher-dock-clearance, 102px);
+     the legal route would exist, render, and not be reachable.
+
+     2026-09-14: the dock is now the SITE dock on every page
+     (shared/css/components/site-dock.css), so this is scoped to
+     :has(.site-dock) and reads that file's --site-dock-clearance band. The
+     literal fallback covers the variable being absent. */
+  body:has(.site-dock) .mobile-header-menu {
+    padding-bottom: var(--site-dock-clearance, 90px);
   }
 
   .mobile-header-menu .mobile-menu-item {

@@ -355,108 +355,25 @@ def scitex_env(request):
 
 
 def header_logo(request):
-    """Logo link + tooltip based on the current page context.
+    """Logo link + tooltip.
 
-    - On the landing page (/landing/) → logo goes to / (Apps Home),
-      title "Go to Apps Home"
-    - Everywhere else (app launcher, /apps/*, /pricing/, /tokushoho/, …) →
-      logo goes to /landing/, title "Go to Landing Page"
+    SIGNED IN → the logo is the way Home: /apps/ on every page, including
+    /landing/ (operator brief, Home + dock redesign 2026-09-14 — the header
+    "Apps" dropdown was removed on the understanding that the logo goes Home).
 
-    The landing is the public marketing page; the rest of the site is the
-    product. The logo is the one cross-cutting nav element, so it always
-    points the visitor toward whichever half they are NOT currently in.
+    SIGNED OUT keeps the earlier "point to the half you are not in" rule:
+    - on the landing page (/landing/) → / , title "Go to Apps Home"
+    - everywhere else → /landing/, title "Go to Landing Page"
+    (/apps/ would only redirect a signed-out visitor to sign-up.)
+
+    A view may still override ``header_logo_href`` in its own context (the
+    pool-full page does, to a page that always renders).
     """
+    user = getattr(request, "user", None)
+    if getattr(user, "is_authenticated", False):
+        return {"header_logo_href": "/apps/", "header_logo_title": "Go to Home"}
     path = request.path
     if path.startswith("/landing"):
         return {"header_logo_href": "/", "header_logo_title": "Go to Apps Home"}
     return {"header_logo_href": "/landing/", "header_logo_title": "Go to Landing Page"}
 
-
-# App-launcher tile icons (compass L624). The scitex-ui AppLauncher component
-# renders the tile icon as TEXT (textContent), so a FontAwesome class would not
-# work; each app gets an emoji here. Any app not in this map falls back to the
-# component's own grid glyph (田), so an unknown/renamed app never breaks the
-# launcher.
-_APP_ICON = {
-    "writer": "✍️",
-    "scholar": "🎓",
-    "figrecipe": "📊",
-    "home": "📁",
-    "store": "🛒",
-    "console": "💻",
-    "storage": "🗄️",
-    "docs": "📖",
-    "discovery": "🧭",
-    "todo": "🗂️",
-    "tools": "🔧",
-    "comms": "💬",
-    "clew": "🧵",
-}
-
-
-def header_app_launcher(request):
-    """Apps offered in the global-header AppLauncher (compass L624).
-
-    The app LIST comes from the workspace module registry, gated by the EXACT
-    same visibility rules the workspace launcher grid uses (see
-    ``_build_tiles`` in ``apps/workspace/apps_app/views/launcher.py``): an
-    ``internal``-visibility app is hidden unless ``can_view_internal_app``
-    (the release-channel entitlement) passes, ``show_in_launcher`` opts a
-    module out of the grid, and a ``coming_soon`` app must not navigate. So
-    the header launcher can never leak an app the user is not entitled to —
-    the component owns the pattern only; the data + routes stay here.
-
-    Authenticated users get the launcher; anonymous users get an empty list
-    (the component renders "No apps available" and the trigger stays inert).
-    The ``current`` app is the module whose URL owns ``request.path``, so the
-    active app is highlighted on the trigger.
-    """
-    if not getattr(request, "user", None) or not request.user.is_authenticated:
-        return {"header_apps": [], "header_current_app": None}
-
-    from apps.infra.workspace_app.registry import (
-        extract_module_from_path,
-        get_all_modules,
-    )
-    from django.utils.translation import pgettext
-
-    from apps.workspace.apps_app.views.helpers import (
-        can_open_mounted_app,
-        can_view_internal_app,
-    )
-    from apps.workspace.apps_app.views.launcher_order import default_order_value
-
-    can_internal = can_view_internal_app(request.user)
-    current_id = extract_module_from_path(request.path)
-
-    apps = []
-    for mod in get_all_modules():
-        # Release-channel gate (internal apps hidden unless entitled) — same
-        # as the workspace grid.
-        if not can_internal and mod.visibility == "internal":
-            continue
-        # Mount gate (Cards / Agents 403) — same predicate as the grid.
-        if not can_open_mounted_app(request.user, mod.name):
-            continue
-        # Grid opt-out — same as the workspace grid.
-        if not mod.show_in_launcher:
-            continue
-        # A coming-soon app must not navigate (a tap is fine, navigation is not).
-        availability = getattr(mod, "availability", "") or ""
-        if availability == "coming_soon":
-            continue
-        apps.append(
-            {
-                "id": mod.name,
-                # Translated at render time: "My Projects" -> 「マイプロジェクト」
-                # under ja. A label with no catalog entry comes back unchanged.
-                "name": pgettext("app name", mod.label) if mod.label else mod.name,
-                "icon": _APP_ICON.get(mod.name, ""),
-                "url": mod.get_url(),
-            }
-        )
-    # Same curated order as the workspace launcher grid (launcher_order.py),
-    # so the header and the grid cannot disagree on which apps lead. The sort
-    # is stable, so uncurated apps keep their registry order after the rest.
-    apps.sort(key=lambda app: default_order_value(app["id"]))
-    return {"header_apps": apps, "header_current_app": current_id}
