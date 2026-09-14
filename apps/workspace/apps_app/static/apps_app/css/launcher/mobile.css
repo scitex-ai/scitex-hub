@@ -277,9 +277,19 @@
     font-size: 24px;
   }
 
+  .launcher-tile {
+    padding-inline: 2px;
+  }
+
   .launcher-tile-name {
     font-size: 11px;
-    max-width: 80px;
+    max-width: 100%;
+  }
+
+  /* 8 katakana (マイプロジェクト) must fit one line of a 390px-wide cell. */
+  .launcher-tile-name:lang(ja) {
+    font-size: 10px;
+    letter-spacing: -0.02em;
   }
 
   .launcher-dot-installed {

@@ -4,8 +4,9 @@
 """Home grid rows, pages, edit-mode motion and tile badges (operator, 2026-09-14).
 
 Split from test_home_dock_redesign.py (line budget). Pins:
-  * rows of 4 at every width, one group per row, the Stats slot held empty,
-    and a short group leaving its row's remaining cells empty;
+  * rows of 4 at every width, one group per row, no empty cell for the
+    not-yet-built Stats app, and a short group leaving its row's remaining
+    cells empty;
   * page arrows hidden on phones;
   * reorder travel 300-350ms, and reduced motion makes the wiggle stop and
     moves instant;
@@ -165,13 +166,22 @@ class HomePagesTest(TestCase):
         # Assert
         assert first_row == ["home", "discovery", "agents", "todo"]
 
-    def test_work_group_holds_the_stats_slot_between_figrecipe_and_writer(self):
+    def test_work_group_leaves_no_empty_cell_for_the_missing_stats_app(self):
+        # Walkthrough 2026-09-14: the held Stats gap read as a broken grid.
         # Arrange
         groups = self._groups()
         # Act
-        cells = [c.get("slot") or c.get("name") for c in groups[1]["cells"]]
+        cells = [c.get("name") for c in groups[1]["cells"]]
         # Assert
-        assert cells == ["scholar", "figrecipe", "stats", "writer", "chat", "tools"]
+        assert cells == ["scholar", "figrecipe", "writer", "chat", "tools"]
+
+    def test_home_renders_no_empty_slot_cell(self):
+        # Arrange
+        url = "/apps/"
+        # Act
+        content = self.client.get(url).content
+        # Assert
+        assert b'class="launcher-slot"' not in content
 
     def test_system_group_holds_settings_docs_and_app_store(self):
         # Arrange

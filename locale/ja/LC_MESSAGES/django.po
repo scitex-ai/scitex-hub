@@ -5260,6 +5260,37 @@ msgctxt "app name"
 msgid "Settings"
 msgstr "設定"
 
+# Home tile names from the app manifests (launcher_tile.html).
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_tile.html
+msgctxt "app name"
+msgid "Agents"
+msgstr "エージェント"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_tile.html
+msgctxt "app name"
+msgid "Cards"
+msgstr "カード"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_tile.html
+msgctxt "app name"
+msgid "Storage"
+msgstr "ストレージ"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_tile.html
+msgctxt "app name"
+msgid "Tools"
+msgstr "ツール"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_tile.html
+msgctxt "app name"
+msgid "Docs"
+msgstr "ドキュメント"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_tile.html
+msgctxt "app name"
+msgid "App Store"
+msgstr "アプリストア"
+
 #: templates/global_base_partials/site_dock.html
 msgid "Dock"
 msgstr "ドック"
