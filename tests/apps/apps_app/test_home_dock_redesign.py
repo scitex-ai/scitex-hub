@@ -192,6 +192,15 @@ class SiteDockOnEveryPageTest(TestCase):
         # Assert
         assert (grip.group(1), "fa-grip" in grip.group(2)) == ("Move dock", True)
 
+    def test_dock_phone_grip_is_tiled_dots(self):
+        # Operator 2026-09-14: the wide phone handle reads as the dotted grip, not a bar.
+        # Arrange
+        dock = _dock_html(self.client.get("/apps/").content)
+        # Act
+        has_dots = '<span class="site-dock-grabber-dots"' in dock
+        # Assert
+        assert has_dots
+
     def test_dock_reads_back_grip_apps_forward(self):
         # Operator 2026-09-14: Back far left, Forward far right, grip between.
         # Arrange
