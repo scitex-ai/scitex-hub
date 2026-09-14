@@ -73,4 +73,43 @@ class PublicProjectsSinglePaneTest(TestCase):
         assert row in response.content
 
 
+class PublicProjectsSignedOutTest(TestCase):
+    """Site audit 2026-09-14 (D11): signed-out "Public Projects" went to /landing/."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.other = User.objects.create_user(username="disc-anon-owner", password=PASSWORD)
+        Project.objects.create(
+            slug="disc-anon-study",
+            owner=cls.other,
+            name="disc-anon-study",
+            visibility="public",
+        )
+
+    def test_signed_out_public_projects_is_not_redirected(self):
+        # Arrange
+        url = "/apps/discovery/"
+        # Act
+        response = self.client.get(url)
+        # Assert
+        assert response.status_code == 200
+
+    def test_signed_out_public_projects_lists_public_projects(self):
+        # Arrange
+        url = "/apps/discovery/"
+        row = b'data-project-row="disc-anon-owner/disc-anon-study"'
+        # Act
+        response = self.client.get(url)
+        # Assert
+        assert row in response.content
+
+    def test_signed_out_public_projects_offers_no_sign_in_only_tabs(self):
+        # Arrange
+        url = "/apps/discovery/"
+        # Act
+        response = self.client.get(url)
+        # Assert
+        assert b'data-discovery-tab="users"' not in response.content
+
+
 # EOF

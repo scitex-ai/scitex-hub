@@ -87,7 +87,7 @@ export async function autoInitWorkspaceTree(): Promise<WorkspaceFilesTree | null
   // Skip if container element doesn't exist (e.g. three-column layout uses worktree pane instead)
   if (!document.getElementById(containerId)) return null;
 
-  // Single click delegates to custom handler; default does nothing (dblclick navigates)
+  // Opening a file (single click/tap or Enter) calls the module's handler
   const onFileSelect = window.scitexOnFileSelect || (() => {});
 
   const tree = new WorkspaceFilesTree({

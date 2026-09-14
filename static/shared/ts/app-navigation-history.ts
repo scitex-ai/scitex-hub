@@ -11,7 +11,7 @@
  *   window._appNav.onRestore(state => { ... })    — handle back/forward
  */
 
-export {};
+import { buildNavUrl } from "./_app-nav-url";
 
 interface NavState {
   _scitex: true;
@@ -179,11 +179,15 @@ class AppNavigationHistory {
   }
 
   private buildUrl(state: NavState): string {
-    const isWorkspaceShell = location.pathname.startsWith("/apps/workspace/");
-    if (isWorkspaceShell) {
-      return `/apps/workspace/${state.module}/`;
-    }
-    return `/apps/${state.module}/`;
+    // The open project's row in the Project UI tree links to /<owner>/<slug>/.
+    const projectRow = document.querySelector<HTMLAnchorElement>(
+      "[data-project-tree-list] a[data-project-row][aria-current='page']",
+    );
+    return buildNavUrl(
+      { pathname: location.pathname, search: location.search },
+      state,
+      projectRow?.getAttribute("href") ?? null,
+    );
   }
 
   private detectModule(): string {

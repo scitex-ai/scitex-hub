@@ -62,7 +62,7 @@ Parameters (all optional except projects):
                     {% if project.description %}
                         <div class="ws-project-row__description">{{ project.description|truncatechars:140 }}</div>
                     {% endif %}
-                    {% if project.is_app %}
+                    {% if project.is_app and user.is_authenticated %}
                         <button type="button"
                                 class="btn btn-sm dev-install-btn ws-project-row__install"
                                 data-action="dev-install"

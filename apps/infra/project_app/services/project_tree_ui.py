@@ -12,7 +12,12 @@ shell shows for a request:
 
 - ``project_tree_ui``        -> the worktree pane renders the project list +
                                 nested tree (not the bare tree).
-- ``project_nav_projects``   -> the viewer's own projects, as tree rows.
+- ``project_nav_projects``   -> My Projects: owned or member, never others'
+                                public projects.
+- ``project_tree_projects``  -> worktree pane rows (the open project nests
+                                under its row).
+- ``project_tree_public_read`` -> the open project is not the viewer's, so the
+                                pane reads "Public Projects".
 - ``project_tree_can_write`` -> write actions (new file, upload, rename,
                                 delete) are offered. The server already refuses
                                 writes; this only stops offering them.
@@ -71,27 +76,88 @@ def project_is_empty(project) -> bool:
         return False
 
 
-def nav_projects(request, current_project=None):
-    """Rows for the tree shell: the viewer's own projects, newest first.
+def is_my_project(user, project) -> bool:
+    """True when ``project`` belongs in ``user``'s My Projects: owner or member.
 
-    The open project always has a row — its file tree nests under it — so a
-    project the viewer does not own (someone's public project, or any project
-    for an anonymous visitor) is put first.
+    Visibility plays no part: a public project someone else owns is readable,
+    but it is not the viewer's project (site audit 2026-09-14, D11).
     """
-    projects = []
-    if request.user.is_authenticated:
-        from apps.infra.project_app.models import Project
+    if project is None or not user.is_authenticated:
+        return False
+    if project.owner_id == user.pk:
+        return True
+    return project.memberships.filter(user=user).exists()
 
-        projects = list(
-            Project.objects.filter(owner=request.user)
-            .select_related("owner")
-            .order_by("-updated_at")[:MAX_NAV_PROJECTS]
+
+def nav_projects(request):
+    """My Projects rows: projects the viewer owns or is a member of, newest first.
+
+    Never another user's public project — reading one does not make it yours.
+    """
+    if not request.user.is_authenticated:
+        return []
+    from django.db.models import Q
+
+    from apps.infra.project_app.models import Project
+
+    return list(
+        Project.objects.filter(
+            Q(owner=request.user) | Q(memberships__user=request.user)
         )
-    if current_project is not None and all(
-        p.pk != current_project.pk for p in projects
-    ):
-        projects.insert(0, current_project)
-    return projects
+        .distinct()
+        .select_related("owner")
+        .order_by("-updated_at")[:MAX_NAV_PROJECTS]
+    )
+
+
+def tree_projects(request, current_project, my_projects):
+    """Rows for the worktree pane, and whether it reads as Public Projects.
+
+    The open project always has a row — its file tree nests under it. When it
+    is the viewer's own (or they are a member), the pane is My Projects with
+    it among the rest. When it is not — someone else's public project, or any
+    project for an anonymous visitor — the pane is Public Projects holding just
+    that project, so My Projects never lists what the viewer does not own.
+    """
+    if current_project is None:
+        return my_projects, False
+    if not is_my_project(request.user, current_project):
+        return [current_project], True
+    if all(p.pk != current_project.pk for p in my_projects):
+        return [current_project, *my_projects], False
+    return my_projects, False
+
+
+def resolve_tree_path(project, path: str) -> tuple[str, str]:
+    """Split a /tree/<branch>/<path> target into (focus folder, open file).
+
+    GitHub serves a file under /tree/ too, so a link like
+    /tree/main/AGENTS.md must open that file rather than try to expand a folder
+    named AGENTS.md (site audit 2026-09-14, D12). Anything that is not an
+    existing regular file inside the project stays a folder focus.
+    """
+    path = (path or "").strip("/")
+    if not path or getattr(project, "project_type", "") == "remote":
+        return path, ""
+    try:
+        from apps.infra.project_app.services.filesystem.permissions import (
+            validate_path_in_project,
+        )
+        from apps.infra.project_app.services.project_filesystem import (
+            get_project_filesystem_manager,
+        )
+
+        root = get_project_filesystem_manager(project.owner).get_project_root_path(
+            project
+        )
+        if root is None:
+            return path, ""
+        target = root / path
+        if validate_path_in_project(root, target) and target.is_file():
+            return "", path
+    except (OSError, ValueError) as exc:
+        logger.debug("resolve_tree_path(%s, %r): %s", project, path, exc)
+    return path, ""
 
 
 def build_project_tree_context(
@@ -110,9 +176,16 @@ def build_project_tree_context(
             f"/{current_project.owner.username}/{current_project.slug}/"
             f"?view={REPOSITORY_VIEW}"
         )
+    my_projects = nav_projects(request)
+    pane_projects, pane_is_public = tree_projects(request, current_project, my_projects)
     return {
         "project_tree_ui": True,
-        "project_nav_projects": nav_projects(request, current_project),
+        # My Projects (module pane list): owned or member only.
+        "project_nav_projects": my_projects,
+        # Worktree pane rows; the pane reads "Public Projects" when the open
+        # project is not the viewer's.
+        "project_tree_projects": pane_projects,
+        "project_tree_public_read": pane_is_public,
         "project_tree_can_write": can_write,
         "project_tree_is_empty": (
             project_is_empty(current_project) if current_project is not None else False
