@@ -44,6 +44,10 @@ class ModuleConfig:
     icon_fa: str = ""  # Full FontAwesome class, e.g. "fas fa-pen"
     icon_svg_tab: str = ""  # Custom SVG for tab bar
     icon_svg_nav: str = ""  # Custom SVG for nav bar
+    # Optional small overlay glyph on the launcher tile, e.g. "fas fa-globe".
+    # My Projects and Public Projects share ONE folder icon (operator,
+    # 2026-09-14); the globe badge + tile colour is what tells them apart.
+    icon_badge: str = ""
 
     # Templates
     partial_template: str = ""  # e.g. "writer_app/writer_partial.html"
@@ -347,6 +351,7 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
         label=data["label"],
         app_name=data["app_name"],
         icon_fa=data.get("icon", ""),
+        icon_badge=data.get("icon_badge", ""),
         icon_svg_tab=overrides.get("icon_svg_tab", ""),
         icon_svg_nav=overrides.get("icon_svg_nav", ""),
         partial_template=data.get("partial_template", ""),

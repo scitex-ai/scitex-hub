@@ -1,0 +1,234 @@
+/* ============================================================
+   Site dock — one iPhone-style dock on EVERY page (operator, 2026-09-14)
+
+   Markup: templates/global_base_partials/site_dock.html
+   Behaviour: static/shared/ts/components/site-dock.ts
+
+   Icons only (names live in aria-label + title). Fixed to the bottom centre by
+   default, above everything else on the page. The grabber drags it anywhere;
+   a dragged dock carries .site-dock--floating and inline left/top.
+
+   This file must also work on LEAF pages that do not load the hub's design
+   tokens (SiteDockMiddleware injects the dock there), so every colour has a
+   literal fallback.
+   ============================================================ */
+
+:root {
+  --site-dock-item: 44px;
+  --site-dock-pad: 6px;
+  --site-dock-gap: 10px;
+  --site-dock-height: calc(var(--site-dock-item) + 2 * var(--site-dock-pad));
+  /* The band the dock occupies at the bottom of the viewport, plus breathing
+     room and the iOS home-bar inset. Pages reserve exactly this much (below). */
+  --site-dock-clearance: calc(
+    var(--site-dock-height) + var(--site-dock-gap) + 8px +
+      env(safe-area-inset-bottom, 0px)
+  );
+  --site-dock-bg: rgba(255, 255, 255, 0.82);
+  --site-dock-border: rgba(0, 0, 0, 0.1);
+  --site-dock-fg: #4a5160;
+  --site-dock-fg-active: #1f2430;
+  --site-dock-active-bg: rgba(0, 0, 0, 0.08);
+  --site-dock-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+}
+
+[data-theme="dark"] {
+  --site-dock-bg: rgba(28, 31, 40, 0.82);
+  --site-dock-border: rgba(255, 255, 255, 0.1);
+  --site-dock-fg: #aab1c0;
+  --site-dock-fg-active: #ffffff;
+  --site-dock-active-bg: rgba(255, 255, 255, 0.12);
+  --site-dock-shadow: 0 10px 34px rgba(0, 0, 0, 0.55);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --site-dock-bg: rgba(28, 31, 40, 0.82);
+    --site-dock-border: rgba(255, 255, 255, 0.1);
+    --site-dock-fg: #aab1c0;
+    --site-dock-fg-active: #ffffff;
+    --site-dock-active-bg: rgba(255, 255, 255, 0.12);
+    --site-dock-shadow: 0 10px 34px rgba(0, 0, 0, 0.55);
+  }
+}
+
+/* Never hidden behind page content, never covering it: while the dock sits
+   at the bottom, the page reserves its band. A floating (dragged) dock is the
+   user's own choice of where it may cover, so the reservation goes away. On
+   app-shell pages the body is border-box and viewport-pinned, so this shrinks
+   the shell instead of pushing it off-screen. */
+body:has(> .site-dock:not(.site-dock--floating)) {
+  padding-bottom: var(--site-dock-clearance) !important;
+}
+
+.site-dock {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--site-dock-gap) + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  /* Above page chrome (header 1000, launcher popover 1200, zen mode 10000). */
+  z-index: 10050;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  box-sizing: border-box;
+  height: var(--site-dock-height);
+  max-width: calc(100vw - 16px);
+  padding: var(--site-dock-pad);
+  border-radius: 22px;
+  background: var(--site-dock-bg);
+  border: 1px solid var(--site-dock-border);
+  box-shadow: var(--site-dock-shadow);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  font-size: 16px;
+  line-height: 1;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.site-dock--floating {
+  bottom: auto;
+  transform: none;
+}
+
+.site-dock--dragging {
+  cursor: grabbing;
+  opacity: 0.94;
+}
+
+.site-dock-item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: var(--site-dock-item);
+  height: var(--site-dock-item);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--site-dock-fg);
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.12s ease;
+}
+
+.site-dock-item i {
+  font-size: 21px;
+  pointer-events: none;
+}
+
+.site-dock-item:hover,
+.site-dock-item:focus-visible {
+  color: var(--site-dock-fg-active);
+  background: var(--site-dock-active-bg);
+  text-decoration: none;
+}
+
+.site-dock-item:focus-visible {
+  outline: 2px solid var(--site-dock-fg-active);
+  outline-offset: -2px;
+}
+
+.site-dock-item:active {
+  transform: scale(0.9);
+}
+
+.site-dock-item.is-active {
+  color: var(--site-dock-fg-active);
+  background: var(--site-dock-active-bg);
+}
+
+/* Back / Forward: narrower chevrons at the ends, dimmed when they cannot go. */
+.site-dock-history {
+  width: 34px;
+}
+
+.site-dock-history i {
+  font-size: 16px;
+}
+
+.site-dock-history:disabled {
+  opacity: 0.3;
+  cursor: default;
+  background: transparent;
+  transform: none;
+}
+
+/* Grabber: an iOS sheet-style bar centred on the dock's top edge. The hit
+   area is larger than the bar and overhangs the edge, so it is easy to catch
+   with a thumb without taking a slot from the buttons. */
+.site-dock-grabber {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 56px;
+  height: 18px;
+  margin: 0 0 0 -28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: grab;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.site-dock-grabber-bar {
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  width: 36px;
+  height: 5px;
+  margin-left: -18px;
+  border-radius: 3px;
+  background: var(--site-dock-fg);
+  opacity: 0.45;
+  transition: opacity 0.15s ease;
+}
+
+.site-dock-grabber:hover .site-dock-grabber-bar,
+.site-dock-grabber:focus-visible .site-dock-grabber-bar,
+.site-dock--dragging .site-dock-grabber-bar {
+  opacity: 0.9;
+}
+
+.site-dock-grabber:focus-visible {
+  outline: 2px solid var(--site-dock-fg-active);
+  border-radius: 6px;
+}
+
+/* Very narrow phones: tighten the slots so the whole dock still fits. */
+@media (max-width: 360px) {
+  :root {
+    --site-dock-item: 40px;
+  }
+
+  .site-dock-history {
+    width: 28px;
+  }
+}
+
+@media print {
+  .site-dock {
+    display: none;
+  }
+
+  body:has(> .site-dock) {
+    padding-bottom: 0 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-dock-item {
+    transition: none;
+  }
+}
+
+/* EOF */

@@ -1,0 +1,42 @@
+{% load i18n %}
+{% comment %}
+  ONE badge slot per tile: small round glyphs stacked in the top-right corner
+  of the icon, INSIDE the icon box (launcher/grid.css .launcher-tile-badges).
+
+  The old badges were text pills pushed out with translateX(46px). At 390px a
+  tile is ~90px wide, so "Desktop-only" clipped the icon and ran into the next
+  tile (operator screenshot, 2026-09-14). A glyph with its words in a tooltip
+  and an accessible name fits in any tile, and several states can show at once.
+
+  Every state comes from EXISTING metadata, so a badge goes away by itself when
+  the app changes:
+    coming_soon   availability field (registry manifest / catalog row)
+    desktop_only  availability field. Operator 2026-09-14: this means "not
+                  yet", not "never", so it reads "Mobile layout coming soon"
+                  and the tile stays fully tappable on a phone.
+    dev-only      visibility "internal" or catalog status "wip" (launcher._is_dev_only)
+    NEW           published within NEW_BADGE_DAYS
+{% endcomment %}
+{% if tile.availability == 'coming_soon' or tile.availability == 'desktop_only' or tile.is_dev_only or tile.is_new %}
+    <span class="launcher-tile-badges">
+        {% if tile.availability == 'coming_soon' %}
+            <span class="launcher-badge launcher-badge-coming-soon" role="img" aria-label="{% trans 'Coming Soon' %}" title="{% trans 'Coming Soon' %}">
+                <i class="fas fa-hourglass-half" aria-hidden="true"></i><span class="launcher-sr-only">Coming Soon</span>
+            </span>
+        {% elif tile.availability == 'desktop_only' %}
+            <span class="launcher-badge launcher-badge-desktop-only" role="img" aria-label="{% trans 'Mobile layout coming soon' %}" title="{% trans 'Mobile layout coming soon' %}">
+                <i class="fas fa-desktop" aria-hidden="true"></i>
+            </span>
+        {% endif %}
+        {% if tile.is_dev_only %}
+            <span class="launcher-badge launcher-badge-dev-only" role="img" aria-label="{% trans 'Dev-only' %}" title="{% trans 'Dev-only' %}">
+                <i class="fas fa-flask" aria-hidden="true"></i>
+            </span>
+        {% endif %}
+        {% if tile.is_new %}
+            <span class="launcher-badge launcher-badge-new" role="img" aria-label="{% trans 'New' %}" title="{% trans 'New' %}">
+                <i class="fas fa-star" aria-hidden="true"></i>
+            </span>
+        {% endif %}
+    </span>
+{% endif %}

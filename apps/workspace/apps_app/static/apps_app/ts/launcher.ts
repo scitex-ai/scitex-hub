@@ -9,9 +9,9 @@
  *   jiggles — including the one you are dragging — and can be dragged to a
  *   new slot. Tapping anywhere OUTSIDE a tile (or Escape) exits; there is
  *   deliberately no "Done" pill. The order persists via POST api/reorder/.
- * - On mobile the tiles are laid out in horizontal PAGES that fit above the
- *   dock (see _launcher/pager.ts). Drag a tile to the left/right edge and hold
- *   to carry it to the next page.
+ * - At every width the tiles are laid out in horizontal PAGES that fit above
+ *   the dock (see _launcher/pager.ts). Drag a tile to the left/right edge and
+ *   hold to carry it to the next page.
  * - Pin to sidebar persists via POST /apps/store/api/<module>/pin/.
  *
  * The drag code is deliberately page-AGNOSTIC: it inserts relative to the tile
@@ -33,32 +33,22 @@ const LONG_PRESS_MS = 420;
 // On a paged grid this is also what lets a horizontal SWIPE turn the page
 // instead of picking a tile up.
 const MOVE_CANCEL_PX = 10;
-// Must match the launcher mobile breakpoint (launcher/mobile.css): the
-// same width that swaps the sidebar for the dock also decides where
-// "desktop-only" starts to matter, so badge and behaviour cannot disagree.
-const MOBILE_BREAKPOINT_QUERY = "(max-width: 767px)";
 
 /**
  * Availability gate — the tile state is a registry/catalog FIELD rendered
  * into data-availability (operator, Telegram 1483: communicate can/cannot
  * AT the icon). Coming-soon tiles already carry no href (server-side);
- * blocking here is defence in depth. Desktop-only tiles keep their href,
- * but a phone tap gets an explanatory toast instead of a dead-end app.
+ * blocking here is defence in depth.
+ *
+ * Desktop-only tiles are NOT blocked any more, on any screen. Operator,
+ * 2026-09-14: those apps will get mobile layouts, so the stance is "not yet",
+ * not "never" — the badge says "Mobile layout coming soon" and the tile opens.
  * Returns true when the launch was blocked.
  */
 function blockUnavailableLaunch(e: Event, tile: HTMLElement): boolean {
   const availability = tile.dataset.availability || "available";
   if (availability === "coming_soon") {
     e.preventDefault();
-    return true;
-  }
-  if (
-    availability === "desktop_only" &&
-    window.matchMedia(MOBILE_BREAKPOINT_QUERY).matches
-  ) {
-    e.preventDefault();
-    const label = tile.dataset.label || "This app";
-    showToast(`${label} is desktop-only — open it on a larger screen.`, "info");
     return true;
   }
   return false;
@@ -155,7 +145,8 @@ class AppLauncher {
         target &&
         !target.closest(".launcher-tile") &&
         !target.closest(".launcher-dots") &&
-        !target.closest(".launcher-dock")
+        !target.closest(".launcher-page-arrow") &&
+        !target.closest(".site-dock")
       ) {
         this.exitEditMode();
       }
@@ -409,31 +400,21 @@ class AppLauncher {
   }
 }
 
-/**
- * Re-parent the mobile dock to <body>. position:fixed resolves against
- * the nearest transformed/zoomed ancestor, and the dock is rendered
- * inside the workspace pane stack — a transform or CSS zoom anywhere up
- * that chain (e.g. context-zoom) makes the "fixed" dock float mid-screen
- * (operator's live iOS screenshot, msgs 608-610). <body> has no such
- * ancestor, so the dock reliably pins to the viewport bottom.
- */
-function anchorDockToViewport(): void {
-  const dock = document.querySelector<HTMLElement>(".launcher-dock");
-  if (dock && dock.parentElement !== document.body) {
-    document.body.appendChild(dock);
-  }
-}
-
 function initLauncher(): void {
-  // Must run BEFORE the pager measures: the pager sizes its pages against the
-  // dock's rect, and the dock only sits at the viewport bottom once re-parented.
-  anchorDockToViewport();
-
+  // The dock is the SITE dock now (shared/components/site-dock.ts anchors it
+  // to <body> and restores a dragged position); the pager measures its rect.
   const grid = document.getElementById("launcher-grid");
   const dots = document.getElementById("launcher-dots");
   if (!grid || !dots) return;
 
-  const pager = new LauncherPager(grid, dots);
+  const pager = new LauncherPager(grid, dots, {
+    prev: document.getElementById(
+      "launcher-page-prev",
+    ) as HTMLButtonElement | null,
+    next: document.getElementById(
+      "launcher-page-next",
+    ) as HTMLButtonElement | null,
+  });
   pager.init();
   new AppLauncher(grid, pager).init();
 }

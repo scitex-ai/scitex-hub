@@ -58,26 +58,33 @@ export class LauncherPopover {
         ),
       );
     }
-    pop.appendChild(
-      this.item(
-        "fas fa-thumbtack",
-        pinned ? "Unpin from sidebar" : "Pin to sidebar",
-        () => this.togglePin(moduleName),
-      ),
-    );
+    // Link tiles (Chat, Settings) open an existing hub page and have no
+    // catalogue row: nothing to pin to the sidebar, no store details page.
+    const linkOnly = tile.dataset.linkOnly === "1";
+    if (!linkOnly) {
+      pop.appendChild(
+        this.item(
+          "fas fa-thumbtack",
+          pinned ? "Unpin from sidebar" : "Pin to sidebar",
+          () => this.togglePin(moduleName),
+        ),
+      );
+    }
     pop.appendChild(
       this.item("fas fa-up-down-left-right", "Rearrange apps", () =>
         this.actions.onRearrange(),
       ),
     );
-    const sep = document.createElement("div");
-    sep.className = "launcher-pop-sep";
-    pop.appendChild(sep);
-    pop.appendChild(
-      this.item("fas fa-circle-info", "Details", () => {
-        window.location.href = tile.dataset.detailUrl || "/apps/store/";
-      }),
-    );
+    if (!linkOnly) {
+      const sep = document.createElement("div");
+      sep.className = "launcher-pop-sep";
+      pop.appendChild(sep);
+      pop.appendChild(
+        this.item("fas fa-circle-info", "Details", () => {
+          window.location.href = tile.dataset.detailUrl || "/apps/store/";
+        }),
+      );
+    }
 
     document.body.appendChild(pop);
     this.el = pop;

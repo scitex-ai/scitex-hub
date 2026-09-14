@@ -1,5 +1,5 @@
 /**
- * Launcher pager — iPhone-home-style horizontal pages (mobile only).
+ * Launcher pager — iPhone-home-style horizontal pages, at EVERY width.
  *
  * WHY THIS EXISTS (operator, real iPhone, 2026-07-13): the grid scrolled
  * VERTICALLY under the fixed bottom dock, so the last row of icons sat behind
@@ -8,28 +8,84 @@
  * for every dock height, safe-area inset and dynamic-toolbar state, and it
  * still leaves icons hidden the moment one more app is installed.
  *
- * Paging removes the failure mode STRUCTURALLY instead of padding around it:
- * the pages are sized to the space that is actually free ABOVE the dock, so a
- * tile can never land under it — for ANY number of apps. Overflow goes
- * sideways (swipe right for more), which is the iOS home screen the operator
- * asked for ("かさならないように右に右にと移動できるようにして任意の数のアプリに対応させて").
+ * Paging removes the failure mode STRUCTURALLY: pages are sized to the space
+ * actually free ABOVE the dock, so a tile can never land under it — for ANY
+ * number of apps. Overflow goes sideways.
  *
- * Desktop (>767px) keeps the plain vertical grid — the dock is mobile-only, so
- * there is nothing to page around.
+ * 2026-09-14 (Home + dock redesign): the dock is now on every page at every
+ * width, and the operator wants phone and desktop to be the same UI, so the
+ * pager runs on desktop too. Touch swipes; desktop gets arrow buttons, the
+ * trackpad's horizontal scroll, the arrow keys and clickable dots. CSS
+ * scroll-snap does the actual paging (launcher/mobile.css).
  */
 
-// Columns per page. Matches the 4-col grid in launcher/mobile.css.
-const COLS = 4;
 // Never build a page shorter than this; below it, paging is worse than nothing.
 const MIN_PAGE_HEIGHT = 200;
 // Drag within this many px of an edge for EDGE_DWELL_MS to flip the page.
 const EDGE_ZONE_PX = 44;
 const EDGE_DWELL_MS = 500;
 
+export interface PageLayoutInput {
+  /** Pixels available for tile rows (grid top to dock top, minus the dots). */
+  available: number;
+  tileHeight: number;
+  rowGap: number;
+  cols: number;
+  tileCount: number;
+}
+
+export interface PageLayout {
+  rows: number;
+  perPage: number;
+  pageCount: number;
+}
+
+/**
+ * How many rows fit, how many tiles that makes per page, and how many pages.
+ * Pure: the class below measures the DOM and hands the numbers in.
+ */
+export function computePageLayout(input: PageLayoutInput): PageLayout {
+  const tileHeight = input.tileHeight > 0 ? input.tileHeight : 120;
+  const rowGap = Math.max(0, input.rowGap);
+  const cols = Math.max(1, Math.floor(input.cols) || 1);
+  const rows = Math.max(
+    1,
+    Math.floor((Math.max(0, input.available) + rowGap) / (tileHeight + rowGap)),
+  );
+  const perPage = rows * cols;
+  const pageCount = Math.max(
+    1,
+    Math.ceil(Math.max(0, input.tileCount) / perPage),
+  );
+  return { rows, perPage, pageCount };
+}
+
+/**
+ * Column count for the current viewport. launcher/grid.css declares it as
+ * --launcher-cols (6, 5 at <=960px, 4 at <=640px); the same breakpoints are
+ * the fallback where the custom property cannot be read (jsdom).
+ */
+export function readColumns(grid: HTMLElement, viewportWidth: number): number {
+  const declared = parseInt(
+    getComputedStyle(grid).getPropertyValue("--launcher-cols"),
+    10,
+  );
+  if (Number.isFinite(declared) && declared > 0) return declared;
+  if (viewportWidth <= 640) return 4;
+  if (viewportWidth <= 960) return 5;
+  return 6;
+}
+
+export interface PagerControls {
+  prev?: HTMLButtonElement | null;
+  next?: HTMLButtonElement | null;
+}
+
 export class LauncherPager {
   private grid: HTMLElement;
   private dots: HTMLElement;
-  private mq: MediaQueryList;
+  private prev: HTMLButtonElement | null;
+  private next: HTMLButtonElement | null;
   private edgeTimer: number | null = null;
   private edgeDir: -1 | 1 | 0 = 0;
   // Last computed page capacity, so a re-measure that changes nothing does not
@@ -37,10 +93,15 @@ export class LauncherPager {
   private lastPerPage = 0;
   private lastPageCount = 0;
 
-  constructor(grid: HTMLElement, dots: HTMLElement) {
+  constructor(
+    grid: HTMLElement,
+    dots: HTMLElement,
+    controls: PagerControls = {},
+  ) {
     this.grid = grid;
     this.dots = dots;
-    this.mq = window.matchMedia("(max-width: 767px)");
+    this.prev = controls.prev ?? null;
+    this.next = controls.next ?? null;
   }
 
   init(): void {
@@ -48,17 +109,9 @@ export class LauncherPager {
 
     // MEASURE LATE, NOT EARLY. How much room a page gets is the gap between the
     // TOP OF THE GRID and the dock — and the grid's top depends on everything
-    // stacked above it: the guest banner, the section head, the web fonts. At
-    // DOMContentLoaded none of that has settled, so the grid still reports a top
-    // near the header and the pager concludes it has ~430px of room when it
-    // really has ~200px. That is precisely how the first version put THREE rows
-    // into a two-row gap and pushed the icons straight back under the dock
-    // (measured on live prod: dock top 586, deepest tile 642 — the same 56px
-    // overlap it was supposed to remove).
-    //
-    // So re-measure once the layout has actually happened, and then keep
-    // watching. apply() is idempotent — it only rebuilds when the page capacity
-    // genuinely changed — so firing it often costs nothing.
+    // stacked above it (banner, section head, web fonts). At DOMContentLoaded
+    // none of that has settled, so re-measure once layout has happened, and
+    // keep watching. apply() only rebuilds when the capacity really changed.
     requestAnimationFrame(() => this.apply());
     window.addEventListener("load", () => this.apply());
 
@@ -69,18 +122,35 @@ export class LauncherPager {
       if (host) new ResizeObserver(() => this.apply()).observe(host);
     }
 
-    // Re-chunk when the viewport changes: a rotation or a dynamic-toolbar
-    // resize changes how many rows fit, which changes the page count.
     const relayout = () => this.apply();
-    this.mq.addEventListener("change", relayout);
     window.addEventListener("resize", relayout);
     window.addEventListener("orientationchange", relayout);
-    this.grid.addEventListener("scroll", () => this.syncDots(), {
+    this.grid.addEventListener("scroll", () => this.syncControls(), {
       passive: true,
+    });
+
+    this.prev?.addEventListener("click", () =>
+      this.goTo(this.currentPage() - 1),
+    );
+    this.next?.addEventListener("click", () =>
+      this.goTo(this.currentPage() + 1),
+    );
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      const target = e.target as HTMLElement | null;
+      if (
+        target?.closest(
+          "input, textarea, select, [contenteditable], [data-site-dock], .launcher-popover",
+        )
+      ) {
+        return;
+      }
+      if (this.pageCount() < 2) return;
+      this.goTo(this.currentPage() + (e.key === "ArrowRight" ? 1 : -1));
     });
   }
 
-  /** True while the grid is showing pages (i.e. mobile). */
+  /** True while the grid is showing pages. */
   get paged(): boolean {
     return this.grid.classList.contains("launcher-grid--paged");
   }
@@ -92,40 +162,17 @@ export class LauncherPager {
     );
   }
 
-  /** Build pages (mobile) or tear them down (desktop). */
-  apply(): void {
-    if (!this.mq.matches) {
-      this.unpage();
-      return;
-    }
-    this.page();
+  private pageCount(): number {
+    return this.grid.querySelectorAll(".launcher-page").length;
   }
 
-  /** Flatten the pages back into a plain grid, preserving tile order. */
-  private unpage(): void {
-    if (!this.paged) return;
-    const tiles = this.tiles();
-    this.grid
-      .querySelectorAll(".launcher-page")
-      .forEach((page) => page.remove());
-    tiles.forEach((t) => this.grid.appendChild(t));
-    this.grid.classList.remove("launcher-grid--paged");
-    this.grid.style.removeProperty("height");
-    this.dots.hidden = true;
-    this.dots.replaceChildren();
-    this.lastPerPage = 0;
-    this.lastPageCount = 0;
+  /** Build (or refresh) the pages for the current viewport. */
+  apply(): void {
+    this.page();
   }
 
   /**
    * Chunk the tiles into pages that fit the space above the dock.
-   *
-   * Height is MEASURED, not assumed: we take the gap between the top of the
-   * grid and the top of the (fixed) dock. That self-corrects for the guest
-   * banner, the safe-area inset and iOS's dynamic toolbar — the three things
-   * that made a hard-coded padding wrong on a real device. It is re-run
-   * whenever anything above the grid changes size (see init()), because the
-   * measurement is only as good as the layout it is taken from.
    *
    * `force` re-chunks even when the capacity is unchanged — rebalance() needs
    * that after a drop moved a tile between pages.
@@ -134,11 +181,13 @@ export class LauncherPager {
     const tiles = this.tiles();
     if (!tiles.length) return;
 
-    // Always refresh the height (cheap, and it is what keeps the page inside
-    // the gap above the dock) — but only rebuild the DOM when the capacity
-    // actually changed, so the ResizeObserver can fire as often as it likes.
-    const perPage = COLS * this.rowsThatFit(tiles[0]);
-    const pageCount = Math.max(1, Math.ceil(tiles.length / perPage));
+    const { perPage, pageCount } = computePageLayout({
+      available: this.availableHeight(),
+      tileHeight: tiles[0].offsetHeight,
+      rowGap: parseFloat(getComputedStyle(this.grid).rowGap) || 22,
+      cols: readColumns(this.grid, window.innerWidth),
+      tileCount: tiles.length,
+    });
     const scrollLeft = this.grid.scrollLeft;
 
     this.grid.classList.add("launcher-grid--paged");
@@ -170,51 +219,49 @@ export class LauncherPager {
     this.buildDots(pageCount);
     // Keep the reader where they were across a relayout (e.g. rotation).
     this.grid.scrollLeft = scrollLeft;
-    this.syncDots();
+    this.syncControls();
   }
 
   /**
-   * How many tile rows fit ABOVE the dock.
+   * Pixels for tile rows ABOVE the dock, and pin the grid to that height.
    *
-   * The dock is position:fixed and re-parented to <body>, so its rect is the
-   * only honest measure of where the usable area ends. Falling back to the
-   * viewport bottom keeps this working on the (desktop-width) pages that have
-   * no dock at all.
-   *
-   * Presence comes from the dock's RECT, never offsetParent: a position:fixed
-   * element reports offsetParent === null BY SPEC, so the old offsetParent
-   * check read the dock as absent in every real browser — pages were sized to
-   * the full viewport and the last row rendered under the dock (measured at
-   * 390x664 on prod: grid height 406 where 328 fit; the 844-tall case only
-   * looked right because the last row ended 1px above the dock). A
-   * display:none dock measures 0x0, which is exactly the absent case.
+   * The dock is position:fixed on <body>, so its rect is the only honest
+   * measure of where the usable area ends. Presence comes from the RECT, never
+   * offsetParent (null BY SPEC for position:fixed, which once made the pager
+   * read the dock as absent in every real browser). A dock the user dragged
+   * off the bottom (.site-dock--floating) no longer bounds the page, and a
+   * display:none dock measures 0x0: both fall back to the viewport bottom.
    */
-  private rowsThatFit(sample: HTMLElement): number {
+  private availableHeight(): number {
     const gridTop = this.grid.getBoundingClientRect().top;
-    const dock = document.querySelector<HTMLElement>(".launcher-dock");
-    const dockRect = dock?.getBoundingClientRect();
+    const dock = document.querySelector<HTMLElement>(".site-dock");
+    const dockRect =
+      dock && !dock.classList.contains("site-dock--floating")
+        ? dock.getBoundingClientRect()
+        : null;
     const floor =
       dockRect && dockRect.height > 0 ? dockRect.top : window.innerHeight;
     const dotsRoom = this.dots.offsetHeight || 26;
 
     const available = Math.max(MIN_PAGE_HEIGHT, floor - gridTop - dotsRoom - 8);
     this.grid.style.height = `${available}px`;
-
-    const rowGap = parseFloat(getComputedStyle(this.grid).rowGap) || 22;
-    const tileH = sample.offsetHeight || 120;
-    const rows = Math.floor((available + rowGap) / (tileH + rowGap));
-    return Math.max(1, rows);
+    return available;
   }
 
+  /**
+   * One dot per page, the current one highlighted. Shown whenever the grid is
+   * paged, even for a single page: the operator asked for dots under the grid
+   * that show the current page, and a lone dot also tells a first-time user
+   * that this screen is a page.
+   */
   private buildDots(pageCount: number): void {
     this.dots.replaceChildren();
-    this.dots.hidden = pageCount < 2;
-    if (pageCount < 2) return;
-
+    this.dots.hidden = false;
     for (let i = 0; i < pageCount; i++) {
       const dot = document.createElement("button");
       dot.type = "button";
       dot.className = "launcher-dot";
+      dot.setAttribute("role", "tab");
       dot.setAttribute("aria-label", `Page ${i + 1} of ${pageCount}`);
       dot.addEventListener("click", () => this.goTo(i));
       this.dots.appendChild(dot);
@@ -222,34 +269,44 @@ export class LauncherPager {
   }
 
   private get pageWidth(): number {
-    // The REAL page width, measured off a page, not assumed from the
-    // container: scroll positions are multiples of whatever flex-basis
-    // mobile.css gives a page (100% today; the retired 88% "peek" proved
-    // the two can drift), so measuring keeps the dot/scroll math correct
-    // under any CSS. jsdom reports offsetWidth 0 — fall back to clientWidth.
+    // The REAL page width, measured off a page, not assumed from the container:
+    // scroll positions are multiples of whatever flex-basis the CSS gives a
+    // page. jsdom reports offsetWidth 0 — fall back to clientWidth.
     const page = this.grid.querySelector<HTMLElement>(".launcher-page");
     return page?.offsetWidth || this.grid.clientWidth || 1;
   }
 
-  private currentPage(): number {
+  currentPage(): number {
     return Math.round(this.grid.scrollLeft / this.pageWidth);
   }
 
-  private syncDots(): void {
+  private syncControls(): void {
     const active = this.currentPage();
+    const count = this.pageCount();
     Array.from(this.dots.children).forEach((dot, i) => {
       dot.classList.toggle("active", i === active);
+      dot.setAttribute("aria-selected", i === active ? "true" : "false");
     });
+    const multi = count > 1;
+    if (this.prev) {
+      this.prev.hidden = !multi;
+      this.prev.disabled = active <= 0;
+    }
+    if (this.next) {
+      this.next.hidden = !multi;
+      this.next.disabled = active >= count - 1;
+    }
   }
 
   goTo(index: number): void {
-    this.grid.scrollTo({ left: index * this.pageWidth, behavior: "smooth" });
+    const last = Math.max(0, this.pageCount() - 1);
+    const target = Math.min(Math.max(0, index), last);
+    this.grid.scrollTo({ left: target * this.pageWidth, behavior: "smooth" });
   }
 
   /**
    * Called on every drag move: hold a tile against the left/right edge and the
    * page turns, so a tile can be carried to any page (iOS does this too).
-   * Anything other than a sustained hold in the edge zone cancels the flip.
    */
   edgeTurn(clientX: number): void {
     if (!this.paged) return;
@@ -271,7 +328,7 @@ export class LauncherPager {
     this.edgeDir = dir;
     this.edgeTimer = window.setTimeout(() => {
       const next = this.currentPage() + dir;
-      const last = this.grid.querySelectorAll(".launcher-page").length - 1;
+      const last = this.pageCount() - 1;
       if (next >= 0 && next <= last) this.goTo(next);
       this.edgeDir = 0;
       this.edgeTimer = null;
@@ -289,13 +346,10 @@ export class LauncherPager {
   /**
    * After a drop, a page can hold one tile too many (it was dragged in from a
    * neighbour). Re-chunk so every page is exactly full again and the overflow
-   * pushes right — the same thing iOS does when you drop an icon onto a full
-   * page. Tile ORDER is preserved: page() re-reads the tiles in DOM order.
+   * pushes right. Tile ORDER is preserved: page() re-reads tiles in DOM order.
    */
   rebalance(): void {
     if (!this.paged) return;
-    // force: the page CAPACITY has not changed, only which page a tile sits on,
-    // so the "nothing changed, skip the rebuild" short-circuit must not apply.
     this.page(true);
   }
 }

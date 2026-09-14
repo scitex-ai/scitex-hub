@@ -1,4 +1,4 @@
-{% load static vite branding_tags i18n %}{% get_current_language as LANGUAGE_CODE %}
+{% load static vite branding_tags i18n site_dock %}{% get_current_language as LANGUAGE_CODE %}
 
 <!DOCTYPE html>
 {% comment %}
@@ -64,6 +64,11 @@
         genuinely ambiguous:
             /landing/  -> always the landing page, for ANY role (keeps #499 fixed)
             /          -> landing page ONLY when anonymous; otherwise the launcher
+            /apps/     -> the launcher (Home) for signed-in users; anonymous
+                          requests are redirected to sign-up before rendering.
+                          It carries `app-home` like `/`, so the Home grid
+                          scrolls down to reveal the footer above the dock
+                          (operator, 2026-09-14).
         Do not reintroduce `is_visitor` here. If a future session-specific need
         arises, add a SEPARATE class rather than overloading this one — and note
         that the durable fix is to stop hiding .site-footer globally and
@@ -89,7 +94,7 @@
           data-track-module="{% if active_module %}{{ active_module.get_track_module }}{% elif '/server-status' in request.path %}server_status{% elif '/explore/' in request.path %}explore{% elif '/workspace/' in request.path %}files{% endif %}"
           {% if request.initial_pane %}data-initial-pane="{{ request.initial_pane }}"{% endif %}
           {% if request.chat_session_token %}data-chat-session-token="{{ request.chat_session_token }}"{% endif %}
-          class="{% if request.path == '/' or request.path == '/landing/' %}workspace-page{% if request.path == '/landing/' or not user.is_authenticated %} landing-page{% else %} no-transition app-home{% endif %}{% elif active_module %}workspace-page {{ active_module.body_class }} no-transition{% elif '/workspace/' in request.path %}workspace-page no-transition{% elif '/explore/' in request.path %}workspace-page explore-page{% endif %}">
+          class="{% if request.path == '/' or request.path == '/apps/' or request.path == '/landing/' %}workspace-page{% if request.path == '/landing/' or not user.is_authenticated %} landing-page{% else %} no-transition app-home{% endif %}{% elif active_module %}workspace-page {{ active_module.body_class }} no-transition{% elif '/workspace/' in request.path %}workspace-page no-transition{% elif '/explore/' in request.path %}workspace-page explore-page{% endif %}">
         <!-- Loading screen — hides FOUC until CSS/JS adds body.app-ready -->
         <!-- hook-bypass: inline-script -->
         <div id="app-loading-screen">
@@ -179,6 +184,8 @@
             </div>
         {% endif %}
         {% include 'global_base_partials/global_footer.html' %}
+        {# Site-wide dock on every page (signed-in users only; the tag decides). #}
+        {% site_dock %}
         {% if not is_workspace_page %}
             {% include 'global_base_partials/global_ai_panel.html' %}
         {% endif %}

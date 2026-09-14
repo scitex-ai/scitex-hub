@@ -97,16 +97,25 @@ def test_the_registry_serves_that_icon():
     assert module is not None and module.icon_fa == declared
 
 
-def test_no_other_module_claims_the_projects_icon():
+def test_no_other_module_claims_the_projects_icon_without_a_badge():
     """Two tiles with the same glyph are indistinguishable at a glance, which
-    is the complaint this change exists to fix, one step removed."""
+    is the complaint this change exists to fix, one step removed.
+
+    Operator, 2026-09-14: My Projects and Public Projects deliberately share ONE
+    folder icon, and Public Projects is told apart by a globe badge (manifest
+    ``icon_badge``) and its own tile colour. So a module may reuse the icon only
+    if it carries a badge.
+    """
     # Arrange
     projects = get_module(PROJECTS_MODULE)
     # Act
     clashes = [
         m.name
         for m in get_all_modules()
-        if m.name != PROJECTS_MODULE and m.icon_fa and m.icon_fa == projects.icon_fa
+        if m.name != PROJECTS_MODULE
+        and m.icon_fa
+        and m.icon_fa == projects.icon_fa
+        and not m.icon_badge
     ]
     # Assert
     assert clashes == [], f"{clashes} also use {projects.icon_fa!r}"

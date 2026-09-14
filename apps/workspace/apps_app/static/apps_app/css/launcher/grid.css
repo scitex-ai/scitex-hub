@@ -1,9 +1,13 @@
-/* ---------- App grid ---------- */
+/* ---------- App grid ----------
+   --launcher-cols is the ONE column count: the flat (no-JS) grid and every
+   page of the pager use it, and launcher/pager.ts reads it back to size pages,
+   so the page maths cannot drift from what CSS lays out. */
 .launcher-grid {
+  --launcher-cols: 6;
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(var(--launcher-cols), 1fr);
   gap: 26px 14px;
-  margin-bottom: 40px;
+  margin-bottom: 12px;
 }
 
 .launcher-tile {
@@ -96,23 +100,80 @@
   opacity: 0.85;
 }
 
-/* ---------- Badges + installed dot ---------- */
-.launcher-badge {
+/* ---------- Badges + installed dot ----------
+   ONE badge slot, INSIDE the icon box: small round glyphs stacked down its
+   top-right corner (partials/launcher_tile_badges.html). The slot is
+   absolutely positioned against .launcher-tile-icon with NON-negative
+   offsets, so it can never leave the icon, let alone the tile. The old text
+   pills were pushed out with translateX(46px) and, at 390px, clipped the icon
+   and ran into the neighbouring tile (operator screenshot 2026-09-14). */
+.launcher-tile-icon {
+  position: relative;
+}
+
+.launcher-tile-badges {
   position: absolute;
-  top: 4px;
-  right: 50%;
-  transform: translateX(46px);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  padding: 2px 6px;
-  border-radius: 999px;
+  top: 3px;
+  right: 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   z-index: 2;
+  pointer-events: auto;
+}
+
+.launcher-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  font-size: 9px;
+  line-height: 1;
+  background: rgba(10, 12, 20, 0.72);
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.launcher-tile-icon .launcher-badge i {
+  font-size: 9px;
+  color: inherit;
 }
 
 .launcher-badge-new {
   background: var(--app-accent-hub, #6a5a8a);
-  color: #fff;
+}
+
+.launcher-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Secondary glyph on the icon itself (manifest "icon_badge"): the globe that
+   tells Public Projects apart from My Projects, which share one folder icon.
+   Bottom-right, so it never collides with the status badges up top. */
+.launcher-tile-icon-badge {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.launcher-tile-icon .launcher-tile-icon-badge i {
+  font-size: 13px;
+  color: #2f9e5f;
 }
 
 /* ---------- Availability (registry/catalog field, honest can/cannot
@@ -122,10 +183,7 @@
    the press-in tap effect (an explicit operator allowance) but carries
    no href, so nothing navigates. */
 .launcher-badge-coming-soon {
-  background: var(--workspace-bg-elevated, var(--workspace-bg-tertiary));
-  color: var(--workspace-text-secondary);
-  border: 1px solid var(--workspace-border-default);
-  white-space: nowrap;
+  background: rgba(10, 12, 20, 0.8);
 }
 
 .launcher-tile[data-availability="coming_soon"] {
@@ -150,14 +208,11 @@
   transform: none;
 }
 
-/* Desktop-only: fully usable here, so the desktop grid shows nothing.
-   The badge + dimming appear under the mobile breakpoint (mobile.css). */
-.launcher-badge-desktop-only {
-  display: none;
-  background: var(--workspace-bg-elevated, var(--workspace-bg-tertiary));
-  color: var(--workspace-text-secondary);
-  border: 1px solid var(--workspace-border-default);
-  white-space: nowrap;
+/* Desktop-only = "mobile layout coming soon" (operator 2026-09-14: not yet,
+   not never). Same glyph at every width, and the tile is NOT dimmed or
+   blocked anywhere: it opens on a phone too. */
+.launcher-badge-dev-only {
+  background: #b7791f;
 }
 
 .launcher-dot-installed {

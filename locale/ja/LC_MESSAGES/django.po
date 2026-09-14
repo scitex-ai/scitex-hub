@@ -5240,3 +5240,64 @@ msgstr "お問い合わせページ"
 
 msgid "GitHub issues"
 msgstr "GitHub Issues"
+
+# Home + site dock redesign (operator, 2026-09-14). Dock button names are app
+# names, so they share msgctxt "app name" with the launcher tiles.
+#: templates/global_base_partials/site_dock.html
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+msgctxt "app name"
+msgid "Home"
+msgstr "ホーム"
+
+#: templates/global_base_partials/site_dock.html
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+msgctxt "app name"
+msgid "Chat"
+msgstr "チャット"
+
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+msgctxt "app name"
+msgid "Settings"
+msgstr "設定"
+
+#: templates/global_base_partials/site_dock.html
+msgid "Dock"
+msgstr "ドック"
+
+#: templates/global_base_partials/site_dock.html
+msgid "Move dock (double-click to reset)"
+msgstr "ドックを移動（ダブルクリックで元の位置に戻す）"
+
+#: templates/global_base_partials/site_dock.html
+msgid "Back"
+msgstr "戻る"
+
+#: templates/global_base_partials/site_dock.html
+msgid "Forward"
+msgstr "進む"
+
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+msgid "Previous page"
+msgstr "前のページ"
+
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+msgid "Next page"
+msgstr "次のページ"
+
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+msgid "App pages"
+msgstr "アプリのページ"
+
+# Tile badges (apps_app/partials/launcher_tile_badges.html). Desktop-only
+# means "not yet" (operator, 2026-09-14): 「モバイル版は準備中です」.
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_tile_badges.html
+msgid "Mobile layout coming soon"
+msgstr "モバイル版は準備中です"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_tile_badges.html
+msgid "Dev-only"
+msgstr "開発中"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_tile_badges.html
+msgid "New"
+msgstr "新着"

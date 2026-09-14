@@ -4,7 +4,7 @@
   "name": "store",
   "label": "App Store",
   "app_name": "apps_app",
-  "icon": "fas fa-store",
+  "icon": "fas fa-table-cells-large",
   "description": "Browse, install, and publish community modules.",
   "version": "0.14.0",
   "license": "AGPL-3.0",

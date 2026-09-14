@@ -1,0 +1,55 @@
+{% load i18n static vite %}
+{% comment %}
+  Site-wide dock (operator, 2026-09-14). One dock on EVERY page, phone and
+  desktop alike: icons only, like the iPhone dock, with each button's name in
+  aria-label + title. Items come from apps/infra/workspace_app/site_dock.py,
+  which reads each icon from the app the button opens.
+
+  Rendered from global_base.html for hub pages, and injected by
+  SiteDockMiddleware into leaf pages that do not extend it. The data-site-dock
+  marker is how the middleware knows a page already has one.
+
+  Back / Forward: history.back() / history.forward(). Both start DISABLED and
+  shared/components/site-dock.ts enables them from its in-site history stack
+  (Safari has no canGoForward). The grabber drags the dock; its position is
+  remembered per device; a double-click / double-tap on it resets it.
+{% endcomment %}
+{% if site_dock_items %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/site-dock.css' %}" />
+    <nav class="site-dock" id="site-dock" data-site-dock aria-label="{% trans 'Dock' %}">
+        <button type="button"
+                class="site-dock-grabber"
+                data-dock-grabber
+                aria-label="{% trans 'Move dock (double-click to reset)' %}"
+                title="{% trans 'Move dock (double-click to reset)' %}">
+            <span class="site-dock-grabber-bar" aria-hidden="true"></span>
+        </button>
+        <button type="button"
+                class="site-dock-item site-dock-history"
+                data-dock-back
+                aria-label="{% trans 'Back' %}"
+                title="{% trans 'Back' %}"
+                disabled>
+            <i class="fas fa-chevron-left" aria-hidden="true"></i>
+        </button>
+        {% for item in site_dock_items %}
+            <a href="{{ item.url }}"
+               class="site-dock-item{% if item.active %} is-active{% endif %}"
+               data-dock-item="{{ item.key }}"
+               aria-label="{% trans item.label context 'app name' %}"
+               title="{% trans item.label context 'app name' %}"
+               {% if item.active %}aria-current="page"{% endif %}>
+                <i class="{{ item.icon }}" aria-hidden="true"></i>
+            </a>
+        {% endfor %}
+        <button type="button"
+                class="site-dock-item site-dock-history"
+                data-dock-forward
+                aria-label="{% trans 'Forward' %}"
+                title="{% trans 'Forward' %}"
+                disabled>
+            <i class="fas fa-chevron-right" aria-hidden="true"></i>
+        </button>
+    </nav>
+    {% vite_script 'shared/components/site-dock' %}
+{% endif %}

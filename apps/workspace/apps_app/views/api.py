@@ -17,6 +17,7 @@ from ..models import (
     ModuleReview,
     ModuleStar,
 )
+from ..services.launcher_links import save_link_tile_orders
 from .helpers import can_view_module, ensure_builtin_modules
 
 
@@ -257,6 +258,10 @@ def api_reorder(request):
                 defaults={"is_enabled": True, "tab_order": tab_order},
             )
             installations[name] = inst
+
+    # Link tiles (Chat, Settings) have no AppsModule row; keep their positions
+    # too, or the first drag would jump them to the front of the grid.
+    save_link_tile_orders(request.user, order)
 
     return JsonResponse({"success": True, "message": "Tab order updated."})
 

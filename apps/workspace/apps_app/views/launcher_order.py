@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 """Curated default launcher order — the one list every launcher surface sorts by.
 
-Extracted from ``launcher.py`` so the workspace grid, the sidebar default pins
-and the global-header AppLauncher (``config.context_processors``) can share it
-without importing the whole launcher view module.
+Extracted from ``launcher.py`` so the workspace grid and the sidebar default
+pins can share it without importing the whole launcher view module. (The
+global-header "Apps" dropdown that also read it was removed on 2026-09-14: the
+logo and the dock's Home button are the way back to the grid.)
 """
 
 from __future__ import annotations
@@ -21,29 +22,35 @@ from __future__ import annotations
 # that easy to get wrong. Operator, Telegram 4794, 2026-09-05:
 # 「順番はスカラフィグレシピライター」 — Scholar, FigRecipe, Writer.
 #
-# Operator, 2026-09-14: the FIRST row is the infrastructure everyone uses —
-# My Projects, Public Projects, Agents, Cards — and the research row follows:
-# Scholar, FigRecipe, Stats, Writer. Stats has no launcher app yet; when it
-# lands, insert its module name between "figrecipe" and "writer" here and give
-# its manifest "order": 27 (figrecipe is 25, writer 30). Then a settings/other
-# row (Tools, and Console/Clew if they are ever shown), and last Docs, App
-# Store, Storage (operator, 2026-09-14 10:49Z).
+# Operator, 2026-09-14: the FIRST group is the infrastructure everyone uses —
+# My Projects, Public Projects, Agents, Cards — and the applications follow:
+# Scholar, FigRecipe, Stats, Writer. Then Chat, Settings, Tools, and last Docs,
+# App Store, Storage. The Chat and Settings tiles are link tiles
+# (services/launcher_links.py), added by the Home + dock redesign the same day.
+#
+# "stats" holds its slot although no Stats app exists yet (another agent is
+# building it): an unregistered name renders nothing, and the day the module
+# lands it sorts between FigRecipe and Writer without touching this list. Give
+# its manifest "order": 27 (figrecipe is 25, writer 30).
 DEFAULT_LAUNCHER_ORDER = [
-    # infrastructure row
+    # infrastructure
     "home",  # My Projects
     "discovery",  # Public Projects
     "agents",
     "todo",  # Cards
-    # research row
+    # applications
     "scholar",
     "figrecipe",
+    "stats",  # slot reserved; no app yet
     "writer",
-    # settings / other row (console and clew are opted out of the grid via
-    # show_in_launcher=false, so only Tools shows today)
+    # chat / settings / tools (console and clew opt out of the grid via
+    # show_in_launcher=false, so they never render)
+    "chat",  # link tile -> /chat/
+    "settings",  # link tile -> /accounts/settings/
     "tools",
     "console",
     "clew",
-    # last row
+    # last
     "docs",
     "store",  # App Store
     "storage",
