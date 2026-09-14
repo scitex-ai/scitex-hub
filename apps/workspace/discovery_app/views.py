@@ -26,22 +26,26 @@ def build_discovery_context(request, current_project=None):
     )
 
     dev_installed_set = set()
-    try:
-        from apps.workspace.apps_app.models import DevInstallation
+    if request.user.is_authenticated:
+        try:
+            from apps.workspace.apps_app.models import DevInstallation
 
-        dev_installed_set = set(
-            DevInstallation.objects.filter(user=request.user).values_list(
-                "source_owner", "source_repo"
+            dev_installed_set = set(
+                DevInstallation.objects.filter(user=request.user).values_list(
+                    "source_owner", "source_repo"
+                )
             )
-        )
-    except Exception:
-        pass
+        except Exception:
+            pass
 
     return {
         "tab": "repositories",
         "repositories": repositories,
         "dev_installed_set": dev_installed_set,
         "current_project": current_project,
+        # Signed-out visitors browse the listing read-only: no Users /
+        # Organizations tabs (their API is sign-in only) and no Private Install.
+        "discovery_read_only": not request.user.is_authenticated,
     }
 
 
@@ -55,13 +59,11 @@ def discovery_index(request):
     Operator 2026-09-14: one pane, in the same list/tree look as My Projects.
     The page renders the listing server-side inside the ordinary workspace
     page (module pane), so there is no second shell and no loading flash.
-    Anonymous visitors keep the previous behaviour (landing page).
+    Signed-out visitors get the same listing, read-only (site audit
+    2026-09-14, D11: they used to be bounced to /landing/). Every row links to
+    /<owner>/<slug>/, which already serves public projects to anonymous
+    visitors read-only (#814).
     """
-    if not request.user.is_authenticated:
-        from django.shortcuts import redirect
-
-        return redirect("public_app:landing")
-
     from django.shortcuts import render
 
     return render(

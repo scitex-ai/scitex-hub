@@ -6,9 +6,14 @@
  * - Route to Monaco (text) or a dedicated media viewer (images, PDF, CSV, etc.)
  * - Lazy-load Monaco editor; fall back to <pre> when unavailable
  * - Manage show/hide of monacoContainer vs mediaContainer vs previewContainer
- * - Edit / Preview mode toggle for markdown files
+ * - Edit / Preview mode toggle for previewable files. Markdown opens
+ *   RENDERED (sanitised, _MarkdownPreview.ts) with a Raw toggle; the choice is
+ *   remembered separately from the other previewable types.
+ * - A file that fails to load shows a not-found / error state, never an
+ *   editor holding the error text (_file-state.ts).
  */
 
+import { fetchTextFile, showLoadFailure, type FetchLike } from "./_file-state";
 import { MarkdownPreviewPanel } from "./_MarkdownPreview";
 import { loadMonaco } from "./_monaco-loader";
 import { TabManager } from "./_TabManager";
@@ -22,6 +27,29 @@ import {
 } from "./types";
 
 type ViewMode = "edit" | "preview";
+
+/** Markdown's own remembered mode; rendered unless the reader chose Raw. */
+const MD_MODE_KEY = "ws-viewer-md-mode";
+
+function isMarkdown(filePath: string): boolean {
+  return /\.(md|markdown)$/i.test(filePath);
+}
+
+function readStorage(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function writeStorage(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    /* storage unavailable: keep the in-memory choice */
+  }
+}
 
 /** Extensions that support edit (Monaco) + preview (rendered) toggle */
 const PREVIEWABLE_EXTENSIONS = new Set([
@@ -47,6 +75,8 @@ export interface WorkspaceViewerConfig {
   modeToggle?: HTMLElement;
   storageKey?: string;
   getFileUrl?: (filePath: string, raw?: boolean, download?: boolean) => string;
+  /** Fetch used for text files; defaults to window.fetch. */
+  fetchImpl?: FetchLike;
 }
 
 export class WorkspaceViewer {
@@ -61,6 +91,9 @@ export class WorkspaceViewer {
   private projectId: string = "";
   private tabsContainer: HTMLElement;
   private monacoEditor: any = null;
+  private fetchImpl: FetchLike;
+  /** Text of the file last loaded into the editor, for the markdown render. */
+  private loadedText: { path: string; content: string } | null = null;
   private getFileUrl: (
     filePath: string,
     raw?: boolean,
@@ -73,6 +106,7 @@ export class WorkspaceViewer {
     this.mediaContainer = config.mediaContainer;
     this.previewContainer = config.previewContainer ?? null;
     this.modeToggle = config.modeToggle ?? null;
+    this.fetchImpl = config.fetchImpl ?? ((url: string) => fetch(url));
 
     this.getFileUrl =
       config.getFileUrl ??
@@ -89,7 +123,7 @@ export class WorkspaceViewer {
     }
 
     // Restore saved view mode
-    const savedMode = localStorage.getItem("ws-viewer-mode") as ViewMode | null;
+    const savedMode = readStorage("ws-viewer-mode") as ViewMode | null;
     if (savedMode && ["edit", "preview"].includes(savedMode)) {
       this.viewMode = savedMode;
     }
@@ -168,6 +202,15 @@ export class WorkspaceViewer {
   private async renderFile(filePath: string): Promise<void> {
     const previewable = isPreviewable(filePath);
     const fileType = detectFileType(filePath);
+
+    if (isMarkdown(filePath)) {
+      this.viewMode = readStorage(MD_MODE_KEY) === "edit" ? "edit" : "preview";
+      this.showModeToggle(true, fileType);
+      if (!(await this.showTextFile(filePath))) return;
+      if (this.viewMode === "preview") await this.applyViewMode(filePath);
+      return;
+    }
+
     this.showModeToggle(previewable, fileType);
 
     // Previewable media types (mermaid, graphviz, csv) go through Monaco in edit mode
@@ -187,22 +230,37 @@ export class WorkspaceViewer {
     }
   }
 
-  private async showTextFile(filePath: string): Promise<void> {
+  /** Load a text file into the (read-only) editor. False when it failed. */
+  private async showTextFile(filePath: string): Promise<boolean> {
+    const load = await fetchTextFile(
+      this.getFileUrl(filePath, true, false),
+      this.fetchImpl,
+    );
+    if (load.kind !== "ok") {
+      if (load.kind === "error") {
+        console.error("[WorkspaceViewer] Failed to load file:", filePath, load);
+      }
+      this.loadedText = null;
+      // Not a file to edit or preview: no Editor label, no mode toggle.
+      this.showModeToggle(false, "missing");
+      showLoadFailure(
+        {
+          monacoContainer: this.monacoContainer,
+          mediaContainer: this.mediaContainer,
+          previewContainer: this.previewContainer,
+        },
+        filePath,
+        load,
+      );
+      return false;
+    }
+    const content = load.content;
+    this.loadedText = { path: filePath, content };
+
     this.mediaContainer.style.display = "none";
     if (this.previewContainer) this.previewContainer.style.display = "none";
     this.monacoContainer.style.display = "block";
     this.monacoContainer.style.width = "100%";
-
-    let content = "";
-    try {
-      const url = this.getFileUrl(filePath, true, false);
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      content = await response.text();
-    } catch (err) {
-      console.error("[WorkspaceViewer] Failed to load file:", filePath, err);
-      content = `// Error loading file: ${filePath}\n// ${err}`;
-    }
 
     const ext = filePath.substring(filePath.lastIndexOf(".")).toLowerCase();
     const filename = filePath.split("/").pop()?.toLowerCase() ?? "";
@@ -218,6 +276,7 @@ export class WorkspaceViewer {
     } else {
       this.showFallbackPre(content);
     }
+    return true;
   }
 
   private async showMediaFile(filePath: string): Promise<void> {
@@ -349,9 +408,12 @@ export class WorkspaceViewer {
 
   private setViewMode(mode: ViewMode): void {
     this.viewMode = mode;
-    localStorage.setItem("ws-viewer-mode", mode);
-    this.updateToggleIcon();
     const active = this.tabManager.getActiveTab();
+    writeStorage(
+      active && isMarkdown(active) ? MD_MODE_KEY : "ws-viewer-mode",
+      mode,
+    );
+    this.updateToggleIcon();
     if (active && isPreviewable(active)) {
       this.applyViewMode(active);
     }
@@ -360,6 +422,11 @@ export class WorkspaceViewer {
   private updateToggleIcon(): void {
     if (!this.modeToggle) return;
     const isEdit = this.viewMode === "edit";
+    const active = this.tabManager?.getActiveTab();
+    if (active && isMarkdown(active)) {
+      this.updateMarkdownToggle(isEdit);
+      return;
+    }
     const iconClass = isEdit ? "fas fa-eye" : "fas fa-pencil-alt";
     const label = isEdit ? " Viewer" : " Editor";
 
@@ -377,6 +444,30 @@ export class WorkspaceViewer {
     if (shortTitle) {
       shortTitle.innerHTML = `<i class="${iconClass}"></i>${label}`;
       shortTitle.title = isEdit ? "Viewer" : "Editor";
+    }
+  }
+
+  /**
+   * Markdown's toggle names what a tap switches TO: "Raw" while rendered,
+   * "Rendered" while showing the source.
+   */
+  private updateMarkdownToggle(isRaw: boolean): void {
+    if (!this.modeToggle) return;
+    const iconClass = isRaw ? "fas fa-eye" : "fas fa-code";
+    const label = isRaw ? " Rendered" : " Raw";
+    const title = isRaw ? "Show rendered markdown" : "Show raw markdown";
+    if (this.modeToggle.classList.contains("ws-viewer-mode-toggle-title")) {
+      this.modeToggle.innerHTML = `<i class="${iconClass}"></i>${label}`;
+    } else {
+      const icon = this.modeToggle.querySelector("i");
+      if (icon) icon.className = iconClass;
+    }
+    this.modeToggle.title = title;
+    this.modeToggle.dataset.markdownMode = isRaw ? "raw" : "rendered";
+    const shortTitle = document.getElementById("ws-viewer-title-short");
+    if (shortTitle) {
+      shortTitle.innerHTML = `<i class="${iconClass}"></i>${label}`;
+      shortTitle.title = title;
     }
   }
 
@@ -424,13 +515,15 @@ export class WorkspaceViewer {
     } else {
       this.monacoContainer.style.display = "none";
       if (isMd && hasPreview) {
-        // Markdown: use dedicated preview panel
+        // Markdown: use dedicated preview panel (sanitised render)
         this.mediaContainer.style.display = "none";
         this.previewContainer!.style.display = "block";
         this.previewContainer!.style.width = "100%";
-        if (this.monacoEditor) {
-          this.previewPanel!.render(this.monacoEditor.getValue());
-        }
+        const text =
+          this.loadedText?.path === active
+            ? this.loadedText.content
+            : this.monacoEditor?.getValue();
+        if (typeof text === "string") this.previewPanel!.render(text);
       } else if (active) {
         // Non-md previewable: render via media viewer (mermaid, graphviz, csv)
         if (this.previewContainer) this.previewContainer.style.display = "none";

@@ -95,6 +95,17 @@ def api_get_file_content(request, file_path):
         service_manager = ProjectServiceManager(project)
         project_path = service_manager.get_project_path()
 
+        # The resolver returns None when the project's directory does not exist
+        # on disk (a DB row whose working copy was never cloned, or was
+        # removed). That is "nothing here", not a server fault: answer 404 so
+        # the viewer shows a not-found state. `None / file_path` used to raise
+        # TypeError and surface as a 500 (site audit 2026-09-14, D11).
+        if project_path is None:
+            return JsonResponse(
+                {"success": False, "error": "Project directory not found"},
+                status=404,
+            )
+
         file_full_path = project_path / file_path
 
         # Security check: component-wise containment (a prefix match is NOT

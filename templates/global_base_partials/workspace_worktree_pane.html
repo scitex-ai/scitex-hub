@@ -56,7 +56,7 @@ projects; no write is offered (data-read-only="true").
             <div class="stx-shell-sidebar__content ws-worktree-split">
                 <div class="ws-worktree-tree-area">
                     {% if project_tree_ui %}
-                        {% include 'global_base_partials/project_tree_list.html' with projects=project_nav_projects nest_tree=True show_owner=project_tree_public_read %}
+                        {% include 'global_base_partials/project_tree_list.html' with projects=project_tree_projects nest_tree=True show_owner=project_tree_public_read %}
                     {% else %}
                         {% include 'global_base_partials/workspace_worktree_tree.html' %}
                     {% endif %}

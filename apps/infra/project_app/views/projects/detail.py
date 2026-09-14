@@ -17,6 +17,7 @@ from ...models import ProjectFork, ProjectStar, ProjectWatch
 from ...services.project_tree_ui import (
     REPOSITORY_VIEW,
     build_project_tree_context,
+    resolve_tree_path,
     wants_repository_view,
 )
 from .detail_helpers import (
@@ -228,11 +229,15 @@ def project_tree_or_blob(request, username, slug, branch=None, path=None):
         if folder:
             return redirect(f"/{username}/{slug}/{folder}/")
         return redirect(f"/{username}/{slug}/?view={REPOSITORY_VIEW}")
+    # GitHub also serves files under /tree/: /tree/main/AGENTS.md opens the
+    # file in the viewer instead of trying to expand a folder of that name.
+    focus_path, open_file = resolve_tree_path(project, folder)
     return render_project_tree(
         request,
         project,
         username,
-        focus_path=folder,
+        focus_path=focus_path,
+        open_file=open_file,
         repository_view_url=(
             f"/{username}/{slug}/{folder}/"
             if folder

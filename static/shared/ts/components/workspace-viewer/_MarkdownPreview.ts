@@ -7,7 +7,37 @@
  * - Audio/video players (links to media files)
  * - Tables (standard markdown tables)
  * - Syntax-highlighted code blocks
+ *
+ * SANITISED: files come from any project a reader can open, including other
+ * people's public projects, so the source is untrusted. Every piece of text is
+ * HTML-escaped BEFORE markdown syntax is turned into tags; raw HTML in the
+ * source is shown as text, never injected; link and media URLs are limited to
+ * http(s), mailto, in-page anchors and project-relative paths (no
+ * javascript:, vbscript: or data: other than data:image).
  */
+
+/** Decode the entities escapeHtml introduced, to inspect a URL's scheme. */
+function unescapeHtml(text: string): string {
+  return text
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
+}
+
+/**
+ * True when a (decoded) URL is safe to put in href/src: no script-capable
+ * scheme. Control characters and whitespace are stripped first, as browsers
+ * do, so "java\tscript:" cannot slip through.
+ */
+export function isSafeUrl(url: string, allowDataImage = false): boolean {
+  const compact = url.replace(/[\u0000-\u0020\u007f]+/g, "").toLowerCase();
+  const scheme = compact.match(/^([a-z][a-z0-9+.-]*):/);
+  if (!scheme) return true; // relative path, #anchor, //host
+  if (["http", "https", "mailto"].includes(scheme[1])) return true;
+  return allowDataImage && /^data:image\/(png|jpe?g|gif|webp);/.test(compact);
+}
 
 /** Build a URL for a project file (image, audio, video). */
 function resolveFileUrl(src: string, projectId: string): string {
@@ -41,7 +71,8 @@ function escapeHtml(text: string): string {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 /**
@@ -104,11 +135,8 @@ export function renderMarkdown(markdown: string, projectId: string): string {
       continue;
     }
 
-    // HTML pass-through (details, summary, etc.)
-    if (line.trim().startsWith("<")) {
-      html.push(line);
-      continue;
-    }
+    // Raw HTML is NOT passed through (see the header): it falls through to a
+    // paragraph below, where renderInline escapes it into visible text.
 
     // Empty line
     if (line.trim() === "") {
@@ -155,43 +183,51 @@ export function renderMarkdown(markdown: string, projectId: string): string {
 
   function flushTable(): void {
     if (!inTable || tableRows.length === 0) return;
-    html.push(renderTable(tableRows));
+    html.push(renderTable(tableRows, projectId));
     tableRows = [];
     inTable = false;
   }
 }
 
 /** Render inline markdown (bold, italic, code, links, images). */
-function renderInline(text: string, projectId: string): string {
+function renderInline(raw: string, projectId: string): string {
+  // Escape the whole line first; markdown syntax survives escaping, so the
+  // tags added below are the ONLY tags in the output.
+  let text = escapeHtml(raw);
+
   // Images: ![alt](src) — may render as audio/video player
   text = text.replace(
-    /!\[([^\]]*)\]\(([^)]+)\)/g,
-    (_match, alt: string, src: string) => {
-      const resolvedSrc = resolveFileUrl(src, projectId);
-      if (isAudioUrl(src)) {
-        return `<div class="md-player"><audio controls preload="metadata"><source src="${escapeHtml(resolvedSrc)}"></audio><span class="md-player-label">${escapeHtml(alt || src)}</span></div>`;
+    /!\[([^\]]*)\]\(([^)\s]+)\)/g,
+    (match, alt: string, src: string) => {
+      const decoded = unescapeHtml(src);
+      if (!isSafeUrl(decoded, true)) return match;
+      const resolvedSrc = escapeHtml(resolveFileUrl(decoded, projectId));
+      if (isAudioUrl(decoded)) {
+        return `<div class="md-player"><audio controls preload="metadata"><source src="${resolvedSrc}"></audio><span class="md-player-label">${alt || src}</span></div>`;
       }
-      if (isVideoUrl(src)) {
-        return `<div class="md-player"><video controls preload="metadata" style="max-width:100%"><source src="${escapeHtml(resolvedSrc)}"></video></div>`;
+      if (isVideoUrl(decoded)) {
+        return `<div class="md-player"><video controls preload="metadata" style="max-width:100%"><source src="${resolvedSrc}"></video></div>`;
       }
-      return `<img class="md-image" src="${escapeHtml(resolvedSrc)}" alt="${escapeHtml(alt)}" loading="lazy">`;
+      return `<img class="md-image" src="${resolvedSrc}" alt="${alt}" loading="lazy">`;
     },
   );
 
   // Links: [text](url)
   text = text.replace(
-    /\[([^\]]+)\]\(([^)]+)\)/g,
-    (_match, label: string, href: string) => {
+    /\[([^\]]+)\]\(([^)\s]+)\)/g,
+    (match, label: string, href: string) => {
+      const decoded = unescapeHtml(href);
+      if (!isSafeUrl(decoded)) return match;
       // Media links rendered as players
-      if (isAudioUrl(href)) {
-        const resolvedHref = resolveFileUrl(href, projectId);
-        return `<div class="md-player"><audio controls preload="metadata"><source src="${escapeHtml(resolvedHref)}"></audio><span class="md-player-label">${escapeHtml(label)}</span></div>`;
+      if (isAudioUrl(decoded)) {
+        const resolvedHref = escapeHtml(resolveFileUrl(decoded, projectId));
+        return `<div class="md-player"><audio controls preload="metadata"><source src="${resolvedHref}"></audio><span class="md-player-label">${label}</span></div>`;
       }
-      if (isVideoUrl(href)) {
-        const resolvedHref = resolveFileUrl(href, projectId);
-        return `<div class="md-player"><video controls preload="metadata" style="max-width:100%"><source src="${escapeHtml(resolvedHref)}"></video></div>`;
+      if (isVideoUrl(decoded)) {
+        const resolvedHref = escapeHtml(resolveFileUrl(decoded, projectId));
+        return `<div class="md-player"><video controls preload="metadata" style="max-width:100%"><source src="${resolvedHref}"></video></div>`;
       }
-      return `<a href="${escapeHtml(href)}" target="_blank" rel="noopener">${escapeHtml(label)}</a>`;
+      return `<a href="${href}" target="_blank" rel="noopener noreferrer">${label}</a>`;
     },
   );
 
@@ -222,7 +258,7 @@ function renderCodeBlock(code: string, language: string): string {
 }
 
 /** Render a markdown table from pipe-delimited rows. */
-function renderTable(rows: string[]): string {
+function renderTable(rows: string[], projectId: string): string {
   if (rows.length === 0) return "";
 
   const parseRow = (row: string): string[] =>
@@ -249,7 +285,7 @@ function renderTable(rows: string[]): string {
     if (!headerDone) html.push("<thead>");
     html.push("<tr>");
     for (const cell of cells) {
-      html.push(`<${tag}>${cell}</${tag}>`);
+      html.push(`<${tag}>${renderInline(cell, projectId)}</${tag}>`);
     }
     html.push("</tr>");
     if (!headerDone) {
