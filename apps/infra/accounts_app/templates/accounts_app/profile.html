@@ -31,105 +31,56 @@
                 <div class="profile-section">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h2>Profile Information</h2>
-                        <button class="btn btn-outline-primary" id="editProfileBtn" onclick="toggleEditMode()">
+                        {% comment %}
+                        Editing happens on the unified settings page (accounts_app:profile_edit).
+                        The inline edit form that used to live here POSTed JSON to
+                        'core:api-user-profile', a route removed with the workspace_app merge,
+                        so {% url %} raised NoReverseMatch and the page 500'd.
+                        {% endcomment %}
+                        <a class="btn btn-outline-primary"
+                           id="editProfileBtn"
+                           href="{% url 'accounts_app:profile_edit' %}">
                             <i class="fas fa-edit"></i> Edit Profile
-                        </button>
+                        </a>
                     </div>
-                    <form id="profileForm" method="post" action="{% url 'core:api-user-profile' %}">
-                        {% csrf_token %}
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="profile-field">
-                                    <div class="profile-label">First Name</div>
-                                    <div class="profile-value">{{ user.first_name|default:"Not set" }}</div>
-                                    <input type="text"
-                                           name="first_name"
-                                           class="form-control profile-input"
-                                           value="{{ user.first_name }}" />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="profile-field">
-                                    <div class="profile-label">Last Name</div>
-                                    <div class="profile-value">{{ user.last_name|default:"Not set" }}</div>
-                                    <input type="text"
-                                           name="last_name"
-                                           class="form-control profile-input"
-                                           value="{{ user.last_name }}" />
-                                </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="profile-field">
+                                <div class="profile-label">First Name</div>
+                                <div class="profile-value">{{ user.first_name|default:"Not set" }}</div>
                             </div>
                         </div>
-                        <div class="profile-field">
-                            <div class="profile-label">Email</div>
-                            <div class="profile-value">{{ user.email }}</div>
-                            <input type="email"
-                                   name="email"
-                                   class="form-control profile-input"
-                                   value="{{ user.email }}" />
+                        <div class="col-md-6">
+                            <div class="profile-field">
+                                <div class="profile-label">Last Name</div>
+                                <div class="profile-value">{{ user.last_name|default:"Not set" }}</div>
+                            </div>
                         </div>
-                        <div class="profile-field">
-                            <div class="profile-label">Academic Title</div>
-                            <div class="profile-value">{{ profile.academic_title|default:"Not set" }}</div>
-                            <select name="academic_title" class="form-control profile-input">
-                                <option value="">Select title</option>
-                                <option value="undergraduate"
-                                        {% if profile.academic_title == "undergraduate" %}selected{% endif %}>
-                                    Undergraduate Student
-                                </option>
-                                <option value="graduate"
-                                        {% if profile.academic_title == "graduate" %}selected{% endif %}>
-                                    Graduate Student
-                                </option>
-                                <option value="phd_candidate"
-                                        {% if profile.academic_title == "phd_candidate" %}selected{% endif %}>
-                                    PhD Candidate
-                                </option>
-                                <option value="postdoc" {% if profile.academic_title == "postdoc" %}selected{% endif %}>
-                                    Postdoctoral Researcher
-                                </option>
-                                <option value="professor"
-                                        {% if profile.academic_title == "professor" %}selected{% endif %}>
-                                    Professor
-                                </option>
-                                <option value="researcher"
-                                        {% if profile.academic_title == "researcher" %}selected{% endif %}>
-                                    Research Scientist
-                                </option>
-                            </select>
-                        </div>
-                        <div class="profile-field">
-                            <div class="profile-label">Institution</div>
-                            <div class="profile-value">{{ profile.institution|default:"Not set" }}</div>
-                            <input type="text"
-                                   name="institution"
-                                   class="form-control profile-input"
-                                   value="{{ profile.institution }}" />
-                        </div>
-                        <div class="profile-field">
-                            <div class="profile-label">Department</div>
-                            <div class="profile-value">{{ profile.department|default:"Not set" }}</div>
-                            <input type="text"
-                                   name="department"
-                                   class="form-control profile-input"
-                                   value="{{ profile.department }}" />
-                        </div>
-                        <div class="profile-field">
-                            <div class="profile-label">Research Interests</div>
-                            <div class="profile-value">{{ profile.research_interests|default:"Not set" }}</div>
-                            <textarea name="research_interests" class="form-control profile-input" rows="3">
-{{ profile.research_interests }}</textarea>
-                        </div>
-                        <div class="profile-field">
-                            <div class="profile-label">Bio</div>
-                            <div class="profile-value">{{ profile.bio|default:"Not set" }}</div>
-                            <textarea name="bio" class="form-control profile-input" rows="4">
-{{ profile.bio }}</textarea>
-                        </div>
-                        <div class="edit-actions">
-                            <button type="submit" class="btn btn-primary">Save Changes</button>
-                            <button type="button" class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
-                        </div>
-                    </form>
+                    </div>
+                    <div class="profile-field">
+                        <div class="profile-label">Email</div>
+                        <div class="profile-value">{{ user.email }}</div>
+                    </div>
+                    <div class="profile-field">
+                        <div class="profile-label">Academic Title</div>
+                        <div class="profile-value">{{ profile.academic_title|default:"Not set" }}</div>
+                    </div>
+                    <div class="profile-field">
+                        <div class="profile-label">Institution</div>
+                        <div class="profile-value">{{ profile.institution|default:"Not set" }}</div>
+                    </div>
+                    <div class="profile-field">
+                        <div class="profile-label">Department</div>
+                        <div class="profile-value">{{ profile.department|default:"Not set" }}</div>
+                    </div>
+                    <div class="profile-field">
+                        <div class="profile-label">Research Interests</div>
+                        <div class="profile-value">{{ profile.research_interests|default:"Not set" }}</div>
+                    </div>
+                    <div class="profile-field">
+                        <div class="profile-label">Bio</div>
+                        <div class="profile-value">{{ profile.bio|default:"Not set" }}</div>
+                    </div>
                 </div>
                 <!-- Account Settings -->
                 <div class="profile-section">
@@ -237,7 +188,7 @@
                            class="btn btn-outline-primary btn-sm w-100 mb-2">
                             <i class="fas fa-key"></i> Manage SSH Keys
                         </a>
-                        <a href="{% url 'project_app:create' %}"
+                        <a href="{% url 'project_create' %}"
                            class="btn btn-outline-success btn-sm w-100">
                             <i class="fas fa-plus"></i> Create New Project
                         </a>

@@ -3166,6 +3166,9 @@ msgstr "課金はいつ始まりますか？"
 msgid "SciTeX Cloud plans start with a 30-day free trial, and creating an account does not start a paid subscription. Online card payment opens after Stripe's corporate review (see the"
 msgstr "SciTeX Cloud のプランは 30 日間の無料トライアルから始まり、アカウントを作成しただけでは有料のサブスクリプションは開始されません。オンラインのカード決済は Stripe の法人審査を経て開始します（詳しくは"
 
+msgid ")."
+msgstr "）。"
+
 msgid "How can I support SciTeX today?"
 msgstr "今、SciTeX を応援するには？"
 
