@@ -19,7 +19,7 @@
         <!-- ============================================================ -->
         <section class="svc-hero">
             <div class="svc-hero-main">
-                <span class="svc-eyebrow">Open Research Infrastructure</span>
+                <span class="svc-eyebrow">{% trans "Open Research Infrastructure" %}</span>
                 <h1 class="svc-hero-title">{% trans "An environment where you can focus on your research, built from the ground up." %}</h1>
                 <p class="svc-hero-copy">
                     {% trans "SciTeX is an open research platform that ties together literature, analysis, figures, writing, data management, and the compute environment across your research workflow. It builds on the PCs, NAS, servers, and HPC you already have, connecting and automating only the parts you need." %}
@@ -33,7 +33,7 @@
                 </p>
             </div>
             <aside class="svc-hero-panel" aria-label='{% trans "SciTeX onboarding flow" %}'>
-                <p class="svc-panel-title">From fragmented work to reproducible workflow</p>
+                <p class="svc-panel-title">{% trans "From fragmented work to reproducible workflow" %}</p>
                 <div class="svc-flow">
                     <div class="svc-flow-item">
                         <span class="svc-flow-num">01</span>
@@ -69,17 +69,17 @@
 
         <!-- Trust strip -->
         <div class="svc-trust">
-            <span class="svc-trust-item">Open Source First</span>
-            <span class="svc-trust-item">Local / Cloud / HPC</span>
-            <span class="svc-trust-item">Vendor Neutral</span>
-            <span class="svc-trust-item">NDA / On-site Ready</span>
+            <span class="svc-trust-item">{% trans "Open Source First" %}</span>
+            <span class="svc-trust-item">{% trans "Local / Cloud / HPC" %}</span>
+            <span class="svc-trust-item">{% trans "Vendor Neutral" %}</span>
+            <span class="svc-trust-item">{% trans "NDA / On-site Ready" %}</span>
         </div>
 
         <!-- ============================================================ -->
         <!-- Tiered plans (Sub / On-Prem / Enterprise) — data/pricing.json tiers -->
         <!-- ============================================================ -->
         <section class="svc-section" id="tiers">
-            <p class="svc-kicker">Plans</p>
+            <p class="svc-kicker">{% trans "Plans" %}</p>
             <h2>{% trans "From individuals to research organizations — only the scope you need." %}</h2>
             <p class="svc-section-desc">
                 {% trans "We don't assume a large-scale rollout from day one. We design the scope of support to fit the size of your problem and your organization." %}
@@ -115,7 +115,7 @@
         </section>
 
         <section class="svc-section" id="services">
-            <p class="svc-kicker">Services</p>
+            <p class="svc-kicker">{% trans "Services" %}</p>
             <h2>{% trans "Bring order to your research workflow — as a flow, not in pieces." %}</h2>
             <p class="svc-section-desc">
                 {% trans "From a one-off code fix to the data and compute environment of an entire lab. We build on your existing assets and support only what you need." %}
@@ -123,7 +123,7 @@
             <div class="svc-cards">
                 <article class="svc-card">
                     <div class="svc-card-icon">01</div>
-                    <h3>Research Workflow</h3>
+                    <h3>{% trans "Research Workflow" %}</h3>
                     <p class="svc-card-lead">{% trans "We bring analysis, figures, literature, and writing into a reproducible flow." %}</p>
                     <ul class="svc-card-list">
                         <li><strong>{% trans "Analysis consultation & code review" %}</strong><span>{% trans "We review Python/R code, analysis design, reproducibility, and runtime." %}</span></li>
@@ -134,7 +134,7 @@
                 </article>
                 <article class="svc-card">
                     <div class="svc-card-icon">02</div>
-                    <h3>Research Computing</h3>
+                    <h3>{% trans "Research Computing" %}</h3>
                     <p class="svc-card-lead">{% trans "From your desktop PC to HPC, we build a safe, reproducible compute environment." %}</p>
                     <ul class="svc-card-list">
                         <li><strong>{% trans "Linux, Docker, Apptainer" %}</strong><span>{% trans "We package your research code into an environment that runs on other PCs and servers." %}</span></li>
@@ -145,7 +145,7 @@
                 </article>
                 <article class="svc-card">
                     <div class="svc-card-icon">03</div>
-                    <h3>AI &amp; Automation</h3>
+                    <h3>{% trans "AI & Automation" %}</h3>
                     <p class="svc-card-lead">{% trans "We introduce generative AI and automation while weighing confidentiality and operating cost." %}</p>
                     <ul class="svc-card-list">
                         <li><strong>{% trans "Generative AI & coding agents" %}</strong><span>{% trans "We bring in ChatGPT, Claude Code, Codex, local models, and more." %}</span></li>
@@ -156,7 +156,7 @@
                 </article>
                 <article class="svc-card">
                     <div class="svc-card-icon">04</div>
-                    <h3>Lab &amp; Organization</h3>
+                    <h3>{% trans "Lab & Organization" %}</h3>
                     <p class="svc-card-lead">{% trans "We match the real operation of your lab or organization, rolling out in a small, sustainable way." %}</p>
                     <ul class="svc-card-list">
                         <li><strong>{% trans "Small-scale proof & PoC" %}</strong><span>{% trans "We start with one research step to confirm the effect and operational load." %}</span></li>
@@ -172,7 +172,7 @@
         <!-- Principles                                                   -->
         <!-- ============================================================ -->
         <section class="svc-section svc-principles-section">
-            <p class="svc-kicker">Principles</p>
+            <p class="svc-kicker">{% trans "Principles" %}</p>
             <h2>{% trans "Even after support, it stays with the researchers." %}</h2>
             <p class="svc-section-desc">
                 {% trans "SciTeX does not assume lock-in to a particular vendor or opaque external charges." %}
@@ -183,11 +183,11 @@
                     <p>{% trans "Before adding new contracts or equipment, we put your current PCs, NAS, servers, and HPC to work." %}</p>
                 </div>
                 <div class="svc-principle">
-                    <strong>Open Source First</strong>
+                    <strong>{% trans "Open Source First" %}</strong>
                     <p>{% trans "Where free or open-source tools solve the problem, we tell you exactly how." %}</p>
                 </div>
                 <div class="svc-principle">
-                    <strong>Vendor Neutral</strong>
+                    <strong>{% trans "Vendor Neutral" %}</strong>
                     <p>{% trans "We don't assume lock-in to a specific AI, cloud, or file format." %}</p>
                 </div>
                 <div class="svc-principle">
@@ -209,7 +209,7 @@
         <!-- Pricing                                                      -->
         <!-- ============================================================ -->
         <section class="svc-section" id="pricing">
-            <p class="svc-kicker">Pricing</p>
+            <p class="svc-kicker">{% trans "Pricing" %}</p>
             <h2>{% trans "Indicative pricing" %}</h2>
             <p class="svc-section-desc">
                 {% trans "We present the scope and the price before any formal work begins." %}
@@ -254,7 +254,7 @@
         <!-- Contact                                                      -->
         <!-- ============================================================ -->
         <section class="svc-section" id="inquiry">
-            <p class="svc-kicker">Contact</p>
+            <p class="svc-kicker">{% trans "Contact" %}</p>
             <h2>{% trans "It's fine even if you're not sure what to ask for." %}</h2>
             {% if submitted %}
                 <div class="svc-form-success" role="status">
@@ -292,10 +292,11 @@
                             <!-- Budget option values are stored verbatim on
                                  ServiceInquiry (and emailed to the operator), so
                                  value == the SSOT string (pricing.json
-                                 inquiry_budget_options, USD). Only the first
-                                 option ("Undecided") is translated for display. -->
+                                 inquiry_budget_options, USD). The value stays
+                                 the SSOT string; only the displayed label is
+                                 translated. -->
                             {% for option in budget_options %}
-                            <option value="{{ option }}"{% if form.budget == option or not form.budget and forloop.first %} selected{% endif %}>{% if forloop.first %}{{ option|translate_dynamic }}{% else %}{{ option }}{% endif %}</option>
+                            <option value="{{ option }}"{% if form.budget == option or not form.budget and forloop.first %} selected{% endif %}>{{ option|translate_dynamic }}</option>
                             {% endfor %}
                         </select>
                     </div>

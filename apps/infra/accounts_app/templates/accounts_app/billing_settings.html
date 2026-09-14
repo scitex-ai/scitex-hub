@@ -2,7 +2,7 @@
 {% load static %}
 {% load i18n %}
 
-{% block title %}Billing - Settings - SciTeX Hub{% endblock %}
+{% block title %}{% trans "Billing - Settings - SciTeX Hub" %}{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/layouts/settings-layout.css' %}" />
 {% endblock %}
@@ -35,9 +35,10 @@
                     <div class="pricing-alpha-notice">
                         <i class="fas fa-credit-card"></i>
                         <div>
-                            <strong>{% trans "Billing unavailable" %}</strong>
+                            <strong>{% trans "Payment is not available yet" %}</strong>
+                            {% url 'public_app:contact' as contact_href %}
                             <p>
-                                {% trans "Card payment is not configured on this deployment. It begins after Stripe is set up and corporate review completes." %}
+                                {% blocktrans trimmed %}You can't add a payment card here yet. If you'd like to subscribe or have a question about billing, please <a href="{{ contact_href }}">contact us</a>.{% endblocktrans %}
                             </p>
                         </div>
                     </div>

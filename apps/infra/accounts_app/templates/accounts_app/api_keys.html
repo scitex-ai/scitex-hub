@@ -1,8 +1,8 @@
 {% extends 'global_base.html' %}
 
-{% load static %}
+{% load static i18n %}
 
-{% block title %}API Keys - Settings - SciTeX Hub{% endblock %}
+{% block title %}{% trans "API Keys - Settings - SciTeX Hub" %}{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/layouts/settings-layout.css' %}" />
     <link rel="stylesheet" href="{% static 'accounts_app/css/api_keys.css' %}" />
@@ -17,20 +17,22 @@
             <!-- Main Content -->
             <main class="settings-content">
                 <div class="settings-header">
-                    <h1 class="settings-title">API Keys</h1>
+                    <h1 class="settings-title">{% trans "API Keys" %}</h1>
                     <p class="settings-subtitle">
-                        API keys for programmatic access to SciTeX Hub.
-                        Use them to call the REST API or connect external MCP clients (Claude Desktop, etc.)
-                        to <strong>https://scitex.ai/mcp</strong> for AI-powered scientific tools.
+                        {% blocktrans trimmed %}
+                            API keys for programmatic access to SciTeX Hub.
+                            Use them to call the REST API or connect external MCP clients (Claude Desktop, etc.)
+                            to <strong>https://scitex.ai/mcp</strong> for AI-powered scientific tools.
+                        {% endblocktrans %}
                     </p>
                 </div>
                 <!-- MCP Connection Info -->
                 <details class="settings-details">
                     <summary class="settings-summary">
-                        <i class="fas fa-plug"></i> Connect an MCP client (Claude Desktop / Claude Code)
+                        <i class="fas fa-plug"></i> {% trans "Connect an MCP client (Claude Desktop / Claude Code)" %}
                     </summary>
                     <div class="settings-details-content" style="padding:1rem">
-                        <p>Add this to your MCP client configuration to use SciTeX tools remotely:</p>
+                        <p>{% trans "Add this to your MCP client configuration to use SciTeX tools remotely:" %}</p>
                         <pre style="background:var(--bg-tertiary,#1e1e2e);padding:1rem;border-radius:6px;font-size:0.82rem;overflow-x:auto">{
   "mcpServers": {
     "scitex": {
@@ -41,7 +43,9 @@
   }
 }</pre>
                         <p style="margin-top:0.5rem;font-size:0.875rem;opacity:0.8">
-                            Replace <code>YOUR_API_KEY</code> with a key generated below (use <em>Full Access</em> or the <em>MCP tools</em> scope).
+                            {% blocktrans trimmed %}
+                                Replace <code>YOUR_API_KEY</code> with a key generated below (use <em>Full Access</em> or the <em>MCP tools</em> scope).
+                            {% endblocktrans %}
                         </p>
                     </div>
                 </details>
@@ -52,12 +56,12 @@
                             <div class="warning-banner-content">
                                 <i class="warning-banner-icon fas fa-check-circle"></i>
                                 <div class="warning-banner-text">
-                                    <div class="warning-banner-title">API Key Created: {{ new_api_key_name }}</div>
+                                    <div class="warning-banner-title">{% blocktrans trimmed with name=new_api_key_name %}API Key Created: {{ name }}{% endblocktrans %}</div>
                                     <div class="warning-banner-description">
-                                        Copy this key now. You won't be able to see it again!
+                                        {% trans "Copy this key now. You won't be able to see it again!" %}
                                         <div class="new-key-display" id="new-api-key">{{ new_api_key }}</div>
                                         <button onclick="copyNewAPIKey(event)" class="btn btn-sm btn-primary">
-                                            <i class="fas fa-copy"></i> Copy Key
+                                            <i class="fas fa-copy"></i> {% trans "Copy Key" %}
                                         </button>
                                     </div>
                                 </div>
@@ -68,56 +72,56 @@
                 <!-- Create New Key Form -->
                 <details class="api-keys-details">
                     <summary class="api-keys-summary">
-                        <i class="fas fa-plus"></i> Add new API key
+                        <i class="fas fa-plus"></i> {% trans "Add new API key" %}
                     </summary>
                     <div class="create-form">
                         <form method="POST">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="create" />
                             <div class="form-group">
-                                <label for="key-name">Key Name *</label>
+                                <label for="key-name">{% trans "Key Name *" %}</label>
                                 <input type="text"
                                        class="form-control"
                                        id="key-name"
                                        name="name"
                                        required
-                                       placeholder="e.g., CLI Tool, GitHub Actions, Personal Script" />
-                                <small>A descriptive name to help you remember what this key is for.</small>
+                                       placeholder="{% trans 'e.g., CLI Tool, GitHub Actions, Personal Script' %}" />
+                                <small>{% trans "A descriptive name to help you remember what this key is for." %}</small>
                             </div>
                             <div class="form-group">
-                                <label>Permissions (Scopes)</label>
+                                <label>{% trans "Permissions (Scopes)" %}</label>
                                 <div class="checkbox-group">
                                     <label>
                                         <input type="checkbox" name="scopes" value="*" checked />
-                                        <span>Full Access (All permissions)</span>
+                                        <span>{% trans "Full Access (All permissions)" %}</span>
                                     </label>
                                     <label>
                                         <input type="checkbox" name="scopes" value="mcp" />
-                                        <span>MCP tools (connect Claude Desktop / Claude Code)</span>
+                                        <span>{% trans "MCP tools (connect Claude Desktop / Claude Code)" %}</span>
                                     </label>
                                     <label>
                                         <input type="checkbox" name="scopes" value="project:read" />
-                                        <span>Read Projects</span>
+                                        <span>{% trans "Read Projects" %}</span>
                                     </label>
                                     <label>
                                         <input type="checkbox" name="scopes" value="project:write" />
-                                        <span>Write Projects</span>
+                                        <span>{% trans "Write Projects" %}</span>
                                     </label>
                                     <label>
                                         <input type="checkbox" name="scopes" value="scholar:read" />
-                                        <span>Read Scholar Data</span>
+                                        <span>{% trans "Read Scholar Data" %}</span>
                                     </label>
                                 </div>
-                                <small>Select which parts of your account this key can access.</small>
+                                <small>{% trans "Select which parts of your account this key can access." %}</small>
                             </div>
-                            <button type="submit" class="btn btn-primary">Generate API key</button>
+                            <button type="submit" class="btn btn-primary">{% trans "Generate API key" %}</button>
                         </form>
                     </div>
                 </details>
                 <!-- Existing Keys List -->
                 <details class="settings-details">
                     <summary class="settings-summary">
-                        <i class="fas fa-code"></i> Active API keys
+                        <i class="fas fa-code"></i> {% trans "Active API keys" %}
                     </summary>
                     {% if api_keys %}
                         {% for key in api_keys %}
@@ -129,36 +133,36 @@
                                     </div>
                                     <span class="key-status {% if key.is_active %}active{% else %}inactive{% endif %}">
                                         {% if key.is_active %}
-                                            Active
+                                            {% trans "Active" %}
                                         {% else %}
-                                            Inactive
+                                            {% trans "Inactive" %}
                                         {% endif %}
                                     </span>
                                 </div>
                                 <div class="key-scopes">
-                                    <strong>Scopes:</strong>
+                                    <strong>{% trans "Scopes:" %}</strong>
                                     {% if '*' in key.scopes %}
-                                        Full Access
+                                        {% trans "Full Access" %}
                                     {% else %}
                                         {{ key.scopes|join:", " }}
                                     {% endif %}
                                 </div>
                                 <div class="key-metadata">
                                     <p>
-                                        <strong>Created:</strong> {{ key.created_at|date:"Y-m-d H:i" }}
+                                        <strong>{% trans "Created:" %}</strong> {{ key.created_at|date:"Y-m-d H:i" }}
                                     </p>
                                     {% if key.last_used_at %}
                                         <p>
-                                            <strong>Last used:</strong> {{ key.last_used_at|date:"Y-m-d H:i" }}
+                                            <strong>{% trans "Last used:" %}</strong> {{ key.last_used_at|date:"Y-m-d H:i" }}
                                         </p>
                                     {% else %}
                                         <p>
-                                            <strong>Last used:</strong> Never
+                                            <strong>{% trans "Last used:" %}</strong> {% trans "Never" %}
                                         </p>
                                     {% endif %}
                                     {% if key.expires_at %}
                                         <p>
-                                            <strong>Expires:</strong> {{ key.expires_at|date:"Y-m-d H:i" }}
+                                            <strong>{% trans "Expires:" %}</strong> {{ key.expires_at|date:"Y-m-d H:i" }}
                                         </p>
                                     {% endif %}
                                 </div>
@@ -169,35 +173,37 @@
                                         <input type="hidden" name="key_id" value="{{ key.id }}" />
                                         <button type="submit" class="btn btn-sm btn-outline-primary">
                                             {% if key.is_active %}
-                                                ⏸️ Deactivate
+                                                ⏸️ {% trans "Deactivate" %}
                                             {% else %}
-                                                ▶️ Activate
+                                                ▶️ {% trans "Activate" %}
                                             {% endif %}
                                         </button>
                                     </form>
                                     <form method="POST"
-                                          onsubmit="return confirm('Are you sure you want to delete this API key? Applications using it will stop working.');">
+                                          onsubmit="return confirm('{% filter escapejs %}{% trans "Are you sure you want to delete this API key? Applications using it will stop working." %}{% endfilter %}');">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="delete" />
                                         <input type="hidden" name="key_id" value="{{ key.id }}" />
-                                        <button type="submit" class="btn btn-sm btn-danger">🗑️ Delete</button>
+                                        <button type="submit" class="btn btn-sm btn-danger">🗑️ {% trans "Delete" %}</button>
                                     </form>
                                 </div>
                             </div>
                         {% endfor %}
                     {% else %}
                         <div class="empty-state-card">
-                            <h3>You don't have any API keys yet.</h3>
-                            <p>Generate an API key above to access the SciTeX Hub API programmatically.</p>
+                            <h3>{% trans "You don't have any API keys yet." %}</h3>
+                            <p>{% trans "Generate an API key above to access the SciTeX Hub API programmatically." %}</p>
                         </div>
                     {% endif %}
                 </details>
                 <p class="api-docs-link">
-                    See <a href="{% url 'public_app:api_docs' %}">Web API docs</a> for usage examples.
+                    {% url 'public_app:api_docs' as api_docs_url %}
+                    {% blocktrans trimmed %}See <a href="{{ api_docs_url }}">Web API docs</a> for usage examples.{% endblocktrans %}
                 </p>
             </main>
         </div>
     </div>
+    {% trans "Copied!" as copied_label %}{% trans "Failed to copy:" as copy_failed_label %}
     <script>
 function copyNewAPIKey(event) {
     event.preventDefault();
@@ -207,12 +213,12 @@ function copyNewAPIKey(event) {
     navigator.clipboard.writeText(keyText).then(() => {
         const btn = event.target;
         const originalText = btn.innerHTML;
-        btn.innerHTML = '✓ Copied!';
+        btn.innerHTML = '✓ {{ copied_label|escapejs }}';
         setTimeout(() => {
             btn.innerHTML = originalText;
         }, 2000);
     }).catch(err => {
-        alert('Failed to copy: ' + err);
+        alert('{{ copy_failed_label|escapejs }} ' + err);
     });
 }
     </script>
