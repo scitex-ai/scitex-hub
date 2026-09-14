@@ -185,7 +185,7 @@ export class PDFViewer {
    *
    * WHY THIS NO LONGER SAYS "Loading PDF preview...": that line was a standing
    * claim that something was in flight, and on a fresh project nothing is.
-   * ComponentInitializer.loadInitialPDF() HEAD-checks for an existing preview;
+   * ComponentInitializer.loadInitialPDF() asks manuscript-status for a preview;
    * if none exists AND the abstract is empty it takes neither branch — it does
    * not compile and it does not update the panel — so this placeholder is the
    * final state, not a transient one. A new user therefore saw "Loading PDF
