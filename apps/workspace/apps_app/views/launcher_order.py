@@ -26,8 +26,10 @@ from __future__ import annotations
 # width so an app sits at the same position on every device. Apps are grouped,
 # each group starts a new row and gets a soft colour band, and a group's last
 # row keeps its empty cells rather than pulling the next group's app up:
-#   FOUNDATION (基盤): My Projects, Public Projects, Agents, Cards, Storage
+#   FOUNDATION (基盤): My Projects, Agents, Cards, Storage
 #   WORK (作業):       Scholar, FigRecipe, (Stats), Writer, Chat, Tools
+#   PUBLISH (発信):    Slides, Public Projects — showing work outside
+#                      (proposed 2026-09-14, Telegram 6040; pending operator)
 #   SYSTEM (システム): Settings, Docs, App Store
 # Within a group the order is the operator's earlier order (infrastructure,
 # then Scholar-FigRecipe-Stats-Writer, then Chat/Settings/Tools, then
@@ -57,7 +59,7 @@ LAUNCHER_GROUPS: tuple[LauncherGroup, ...] = (
     LauncherGroup(
         "foundation",
         "Foundation",
-        ("home", "discovery", "agents", "todo", "storage"),
+        ("home", "agents", "todo", "storage"),
     ),
     LauncherGroup(
         "work",
@@ -73,6 +75,7 @@ LAUNCHER_GROUPS: tuple[LauncherGroup, ...] = (
             "clew",
         ),
     ),
+    LauncherGroup("publish", "Publish", ("slides", "discovery")),
     LauncherGroup(
         "system",
         "System",
