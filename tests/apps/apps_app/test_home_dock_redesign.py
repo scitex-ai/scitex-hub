@@ -217,6 +217,45 @@ class SiteDockOnEveryPageTest(TestCase):
         # Assert
         assert (home.icon, home.url) == ("fas fa-house", "/apps/")
 
+    def test_dock_projects_icon_is_the_my_projects_tile_icon(self):
+        # Operator 2026-09-14: dock buttons show the SAME coloured app icon as
+        # their Home tile, not a bare glyph.
+        # Arrange
+        dock = _dock_html(self.client.get("/apps/").content)
+        tile = next(t for t in self.client.get("/apps/").context["tiles"] if t["name"] == "home")
+        # Act
+        icon = re.search(
+            r'data-dock-item="projects".*?<span class="launcher-tile-icon[^"]*" data-tile-category="([^"]+)"',
+            dock,
+            re.DOTALL,
+        )
+        # Assert
+        assert icon and icon.group(1) == tile["category"]
+
+    def test_dock_store_icon_matches_the_app_store_tile_colour(self):
+        # Arrange
+        tile = next(t for t in self.client.get("/apps/").context["tiles"] if t["name"] == "store")
+        # Act
+        store = next(item for item in dock_items("/apps/") if item.key == "store")
+        # Assert
+        assert store.category == tile["category"]
+
+    def test_dock_loads_the_shared_app_icon_palette(self):
+        # Arrange — the dock is on pages that never load the launcher CSS.
+        response = self.client.get("/apps/home/")
+        # Act
+        linked = b"shared/css/components/app-icon.css" in response.content
+        # Assert
+        assert linked
+
+    def test_dock_width_defaults_to_the_home_panel_width(self):
+        # Arrange
+        css = _site_css("site-dock.css")
+        # Act
+        rule = re.search(r"\.site-dock\s*\{([^}]*)\}", css).group(1)
+        # Assert
+        assert re.search(r"(?<![-\w])width:\s*var\(--site-dock-width\)", rule)
+
     def test_anonymous_landing_has_no_dock(self):
         # GUARD (passes on develop by design): every dock target requires
         # sign-in, so the marketing landing must never grow a dock.

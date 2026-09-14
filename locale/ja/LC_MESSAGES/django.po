@@ -5280,7 +5280,7 @@ msgstr "戻る"
 msgid "Forward"
 msgstr "進む"
 
-# Home grid groups (aria-label only for now; operator 2026-09-14).
+# Home grid groups: the visible band label AND its aria-label (operator 2026-09-14).
 #: apps/workspace/apps_app/templates/apps_app/launcher.html
 msgid "Foundation"
 msgstr "基盤"

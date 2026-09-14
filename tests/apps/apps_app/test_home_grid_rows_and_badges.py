@@ -220,6 +220,43 @@ class HomePagesTest(TestCase):
         # Assert
         assert declared == {"4"}
 
+    def test_paged_grid_lays_pages_out_in_a_row(self):
+        # Operator iPhone 2026-09-14: swiping did not turn the page. The paged
+        # grid inherited flex-direction: column from .launcher-grid, so the
+        # pages stacked vertically and the scroller had nothing to scroll
+        # sideways (scrollWidth == clientWidth in WebKit and Chromium).
+        # Arrange
+        css = _launcher_css("mobile.css")
+        # Act
+        rule = re.search(r"\.launcher-grid--paged\s*\{([^}]*)\}", css).group(1)
+        # Assert
+        assert re.search(r"flex-direction:\s*row", rule)
+
+    def test_group_label_is_the_bands_aria_label(self):
+        # Arrange
+        css = _launcher_css("grid.css")
+        # Act
+        rule = re.search(r"\.launcher-group\[aria-label\]::before\s*\{([^}]*)\}", css)
+        # Assert
+        assert rule and "attr(aria-label)" in rule.group(1)
+
+    def test_group_label_never_takes_a_grid_cell(self):
+        # Arrange — a grid container's pseudo-element is a grid item unless
+        # it is taken out of flow.
+        css = _launcher_css("grid.css")
+        # Act
+        rule = re.search(r"\.launcher-group\[aria-label\]::before\s*\{([^}]*)\}", css).group(1)
+        # Assert
+        assert re.search(r"position:\s*absolute", rule)
+
+    def test_group_band_carries_its_translated_label(self):
+        # Arrange
+        content = self.client.get("/apps/").content.decode("utf-8")
+        # Act
+        labels = re.findall(r'class="launcher-group" role="group" data-group="(\w+)" aria-label="([^"]+)"', content)
+        # Assert
+        assert dict(labels) == {"foundation": "Foundation", "work": "Work", "system": "System"}
+
     def test_page_arrows_render_hidden(self):
         # Arrange
         content = self.client.get("/apps/").content.decode("utf-8")

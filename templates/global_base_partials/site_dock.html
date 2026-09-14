@@ -15,6 +15,7 @@
   remembered per device; a double-click / double-tap on it resets it.
 {% endcomment %}
 {% if site_dock_items %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/app-icon.css' %}?v={{ build_id }}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/site-dock.css' %}?v={{ build_id }}" />
     <nav class="site-dock" id="site-dock" data-site-dock aria-label="{% trans 'Dock' %}">
         {# Grip at the dock's left end: a recognisable drag-handle glyph with a #}
@@ -35,16 +36,22 @@
                 disabled>
             <i class="fas fa-chevron-left" aria-hidden="true"></i>
         </button>
-        {% for item in site_dock_items %}
-            <a href="{{ item.url }}"
-               class="site-dock-item{% if item.active %} is-active{% endif %}"
-               data-dock-item="{{ item.key }}"
-               aria-label="{% trans item.label context 'app name' %}"
-               title="{% trans item.label context 'app name' %}"
-               {% if item.active %}aria-current="page"{% endif %}>
-                <i class="{{ item.icon }}" aria-hidden="true"></i>
-            </a>
-        {% endfor %}
+        {# App buttons share the space between the arrows, evenly spaced, and #}
+        {# each draws the SAME coloured icon as its Home tile (app-icon.css).  #}
+        <span class="site-dock-apps">
+            {% for item in site_dock_items %}
+                <a href="{{ item.url }}"
+                   class="site-dock-item site-dock-app{% if item.active %} is-active{% endif %}"
+                   data-dock-item="{{ item.key }}"
+                   aria-label="{% trans item.label context 'app name' %}"
+                   title="{% trans item.label context 'app name' %}"
+                   {% if item.active %}aria-current="page"{% endif %}>
+                    <span class="launcher-tile-icon site-dock-app-icon" data-tile-category="{{ item.category }}" aria-hidden="true">
+                        <i class="{{ item.icon }}" aria-hidden="true"></i>
+                    </span>
+                </a>
+            {% endfor %}
+        </span>
         <button type="button"
                 class="site-dock-item site-dock-history"
                 data-dock-forward

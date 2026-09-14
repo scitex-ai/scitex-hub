@@ -31,8 +31,8 @@ from __future__ import annotations
 #   SYSTEM (システム): Settings, Docs, App Store
 # Within a group the order is the operator's earlier order (infrastructure,
 # then Scholar-FigRecipe-Stats-Writer, then Chat/Settings/Tools, then
-# Docs/App Store/Storage). No visible labels yet; each group carries
-# role="group" and an aria-label, so labels are one CSS change away.
+# Docs/App Store/Storage). Each group carries role="group" and a translated
+# aria-label, which launcher/grid.css also shows as the band's visible label.
 #
 # "stats" holds its slot although no Stats app exists yet (another agent is
 # building it): its cell stays empty, and the day the module lands it fills

@@ -14,6 +14,11 @@ so a dock button can never disagree with the grid tile for the same app:
   * Home is the launcher grid itself, which has no tile and so no manifest, and
     it is the one constant here: fa-house, the operator's Home icon.
 
+Each button is drawn as the SAME coloured app icon as its Home tile (operator,
+2026-09-14): the icon's ``category`` picks the gradient from
+shared/css/components/app-icon.css, read from the same manifest as the glyph.
+Home has no tile, so it gets its own ``home`` swatch (the hub accent).
+
 The dock used to live inside the launcher template only. On any other page it
 disappeared, and its "Files" button went to /files/ rather than My Projects
 (operator report, 2026-09-14). Rendering it from the base template, and from
@@ -27,6 +32,7 @@ from dataclasses import dataclass
 
 HOME_URL = "/apps/"
 HOME_ICON = "fas fa-house"
+HOME_CATEGORY = "home"
 
 #: Marker attribute on the rendered dock. SiteDockMiddleware checks for it so a
 #: page that already rendered the dock is never given a second one.
@@ -40,6 +46,8 @@ class DockItem:
     icon: str
     url: str
     active: bool = False
+    #: Icon gradient key (shared/css/components/app-icon.css), as on the tile.
+    category: str = "other"
 
 
 def _is_active(key: str, path: str) -> bool:
@@ -63,29 +71,39 @@ def dock_items(path: str) -> list[DockItem]:
     chat = get_launcher_link("chat")
 
     items = [
-        ("home", "Home", HOME_ICON, HOME_URL),
+        ("home", "Home", HOME_ICON, HOME_URL, HOME_CATEGORY),
         (
             "projects",
             "My Projects",
             projects.icon_fa if projects else "fas fa-folder",
             projects.get_url() if projects else "/apps/home/",
+            (projects.category if projects else "") or "other",
         ),
         (
             "chat",
             "Chat",
             chat.icon if chat else "fas fa-comment",
             chat.url if chat else "/chat/",
+            (chat.category if chat else "") or "other",
         ),
         (
             "store",
             "App Store",
             store.icon_fa if store else "fas fa-table-cells-large",
             store.get_url() if store else "/apps/store/",
+            (store.category if store else "") or "other",
         ),
     ]
     return [
-        DockItem(key=key, label=label, icon=icon, url=url, active=_is_active(key, path))
-        for key, label, icon, url in items
+        DockItem(
+            key=key,
+            label=label,
+            icon=icon,
+            url=url,
+            active=_is_active(key, path),
+            category=category,
+        )
+        for key, label, icon, url, category in items
     ]
 
 
