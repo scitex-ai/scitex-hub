@@ -1,0 +1,50 @@
+/* /pricing/ tier cards — plan subtitle + price details.
+
+   pricing.html emits <span class="plan-sub"> inside h3.plan-name and inside
+   each dd.plan-price of dl.pricing-tier-prices. The only .plan-sub rule used
+   to live in landing/11-pricing.css, which /pricing/ does not load, so the
+   span stayed inline and ran into the heading ("SciTeX CloudHosted at
+   scitex.ai", "$19/moFor eligible…", "FreeFor anyone"). Loaded only by
+   pricing.html and scoped to .pricing-tier-card, so the landing pricing block
+   (11-pricing.css) and /services/ (services.css, .svc-*) are untouched.
+   The grid itself (.pricing-cards-wrapper) is in pricing-alpha.css.
+   Tokens: the same --color-fg-* set pricing.css already uses. */
+
+.pricing-tier-card .plan-name {
+  margin-bottom: 1rem;
+}
+
+.pricing-tier-card .plan-sub {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--color-fg-muted);
+}
+
+.pricing-tier-prices {
+  margin: 0 0 1rem;
+}
+
+.pricing-tier-prices dt {
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-fg-muted);
+}
+
+.pricing-tier-prices dt:first-child {
+  margin-top: 0;
+}
+
+.pricing-tier-prices dd {
+  margin: 0.125rem 0 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-fg-default);
+  overflow-wrap: break-word;
+}
+
+.pricing-tier-prices dd .plan-sub {
+  font-size: 0.8125rem;
+}

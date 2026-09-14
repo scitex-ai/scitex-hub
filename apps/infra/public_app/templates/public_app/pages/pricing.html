@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/pricing.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/pricing-alpha.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/pricing-tier-cards.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/pricing-rate-card.css' %}" />
 {% endblock %}
 {% block content %}
@@ -143,7 +144,7 @@
                     <h5><i class="fas fa-question-circle"></i> {% trans "When does billing start?" %}</h5>
                     <p>
                         {% trans "SciTeX Cloud plans start with a 30-day free trial, and creating an account does not start a paid subscription. Online card payment opens after Stripe's corporate review (see the" %}
-                        <a href="{% url 'public_app:tokushoho' %}">{% trans "Specified Commercial Transactions Act disclosure" %}</a>).
+                        <a href="{% url 'public_app:tokushoho' %}">{% trans "Specified Commercial Transactions Act disclosure" %}</a>{% trans ")." %}
                     </p>
                 </div>
                 <div class="faq-item">
