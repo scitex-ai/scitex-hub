@@ -20,6 +20,10 @@
         <header class="minimal-hero">
             <h1 class="minimal-hero-title">{% trans "特定商取引法に基づく表記" %}</h1>
         </header>
+        {# Language switch (operator 2026-09-14). This Japanese page is the legally authoritative one. #}
+        <nav class="tokushoho-lang-switch" aria-label="Language">
+            <a href="{% url 'public_app:tokushoho_en' %}" hreflang="en" lang="en" data-tokushoho-lang="en">English version</a>
+        </nav>
     </div>
     <section class="policy-section">
         <div class="container">
@@ -108,7 +112,14 @@
         <div class="container">
             <h2 class="price-table-heading">{% trans "提供サービスと料金" %}</h2>
             <div class="price-table-wrap">
-                <table class="tokushoho-price-table">
+                {% comment %}
+                LAYOUT (operator 2026-09-14: the rightmost 備考 column was the
+                narrowest yet held the longest text). 備考 is no longer a column:
+                each item is a short figures row followed by a full-width detail
+                row (colspan) that carries 備考, so long details get the table's
+                whole width. Below 640px every cell stacks with its label.
+                {% endcomment %}
+                <table class="tokushoho-price-table tokushoho-price-table--detail-rows">
                         <thead>
                             <tr>
                                 <th>{% trans "内容" %}</th>
@@ -117,30 +128,32 @@
                                 <th>{% trans "ストレージ" %}</th>
                                 <th>{% trans "計算クレジット" %}</th>
                                 <th>{% trans "超過計算" %}</th>
-                                <th>{% trans "備考" %}</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {% for row in published_price_rows %}
-                            <tr>
-                                <td>{{ row.label|translate_dynamic }}</td>
-                                <td class="price-cell">
+                        {% for row in published_price_rows %}
+                        <tbody class="tokushoho-price-item">
+                            <tr class="tokushoho-item-row">
+                                <td class="item-cell" data-label="{% trans "内容" %}">{{ row.label|translate_dynamic }}</td>
+                                <td class="price-cell" data-label="{% trans "料金（税込）" %}">
                                     <span class="tokushoho-sale-price">{{ row.price }}</span>
                                 </td>
-                                <td class="muted-cell">{{ row.price_jpy }}</td>
-                                <td class="muted-cell">{{ row.storage|default:"—" }}</td>
-                                <td class="muted-cell">{{ row.compute_credit|default:"—" }}</td>
-                                <td class="muted-cell">{{ row.overage|default:"—" }}</td>
-                                <td>
+                                <td class="muted-cell" data-label="{% trans "円換算（参考）" %}">{{ row.price_jpy }}</td>
+                                <td class="muted-cell" data-label="{% trans "ストレージ" %}">{{ row.storage|default:"—" }}</td>
+                                <td class="muted-cell" data-label="{% trans "計算クレジット" %}">{{ row.compute_credit|default:"—" }}</td>
+                                <td class="muted-cell" data-label="{% trans "超過計算" %}">{{ row.overage|default:"—" }}</td>
+                            </tr>
+                            {% if row.remarks or row.description %}
+                            <tr class="tokushoho-detail-row">
+                                <td class="tokushoho-detail-cell" colspan="6">
                                     {% comment %}
                                     備考. Rendered as a list (not a comma-joined
-                                    blob) so the narrow column stays readable.
-                                    NO FALLBACK TO row.included: a row whose
+                                    blob). NO FALLBACK TO row.included: a row whose
                                     attributes are ALL dedicated has an EMPTY
                                     remarks list by design, and falling back to
                                     the included list would repeat every dedicated
                                     column in this cell.
                                     {% endcomment %}
+                                    <span class="tokushoho-detail-label">{% trans "備考" %}</span>
                                     {% if row.remarks %}
                                         <ul class="tokushoho-remarks-list">
                                             {% for remark in row.remarks %}
@@ -148,12 +161,13 @@
                                             {% endfor %}
                                         </ul>
                                     {% elif row.description %}
-                                        {{ row.description|translate_dynamic }}
+                                        <p class="tokushoho-detail-text">{{ row.description|translate_dynamic }}</p>
                                     {% endif %}
                                 </td>
                             </tr>
-                            {% endfor %}
+                            {% endif %}
                         </tbody>
+                        {% endfor %}
                     </table>
                     <p class="tokushoho-fx-note">
                         {% if fx_rate_display %}

@@ -1,18 +1,26 @@
 {% extends "auth_app/auth_base.html" %}
 
-{% load i18n static %}
+{% load i18n static landing_i18n %}
 {% load socialaccount %}
 
 {% block title %}Create an Account - SciTeX{% endblock %}
 {% block meta_description %}
-    Join SciTeX - the open-source platform for scientific research. Create your free account to get started with managing, analyzing, and publishing your research.
+    Join SciTeX - the open-source platform for scientific research. Create your account and start a 30-day SciTeX Cloud trial for managing, analyzing, and publishing your research.
 {% endblock %}
 {% block auth_content %}
     <div class="container auth-container">
         <div class="auth-form">
             <h2 class="mb-4">Sign Up</h2>
+            {% comment %}
+            Card rule (operator 2026-09-14, 「はい、カード登録必須です」): a
+            credit/debit card is registered at signup, as /tokushoho/ states.
+            There is no free cloud tier in the Services SSOT. Copy only — this
+            template collects no card; billing terms live on the disclosure.
+            {% endcomment %}
+            {% tokushoho_url as tokushoho_href %}
             <p class="text-muted signup-card-policy">
-                {% trans "Create your account and use SciTeX's free tier at no cost." %}
+                {% trans "Start your 30-day SciTeX Cloud trial — card required, no charge during the trial." %}
+                <a href="{{ tokushoho_href }}" class="text-link">{% trans "Billing terms" %}</a>
             </p>
             {% if form.errors %}
                 <div class="alert-banner alert-banner-danger"
@@ -94,30 +102,15 @@
                     <div class="form-text email-example">
                         <small class="text-muted">
                             <i class="fas fa-graduation-cap me-1"></i>
-                            学術機関の例: <!--email_off--><code>student@univ-xxx.ac.jp</code> / <code>researcher@xxx.ac.jp</code><!--/email_off-->（学術プランの割引が適用されます）
+                            {% trans "Academic email examples:" %} <!--email_off--><code>student@univ-xxx.ac.jp</code> / <code>researcher@xxx.ac.jp</code><!--/email_off--> {% trans "(eligible for SciTeX Cloud Academic pricing)" %}
                         </small>
                     </div>
                     {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors.0 }}</div>{% endif %}
-                    <!-- Japanese Academic Benefits Alert -->
-                    <div class="alert alert-info academic-benefits"
-                         style="display: none;
-                                margin-top: 0.75rem">
-                        <h6 class="alert-heading mb-2">
-                            <i class="fas fa-graduation-cap me-2"></i>日本の学術機関の特典
-                            (Japanese Academic Benefits)
-                        </h6>
-                        <div class="small">
-                            <strong>Japanese academic email detected!</strong> You'll receive:
-                            <ul class="mb-1 mt-1">
-                                <li>Priority support in Japanese (日本語サポート)</li>
-                                <li>Early access to new features</li>
-                                <li>Special academic collaboration features</li>
-                                <li>Enhanced storage limits</li>
-                            </ul>
-                            <em>Recognized domains: .ac.jp (academic), .go.jp (government
-                            research), .riken.jp, .jaxa.jp, and more</em>
-                        </div>
-                    </div>
+                    {% comment %}
+                    The "Japanese Academic Benefits" alert (priority Japanese
+                    support, early access, enhanced storage) was removed
+                    2026-09-14: none of it is in the Services SSOT.
+                    {% endcomment %}
                 </div>
                 <div class="form-group mb-2">
                     <label for="{{ form.password.id_for_label }}" class="form-label">
@@ -228,11 +221,9 @@
     const passwordInput = document.getElementById("id_password");
     const confirmPassword = document.getElementById("id_password2");
     const usernameInput = document.getElementById("id_username");
-    const emailInput = document.getElementById("id_email");
     const successMessage = document.querySelector(".form-message.success");
     const errorMessage = document.getElementById("js-error-message");
     const errorText = document.getElementById("error-message");
-    const academicBenefits = document.querySelector(".academic-benefits");
     const usernamePreview = document.getElementById("username-preview");
     const usernameStatus = document.getElementById("username-status");
     const usernameStatusIcon = document.getElementById("username-status-icon");
@@ -306,63 +297,6 @@
       } else {
         usernameStatus.style.display = "none";
         usernameFeedback.style.display = "none";
-      }
-    });
-
-    // Japanese academic domains (synced with backend)
-    const japaneseAcademicDomains = [
-      // Japanese Academic (.ac.jp) - All academic institutions
-      ".ac.jp",
-      ".u-tokyo.ac.jp",
-      ".kyoto-u.ac.jp",
-      ".osaka-u.ac.jp",
-      ".tohoku.ac.jp",
-      ".nagoya-u.ac.jp",
-      ".kyushu-u.ac.jp",
-      ".hokudai.ac.jp",
-      ".tsukuba.ac.jp",
-      ".hiroshima-u.ac.jp",
-      ".kobe-u.ac.jp",
-      ".waseda.jp",
-      ".keio.ac.jp",
-
-      // Government Research Institutions (.go.jp)
-      ".go.jp", // Broader government research support
-      ".riken.jp",
-      ".aist.go.jp",
-      ".nict.go.jp",
-      ".jaxa.jp",
-      ".jst.go.jp",
-      ".nims.go.jp",
-      ".nies.go.jp",
-    ];
-
-    // Check if email is Japanese academic (synced with backend logic)
-    function isJapaneseAcademicEmail(email) {
-      if (!email || !email.includes("@")) return false;
-      const domain = email.toLowerCase().split("@")[1];
-
-      // Check if domain matches exactly or ends with the academic domain
-      for (const acadDomain of japaneseAcademicDomains) {
-        const cleanDomain = acadDomain.replace(/^\./, "");
-        if (domain === cleanDomain || domain.endsWith(acadDomain)) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    // Check email for Japanese academic domains
-    emailInput.addEventListener("input", function () {
-      const email = this.value;
-      if (isJapaneseAcademicEmail(email)) {
-        academicBenefits.style.display = "block";
-        academicBenefits.classList.add(
-          "animate__animated",
-          "animate__slideInDown",
-        );
-      } else {
-        academicBenefits.style.display = "none";
       }
     });
 

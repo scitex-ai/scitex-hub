@@ -123,6 +123,41 @@ def can_view_internal_app(user) -> bool:
     return bool(getattr(settings, "SCITEX_HUB_INTERNAL_APPS_RELEASED", False))
 
 
+def _cards_mount_gate(user) -> bool:
+    from apps.workspace.todo_app.middleware import cards_board_access_allowed
+
+    return cards_board_access_allowed(user)
+
+
+def _agents_mount_gate(user) -> bool:
+    from apps.workspace.agents_app.views import _fleet_access_allowed
+
+    return _fleet_access_allowed(user)
+
+
+#: Module name -> the predicate its MOUNT enforces. Each entry delegates to the
+#: gate itself (never a copy), so a tile and its route cannot disagree:
+#:   todo   (/apps/cards/)  staff-only, JSON 403 — todo_app/middleware.py
+#:   agents (/apps/agents/) superuser, staff or a listed SAC operator,
+#:                          plain-text 403 — agents_app/views.py
+_MOUNT_GATES = {
+    "todo": _cards_mount_gate,
+    "agents": _agents_mount_gate,
+}
+
+
+def can_open_mounted_app(user, module_name: str) -> bool:
+    """Whether opening ``module_name``'s launcher tile would get past its mount.
+
+    Operator 2026-09-14: Cards and Agents are meant for everyone eventually
+    (scoped to the user's own data); until then a tile the user cannot open is
+    a dead end, so the grid launcher and the header app launcher both drop it.
+    Apps without a mount-level gate are unaffected.
+    """
+    gate = _MOUNT_GATES.get(module_name)
+    return gate is None or gate(user)
+
+
 def can_view_module(user, app_module):
     """Check if user can view/install this module based on visibility.
 

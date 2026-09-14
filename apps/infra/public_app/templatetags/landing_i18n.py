@@ -1,7 +1,8 @@
 """Translation helpers for visitor-facing values loaded from data files."""
 
 from django import template
-from django.utils.translation import gettext
+from django.urls import reverse
+from django.utils.translation import get_language, gettext
 
 register = template.Library()
 
@@ -17,3 +18,15 @@ def translate_dynamic(value):
     single call covers both directions with no language branching.
     """
     return gettext(str(value))
+
+
+@register.simple_tag
+def tokushoho_url():
+    """The 特商法 disclosure in the reader's language.
+
+    Japanese readers get /tokushoho/ (the legally authoritative page); every
+    other language gets the English reference version at /tokushoho-en/
+    (operator 2026-09-14). Which URL is the site default is NOT decided here.
+    """
+    name = "tokushoho" if (get_language() or "").startswith("ja") else "tokushoho_en"
+    return reverse(f"public_app:{name}")

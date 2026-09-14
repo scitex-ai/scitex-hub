@@ -85,20 +85,35 @@ msgid "Create your free account and use SciTeX's free tier at no cost."
 msgstr "無料アカウントを作成して、SciTeX の無料プランをご利用いただけます。"
 
 #: apps/infra/auth_app/templates/auth_app/signup.html
-msgid "Create your account and use SciTeX's free tier at no cost."
-msgstr "アカウントを作成して、SciTeX の無料プランをご利用いただけます。"
+msgid "Start your 30-day SciTeX Cloud trial — card required, no charge during the trial."
+msgstr "SciTeX Cloud の30日間トライアルを開始します。カードの登録が必要で、トライアル期間中は課金されません。"
+
+#: apps/infra/auth_app/templates/auth_app/signup.html
+#: apps/infra/public_app/templates/public_app/pricing_partials/cloud_included.html
+msgid "Billing terms"
+msgstr "お支払い条件"
+
+#: apps/infra/auth_app/templates/auth_app/signup.html
+msgid "Academic email examples:"
+msgstr "学術機関のメールアドレスの例:"
+
+#: apps/infra/auth_app/templates/auth_app/signup.html
+msgid "(eligible for SciTeX Cloud Academic pricing)"
+msgstr "（SciTeX Cloud Academic の料金の対象となります）"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
 msgid "Pricing"
 msgstr "料金"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
-msgid "Sign up free"
-msgstr "無料で登録"
+#: apps/infra/public_app/templates/public_app/pages/pricing.html
+msgid "Start your 30-day trial"
+msgstr "30日間のトライアルを開始"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
-msgid "Creating an account does not activate this paid plan."
-msgstr "アカウントを作成しても、この有料プランは開始されません。"
+#: apps/infra/public_app/templates/public_app/pages/pricing.html
+msgid "Card required at signup — no charge during the trial."
+msgstr "登録時にカードの登録が必要です。トライアル期間中は課金されません。"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
 msgid "Contact us"
@@ -3100,8 +3115,8 @@ msgstr "ベータ期間中のサポートとサービス品質"
 msgid "Included with SciTeX Cloud (Academic and Standard)"
 msgstr "SciTeX Cloud に含まれるもの（Academic・Standard 共通）"
 
-msgid "Creating an account does not start a paid subscription."
-msgstr "アカウントを作成しても、有料のサブスクリプションは開始されません。"
+msgid "Start your 30-day trial — card required, no charge during the trial."
+msgstr "30日間のトライアルを開始できます。カードの登録が必要で、トライアル期間中は課金されません。"
 
 msgid "Rate card: storage, network and compute"
 msgstr "料金表: ストレージ・通信・計算"
@@ -3163,8 +3178,8 @@ msgstr "はい。SciTeX セルフホストは AGPL v3.0 のもとで無料です
 msgid "When does billing start?"
 msgstr "課金はいつ始まりますか？"
 
-msgid "SciTeX Cloud plans start with a 30-day free trial, and creating an account does not start a paid subscription. Online card payment opens after Stripe's corporate review (see the"
-msgstr "SciTeX Cloud のプランは 30 日間の無料トライアルから始まり、アカウントを作成しただけでは有料のサブスクリプションは開始されません。オンラインのカード決済は Stripe の法人審査を経て開始します（詳しくは"
+msgid "SciTeX Cloud plans start with a 30-day free trial. A credit/debit card is required at signup, and there is no charge during the trial. Online card payment opens after Stripe's corporate review (see the"
+msgstr "SciTeX Cloud のプランは 30 日間の無料トライアルから始まります。お申し込み時にクレジットカード/デビットカードのご登録が必要で、トライアル期間中は課金されません。オンラインのカード決済は Stripe の法人審査を経て開始します（詳しくは"
 
 msgid ")."
 msgstr "）。"

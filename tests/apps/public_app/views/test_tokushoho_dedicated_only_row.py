@@ -1,6 +1,6 @@
 """A synthetic Tokushoho row whose attributes are ALL dedicated columns.
 
-WHY THIS FILE EXISTS, AND WHY THE PREVIOUS VERSION OF IT WAS NOT ENOUGH.
+WHY THIS FILE EXISTS.
 The template's 備考 cell used to fall back to the full included list when a row
 had no remarks:
 
@@ -11,25 +11,30 @@ an EMPTY remarks list BY DESIGN, so that fallback would render those same three
 values a SECOND time inside 備考. The catalogue ships no such row today, which is
 what made it latent rather than visible.
 
-An earlier version of this test asserted on ``remarks_items`` in isolation and on
-the template's SOURCE TEXT. That proved the helper's contract, not the page: it
-never rendered anything, so a template that ignored the helper entirely would have
-passed. These tests instead RENDER THE REAL TEMPLATE PATH — the actual view, the
-actual template — and COUNT OCCURRENCES IN THE RESULTING HTML.
+These tests RENDER THE REAL TEMPLATE with the REAL view context
+(``_tokushoho_context``, under ``translation.override("ja")`` exactly as the view
+does) and swap in only the price list, then COUNT OCCURRENCES IN THE HTML. (An
+earlier version patched the view's module attribute with ``monkeypatch``; the
+context builder is called directly instead, so nothing in production is
+rewritten.)
 
-The synthetic row is built from a REAL row and given the REAL rendered column
-strings, so it is catalogue-shaped rather than a handful of invented scalars:
-passing raw attribute values like ``50`` would not be the shape anything renders.
+LAYOUT (2026-09-14): 備考 is no longer the last column of the figures row. Each
+item is its own ``<tbody>`` holding the figures ``<tr>`` and then a full-width
+detail ``<tr>`` whose single cell is 備考 — see ``_remarks_cell``.
 """
 
 from __future__ import annotations
 
 import pytest
+from django.contrib.auth.models import AnonymousUser
+from django.template.loader import render_to_string
+from django.test import RequestFactory
+from django.utils import translation
 
 from apps.infra.public_app.pricing import included_items, published_price_rows
+from apps.infra.public_app.views.legal import _tokushoho_context
 
-VIEW = "apps.infra.public_app.views.legal.published_price_rows"
-TOKUSHOHO_URL = "/tokushoho/"
+TEMPLATE = "public_app/legal/tokushoho.html"
 
 #: Real rendered column text, taken from the shipped catalogue so the synthetic
 #: row carries the same shapes and phrasings a real row does.
@@ -37,6 +42,7 @@ _REAL = published_price_rows()[0]
 STORAGE = _REAL["storage"]
 COMPUTE_CREDIT = _REAL["compute_credit"]
 OVERAGE = _REAL["overage"]
+DEDICATED = (STORAGE, COMPUTE_CREDIT, OVERAGE)
 
 #: A GENUINE non-dedicated attribute: it has no column of its own, so it must
 #: still reach 備考. Built through the public helper with a real catalogue value.
@@ -60,107 +66,91 @@ def _row(*, remarks, included):
     return row
 
 
-def _render(monkeypatch, client, row) -> str:
-    """Render the REAL tokushoho view/template with this row as the price list."""
-    monkeypatch.setattr(VIEW, lambda: [row])
-    response = client.get(TOKUSHOHO_URL)
-    assert response.status_code == 200, (
-        f"{TOKUSHOHO_URL} returned {response.status_code}"
-    )
-    return response.content.decode()
+def _render(row) -> str:
+    """Render the REAL tokushoho template + view context with this price list."""
+    request = RequestFactory().get("/tokushoho/")
+    request.user = AnonymousUser()
+    request.session = {}
+    with translation.override("ja"):
+        context = _tokushoho_context(as_of_format="%Y年%m月%d日")
+        context["published_price_rows"] = [row]
+        return render_to_string(TEMPLATE, context, request=request)
 
 
-@pytest.mark.django_db
-def test_a_dedicated_only_row_renders_each_value_exactly_once(monkeypatch, client):
-    """The dedicated values appear ONCE — in their own columns, never in 備考.
+def _remarks_cell(html: str) -> str:
+    """The contents of the 備考 cell(s) for the synthetic item.
 
-    If the fallback were restored, each of these would appear TWICE: once in its
-    dedicated column and once more inside 備考.
+    Located STRUCTURALLY: the ``<td>`` of the item's LAST row inside its own
+    ``<tbody>`` — and "" when the item has no detail row at all.
     """
-    html = _render(
-        monkeypatch,
-        client,
-        _row(remarks=[], included=[STORAGE, COMPUTE_CREDIT, OVERAGE]),
-    )
-
-    for name, value in (
-        ("storage", STORAGE),
-        ("compute_credit", COMPUTE_CREDIT),
-        ("overage", OVERAGE),
-    ):
-        count = html.count(value)
-        assert count == 1, (
-            f"{name} renders {count} times, expected exactly 1: a dedicated "
-            "attribute is being repeated, which is the 備考 duplication this "
-            f"guards against (value: {value!r})"
-        )
+    cells = []
+    for item_html in html.split("<tbody")[1:]:
+        item_html = item_html.split("</tbody>")[0]
+        if "合成プラン" not in item_html:
+            continue
+        rows = item_html.split("<tr")
+        last_row = rows[-1] if len(rows) > 2 else ""
+        cells.append(last_row.split("<td")[-1] if "<td" in last_row else "")
+    return "\n".join(cells)
 
 
 @pytest.mark.django_db
-def test_a_dedicated_only_row_does_not_put_them_in_the_remarks_cell(
-    monkeypatch, client
-):
-    """Stronger than a count: the 備考 CELL itself must not contain them.
-
-    Counts alone would also pass if a value were missing from its column and
-    present once in 備考, so the cell is inspected directly.
-    """
-    html = _render(
-        monkeypatch,
-        client,
-        _row(remarks=[], included=[STORAGE, COMPUTE_CREDIT, OVERAGE]),
-    )
-
-    remarks_cell = _remarks_cell(html)
-    for name, value in (
-        ("storage", STORAGE),
-        ("compute_credit", COMPUTE_CREDIT),
-        ("overage", OVERAGE),
-    ):
-        assert value not in remarks_cell, (
-            f"{name} appears inside the 備考 cell, so the dedicated column is "
-            f"duplicated there (value: {value!r})"
-        )
+@pytest.mark.parametrize(
+    "value", DEDICATED, ids=["storage", "compute_credit", "overage"]
+)
+def test_a_dedicated_only_row_renders_each_value_exactly_once(value):
+    """If the fallback were restored, each value would appear TWICE."""
+    # Arrange
+    row = _row(remarks=[], included=list(DEDICATED))
+    # Act
+    html = _render(row)
+    # Assert
+    assert html.count(value) == 1
 
 
 @pytest.mark.django_db
-def test_a_genuine_non_dedicated_attribute_is_still_visible(monkeypatch, client):
-    """CONTROL the other way: 備考 must still carry what belongs in it.
-
-    Without this, a template that dropped the 備考 content entirely would satisfy
-    the two tests above while silently removing information from a legal page.
-    """
-    html = _render(
-        monkeypatch,
-        client,
-        _row(
-            remarks=[NON_DEDICATED],
-            included=[STORAGE, COMPUTE_CREDIT, OVERAGE, NON_DEDICATED],
-        ),
-    )
-
-    assert NON_DEDICATED in html, (
-        "a non-dedicated attribute vanished from the page — 備考 content must "
-        "survive the removal of the fallback"
-    )
-    assert NON_DEDICATED in _remarks_cell(html), (
-        "the non-dedicated attribute rendered, but not in the 備考 cell where it "
-        "belongs"
-    )
-    # And the dedicated values are still not duplicated by its presence.
-    for value in (STORAGE, COMPUTE_CREDIT, OVERAGE):
-        assert html.count(value) == 1, (
-            f"adding a non-dedicated attribute changed a dedicated column's "
-            f"occurrence count for {value!r}"
-        )
+@pytest.mark.parametrize(
+    "value", DEDICATED, ids=["storage", "compute_credit", "overage"]
+)
+def test_a_dedicated_only_row_does_not_put_them_in_the_remarks_cell(value):
+    """Stronger than a count: the 備考 CELL itself must not contain them."""
+    # Arrange
+    row = _row(remarks=[], included=list(DEDICATED))
+    # Act
+    remarks_cell = _remarks_cell(_render(row))
+    # Assert
+    assert value not in remarks_cell
 
 
 @pytest.mark.django_db
-def test_no_real_row_repeats_a_dedicated_column_in_its_remarks(monkeypatch, client):
+def test_a_genuine_non_dedicated_attribute_is_still_in_the_remarks_cell():
+    """CONTROL the other way: 備考 must still carry what belongs in it."""
+    # Arrange
+    row = _row(remarks=[NON_DEDICATED], included=[*DEDICATED, NON_DEDICATED])
+    # Act
+    remarks_cell = _remarks_cell(_render(row))
+    # Assert
+    assert NON_DEDICATED in remarks_cell
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "value", DEDICATED, ids=["storage", "compute_credit", "overage"]
+)
+def test_a_non_dedicated_remark_does_not_duplicate_a_dedicated_column(value):
+    # Arrange
+    row = _row(remarks=[NON_DEDICATED], included=[*DEDICATED, NON_DEDICATED])
+    # Act
+    html = _render(row)
+    # Assert
+    assert html.count(value) == 1
+
+
+def test_no_real_row_repeats_a_dedicated_column_in_its_remarks():
     """Control on the REAL catalogue: the property holds for every shipped row."""
+    # Arrange
     rows = published_price_rows()
-    assert rows, "the catalogue produced no price rows"
-
+    # Act
     offenders = [
         (row["id"], column)
         for row in rows
@@ -171,26 +161,5 @@ def test_no_real_row_repeats_a_dedicated_column_in_its_remarks(monkeypatch, clie
         )
         if column and column != "—" and row.get("remarks") and column in row["remarks"]
     ]
-
-    assert not offenders, (
-        f"these rows repeat a dedicated column inside 備考: {offenders} — the "
-        "dedicated column and 備考 would show the same figure twice"
-    )
-
-
-def _remarks_cell(html: str) -> str:
-    """The contents of the 備考 cell(s) — the last <td> of each price row.
-
-    Located STRUCTURALLY (the last cell of a row) rather than by matching the
-    template's source text, so this keeps working when the template's wording or
-    markup changes.
-    """
-    cells = []
-    for row_html in html.split("<tr"):
-        if "合成プラン" not in row_html:
-            continue
-        parts = row_html.split("<td")
-        if parts:
-            cells.append(parts[-1])
-    assert cells, "the synthetic row did not render as a table row at all"
-    return "\n".join(cells)
+    # Assert
+    assert (bool(rows), offenders) == (True, [])

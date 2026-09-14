@@ -100,6 +100,19 @@ def _is_writable_path(path: str) -> bool:
     """True only for the explicitly opened mutating routes."""
     return any(pattern.match(path) for pattern in _WRITABLE_PATHS)
 
+
+def cards_board_access_allowed(user) -> bool:
+    """The staff-only gate for the /apps/cards/ mount (P0, 2026-09-14).
+
+    Named so the launcher can hide the Cards tile with THIS predicate rather
+    than a copy of it: a tile a user can see must not open onto the JSON 403
+    below (apps_app.views.helpers.can_open_mounted_app).
+    """
+    return bool(
+        getattr(user, "is_staff", False) or getattr(user, "is_superuser", False)
+    )
+
+
 # The upstream board routes that render HTML pages a browser NAVIGATES to
 # (board root, chat/DM page, legacy + board-v3 aliases); every other
 # subpath is a JS data endpoint (timeline, fleet/*, dm/*, chat/<id>, the
@@ -184,12 +197,10 @@ class TodoBoardTenancyMiddleware:
         # per-tenant store, nobody but staff may reach the mount at all —
         # pages and data alike. Card:
         # hub-p0-cards-mount-serves-fleet-board-to-any-signed-in-user-20260914
-        if not (user.is_staff or user.is_superuser):
+        if not cards_board_access_allowed(user):
             return JsonResponse(
                 {
-                    "error": (
-                        "The Cards board is limited to SciTeX staff for now."
-                    ),
+                    "error": ("The Cards board is limited to SciTeX staff for now."),
                     "reason": "cards-board-staff-only",
                 },
                 status=403,
@@ -356,9 +367,7 @@ class TodoBoardTenancyMiddleware:
         if is_readonly_visitor(request):
             # Structured #308 payload → the shared frontend guard turns
             # it into the Sign up / Log in toast.
-            return readonly_write_rejection(
-                "edit the todo board", request=request
-            )
+            return readonly_write_rejection("edit the todo board", request=request)
         return JsonResponse(
             {
                 "error": (
