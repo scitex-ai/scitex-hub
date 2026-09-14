@@ -7,15 +7,11 @@ on "MCP Tools (Local)", a power-user page. A first-time visitor must land on an
 overview instead.
 
 The .mo catalogs are gitignored, so the Japanese render test compiles them with
-the project's babel-based script first (same approach as
-tests/config/test_i18n_settings_services_landing.py).
+the project's babel-based script first (the compiled_catalogs fixture in
+conftest.py).
 """
 
 from __future__ import annotations
-
-import subprocess
-import sys
-from pathlib import Path
 
 import pytest
 from django.template.loader import render_to_string
@@ -25,21 +21,8 @@ from django.utils import translation
 from apps.workspace.docs_app._context_builders import build_page_context
 from apps.workspace.docs_app.views import DOCS_PAGES, build_docs_context
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
 OVERVIEW_TEMPLATE = "docs_app/docs_overview.html"
 JAPANESE_HEADING = "SciTeX Hub へようこそ"
-
-
-@pytest.fixture
-def compiled_catalogs():
-    """Compile locale/**/*.po -> .mo so the ja render reads the real catalog."""
-    script = PROJECT_ROOT / "scripts" / "i18n" / "compile_catalogs.py"
-    result = subprocess.run(
-        [sys.executable, str(script)], cwd=PROJECT_ROOT, capture_output=True, text=True
-    )
-    assert result.returncode == 0, result.stdout + result.stderr
-    translation.trans_real._translations.clear()
-    yield
 
 
 def test_first_docs_page_is_overview():

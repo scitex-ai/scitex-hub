@@ -1,0 +1,52 @@
+# Draft in Writer: edit the abstract of the current project and compile a PDF preview.
+# The editor is not reachable at 390x844, so render with --viewports desktop.
+app: writer
+title:
+  en: Draft in Writer
+  ja: Writer で原稿を書く
+languages: [en, ja]
+sign_in: true
+steps:
+  - action: goto
+    value: /apps/writer/
+    narration:
+      en: Writer opens your manuscript, with the editor, the PDF preview and the details panel.
+      ja: Writer を開くと原稿が表示されます。エディタ、PDF プレビュー、詳細パネルが並んでいます。
+    hold: 6
+  - action: click
+    selector: "#section-selector-toggle"
+    narration:
+      en: Use the section menu to pick a section, such as the abstract.
+      ja: セクションメニューで、アブストラクトなどのセクションを選びます。
+  - action: click
+    selector: "#section-selector-toggle"
+    hold: 0.3
+  - action: click
+    selector: ".monaco-editor .view-lines"
+    hold: 0.3
+  - action: press
+    value: Control+a
+    hold: 0.2
+  - action: type
+    selector: ".monaco-editor textarea"
+    value: "\\begin{abstract}\nWe tested whether a night of sleep improves word-pair memory in 20 volunteers.\n\\end{abstract}\n"
+    narration:
+      en: Write your abstract. Your changes are saved as you type.
+      ja: アブストラクトを書きます。入力した内容は保存されます。
+  - action: click
+    selector: "text=Compilation - Preview"
+    narration:
+      en: In the details panel, open Compilation Preview.
+      ja: 詳細パネルで Compilation Preview を開きます。
+  - action: click
+    selector: "#details-preview-compile-btn"
+    narration:
+      en: Click Compile Preview, and wait a moment.
+      ja: Compile Preview をクリックして、少し待ちます。
+    hold: 18
+  - action: hover
+    selector: "#download-btn-toolbar"
+    narration:
+      en: The PDF of your section appears. Use the download button to save it.
+      ja: セクションの PDF が表示されました。ダウンロードボタンで保存できます。
+    hold: 1.5
