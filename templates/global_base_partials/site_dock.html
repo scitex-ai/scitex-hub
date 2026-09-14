@@ -15,14 +15,17 @@
   remembered per device; a double-click / double-tap on it resets it.
 {% endcomment %}
 {% if site_dock_items %}
-    <link rel="stylesheet" href="{% static 'shared/css/components/site-dock.css' %}" />
+    <link rel="stylesheet" href="{% static 'shared/css/components/site-dock.css' %}?v={{ build_id }}" />
     <nav class="site-dock" id="site-dock" data-site-dock aria-label="{% trans 'Dock' %}">
+        {# Grip at the dock's left end: a recognisable drag-handle glyph with a #}
+        {# 44x44 hit area (operator 2026-09-14: the thin top bar was not      #}
+        {# obviously draggable).                                               #}
         <button type="button"
                 class="site-dock-grabber"
                 data-dock-grabber
-                aria-label="{% trans 'Move dock (double-click to reset)' %}"
+                aria-label="{% trans 'Move dock' %}"
                 title="{% trans 'Move dock (double-click to reset)' %}">
-            <span class="site-dock-grabber-bar" aria-hidden="true"></span>
+            <i class="fas fa-grip-vertical" aria-hidden="true"></i>
         </button>
         <button type="button"
                 class="site-dock-item site-dock-history"

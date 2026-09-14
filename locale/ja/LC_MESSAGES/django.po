@@ -5265,6 +5265,10 @@ msgid "Dock"
 msgstr "ドック"
 
 #: templates/global_base_partials/site_dock.html
+msgid "Move dock"
+msgstr "ドックを移動"
+
+#: templates/global_base_partials/site_dock.html
 msgid "Move dock (double-click to reset)"
 msgstr "ドックを移動（ダブルクリックで元の位置に戻す）"
 

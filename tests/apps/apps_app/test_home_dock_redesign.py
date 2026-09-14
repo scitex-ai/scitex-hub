@@ -53,6 +53,32 @@ def _manifest(app_dir: str) -> dict:
     return json.loads((_WORKSPACE / app_dir / "manifest.json").read_text("utf-8"))
 
 
+def _launcher_css(name: str) -> str:
+    css = (_WORKSPACE / "apps_app/static/apps_app/css/launcher" / name).read_text(
+        "utf-8"
+    )
+    return re.sub(r"/\*.*?\*/", "", css, flags=re.DOTALL)
+
+
+def _icon_ratio(css: str, selector_regex: str):
+    """The badge width as a fraction of --launcher-icon-size, from its CSS rule."""
+    rule = re.search(selector_regex + r"\s*\{([^}]*)\}", css)
+    if not rule:
+        return None
+    width = re.search(
+        r"(?<![-\w])width:\s*calc\(var\(--launcher-icon-size[^)]*\)\s*\*\s*([0-9.]+)\)",
+        rule.group(1),
+    )
+    return float(width.group(1)) if width else None
+
+
+def _site_css(name: str) -> str:
+    css = (Path(settings.BASE_DIR) / "static/shared/css/components" / name).read_text(
+        "utf-8"
+    )
+    return re.sub(r"/\*.*?\*/", "", css, flags=re.DOTALL)
+
+
 def _dock_html(content: bytes) -> str:
     text = content.decode("utf-8")
     start = text.index('<nav class="site-dock"')
@@ -156,6 +182,24 @@ class SiteDockOnEveryPageTest(TestCase):
             r'<a href="/apps/home/"\s+class="site-dock-item[^"]*"\s+data-dock-item="projects"',
             dock,
         )
+
+    def test_dock_has_a_grip_labelled_move_dock(self):
+        # Operator 2026-09-14: the drag area must be a recognisable grip.
+        # Arrange
+        dock = _dock_html(self.client.get("/apps/").content)
+        # Act
+        grip = re.search(r'<button[^>]*data-dock-grabber[^>]*aria-label="([^"]+)"[^>]*>\s*<i class="([^"]+)"', dock)
+        # Assert
+        assert (grip.group(1), "fa-grip" in grip.group(2)) == ("Move dock", True)
+
+    def test_dock_grip_hit_area_is_at_least_44px(self):
+        # Arrange
+        css = _site_css("site-dock.css")
+        # Act
+        rule = re.search(r"\.site-dock-grabber\s*\{([^}]*)\}", css).group(1)
+        sizes = [int(v) for v in re.findall(r"min-(?:width|height):\s*(\d+)px", rule)]
+        # Assert
+        assert len(sizes) == 2 and min(sizes) >= 44
 
     def test_dock_shows_icons_only(self):
         # Arrange
@@ -373,6 +417,27 @@ class HomePagesTest(TestCase):
         # Assert
         assert b'id="launcher-dots"' in content and b'id="launcher-page-next"' in content
 
+    def test_page_arrows_render_hidden(self):
+        # Arrange
+        content = self.client.get("/apps/").content.decode("utf-8")
+        # Act
+        arrow = re.search(r'<button[^>]*id="launcher-page-next"[^>]*>', content).group(0)
+        # Assert
+        assert re.search(r"\shidden(\s|>|$)", arrow)
+
+    def test_page_arrows_only_show_on_wide_fine_pointer_viewports(self):
+        # Operator iPhone 2026-09-14: arrows showed as white boxes above the
+        # grid and beside the dock. They may only appear inside this media query.
+        # Arrange
+        css = _launcher_css("mobile.css")
+        # Act
+        shown = re.findall(
+            r"@media([^{]*)\{\s*\.launcher-page-arrow:not\(\[hidden\]\)\s*\{[^}]*display:\s*inline-flex",
+            css,
+        )
+        # Assert
+        assert shown == [" (min-width: 768px) and (hover: hover) and (pointer: fine) "]
+
     def test_home_body_is_the_scrolling_app_home(self):
         # Arrange — app-home releases the viewport lock so the footer can scroll
         # into view above the dock.
@@ -440,6 +505,47 @@ class TileBadgeTest(TestCase):
             "desktop-only",
             "dev-only",
         ]
+
+    def test_status_badge_is_at_most_a_third_of_the_icon(self):
+        # Operator iPhone 2026-09-14: the monitor badge covered ~45% of the tile.
+        # Arrange
+        css = _launcher_css("grid.css")
+        # Act
+        ratio = _icon_ratio(css, r"\.launcher-tile-icon \.launcher-badge")
+        # Assert
+        assert ratio is not None and ratio <= 0.32
+
+    def test_globe_badge_is_a_corner_badge_not_a_second_icon(self):
+        # Operator iPhone 2026-09-14: the globe rendered full-size beside the folder.
+        # Arrange
+        css = _launcher_css("grid.css")
+        # Act
+        ratio = _icon_ratio(css, r"\.launcher-tile-icon-badge")
+        # Assert
+        assert ratio is not None and 0.30 <= ratio <= 0.40
+
+    def test_desktop_only_tiles_are_explicitly_not_dimmed_on_a_phone(self):
+        # Arrange
+        css = _launcher_css("mobile.css")
+        # Act
+        undimmed = re.search(
+            r'data-availability="desktop_only"\]\s*\.launcher-tile-icon[^{]*\{[^}]*opacity:\s*1;[^}]*filter:\s*none',
+            css,
+        )
+        # Assert
+        assert undimmed is not None
+
+    def test_launcher_stylesheets_are_cache_busted(self):
+        # A stale @import-ed grid/mobile.css is what the operator's phone showed.
+        # Arrange
+        url = "/apps/"
+        # Act
+        links = re.findall(
+            rb'href="[^"]*apps_app/css/launcher/(?:core|grid|mobile)\.css\?v=[^"]*"',
+            self.client.get(url).content,
+        )
+        # Assert
+        assert len(links) == 3
 
     def test_desktop_only_badge_says_mobile_layout_coming_soon(self):
         # Arrange

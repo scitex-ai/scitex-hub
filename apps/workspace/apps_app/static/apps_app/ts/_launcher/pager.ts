@@ -76,6 +76,19 @@ export function readColumns(grid: HTMLElement, viewportWidth: number): number {
   return 6;
 }
 
+/** Below this width the arrows never show (matches launcher/mobile.css). */
+export const ARROWS_MIN_WIDTH = 768;
+
+/** Whether page arrows may be shown: wide viewport AND a fine, hovering pointer. */
+export function arrowsAllowed(): boolean {
+  if (window.innerWidth < ARROWS_MIN_WIDTH) return false;
+  try {
+    return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  } catch {
+    return false;
+  }
+}
+
 export interface PagerControls {
   prev?: HTMLButtonElement | null;
   next?: HTMLButtonElement | null;
@@ -287,7 +300,12 @@ export class LauncherPager {
       dot.classList.toggle("active", i === active);
       dot.setAttribute("aria-selected", i === active ? "true" : "false");
     });
-    const multi = count > 1;
+    // Arrows are a DESKTOP affordance only: a fine hovering pointer on a wide
+    // viewport. On a phone, swipe + dots is the whole UI, and an arrow that
+    // shows there reads as a stray mark beside the dock (operator iPhone,
+    // 2026-09-14). Kept in JS as well as CSS, so a stale stylesheet cannot
+    // put them back.
+    const multi = count > 1 && arrowsAllowed();
     if (this.prev) {
       this.prev.hidden = !multi;
       this.prev.disabled = active <= 0;

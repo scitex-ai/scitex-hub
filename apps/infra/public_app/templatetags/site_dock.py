@@ -22,4 +22,7 @@ def dock_context(request) -> dict:
 
 @register.inclusion_tag("global_base_partials/site_dock.html", takes_context=True)
 def site_dock(context):
-    return dock_context(context.get("request"))
+    data = dock_context(context.get("request"))
+    # Cache-buster for the dock stylesheet (config.context_processors.cache_buster).
+    data["build_id"] = context.get("build_id", "")
+    return data

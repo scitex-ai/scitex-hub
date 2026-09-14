@@ -103,7 +103,10 @@ function setMobile(isMobile: boolean): void {
 window.matchMedia = ((q: string) =>
   ({
     get matches() {
-      return q.includes("max-width: 767px") ? mobile : false;
+      if (q.includes("max-width: 767px")) return mobile;
+      // Desktop = a fine hovering pointer; the phone fixture is touch.
+      if (q.includes("pointer: fine")) return !mobile;
+      return false;
     },
     media: q,
     addEventListener: () => {},
@@ -298,8 +301,24 @@ describe("LauncherPager", () => {
     expect(height).toBeGreaterThan(DOCK_TOP - GRID_TOP);
   });
 
+  it("keeps the page arrows hidden on a phone, even with several pages", () => {
+    // Operator iPhone, 2026-09-14: arrows showed as stray white boxes above the
+    // grid and beside the dock. Swipe + dots is the phone UI.
+    const { grid, dots } = build(40); // 390px wide, touch (setMobile(true))
+    styleGap(grid);
+    const prev = document.createElement("button");
+    const next = document.createElement("button");
+    const pager = new LauncherPager(grid, dots, { prev, next });
+
+    pager.init();
+
+    expect([prev.hidden, next.hidden]).toEqual([true, true]);
+  });
+
   it("enables the desktop arrows only when there is somewhere to go", () => {
     const { grid, dots } = build(40);
+    window.innerWidth = 1440;
+    setMobile(false); // fine hovering pointer
     styleGap(grid);
     const prev = document.createElement("button");
     const next = document.createElement("button");

@@ -35,8 +35,9 @@
 }
 
 .launcher-tile-icon {
-  width: 64px;
-  height: 64px;
+  --launcher-icon-size: 64px;
+  width: var(--launcher-icon-size);
+  height: var(--launcher-icon-size);
   border-radius: 16px;
   display: flex;
   align-items: center;
@@ -111,33 +112,44 @@
   position: relative;
 }
 
+/* Sizes are PERCENTAGES of the icon box, so they stay small corner marks at
+   every icon size: a status badge is 28% of the icon, the Public Projects
+   globe 36%. Several badges line up along the top edge (row-reverse from the
+   right), never down across the main glyph. */
 .launcher-tile-badges {
   position: absolute;
-  top: 3px;
-  right: 3px;
+  top: 2px;
+  right: 2px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row-reverse;
   gap: 2px;
   z-index: 2;
   pointer-events: auto;
+  width: auto;
+  max-width: 60%;
 }
 
 .launcher-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 17px;
-  height: 17px;
+  flex: 0 0 auto;
+  box-sizing: border-box;
   border-radius: 50%;
-  font-size: 9px;
   line-height: 1;
   background: rgba(10, 12, 20, 0.72);
   color: #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 }
 
+/* A badge sized against the ICON (60-64px), not against the badge row. */
+.launcher-tile-icon .launcher-badge {
+  width: calc(var(--launcher-icon-size, 64px) * 0.28);
+  height: calc(var(--launcher-icon-size, 64px) * 0.28);
+}
+
 .launcher-tile-icon .launcher-badge i {
-  font-size: 9px;
+  font-size: calc(var(--launcher-icon-size, 64px) * 0.15);
   color: inherit;
 }
 
@@ -159,20 +171,21 @@
    Bottom-right, so it never collides with the status badges up top. */
 .launcher-tile-icon-badge {
   position: absolute;
-  right: 6px;
-  bottom: 6px;
+  right: 5%;
+  bottom: 5%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  box-sizing: border-box;
+  width: calc(var(--launcher-icon-size, 64px) * 0.36);
+  height: calc(var(--launcher-icon-size, 64px) * 0.36);
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.95);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 .launcher-tile-icon .launcher-tile-icon-badge i {
-  font-size: 13px;
+  font-size: calc(var(--launcher-icon-size, 64px) * 0.22);
   color: #2f9e5f;
 }
 

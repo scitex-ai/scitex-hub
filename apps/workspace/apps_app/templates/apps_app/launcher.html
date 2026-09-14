@@ -4,7 +4,14 @@
 
 {% block title %}Home{% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'apps_app/css/launcher.css' %}" />
+    {# Linked DIRECTLY with ?v={{ build_id }}, not through launcher.css's      #}
+    {# @import. An @import URL carries no cache-buster, so a phone kept the    #}
+    {# PREVIOUS grid/mobile.css after the Home + dock redesign deployed: arrows #}
+    {# rendered as unstyled white buttons, the globe badge at full icon size,  #}
+    {# and desktop-only tiles still dimmed (operator iPhone, 2026-09-14).      #}
+    <link rel="stylesheet" href="{% static 'apps_app/css/launcher/core.css' %}?v={{ build_id }}" />
+    <link rel="stylesheet" href="{% static 'apps_app/css/launcher/grid.css' %}?v={{ build_id }}" />
+    <link rel="stylesheet" href="{% static 'apps_app/css/launcher/mobile.css' %}?v={{ build_id }}" />
 {% endblock %}
 {% block content %}
     <div class="launcher" id="app-launcher" data-max-pins="{{ max_pins }}">

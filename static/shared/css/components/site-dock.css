@@ -162,46 +162,62 @@ body:has(> .site-dock:not(.site-dock--floating)) {
   transform: none;
 }
 
-/* Grabber: an iOS sheet-style bar centred on the dock's top edge. The hit
-   area is larger than the bar and overhangs the edge, so it is easy to catch
-   with a thumb without taking a slot from the buttons. */
+/* Grip: a drag-handle glyph (fa-grip-vertical) at the dock's LEFT end, in
+   flow, with a 44x44 hit area. The first version was a thin bar overhanging
+   the top edge, which the operator could not recognise as draggable
+   (2026-09-14). A separator line sets it apart from the navigation buttons. */
 .site-dock-grabber {
-  position: absolute;
-  top: -9px;
-  left: 50%;
-  width: 56px;
-  height: 18px;
-  margin: 0 0 0 -28px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  margin: 0 2px 0 0;
   padding: 0;
   border: 0;
+  border-radius: 12px;
   background: transparent;
+  color: var(--site-dock-fg);
+  opacity: 0.75;
   cursor: grab;
   touch-action: none;
   -webkit-tap-highlight-color: transparent;
 }
 
-.site-dock-grabber-bar {
+.site-dock-grabber::after {
+  content: "";
   position: absolute;
-  top: 7px;
-  left: 50%;
-  width: 36px;
-  height: 5px;
-  margin-left: -18px;
-  border-radius: 3px;
-  background: var(--site-dock-fg);
-  opacity: 0.45;
-  transition: opacity 0.15s ease;
+  right: -2px;
+  top: 10px;
+  bottom: 10px;
+  width: 1px;
+  background: var(--site-dock-border);
 }
 
-.site-dock-grabber:hover .site-dock-grabber-bar,
-.site-dock-grabber:focus-visible .site-dock-grabber-bar,
-.site-dock--dragging .site-dock-grabber-bar {
-  opacity: 0.9;
+.site-dock-grabber i {
+  font-size: 18px;
+  pointer-events: none;
+}
+
+.site-dock-grabber:hover,
+.site-dock-grabber:focus-visible {
+  opacity: 1;
+  background: var(--site-dock-active-bg);
+}
+
+.site-dock--dragging .site-dock-grabber,
+.site-dock-grabber:active {
+  cursor: grabbing;
+  opacity: 1;
 }
 
 .site-dock-grabber:focus-visible {
   outline: 2px solid var(--site-dock-fg-active);
-  border-radius: 6px;
+  outline-offset: -2px;
 }
 
 /* Very narrow phones: tighten the slots so the whole dock still fits. */
@@ -213,6 +229,8 @@ body:has(> .site-dock:not(.site-dock--floating)) {
   .site-dock-history {
     width: 28px;
   }
+
+  /* The grip keeps its 44px hit area even here. */
 }
 
 @media print {

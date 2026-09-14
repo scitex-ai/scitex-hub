@@ -100,39 +100,56 @@
   opacity: 0.95;
 }
 
-/* Desktop page arrows: only where there is a fine pointer to click them (a
-   phone swipes). Hidden via [hidden] while everything fits on one page. */
+/* Desktop page arrows: ONLY on a wide viewport with a fine hovering pointer
+   (a phone swipes). Hidden by default; hidden via [hidden] while everything
+   fits on one page; pager.ts applies the same rule. Transparent, theme
+   coloured, vertically centred on the grid's left / right edges. */
+.launcher-page-arrow,
+.launcher-page-arrow[hidden] {
+  display: none;
+}
+
 .launcher-page-arrow {
   position: absolute;
   top: 50%;
   z-index: 3;
-  display: none;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  margin-top: -17px;
+  width: 36px;
+  height: 36px;
+  margin: 0;
+  padding: 0;
+  transform: translateY(-50%);
+  border: 0;
   border-radius: 50%;
-  border: 1px solid var(--workspace-border-default, rgba(128, 128, 128, 0.3));
-  background: var(--workspace-bg-elevated, var(--workspace-bg-secondary));
-  color: var(--workspace-text-secondary, var(--text-secondary));
+  background: transparent;
+  color: var(--workspace-text-secondary, var(--text-secondary, currentColor));
+  font-size: 20px;
   cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.launcher-page-arrow:hover {
+  background: rgba(128, 128, 128, 0.14);
+  color: var(--workspace-text-primary, var(--text-primary, currentColor));
 }
 
 .launcher-page-arrow--prev {
-  left: -42px;
+  left: -44px;
 }
 
 .launcher-page-arrow--next {
-  right: -42px;
+  right: -44px;
 }
 
 .launcher-page-arrow:disabled {
-  opacity: 0.35;
+  opacity: 0.3;
   cursor: default;
+  background: transparent;
 }
 
-@media (hover: hover) and (pointer: fine) {
+@media (min-width: 768px) and (hover: hover) and (pointer: fine) {
   .launcher-page-arrow:not([hidden]) {
     display: inline-flex;
   }
@@ -165,6 +182,15 @@
   .launcher-section-head {
     display: none;
   }
+
+  /* Desktop-only tiles are NOT dimmed on a phone (operator ruling 2026-09-14:
+     "mobile layout coming soon", not "unusable"). Stated explicitly so no
+     older rule, or a cached copy of one, can fade them again. */
+  .launcher-tile[data-availability="desktop_only"] .launcher-tile-icon,
+  .launcher-tile[data-availability="desktop_only"] .launcher-tile-name {
+    opacity: 1;
+    filter: none;
+  }
 }
 
 @media (max-width: 640px) {
@@ -183,8 +209,7 @@
   }
 
   .launcher-tile-icon {
-    width: 60px;
-    height: 60px;
+    --launcher-icon-size: 60px;
   }
 
   .launcher-tile-icon > i {
