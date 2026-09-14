@@ -29,10 +29,12 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-/* Dark mode form controls - bluish theme */
+/* Dark mode form controls. Not --scitex-color-01-light: that token is a
+   light-palette literal (#444) with no dark value, so fields rendered grey
+   on grey at 3.2:1. */
 [data-theme="dark"] .form-control {
-  color: var(--scitex-color-06);
-  background-color: var(--scitex-color-01-light);
+  color: var(--text-primary);
+  background-color: var(--bg-surface);
   border-color: var(--scitex-color-04);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
@@ -58,10 +60,9 @@
   opacity: 0.85;
 }
 
-/* Dark mode placeholder - bluish muted color */
 [data-theme="dark"] .form-control::placeholder {
-  color: var(--scitex-color-05);
-  opacity: 0.75;
+  color: var(--text-muted);
+  opacity: 1;
 }
 
 .form-control:disabled,
@@ -70,12 +71,17 @@
   opacity: 0.7;
 }
 
-/* Dark mode disabled state */
-[data-theme="dark"] .form-control:disabled,
-[data-theme="dark"] .form-control[readonly] {
+[data-theme="dark"] .form-control:disabled {
   background-color: var(--scitex-color-01);
   color: var(--scitex-color-04);
   opacity: 0.6;
+}
+
+/* Read-only values are still content to read, unlike disabled ones. */
+[data-theme="dark"] .form-control[readonly] {
+  background-color: var(--bg-page);
+  color: var(--text-secondary);
+  opacity: 1;
 }
 
 /* =========================
