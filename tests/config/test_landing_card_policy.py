@@ -102,6 +102,8 @@ _PUBLIC_NAMES = (
 )
 urlpatterns = [
     path("i18n/setlang/", _empty_response, name="set_language"),
+    # The global header's search palette reverses this for its data-endpoint.
+    path("api/search/", _empty_response, name="api_header_search"),
     path(
         "auth/",
         include(
