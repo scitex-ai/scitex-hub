@@ -14,14 +14,17 @@ from __future__ import annotations
 
 import logging
 from datetime import timedelta
+from urllib.parse import urlencode
 
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.utils import timezone
+from django.utils.translation import get_language
 
 from apps.infra.workspace_app.registry import get_all_modules
 
-from ..models import AppsModule, ModuleInstallation
+from ..models import AppsModule, ModuleInstallation, PlannedAppInterest
+from ..planned_apps import visible_planned_apps
 from ..services.first_run import checklist_context, should_show_checklist
 from ..services.launcher_dock import get_dock_apps
 from ..services.launcher_links import get_launcher_links, get_link_tile_orders
@@ -32,7 +35,13 @@ from .helpers import (
 )
 from .launcher_order import DEFAULT_LAUNCHER_ORDER  # noqa: F401  (re-export)
 from .launcher_order import default_order_value as _default_order_value
-from .launcher_order import LAUNCHER_GROUPS, group_cells, group_of, group_rank
+from .launcher_order import (
+    LAUNCHER_GROUPS,
+    TRAILING_APPS,
+    group_cells,
+    group_of,
+    group_rank,
+)
 
 # Sidebar pin state lives in launcher_pins.py; re-exported so existing imports
 # (views/__init__.py, the workspace context processor, tests) keep working.
@@ -121,6 +130,46 @@ def guest_role_for(user) -> str:
     if role == ROLE_READONLY_VISITOR:
         return "readonly_visitor"
     return ""
+
+
+def _planned_tiles(user, real_app_names: set[str]) -> list[dict]:
+    """Coming-soon tiles for planned apps no real app has replaced."""
+    language = get_language() or "en"
+    interests: set[tuple[str, str]] = set()
+    if user.is_authenticated:
+        interests = set(
+            PlannedAppInterest.objects.filter(user=user).values_list("app_id", "kind")
+        )
+    return [
+        {
+            "name": app.id,
+            "label": app.name(language),
+            "icon_fa": app.icon,
+            "category": app.category,
+            "description": app.description(language),
+            "is_planned": True,
+            "icon_badge": "",
+            "is_dev_only": False,
+            "launch_url": "",
+            "detail_url": "",
+            "version": "",
+            "version_label": "",
+            "is_pinned": False,
+            "is_new": False,
+            "availability": "coming_soon",
+            "is_launchable": False,
+            "is_installed": False,
+            "notified": (app.id, "notify") in interests,
+            "building": (app.id, "build") in interests,
+            # brief = the planned id; description = the brief text to prefill
+            # until #859's create view reads the brief itself.
+            "create_url": "/apps/create/?"
+            + urlencode(
+                {"name": app.name_en, "brief": app.id, "description": app.brief}
+            ),
+        }
+        for app in visible_planned_apps(real_app_names)
+    ]
 
 
 def _build_tiles(request) -> list[dict]:
@@ -327,16 +376,26 @@ def _build_tiles(request) -> list[dict]:
         )
         seen.add(link.name)
 
+    # 5. Planned apps: a Coming-soon tile until a real app takes the id.
+    tiles.extend(
+        _planned_tiles(request.user, seen | installed_names | {t["name"] for t in tiles})
+    )
+
     # Apply order: the GROUP first (groups never interleave, operator
     # 2026-09-14), then explicit per-user positions, then the curated default.
     # Ties break by label so the grid render is deterministic.
-    tiles.sort(
-        key=lambda t: (
-            group_rank(t["name"]),
-            user_orders.get(t["name"], _default_order_value(t["name"])),
-            t["label"].lower(),
-        )
-    )
+    # Once the user has reordered, planned tiles (never saved) go last in
+    # their group instead of jumping ahead of the saved 1000+ positions.
+    def _position(tile: dict) -> int:
+        if tile["name"] in TRAILING_APPS:
+            return 2_000_000
+        if tile["name"] in user_orders:
+            return user_orders[tile["name"]]
+        if tile.get("is_planned") and user_orders:
+            return 1_000_000
+        return _default_order_value(tile["name"])
+
+    tiles.sort(key=lambda t: (group_rank(t["name"]), _position(t), t["label"].lower()))
     for tile in tiles:
         tile["user_ordered"] = tile["name"] in user_orders
         tile["group"] = group_of(tile["name"])

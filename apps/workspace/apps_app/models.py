@@ -409,4 +409,31 @@ class FirstRunProgress(models.Model):
         return f"{self.user.username}: {len(self.completed_steps)} steps done"
 
 
+class PlannedAppInterest(models.Model):
+    """A user asked to hear when a planned app ships, or offered to build it."""
+
+    KIND_CHOICES = [
+        ("notify", "Notify me"),
+        ("build", "Build this app"),
+    ]
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="planned_app_interests"
+    )
+    # An id from planned_apps.PLANNED_APPS; not a FK, the app does not exist yet.
+    app_id = models.CharField(max_length=64, db_index=True)
+    kind = models.CharField(max_length=10, choices=KIND_CHOICES, default="notify")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "app_id", "kind"], name="unique_planned_app_interest"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} → {self.app_id} ({self.kind})"
+
+
 # EOF

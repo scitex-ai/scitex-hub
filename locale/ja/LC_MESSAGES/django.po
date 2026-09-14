@@ -5622,3 +5622,23 @@ msgstr "はじめにを再表示"
 msgctxt "app name"
 msgid "Create app"
 msgstr "アプリを作る"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_planned_sheet.html
+msgid "Close"
+msgstr "閉じる"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_planned_sheet.html
+msgid "Notify me"
+msgstr "公開時に通知"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_planned_sheet.html
+msgid "We will notify you"
+msgstr "公開時にお知らせします"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_planned_sheet.html
+msgid "Build this app"
+msgstr "このアプリを作る"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_planned_sheet.html
+msgid "You'll be credited as author"
+msgstr "作った人は著者として表示されます"
