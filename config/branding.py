@@ -300,17 +300,21 @@ ACCOUNT_PAGE_NAMES = {
     "/accounts/settings/": "Settings",
     "/accounts/profile/": "Profile",
     "/new/": "New project",
+    # /console/ redirects here for a signed-in user (measured on the dev
+    # preview, 2026-09-14); without a label the tab read only the project.
+    "/apps/workspace/console/": "Console",
 }
 
 # Paths whose tab must never borrow the AMBIENT project (current_project /
 # project from context processors). An explicit page_title_detail from a view
-# still applies. /console/ is a host shell, not a project view.
+# still applies. The console is a shell, not a project view.
 NON_PROJECT_PREFIXES = (
     "/accounts/",
     "/auth/",
     "/new/",
     "/console/",
     "/apps/console/",
+    "/apps/workspace/console/",
 )
 
 # Everything that can name a tab. Apps win over sections on an exact tie;
@@ -321,6 +325,7 @@ PATH_LABELS = {**SECTION_NAMES, **ACCOUNT_PAGE_NAMES, **PANE_NAMES, **APP_NAMES}
 def is_project_scoped(path):
     """Return False for pages that must not name the ambient project."""
     return not (path or "").startswith(NON_PROJECT_PREFIXES)
+
 
 # Environment -> the parenthetical shown in the tab. Production is unmarked:
 # the public site reads simply "<App> — SciTeX".

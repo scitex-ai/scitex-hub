@@ -325,7 +325,10 @@ def test_profile_settings_fetches_cities_from_the_shared_static_path(signed_in_c
     assert "/static/shared/data/cities_timezones.json" in html and "/static/data/cities_timezones.json" not in html
 
 
-@pytest.mark.parametrize("path", ["/accounts/profile/", "/accounts/settings/ssh-keys/", "/new/", "/console/"])
+@pytest.mark.parametrize(
+    "path",
+    ["/accounts/profile/", "/accounts/settings/ssh-keys/", "/new/", "/console/", "/apps/workspace/console/"],
+)
 def test_non_project_pages_do_not_name_the_last_project_in_the_tab(path):
     # Arrange -- the same context on a project app DOES name the project, so
     # the absence below is the path rule, not a context that never rendered.
@@ -343,6 +346,7 @@ def test_non_project_pages_do_not_name_the_last_project_in_the_tab(path):
         ("/accounts/profile/", "Profile"),
         ("/accounts/settings/ssh-keys/", "Settings"),
         ("/new/", "New project"),
+        ("/apps/workspace/console/", "Console"),
     ],
 )
 def test_non_project_pages_name_themselves_in_the_tab(path, label):
