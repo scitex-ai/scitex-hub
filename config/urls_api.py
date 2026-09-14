@@ -18,10 +18,10 @@ from apps.infra.accounts_app.views.me_token_views import (
     api_me_token_mint,
     api_me_token_revoke,
 )
+from apps.infra.accounts_app.views.me_whoami_views import api_me
 from apps.infra.integrations_app.views_events import list_events, receive_event
 from apps.infra.project_app.views import api_check_name_availability
 from apps.infra.project_app.views.projects.api import (
-    api_me,
     api_project_create_jwt,
     api_project_list_jwt,
     api_switch_active_project,
@@ -40,7 +40,8 @@ urlpatterns = [
         csrf_exempt(TokenRefreshView.as_view()),
         name="token_refresh",
     ),
-    # User info
+    # Who is this credential — API key, JWT or session. Opaque id, plan,
+    # key metadata; 401 only for credential facts. See me_whoami_views.
     path("me/", csrf_exempt(api_me), name="api_me"),
     # User-scoped token management — browser-free token issuance for the
     # operator-12909 CLI publish surface. POST mints (unauthenticated;

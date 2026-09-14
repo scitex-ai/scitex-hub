@@ -6,6 +6,8 @@ JAPANESE_ACADEMIC_DOMAINS - List of recognized Japanese academic domains
 is_japanese_academic_email - Helper function to check academic status
 """
 
+import uuid
+
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -64,6 +66,20 @@ class UserProfile(models.Model):
     ]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+    # Opaque identity for API callers (GET /api/me/). Deliberately NOT
+    # User.pk: a sequential pk leaks user count and registration order into
+    # every client/agent log that records it, and once published it can never
+    # be withdrawn. Added via migrations 0015-0017 (nullable -> per-row
+    # backfill -> unique), so existing users each got a distinct value.
+    public_id = models.UUIDField(
+        default=uuid.uuid4,
+        editable=False,
+        unique=True,
+        help_text=(
+            "Stable, immutable, never-reused opaque user id exposed by "
+            "GET /api/me/. Never derived from User.pk."
+        ),
+    )
     avatar = models.ImageField(
         upload_to="avatars/", blank=True, null=True, help_text="Profile picture"
     )
