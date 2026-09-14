@@ -87,13 +87,16 @@ class CardsMountStaffOnlyTest(TestCase):
         # Assert
         assert results == [(403, "cards-board-staff-only", False)] * len(DATA_PATHS)
 
-    def test_non_staff_is_refused_on_the_board_page(self):
+    def test_non_staff_board_page_gets_placeholder_without_reaching_the_board(self):
+        # Operator 2026-09-14: the app stays visible to everyone, so a page
+        # navigation renders the own-scope placeholder (200) instead of a JSON
+        # 403, and still never reaches the fleet board downstream.
         # Arrange
         request = _request(self.rf, self.customer, "/apps/cards/")
         # Act
         result = _run(request)
         # Assert
-        assert result == (403, "cards-board-staff-only", False)
+        assert result == (200, None, False)
 
     def test_non_staff_is_refused_on_an_opened_write_route(self):
         # Arrange

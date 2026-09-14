@@ -115,7 +115,6 @@ def test_unlisted_user_is_refused_even_when_operators_are_configured(operators_e
 @pytest.mark.parametrize(
     ("view_name", "kwargs"),
     (
-        ("index", {}),
         ("fleet_api", {}),
         ("healthz", {}),
         ("detail", {"name": "worker"}),
@@ -145,3 +144,21 @@ def test_root_urlconf_resolves_agents_to_the_sac_index_when_installed():
 
     # Assert
     assert match.view_name == "scitex_agent_container:index"
+
+
+@pytest.mark.django_db
+def test_ordinary_user_index_gets_placeholder_page_not_the_fleet(no_operators_env):
+    # Operator 2026-09-14: Agents is shown to everyone and only its content is
+    # per user, so the index renders the own-scope placeholder instead of 403.
+    # Arrange
+    from django.contrib.auth.models import User
+
+    request = RequestFactory().get("/apps/agents/")
+    request.user = User.objects.create_user(username="plainuser", password="x")
+    request.session = {}
+
+    # Act
+    response = views.index(request)
+
+    # Assert
+    assert b'data-own-scope-app="agents"' in response.content
