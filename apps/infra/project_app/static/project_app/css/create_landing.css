@@ -154,6 +154,11 @@ form.create-form-card .form-control::placeholder {
   color: var(--color-fg-subtle, #484f58);
 }
 
+/* --color-fg-subtle is undefined, so the #484f58 fallback gave 2.2:1 in dark. */
+[data-theme="dark"] form.create-form-card .form-control::placeholder {
+  color: var(--text-muted);
+}
+
 form.create-form-card textarea.form-control {
   min-height: 100px;
   resize: vertical;
