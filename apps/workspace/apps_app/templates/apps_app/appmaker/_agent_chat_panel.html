@@ -1,0 +1,187 @@
+{% load i18n %}
+{% comment %}
+    Reusable agent chat panel. Needs: chat_url (SSE, scitex_app._chat events),
+    apply_url (POST {path, content}), has_ai_provider. Any page (or a future
+    global chat) can include it with those three values.
+{% endcomment %}
+<section class="appmaker-panel appmaker-chat"
+         aria-labelledby="appmaker-chat-title"
+         data-appmaker-chat
+         data-chat-url="{{ chat_url }}"
+         data-apply-url="{{ apply_url }}"
+         data-label-apply="{% trans 'Apply to file' %}"
+         data-label-applied="{% trans 'Applied' %}"
+         data-label-thinking="{% trans 'Thinking…' %}">
+    <h2 class="appmaker-panel-title" id="appmaker-chat-title">
+        <i class="fas fa-robot" aria-hidden="true"></i> {% trans "App agent" %}
+    </h2>
+    {% if has_ai_provider %}
+        <div class="appmaker-chat-log" aria-live="polite">
+            <p class="appmaker-chat-empty">
+                {% trans "Tell the agent what to change, e.g. “Add a field for reaction time in ms”. It replies with file edits you can apply with one click." %}
+            </p>
+        </div>
+        <form class="appmaker-chat-form">
+            <label class="visually-hidden sr-only" for="appmaker-chat-input">{% trans "Message the app agent" %}</label>
+            <textarea id="appmaker-chat-input"
+                      class="appmaker-textarea"
+                      name="prompt"
+                      rows="1"
+                      required
+                      placeholder="{% trans 'Describe a change…' %}"></textarea>
+            <button type="submit" class="appmaker-btn appmaker-btn-primary" aria-label="{% trans 'Send' %}">
+                <i class="fas fa-paper-plane" aria-hidden="true"></i>
+            </button>
+        </form>
+    {% else %}
+        <div class="appmaker-provider">
+            <p>
+                <i class="fas fa-cog" aria-hidden="true"></i> {% trans "No AI provider configured." %}
+                {% trans "Connect an AI provider with your own API key to chat with the app agent." %}
+            </p>
+            <a class="appmaker-btn appmaker-btn-primary" href="/accounts/settings/ai-providers/">{% trans "Connect an AI provider" %}</a>
+        </div>
+    {% endif %}
+</section>
+<!-- hook-bypass: inline-script -->
+<script>
+    (function () {
+        var FENCE = /```([^\n`]*)\n([\s\S]*?)```/g;
+
+        function el(tag, cls, text) {
+            var node = document.createElement(tag);
+            if (cls) node.className = cls;
+            if (text) node.textContent = text;
+            return node;
+        }
+
+        function csrf() {
+            var input = document.querySelector("input[name=csrfmiddlewaretoken]");
+            return input ? input.value : "";
+        }
+
+        function prose(box, text) {
+            var trimmed = text.replace(/^\n+|\n+$/g, "");
+            if (trimmed) box.appendChild(el("p", "appmaker-msg-text", trimmed));
+        }
+
+        function renderAssistant(panel, box, text) {
+            box.textContent = "";
+            var last = 0;
+            var match;
+            FENCE.lastIndex = 0;
+            while ((match = FENCE.exec(text)) !== null) {
+                prose(box, text.slice(last, match.index));
+                box.appendChild(codeBlock(panel, match[1], match[2]));
+                last = FENCE.lastIndex;
+            }
+            prose(box, text.slice(last));
+        }
+
+        function codeBlock(panel, info, body) {
+            var pathMatch = /path=(\S+)/.exec(info);
+            var wrap = el("div", "appmaker-code");
+            var head = el("div", "appmaker-code-head");
+            head.appendChild(el("span", "appmaker-code-path", pathMatch ? pathMatch[1] : info.trim()));
+            var status = el("div", "appmaker-code-status");
+            if (pathMatch) {
+                var apply = el("button", "appmaker-btn", panel.dataset.labelApply);
+                apply.type = "button";
+                apply.addEventListener("click", function () {
+                    apply.disabled = true;
+                    fetch(panel.dataset.applyUrl, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", "X-CSRFToken": csrf() },
+                        credentials: "same-origin",
+                        body: JSON.stringify({ path: pathMatch[1], content: body })
+                    }).then(function (r) { return r.json(); }).then(function (data) {
+                        status.textContent = data.success ? panel.dataset.labelApplied + ": " + data.path : data.error;
+                        apply.disabled = !!data.success;
+                    }).catch(function (err) {
+                        status.textContent = String(err);
+                        apply.disabled = false;
+                    });
+                });
+                head.appendChild(apply);
+            }
+            wrap.appendChild(head);
+            wrap.appendChild(el("pre", "", body));
+            wrap.appendChild(status);
+            return wrap;
+        }
+
+        function wire(panel) {
+            var form = panel.querySelector(".appmaker-chat-form");
+            if (!form) return;
+            var log = panel.querySelector(".appmaker-chat-log");
+            var input = form.querySelector("textarea");
+            var history = [];
+
+            input.addEventListener("keydown", function (e) {
+                if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
+                    e.preventDefault();
+                    form.requestSubmit();
+                }
+            });
+
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+                var prompt = input.value.trim();
+                if (!prompt) return;
+                var empty = log.querySelector(".appmaker-chat-empty");
+                if (empty) empty.remove();
+                log.appendChild(el("div", "appmaker-msg appmaker-msg-user", prompt));
+                var box = el("div", "appmaker-msg appmaker-msg-assistant", panel.dataset.labelThinking);
+                log.appendChild(box);
+                log.scrollTop = log.scrollHeight;
+                input.value = "";
+                var sent = history.slice();
+                var text = "";
+
+                fetch(panel.dataset.chatUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "X-CSRFToken": csrf() },
+                    credentials: "same-origin",
+                    body: JSON.stringify({ prompt: prompt, history: sent })
+                }).then(function (resp) {
+                    if (!resp.ok || !resp.body) {
+                        return resp.json().then(function (data) { throw new Error(data.error || resp.statusText); });
+                    }
+                    var reader = resp.body.getReader();
+                    var decoder = new TextDecoder();
+                    var buffer = "";
+                    function pump() {
+                        return reader.read().then(function (chunk) {
+                            if (chunk.done) return;
+                            buffer += decoder.decode(chunk.value, { stream: true });
+                            var events = buffer.split("\n\n");
+                            buffer = events.pop();
+                            events.forEach(function (raw) {
+                                if (raw.indexOf("data: ") !== 0) return;
+                                var payload = raw.slice(6);
+                                if (payload === "[DONE]") return;
+                                var ev = JSON.parse(payload);
+                                if (ev.type === "chunk") text += ev.text;
+                                if (ev.type === "error") throw new Error(ev.error);
+                            });
+                            renderAssistant(panel, box, text);
+                            log.scrollTop = log.scrollHeight;
+                            return pump();
+                        });
+                    }
+                    return pump();
+                }).then(function () {
+                    history.push({ role: "user", content: prompt }, { role: "assistant", content: text });
+                }).catch(function (err) {
+                    box.classList.add("appmaker-msg-error");
+                    box.textContent = String(err.message || err);
+                });
+            });
+        }
+
+        document.querySelectorAll("[data-appmaker-chat]:not([data-wired])").forEach(function (panel) {
+            panel.setAttribute("data-wired", "1");
+            wire(panel);
+        });
+    })();
+</script>

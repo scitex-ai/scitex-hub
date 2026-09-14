@@ -1,0 +1,66 @@
+{% extends "global_base.html" %}
+{% load static i18n %}
+{% block title %}{% trans "Create app" %}{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'apps_app/css/appmaker.css' %}?v={{ build_id }}" />
+{% endblock %}
+{% block content %}
+    <div class="appmaker appmaker-narrow">
+        <h1 class="appmaker-title">{% trans "Create an app" %}</h1>
+        <p class="appmaker-lead">
+            {% trans "Build a tool for your own experiment. An AI agent helps you write it, and you can run it privately before sharing." %}
+        </p>
+        {% if error %}
+            <p class="appmaker-error" role="alert">{{ error }}</p>
+        {% endif %}
+        <form method="post" action="{% url 'app_create' %}" class="appmaker-form">
+            {% csrf_token %}
+            <div class="appmaker-field">
+                <label class="appmaker-label" for="appmaker-name">{% trans "App name" %}</label>
+                <input id="appmaker-name"
+                       class="appmaker-input"
+                       type="text"
+                       name="name"
+                       maxlength="80"
+                       required
+                       autocomplete="off"
+                       value="{{ form.name }}"
+                       placeholder="{% trans 'e.g. EEG session logger' %}" />
+            </div>
+            <div class="appmaker-field">
+                <label class="appmaker-label" for="appmaker-description">{% trans "What should it do?" %}</label>
+                <textarea id="appmaker-description"
+                          class="appmaker-textarea"
+                          name="description"
+                          maxlength="500"
+                          placeholder="{% trans 'e.g. Enter each trial’s stimulus, response and reaction time, and save them to the project.' %}">{{ form.description }}</textarea>
+                <span class="appmaker-help">{% trans "A sentence or two about the experiment tool you want. The agent starts from this." %}</span>
+            </div>
+            <fieldset class="appmaker-field">
+                <legend class="appmaker-label">{% trans "Starter template" %}</legend>
+                <div class="appmaker-starters">
+                    {% for starter in starters %}
+                        <label class="appmaker-starter">
+                            <input type="radio"
+                                   name="starter"
+                                   value="{{ starter.key }}"
+                                   {% if starter.key == form.starter %}checked{% endif %} />
+                            <i class="{{ starter.icon }} appmaker-starter-icon" aria-hidden="true"></i>
+                            <span>
+                                <span class="appmaker-starter-name">{{ starter.label }}</span>
+                                <span class="appmaker-starter-hint">{{ starter.hint }}</span>
+                            </span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </fieldset>
+            <button type="submit" class="appmaker-btn appmaker-btn-primary appmaker-btn-block">
+                <i class="fas fa-plus" aria-hidden="true"></i> {% trans "Create app" %}
+            </button>
+            <p class="appmaker-private-note">
+                <i class="fas fa-lock" aria-hidden="true"></i>
+                {% trans "Your app is created in a new private project that only you can see." %}
+            </p>
+        </form>
+    </div>
+{% endblock %}
