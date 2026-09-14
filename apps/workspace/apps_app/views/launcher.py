@@ -26,7 +26,11 @@ from apps.infra.workspace_app.registry import get_all_modules
 
 from ..models import AppsModule, ModuleInstallation
 from ..services.manifest_display import prettify_module_name
-from .helpers import can_view_internal_app, ensure_builtin_modules
+from .helpers import (
+    can_open_mounted_app,
+    can_view_internal_app,
+    ensure_builtin_modules,
+)
 from .launcher_order import DEFAULT_LAUNCHER_ORDER  # noqa: F401  (re-export)
 from .launcher_order import default_order_value as _default_order_value
 
@@ -134,8 +138,7 @@ def default_pinned_module_names() -> list[str]:
 def _appsmodule_catalog(names: list[str]) -> dict[str, AppsModule]:
     """AppsModule rows for the given module names, keyed by name."""
     return {
-        app.module_name: app
-        for app in AppsModule.objects.filter(module_name__in=names)
+        app.module_name: app for app in AppsModule.objects.filter(module_name__in=names)
     }
 
 
@@ -275,6 +278,12 @@ def _build_tiles(request) -> list[dict]:
         if not can_internal and mod.visibility == "internal":
             seen.add(mod.name)
             continue
+        # Mount gate: Cards and Agents 403 for users their mount refuses, so
+        # the tile is hidden by the same predicate (operator 2026-09-14).
+        # Seen first, so step 2 cannot re-add it as a store tile.
+        if not can_open_mounted_app(request.user, mod.name):
+            seen.add(mod.name)
+            continue
         # Some registered modules are workspace panes / nav items, not
         # standalone launcher apps (Clew opens within a manuscript; comms
         # is reached from the workspace rather than the grid). They opt out
@@ -294,9 +303,7 @@ def _build_tiles(request) -> list[dict]:
         # (their manifest lives in another repo — migration 0017 seeds
         # the operator-named coming_soon rows). Same precedence rule as
         # category below.
-        availability = mod.availability or (
-            row.availability if row else "available"
-        )
+        availability = mod.availability or (row.availability if row else "available")
         tiles.append(
             {
                 "name": mod.name,

@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="{% static 'public_app/css/pricing-rate-card.css' %}" />
 {% endblock %}
 {% block content %}
+    {% tokushoho_url as tokushoho_href %}
     {% comment %}
     Every plan, price, included resource and rate on this page renders from
     data/pricing.json (SciTeX Services SSOT — Provisional v1.0, USD) through
@@ -72,7 +73,7 @@
                     <p>
                         {% trans "Prices are published. Card payment opens after Stripe's corporate review; until then, please contact us to start a plan or request a quote." %}
                         <a href="{% url 'public_app:contact' %}">{% trans "Contact us" %}</a> /
-                        <a href="{% url 'public_app:tokushoho' %}">{% trans "Specified Commercial Transactions Act disclosure" %}</a>
+                        <a href="{{ tokushoho_href }}">{% trans "Specified Commercial Transactions Act disclosure" %}</a>
                     </p>
                 </div>
             </div>
@@ -97,7 +98,8 @@
                     <p class="plan-description">{{ tier.description|translate_dynamic }}</p>
                     <div class="pricing-cta">
                         {% if tier.id == 'cloud' %}
-                            <a href="{% url 'auth_app:signup' %}" class="btn btn-outline-primary btn-block">{% trans "Sign up free" %}</a>
+                            <a href="{% url 'auth_app:signup' %}" class="btn btn-outline-primary btn-block">{% trans "Start your 30-day trial" %}</a>
+                            <p class="plan-note pricing-card-required">{% trans "Card required at signup — no charge during the trial." %}</p>
                         {% else %}
                             <a href="{% url 'public_app:services' %}#inquiry" class="btn btn-outline-primary btn-block">{% trans "Inquire here" %}</a>
                         {% endif %}
@@ -143,8 +145,8 @@
                 <div class="faq-item">
                     <h5><i class="fas fa-question-circle"></i> {% trans "When does billing start?" %}</h5>
                     <p>
-                        {% trans "SciTeX Cloud plans start with a 30-day free trial, and creating an account does not start a paid subscription. Online card payment opens after Stripe's corporate review (see the" %}
-                        <a href="{% url 'public_app:tokushoho' %}">{% trans "Specified Commercial Transactions Act disclosure" %}</a>{% trans ")." %}
+                        {% trans "SciTeX Cloud plans start with a 30-day free trial. A credit/debit card is required at signup, and there is no charge during the trial. Online card payment opens after Stripe's corporate review (see the" %}
+                        <a href="{{ tokushoho_href }}">{% trans "Specified Commercial Transactions Act disclosure" %}</a>{% trans ")." %}
                     </p>
                 </div>
                 <div class="faq-item">
@@ -166,8 +168,9 @@
             <p class="lead">{% trans "Create an account to keep your work" %}</p>
             <div class="mt-4">
                 <a href="{% url 'writer_app:index' %}" class="btn btn-outline-light btn-lg mx-2">{% trans "Try as a visitor" %}</a>
-                <a href="{% url 'auth_app:signup' %}" class="btn btn-light btn-lg mx-2">{% trans "Sign up free" %}</a>
+                <a href="{% url 'auth_app:signup' %}" class="btn btn-light btn-lg mx-2">{% trans "Start your 30-day trial" %}</a>
             </div>
+            <p class="mt-3 mb-0">{% trans "Card required at signup — no charge during the trial." %}</p>
         </div>
     </section>
 {% endblock %}

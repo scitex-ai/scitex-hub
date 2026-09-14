@@ -420,7 +420,10 @@ def header_app_launcher(request):
     )
     from django.utils.translation import pgettext
 
-    from apps.workspace.apps_app.views.helpers import can_view_internal_app
+    from apps.workspace.apps_app.views.helpers import (
+        can_open_mounted_app,
+        can_view_internal_app,
+    )
     from apps.workspace.apps_app.views.launcher_order import default_order_value
 
     can_internal = can_view_internal_app(request.user)
@@ -431,6 +434,9 @@ def header_app_launcher(request):
         # Release-channel gate (internal apps hidden unless entitled) — same
         # as the workspace grid.
         if not can_internal and mod.visibility == "internal":
+            continue
+        # Mount gate (Cards / Agents 403) — same predicate as the grid.
+        if not can_open_mounted_app(request.user, mod.name):
             continue
         # Grid opt-out — same as the workspace grid.
         if not mod.show_in_launcher:

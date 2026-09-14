@@ -1,10 +1,17 @@
-"""Rendered policy guard for the anonymous signup funnel.
+"""Rendered policy guard for the landing-page signup funnel.
 
-The landing and signup pages are pre-upgrade surfaces. They may describe the
-free account/tier and show paid-plan prices, but must not introduce trial or
-payment-card terms before a user deliberately starts a paid action. These tests
-render the complete pages in both supported languages; source-word checks alone
-previously blessed contradictory copy hidden in an included pricing partial.
+POLICY CHANGE, operator 2026-09-14: 「はい、カード登録必須です」 — a credit/debit
+card is REQUIRED at signup, as /tokushoho/ already states. The landing pricing
+card therefore says so: the Cloud CTA starts the 30-day trial and the card
+requirement is shown next to it. The previous policy pinned here (a free tier,
+and NO card wording before a paid action) contradicted the 特商法 page and is
+retired. The /auth/signup/ half of this guard moved to
+tests/apps/public_app/test_card_required_copy.py, which renders the real page
+through the real URLconf (the old version patched allauth's provider list).
+
+These tests render the complete landing page in both supported languages;
+source-word checks alone previously blessed contradictory copy hidden in an
+included pricing partial.
 """
 
 from __future__ import annotations
@@ -13,7 +20,6 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 from django.contrib.auth.models import AnonymousUser
@@ -23,54 +29,48 @@ from django.test import RequestFactory, override_settings
 from django.urls import include, path
 from django.utils import translation
 
-from apps.infra.auth_app.forms import SignupForm
 from apps.infra.public_app.pricing import (
     load_pricing,
     published_price_rows,
 )
-from apps.infra.public_app.templatetags.landing_i18n import translate_dynamic
 
 REPO = Path(__file__).resolve().parents[2]
 
-EXPECTED_FREE_FUNNEL = {
+EXPECTED_TRIAL_FUNNEL = {
     # Two-plan landing row (operator 2026-09-12): the Free pane is DROPPED —
-    # Pro's 30-day free trial is the funnel entry. Pro (Academic/Non-Academic
-    # switcher) + On-Prem (AGPL/Custom). The Pro price + a feature line prove
-    # the paid plans render from the SSoT in the active language. Prices are
-    # USD (always) on the marketing card; JPY lives on /tokushoho/.
+    # Cloud's 30-day free trial is the funnel entry. Cloud (Academic/Non-Academic
+    # switcher) + Self-Hosted. The Cloud price + a feature line prove the paid
+    # plans render from the SSoT in the active language. Prices are USD
+    # (always) on the marketing card; JPY lives on /tokushoho/.
     "en": (
         "Cloud",
         "30-day free trial",
-        "Sign up free",
+        "Start your 30-day trial",
         "$19/mo",
         "32 GB Cool storage included",
     ),
     "ja": (
         "クラウド",
         "30日間の無料トライアル",
-        "無料で登録",
+        "30日間のトライアルを開始",
         "$19/mo",
         "Cool ストレージ 32 GB 込み",
     ),
 }
 
-EXPECTED_SIGNUP_POLICY = {
-    "en": "Create your account and use SciTeX's free tier at no cost.",
-    "ja": "アカウントを作成して、SciTeX の無料プランをご利用いただけます。",
+EXPECTED_LANDING_CARD_NOTE = {
+    "en": "Card required at signup — no charge during the trial.",
+    "ja": "登録時にカードの登録が必要です。トライアル期間中は課金されません。",
 }
 
-# Terms that must NOT appear on the SIGNUP page (before the user consents) —
-# they would pressure a pre-account visitor with payment/trial terms. The
-# landing PRICING card DOES state "30-day free trial" (it's the Pro plan's
-# feature, operator 2026-09-12), so the trial phrases are not in this list —
-# only the pre-consent payment pressure terms are.
-PRE_ACTION_PAID_DISCLOSURES = (
-    "optional paid-plan trial",
-    "credit or debit card",
-    "payment card",
-    "有料プラントライアル",
-    "クレジットカード",
-    "デビットカード",
+# Copy that promised a free, card-less signup. Retired 2026-09-14.
+RETIRED_FREE_SIGNUP_COPY = (
+    "Sign up free",
+    "free tier",
+    "does not activate this paid plan",
+    "無料で登録",
+    "無料プラン",
+    "有料プランは開始されません",
 )
 
 
@@ -98,6 +98,7 @@ _PUBLIC_NAMES = (
     "setup",
     "terms",
     "tokushoho",
+    "tokushoho_en",
 )
 urlpatterns = [
     path("i18n/setlang/", _empty_response, name="set_language"),
@@ -193,25 +194,7 @@ def _rendered_landing(language: str) -> str:
             "tax_note": pricing.get("tax_note", ""),
             "pricing_notes": pricing["notes"],
         }
-        return render_to_string(
-            "public_app/landing.html", context, request=request
-        )
-
-
-@override_settings(ROOT_URLCONF=__name__)
-def _rendered_signup(language: str) -> str:
-    with (
-        translation.override(language),
-        patch(
-            "allauth.socialaccount.adapter.DefaultSocialAccountAdapter.list_providers",
-            return_value=[],
-        ),
-    ):
-        return render_to_string(
-            "auth_app/signup.html",
-            {"form": SignupForm()},
-            request=_request("/signup/"),
-        )
+        return render_to_string("public_app/landing.html", context, request=request)
 
 
 def _visible_text(html: str) -> str:
@@ -228,43 +211,43 @@ def _section(html: str, section_id: str) -> str:
 
 
 @pytest.mark.parametrize("language", ["en", "ja"])
-def test_complete_landing_keeps_the_free_funnel_visible(language):
+def test_complete_landing_keeps_the_trial_funnel_visible(language):
     """Deletion-sensitive: hero, pricing include, CTA, note, and data must exist."""
+    # Arrange
+    expected = EXPECTED_TRIAL_FUNNEL[language]
+    # Act
     visible = _visible_text(_rendered_landing(language))
-    assert all(expected in visible for expected in EXPECTED_FREE_FUNNEL[language])
+    # Assert
+    assert [value for value in expected if value not in visible] == []
 
 
 @pytest.mark.parametrize("language", ["en", "ja"])
-def test_complete_signup_keeps_the_free_tier_policy_visible(language):
-    """Deletion-sensitive: removing the signup policy block fails in both locales."""
-    visible = _visible_text(_rendered_signup(language))
-    assert EXPECTED_SIGNUP_POLICY[language] in visible
+def test_landing_pricing_states_that_a_card_is_required(language):
+    # Arrange
+    expected = EXPECTED_LANDING_CARD_NOTE[language]
+    # Act
+    visible = _visible_text(_section(_rendered_landing(language), "pricing"))
+    # Assert
+    assert expected in visible
 
 
 @pytest.mark.parametrize("language", ["en", "ja"])
-def test_pre_action_pricing_has_no_trial_or_payment_card_disclosure(language):
-    pricing_html = _section(_rendered_landing(language), "pricing")
-    visible = _visible_text(pricing_html).lower()
-    has_disclosure = any(
-        term.lower() in visible for term in PRE_ACTION_PAID_DISCLOSURES
-    )
-    assert 'class="pricing-trial"' not in pricing_html and not has_disclosure
-
-
-@pytest.mark.parametrize("language", ["en", "ja"])
-def test_pre_action_signup_has_no_trial_or_payment_card_disclosure(language):
-    visible = _visible_text(_rendered_signup(language)).lower()
-    assert not any(term.lower() in visible for term in PRE_ACTION_PAID_DISCLOSURES)
+def test_landing_pricing_drops_the_free_signup_copy(language):
+    # Arrange
+    retired = RETIRED_FREE_SIGNUP_COPY
+    # Act
+    visible = _visible_text(_section(_rendered_landing(language), "pricing"))
+    # Assert
+    assert [term for term in retired if term in visible] == []
 
 
 def test_pricing_ctas_are_generic_signup_not_paid_activation():
-    pricing_html = _section(_rendered_landing("en"), "pricing")
-    hrefs = re.findall(
-        r'<a href="([^"]+)" class="btn btn-primary btn-block">', pricing_html
-    )
-    # Free pane is dropped (operator 2026-09-12): Pro's 30-day free trial is the
-    # entry, so the Pro CTA is the single signup button. It must still be the
-    # generic /auth/signup/ (no card / paid activation on the landing).
+    # Arrange: the Free pane is dropped (operator 2026-09-12); the Cloud CTA is
+    # the single signup button and must still be the generic /auth/signup/.
+    pattern = r'<a href="([^"]+)" class="btn btn-primary btn-block">'
+    # Act
+    hrefs = re.findall(pattern, _section(_rendered_landing("en"), "pricing"))
+    # Assert
     assert hrefs == ["/auth/signup/"]
 
 
@@ -278,34 +261,30 @@ def test_pricing_ctas_are_generic_signup_not_paid_activation():
 def test_runtime_pricing_values_follow_the_active_language(
     language, expected, forbidden
 ):
-    """Call-time localization in published_price_rows() (2026-09-11).
-
-    The SSoT is English-source; the storage cell is computed by pricing.py and
-    translated when the active language is set. (This used to test
-    translate_dynamic on a JA source string — the double-translation path that
-    caused the en-callback bug and was removed from the landing template.)
-    """
+    """Call-time localization in published_price_rows() (2026-09-11)."""
+    # Arrange
+    row_id = "subscription-student"
+    # Act
     with translation.override(language):
         rendered = [
-            row["storage"]
-            for row in published_price_rows()
-            if row["id"] == "subscription-student"
+            row["storage"] for row in published_price_rows() if row["id"] == row_id
         ][0]
-    assert rendered == expected and forbidden not in rendered
+    # Assert
+    assert (rendered == expected, forbidden in rendered) == (True, False)
 
 
 def test_english_pricing_has_no_japanese_literals():
+    # Arrange
+    japanese = re.compile(r"[぀-ヿ㐀-鿿]")
+    # Act
     pricing = _visible_text(_section(_rendered_landing("en"), "pricing"))
-    assert re.search(r"[\u3040-\u30ff\u3400-\u9fff]", pricing) is None
+    # Assert
+    assert japanese.search(pricing) is None
 
 
 def test_japanese_landing_renders_the_japanese_pricing_strings():
-    """The JA landing shows the Japanese renderings of the EN-source SSoT.
-
-    (Renamed from ``..._keeps_the_japanese_ssot_values``: the SSoT is now
-    English-source — the Japanese text is the *rendered* catalog output, not
-    the stored value.)"""
-    pricing = _visible_text(_section(_rendered_landing("ja"), "pricing"))
+    """The JA landing shows the Japanese renderings of the EN-source SSoT."""
+    # Arrange
     expected = (
         "クラウド",
         "学術",
@@ -313,4 +292,7 @@ def test_japanese_landing_renders_the_japanese_pricing_strings():
         "Cool ストレージ 32 GB 込み",
         "インターネットへの送信",
     )
-    assert all(value in pricing for value in expected)
+    # Act
+    pricing = _visible_text(_section(_rendered_landing("ja"), "pricing"))
+    # Assert
+    assert [value for value in expected if value not in pricing] == []

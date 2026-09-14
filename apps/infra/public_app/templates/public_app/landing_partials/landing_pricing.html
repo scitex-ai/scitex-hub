@@ -4,14 +4,13 @@
    TOP/LANDING page so a user can tell what they get before signing in").
 
    Layout (operator 2026-09-11, "learn from the claude.ai plan page"):
-   a clean three-plan row —
-     1. Free    — no charge, "create your free account", Sign up. No invented
-                  feature list (free-tier contents are specified later).
-     2. Sub     — ONE card; Academic vs General is a small switcher inside it
+   a clean plan row (the Free pane was dropped 2026-09-12; card registration
+   at signup is required, operator 2026-09-14 — the Cloud CTA says so) —
+     1. Sub   — ONE card; Academic vs General is a small switcher inside it
                   (was two sibling cards). Both variants' prices, notes and
                   included lists come from the same SSOT rows (pricing.json
                   subscription-student / subscription-general).
-     3. On-Prem — AGPL self-host free + commercial-license contact (SSOT
+     2. On-Prem — AGPL self-host free + commercial-license contact (SSOT
                   tier 'onprem'). Individual service line items (Consulting,
                   Contract Development, SciTeX Translation, Clew Verification)
                   stay on /services/ — they are offerings, not plans.
@@ -57,8 +56,8 @@
                     {% endfor %}
                     </div>
                     <div class="pricing-action">
-                        <a href="{% url 'auth_app:signup' %}" class="btn btn-primary btn-block">{% trans "Sign up free" %}</a>
-                        <p class="pricing-card-note">{% trans "Creating an account does not activate this paid plan." %}</p>
+                        <a href="{% url 'auth_app:signup' %}" class="btn btn-primary btn-block">{% trans "Start your 30-day trial" %}</a>
+                        <p class="pricing-card-note">{% trans "Card required at signup — no charge during the trial." %}</p>
                     </div>
                 </div>
             </div>
@@ -117,7 +116,7 @@
                 {% trans "For details, see the" %}
                 <a href="{% url 'public_app:pricing' %}">{% trans "pricing page" %}</a>{% trans " and " %}
                 <a href="{% url 'public_app:services' %}">{% trans "services" %}</a>{% trans ", plus the " %}
-                <a href="{% url 'public_app:tokushoho' %}">{% trans "legal notice required by Japan's Specified Commercial Transactions Act" %}</a>{% trans "." %}
+                {% tokushoho_url as tokushoho_href %}<a href="{{ tokushoho_href }}">{% trans "legal notice required by Japan's Specified Commercial Transactions Act" %}</a>{% trans "." %}
                 ({% trans "tax included" %})
             </p>
         </div>
