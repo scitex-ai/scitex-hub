@@ -4,9 +4,13 @@
    Markup: templates/global_base_partials/site_dock.html
    Behaviour: static/shared/ts/components/site-dock.ts
 
-   Icons only (names live in aria-label + title). Fixed to the bottom centre by
-   default, above everything else on the page. The grabber drags it anywhere;
-   a dragged dock carries .site-dock--floating and inline left/top.
+   Every app is its tile icon (the Home tile's size) with a short caption under
+   it. Back at the far left, Forward at the far right, the grip beside Back; on
+   a phone those controls take a second row, [<] [wide grip] [>], so the apps
+   get the full width. Fixed to the
+   bottom centre by default, above everything else on the page. The grabber
+   drags it anywhere; a dragged dock carries .site-dock--floating and inline
+   left/top.
 
    This file must also work on LEAF pages that do not load the hub's design
    tokens (SiteDockMiddleware injects the dock there), so every colour has a
@@ -14,9 +18,15 @@
    ============================================================ */
 
 :root {
-  --site-dock-item: 48px;
-  /* The app icon inside a 48px slot: room left over for the active highlight. */
-  --site-dock-icon: 38px;
+  --site-dock-item: 44px;
+  /* The Home tile's icon size at this width (launcher/mobile.css). */
+  --site-dock-icon: 64px;
+  --site-dock-label-size: 10.5px;
+  --site-dock-label-line: 13px;
+  /* One app button: icon, caption, and a little room for the active highlight. */
+  --site-dock-app-height: calc(
+    var(--site-dock-icon) + var(--site-dock-label-line) + 9px
+  );
   --site-dock-pad: 6px;
   /* Width: the Home grid's panels (operator 2026-09-14, after the iOS home
      screen, whose dock shares the icon grid's side margins). launcher.css
@@ -25,7 +35,9 @@
      dock itself, which lines the edges up exactly at every width. */
   --site-dock-width: min(calc(100vw - 20px), 632px);
   --site-dock-gap: 10px;
-  --site-dock-height: calc(var(--site-dock-item) + 2 * var(--site-dock-pad));
+  --site-dock-height: calc(
+    var(--site-dock-app-height) + 2 * var(--site-dock-pad)
+  );
   /* The band the dock occupies at the bottom of the viewport, plus breathing
      room and the iOS home-bar inset. Pages reserve exactly this much (below). */
   --site-dock-clearance: calc(
@@ -147,11 +159,37 @@ body:has(> .site-dock:not(.site-dock--floating)) {
   height: 100%;
 }
 
-/* A full dock (see DOCK_CAPACITY) narrows its slots rather than overflowing. */
+/* Every app button is the same size: icon over caption. A full dock (see
+   DOCK_CAPACITY) narrows the caption column, never the icon. */
 .site-dock-apps .site-dock-app {
-  flex: 0 1 var(--site-dock-item);
-  min-width: 40px;
+  flex: 0 1 calc(var(--site-dock-icon) + 24px);
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 3px;
+  width: auto;
+  min-width: 44px;
+  height: var(--site-dock-app-height);
+  padding-top: 3px;
+  box-sizing: border-box;
   -webkit-touch-callout: none;
+}
+
+.site-dock-app-label {
+  display: block;
+  box-sizing: border-box;
+  max-width: 100%;
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--site-dock-label-size);
+  line-height: var(--site-dock-label-line);
+  color: var(--site-dock-fg);
+  pointer-events: none;
+}
+
+.site-dock-app.is-active .site-dock-app-label {
+  color: var(--site-dock-fg-active);
 }
 
 /* Where a grid app would land while it is dragged over the dock. */
@@ -253,9 +291,10 @@ body:has(> .site-dock:not(.site-dock--floating)) {
   background: var(--site-dock-active-bg);
 }
 
-/* Back / Forward: narrower chevrons at the ends, dimmed when they cannot go. */
+/* Back / Forward: Back at the far LEFT, Forward at the far RIGHT (operator
+   2026-09-14), 44px tap targets, dimmed when they cannot go. */
 .site-dock-history {
-  width: 34px;
+  width: 44px;
 }
 
 .site-dock-history i {
@@ -269,8 +308,8 @@ body:has(> .site-dock:not(.site-dock--floating)) {
   transform: none;
 }
 
-/* Grip: a drag-handle glyph (fa-grip-vertical) at the dock's LEFT end, in
-   flow, with a 44x44 hit area. The first version was a thin bar overhanging
+/* Grip: a drag-handle glyph (fa-grip-vertical) just right of Back, in flow,
+   with a 44x44 hit area. The first version was a thin bar overhanging
    the top edge, which the operator could not recognise as draggable
    (2026-09-14). A separator line sets it apart from the navigation buttons. */
 .site-dock-grabber {
@@ -310,6 +349,12 @@ body:has(> .site-dock:not(.site-dock--floating)) {
   pointer-events: none;
 }
 
+/* The phone's wide grip bar; desktop shows the glyph instead. */
+.site-dock-grabber-bar {
+  display: none;
+  pointer-events: none;
+}
+
 .site-dock-grabber:hover,
 .site-dock-grabber:focus-visible {
   opacity: 1;
@@ -327,18 +372,97 @@ body:has(> .site-dock:not(.site-dock--floating)) {
   outline-offset: -2px;
 }
 
-/* Very narrow phones: tighten the slots so the whole dock still fits. */
-@media (max-width: 360px) {
+@media (min-width: 768px) {
   :root {
-    --site-dock-item: 42px;
-    --site-dock-icon: 34px;
+    --site-dock-icon: 68px;
+  }
+}
+
+/* Phones: the apps take the whole first row, in equal cells. The second row is
+   [<] far left, a wide grip bar filling the centre, [>] far right
+   (operator 2026-09-14: the small grid-dots grip was hard to hit with a
+   finger). */
+@media (max-width: 640px) {
+  :root {
+    --site-dock-icon: 60px;
+    --site-dock-height: calc(
+      var(--site-dock-app-height) + 1px + var(--site-dock-item) + 2 *
+        var(--site-dock-pad)
+    );
+  }
+
+  .site-dock {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+    grid-template-rows: var(--site-dock-app-height) var(--site-dock-item);
+    gap: 0;
+    padding-block: var(--site-dock-pad);
+  }
+
+  .site-dock-apps {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    gap: 4px;
+    border-bottom: 1px solid var(--site-dock-border);
+  }
+
+  /* Equal cells; the caption may use the whole cell and never more. */
+  .site-dock-apps .site-dock-app {
+    flex: 1 1 0;
+    max-width: calc(var(--site-dock-icon) + 16px);
+    padding-inline: 0;
+  }
+
+  .site-dock-app-label {
+    width: 100%;
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: -0.02em;
+  }
+
+  .site-dock-grabber {
+    grid-column: 2;
+    grid-row: 2;
+    width: auto;
+    margin: 0 4px;
+    opacity: 1;
+  }
+
+  .site-dock-grabber::after,
+  .site-dock-grabber i {
+    display: none;
+  }
+
+  .site-dock-grabber-bar {
+    display: block;
+    width: min(100% - 24px, 180px);
+    height: 5px;
+    border-radius: 3px;
+    background: var(--site-dock-fg);
+    opacity: 0.45;
+  }
+
+  .site-dock-grabber:hover .site-dock-grabber-bar,
+  .site-dock--dragging .site-dock-grabber-bar {
+    opacity: 0.8;
   }
 
   .site-dock-history {
-    width: 28px;
+    grid-row: 2;
+    grid-column: 1;
+    height: var(--site-dock-item);
   }
 
-  /* The grip keeps its 44px hit area even here. */
+  .site-dock-history[data-dock-forward] {
+    grid-column: 3;
+  }
+}
+
+/* Very narrow phones: a smaller icon so five apps still fit one row. */
+@media (max-width: 360px) {
+  :root {
+    --site-dock-icon: 52px;
+  }
 }
 
 @media print {

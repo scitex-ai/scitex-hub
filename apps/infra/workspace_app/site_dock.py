@@ -3,8 +3,8 @@
 """The site-wide dock: which buttons it shows, where they go, which is active.
 
 Operator, 2026-09-14 (iPhone home-screen screenshots as the reference): ONE dock
-on every page, phone and desktop alike, icons only. Back and Forward sit at the
-far ends and are drawn by the template.
+on every page, phone and desktop alike. Each app shows its icon with a short
+caption under it; the grip and Back / Forward are drawn by the template.
 
 Which apps sit between the arrows is the user's own choice, stored server-side
 (apps_app/services/launcher_dock.py): Home, My Projects, Chat and App Store
@@ -31,6 +31,10 @@ HOME_URL = "/apps/"
 HOME_ICON = "fas fa-house"
 HOME_CATEGORY = "home"
 
+#: Dock captions sit under a narrow icon, so the long app names get a short
+#: form there (operator, 2026-09-14: Home / Projects / Chat / Apps).
+DOCK_SHORT_LABELS = {"home": "Projects", "store": "Apps"}
+
 #: Marker attribute on the rendered dock. SiteDockMiddleware checks for it so a
 #: page that already rendered the dock is never given a second one.
 DOCK_MARKER = "data-site-dock"
@@ -46,6 +50,11 @@ class DockItem:
     active: bool = False
     #: Icon gradient key (shared/css/components/app-icon.css), as on the tile.
     category: str = "other"
+
+    @property
+    def caption(self) -> str:
+        """The visible name under the icon (translated in the template)."""
+        return DOCK_SHORT_LABELS.get(self.key, self.label)
 
 
 def _is_active(key: str, url: str, path: str) -> bool:

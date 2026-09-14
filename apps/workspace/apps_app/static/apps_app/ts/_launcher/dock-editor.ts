@@ -415,5 +415,10 @@ export function dockButtonFromTile(tile: HTMLElement): HTMLAnchorElement {
   const glyph = tile.querySelector(".launcher-tile-icon > i")?.cloneNode(false);
   if (glyph) icon.appendChild(glyph);
   button.appendChild(icon);
+  const label = document.createElement("span");
+  label.className = "site-dock-app-label";
+  label.setAttribute("aria-hidden", "true");
+  label.textContent = name;
+  button.appendChild(label);
   return button;
 }
