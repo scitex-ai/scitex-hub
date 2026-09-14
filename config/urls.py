@@ -24,6 +24,7 @@ from apps.infra.project_app.views import (
     project_create,
 )
 from apps.infra.public_app.views import healthz
+from apps.workspace.apps_app.views import app_create as app_create_views
 from apps.workspace.apps_app.views import first_run as first_run_views
 from apps.workspace.repo_app.views.dispatch import root_dispatch
 from apps.workspace.repo_app.views.index import current_project_view
@@ -159,6 +160,27 @@ urlpatterns = [
         "apps/getting-started/<str:step_key>/",
         first_run_views.follow_step,
         name="first_run_step",
+    ),
+    path("apps/create/", app_create_views.create_page, name="app_create"),
+    path(
+        "apps/create/<str:slug>/",
+        app_create_views.workspace_page,
+        name="app_workspace",
+    ),
+    path(
+        "apps/create/<str:slug>/api/chat/",
+        app_create_views.api_chat,
+        name="app_workspace_chat",
+    ),
+    path(
+        "apps/create/<str:slug>/api/apply/",
+        app_create_views.api_apply,
+        name="app_workspace_apply",
+    ),
+    path(
+        "apps/create/<str:slug>/api/run/",
+        app_create_views.api_run,
+        name="app_workspace_run",
     ),
     path("apps/", include(("apps.workspace.tools_app.urls", "tools_app"))),
     # --- Admin ---
