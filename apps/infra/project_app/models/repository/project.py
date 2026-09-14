@@ -105,7 +105,8 @@ class Project(
     visibility = models.CharField(
         max_length=20,
         choices=VISIBILITY_CHOICES,
-        default="public",
+        # Private unless the owner opts in: research is unpublished by default.
+        default="private",
         help_text="Repository visibility: public (anyone can see) or private (only collaborators)",
     )
 

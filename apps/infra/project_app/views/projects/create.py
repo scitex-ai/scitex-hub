@@ -46,6 +46,9 @@ def project_create(request):
         template_type = request.POST.get("template_type", "research")
         git_url = request.POST.get("git_url", "").strip()
         init_scitex = request.POST.get("init_scitex") == "true"
+        visibility = (
+            "public" if request.POST.get("visibility") == "public" else "private"
+        )
 
         # Project type (local or remote)
         project_type = request.POST.get("project_type", "local")
@@ -103,6 +106,7 @@ def project_create(request):
                 "name": name,
                 "description": description,
                 "init_type": init_type,
+                "visibility": visibility,
                 "git_url": git_url,
             }
             return render(request, "project_app/projects/create.html", context)
@@ -124,6 +128,7 @@ def project_create(request):
                 "name": name,
                 "description": description,
                 "init_type": init_type,
+                "visibility": visibility,
             }
             return render(request, "project_app/projects/create.html", context)
         elif gitea_msg:  # Warning case
@@ -135,6 +140,8 @@ def project_create(request):
                 slug=unique_slug,
                 description=description,
                 owner=request.user,
+                # Set at create time: the post_save Gitea signal reads it.
+                visibility=visibility,
             )
         except Exception as e:
             logger.error(f"Failed to create project: {e}")
