@@ -23,6 +23,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
 
+from apps.infra.workspace_app import registry
 from apps.workspace.apps_app.models import AppsModule
 
 _WORKSPACE = Path(settings.BASE_DIR) / "apps" / "workspace"
@@ -70,10 +71,45 @@ class _AncestorClasses(HTMLParser):
             self.stack.pop()
 
 
+# The plugin tiles the Home layout is specified against. registry.py appends
+# these manifests only when the backing package is importable (no dead tiles on
+# a host without it), and CI installs `.[all,dev]`, which ships scitex-cards but
+# not scitex-storage or scitex-agent-container. These tests pin the LAYOUT, so
+# they register the manifests themselves instead of inheriting the environment.
+_PLUGIN_TILE_MANIFESTS = (
+    "workspace/todo_app/manifest.json",
+    "workspace/storage_app/manifest.json",
+    "workspace/agents_app/manifest.json",
+)
+
+
+def _register_plugin_tiles() -> list[str]:
+    """Register any plugin tile the environment left out; return what was added."""
+    added = []
+    for rel_path in _PLUGIN_TILE_MANIFESTS:
+        config = registry._manifest_to_module_config(
+            registry._load_manifest(registry._APPS_ROOT / rel_path)
+        )
+        if registry.get_module(config.name) is None:
+            registry.register_module(config)
+            added.append(config.name)
+    return added
+
+
+def _unregister(names: list[str]) -> None:
+    for name in names:
+        registry.unregister_module(name)
+
+
 # SCITEX_HUB_INTERNAL_APPS_RELEASED=True: Agents and Cards (visibility
 # internal) are on the grid, as on the dev deployment.
 @override_settings(SCITEX_HUB_INTERNAL_APPS_RELEASED=True)
 class HomePagesTest(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.addClassCleanup(_unregister, _register_plugin_tiles())
+
     @classmethod
     def setUpTestData(cls):
         cls.user = User.objects.create_user(
