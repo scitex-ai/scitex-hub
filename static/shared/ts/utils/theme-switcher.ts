@@ -205,22 +205,23 @@ function updateToggleButton(): void {
 
   const theme = getThemePreference();
 
-  // Update aria-label (accessibility)
+  // The button's content is the single half-circle icon rendered by
+  // global_header.html (operator TODO: "replace the moon/sun icons with a
+  // single half-circle"). It is deliberately NOT swapped per theme any more —
+  // this function used to overwrite it with a sun/moon emoji on every page
+  // load, which is why the server-rendered half-circle never showed.
+  // Because the icon alone does not say what it does, the label carries both
+  // the action and the current state.
   const labels = {
-    light: "☀️ Light",
-    dark: "🌙 Dark",
+    light: "Light",
+    dark: "Dark",
   } as const;
 
   // Note: title attribute removed to avoid duplicate tooltips with data-tooltip
-  toggleBtn.setAttribute("aria-label", `Current theme: ${labels[theme]}`);
-
-  // Update button content
-  const icons = {
-    light: "☀️",
-    dark: "🌙",
-  } as const;
-
-  toggleBtn.innerHTML = icons[theme];
+  toggleBtn.setAttribute(
+    "aria-label",
+    `Toggle dark mode (current: ${labels[theme]})`,
+  );
 }
 
 /**

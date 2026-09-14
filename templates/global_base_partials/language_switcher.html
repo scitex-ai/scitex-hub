@@ -3,7 +3,10 @@
 {% comment %}
 Language selector — a dropdown (operator 2026-09-12: "should be considered as a
 multiple-language dropdown instead of a japanese/english toggle; make it
-simple, do not show 'nihongo' or so"). It sits at the FAR RIGHT of the header.
+simple, do not show 'nihongo' or so"). It lives in the SITE FOOTER (brand
+column), not the header — operator ledger #32 and the later header/footer TODO
+batch. It is included ONLY by global_footer.html; the .site-footer rule in
+11-dropdown-menu.css opens the menu upward there.
 
 The trigger is a globe icon + a chevron (no word), so it never shows the
 current language name. The menu lists every configured language by its ENGLISH
@@ -13,7 +16,7 @@ to set_language (Django 4.0+ answers a GET with 405), with a CSRF token and a
 
 Uses no colour of its own: the trigger reuses .header-btn (same as Sign in /
 Sign up); the menu reuses the .header-dropdown look so it matches the user
-menu that already hangs off the right side of the header.
+menu.
 {% endcomment %}
 
 {% get_current_language as CURRENT_LANGUAGE %}
