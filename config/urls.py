@@ -151,6 +151,11 @@ urlpatterns = [
         name="first_run_dismiss",
     ),
     path(
+        "apps/getting-started/reshow/",
+        first_run_views.reshow,
+        name="first_run_reshow",
+    ),
+    path(
         "apps/getting-started/<str:step_key>/",
         first_run_views.follow_step,
         name="first_run_step",

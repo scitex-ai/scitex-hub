@@ -394,6 +394,10 @@ class FirstRunProgress(models.Model):
     # {step_key: ISO-8601 timestamp of the moment the step was completed}
     completed_steps = models.JSONField(default=dict, blank=True)
     dismissed_at = models.DateTimeField(null=True, blank=True)
+    # "Don't show again": the card is not rendered at all until Settings brings it back.
+    hidden_at = models.DateTimeField(null=True, blank=True)
+    # Brought back from Settings; shows the card past the new-user window too.
+    reshown_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

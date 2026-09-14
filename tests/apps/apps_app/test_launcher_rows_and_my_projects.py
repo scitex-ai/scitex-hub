@@ -59,6 +59,7 @@ EXPECTED_TILE_ORDER = [
     "Tools",
     "Console",
     "Clew",
+    "Create app",
     # SYSTEM
     "Settings",
     "Docs",

@@ -5594,3 +5594,20 @@ msgstr "閉じる"
 #: apps/workspace/apps_app/templates/apps_app/partials/first_run_checklist.html
 msgid "Dismiss getting started"
 msgstr "「はじめに」を閉じる"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/first_run_checklist.html
+msgid "Don't show again"
+msgstr "今後表示しない"
+
+#: apps/infra/accounts_app/templates/accounts_app/appearance_settings.html
+msgid "Bring the Getting started checklist back to Home."
+msgstr "「はじめに」のチェックリストをホームにもう一度表示します。"
+
+#: apps/infra/accounts_app/templates/accounts_app/appearance_settings.html
+msgid "Show Getting started again"
+msgstr "はじめにを再表示"
+
+#: apps/workspace/apps_app/launcher_links/create-app.json
+msgctxt "app name"
+msgid "Create app"
+msgstr "アプリを作る"
