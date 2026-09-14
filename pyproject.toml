@@ -50,7 +50,12 @@ dependencies = [
     # Also: appmaker.validate() no longer fails a build on advisory findings
     # (a behaviour change). Verified by scitex-app against the PUBLISHED wheel
     # in a clean venv (installed 0.11.0, public name True, alias same object).
-    "scitex-app>=0.11.0",
+    # >=0.23.0 (2026-09-14): first published wheel carrying
+    # `scitex_app._app_scope._inject_scope_meta` (d8528de), which the hub bridge
+    # scope-meta injection (apps/infra/workspace_app/scope_meta.py, #801) calls.
+    # On 0.22.1 the guarded import falls back to "no marker" silently. Verified
+    # with uv against the published 0.23.0 wheel: import ok, function present.
+    "scitex-app>=0.23.0",
     "scitex-config>=0.3.6",
     # `scitex-session` is consumed via the umbrella as `scitex.session.INJECTED`
     # (settings_shared.py / settings_auth.py / config/routing.py).
