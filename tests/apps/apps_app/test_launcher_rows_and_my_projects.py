@@ -50,6 +50,7 @@ EXPECTED_TILE_ORDER = [
     "Agents",
     "Cards",
     "Storage",
+    "Files",
     # WORK (Stats keeps its slot until its app lands)
     "Scholar",
     "FigRecipe",

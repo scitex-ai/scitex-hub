@@ -260,6 +260,7 @@ APP_NAMES = {
     "/apps/console/": "Console",
     "/apps/cards/": "Cards",
     "/apps/storage/": "Storage",
+    "/apps/files/": "Files",
     "/apps/clew/": "Clew",
     "/apps/discovery/": "Public Projects",
     "/apps/store/": "Store",

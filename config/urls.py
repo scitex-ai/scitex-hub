@@ -252,6 +252,7 @@ urlpatterns = [
     path("apps/clew/", include(("apps.workspace.clew_app.urls", "clew_app"))),
     path("apps/store/", include(("apps.workspace.apps_app.urls", "apps_app"))),
     path("apps/comms/", include(("apps.workspace.comms_app.urls", "comms_app"))),
+    path("apps/files/", include(("apps.workspace.files_app.urls", "files_app"))),
     # --- Dev-installed app modules (/apps/dev__<owner>__<repo>/) ---
     path("apps/dev__<str:rest>/", dev_module_view, name="dev_module_shell_apps"),
     # --- F0+F1 user-published apps (/apps/u/<module_name>/...) ---

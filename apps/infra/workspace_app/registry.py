@@ -236,6 +236,7 @@ _BUILTIN_MANIFEST_PATHS: list[str] = [
     "workspace/console_app/manifest.json",
     "workspace/tools_app/manifest.json",
     "workspace/comms_app/manifest.json",
+    "workspace/files_app/manifest.json",
 ]
 
 # Upstream plugin-app tiles (the package ships its own Django app; hub mounts

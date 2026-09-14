@@ -5509,3 +5509,104 @@ msgstr "閉じる"
 #: apps/workspace/apps_app/templates/apps_app/partials/first_run_checklist.html
 msgid "Dismiss getting started"
 msgstr "「はじめに」を閉じる"
+
+# Files app (/apps/files/).
+#: apps/workspace/files_app/templates/files_app/index.html
+msgctxt "app name"
+msgid "Files"
+msgstr "ファイル"
+
+#: apps/workspace/files_app/views.py
+msgid "Home"
+msgstr "ホーム"
+
+#: apps/workspace/files_app/views.py
+msgid "Downloads"
+msgstr "ダウンロード"
+
+#: apps/workspace/files_app/views.py
+msgid "Recordings"
+msgstr "録画"
+
+#: apps/workspace/files_app/views.py
+msgid "This folder is empty."
+msgstr "このフォルダは空です。"
+
+#: apps/workspace/files_app/views.py
+msgid "Open"
+msgstr "開く"
+
+#: apps/workspace/files_app/views.py
+msgid "Open in project"
+msgstr "プロジェクトで開く"
+
+#: apps/workspace/files_app/views.py
+msgid "Download"
+msgstr "ダウンロード"
+
+#: apps/workspace/files_app/views.py
+msgid "Move"
+msgstr "移動"
+
+#: apps/workspace/files_app/views.py
+msgid "New folder name"
+msgstr "新しいフォルダ名"
+
+#: apps/workspace/files_app/views.py
+msgid "New name"
+msgstr "新しい名前"
+
+#: apps/workspace/files_app/views.py
+msgid "Move to folder (path from Home, e.g. Downloads/figures)"
+msgstr "移動先フォルダ（ホームからのパス、例: Downloads/figures）"
+
+#: apps/workspace/files_app/views.py
+#, python-format
+msgid "Delete “%(name)s”? This cannot be undone."
+msgstr "「%(name)s」を削除しますか？元に戻せません。"
+
+#: apps/workspace/files_app/views.py
+msgid "Uploading…"
+msgstr "アップロード中…"
+
+#: apps/workspace/files_app/views.py
+#, python-format
+msgid "Uploaded %(count)s file(s)."
+msgstr "%(count)s 件のファイルをアップロードしました。"
+
+#: apps/workspace/files_app/views.py
+#, python-format
+msgid "Something went wrong: %(error)s"
+msgstr "エラーが発生しました: %(error)s"
+
+#: apps/workspace/files_app/views.py
+msgid "No preview for this file type."
+msgstr "このファイル形式はプレビューできません。"
+
+#: apps/workspace/files_app/views.py
+msgid "Actions"
+msgstr "操作"
+
+#: apps/workspace/files_app/views.py
+msgid "Folder"
+msgstr "フォルダ"
+
+#: apps/workspace/files_app/templates/files_app/index.html
+msgid "Places"
+msgstr "よく使う場所"
+
+#: apps/workspace/files_app/templates/files_app/index.html
+msgid "Current folder"
+msgstr "現在のフォルダ"
+
+#: apps/workspace/files_app/templates/files_app/index.html
+msgid "Files in this folder"
+msgstr "このフォルダのファイル"
+
+#: apps/workspace/files_app/templates/files_app/index.html
+msgid "Close preview"
+msgstr "プレビューを閉じる"
+
+#: apps/workspace/files_app/templates/files_app/index.html
+msgid "Drop files to upload here"
+msgstr "ここにドロップしてアップロード"

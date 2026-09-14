@@ -155,7 +155,7 @@ class HomePagesTest(TestCase):
         # Act
         names = [cell.get("name") for cell in groups[0]["cells"]]
         # Assert
-        assert names == ["home", "discovery", "agents", "todo", "storage"]
+        assert names == ["home", "discovery", "agents", "todo", "storage", "files"]
 
     def test_first_row_is_exactly_the_four_infrastructure_apps(self):
         # Rows of 4 at every width: the first band's first row.
