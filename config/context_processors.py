@@ -355,17 +355,23 @@ def scitex_env(request):
 
 
 def header_logo(request):
-    """Logo link + tooltip based on the current page context.
+    """Logo link + tooltip.
 
-    - On the landing page (/landing/) → logo goes to / (Apps Home),
-      title "Go to Apps Home"
-    - Everywhere else (app launcher, /apps/*, /pricing/, /tokushoho/, …) →
-      logo goes to /landing/, title "Go to Landing Page"
+    SIGNED IN → the logo is the way Home: /apps/ on every page, including
+    /landing/ (operator brief, Home + dock redesign 2026-09-14 — the header
+    "Apps" dropdown was removed on the understanding that the logo goes Home).
 
-    The landing is the public marketing page; the rest of the site is the
-    product. The logo is the one cross-cutting nav element, so it always
-    points the visitor toward whichever half they are NOT currently in.
+    SIGNED OUT keeps the earlier "point to the half you are not in" rule:
+    - on the landing page (/landing/) → / , title "Go to Apps Home"
+    - everywhere else → /landing/, title "Go to Landing Page"
+    (/apps/ would only redirect a signed-out visitor to sign-up.)
+
+    A view may still override ``header_logo_href`` in its own context (the
+    pool-full page does, to a page that always renders).
     """
+    user = getattr(request, "user", None)
+    if getattr(user, "is_authenticated", False):
+        return {"header_logo_href": "/apps/", "header_logo_title": "Go to Home"}
     path = request.path
     if path.startswith("/landing"):
         return {"header_logo_href": "/", "header_logo_title": "Go to Apps Home"}

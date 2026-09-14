@@ -144,18 +144,15 @@ class LauncherHomeTest(TestCase):
                 "when the release channel is off (prod)"
             )
 
-        # DEV CHANNEL (release flag on): non-staff sees every internal module
-        # whose MOUNT would admit them — the operator's dev-deployment contract.
-        # Cards and Agents gate their mounts on staff / fleet operators and
-        # 403 otherwise, so their tiles are hidden by that same predicate
-        # (operator 2026-09-14; test_launcher_hides_gated_mounts.py).
-        from apps.workspace.apps_app.views.helpers import can_open_mounted_app
-
+        # DEV CHANNEL (release flag on): non-staff sees EVERY internal module.
+        # Cards and Agents included: they are pre-installed apps whose content,
+        # not presence, depends on the user (operator ruling 2026-09-14 15:48Z;
+        # test_launcher_shows_preinstalled_mounts.py).
         with self.settings(SCITEX_HUB_INTERNAL_APPS_RELEASED=True):
             non_staff_dev = {
                 t["name"] for t in self.client.get("/").context["tiles"]
             }
-        for name in [n for n in internal if can_open_mounted_app(self.user, n)]:
+        for name in internal:
             assert name in non_staff_dev, (
                 f"{name!r} is internal and the dev channel is ON, so it MUST "
                 "tile for an authenticated non-staff team member"

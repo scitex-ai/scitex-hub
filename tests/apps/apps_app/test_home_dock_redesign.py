@@ -183,6 +183,33 @@ class SiteDockOnEveryPageTest(TestCase):
         # Assert
         assert b"data-site-dock" not in response.content
 
+    def test_signed_in_logo_goes_home_on_every_page(self):
+        # The logo used to point signed-in users at /landing/ everywhere but
+        # the landing page. The operator's brief: the logo is the way Home.
+        # Arrange
+        url = "/apps/discovery/"
+        # Act
+        content = self.client.get(url).content
+        # Assert
+        assert re.search(rb'<a href="/apps/"\s+class="header-logo"', content)
+
+    def test_signed_in_logo_goes_home_from_the_landing_page(self):
+        # Arrange
+        url = "/landing/"
+        # Act
+        content = self.client.get(url).content
+        # Assert
+        assert re.search(rb'<a href="/apps/"\s+class="header-logo"', content)
+
+    def test_signed_out_logo_still_points_at_the_landing_page(self):
+        # GUARD (passes on develop by design): signed-out visitors keep /landing/.
+        # Arrange
+        self.client.logout()
+        # Act
+        content = self.client.get("/pricing/").content
+        # Assert
+        assert re.search(rb'<a href="/landing/"\s+class="header-logo"', content)
+
     def test_header_no_longer_renders_the_apps_dropdown(self):
         # Arrange
         url = "/apps/discovery/"

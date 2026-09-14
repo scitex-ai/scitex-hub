@@ -25,7 +25,6 @@ from ..models import AppsModule, ModuleInstallation
 from ..services.launcher_links import get_launcher_links, get_link_tile_orders
 from ..services.manifest_display import prettify_module_name
 from .helpers import (
-    can_open_mounted_app,
     can_view_internal_app,
     ensure_builtin_modules,
 )
@@ -161,12 +160,11 @@ def _build_tiles(request) -> list[dict]:
         if not can_internal and mod.visibility == "internal":
             seen.add(mod.name)
             continue
-        # Mount gate: Cards and Agents 403 for users their mount refuses, so
-        # the tile is hidden by the same predicate (operator 2026-09-14).
-        # Seen first, so step 2 cannot re-add it as a store tile.
-        if not can_open_mounted_app(request.user, mod.name):
-            seen.add(mod.name)
-            continue
+        # NO mount gate here. Operator ruling 2026-09-14 15:48Z: Cards and
+        # Agents are PRE-INSTALLED apps shown to everyone; only their CONTENT
+        # depends on the user ("removing the whole app is wrong"). An earlier
+        # version hid their tiles with can_open_mounted_app(); the mounts keep
+        # their own per-user handling, the grid does not second-guess them.
         # Some registered modules are workspace panes / nav items, not
         # standalone launcher apps (Clew opens within a manuscript; comms
         # is reached from the workspace rather than the grid). They opt out
