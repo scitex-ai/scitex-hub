@@ -71,7 +71,7 @@ LAUNCHER_GROUPS: tuple[LauncherGroup, ...] = (
             "tools",
             "console",
             "clew",
-            "create-app",  # link tile "+ Create app"
+            "create-app",  # App Creator: the empty "+" slot, always last in Work
         ),
     ),
     LauncherGroup(

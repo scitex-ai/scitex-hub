@@ -371,3 +371,71 @@
   outline: 2px solid var(--app-accent-hub, #6a5a8a);
   outline-offset: 3px;
 }
+
+/* ---------- App Creator: the empty "+" slot (operator, 2026-09-14) ----------
+   Not an app: a dashed, unfilled rounded square the size of an app icon, always
+   the last cell of Work (partials/launcher_add_slot.html). Two classes so it
+   beats mobile.css's .launcher-slot { pointer-events: none }. */
+.launcher-slot.launcher-slot--add {
+  --launcher-icon-size: 64px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 10px 4px 8px;
+  border-radius: 14px;
+  pointer-events: auto;
+  text-decoration: none;
+  color: var(--workspace-text-secondary, #6b7280);
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+.launcher-slot-add-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: var(--launcher-icon-size);
+  height: var(--launcher-icon-size);
+  border: 2px dashed currentColor;
+  border-radius: 16px;
+  background: transparent;
+  opacity: 0.45;
+  transition:
+    opacity 0.15s ease,
+    transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.launcher-slot-add-box i {
+  font-size: 22px;
+  color: currentColor;
+}
+
+.launcher-slot--add:hover .launcher-slot-add-box,
+.launcher-slot--add:focus-visible .launcher-slot-add-box {
+  opacity: 0.8;
+}
+
+.launcher-slot--add:active .launcher-slot-add-box {
+  transform: scale(0.9);
+}
+
+.launcher-slot--add:focus-visible {
+  outline: 2px solid var(--app-accent-hub, #6a5a8a);
+  outline-offset: 2px;
+}
+
+@media (min-width: 768px) {
+  .launcher-slot.launcher-slot--add {
+    --launcher-icon-size: 68px;
+    padding: 6px 4px 4px;
+  }
+}
+
+@media (max-width: 640px) {
+  .launcher-slot.launcher-slot--add {
+    --launcher-icon-size: 60px;
+    padding-inline: 2px;
+  }
+}

@@ -54,6 +54,10 @@ NEW_BADGE_DAYS = 14
 # ModuleInstallation one): a row still holding it was never explicitly reordered.
 _DEV_DEFAULT_TAB_ORDER = 95
 
+# Rendered as an empty "+" slot, not an app (operator, 2026-09-14): always the
+# last cell of Work, never reorderable, never dockable.
+APP_CREATOR_SLOT = "create-app"
+
 
 def _is_dev_only(visibility: str, row) -> bool:
     """Whether a tile is still a work in progress, from EXISTING metadata only.
@@ -329,10 +333,13 @@ def _build_tiles(request) -> list[dict]:
 
     # Apply order: the GROUP first (groups never interleave, operator
     # 2026-09-14), then explicit per-user positions, then the curated default.
-    # Ties break by label so the grid render is deterministic.
+    # Ties break by label so the grid render is deterministic. The App Creator
+    # slot sorts after everything in its group: a user's 1000+ reorder values
+    # otherwise put its curated position FIRST (operator iPhone, 2026-09-14).
     tiles.sort(
         key=lambda t: (
             group_rank(t["name"]),
+            t["name"] == APP_CREATOR_SLOT,
             user_orders.get(t["name"], _default_order_value(t["name"])),
             t["label"].lower(),
         )
@@ -340,6 +347,7 @@ def _build_tiles(request) -> list[dict]:
     for tile in tiles:
         tile["user_ordered"] = tile["name"] in user_orders
         tile["group"] = group_of(tile["name"])
+        tile["is_add_slot"] = tile["name"] == APP_CREATOR_SLOT
     return tiles
 
 
@@ -347,7 +355,7 @@ def launcher_context(request) -> dict:
     """Template context for the launcher home page."""
     ensure_builtin_modules()
     tiles = _build_tiles(request)
-    dock_apps = set(get_dock_apps(request.user))
+    dock_apps = set(get_dock_apps(request.user)) - {APP_CREATOR_SLOT}
     grid_tiles = [tile for tile in tiles if tile["name"] not in dock_apps]
     is_guest = is_guest_launcher_user(request.user)
     return {

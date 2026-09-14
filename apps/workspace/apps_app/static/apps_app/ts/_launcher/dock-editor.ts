@@ -290,7 +290,11 @@ export class DockEditor {
     ).filter((band) => band.dataset.group === group);
     const lastBand = bands[bands.length - 1];
     if (lastBand) {
-      lastBand.appendChild(tile);
+      // The App Creator "+" slot stays the group's last cell.
+      lastBand.insertBefore(
+        tile,
+        lastBand.querySelector(".launcher-slot--add"),
+      );
       return;
     }
     this.newBandFor(group).appendChild(tile);

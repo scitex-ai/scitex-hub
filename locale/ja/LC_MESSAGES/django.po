@@ -5620,5 +5620,5 @@ msgstr "はじめにを再表示"
 
 #: apps/workspace/apps_app/launcher_links/create-app.json
 msgctxt "app name"
-msgid "Create app"
-msgstr "アプリを作る"
+msgid "App Creator"
+msgstr "アプリクリエイター"
