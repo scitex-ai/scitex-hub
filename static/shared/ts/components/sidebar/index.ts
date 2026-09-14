@@ -94,7 +94,8 @@ class WorkspaceSidebar {
       this.switchPane("module", false);
       // Clear all sidebar-item highlights — the logo link is the "Home" affordance
       this.items?.forEach((i) => i.classList.remove("active"));
-    } else if (trackModule && trackModule !== "files") {
+    } else if (urlModule || (trackModule && trackModule !== "files")) {
+      // "files" alone is the root /files/ editor pane; /apps/files/ is the Files app.
       this.switchPane("module", false);
       this.highlightModuleItem(trackModule);
     } else if (path.startsWith("/ai-setup/")) {

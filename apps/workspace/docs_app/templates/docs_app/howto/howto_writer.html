@@ -1,0 +1,76 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load i18n static %}
+
+{% block title %}{% trans "How to use Writer" %} — {% trans "SciTeX Documentation" %}{% endblock %}
+{% block content %}
+    {% include "docs_app/howto/_howto_styles.html" %}
+    <div class="container py-5" style="max-width: 900px">
+        <h1 class="mb-4">
+            <i class="fas fa-pen me-2"></i>{% trans "How to use Writer" %}
+        </h1>
+        <p class="lead text-muted mb-5">
+            {% trans "Writer is a LaTeX editor for your manuscript, with a live PDF preview." %}
+        </p>
+        <section class="api-section">
+            <h2>{% trans "Steps" %}</h2>
+            <ol class="howto-steps">
+                <li>
+                    {% blocktrans trimmed %}
+                        Open <strong>Writer</strong> from Home. The editor is on the left, the PDF in the middle and the <strong>Details</strong> panel on the right.
+                    {% endblocktrans %}
+                    <img class="howto-shot"
+                         src="{% static 'docs_app/images/howto/writer-01-open.jpg' %}"
+                         alt="{% trans 'Writer with the editor, PDF and Details panels' %}"
+                         loading="lazy" />
+                </li>
+                <li>
+                    {% blocktrans trimmed %}
+                        Pick a document (Manuscript, Supplementary, Revision or Shared) in the first menu, then a section such as Abstract or Methods in the section menu.
+                    {% endblocktrans %}
+                    <img class="howto-shot"
+                         src="{% static 'docs_app/images/howto/writer-02-sections.jpg' %}"
+                         alt="{% trans 'The section menu' %}"
+                         loading="lazy" />
+                </li>
+                <li>
+                    {% blocktrans trimmed %}
+                        Type your text in the editor. Your changes are saved, and the word count above the editor updates as you write.
+                    {% endblocktrans %}
+                    <img class="howto-shot"
+                         src="{% static 'docs_app/images/howto/writer-03-edit.jpg' %}"
+                         alt="{% trans 'An abstract typed in the editor' %}"
+                         loading="lazy" />
+                </li>
+                <li>
+                    {% blocktrans trimmed %}
+                        In <strong>Details</strong>, open <strong>Compilation - Preview</strong> and click <strong>Compile Preview</strong>. When the log says the compilation completed, the PDF of the section appears. Tick <strong>Compile on Change</strong> to recompile as you type.
+                    {% endblocktrans %}
+                    <img class="howto-shot"
+                         src="{% static 'docs_app/images/howto/writer-04-compiled.jpg' %}"
+                         alt="{% trans 'A compiled PDF preview and its log' %}"
+                         loading="lazy" />
+                </li>
+                <li>
+                    {% blocktrans trimmed %}
+                        Click the download icon above the PDF to save the compiled PDF.
+                    {% endblocktrans %}
+                </li>
+            </ol>
+        </section>
+        <section class="api-section">
+            <h2>{% trans "Tips" %}</h2>
+            <ul>
+                <li>{% trans "Writer opens the manuscript of your current project. Project Info in the Details panel shows which project that is." %}</li>
+                <li>{% trans "Use the font size menu and the moon icon above the editor to make writing comfortable." %}</li>
+            </ul>
+        </section>
+        <section class="api-section">
+            <h2>{% trans "Troubleshooting" %}</h2>
+            <ul>
+                <li>{% trans "Compilation Error with 'Unicode character ... not set up for use with LaTeX': the section contains a character LaTeX cannot print, often a full-width symbol. Delete it and compile again." %}</li>
+                <li>{% trans "The PDF does not change: click Compile Preview again and read the last lines of the log." %}</li>
+            </ul>
+        </section>
+    </div>
+{% endblock %}

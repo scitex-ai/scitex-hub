@@ -26,6 +26,7 @@ from ..views.projects import (
     project_detail,
 )
 from ..views.projects.detail import project_tree_or_blob
+from ..views.repository.add_file import project_new_file, project_upload_files
 from ..views.repository.api import (
     api_app_scaffold,
     api_app_status,
@@ -123,6 +124,9 @@ urlpatterns = [
     # took "tree/<branch>/..." as a literal directory path.
     path("tree/<str:branch>/", project_tree_or_blob, name="tree_root"),
     path("tree/<str:branch>/<path:path>", project_tree_or_blob, name="tree_browse"),
+    # "Add file" menu targets; without these the catch-all read them as folders.
+    path("new-file/", project_new_file, name="new_file"),
+    path("upload/", project_upload_files, name="upload_files"),
     # Dynamic directory browsing - catches ANY directory path (MUST BE LAST!)
     # /<username>/<slug>/<any-directory>/
     # /<username>/<slug>/<any-directory>/<any-subdirectory>/...

@@ -59,7 +59,7 @@ textarea.form-control {
 }
 
 [data-theme="dark"] .help-text {
-  color: var(--scitex-color-05);
+  color: var(--text-muted);
 }
 
 /* Page title */

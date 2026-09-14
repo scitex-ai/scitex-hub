@@ -1,0 +1,76 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load i18n static %}
+
+{% block title %}{% trans "How to use Scholar" %} — {% trans "SciTeX Documentation" %}{% endblock %}
+{% block content %}
+    {% include "docs_app/howto/_howto_styles.html" %}
+    <div class="container py-5" style="max-width: 900px">
+        <h1 class="mb-4">
+            <i class="fas fa-graduation-cap me-2"></i>{% trans "How to use Scholar" %}
+        </h1>
+        <p class="lead text-muted mb-5">
+            {% trans "Scholar is where you look for papers and keep your reference library." %}
+        </p>
+        <section class="api-section">
+            <h2>{% trans "Steps" %}</h2>
+            <ol class="howto-steps">
+                <li>
+                    {% blocktrans trimmed %}
+                        Open <strong>Scholar</strong> from Home. It has three tabs: <strong>Search databases</strong>, <strong>Library</strong> and <strong>Citation Graph</strong>.
+                    {% endblocktrans %}
+                    <img class="howto-shot"
+                         src="{% static 'docs_app/images/howto/scholar-01-open.jpg' %}"
+                         alt="{% trans 'Scholar on the Search databases tab' %}"
+                         loading="lazy" />
+                </li>
+                <li>
+                    {% blocktrans trimmed %}
+                        Click the <strong>?</strong> button in the search box to see the search operators, for example <code>-a Smith</code> for an author or <code>-ymin 2020</code> for papers from 2020 on. Click an operator to insert it.
+                    {% endblocktrans %}
+                    <img class="howto-shot"
+                         src="{% static 'docs_app/images/howto/scholar-02-search-help.jpg' %}"
+                         alt="{% trans 'The list of search operators' %}"
+                         loading="lazy" />
+                </li>
+                <li>
+                    {% blocktrans trimmed %}
+                        Use the <strong>Sources</strong>, <strong>Sorters</strong> and <strong>Filters</strong> panels on the right to choose which databases to search and how to order the results.
+                    {% endblocktrans %}
+                </li>
+                <li>
+                    {% blocktrans trimmed %}
+                        Open the <strong>Library</strong> tab. It lists the papers you have saved, with a search box and a sort menu.
+                    {% endblocktrans %}
+                    <img class="howto-shot"
+                         src="{% static 'docs_app/images/howto/scholar-03-library.jpg' %}"
+                         alt="{% trans 'The Library tab' %}"
+                         loading="lazy" />
+                </li>
+                <li>
+                    {% blocktrans trimmed %}
+                        Open the <strong>BibTeX / RIS</strong> panel on the right of the Library. It holds <strong>Import BibTeX (.bib)</strong> and the <strong>BibTeX</strong> and <strong>RIS</strong> export buttons.
+                    {% endblocktrans %}
+                    <img class="howto-shot"
+                         src="{% static 'docs_app/images/howto/scholar-04-bibtex.jpg' %}"
+                         alt="{% trans 'The BibTeX / RIS panel' %}"
+                         loading="lazy" />
+                </li>
+            </ol>
+        </section>
+        <section class="api-section">
+            <h2>{% trans "Tips" %}</h2>
+            <ul>
+                <li>{% trans "Press Ctrl+K to jump to the search box." %}</li>
+                <li>{% trans "Put a minus sign in front of a word to exclude it, for example -t -mouse." %}</li>
+            </ul>
+        </section>
+        <section class="api-section">
+            <h2>{% trans "Troubleshooting" %}</h2>
+            <ul>
+                <li>{% trans "No results found: check the spelling, try more general keywords, or remove filters such as -ymin." %}</li>
+                <li>{% trans "Search seems down: open the Service Status panel on the Library tab." %}</li>
+            </ul>
+        </section>
+    </div>
+{% endblock %}

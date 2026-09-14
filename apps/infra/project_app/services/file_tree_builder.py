@@ -85,6 +85,8 @@ def build_project_file_tree(project) -> Optional[dict]:
                     ".git",
                     ".gitignore",
                     ".gitkeep",
+                    # Writer + Scholar workspaces of a SciTeX project live here.
+                    ".scitex",
                 ]:
                     continue
                 if item.name in ["__pycache__", "node_modules", ".venv", "venv"]:

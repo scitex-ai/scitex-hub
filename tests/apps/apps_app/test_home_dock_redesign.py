@@ -192,6 +192,27 @@ class SiteDockOnEveryPageTest(TestCase):
         # Assert
         assert (grip.group(1), "fa-grip" in grip.group(2)) == ("Move dock", True)
 
+    def test_dock_phone_grip_is_tiled_dots(self):
+        # Operator 2026-09-14: the wide phone handle reads as the dotted grip, not a bar.
+        # Arrange
+        dock = _dock_html(self.client.get("/apps/").content)
+        # Act
+        has_dots = '<span class="site-dock-grabber-dots"' in dock
+        # Assert
+        assert has_dots
+
+    def test_dock_reads_back_grip_apps_forward(self):
+        # Operator 2026-09-14: Back far left, Forward far right, grip between.
+        # Arrange
+        dock = _dock_html(self.client.get("/apps/").content)
+        # Act
+        order = sorted(
+            ("data-dock-back", "data-dock-grabber", "data-dock-apps", "data-dock-forward"),
+            key=dock.index,
+        )
+        # Assert
+        assert order == ["data-dock-back", "data-dock-grabber", "data-dock-apps", "data-dock-forward"]
+
     def test_dock_grip_hit_area_is_at_least_44px(self):
         # Arrange
         css = _site_css("site-dock.css")
@@ -201,13 +222,14 @@ class SiteDockOnEveryPageTest(TestCase):
         # Assert
         assert len(sizes) == 2 and min(sizes) >= 44
 
-    def test_dock_shows_icons_only(self):
+    def test_dock_apps_carry_short_captions_under_their_icons(self):
+        # Operator 2026-09-14 (iPhone Home): icon-only buttons were unreadable.
         # Arrange
         dock = _dock_html(self.client.get("/apps/").content)
         # Act
-        visible_text = re.sub(r"<[^>]+>", "", dock).strip()
-        # Assert — names live in aria-label / title, never as text
-        assert visible_text == ""
+        captions = re.findall(r'<span class="site-dock-app-label"[^>]*>([^<]+)</span>', dock)
+        # Assert
+        assert captions == ["Home", "Projects", "Chat", "Apps"]
 
     def test_dock_home_button_is_the_house(self):
         # Arrange
@@ -418,7 +440,8 @@ class SettingsAndChatTilesTest(TestCase):
         url = "/apps/"
         # Act
         response = self.client.get(url)
-        # Assert — the popover drops Pin / Details for these
+        # Assert — the popover drops Pin / Details for Chat and Settings (the
+        # App Creator "+" slot is not a tile, so it has no popover at all)
         assert response.content.count(b'data-link-only="1"') == 2
 
     def test_dragged_link_tile_position_persists(self):

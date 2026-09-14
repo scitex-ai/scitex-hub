@@ -38,6 +38,15 @@ PUBLISHED_MEDIA_VIDEOS = {
     "scitex-writer-v2.2.0-demo.pdf",
 }
 
+# Captioned guides under /app/media/videos/demos/, rendered by
+# scripts/demo_videos/record.py and copied onto the volume (docs/ops/demo-videos.md).
+RENDERED_DEMO_GUIDES = {
+    "projects-2026-09-14.en.mp4",
+    "projects-2026-09-14-thumbnail.png",
+    "writer-2026-09-14.en.mp4",
+    "writer-2026-09-14-thumbnail.png",
+}
+
 
 def test_catalog_media_paths_name_published_files():
     # Arrange
@@ -50,7 +59,9 @@ def test_catalog_media_paths_name_published_files():
 
     # Act
     missing = sorted(
-        path for path in media_paths if Path(path).name not in PUBLISHED_MEDIA_VIDEOS
+        path
+        for path in media_paths
+        if Path(path).name not in PUBLISHED_MEDIA_VIDEOS | RENDERED_DEMO_GUIDES
     )
 
     # Assert

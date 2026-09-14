@@ -37,6 +37,7 @@ _PLATFORM_APPS = frozenset(
         "accounts_app",
         "repo_app",
         "clew_app",
+        "slides_app",
         "social_app",
         "docs_app",
         "apps_app",
@@ -45,6 +46,7 @@ _PLATFORM_APPS = frozenset(
         "organizations_app",
         "discovery_app",
         "comms_app",
+        "files_app",
         "shared",
         "scitex_ui",
     }

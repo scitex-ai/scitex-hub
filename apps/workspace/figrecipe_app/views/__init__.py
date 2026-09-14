@@ -5,7 +5,7 @@ import logging
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 
-from apps.infra.project_app.services.project_utils import get_current_project
+from apps.infra.project_app.services.project_scope import project_for_scope_app
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,8 @@ def figure_editor(request, figrecipe_embedded=False):
         context["is_demo"] = True
         context["visitor_username"] = request.user.username
 
-    current_project = get_current_project(request, user=request.user)
+    # Project-scope pilot: ?project=owner/slug wins, else the last visited project.
+    current_project = project_for_scope_app(request)
     if current_project:
         context["current_project"] = current_project
         context["project"] = current_project

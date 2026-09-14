@@ -96,6 +96,8 @@ def file_tree_view(request, project_id=None):
                         ".git",
                         ".gitignore",
                         ".gitkeep",
+                        # Writer + Scholar workspaces of a SciTeX project live here.
+                        ".scitex",
                     ]:
                         continue
                     # Skip common non-essential directories

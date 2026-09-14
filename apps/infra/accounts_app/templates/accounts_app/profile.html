@@ -31,7 +31,7 @@
                 <div class="profile-header-text">
                     <h1 class="profile-name">{{ user.get_full_name|default:user.username }}</h1>
                     <p class="profile-meta">
-                        {% blocktrans trimmed with date=user.date_joined|date:"M Y" %}Member since {{ date }}{% endblocktrans %}
+                        {% blocktrans trimmed with date=user.date_joined|date:"YEAR_MONTH_FORMAT" %}Member since {{ date }}{% endblocktrans %}
                     </p>
                     {% if profile.academic_title %}<p class="profile-meta">{{ profile.academic_title }}</p>{% endif %}
                 </div>
