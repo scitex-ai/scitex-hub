@@ -112,12 +112,14 @@
             {% endif %}
         </div>
         <div class="pricing-notes">
+            {% comment %} ONE translatable sentence per note: the links are
+               placeholders inside the msgid, so word order is the translator's
+               (fragment-by-fragment trans tags rendered mixed EN/JA). The tax
+               note is its own sentence and reuses the SSOT tax_note msgid. {% endcomment %}
+            {% url 'public_app:pricing' as pricing_href %}{% url 'public_app:services' as services_href %}{% tokushoho_url as tokushoho_href %}
             <p class="pricing-note">
-                {% trans "For details, see the" %}
-                <a href="{% url 'public_app:pricing' %}">{% trans "pricing page" %}</a>{% trans " and " %}
-                <a href="{% url 'public_app:services' %}">{% trans "services" %}</a>{% trans ", plus the " %}
-                {% tokushoho_url as tokushoho_href %}<a href="{{ tokushoho_href }}">{% trans "legal notice required by Japan's Specified Commercial Transactions Act" %}</a>{% trans "." %}
-                ({% trans "tax included" %})
+                {% blocktrans trimmed %}For details, see the <a href="{{ pricing_href }}">pricing page</a>, the <a href="{{ services_href }}">services page</a>, and the <a href="{{ tokushoho_href }}">legal notice under Japan's Specified Commercial Transactions Act</a>.{% endblocktrans %}
+                {% trans "All displayed prices include tax." %}
             </p>
         </div>
     </div>

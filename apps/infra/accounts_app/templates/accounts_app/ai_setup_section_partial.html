@@ -1,4 +1,5 @@
 <!-- hook-bypass: inline-script — AJAX-loaded partial needs inline JS for dynamic item click handlers -->
+{% load i18n %}
 {% if items %}
     {% for item in items %}
         <button class="stx-app-miller__item"
@@ -18,7 +19,7 @@
         </button>
     {% endfor %}
 {% else %}
-    <div class="stx-app-miller__detail-empty">No {{ section_title|lower }} available.</div>
+    <div class="stx-app-miller__detail-empty">{% with section_name=section_title|lower %}{% blocktrans trimmed %}No {{ section_name }} available.{% endblocktrans %}{% endwith %}</div>
 {% endif %}
 <script>
 setTimeout(function() {
@@ -32,7 +33,7 @@ setTimeout(function() {
       var name = item.getAttribute('data-item-name');
       var section = item.getAttribute('data-section');
       if (!name || !section) return;
-      detail.textContent = 'Loading...';
+      detail.textContent = '{% trans "Loading..." as loading_label %}{{ loading_label|escapejs }}';
       fetch('/ai-setup/api/item/' + section + '/' + encodeURIComponent(name) + '/')
         .then(function(r) { return r.json(); })
         .then(function(data) {
@@ -42,10 +43,10 @@ setTimeout(function() {
               : '\x3cpre>' + data.content.replace(/&/g, '&amp;').replace(/\x3c/g, '&lt;').replace(/\x3e/g, '&gt;') + '\x3c/pre>';
             detail.innerHTML = '\x3cdiv class="stx-app-miller__detail-content">' + html + '\x3c/div>';
           } else {
-            detail.innerHTML = '\x3cdiv class="stx-app-miller__detail-empty">No detail for ' + name + '\x3c/div>';
+            detail.innerHTML = '\x3cdiv class="stx-app-miller__detail-empty">{% trans "No detail for" as no_detail_label %}{{ no_detail_label|escapejs }} ' + name + '\x3c/div>';
           }
         })
-        .catch(function() { detail.innerHTML = '\x3cdiv class="stx-app-miller__detail-empty">Failed\x3c/div>'; });
+        .catch(function() { detail.innerHTML = '\x3cdiv class="stx-app-miller__detail-empty">{% trans "Failed" as failed_label %}{{ failed_label|escapejs }}\x3c/div>'; });
     });
   });
 }, 0);

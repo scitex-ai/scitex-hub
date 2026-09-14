@@ -73,7 +73,7 @@ def rate_card() -> dict[str, Any]:
     ]
     gpus = [
         {
-            "name": gpu["name"],
+            "name": _(gpu["name"]),
             "price": _("%(price)s / GPU-hour") % {"price": format_usd(gpu["amount"])},
         }
         for gpu in comp["gpus"]

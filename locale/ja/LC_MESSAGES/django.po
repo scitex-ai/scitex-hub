@@ -120,24 +120,8 @@ msgid "Contact us"
 msgstr "お問い合わせ"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
-msgid "For details, see the"
-msgstr "詳細は"
-
-#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
 msgid "pricing page"
 msgstr "料金ページ"
-
-#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
-msgid " and "
-msgstr "、"
-
-#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
-msgid "legal notice required by Japan's Specified Commercial Transactions Act"
-msgstr "特定商取引法に基づく表記"
-
-#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
-msgid "."
-msgstr "をご覧ください。"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
 msgid "No sign-up needed — starts a temporary visitor workspace."
@@ -3270,3 +3254,1387 @@ msgstr "表示できるプロジェクトはありません"
 #: apps/workspace/discovery_app/templates/discovery_app/explore_content.html
 msgid "projects"
 msgstr "件のプロジェクト"
+
+# ---- Account Settings, /services/, landing pricing note (2026-09-14) ----
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html apps/infra/accounts_app/templates/accounts_app/git_integrations.html apps/infra/accounts_app/templates/accounts_app/partials/settings_nav.html
+msgid "Personal"
+msgstr "個人"
+
+#: apps/infra/accounts_app/templates/accounts_app/partials/settings_nav.html apps/infra/accounts_app/templates/accounts_app/privacy_settings.html apps/infra/accounts_app/templates/accounts_app/profile.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Profile"
+msgstr "プロフィール"
+
+#: apps/infra/accounts_app/templates/accounts_app/appearance_settings.html apps/infra/accounts_app/templates/accounts_app/partials/settings_nav.html apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Appearance"
+msgstr "外観"
+
+#: apps/infra/accounts_app/templates/accounts_app/git_integrations.html apps/infra/accounts_app/templates/accounts_app/partials/settings_nav.html apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Integrations"
+msgstr "連携"
+
+#: apps/infra/accounts_app/templates/accounts_app/git_integrations.html apps/infra/accounts_app/templates/accounts_app/partials/settings_nav.html
+msgid "Git platforms"
+msgstr "Git プラットフォーム"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html apps/infra/accounts_app/templates/accounts_app/partials/settings_nav.html
+msgid "AI providers"
+msgstr "AI プロバイダー"
+
+#: apps/infra/accounts_app/templates/accounts_app/partials/settings_nav.html
+msgid "AI usage"
+msgstr "AI 使用量"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html apps/infra/accounts_app/templates/accounts_app/partials/settings_nav.html
+msgid "MCP tools"
+msgstr "MCP ツール"
+
+#: apps/infra/accounts_app/templates/accounts_app/partials/settings_nav.html
+msgid "Authentication"
+msgstr "認証"
+
+#: apps/infra/accounts_app/templates/accounts_app/partials/settings_nav.html apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "SSH keys"
+msgstr "SSH キー"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html apps/infra/accounts_app/templates/accounts_app/api_keys.html apps/infra/accounts_app/templates/accounts_app/partials/settings_nav.html
+msgid "API keys"
+msgstr "API キー"
+
+#: apps/infra/accounts_app/templates/accounts_app/partials/settings_nav.html apps/infra/accounts_app/templates/accounts_app/privacy_settings.html
+msgid "Privacy & Analytics"
+msgstr "プライバシーと分析"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html apps/infra/accounts_app/templates/accounts_app/partials/settings_nav.html
+msgid "Billing"
+msgstr "お支払い"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html apps/infra/accounts_app/templates/accounts_app/partials/settings_nav.html
+msgid "Payment method"
+msgstr "支払い方法"
+
+#: apps/infra/accounts_app/templates/accounts_app/partials/settings_nav.html apps/infra/accounts_app/templates/accounts_app/repository_health.html
+msgid "Project Health"
+msgstr "プロジェクトの状態"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
+msgid "Billing - Settings - SciTeX Hub"
+msgstr "お支払い - 設定 - SciTeX Hub"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
+msgid "Card details are stored by Stripe, not by SciTeX. We keep only the last four digits and expiry for display."
+msgstr "カード情報は SciTeX ではなく Stripe が保管します。SciTeX が保持するのは、表示用の下 4 桁と有効期限のみです。"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
+msgid "Payment is not available yet"
+msgstr "お支払いはまだご利用いただけません"
+
+#: apps/infra/public_app/templates/public_app/pages/services.html
+msgid "You can't add a payment card here yet. If you'd like to subscribe or have a question about billing, please <a href=\"%(contact_href)s\">contact us</a>."
+msgstr "現在、ここでお支払い用のカードを登録することはできません。ご契約をご希望の方や、お支払いについてご質問がある方は、<a href=\"%(contact_href)s\">お問い合わせ</a>ください。"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
+msgid "Verified"
+msgstr "確認済み"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
+msgid "Add a new card"
+msgstr "新しいカードを追加"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
+msgid "Add a card"
+msgstr "カードを追加"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
+msgid "Add card"
+msgstr "カードを追加"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
+msgid "You will be redirected to Stripe to enter your card securely. The card is checked with a zero-dollar validation; nothing is charged."
+msgstr "カード情報を安全に入力するため、Stripe のページに移動します。カードは 0 ドルの認証で確認され、料金は発生しません。"
+
+#: apps/infra/public_app/templates/public_app/pages/services.html
+msgid "Open Research Infrastructure"
+msgstr "オープンな研究基盤"
+
+#: apps/infra/public_app/templates/public_app/pages/services.html
+msgid "From fragmented work to reproducible workflow"
+msgstr "分断された作業から、再現可能なワークフローへ"
+
+#: apps/infra/public_app/templates/public_app/pages/services.html
+msgid "Open Source First"
+msgstr "オープンソース優先"
+
+#: apps/infra/public_app/templates/public_app/pages/services.html
+msgid "Local / Cloud / HPC"
+msgstr "ローカル／クラウド／HPC"
+
+#: apps/infra/public_app/templates/public_app/pages/services.html
+msgid "Vendor Neutral"
+msgstr "ベンダー中立"
+
+#: apps/infra/public_app/templates/public_app/pages/services.html
+msgid "NDA / On-site Ready"
+msgstr "NDA・オンサイト対応"
+
+#: apps/infra/public_app/data/pricing.json apps/infra/public_app/templates/public_app/pages/services.html
+msgid "Plans"
+msgstr "プラン"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile.html apps/infra/public_app/data/pricing.json apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html apps/infra/public_app/templates/public_app/pages/services.html
+msgid "Services"
+msgstr "サービス"
+
+#: apps/infra/public_app/templates/public_app/pages/services.html
+msgid "Principles"
+msgstr "基本方針"
+
+#: apps/infra/public_app/templates/public_app/pages/services.html
+msgid "Research Workflow"
+msgstr "研究ワークフロー"
+
+#: apps/infra/public_app/templates/public_app/pages/services.html
+msgid "Research Computing"
+msgstr "研究計算環境"
+
+#: apps/infra/public_app/templates/public_app/pages/services.html
+msgid "AI & Automation"
+msgstr "AI と自動化"
+
+#: apps/infra/public_app/templates/public_app/pages/services.html
+msgid "Lab & Organization"
+msgstr "研究室・組織"
+
+#: apps/infra/public_app/data/pricing.json
+msgid "Under $650"
+msgstr "$650 未満"
+
+#: apps/infra/public_app/data/pricing.json
+msgid "$10,000 or more"
+msgstr "$10,000 以上"
+
+#: apps/infra/public_app/data/pricing.json
+msgid "RTX 4090 class"
+msgstr "RTX 4090 クラス"
+
+#: apps/infra/public_app/data/pricing.json
+msgid "A100 80 GB class"
+msgstr "A100 80 GB クラス"
+
+#: apps/infra/public_app/data/pricing.json
+msgid "H100 80 GB class"
+msgstr "H100 80 GB クラス"
+
+#: apps/infra/public_app/data/pricing.json
+msgid "H200 141 GB class"
+msgstr "H200 141 GB クラス"
+
+#: apps/infra/public_app/data/pricing.json
+msgid "B200 class"
+msgstr "B200 クラス"
+
+#: apps/infra/public_app/templates/public_app/pages/services.html
+msgid "For details, see the <a href=\"%(pricing_href)s\">pricing page</a>, the <a href=\"%(services_href)s\">services page</a>, and the <a href=\"%(tokushoho_href)s\">legal notice under Japan's Specified Commercial Transactions Act</a>."
+msgstr "詳しくは、<a href=\"%(pricing_href)s\">料金ページ</a>、<a href=\"%(services_href)s\">サービスページ</a>、<a href=\"%(tokushoho_href)s\">特定商取引法に基づく表記</a>をご覧ください。"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/ai_providers.html apps/infra/accounts_app/templates/accounts_app/api_keys.html apps/infra/accounts_app/templates/accounts_app/appearance_settings.html apps/infra/accounts_app/templates/accounts_app/billing_settings.html apps/infra/accounts_app/templates/accounts_app/git_integrations.html apps/infra/accounts_app/templates/accounts_app/mcp_settings.html apps/infra/accounts_app/templates/accounts_app/partials/settings_nav.html apps/infra/accounts_app/templates/accounts_app/privacy_settings.html apps/infra/accounts_app/templates/accounts_app/profile.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html apps/infra/accounts_app/templates/accounts_app/remote_credentials.html apps/infra/accounts_app/templates/accounts_app/repository_health.html apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "Settings"
+msgstr "設定"
+
+#: apps/infra/accounts_app/templates/accounts_app/privacy_settings.html
+msgid "Control how your data is collected and shared."
+msgstr "データの収集方法と共有方法を管理します。"
+
+#: apps/infra/accounts_app/templates/accounts_app/privacy_settings.html
+msgid "Usage Analytics"
+msgstr "利用状況の分析"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "SciTeX uses <a href=\"https://umami.is\" target=\"_blank\" rel=\"noopener\">Umami</a>, a privacy-focused, cookie-free analytics tool. No personal data is collected &mdash; only anonymized page views and events. Data is self-hosted on our servers."
+msgstr "SciTeX は、プライバシーに配慮した Cookie 不使用の分析ツール <a href=\"https://umami.is\" target=\"_blank\" rel=\"noopener\">Umami</a> を使用しています。個人データは収集せず、匿名化されたページビューとイベントのみを記録します。データは当社のサーバーで管理しています。"
+
+#: apps/infra/accounts_app/templates/accounts_app/privacy_settings.html
+msgid "Opt out of anonymized usage analytics"
+msgstr "匿名化された利用状況の分析をオプトアウトする"
+
+#: apps/infra/accounts_app/templates/accounts_app/privacy_settings.html
+msgid "When enabled, the Umami tracking script will not be loaded on any page."
+msgstr "有効にすると、Umami のトラッキングスクリプトはどのページでも読み込まれません。"
+
+#: apps/infra/accounts_app/templates/accounts_app/privacy_settings.html
+msgid "Profile Visibility"
+msgstr "プロフィールの公開設定"
+
+#: apps/infra/accounts_app/templates/accounts_app/privacy_settings.html
+msgid "Show email address on public profile"
+msgstr "公開プロフィールにメールアドレスを表示する"
+
+#: apps/infra/accounts_app/templates/accounts_app/privacy_settings.html
+msgid "Your email will be visible to other users on your profile page."
+msgstr "プロフィールページで他のユーザーにメールアドレスが表示されます。"
+
+#: apps/infra/accounts_app/templates/accounts_app/privacy_settings.html
+msgid "Save privacy settings"
+msgstr "プライバシー設定を保存"
+
+#: apps/infra/accounts_app/templates/accounts_app/appearance_settings.html
+msgid "Customize how SciTeX looks and feels for you"
+msgstr "SciTeX の見た目をお好みに合わせて設定します"
+
+#: apps/infra/accounts_app/templates/accounts_app/appearance_settings.html
+msgid "Theme mode"
+msgstr "テーマモード"
+
+#: apps/infra/accounts_app/templates/accounts_app/appearance_settings.html
+msgid "Choose how SciTeX looks to you. Select between light and dark themes."
+msgstr "SciTeX の表示方法を選びます。ライトテーマとダークテーマから選択できます。"
+
+#: apps/infra/accounts_app/templates/accounts_app/appearance_settings.html
+msgid "Light"
+msgstr "ライト"
+
+#: apps/infra/accounts_app/templates/accounts_app/appearance_settings.html
+msgid "Use light theme"
+msgstr "ライトテーマを使用"
+
+#: apps/infra/accounts_app/templates/accounts_app/appearance_settings.html
+msgid "Dark"
+msgstr "ダーク"
+
+#: apps/infra/accounts_app/templates/accounts_app/appearance_settings.html
+msgid "Use dark theme"
+msgstr "ダークテーマを使用"
+
+#: apps/infra/accounts_app/templates/accounts_app/appearance_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Preview"
+msgstr "プレビュー"
+
+#: apps/infra/accounts_app/templates/accounts_app/appearance_settings.html
+msgid "Sample Content"
+msgstr "サンプルコンテンツ"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "This is how text and content will appear with your selected theme. Links look like <a href=\"#\">this</a> and buttons look like this:"
+msgstr "選択したテーマでは、テキストやコンテンツがこのように表示されます。リンクは<a href=\"#\">このように</a>、ボタンは次のように表示されます："
+
+#: apps/infra/accounts_app/templates/accounts_app/appearance_settings.html
+msgid "Example Button"
+msgstr "サンプルボタン"
+
+#: apps/infra/accounts_app/templates/accounts_app/appearance_settings.html
+msgid "Code highlighting themes"
+msgstr "コードのハイライトテーマ"
+
+#: apps/infra/accounts_app/templates/accounts_app/appearance_settings.html
+msgid "Choose syntax highlighting themes for code viewing. You can select different themes for light and dark modes."
+msgstr "コード表示に使うシンタックスハイライトのテーマを選びます。ライトモードとダークモードで別々のテーマを選択できます。"
+
+#: apps/infra/accounts_app/templates/accounts_app/appearance_settings.html
+msgid "Dark mode code theme"
+msgstr "ダークモードのコードテーマ"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html apps/infra/accounts_app/templates/accounts_app/api_keys.html apps/infra/accounts_app/templates/accounts_app/appearance_settings.html apps/infra/accounts_app/templates/accounts_app/mcp_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html apps/infra/accounts_app/views/mcp_settings_views.py apps/infra/public_app/data/pricing.json
+msgid "Default"
+msgstr "デフォルト"
+
+#: apps/infra/accounts_app/templates/accounts_app/appearance_settings.html
+msgid "Light mode code theme"
+msgstr "ライトモードのコードテーマ"
+
+#: apps/infra/accounts_app/templates/accounts_app/appearance_settings.html
+msgid "This preview shows how code will appear with your selected theme. Try changing themes to see the difference."
+msgstr "選択したテーマでコードがどのように表示されるかをプレビューします。テーマを切り替えて違いを確認してください。"
+
+#: apps/infra/accounts_app/templates/accounts_app/appearance_settings.html
+msgid "Preferences saved"
+msgstr "設定を保存しました"
+
+#: apps/infra/accounts_app/templates/accounts_app/appearance_settings.html
+msgid "Failed to save"
+msgstr "保存に失敗しました"
+
+#: apps/infra/accounts_app/templates/accounts_app/appearance_settings.html
+msgid "Error saving"
+msgstr "保存中にエラーが発生しました"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Manage your public profile and account security settings."
+msgstr "公開プロフィールとアカウントのセキュリティ設定を管理します。"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Profile picture"
+msgstr "プロフィール画像"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Upload new picture"
+msgstr "新しい画像をアップロード"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Max size: 2MB. Recommended: 500x500px square image."
+msgstr "最大サイズ：2MB。推奨：500×500px の正方形の画像。"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Basic information"
+msgstr "基本情報"
+
+#: apps/infra/accounts_app/templates/accounts_app/git_integrations.html apps/infra/accounts_app/templates/accounts_app/profile.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html apps/infra/accounts_app/templates/accounts_app/remote_credentials.html apps/infra/accounts_app/templates/accounts_app/repository_health.html
+msgid "Username"
+msgstr "ユーザー名"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Username cannot be changed"
+msgstr "ユーザー名は変更できません"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "First name"
+msgstr "名"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Last name"
+msgstr "姓"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "To change your email, use the <strong>Change Email</strong> section below."
+msgstr "メールアドレスを変更するには、下の<strong>メールアドレスの変更</strong>セクションを使用してください。"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Bio"
+msgstr "自己紹介"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Tell us about yourself..."
+msgstr "自己紹介を入力してください..."
+
+#: apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Brief description for your profile. Markdown is not supported."
+msgstr "プロフィールに表示する簡単な説明です。Markdown には対応していません。"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Location & Affiliation"
+msgstr "所在地と所属"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Location"
+msgstr "所在地"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "e.g., Tokyo, Japan"
+msgstr "例：Tokyo, Japan"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Timezone:"
+msgstr "タイムゾーン："
+
+#: apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Start typing to see location suggestions"
+msgstr "入力すると所在地の候補が表示されます"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html apps/infra/public_app/data/pricing.json
+msgid "Institution"
+msgstr "所属機関"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "e.g., The University of Tokyo"
+msgstr "例：東京大学"
+
+#: apps/infra/accounts_app/templates/accounts_app/appearance_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Links"
+msgstr "リンク"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Website"
+msgstr "ウェブサイト"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "username (without @)"
+msgstr "ユーザー名（@ は不要）"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Your ORCID identifier (e.g., 0000-0001-2345-6789)"
+msgstr "ORCID 識別子（例：0000-0001-2345-6789）"
+
+#: apps/infra/accounts_app/templates/accounts_app/git_integrations.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Save changes"
+msgstr "変更を保存"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/git_integrations.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html apps/infra/accounts_app/templates/accounts_app/remote_credentials.html apps/infra/accounts_app/templates/accounts_app/repository_health.html
+msgid "Cancel"
+msgstr "キャンセル"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile_edit.html apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Private"
+msgstr "非公開"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Change Email"
+msgstr "メールアドレスの変更"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Current email:"
+msgstr "現在のメールアドレス："
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "New email address"
+msgstr "新しいメールアドレス"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Update email"
+msgstr "メールアドレスを更新"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Change Password"
+msgstr "パスワードの変更"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Current password"
+msgstr "現在のパスワード"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "New password"
+msgstr "新しいパスワード"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Confirm new password"
+msgstr "新しいパスワード（確認）"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Password Requirements:"
+msgstr "パスワードの要件："
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "At least 8 characters"
+msgstr "8 文字以上"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "At least one lowercase letter"
+msgstr "小文字を 1 文字以上含む"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "At least one uppercase letter"
+msgstr "大文字を 1 文字以上含む"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "At least one number"
+msgstr "数字を 1 文字以上含む"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "At least one special character"
+msgstr "記号を 1 文字以上含む"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Passwords match"
+msgstr "パスワードが一致している"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Update password"
+msgstr "パスワードを更新"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Delete Account"
+msgstr "アカウントの削除"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Once you delete your account, there is no going back. Please be certain."
+msgstr "アカウントを削除すると元に戻せません。よくご確認ください。"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Delete account"
+msgstr "アカウントを削除"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Delete your account"
+msgstr "アカウントを削除"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Warning: This action cannot be undone!"
+msgstr "警告：この操作は取り消せません。"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "This will permanently delete your account <strong>%(username)s</strong>, all your projects, files, and data."
+msgstr "アカウント <strong>%(username)s</strong> と、すべてのプロジェクト、ファイル、データが完全に削除されます。"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Please type <strong class=\"delete-account-username\">%(username)s</strong> to confirm."
+msgstr "確認のため <strong class=\"delete-account-username\">%(username)s</strong> と入力してください。"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "I understand the consequences, delete my account"
+msgstr "内容を理解したうえでアカウントを削除する"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Avatar preview"
+msgstr "プロフィール画像のプレビュー"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile.html
+msgid "Account Settings"
+msgstr "アカウント設定"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "This will permanently delete your account <strong>%(username)s</strong>, all your projects, files, and data. All collaborator associations will be removed."
+msgstr "アカウント <strong>%(username)s</strong> と、すべてのプロジェクト、ファイル、データが完全に削除されます。共同編集者との関連付けもすべて解除されます。"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "API Keys - Settings - SciTeX Hub"
+msgstr "API キー - 設定 - SciTeX Hub"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "API Keys"
+msgstr "API キー"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "API keys for programmatic access to SciTeX Hub. Use them to call the REST API or connect external MCP clients (Claude Desktop, etc.) to <strong>https://scitex.ai/mcp</strong> for AI-powered scientific tools."
+msgstr "SciTeX Hub にプログラムからアクセスするための API キーです。REST API の呼び出しや、外部の MCP クライアント（Claude Desktop など）を <strong>https://scitex.ai/mcp</strong> に接続して AI を活用した研究ツールを使う際に利用します。"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "Connect an MCP client (Claude Desktop / Claude Code)"
+msgstr "MCP クライアントを接続（Claude Desktop / Claude Code）"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "Add this to your MCP client configuration to use SciTeX tools remotely:"
+msgstr "SciTeX のツールをリモートで使うには、MCP クライアントの設定に次の内容を追加してください:"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "Replace <code>YOUR_API_KEY</code> with a key generated below (use <em>Full Access</em> or the <em>MCP tools</em> scope)."
+msgstr "<code>YOUR_API_KEY</code> を、下で発行したキーに置き換えてください（<em>フルアクセス</em> または <em>MCP ツール</em> のスコープを使用）。"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "API Key Created: %(name)s"
+msgstr "API キーを作成しました: %(name)s"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "Copy this key now. You won't be able to see it again!"
+msgstr "今すぐこのキーをコピーしてください。再表示はできません。"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "Copy Key"
+msgstr "キーをコピー"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "Add new API key"
+msgstr "API キーを追加"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "Key Name *"
+msgstr "キー名 *"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "e.g., CLI Tool, GitHub Actions, Personal Script"
+msgstr "例: CLI ツール、GitHub Actions、個人用スクリプト"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "A descriptive name to help you remember what this key is for."
+msgstr "このキーの用途がわかる名前を付けてください。"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "Permissions (Scopes)"
+msgstr "権限（スコープ）"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "Full Access (All permissions)"
+msgstr "フルアクセス（すべての権限）"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "MCP tools (connect Claude Desktop / Claude Code)"
+msgstr "MCP ツール（Claude Desktop / Claude Code を接続）"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "Read Projects"
+msgstr "プロジェクトの読み取り"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "Write Projects"
+msgstr "プロジェクトの書き込み"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "Read Scholar Data"
+msgstr "Scholar データの読み取り"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "Select which parts of your account this key can access."
+msgstr "このキーでアクセスできる範囲を選択してください。"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "Generate API key"
+msgstr "API キーを発行"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "Active API keys"
+msgstr "有効な API キー"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html apps/infra/accounts_app/templates/accounts_app/appearance_settings.html apps/infra/accounts_app/templates/accounts_app/profile.html apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Active"
+msgstr "有効"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Inactive"
+msgstr "無効"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "Scopes:"
+msgstr "スコープ:"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "Full Access"
+msgstr "フルアクセス"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "Created:"
+msgstr "作成日時:"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "Last used:"
+msgstr "最終使用:"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html apps/infra/accounts_app/templates/accounts_app/remote_credentials.html apps/infra/accounts_app/templates/accounts_app/ssh_keys.html apps/infra/public_app/templates/public_app/pages/services.html
+msgid "Never"
+msgstr "なし"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "Expires:"
+msgstr "有効期限:"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "Deactivate"
+msgstr "無効化"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "Activate"
+msgstr "有効化"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "Are you sure you want to delete this API key? Applications using it will stop working."
+msgstr "この API キーを削除してもよろしいですか？このキーを使用しているアプリケーションは動作しなくなります。"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "You don't have any API keys yet."
+msgstr "API キーはまだありません。"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "Generate an API key above to access the SciTeX Hub API programmatically."
+msgstr "上で API キーを発行すると、SciTeX Hub API にプログラムからアクセスできます。"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html
+msgid "See <a href=\"%(api_docs_url)s\">Web API docs</a> for usage examples."
+msgstr "使用例は <a href=\"%(api_docs_url)s\">Web API ドキュメント</a> をご覧ください。"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "Copied!"
+msgstr "コピーしました"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html
+msgid "Failed to copy:"
+msgstr "コピーに失敗しました:"
+
+#: apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "SSH Keys - Settings - SciTeX Hub"
+msgstr "SSH キー - 設定 - SciTeX Hub"
+
+#: apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "Manage your SSH keys for secure access"
+msgstr "安全なアクセスのための SSH キーを管理します"
+
+#: apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "Add new SSH key"
+msgstr "SSH キーを追加"
+
+#: apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "e.g., My Laptop"
+msgstr "例: 自分のノート PC"
+
+#: apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "A descriptive name to identify this key."
+msgstr "このキーを識別するための名前です。"
+
+#: apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "Public Key *"
+msgstr "公開鍵 *"
+
+#: apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "ssh-ed25519 AAAAC3... or ssh-rsa AAAAB3..."
+msgstr "ssh-ed25519 AAAAC3... または ssh-rsa AAAAB3..."
+
+#: apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "Paste your public key, or upload a file below."
+msgstr "公開鍵を貼り付けるか、下からファイルをアップロードしてください。"
+
+#: apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "Or upload .pub file"
+msgstr "または .pub ファイルをアップロード"
+
+#: apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "Add key"
+msgstr "キーを追加"
+
+#: apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "Your SSH keys"
+msgstr "登録済みの SSH キー"
+
+#: apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "Delete this SSH key?"
+msgstr "この SSH キーを削除しますか？"
+
+#: apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "Added:"
+msgstr "追加日:"
+
+#: apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "No SSH keys added yet."
+msgstr "SSH キーはまだ追加されていません。"
+
+#: apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "Add your first SSH key above to enable secure access."
+msgstr "上から SSH キーを追加すると、安全にアクセスできるようになります。"
+
+#: apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "How to generate SSH keys"
+msgstr "SSH キーの作成方法"
+
+#: apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "1. Generate a new key pair:"
+msgstr "1. 新しいキーペアを作成します:"
+
+#: apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "2. Copy your public key:"
+msgstr "2. 公開鍵をコピーします:"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html
+msgid "3. Paste the output above and click \"Add key\"."
+msgstr "3. 出力を上に貼り付けて「キーを追加」をクリックします。"
+
+#: apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "Never share your private key (id_ed25519). Only upload the .pub file."
+msgstr "秘密鍵（id_ed25519）は絶対に共有しないでください。アップロードするのは .pub ファイルだけです。"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Remote Credentials - Settings - SciTeX Hub"
+msgstr "リモート認証情報 - 設定 - SciTeX Hub"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Account"
+msgstr "アカウント"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile.html apps/infra/accounts_app/templates/accounts_app/remote_credentials.html apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "SSH Keys"
+msgstr "SSH キー"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile.html apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Remote Credentials"
+msgstr "リモート認証情報"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Manage SSH credentials for accessing remote systems (HPC clusters, cloud instances, personal servers)"
+msgstr "リモートシステム（HPC クラスター、クラウドインスタンス、個人サーバー）にアクセスするための SSH 認証情報を管理します"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Public Key for %(name)s"
+msgstr "%(name)s の公開鍵"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Copy this public key to your remote system's <code>~/.ssh/authorized_keys</code>:"
+msgstr "この公開鍵をリモートシステムの <code>~/.ssh/authorized_keys</code> にコピーしてください:"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Or auto-install via ssh-copy-id (requires your HPC password once):"
+msgstr "または ssh-copy-id で自動インストールします（HPC のパスワードが一度だけ必要です）:"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "HPC password (used once, not stored)"
+msgstr "HPC のパスワード（一度だけ使用し、保存しません）"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Install Key"
+msgstr "キーをインストール"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Add Remote Credential"
+msgstr "リモート認証情報を追加"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "New Remote Credential"
+msgstr "新しいリモート認証情報"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Import from SSH Config"
+msgstr "SSH 設定からインポート"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Paste SSH Config Block"
+msgstr "SSH 設定ブロックを貼り付け"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Paste a block from your <code>~/.ssh/config</code> file. Fields will be auto-filled below."
+msgstr "<code>~/.ssh/config</code> ファイルのブロックを貼り付けてください。下の項目が自動入力されます。"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Parse &amp; Fill"
+msgstr "解析して入力"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Name*"
+msgstr "名前*"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "e.g., Spartan HPC, AWS Server"
+msgstr "例: Spartan HPC、AWS サーバー"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "A friendly name to identify this remote system"
+msgstr "このリモートシステムを識別するためのわかりやすい名前"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "SSH Host*"
+msgstr "SSH ホスト*"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "e.g., hpc.example.com or 192.168.1.100"
+msgstr "例: hpc.example.com または 192.168.1.100"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Hostname or IP address of the remote system"
+msgstr "リモートシステムのホスト名または IP アドレス"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "SSH Port"
+msgstr "SSH ポート"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "SSH port (default: 22)"
+msgstr "SSH ポート（既定値: 22）"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "SSH Username*"
+msgstr "SSH ユーザー名*"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html apps/infra/accounts_app/templates/accounts_app/remote_credentials.html apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "e.g., %(username)s"
+msgstr "例: %(username)s"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Your username on the remote system"
+msgstr "リモートシステム上のユーザー名"
+
+#: apps/infra/accounts_app/templates/accounts_app/profile.html apps/infra/accounts_app/templates/accounts_app/remote_credentials.html apps/infra/accounts_app/templates/accounts_app/ssh_keys.html
+msgid "SSH Key"
+msgstr "SSH キー"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Generate New Key"
+msgstr "新しいキーを作成"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Upload Existing Key"
+msgstr "既存のキーをアップロード"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "A new ed25519 key pair will be generated and saved to your workspace <code>~/.ssh/</code>. After creation, copy the public key to your remote system's <code>~/.ssh/authorized_keys</code>."
+msgstr "新しい ed25519 キーペアを作成し、ワークスペースの <code>~/.ssh/</code> に保存します。作成後、公開鍵をリモートシステムの <code>~/.ssh/authorized_keys</code> にコピーしてください。"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "SSH Private Key*"
+msgstr "SSH 秘密鍵*"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Paste your SSH private key here..."
+msgstr "SSH 秘密鍵をここに貼り付けてください..."
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Or upload key file"
+msgstr "またはキーファイルをアップロード"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "SSH Public Key (optional)"
+msgstr "SSH 公開鍵（任意）"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "For fingerprint display only"
+msgstr "フィンガープリントの表示にのみ使用します"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Add Credential"
+msgstr "認証情報を追加"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Saved Credentials"
+msgstr "保存済みの認証情報"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "SSH Key Fingerprint"
+msgstr "SSH キーのフィンガープリント"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Private Key Path"
+msgstr "秘密鍵のパス"
+
+#: apps/infra/accounts_app/templates/accounts_app/api_keys.html apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Created"
+msgstr "作成日時"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Last Used"
+msgstr "最終使用"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Test Connection"
+msgstr "接続テスト"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Are you sure you want to delete this credential?"
+msgstr "この認証情報を削除してもよろしいですか？"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "No remote credentials yet"
+msgstr "リモート認証情報はまだありません"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Add a credential to connect to HPC clusters, cloud instances, or personal servers"
+msgstr "認証情報を追加すると、HPC クラスター、クラウドインスタンス、個人サーバーに接続できます"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "About Remote Credentials"
+msgstr "リモート認証情報について"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Remote credentials allow you to create projects that mount remote filesystems via SSH. This provides TRAMP-like access to files on HPC clusters, cloud servers, or personal machines without storing data locally."
+msgstr "リモート認証情報を使うと、SSH 経由でリモートのファイルシステムをマウントするプロジェクトを作成できます。HPC クラスター、クラウドサーバー、個人のマシン上のファイルに、ローカルにデータを保存せず TRAMP のようにアクセスできます。"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Files are accessed on-demand via SSHFS (no local copy)"
+msgstr "ファイルは SSHFS 経由で必要なときにアクセスします（ローカルにコピーしません）"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Automatic mount/unmount for privacy"
+msgstr "プライバシー保護のため自動でマウント／アンマウントします"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "No Git support on remote projects (prevents confusion)"
+msgstr "リモートプロジェクトでは Git は使えません（混乱を防ぐため）"
+
+#: apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Slower than local projects but privacy-preserving"
+msgstr "ローカルプロジェクトより低速ですが、プライバシーを保てます"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "AI Providers - Settings - SciTeX Hub"
+msgstr "AI プロバイダー - 設定 - SciTeX Hub"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "AI Providers"
+msgstr "AI プロバイダー"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "Connect your LLM API keys to enable AI co-pilot features across SciTeX Hub."
+msgstr "LLM の API キーを接続すると、SciTeX Hub 全体で AI コパイロット機能を使えるようになります。"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "Add a new provider"
+msgstr "プロバイダーを追加"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "Provider"
+msgstr "プロバイダー"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "Loading providers..."
+msgstr "プロバイダーを読み込み中..."
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "Choose which AI provider to connect."
+msgstr "接続する AI プロバイダーを選択してください。"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html apps/infra/accounts_app/templates/accounts_app/api_keys.html apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "API Key"
+msgstr "API キー"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "Paste your API key here"
+msgstr "API キーをここに貼り付けてください"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "Your key is encrypted at rest."
+msgstr "キーは暗号化して保存されます。"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "Default Model"
+msgstr "既定のモデル"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "Select or type a model name"
+msgstr "モデル名を選択または入力"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "Leave blank for provider default."
+msgstr "空欄の場合はプロバイダーの既定モデルを使用します。"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "Add provider"
+msgstr "プロバイダーを追加"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "List registered providers"
+msgstr "登録済みのプロバイダー"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "Show/hide API key"
+msgstr "API キーを表示/非表示"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "Model:"
+msgstr "モデル:"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "Requests:"
+msgstr "リクエスト数:"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "Tokens:"
+msgstr "トークン数:"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "Cost:"
+msgstr "費用:"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "Daily cost limit (USD):"
+msgstr "1日あたりの費用上限 (USD):"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "No limit"
+msgstr "上限なし"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Test"
+msgstr "テスト"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "Delete this provider? AI features using it will stop working."
+msgstr "このプロバイダーを削除しますか？このプロバイダーを使う AI 機能は動作しなくなります。"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "No AI providers connected yet."
+msgstr "AI プロバイダーはまだ接続されていません。"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "Add a provider above to enable AI co-pilot features in Writer, Scholar, and Console."
+msgstr "上でプロバイダーを追加すると、Writer・Scholar・Console で AI コパイロット機能を使えるようになります。"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_setup_hub.html apps/infra/accounts_app/templates/accounts_app/ai_setup_section.html
+msgid "AI Setup — SciTeX"
+msgstr "AI 設定 — SciTeX"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_setup_hub.html apps/infra/accounts_app/templates/accounts_app/ai_setup_hub_partial.html apps/infra/accounts_app/templates/accounts_app/ai_setup_section.html
+msgid "AI Setup"
+msgstr "AI 設定"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_setup_hub.html apps/infra/accounts_app/templates/accounts_app/ai_setup_hub_partial.html
+msgid "Configure how SciTeX AI agents work for you"
+msgstr "SciTeX の AI エージェントの動作を設定します"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "%(section_title)s — AI Setup — SciTeX"
+msgstr "%(section_title)s — AI 設定 — SciTeX"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_setup_section.html
+msgid "Select an item to view details"
+msgstr "項目を選択すると詳細が表示されます"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html apps/infra/accounts_app/templates/accounts_app/ai_setup_section_partial.html apps/infra/accounts_app/templates/accounts_app/privacy_settings.html apps/infra/accounts_app/templates/accounts_app/remote_credentials.html apps/infra/accounts_app/templates/accounts_app/ssh_keys.html apps/infra/public_app/data/pricing.json
+msgid "No %(section_name)s available."
+msgstr "利用できる %(section_name)s はありません。"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_setup_section_partial.html apps/infra/accounts_app/templates/accounts_app/repository_health.html
+msgid "Loading..."
+msgstr "読み込み中..."
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_setup_section_partial.html
+msgid "No detail for"
+msgstr "詳細がありません:"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_setup_section_partial.html apps/infra/accounts_app/templates/accounts_app/api_keys.html apps/infra/accounts_app/templates/accounts_app/appearance_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
+msgid "Failed"
+msgstr "失敗しました"
+
+#: apps/infra/accounts_app/templates/accounts_app/git_integrations.html
+msgid "Git Integrations - Settings"
+msgstr "Git 連携 - 設定"
+
+#: apps/infra/accounts_app/templates/accounts_app/git_integrations.html
+msgid "Connect your Git platform accounts to enable repository import and sync."
+msgstr "Git プラットフォームのアカウントを接続すると、リポジトリのインポートと同期ができるようになります。"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html apps/infra/accounts_app/templates/accounts_app/git_integrations.html
+msgid "connected"
+msgstr "接続済み"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/git_integrations.html apps/infra/accounts_app/templates/accounts_app/partials/settings_nav.html apps/infra/accounts_app/templates/accounts_app/profile.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html apps/infra/accounts_app/templates/accounts_app/remote_credentials.html apps/infra/accounts_app/templates/accounts_app/repository_health.html apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "username"
+msgstr "ユーザー名"
+
+#: apps/infra/accounts_app/templates/accounts_app/git_integrations.html
+msgid "Personal Access Token"
+msgstr "個人アクセストークン"
+
+#: apps/infra/accounts_app/templates/accounts_app/git_integrations.html
+msgid "ghp_xxxxxxxxxxxx or github_pat_xxxxx"
+msgstr "ghp_xxxxxxxxxxxx または github_pat_xxxxx"
+
+#: apps/infra/accounts_app/templates/accounts_app/git_integrations.html
+msgid "Token saved: <code>%(masked)s</code>"
+msgstr "トークン保存済み: <code>%(masked)s</code>"
+
+#: apps/infra/accounts_app/templates/accounts_app/git_integrations.html
+msgid "Password saved: <code>%(masked)s</code>"
+msgstr "パスワード保存済み: <code>%(masked)s</code>"
+
+#: apps/infra/accounts_app/templates/accounts_app/git_integrations.html
+msgid "Create token"
+msgstr "トークンを作成"
+
+#: apps/infra/accounts_app/templates/accounts_app/git_integrations.html
+msgid "App Password"
+msgstr "アプリパスワード"
+
+#: apps/infra/accounts_app/templates/accounts_app/git_integrations.html
+msgid "Create app password"
+msgstr "アプリパスワードを作成"
+
+#: apps/infra/accounts_app/templates/accounts_app/mcp_settings.html
+msgid "MCP Tools - Settings - SciTeX Hub"
+msgstr "MCP ツール - 設定 - SciTeX Hub"
+
+#: apps/infra/accounts_app/templates/accounts_app/mcp_settings.html apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "MCP Tools"
+msgstr "MCP ツール"
+
+#: apps/infra/accounts_app/templates/accounts_app/mcp_settings.html
+msgid "Toggle which SciTeX MCP tool groups are available to Claude Code and other AI agents in your terminal."
+msgstr "ターミナルの Claude Code などの AI エージェントが使える SciTeX MCP ツールグループを切り替えます。"
+
+#: apps/infra/accounts_app/templates/accounts_app/ai_providers.html
+msgid "%(counter)s tool"
+msgid_plural "%(counter)s tools"
+msgstr[0] "%(counter)s 個のツール"
+
+#: apps/infra/accounts_app/templates/accounts_app/mcp_settings.html
+msgid "Save preferences"
+msgstr "設定を保存"
+
+#: apps/infra/accounts_app/templates/accounts_app/mcp_settings.html
+msgid "Select all"
+msgstr "すべて選択"
+
+#: apps/infra/accounts_app/templates/accounts_app/mcp_settings.html
+msgid "Deselect all"
+msgstr "すべて解除"
+
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html apps/infra/accounts_app/templates/accounts_app/mcp_settings.html apps/infra/accounts_app/templates/accounts_app/remote_credentials.html
+msgid "Saved"
+msgstr "保存しました"
+
+#: apps/infra/accounts_app/templates/accounts_app/mcp_settings.html
+msgid "Changes apply next time you start Claude Code in your terminal."
+msgstr "変更は、次にターミナルで Claude Code を起動したときに反映されます。"
+
+#: apps/infra/accounts_app/templates/accounts_app/mcp_settings.html
+msgid "The <code>scitex</code> MCP server runs locally in your container via <code>scitex mcp start</code>."
+msgstr "<code>scitex</code> MCP サーバーは、<code>scitex mcp start</code> によりコンテナ内でローカルに動作します。"
+
+#: apps/infra/accounts_app/templates/accounts_app/repository_health.html
+msgid "Project Health - Settings"
+msgstr "プロジェクトの状態 - 設定"
+
+#: apps/infra/accounts_app/templates/accounts_app/repository_health.html
+msgid "Monitor and manage the health of your projects."
+msgstr "プロジェクトの状態を確認・管理します。"
+
+#: apps/infra/accounts_app/templates/accounts_app/repository_health.html
+msgid "Error:"
+msgstr "エラー:"
+
+#: apps/infra/accounts_app/templates/accounts_app/repository_health.html
+msgid "Project Status"
+msgstr "プロジェクトのステータス"
+
+#: apps/infra/accounts_app/templates/accounts_app/repository_health.html
+msgid "Loading project information..."
+msgstr "プロジェクト情報を読み込み中..."
+
+#: apps/infra/accounts_app/templates/accounts_app/repository_health.html
+msgid "Confirm Action"
+msgstr "操作の確認"
+
+#: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html apps/infra/accounts_app/templates/accounts_app/repository_health.html
+msgid "Confirm"
+msgstr "確認"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Plotting"
+msgstr "プロット"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Create publication-ready figures"
+msgstr "論文に使える Figure を作成"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Statistics"
+msgstr "統計"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Statistical tests with effect sizes"
+msgstr "効果量つきの統計検定"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py apps/infra/public_app/templates/public_app/pages/services.html
+msgid "Literature"
+msgstr "文献"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Search papers, manage citations"
+msgstr "論文の検索、引用の管理"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Manuscript"
+msgstr "原稿"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "LaTeX writing, PDF compilation"
+msgstr "LaTeX での執筆、PDF のコンパイル"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Pipelines"
+msgstr "パイプライン"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "CLEW pipeline execution"
+msgstr "CLEW パイプラインの実行"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Speech"
+msgstr "音声"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Text-to-speech in browser"
+msgstr "ブラウザでの音声読み上げ"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Diagrams"
+msgstr "ダイアグラム"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Mermaid, Graphviz diagrams"
+msgstr "Mermaid・Graphviz のダイアグラム"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Screenshots"
+msgstr "スクリーンショット"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Capture screenshots"
+msgstr "スクリーンショットを撮影"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "API Inspector"
+msgstr "API インスペクター"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Explore scitex API"
+msgstr "scitex API を調べる"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Templates"
+msgstr "テンプレート"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Project templates"
+msgstr "プロジェクトのテンプレート"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "File Management"
+msgstr "ファイル管理"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Read/write project files"
+msgstr "プロジェクトファイルの読み書き"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Datasets"
+msgstr "データセット"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Access research datasets"
+msgstr "研究データセットにアクセス"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Developer"
+msgstr "開発者"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Development tools"
+msgstr "開発ツール"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Code Quality"
+msgstr "コード品質"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Linting and code checks"
+msgstr "リントとコードチェック"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Social"
+msgstr "ソーシャル"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Social media posting"
+msgstr "ソーシャルメディアへの投稿"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Notifications"
+msgstr "通知"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Browser notifications"
+msgstr "ブラウザ通知"
+
+#: apps/infra/accounts_app/templates/accounts_app/privacy_settings.html apps/infra/accounts_app/templates/accounts_app/profile.html apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Usage"
+msgstr "使用量"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Usage tracking"
+msgstr "使用量の記録"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Research & Analysis"
+msgstr "研究・解析"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "Writing & Publishing"
+msgstr "執筆・出版"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py apps/infra/public_app/templates/public_app/pages/services.html
+msgid "Automation"
+msgstr "自動化"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "System"
+msgstr "システム"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "FastMCP not installed"
+msgstr "FastMCP がインストールされていません"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "MCP server not initialized"
+msgstr "MCP サーバーが初期化されていません"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "%(count)d tool loaded"
+msgid_plural "%(count)d tools loaded"
+msgstr[0] "%(count)d 個のツールを読み込みました"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "MCP tool preferences saved. Changes apply next time you start Claude Code."
+msgstr "MCP ツールの設定を保存しました。次に Claude Code を起動したときに反映されます。"
+
+#: apps/infra/accounts_app/views/mcp_settings_views.py
+msgid "MCP tool preferences saved."
+msgstr "MCP ツールの設定を保存しました。"

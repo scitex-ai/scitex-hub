@@ -1,8 +1,8 @@
 {% extends "global_base.html" %}
 
-{% load static vite %}
+{% load static vite i18n %}
 
-{% block title %}SSH Keys - Settings - SciTeX Hub{% endblock %}
+{% block title %}{% trans "SSH Keys - Settings - SciTeX Hub" %}{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/layouts/settings-layout.css' %}" />
     <link rel="stylesheet" href="{% static 'accounts_app/css/ssh_keys.css' %}" />
@@ -17,8 +17,8 @@
             <!-- Main Content -->
             <main class="settings-content">
                 <div class="settings-header">
-                    <h1 class="settings-title">SSH keys</h1>
-                    <p class="settings-subtitle">Manage your SSH keys for secure access</p>
+                    <h1 class="settings-title">{% trans "SSH keys" %}</h1>
+                    <p class="settings-subtitle">{% trans "Manage your SSH keys for secure access" %}</p>
                 </div>
                 <!-- Messages -->
                 {% if messages %}
@@ -36,46 +36,46 @@
                 <!-- Add New Key -->
                 <details class="ssh-details">
                     <summary class="ssh-summary">
-                        <i class="fas fa-plus"></i> Add new SSH key
+                        <i class="fas fa-plus"></i> {% trans "Add new SSH key" %}
                     </summary>
                     <div class="create-form">
                         <form method="post" enctype="multipart/form-data" id="uploadKeyForm">
                             {% csrf_token %}
                             <div class="form-group">
-                                <label for="key_name">Key Name *</label>
+                                <label for="key_name">{% trans "Key Name *" %}</label>
                                 <input type="text"
                                        class="form-control"
                                        id="key_name"
                                        name="key_name"
-                                       placeholder="e.g., My Laptop"
+                                       placeholder="{% trans 'e.g., My Laptop' %}"
                                        required />
-                                <small>A descriptive name to identify this key.</small>
+                                <small>{% trans "A descriptive name to identify this key." %}</small>
                             </div>
                             <div class="form-group">
-                                <label for="public_key_text">Public Key *</label>
+                                <label for="public_key_text">{% trans "Public Key *" %}</label>
                                 <textarea class="form-control"
                                           id="public_key_text"
                                           name="public_key_text"
-                                          placeholder="ssh-ed25519 AAAAC3... or ssh-rsa AAAAB3..."
+                                          placeholder="{% trans 'ssh-ed25519 AAAAC3... or ssh-rsa AAAAB3...' %}"
                                           rows="4"></textarea>
-                                <small>Paste your public key, or upload a file below.</small>
+                                <small>{% trans "Paste your public key, or upload a file below." %}</small>
                             </div>
                             <div class="form-group">
-                                <label for="public_key_file">Or upload .pub file</label>
+                                <label for="public_key_file">{% trans "Or upload .pub file" %}</label>
                                 <input type="file"
                                        class="form-control"
                                        id="public_key_file"
                                        name="public_key_file"
                                        accept=".pub" />
                             </div>
-                            <button type="submit" class="btn btn-primary">Add key</button>
+                            <button type="submit" class="btn btn-primary">{% trans "Add key" %}</button>
                         </form>
                     </div>
                 </details>
                 <!-- Existing Keys -->
                 <details class="settings-details">
                     <summary class="settings-summary">
-                        <i class="fas fa-key"></i> Your SSH keys
+                        <i class="fas fa-key"></i> {% trans "Your SSH keys" %}
                     </summary>
                     {% if keys %}
                         {% for key in keys %}
@@ -90,21 +90,21 @@
                                     <div class="ssh-key-actions">
                                         <form method="post"
                                               action="{% url 'accounts_app:delete_ssh_key' key.id %}"
-                                              onsubmit="return confirm('Delete this SSH key?');">
+                                              onsubmit="return confirm('{% filter escapejs %}{% trans "Delete this SSH key?" %}{% endfilter %}');">
                                             {% csrf_token %}
                                             <button type="submit" class="btn btn-sm btn-danger">
-                                                <i class="fas fa-trash"></i> Delete
+                                                <i class="fas fa-trash"></i> {% trans "Delete" %}
                                             </button>
                                         </form>
                                     </div>
                                 </div>
                                 <div class="ssh-key-meta">
-                                    <span>Added: {{ key.created_at|date:"M d, Y" }}</span>
-                                    <span>Last used:
+                                    <span>{% trans "Added:" %} {{ key.created_at|date:"M d, Y" }}</span>
+                                    <span>{% trans "Last used:" %}
                                         {% if key.last_used_at %}
                                             {{ key.last_used_at|date:"M d, Y H:i" }}
                                         {% else %}
-                                            Never
+                                            {% trans "Never" %}
                                         {% endif %}
                                     </span>
                                 </div>
@@ -112,24 +112,24 @@
                         {% endfor %}
                     {% else %}
                         <div class="empty-state-card">
-                            <h3>No SSH keys added yet.</h3>
-                            <p>Add your first SSH key above to enable secure access.</p>
+                            <h3>{% trans "No SSH keys added yet." %}</h3>
+                            <p>{% trans "Add your first SSH key above to enable secure access." %}</p>
                         </div>
                     {% endif %}
                 </details>
                 <!-- Help -->
                 <div class="ssh-help">
                     <details>
-                        <summary>How to generate SSH keys</summary>
+                        <summary>{% trans "How to generate SSH keys" %}</summary>
                         <div class="ssh-help-content">
-                            <p>1. Generate a new key pair:</p>
+                            <p>{% trans "1. Generate a new key pair:" %}</p>
                             <pre><code>ssh-keygen -t ed25519 -C "your_email@example.com"</code></pre>
-                            <p>2. Copy your public key:</p>
+                            <p>{% trans "2. Copy your public key:" %}</p>
                             <pre><code>cat ~/.ssh/id_ed25519.pub</code></pre>
-                            <p>3. Paste the output above and click "Add key".</p>
+                            <p>{% trans '3. Paste the output above and click "Add key".' %}</p>
                             <p class="ssh-help-warning">
                                 <i class="fas fa-exclamation-triangle"></i>
-                                Never share your private key (id_ed25519). Only upload the .pub file.
+                                {% trans "Never share your private key (id_ed25519). Only upload the .pub file." %}
                             </p>
                         </div>
                     </details>
