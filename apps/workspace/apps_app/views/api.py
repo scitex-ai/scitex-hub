@@ -285,7 +285,9 @@ def api_dock(request):
         return JsonResponse({"success": False, "error": "Invalid JSON."}, status=400)
 
     ensure_builtin_modules()
-    known_apps = {tile["name"] for tile in _build_tiles(request)} | {HOME_BUTTON}
+    known_apps = {
+        tile["name"] for tile in _build_tiles(request) if not tile.get("is_planned")
+    } | {HOME_BUTTON}
     try:
         dock_apps = validate_dock_apps(data.get("dock"), known_apps)
         save_dock_apps(request.user, dock_apps)

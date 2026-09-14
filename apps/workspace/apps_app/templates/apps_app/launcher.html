@@ -69,7 +69,11 @@
                 {% for group in groups %}
                     <div class="launcher-group" role="group" data-group="{{ group.key }}" aria-label="{% trans group.label %}">
                         {% for tile in group.cells %}
-                            {% include "apps_app/partials/launcher_tile.html" %}
+                            {% if tile.is_planned %}
+                                {% include "apps_app/partials/launcher_planned_tile.html" %}
+                            {% else %}
+                                {% include "apps_app/partials/launcher_tile.html" %}
+                            {% endif %}
                         {% endfor %}
                     </div>
                 {% endfor %}
@@ -86,6 +90,7 @@
         {# Page dots (launcher/pager.ts fills these in: one per page, the current #}
         {# one highlighted). Rendered empty and hidden so a no-JS launcher shows   #}
         {# a plain grid and nothing pretending to page.                            #}
+        {% include "apps_app/partials/launcher_planned_sheet.html" %}
         <div class="launcher-dots" id="launcher-dots" role="tablist" aria-label="{% trans 'App pages' %}" hidden></div>
         {# Tiles for docked apps: dragging one out of the dock puts its tile back on the grid. #}
         <template id="launcher-dock-tiles">

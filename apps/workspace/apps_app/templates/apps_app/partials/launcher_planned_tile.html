@@ -1,0 +1,23 @@
+{% load i18n launcher_text %}
+{# No data-module: the reorder and dock code key off it, and a planned app  #}
+{# has no position or dock slot to save. launcher.ts opens the sheet.        #}
+<button type="button"
+        class="launcher-tile launcher-tile--planned"
+        data-planned="{{ tile.name }}"
+        data-group="{{ tile.group }}"
+        data-category="{{ tile.category }}"
+        data-label="{{ tile.label }}"
+        data-description="{{ tile.description }}"
+        data-create-url="{{ tile.create_url }}"
+        data-availability="coming_soon"
+        {% if tile.notified %}data-notified="1"{% endif %}
+        {% if tile.building %}data-building="1"{% endif %}
+        aria-haspopup="dialog"
+        title="{{ tile.label }} — {% trans 'Coming Soon' %}">
+    <span class="launcher-tile-icon" data-tile-category="{{ tile.category }}">
+        <i class="{{ tile.icon_fa }}" aria-hidden="true"></i>
+        {% include "apps_app/partials/launcher_tile_badges.html" %}
+    </span>
+    <span class="launcher-tile-name">{{ tile.label|phrase_breaks }}</span>
+    <span class="launcher-tile-soon">{% trans 'Coming Soon' %}</span>
+</button>

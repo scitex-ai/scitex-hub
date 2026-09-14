@@ -68,6 +68,18 @@ class ModuleReviewAdmin(admin.ModelAdmin):
     list_filter = ("rating",)
 
 
+from .models import PlannedAppInterest  # noqa: E402
+
+
+@admin.register(PlannedAppInterest)
+class PlannedAppInterestAdmin(admin.ModelAdmin):
+    list_display = ("app_id", "kind", "user", "created_at")
+    list_filter = ("app_id", "kind")
+    # Facets put the notify/build count per app beside each filter value.
+    show_facets = admin.ShowFacets.ALWAYS
+    search_fields = ("app_id", "user__username")
+
+
 from .models import ModuleSubmission  # noqa: E402
 
 
