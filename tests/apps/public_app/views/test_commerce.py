@@ -87,7 +87,7 @@ class TestPricingPage:
         # Act
         content = client.get(reverse("public_app:pricing")).content.decode("utf-8")
         # Assert
-        assert "有料プランは準備中です" in content
+        assert "Online card payment is in preparation" in content
 
     def test_pricing_without_plans_links_to_contact_page(self, client, settings):
         # Arrange
@@ -115,7 +115,7 @@ class TestPricingPage:
         # Assert
         assert "Pro (Test)" not in content
 
-    @pytest.mark.parametrize("expected", ["Pro (Test)", "1100", "税込"])
+    @pytest.mark.parametrize("expected", ["Pro (Test)", "1100", "tax included"])
     def test_pricing_with_plans_shows_tax_inclusive_details_to_staff(
         self, staff_client, settings, expected
     ):

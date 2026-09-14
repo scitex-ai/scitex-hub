@@ -179,7 +179,8 @@ def services(request):
             submitted = True
             form = {"name": "", "affiliation": "", "request": "", "budget": ""}
 
-    from ..pricing import load_pricing, published_price_groups, published_price_rows, tier_rows
+    from ..pricing import load_pricing, published_price_rows
+    from ..pricing_pages import pricing_page_context
 
     return render(
         request,
@@ -188,24 +189,16 @@ def services(request):
             "submitted": submitted,
             "errors": errors,
             "form": form,
-            # Prices come from data/pricing.json — the single source of truth.
-            # They were hand-written in the template until 2026-08-02, which is
-            # how /services/ and /landing/ drifted 2.7x apart on the same
-            # service. Do not put a literal amount back into the template;
+            # Prices come from data/pricing.json — the single source of truth
+            # (SSOT Provisional v1.0, USD). /pricing/ calls the same
+            # pricing_page_context(), so the two pages cannot drift apart. Do
+            # not put a literal amount back into the template;
             # tests/apps/public_app/test_pricing_ssot.py fails if you do.
-            #
-            # 2026-09-02: this page and /tokushoho/ now read the SAME list —
-            # published_price_rows, the business.yaml catalogue. Until then this
-            # page rendered the 2024-invoice consulting bands and a three-tier
-            # plan table whose middle tier (Lab) business had retired on
-            # 2026-08-28, while /tokushoho/ showed the current catalogue: two
-            # public pages, one file, two disjoint price sets. The operator's
-            # words on seeing it: 「値段はめちゃくちゃだった」.
             "published_price_rows": published_price_rows(),
-            "published_price_groups": published_price_groups(),
-            "tiers": tier_rows(),
-            "tax_note": load_pricing().get("tax_note", ""),
-            "pricing_notes": load_pricing()["notes"],
+            **pricing_page_context(),
+            # Budget choices are stored verbatim on ServiceInquiry, so they
+            # live in the SSOT too (USD, anchored on the service floors).
+            "budget_options": load_pricing()["inquiry_budget_options"],
         },
     )
 
@@ -310,7 +303,8 @@ def pricing(request):
     """
     from django.conf import settings
 
-    from ..pricing import format_amount, load_pricing, published_price_groups, tier_rows
+    from ..pricing import load_pricing
+    from ..pricing_pages import pricing_page_context
 
     pricing_data = load_pricing()
 
@@ -320,18 +314,13 @@ def pricing(request):
         {
             "billing_plans": settings.BILLING_PLANS,
             "stripe_configured": bool(settings.STRIPE_SECRET_KEY),
-            "free_price": format_amount(0),
             # Not cosmetic: pricing.json's _subscription_status is the key that
             # keeps this page, BILLING_PLANS (empty) and the 特商法 disclosure
-            # saying the SAME thing. A site that both denies and advertises
-            # paid plans is the defect being fixed.
+            # saying the SAME thing.
             "subscription_state": pricing_data["_subscription_status"]["state"],
-            # Plan names + tier prices from the SSoT (same source /services/
-            # and /tokushoho/ read). Never a plan name or amount typed here.
-            "tiers": tier_rows(),
-            "published_price_groups": published_price_groups(),
-            "tax_note": pricing_data.get("tax_note", ""),
-            "pricing_notes": pricing_data["notes"],
+            # Plans, included resources, rate card and policies from the SSOT —
+            # the same builder /services/ uses. Never an amount typed here.
+            **pricing_page_context(),
         },
     )
 

@@ -48,7 +48,6 @@
                         <p class="pricing-price plan-fee">{{ row.price }}</p>
                         <div class="pricing-features">
                             <ul>
-                                <li>{% trans "30-day free trial" %}</li>
                                 {% for item in row.included %}
                                 <li>{{ item }}</li>
                                 {% endfor %}
@@ -73,7 +72,7 @@
                         <h3 class="plan-name">{{ onprem_tier.name|translate_dynamic }}</h3>
                         <div class="plan-variant-switch" role="group" aria-label="{% trans "License type" %}">
                             <button type="button" class="variant-btn is-active" data-variant="agpl" aria-pressed="true">{% trans "AGPL" %}</button>
-                            <button type="button" class="variant-btn" data-variant="custom" aria-pressed="false">{% trans "Custom License" %}</button>
+                            <button type="button" class="variant-btn" data-variant="custom" aria-pressed="false">{% trans "Licenses" %}</button>
                         </div>
                     </div>
                     <p class="plan-sub">{{ onprem_tier.audience|translate_dynamic }}</p>
@@ -93,11 +92,13 @@
                         </div>
                         {# Custom License variant #}
                         <div class="plan-variant plan-variant-custom plan-variant-hidden" data-variant="custom">
-                            <p class="pricing-price plan-fee">{% trans "Contact us" %}<span class="period">{% trans "Non-AGPL · Custom license" %}</span></p>
+                            {% comment %} SSOT v1.0: Academic License (free) and
+                               Commercial License (from a yearly floor) — both
+                               rows come from the self-hosted tier, never typed here. {% endcomment %}
+                            {% for row in onprem_tier.rows %}{% if row.id == "selfhosted-commercial" %}<p class="pricing-price plan-fee">{{ row.price }}<span class="period">{% trans "Commercial License" %}</span></p>{% endif %}{% endfor %}
                             <div class="pricing-features">
                                 <ul>
-                                    <li>{% trans "Custom license contract" %}</li>
-                                    <li>{% trans "For your organization or the community" %}</li>
+                                    {% for row in onprem_tier.rows %}{% if row.id != "selfhosted-agpl" %}<li>{{ row.label|translate_dynamic }}: {{ row.price }}</li>{% endif %}{% endfor %}
                                     <li>{% trans "Setup and maintenance support" %}</li>
                                 </ul>
                             </div>

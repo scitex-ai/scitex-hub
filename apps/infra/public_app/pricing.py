@@ -2,14 +2,18 @@
 # -*- coding: utf-8 -*-
 """Load and render the published price list from its single source of truth.
 
-Every price SciTeX shows a visitor comes from ``data/pricing.json``. Before
-this module, ``/services/`` hard-coded nine JPY rows in its template and
-``/landing/`` hard-coded twelve USD items in its view; the two disagreed by up
-to 2.7x on the same service, and neither matched the other's currency.
+Every price SciTeX shows a visitor comes from ``data/pricing.json``, which
+mirrors the operator's "SciTeX Services SSOT — Provisional v1.0" (2026-09-14).
+Prices are USD and USD is the only stored currency; the yen on /tokushoho/ is a
+reference computed at render time from the live exchange rate.
 
 The JSON stores an ``amount`` and never a formatted string. This module owns
-the formatting, so "11000" has exactly one rendering and changing a price is a
-one-place edit that reaches every page and the brochure PDF together.
+the formatting, so "2400" has exactly one rendering and changing a price is a
+one-place edit that reaches every page together.
+
+English is the i18n SOURCE for every phrase built here; Japanese comes from the
+catalog (locale/ja/LC_MESSAGES/django.po), applied at CALL time so it follows
+the active language.
 
 No silent fallback: a missing or malformed file RAISES. A pricing page that
 renders empty because its data vanished is worse than one that fails loudly —
@@ -20,7 +24,7 @@ from __future__ import annotations
 
 import functools
 import json
-from datetime import date, timedelta
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -28,7 +32,9 @@ from django.utils.translation import gettext as _
 
 __all__ = [
     "PRICING_PATH",
+    "coming_soon",
     "format_amount",
+    "format_usd",
     "included_items",
     "load_pricing",
     "published_price_groups",
@@ -38,21 +44,18 @@ __all__ = [
 
 PRICING_PATH = Path(__file__).resolve().parent / "data" / "pricing.json"
 
-# How a unit renders in front of the amount. English is the i18n SOURCE; JA
-# (and any future locale) is a catalog translation, applied at CALL time so it
-# follows the active language (gettext at import time would freeze to English).
+# The suffix a unit adds after the amount. Deliberately NOT translated: the
+# public price reads "$19/mo" in both languages (landing tests pin that).
 # An unknown unit raises rather than rendering a bare number that could be read
 # as monthly, one-off or hourly by whoever is looking.
-
-
-def _unit_prefix(unit: str) -> str:
-    if unit == "month":
-        return _("Monthly") + " "
-    if unit == "per_case":
-        return _("One-off") + " "
-    if unit == "per_hour":
-        return _("Hourly") + " "
-    return ""
+_UNIT_SUFFIX = {
+    "once": "",
+    "per_case": "",
+    "month": "/mo",
+    "year": "/year",
+    "per_hour": "/hr",
+    "per_project": "/project",
+}
 
 
 def load_pricing() -> dict[str, Any]:
@@ -74,93 +77,98 @@ def load_pricing() -> dict[str, Any]:
     return data
 
 
-def format_amount(amount: int, unit: str = "once", from_price: bool = False) -> str:
-    """Render one amount the single agreed way.
+def format_usd(amount: int | float) -> str:
+    """One USD amount: ``$2,400`` for whole dollars, ``$0.10`` / ``$0.005`` for
+    rates (at least two decimals, more only when the SSOT needs them)."""
+    if isinstance(amount, int):
+        return f"${amount:,}"
+    text = f"{amount:,.3f}".rstrip("0")
+    whole, _sep, frac = text.partition(".")
+    return f"${whole}.{frac.ljust(2, '0')}"
 
-    ``0`` is free rather than "¥0" — and it is free regardless of unit.
-    English is the source; each pattern is a catalog string so JA renders the
-    conventional 月額/円 form. ``from_price`` appends "+" (and up).
+
+def format_amount(amount: int | float, unit: str = "once", from_price: bool = False) -> str:
+    """Render one plan/service price the single agreed way.
+
+    ``0`` is "Free" regardless of unit. ``from_price`` renders the floor form
+    ("from $2,000"; JA 「$2,000〜」).
     """
-    if amount == 0:
-        return _("Free")
-    if unit not in ("month", "once", "per_case", "per_hour"):
+    if unit not in _UNIT_SUFFIX:
         raise ValueError(
             f"unknown price unit {unit!r} in pricing.json; expected one of "
-            "['month', 'once', 'per_case', 'per_hour']. Add the unit here "
-            "deliberately rather than letting it render as a bare number."
+            f"{sorted(_UNIT_SUFFIX)}. Add the unit here deliberately rather "
+            "than letting it render as a bare number."
         )
-    base = _unit_prefix(unit) + _yen(amount)
-    return base + "+" if from_price else base
+    if amount == 0:
+        return _("Free")
+    base = format_usd(amount) + _UNIT_SUFFIX[unit]
+    return _("from %(price)s") % {"price": base} if from_price else base
 
 
-# How one upstream attribute of a published row reads to a visitor. Keys are
-# business.yaml's attribute names, copied verbatim into pricing.json; the
-# phrasing is this module's, because prose written for a planning document is
-# not customer copy. English is the source; JA in the catalog (applied at call
-# time). Every value form is enumerated, so a value this table has not seen
-# fails the test that renders the whole catalogue instead of reaching a legal
-# page untranslated.
-_TRAFFIC = {"normal-use": "traffic"}
-_OVERAGE = {"metered": "overage"}
-_LIMIT_SET_BY = {"user": "cap"}
+def coming_soon(text: str) -> str:
+    """Label a feature that is not live yet (EN "(Coming soon)", JA 「（近日提供）」)."""
+    return _("%(text)s (Coming soon)") % {"text": text}
+
+
+# How one attribute of a published row reads to a visitor. Every value form is
+# enumerated, so a value this table has not seen fails the test that renders
+# the whole catalogue instead of reaching a legal page untranslated.
 
 
 def _storage_text(value: dict[str, Any], basis: str = "") -> str:
-    kind = f" ({value['type']})" if value.get("type") else ""
-    if basis == "per_project":
-        return _(
-            "%(amount)s GB storage per project per month%(kind)s"
-        ) % {"amount": f"{value['amount']:,}", "kind": kind}
-    return _("%(amount)s GB storage per month%(kind)s") % {
+    return _("%(amount)s GB %(tier)s storage included") % {
         "amount": f"{value['amount']:,}",
-        "kind": kind,
+        "tier": value.get("tier", "Cool"),
     }
 
 
 def _credit_text(value: dict[str, Any], basis: str = "") -> str:
-    # USD primary (operator 2026-09-12: "use dollars, never yen"). Every
-    # published row carries a usd_amount; the JPY equivalent stays on the
-    # tokushoho legal reference, not in this benefit line.
-    usd = value.get("usd_amount")
-    if usd is not None:
-        return _("$%(amt)s compute credit") % {"amt": f"{usd:,}"}
-    amount = f"{value['amount']:,}"
-    if basis == "per_project":
-        return _("%(amount)s yen-equivalent compute credit per project per month") % {
-            "amount": amount
-        }
-    return _("%(amount)s yen-equivalent compute credit per month") % {"amount": amount}
+    text = _("%(amt)s compute credit per billing cycle") % {
+        "amt": format_usd(value["amount"])
+    }
+    return coming_soon(text) if value.get("coming_soon") else text
 
 
-def _traffic_text(key: str) -> str:
-    if key == "normal-use":
-        return _("Traffic within normal use")
-    raise ValueError(f"unknown included_traffic value {key!r}")
+def _trial_text(value: dict[str, Any]) -> str:
+    # The trial compute credit is a compute credit, which is not live yet.
+    return _(
+        "%(days)s-day free trial with %(storage)s GB Cool storage "
+        "and a %(credit)s trial compute credit (credit: Coming soon)"
+    ) % {
+        "days": value["days"],
+        "storage": value["storage_gb"],
+        "credit": format_usd(value["compute_credit"]),
+    }
+
+
+def _egress_text(value: dict[str, Any]) -> str:
+    return _(
+        "%(amount)s GB internet egress per billing cycle; ingress and "
+        "internal SciTeX traffic are free"
+    ) % {"amount": value["amount"]}
 
 
 def _overage_text(key: str) -> str:
     if key == "metered":
-        return _("Overage is metered")
+        return _("Storage and egress above the included amounts are metered")
     raise ValueError(f"unknown overage value {key!r}")
 
 
 def _limit_set_by_text(key: str) -> str:
     if key == "user":
-        return _("Monthly cap set by the user")
+        return coming_soon(_("Monthly spending cap set by the user"))
     raise ValueError(f"unknown monthly_limit_set_by value {key!r}")
 
 
 def _eligibility_text(value: str) -> str:
-    # The value is SSoT data (English-source), so translate it too; a value
-    # with no catalog entry returns unchanged (the source string), which is
-    # the correct behaviour for an English default.
     return _("Eligibility: %(v)s") % {"v": _(value)}
 
 
 _ATTRIBUTE_TEXT = {
+    "free_trial": _trial_text,
     "included_storage": _storage_text,
     "included_compute_credit": _credit_text,
-    "included_traffic": _traffic_text,
+    "included_egress": _egress_text,
     "overage": _overage_text,
     "monthly_limit_set_by": _limit_set_by_text,
     "eligibility": _eligibility_text,
@@ -170,13 +178,9 @@ _ATTRIBUTE_TEXT = {
 def included_items(attributes: dict[str, Any], basis: str = "") -> list[str]:
     """What a row includes, one short phrase per attribute, in catalogue order.
 
-    Raises on an attribute name or value this module does not know: the
-    catalogue is committed with the code that renders it, and the test that
-    renders every row turns an unknown upstream field into a red CI rather
-    than a silently shorter legal page.
-
-    ``basis`` (e.g. "per_project") is threaded into the storage/credit
-    phrasings so the included-list matches the dedicated columns.
+    Raises on an attribute name this module does not know: the catalogue is
+    committed with the code that renders it, so an unknown field is a red CI
+    rather than a silently shorter legal page.
     """
     text = dict(_ATTRIBUTE_TEXT)
     if basis:
@@ -193,140 +197,6 @@ def included_items(attributes: dict[str, Any], basis: str = "") -> list[str]:
     return items
 
 
-def _active_window(
-    policy: str, policies: dict[str, Any], today: date
-) -> dict[str, Any] | None:
-    """The discount window of ``policy`` that covers ``today``, or None.
-
-    Selection is BY DATE, as the business engine does it (business, 2026-09-03
-    06:54Z, having read config.py: ``Price.from_mapping`` takes the phase whose
-    dates cover the day; ``status`` only marks which single phase is current
-    and may not be set on two at once). The taper 50 → 30 → 10 is a settled
-    business decision (operator, Telegram 6913), so a later window is not a
-    plan — it is the price from its first day.
-    """
-    if policy not in policies:
-        raise ValueError(
-            f"pricing.json row cites policy {policy!r} but pricing_policies does "
-            "not define it; copy the schedule from business.yaml."
-        )
-    day = today.isoformat()
-    covering = [
-        w for w in policies[policy]["schedule"] if w["start"] <= day <= w["end"]
-    ]
-    if len(covering) > 1:
-        raise ValueError(
-            f"pricing.json policy {policy!r} has {len(covering)} windows covering "
-            f"{day} ({[w['label'] for w in covering]}); windows must not overlap — "
-            "fix the schedule upstream (business.yaml) rather than letting the "
-            "page pick one."
-        )
-    return covering[0] if covering else None
-
-
-def _discounted(list_amount: int, percent: int) -> int:
-    scaled = list_amount * (100 - percent)
-    if scaled % 100:
-        raise ValueError(
-            f"{list_amount} at {percent}% off is not a whole yen; the rounding is "
-            "a pricing decision that belongs in business.yaml, not here."
-        )
-    return scaled // 100
-
-
-def _until_text(end: str) -> str:
-    """Localized early-adopter window end. EN msgid shows the English month
-    name ('End of July 2027'); the JA catalog re-renders the same date from the
-    numeric %(month_num)s/'%(day)s keys it also receives ('2027年7月末'). Python
-    % formatting tolerates the extra key, so the EN and JA msgstrs can differ
-    without the msgid changing."""
-    last = date.fromisoformat(end)
-    d = {
-        "month": last.strftime("%B"),
-        "month_num": last.month,
-        "day": last.day,
-        "year": last.year,
-    }
-    if (last + timedelta(days=1)).day == 1:
-        return _("End of %(month)s %(year)s") % d
-    return _("%(month)s %(day)s, %(year)s") % d
-
-
-def _yen(amount: int) -> str:
-    """A yen amount, currency mark localized: ¥2,980 (EN) / 2,980円 (JA)."""
-    return _("¥%(amt)s") % {"amt": f"{amount:,}"}
-
-
-def _format_included_storage(attrs: dict[str, Any], basis: str = "") -> str:
-    """「50 GB / 月」(per account) or 「50 GB / プロジェクト / 月」(per project)."""
-    s = attrs.get("included_storage")
-    if not isinstance(s, dict):
-        return ""
-    amount, unit = s.get("amount"), s.get("unit", "")
-    if amount is None:
-        return ""
-    unit = str(unit)
-    per = " / プロジェクト" if basis == "per_project" else ""
-    if "month" in unit.lower():
-        return f"{amount:,} GB{per} / 月"
-    return f"{amount:,}{per}".strip()
-
-
-def _format_compute_credit(attrs: dict[str, Any], basis: str = "") -> str:
-    """「¥1,000相当 / 月」(per account) or 「¥1,000相当 / プロジェクト / 月」."""
-    c = attrs.get("included_compute_credit")
-    if not isinstance(c, dict):
-        return ""
-    amount, unit = c.get("amount"), c.get("unit", "")
-    if amount is None:
-        return ""
-    base = f"¥{amount:,}"
-    per = " / プロジェクト" if basis == "per_project" else ""
-    if "month" in str(unit).lower():
-        return f"{base}相当{per} / 月"
-    return base
-
-
-def _format_overage(attrs: dict[str, Any]) -> str:
-    """超過計算の表現。SSOT は料金を未確定（'料金確定後に別ページで案内'）なので、
-    従量であることだけを示し、金額は捏造しない。metered → 「従量課金（超過分のみ）」。"""
-    ov = attrs.get("overage", "")
-    if str(ov).lower() == "metered":
-        return "従量課金（超過分のみ）"
-    return ""
-
-
-def _staged_price_note(
-    policy: str, policies: dict[str, Any], window: dict[str, Any], list_amount: int
-) -> str:
-    """The sentence a discounted row carries: the current window only.
-
-    EN source: "List price ¥2,980, early-adopter discount 50%. Early-adopter
-    price through end of July 2027." JA in the catalog:
-    "定価 2,980円、早期導入割引 50%。2027年7月末までの早期導入価格。"
-
-    The LATER stages (2027年8月から 2,086円、2028年8月から …) were originally
-    disclosed up front (2026-09-03, 景表法 dual-price protection), but the
-    operator ruled 2026-09-10 that future years should not be shown — the 定価
-    is already its own column, so the trailing schedule is dropped. Only the
-    active window's end date remains.
-    """
-    return _(
-        "List price %(price)s, early-adopter discount %(percent)d%%. "
-        "Early-adopter price through %(until)s."
-    ) % {
-        "price": _yen(list_amount),
-        "percent": window["percent"],
-        "until": _until_text(window["end"]),
-    }
-
-
-def _render(row: dict[str, Any]) -> str:
-    return format_amount(
-        row["amount"], row.get("unit", "once"), row.get("from_price", False)
-    )
-
-
 def remarks_items(
     attrs: dict[str, Any],
     basis: str = "",
@@ -336,12 +206,9 @@ def remarks_items(
 ) -> list[str]:
     """備考 cell: the included list MINUS attributes that have their own column.
 
-    Pulled out of the row builder so it can be exercised with a SYNTHETIC
-    attribute set — which is the only way to test the case that matters: a row
-    whose attributes are ALL dedicated (storage / compute credit / overage) and
-    which therefore has an EMPTY 備考. If that emptiness is papered over by a
-    template fallback to the full included list, every dedicated column is
-    repeated in 備考 — the duplication this function exists to prevent.
+    A row whose attributes are ALL dedicated (storage / compute credit /
+    overage) has an EMPTY 備考 by design; a template fallback to the full
+    included list would repeat every dedicated column there.
     """
     column_texts = {
         "included_storage": storage_text,
@@ -352,30 +219,14 @@ def remarks_items(
     return included_items({k: v for k, v in attrs.items() if k not in drop}, basis)
 
 
-def _usd_price(amount: int, unit: str, from_price: bool) -> str:
-    """A USD price, the single public-facing currency (operator 2026-09-12:
-    "use dollars, never use yen"). ``amount`` is the USD figure. ``from_price``
-    (e.g. on-prem setup) renders "from $X"."""
-    base = _("$%(amt)s") % {"amt": f"{amount:,}"}
-    if unit == "month":
-        base += _("/mo")
-    elif unit == "per_hour":
-        base += _("/hr")
-    return (_("from ") + base) if from_price else base
-
-
 def get_usd_jpy_rate() -> dict:
     """The live USD→JPY rate, fetched from a public FX API, cached for 60 min.
 
-    The tokushoho page shows the yen figure as a DERIVED REFERENCE
-    (operator 2026-09-12: "price_jpy should be artifacts … USD is the SSoT;
-    the referential yen must be calculated from the latest ratio and explained
-    how to calculated"). We compute it from the current rate rather than
-    storing a fixed JPY value. If the API is unreachable the rate is ``None``
-    and the caller falls back to the SSoT JPY list amount so the legal page
-    still shows a yen reference (and the page never 500s).
-
-    A module-level 60-minute cache avoids a network call on every page load.
+    The tokushoho page shows the yen figure as a DERIVED REFERENCE (operator
+    2026-09-12: USD is the SSoT; the referential yen is calculated from the
+    latest rate and the method is explained on the page). If the API is
+    unreachable the rate is ``None`` and the reference column shows "—":
+    there is no stored yen amount to fall back to.
     """
     import time
 
@@ -395,7 +246,7 @@ def get_usd_jpy_rate() -> dict:
             "as_of": data.get("time_last_update_utc", ""),
             "source": "open.er-api.com",
         }
-    except Exception:  # noqa: BLE001 — any failure degrades to the SSoT JPY
+    except Exception:  # noqa: BLE001 — any failure degrades to "—"
         result = {"rate": None, "as_of": "", "source": ""}
     _FX_RATE_CACHE = (now, result)
     return result
@@ -406,234 +257,118 @@ _FX_RATE_CACHE: tuple | None = None
 
 def usd_to_jpy(usd_amount: int, rate: float) -> int:
     """Convert a USD amount to yen at the given rate, rounded to the nearest
-    10 yen (a clean reference figure: $19 × 153.76 → ¥2,921 → ¥2,920)."""
+    10 yen (a clean reference figure)."""
     return int(round(usd_amount * rate / 10.0)) * 10
 
 
 def annotate_jpy_reference(rows: list[dict], rate: float | None) -> list[dict]:
     """Attach a computed ``price_jpy`` to each row, from the live rate.
 
-    USD is the SSoT; the yen is a derived reference. With a rate, each row's
-    yen = round(usd_amount × rate) to the nearest 10 yen. Without a rate
-    (FX API unreachable) it falls back to the SSoT list amount so the legal
-    page always shows a yen reference. Mutates and returns ``rows``.
+    Free rows and an unavailable rate both show "—". Mutates and returns rows.
     """
     for row in rows:
         usd = row.get("usd_amount")
         prefix = "〜" if row.get("is_from_price") else ""
         if rate and usd:
-            jpy = usd_to_jpy(usd, rate)
-            row["price_jpy"] = f"{prefix}{jpy:,}円"
+            row["price_jpy"] = f"{prefix}{usd_to_jpy(usd, rate):,}円"
         else:
-            row["price_jpy"] = f"{prefix}{row.get('_jpy_list', '—')}"
+            row["price_jpy"] = "—"
     return rows
 
 
 def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
     """The price list the 特定商取引法 page publishes, formatted, gated by date.
 
-    Reads ``published_prices`` from pricing.json — the operator's current
-    catalogue (upstream: scitex-kk/config/business.yaml), tax-included by
-    ruling of 2026-09-03.
-
-    ``withheld`` (a stated reason) hides a row whose amount is settled but
-    whose presentation is not — added 2026-09-02 when the two subscription
-    rows turned out to be LIST prices under an active 50% launch discount,
-    so neither the list price nor a struck-through pair could go on a legal
-    page without an operator ruling. The row stays in the catalogue.
-
-    ``available_from`` (YYYY-MM) is a GATE, not a label, and it is the SAME
-    rule the upstream business.yaml uses: published iff set and <= this
-    month. A row dated in the future is part of the catalogue and NOT on the
-    page: a 特商法 page that prices a service which is not yet for sale invites
-    exactly the reviewer query the operator hit while filling in the Stripe
-    activation form. A row with NO date is not for sale at a list price and
-    is excluded. The gate is date-driven so a service becomes visible on its
-    month without a code change — and so the test can prove the gate closes
-    by dating a row ahead of ``today``.
-
-    This replaced ``subscription_rows`` on 2026-09-03. That function rendered
-    ``plans[].subscription`` — Individual 2,980 / Lab 100,000 — and the Lab tier
-    had been RETIRED six days earlier without this file hearing about it. The
-    name changed with the data: these are not subscriptions, they are every
-    priced offer, and a name that says otherwise invites the next person to
-    put the next non-subscription somewhere else.
+    ``available_from`` (YYYY-MM) is a GATE, not a label: published iff set and
+    <= this month. ``withheld`` (a stated reason) hides a row whatever its date
+    says; whitespace is not a hold.
     """
     today = today or date.today()
     this_month = f"{today.year:04d}-{today.month:02d}"
     data = load_pricing()
-    policies = data.get("pricing_policies", {})
     rows = []
     for item in data.get("published_prices", []):
-        # business.yaml's rule, verbatim: published iff available_from is SET
-        # and <= this month. A row with no date is not for sale at a list
-        # price (upstream's usage-billed rows have none), so it is excluded —
-        # the same outcome the export will produce, which is the point. The
-        # test suite requires the field on every hand-entered row, so an
-        # accidental omission fails CI rather than silently hiding a price.
         available_from = item.get("available_from")
         if not available_from or available_from > this_month:
             continue
-        # A settled amount whose PRESENTATION is not settled (e.g. a list
-        # price that is never the selling price during an active discount).
-        # Stated reason, never a bare flag; whitespace is not a hold.
         if str(item.get("withheld", "")).strip():
             continue
         unit = item.get("unit", "once")
         from_price = item.get("from_price", False)
-        # `amount` is the LIST price. A row under a discount policy sells at
-        # the price of the window covering today and states, up front, the
-        # list price, the discount, when the window ends and every later
-        # stage (business, 2026-09-03 06:54Z, lifting the 00:02Z hold after
-        # reading the engine: windows are selected by date; the 50→30→10 taper
-        # is a settled business decision, operator Telegram 6913). Disclosing
-        # all stages first is what makes 「定価」 a stated future price rather
-        # than a 景表法 dual-price claim; a struck-through pair stays out.
-        amount, price_note = item["amount"], ""
-        list_price_str = ""
-        discount_str = ""
-        if item.get("policy"):
-            window = _active_window(item["policy"], policies, today)
-            if window is not None:
-                list_amount = amount
-                amount = _discounted(list_amount, window["percent"])
-                # The "List price ¥X, early-adopter discount…" note is a JPY
-                # promo detail — dropped 2026-09-12 (operator: the card shows
-                # the clean USD price; the ¥ figure lives only as the legal
-                # reference). The discounted `amount` is still applied.
-                price_note = ""
-                # 定価 (list price) is USD: the SSoT `amount` is JPY list, so
-                # derive the USD list from the USD sale price and the active
-                # discount (sale = list × (1 − pct)). E.g. $19 at 50% → $38.
-                # Rendered struck-through on the page next to the green sale
-                # price (operator 2026-09-13: use strikethrough, not a JPY note).
-                usd_sale = item.get("usd_amount")
-                if usd_sale and window["percent"]:
-                    usd_list = int(round(usd_sale / (1 - window["percent"] / 100)))
-                    list_price_str = _usd_price(usd_list, unit, False)
-                else:
-                    list_price_str = ""
-                discount_str = f"{window['percent']}% OFF"
         basis = item.get("basis", "")
         attrs = item.get("attributes", {})
-        # DEDICATED COLUMNS RENDER THE *INCLUDED* PHRASINGS.
-        #
-        # These were built by a SECOND family of formatters
-        # (_format_included_storage / _format_compute_credit / _format_overage)
-        # that phrase the same attribute DIFFERENTLY from included_items(): the
-        # column said "50 GB / プロジェクト / 月" while the included list said
-        # "ストレージ 50GB/プロジェクト/月（Standard）". Because the 備考 cell
-        # deliberately EXCLUDES these attributes (they have their own column —
-        # see _drop below), the included phrasing rendered NOWHERE and the page
-        # under-reported what the plan includes.
-        #
-        # One attribute, one string, from ONE function: each column now takes its
-        # text from the same registry included_items() uses, so the two cannot
-        # drift and the text appears EXACTLY ONCE, in its own column. The 備考
-        # exclusion is untouched — that is what keeps it from appearing twice.
+        # One attribute, one string, from ONE function: each dedicated column
+        # takes its text from the same registry included_items() uses, and the
+        # 備考 cell excludes those attributes so nothing is stated twice.
         storage_str = (
             _storage_text(attrs["included_storage"], basis)
             if "included_storage" in attrs
-            else _format_included_storage(attrs, basis)
+            else ""
         )
         credit_str = (
             _credit_text(attrs["included_compute_credit"], basis)
             if "included_compute_credit" in attrs
-            else _format_compute_credit(attrs, basis)
+            else ""
         )
-        overage_str = (
-            _overage_text(attrs["overage"]) if "overage" in attrs else ""
-        )
-        included = included_items(attrs, basis)
-        # 備考 cell: the included-list minus items that already have their own
-        # column (ストレージ / 計算クレジット / 超過計算) — otherwise the tokushoho
-        # table repeats the same numbers twice (operator 2026-09-10). Drop by
-        # source attribute key, not by rendered-string match. Extracted so a
-        # SYNTHETIC all-dedicated row is testable (see remarks_items).
-        remarks = remarks_items(attrs, basis, storage_str, credit_str, overage_str)
-        # Public price is USD (operator 2026-09-12: "use dollars, never yen").
-        # The JPY equivalent is a DERIVED ARTIFACT computed by the tokushoho
-        # view from the live exchange rate — it is NOT stored in the SSoT.
-        # (Removing the old price_jpy = _yen(item["amount"]) so the row dict
-        #  no longer carries a hard-coded yen value.)
-        usd_amount = item.get("usd_amount")
-        if usd_amount is not None:
-            price_str = _usd_price(usd_amount, unit, from_price)
-        else:
-            price_str = format_amount(amount, unit, from_price)
+        overage_str = _overage_text(attrs["overage"]) if "overage" in attrs else ""
         rows.append(
             {
                 "id": item["id"],
                 "label": item["label"],
-                "price": price_str,
-                "list_price": list_price_str,
-                "discount": discount_str,
-                "price_note": price_note,
+                "price": format_amount(item["amount"], unit, from_price),
+                "price_note": "",
                 "storage": storage_str,
                 "compute_credit": credit_str,
                 "overage": overage_str,
-                "included": included,
-                "remarks": remarks,
-                "usd_amount": item.get("usd_amount"),
-                # Whether this is a floor price ("from $X") — the tokushoho
-                # yen reference prefixes "〜" for these.
-                "is_from_price": bool(item.get("from_price", False)),
-                # SSoT JPY list amount, used ONLY as the yen-reference fallback
-                # when the live FX rate is unavailable (the reference is normally
-                # computed from usd_amount × the live rate, not this value).
-                "_jpy_list": (_yen(item["amount"]) if item.get("amount") else "—"),
-                # Pass-through of the upstream catalogue's descriptive fields, so
-                # /services/ can describe an offer in business.yaml's words.
+                "included": included_items(attrs, basis),
+                "remarks": remarks_items(attrs, basis, storage_str, credit_str, overage_str),
+                "usd_amount": item["amount"],
+                # A floor price ("from $X"); the yen reference prefixes 〜.
+                "is_from_price": bool(from_price),
                 "category": item.get("category", "service"),
                 "description": item.get("description", ""),
                 "basis": basis,
-                "attributes": item.get("attributes", {}),
+                "attributes": attrs,
                 "price_is_floor": bool(item.get("price_is_floor", False)),
             }
         )
     return rows
 
 
-def published_price_groups(today: date | None = None) -> list[dict[str, Any]]:
-    """published_price_rows() grouped by category, in catalogue order.
+_CATEGORY_LABELS = {"subscription": "サブスク", "license": "ライセンス", "service": "サービス"}
 
-    Category labels are the upstream's own words (business.yaml `category`),
-    rendered in Japanese exactly as the operator's price table does: the
-    subscriptions are the サブスク rows; everything else is a サービス. The
-    template gets a list, not a dict, so category order is the JSON order and
-    not whatever a dict happens to iterate in.
-    """
-    labels = {"subscription": "サブスク", "service": "サービス"}
+
+def published_price_groups(today: date | None = None) -> list[dict[str, Any]]:
+    """published_price_rows() grouped by category, in catalogue order."""
     groups: list[dict[str, Any]] = []
     for row in published_price_rows(today=today):
         cat = row["category"]
-        if cat not in labels:
+        if cat not in _CATEGORY_LABELS:
             raise ValueError(
                 f"published_prices row {row['id']!r} has category {cat!r}; "
-                f"expected one of {sorted(labels)}. Add the category here "
+                f"expected one of {sorted(_CATEGORY_LABELS)}. Add the category here "
                 "deliberately rather than letting it render unlabelled."
             )
         group = next((g for g in groups if g["category"] == cat), None)
         if group is None:
-            group = {"category": cat, "label": labels[cat], "rows": []}
+            group = {"category": cat, "label": _CATEGORY_LABELS[cat], "rows": []}
             groups.append(group)
         group["rows"].append(row)
     return groups
 
 
 def tier_rows(today: date | None = None) -> list[dict[str, Any]]:
-    """The /services/ tiers with their cited prices resolved and date-gated.
+    """The plan groups with their cited prices resolved and date-gated.
 
     A tier cites published_prices ids rather than carrying amounts, so the
-    tier copy can never disagree with the price list — the drift that put a
-    retired Lab tier, priced, on /services/ for five days after business
-    retired it. A dangling id raises: a tier card that silently shows no price
-    reads as free.
+    tier copy can never disagree with the price list. A dangling id raises: a
+    tier card that silently shows no price reads as free.
     """
     rows_by_id = {r["id"]: r for r in published_price_rows(today=today)}
-    catalogue_ids = {r["id"] for r in load_pricing().get("published_prices", [])}
+    data = load_pricing()
+    catalogue_ids = {r["id"] for r in data.get("published_prices", [])}
     tiers = []
-    for tier in load_pricing().get("tiers", []):
+    for tier in data.get("tiers", []):
         resolved = []
         for rid in tier.get("rows", []):
             if rid not in catalogue_ids:

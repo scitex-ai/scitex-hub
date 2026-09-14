@@ -14,6 +14,7 @@
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/tokushoho.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/pricing-rate-card.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="container py-4">
@@ -120,13 +121,7 @@
                             <tr>
                                 <td>{{ row.label|translate_dynamic }}</td>
                                 <td class="price-cell">
-                                    {% if row.list_price %}
-                                        <s class="tokushoho-list-price">{{ row.list_price }}</s>
-                                        <span class="tokushoho-sale-price">{{ row.price }}</span>
-                                        <span class="tokushoho-discount-badge">{{ row.discount }}</span>
-                                    {% else %}
-                                        <span class="tokushoho-sale-price">{{ row.price }}</span>
-                                    {% endif %}
+                                    <span class="tokushoho-sale-price">{{ row.price }}</span>
                                 </td>
                                 <td class="muted-cell">{{ row.price_jpy }}</td>
                                 <td class="muted-cell">{{ row.storage|default:"—" }}</td>
@@ -160,8 +155,10 @@
                         {% endif %}
                     </p>
                     <p>
-                        {% trans "Overage: we bill only for compute and storage that exceed the monthly cap you set. The per-unit billing rate is notified separately once pricing is finalized." %}
+                        {% trans "Overage: storage and internet egress above the amounts included in a plan are metered at the rate card below. Compute credit, the user-set monthly spending cap, and GPU / external compute billing are coming soon. There is no contractual SLA during beta." %}
                     </p>
+                    <h3 class="price-table-heading">{% trans "Metered rates (storage, network, compute)" %}</h3>
+                    {% include "public_app/pricing_partials/rate_card.html" %}
                     {% endif %}
             </div>
         </div>
@@ -174,7 +171,7 @@
                         <tr>
                             <th>{% trans "Fees other than the price" %}</th>
                             <td>
-                                {% trans "Consumption tax (all displayed prices are tax-inclusive). Internet connection and communication costs required to use this service are at the customer's expense. For in-person consulting, travel and fees are at the customer's expense." %}
+                                {% trans "Consumption tax (all displayed prices are tax-inclusive). Internet connection and communication costs required to use this service are at the customer's expense. In-person travel and extraordinary expenses are quoted separately and are at the customer's expense." %}
                             </td>
                         </tr>
                         <tr>
@@ -190,12 +187,12 @@
                             <td>
                                 {% trans "Subscription (recurring billing): at signup you register an email address and a credit/debit card. The 30 days after registration are a free trial. If you choose to continue during the trial, the first 30 days are billed retroactively from the registration date, and thereafter you are billed on the monthly renewal date. If you do not continue, the registered email and card details are retained in our database and discarded after 7 days. One 30-day trial may be used per email address or card." %}
                                 <br>
-                                {% trans "Pay-per-use (on-premises setup support, contract development, consulting): after a quote and contract, payment is due by the date stated on the invoice (card or bank transfer). On-premises maintenance (monthly): payment is due by the date stated on each monthly invoice." %}
+                                {% trans "Pay-per-use (Self-Hosted setup support, custom development, consulting): after a quote and contract, payment is due by the date stated on the invoice (card or bank transfer). Self-Hosted maintenance support (monthly) and Commercial License (annual): payment is due by the date stated on each invoice." %}
                             </td>
                         </tr>
                         <tr>
                             <th>{% trans "Service provision timing" %}</th>
-                            <td>{% trans "Subscription: available immediately after signup (card registration) is complete. Setup support, maintenance, contract development and consulting: provided on the schedule agreed at the time of contract." %}</td>
+                            <td>{% trans "Subscription: available immediately after signup (card registration) is complete. Setup support, maintenance support, custom development, consulting and Commercial License: provided on the schedule agreed at the time of contract." %}</td>
                         </tr>
                         <tr>
                             <th>{% trans "Returns and cancellation" %}</th>

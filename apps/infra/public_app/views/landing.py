@@ -109,7 +109,7 @@ def index(request):
     # Cloud (Academic / Non-Academic switcher) + On-Prem (AGPL / Custom).
     sub_rows = _pricing_rows_for_landing()
     onprem_tier = next(
-        (t for t in tier_rows() if t["id"] == "onprem"), None
+        (t for t in tier_rows() if t["id"] == "selfhosted"), None
     )
     context = {
         "ecosystem_versions": _get_ecosystem_versions(),
