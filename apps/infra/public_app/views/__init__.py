@@ -28,7 +28,10 @@ from .landing import index, premium_subscription
 # Billing (Stripe scaffold)
 from .billing import (
     billing_checkout,
+    cancel_subscription,
+    open_billing_portal,
     start_card_setup,
+    start_subscription,
     stripe_webhook,
 )
 
@@ -121,6 +124,9 @@ __all__ = [
     "billing_checkout",
     "start_card_setup",
     "stripe_webhook",
+    "start_subscription",
+    "cancel_subscription",
+    "open_billing_portal",
     # Status
     "server_status",
     "server_status_api",

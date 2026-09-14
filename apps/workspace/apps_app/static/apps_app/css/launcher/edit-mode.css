@@ -74,6 +74,11 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
+/* Held over the dock: the tile fades to show it is leaving the grid. */
+.launcher-grid.edit-mode .launcher-tile.launcher-tile--to-dock {
+  opacity: 0.3;
+}
+
 /* Reduced motion: no wiggle and instant moves, but NEVER an invisible edit
    mode. A bare `animation: none` once removed the only signal that the grid
    had become editable, so a static tilt and a dashed ring mark the tiles. */

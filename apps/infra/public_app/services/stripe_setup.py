@@ -15,7 +15,7 @@ STX-NM001 (no mocks): the Stripe client is an injected collaborator
 ``apps/.../terminal_provider.py`` tests. The real client is produced by
 :func:`build_stripe_client`; tests pass a ``FakeStripeClient`` with the same
 call shapes (``Customer.create`` / ``checkout.Session.create`` /
-``PaymentMethod.retrieve``). No live charge ever happens — setup mode is a
+``SetupIntent.retrieve`` / ``PaymentMethod.retrieve``). No live charge ever happens — setup mode is a
 zero-dollar card validation.
 """
 
@@ -24,6 +24,10 @@ from __future__ import annotations
 import logging
 
 logger = logging.getLogger("scitex")
+
+# Stripe rejects a setup-mode Checkout Session without a currency; USD is the
+# only stored currency in the Services SSOT (data/pricing.json).
+CARD_SETUP_CURRENCY = "usd"
 
 
 def build_stripe_client(secret_key: str | None):
@@ -80,6 +84,7 @@ def start_card_setup(user, *, stripe_client, success_url, cancel_url):
 
     session = stripe_client.checkout.Session.create(
         mode="setup",
+        currency=CARD_SETUP_CURRENCY,
         customer=customer_id,
         # Maps the completed session back to the user without a User migration.
         client_reference_id=str(user.pk),
@@ -98,10 +103,9 @@ def apply_setup_completed(stripe_event, *, stripe_client=None):
     ``PaymentMethod`` row, or ``None`` when the event is not a card setup we
     can attribute.
 
-    ``stripe_client`` is optional: when provided the card's display metadata
-    (brand / last4 / expiry) is fetched from Stripe and stored; when ``None``
-    (e.g. the webhook ran with no secret key) the core row — ids +
-    ``is_usable=True`` — is still persisted, which is the usability signal.
+    ``stripe_client`` is required to persist anything: a completed setup-mode
+    session carries only its ``setup_intent`` id, and the payment method (plus
+    brand / last4 / expiry) has to be read back from Stripe.
     """
     from django.contrib.auth import get_user_model
 
@@ -114,10 +118,15 @@ def apply_setup_completed(stripe_event, *, stripe_client=None):
     if _field(session, "mode") != "setup":
         return None
 
-    pm_id = _field(session, "payment_method")
+    setup_intent_id = _field(session, "setup_intent")
     customer_id = _field(session, "customer")
     user_pk = _field(session, "client_reference_id")
-    if not (pm_id and customer_id and user_pk):
+    if not (setup_intent_id and customer_id and user_pk and stripe_client):
+        return None
+
+    pm_id = _field(stripe_client.SetupIntent.retrieve(setup_intent_id), "payment_method")
+    if not pm_id:
+        logger.warning("setup intent %s has no payment method", setup_intent_id)
         return None
 
     try:
@@ -137,7 +146,7 @@ def apply_setup_completed(stripe_event, *, stripe_client=None):
         },
     )
 
-    if stripe_client is not None and not row.brand:
+    if not row.brand:
         pm = stripe_client.PaymentMethod.retrieve(pm_id)
         card = _field(pm, "card")
         row.brand = _field(card, "brand", "") or ""

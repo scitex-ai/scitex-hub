@@ -44,13 +44,12 @@ SLURM_QUOTAS = {
     "max_memory_gb_per_job": get_int("SCITEX_HUB_QUOTA_SLURM_MAX_MEMORY_GB_PER_JOB", 8),
     "max_runtime_hours": get_int("SCITEX_HUB_QUOTA_SLURM_MAX_RUNTIME_HOURS", 24),
     # Partitions
-    "default_partition": get_str("SCITEX_HUB_QUOTA_SLURM_DEFAULT_PARTITION", "normal"),
-    "allowed_partitions": get_list(
-        "SCITEX_HUB_QUOTA_SLURM_ALLOWED_PARTITIONS", "normal,express,long"
-    ),
+    "default_partition": get_str("SCITEX_HUB_QUOTA_SLURM_DEFAULT_PARTITION", "compute"),
+    "allowed_partitions": get_list("SCITEX_HUB_QUOTA_SLURM_ALLOWED_PARTITIONS", "compute"),
     # Interactive terminal
     "interactive_partition": get_str(
-        "SCITEX_HUB_QUOTA_SLURM_INTERACTIVE_PARTITION", "express"
+        "SCITEX_HUB_SLURM_INTERACTIVE_PARTITION",
+        get_str("SCITEX_HUB_QUOTA_SLURM_INTERACTIVE_PARTITION", "compute"),
     ),
     "interactive_time_limit": get_str(
         "SCITEX_HUB_QUOTA_SLURM_INTERACTIVE_TIME_LIMIT", "04:00:00"

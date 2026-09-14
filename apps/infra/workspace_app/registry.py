@@ -231,11 +231,13 @@ _BUILTIN_MANIFEST_PATHS: list[str] = [
     # public/landing-page infra app and must not double-register as a
     # duplicate workspace module — that broke get_all_modules() uniqueness.
     "workspace/discovery_app/manifest.json",
+    "workspace/slides_app/manifest.json",
     "workspace/docs_app/manifest.json",
     "workspace/apps_app/manifest.json",
     "workspace/console_app/manifest.json",
     "workspace/tools_app/manifest.json",
     "workspace/comms_app/manifest.json",
+    "workspace/files_app/manifest.json",
 ]
 
 # Upstream plugin-app tiles (the package ships its own Django app; hub mounts

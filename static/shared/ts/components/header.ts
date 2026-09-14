@@ -21,13 +21,25 @@ function initializeMobileHamburger(): void {
   // second listener here would toggle the menu twice per tap = dead UI).
   if (btn.hasAttribute("data-inline-handler")) return;
 
+  // Mirrors global_header/hamburger_inline.html (the authoritative wiring).
+  const labelOpen = btn.getAttribute("data-label-open") || "Open menu";
+  const labelClose = btn.getAttribute("data-label-close") || "Close menu";
+  const setState = (open: boolean): void => {
+    menu.classList.toggle("open", open);
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+    btn.setAttribute("aria-label", open ? labelClose : labelOpen);
+    const icon = btn.querySelector("i");
+    if (icon) icon.className = open ? "fas fa-times" : "fas fa-bars";
+  };
+  const close = (returnFocus: boolean): void => {
+    if (!menu.classList.contains("open")) return;
+    setState(false);
+    if (returnFocus) btn.focus();
+  };
+
   btn.addEventListener("click", (e) => {
     e.stopPropagation(); // Prevent header collapse handlers from firing
-    const isOpen = menu.classList.toggle("open");
-    const icon = btn.querySelector("i");
-    if (icon) {
-      icon.className = isOpen ? "fas fa-times" : "fas fa-bars";
-    }
+    setState(!menu.classList.contains("open"));
   });
 
   // Theme toggle inside mobile menu
@@ -38,19 +50,17 @@ function initializeMobileHamburger(): void {
         "theme-toggle",
       ) as HTMLElement;
       if (desktopToggle) desktopToggle.click();
-      menu.classList.remove("open");
-      const icon = btn.querySelector("i");
-      if (icon) icon.className = "fas fa-bars";
+      close(true);
     });
   }
 
   // Close menu when clicking a link
   menu.querySelectorAll("a.mobile-menu-item").forEach((link) => {
-    link.addEventListener("click", () => {
-      menu.classList.remove("open");
-      const icon = btn.querySelector("i");
-      if (icon) icon.className = "fas fa-bars";
-    });
+    link.addEventListener("click", () => close(false));
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") close(true);
   });
 }
 

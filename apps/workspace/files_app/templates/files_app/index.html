@@ -1,0 +1,67 @@
+{% extends "global_base.html" %}
+{% load static i18n vite %}
+{% block title %}{% trans "Files" context "app name" %}{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'files_app/css/files.css' %}">
+{% endblock %}
+{% block content %}
+    <div class="files-app" id="files-app" data-username="{{ username }}">
+        <header class="files-header">
+            <h1 class="files-title">
+                <i class="fas fa-file-lines" aria-hidden="true"></i>
+                {% trans "Files" context "app name" %}
+            </h1>
+            <div class="files-toolbar">
+                <label class="files-btn files-btn-primary" for="files-upload-input">
+                    <i class="fas fa-upload" aria-hidden="true"></i>
+                    <span>{% trans "Upload" %}</span>
+                </label>
+                <input type="file" id="files-upload-input" class="files-hidden-input" multiple>
+                <button type="button" class="files-btn" id="files-new-folder">
+                    <i class="fas fa-folder-plus" aria-hidden="true"></i>
+                    <span>{% trans "New folder" %}</span>
+                </button>
+            </div>
+        </header>
+        <nav class="files-places" aria-label="{% trans 'Places' %}">
+            <button type="button" class="files-place" data-path="">
+                <i class="fas fa-house" aria-hidden="true"></i>{% trans "Home" %}
+            </button>
+            <button type="button" class="files-place" data-path="Downloads">
+                <i class="fas fa-download" aria-hidden="true"></i>{% trans "Downloads" %}
+            </button>
+            <button type="button" class="files-place" data-path="Recordings">
+                <i class="fas fa-video" aria-hidden="true"></i>{% trans "Recordings" %}
+            </button>
+            <button type="button" class="files-place" data-path="proj">
+                <i class="fas fa-folder" aria-hidden="true"></i>{% trans "Projects" %}
+            </button>
+        </nav>
+        <nav class="files-breadcrumb" id="files-breadcrumb" aria-label="{% trans 'Current folder' %}"></nav>
+        <p class="files-status" id="files-status" role="status" aria-live="polite"></p>
+        <div class="files-body">
+            <ul class="files-list" id="files-list" aria-label="{% trans 'Files in this folder' %}"></ul>
+            <section class="files-preview" id="files-preview" hidden aria-label="{% trans 'Preview' %}">
+                <header class="files-preview-header">
+                    <span class="files-preview-name" id="files-preview-name"></span>
+                    <button type="button" class="files-icon-btn" id="files-preview-close" aria-label="{% trans 'Close preview' %}">
+                        <i class="fas fa-xmark" aria-hidden="true"></i>
+                    </button>
+                </header>
+                <div class="files-preview-content" id="files-preview-content"></div>
+            </section>
+        </div>
+        <div class="files-drop-hint" id="files-drop-hint" hidden>{% trans "Drop files to upload here" %}</div>
+        <div class="files-sheet-backdrop" id="files-sheet-backdrop" hidden>
+            <div class="files-sheet" id="files-sheet" role="dialog" aria-modal="true" aria-labelledby="files-sheet-title">
+                <div class="files-sheet-grip" aria-hidden="true"></div>
+                <h2 class="files-sheet-title" id="files-sheet-title"></h2>
+                <div class="files-sheet-body" id="files-sheet-body"></div>
+            </div>
+        </div>
+        {{ files_strings|json_script:"files-strings" }}
+    </div>
+{% endblock %}
+{% block extra_js %}
+    {% vite_script 'files_app/files' %}
+{% endblock %}

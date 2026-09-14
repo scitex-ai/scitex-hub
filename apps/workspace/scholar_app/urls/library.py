@@ -10,6 +10,7 @@ from ..views.annotation import views as annotation_views
 from ..views.export import views as export_views
 from ..views.library import views as library_views
 from ..views.library import zotero_import as zotero_views
+from ..views.library.bibtex_import import api_import_bibtex
 from ..views.trending import views as trending_views
 
 # Citation Export APIs
@@ -68,6 +69,12 @@ library_patterns = [
         "api/library/zotero/import/",
         zotero_views.zotero_import,
         name="api_zotero_import",
+    ),
+    # Library page "Import BibTeX (.bib)" posts here (static/.../library/types.ts)
+    path(
+        "api/import/bibtex/",
+        api_import_bibtex,
+        name="api_import_bibtex",
     ),
     path(
         "api/library/connected-papers/status/",

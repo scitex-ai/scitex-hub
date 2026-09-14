@@ -4,8 +4,9 @@
 """Home grid rows, pages, edit-mode motion and tile badges (operator, 2026-09-14).
 
 Split from test_home_dock_redesign.py (line budget). Pins:
-  * rows of 4 at every width, one group per row, the Stats slot held empty,
-    and a short group leaving its row's remaining cells empty;
+  * rows of 4 at every width, one group per row, no empty cell for the
+    not-yet-built Stats app, and a short group leaving its row's remaining
+    cells empty;
   * page arrows hidden on phones;
   * reorder travel 300-350ms, and reduced motion makes the wiggle stop and
     moves instant;
@@ -15,6 +16,7 @@ Split from test_home_dock_redesign.py (line budget). Pins:
 Real client, real ORM, real templates; no mocks.
 """
 
+import json
 import re
 from html.parser import HTMLParser
 from pathlib import Path
@@ -119,6 +121,13 @@ class HomePagesTest(TestCase):
 
     def setUp(self):
         self.client.force_login(self.user)
+        # These tests pin the layout of a grid holding every app, so only Home stays docked.
+        self.client.get("/apps/")
+        self.client.post(
+            "/apps/store/api/dock/",
+            data=json.dumps({"dock": ["launcher"]}),
+            content_type="application/json",
+        )
 
     def test_home_renders_page_dots_with_desktop_arrows(self):
         # Arrange
@@ -132,21 +141,29 @@ class HomePagesTest(TestCase):
         return self.client.get("/apps/").context["groups"]
 
     def test_groups_come_in_the_operator_order(self):
-        # Operator 2026-09-14: Foundation, Work, System, never interleaved.
+        # Operator 2026-09-14: Foundation, Work, Publish, System, never interleaved.
         # Arrange
         groups = self._groups()
         # Act
         keys = [group["key"] for group in groups]
         # Assert
-        assert keys == ["foundation", "work", "system"]
+        assert keys == ["foundation", "work", "publish", "system"]
 
     def test_foundation_group_holds_the_infrastructure_apps_and_storage(self):
         # Arrange
         groups = self._groups()
         # Act
-        names = [cell.get("name") for cell in groups[0]["cells"]]
+        names = [c.get("name") for c in groups[0]["cells"] if not c.get("is_planned")]
         # Assert
-        assert names == ["home", "discovery", "agents", "todo", "storage"]
+        assert names == ["home", "agents", "todo", "storage", "files"]
+
+    def test_files_placeholder_is_gone_once_the_files_app_exists(self):
+        # Arrange
+        groups = self._groups()
+        # Act
+        names = [c.get("name") for g in groups for c in g["cells"] if c.get("is_planned")]
+        # Assert
+        assert "files" not in names
 
     def test_first_row_is_exactly_the_four_infrastructure_apps(self):
         # Rows of 4 at every width: the first band's first row.
@@ -155,21 +172,67 @@ class HomePagesTest(TestCase):
         # Act
         first_row = [cell.get("name") for cell in groups[0]["cells"][:4]]
         # Assert
-        assert first_row == ["home", "discovery", "agents", "todo"]
+        assert first_row == ["home", "agents", "todo", "storage"]
 
-    def test_work_group_holds_the_stats_slot_between_figrecipe_and_writer(self):
+    def test_missing_stats_app_is_a_coming_soon_tile_not_an_empty_cell(self):
+        # Walkthrough 2026-09-14: the held Stats gap read as a broken grid.
         # Arrange
         groups = self._groups()
         # Act
-        cells = [c.get("slot") or c.get("name") for c in groups[1]["cells"]]
+        cells = [
+            (c.get("name"), bool(c.get("is_planned")))
+            for c in groups[1]["cells"]
+            if not c.get("is_planned") or c.get("name") == "stats"
+        ]
         # Assert
-        assert cells == ["scholar", "figrecipe", "stats", "writer", "chat", "tools"]
+        assert cells == [
+            ("scholar", False),
+            ("figrecipe", False),
+            ("stats", True),
+            ("writer", False),
+            ("chat", False),
+            ("tools", False),
+            ("create-app", False),
+        ]
+
+    def test_home_renders_no_empty_slot_cell(self):
+        # Arrange
+        url = "/apps/"
+        # Act
+        content = self.client.get(url).content
+        # Assert
+        assert b'class="launcher-slot"' not in content
+
+    def test_publish_group_holds_slides_and_public_projects(self):
+        # Proposed 2026-09-14 (Telegram 6040): showing work outside.
+        # Arrange
+        groups = self._groups()
+        # Act
+        names = [c.get("name") for c in groups[2]["cells"] if not c.get("is_planned")]
+        # Assert
+        assert names == ["slides", "discovery"]
+
+    def test_publish_group_holds_the_live_paper_and_agentic_journal_placeholders(self):
+        # Arrange
+        groups = self._groups()
+        # Act
+        planned = [c.get("name") for c in groups[2]["cells"] if c.get("is_planned")]
+        # Assert
+        assert planned == ["live-paper", "agentic-journal"]
+
+    def test_slides_placeholder_is_gone_once_the_slides_app_exists(self):
+        # Arrange
+        groups = self._groups()
+        # Act
+        names = [c.get("name") for g in groups for c in g["cells"] if c.get("is_planned")]
+        # Assert
+        assert "slides" not in names
 
     def test_system_group_holds_settings_docs_and_app_store(self):
         # Arrange
         groups = self._groups()
         # Act
-        names = [cell.get("name") for cell in groups[2]["cells"]]
+        names = [cell.get("name") for cell in groups[3]["cells"]]
         # Assert
         assert names == ["settings", "docs", "store"]
 
@@ -185,6 +248,7 @@ class HomePagesTest(TestCase):
         assert bands == [
             ("foundation", "Foundation"),
             ("work", "Work"),
+            ("publish", "Publish"),
             ("system", "System"),
         ]
 
@@ -208,8 +272,8 @@ class HomePagesTest(TestCase):
         dark = re.findall(r'^\[data-theme="dark"\] \.launcher-group\[data-group="(\w+)"\]\s*\{\s*--launcher-band', css, re.M)
         # Assert
         assert (sorted(light), sorted(dark)) == (
-            ["foundation", "system", "work"],
-            ["foundation", "system", "work"],
+            ["foundation", "publish", "system", "work"],
+            ["foundation", "publish", "system", "work"],
         )
 
     def test_grid_is_four_columns_at_every_width(self):
@@ -219,6 +283,43 @@ class HomePagesTest(TestCase):
         declared = set(re.findall(r"--launcher-cols:\s*(\d+)", css))
         # Assert
         assert declared == {"4"}
+
+    def test_paged_grid_lays_pages_out_in_a_row(self):
+        # Operator iPhone 2026-09-14: swiping did not turn the page. The paged
+        # grid inherited flex-direction: column from .launcher-grid, so the
+        # pages stacked vertically and the scroller had nothing to scroll
+        # sideways (scrollWidth == clientWidth in WebKit and Chromium).
+        # Arrange
+        css = _launcher_css("mobile.css")
+        # Act
+        rule = re.search(r"\.launcher-grid--paged\s*\{([^}]*)\}", css).group(1)
+        # Assert
+        assert re.search(r"flex-direction:\s*row", rule)
+
+    def test_group_label_is_the_bands_aria_label(self):
+        # Arrange
+        css = _launcher_css("grid.css")
+        # Act
+        rule = re.search(r"\.launcher-group\[aria-label\]::before\s*\{([^}]*)\}", css)
+        # Assert
+        assert rule and "attr(aria-label)" in rule.group(1)
+
+    def test_group_label_never_takes_a_grid_cell(self):
+        # Arrange — a grid container's pseudo-element is a grid item unless
+        # it is taken out of flow.
+        css = _launcher_css("grid.css")
+        # Act
+        rule = re.search(r"\.launcher-group\[aria-label\]::before\s*\{([^}]*)\}", css).group(1)
+        # Assert
+        assert re.search(r"position:\s*absolute", rule)
+
+    def test_group_band_carries_its_translated_label(self):
+        # Arrange
+        content = self.client.get("/apps/").content.decode("utf-8")
+        # Act
+        labels = re.findall(r'class="launcher-group" role="group" data-group="(\w+)" aria-label="([^"]+)"', content)
+        # Assert
+        assert dict(labels) == {"foundation": "Foundation", "work": "Work", "publish": "Publish", "system": "System"}
 
     def test_page_arrows_render_hidden(self):
         # Arrange

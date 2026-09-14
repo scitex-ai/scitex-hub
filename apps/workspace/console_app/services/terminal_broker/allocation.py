@@ -72,8 +72,13 @@ class Allocation:
         host_user_dir: Path,
         host_project_dir: Path,
         time_limit_seconds: int = 14400,
+        uid: Optional[int] = None,
+        gid: Optional[int] = None,
     ):
         self.allocation_id = str(uuid.uuid4())
+        self.uid = uid
+        self.gid = gid
+        self.scratch_dir: Optional[Path] = None
         self.username = username
         self.project_slug = project_slug
         self.container_path = container_path
@@ -111,6 +116,14 @@ class Allocation:
         """
         self.state = AllocationState.STARTING
         self.job_id = job_id
+        try:
+            from ._alloc_identity import adopt_compute_identity
+
+            adopt_compute_identity(self)
+        except Exception as e:
+            self.last_error = f"Compute identity unavailable: {e}"
+            self.state = AllocationState.DEAD
+            return False
         logger.info(
             f"Allocation {self.allocation_id[:8]}: attaching to "
             f"existing job {job_id} for {self.username}"
@@ -187,6 +200,9 @@ class Allocation:
                 build_sbatch_cmd,
             )
 
+            from ._alloc_identity import adopt_compute_identity, foreign_bind_error
+
+            adopt_compute_identity(self)
             script_content = build_instance_start_script_cmd(
                 container_path=self.container_path,
                 username=self.username,
@@ -194,7 +210,11 @@ class Allocation:
                 host_project_dir=self.host_project_dir,
                 project_slug=self.project_slug,
                 instance_name=self.instance_name,
+                scratch_dir=self.scratch_dir,
             )
+            bind_error = foreign_bind_error(self, script_content)
+            if bind_error:
+                raise RuntimeError(bind_error)
 
             # 2. Write script to shared volume (accessible by both Docker and host)
             # Docker writes here; sbatch reads from here (Docker path).
@@ -212,6 +232,8 @@ class Allocation:
                 script_path=str(docker_script_path),
                 username=self.username,
                 project_slug=self.project_slug,
+                uid=self.uid,
+                gid=self.gid,
             )
             logger.info(
                 f"Allocation {self.allocation_id[:8]}: submitting sbatch "
@@ -305,6 +327,8 @@ class Allocation:
             instance_name=self.instance_name,
             username=self.username,
             project_slug=project_slug or self.project_slug,
+            uid=self.uid,
+            gid=self.gid,
         )
 
     def check_alive(self) -> bool:
@@ -339,48 +363,20 @@ class Allocation:
 
     def get_failure_reason(self) -> str:
         """Query sacct for the failure reason of this job."""
-        if not self.job_id:
-            return "No SLURM job ID"
-        try:
-            result = subprocess.run(
-                [
-                    "sacct",
-                    "-j",
-                    self.job_id,
-                    "-o",
-                    "State,Reason",
-                    "--noheader",
-                    "--parsable2",
-                ],
-                capture_output=True,
-                text=True,
-                timeout=5,
-            )
-            if result.stdout.strip():
-                line = result.stdout.strip().split("\n")[0]
-                parts = line.split("|")
-                state = parts[0] if parts else "UNKNOWN"
-                reason = parts[1] if len(parts) > 1 else ""
-                return self._format_failure_reason(state, reason)
-        except Exception:
-            pass
-        return "Allocation ended (reason unknown)"
+        from ._diagnostics import sacct_failure_reason
+
+        return sacct_failure_reason(self.job_id)
 
     @staticmethod
     def _format_failure_reason(state: str, reason: str) -> str:
         """Map SLURM job state/reason to a human-readable message."""
-        messages = {
-            "TIMEOUT": "Session time limit reached — restarting automatically",
-            "CANCELLED": "Session was stopped",
-            "FAILED": "Session encountered an error — restarting automatically",
-            "NODE_FAIL": "Server issue — restarting automatically",
-            "PREEMPTED": "Resources needed elsewhere — restarting automatically",
-            "OUT_OF_MEMORY": "Memory limit reached — please reduce memory usage",
-        }
-        return messages.get(state, "Session ended — restarting automatically")
+        from ._diagnostics import format_failure_reason
+
+        return format_failure_reason(state, reason)
 
     def _wait_for_instance(self) -> bool:
         """Poll via srun --overlap until the apptainer instance is ready."""
+        from ..compute_user import as_compute_user
         from ._diagnostics import collect_instance_timeout_diagnostics
 
         deadline = time.time() + INSTANCE_VERIFY_TIMEOUT
@@ -391,15 +387,20 @@ class Allocation:
         last_srun_stderr = ""
         while time.time() < deadline:
             try:
+                # apptainer instances are per-uid; list as the job's owner.
                 result = subprocess.run(
-                    [
-                        "srun",
-                        "--overlap",
-                        f"--jobid={self.job_id}",
-                        "apptainer",
-                        "instance",
-                        "list",
-                    ],
+                    as_compute_user(
+                        [
+                            "srun",
+                            "--overlap",
+                            f"--jobid={self.job_id}",
+                            "apptainer",
+                            "instance",
+                            "list",
+                        ],
+                        self.uid,
+                        self.gid,
+                    ),
                     capture_output=True,
                     text=True,
                     timeout=10,

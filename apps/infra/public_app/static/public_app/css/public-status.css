@@ -112,8 +112,10 @@ body {
   background: var(--ps-green-bg);
 }
 
-.status-banner--degraded {
+.status-banner--degraded,
+.status-banner--partial_outage {
   background: var(--ps-yellow);
+  color: #1f2328;
 }
 
 .status-banner--down {

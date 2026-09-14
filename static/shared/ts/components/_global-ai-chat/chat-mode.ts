@@ -2,6 +2,8 @@
 
 import { readActiveProjectSlug } from "./context";
 import { VoiceRecorder } from "./recorder";
+import { toggleChatMic } from "./mic-toggle";
+import { detectVoiceInputEnv, toggleVoiceInput } from "../voice-input";
 import { speakText } from "./speech";
 import { appendToolTags } from "./tool-tags";
 import { clearMessages, loadMessages, saveMessage } from "./storage";
@@ -490,21 +492,8 @@ export class AIPanelChatMode {
   /* ── Mic / Recording ───────────────────────────────────────── */
 
   toggleRecording(): void {
-    if (!this.recorder) return;
-    if (this.recorder.isRecording) {
-      this.recorder.stop();
-    } else {
-      void this.recorder.start(
-        () => getCsrfToken(),
-        (text) => {
-          if (!this.inputEl) return;
-          const cur = this.inputEl.value.trim();
-          this.inputEl.value = cur ? `${cur} ${text}` : text;
-          this.inputEl.dispatchEvent(new Event("input"));
-          this.inputEl.focus();
-        },
-        () => this.sttModelSelect?.value ?? "",
-      );
-    }
+    toggleChatMic(this.recorder, this.inputEl, this.micBtn, () =>
+      this.sttModelSelect?.value ?? "",
+    );
   }
 }

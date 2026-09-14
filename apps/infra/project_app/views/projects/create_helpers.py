@@ -7,6 +7,7 @@ Utilities for project creation validation and initialization.
 """
 
 import logging
+import re
 
 from django.utils.text import slugify
 
@@ -26,10 +27,23 @@ def get_available_templates():
         return []
 
 
+def _dotted_workspace_tree(tree):
+    """Spell the workspace root as it lands on disk.
+
+    scitex-template's preview still draws ``scitex/`` while the clone writes
+    ``.scitex/`` (the dotted layout scitex-writer publishes).
+    """
+    return re.sub(r"^([^\w.]*)scitex$", r"\1.scitex", tree, flags=re.MULTILINE)
+
+
 def get_template_map():
     """Get templates as a dict keyed by id for direct lookup in templates."""
     templates = get_available_templates()
-    return {t["id"]: t for t in templates}
+    template_map = {t["id"]: dict(t) for t in templates}
+    minimal = template_map.get("minimal")
+    if minimal and minimal.get("tree"):
+        minimal["tree"] = _dotted_workspace_tree(minimal["tree"])
+    return template_map
 
 
 def validate_project_name(request, name):

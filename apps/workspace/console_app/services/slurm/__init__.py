@@ -56,7 +56,7 @@ class SlurmManager:
         container_path: Path,
         workspace: Path,
         job_name: str = "scitex_job",
-        partition: str = "normal",
+        partition: str = "compute",
         cpus: int = 1,
         memory_gb: int = 4,
         time_limit: str = "01:00:00",

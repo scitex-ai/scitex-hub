@@ -18,7 +18,7 @@
                               class="chat-welcome-input"
                               rows="1"
                               placeholder="How can I help you today?"
-                              autocomplete="off"></textarea>
+                              autocomplete="off">{{ request.GET.prompt|default:""|truncatechars:500 }}</textarea>
                     <div class="chat-welcome-input-actions">
                         <button class="chat-welcome-attach" title="Attach file">
                             <i class="fas fa-plus"></i>

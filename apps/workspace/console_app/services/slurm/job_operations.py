@@ -21,7 +21,7 @@ def submit_job(
     container_path: Path,
     workspace: Path,
     job_name: str = "scitex_job",
-    partition: str = "normal",
+    partition: str = "compute",
     cpus: int = 1,
     memory_gb: int = 4,
     time_limit: str = "01:00:00",
@@ -37,7 +37,7 @@ def submit_job(
         container_path: Path to Apptainer .sif file
         workspace: User workspace directory (will be bound to /workspace)
         job_name: Name for the SLURM job
-        partition: SLURM partition (normal/express/long)
+        partition: SLURM partition (e.g. compute)
         cpus: Number of CPUs to allocate
         memory_gb: Memory in GB
         time_limit: Time limit in HH:MM:SS format

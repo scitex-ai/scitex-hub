@@ -22,6 +22,10 @@ from django.shortcuts import redirect, render
 
 from apps.infra.project_app.models import Project
 from apps.infra.project_app.services import get_current_project
+from apps.infra.project_app.services.project_utils import (
+    get_requested_project,
+    remember_current_project,
+)
 from apps.infra.project_app.services.writer_workspace_layout import (
     get_manuscript_path,
 )
@@ -55,7 +59,12 @@ def build_writer_context(request, current_project=None):
     context["user_projects"] = user_projects
 
     if current_project is None:
-        current_project = get_current_project(request, user=request.user)
+        current_project = get_requested_project(request)
+        if current_project:
+            # The project the user just came from beats the last-used one.
+            remember_current_project(request, current_project)
+        else:
+            current_project = get_current_project(request, user=request.user)
 
     if current_project:
         context["current_project"] = current_project

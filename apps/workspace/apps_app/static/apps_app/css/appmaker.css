@@ -1,0 +1,423 @@
+/* + Create app: create page, app workspace, and the reusable agent chat panel. */
+
+.appmaker {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 16px 96px;
+  color: var(--workspace-text-primary);
+}
+
+.appmaker *,
+.appmaker *::before,
+.appmaker *::after {
+  box-sizing: border-box;
+}
+
+.appmaker-narrow {
+  max-width: 680px;
+}
+
+.appmaker-title {
+  margin: 4px 0 4px;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.appmaker-lead {
+  margin: 0 0 20px;
+  color: var(--workspace-text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.appmaker-error {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-danger-emphasis, #cf222e);
+  border-radius: 8px;
+  color: var(--workspace-text-primary);
+  background: var(--workspace-bg-secondary);
+}
+
+.appmaker-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 18px;
+  border: 0;
+  padding: 0;
+}
+
+.appmaker-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.appmaker-help {
+  font-size: 12px;
+  color: var(--workspace-text-secondary);
+}
+
+.appmaker-input,
+.appmaker-textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 16px;
+  color: var(--workspace-text-primary);
+  background: var(--workspace-bg-primary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 8px;
+}
+
+.appmaker-textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.appmaker-starters {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.appmaker-starter {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: 64px;
+  padding: 12px;
+  background: var(--workspace-bg-secondary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.appmaker-starter input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.appmaker-starter:has(input:checked) {
+  border-color: var(--color-accent-emphasis);
+  box-shadow: inset 0 0 0 1px var(--color-accent-emphasis);
+}
+
+.appmaker-starter:has(input:focus-visible) {
+  outline: 2px solid var(--color-accent-emphasis);
+  outline-offset: 2px;
+}
+
+.appmaker-starter-icon {
+  flex: 0 0 32px;
+  font-size: 20px;
+  line-height: 32px;
+  text-align: center;
+  color: var(--color-accent-emphasis);
+}
+
+.appmaker-starter-name {
+  display: block;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.appmaker-starter-hint {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--workspace-text-secondary);
+}
+
+.appmaker-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 16px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--workspace-text-primary);
+  background: var(--workspace-bg-secondary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 8px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.appmaker-btn-primary {
+  color: var(--color-btn-primary-text);
+  background: var(--color-btn-primary-bg);
+  border-color: var(--color-btn-primary-border, var(--color-btn-primary-bg));
+}
+
+.appmaker-btn-primary:hover {
+  background: var(--color-btn-primary-hover-bg, var(--color-btn-primary-bg));
+}
+
+.appmaker-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.appmaker-btn-block {
+  width: 100%;
+}
+
+.appmaker-private-note {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--workspace-text-secondary);
+  text-align: center;
+}
+
+/* Workspace */
+
+.appmaker-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 16px;
+}
+
+.appmaker-head-meta {
+  font-size: 12px;
+  color: var(--workspace-text-secondary);
+}
+
+.appmaker-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.appmaker-action {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 260px;
+}
+
+.appmaker-action-note {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--workspace-text-secondary);
+}
+
+.appmaker-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.appmaker-panel {
+  min-width: 0;
+  background: var(--workspace-bg-secondary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 12px;
+}
+
+.appmaker-panel-title {
+  margin: 0;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--workspace-border-default);
+}
+
+/* Phone: the agent is the main surface, so it comes before the file list. */
+.appmaker-grid > .appmaker-files-panel {
+  order: 2;
+}
+
+.appmaker-files {
+  max-height: 240px;
+  margin: 0;
+  padding: 6px;
+  overflow: auto;
+  list-style: none;
+}
+
+.appmaker-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 10px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 12px;
+  color: var(--workspace-text-primary);
+  text-decoration: none;
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+}
+
+.appmaker-file:hover,
+.appmaker-file:focus-visible {
+  background: var(--workspace-bg-tertiary);
+}
+
+/* Agent chat panel (reusable: any page can include _agent_chat_panel.html). */
+
+.appmaker-chat {
+  display: flex;
+  flex-direction: column;
+  min-height: 420px;
+}
+
+.appmaker-chat-log {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 240px;
+  max-height: 60vh;
+  padding: 12px 14px;
+  overflow-y: auto;
+}
+
+.appmaker-chat-empty {
+  margin: auto 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--workspace-text-secondary);
+}
+
+.appmaker-msg {
+  max-width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  border-radius: 10px;
+}
+
+.appmaker-msg-user {
+  align-self: flex-end;
+  max-width: 85%;
+  background: var(--workspace-bg-tertiary);
+}
+
+.appmaker-msg-assistant {
+  align-self: stretch;
+  background: var(--workspace-bg-primary);
+  border: 1px solid var(--workspace-border-default);
+}
+
+.appmaker-msg-error {
+  border-color: var(--color-danger-emphasis, #cf222e);
+}
+
+.appmaker-code {
+  margin: 8px 0;
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 8px;
+  overflow: hidden;
+  white-space: normal;
+}
+
+.appmaker-code-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 4px 4px 4px 10px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 12px;
+  background: var(--workspace-bg-tertiary);
+}
+
+.appmaker-msg-text {
+  margin: 0;
+}
+
+.appmaker-code-head .appmaker-btn {
+  font-family: var(--font-sans, system-ui, sans-serif);
+}
+
+.appmaker-code-path {
+  overflow-wrap: anywhere;
+}
+
+.appmaker-code pre {
+  max-height: 280px;
+  margin: 0;
+  padding: 10px;
+  overflow: auto;
+  font-size: 12px;
+  white-space: pre;
+}
+
+.appmaker-code-status {
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--workspace-text-secondary);
+}
+
+.appmaker-chat-form {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  border-top: 1px solid var(--workspace-border-default);
+}
+
+.appmaker-chat-form .appmaker-textarea {
+  min-height: 44px;
+  height: 44px;
+}
+
+.appmaker-provider {
+  margin: 14px;
+  padding: 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--workspace-bg-primary);
+  border: 1px dashed var(--workspace-border-default);
+  border-radius: 10px;
+}
+
+.appmaker-provider .appmaker-btn {
+  margin-top: 10px;
+}
+
+@media (min-width: 720px) {
+  .appmaker-starters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 960px) {
+  .appmaker {
+    padding-top: 24px;
+  }
+
+  .appmaker-grid {
+    grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .appmaker-grid > .appmaker-files-panel {
+    order: 0;
+  }
+
+  .appmaker-files {
+    max-height: 60vh;
+  }
+
+  .appmaker-chat-log {
+    min-height: 360px;
+  }
+}

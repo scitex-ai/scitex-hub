@@ -26,17 +26,20 @@ from __future__ import annotations
 # width so an app sits at the same position on every device. Apps are grouped,
 # each group starts a new row and gets a soft colour band, and a group's last
 # row keeps its empty cells rather than pulling the next group's app up:
-#   FOUNDATION (基盤): My Projects, Public Projects, Agents, Cards, Storage
-#   WORK (作業):       Scholar, FigRecipe, Stats (reserved), Writer, Chat, Tools
+#   FOUNDATION (基盤): My Projects, Agents, Cards, Storage, Files
+#   WORK (作業):       Scholar, FigRecipe, (Stats), Writer, Chat, Tools
+#   PUBLISH (発信):    Slides, Public Projects — showing work outside
+#                      (proposed 2026-09-14, Telegram 6040; pending operator)
 #   SYSTEM (システム): Settings, Docs, App Store
 # Within a group the order is the operator's earlier order (infrastructure,
 # then Scholar-FigRecipe-Stats-Writer, then Chat/Settings/Tools, then
-# Docs/App Store/Storage). No visible labels yet; each group carries
-# role="group" and an aria-label, so labels are one CSS change away.
+# Docs/App Store/Storage). Each group carries role="group" and a translated
+# aria-label, which launcher/grid.css also shows as the band's visible label.
 #
-# "stats" holds its slot although no Stats app exists yet (another agent is
-# building it): its cell stays empty, and the day the module lands it fills
-# that cell without touching this list. Give its manifest "order": 27
+# "stats" keeps its position although no Stats app exists yet: until it lands
+# it is a visible Coming-soon tile (planned_apps.py), never an empty cell — an
+# unexplained gap read as a broken grid in the 2026-09-14 walkthrough. The day
+# the module lands it takes that position without touching this list. Give its manifest "order": 27
 # (figrecipe is 25, writer 30). Chat and Settings are link tiles
 # (services/launcher_links.py). Console and Clew opt out of the grid via
 # show_in_launcher=false.
@@ -56,7 +59,7 @@ LAUNCHER_GROUPS: tuple[LauncherGroup, ...] = (
     LauncherGroup(
         "foundation",
         "Foundation",
-        ("home", "discovery", "agents", "todo", "storage"),
+        ("home", "agents", "todo", "storage", "files"),
     ),
     LauncherGroup(
         "work",
@@ -64,14 +67,16 @@ LAUNCHER_GROUPS: tuple[LauncherGroup, ...] = (
         (
             "scholar",
             "figrecipe",
-            "stats",  # reserved slot; no app yet
+            "stats",  # a Coming-soon tile until the app ships (planned_apps.py)
             "writer",
             "chat",  # link tile -> /chat/
             "tools",
             "console",
             "clew",
+            "create-app",  # App Creator: the empty "+" slot, always last in Work
         ),
     ),
+    LauncherGroup("publish", "Publish", ("slides", "discovery")),
     LauncherGroup(
         "system",
         "System",
@@ -82,8 +87,9 @@ LAUNCHER_GROUPS: tuple[LauncherGroup, ...] = (
 #: Uncurated apps (community store apps, dev installs) are applications.
 DEFAULT_GROUP = "work"
 
-#: Cells a group keeps even when the app is not installed yet.
-RESERVED_SLOTS = frozenset({"stats"})
+#: Always the last tile of its group, whatever the user or a planned app does
+#: (operator, 2026-09-14).
+TRAILING_APPS = ("create-app",)
 
 DEFAULT_LAUNCHER_ORDER = [name for group in LAUNCHER_GROUPS for name in group.members]
 _GROUP_OF = {name: group.key for group in LAUNCHER_GROUPS for name in group.members}
@@ -101,12 +107,32 @@ def default_order_value(name: str) -> int:
     idx = _DEFAULT_ORDER_INDEX.get(name)
     if idx is not None:
         return (idx + 1) * 10
-    return 500_000
+    planned = _planned_order_value(name)
+    return planned if planned is not None else 500_000
+
+
+def _planned_order_value(name: str) -> int | None:
+    """A planned app sits right after its group's curated apps, in registry order."""
+    from ..planned_apps import PLANNED_APPS
+
+    ids = [app.id for app in PLANNED_APPS]
+    if name not in ids:
+        return None
+    members = next(g.members for g in LAUNCHER_GROUPS if g.key == group_of(name))
+    last = max(_DEFAULT_ORDER_INDEX[m] for m in members if m not in TRAILING_APPS)
+    return (last + 1) * 10 + 1 + ids.index(name)
 
 
 def group_of(name: str) -> str:
     """The group key an app belongs to."""
-    return _GROUP_OF.get(name, DEFAULT_GROUP)
+    from ..planned_apps import PLANNED_BY_ID
+
+    if name in _GROUP_OF:
+        return _GROUP_OF[name]
+    planned = PLANNED_BY_ID.get(name)
+    if planned and planned.group in _GROUP_RANK:
+        return planned.group
+    return DEFAULT_GROUP
 
 
 def group_rank(name: str) -> int:
@@ -118,29 +144,13 @@ def group_cells(tiles: list[dict]) -> list[dict]:
     """The tiles as groups of grid cells, in group order.
 
     ``tiles`` must already be sorted (group first, then position). Returns
-    ``[{"key", "label", "cells"}]``; a reserved slot whose app is not present
-    becomes an empty cell ``{"is_slot": True, "slot": name}`` at its position,
-    so the apps after it keep their columns. A group with no tiles is omitted.
+    ``[{"key", "label", "cells"}]``. A group with no tiles is omitted.
     """
-    present = {tile["name"] for tile in tiles}
     groups = []
     for group in LAUNCHER_GROUPS:
-        members = [t for t in tiles if group_of(t["name"]) == group.key]
-        if not members:
-            continue
-        cells: list[dict] = []
-        # A group the user has drag-reordered keeps THEIR order, without the
-        # reserved gap (it would land somewhere they did not put it).
-        curated = not any(t.get("user_ordered") for t in members)
-        for tile in members:
-            if curated and tile["name"] in _DEFAULT_ORDER_INDEX:
-                before = group.members[: group.members.index(tile["name"])]
-                for name in before:
-                    held = any(c.get("slot") == name for c in cells)
-                    if name in RESERVED_SLOTS and name not in present and not held:
-                        cells.append({"is_slot": True, "slot": name})
-            cells.append(tile)
-        groups.append({"key": group.key, "label": group.label, "cells": cells})
+        cells = [t for t in tiles if group_of(t["name"]) == group.key]
+        if cells:
+            groups.append({"key": group.key, "label": group.label, "cells": cells})
     return groups
 
 # EOF

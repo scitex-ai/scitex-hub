@@ -7,7 +7,7 @@ from django.urls import path
 app_name = "apps_app"
 
 from . import views
-from .views import dev_project_files
+from .views import dev_project_files, planned
 
 urlpatterns = [
     # Pages
@@ -34,6 +34,12 @@ urlpatterns = [
     ),
     # API — must come before <str:module_name> catch-all
     path("api/reorder/", views.api_reorder, name="api_reorder"),
+    path("api/dock/", views.api_dock, name="api_dock"),
+    path(
+        "api/planned/<str:app_id>/interest/",
+        planned.api_planned_interest,
+        name="api_planned_interest",
+    ),
     path("api/<str:module_name>/pin/", views.api_pin, name="api_pin"),
     path("api/<str:module_name>/install/", views.api_install, name="api_install"),
     path("api/<str:module_name>/uninstall/", views.api_uninstall, name="api_uninstall"),

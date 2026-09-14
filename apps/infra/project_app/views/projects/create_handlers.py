@@ -107,6 +107,12 @@ def handle_template_creation(request, project, manager, template_type):
         project, use_template=True, template_type=template_type
     )
     if success:
+        if template_type == "minimal":
+            from apps.infra.project_app.services.first_project_samples import (
+                try_seed_first_project_samples,
+            )
+
+            try_seed_first_project_samples(manager.get_project_root_path(project) or path)
         messages.success(
             request,
             f'Project "{project.name}" created with {template_type} template',

@@ -23,7 +23,9 @@
 import { showToast } from "@utils/ui";
 
 import { getCsrf } from "./_launcher/csrf";
+import { DockEditor } from "./_launcher/dock-editor";
 import { LauncherPager } from "./_launcher/pager";
+import { PlannedSheet } from "./_launcher/planned-sheet";
 import { LauncherPopover } from "./_launcher/popover";
 import { SwapDwell } from "./_launcher/swap-dwell";
 import { shouldSwap } from "./_launcher/swap-intent";
@@ -63,6 +65,8 @@ class AppLauncher {
   private grid: HTMLElement;
   private pager: LauncherPager;
   private popover: LauncherPopover;
+  private dockEditor: DockEditor;
+  private plannedSheet: PlannedSheet | null;
 
   // Edit / drag state
   private editMode = false;
@@ -90,9 +94,26 @@ class AppLauncher {
     this.popover = new LauncherPopover(grid, {
       onRearrange: () => this.enterEditMode(),
     });
+    this.dockEditor = new DockEditor(grid, pager, {
+      enterEditMode: () => this.enterEditMode(),
+      persistGridOrder: () => this.persistOrder(),
+    });
+    const sheet = document.getElementById("planned-app-sheet");
+    this.plannedSheet =
+      sheet instanceof HTMLDialogElement ? new PlannedSheet(sheet) : null;
   }
 
   init(): void {
+    this.dockEditor.init();
+    this.plannedSheet?.init();
+    // Cancelling touchmove keeps a held drag from turning into a page swipe or scroll.
+    document.addEventListener(
+      "touchmove",
+      (e) => {
+        if (this.dragTile || this.dockEditor.isDraggingButton) e.preventDefault();
+      },
+      { passive: false },
+    );
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         this.popover.close();
@@ -116,13 +137,14 @@ class AppLauncher {
       );
       if (!tile) return;
       e.preventDefault();
-      this.popover.open(tile);
+      if (!tile.dataset.planned) this.popover.open(tile);
     });
     this.grid.addEventListener("pointerdown", (e) => {
       const tile = (e.target as HTMLElement).closest<HTMLElement>(
         ".launcher-tile",
       );
-      if (tile) this.handlePointerDown(e, tile);
+      // Planned apps never move or dock: no long-press, no drag.
+      if (tile && !tile.dataset.planned) this.handlePointerDown(e, tile);
     });
     this.grid.addEventListener("click", (e) => {
       const tile = (e.target as HTMLElement).closest<HTMLElement>(
@@ -132,6 +154,11 @@ class AppLauncher {
       if (this.editMode || this.suppressClick) {
         e.preventDefault();
         e.stopPropagation();
+        return;
+      }
+      if (tile.dataset.planned) {
+        e.preventDefault();
+        this.plannedSheet?.open(tile);
         return;
       }
       blockUnavailableLaunch(e, tile);
@@ -252,6 +279,14 @@ class AppLauncher {
     e.preventDefault();
     this.suppressClick = true; // movement means this was a drag, not a tap
 
+    const point = { x: e.clientX, y: e.clientY };
+    if (this.dockEditor.trackTile(point, this.dragTile)) {
+      this.pager.cancelEdgeTurn();
+      this.clearDwellTimer();
+      this.dwell.reset();
+      return;
+    }
+
     // Hold against an edge to carry the tile to the next/previous page.
     this.pager.edgeTurn(e.clientX);
 
@@ -264,7 +299,8 @@ class AppLauncher {
     // into another group's band.
     const sameGroup =
       !!hit &&
-      (hit.dataset.group ?? "") === (this.dragTile.dataset.group ?? "");
+      (hit.dataset.group ?? "") === (this.dragTile.dataset.group ?? "") &&
+      !hit.dataset.planned;
     const over =
       hit && hit !== this.dragTile && sameGroup && this.grid.contains(hit)
         ? hit
@@ -410,6 +446,7 @@ class AppLauncher {
     if (this.dragPointerId !== null && e.pointerId !== this.dragPointerId) {
       return;
     }
+    const droppedTile = this.dragTile;
     this.dragTile.classList.remove("dragging");
     this.clearDwellTimer();
     this.dwell.reset();
@@ -421,6 +458,11 @@ class AppLauncher {
     document.removeEventListener("pointercancel", this.onDragEnd);
 
     if (this.suppressClick) {
+      if (e.type === "pointerup") {
+        this.dockEditor.dropTile({ x: e.clientX, y: e.clientY }, droppedTile);
+      } else {
+        this.dockEditor.clearTileHint(droppedTile);
+      }
       // A tile dropped onto a full page leaves that page one over capacity;
       // re-chunk so the overflow pushes right (iOS does the same).
       this.pager.rebalance();

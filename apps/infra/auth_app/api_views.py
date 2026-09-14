@@ -14,6 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from apps.infra.project_app.services.email_service import EmailService
+from apps.infra.public_app.services.billing_provider import post_signup_redirect_url
 
 from .models import EmailVerification
 
@@ -203,7 +204,7 @@ def verify_email_api(request):
                 {
                     "success": True,
                     "message": "Email verified successfully!",
-                    "redirect_url": f"/{user.username}/",
+                    "redirect_url": post_signup_redirect_url(user),
                 }
             )
 

@@ -1,0 +1,347 @@
+/* Slides — editor + live 16:9 preview; the same .slide rules drive PDF print. */
+
+.slides-app {
+  --slides-border: var(--workspace-border-default, #d0d7de);
+  --slides-muted: var(--workspace-text-muted, #6b7280);
+  --slides-text: var(--workspace-text-primary, #1f2328);
+  --slides-surface: var(--workspace-bg-tertiary, #f6f8fa);
+  --slides-tap: 44px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  min-height: 0;
+  padding: 12px 16px;
+  box-sizing: border-box;
+  color: var(--slides-text);
+}
+
+.slides-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.slides-title {
+  margin: 0;
+  font-size: 1.15rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.slides-project {
+  color: var(--slides-muted);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.slides-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.slides-btn,
+.slides-select,
+.slides-tab {
+  min-height: var(--slides-tap);
+  min-width: var(--slides-tap);
+  padding: 0 12px;
+  border: 1px solid var(--slides-border);
+  border-radius: 8px;
+  background: var(--slides-surface);
+  color: inherit;
+  font: inherit;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.slides-btn--primary {
+  background: var(--color-primary, #2563eb);
+  border-color: transparent;
+  color: #fff;
+}
+
+.slides-status {
+  color: var(--slides-muted);
+  font-size: 0.85rem;
+}
+
+.slides-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.slides-tabs {
+  display: none;
+  gap: 6px;
+}
+
+.slides-tab[aria-selected="true"] {
+  border-color: var(--color-primary, #2563eb);
+  font-weight: 600;
+}
+
+.slides-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+.slides-pane {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.slides-source {
+  flex: 1;
+  width: 100%;
+  min-height: 60vh;
+  resize: none;
+  padding: 12px;
+  border: 1px solid var(--slides-border);
+  border-radius: 8px;
+  background: var(--slides-surface);
+  color: inherit;
+  font:
+    14px/1.55 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Consolas,
+    monospace;
+  box-sizing: border-box;
+}
+
+.slides-pane--preview {
+  overflow-y: auto;
+  max-height: calc(100vh - 160px);
+}
+
+.slides-deck {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* A slide scales its text with its own width (cqw), so preview and print match. */
+.slide {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  container-type: inline-size;
+  background: #fff;
+  color: #1f2328;
+  border: 1px solid var(--slides-border, #d0d7de);
+  border-radius: 6px;
+  overflow: hidden;
+  box-sizing: border-box;
+  font-family:
+    "Helvetica Neue", Arial, "Hiragino Sans", "Noto Sans JP", "Yu Gothic",
+    sans-serif;
+}
+
+.slide-inner {
+  position: absolute;
+  inset: 0;
+  padding: 5cqw 6cqw;
+  display: flex;
+  flex-direction: column;
+  gap: 1.6cqw;
+  font-size: 2.6cqw;
+  line-height: 1.35;
+}
+
+.slide-inner > :first-child {
+  margin-top: 0;
+}
+
+/* The hub's dark theme colours headings globally; a slide is always light. */
+.slide h1,
+.slide h2,
+.slide h3,
+.slide a {
+  color: #1f2328;
+}
+
+.slide h1 {
+  font-size: 5.2cqw;
+  margin: auto 0 0;
+}
+
+.slide h1 + p {
+  margin: 0 0 auto;
+  color: #57606a;
+}
+
+.slide h2 {
+  font-size: 3.8cqw;
+  margin: 0;
+}
+
+.slide p,
+.slide ul,
+.slide ol {
+  margin: 0;
+}
+
+.slide img {
+  max-width: 100%;
+  max-height: 34cqw;
+  object-fit: contain;
+  align-self: center;
+}
+
+.slide code {
+  font-size: 0.9em;
+}
+
+.slide-number {
+  position: absolute;
+  right: 2cqw;
+  bottom: 1.4cqw;
+  font-size: 1.6cqw;
+  color: #8b949e;
+}
+
+/* The hub's reset zeroes dialog margins, which pins a modal to the corner. */
+.slides-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  height: fit-content;
+  width: min(720px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  border: 1px solid var(--slides-border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  background: var(--workspace-bg-primary, #fff);
+  color: inherit;
+}
+
+.slides-dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.slides-figure-list,
+.slides-project-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.slides-figure {
+  width: 100%;
+  min-height: var(--slides-tap);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid var(--slides-border);
+  border-radius: 8px;
+  background: var(--slides-surface);
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.slides-figure img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  background: #fff;
+}
+
+.slides-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Phone: preview first, a tab switches to the editor. */
+@media (max-width: 768px) {
+  .slides-app {
+    padding: 8px 12px;
+  }
+
+  .slides-tabs {
+    display: flex;
+  }
+
+  .slides-tab {
+    flex: 1;
+  }
+
+  .slides-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .slides-pane--preview {
+    max-height: none;
+  }
+
+  .slides-app[data-view="preview"] .slides-pane--editor,
+  .slides-app[data-view="editor"] .slides-pane--preview {
+    display: none;
+  }
+
+  .slides-actions {
+    width: 100%;
+  }
+
+  /* Preview is for reading: editing actions appear with the editor tab. */
+  .slides-app[data-view="preview"]
+    .slides-actions
+    [data-action]:not([data-action="export-pdf"]) {
+    display: none;
+  }
+
+  .slides-actions .slides-btn {
+    flex: 1 1 calc(50% - 6px);
+  }
+
+  .slides-select {
+    flex: 1;
+  }
+}
+
+@page {
+  size: 1280px 720px;
+  margin: 0;
+}
+
+.slides-print {
+  margin: 0;
+}
+
+.slides-print .slides-deck {
+  gap: 0;
+}
+
+.slides-print .slide {
+  width: 1280px;
+  border: 0;
+  border-radius: 0;
+  break-after: page;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}

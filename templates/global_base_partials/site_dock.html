@@ -1,32 +1,10 @@
 {% load i18n static vite %}
-{% comment %}
-  Site-wide dock (operator, 2026-09-14). One dock on EVERY page, phone and
-  desktop alike: icons only, like the iPhone dock, with each button's name in
-  aria-label + title. Items come from apps/infra/workspace_app/site_dock.py,
-  which reads each icon from the app the button opens.
-
-  Rendered from global_base.html for hub pages, and injected by
-  SiteDockMiddleware into leaf pages that do not extend it. The data-site-dock
-  marker is how the middleware knows a page already has one.
-
-  Back / Forward: history.back() / history.forward(). Both start DISABLED and
-  shared/components/site-dock.ts enables them from its in-site history stack
-  (Safari has no canGoForward). The grabber drags the dock; its position is
-  remembered per device; a double-click / double-tap on it resets it.
-{% endcomment %}
+{# Site-wide dock; items and their order come from apps/infra/workspace_app/site_dock.py. #}
 {% if site_dock_items %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/app-icon.css' %}?v={{ build_id }}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/site-dock.css' %}?v={{ build_id }}" />
-    <nav class="site-dock" id="site-dock" data-site-dock aria-label="{% trans 'Dock' %}">
-        {# Grip at the dock's left end: a recognisable drag-handle glyph with a #}
-        {# 44x44 hit area (operator 2026-09-14: the thin top bar was not      #}
-        {# obviously draggable).                                               #}
-        <button type="button"
-                class="site-dock-grabber"
-                data-dock-grabber
-                aria-label="{% trans 'Move dock' %}"
-                title="{% trans 'Move dock (double-click to reset)' %}">
-            <i class="fas fa-grip-vertical" aria-hidden="true"></i>
-        </button>
+    <nav class="site-dock" id="site-dock" data-site-dock data-dock-capacity="{{ site_dock_capacity }}" aria-label="{% trans 'Dock' %}">
+        {# Order: Back, grip, apps, Forward. On a phone the apps take row 1 and row 2 reads [<] [grip] [>]. #}
         <button type="button"
                 class="site-dock-item site-dock-history"
                 data-dock-back
@@ -35,16 +13,30 @@
                 disabled>
             <i class="fas fa-chevron-left" aria-hidden="true"></i>
         </button>
-        {% for item in site_dock_items %}
-            <a href="{{ item.url }}"
-               class="site-dock-item{% if item.active %} is-active{% endif %}"
-               data-dock-item="{{ item.key }}"
-               aria-label="{% trans item.label context 'app name' %}"
-               title="{% trans item.label context 'app name' %}"
-               {% if item.active %}aria-current="page"{% endif %}>
-                <i class="{{ item.icon }}" aria-hidden="true"></i>
-            </a>
-        {% endfor %}
+        <button type="button"
+                class="site-dock-grabber"
+                data-dock-grabber
+                aria-label="{% trans 'Move dock' %}"
+                title="{% trans 'Move dock (double-click to reset)' %}">
+            <i class="fas fa-grip-vertical" aria-hidden="true"></i>
+            <span class="site-dock-grabber-dots" aria-hidden="true"></span>
+        </button>
+        <span class="site-dock-apps" data-dock-apps>
+            {% for item in site_dock_items %}
+                <a href="{{ item.url }}"
+                   class="site-dock-item site-dock-app{% if item.active %} is-active{% endif %}"
+                   data-dock-item="{{ item.key }}"
+                   draggable="false"
+                   aria-label="{% trans item.label context 'app name' %}"
+                   title="{% trans item.label context 'app name' %}"
+                   {% if item.active %}aria-current="page"{% endif %}>
+                    <span class="launcher-tile-icon site-dock-app-icon" data-tile-category="{{ item.category }}" aria-hidden="true">
+                        <i class="{{ item.icon }}" aria-hidden="true"></i>
+                    </span>
+                    <span class="site-dock-app-label" aria-hidden="true">{% trans item.caption context 'app name' %}</span>
+                </a>
+            {% endfor %}
+        </span>
         <button type="button"
                 class="site-dock-item site-dock-history"
                 data-dock-forward

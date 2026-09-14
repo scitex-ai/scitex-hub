@@ -82,6 +82,50 @@ export function readColumns(
   return LAUNCHER_COLUMNS;
 }
 
+/**
+ * Which page a horizontal scroll offset shows: the nearest snap point,
+ * clamped to the pages that exist. Drives the active dot and the arrows, so
+ * a rubber-band overscroll past either end (iOS) never lights a dot that is
+ * not there.
+ */
+export function pageIndexFor(
+  scrollLeft: number,
+  pageWidth: number,
+  pageCount: number,
+): number {
+  const last = Math.max(0, Math.floor(pageCount) - 1);
+  if (!(pageWidth > 0)) return 0;
+  const index = Math.round(scrollLeft / pageWidth);
+  return Math.min(Math.max(0, index), last);
+}
+
+/** Smallest gap kept between the dock and either viewport edge. */
+export const DOCK_MIN_GUTTER = 8;
+
+export interface DockFrame {
+  /** Dock width in px. */
+  width: number;
+  /** Viewport x of the dock's centre in px (the dock is translateX(-50%)). */
+  center: number;
+}
+
+/**
+ * The dock's frame on Home: the SAME left/right edges as the group panels
+ * (operator, 2026-09-14, after the real iOS home screen, whose dock lines up
+ * with the icon grid). Clamped so it never leaves the viewport.
+ */
+export function dockFrameFor(
+  left: number,
+  right: number,
+  viewportWidth: number,
+): DockFrame {
+  const minLeft = DOCK_MIN_GUTTER;
+  const maxRight = Math.max(minLeft, viewportWidth - DOCK_MIN_GUTTER);
+  const l = Math.min(Math.max(left, minLeft), maxRight);
+  const r = Math.max(Math.min(right, maxRight), l);
+  return { width: r - l, center: (l + r) / 2 };
+}
+
 /** Below this width the arrows never show (matches launcher/mobile.css). */
 export const ARROWS_MIN_WIDTH = 768;
 
@@ -196,7 +240,25 @@ export class LauncherPager {
 
   /** Build (or refresh) the pages for the current viewport. */
   apply(): void {
+    this.alignDock();
     this.page();
+  }
+
+  /**
+   * Give the site dock the grid's left/right edges. The dock is fixed and
+   * centred on the VIEWPORT while the grid is centred in the content column
+   * (a sidebar rail can offset it), so only a measurement lines the two up at
+   * every width. site-dock.css reads these properties; a dock the user dragged
+   * away carries inline left/top, which win over the centre.
+   */
+  private alignDock(): void {
+    const dock = document.querySelector<HTMLElement>(".site-dock");
+    if (!dock) return;
+    const rect = this.grid.getBoundingClientRect();
+    if (!(rect.width > 0)) return;
+    const frame = dockFrameFor(rect.left, rect.right, window.innerWidth);
+    dock.style.setProperty("--site-dock-width", `${frame.width}px`);
+    dock.style.setProperty("--site-dock-center", `${frame.center}px`);
   }
 
   /**
@@ -348,7 +410,7 @@ export class LauncherPager {
   }
 
   currentPage(): number {
-    return Math.round(this.grid.scrollLeft / this.pageWidth);
+    return pageIndexFor(this.grid.scrollLeft, this.pageWidth, this.pageCount());
   }
 
   private syncControls(): void {

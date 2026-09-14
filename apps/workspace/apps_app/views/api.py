@@ -17,6 +17,13 @@ from ..models import (
     ModuleReview,
     ModuleStar,
 )
+from ..services.launcher_dock import (
+    DOCK_CAPACITY,
+    HOME_BUTTON,
+    DockRejected,
+    save_dock_apps,
+    validate_dock_apps,
+)
 from ..services.launcher_links import save_link_tile_orders
 from .helpers import can_view_module, ensure_builtin_modules
 
@@ -264,6 +271,36 @@ def api_reorder(request):
     save_link_tile_orders(request.user, order)
 
     return JsonResponse({"success": True, "message": "Tab order updated."})
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_dock(request):
+    """Save which apps the user keeps in the dock, in order."""
+    from .launcher import _build_tiles
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "Invalid JSON."}, status=400)
+
+    ensure_builtin_modules()
+    known_apps = {
+        tile["name"]
+        for tile in _build_tiles(request)
+        if not tile["is_add_slot"] and not tile.get("is_planned")
+    } | {HOME_BUTTON}
+    try:
+        dock_apps = validate_dock_apps(data.get("dock"), known_apps)
+        save_dock_apps(request.user, dock_apps)
+    except DockRejected as rejection:
+        return JsonResponse(
+            {"success": False, "error": str(rejection), "capacity": DOCK_CAPACITY},
+            status=400,
+        )
+    return JsonResponse(
+        {"success": True, "dock": dock_apps, "capacity": DOCK_CAPACITY}
+    )
 
 
 @login_required
