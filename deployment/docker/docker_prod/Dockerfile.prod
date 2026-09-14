@@ -656,7 +656,9 @@ RUN uv pip install --system --no-cache \
     # clone_template_result / CloneOutcome all exported.
     "scitex-template==0.7.1" \
     "scitex-linter==0.3.1" \
-    "scitex-ui==0.20.2" \
+    # 0.21.0 (2026-09-14): project picker tag + gettext catalog tag; matches the
+    # pyproject floor, so C0 and C1 agree again.
+    "scitex-ui==0.21.0" \
     "openalex-local==0.6.0" \
     "crossref-local==0.6.4"
 

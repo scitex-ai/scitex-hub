@@ -115,7 +115,10 @@ LAST_WITHOUT_TEXT_LINK = Version("0.14.0")
 #: exists to catch.
 AGENTS_ACCENT_FLOOR = Version("0.20.3")
 LAST_WITHOUT_AGENTS_ACCENT = Version("0.20.2")
-DECLARED_FLOOR = AGENTS_ACCENT_FLOOR
+#: RAISED 0.20.3 -> 0.21.0 on 2026-09-14: the project picker template tag and
+#: ``scitex_ui.project_scope`` (scitex-ui #232) first ship in 0.21.0.
+PROJECT_PICKER_FLOOR = Version("0.21.0")
+DECLARED_FLOOR = PROJECT_PICKER_FLOOR
 
 #: A pane name scitex-ui does not know. Any value outside PANE_NAMES works;
 #: this one is obviously synthetic so a reader does not mistake it for a real
