@@ -5522,36 +5522,7 @@ msgstr "「はじめに」のチェックリストをホームにもう一度表
 msgid "Show Getting started again"
 msgstr "はじめにを再表示"
 
-#: apps/workspace/apps_app/templates/apps_app/create_app_placeholder.html
 #: apps/workspace/apps_app/launcher_links/create-app.json
 msgctxt "app name"
 msgid "Create app"
 msgstr "アプリを作る"
-
-#: apps/workspace/apps_app/templates/apps_app/create_app_placeholder.html
-msgid "Coming soon: describe the app you need, and the AI agent builds it in your workspace."
-msgstr "近日公開：欲しいアプリを説明すると、AIエージェントがワークスペースの中に作ります。"
-
-#: apps/workspace/apps_app/templates/apps_app/create_app_placeholder.html
-msgid "What to expect"
-msgstr "できるようになること"
-
-#: apps/workspace/apps_app/templates/apps_app/create_app_placeholder.html
-msgid "Tell the agent what the app should do."
-msgstr "アプリで何をしたいかをエージェントに伝えます。"
-
-#: apps/workspace/apps_app/templates/apps_app/create_app_placeholder.html
-msgid "The agent scaffolds the app inside one of your projects."
-msgstr "エージェントがプロジェクトの中にアプリのひな形を作ります。"
-
-#: apps/workspace/apps_app/templates/apps_app/create_app_placeholder.html
-msgid "Try it from Home, then keep it private or publish it to the App Store."
-msgstr "ホームから試し、自分用に残すか App Store に公開します。"
-
-#: apps/workspace/apps_app/templates/apps_app/create_app_placeholder.html
-msgid "Until then, developers can build apps by hand:"
-msgstr "それまでは、開発者は手作業でアプリを作れます："
-
-#: apps/workspace/apps_app/templates/apps_app/create_app_placeholder.html
-msgid "App development guide"
-msgstr "アプリ開発ガイド"

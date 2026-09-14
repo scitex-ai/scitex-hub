@@ -121,14 +121,6 @@ class GridLauncherTest(TestCase):
         # Assert
         assert labels.get("home") == "My Projects"
 
-    def test_create_app_tile_opens_the_coming_soon_page(self):
-        # Arrange
-        self.client.force_login(self.staff)
-        # Act
-        response = self.client.get("/apps/create-app/")
-        # Assert
-        assert b'id="create-app-placeholder"' in response.content
-
     def test_mobile_menu_offers_my_projects(self):
         # Arrange
         self.client.force_login(self.staff)
