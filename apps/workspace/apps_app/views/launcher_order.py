@@ -36,10 +36,10 @@ from __future__ import annotations
 # Docs/App Store/Storage). Each group carries role="group" and a translated
 # aria-label, which launcher/grid.css also shows as the band's visible label.
 #
-# "stats" keeps its position although no Stats app exists yet (another agent
-# is building it). No empty cell is rendered for it — an unexplained gap read
-# as a broken grid in the 2026-09-14 walkthrough — and the day the module
-# lands it takes that position without touching this list. Give its manifest "order": 27
+# "stats" keeps its position although no Stats app exists yet: until it lands
+# it is a visible Coming-soon tile (planned_apps.py), never an empty cell — an
+# unexplained gap read as a broken grid in the 2026-09-14 walkthrough. The day
+# the module lands it takes that position without touching this list. Give its manifest "order": 27
 # (figrecipe is 25, writer 30). Chat and Settings are link tiles
 # (services/launcher_links.py). Console and Clew opt out of the grid via
 # show_in_launcher=false.
@@ -67,12 +67,13 @@ LAUNCHER_GROUPS: tuple[LauncherGroup, ...] = (
         (
             "scholar",
             "figrecipe",
-            "stats",  # reserved slot; no app yet
+            "stats",  # a Coming-soon tile until the app ships (planned_apps.py)
             "writer",
             "chat",  # link tile -> /chat/
             "tools",
             "console",
             "clew",
+            "create-app",  # App Creator: the empty "+" slot, always last in Work
         ),
     ),
     LauncherGroup("publish", "Publish", ("slides", "discovery")),
@@ -85,6 +86,10 @@ LAUNCHER_GROUPS: tuple[LauncherGroup, ...] = (
 
 #: Uncurated apps (community store apps, dev installs) are applications.
 DEFAULT_GROUP = "work"
+
+#: Always the last tile of its group, whatever the user or a planned app does
+#: (operator, 2026-09-14).
+TRAILING_APPS = ("create-app",)
 
 DEFAULT_LAUNCHER_ORDER = [name for group in LAUNCHER_GROUPS for name in group.members]
 _GROUP_OF = {name: group.key for group in LAUNCHER_GROUPS for name in group.members}
@@ -102,12 +107,32 @@ def default_order_value(name: str) -> int:
     idx = _DEFAULT_ORDER_INDEX.get(name)
     if idx is not None:
         return (idx + 1) * 10
-    return 500_000
+    planned = _planned_order_value(name)
+    return planned if planned is not None else 500_000
+
+
+def _planned_order_value(name: str) -> int | None:
+    """A planned app sits right after its group's curated apps, in registry order."""
+    from ..planned_apps import PLANNED_APPS
+
+    ids = [app.id for app in PLANNED_APPS]
+    if name not in ids:
+        return None
+    members = next(g.members for g in LAUNCHER_GROUPS if g.key == group_of(name))
+    last = max(_DEFAULT_ORDER_INDEX[m] for m in members if m not in TRAILING_APPS)
+    return (last + 1) * 10 + 1 + ids.index(name)
 
 
 def group_of(name: str) -> str:
     """The group key an app belongs to."""
-    return _GROUP_OF.get(name, DEFAULT_GROUP)
+    from ..planned_apps import PLANNED_BY_ID
+
+    if name in _GROUP_OF:
+        return _GROUP_OF[name]
+    planned = PLANNED_BY_ID.get(name)
+    if planned and planned.group in _GROUP_RANK:
+        return planned.group
+    return DEFAULT_GROUP
 
 
 def group_rank(name: str) -> int:

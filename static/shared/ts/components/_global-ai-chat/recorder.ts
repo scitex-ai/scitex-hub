@@ -26,11 +26,13 @@ export class VoiceRecorder {
     getCsrf: () => string,
     onTranscript: (text: string) => void,
     getModel?: () => string,
+    onDenied?: () => void,
   ): Promise<void> {
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch (err) {
       console.error("[STT] Microphone access denied:", err);
+      onDenied?.();
       return;
     }
 

@@ -1,0 +1,32 @@
+{% load i18n %}
+{# One sheet for every planned tile; launcher/planned-sheet.ts fills it in. #}
+<dialog class="planned-sheet" id="planned-app-sheet" aria-labelledby="planned-sheet-title">
+    <form method="dialog" class="planned-sheet-close-form">
+        <button type="submit" class="planned-sheet-close" aria-label="{% trans 'Close' %}">
+            <i class="fas fa-xmark" aria-hidden="true"></i>
+        </button>
+    </form>
+    <div class="planned-sheet-head">
+        <span class="launcher-tile-icon planned-sheet-icon" data-planned-icon aria-hidden="true"></span>
+        <div>
+            <h3 class="planned-sheet-title" id="planned-sheet-title" data-planned-title></h3>
+            <span class="planned-sheet-badge">{% trans 'Coming Soon' %}</span>
+        </div>
+    </div>
+    <p class="planned-sheet-description" data-planned-description></p>
+    <div class="planned-sheet-actions">
+        <button type="button"
+                class="planned-sheet-btn planned-sheet-btn--primary"
+                data-planned-notify
+                data-label-idle="{% trans 'Notify me' %}"
+                data-label-done="{% trans 'We will notify you' %}">
+            <i class="fas fa-bell" aria-hidden="true"></i>
+            <span data-planned-notify-label>{% trans 'Notify me' %}</span>
+        </button>
+        <a class="planned-sheet-btn" data-planned-build href="/apps/create/">
+            <i class="fas fa-hammer" aria-hidden="true"></i>
+            <span>{% trans 'Build this app' %}</span>
+        </a>
+        <p class="planned-sheet-note">{% trans "You'll be credited as author" %}</p>
+    </div>
+</dialog>

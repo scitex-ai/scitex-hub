@@ -153,7 +153,7 @@ class HomePagesTest(TestCase):
         # Arrange
         groups = self._groups()
         # Act
-        names = [cell.get("name") for cell in groups[0]["cells"]]
+        names = [c.get("name") for c in groups[0]["cells"] if not c.get("is_planned")]
         # Assert
         assert names == ["home", "agents", "todo", "storage"]
 
@@ -166,14 +166,26 @@ class HomePagesTest(TestCase):
         # Assert
         assert first_row == ["home", "agents", "todo", "storage"]
 
-    def test_work_group_leaves_no_empty_cell_for_the_missing_stats_app(self):
+    def test_missing_stats_app_is_a_coming_soon_tile_not_an_empty_cell(self):
         # Walkthrough 2026-09-14: the held Stats gap read as a broken grid.
         # Arrange
         groups = self._groups()
         # Act
-        cells = [c.get("name") for c in groups[1]["cells"]]
+        cells = [
+            (c.get("name"), bool(c.get("is_planned")))
+            for c in groups[1]["cells"]
+            if not c.get("is_planned") or c.get("name") == "stats"
+        ]
         # Assert
-        assert cells == ["scholar", "figrecipe", "writer", "chat", "tools"]
+        assert cells == [
+            ("scholar", False),
+            ("figrecipe", False),
+            ("stats", True),
+            ("writer", False),
+            ("chat", False),
+            ("tools", False),
+            ("create-app", False),
+        ]
 
     def test_home_renders_no_empty_slot_cell(self):
         # Arrange
@@ -188,9 +200,25 @@ class HomePagesTest(TestCase):
         # Arrange
         groups = self._groups()
         # Act
-        names = [cell.get("name") for cell in groups[2]["cells"]]
+        names = [c.get("name") for c in groups[2]["cells"] if not c.get("is_planned")]
         # Assert
         assert names == ["slides", "discovery"]
+
+    def test_publish_group_holds_the_live_paper_and_agentic_journal_placeholders(self):
+        # Arrange
+        groups = self._groups()
+        # Act
+        planned = [c.get("name") for c in groups[2]["cells"] if c.get("is_planned")]
+        # Assert
+        assert planned == ["live-paper", "agentic-journal"]
+
+    def test_slides_placeholder_is_gone_once_the_slides_app_exists(self):
+        # Arrange
+        groups = self._groups()
+        # Act
+        names = [c.get("name") for g in groups for c in g["cells"] if c.get("is_planned")]
+        # Assert
+        assert "slides" not in names
 
     def test_system_group_holds_settings_docs_and_app_store(self):
         # Arrange

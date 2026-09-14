@@ -198,6 +198,18 @@ print(f"Mean: {stats['mean']:.2f}")</code></pre>
                         </div>
                     </div>
                 </details>
+                <details class="settings-details" id="getting-started-settings" open>
+                    <summary class="settings-summary">
+                        <i class="fas fa-list-check"></i> {% trans "Getting started" %}
+                    </summary>
+                    <div class="theme-options">
+                        <p class="appearance-description">{% trans "Bring the Getting started checklist back to Home." %}</p>
+                        <form method="post" action="{% url 'first_run_reshow' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-secondary">{% trans "Show Getting started again" %}</button>
+                        </form>
+                    </div>
+                </details>
             </main>
         </div>
     </div>

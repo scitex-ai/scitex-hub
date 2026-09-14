@@ -55,8 +55,8 @@
 }
 
 [data-theme="dark"] .header-avatar {
-  background: var(--scitex-color-01-light); /* Dark in dark mode */
-  color: var(--scitex-color-06); /* Light text */
+  background: var(--bg-muted);
+  color: var(--text-primary);
   border-color: var(--scitex-color-02);
 }
 

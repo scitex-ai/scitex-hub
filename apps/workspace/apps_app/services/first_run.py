@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from datetime import timedelta
 from urllib.parse import urlencode
@@ -42,13 +43,19 @@ def is_new_user(user) -> bool:
     return user.date_joined >= timezone.now() - NEW_USER_WINDOW
 
 
-def latest_owned_project(user):
+def _owned_projects(user):
     from apps.infra.project_app.models import Project
 
     # Every account already owns a home (dotfiles) project; it is not "your first project".
     return (
-        Project.objects.filter(owner=user, is_home=False).order_by("-created_at").first()
+        Project.objects.filter(owner=user, is_home=False)
+        .exclude(slug="dotfiles")
+        .order_by("-created_at")
     )
+
+
+def latest_owned_project(user):
+    return _owned_projects(user).first()
 
 
 def step_target_url(step_key: str, user, project) -> str:
@@ -80,26 +87,124 @@ def mark_step_done(user, step_key: str) -> FirstRunProgress:
     return progress
 
 
-def dismiss_checklist(user) -> FirstRunProgress:
+def dismiss_checklist(user, forever: bool = False) -> FirstRunProgress:
     progress = progress_for(user)
+    now = timezone.now()
+    fields = []
     if progress.dismissed_at is None:
-        progress.dismissed_at = timezone.now()
-        progress.save(update_fields=["dismissed_at", "updated_at"])
+        progress.dismissed_at = now
+        fields.append("dismissed_at")
+    if forever and progress.hidden_at is None:
+        progress.hidden_at = now
+        fields.append("hidden_at")
+    if fields:
+        progress.save(update_fields=[*fields, "updated_at"])
     return progress
 
 
-def checklist_context(user) -> dict:
-    """Template context for the checklist; auto-completes step one from real projects."""
-    project = latest_owned_project(user)
-    progress = (
-        mark_step_done(user, "create_project") if project else progress_for(user)
+def reshow_checklist(user) -> FirstRunProgress:
+    progress = progress_for(user)
+    progress.dismissed_at = None
+    progress.hidden_at = None
+    progress.reshown_at = timezone.now()
+    progress.save(update_fields=["dismissed_at", "hidden_at", "reshown_at", "updated_at"])
+    return progress
+
+
+def should_show_checklist(user) -> bool:
+    progress = FirstRunProgress.objects.filter(user=user).only(
+        "hidden_at", "reshown_at"
+    ).first()
+    if progress is not None and progress.hidden_at is not None:
+        return False
+    return is_new_user(user) or (progress is not None and progress.reshown_at is not None)
+
+
+# Only the newest few projects are looked at on disk, to keep Home cheap.
+_PROJECTS_SCANNED = 3
+_SAMPLE_FIGURE_STEM = "sample_plot"
+
+
+def _project_root(project):
+    from pathlib import Path
+
+    from apps.infra.project_app.services.filesystem.paths import get_project_root_path
+
+    if project.local_path:
+        path = Path(project.local_path)
+        return path if path.is_dir() else None
+    return get_project_root_path(project.owner, project)
+
+
+def _has_own_figure(root) -> bool:
+    # A FigRecipe figure is a recipe YAML with its rendered PNG beside it.
+    for folder in (root, root / "figures"):
+        try:
+            names = {entry.name for entry in os.scandir(folder) if entry.is_file()}
+        except OSError:
+            continue
+        for name in names:
+            stem, ext = os.path.splitext(name)
+            if ext == ".yaml" and stem != _SAMPLE_FIGURE_STEM and f"{stem}.png" in names:
+                return True
+    return False
+
+
+def _has_compiled_manuscript(root) -> bool:
+    from apps.infra.project_app.services.writer_workspace_layout import (
+        get_compiled_pdf_path,
+        get_writer_workspace_path,
     )
+
+    if get_compiled_pdf_path(root).is_file():
+        return True
+    preview_dir = get_writer_workspace_path(root) / ".preview"
+    return preview_dir.is_dir() and any(preview_dir.glob("*.pdf"))
+
+
+def _has_references(user) -> bool:
+    from apps.workspace.scholar_app.models import BibTeXEnrichmentJob, UserLibrary
+
+    return (
+        UserLibrary.objects.filter(user=user).exists()
+        or BibTeXEnrichmentJob.objects.filter(user=user).exists()
+    )
+
+
+def _has_asked_agent(user) -> bool:
+    from apps.infra.llm_app.models import ChatMessage
+
+    return ChatMessage.objects.filter(session__user=user, role="user").exists()
+
+
+def derived_completed_steps(user, projects) -> set[str]:
+    """Steps the user has visibly done, read from real data (no tracking of its own)."""
+    done = set()
+    if projects:
+        done.add("create_project")
+    roots = [root for root in map(_project_root, projects) if root is not None]
+    if any(_has_own_figure(root) for root in roots):
+        done.add("make_figure")
+    if any(_has_compiled_manuscript(root) for root in roots):
+        done.add("draft_manuscript")
+    if _has_references(user):
+        done.add("add_references")
+    if _has_asked_agent(user):
+        done.add("ask_agent")
+    return done
+
+
+def checklist_context(user) -> dict:
+    """Template context for the checklist: real activity, or the stored mark as a fallback."""
+    progress = progress_for(user)
+    projects = list(_owned_projects(user)[:_PROJECTS_SCANNED])
+    done_keys = derived_completed_steps(user, projects) | set(progress.completed_steps)
     steps = [
         {
             "number": index,
             "key": step.key,
             "label": step.label,
-            "done": step.key in progress.completed_steps,
+            "done": step.key in done_keys,
             "url": f"/apps/getting-started/{step.key}/",
         }
         for index, step in enumerate(STEPS, start=1)
@@ -110,6 +215,7 @@ def checklist_context(user) -> dict:
         "done_count": done_count,
         "total_count": len(steps),
         "is_collapsed": progress.dismissed_at is not None or done_count == len(steps),
+        "storage_key": f"scitex.firstRun.open.{user.pk}",
     }
 
 

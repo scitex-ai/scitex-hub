@@ -58,6 +58,7 @@ EXPECTED_TILE_ORDER = [
     "Tools",
     "Console",
     "Clew",
+    "App Creator",
     # PUBLISH (proposed 2026-09-14, Telegram 6040)
     "Slides",
     "Public Projects",

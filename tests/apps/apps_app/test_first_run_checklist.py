@@ -12,6 +12,7 @@ from django.template.loader import render_to_string
 from django.test import TestCase
 from django.utils import translation
 
+from apps.infra.llm_app.models import ChatMessage, ChatSession
 from apps.infra.project_app.models import Project
 from apps.workspace.apps_app.models import FirstRunProgress
 from apps.workspace.apps_app.services.first_run import (
@@ -58,6 +59,64 @@ class FirstRunChecklistTest(TestCase):
         response = self.client.get("/")
         # Assert
         assert response.context["first_run"]["is_collapsed"] is True
+
+    def test_owning_a_project_completes_step_one_without_following_it(self):
+        # Arrange
+        user = _new_user("first-run-owner")
+        Project.objects.create(name="Paper", slug="paper", owner=user)
+        # Act
+        steps = {step["key"]: step["done"] for step in checklist_context(user)["steps"]}
+        # Assert
+        assert steps["create_project"] is True
+
+    def test_the_dotfiles_project_alone_does_not_complete_step_one(self):
+        # Arrange
+        user = _new_user("first-run-dotfiles")
+        Project.objects.get_or_create(
+            owner=user, is_home=True, defaults={"name": "dotfiles", "slug": "dotfiles"}
+        )
+        # Act
+        steps = {step["key"]: step["done"] for step in checklist_context(user)["steps"]}
+        # Assert
+        assert steps["create_project"] is False
+
+    def test_a_chat_message_completes_the_ask_agent_step(self):
+        # Arrange
+        user = _new_user("first-run-chat")
+        session = ChatSession.objects.create(user=user)
+        ChatMessage.objects.create(session=session, role="user", text="Hello")
+        # Act
+        steps = {step["key"]: step["done"] for step in checklist_context(user)["steps"]}
+        # Assert
+        assert steps["ask_agent"] is True
+
+    def test_home_renders_the_phone_collapsible_card(self):
+        # Arrange
+        self.client.force_login(_new_user("first-run-phone"))
+        # Act
+        response = self.client.get("/")
+        # Assert
+        assert b"first-run--phone-collapsible" in response.content
+
+    def test_dont_show_again_keeps_the_card_off_home(self):
+        # Arrange
+        user = _new_user("first-run-forever")
+        self.client.force_login(user)
+        self.client.post("/apps/getting-started/dismiss/", {"forever": "1"})
+        # Act
+        response = self.client.get("/")
+        # Assert
+        assert b'id="first-run-checklist"' not in response.content
+
+    def test_reshow_clears_dont_show_again(self):
+        # Arrange
+        user = _new_user("first-run-reshow")
+        self.client.force_login(user)
+        self.client.post("/apps/getting-started/dismiss/", {"forever": "1"})
+        # Act
+        self.client.post("/apps/getting-started/reshow/")
+        # Assert
+        assert FirstRunProgress.objects.get(user=user).hidden_at is None
 
     def test_progress_of_another_user_is_isolated(self):
         # Arrange
