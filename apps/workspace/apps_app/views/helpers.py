@@ -55,14 +55,30 @@ def ensure_builtin_modules():
 
     from apps.infra.workspace_app.registry import get_all_modules
 
-    registered_names = {m.name for m in get_all_modules()}
+    all_modules = get_all_modules()
+    registered_names = {m.name for m in all_modules}
     existing_names = set(
         AppsModule.objects.filter(is_builtin=True).values_list("module_name", flat=True)
     )
 
     if registered_names <= existing_names:
-        _builtins_ensured = True
-        return
+        # All builtin names present. The manifest is the SSoT for release-
+        # channel visibility, though: a row seeded before its manifest flipped
+        # to "internal" keeps the stale "public" value, and this fast path would
+        # never correct it — leaking internal builtins (Cards, Storage) to the
+        # public App Store for anonymous users (hub-store-tiles-cards-internal-
+        # visibility-regression-20260914). Take the fast path ONLY when no
+        # builtin's stored visibility has drifted from its manifest; otherwise
+        # fall through to the idempotent update_or_create sync below.
+        registry_vis = {m.name: (m.visibility or "public") for m in all_modules}
+        stored_vis = list(
+            AppsModule.objects.filter(is_builtin=True).values_list(
+                "module_name", "visibility"
+            )
+        )
+        if all(registry_vis.get(n) == v for n, v in stored_vis):
+            _builtins_ensured = True
+            return
 
     try:
         from django.db import transaction
@@ -103,9 +119,20 @@ def can_view_module(user, app_module):
     """Check if user can view/install this module based on visibility.
 
     public   → everyone
+    internal → release-channel gate (WIP apps); is_builtin must NOT bypass it
     unlisted → any authenticated user (direct URL / org-gated discovery)
     private  → author, staff, or users sharing an org with the author
     """
+    # "internal" is a release-channel property, not a builtin/admin property.
+    # The previous `or app_module.is_builtin` short-circuit leaked internal
+    # builtins (Cards/todo_app, Storage) to EVERYONE — including anonymous
+    # users — in the App Store (regression hub-store-tiles-cards-internal-
+    # visibility-regression-20260914). Gate internal FIRST so is_builtin can
+    # never override it; delegate to can_view_internal_app (staff, or an
+    # authenticated user on a deployment that opted in via
+    # SCITEX_HUB_INTERNAL_APPS_RELEASED; anonymous -> False).
+    if app_module.visibility == "internal":
+        return can_view_internal_app(user)
     if app_module.visibility == "public" or app_module.is_builtin:
         return True
     if not user.is_authenticated:
