@@ -356,6 +356,14 @@ def optional_upstream_apps() -> list[str]:
     if _installed("scitex_storage._django"):
         entries.append("scitex_storage._django.apps.StorageConfig")
 
+    # scitex-agent-container's browser dashboard. The explicit AppConfig
+    # path is the package's mounted-host contract; gating on apps.py keeps an
+    # older SAC install (without the optional GUI) from breaking Hub startup.
+    if _installed("scitex_agent_container._django.apps"):
+        entries.append(
+            "scitex_agent_container._django.apps.AgentContainerDashboardConfig"
+        )
+
     # scitex-scholar's Django app. Its VIEWS were already mounted at
     # /apps/scholar/v2/ (apps/workspace/scholar_app/urls/scholar_django.py)
     # without the APP being installed, and a mounted view whose app is not in
