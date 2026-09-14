@@ -321,6 +321,11 @@ DATABASES = {
         # ("too many clients", site-audit blocker D2). 0 closes the connection
         # at request_finished, matching settings_prod/settings_staging.
         "CONN_MAX_AGE": 0,
+        # Dev is moving onto the scitex store server behind PgBouncer in
+        # transaction mode (scitex-primary:55432), where a server-side cursor
+        # opened by QuerySet.iterator() can land on a different backend than
+        # its FETCH. Matches settings_prod; harmless against a direct postgres.
+        "DISABLE_SERVER_SIDE_CURSORS": True,
         "OPTIONS": {
             "connect_timeout": 10,
         },
