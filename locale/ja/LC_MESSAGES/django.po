@@ -5316,3 +5316,36 @@ msgstr "開発中"
 #: apps/workspace/apps_app/templates/apps_app/partials/launcher_tile_badges.html
 msgid "New"
 msgstr "新着"
+
+# Mobile header menu (global_header.html). 2026-09-14 iPhone PWA report: the
+# menu's labels were English-only under ja. Existing msgids (Settings, Files,
+# Profile, Terms, ...) are reused; only the missing ones are added here.
+#: templates/global_base_partials/global_header.html
+msgid "Open menu"
+msgstr "メニューを開く"
+
+#: templates/global_base_partials/global_header.html
+msgid "Close menu"
+msgstr "メニューを閉じる"
+
+#: templates/global_base_partials/global_header.html
+msgid "Menu"
+msgstr "メニュー"
+
+#: templates/global_base_partials/global_header.html
+msgid "Toggle dark mode"
+msgstr "ダークモード切り替え"
+
+#: templates/global_base_partials/global_header.html
+msgid "Workspace"
+msgstr "ワークスペース"
+
+# Console is a product name; it stays as-is in Japanese.
+#: templates/global_base_partials/global_header.html
+msgctxt "app name"
+msgid "Console"
+msgstr "Console"
+
+#: templates/global_base_partials/global_header.html
+msgid "Sign Out"
+msgstr "ログアウト"

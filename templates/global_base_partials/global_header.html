@@ -119,8 +119,17 @@
         <!-- Mobile Hamburger Button (visible only on mobile via CSS).
              Inline fail-safe wiring lives in global_header/hamburger_inline.html
              (included after the menu markup below). -->
-        <button class="mobile-hamburger" id="mobile-hamburger-btn" aria-label="Menu">
-            <i class="fas fa-bars"></i>
+        {# The same button is the close control while the menu is open: the #}
+        {# inline handler swaps the icon, aria-expanded and aria-label.      #}
+        <button type="button"
+                class="mobile-hamburger"
+                id="mobile-hamburger-btn"
+                aria-controls="mobile-header-menu"
+                aria-expanded="false"
+                aria-label="{% trans 'Open menu' %}"
+                data-label-open="{% trans 'Open menu' %}"
+                data-label-close="{% trans 'Close menu' %}">
+            <i class="fas fa-bars" aria-hidden="true"></i>
         </button>
         <!-- Right: Actions + User Menu -->
         <div class="header-right">
@@ -264,10 +273,10 @@
         </div>
     </div>
     <!-- Mobile Header Menu Overlay (visible only when hamburger is tapped) -->
-    <div class="mobile-header-menu" id="mobile-header-menu">
+    <div class="mobile-header-menu" id="mobile-header-menu" role="navigation" aria-label="{% trans 'Menu' %}">
         <button class="mobile-menu-item" id="mobile-theme-toggle-btn">
             <i class="fas fa-circle-half-stroke" aria-hidden="true"></i>
-            <span>Toggle dark mode</span>
+            <span>{% trans "Toggle dark mode" %}</span>
         </button>
         {# Developer-facing entries: shown to staff (and in dev), hidden for #}
         {# ordinary users/visitors so the menu stays focused (operator,      #}
@@ -282,15 +291,15 @@
         {# is decision-pending: the bell was removed by the operator's          #}
         {# header-declutter directive, so re-adding notification chrome         #}
         {# would contradict that ruling — not done here.                        #}
-        <div class="mobile-menu-item mobile-menu-item--section">Settings</div>
+        <div class="mobile-menu-item mobile-menu-item--section">{% trans "Settings" %}</div>
         <a href="/keyboard-shortcuts/" class="mobile-menu-item mobile-menu-item--indent">
-            <i class="fas fa-keyboard"></i>
-            <span>Keyboard Shortcuts</span>
+            <i aria-hidden="true" class="fas fa-keyboard"></i>
+            <span>{% trans "Keyboard Shortcuts" %}</span>
         </a>
         {% if DEBUG or user.is_staff %}
             <a href="{% url 'public_app:server_status' %}" class="mobile-menu-item mobile-menu-item--indent">
-                <i class="fas fa-server"></i>
-                <span>Server Status</span>
+                <i aria-hidden="true" class="fas fa-server"></i>
+                <span>{% trans "Server Status" %}</span>
             </a>
         {% endif %}
         <div class="mobile-menu-divider"></div>
@@ -298,59 +307,59 @@
              no longer a visitor/readonly role. -->
         {% if user.is_authenticated %}
             <div class="mobile-menu-item mobile-menu-item--user">
-                <i class="fas fa-user-circle"></i>
+                <i aria-hidden="true" class="fas fa-user-circle"></i>
                 <span>@{{ user.username }}</span>
             </div>
             <div class="mobile-menu-divider"></div>
             <a href="/apps/home/" class="mobile-menu-item" data-nav="my-projects">
-                <i class="fas fa-folder"></i>
+                <i aria-hidden="true" class="fas fa-folder"></i>
                 <span>{% trans "My Projects" context "app name" %}</span>
             </a>
             <a href="/apps/discovery/" class="mobile-menu-item" data-nav="public-projects">
-                <i class="fas fa-globe"></i>
+                <i aria-hidden="true" class="fas fa-globe"></i>
                 <span>{% trans "Public Projects" context "app name" %}</span>
             </a>
             <a href="/workspace/" class="mobile-menu-item">
-                <i class="fas fa-th-large"></i>
-                <span>Workspace</span>
+                <i aria-hidden="true" class="fas fa-th-large"></i>
+                <span>{% trans "Workspace" %}</span>
             </a>
             <a href="/chat/" class="mobile-menu-item mobile-menu-item--indent">
-                <i class="fas fa-comment"></i>
-                <span>Chat</span>
+                <i aria-hidden="true" class="fas fa-comment"></i>
+                <span>{% trans "Chat" context "app name" %}</span>
             </a>
             {# Console (terminal) is a developer/power tool — staff/dev only, #}
             {# consistent with Server Status + Keyboard Shortcuts above.       #}
             {% if DEBUG or user.is_staff %}
                 <a href="/console/" class="mobile-menu-item mobile-menu-item--indent">
-                    <i class="fas fa-terminal"></i>
-                    <span>Console</span>
+                    <i aria-hidden="true" class="fas fa-terminal"></i>
+                    <span>{% trans "Console" context "app name" %}</span>
                 </a>
             {% endif %}
             <a href="/files/" class="mobile-menu-item mobile-menu-item--indent">
-                <i class="fas fa-folder"></i>
-                <span>Files</span>
+                <i aria-hidden="true" class="fas fa-folder"></i>
+                <span>{% trans "Files" %}</span>
             </a>
             <a href="/accounts/profile/" class="mobile-menu-item">
-                <i class="fas fa-user"></i>
-                <span>Profile</span>
+                <i aria-hidden="true" class="fas fa-user"></i>
+                <span>{% trans "Profile" %}</span>
             </a>
             <a href="/accounts/settings/" class="mobile-menu-item">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
+                <i aria-hidden="true" class="fas fa-cog"></i>
+                <span>{% trans "Settings" %}</span>
             </a>
             <div class="mobile-menu-divider"></div>
             <a href="/auth/logout/" class="mobile-menu-item">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Sign Out</span>
+                <i aria-hidden="true" class="fas fa-sign-out-alt"></i>
+                <span>{% trans "Sign Out" %}</span>
             </a>
         {% else %}
             <a href="/auth/signin/" class="mobile-menu-item">
-                <i class="fas fa-sign-in-alt"></i>
-                <span>Sign In</span>
+                <i aria-hidden="true" class="fas fa-sign-in-alt"></i>
+                <span>{% trans "Sign In" %}</span>
             </a>
             <a href="/auth/signup/" class="mobile-menu-item">
-                <i class="fas fa-user-plus"></i>
-                <span>Sign Up</span>
+                <i aria-hidden="true" class="fas fa-user-plus"></i>
+                <span>{% trans "Sign Up" %}</span>
             </a>
         {% endif %}
         {% comment %}
@@ -369,24 +378,24 @@
         {% endcomment %}
         <div class="mobile-menu-divider"></div>
         <a href="{% url 'public_app:terms' %}" class="mobile-menu-item">
-            <i class="fas fa-file-contract"></i>
-            <span>Terms</span>
+            <i aria-hidden="true" class="fas fa-file-contract"></i>
+            <span>{% trans "Terms" %}</span>
         </a>
         <a href="{% url 'public_app:privacy' %}" class="mobile-menu-item">
-            <i class="fas fa-user-shield"></i>
-            <span>Privacy</span>
+            <i aria-hidden="true" class="fas fa-user-shield"></i>
+            <span>{% trans "Privacy" %}</span>
         </a>
         <a href="{% url 'public_app:cookies' %}" class="mobile-menu-item">
-            <i class="fas fa-cookie-bite"></i>
-            <span>Cookies</span>
+            <i aria-hidden="true" class="fas fa-cookie-bite"></i>
+            <span>{% trans "Cookies" %}</span>
         </a>
         <a href="{% url 'public_app:tokushoho' %}" class="mobile-menu-item">
-            <i class="fas fa-scale-balanced"></i>
+            <i aria-hidden="true" class="fas fa-scale-balanced"></i>
             <span>特定商取引法に基づく表記</span>
         </a>
         <a href="{% url 'public_app:contact' %}" class="mobile-menu-item">
-            <i class="fas fa-envelope"></i>
-            <span>Contact</span>
+            <i aria-hidden="true" class="fas fa-envelope"></i>
+            <span>{% trans "Contact" %}</span>
         </a>
     </div>
     {% include 'global_base_partials/global_header/hamburger_inline.html' %}
