@@ -230,6 +230,17 @@ form.create-form-card textarea.form-control {
   overflow-x: auto;
 }
 
+/* A folder preview, not code: drop the global "plaintext" language badge. */
+.create-page pre.template-tree {
+  padding: 0.5rem 0.75rem !important;
+}
+
+.create-page pre.template-tree::before,
+.create-page pre.template-tree::after {
+  content: none !important;
+  display: none !important;
+}
+
 .option-label {
   font-weight: 500;
   font-size: 0.875rem;
