@@ -122,10 +122,17 @@ def cards_lane_globs_env() -> str:
 #: private variable spelling to be configured.
 CARDS_STORE_HUB_ENV = "SCITEX_HUB_CARDS_STORE"
 
-#: The name scitex-cards ITSELF reads (``scitex_cards._db.ENV_DB``). The hub
-#: does not get to choose it, which is exactly why the hub-prefixed name above
-#: exists — and why this one is still honoured first below.
-CARDS_STORE_UPSTREAM_ENV = "SCITEX_CARDS_DB"
+#: The name the scitex-dev store protocol reads: ``scitex_dev.store.host_store``
+#: honours ``$SCITEX_STORE_DSN`` first (explicit override), then resolves the
+#: fleet's central node. scitex-cards >= 0.52.1 (Cards PR #1005) routes
+#: ``resolve_store_target`` through that primitive — the old
+#: ``$SCITEX_CARDS_DB`` variable no longer feeds the resolver, which is why
+#: the 9 cards-store tests answered the fleet default instead of a fixture.
+#: The hub does not get to choose this name; the hub-prefixed name above is
+#: how a deployment states its target, and this one is what the package
+#: actually reads (honoured first below, matching host_store's own
+#: precedence).
+CARDS_STORE_UPSTREAM_ENV = "SCITEX_STORE_DSN"
 
 #: The package name handed to ``scitex_dev.store.host_store`` for the fleet
 #: default. It selects WHICH store on the fleet cluster, so it must stay
@@ -158,16 +165,17 @@ def publish_cards_store_target(environ: dict | None = None) -> str | None:
 
     Precedence, and each tier is deliberate:
 
-    1. ``$SCITEX_CARDS_DB`` already set -> LEFT ALONE. A developer or a test
+    1. ``$SCITEX_STORE_DSN`` already set -> LEFT ALONE. A developer or a test
        that exports the package's own variable has said something more specific
        than the deployment did, and a settings module that overwrites it would
        silently move them to a different store. Returned so the caller can log
-       what won.
-    2. ``$SCITEX_HUB_CARDS_STORE`` set -> published as ``$SCITEX_CARDS_DB``.
+       what won. (This matches ``host_store``'s own precedence: an explicit
+       ``$SCITEX_STORE_DSN`` override wins outright.)
+    2. ``$SCITEX_HUB_CARDS_STORE`` set -> published as ``$SCITEX_STORE_DSN``.
        This is the tier that fixes the defect: it gives a deployment a
        conventional place to state the target.
     3. NEITHER -> the FLEET DEFAULT, resolved by ``scitex_dev.store.host_store``
-       and published as ``$SCITEX_CARDS_DB``. A hub that has been told nothing
+       and published as ``$SCITEX_STORE_DSN``. A hub that has been told nothing
        lands on the fleet's PostgreSQL on port 55432, which is where every other
        package in the ecosystem already keeps its store.
 
@@ -223,9 +231,11 @@ def publish_cards_store_target(environ: dict | None = None) -> str | None:
 
     It is NOT a fallback: no second store is chosen, no write goes anywhere
     unintended, and the state is reported twice over — an ERROR in the log
-    naming the resolver's own sentence, and the existing typed 404 from
-    ``apps.workspace.todo_app.cards_store_provisioning`` on the board's data
-    endpoints. What it deliberately does NOT do is abort settings import.
+    naming the resolver's own sentence, and the board's data endpoints
+    answer the resolver's own fail-loud behaviour (a malformed
+    ``$SCITEX_STORE_DSN`` raises ``StoreTargetError``; an unreachable one is a
+    connection error) — both stay 5xx, never a synthetic hub 404. What it
+    deliberately does NOT do is abort settings import.
     ``publish_cards_store_target`` runs at settings load, so an exception here
     takes down the whole site — landing page, auth, every unrelated app —
     because one leaf's database is unreachable. That is the failure PR #689
@@ -235,7 +245,7 @@ def publish_cards_store_target(environ: dict | None = None) -> str | None:
 
     An EMPTY value counts as unset at every tier, matching the resolver's own
     ``if value:`` test; otherwise ``SCITEX_HUB_CARDS_STORE=`` in a ``.env`` file
-    would publish an empty ``$SCITEX_CARDS_DB`` and mean something different
+    would publish an empty ``$SCITEX_STORE_DSN`` and mean something different
     here than it does one call downstream.
 
     :param environ: mapping to read and write; defaults to ``os.environ``.
