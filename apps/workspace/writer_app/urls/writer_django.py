@@ -61,12 +61,22 @@ _api_view = WorkingDirScopedView(_raw_api_dispatch, on_missing=_no_project_json)
 
 @login_required
 def editor_page(request):
-    return _editor_view(request)
+    # Stamp the app-scope marker the leaf bundle's mountProjectSelectorByScope
+    # reads (d8528de contract). This bridge calls the raw leaf editor_page (not
+    # scitex-app's scitex_editor_page host view), so the marker is not injected
+    # upstream — this is the one place the hub applies the shared contract.
+    # (Writer's leaf consumer is a separate Writer-owned follow-up; the marker
+    # is correct to emit regardless — user/absent scope would be a no-op.)
+    response = _editor_view(request)
+    from apps.infra.workspace_app.scope_meta import inject_scope_meta
+    return inject_scope_meta(response, "writer")
 
 
 @login_required
 def viewer_page(request):
-    return _viewer_view(request)
+    response = _viewer_view(request)
+    from apps.infra.workspace_app.scope_meta import inject_scope_meta
+    return inject_scope_meta(response, "writer")
 
 
 @login_required
