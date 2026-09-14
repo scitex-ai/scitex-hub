@@ -402,6 +402,91 @@ msgstr "セルフホスティング手順"
 msgid "Server Status"
 msgstr "サーバー稼働状況"
 
+#: apps/infra/public_app/templates/public_app/server_status.html
+msgid "Check the current status of SciTeX Hub services and infrastructure."
+msgstr "SciTeX Hub のサービスとインフラの現在の稼働状況を確認できます。"
+
+#: apps/infra/public_app/templates/public_app/server_status.html
+msgid "Real-time monitoring of SciTeX Hub infrastructure and services"
+msgstr "SciTeX Hub のインフラとサービスをリアルタイムで監視しています"
+
+#: apps/infra/public_app/templates/public_app/public_status.html
+msgid "SciTeX Status"
+msgstr "SciTeX 稼働状況"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/overall_label.html
+msgid "All Systems Operational"
+msgstr "すべてのシステムが正常に稼働しています"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/overall_label.html
+msgid "Degraded performance"
+msgstr "一部のサービスでパフォーマンスが低下しています"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/overall_label.html
+msgid "Partial System Outage"
+msgstr "一部のシステムが停止しています"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/overall_label.html
+msgid "Major System Outage"
+msgstr "大規模なシステム障害が発生しています"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/public_services.html
+msgid "Uptime over the past 90 days."
+msgstr "過去 90 日間の稼働率です。"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/public_services.html
+msgid "Operational"
+msgstr "正常"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/public_services.html
+msgid "Degraded"
+msgstr "低下"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/public_services.html
+msgid "Down"
+msgstr "停止"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/public_services.html
+msgid "90 days ago"
+msgstr "90 日前"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/public_services.html
+#, python-format
+msgid "%(pct)s%% uptime"
+msgstr "稼働率 %(pct)s%%"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/public_services.html
+msgid "Today"
+msgstr "今日"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/public_services.html
+msgid "Last checked:"
+msgstr "最終確認:"
+
+#: apps/infra/public_app/templates/public_app/public_status.html
+#, python-format
+msgid "Day %(n)s"
+msgstr "%(n)s 日目"
+
+#: apps/infra/public_app/templates/public_app/public_status.html
+msgid "Past Incidents"
+msgstr "過去の障害"
+
+#: apps/infra/public_app/templates/public_app/public_status.html
+msgid "No incidents reported."
+msgstr "報告された障害はありません。"
+
+#: apps/infra/public_app/templates/public_app/public_status.html
+msgid "Detailed Status"
+msgstr "詳細な稼働状況"
+
+#. Service names from apps/infra/public_app/views/status/public_status.py
+msgid "Web Application"
+msgstr "ウェブアプリケーション"
+
+msgid "Database"
+msgstr "データベース"
+
 #: templates/global_base_partials/global_footer.html
 msgid "Terms"
 msgstr "利用規約"
@@ -560,8 +645,6 @@ msgstr "無断複製・転載を禁じます。"
 msgid "Support SciTeX"
 msgstr "SciTeX を支援する"
 
-
-
 msgid "List price %(price)s, early-adopter discount %(percent)d%%. Early-adopter price through %(until)s."
 msgstr "定価 %(price)s、早期導入割引 %(percent)d%%。%(until)sまでの早期導入価格。"
 
@@ -576,7 +659,6 @@ msgstr "%(amt)s円"
 
 msgid "University or research-institution email address (students, graduate students, faculty, researchers)"
 msgstr "大学・研究機関のメールアドレスを持つこと（学生・院生・教職員・研究員）"
-
 
 # Pricing i18n (English source, JA translations) — 2026-09-11
 msgid "Monthly"
@@ -653,9 +735,6 @@ msgstr "サブスクリプション"
 
 msgid "Pro"
 msgstr "プロ"
-
-msgid "Cloud"
-msgstr "クラウド"
 
 msgid "Non-Academic"
 msgstr "非学術"
@@ -805,7 +884,6 @@ msgid "Services & add-ons"
 msgstr "サービス・追加オプション"
 msgid "Contents of the free tier will be listed here."
 msgstr "無料プランの内容はここに掲載予定です。"
-
 
 # /services/ page EN-sourced 2026-09-12 (card services-page-i18n-20260911)
 
@@ -2847,7 +2925,6 @@ msgstr "数式"
 
 msgid "Figure"
 msgstr "図"
-
 
 # SciTeX Services SSOT Provisional v1.0 (USD) — /pricing/, /services/, rate card (2026-09-14)
 msgid "from %(price)s"
@@ -5276,6 +5353,17 @@ msgctxt "app name"
 msgid "Settings"
 msgstr "設定"
 
+# Short dock captions (apps/infra/workspace_app/site_dock.py DOCK_SHORT_LABELS).
+#: templates/global_base_partials/site_dock.html
+msgctxt "app name"
+msgid "Projects"
+msgstr "プロジェクト"
+
+#: templates/global_base_partials/site_dock.html
+msgctxt "app name"
+msgid "Apps"
+msgstr "アプリ"
+
 # Home tile names from the app manifests (launcher_tile.html).
 #: apps/workspace/apps_app/templates/apps_app/partials/launcher_tile.html
 msgctxt "app name"
@@ -5335,6 +5423,10 @@ msgstr "基盤"
 #: apps/workspace/apps_app/templates/apps_app/launcher.html
 msgid "Work"
 msgstr "作業"
+
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+msgid "Publish"
+msgstr "発信"
 
 # "System" is already in this catalog (システム); the launcher reuses it.
 
@@ -5610,3 +5702,270 @@ msgstr "プレビューを閉じる"
 #: apps/workspace/files_app/templates/files_app/index.html
 msgid "Drop files to upload here"
 msgstr "ここにドロップしてアップロード"
+
+#: apps/workspace/apps_app (create app)
+msgid "Create app"
+msgstr "アプリを作成"
+
+#: apps/workspace/apps_app (create app)
+msgid "Create an app"
+msgstr "アプリを作成"
+
+#: apps/workspace/apps_app (create app)
+msgid "Build a tool for your own experiment. An AI agent helps you write it, and you can run it privately before sharing."
+msgstr "自分の実験のためのツールを作りましょう。AI エージェントが作成を手伝い、共有する前に自分だけで実行できます。"
+
+#: apps/workspace/apps_app (create app)
+msgid "App name"
+msgstr "アプリ名"
+
+#: apps/workspace/apps_app (create app)
+msgid "e.g. EEG session logger"
+msgstr "例：脳波セッション記録"
+
+#: apps/workspace/apps_app (create app)
+msgid "What should it do?"
+msgstr "どんなことをするアプリですか？"
+
+#: apps/workspace/apps_app (create app)
+msgid "e.g. Enter each trial’s stimulus, response and reaction time, and save them to the project."
+msgstr "例：試行ごとに刺激・反応・反応時間を入力し、プロジェクトに保存する。"
+
+#: apps/workspace/apps_app (create app)
+msgid "A sentence or two about the experiment tool you want. The agent starts from this."
+msgstr "作りたい実験ツールを 1〜2 文で書いてください。エージェントはここから作り始めます。"
+
+#: apps/workspace/apps_app (create app)
+msgid "Starter template"
+msgstr "ひな形"
+
+#: apps/workspace/apps_app (create app)
+msgid "Your app is created in a new private project that only you can see."
+msgstr "アプリは、あなただけが見られる新しい非公開プロジェクトに作成されます。"
+
+#: apps/workspace/apps_app (create app)
+msgid "Data entry form"
+msgstr "データ入力フォーム"
+
+#: apps/workspace/apps_app (create app)
+msgid "Record trials, samples or observations into the project."
+msgstr "試行・サンプル・観察記録をプロジェクトに記録します。"
+
+#: apps/workspace/apps_app (create app)
+msgid "Analysis dashboard"
+msgstr "解析ダッシュボード"
+
+#: apps/workspace/apps_app (create app)
+msgid "Summarise and plot result files from the project."
+msgstr "プロジェクト内の結果ファイルを集計してグラフにします。"
+
+#: apps/workspace/apps_app (create app)
+msgid "Device/log viewer"
+msgstr "装置・ログビューア"
+
+#: apps/workspace/apps_app (create app)
+msgid "Browse and filter instrument logs or recordings."
+msgstr "装置のログや記録データを閲覧・絞り込みします。"
+
+#: apps/workspace/apps_app (create app)
+msgid "Blank"
+msgstr "空のひな形"
+
+#: apps/workspace/apps_app (create app)
+msgid "Start from the plain template and describe it to the agent."
+msgstr "最小限のひな形から始め、内容はエージェントに伝えます。"
+
+#: apps/workspace/apps_app (create app)
+msgid "Give your app a name."
+msgstr "アプリ名を入力してください。"
+
+#: apps/workspace/apps_app (create app)
+msgid "Pick a starter template."
+msgstr "ひな形を選んでください。"
+
+#: apps/workspace/apps_app (create app)
+msgid "Could not create the project directory."
+msgstr "プロジェクトのディレクトリを作成できませんでした。"
+
+#: apps/workspace/apps_app (create app)
+msgid "Private project"
+msgstr "非公開プロジェクト"
+
+#: apps/workspace/apps_app (create app)
+msgid "Starting…"
+msgstr "起動中…"
+
+#: apps/workspace/apps_app (create app)
+msgid "Open app"
+msgstr "アプリを開く"
+
+#: apps/workspace/apps_app (create app)
+msgid "Run privately"
+msgstr "自分だけで実行"
+
+#: apps/workspace/apps_app (create app)
+msgid "Only you can see the app tab."
+msgstr "アプリのタブはあなただけに表示されます。"
+
+#: apps/workspace/apps_app (create app)
+msgid "Coming soon — requires verified phone, card and ORCID"
+msgstr "近日提供 — 認証済みの電話番号・カード・ORCID が必要です"
+
+#: apps/workspace/apps_app (create app)
+msgid "No files yet."
+msgstr "まだファイルがありません。"
+
+#: apps/workspace/apps_app (create app)
+msgid "Apply to file"
+msgstr "ファイルに適用"
+
+#: apps/workspace/apps_app (create app)
+msgid "Applied"
+msgstr "適用しました"
+
+#: apps/workspace/apps_app (create app)
+msgid "Thinking…"
+msgstr "考え中…"
+
+#: apps/workspace/apps_app (create app)
+msgid "App agent"
+msgstr "アプリエージェント"
+
+#: apps/workspace/apps_app (create app)
+msgid "Tell the agent what to change, e.g. “Add a field for reaction time in ms”. It replies with file edits you can apply with one click."
+msgstr "変更したい内容をエージェントに伝えてください（例：「反応時間（ms）の入力欄を追加して」）。ワンクリックで適用できるファイルの変更案が返ってきます。"
+
+#: apps/workspace/apps_app (create app)
+msgid "Message the app agent"
+msgstr "アプリエージェントにメッセージ"
+
+#: apps/workspace/apps_app (create app)
+msgid "Describe a change…"
+msgstr "変更内容を入力…"
+
+#: apps/workspace/apps_app (create app)
+msgid "Send"
+msgstr "送信"
+
+#: apps/workspace/apps_app (create app)
+msgid "No AI provider configured."
+msgstr "AI プロバイダーが設定されていません。"
+
+#: apps/workspace/apps_app (create app)
+msgid "Connect an AI provider with your own API key to chat with the app agent."
+msgstr "アプリエージェントと話すには、ご自身の API キーで AI プロバイダーを接続してください。"
+
+#: apps/workspace/apps_app (create app)
+msgid "Connect an AI provider"
+msgstr "AI プロバイダーを接続"
+
+# Slides app (card hub-slides-app-agent-aware-20260914).
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgctxt "app name"
+msgid "Slides"
+msgstr "スライド"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Unsaved changes"
+msgstr "未保存の変更があります"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Could not save"
+msgstr "保存できませんでした"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Deck name"
+msgstr "スライド名"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "No image files found in this project."
+msgstr "このプロジェクトに画像ファイルがありません。"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Pick a deck or create one."
+msgstr "スライドを選ぶか、新しく作成してください。"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Read only: you cannot edit this project."
+msgstr "閲覧のみ: このプロジェクトは編集できません。"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Deck"
+msgstr "スライド"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "New deck"
+msgstr "新しいスライド"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "New deck from project"
+msgstr "プロジェクトから作成"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Insert figure"
+msgstr "図を挿入"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Export PDF"
+msgstr "PDFに書き出し"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Editor"
+msgstr "エディタ"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Slide Markdown"
+msgstr "スライドのMarkdown"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Title"
+msgstr "タイトル"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Next slide"
+msgstr "次のスライド"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Close"
+msgstr "閉じる"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "Slides live in a project. Choose one:"
+msgstr "スライドはプロジェクトに保存されます。プロジェクトを選んでください:"
+
+#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
+msgid "You have no projects yet."
+msgstr "まだプロジェクトがありません。"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/first_run_checklist.html
+msgid "Don't show again"
+msgstr "今後表示しない"
+
+#: apps/infra/accounts_app/templates/accounts_app/appearance_settings.html
+msgid "Bring the Getting started checklist back to Home."
+msgstr "「はじめに」のチェックリストをホームにもう一度表示します。"
+
+#: apps/infra/accounts_app/templates/accounts_app/appearance_settings.html
+msgid "Show Getting started again"
+msgstr "はじめにを再表示"
+
+#: apps/workspace/apps_app/launcher_links/create-app.json
+msgctxt "app name"
+msgid "App Creator"
+msgstr "アプリクリエイター"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_planned_sheet.html
+msgid "Notify me"
+msgstr "公開時に通知"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_planned_sheet.html
+msgid "We will notify you"
+msgstr "公開時にお知らせします"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_planned_sheet.html
+msgid "Build this app"
+msgstr "このアプリを作る"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_planned_sheet.html
+msgid "You'll be credited as author"
+msgstr "作った人は著者として表示されます"

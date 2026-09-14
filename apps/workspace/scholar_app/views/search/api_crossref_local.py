@@ -22,11 +22,14 @@ logger = logging.getLogger(__name__)
 
 
 @require_http_methods(["GET"])
-def api_search_crossref_local(request):
+def api_search_crossref_local(request, _search=None, _online_fallback=None):
     """API endpoint for CrossRef Local (SciTeX) database search.
 
     Thin wrapper around crossref-local package.
     All search logic delegated to the package.
+
+    ``_search`` / ``_online_fallback`` exist for tests; URL dispatch never
+    passes them.
     """
     from .config import NO_LIMIT, get_limit_for_source
 
@@ -56,12 +59,13 @@ def api_search_crossref_local(request):
             return JsonResponse(cached)
 
     try:
-        from scitex.scholar.local_dbs import crossref_scitex
+        if _search is None:
+            from scitex.scholar.local_dbs import crossref_scitex
+
+            _search = crossref_scitex.search
 
         # Delegate to crossref-local (with_if enables impact factor lookup)
-        search_result = crossref_scitex.search(
-            query, limit=max_results, with_if=with_if
-        )
+        search_result = _search(query, limit=max_results, with_if=with_if)
 
         # Use package's to_dict() - Django just adds source identifier
         results = []
@@ -152,6 +156,13 @@ def api_search_crossref_local(request):
             },
             status=503,
         )
+    except ConnectionError as e:
+        # "Crossref (SciTeX)" is the default-checked source; when its API server
+        # is down the search page would otherwise show zero results.
+        logger.warning(f"crossref-local unreachable, using online Crossref: {e}")
+        if _online_fallback is None:
+            from .api_crossref import api_search_crossref as _online_fallback
+        return _online_fallback(request)
     except FileNotFoundError as e:
         logger.error(f"CrossRef database not found: {e}")
         return JsonResponse(

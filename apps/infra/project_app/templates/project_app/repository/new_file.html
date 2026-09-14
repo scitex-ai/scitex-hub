@@ -1,0 +1,55 @@
+{% extends "global_base.html" %}
+
+{% load static %}
+
+{% block title %}New file - {{ project.name }}{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'project_app/css/project_app.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/shared/buttons.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/container-header.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/repository/file_edit.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="container-fluid browse-container">
+        <div class="repo-header">
+            <div class="repo-header-left">
+                <a href="/{{ project.owner.username }}/" class="repo-header-owner">{{ project.owner.username }}</a>
+                <span class="repo-header-separator">/</span>
+                <a href="/{{ project.owner.username }}/{{ project.slug }}/" class="repo-title">{{ project.name }}</a>
+                <span class="repo-header-separator">/</span>
+                <span class="repo-breadcrumb-current">New file</span>
+            </div>
+        </div>
+        <div class="file-editor-container">
+            <form method="post" action="">
+                {% csrf_token %}
+                <div class="editor-header">
+                    <label for="directory">Folder</label>
+                    <input type="text"
+                           id="directory"
+                           name="directory"
+                           value="{{ directory }}"
+                           placeholder="(project root)" />
+                    <label for="file_name">File name</label>
+                    <input type="text"
+                           id="file_name"
+                           name="file_name"
+                           value="{{ file_name }}"
+                           placeholder="e.g. notes.md"
+                           required
+                           autofocus />
+                </div>
+                {% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
+                <div class="editor-body">
+                    <textarea name="content" class="editor-textarea">{{ file_content }}</textarea>
+                </div>
+                <div class="editor-footer">
+                    <a href="/{{ project.owner.username }}/{{ project.slug }}/"
+                       class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-success">Create file</button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

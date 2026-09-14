@@ -10,6 +10,8 @@
  * Auto-hides welcome when the session already has messages.
  */
 
+import { toggleVoiceInput } from "./voice-input";
+
 function initChatWelcome(): void {
   const welcomePane = document.querySelector<HTMLElement>(".ws-chat-pane");
   const welcomeInput = document.getElementById(
@@ -107,6 +109,11 @@ function initChatWelcome(): void {
       const aiSketch = document.getElementById("stx-shell-ai-sketch");
       if (aiSketch) aiSketch.click();
     });
+
+  const welcomeMic = document.getElementById("chat-welcome-mic");
+  welcomeMic?.addEventListener("click", () => {
+    toggleVoiceInput(welcomeInput, welcomeMic);
+  });
 
   // Click on input-wrap area focuses the textarea (extends hit area)
   document

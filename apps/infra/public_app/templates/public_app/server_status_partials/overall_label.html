@@ -1,0 +1,1 @@
+{% load i18n %}{% if overall == "operational" %}{% trans "All Systems Operational" %}{% elif overall == "degraded" %}{% trans "Degraded performance" %}{% elif overall == "partial_outage" %}{% trans "Partial System Outage" %}{% else %}{% trans "Major System Outage" %}{% endif %}

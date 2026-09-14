@@ -46,7 +46,6 @@ _REPO_ROOT = Path(__file__).resolve().parents[3]
 EXPECTED_TILE_ORDER = [
     # FOUNDATION (operator groups, 2026-09-14 16:3xZ)
     "My Projects",
-    "Public Projects",
     "Agents",
     "Cards",
     "Storage",
@@ -60,6 +59,10 @@ EXPECTED_TILE_ORDER = [
     "Tools",
     "Console",
     "Clew",
+    "App Creator",
+    # PUBLISH (proposed 2026-09-14, Telegram 6040)
+    "Slides",
+    "Public Projects",
     # SYSTEM
     "Settings",
     "Docs",
