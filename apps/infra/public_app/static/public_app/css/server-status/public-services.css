@@ -1,0 +1,109 @@
+/**
+ * Server Status - public service list (non-admin view)
+ *
+ * Linked directly from server_status.html, like charts.css: this filename
+ * exists in only one static tree, so it cannot be shadowed by the repo-root
+ * static/ copy of the server-status CSS.
+ */
+
+.public-services {
+  max-width: 56rem;
+  margin: 0 auto;
+  padding-block: 1rem 3rem;
+  padding-inline: 1rem;
+}
+
+.public-services__banner {
+  padding: 0.9rem 1.25rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--status-success, #2e7d4f);
+}
+
+.public-services__banner--degraded {
+  background: var(--status-warning, #9a6b12);
+}
+
+.public-services__banner--down {
+  background: var(--status-error, #b3261e);
+}
+
+.public-services__note {
+  margin: 1rem 0 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted, #6b7280);
+}
+
+.public-services__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border-default, #d0d7de);
+  border-radius: 0.5rem;
+  background: var(--bg-surface, transparent);
+}
+
+.public-services__row {
+  padding: 0.9rem 1.25rem;
+  border-bottom: 1px solid var(--border-muted, #e5e7eb);
+}
+
+.public-services__row:last-child {
+  border-bottom: 0;
+}
+
+.public-services__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.public-services__name {
+  font-weight: 600;
+  color: var(--text-primary, inherit);
+}
+
+.public-services__state {
+  font-size: 0.85rem;
+  color: var(--status-success, #2e7d4f);
+}
+
+.public-services__state--degraded {
+  color: var(--status-warning, #9a6b12);
+}
+
+.public-services__state--down {
+  color: var(--status-error, #b3261e);
+}
+
+.public-services__bar {
+  display: flex;
+  gap: 1px;
+  height: 1.5rem;
+}
+
+.public-services__day {
+  flex: 1 1 0;
+  min-width: 0;
+  border-radius: 1px;
+  background: var(--status-success, #2e7d4f);
+}
+
+.public-services__day--degraded {
+  background: var(--status-warning, #9a6b12);
+}
+
+.public-services__day--down {
+  background: var(--status-error, #b3261e);
+}
+
+.public-services__labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-muted, #6b7280);
+}

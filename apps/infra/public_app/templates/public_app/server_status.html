@@ -15,8 +15,13 @@
     resolves to the repo-root static/ copy, not the app one, so an @import there
     would never load. This filename exists in only one tree.
     {% endcomment %}
-    <link rel="stylesheet"
-          href="{% static 'public_app/css/server-status/charts.css' %}" />
+    {% if is_instance_admin %}
+        <link rel="stylesheet"
+              href="{% static 'public_app/css/server-status/charts.css' %}" />
+    {% else %}
+        <link rel="stylesheet"
+              href="{% static 'public_app/css/server-status/public-services.css' %}" />
+    {% endif %}
 {% endblock %}
 {% comment %}
 Charts are drawn in the browser as inline SVG from a single JSON read
@@ -35,6 +40,14 @@ and broke the visitor pool. Operator decision, 2026-07-30.
             <p class="minimal-hero-subtitle">Real-time monitoring of SciTeX Hub infrastructure and services</p>
         </header>
     </div>
+    {% comment %}
+    Host metrics, charts and internal details are for instance admins only
+    (site audit 2026-09-14). Everyone else sees the public service list and
+    the page loads no chart script, so it never calls an admin-only endpoint.
+    {% endcomment %}
+    {% if not is_instance_admin %}
+        {% include "public_app/server_status_partials/public_services.html" with status=public_status %}
+    {% else %}
     <div class="server-status-container">
         {% comment %}Stalled Health Checks — three-valued UNKNOWN (deadline missed), never collapsed into up/down{% endcomment %}
         {% if status_data.unknown_checks %}
@@ -755,4 +768,5 @@ and broke the visitor pool. Operator decision, 2026-07-30.
         <!-- Architecture moved to /setup/ (Self-Hosting Guide) -->
     </div>
     {% vite_script 'public_app/server-status' %}
+    {% endif %}
 {% endblock %}
