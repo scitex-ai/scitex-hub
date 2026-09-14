@@ -10,6 +10,41 @@ import subprocess
 
 logger = logging.getLogger(__name__)
 
+_FAILURE_MESSAGES = {
+    "TIMEOUT": "Session time limit reached — restarting automatically",
+    "CANCELLED": "Session was stopped",
+    "FAILED": "Session encountered an error — restarting automatically",
+    "NODE_FAIL": "Server issue — restarting automatically",
+    "PREEMPTED": "Resources needed elsewhere — restarting automatically",
+    "OUT_OF_MEMORY": "Memory limit reached — please reduce memory usage",
+}
+
+
+def format_failure_reason(state: str, reason: str) -> str:
+    """Map SLURM job state/reason to a human-readable message."""
+    return _FAILURE_MESSAGES.get(state, "Session ended — restarting automatically")
+
+
+def sacct_failure_reason(job_id) -> str:
+    """Query sacct for the failure reason of a job."""
+    if not job_id:
+        return "No SLURM job ID"
+    try:
+        result = subprocess.run(
+            ["sacct", "-j", job_id, "-o", "State,Reason", "--noheader", "--parsable2"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if result.stdout.strip():
+            parts = result.stdout.strip().split("\n")[0].split("|")
+            state = parts[0] if parts else "UNKNOWN"
+            reason = parts[1] if len(parts) > 1 else ""
+            return format_failure_reason(state, reason)
+    except Exception:
+        pass
+    return "Allocation ended (reason unknown)"
+
 
 def collect_pending_reason(job_id: str, alloc_id_prefix: str = "") -> str:
     """Query squeue for the reason a job is stuck in PENDING state.
