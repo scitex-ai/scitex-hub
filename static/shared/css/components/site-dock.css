@@ -175,7 +175,9 @@ body:has(> .site-dock:not(.site-dock--floating)) {
 
 .site-dock-app-label {
   display: block;
+  box-sizing: border-box;
   max-width: 100%;
+  text-align: center;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -398,7 +400,22 @@ body:has(> .site-dock:not(.site-dock--floating)) {
   .site-dock-apps {
     grid-column: 1 / -1;
     grid-row: 1;
+    gap: 4px;
     border-bottom: 1px solid var(--site-dock-border);
+  }
+
+  /* Equal cells; the caption may use the whole cell and never more. */
+  .site-dock-apps .site-dock-app {
+    flex: 1 1 0;
+    max-width: calc(var(--site-dock-icon) + 16px);
+    padding-inline: 0;
+  }
+
+  .site-dock-app-label {
+    width: 100%;
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: -0.02em;
   }
 
   .site-dock-grabber {
