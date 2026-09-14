@@ -1,0 +1,87 @@
+{% load static i18n %}
+{% comment %}
+Project list in the Explorer/Finder tree look — ONE component for My Projects
+and Public Projects (operator 2026-09-14: 「いろんなページで同じ見た目のもの」).
+
+Rows reuse the workspace file tree's own classes (wft-item / wft-folder /
+wft-chevron / wft-name, styled by scitex-ui workspace-files-tree CSS), so a
+project reads as a folder exactly like a folder inside a project does.
+
+Parameters (all optional except projects):
+  projects    iterable of Project
+  nest_tree   when true, the current project's row is expanded and the live
+              workspace file tree (workspace_worktree_tree.html) is nested
+              under it. Only the worktree pane passes this: the tree carries
+              element ids and must render once per page.
+  show_owner  prefix each name with its owner ("owner / name")
+  show_meta   description, stars, App badge, Private Install (Public Projects)
+  empty_text  message when there are no projects
+{% endcomment %}
+<div class="ws-project-list{% if nest_tree %} ws-project-list--nested{% endif %}"
+     data-project-tree-list
+     role="tree"
+     aria-label="{% trans 'Projects' %}">
+    {% for project in projects %}
+        {% if nest_tree and current_project and project.pk == current_project.pk %}
+            <a class="wft-item wft-folder ws-project-row expanded selected"
+               role="treeitem"
+               aria-expanded="true"
+               aria-current="page"
+               href="/{{ project.effective_owner_slug }}/{{ project.slug }}/"
+               data-project-row="{{ project.effective_owner_slug }}/{{ project.slug }}">
+                <span class="wft-folder-toggle"><span class="wft-chevron expanded"></span></span>
+                <span class="wft-name">
+                    {% if show_owner or project.owner_id != user.id %}<span class="ws-project-row__owner">{{ project.effective_owner_slug }} /</span>{% endif %}
+                    {{ project.name }}
+                </span>
+            </a>
+            <div class="wft-children expanded ws-project-row__tree" role="group">
+                {% include 'global_base_partials/workspace_worktree_tree.html' %}
+            </div>
+        {% else %}
+            <div class="ws-project-row-wrap">
+                <a class="wft-item wft-folder ws-project-row"
+                   role="treeitem"
+                   aria-expanded="false"
+                   href="/{{ project.effective_owner_slug }}/{{ project.slug }}/"
+                   data-project-row="{{ project.effective_owner_slug }}/{{ project.slug }}"
+                   {% if project.description %}title="{{ project.description|truncatechars:160 }}"{% endif %}>
+                    <span class="wft-folder-toggle"><span class="wft-chevron"></span></span>
+                    <span class="wft-name">
+                        {% if show_owner or project.owner_id != user.id %}<span class="ws-project-row__owner">{{ project.effective_owner_slug }} /</span>{% endif %}
+                        {{ project.name }}
+                    </span>
+                    {% if show_meta %}
+                        {% if project.is_app %}
+                            <span class="ws-project-row__badge" title="SciTeX App"><i class="fas fa-puzzle-piece"></i></span>
+                        {% endif %}
+                        <span class="ws-project-row__stars" title="{% trans 'Stars' %}"><i class="fas fa-star"></i> {{ project.star_count|default:0 }}</span>
+                    {% endif %}
+                </a>
+                {% if show_meta %}
+                    {% if project.description %}
+                        <div class="ws-project-row__description">{{ project.description|truncatechars:140 }}</div>
+                    {% endif %}
+                    {% if project.is_app %}
+                        <button type="button"
+                                class="btn btn-sm dev-install-btn ws-project-row__install"
+                                data-action="dev-install"
+                                data-owner="{{ project.effective_owner_slug }}"
+                                data-repo="{{ project.slug }}"
+                                title="Install privately in your workspace">
+                            <i class="fas fa-download"></i> Private Install
+                        </button>
+                    {% endif %}
+                {% endif %}
+            </div>
+        {% endif %}
+    {% empty %}
+        <div class="ws-project-list__empty">
+            <i class="fas fa-folder-open"></i>
+            <span>{{ empty_text|default:_("No projects yet") }}</span>
+            {% if user.is_authenticated and not show_owner %}
+                <a href="/new/" class="ws-project-list__new"><i class="fas fa-plus"></i> {% trans "New project" %}</a>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>

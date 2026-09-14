@@ -1,5 +1,6 @@
 /**
- * Discovery App — tab switching for Repositories | Users | Organizations
+ * Discovery App — tab switching for Projects | Users | Organizations
+ * (the Projects tab keeps the API key "repositories"; only its label changed).
  */
 
 async function loadDiscoveryTab(tab: string): Promise<void> {
@@ -26,7 +27,8 @@ async function loadDiscoveryTab(tab: string): Promise<void> {
     const msg = document.createElement("p");
     msg.className = "discovery-empty";
     msg.setAttribute("role", "alert");
-    msg.textContent = `Failed to load ${tab} (${String(err)}). Reload the page to retry.`;
+    const label = tab === "repositories" ? "projects" : tab;
+    msg.textContent = `Failed to load ${label} (${String(err)}). Reload the page to retry.`;
     tabContent.replaceChildren(msg);
   } finally {
     tabContent.style.opacity = "1";

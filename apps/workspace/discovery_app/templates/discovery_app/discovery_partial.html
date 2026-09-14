@@ -1,20 +1,22 @@
 {% comment %}
 Discovery module partial — rendered by workspace_module_content at /workspace/content/discovery/
+and included by discovery_app/index.html for the full page.
 {% endcomment %}
-{% load static vite %}
+{% load static vite i18n %}
 
 <link rel="stylesheet" href="{% static 'repo_app/css/hub.css' %}" />
 <link rel="stylesheet" href="{% static 'discovery_app/css/discovery.css' %}" />
 <div class="discovery-content" id="discovery-content">
     <div class="discovery-header">
         <h2>
-            <i class="fas fa-compass"></i> Public Projects
+            <i class="fas fa-compass"></i> {% trans "Public Projects" context "app name" %}
         </h2>
         <p class="text-muted">Discover public projects, researchers and organizations</p>
     </div>
     <nav class="discovery-tabs">
+        {# data-discovery-tab keeps the API's "repositories" key; only the label changed. #}
         <a href="#" class="discovery-tab active" data-discovery-tab="repositories">
-            <i class="fas fa-book"></i> Repositories
+            <i class="fas fa-folder"></i> {% trans "Projects" %}
         </a>
         <a href="#" class="discovery-tab" data-discovery-tab="users">
             <i class="fas fa-users"></i> Users

@@ -45,6 +45,30 @@ def build_discovery_context(request, current_project=None):
     }
 
 
+@require_http_methods(["GET"])
+def discovery_index(request):
+    """GET /apps/discovery/ — Public Projects, one pane.
+
+    This used to mount the legacy three-pane workspace shell: a left AI chat
+    pane ("Ask anything about Scientific Research"), an unrelated, mostly
+    empty project file pane, and the listing loaded over AJAX on the right.
+    Operator 2026-09-14: one pane, in the same list/tree look as My Projects.
+    The page renders the listing server-side inside the ordinary workspace
+    page (module pane), so there is no second shell and no loading flash.
+    Anonymous visitors keep the previous behaviour (landing page).
+    """
+    if not request.user.is_authenticated:
+        from django.shortcuts import redirect
+
+        return redirect("public_app:landing")
+
+    from django.shortcuts import render
+
+    return render(
+        request, "discovery_app/index.html", build_discovery_context(request)
+    )
+
+
 @login_required
 @require_http_methods(["GET"])
 def api_explore(request):

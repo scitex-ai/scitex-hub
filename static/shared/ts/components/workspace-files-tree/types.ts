@@ -56,6 +56,8 @@ export interface TreeConfig {
   showFolderActions?: boolean;
   /** Show git status indicators */
   showGitStatus?: boolean;
+  /** Viewer cannot write: offer no new/upload/rename/delete/move (_ReadOnly.ts) */
+  readOnly?: boolean;
   /** Custom CSS class for the tree container */
   className?: string;
   /** API endpoint for file tree (default: /{username}/{slug}/api/file-tree/) */
