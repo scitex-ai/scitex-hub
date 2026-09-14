@@ -2,7 +2,7 @@
   "$schema": "scitex-launcher-link",
   "$schema_version": "1.0.0",
   "name": "create-app",
-  "label": "Create app",
+  "label": "App Creator",
   "icon": "fas fa-plus",
   "category": "utility",
   "url": "/apps/create/",

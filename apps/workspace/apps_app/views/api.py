@@ -286,7 +286,9 @@ def api_dock(request):
 
     ensure_builtin_modules()
     known_apps = {
-        tile["name"] for tile in _build_tiles(request) if not tile.get("is_planned")
+        tile["name"]
+        for tile in _build_tiles(request)
+        if not tile["is_add_slot"] and not tile.get("is_planned")
     } | {HOME_BUTTON}
     try:
         dock_apps = validate_dock_apps(data.get("dock"), known_apps)

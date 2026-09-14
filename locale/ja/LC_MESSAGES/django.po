@@ -739,9 +739,6 @@ msgstr "サブスクリプション"
 msgid "Pro"
 msgstr "プロ"
 
-msgid "Cloud"
-msgstr "クラウド"
-
 msgid "Non-Academic"
 msgstr "非学術"
 
@@ -5620,8 +5617,8 @@ msgstr "はじめにを再表示"
 
 #: apps/workspace/apps_app/launcher_links/create-app.json
 msgctxt "app name"
-msgid "Create app"
-msgstr "アプリを作る"
+msgid "App Creator"
+msgstr "アプリクリエイター"
 
 #: apps/workspace/apps_app/templates/apps_app/partials/launcher_planned_sheet.html
 msgid "Close"

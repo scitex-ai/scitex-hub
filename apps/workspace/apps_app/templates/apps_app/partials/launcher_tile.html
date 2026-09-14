@@ -1,4 +1,5 @@
 {% load i18n launcher_text %}
+{% if tile.is_add_slot %}{% include "apps_app/partials/launcher_add_slot.html" %}{% else %}
 {# Availability is a registry/catalog FIELD (operator, Telegram 1483) —   #}
 {# the template only renders it. Coming-soon tiles get no href at all: an #}
 {# <a> without href neither navigates nor focuses as a link, while the    #}
@@ -30,3 +31,4 @@
     <span class="launcher-tile-name">{{ tile_name|phrase_breaks }}</span>
     {% if tile.version_label %}<span class="launcher-tile-version">{{ tile.version_label }}</span>{% endif %}
 </a>
+{% endif %}

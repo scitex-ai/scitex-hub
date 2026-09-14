@@ -1,0 +1,16 @@
+{% load i18n %}
+{# App Creator: an EMPTY slot, not an app (operator, 2026-09-14). Not a      #}
+{# .launcher-tile, so launcher.ts never drags, docks, reorders or pops it    #}
+{# over; .launcher-slot keeps it counted as a cell by the pager. No visible   #}
+{# caption: a bare "+" reads as room for an app, and the JA name would wrap   #}
+{# at 390px. The name is in aria-label and title.                            #}
+{% trans tile.label context "app name" as slot_name %}
+<a href="{{ tile.launch_url }}"
+   class="launcher-slot launcher-slot--add"
+   draggable="false"
+   data-module="{{ tile.name }}"
+   data-group="{{ tile.group }}"
+   aria-label="{{ slot_name }}"
+   title="{{ slot_name }}">
+    <span class="launcher-slot-add-box" aria-hidden="true"><i class="fas fa-plus"></i></span>
+</a>
