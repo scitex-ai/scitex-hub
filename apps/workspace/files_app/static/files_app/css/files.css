@@ -1,7 +1,8 @@
 /* Files app (/apps/files/). Phone-first: one list, 44px tap targets,
    actions in a bottom sheet; desktop adds a side preview. */
 
-.files-app {
+.files-app,
+.files-layer {
   --files-tap: 44px;
   --files-radius: 10px;
   --files-bg: var(--workspace-bg-primary, var(--bg-primary, #fff));
@@ -12,9 +13,16 @@
   --files-muted: var(--workspace-text-muted, var(--text-muted, #6b7280));
   --files-accent: var(--accent, #3b6fd8);
   --files-danger: var(--color-danger, #d64545);
+}
 
+.files-app {
+  box-sizing: border-box;
+  width: 100%;
   max-width: 1280px;
   margin: 0 auto;
+  /* Keeps the scrolling places row from widening the workspace pane. */
+  contain: inline-size;
+  min-width: 0;
   padding-block: 16px 96px;
   padding-inline: 16px;
   color: var(--files-text);
@@ -69,7 +77,7 @@
 }
 
 .files-btn:hover {
-  background: var(--files-surface-2);
+  filter: brightness(1.12);
 }
 
 .files-btn:focus-visible,
@@ -88,11 +96,6 @@
   color: #fff;
 }
 
-.files-btn-primary:hover {
-  background: var(--files-accent);
-  filter: brightness(1.08);
-}
-
 .files-btn-danger {
   background: var(--files-danger);
   border-color: var(--files-danger);
@@ -101,6 +104,7 @@
 
 .files-places {
   display: flex;
+  max-width: 100%;
   gap: 8px;
   margin-top: 16px;
   overflow-x: auto;
@@ -360,7 +364,8 @@
 .files-sheet-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  /* Above the site dock (z-index 10050), which would cover the last actions. */
+  z-index: 10100;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -454,7 +459,6 @@
   gap: 8px;
 }
 
-/* Phone: the preview covers the list instead of sitting beside it. */
 @media (max-width: 767px) {
   .files-title {
     font-size: 1.2rem;
@@ -468,12 +472,13 @@
     flex: 1;
   }
 
-  .files-preview {
-    position: fixed;
-    inset: 0;
-    z-index: 900;
-    border: 0;
-    border-radius: 0;
+  /* Phone: the preview replaces the list in the page flow. */
+  .files-previewing .files-list {
+    display: none;
+  }
+
+  .files-preview-content {
+    padding-bottom: 112px; /* clear the site dock */
   }
 }
 

@@ -4,78 +4,19 @@
 
 import { getCsrfToken } from "@utils/csrf";
 
-interface Entry {
-  name: string;
-  path: string;
-  is_dir: boolean;
-  size: number;
-  modified: number;
-  project_url: string;
-}
-
-type Strings = Record<string, string>;
-
-const API = "/apps/files/";
-const PREVIEW_TEXT_LIMIT = 512 * 1024;
-const IMAGE = /\.(png|jpe?g|gif|webp|bmp|avif)$/i;
-const VIDEO = /\.(mp4|webm|mov|m4v|ogv)$/i;
-const AUDIO = /\.(mp3|wav|ogg|m4a|flac)$/i;
-const PDF = /\.pdf$/i;
-const TEXT =
-  /\.(txt|md|csv|tsv|json|ya?ml|py|r|m|tex|bib|log|sh|toml|ini|cfg|xml|html|css|js|ts|svg)$/i;
-
-function byId<T extends HTMLElement>(id: string): T {
-  return document.getElementById(id) as T;
-}
-
-function fmt(
-  template: string,
-  values: Record<string, string | number>,
-): string {
-  return template.replace(/%\((\w+)\)s/g, (_m, key) =>
-    String(values[key] ?? ""),
-  );
-}
-
-function humanSize(bytes: number): string {
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  let value = bytes;
-  let unit = 0;
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit += 1;
-  }
-  return `${unit === 0 ? value : value.toFixed(1)} ${units[unit]}`;
-}
-
-function iconFor(entry: Entry): string {
-  if (entry.is_dir) {
-    if (entry.path === "Downloads") return "fa-download";
-    if (entry.path === "Recordings") return "fa-video";
-    return "fa-folder";
-  }
-  if (IMAGE.test(entry.name)) return "fa-file-image";
-  if (VIDEO.test(entry.name)) return "fa-file-video";
-  if (AUDIO.test(entry.name)) return "fa-file-audio";
-  if (PDF.test(entry.name)) return "fa-file-pdf";
-  if (TEXT.test(entry.name)) return "fa-file-lines";
-  return "fa-file";
-}
-
-function el<K extends keyof HTMLElementTagNameMap>(
-  tag: K,
-  className = "",
-  text = "",
-): HTMLElementTagNameMap[K] {
-  const node = document.createElement(tag);
-  if (className) node.className = className;
-  if (text) node.textContent = text;
-  return node;
-}
-
-function query(path: string): string {
-  return `?path=${encodeURIComponent(path)}`;
-}
+import {
+  API,
+  byId,
+  el,
+  Entry,
+  fmt,
+  humanSize,
+  iconFor,
+  iconLabel,
+  query,
+  Strings,
+} from "./_files/dom";
+import { renderPreview } from "./_files/preview";
 
 class FilesApp {
   private strings: Strings;
@@ -101,6 +42,11 @@ class FilesApp {
   }
 
   start(): void {
+    // The workspace pane is its own stacking context; the sheet must sit on
+    // <body> to rise above the site dock.
+    const layer = el("div", "files-layer");
+    layer.append(this.backdrop);
+    document.body.append(layer);
     this.bindToolbar();
     this.bindDragAndDrop();
     window.addEventListener("popstate", () => {
@@ -244,61 +190,10 @@ class FilesApp {
   }
 
   private showPreview(entry: Entry): void {
-    const src = `${API}raw/${query(entry.path)}`;
     this.previewName.textContent = entry.name;
-    this.previewContent.replaceChildren();
-    if (IMAGE.test(entry.name)) {
-      const img = el("img", "files-preview-media");
-      img.src = src;
-      img.alt = entry.name;
-      this.previewContent.append(img);
-    } else if (VIDEO.test(entry.name)) {
-      const video = el("video", "files-preview-media");
-      video.src = src;
-      video.controls = true;
-      this.previewContent.append(video);
-    } else if (AUDIO.test(entry.name)) {
-      const audio = el("audio", "files-preview-audio");
-      audio.src = src;
-      audio.controls = true;
-      this.previewContent.append(audio);
-    } else if (PDF.test(entry.name)) {
-      const frame = el("iframe", "files-preview-frame");
-      frame.src = src;
-      frame.title = entry.name;
-      this.previewContent.append(frame);
-    } else if (TEXT.test(entry.name) && entry.size <= PREVIEW_TEXT_LIMIT) {
-      const pre = el("pre", "files-preview-text");
-      this.previewContent.append(pre);
-      fetch(src, { credentials: "same-origin" })
-        .then((r) => r.text())
-        .then((body) => {
-          pre.textContent = body;
-        })
-        .catch((error) => this.fail(error));
-    } else {
-      this.previewContent.append(
-        el("p", "files-preview-none", this.t("noPreview")),
-      );
-    }
-    const actions = el("div", "files-preview-actions");
-    actions.append(
-      this.linkButton(
-        this.t("download"),
-        "fa-download",
-        `${API}download/${query(entry.path)}`,
-      ),
+    renderPreview(this.previewContent, entry, (k) => this.t(k), (err) =>
+      this.fail(err),
     );
-    if (entry.project_url) {
-      actions.append(
-        this.linkButton(
-          this.t("openInProject"),
-          "fa-up-right-from-square",
-          entry.project_url,
-        ),
-      );
-    }
-    this.previewContent.append(actions);
     this.preview.hidden = false;
     document.body.classList.add("files-previewing");
   }
@@ -307,19 +202,6 @@ class FilesApp {
     this.preview.hidden = true;
     this.previewContent.replaceChildren();
     document.body.classList.remove("files-previewing");
-  }
-
-  private linkButton(
-    label: string,
-    icon: string,
-    href: string,
-  ): HTMLAnchorElement {
-    const link = el("a", "files-btn");
-    link.href = href;
-    const i = el("i", `fas ${icon}`);
-    i.setAttribute("aria-hidden", "true");
-    link.append(i, el("span", "", label));
-    return link;
   }
 
   private sheetAction(
@@ -333,9 +215,7 @@ class FilesApp {
       `files-sheet-action${danger ? " is-danger" : ""}`,
     );
     button.type = "button";
-    const i = el("i", `fas ${icon}`);
-    i.setAttribute("aria-hidden", "true");
-    button.append(i, el("span", "", label));
+    iconLabel(button, icon, label);
     button.addEventListener("click", run);
     return button;
   }
