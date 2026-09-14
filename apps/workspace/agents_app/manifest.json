@@ -12,7 +12,7 @@
   "pip_package": "scitex-agent-container",
   "license": "AGPL-3.0-only",
   "keyboard_shortcut": "",
-  "order": 75,
+  "order": 12,
   "category": "utility",
   "default_enabled": false,
   "accent_color": "agents",

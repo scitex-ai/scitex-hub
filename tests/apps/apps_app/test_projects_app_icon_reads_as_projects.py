@@ -51,7 +51,7 @@ def test_the_projects_manifest_is_on_disk():
     assert present is True, f"no manifest at {path}"
 
 
-def test_the_module_is_still_labelled_projects():
+def test_the_module_is_labelled_my_projects():
     """Control for the real assertion: the icon is only 'wrong' relative to
     the label. If the label changed to Home, the house would be correct."""
     # Arrange
@@ -59,7 +59,7 @@ def test_the_module_is_still_labelled_projects():
     # Act
     label = manifest.get("label")
     # Assert
-    assert label == "Projects"
+    assert label == "My Projects"
 
 
 def test_the_projects_icon_is_not_a_house():

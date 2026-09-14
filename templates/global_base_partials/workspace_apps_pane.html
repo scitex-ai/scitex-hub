@@ -1,4 +1,4 @@
-{% load module_icons %}
+{% load i18n module_icons %}
 
 {% if user.is_authenticated %}
     <script>
@@ -34,7 +34,7 @@
                        title="{{ mod.label }}"
                        data-app-accent="{{ mod.name }}">
                         {% module_icon mod.name "tab" mod.version mod.icon_fa mod.is_dev %}
-                        <span class="selector-nav-label ws-apps-nav-label">{{ mod.label }}</span></a>
+                        <span class="selector-nav-label ws-apps-nav-label">{% trans mod.label context "app name" %}</span></a>
                 {% endfor %}
             </nav>
         </div>

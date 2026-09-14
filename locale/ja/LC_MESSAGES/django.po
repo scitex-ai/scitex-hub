@@ -3177,3 +3177,19 @@ msgstr "作業を続けるためにアカウントを作成"
 
 msgid "Try as a visitor"
 msgstr "Visitor として試す"
+
+# App names in navigation (launcher tiles, header AppLauncher, sidebar, mobile
+# menu). Scoped to msgctxt "app name" so only the names listed here translate;
+# every other app name keeps its English brand form. Operator TODO 49
+# (2026-09-14): "Projects" -> "My Projects" / 「マイプロジェクト」.
+#: templates/global_base_partials/global_header.html
+#: config/context_processors.py
+msgctxt "app name"
+msgid "My Projects"
+msgstr "マイプロジェクト"
+
+#: templates/global_base_partials/global_header.html
+#: config/context_processors.py
+msgctxt "app name"
+msgid "Public Projects"
+msgstr "パブリックプロジェクト"

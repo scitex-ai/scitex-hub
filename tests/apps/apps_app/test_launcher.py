@@ -458,11 +458,16 @@ class DefaultPinSeedTest(TestCase):
         # forced this — it sat 5th, exactly at MAX_PINNED_MODULES.
         from apps.infra.workspace_app.registry import get_all_modules
 
+        # Optional plugin apps (Agents, Cards) now sit in the curated
+        # infrastructure row; they only count where their package is installed
+        # and the registry therefore knows them — the same filter the function
+        # applies.
         hidden = {m.name for m in get_all_modules() if not m.show_in_launcher}
+        registered = {m.name for m in get_all_modules()}
         expected = [
             name
             for name in DEFAULT_LAUNCHER_ORDER
-            if name != "home" and name not in hidden
+            if name != "home" and name in registered and name not in hidden
         ][:MAX_PINNED_MODULES]
         # Act
         pinned = get_pinned_module_names(self.user)

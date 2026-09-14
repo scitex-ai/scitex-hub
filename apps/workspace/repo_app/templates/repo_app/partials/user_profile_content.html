@@ -157,7 +157,10 @@ Hub inline user profile — returned by /hub/api/user-profile/?username=X
                 <div id="hub-repo-no-results" class="hub-hidden hub-repo-no-results">No matching repositories</div>
                 {% if projects %}
                     {% for project in projects %}
+                        {# data-project-url: a card opens the project's default #}
+                        {# Project UI (the file tree), same as Public Projects.  #}
                         <div class="project-card hub-project-card-link mb-3"
+                             data-project-url="/{{ project.effective_owner_slug }}/{{ project.slug }}/"
                              data-project-id="{{ project.id }}"
                              data-project-slug="{{ project.slug }}"
                              data-project-name="{{ project.name }}">
