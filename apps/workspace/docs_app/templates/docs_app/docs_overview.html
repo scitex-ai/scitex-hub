@@ -1,0 +1,109 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load i18n static %}
+
+{% block title %}{% trans "Overview" %} — {% trans "SciTeX Documentation" %}{% endblock %}
+{% block content %}
+    <div class="container py-5" style="max-width: 900px">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'docs_app:index' %}">{% trans "Documentation" %}</a>
+                </li>
+                <li class="breadcrumb-item active">{% trans "Overview" %}</li>
+            </ol>
+        </nav>
+        <h1 class="mb-4">
+            <i class="fas fa-compass me-2"></i>{% trans "Welcome to SciTeX Hub" %}
+        </h1>
+        <p class="lead text-muted mb-5">
+            {% trans "A short tour for first-time visitors: what SciTeX Hub is, where to start, and where to get help." %}
+        </p>
+        <!-- What SciTeX Hub is -->
+        <span id="what-is-scitex-hub"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-info-circle"></i> {% trans "What is SciTeX Hub?" %}
+            </h2>
+            <p>
+                {% blocktrans trimmed %}
+                    SciTeX Hub is a workspace for research. Your work lives in projects, and
+                    you use apps to work on them.
+                {% endblocktrans %}
+            </p>
+            <ul>
+                <li>
+                    <strong>{% trans "Projects" %}</strong> &mdash; {% trans "a folder for one piece of research: files, manuscripts, figures and data." %}
+                </li>
+                <li>
+                    <strong>Scholar</strong> &mdash; {% trans "search and collect literature." %}
+                </li>
+                <li>
+                    <strong>Writer</strong> &mdash; {% trans "write manuscripts." %}
+                </li>
+                <li>
+                    <strong>FigRecipe</strong> &mdash; {% trans "make figures." %}
+                </li>
+                <li>
+                    <strong>Stats</strong> &mdash; {% trans "run statistical analyses." %}
+                </li>
+                <li>
+                    <strong>Chat</strong> &mdash; {% trans "talk with an AI assistant about your work." %}
+                </li>
+                <li>
+                    <strong>Cards</strong> &mdash; {% trans "keep track of tasks." %}
+                </li>
+                <li>
+                    <strong>Agents</strong> &mdash; {% trans "see and manage AI agents." %}
+                </li>
+            </ul>
+        </section>
+        <!-- Start here -->
+        <span id="start-here"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-flag-checkered"></i> {% trans "Start here" %}
+            </h2>
+            <ol>
+                <li>
+                    <a href="{% url 'project_create' %}">{% trans "Create a project" %}</a>
+                </li>
+                <li>
+                    {% url 'root' as home_url %}
+                    {% blocktrans trimmed %}
+                        Open an app from <a href="{{ home_url }}">Home</a>.
+                    {% endblocktrans %}
+                </li>
+                <li>
+                    {% trans "Connect an AI agent:" %}
+                    <a href="{% url 'docs_app:index' %}#mcp-tools-local">{% trans "MCP Tools (Local)" %}</a>
+                    /
+                    <a href="{% url 'docs_app:index' %}#mcp-tools-https">{% trans "MCP Tools (Https)" %}</a>
+                </li>
+                <li>
+                    <a href="{% url 'docs_app:index' %}#ssh-access">{% trans "SSH Access" %}</a>
+                </li>
+                <li>
+                    <a href="{% url 'docs_app:index' %}#self-hosting">{% trans "Self-Hosting" %}</a>
+                </li>
+            </ol>
+        </section>
+        <!-- Help -->
+        <span id="get-help"></span>
+        <section class="api-section">
+            <h2>
+                <i class="fas fa-life-ring"></i> {% trans "Where to get help" %}
+            </h2>
+            <ul>
+                <li>
+                    <a href="{% url 'public_app:contact' %}">{% trans "Contact page" %}</a>
+                </li>
+                <li>
+                    <a href="https://github.com/scitex-ai/scitex-hub/issues"
+                       target="_blank"
+                       rel="noopener">{% trans "GitHub issues" %}</a>
+                </li>
+            </ul>
+        </section>
+    </div>
+{% endblock %}

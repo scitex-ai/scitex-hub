@@ -5164,3 +5164,79 @@ msgstr "他のユーザーからのメッセージを許可する"
 
 msgid "Settings sections"
 msgstr "設定の項目"
+
+# --- Docs: Overview landing page (apps/workspace/docs_app/templates/docs_app/docs_overview.html)
+msgid "Overview"
+msgstr "概要"
+
+msgid "SciTeX Documentation"
+msgstr "SciTeX ドキュメント"
+
+msgid "Welcome to SciTeX Hub"
+msgstr "SciTeX Hub へようこそ"
+
+msgid "A short tour for first-time visitors: what SciTeX Hub is, where to start, and where to get help."
+msgstr "はじめての方向けの簡単な案内です。SciTeX Hub とは何か、どこから始めるか、困ったときの相談先をまとめています。"
+
+msgid "What is SciTeX Hub?"
+msgstr "SciTeX Hub とは"
+
+msgid "SciTeX Hub is a workspace for research. Your work lives in projects, and you use apps to work on them."
+msgstr "SciTeX Hub は研究のためのワークスペースです。作業はプロジェクトにまとめ、アプリを使って進めます。"
+
+msgid "a folder for one piece of research: files, manuscripts, figures and data."
+msgstr "ひとつの研究をまとめるフォルダです。ファイル、原稿、図、データを置きます。"
+
+msgid "search and collect literature."
+msgstr "文献を検索して集めます。"
+
+msgid "write manuscripts."
+msgstr "原稿を書きます。"
+
+msgid "make figures."
+msgstr "図を作ります。"
+
+msgid "run statistical analyses."
+msgstr "統計解析を行います。"
+
+msgid "talk with an AI assistant about your work."
+msgstr "AI アシスタントと作業について対話します。"
+
+msgid "keep track of tasks."
+msgstr "タスクを管理します。"
+
+msgid "see and manage AI agents."
+msgstr "AI エージェントの確認と管理を行います。"
+
+msgid "Start here"
+msgstr "はじめに"
+
+msgid "Create a project"
+msgstr "プロジェクトを作成する"
+
+msgid "Open an app from <a href=\"%(home_url)s\">Home</a>."
+msgstr "<a href=\"%(home_url)s\">ホーム</a>からアプリを開く。"
+
+msgid "Connect an AI agent:"
+msgstr "AI エージェントを接続する："
+
+msgid "MCP Tools (Local)"
+msgstr "MCP ツール（ローカル）"
+
+msgid "MCP Tools (Https)"
+msgstr "MCP ツール（HTTPS）"
+
+msgid "SSH Access"
+msgstr "SSH アクセス"
+
+msgid "Self-Hosting"
+msgstr "セルフホスティング"
+
+msgid "Where to get help"
+msgstr "困ったときは"
+
+msgid "Contact page"
+msgstr "お問い合わせページ"
+
+msgid "GitHub issues"
+msgstr "GitHub Issues"
