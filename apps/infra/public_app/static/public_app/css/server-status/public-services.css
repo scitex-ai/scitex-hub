@@ -21,8 +21,11 @@
   background: var(--status-success, #2e7d4f);
 }
 
-.public-services__banner--degraded {
-  background: var(--status-warning, #9a6b12);
+.public-services__banner--degraded,
+.public-services__banner--partial_outage {
+  background: var(--status-warning, #b8956a);
+  /* White on the amber measured under 3:1; dark ink is above 5:1 in both themes. */
+  color: #1f2328;
 }
 
 .public-services__banner--down {
