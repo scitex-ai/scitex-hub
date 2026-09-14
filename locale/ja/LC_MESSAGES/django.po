@@ -5456,6 +5456,305 @@ msgstr "開発中"
 msgid "New"
 msgstr "新着"
 
+# How-to guides (docs_app/howto)
+
+msgid "What are Cards and Agents?"
+msgstr "Cards と Agents とは?"
+
+msgid "Cards are tasks. Agents are AI assistants that can work on your projects. Both apps are on Home."
+msgstr "Cards はタスク、Agents はプロジェクトの作業をこなす AI アシスタントです。どちらのアプリもホームにあります。"
+
+msgid "Steps"
+msgstr "手順"
+
+msgid "On Home, find <strong>Cards</strong> and <strong>Agents</strong> in the <strong>Foundation</strong> group, next to My Projects."
+msgstr "ホームの <strong>Foundation</strong> グループで、My Projects の隣にある <strong>Cards</strong> と <strong>Agents</strong> を探します。"
+
+msgid "The Cards and Agents tiles on Home"
+msgstr "ホームの Cards と Agents のタイル"
+
+msgid "Open <strong>Cards</strong>. A card is one task: what to do, who owns it and its status. People and AI agents use the same cards to keep track of work."
+msgstr "<strong>Cards</strong> を開きます。カードは 1 つのタスクで、やること・担当者・状態を持ちます。人も AI エージェントも同じカードで作業を管理します。"
+
+msgid "Your own cards are listed on this page. Until you have some, it says <strong>Your own cards will appear here</strong>. Nothing from other people is shown on it."
+msgstr "このページには自分のカードが表示されます。カードがまだないときは <strong>Your own cards will appear here</strong> と表示されます。他の人のものは表示されません。"
+
+msgid "The Cards page"
+msgstr "Cards のページ"
+
+msgid "Open <strong>Agents</strong>. An agent is an AI assistant that runs on its own and works on tasks. Your agents will be listed here; until then the page says <strong>Your own agents will appear here</strong>."
+msgstr "<strong>Agents</strong> を開きます。エージェントは自律的に動いてタスクをこなす AI アシスタントです。自分のエージェントがここに表示されます。まだないときは <strong>Your own agents will appear here</strong> と表示されます。"
+
+msgid "The Agents page"
+msgstr "Agents のページ"
+
+#, python-format
+msgid "To talk to an AI assistant today, use <a href=\"%(chat_url)s\">Chat</a>. To connect your own AI agent, such as Claude Code, read the MCP Tools pages in this documentation."
+msgstr "今すぐ AI アシスタントと話すには <a href=\"%(chat_url)s\">Chat</a> を使います。Claude Code などの自分の AI エージェントをつなぐには、このドキュメントの MCP Tools のページを読んでください。"
+
+msgid "Tips"
+msgstr "ヒント"
+
+msgid "Back to Home on the Cards or Agents page returns you to your apps."
+msgstr "Cards や Agents のページの Back to Home でアプリ一覧に戻れます。"
+
+msgid "See How to use Chat for connecting an AI provider."
+msgstr "AI プロバイダーのつなぎ方は「Chat の使い方」を見てください。"
+
+msgid "Troubleshooting"
+msgstr "困ったときは"
+
+msgid "The page takes a while to open: wait a few seconds, then reload if it stays blank."
+msgstr "ページがなかなか開かない: 数秒待ち、空白のままなら再読み込みします。"
+
+msgid "You expected to see a teammate's cards: this page shows only your own cards."
+msgstr "チームメンバーのカードが見えない: このページには自分のカードだけが表示されます。"
+
+msgid "How to use Chat"
+msgstr "Chat の使い方"
+
+msgid "Chat lets you ask an AI assistant about your research and your projects."
+msgstr "Chat では、研究やプロジェクトについて AI アシスタントに質問できます。"
+
+msgid "Open <strong>Chat</strong> from Home or from the dock at the bottom of the page."
+msgstr "ホーム、またはページ下部のドックから <strong>Chat</strong> を開きます。"
+
+msgid "An empty chat"
+msgstr "空のチャット"
+
+msgid "Type your request and press Enter. Name the project you mean, for example \"Summarize the README of my project sleep-memory-study\". If you see <strong>No AI provider configured</strong>, connect a provider first."
+msgstr "依頼を入力して Enter を押します。「プロジェクト sleep-memory-study の README を要約して」のように、対象のプロジェクト名を書きます。<strong>No AI provider configured</strong> と表示されたら、先にプロバイダーをつなぎます。"
+
+msgid "The No AI provider configured message"
+msgstr "No AI provider configured のメッセージ"
+
+#, python-format
+msgid "Go to <a href=\"%(ai_providers_url)s\">Settings &gt; AI providers</a> and open <strong>Add a new provider</strong>. Choose a provider, paste your API key and click <strong>Add provider</strong>."
+msgstr "<a href=\"%(ai_providers_url)s\">設定 &gt; AI providers</a> で <strong>Add a new provider</strong> を開きます。プロバイダーを選び、API キーを貼り付けて <strong>Add provider</strong> をクリックします。"
+
+msgid "The Add a new provider form"
+msgstr "Add a new provider のフォーム"
+
+msgid "Return to Chat and send your request again."
+msgstr "Chat に戻り、もう一度依頼を送ります。"
+
+msgid "Click <strong>+</strong> to start a new chat. Each chat has its own tab, and the buttons on the right copy, print, clear or share the conversation."
+msgstr "<strong>+</strong> で新しいチャットを始めます。チャットごとにタブがあり、右側のボタンで会話のコピー・印刷・消去・共有ができます。"
+
+msgid "Your API key is encrypted at rest. Leave Default Model blank to use the provider's default."
+msgstr "API キーは暗号化して保存されます。Default Model を空欄にするとプロバイダーの既定モデルを使います。"
+
+msgid "The Write, Analyze, Code and Literature buttons under the input box start a request of that kind."
+msgstr "入力欄の下の Write・Analyze・Code・Literature ボタンで、その種類の依頼を始められます。"
+
+msgid "No AI provider configured: add a provider in Settings > AI providers, then send the message again."
+msgstr "No AI provider configured と出る: 設定 > AI providers でプロバイダーを追加し、もう一度送信します。"
+
+msgid "To see how much you have used, open Settings > AI usage."
+msgstr "使用量は 設定 > AI usage で確認できます。"
+
+msgid "How to use FigRecipe"
+msgstr "FigRecipe の使い方"
+
+msgid "FigRecipe makes publication-ready figures and exports them as PNG, SVG or PDF."
+msgstr "FigRecipe は論文にそのまま使える図を作り、PNG・SVG・PDF で書き出します。"
+
+msgid "Open <strong>FigRecipe</strong> from Home. It opens with a demo figure in the middle."
+msgstr "ホームから <strong>FigRecipe</strong> を開きます。中央にデモの図が表示されます。"
+
+msgid "FigRecipe with the demo figure"
+msgstr "デモの図を表示した FigRecipe"
+
+msgid "Pick a plot type in the left rail, for example <strong>Line</strong>, <strong>Scatter</strong> or <strong>Bar</strong>. A gallery of templates for that type opens."
+msgstr "左の列から <strong>Line</strong>・<strong>Scatter</strong>・<strong>Bar</strong> などのプロットの種類を選びます。その種類のテンプレート一覧が開きます。"
+
+msgid "The Line templates gallery"
+msgstr "Line のテンプレート一覧"
+
+msgid "Click a template. The plot appears in the viewer, and the number under the rail counts the plots in your figure."
+msgstr "テンプレートをクリックします。プロットがビューアに表示され、列の下の数字が図の中のプロット数を示します。"
+
+msgid "A line plot added from a template"
+msgstr "テンプレートから追加した折れ線グラフ"
+
+msgid "Click <strong>Export</strong>, type a file name and choose <strong>PNG</strong> (300 DPI), <strong>SVG</strong> or <strong>PDF</strong>."
+msgstr "<strong>Export</strong> をクリックし、ファイル名を入力して <strong>PNG</strong> (300 DPI)・<strong>SVG</strong>・<strong>PDF</strong> から選びます。"
+
+msgid "The Export Figure dialog"
+msgstr "Export Figure ダイアログ"
+
+msgid "Click the export button at the bottom of the dialog. The figure file downloads to your computer."
+msgstr "ダイアログ下部の書き出しボタンをクリックすると、図のファイルがダウンロードされます。"
+
+msgid "Choose SVG or PDF when a journal asks for vector figures."
+msgstr "ジャーナルがベクター形式の図を求めるときは SVG か PDF を選びます。"
+
+msgid "The demo figure comes from demo_first_figure.yaml in your first project, so you can open that recipe again later."
+msgstr "デモの図は最初のプロジェクトにある demo_first_figure.yaml から作られるので、後でそのレシピを開き直せます。"
+
+msgid "The template gallery covers the figure: close it with the X button in its corner."
+msgstr "テンプレート一覧が図に重なる: 右上の X ボタンで閉じます。"
+
+msgid "Nothing downloads: check that your browser allows downloads from this site."
+msgstr "ダウンロードされない: ブラウザがこのサイトからのダウンロードを許可しているか確認します。"
+
+msgid "How to use Projects"
+msgstr "プロジェクトの使い方"
+
+msgid "A project is a folder for one piece of research. Create one, then browse its files."
+msgstr "プロジェクトは 1 つの研究のためのフォルダです。作成して、ファイルを見てみましょう。"
+
+msgid "Sign in. Home shows your apps. <strong>My Projects</strong> lists the projects you own."
+msgstr "サインインします。ホームにアプリが並び、<strong>My Projects</strong> に自分のプロジェクトが一覧表示されます。"
+
+msgid "Home with the My Projects tile"
+msgstr "My Projects のタイルがあるホーム"
+
+#, python-format
+msgid "Open <a href=\"%(new_project_url)s\">Create new project</a>. Keep <strong>SciTeX Minimal</strong> selected, type a name and, if you like, a description."
+msgstr "<a href=\"%(new_project_url)s\">Create new project</a> を開きます。<strong>SciTeX Minimal</strong> を選んだまま、名前と、必要なら説明を入力します。"
+
+msgid "The Create new project form"
+msgstr "Create new project のフォーム"
+
+msgid "Click <strong>Create project</strong>. The project opens with its file tree on the left. A new project starts with <code>README.md</code> and <code>LICENSE</code>."
+msgstr "<strong>Create project</strong> をクリックします。プロジェクトが開き、左にファイルツリーが表示されます。新しいプロジェクトには <code>README.md</code> と <code>LICENSE</code> があります。"
+
+msgid "The new project in the file tree"
+msgstr "ファイルツリーに表示された新しいプロジェクト"
+
+msgid "Click a file in the tree to open it in the <strong>Viewer</strong>."
+msgstr "ツリーのファイルをクリックすると <strong>Viewer</strong> で開きます。"
+
+msgid "README.md open in the Viewer"
+msgstr "Viewer で開いた README.md"
+
+msgid "Click the <strong>Repository view</strong> icon above the tree. It lists every file with its last commit, and has tabs for Issues, Pull requests and Settings."
+msgstr "ツリーの上にある <strong>Repository view</strong> のアイコンをクリックします。すべてのファイルが最新のコミットとともに一覧表示され、Issues・Pull requests・Settings のタブがあります。"
+
+msgid "The repository view of a project"
+msgstr "プロジェクトのリポジトリ表示"
+
+msgid "Use lowercase letters and hyphens in project names, for example sleep-memory-study."
+msgstr "プロジェクト名には小文字とハイフンを使います (例: sleep-memory-study)。"
+
+msgid "Every project is a Git repository. The repository view shows its branches and commits."
+msgstr "どのプロジェクトも Git リポジトリです。リポジトリ表示でブランチとコミットを確認できます。"
+
+msgid "Scholar and Writer keep their files inside the project, in the hidden .scitex folder."
+msgstr "Scholar と Writer のファイルは、プロジェクト内の隠しフォルダ .scitex に保存されます。"
+
+msgid "A project looks empty in the tree: click the small arrow next to its name to expand it."
+msgstr "ツリーでプロジェクトが空に見える: 名前の横の小さな矢印をクリックして展開します。"
+
+msgid "You cannot find the manuscript folders: open the repository view, where the hidden .scitex folder is listed."
+msgstr "原稿のフォルダが見つからない: リポジトリ表示を開くと、隠しフォルダ .scitex が表示されます。"
+
+msgid "How to use Scholar"
+msgstr "Scholar の使い方"
+
+msgid "Scholar is where you look for papers and keep your reference library."
+msgstr "Scholar は論文を探し、文献ライブラリを管理する場所です。"
+
+msgid "Open <strong>Scholar</strong> from Home. It has three tabs: <strong>Search databases</strong>, <strong>Library</strong> and <strong>Citation Graph</strong>."
+msgstr "ホームから <strong>Scholar</strong> を開きます。<strong>Search databases</strong>・<strong>Library</strong>・<strong>Citation Graph</strong> の 3 つのタブがあります。"
+
+msgid "Scholar on the Search databases tab"
+msgstr "Search databases タブの Scholar"
+
+msgid "Click the <strong>?</strong> button in the search box to see the search operators, for example <code>-a Smith</code> for an author or <code>-ymin 2020</code> for papers from 2020 on. Click an operator to insert it."
+msgstr "検索欄の <strong>?</strong> ボタンで検索演算子が表示されます。たとえば著者は <code>-a Smith</code>、2020 年以降の論文は <code>-ymin 2020</code> です。演算子をクリックすると入力されます。"
+
+msgid "The list of search operators"
+msgstr "検索演算子の一覧"
+
+msgid "Use the <strong>Sources</strong>, <strong>Sorters</strong> and <strong>Filters</strong> panels on the right to choose which databases to search and how to order the results."
+msgstr "右側の <strong>Sources</strong>・<strong>Sorters</strong>・<strong>Filters</strong> パネルで、検索するデータベースと結果の並べ方を選びます。"
+
+msgid "Open the <strong>Library</strong> tab. It lists the papers you have saved, with a search box and a sort menu."
+msgstr "<strong>Library</strong> タブを開きます。保存した論文が、検索欄と並べ替えメニューとともに表示されます。"
+
+msgid "The Library tab"
+msgstr "Library タブ"
+
+msgid "Open the <strong>BibTeX / RIS</strong> panel on the right of the Library. It holds <strong>Import BibTeX (.bib)</strong> and the <strong>BibTeX</strong> and <strong>RIS</strong> export buttons."
+msgstr "Library の右側にある <strong>BibTeX / RIS</strong> パネルを開きます。<strong>Import BibTeX (.bib)</strong> と、<strong>BibTeX</strong>・<strong>RIS</strong> の書き出しボタンがあります。"
+
+msgid "The BibTeX / RIS panel"
+msgstr "BibTeX / RIS パネル"
+
+msgid "Press Ctrl+K to jump to the search box."
+msgstr "Ctrl+K で検索欄に移動します。"
+
+msgid "Put a minus sign in front of a word to exclude it, for example -t -mouse."
+msgstr "語の前にマイナスを付けると除外できます (例: -t -mouse)。"
+
+msgid "No results found: check the spelling, try more general keywords, or remove filters such as -ymin."
+msgstr "No results found と出る: つづりを確認し、より一般的なキーワードを試すか、-ymin などの絞り込みを外します。"
+
+msgid "Search seems down: open the Service Status panel on the Library tab."
+msgstr "検索が動いていないようなら: Library タブの Service Status パネルを開きます。"
+
+msgid "How to use Writer"
+msgstr "Writer の使い方"
+
+msgid "Writer is a LaTeX editor for your manuscript, with a live PDF preview."
+msgstr "Writer は、PDF をその場でプレビューできる原稿用の LaTeX エディタです。"
+
+msgid "Open <strong>Writer</strong> from Home. The editor is on the left, the PDF in the middle and the <strong>Details</strong> panel on the right."
+msgstr "ホームから <strong>Writer</strong> を開きます。左がエディタ、中央が PDF、右が <strong>Details</strong> パネルです。"
+
+msgid "Writer with the editor, PDF and Details panels"
+msgstr "エディタ・PDF・Details パネルを表示した Writer"
+
+msgid "Pick a document (Manuscript, Supplementary, Revision or Shared) in the first menu, then a section such as Abstract or Methods in the section menu."
+msgstr "最初のメニューで文書 (Manuscript・Supplementary・Revision・Shared) を選び、セクションメニューで Abstract や Methods などのセクションを選びます。"
+
+msgid "The section menu"
+msgstr "セクションメニュー"
+
+msgid "Type your text in the editor. Your changes are saved, and the word count above the editor updates as you write."
+msgstr "エディタに本文を入力します。変更は保存され、エディタ上部の単語数が入力に合わせて更新されます。"
+
+msgid "An abstract typed in the editor"
+msgstr "エディタに入力したアブストラクト"
+
+msgid "In <strong>Details</strong>, open <strong>Compilation - Preview</strong> and click <strong>Compile Preview</strong>. When the log says the compilation completed, the PDF of the section appears. Tick <strong>Compile on Change</strong> to recompile as you type."
+msgstr "<strong>Details</strong> で <strong>Compilation - Preview</strong> を開き、<strong>Compile Preview</strong> をクリックします。ログにコンパイル完了と表示されると、そのセクションの PDF が表示されます。<strong>Compile on Change</strong> にチェックを入れると、入力に合わせて再コンパイルされます。"
+
+msgid "A compiled PDF preview and its log"
+msgstr "コンパイルした PDF プレビューとログ"
+
+msgid "Click the download icon above the PDF to save the compiled PDF."
+msgstr "PDF の上のダウンロードアイコンで、コンパイルした PDF を保存します。"
+
+msgid "Writer opens the manuscript of your current project. Project Info in the Details panel shows which project that is."
+msgstr "Writer は現在のプロジェクトの原稿を開きます。どのプロジェクトかは Details パネルの Project Info で確認できます。"
+
+msgid "Use the font size menu and the moon icon above the editor to make writing comfortable."
+msgstr "エディタ上部の文字サイズメニューと月のアイコンで、書きやすい表示に調整できます。"
+
+msgid "Compilation Error with 'Unicode character ... not set up for use with LaTeX': the section contains a character LaTeX cannot print, often a full-width symbol. Delete it and compile again."
+msgstr "'Unicode character ... not set up for use with LaTeX' という Compilation Error: セクションに LaTeX で出力できない文字 (多くは全角記号) が含まれています。その文字を削除して、もう一度コンパイルします。"
+
+msgid "The PDF does not change: click Compile Preview again and read the last lines of the log."
+msgstr "PDF が変わらない: もう一度 Compile Preview をクリックし、ログの最後の行を確認します。"
+
+msgid "How to: Projects"
+msgstr "使い方: プロジェクト"
+
+msgid "How to: Scholar"
+msgstr "使い方: Scholar"
+
+msgid "How to: Writer"
+msgstr "使い方: Writer"
+
+msgid "How to: FigRecipe"
+msgstr "使い方: FigRecipe"
+
+msgid "How to: Chat"
+msgstr "使い方: Chat"
+
 # Mobile header menu (global_header.html). 2026-09-14 iPhone PWA report: the
 # menu's labels were English-only under ja. Existing msgids (Settings, Files,
 # Profile, Terms, ...) are reused; only the missing ones are added here.

@@ -150,6 +150,8 @@ data/ssh_keys/
 !apps/infra/project_app/services/visitor_pool/demo_seed_payload/**/*.csv
 !apps/infra/project_app/services/visitor_pool/demo_seed_payload/**/*.png
 !apps/infra/project_app/services/visitor_pool/demo_seed_payload/**/*.jpg
+# How-to guide screenshots are docs content served by docs_app.
+!apps/workspace/docs_app/static/docs_app/images/howto/*.jpg
 **/*.tar
 **/*.gz
 **/*.rar

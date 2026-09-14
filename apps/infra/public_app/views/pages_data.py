@@ -23,6 +23,41 @@ OG_BASE_URL = "https://scitex.ai"
 
 # Video catalog for demo pages
 VIDEO_CATALOG = {
+    # Captioned how-to guides, rendered by scripts/demo_videos/record.py
+    "guide-create-first-project": {
+        "title": "Create your first project",
+        "url": "/media/videos/demos/projects-2026-09-14.en.mp4",
+        "ja_url": "/media/videos/demos/projects-2026-09-14.ja.mp4",
+        "mobile_url": "/media/videos/demos/projects-2026-09-14-mobile.en.mp4",
+        "ja_mobile_url": "/media/videos/demos/projects-2026-09-14-mobile.ja.mp4",
+        "thumbnail": "/media/videos/demos/projects-2026-09-14-thumbnail.png",
+        "captions": "/media/videos/demos/projects-2026-09-14.en.vtt",
+        "ja_captions": "/media/videos/demos/projects-2026-09-14.ja.vtt",
+        "narrated": True,
+        "playback_rate": 1,
+        "date": "2026-09-14",
+        "description": (
+            "Create a project in SciTeX Hub, open a file from the tree and see "
+            "the repository view. Narrated in English and Japanese, each recorded "
+            "with the site in that language."
+        ),
+    },
+    "guide-draft-in-writer": {
+        "title": "Draft in Writer",
+        "url": "/media/videos/demos/writer-2026-09-14.en.mp4",
+        "ja_url": "/media/videos/demos/writer-2026-09-14.ja.mp4",
+        "thumbnail": "/media/videos/demos/writer-2026-09-14-thumbnail.png",
+        "captions": "/media/videos/demos/writer-2026-09-14.en.vtt",
+        "ja_captions": "/media/videos/demos/writer-2026-09-14.ja.vtt",
+        "narrated": True,
+        "playback_rate": 1,
+        "date": "2026-09-14",
+        "description": (
+            "Write an abstract in Writer and compile a PDF preview. "
+            "Narrated in English and Japanese, each recorded with the site in "
+            "that language."
+        ),
+    },
     # Local MCP demos
     "figrecipe": {
         "title": "Graphing by AI Agent (figrecipe v0.14.0)",
