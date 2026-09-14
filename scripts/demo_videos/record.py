@@ -7,9 +7,10 @@ Run inside the dev container (Playwright, Chromium, ffmpeg and scitex_audio are 
     python scripts/demo_videos/record.py scripts/demo_videos/scenarios/projects.yaml \
         --base-url http://127.0.0.1:8000 --out-dir media/videos/demos
 
-For every viewport (1280x720 desktop, 390x844 mobile) and every scenario language
-it writes <app>-<date>[-mobile].<lang>.{mp4,vtt,txt}, plus the raw .webm and a
-<app>-<date>-thumbnail.png. See docs/ops/demo-videos.md.
+Each viewport x language in the scenario is a separate recording, made with the
+site UI switched to that language through its language switcher. Every recording
+writes <app>-<date>[-mobile].<lang>.{webm,mp4,vtt,txt}; the desktop run of the
+first language also writes <app>-<date>-thumbnail.png. See docs/ops/demo-videos.md.
 """
 
 import argparse
@@ -26,6 +27,7 @@ from pathlib import Path
 from demo_captions import TimedCaption, build_transcript, build_webvtt, wrap_caption
 from demo_cursor import CURSOR_OVERLAY_SCRIPT, MovingCursor
 from demo_narration import (
+    NarrationClip,
     NarrationUnavailable,
     build_narration_track,
     media_duration,
@@ -62,6 +64,14 @@ VIEWPORTS = {
 
 
 @dataclass(frozen=True)
+class Recording:
+    scenario: Scenario
+    viewport: Viewport
+    language: str
+    stem: Path
+
+
+@dataclass(frozen=True)
 class StepTiming:
     step_index: int
     start_seconds: float
@@ -74,9 +84,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--base-url", default="http://127.0.0.1:8000")
     parser.add_argument("--out-dir", type=Path, default=Path("media/videos/demos"))
     parser.add_argument("--date", default=datetime.date.today().isoformat())
-    parser.add_argument("--viewports", default="desktop,mobile")
+    parser.add_argument("--viewports", default="", help="subset of the scenario's viewports")
+    parser.add_argument("--languages", default="", help="subset of the scenario's languages")
     parser.add_argument("--no-voice", action="store_true", help="captions only, no TTS")
     return parser.parse_args()
+
+
+def selected(requested: str, available: list[str]) -> list[str]:
+    wanted = [name for name in requested.split(",") if name]
+    return [name for name in available if not wanted or name in wanted]
 
 
 def fill_placeholders(text: str, username: str, run_id: str) -> str:
@@ -88,18 +104,14 @@ def estimated_speech_seconds(text: str, language: str) -> float:
     return len(text) / rate
 
 
-def prepare_narration(scenario: Scenario, work_dir: Path, voice: bool):
-    """Return {(step_index, language): clip or None} and seconds each step must last."""
+def prepare_narration(scenario: Scenario, language: str, work_dir: Path, voice: bool):
+    """Return {step_index: clip or None} and the seconds each step's narration needs."""
     clips, needed_seconds = {}, {}
     for index, step in enumerate(scenario.steps):
-        durations = [0.0]
-        for language, text in step.narration.items():
-            clip = None
-            if voice:
-                clip = synthesize_clip(text, language, work_dir / f"{language}-{index:02d}.mp3")
-            clips[(index, language)] = clip
-            durations.append(clip.duration_seconds if clip else estimated_speech_seconds(text, language))
-        needed_seconds[index] = max(durations)
+        text = step.narration.get(language, "")
+        clip = synthesize_clip(text, language, work_dir / f"{language}-{index:02d}.mp3") if voice and text else None
+        clips[index] = clip
+        needed_seconds[index] = clip.duration_seconds if clip else estimated_speech_seconds(text, language)
     return clips, needed_seconds
 
 
@@ -116,9 +128,25 @@ def sign_in(browser, base_url: str, username: str, password: str) -> dict:
     return state
 
 
-def run_step(page, cursor: MovingCursor, step: Step, base_url: str, username: str, run_id: str) -> None:
-    selector = fill_placeholders(step.selector, username, run_id)
-    value = fill_placeholders(step.value, username, run_id)
+def switch_ui_language(browser, base_url: str, storage_state, locale: str) -> dict:
+    """Pick the language in the site's own switcher, as a visitor would."""
+    context = browser.new_context(storage_state=storage_state)
+    page = context.new_page()
+    page.goto(f"{base_url}/apps/", wait_until="domcontentloaded", timeout=90_000)
+    page.click("#lang-select-trigger")
+    with page.expect_navigation(timeout=60_000):
+        page.click(f"form.lang-select-item:has(input[name=language][value={locale}]) button")
+    active = page.evaluate("() => document.documentElement.lang")
+    if not active.startswith(locale):
+        raise RuntimeError(f"language switcher left the page in '{active}', not '{locale}'")
+    state = context.storage_state()
+    context.close()
+    return state
+
+
+def run_step(page, cursor: MovingCursor, step: Step, language: str, base_url: str, username: str, run_id: str) -> None:
+    selector = fill_placeholders(step.selector.get(language, ""), username, run_id)
+    value = fill_placeholders(step.value.get(language, ""), username, run_id)
     locator = page.locator(selector).first if selector else None
     if step.action in POINTER_ACTIONS:
         cursor.glide_to(locator)
@@ -138,12 +166,14 @@ def run_step(page, cursor: MovingCursor, step: Step, base_url: str, username: st
         page.mouse.wheel(0, int(value or 400))
 
 
-def record_viewport(browser, scenario, viewport, storage_state, needed_seconds, args, username):
+def record(browser, recording: Recording, storage_state, needed_seconds, args, username):
+    viewport = recording.viewport
     video_dir = Path(tempfile.mkdtemp(prefix="demo-video-"))
     context = browser.new_context(
         viewport={"width": viewport.width, "height": viewport.height},
         is_mobile=viewport.is_mobile,
         has_touch=viewport.is_mobile,
+        locale=recording.scenario.locales[recording.language],
         record_video_dir=str(video_dir),
         record_video_size={"width": viewport.width, "height": viewport.height},
         storage_state=storage_state,
@@ -155,25 +185,27 @@ def record_viewport(browser, scenario, viewport, storage_state, needed_seconds, 
     run_id = datetime.datetime.now().strftime("%H%M%S")
     recording_started = time.monotonic()
     timings = []
-    for index, step in enumerate(scenario.steps):
+    for index, step in enumerate(recording.scenario.steps):
         if step.only not in ("", viewport.name):
             continue
         step_started = time.monotonic()
-        run_step(page, cursor, step, args.base_url, username, run_id)
+        run_step(page, cursor, step, recording.language, args.base_url, username, run_id)
         elapsed = time.monotonic() - step_started
-        page.wait_for_timeout(max(needed_seconds[index] - elapsed, 0) * 1000 + step.hold * 1000)
+        page.wait_for_timeout((max(needed_seconds[index] - elapsed, 0) + step.hold) * 1000)
         timings.append(
             StepTiming(index, step_started - recording_started, time.monotonic() - recording_started)
         )
     page.wait_for_timeout(1000)
     context.close()
-    return Path(page.video.path()), timings
+    webm = recording.stem.with_name(f"{recording.stem.name}.{recording.language}.webm")
+    shutil.move(page.video.path(), webm)
+    return webm, timings
 
 
-def captions_for(scenario: Scenario, timings: list[StepTiming], language: str, line_width: int = 0):
+def captions_for(recording: Recording, timings: list[StepTiming], line_width: int = 0):
     captions = []
     for timing in timings:
-        text = scenario.steps[timing.step_index].narration.get(language, "")
+        text = recording.scenario.steps[timing.step_index].narration.get(recording.language, "")
         if line_width:
             text = wrap_caption(text, line_width)
         captions.append(TimedCaption(text, timing.start_seconds, timing.end_seconds))
@@ -204,33 +236,28 @@ def extract_thumbnail(video: Path, png: Path, at_seconds: float) -> None:
     )
 
 
-def render_language(scenario, viewport, timings, language, clips, webm, stem, work_dir, has_ffmpeg):
-    vtt = stem.with_name(f"{stem.name}.{language}.vtt")
-    vtt.write_text(build_webvtt(captions_for(scenario, timings, language)), encoding="utf-8")
-    transcript = stem.with_name(f"{stem.name}.{language}.txt")
-    transcript.write_text(
-        build_transcript(scenario.title[language], captions_for(scenario, timings, language)),
-        encoding="utf-8",
-    )
-    print(f"wrote {vtt} and {transcript}")
+def render(recording: Recording, webm: Path, timings, clips: dict[int, NarrationClip | None], work_dir: Path, has_ffmpeg: bool):
+    name = f"{recording.stem.name}.{recording.language}"
+    vtt = recording.stem.with_name(f"{name}.vtt")
+    vtt.write_text(build_webvtt(captions_for(recording, timings)), encoding="utf-8")
+    transcript = recording.stem.with_name(f"{name}.txt")
+    title = recording.scenario.title[recording.language]
+    transcript.write_text(build_transcript(title, captions_for(recording, timings)), encoding="utf-8")
+    print(f"wrote {webm}, {vtt} and {transcript}")
     if not has_ffmpeg:
         return None
-    burn_vtt = work_dir / f"{viewport.name}-{language}-burn.vtt"
+    burn_vtt = work_dir / f"{name}-burn.vtt"
     burn_vtt.write_text(
-        build_webvtt(captions_for(scenario, timings, language, viewport.caption_line_width)),
+        build_webvtt(captions_for(recording, timings, recording.viewport.caption_line_width)),
         encoding="utf-8",
     )
-    placed = [
-        (clips[(timing.step_index, language)].path, timing.start_seconds)
-        for timing in timings
-        if clips.get((timing.step_index, language))
-    ]
+    placed = [(clips[t.step_index].path, t.start_seconds) for t in timings if clips.get(t.step_index)]
     narration = None
     if placed:
-        narration = work_dir / f"{viewport.name}-{language}.m4a"
+        narration = work_dir / f"{name}.m4a"
         build_narration_track(placed, media_duration(webm), narration)
-    mp4 = stem.with_name(f"{stem.name}.{language}.mp4")
-    encode_video(webm, burn_vtt, narration, mp4, viewport)
+    mp4 = recording.stem.with_name(f"{name}.mp4")
+    encode_video(webm, burn_vtt, narration, mp4, recording.viewport)
     print(f"wrote {mp4}" + ("" if narration else " (no voice)"))
     return mp4
 
@@ -248,31 +275,31 @@ def main() -> int:
         print("ffmpeg not found: keeping the webm, .vtt and .txt files; no mp4, no voice.")
     args.out_dir.mkdir(parents=True, exist_ok=True)
     work_dir = Path(tempfile.mkdtemp(prefix="demo-narration-"))
-
+    languages = selected(args.languages, scenario.languages)
     voice = has_ffmpeg and not args.no_voice
-    try:
-        clips, needed_seconds = prepare_narration(scenario, work_dir, voice)
-    except NarrationUnavailable as reason:
-        print(f"No voice narration: {reason}. Rendering captions only.")
-        clips, needed_seconds = prepare_narration(scenario, work_dir, voice=False)
+
+    narration = {}
+    for language in languages:
+        try:
+            narration[language] = prepare_narration(scenario, language, work_dir, voice)
+        except NarrationUnavailable as reason:
+            print(f"No voice narration for {language}: {reason}. Rendering captions only.")
+            narration[language] = prepare_narration(scenario, language, work_dir, voice=False)
 
     from playwright.sync_api import sync_playwright
 
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch()
-        storage_state = sign_in(browser, args.base_url, username, password) if scenario.sign_in else None
-        for name in args.viewports.split(","):
-            viewport = VIEWPORTS[name]
+        signed_in = sign_in(browser, args.base_url, username, password) if scenario.sign_in else None
+        for viewport_name in selected(args.viewports, scenario.viewports):
+            viewport = VIEWPORTS[viewport_name]
             stem = args.out_dir / f"{scenario.app}-{args.date}{viewport.file_suffix}"
-            raw_video, timings = record_viewport(
-                browser, scenario, viewport, storage_state, needed_seconds, args, username
-            )
-            webm = stem.with_suffix(".webm")
-            shutil.move(raw_video, webm)
-            for language in scenario.languages:
-                mp4 = render_language(
-                    scenario, viewport, timings, language, clips, webm, stem, work_dir, has_ffmpeg
-                )
+            for language in languages:
+                recording = Recording(scenario, viewport, language, stem)
+                state = switch_ui_language(browser, args.base_url, signed_in, scenario.locales[language])
+                clips, needed_seconds = narration[language]
+                webm, timings = record(browser, recording, state, needed_seconds, args, username)
+                mp4 = render(recording, webm, timings, clips, work_dir, has_ffmpeg)
                 if mp4 and viewport.name == "desktop" and language == scenario.languages[0]:
                     thumbnail = args.out_dir / f"{scenario.app}-{args.date}-thumbnail.png"
                     extract_thumbnail(mp4, thumbnail, timings[-1].start_seconds + 0.5)

@@ -157,6 +157,11 @@
                 <i class="fas fa-mobile-alt"></i> Phone version
             </a>
         {% endif %}
+        {% if video_ja_mobile_url %}
+            <a href="{{ video_ja_mobile_url }}" class="back-link" lang="ja">
+                <i class="fas fa-mobile-alt"></i> 日本語 (スマホ版)
+            </a>
+        {% endif %}
         <a href="{% url 'public_app:demos' %}" class="back-link">
             <i class="fas fa-arrow-left"></i> Back to Demos
         </a>

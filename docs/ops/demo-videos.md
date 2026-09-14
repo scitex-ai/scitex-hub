@@ -23,12 +23,17 @@ app: projects                       # output file stem
 title:
   en: Create your first project
   ja: はじめてのプロジェクトを作る
-languages: [en, ja]                 # one video, caption file and transcript per language
+languages:                          # one recording per language, UI switched to `locale`
+  en: {locale: en}
+  ja: {locale: ja}
+viewports: [desktop, mobile]        # 1280x720 and 390x844; list only those where the flow works
 sign_in: true                       # sign in with DEMO_USERNAME / DEMO_PASSWORD first
 steps:
   - action: type                    # goto | click | fill | type | press | hover | scroll | wait
     selector: "#name"               # Playwright selector (click, fill, type, hover; optional for press)
-    value: sleep-study-{run_id}     # URL path, text to type, key to press, or scroll pixels
+    value:                          # URL path, text to type, key to press, or scroll pixels
+      en: Does sleep improve memory?
+      ja: 睡眠は記憶を良くするか？
     narration:                      # spoken and captioned; omit for a silent step
       en: Type a name in lowercase letters.
       ja: 名前を小文字で入力します。
@@ -36,16 +41,22 @@ steps:
     only: desktop                   # optional: run this step only for desktop or mobile
 ```
 
-`value` and `selector` may use `{username}` (the demo account) and `{run_id}`
-(the recording time as HHMMSS, so a scenario that creates a project gets a new
-name on every run).
+`narration`, `selector` and `value` are either one text for every language or a
+mapping with an entry per language. Prefer language-neutral selectors (ids, data
+attributes) so the same selector works in every UI language. `value` and
+`selector` may use `{username}` (the demo account) and `{run_id}` (the recording
+time as HHMMSS, so a scenario that creates a project gets a new name on every
+run).
+
+The scenario is recorded once per viewport x language. Before each recording the
+script opens Home and picks the language in the site's own language switcher
+(footer globe menu), so the Japanese video shows the Japanese UI and the English
+video the English UI.
 
 Timing is driven by the voice. Before recording, every narration line is
-synthesized in every language. During recording each step lasts as long as its
-longest narration (or its action, if a page load takes longer) plus `hold`. The
-narration starts when its step starts, and the caption cue covers the whole
-step. So the English and the Japanese video share one recording and stay in
-sync.
+synthesized. During recording each step lasts as long as its narration (or its
+action, if a page load takes longer) plus `hold`. The narration starts when its
+step starts, and the caption cue covers the whole step.
 
 For pointer actions the cursor glides to the target before acting, and every
 click shows an orange ring.
@@ -64,8 +75,9 @@ docker exec -w /app \
     --base-url http://127.0.0.1:8000 --out-dir media/videos/demos
 ```
 
-Options: `--date YYYY-MM-DD` (defaults to today), `--viewports desktop,mobile`,
-and `--no-voice` for captions only.
+Options: `--date YYYY-MM-DD` (defaults to today), `--viewports` and
+`--languages` to render a subset of the scenario's matrix (for example re-running
+one language after a failed recording), and `--no-voice` for captions only.
 
 Output in `--out-dir`, for each language `<lang>`:
 
@@ -74,9 +86,9 @@ Output in `--out-dir`, for each language `<lang>`:
 | `<app>-<date>.<lang>.mp4` | 1280x720, narrated, captions burned in (H.264 + AAC) |
 | `<app>-<date>.<lang>.vtt` | WebVTT captions |
 | `<app>-<date>.<lang>.txt` | plain-text transcript |
-| `<app>-<date>.webm` | the raw Playwright recording, no audio |
-| `<app>-<date>-thumbnail.png` | a frame from the last step |
-| `<app>-<date>-mobile.*` | the same at 390x844 |
+| `<app>-<date>.<lang>.webm` | the raw Playwright recording, no audio |
+| `<app>-<date>-thumbnail.png` | a frame from the last step (desktop, first language) |
+| `<app>-<date>-mobile.<lang>.*` | the same at 390x844 |
 
 ### Voice
 
@@ -96,8 +108,9 @@ Watch both languages. A dev server that reloads mid-recording (someone saving a
 file in the checkout) shows up as a blank page or a connection error; re-run the
 scenario.
 
-Known limits (2026-09-14): Writer's editor is not reachable at 390x844, so render
-`writer.yaml` with `--viewports desktop`.
+Known limits (2026-09-14): Writer's editor is not reachable at 390x844, so
+`writer.yaml` lists only the desktop viewport. The Writer page itself is not yet
+translated, so its Japanese video still shows the English Writer labels.
 
 ## Publish on the hub
 
@@ -110,7 +123,7 @@ cp <render-dir>/<app>-<date>* /home/ywatanabe/proj/scitex-hub/media/videos/demos
 
 Then add or update the entry in `VIDEO_CATALOG`
 (`apps/infra/public_app/views/pages_data.py`): `url` and `ja_url`, `captions` and
-`ja_captions`, `thumbnail`, optional `mobile_url`, `narrated: True` (the player
+`ja_captions`, `thumbnail`, optional `mobile_url` and `ja_mobile_url`, `narrated: True` (the player
 then starts unmuted and does not autoplay) and `playback_rate: 1`. Add the card to
 `public_app/pages/demos_partials/guide_cards.html`, and the new file names to
 `RENDERED_DEMO_GUIDES` in `tests/apps/public_app/test_demo_video_asset_names.py`.

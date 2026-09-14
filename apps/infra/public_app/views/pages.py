@@ -235,6 +235,7 @@ def video_player(request, video_id):
             "video_ja_captions_url": video.get("ja_captions", ""),
             "video_ja_url": video.get("ja_url", ""),
             "video_mobile_url": video.get("mobile_url", ""),
+            "video_ja_mobile_url": video.get("ja_mobile_url", ""),
             "video_narrated": video.get("narrated", False),
             "video_playback_rate": video.get("playback_rate", 4),
             "video_id": video_id,

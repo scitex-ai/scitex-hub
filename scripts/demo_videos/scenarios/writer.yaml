@@ -1,10 +1,13 @@
 # Draft in Writer: edit the abstract of the current project and compile a PDF preview.
-# The editor is not reachable at 390x844, so render with --viewports desktop.
+# Desktop only: the editor is not reachable at 390x844.
 app: writer
 title:
   en: Draft in Writer
   ja: Writer で原稿を書く
-languages: [en, ja]
+languages:
+  en: {locale: en}
+  ja: {locale: ja}
+viewports: [desktop]
 sign_in: true
 steps:
   - action: goto
@@ -34,10 +37,10 @@ steps:
       en: Write your abstract. Your changes are saved as you type.
       ja: アブストラクトを書きます。入力した内容は保存されます。
   - action: click
-    selector: "text=Compilation - Preview"
+    selector: "[data-section=preview-log] .details-section__header"
     narration:
       en: In the details panel, open Compilation Preview.
-      ja: 詳細パネルで Compilation Preview を開きます。
+      ja: 詳細パネルで Compilation - Preview を開きます。
   - action: click
     selector: "#details-preview-compile-btn"
     narration:
