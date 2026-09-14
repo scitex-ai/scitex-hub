@@ -1,0 +1,47 @@
+{% load i18n static %}
+<link rel="stylesheet" href="{% static 'apps_app/css/launcher/first-run.css' %}?v={{ build_id }}" />
+<details class="first-run{% if first_run.is_collapsed %} first-run--collapsed{% endif %}"
+         id="first-run-checklist"
+         data-done="{{ first_run.done_count }}"
+         {% if not first_run.is_collapsed %}open{% endif %}>
+    <summary class="first-run-summary">
+        <span class="first-run-title">{% trans "Getting started" %}</span>
+        {% if first_run.is_collapsed %}
+            <i class="fas fa-check first-run-check" aria-hidden="true"></i>
+        {% else %}
+            <span class="first-run-count">{{ first_run.done_count }}/{{ first_run.total_count }}</span>
+        {% endif %}
+    </summary>
+    <ol class="first-run-steps">
+        {% for step in first_run.steps %}
+            <li class="first-run-step{% if step.done %} first-run-step--done{% endif %}"
+                data-step="{{ step.key }}">
+                <a href="{{ step.url }}" class="first-run-link">
+                    <span class="first-run-marker" aria-hidden="true">
+                        {% if step.done %}
+                            <i class="fas fa-check"></i>
+                        {% else %}
+                            {{ step.number }}
+                        {% endif %}
+                    </span>
+                    <span class="first-run-label">{{ step.label }}</span>
+                    {% if step.done %}<span class="first-run-sr">{% trans "Done" %}</span>{% endif %}
+                </a>
+            </li>
+        {% endfor %}
+    </ol>
+    {% if not first_run.is_collapsed %}
+        <form method="post" action="/apps/getting-started/dismiss/" class="first-run-dismiss-form">
+            {% csrf_token %}
+            <button type="submit" class="first-run-dismiss" aria-label="{% trans 'Dismiss getting started' %}" title="{% trans 'Dismiss' %}">
+                <i class="fas fa-xmark" aria-hidden="true"></i>
+            </button>
+        </form>
+    {% endif %}
+</details>
+<script>
+    // The pager sizes its pages from the grid's top edge, so re-measure when the panel opens or closes.
+    document.getElementById("first-run-checklist").addEventListener("toggle", function () {
+        window.dispatchEvent(new Event("resize"));
+    });
+</script>

@@ -154,6 +154,11 @@ form.create-form-card .form-control::placeholder {
   color: var(--color-fg-subtle, #484f58);
 }
 
+/* --color-fg-subtle is undefined, so the #484f58 fallback gave 2.2:1 in dark. */
+[data-theme="dark"] form.create-form-card .form-control::placeholder {
+  color: var(--text-muted);
+}
+
 form.create-form-card textarea.form-control {
   min-height: 100px;
   resize: vertical;
@@ -182,6 +187,18 @@ form.create-form-card textarea.form-control {
   border-radius: 6px;
   cursor: pointer;
   transition: border-color 0.2s ease;
+}
+
+/* `.form-group label` would otherwise stack the radio above its text. */
+.create-visibility .option-item {
+  display: flex;
+  margin: 0;
+}
+
+.create-visibility {
+  border: 0;
+  padding: 0;
+  min-width: 0;
 }
 
 .option-item:hover {
@@ -216,6 +233,17 @@ form.create-form-card textarea.form-control {
   border: 1px solid var(--color-border-muted, #21262d);
   border-radius: 4px;
   overflow-x: auto;
+}
+
+/* A folder preview, not code: drop the global "plaintext" language badge. */
+.create-page pre.template-tree {
+  padding: 0.5rem 0.75rem !important;
+}
+
+.create-page pre.template-tree::before,
+.create-page pre.template-tree::after {
+  content: none !important;
+  display: none !important;
 }
 
 .option-label {

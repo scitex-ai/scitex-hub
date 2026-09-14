@@ -139,6 +139,13 @@
   -webkit-box-orient: vertical;
 }
 
+/* Japanese names break only between words (the <wbr> hints from the
+   phrase_breaks filter), never inside a katakana run: "マイプロジェク/ト". */
+.launcher-tile-name:lang(ja) {
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+
 .launcher-tile:hover .launcher-tile-name {
   color: var(--workspace-text-primary);
 }

@@ -27,16 +27,17 @@ from __future__ import annotations
 # each group starts a new row and gets a soft colour band, and a group's last
 # row keeps its empty cells rather than pulling the next group's app up:
 #   FOUNDATION (基盤): My Projects, Public Projects, Agents, Cards, Storage
-#   WORK (作業):       Scholar, FigRecipe, Stats (reserved), Writer, Chat, Tools
+#   WORK (作業):       Scholar, FigRecipe, (Stats), Writer, Chat, Tools
 #   SYSTEM (システム): Settings, Docs, App Store
 # Within a group the order is the operator's earlier order (infrastructure,
 # then Scholar-FigRecipe-Stats-Writer, then Chat/Settings/Tools, then
 # Docs/App Store/Storage). Each group carries role="group" and a translated
 # aria-label, which launcher/grid.css also shows as the band's visible label.
 #
-# "stats" holds its slot although no Stats app exists yet (another agent is
-# building it): its cell stays empty, and the day the module lands it fills
-# that cell without touching this list. Give its manifest "order": 27
+# "stats" keeps its position although no Stats app exists yet (another agent
+# is building it). No empty cell is rendered for it — an unexplained gap read
+# as a broken grid in the 2026-09-14 walkthrough — and the day the module
+# lands it takes that position without touching this list. Give its manifest "order": 27
 # (figrecipe is 25, writer 30). Chat and Settings are link tiles
 # (services/launcher_links.py). Console and Clew opt out of the grid via
 # show_in_launcher=false.
@@ -82,9 +83,6 @@ LAUNCHER_GROUPS: tuple[LauncherGroup, ...] = (
 #: Uncurated apps (community store apps, dev installs) are applications.
 DEFAULT_GROUP = "work"
 
-#: Cells a group keeps even when the app is not installed yet.
-RESERVED_SLOTS = frozenset({"stats"})
-
 DEFAULT_LAUNCHER_ORDER = [name for group in LAUNCHER_GROUPS for name in group.members]
 _GROUP_OF = {name: group.key for group in LAUNCHER_GROUPS for name in group.members}
 _GROUP_RANK = {group.key: i for i, group in enumerate(LAUNCHER_GROUPS)}
@@ -118,29 +116,13 @@ def group_cells(tiles: list[dict]) -> list[dict]:
     """The tiles as groups of grid cells, in group order.
 
     ``tiles`` must already be sorted (group first, then position). Returns
-    ``[{"key", "label", "cells"}]``; a reserved slot whose app is not present
-    becomes an empty cell ``{"is_slot": True, "slot": name}`` at its position,
-    so the apps after it keep their columns. A group with no tiles is omitted.
+    ``[{"key", "label", "cells"}]``. A group with no tiles is omitted.
     """
-    present = {tile["name"] for tile in tiles}
     groups = []
     for group in LAUNCHER_GROUPS:
-        members = [t for t in tiles if group_of(t["name"]) == group.key]
-        if not members:
-            continue
-        cells: list[dict] = []
-        # A group the user has drag-reordered keeps THEIR order, without the
-        # reserved gap (it would land somewhere they did not put it).
-        curated = not any(t.get("user_ordered") for t in members)
-        for tile in members:
-            if curated and tile["name"] in _DEFAULT_ORDER_INDEX:
-                before = group.members[: group.members.index(tile["name"])]
-                for name in before:
-                    held = any(c.get("slot") == name for c in cells)
-                    if name in RESERVED_SLOTS and name not in present and not held:
-                        cells.append({"is_slot": True, "slot": name})
-            cells.append(tile)
-        groups.append({"key": group.key, "label": group.label, "cells": cells})
+        cells = [t for t in tiles if group_of(t["name"]) == group.key]
+        if cells:
+            groups.append({"key": group.key, "label": group.label, "cells": cells})
     return groups
 
 # EOF

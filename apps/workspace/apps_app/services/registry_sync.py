@@ -47,6 +47,8 @@ def sync_app_pr_to_django(
             defaults={
                 "name": repo_slug,
                 "description": f"SciTeX app: {repo_slug}",
+                # App submissions are reviewed in the open.
+                "visibility": "public",
                 "gitea_repo_url": f"{settings.GITEA_URL}/{APPS_ORG}/{repo_slug}",
             },
         )

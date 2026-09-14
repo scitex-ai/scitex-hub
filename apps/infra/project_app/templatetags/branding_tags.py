@@ -16,6 +16,7 @@ template renderer and can later be lifted into a shared SciTeX package.
 
 from django import template
 from django.conf import settings
+from django.utils.translation import gettext
 
 from config import branding
 
@@ -84,8 +85,12 @@ def page_title(context):
     request = context.get("request")
     path = getattr(request, "path", "") or ""
 
+    app = branding.app_for_path(path)
+    if path in branding.EXACT_PAGE_NAMES:
+        app = gettext(app)
+
     return branding.page_title(
-        app=branding.app_for_path(path),
+        app=app,
         detail=_detail_from_context(context, path),
         env=settings.SCITEX_ENV,
         mode=settings.SCITEX_APP_MODE,

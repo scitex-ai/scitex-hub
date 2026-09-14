@@ -129,13 +129,26 @@ def _collect_services(status_data):
 
 
 def _compute_overall(services):
-    """Compute overall status from individual services."""
+    """Compute overall status from individual services.
+
+    ``degraded`` means nothing is down, only slow or warning; an outage is
+    reported only when at least one service is actually down.
+    """
     statuses = [s["status"] for s in services]
     if "down" in statuses:
-        return "degraded" if statuses.count("down") < len(statuses) else "down"
+        return "partial_outage" if statuses.count("down") < len(statuses) else "down"
     if "degraded" in statuses:
         return "degraded"
     return "operational"
+
+
+def with_checked_at_datetime(data):
+    """Copy of the status data with ``checked_at_dt`` for template date filters."""
+    try:
+        checked_at_dt = datetime.fromisoformat(data.get("checked_at") or "")
+    except ValueError:
+        checked_at_dt = None
+    return {**data, "checked_at_dt": checked_at_dt}
 
 
 PUBLIC_STATUS_CACHE_KEY = "public_status_v1"
@@ -209,7 +222,7 @@ def _get_status_data():
 
 def public_status_view(request):
     """Render the public status page. No authentication required."""
-    data = _get_status_data()
+    data = with_checked_at_datetime(_get_status_data())
     return render(request, "public_app/public_status.html", {"status": data})
 
 

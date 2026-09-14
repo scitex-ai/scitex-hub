@@ -322,9 +322,21 @@ NON_PROJECT_PREFIXES = (
 PATH_LABELS = {**SECTION_NAMES, **ACCOUNT_PAGE_NAMES, **PANE_NAMES, **APP_NAMES}
 
 
+# Launcher pages matched EXACTLY: a "/apps/" prefix would claim every app.
+# The launcher is not about a project, so its tab never names one. The
+# template tag translates these (and only these) labels.
+EXACT_PAGE_NAMES = {
+    "/apps/": gettext_noop("Home"),
+}
+NON_PROJECT_EXACT_PATHS = ("/", "/apps/")
+
+
 def is_project_scoped(path):
     """Return False for pages that must not name the ambient project."""
-    return not (path or "").startswith(NON_PROJECT_PREFIXES)
+    path = path or ""
+    if path in NON_PROJECT_EXACT_PATHS:
+        return False
+    return not path.startswith(NON_PROJECT_PREFIXES)
 
 
 # Environment -> the parenthetical shown in the tab. Production is unmarked:
@@ -343,6 +355,8 @@ def app_for_path(path):
     shadowed by a shorter one (``/explore/``).
     """
     path = path or ""
+    if path in EXACT_PAGE_NAMES:
+        return EXACT_PAGE_NAMES[path]
     match = None
     for prefix, name in PATH_LABELS.items():
         if path.startswith(prefix) and (match is None or len(prefix) > len(match[0])):

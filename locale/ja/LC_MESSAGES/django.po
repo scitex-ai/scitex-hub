@@ -402,6 +402,91 @@ msgstr "セルフホスティング手順"
 msgid "Server Status"
 msgstr "サーバー稼働状況"
 
+#: apps/infra/public_app/templates/public_app/server_status.html
+msgid "Check the current status of SciTeX Hub services and infrastructure."
+msgstr "SciTeX Hub のサービスとインフラの現在の稼働状況を確認できます。"
+
+#: apps/infra/public_app/templates/public_app/server_status.html
+msgid "Real-time monitoring of SciTeX Hub infrastructure and services"
+msgstr "SciTeX Hub のインフラとサービスをリアルタイムで監視しています"
+
+#: apps/infra/public_app/templates/public_app/public_status.html
+msgid "SciTeX Status"
+msgstr "SciTeX 稼働状況"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/overall_label.html
+msgid "All Systems Operational"
+msgstr "すべてのシステムが正常に稼働しています"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/overall_label.html
+msgid "Degraded performance"
+msgstr "一部のサービスでパフォーマンスが低下しています"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/overall_label.html
+msgid "Partial System Outage"
+msgstr "一部のシステムが停止しています"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/overall_label.html
+msgid "Major System Outage"
+msgstr "大規模なシステム障害が発生しています"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/public_services.html
+msgid "Uptime over the past 90 days."
+msgstr "過去 90 日間の稼働率です。"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/public_services.html
+msgid "Operational"
+msgstr "正常"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/public_services.html
+msgid "Degraded"
+msgstr "低下"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/public_services.html
+msgid "Down"
+msgstr "停止"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/public_services.html
+msgid "90 days ago"
+msgstr "90 日前"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/public_services.html
+#, python-format
+msgid "%(pct)s%% uptime"
+msgstr "稼働率 %(pct)s%%"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/public_services.html
+msgid "Today"
+msgstr "今日"
+
+#: apps/infra/public_app/templates/public_app/server_status_partials/public_services.html
+msgid "Last checked:"
+msgstr "最終確認:"
+
+#: apps/infra/public_app/templates/public_app/public_status.html
+#, python-format
+msgid "Day %(n)s"
+msgstr "%(n)s 日目"
+
+#: apps/infra/public_app/templates/public_app/public_status.html
+msgid "Past Incidents"
+msgstr "過去の障害"
+
+#: apps/infra/public_app/templates/public_app/public_status.html
+msgid "No incidents reported."
+msgstr "報告された障害はありません。"
+
+#: apps/infra/public_app/templates/public_app/public_status.html
+msgid "Detailed Status"
+msgstr "詳細な稼働状況"
+
+#. Service names from apps/infra/public_app/views/status/public_status.py
+msgid "Web Application"
+msgstr "ウェブアプリケーション"
+
+msgid "Database"
+msgstr "データベース"
+
 #: templates/global_base_partials/global_footer.html
 msgid "Terms"
 msgstr "利用規約"
@@ -3665,6 +3750,22 @@ msgstr "キャンセル"
 msgid "Private"
 msgstr "非公開"
 
+#: apps/infra/project_app/templates/project_app/projects/create.html
+msgid "Public"
+msgstr "公開"
+
+#: apps/infra/project_app/templates/project_app/projects/create.html
+msgid "Visibility"
+msgstr "公開範囲"
+
+#: apps/infra/project_app/templates/project_app/projects/create.html
+msgid "Only you and collaborators you add can see this project."
+msgstr "あなたと、追加した共同作業者だけがこのプロジェクトを閲覧できます。"
+
+#: apps/infra/project_app/templates/project_app/projects/create.html
+msgid "Anyone on the internet can see this project."
+msgstr "インターネット上の誰でもこのプロジェクトを閲覧できます。"
+
 #: apps/infra/accounts_app/templates/accounts_app/account_settings.html apps/infra/accounts_app/templates/accounts_app/profile_edit.html
 msgid "Change Email"
 msgstr "メールアドレスの変更"
@@ -5079,7 +5180,7 @@ msgid "My Profile"
 msgstr "マイプロフィール"
 
 msgid "Member since %(date)s"
-msgstr "%(date)s から利用"
+msgstr "%(date)sから利用"
 
 msgid "Profile Information"
 msgstr "プロフィール情報"
@@ -5271,6 +5372,37 @@ msgctxt "app name"
 msgid "Apps"
 msgstr "アプリ"
 
+# Home tile names from the app manifests (launcher_tile.html).
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_tile.html
+msgctxt "app name"
+msgid "Agents"
+msgstr "エージェント"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_tile.html
+msgctxt "app name"
+msgid "Cards"
+msgstr "カード"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_tile.html
+msgctxt "app name"
+msgid "Storage"
+msgstr "ストレージ"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_tile.html
+msgctxt "app name"
+msgid "Tools"
+msgstr "ツール"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_tile.html
+msgctxt "app name"
+msgid "Docs"
+msgstr "ドキュメント"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_tile.html
+msgctxt "app name"
+msgid "App Store"
+msgstr "アプリストア"
+
 #: templates/global_base_partials/site_dock.html
 msgid "Dock"
 msgstr "ドック"
@@ -5432,3 +5564,44 @@ msgstr "プランが有効になりました。ご契約ありがとうござい
 #: apps/infra/public_app/views/billing.py
 msgid "Your plan will end at the close of the current billing period."
 msgstr "プランは現在の請求期間の終了時に終了します。"
+
+# Home first-run checklist (card hub-first-10-minutes-onboarding-flow-20260914).
+#: apps/workspace/apps_app/templates/apps_app/partials/first_run_checklist.html
+msgid "Getting started"
+msgstr "はじめに"
+
+#: apps/workspace/apps_app/services/first_run.py
+msgid "Create your first project"
+msgstr "最初のプロジェクトを作成"
+
+#: apps/workspace/apps_app/services/first_run.py
+msgid "Open the sample data"
+msgstr "サンプルデータを開く"
+
+#: apps/workspace/apps_app/services/first_run.py
+msgid "Make a figure"
+msgstr "図を作成"
+
+#: apps/workspace/apps_app/services/first_run.py
+msgid "Draft your manuscript"
+msgstr "原稿を書き始める"
+
+#: apps/workspace/apps_app/services/first_run.py
+msgid "Add references"
+msgstr "参考文献を追加"
+
+#: apps/workspace/apps_app/services/first_run.py
+msgid "Ask the AI agent"
+msgstr "AIエージェントに頼む"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/first_run_checklist.html
+msgid "Done"
+msgstr "完了"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/first_run_checklist.html
+msgid "Dismiss"
+msgstr "閉じる"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/first_run_checklist.html
+msgid "Dismiss getting started"
+msgstr "「はじめに」を閉じる"

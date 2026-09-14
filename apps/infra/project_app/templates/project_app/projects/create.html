@@ -116,6 +116,35 @@
                                   class="form-control"
                                   placeholder="{% trans "A brief description of your project..." %}">{{ description|default:'' }}</textarea>
                     </div>
+                    <fieldset class="form-group create-visibility" id="create-visibility">
+                        <legend class="form-label">{% trans "Visibility" %}</legend>
+                        <div class="option-group">
+                            <label class="option-item">
+                                <input type="radio"
+                                       name="visibility"
+                                       value="private"
+                                       {% if visibility != "public" %}checked{% endif %} />
+                                <div class="option-content">
+                                    <div class="option-label">
+                                        <i class="fas fa-lock" aria-hidden="true"></i> {% trans "Private" %}
+                                    </div>
+                                    <div class="option-description">{% trans "Only you and collaborators you add can see this project." %}</div>
+                                </div>
+                            </label>
+                            <label class="option-item">
+                                <input type="radio"
+                                       name="visibility"
+                                       value="public"
+                                       {% if visibility == "public" %}checked{% endif %} />
+                                <div class="option-content">
+                                    <div class="option-label">
+                                        <i class="fas fa-globe" aria-hidden="true"></i> {% trans "Public" %}
+                                    </div>
+                                    <div class="option-description">{% trans "Anyone on the internet can see this project." %}</div>
+                                </div>
+                            </label>
+                        </div>
+                    </fieldset>
                     <!-- ===== SciTeX Minimal ===== -->
                     <div class="tab-fields" data-for-tab="minimal">
                         <input type="hidden" name="init_scitex" value="true" />
