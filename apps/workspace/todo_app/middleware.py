@@ -175,6 +175,26 @@ class TodoBoardTenancyMiddleware:
                 status=401,
             )
 
+        # --- Staff-only gate (P0, 2026-09-14) -----------------------------
+        # The per-project store injected below does NOT scope the read under
+        # scitex-cards 0.52: the board loads from the $SCITEX_STORE_DSN /
+        # host_store target (the fleet's central board) whatever path we hand
+        # it. Measured on the dev hub: a shared-pool visitor got all 7471
+        # fleet cards from /apps/cards/tasks. Until upstream honours a
+        # per-tenant store, nobody but staff may reach the mount at all —
+        # pages and data alike. Card:
+        # hub-p0-cards-mount-serves-fleet-board-to-any-signed-in-user-20260914
+        if not (user.is_staff or user.is_superuser):
+            return JsonResponse(
+                {
+                    "error": (
+                        "The Cards board is limited to SciTeX staff for now."
+                    ),
+                    "reason": "cards-board-staff-only",
+                },
+                status=403,
+            )
+
         store = self._resolve_workspace_store(request)
         if store is None:
             return JsonResponse(
