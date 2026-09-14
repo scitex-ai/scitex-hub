@@ -5079,7 +5079,7 @@ msgid "My Profile"
 msgstr "マイプロフィール"
 
 msgid "Member since %(date)s"
-msgstr "%(date)s から利用"
+msgstr "%(date)sから利用"
 
 msgid "Profile Information"
 msgstr "プロフィール情報"
