@@ -13,6 +13,8 @@ from functools import wraps
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
+from django.shortcuts import render
+from django.utils.translation import gettext_lazy as _
 
 # Login alone is not enough. SAC's own views gate only lifecycle_action on
 # its operator list; index, fleet_api, healthz and detail have no check, so a
@@ -34,6 +36,34 @@ def _fleet_access_allowed(user) -> bool:
     )
 
 
+_PLACEHOLDER_APPS = {
+    "cards": {
+        "app_label": _("Cards"),
+        "app_icon": "fa-list-check",
+        "lead": _("Your own cards will appear here."),
+    },
+    "agents": {
+        "app_label": _("Agents"),
+        "app_icon": "fa-robot",
+        "lead": _("Your own agents will appear here."),
+    },
+}
+
+
+def own_scope_placeholder(request, app_slug):
+    """Friendly page for a signed-in user the app cannot scope content to yet.
+
+    Operator 2026-09-14: Cards and Agents are shown to everyone and only their
+    content depends on the user. Until each app filters its data per user, the
+    page says so and shows none of the fleet's data.
+    """
+    return render(
+        request,
+        "fleet_apps/own_scope_coming_soon.html",
+        {"app_slug": app_slug, **_PLACEHOLDER_APPS[app_slug]},
+    )
+
+
 def _fleet_access_required(view):
     @wraps(view)
     def guarded(request, *args, **kwargs):
@@ -51,8 +81,9 @@ def _delegate(view_name, request, *args, **kwargs):
 
 
 @login_required
-@_fleet_access_required
 def index(request):
+    if not _fleet_access_allowed(request.user):
+        return own_scope_placeholder(request, "agents")
     return _delegate("index", request)
 
 

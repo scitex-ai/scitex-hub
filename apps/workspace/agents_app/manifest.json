@@ -4,7 +4,7 @@
   "name": "agents",
   "label": "Agents",
   "app_name": "agents_app",
-  "visibility": "internal",
+  "visibility": "public",
   "availability": "available",
   "show_in_launcher": true,
   "icon": "fas fa-robot",

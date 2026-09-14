@@ -110,16 +110,18 @@ class LauncherHomeTest(TestCase):
         """
         from apps.infra.workspace_app.registry import get_all_modules
 
+        # Exemplar is storage, not todo: operator 2026-09-14 made Cards (todo)
+        # and Agents pre-installed PUBLIC apps shown to everyone (content is
+        # scoped per user), so they no longer exercise the internal channel.
         modules = {m.name: m for m in get_all_modules()}
-        todo = modules.get("todo")
-        if todo is None:
-            # The todo manifest loads only when its package is importable on
-            # this host; skipping is honest, passing vacuously is not.
-            self.skipTest("the todo module is not registered on this host")
+        storage = modules.get("storage")
+        if storage is None:
+            # Skipping is honest, passing vacuously is not.
+            self.skipTest("the storage module is not registered on this host")
 
-        assert todo.visibility == "internal", (
-            "the 'todo' module must be classified INTERNAL — that is the gate's "
-            "input (the release channel decides who sees it). If the "
+        assert storage.visibility == "internal", (
+            "the 'storage' module must be classified INTERNAL — that is the "
+            "gate's input (the release channel decides who sees it). If the "
             "classification changed on purpose, update this test deliberately."
         )
 
@@ -128,7 +130,7 @@ class LauncherHomeTest(TestCase):
             for name, mod in modules.items()
             if mod.visibility == "internal" and mod.show_in_launcher
         )
-        assert "todo" in internal, "todo is internal but not launcher-visible"
+        assert "storage" in internal, "storage is internal but not launcher-visible"
 
         # self.user is a regular (non-staff) account, already logged in.
 

@@ -107,10 +107,14 @@ def cards_board_access_allowed(user) -> bool:
     Named so the launcher can hide the Cards tile with THIS predicate rather
     than a copy of it: a tile a user can see must not open onto the JSON 403
     below (apps_app.views.helpers.can_open_mounted_app).
+
+    Accounts named in SCITEX_AGENT_CONTAINER_LIFECYCLE_OPERATORS pass too: they
+    are the fleet operators the Agents mount already admits, and the operator's
+    own account is one of them without being Django staff (2026-09-14).
     """
-    return bool(
-        getattr(user, "is_staff", False) or getattr(user, "is_superuser", False)
-    )
+    from apps.workspace.agents_app.views import _fleet_access_allowed
+
+    return _fleet_access_allowed(user)
 
 
 # The upstream board routes that render HTML pages a browser NAVIGATES to
@@ -198,6 +202,13 @@ class TodoBoardTenancyMiddleware:
         # pages and data alike. Card:
         # hub-p0-cards-mount-serves-fleet-board-to-any-signed-in-user-20260914
         if not cards_board_access_allowed(user):
+            # The app stays visible to everyone (operator 2026-09-14): a page
+            # navigation gets a friendly own-scope placeholder with no board
+            # data, while every data fetch and write keeps the JSON 403.
+            if path in _PAGE_PATHS and not is_write:
+                from apps.workspace.agents_app.views import own_scope_placeholder
+
+                return own_scope_placeholder(request, "cards")
             return JsonResponse(
                 {
                     "error": ("The Cards board is limited to SciTeX staff for now."),
