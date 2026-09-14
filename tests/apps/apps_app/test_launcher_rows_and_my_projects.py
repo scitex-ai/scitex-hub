@@ -59,7 +59,7 @@ EXPECTED_TILE_ORDER = [
     "Console",
     "Clew",
     # PUBLISH (proposed 2026-09-14, Telegram 6040)
-    "slides",
+    "Slides",
     "Public Projects",
     # SYSTEM
     "Settings",

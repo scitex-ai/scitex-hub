@@ -183,14 +183,14 @@ class HomePagesTest(TestCase):
         # Assert
         assert b'class="launcher-slot"' not in content
 
-    def test_publish_group_holds_public_projects(self):
+    def test_publish_group_holds_slides_and_public_projects(self):
         # Proposed 2026-09-14 (Telegram 6040): showing work outside.
         # Arrange
         groups = self._groups()
         # Act
         names = [cell.get("name") for cell in groups[2]["cells"]]
         # Assert
-        assert "discovery" in names
+        assert names == ["slides", "discovery"]
 
     def test_system_group_holds_settings_docs_and_app_store(self):
         # Arrange

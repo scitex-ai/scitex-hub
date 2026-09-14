@@ -1,0 +1,94 @@
+{% load static vite i18n %}
+<link rel="stylesheet" href="{% static 'slides_app/css/slides.css' %}" />
+<div class="slides-app"
+     id="slides-app"
+     data-project="{{ slides_project_ref }}"
+     data-can-edit="{{ slides_can_edit|yesno:'true,false' }}"
+     data-view="preview"
+     data-i18n-saved="{% trans 'Saved' %}"
+     data-i18n-unsaved="{% trans 'Unsaved changes' %}"
+     data-i18n-save-failed="{% trans 'Could not save' %}"
+     data-i18n-deck-name="{% trans 'Deck name' %}"
+     data-i18n-no-figures="{% trans 'No image files found in this project.' %}"
+     data-i18n-empty="{% trans 'Pick a deck or create one.' %}"
+     data-i18n-read-only="{% trans 'Read only: you cannot edit this project.' %}">
+    <header class="slides-toolbar">
+        <h2 class="slides-title">
+            <i class="fas fa-chalkboard" aria-hidden="true"></i>
+            {% trans "Slides" context "app name" %}
+        </h2>
+        {% if slides_project %}
+            <span class="slides-project" title="{% trans 'Project' %}">{{ slides_project_ref }}</span>
+            <label class="slides-visually-hidden" for="slides-deck-select">{% trans "Deck" %}</label>
+            <select id="slides-deck-select" class="slides-select"></select>
+            <div class="slides-actions">
+                {% if slides_can_edit %}
+                    <button type="button" class="slides-btn" data-action="new-deck">
+                        <i class="fas fa-plus" aria-hidden="true"></i> {% trans "New deck" %}
+                    </button>
+                    <button type="button" class="slides-btn" data-action="deck-from-project">
+                        <i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i> {% trans "New deck from project" %}
+                    </button>
+                    <button type="button" class="slides-btn" data-action="insert-figure">
+                        <i class="fas fa-image" aria-hidden="true"></i> {% trans "Insert figure" %}
+                    </button>
+                    <button type="button" class="slides-btn slides-btn--primary" data-action="save">
+                        <i class="fas fa-floppy-disk" aria-hidden="true"></i> {% trans "Save" %}
+                    </button>
+                {% endif %}
+                <button type="button" class="slides-btn" data-action="export-pdf">
+                    <i class="fas fa-file-pdf" aria-hidden="true"></i> {% trans "Export PDF" %}
+                </button>
+            </div>
+            <span class="slides-status" id="slides-status" role="status" aria-live="polite"></span>
+        {% endif %}
+    </header>
+
+    {% if slides_project %}
+        <div class="slides-tabs" role="tablist" aria-label="{% trans 'View' %}">
+            <button type="button" role="tab" class="slides-tab" data-view-tab="preview" aria-selected="true">
+                {% trans "Preview" %}
+            </button>
+            <button type="button" role="tab" class="slides-tab" data-view-tab="editor" aria-selected="false">
+                {% trans "Editor" %}
+            </button>
+        </div>
+        <div class="slides-body">
+            <section class="slides-pane slides-pane--editor" aria-label="{% trans 'Editor' %}">
+                <textarea id="slides-source"
+                          class="slides-source"
+                          spellcheck="false"
+                          aria-label="{% trans 'Slide Markdown' %}"
+                          placeholder="# {% trans 'Title' %}&#10;&#10;---&#10;&#10;## {% trans 'Next slide' %}"
+                          {% if not slides_can_edit %}readonly{% endif %}></textarea>
+            </section>
+            <section class="slides-pane slides-pane--preview" aria-label="{% trans 'Preview' %}">
+                <div class="slides-deck" id="slides-preview"></div>
+            </section>
+        </div>
+        <dialog class="slides-dialog" id="slides-figure-dialog">
+            <form method="dialog" class="slides-dialog-head">
+                <h3>{% trans "Insert figure" %}</h3>
+                <button type="submit" class="slides-btn" aria-label="{% trans 'Close' %}">
+                    <i class="fas fa-xmark" aria-hidden="true"></i>
+                </button>
+            </form>
+            <ul class="slides-figure-list" id="slides-figure-list"></ul>
+        </dialog>
+    {% else %}
+        <div class="slides-empty">
+            <p>{% trans "Slides live in a project. Choose one:" %}</p>
+            <ul class="slides-project-list">
+                {% for project in slides_projects %}
+                    <li>
+                        <a class="slides-btn" href="?project={{ project.owner.username }}/{{ project.slug }}">{{ project.name }}</a>
+                    </li>
+                {% empty %}
+                    <li>{% trans "You have no projects yet." %}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+</div>
+{% vite_hmr_client %}
+{% vite_script 'slides_app/slides-init' %}
