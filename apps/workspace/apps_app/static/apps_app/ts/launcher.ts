@@ -23,6 +23,7 @@
 import { showToast } from "@utils/ui";
 
 import { getCsrf } from "./_launcher/csrf";
+import { DockEditor } from "./_launcher/dock-editor";
 import { LauncherPager } from "./_launcher/pager";
 import { LauncherPopover } from "./_launcher/popover";
 import { SwapDwell } from "./_launcher/swap-dwell";
@@ -63,6 +64,7 @@ class AppLauncher {
   private grid: HTMLElement;
   private pager: LauncherPager;
   private popover: LauncherPopover;
+  private dockEditor: DockEditor;
 
   // Edit / drag state
   private editMode = false;
@@ -90,9 +92,22 @@ class AppLauncher {
     this.popover = new LauncherPopover(grid, {
       onRearrange: () => this.enterEditMode(),
     });
+    this.dockEditor = new DockEditor(grid, pager, {
+      enterEditMode: () => this.enterEditMode(),
+      persistGridOrder: () => this.persistOrder(),
+    });
   }
 
   init(): void {
+    this.dockEditor.init();
+    // Cancelling touchmove keeps a held drag from turning into a page swipe or scroll.
+    document.addEventListener(
+      "touchmove",
+      (e) => {
+        if (this.dragTile || this.dockEditor.isDraggingButton) e.preventDefault();
+      },
+      { passive: false },
+    );
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         this.popover.close();
@@ -252,6 +267,14 @@ class AppLauncher {
     e.preventDefault();
     this.suppressClick = true; // movement means this was a drag, not a tap
 
+    const point = { x: e.clientX, y: e.clientY };
+    if (this.dockEditor.trackTile(point, this.dragTile)) {
+      this.pager.cancelEdgeTurn();
+      this.clearDwellTimer();
+      this.dwell.reset();
+      return;
+    }
+
     // Hold against an edge to carry the tile to the next/previous page.
     this.pager.edgeTurn(e.clientX);
 
@@ -410,6 +433,7 @@ class AppLauncher {
     if (this.dragPointerId !== null && e.pointerId !== this.dragPointerId) {
       return;
     }
+    const droppedTile = this.dragTile;
     this.dragTile.classList.remove("dragging");
     this.clearDwellTimer();
     this.dwell.reset();
@@ -421,6 +445,11 @@ class AppLauncher {
     document.removeEventListener("pointercancel", this.onDragEnd);
 
     if (this.suppressClick) {
+      if (e.type === "pointerup") {
+        this.dockEditor.dropTile({ x: e.clientX, y: e.clientY }, droppedTile);
+      } else {
+        this.dockEditor.clearTileHint(droppedTile);
+      }
       // A tile dropped onto a full page leaves that page one over capacity;
       // re-chunk so the overflow pushes right (iOS does the same).
       this.pager.rebalance();

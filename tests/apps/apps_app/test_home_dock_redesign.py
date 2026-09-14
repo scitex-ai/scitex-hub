@@ -170,7 +170,7 @@ class SiteDockOnEveryPageTest(TestCase):
         # Act
         dock = _dock_html(self.client.get(url).content)
         # Assert
-        assert 'data-dock-item="projects"' in dock
+        assert 'data-dock-item="home"' in dock
 
     def test_dock_projects_button_opens_my_projects(self):
         # Arrange
@@ -179,7 +179,7 @@ class SiteDockOnEveryPageTest(TestCase):
         dock = _dock_html(self.client.get(url).content)
         # Assert
         assert re.search(
-            r'<a href="/apps/home/"\s+class="site-dock-item[^"]*"\s+data-dock-item="projects"',
+            r'<a href="/apps/home/"\s+class="site-dock-item[^"]*"\s+data-dock-item="home"',
             dock,
         )
 
@@ -213,7 +213,7 @@ class SiteDockOnEveryPageTest(TestCase):
         # Arrange
         items = dock_items("/apps/discovery/")
         # Act
-        home = next(item for item in items if item.key == "home")
+        home = next(item for item in items if item.key == "launcher")
         # Assert
         assert (home.icon, home.url) == ("fas fa-house", "/apps/")
 
@@ -225,7 +225,7 @@ class SiteDockOnEveryPageTest(TestCase):
         tile = next(t for t in self.client.get("/apps/").context["tiles"] if t["name"] == "home")
         # Act
         icon = re.search(
-            r'data-dock-item="projects".*?<span class="launcher-tile-icon[^"]*" data-tile-category="([^"]+)"',
+            r'data-dock-item="home".*?<span class="launcher-tile-icon[^"]*" data-tile-category="([^"]+)"',
             dock,
             re.DOTALL,
         )

@@ -147,6 +147,75 @@ body:has(> .site-dock:not(.site-dock--floating)) {
   height: 100%;
 }
 
+/* A full dock (see DOCK_CAPACITY) narrows its slots rather than overflowing. */
+.site-dock-apps .site-dock-app {
+  flex: 0 1 var(--site-dock-item);
+  min-width: 40px;
+  -webkit-touch-callout: none;
+}
+
+/* Where a grid app would land while it is dragged over the dock. */
+.site-dock-placeholder {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.site-dock-app--dragging {
+  opacity: 0.35;
+}
+
+.site-dock-app--leaving {
+  opacity: 0;
+}
+
+/* The icon that follows the finger while a dock app is dragged. */
+.site-dock-ghost {
+  --site-dock-icon: 52px;
+  position: fixed;
+  z-index: 10060;
+  transform: translate(-50%, -50%) scale(1.08);
+  pointer-events: none;
+}
+
+.site-dock-ghost .site-dock-app-icon {
+  --launcher-icon-size: var(--site-dock-icon);
+  border-radius: calc(var(--site-dock-icon) * 0.25);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+}
+
+.site-dock-ghost .site-dock-app-icon i {
+  font-size: calc(var(--site-dock-icon) * 0.42);
+  color: #fff;
+}
+
+.site-dock--full {
+  border-color: rgba(220, 80, 60, 0.55);
+}
+
+/* `translate` composes with the dock's centring transform instead of replacing it. */
+@keyframes site-dock-refuse {
+  0%,
+  100% {
+    translate: 0;
+  }
+  20% {
+    translate: -7px 0;
+  }
+  40% {
+    translate: 6px 0;
+  }
+  60% {
+    translate: -4px 0;
+  }
+  80% {
+    translate: 3px 0;
+  }
+}
+
+.site-dock--refused {
+  animation: site-dock-refuse 0.42s ease-in-out;
+}
+
 /* The Home tile's own icon (shared/css/components/app-icon.css), dock-sized.
    The glyph scales with the box, as on the tile (26px in a 64px icon). */
 .site-dock-app .site-dock-app-icon {
@@ -285,6 +354,10 @@ body:has(> .site-dock:not(.site-dock--floating)) {
 @media (prefers-reduced-motion: reduce) {
   .site-dock-item {
     transition: none;
+  }
+
+  .site-dock--refused {
+    animation: none;
   }
 }
 
