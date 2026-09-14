@@ -23,7 +23,8 @@ from django.contrib.auth.models import AnonymousUser, User
 from django.test import RequestFactory, TestCase
 
 from apps.workspace.apps_app.models import AppsModule
-from apps.workspace.apps_app.views.helpers import browse_context
+from apps.workspace.apps_app.views import helpers as apps_helpers
+from apps.workspace.apps_app.views.helpers import browse_context, can_view_module
 
 
 def _request(user):
@@ -58,30 +59,54 @@ class StoreInternalVisibilityTest(TestCase):
         names = self._names(self.anon)
         assert "storevis-pub" in names, "a public app must show for anonymous users"
         assert "storevis-internal" not in names, (
-            "an internal (staff-only) app leaked into the anonymous store listing"
+            "an internal app leaked into the ANONYMOUS store listing — "
+            "internal is gated on can_view_internal_app (anonymous is always False)"
         )
         assert "storevis-private" not in names
 
-    def test_regular_user_sees_public_not_internal(self):
-        names = self._names(self.regular)
+    def test_regular_user_internal_hidden_when_not_released(self):
+        # Flag FALSE: an internal app is NOT released to non-staff, so an
+        # ordinary authenticated user must not see it. (Pinned, so it does not
+        # pass "for the wrong reason" on a dev deployment that defaults true.)
+        from django.test import override_settings
+
+        with override_settings(SCITEX_HUB_INTERNAL_APPS_RELEASED=False):
+            names = self._names(self.regular)
         assert "storevis-pub" in names
         assert "storevis-internal" not in names, (
-            "an internal app is staff-only; a non-staff authenticated user must "
-            "not see it"
+            "with SCITEX_HUB_INTERNAL_APPS_RELEASED=False a non-staff "
+            "authenticated user must not see internal apps"
         )
 
-    def test_staff_sees_internal(self):
-        names = self._names(self.staff)
+    def test_regular_user_internal_visible_when_released(self):
+        # Flag TRUE (the dev default per the operator's 2026-09-13 ruling: on a
+        # development deployment every authenticated user sees internal apps):
+        # an ordinary authenticated user DOES see the internal app in the store.
+        from django.test import override_settings
+
+        with override_settings(SCITEX_HUB_INTERNAL_APPS_RELEASED=True):
+            names = self._names(self.regular)
         assert "storevis-internal" in names, (
-            "staff must see internal apps (that is the operator view)"
+            "with SCITEX_HUB_INTERNAL_APPS_RELEASED=True a non-staff "
+            "authenticated user must see internal apps (dev team-member ruling)"
         )
         assert "storevis-pub" in names
+
+    def test_staff_sees_internal(self):
+        # Staff sees internal regardless of the flag (operators).
+        from django.test import override_settings
+
+        for flag in (True, False):
+            with override_settings(SCITEX_HUB_INTERNAL_APPS_RELEASED=flag):
+                names = self._names(self.staff)
+            assert "storevis-internal" in names, (
+                f"staff must see internal apps (flag={flag})"
+            )
+            assert "storevis-pub" in names
 
 
 class TestOwnerHubChromeStaffOnly:
     """The staff-only 'Owner Hub' card link must be gated on user.is_staff.
-
-    The P0 exposure had 'Owner Hub' x12 in the ANONYMOUS /apps/store/ markup.
     'Disable' was already inside the {% if user.is_authenticated %} block;
     'Owner Hub' rendered for ANY app with an author — and the seed stamps
     author on every builtin — so it leaked to everyone. It is now staff-only.
@@ -173,3 +198,128 @@ class SeedRespectsManifestVisibilityTest(TestCase):
             )
         finally:
             registry.unregister_module("storevis-seed-internal")
+
+
+class RuntimeHelperResyncsDriftedVisibilityTest(TestCase):
+    """The runtime ensure_builtin_modules (helpers.py) must RESYNC a builtin
+    row whose stored visibility drifted from the manifest SSoT — the exact
+    regression the seed-only test above does NOT cover.
+
+    The old fast path (`registered_names <= existing_names -> return`) never
+    re-synced existing rows, so a Cards/Storage row seeded 'public' before its
+    manifest flipped to 'internal' leaked to the anonymous App Store forever
+    (hub-store-tiles-cards-internal-visibility-regression-20260914).
+    """
+
+    def setUp(self):
+        # The helper caches its "done" state in a module global; reset it so a
+        # fresh process-simulated run executes the resync logic.
+        apps_helpers._builtins_ensured = False
+
+    def tearDown(self):
+        apps_helpers._builtins_ensured = False
+        # Drop the synthetic module so other tests in the file see a clean registry.
+        from apps.infra.workspace_app import registry
+        try:
+            registry.unregister_module("storevis-drift-internal")
+        except Exception:
+            pass
+
+    def test_stale_public_row_for_internal_manifest_is_resynced(self):
+        from apps.infra.workspace_app import registry
+
+        cfg = registry.ModuleConfig(
+            name="storevis-drift-internal",
+            label="Drift Internal",
+            app_name="apps_app",
+            partial_template="storevis/drift_internal_partial.html",
+        )
+        cfg.visibility = "internal"
+        registry.register_module(cfg)
+        try:
+            # Arrange: a builtin row present but stamped 'public' (the drift).
+            row = AppsModule.objects.create(
+                module_name="storevis-drift-internal",
+                category="other",
+                visibility="public",
+                is_builtin=True,
+            )
+            assert row.visibility == "public"  # the pre-fix stale state
+            # Act: the runtime helper (not the seeder directly) must correct it.
+            apps_helpers.ensure_builtin_modules()
+            # Assert: manifest 'internal' won; the store's public filter hides it.
+            row.refresh_from_db()
+            assert row.visibility == "internal", (
+                f"runtime helper left drifted row at {row.visibility!r}; the "
+                "manifest SSoT ('internal') must resync it, else the anonymous "
+                "App Store leaks the app"
+            )
+            # And the store listing agrees.
+            anon = AnonymousUser()
+            names = {m["app"].module_name for m in browse_context(_request(anon))["modules"]}
+            assert "storevis-drift-internal" not in names, (
+                "a resynced internal app must not appear in the anonymous store"
+            )
+        finally:
+            registry.unregister_module("storevis-drift-internal")
+            AppsModule.objects.filter(module_name="storevis-drift-internal").delete()
+
+
+class CanViewModuleBuiltinDoesNotBypassInternalTest(TestCase):
+    """can_view_module must NOT grant access to an 'internal' builtin via the
+    is_builtin short-circuit — the secondary gap that would leak an internal
+    app on the detail/open path even with a correctly-marked DB row.
+    """
+
+    def setUp(self):
+        from apps.infra.workspace_app import registry
+
+        self._cfgs = []
+        # A staff user and an anonymous + regular user.
+        self.staff = User.objects.create_user(username="cvm-staff", is_staff=True)
+        self.regular = User.objects.create_user(username="cvm-user")
+        self.anon = AnonymousUser()
+
+    def _mk(self, name, visibility, builtin=True):
+        mod = AppsModule.objects.create(
+            module_name=name,
+            category="other",
+            visibility=visibility,
+            is_builtin=builtin,
+        )
+        return mod
+
+    def test_internal_builtin_hidden_from_anonymous(self):
+        mod = self._mk("cvm-internal-builtin", "internal")
+        assert can_view_module(self.anon, mod) is False, (
+            "an internal builtin must be hidden from anonymous users; "
+            "is_builtin must not bypass the internal release-channel gate"
+        )
+
+    def test_internal_builtin_hidden_from_regular_user(self):
+        from django.test import override_settings
+
+        mod = self._mk("cvm-internal-builtin2", "internal")
+        # Pin the deployment flag OFF so this is deterministic: a regular
+        # (non-staff) user must NOT see internal apps on a non-RELEASED
+        # deployment. (Dev defaults the flag true — every authenticated user
+        # sees internal apps — so without the override this would pass for the
+        # wrong reason.)
+        with override_settings(SCITEX_HUB_INTERNAL_APPS_RELEASED=False):
+            assert can_view_module(self.regular, mod) is False, (
+                "an internal builtin is staff/RELEASED-only; a regular "
+                "authenticated user must not open it when the flag is unset"
+            )
+
+    def test_internal_builtin_visible_to_staff(self):
+        mod = self._mk("cvm-internal-builtin3", "internal")
+        assert can_view_module(self.staff, mod) is True, (
+            "staff (operators) must always see internal apps"
+        )
+
+    def test_public_builtin_still_visible_to_anonymous(self):
+        # Guard against over-tightening: a PUBLIC builtin must still be
+        # visible to everyone (the normal case — writer/scholar/figrecipe).
+        mod = self._mk("cvm-public-builtin", "public")
+        assert can_view_module(self.anon, mod) is True
+        assert can_view_module(self.regular, mod) is True
