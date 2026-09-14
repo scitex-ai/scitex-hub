@@ -4682,3 +4682,118 @@ msgstr "ターミナル環境で使えるコマンドラインツール"
 #: apps/infra/accounts_app/views/ai_setup.py
 msgid "API keys and model preferences for AI backends"
 msgstr "AI バックエンド用の API キーとモデル設定"
+
+# Project Health client-rendered list (accounts_app/views/project_health_i18n.py)
+msgid "Healthy"
+msgstr "正常"
+
+msgid "Click to show only healthy projects"
+msgstr "クリックすると正常なプロジェクトのみを表示します"
+
+msgid "Warnings"
+msgstr "警告"
+
+msgid "Click to show only warnings"
+msgstr "クリックすると警告のみを表示します"
+
+msgid "Critical"
+msgstr "重大"
+
+msgid "Click to show only critical issues"
+msgstr "クリックすると重大な問題のみを表示します"
+
+msgid "Total Projects"
+msgstr "プロジェクト総数"
+
+msgid "Click to show all projects"
+msgstr "クリックするとすべてのプロジェクトを表示します"
+
+msgid "Unknown"
+msgstr "不明"
+
+msgid "Project"
+msgstr "プロジェクト"
+
+msgid "Gitea Repository"
+msgstr "Gitea リポジトリ"
+
+msgid "Repository"
+msgstr "リポジトリ"
+
+msgid "Missing"
+msgstr "なし"
+
+msgid "In sync"
+msgstr "同期済み"
+
+msgid "Orphaned in Gitea"
+msgstr "Gitea 上で孤立"
+
+msgid "Repository missing"
+msgstr "リポジトリがありません"
+
+msgid "Local directory missing"
+msgstr "ローカルディレクトリがありません"
+
+msgid "Project healthy and in sync"
+msgstr "プロジェクトは正常で、同期されています"
+
+msgid "Repository exists in Gitea but no project found"
+msgstr "Gitea にリポジトリはありますが、対応するプロジェクトがありません"
+
+msgid "Project exists but its Gitea repository was not found"
+msgstr "プロジェクトはありますが、Gitea リポジトリが見つかりません"
+
+msgid "Local git directory missing"
+msgstr "ローカルの git ディレクトリがありません"
+
+msgid "Restore Project"
+msgstr "プロジェクトを復元"
+
+msgid "Sync Project"
+msgstr "プロジェクトを同期"
+
+msgid "All projects are healthy!"
+msgstr "すべてのプロジェクトが正常です"
+
+msgid "No synchronization issues detected"
+msgstr "同期の問題は検出されませんでした"
+
+msgid "Warning:"
+msgstr "警告:"
+
+msgid "Sync this project with Gitea?"
+msgstr "このプロジェクトを Gitea と同期しますか？"
+
+msgid "This will re-clone the repository from Gitea if the local directory is missing."
+msgstr "ローカルディレクトリがない場合は、Gitea からリポジトリを再クローンします。"
+
+msgid "Are you sure you want to delete this orphaned repository?"
+msgstr "この孤立したリポジトリを削除してもよろしいですか？"
+
+msgid "This action cannot be undone. The repository will be permanently deleted from Gitea."
+msgstr "この操作は元に戻せません。リポジトリは Gitea から完全に削除されます。"
+
+msgid "Restore this orphaned repository by creating a new project?"
+msgstr "新しいプロジェクトを作成して、この孤立したリポジトリを復元しますか？"
+
+msgid "Project name for restored repository:"
+msgstr "復元するリポジトリのプロジェクト名:"
+
+msgid "This will create a new project linked to the existing Gitea repository and clone it to your local filesystem."
+msgstr "既存の Gitea リポジトリに紐づく新しいプロジェクトを作成し、ローカルのファイルシステムにクローンします。"
+
+msgid "Failed to load project health"
+msgstr "プロジェクトの状態を読み込めませんでした"
+
+msgid "Failed to connect to server"
+msgstr "サーバーに接続できませんでした"
+
+msgid "Failed to sync project"
+msgstr "プロジェクトを同期できませんでした"
+
+msgid "Failed to delete repository"
+msgstr "リポジトリを削除できませんでした"
+
+msgid "Failed to restore project"
+msgstr "プロジェクトを復元できませんでした"

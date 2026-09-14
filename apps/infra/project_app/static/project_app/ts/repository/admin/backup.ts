@@ -1,14 +1,17 @@
 /**
- * Repository restore/backup operations
+ * Project restore operations (orphaned repository -> new project)
  * @module repository/admin/backup
  */
 
 import { PendingAction } from "./types";
-import { escapeHtml } from "./rendering";
+import { createEl, DIALOG_NAME_STYLE, labelledParagraph } from "./dom";
+import { t } from "./i18n";
 import { showDialog, getCSRFToken, showError } from "./ui";
 
+const PROJECT_NAME_INPUT_ID = "restore-project-name-input";
+
 /**
- * Shows confirmation dialog for repository restoration
+ * Shows confirmation dialog for restoring an orphaned repository as a project
  */
 export function confirmRestore(
   repositoryName: string,
@@ -20,32 +23,52 @@ export function confirmRestore(
     projectName: repositoryName,
   };
 
-  const projectNameId = "restore-project-name-input";
   const dialogMessageEl = document.getElementById("dialog-message");
 
   if (dialogMessageEl) {
-    dialogMessageEl.innerHTML = `
-            <p>Restore this orphaned repository by creating a new project?</p>
-            <p style="margin: 1rem 0; font-family: monospace; background: var(--color-canvas-subtle); padding: 0.5rem; border-radius: 0.25rem; word-break: break-all;">
-                ${escapeHtml(repositoryName)}
-            </p>
-            <div style="margin: 1rem 0;">
-                <label for="${projectNameId}" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">
-                    Project name for restored repository:
-                </label>
-                <input type="text" id="${projectNameId}" value="${escapeHtml(repositoryName)}"
-                       style="width: 100%; padding: 0.5rem; border: 1px solid var(--color-border-default);
-                       border-radius: 0.25rem; background: var(--color-canvas-subtle); color: var(--color-fg-default);">
-            </div>
-            <p><strong>Note:</strong> This will create a new Django project linked to the existing Gitea repository and clone it to your local filesystem.</p>
-        `;
+    const input = createEl("input", {
+      style:
+        "width: 100%; padding: 0.5rem; border: 1px solid var(--color-border-default); border-radius: 0.25rem; background: var(--color-canvas-subtle); color: var(--color-fg-default);",
+      attrs: { type: "text", id: PROJECT_NAME_INPUT_ID },
+    });
+    input.value = repositoryName;
+
+    dialogMessageEl.replaceChildren(
+      createEl("p", {
+        text: t(
+          "dialog.restore.question",
+          "Restore this orphaned repository by creating a new project?",
+        ),
+      }),
+      createEl("p", { text: repositoryName, style: DIALOG_NAME_STYLE }),
+      createEl("div", { style: "margin: 1rem 0;" }, [
+        createEl("label", {
+          text: t(
+            "dialog.restore.name_label",
+            "Project name for restored repository:",
+          ),
+          style: "display: block; margin-bottom: 0.5rem; font-weight: 500;",
+          attrs: { for: PROJECT_NAME_INPUT_ID },
+        }),
+        input,
+      ]),
+      labelledParagraph(
+        t("dialog.note_label", "Note:"),
+        t(
+          "dialog.restore.note",
+          "This will create a new project linked to the existing Gitea repository and clone it to your local filesystem.",
+        ),
+      ),
+    );
   }
 
   showDialog();
 
   // Focus input and setup enter key handler
   setTimeout(() => {
-    const input = document.getElementById(projectNameId) as HTMLInputElement;
+    const input = document.getElementById(
+      PROJECT_NAME_INPUT_ID,
+    ) as HTMLInputElement;
     if (input) {
       input.focus();
       input.addEventListener("keypress", (e: KeyboardEvent) => {
@@ -64,7 +87,7 @@ export function confirmRestore(
  */
 export function getRestoreProjectName(defaultName: string): string {
   const input = document.getElementById(
-    "restore-project-name-input",
+    PROJECT_NAME_INPUT_ID,
   ) as HTMLInputElement;
   if (input) {
     return input.value.trim();
@@ -73,7 +96,7 @@ export function getRestoreProjectName(defaultName: string): string {
 }
 
 /**
- * Restores a repository by creating a new project
+ * Restores an orphaned repository by creating a new project
  */
 export async function restoreRepository(
   repositoryName: string,
@@ -82,7 +105,7 @@ export async function restoreRepository(
   onSuccess: () => void,
 ): Promise<void> {
   console.log(
-    "[Repository Maintenance] Restoring repository:",
+    "[Project Health] Restoring repository:",
     repositoryName,
     "as project:",
     projectName,
@@ -101,9 +124,7 @@ export async function restoreRepository(
       }),
     });
 
-    console.log("[Repository Maintenance] Response status:", response.status);
     const data = await response.json();
-    console.log("[Repository Maintenance] Response data:", data);
 
     if (data.success) {
       if (data.project_id) {
@@ -112,23 +133,22 @@ export async function restoreRepository(
           .replace(/\s+/g, "-")
           .replace(/[^\w\-]/g, "");
 
-        console.log(
-          "[Repository Maintenance] Redirecting to:",
-          `/${username}/${slugifiedName}/`,
-        );
         setTimeout(() => {
           window.location.href = `/${username}/${slugifiedName}/`;
         }, 500);
       } else {
-        console.log("[Repository Maintenance] Reloading health page");
         setTimeout(() => onSuccess(), 500);
       }
     } else {
-      console.error("[Repository Maintenance] API Error:", data);
-      showError(data.message || data.error);
+      console.error("[Project Health] API Error:", data);
+      showError(
+        data.message ||
+          data.error ||
+          t("error.restore", "Failed to restore project"),
+      );
     }
   } catch (error) {
-    console.error("[Repository Maintenance] Error:", error);
-    showError("Failed to restore repository");
+    console.error("[Project Health] Error:", error);
+    showError(t("error.restore", "Failed to restore project"));
   }
 }

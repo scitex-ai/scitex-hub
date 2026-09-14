@@ -36,8 +36,12 @@ class RepositoryHealthIssue:
         project_slug: str = None,
         gitea_name: str = None,
         message: str = None,
+        detail: str = None,
     ):
         self.issue_type = issue_type
+        # Language-neutral part of the message (e.g. a path), so the client can
+        # render a translated sentence around it.
+        self.detail = detail
         self.project_slug = project_slug or gitea_name
         self.gitea_name = gitea_name
         self.message = message or self.ISSUE_TYPES.get(issue_type, "Unknown issue")
@@ -50,6 +54,7 @@ class RepositoryHealthIssue:
             "project_slug": self.project_slug,
             "gitea_name": self.gitea_name,
             "message": self.message,
+            "detail": self.detail,
             "is_healthy": self.is_healthy,
             "is_critical": self.is_critical,
         }
@@ -144,6 +149,7 @@ class RepositoryHealthChecker:
                     "missing_directory",
                     project_slug=project.slug,
                     message=f"Local git directory missing: {project.git_clone_path}",
+                    detail=str(project.git_clone_path),
                 )
 
         # All checks passed

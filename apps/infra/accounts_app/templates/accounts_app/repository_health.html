@@ -423,6 +423,8 @@
             </div>
         </div>
     </div>
+    <!-- Translated strings for the client-rendered list (read by ts/repository/admin/i18n.ts) -->
+    {{ project_health_i18n|json_script:"project-health-i18n" }}
     <!-- Project Health maintenance script (TypeScript-compiled) -->
     {% vite_script 'project_app/repository/admin/index' %}
 {% endblock %}
