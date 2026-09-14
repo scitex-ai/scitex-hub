@@ -22,7 +22,7 @@ from django.utils import timezone
 from apps.infra.workspace_app.registry import get_all_modules
 
 from ..models import AppsModule, ModuleInstallation
-from ..services.first_run import checklist_context, is_new_user
+from ..services.first_run import checklist_context, should_show_checklist
 from ..services.launcher_dock import get_dock_apps
 from ..services.launcher_links import get_launcher_links, get_link_tile_orders
 from ..services.manifest_display import prettify_module_name
@@ -355,7 +355,7 @@ def launcher_context(request) -> dict:
             checklist_context(request.user)
             if request.user.is_authenticated
             and not is_guest
-            and is_new_user(request.user)
+            and should_show_checklist(request.user)
             else None
         ),
         # Every app the user can open, wherever it sits (grid or dock).

@@ -12,6 +12,7 @@ from ..services.first_run import (
     dismiss_checklist,
     latest_owned_project,
     mark_step_done,
+    reshow_checklist,
     step_target_url,
 )
 
@@ -44,7 +45,14 @@ def follow_step(request, step_key):
 @login_required
 @require_POST
 def dismiss(request):
-    dismiss_checklist(request.user)
+    dismiss_checklist(request.user, forever=request.POST.get("forever") == "1")
+    return redirect("/apps/")
+
+
+@login_required
+@require_POST
+def reshow(request):
+    reshow_checklist(request.user)
     return redirect("/apps/")
 
 

@@ -419,7 +419,7 @@ class SettingsAndChatTilesTest(TestCase):
         # Act
         response = self.client.get(url)
         # Assert — the popover drops Pin / Details for these
-        assert response.content.count(b'data-link-only="1"') == 2
+        assert response.content.count(b'data-link-only="1"') == 3
 
     def test_dragged_link_tile_position_persists(self):
         # Arrange — a user reorders from the grid, which has been loaded (and

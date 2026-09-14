@@ -71,6 +71,7 @@ LAUNCHER_GROUPS: tuple[LauncherGroup, ...] = (
             "tools",
             "console",
             "clew",
+            "create-app",  # link tile "+ Create app"
         ),
     ),
     LauncherGroup(

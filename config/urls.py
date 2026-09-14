@@ -24,6 +24,7 @@ from apps.infra.project_app.views import (
     project_create,
 )
 from apps.infra.public_app.views import healthz
+from apps.workspace.apps_app.views import create_app as create_app_views
 from apps.workspace.apps_app.views import first_run as first_run_views
 from apps.workspace.repo_app.views.dispatch import root_dispatch
 from apps.workspace.repo_app.views.index import current_project_view
@@ -149,6 +150,16 @@ urlpatterns = [
         "apps/getting-started/dismiss/",
         first_run_views.dismiss,
         name="first_run_dismiss",
+    ),
+    path(
+        "apps/getting-started/reshow/",
+        first_run_views.reshow,
+        name="first_run_reshow",
+    ),
+    path(
+        "apps/create-app/",
+        create_app_views.create_app_placeholder,
+        name="create_app_placeholder",
     ),
     path(
         "apps/getting-started/<str:step_key>/",

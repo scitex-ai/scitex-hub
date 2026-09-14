@@ -1,0 +1,39 @@
+{% extends "global_base.html" %}
+
+{% load i18n %}
+
+{% block extra_css %}
+    <style>
+        .create-app-steps { padding-left: 1.4em; list-style: decimal; }
+        .create-app-steps li { margin: 0.35em 0; }
+        .create-app-page a:not(.breadcrumb-item a) { text-decoration: underline; }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container py-5 create-app-page" id="create-app-placeholder">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="/apps/">{% trans "Home" context "app name" %}</a>
+                </li>
+                <li class="breadcrumb-item active">{% trans "Create app" context "app name" %}</li>
+            </ol>
+        </nav>
+        <h1 class="mb-4">
+            <i class="fas fa-plus-circle me-2" aria-hidden="true"></i>{% trans "Create app" context "app name" %}
+        </h1>
+        <p class="lead text-muted mb-4">{% trans "Coming soon: describe the app you need, and the AI agent builds it in your workspace." %}</p>
+        <section class="api-section">
+            <h2>{% trans "What to expect" %}</h2>
+            <ol class="create-app-steps">
+                <li>{% trans "Tell the agent what the app should do." %}</li>
+                <li>{% trans "The agent scaffolds the app inside one of your projects." %}</li>
+                <li>{% trans "Try it from Home, then keep it private or publish it to the App Store." %}</li>
+            </ol>
+            <p class="mt-4">
+                {% trans "Until then, developers can build apps by hand:" %}
+                <a href="/docs/content/app-development/">{% trans "App development guide" %}</a>
+            </p>
+        </section>
+    </div>
+{% endblock %}

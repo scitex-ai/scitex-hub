@@ -173,7 +173,7 @@ class HomePagesTest(TestCase):
         # Act
         cells = [c.get("name") for c in groups[1]["cells"]]
         # Assert
-        assert cells == ["scholar", "figrecipe", "writer", "chat", "tools"]
+        assert cells == ["scholar", "figrecipe", "writer", "chat", "tools", "create-app"]
 
     def test_home_renders_no_empty_slot_cell(self):
         # Arrange

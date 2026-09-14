@@ -1,0 +1,10 @@
+{
+  "$schema": "scitex-launcher-link",
+  "$schema_version": "1.0.0",
+  "name": "create-app",
+  "label": "Create app",
+  "icon": "fas fa-plus",
+  "category": "utility",
+  "url": "/apps/create-app/",
+  "description": "Build your own app with the AI agent (coming soon)."
+}
