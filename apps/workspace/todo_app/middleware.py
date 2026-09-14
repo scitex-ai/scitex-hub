@@ -31,17 +31,18 @@ This middleware makes the mount multi-tenant while keeping Django thin
    own mutating handlers are POST-only, so this gate covers all of them,
    including the csrf_exempt ``api_dispatch`` catch-all and the
    ``hooks/*`` + ``dm/*`` + ``chat/*`` POST surfaces).
-4. **Provisioning is stated, not crashed through** — the board's card
-   DATA comes from an ambient store, and since the 2026-08-13 zero-config
-   abolition that resolver refuses to invent one. Requests that would read
-   it are answered with an explicit, non-retryable 404 carrying the
-   resolver's own sentence, the ``cards-store-not-configured``
-   discriminator and the hub's own next step, instead of the HTTP 500 the
-   unclassified exception produced. The decision, the measurements and the
-   exemption list live in :mod:`.cards_store_provisioning`; this module
-   only calls it. The CONFIGURATION half — giving a deployment somewhere to
-   state the target — is
-   ``config.settings._optional_apps.publish_cards_store_target``.
+4. **Store provisioning follows the canonical 3-state contract** — the
+   board's card DATA comes from a store the scitex-dev protocol resolves
+   (``scitex_dev.store.host_store``): an UNSET target resolves to the
+   reachable fleet-central node (NORMAL operation, no refusal); a MALFORMED
+   ``$SCITEX_STORE_DSN`` raises ``StoreTargetError`` at resolve time and an
+   unreachable/auth-failing DSN fails at connect — both must stay fail-loud
+   5xx, which is scitex-dev's and Cards' responsibility, not the hub's. The
+   hub therefore synthesizes NO store refusal; the only hub duty here is the
+   CONFIGURATION half, giving a deployment somewhere to state the target:
+   ``config.settings._optional_apps.publish_cards_store_target`` publishes
+   ``$SCITEX_HUB_CARDS_STORE`` as the canonical ``$SCITEX_STORE_DSN`` (without
+   overwriting an explicit ``$SCITEX_STORE_DSN``).
 
 Runs LAST in the request phase (after Authentication + VisitorAutoLogin)
 so ``request.user`` is final, and no-ops in one prefix check for every
@@ -58,8 +59,6 @@ from pathlib import Path
 from django.http import JsonResponse
 from django.middleware.csrf import CsrfViewMiddleware
 from django.shortcuts import redirect
-
-from .cards_store_provisioning import unconfigured_store_response
 
 logger = logging.getLogger(__name__)
 
@@ -128,13 +127,6 @@ _PAGE_PATHS = frozenset(
 _TODO_INSTALLED = (
     find_spec("scitex_cards") is not None or find_spec("scitex_todo") is not None
 )
-
-# PROVISIONING — "is there a card store AT ALL" — is a different question from
-# tenancy ("WHOSE store is this"), needs none of this module's request state,
-# and carries a long measured argument of its own. It lives in
-# `cards_store_provisioning`; this module only calls it, at the seam marked
-# below. No alias is re-exported here: one name per thing, and the module that
-# owns the decision is the one to import from.
 
 
 class TodoBoardTenancyMiddleware:
@@ -231,16 +223,6 @@ class TodoBoardTenancyMiddleware:
         params = request.GET.copy()
         params["store"] = str(store)
         request.GET = params
-
-        # --- Provisioning: is there a card store to read at all? ---------
-        # See `cards_store_provisioning` for the whole argument. Placed AFTER
-        # tenancy so the more specific "no active project" answer still wins
-        # for a user who has one to create, and BEFORE the hand-off because
-        # this is a precondition of the board serving anything, not a failure
-        # of it.
-        refusal_response = unconfigured_store_response(path)
-        if refusal_response is not None:
-            return refusal_response
 
         # --- Write gate, part 2: the opened routes, now authenticated ---
         # Reached ONLY by _is_writable_path routes, and only after the user

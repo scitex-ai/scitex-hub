@@ -192,8 +192,9 @@ def test_the_hub_setting_is_returned_as_the_target_in_effect():
 
 @pytest.mark.guards(defect=_DEFECT)
 def test_the_hub_setting_is_published_under_the_packages_own_name():
-    # Arrange — the package reads $SCITEX_CARDS_DB and nothing else; a hub
-    # setting nobody translates is a setting that changes nothing.
+    # Arrange — the scitex-dev store protocol reads $SCITEX_STORE_DSN (via
+    # scitex_dev.store.host_store) and nothing else; a hub setting nobody
+    # translates is a setting that changes nothing.
     env = {CARDS_STORE_HUB_ENV: _FAKE_DSN}
     # Act
     publish_cards_store_target(env)
@@ -252,8 +253,9 @@ def test_the_fleet_store_is_reached_when_nobody_configured_one(fleet_dsn):
 
 @pytest.mark.guards(defect=_UNCONFIGURED_DEFECT)
 def test_the_fleet_default_is_published_under_the_packages_own_name(fleet_dsn):
-    # Arrange — publishing is the whole mechanism: the package reads
-    # $SCITEX_CARDS_DB and nothing else.
+    # Arrange — publishing is the whole mechanism: the scitex-dev store
+    # protocol reads $SCITEX_STORE_DSN (via scitex_dev.store.host_store)
+    # and nothing else.
     env: dict[str, str] = {}
     # Act
     publish_cards_store_target(env)
