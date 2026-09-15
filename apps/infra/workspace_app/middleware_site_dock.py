@@ -71,10 +71,11 @@ def inject_dock(request, response) -> None:
     from django.template.loader import render_to_string
 
     from apps.infra.public_app.templatetags.site_dock import dock_context
+    from config.context_processors import cache_buster
 
-    snippet = render_to_string(
-        "global_base_partials/site_dock.html", dock_context(request)
-    )
+    # Without build_id the stylesheets load as ?v= and phones keep stale dock CSS.
+    context = {**dock_context(request), **cache_buster(request)}
+    snippet = render_to_string("global_base_partials/site_dock.html", context)
     if "font-awesome" not in body:
         # The dock's glyphs are Font Awesome; a leaf page may not load it.
         snippet = _FONT_AWESOME + snippet

@@ -95,6 +95,9 @@ SCITEX_ENV = branding.normalize_env(os.environ.get("SCITEX_HUB_ENV", "developmen
 # so its tab reads "Writer — SciTeX (standalone)" instead of "Writer — SciTeX".
 SCITEX_APP_MODE = branding.MODE_HUB
 
+# Storage leaf asks the hub which directories belong to the requester.
+SCITEX_STORAGE_VOLUMES_PROVIDER = "apps.workspace.storage_app.volumes.user_volumes"
+
 # ---------------------------------------
 # Paths
 # ---------------------------------------

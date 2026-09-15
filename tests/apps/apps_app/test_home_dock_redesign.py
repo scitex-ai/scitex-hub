@@ -154,6 +154,16 @@ class SiteDockOnEveryPageTest(TestCase):
         # Assert
         assert b"data-site-dock" in response.content
 
+    def test_injected_dock_stylesheets_carry_a_cache_buster(self):
+        # Arrange — an empty ?v= let iPhone Safari keep pre-fix dock CSS.
+        request = RequestFactory().get("/apps/storage/")
+        request.user = self.user
+        response = HttpResponse("<html><body><main>leaf</main></body></html>")
+        # Act
+        inject_dock(request, response)
+        # Assert
+        assert b"site-dock-chat.css?v=\"" not in response.content
+
     def test_middleware_leaves_an_embedded_frame_alone(self):
         # Arrange
         request = RequestFactory().get("/apps/scholar/v2/", HTTP_SEC_FETCH_DEST="iframe")
