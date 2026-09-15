@@ -30,6 +30,7 @@ services:
         - scitex-hub-prod-django:latest
       args:
         BUILDKIT_INLINE_CACHE: 1
+        SCITEX_HUB_DEPENDENCY_RESOLUTION: ${SCITEX_HUB_DEPENDENCY_RESOLUTION:?set by protected rebuild}
     image: scitex-hub-prod-django:latest
     # tini FIRST, for the same reason every other service here does it: an
     # `entrypoint:` override REPLACES the image's ENTRYPOINT wholesale, so it
