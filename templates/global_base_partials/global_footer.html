@@ -23,18 +23,6 @@
                     <p class="footer-contact">
                         <a href="mailto:{{ CONTACT_EMAIL }}">{{ CONTACT_EMAIL }}</a>
                     </p>
-                    {% get_current_language as LANGUAGE_CODE %}
-                    <address class="footer-company-address">
-                        {% if LANGUAGE_CODE|slice:":2" == "ja" %}
-                            株式会社SciTeX<br />
-                            〒420-0857 静岡県静岡市葵区御幸町3-21<br />
-                            ペガサート7階 静岡市コ・クリエーションスペース内
-                        {% else %}
-                            SciTeX Inc.<br />
-                            Shizuoka City Co-Creation Space, 7F PEGASART<br />
-                            3-21 Miyukicho, Aoi-ku, Shizuoka 420-0857, Japan
-                        {% endif %}
-                    </address>
                     <p class="footer-copyright">
                         &copy; 2025–2026 SciTeX Inc. {% trans "All rights reserved." %} <span class="footer-version">v{{ SCITEX_HUB_VERSION }}</span>
                     </p>
