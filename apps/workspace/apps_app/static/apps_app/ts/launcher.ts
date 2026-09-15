@@ -25,6 +25,7 @@ import { showToast } from "@utils/ui";
 import { getCsrf } from "./_launcher/csrf";
 import { DockEditor } from "./_launcher/dock-editor";
 import { LauncherPager } from "./_launcher/pager";
+import { PlannedSheet } from "./_launcher/planned-sheet";
 import { LauncherPopover } from "./_launcher/popover";
 import { SwapDwell } from "./_launcher/swap-dwell";
 import { shouldSwap } from "./_launcher/swap-intent";
@@ -65,6 +66,7 @@ class AppLauncher {
   private pager: LauncherPager;
   private popover: LauncherPopover;
   private dockEditor: DockEditor;
+  private plannedSheet: PlannedSheet | null;
 
   // Edit / drag state
   private editMode = false;
@@ -96,10 +98,14 @@ class AppLauncher {
       enterEditMode: () => this.enterEditMode(),
       persistGridOrder: () => this.persistOrder(),
     });
+    const sheet = document.getElementById("planned-app-sheet");
+    this.plannedSheet =
+      sheet instanceof HTMLDialogElement ? new PlannedSheet(sheet) : null;
   }
 
   init(): void {
     this.dockEditor.init();
+    this.plannedSheet?.init();
     // Cancelling touchmove keeps a held drag from turning into a page swipe or scroll.
     document.addEventListener(
       "touchmove",
@@ -131,13 +137,14 @@ class AppLauncher {
       );
       if (!tile) return;
       e.preventDefault();
-      this.popover.open(tile);
+      if (!tile.dataset.planned) this.popover.open(tile);
     });
     this.grid.addEventListener("pointerdown", (e) => {
       const tile = (e.target as HTMLElement).closest<HTMLElement>(
         ".launcher-tile",
       );
-      if (tile) this.handlePointerDown(e, tile);
+      // Planned apps never move or dock: no long-press, no drag.
+      if (tile && !tile.dataset.planned) this.handlePointerDown(e, tile);
     });
     this.grid.addEventListener("click", (e) => {
       const tile = (e.target as HTMLElement).closest<HTMLElement>(
@@ -147,6 +154,11 @@ class AppLauncher {
       if (this.editMode || this.suppressClick) {
         e.preventDefault();
         e.stopPropagation();
+        return;
+      }
+      if (tile.dataset.planned) {
+        e.preventDefault();
+        this.plannedSheet?.open(tile);
         return;
       }
       blockUnavailableLaunch(e, tile);
@@ -287,7 +299,8 @@ class AppLauncher {
     // into another group's band.
     const sameGroup =
       !!hit &&
-      (hit.dataset.group ?? "") === (this.dragTile.dataset.group ?? "");
+      (hit.dataset.group ?? "") === (this.dragTile.dataset.group ?? "") &&
+      !hit.dataset.planned;
     const over =
       hit && hit !== this.dragTile && sameGroup && this.grid.contains(hit)
         ? hit

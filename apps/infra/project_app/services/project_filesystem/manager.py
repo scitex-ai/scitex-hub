@@ -84,6 +84,10 @@ class ProjectOpsManager(ProjectFilesystemManager):
             if use_template and self.template_ops.copy_from_example_template(
                 project_path, project, template_type
             ):
+                # The Minimal clone is only dot-directories; without Gitea's
+                # auto-init README the project root would look empty.
+                if not (project_path / "README.md").exists():
+                    self.template_ops.create_minimal_readme(project, project_path)
                 project.data_location = str(project_path.relative_to(base))
                 project.directory_created = True
                 project.save()

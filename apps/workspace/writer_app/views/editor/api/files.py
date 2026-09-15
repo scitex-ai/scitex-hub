@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 
 from django.contrib.auth.decorators import login_required
 from django.http import FileResponse, HttpResponse, JsonResponse
@@ -14,6 +15,35 @@ from django.views.decorators.http import require_http_methods
 from ..auth_utils import api_login_optional, get_user_for_request
 
 logger = logging.getLogger(__name__)
+
+FULL_DOCUMENT_PDF_DIRS = {
+    "manuscript.pdf": "01_manuscript",
+    "supplementary.pdf": "02_supplementary",
+    "revision.pdf": "03_revision",
+}
+
+
+def writer_pdf_candidates(writer_dir: Path, pdf_filename: str) -> list[Path]:
+    """Locations a Writer PDF may live in, most specific first."""
+    candidates = [writer_dir / ".preview" / pdf_filename]
+    if pdf_filename in FULL_DOCUMENT_PDF_DIRS:
+        candidates.append(
+            writer_dir / FULL_DOCUMENT_PDF_DIRS[pdf_filename] / pdf_filename
+        )
+    candidates.append(writer_dir / "preview_output" / pdf_filename)
+    return candidates
+
+
+def find_writer_pdf(writer_dir: Path, pdf_filename: str) -> Path | None:
+    """First existing Writer PDF named ``pdf_filename``, or None."""
+    return next(
+        (
+            path
+            for path in writer_pdf_candidates(writer_dir, pdf_filename)
+            if path.exists()
+        ),
+        None,
+    )
 
 
 @api_login_optional
@@ -63,50 +93,14 @@ def pdf_view(request, project_id, pdf_filename=None):
 
         logger.info(f"[PDFView] Serving PDF: {pdf_filename} for project {project_id}")
 
-        # Search for PDF in multiple locations
-        writer_dir = writer_service.writer_dir  # Already at scitex/writer/
-        pdf_path = None
-        checked_paths = []
+        checked_paths = writer_pdf_candidates(writer_service.writer_dir, pdf_filename)
+        pdf_path = find_writer_pdf(writer_service.writer_dir, pdf_filename)
 
-        # 1. Preview directory (for section previews)
-        preview_dir = writer_dir / ".preview"
-        preview_path = preview_dir / pdf_filename
-        checked_paths.append(str(preview_path))
-        if preview_path.exists():
-            pdf_path = preview_path
-            logger.info("[PDFView] Found PDF in .preview directory")
-
-        # 2. Full manuscript PDFs in document type directories
-        if not pdf_path and pdf_filename in [
-            "manuscript.pdf",
-            "supplementary.pdf",
-            "revision.pdf",
-        ]:
-            doc_type_map = {
-                "manuscript.pdf": "01_manuscript",
-                "supplementary.pdf": "02_supplementary",
-                "revision.pdf": "03_revision",
-            }
-            doc_dir = doc_type_map.get(pdf_filename)
-            if doc_dir:
-                full_path = writer_dir / doc_dir / pdf_filename
-                checked_paths.append(str(full_path))
-                if full_path.exists():
-                    pdf_path = full_path
-                    logger.info(f"[PDFView] Found full PDF in {doc_dir} directory")
-
-        # 3. Fallback to old preview_output directory for backward compatibility
-        if not pdf_path:
-            legacy_preview = writer_service.writer_dir / "preview_output" / pdf_filename
-            checked_paths.append(str(legacy_preview))
-            if legacy_preview.exists():
-                pdf_path = legacy_preview
-                logger.info("[PDFView] Found PDF in legacy preview_output directory")
-
-        # If still not found, return 404
         if not pdf_path:
             logger.error(f"[PDFView] PDF not found: {pdf_filename}")
-            logger.error(f"[PDFView] Checked paths: {', '.join(checked_paths)}")
+            logger.error(
+                f"[PDFView] Checked paths: {', '.join(map(str, checked_paths))}"
+            )
             # For HEAD requests, return simple 404 without JSON body
             if request.method == "HEAD":
                 return HttpResponse(status=404)

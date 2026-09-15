@@ -8,10 +8,54 @@ This prevents code duplication and ensures consistent project selection logic.
 """
 
 import logging
+from urllib.parse import urlparse
 
 from apps.infra.project_app.models import Project
 
 logger = logging.getLogger(__name__)
+
+
+def _owned_project(user, slug):
+    if not slug:
+        return None
+    return Project.objects.select_related("owner").filter(owner=user, slug=slug).first()
+
+
+def get_requested_project(request, user=None):
+    """The project this request names explicitly, or None.
+
+    ``?project=<slug>`` (or ``<owner>/<slug>``) wins, then a same-site Referer
+    under ``/<username>/<slug>/``. Only the user's own projects match, the same
+    rule ``get_current_project`` applies.
+    """
+    user = user or request.user
+    if not getattr(user, "is_authenticated", False):
+        return None
+
+    requested = (request.GET.get("project") or "").strip().strip("/")
+    if requested:
+        owner, _, slug = requested.rpartition("/")
+        if not owner or owner == user.username:
+            project = _owned_project(user, slug)
+            if project:
+                return project
+
+    referer = urlparse(request.META.get("HTTP_REFERER", ""))
+    if referer.netloc and referer.netloc != request.get_host():
+        return None
+    parts = [p for p in referer.path.split("/") if p]
+    if len(parts) >= 2 and parts[0] == user.username:
+        return _owned_project(user, parts[1])
+    return None
+
+
+def remember_current_project(request, project):
+    """Persist a project choice to BOTH stores so every reader agrees."""
+    request.session["current_project_slug"] = project.slug
+    profile = getattr(request.user, "profile", None)
+    if profile is not None and profile.last_active_repository_id != project.id:
+        profile.last_active_repository = project
+        profile.save(update_fields=["last_active_repository"])
 
 
 def get_current_project(request, user=None):

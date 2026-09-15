@@ -51,6 +51,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.infra.project_app.middleware.GuestSessionMiddleware",
+    # Desktop 90% content frame for leaf apps that render scitex-ui's own shell.
+    "apps.infra.workspace_app.middleware_site_content_frame.SiteContentFrameMiddleware",
     # Scope the mounted scitex-todo board (/todo/) to the requesting
     # user's workspace store + enforce the phase-1 read-only gate. Must
     # run AFTER Authentication + VisitorAutoLogin so request.user is

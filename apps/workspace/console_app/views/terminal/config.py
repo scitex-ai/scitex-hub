@@ -40,7 +40,7 @@ USER_DATA_ROOT = Path(getattr(settings, "USER_DATA_ROOT", None) or "/app/data/us
 # Support both new (SCITEX_HUB_*) and legacy (SCITEX_HUB_QUOTA_*) names
 SLURM_PARTITION = os.environ.get(
     "SCITEX_HUB_SLURM_INTERACTIVE_PARTITION"
-) or os.environ.get("SCITEX_HUB_QUOTA_SLURM_INTERACTIVE_PARTITION", "express")
+) or os.environ.get("SCITEX_HUB_QUOTA_SLURM_INTERACTIVE_PARTITION", "compute")
 SLURM_TIME_LIMIT = os.environ.get(
     "SCITEX_HUB_SLURM_INTERACTIVE_TIME_LIMIT"
 ) or os.environ.get("SCITEX_HUB_QUOTA_SLURM_INTERACTIVE_TIME_LIMIT", "04:00:00")

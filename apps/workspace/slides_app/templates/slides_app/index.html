@@ -1,0 +1,10 @@
+{% extends "global_base.html" %}
+{% load i18n %}
+
+{% block head_extra %}
+    <meta name="stx-app-scope" content="project">
+{% endblock %}
+
+{% block content %}
+    {% include "slides_app/slides_partial.html" %}
+{% endblock %}

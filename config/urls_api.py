@@ -26,6 +26,7 @@ from apps.infra.project_app.views.projects.api import (
     api_project_list_jwt,
     api_switch_active_project,
 )
+from apps.infra.project_app.views.projects.scope_api import api_project_scope
 from apps.infra.search_app.views import header_search_api
 from apps.workspace.apps_app.views import api_registry_webhook, api_submit_jwt
 
@@ -78,6 +79,11 @@ urlpatterns = [
         "project/switch/",
         api_switch_active_project,
         name="api_switch_active_project",
+    ),
+    path(
+        "project/scope/",
+        api_project_scope,
+        name="api_project_scope",
     ),
     path(
         "project/check-name/",

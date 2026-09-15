@@ -136,6 +136,8 @@ def api_file_tree(request, username, slug):
                     ".git",
                     ".gitignore",
                     ".gitkeep",
+                    # Writer + Scholar workspaces of a SciTeX project live here.
+                    ".scitex",
                 ]:
                     continue
                 # Skip common non-essential directories

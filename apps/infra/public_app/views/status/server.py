@@ -43,7 +43,7 @@ from .health_checks import (
 )
 from .helpers import check_registered_users_count, check_visitor_pool_status
 from .package_versions import check_package_versions
-from .public_status import _get_status_data
+from .public_status import _get_status_data, with_checked_at_datetime
 from .system_metrics import check_system_resources
 
 logger = logging.getLogger(__name__)
@@ -204,7 +204,7 @@ def server_status(request, checks=None, deadline_seconds=None):
         # an admin-only endpoint and never logs a 403.
         context = {
             "is_instance_admin": False,
-            "public_status": _get_status_data(),
+            "public_status": with_checked_at_datetime(_get_status_data()),
         }
         return render(request, "public_app/server_status.html", context)
 

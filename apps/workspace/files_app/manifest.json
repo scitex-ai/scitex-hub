@@ -1,0 +1,39 @@
+{
+  "$schema": "scitex-app-manifest",
+  "$schema_version": "2.0.0",
+  "name": "files",
+  "label": "Files",
+  "app_name": "files_app",
+  "scope": "user",
+  "visibility": "public",
+  "availability": "available",
+  "show_in_launcher": true,
+  "icon": "fas fa-file-lines",
+  "description": "Your whole SciTeX workspace: Downloads, Recordings and every project folder. Upload, download, move, rename and delete files.",
+  "license": "AGPL-3.0",
+  "keyboard_shortcut": "",
+  "order": 14,
+  "category": "data",
+  "default_enabled": true,
+  "accent_color": "",
+  "body_class": "",
+  "partial_template": "",
+  "renders_ui": false,
+  "context_builder": "",
+  "url": "/apps/files/",
+  "ai_hint": "Browse and manage files across the user's whole workspace (Downloads, Recordings, proj/<project>).",
+  "allowed_extensions": [],
+  "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv"],
+  "privileges": [
+    {"type": "filesystem", "scope": "user", "reason": "Read/write files in the user's own workspace"}
+  ],
+  "builtin": true,
+  "dependencies": {
+    "python": [],
+    "system": [],
+    "node": [],
+    "r": [],
+    "other": []
+  },
+  "container": null
+}

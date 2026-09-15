@@ -18,6 +18,8 @@
             </div>
         </div>
     </div>
+{% elif project and not writer_initialized %}
+    {% include "writer_app/index_partials/manuscript_empty_state.html" %}
 {% else %}
     <!-- Writer workspace — file tree provided by shared worktree pane in three-column layout -->
     <div class="writer-workspace">

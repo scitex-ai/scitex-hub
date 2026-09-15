@@ -22,6 +22,13 @@ from scitex_container.apptainer import (
     is_sandbox,
 )
 
+from apps.workspace.console_app.services.compute_user import (
+    SCRATCH_CONTAINER_PATH,
+    as_compute_user,
+    with_sbatch_identity,
+    wrap_script_with_scratch,
+)
+
 from .config import (
     DEV_REPOS,
     HOST_MOUNTS,
@@ -98,14 +105,25 @@ def build_instance_start_script_cmd(
     host_project_dir: Path,
     project_slug: str,
     instance_name: str,
+    scratch_dir: Path | None = None,
 ) -> str:
     """Build instance start script, injecting Django config automatically.
 
     Prepends a stale-instance cleanup step so that leftover instances
-    from cancelled jobs or restarts don't block new allocations.
+    from cancelled jobs or restarts don't block new allocations. With
+    ``scratch_dir``, a private per-job directory is bound at ``/scratch``.
     """
     import shlex
 
+    host_mounts = list(HOST_MOUNTS)
+    if scratch_dir is not None:
+        host_mounts.append(
+            {
+                "host_path": str(scratch_dir),
+                "container_path": SCRATCH_CONTAINER_PATH,
+                "mode": "rw",
+            }
+        )
     script = build_instance_start_script(
         container_path=container_path,
         username=username,
@@ -114,9 +132,11 @@ def build_instance_start_script_cmd(
         project_slug=project_slug,
         instance_name=instance_name,
         dev_repos=DEV_REPOS or None,
-        host_mounts=HOST_MOUNTS or None,
+        host_mounts=host_mounts or None,
         texlive_prefix=HOST_TEXLIVE_PREFIX,
     )
+    if scratch_dir is not None:
+        script = wrap_script_with_scratch(script, scratch_dir)
 
     # Inject stale-instance cleanup before "apptainer instance start"
     instance_quoted = shlex.quote(instance_name)
@@ -140,9 +160,15 @@ def build_sbatch_cmd(
     script_path: str,
     username: str = "",
     project_slug: str = "",
+    uid: int | None = None,
+    gid: int | None = None,
+    as_root: bool | None = None,
 ) -> list[str]:
-    """Build ``sbatch`` command, injecting Django SLURM config automatically."""
-    return build_sbatch_command(
+    """Build ``sbatch`` command, injecting Django SLURM config automatically.
+
+    With ``uid``/``gid`` and a root broker, the job is submitted as that user.
+    """
+    cmd = build_sbatch_command(
         instance_name=instance_name,
         script_path=script_path,
         slurm_partition=SLURM_PARTITION,
@@ -152,6 +178,7 @@ def build_sbatch_cmd(
         username=username,
         project_slug=project_slug,
     )
+    return with_sbatch_identity(cmd, uid, gid, as_root=as_root)
 
 
 def build_shell_in_allocation_cmd(
@@ -159,6 +186,8 @@ def build_shell_in_allocation_cmd(
     instance_name: str,
     username: str = "",
     project_slug: str = "",
+    uid: int | None = None,
+    gid: int | None = None,
 ) -> list[str]:
     """Build ``srun --overlap`` command to attach shell inside existing allocation."""
     import inspect
@@ -167,7 +196,7 @@ def build_shell_in_allocation_cmd(
     kwargs = dict(job_id=job_id, instance_name=instance_name, username=username)
     if "project_slug" in sig.parameters:
         kwargs["project_slug"] = project_slug
-    return build_shell_in_allocation_command(**kwargs)
+    return as_compute_user(build_shell_in_allocation_command(**kwargs), uid, gid)
 
 
 # EOF

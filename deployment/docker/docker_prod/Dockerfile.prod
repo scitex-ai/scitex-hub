@@ -40,7 +40,9 @@
 
 FROM python:3.11-slim-bookworm AS slurm-builder
 
-ARG SLURM_VERSION=24.05.5
+# Controller is slurmctld 23.11.4 on compute-01; a client newer than the
+# controller is unsupported. Override with --build-arg SLURM_VERSION=...
+ARG SLURM_VERSION=23.11.4
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
@@ -654,7 +656,9 @@ RUN uv pip install --system --no-cache \
     # clone_template_result / CloneOutcome all exported.
     "scitex-template==0.7.1" \
     "scitex-linter==0.3.1" \
-    "scitex-ui==0.20.2" \
+    # 0.21.0 (2026-09-14): project picker tag + gettext catalog tag; matches the
+    # pyproject floor, so C0 and C1 agree again.
+    "scitex-ui==0.21.0" \
     "openalex-local==0.6.0" \
     "crossref-local==0.6.4"
 

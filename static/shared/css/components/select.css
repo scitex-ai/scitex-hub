@@ -99,8 +99,8 @@
    ========================= */
 
 [data-theme="dark"] .form-select {
-  color: var(--scitex-color-06);
-  background-color: var(--scitex-color-01-light);
+  color: var(--text-primary);
+  background-color: var(--bg-surface);
   border-color: var(--scitex-color-04);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238fa4b0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;

@@ -14,6 +14,9 @@ import {
   ALWAYS_VISIBLE_FILENAMES,
 } from "./_FilteringCriteria";
 
+// The Writer + Scholar workspaces are the project, not config noise.
+const ALWAYS_VISIBLE_DOTDIRS = [".scitex"];
+
 export class TreeFilter {
   private config: FilterConfig;
   private showHidden = false;
@@ -52,7 +55,11 @@ export class TreeFilter {
     // Only truly system files that add noise are hidden.
 
     // 0. Hide dotfiles when showHidden is false (highest priority toggle)
-    if (!this.showHidden && name.startsWith(".")) {
+    if (
+      !this.showHidden &&
+      name.startsWith(".") &&
+      !ALWAYS_VISIBLE_DOTDIRS.includes(name)
+    ) {
       return true;
     }
 
