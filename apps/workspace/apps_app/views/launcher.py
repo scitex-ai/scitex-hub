@@ -26,6 +26,7 @@ from apps.infra.workspace_app.registry import get_all_modules
 from ..models import AppsModule, ModuleInstallation, PlannedAppInterest
 from ..planned_apps import visible_planned_apps
 from ..services.first_run import checklist_context, should_show_checklist
+from ..services.launcher_display import get_display_overrides
 from ..services.launcher_dock import get_dock_apps
 from ..services.launcher_links import get_launcher_links, get_link_tile_orders
 from ..services.manifest_display import prettify_module_name
@@ -33,15 +34,15 @@ from .helpers import (
     can_view_internal_app,
     ensure_builtin_modules,
 )
-from .launcher_order import DEFAULT_LAUNCHER_ORDER  # noqa: F401  (re-export)
-from .launcher_order import default_order_value as _default_order_value
 from .launcher_order import (
+    DEFAULT_LAUNCHER_ORDER,  # noqa: F401  (re-export)
     LAUNCHER_GROUPS,
     TRAILING_APPS,
     group_cells,
     group_of,
     group_rank,
 )
+from .launcher_order import default_order_value as _default_order_value
 
 # Sidebar pin state lives in launcher_pins.py; re-exported so existing imports
 # (views/__init__.py, the workspace context processor, tests) keep working.
@@ -193,6 +194,7 @@ def _build_tiles(request) -> list[dict]:
             )
         )
     pinned_names = set(get_pinned_module_names(request.user))
+    display_overrides = get_display_overrides(request.user)
     new_cutoff = timezone.now() - timedelta(days=NEW_BADGE_DAYS)
 
     # Per-user launcher order set by drag-reorder (api_reorder). Only rows
@@ -389,6 +391,22 @@ def _build_tiles(request) -> list[dict]:
     tiles.extend(
         _planned_tiles(request.user, seen | installed_names | {t["name"] for t in tiles})
     )
+
+    # Display overrides affect only presentation. Canonical ids, URLs, and
+    # manifest/catalog metadata remain untouched.
+    for tile in tiles:
+        tile["manifest_label"] = tile["label"]
+        tile["manifest_icon_fa"] = tile["icon_fa"]
+        tile["icon_color"] = ""
+        override = display_overrides.get(tile["name"], {})
+        tile["label"] = override.get("display_name") or tile["label"]
+        tile["icon_fa"] = override.get("icon") or tile["icon_fa"]
+        tile["icon_color"] = override.get("icon_color") or ""
+        row = catalog.get(tile["name"])
+        tile["can_uninstall"] = bool(
+            row and not row.is_builtin and tile["name"] in installed_names
+        )
+        tile["can_edit_display"] = bool(row)
 
     # Apply order: the GROUP first (groups never interleave, operator
     # 2026-09-14), then explicit per-user positions, then the curated default.

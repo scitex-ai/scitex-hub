@@ -24,6 +24,7 @@ import { showToast } from "@utils/ui";
 
 import { getCsrf } from "./_launcher/csrf";
 import { DockEditor } from "./_launcher/dock-editor";
+import { LauncherEditControls } from "./_launcher/edit-controls";
 import { LauncherPager } from "./_launcher/pager";
 import { PlannedSheet } from "./_launcher/planned-sheet";
 import { LauncherPopover } from "./_launcher/popover";
@@ -514,6 +515,7 @@ function initLauncher(): void {
     ) as HTMLButtonElement | null,
   });
   pager.init();
+  new LauncherEditControls(grid, () => pager.rebalance()).init();
   new AppLauncher(grid, pager).init();
 }
 

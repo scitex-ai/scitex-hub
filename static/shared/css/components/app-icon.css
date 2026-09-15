@@ -38,7 +38,7 @@
 
 :where(.launcher-tile-icon) i {
   font-size: 26px;
-  color: #fff;
+  color: var(--launcher-glyph-color, #fff);
 }
 
 /* ---------- Gradients (palette keyed by category) ----------

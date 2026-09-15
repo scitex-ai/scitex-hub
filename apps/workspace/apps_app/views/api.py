@@ -17,6 +17,11 @@ from ..models import (
     ModuleReview,
     ModuleStar,
 )
+from ..services.launcher_display import (
+    DisplayOverrideRejected,
+    save_display_override,
+    validate_display_override,
+)
 from ..services.launcher_dock import (
     DOCK_CAPACITY,
     HOME_BUTTON,
@@ -331,6 +336,26 @@ def api_update_config(request, module_name):
     inst.config = config
     inst.save(update_fields=["config"])
     return JsonResponse({"success": True, "config": inst.config})
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_launcher_display(request, module_name):
+    """Save safe, per-user launcher display metadata without changing the app."""
+    app_module = get_object_or_404(AppsModule, module_name=module_name)
+    if not can_view_module(request.user, app_module):
+        return JsonResponse({"success": False, "error": "Module not available."}, status=403)
+    ensure_builtin_modules()
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "Invalid JSON."}, status=400)
+    try:
+        override = None if data.get("reset") is True else validate_display_override(data)
+        save_display_override(request.user, module_name, override)
+    except (AttributeError, DisplayOverrideRejected) as rejection:
+        return JsonResponse({"success": False, "error": str(rejection)}, status=400)
+    return JsonResponse({"success": True, "override": override})
 
 
 @login_required

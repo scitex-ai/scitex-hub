@@ -43,6 +43,11 @@ urlpatterns = [
     path("api/<str:module_name>/pin/", views.api_pin, name="api_pin"),
     path("api/<str:module_name>/install/", views.api_install, name="api_install"),
     path("api/<str:module_name>/uninstall/", views.api_uninstall, name="api_uninstall"),
+    path(
+        "api/<str:module_name>/launcher-display/",
+        views.api_launcher_display,
+        name="api_launcher_display",
+    ),
     path("api/<str:module_name>/toggle/", views.api_toggle, name="api_toggle"),
     path("api/<str:module_name>/star/", views.api_star, name="api_star"),
     path("api/<str:module_name>/unstar/", views.api_unstar, name="api_unstar"),
