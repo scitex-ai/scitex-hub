@@ -89,11 +89,16 @@ class AppLauncher {
   private onDragMove = (e: PointerEvent) => this.handleDragMove(e);
   private onDragEnd = (e: PointerEvent) => this.handleDragEnd(e);
 
-  constructor(grid: HTMLElement, pager: LauncherPager) {
+  constructor(
+    grid: HTMLElement,
+    pager: LauncherPager,
+    editControls: LauncherEditControls,
+  ) {
     this.grid = grid;
     this.pager = pager;
     this.popover = new LauncherPopover(grid, {
       onRearrange: () => this.enterEditMode(),
+      onEditDisplay: (tile) => editControls.open(tile),
     });
     this.dockEditor = new DockEditor(grid, pager, {
       enterEditMode: () => this.enterEditMode(),
@@ -515,8 +520,9 @@ function initLauncher(): void {
     ) as HTMLButtonElement | null,
   });
   pager.init();
-  new LauncherEditControls(grid, () => pager.rebalance()).init();
-  new AppLauncher(grid, pager).init();
+  const editControls = new LauncherEditControls(grid, () => pager.rebalance());
+  editControls.init();
+  new AppLauncher(grid, pager, editControls).init();
 }
 
 if (document.readyState === "loading") {

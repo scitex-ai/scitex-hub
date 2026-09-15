@@ -74,7 +74,7 @@ export class LauncherEditControls {
     return document.getElementById(id) as HTMLInputElement;
   }
 
-  private open(tile: HTMLElement): void {
+  open(tile: HTMLElement): void {
     if (!this.dialog) return;
     this.tile = tile;
     this.input("launcher-display-name").value = tile.dataset.label || "";
