@@ -1,0 +1,213 @@
+/* =========================================
+   PHONE PANE TABS (< 768px)
+   One pane at a time: Editor / PDF / Details. Desktop layout untouched.
+   Markup contract (data-mobile-pane on .writer-workspace) mirrors the
+   scitex-ui pane-switcher so it can replace this later.
+   ========================================= */
+
+.writer-mobile-tabs {
+  display: none;
+}
+
+.writer-loading-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: var(--workspace-bg-primary, var(--bg-primary, #fff));
+  color: var(--text-secondary, #6b7280);
+  font-size: 14px;
+}
+
+.writer-loading-overlay[hidden] {
+  display: none;
+}
+
+.writer-loading-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--workspace-border-default, rgba(128, 128, 128, 0.3));
+  border-top-color: var(--workspace-icon-primary, #059669);
+  border-radius: 50%;
+  animation: writer-loading-spin 0.8s linear infinite;
+}
+
+@keyframes writer-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .writer-loading-spinner {
+    animation-duration: 2.4s;
+  }
+}
+
+@media (max-width: 767px) {
+  .writer-workspace {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100%;
+    min-height: 0;
+    position: relative;
+  }
+
+  .writer-mobile-tabs {
+    display: flex;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    flex: 0 0 auto;
+    background: var(--workspace-bg-secondary, var(--bg-secondary));
+    border-bottom: 1px solid var(--workspace-border-default);
+  }
+
+  .writer-mobile-tab {
+    flex: 1 1 0;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--text-secondary, #6b7280);
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .writer-mobile-tab[aria-selected="true"] {
+    color: var(--text-primary);
+    border-bottom-color: var(--workspace-icon-primary, #059669);
+    font-weight: 600;
+  }
+
+  /* Every pane fills the space below the tabs; resizers and the mode rail go. */
+  .writer-workspace > .h-resizer,
+  .writer-workspace #writer-editor-resizer,
+  .writer-workspace #writer-preview-resizer,
+  .writer-workspace #writer-mode-selector {
+    display: none !important;
+  }
+
+  .writer-workspace > .writer-container,
+  .writer-workspace > .writer-details {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    height: auto !important;
+  }
+
+  .writer-workspace .split-view {
+    flex-direction: row !important;
+    height: 100% !important;
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+
+  .writer-workspace .split-view .latex-panel,
+  .writer-workspace .split-view .preview-panel {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 100% !important;
+  }
+
+  .writer-workspace[data-mobile-pane="editor"] > .writer-details,
+  .writer-workspace[data-mobile-pane="editor"] .split-view .preview-panel,
+  .writer-workspace[data-mobile-pane="pdf"] > .writer-details,
+  .writer-workspace[data-mobile-pane="pdf"] .split-view .latex-panel,
+  .writer-workspace[data-mobile-pane="details"] > .writer-container {
+    display: none !important;
+  }
+
+  /* Pane headers sit directly below the tabs; wrap instead of clipping. */
+  .writer-workspace .split-view .latex-panel > .panel-header,
+  .writer-workspace .split-view .preview-panel > .panel-header {
+    height: auto !important;
+    max-height: none !important;
+    min-height: 44px !important;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px 8px !important;
+  }
+
+  .writer-workspace .panel-header .header-left,
+  .writer-workspace .panel-header .header-right {
+    flex-wrap: wrap;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .writer-workspace .panel-header .header-left {
+    flex: 1 1 100%;
+  }
+
+  .writer-workspace .panel-header .panel-toggle-btn,
+  .writer-workspace .panel-header .panel-title,
+  .writer-workspace .details-header .panel-toggle-btn,
+  .writer-workspace .latex-panel #font-size-select,
+  .writer-workspace .latex-panel #shortcuts-btn,
+  .writer-workspace .latex-panel #monaco-theme-toggle {
+    display: none !important;
+  }
+
+  .writer-workspace .latex-panel #doctype-selector {
+    flex: 0 1 auto;
+    width: auto;
+    min-width: 0;
+    max-width: 40%;
+    font-size: 16px;
+  }
+
+  .writer-workspace .latex-panel .section-selector-wrapper {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .writer-workspace .latex-panel .section-selector-btn {
+    width: 100%;
+    min-height: 36px;
+    justify-content: space-between;
+  }
+
+  .writer-workspace .latex-panel #section-selector-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .writer-workspace .latex-panel .header-right {
+    display: none !important;
+  }
+
+  .writer-workspace .writer-details .details-header {
+    display: none !important;
+  }
+
+  .writer-workspace .writer-details .details-content {
+    display: block !important;
+    overflow-y: auto;
+  }
+
+  /* Floating shortcut/help affordances cover the text on a phone. */
+  .writer-page .writer-shortcuts-fab,
+  .writer-page #keyboard-shortcuts-fab,
+  .writer-page .shortcuts-fab {
+    display: none !important;
+  }
+
+  .writer-workspace .monaco-editor .minimap,
+  .writer-workspace .monaco-editor .decorationsOverviewRuler {
+    display: none !important;
+  }
+}

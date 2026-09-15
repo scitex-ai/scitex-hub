@@ -6364,3 +6364,15 @@ msgstr "プロジェクトAを要約して"
 #: templates/global_base_partials/workspace_chat_pane.html
 msgid "Where was that data?"
 msgstr "あのデータどこにあったっけ？"
+
+#: apps/workspace/writer_app/templates/writer_app/index.html
+msgid "Writer panes"
+msgstr "Writer のペイン"
+
+#: apps/workspace/writer_app/templates/writer_app/index.html
+msgid "Details"
+msgstr "詳細"
+
+#: apps/workspace/writer_app/templates/writer_app/index_partials/main_editor.html
+msgid "Opening manuscript…"
+msgstr "原稿を開いています…"

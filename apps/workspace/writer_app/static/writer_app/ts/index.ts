@@ -8,6 +8,7 @@
  * - CompilationManager: LaTeX compilation and PDF management
  */
 
+import "./_writer/ui/mobile-pane-tabs";
 import {
   WriterEditor,
   EnhancedEditor,

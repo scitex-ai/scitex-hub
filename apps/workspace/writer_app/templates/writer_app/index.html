@@ -90,7 +90,9 @@
     {% else %}
         <!-- Writer workspace — file tree provided by shared worktree pane in three-column layout -->
         <div class="writer-workspace"
+             data-mobile-pane="editor"
              data-ai-hint="Writer workspace: LaTeX manuscript editor, PDF preview, figures/tables/citations management">
+            {% include "writer_app/index_partials/mobile_pane_tabs.html" %}
             <!-- Main content: editor + preview -->
             <div class="writer-container"
                  data-ai-hint="LaTeX editor with CodeMirror, live PDF preview, section navigation">
