@@ -101,26 +101,64 @@ export async function populateSectionDropdownDirect(
 
     const hierarchy = data.hierarchy;
     let sections: any[] = [];
+    // Tracks WHY the list is empty so the empty state can name the cause and
+    // the next action (compass §11 L391) instead of a bare "No sections found".
+    let docTypeConfigured = false;
 
     console.log("[Writer] Hierarchy received:", hierarchy);
     console.log("[Writer] Looking for docType:", docType);
 
-    if (docType === "shared" && hierarchy.shared) {
-      sections = hierarchy.shared.sections;
-    } else if (docType === "manuscript" && hierarchy.manuscript) {
-      sections = hierarchy.manuscript.sections;
-    } else if (docType === "supplementary" && hierarchy.supplementary) {
-      sections = hierarchy.supplementary.sections;
-    } else if (docType === "revision" && hierarchy.revision) {
-      sections = hierarchy.revision.sections;
+    if (docType === "shared") {
+      if (hierarchy.shared) {
+        docTypeConfigured = true;
+        sections = hierarchy.shared.sections || [];
+      }
+    } else if (docType === "manuscript") {
+      if (hierarchy.manuscript) {
+        docTypeConfigured = true;
+        sections = hierarchy.manuscript.sections || [];
+      }
+    } else if (docType === "supplementary") {
+      if (hierarchy.supplementary) {
+        docTypeConfigured = true;
+        sections = hierarchy.supplementary.sections || [];
+      }
+    } else if (docType === "revision") {
+      if (hierarchy.revision) {
+        docTypeConfigured = true;
+        sections = hierarchy.revision.sections || [];
+      }
     }
 
     console.log("[Writer] Sections extracted:", sections);
     console.log("[Writer] Sections count:", sections.length);
 
     if (sections.length === 0) {
-      console.warn("[Writer] No sections found for document type:", docType);
-      selectorText.textContent = "No sections found";
+      // The same blank dropdown can mean four different things (compass §11
+      // Writer Initial State, TODO 158-161). Diagnose the exact cause — and for
+      // an Example/Demo project never show a bare "No manuscript selected".
+      const cfg = getWriterConfig();
+      console.warn(
+        "[Writer] No sections for",
+        docType,
+        "configured:",
+        docTypeConfigured,
+        "writerInitialized:",
+        cfg.writerInitialized,
+        "isDemo:",
+        cfg.isDemo,
+      );
+      const diagnosis = diagnoseExampleProject(docType, {
+        sectionCount: 0,
+      });
+      // The collapsed toggle label stays a single neutral string. The
+      // state-specific CAUSE + next action live in the diagnosis panel that
+      // renderExampleState paints below — NOT re-spelled in the label. (Item 159
+      // forbids a bare "No manuscript selected"; the review flagged that exact
+      // copy here. The panel already distinguishes no-manuscript / uninitialized
+      // / not-enabled without repeating it in the collapsed control.)
+      selectorText.textContent = "No sections";
+      renderExampleState(dropdownContainer, diagnosis);
       return;
     }
 
@@ -192,6 +230,146 @@ export async function populateSectionDropdownDirect(
   } catch (error) {
     console.error("[Writer] Error populating section dropdown:", error);
   }
+}
+
+/**
+ * Cause-specific empty state for the section dropdown (compass §11 L391).
+ *
+ * "No sections found" can mean two different things, and the UI must say which
+ * one and what to do next:
+ *   - the document type IS configured but has zero sections  → "add a section";
+ *   - the document type is NOT configured in the project      → "enable it first"
+ *     (there is nothing to add yet because the doc type doesn't exist).
+ *
+ * Exported so the cause/next-action logic is unit-testable in isolation.
+ *
+ * @param container         the `section-selector-dropdown` container to render into
+ * @param docType           the requested document type
+ * @param docTypeConfigured whether the project defines that document type
+ * @param onFileSelect      optional callback wired to the "add" next action
+ */
+export function renderEmptyState(
+  container: HTMLElement,
+  docType: string,
+  docTypeConfigured: boolean,
+  onFileSelect?: ((sectionId: string, sectionName: string) => void) | null,
+): void {
+  const label = (docType || "this document type").replace(/[-_]/g, " ");
+  const has = (s: string) => s; // identity; keeps the message strings greppable
+  const html = docTypeConfigured
+    ? `\n      <div class="section-empty" data-empty="no-sections">\n        <i class="fas fa-file-circle-plus" style="margin-bottom:8px;font-size:20px;"></i>\n        <div>${has("No sections yet in the ")}<strong>${label}</strong>${has(" doc type.")}</div>\n        <div style="font-size:0.75rem;margin-top:4px;">Cause: this document type is configured but has no sections.</div>\n        <div style="font-size:0.75rem;margin-top:2px;">Next: use the section list (the + icon) to add your first section.</div>\n      </div>\n    `
+    : `\n      <div class="section-empty" data-empty="not-configured">\n        <i class="fas fa-triangle-exclamation" style="margin-bottom:8px;font-size:20px;"></i>\n        <div><strong>${label}</strong>${has(" is not enabled in this project.")}</div>\n        <div style="font-size:0.75rem;margin-top:4px;">Cause: this document type has no sections configured.</div>\n        <div style="font-size:0.75rem;margin-top:2px;">Next: enable the ${label} document type (Settings / document types), then add a section.</div>\n      </div>\n    `;
+  container.innerHTML = html;
+  // The dropdown has no add-section entry of its own; the container is the
+  // visual surface. onFileSelect is accepted for call-site symmetry and future
+  // wiring — not invoked here. (Referenced to keep the param meaningful.)
+  void onFileSelect;
+}
+
+/**
+ * The reachable initial states of the section dropdown for a Writer project
+ * (especially an Example / Demo project) (compass §11 Writer Initial State,
+ * TODO 158-161). Distinguishing them — cause + next action — is what "do not
+ * show an example project with `No manuscript selected`" (159) requires.
+ *
+ * Exactly TWO states are reachable in this dropdown, and only these are
+ * modelled (the reviewer's finding #4 — two claimed states were unreachable):
+ *
+ *   - auto-select : the doc type HAS sections → select the first (158).
+ *   - no-manuscript : the doc type is configured but has ZERO sections →
+ *                     the manuscript is missing; add a section (159).
+ *
+ * Two states a blank dropdown *might* mean are NOT reachable HERE and are
+ * deliberately absent, so the code does not claim things it cannot do:
+ *   - "uninitialized" is the FULL-PAGE block in index.html (`needs_writer_init`
+ *     renders the Initialize-Writer screen and the editor — hence this dropdown
+ *     — is not mounted at all).
+ *   - "not-enabled" cannot occur: the backend scanner (section_scanner.py)
+ *     ALWAYS pre-creates every doc-type key with `sections: []`, so a doc type
+ *     is never "absent" from the hierarchy — configured-but-empty is the only
+ *     empty form, which is `no-manuscript` above.
+ *
+ * Pure so it is unit-testable in isolation.
+ */
+export type ExampleProjectState = "auto-select" | "no-manuscript";
+
+export interface ExampleProjectDiagnosis {
+  state: ExampleProjectState;
+  /** One-line reason, shown verbatim in the empty/error state. */
+  cause: string;
+  /** The concrete next action, shown verbatim in the empty/error state. */
+  nextAction: string;
+}
+
+export function diagnoseExampleProject(
+  docType: string,
+  options: {
+    sectionCount: number;
+  },
+): ExampleProjectDiagnosis {
+  const label = (docType || "this document type").replace(/[-_]/g, " ");
+  if (options.sectionCount > 0) {
+    return {
+      state: "auto-select",
+      cause: `A ${label} manuscript is present.`,
+      nextAction: "The first section is selected automatically — start writing.",
+    };
+  }
+  // sectionCount === 0. The doc type is always configured (the scanner pre-creates
+  // every key), so the only reachable empty form is "configured but no sections".
+  return {
+    state: "no-manuscript",
+    cause: `No ${label} is selected — this ${label} has no sections yet.`,
+    nextAction:
+      "use “Add New Section” in the section list to create the first manuscript section",
+  };
+}
+
+/**
+ * Render one of the reachable Example-Project initial states into the section
+ * dropdown. For `auto-select` there is nothing to render (the caller proceeds
+ * to populate + auto-select), so this is a no-op; the only other reachable
+ * state is `no-manuscript`. Exported alongside {@link diagnoseExampleProject}.
+ */
+export function renderExampleState(
+  container: HTMLElement,
+  diagnosis: ExampleProjectDiagnosis,
+): void {
+  if (diagnosis.state === "auto-select") return;
+  // The only non-auto-select reachable state is no-manuscript.
+  const icon = "fa-file-circle-plus";
+
+  // Build with createElement + textContent (NO innerHTML string interpolation)
+  // so a hostile docType — which flows into diagnosis.cause/nextAction — is
+  // rendered as inert text, never reinterpreted as markup (CodeQL: DOM text
+  // reinterpreted as HTML). `state` is a closed union and `icon` is derived
+  // from it, so className/attribute assignments here carry no user input.
+  const wrap = document.createElement("div");
+  wrap.className = "section-empty";
+  wrap.dataset.empty = diagnosis.state;
+
+  const iconEl = document.createElement("i");
+  iconEl.classList.add("fas", icon);
+  iconEl.style.marginBottom = "8px";
+  iconEl.style.fontSize = "20px";
+
+  const causeEl = document.createElement("div");
+  causeEl.style.fontSize = "0.85rem";
+  causeEl.textContent = diagnosis.cause;
+
+  const nextEl = document.createElement("div");
+  nextEl.style.fontSize = "0.75rem";
+  nextEl.style.marginTop = "4px";
+  const nextLabel = document.createElement("strong");
+  nextLabel.textContent = "Next:";
+  nextEl.appendChild(nextLabel);
+  nextEl.appendChild(document.createTextNode(` ${diagnosis.nextAction}`));
+
+  wrap.appendChild(iconEl);
+  wrap.appendChild(causeEl);
+  wrap.appendChild(nextEl);
+
+  container.replaceChildren(wrap);
 }
 
 /**
