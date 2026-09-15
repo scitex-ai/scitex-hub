@@ -6,36 +6,3 @@
   overflow: hidden;
   background: var(--bg-primary, #1e1e2e);
 }
-
-/* Project picker bar (SDK project-scope pilot) above the editor. */
-.figrecipe-project-scope {
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  height: 48px;
-  padding: 0 12px;
-  border-bottom: 1px solid var(--border-default, #999);
-  background: var(--bg-surface, #f8f7f5);
-}
-
-.figrecipe-project-scope:not(:has(.stx-app-project-selector)) {
-  display: none;
-}
-
-.figrecipe-project-scope:has(.stx-app-project-selector) + #app-mount {
-  height: calc(100% - 48px);
-}
-
-@media (max-width: 600px), (pointer: coarse) {
-  .figrecipe-project-scope {
-    height: 56px;
-  }
-
-  .figrecipe-project-scope .stx-app-project-selector {
-    flex: 1 1 auto;
-  }
-
-  .figrecipe-project-scope:has(.stx-app-project-selector) + #app-mount {
-    height: calc(100% - 56px);
-  }
-}

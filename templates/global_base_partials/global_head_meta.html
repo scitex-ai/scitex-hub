@@ -1,4 +1,4 @@
-{% load static vite %}
+{% load static vite project_scope_tags %}
 
 <meta charset="UTF-8" />
 <meta name="viewport"
@@ -69,6 +69,8 @@
 {% if user.is_authenticated %}
     <meta name="user-registration-date" content="{{ user.date_joined|date:'c' }}" />
 {% endif %}
+{# Host service: project-scope leaf apps place their own picker over this provider. #}
+{% hub_project_provider_meta %}
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="{% block og_type %}website{% endblock %}" />
 <meta property="og:url" content="{% block og_url %}https://scitex.ai/{% endblock %}" />

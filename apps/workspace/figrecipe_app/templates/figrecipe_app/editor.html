@@ -1,7 +1,2 @@
 {% extends "shared/app_editor.html" %}
-{% load project_scope_tags %}
-{% block content %}
-    {# The app places its own project picker; the global header never gets one. #}
-    <div class="figrecipe-project-scope">{% hub_project_picker "figrecipe" current_project %}</div>
-    {{ block.super }}
-{% endblock %}
+{# FigRecipe places its own project picker inside the editor; the hub only serves the projects. #}

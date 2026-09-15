@@ -95,11 +95,20 @@ def project_for_scope_app(request) -> Optional[Project]:
         return resolve_scoped_project(request)
     from apps.infra.project_app.services.project_utils import get_current_project
 
-    return resolve_scoped_project(request) or get_current_project(request)
+    project = resolve_scoped_project(request)
+    if project is None:
+        project = get_current_project(request)
+        # The leaf picker shows the provider's last visited project as current.
+        if project is not None and find_accessible_project(request.user, project_key(project)):
+            remember_last_visited(request.user, project)
+    return project
 
 
 class HubProjectProvider:
     """The SDK ``ProjectProvider`` over the hub's database."""
+
+    def project_id(self, project: Project) -> str:
+        return project_key(project)
 
     def list_projects(self, request) -> list[ProjectEntry]:
         return [

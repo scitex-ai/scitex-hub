@@ -233,6 +233,10 @@ elif _scitex_hub_env in ("prod",):
     _scitex_hub_env = "production"
 SCITEX_UI_ELEMENT_INSPECTOR = _scitex_hub_env in ("development", "staging")
 
+# Host service for leaf apps' project pickers (scitex_ui.project_scope).
+SCITEX_PROJECT_PROVIDER = "apps.infra.project_app.services.project_scope.HubProjectProvider"
+SCITEX_PROJECT_PROVIDER_URL = "api_project_scope"
+
 # ── Internal-app release channel ────────────────────────────────────────
 # Whether "internal"-visibility apps (Cards, Storage, todo, …) are released
 # to EVERY authenticated user on this deployment — not just staff. Operator

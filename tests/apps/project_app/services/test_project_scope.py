@@ -11,10 +11,13 @@ from django.test import RequestFactory, TestCase
 from apps.infra.project_app.models import Project, ProjectMembership
 from apps.infra.project_app.services.project_scope import (
     HubProjectProvider,
+    project_for_scope_app,
     project_key,
     resolve_scoped_project,
 )
-from apps.infra.project_app.templatetags.project_scope_tags import hub_project_picker
+from apps.infra.project_app.templatetags.project_scope_tags import (
+    hub_project_provider_meta,
+)
 
 PASSWORD = "TestPass123!"  # pragma: allowlist secret
 
@@ -150,32 +153,57 @@ class ProjectScopeTest(TestCase):
         # Assert
         assert b'data-project-slug="notes"' in response.content
 
-    def test_figrecipe_places_the_picker_in_its_own_page(self):
+    def test_figrecipe_page_advertises_the_hub_project_provider(self):
         # Arrange
-        pytest.importorskip("scitex_ui.templatetags.scitex_project_picker")
+        _require_sdk_host_service()
         self.client.login(username="scope-me", password=PASSWORD)
         # Act
         response = self.client.get("/apps/figrecipe/?project=scope-me/paper")
         # Assert
-        assert b'data-current="scope-me/paper"' in response.content
+        assert (
+            b'<meta name="stx-project-provider" content="/api/project/scope/">'
+            in response.content
+        )
 
-    def test_writer_places_the_picker_above_its_panes(self):
+    def test_figrecipe_default_project_becomes_last_visited(self):
         # Arrange
-        pytest.importorskip("scitex_ui.templatetags.scitex_project_picker")
+        profile = User.objects.get(pk=self.me.pk).profile
+        profile.last_active_repository = None
+        profile.save(update_fields=["last_active_repository"])
+        request = self._request()
+        request.session = {}
+        # Act
+        opened = project_for_scope_app(request)
+        # Assert
+        assert HubProjectProvider().last_visited(request) == project_key(opened)
+
+    def test_writer_leaf_picker_maps_the_hub_project(self):
+        # Arrange
+        _require_sdk_host_service()
         from django.template.loader import render_to_string
 
         # Act
         html = render_to_string(
-            "writer_app/index_partials/project_picker.html",
+            "writer/_project_picker.html",
             {"request": self._request(), "current_project": self.paper},
         )
         # Assert
-        assert '<div class="writer-project-scope"><link' in html
+        assert 'data-current="scope-me/paper"' in html
 
-    def test_user_scope_app_renders_no_picker(self):
+    def test_anonymous_visitor_gets_no_provider_meta(self):
         # Arrange
-        context = Context({"request": self._request()})
+        _require_sdk_host_service()
+        from django.contrib.auth.models import AnonymousUser
+
+        request = RequestFactory().get("/")
+        request.user = AnonymousUser()
         # Act
-        html = hub_project_picker(context, "some-user-app", scope="user")
+        html = hub_project_provider_meta(Context({"request": request}))
         # Assert
         assert html == ""
+
+
+def _require_sdk_host_service():
+    module = pytest.importorskip("scitex_ui.templatetags.scitex_project_picker")
+    if not hasattr(module, "scitex_project_provider_meta"):
+        pytest.skip("scitex-ui predates the project provider host service")

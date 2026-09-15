@@ -28,7 +28,6 @@ import "/static/writer_app/css/shared/index-ui/12-initialization-prompt.css";
 import "/static/writer_app/css/shared/index-ui/13-accessibility.css";
 import "/static/writer_app/css/shared/index-ui/15-details-panel.css";
 import "/static/writer_app/css/shared/index-ui/16-mobile-panes.css";
-import "/static/writer_app/css/shared/index-ui/17-project-picker.css";
 import "/static/writer_app/css/components/status-lamp.css";
 import "/static/writer_app/css/components/shortcuts-modal.css";
 import "/static/writer_app/css/components/sidebar-controls.css";
