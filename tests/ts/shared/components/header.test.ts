@@ -2,21 +2,34 @@
  * Tests for static/shared/ts/components/header.ts
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-
-// TODO: Update import path based on your tsconfig paths
-// import { } from '@/static/shared/ts/components/header';
+import { describe, it, expect, beforeEach } from "vitest";
+import { initializeHeaderMenu } from "@/components/header";
 
 describe('header', () => {
-    beforeEach(() => {
-        // Setup before each test
-    });
+  beforeEach(() => {
+    document.body.innerHTML = `
+      <button id="mobile-hamburger-btn" aria-expanded="false"
+        data-label-open="Open menu" data-label-close="Close menu">
+        <i class="fas fa-bars"></i>
+      </button>
+      <nav id="mobile-header-menu"><a class="mobile-menu-item" href="#home">Home</a></nav>`;
+  });
 
-    afterEach(() => {
-        // Cleanup after each test
-    });
+  it("uses the same toggle state contract and restores focus on Escape", () => {
+    const button = document.getElementById("mobile-hamburger-btn") as HTMLButtonElement;
+    const menu = document.getElementById("mobile-header-menu") as HTMLElement;
+    initializeHeaderMenu();
 
-    it.todo('should be implemented');
+    button.click();
+    expect(menu.classList.contains("open")).toBe(true);
+    expect(button.getAttribute("aria-expanded")).toBe("true");
+    expect(button.getAttribute("aria-label")).toBe("Close menu");
+
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    expect(menu.classList.contains("open")).toBe(false);
+    expect(button.getAttribute("aria-expanded")).toBe("false");
+    expect(document.activeElement).toBe(button);
+  });
 });
 
 // =============================================================================

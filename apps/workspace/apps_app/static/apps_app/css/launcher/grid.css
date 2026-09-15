@@ -10,6 +10,8 @@
    larger icons instead (below). */
 .launcher-grid {
   --launcher-cols: 4;
+  --launcher-panel-radius: 24px;
+  --launcher-tile-radius: 14px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -34,7 +36,7 @@
   align-content: start;
   gap: 22px 8px;
   padding: calc(12px + var(--launcher-group-label-room)) 8px 12px;
-  border-radius: 24px;
+  border-radius: var(--launcher-panel-radius);
   background: var(--launcher-band);
 }
 
@@ -117,7 +119,7 @@
   text-decoration: none;
   cursor: pointer;
   padding: 10px 4px 8px;
-  border-radius: 14px;
+  border-radius: var(--launcher-tile-radius);
   /* Tiles are <a> elements. Without this the browser's native link-drag
      hijacks a press-and-move and swallows pointermove, so drag-to-reorder
      silently does nothing. Belt-and-braces with preventDefault on dragstart

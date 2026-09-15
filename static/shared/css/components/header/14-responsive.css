@@ -21,13 +21,99 @@
   }
 }
 
-/* --- Hamburger button + mobile menu: hidden on desktop --- */
+/* One 44px hamburger is the rightmost control at every width. */
 .mobile-hamburger {
-  display: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  margin-left: 0;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  position: relative;
+  z-index: 1102;
 }
 
 .mobile-header-menu {
   display: none;
+  position: fixed;
+  top: 52px;
+  right: 12px;
+  width: min(360px, calc(100vw - 24px));
+  max-height: calc(100dvh - 64px);
+  overflow-y: auto;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 12px;
+  background: var(--bg-page, #0d1117);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+  z-index: 1100;
+}
+
+.mobile-header-menu.open {
+  display: flex;
+}
+
+.mobile-header-menu .mobile-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-primary);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.mobile-header-menu .mobile-menu-item:focus-visible,
+.mobile-hamburger:focus-visible {
+  outline: 2px solid var(--text-link, #2f81f7);
+  outline-offset: -2px;
+}
+
+.mobile-header-menu .mobile-menu-divider {
+  height: 1px;
+  margin: 8px 0;
+  background: var(--border-default, #30363d);
+}
+
+.mobile-header-menu .mobile-menu-item i {
+  width: 20px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.mobile-header-menu .mobile-menu-item--user {
+  cursor: default;
+  font-weight: 600;
+}
+
+.mobile-header-menu .mobile-menu-item--indent {
+  padding-left: 40px;
+}
+
+.mobile-header-menu .mobile-menu-item--section {
+  display: block;
+  min-height: 0;
+  padding: 8px 12px 4px;
+  color: var(--text-muted);
+  cursor: default;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 /* Mobile visitor badge: hidden on desktop, shown on mobile */
@@ -317,6 +403,8 @@
     left: 0;
     right: 0;
     bottom: 0;
+    width: auto;
+    max-height: none;
     background: var(--bg-page, #0d1117);
     z-index: 1100;
     flex-direction: column;

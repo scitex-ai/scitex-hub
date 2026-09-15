@@ -1,6 +1,8 @@
 import { defineConfig } from "vitest/config";
 import path from "path";
 
+const __dirname = new URL(".", import.meta.url).pathname;
+
 export default defineConfig({
   test: {
     globals: true,

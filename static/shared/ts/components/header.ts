@@ -35,8 +35,8 @@ function initializeHeaderClock(): void {
   window.setInterval(update, 1000);
 }
 
-/** Mobile hamburger menu toggle */
-function initializeMobileHamburger(): void {
+/** Shared hamburger menu toggle (desktop and mobile use the same control). */
+export function initializeHeaderMenu(): void {
   const btn = document.getElementById("mobile-hamburger-btn");
   const menu = document.getElementById("mobile-header-menu");
   if (!btn || !menu) return;
@@ -68,17 +68,6 @@ function initializeMobileHamburger(): void {
     setState(!menu.classList.contains("open"));
   });
 
-  // Theme toggle inside mobile menu
-  const themeBtn = document.getElementById("mobile-theme-toggle-btn");
-  if (themeBtn) {
-    themeBtn.addEventListener("click", () => {
-      const desktopToggle = document.getElementById(
-        "theme-toggle",
-      ) as HTMLElement;
-      if (desktopToggle) desktopToggle.click();
-      close(true);
-    });
-  }
 
   // Close menu when clicking a link
   menu.querySelectorAll("a.mobile-menu-item").forEach((link) => {
@@ -92,8 +81,8 @@ function initializeMobileHamburger(): void {
 
 function initializeHeader(): void {
   initializeHeaderClock();
-  // Initialize mobile hamburger menu
-  initializeMobileHamburger();
+  // Initialize the one responsive header menu
+  initializeHeaderMenu();
   // Initialize header collapse toggle
   initializeHeaderCollapse();
 

@@ -66,17 +66,7 @@
     window.addEventListener('resize', function() {
         if (isOpen()) setState(true);
     });
-    // Theme toggle inside the menu delegates to the desktop toggle
-    var themeBtn = document.getElementById('mobile-theme-toggle-btn');
-    if (themeBtn) {
-        themeBtn.addEventListener('click', function(e) {
-            // Suppress a stale bundle's duplicate listener (which would
-            // toggle the theme a second time, visually a no-op).
-            e.stopImmediatePropagation();
-            var desktopToggle = document.getElementById('theme-toggle');
-            if (desktopToggle) desktopToggle.click();
-            close(true);
-        });
-    }
+    // Menu buttons are handled by their owning components. Links close as
+    // navigation begins; Escape closes and restores focus to the hamburger.
 })();
 </script>

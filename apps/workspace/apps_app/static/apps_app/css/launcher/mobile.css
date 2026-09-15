@@ -267,7 +267,6 @@ body.workspace-page.app-home .workspace-layout:has(#app-launcher) {
   .launcher-group {
     gap: 12px 4px;
     padding: calc(10px + var(--launcher-group-label-room)) 4px 10px;
-    border-radius: 20px;
   }
 
   .launcher-group[aria-label]::before {

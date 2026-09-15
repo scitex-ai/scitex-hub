@@ -80,8 +80,8 @@
              retirement, card drop-visitor-readonly-freemium-20260911): there is
              no longer a visitor/readonly role, so the badge, popover, and its
              inline handler are dead. Anonymous users get the Sign in / Sign up
-             buttons in the header-right and mobile menu below. -->
-        <!-- Mobile Hamburger Button (visible only on mobile via CSS).
+             buttons in the shared menu below. -->
+        <!-- Shared Hamburger Button (rightmost at every viewport width).
              Inline fail-safe wiring lives in global_header/hamburger_inline.html
              (included after the menu markup below). -->
         {# The same button is the close control while the menu is open: the #}
@@ -96,152 +96,16 @@
                 data-label-close="{% trans 'Close menu' %}">
             <i class="fas fa-bars" aria-hidden="true"></i>
         </button>
-        <!-- Right: Actions + User Menu -->
-        <div class="header-right">
-            <!-- Theme Toggle (always visible). A single half-filled circle —
-                 the "appearance" mark, replacing the sun/moon pair (operator
-                 TODO). theme-switcher.ts keeps this icon and only updates the
-                 aria-label with the current state; the label is required
-                 because the icon alone is less self-explanatory. -->
-            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode" data-tooltip="Toggle dark mode">
-                <svg class="theme-toggle-icon-half-circle" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none">
-                    <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5" />
-                    <path d="M8 1 a7 7 0 0 1 0 14 z" fill="currentColor" />
-                </svg>
-            </button>
-            <!-- Product Tour -->
-            <button id="product-tour-btn" class="theme-toggle" aria-label="Product tour" data-tooltip="Product Tour">
-                <i class="fas fa-question-circle"></i>
-            </button>
-            {% if user.is_authenticated %}
-                <!-- User Menu -->
-                <div class="header-user-menu">
-                    <button class="header-user-toggle" id="user-menu-toggle">
-                        <div class="header-avatar">
-                            {% if user.profile.avatar %}
-                                <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" />
-                            {% else %}
-                                {{ user.username|slice:":1"|upper }}
-                            {% endif %}
-                        </div>
-                        <svg width="12"
-                             height="12"
-                             viewBox="0 0 16 16"
-                             fill="currentColor"
-                             style="margin-left: 4px">
-                            <path d="M4 6l4 4 4-4H4z" />
-                        </svg>
-                    </button>
-                    <div class="header-dropdown" id="user-menu-dropdown" style="display: none">
-                        <!-- User Info Header -->
-                        <div class="dropdown-header">
-                            <div class="dropdown-user-info">
-                                <strong>{{ user.get_full_name|default:user.username }}</strong>
-                                <div class="dropdown-user-username">@{{ user.username }}</div>
-                            </div>
-                        </div>
-                        <!-- My Projects (operator TODO 49: "Projects" -> "My Projects") -->
-                        <a href="/apps/my-projects/" class="dropdown-item" data-nav="my-projects">
-                            <svg class="dropdown-item-icon"
-                                 width="16"
-                                 height="16"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor">
-                                <path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8zM5 12.25a.25.25 0 0 1 .25-.25h3.5a.25.25 0 0 1 .25.25v3.25a.25.25 0 0 1-.4.2l-1.45-1.087a.25.25 0 0 0-.3 0L5.4 15.7a.25.25 0 0 1-.4-.2z" />
-                            </svg>
-                            {% trans "My Projects" context "app name" %}
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <!-- Account Switcher (Multi-account support) -->
-                        <div class="dropdown-divider"></div>
-                        <div id="account-switcher-container" style="padding: 8px 16px">
-                            <!-- Switcher dropdown (only shown when multiple accounts) -->
-                            <div id="account-switcher-dropdown-wrapper" style="display: none">
-                                <div style="font-size: 12px;
-                                            color: var(--text-muted);
-                                            margin-bottom: 8px;
-                                            font-weight: 600">
-                                    <svg width="14"
-                                         height="14"
-                                         viewBox="0 0 16 16"
-                                         fill="currentColor"
-                                         style="margin-right: 4px;
-                                                vertical-align: text-bottom">
-                                        <path d="M10.5 5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zm.061 3.073a4 4 0 1 0-5.123 0 6.004 6.004 0 0 0-3.431 5.142.75.75 0 0 0 1.498.07 4.5 4.5 0 0 1 8.99 0 .75.75 0 1 0 1.498-.07 6.005 6.005 0 0 0-3.432-5.142z" />
-                                    </svg>
-                                    Switch Account
-                                </div>
-                                <select id="account-switcher"
-                                        style="width: 100%;
-                                               padding: 6px 8px;
-                                               border: 1px solid var(--border-default);
-                                               border-radius: 6px;
-                                               background: var(--bg-page);
-                                               color: var(--text-primary);
-                                               margin-bottom: 8px">
-                                    <option value="">Loading...</option>
-                                </select>
-                            </div>
-                            <!-- Add account link (always visible) -->
-                            <a href="/auth/login/?next={{ request.path }}"
-                               class="dropdown-item"
-                               style="padding: 4px 0;
-                                      font-size: 13px">
-                                <svg width="14"
-                                     height="14"
-                                     viewBox="0 0 16 16"
-                                     fill="currentColor"
-                                     style="margin-right: 6px;
-                                            vertical-align: text-bottom">
-                                    <path d="M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z" />
-                                </svg>
-                                Add another account
-                            </a>
-                        </div>
-                        <div class="dropdown-divider"></div>
-                        <!-- Settings -->
-                        <a href="{% url 'accounts_app:profile_edit' %}" class="dropdown-item">
-                            <svg width="16"
-                                 height="16"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor"
-                                 style="display: inline-block;
-                                        vertical-align: text-bottom;
-                                        margin-right: 8px">
-                                <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z" />
-                                <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319z" />
-                            </svg>
-                            Settings
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <!-- Sign Out -->
-                        <a href="/auth/logout/" class="dropdown-item">
-                            <svg width="16"
-                                 height="16"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor"
-                                 style="display: inline-block;
-                                        vertical-align: text-bottom;
-                                        margin-right: 8px">
-                                <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z" />
-                                <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z" />
-                            </svg>
-                            Sign out
-                        </a>
-                    </div>
-                </div>
-            {% else %}
-                <!-- Not logged in -->
-                <a href="/auth/signin/" class="header-btn" data-tooltip="Sign in to your account">{% trans "Sign in" %}</a>
-                <a href="/auth/signup/" class="header-btn" data-tooltip="Create a new account">{% trans "Sign up" %}</a>
-            {% endif %}
-        </div>
     </div>
-    <!-- Mobile Header Menu Overlay (visible only when hamburger is tapped) -->
+    <!-- Shared menu: identical control and actions at every viewport width. -->
     <div class="mobile-header-menu" id="mobile-header-menu" role="navigation" aria-label="{% trans 'Menu' %}">
-        <button class="mobile-menu-item" id="mobile-theme-toggle-btn">
+        <button type="button" class="mobile-menu-item" id="theme-toggle" aria-label="{% trans 'Toggle dark mode' %}">
             <i class="fas fa-circle-half-stroke" aria-hidden="true"></i>
             <span>{% trans "Toggle dark mode" %}</span>
+        </button>
+        <button type="button" class="mobile-menu-item" id="product-tour-btn" aria-label="{% trans 'Product tour' %}">
+            <i class="fas fa-question-circle" aria-hidden="true"></i>
+            <span>{% trans "Product tour" %}</span>
         </button>
         {# Developer-facing entries: shown to staff (and in dev), hidden for #}
         {# ordinary users/visitors so the menu stays focused (operator,      #}
