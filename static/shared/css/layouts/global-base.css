@@ -101,6 +101,9 @@ body::before {
 body.workspace-page {
   height: 100vh; /* Use exact height instead of min-height for workspace pages */
   max-height: 100vh; /* Prevent growing beyond viewport */
+  /* iOS Safari's 100vh is the toolbar-hidden height, so the pane bottom sat under the site dock. */
+  height: 100dvh;
+  max-height: 100dvh;
   overflow: hidden; /* Prevent body scrolling - panels handle their own overflow */
 }
 
