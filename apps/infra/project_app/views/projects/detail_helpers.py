@@ -9,6 +9,8 @@ Utilities for fetching repository file information and README content.
 import logging
 import subprocess
 
+from ...services.filesystem.permissions import VCS_METADATA_COMPONENTS
+
 logger = logging.getLogger(__name__)
 
 
@@ -150,7 +152,11 @@ def get_directory_contents(project_path, skip_git=False):
         return files, dirs
 
     try:
-        items = list(project_path.iterdir())
+        items = [
+            item
+            for item in project_path.iterdir()
+            if item.name.casefold() not in VCS_METADATA_COMPONENTS
+        ]
 
         # Batch-fetch git info for all items in a single subprocess call
         if skip_git:

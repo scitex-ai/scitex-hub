@@ -9,8 +9,11 @@ from pathlib import Path
 from django.http import FileResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
 
-from apps.infra.platform_app.services.paths import resolve_within
 from apps.infra.project_app.models import Project
+from apps.infra.project_app.services.filesystem.permissions import (
+    canonical_repository_relative_path,
+    resolve_repository_path,
+)
 from apps.security import safe_log_field
 
 logger = logging.getLogger(__name__)
@@ -25,6 +28,10 @@ def api_get_file_content(request, file_path):
     - raw: Optional. If 'true', returns raw file content (for images, PDFs, etc.)
     - download: Optional. If 'true', adds Content-Disposition header for download.
     """
+    canonical_path = canonical_repository_relative_path(file_path)
+    if canonical_path is None:
+        return JsonResponse({"error": "File not found"}, status=404)
+    file_path = canonical_path.as_posix()
     project_id = request.GET.get("project_id")
     raw = request.GET.get("raw", "").lower() == "true"
     download = request.GET.get("download", "").lower() == "true"
@@ -110,20 +117,12 @@ def api_get_file_content(request, file_path):
         # containment -- project_path/"../proj-other" string-prefix-matches
         # project_path and would escape into another tenant's project).
         #
-        # CONTAINMENT ONLY -- deliberately no tenant-ownership / user-jail
-        # check here. Authorization is already enforced per-project at the
-        # top of this view (owner OR collaborator OR visibility == "public").
-        # Adding a user-jail check would break anonymous browsing of PUBLIC
-        # projects, which is a real product feature.
-        # OPEN QUESTION for the operator: should an anonymous reader of a
-        # public project be able to read *any* in-project file (e.g. .env,
-        # .git/config)? A per-file denylist inside public projects is out of
-        # scope for this containment sweep.
-        if Path(file_path).is_absolute():
-            return JsonResponse({"error": "Invalid file path"}, status=400)
-        file_full_path = resolve_within(project_path, file_path)
+        # Authorization above intentionally permits public repository reads;
+        # resolve_repository_path adds the separate VCS-metadata and symlink
+        # boundary before any existence check or file read.
+        file_full_path = resolve_repository_path(project_path, file_path)
         if file_full_path is None:
-            return JsonResponse({"error": "Invalid file path"}, status=400)
+            return JsonResponse({"error": "File not found"}, status=404)
 
         if not file_full_path.exists():
             return JsonResponse({"error": "File not found"}, status=404)

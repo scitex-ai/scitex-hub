@@ -11,6 +11,7 @@ from __future__ import annotations
 import logging
 from urllib.parse import quote
 
+from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -228,6 +229,13 @@ def project_tree_or_blob(request, username, slug, branch=None, path=None):
     """
     project = request.project
     folder = (path or "").strip("/")
+    if folder:
+        from ...services.filesystem.permissions import (
+            canonical_repository_relative_path,
+        )
+
+        if canonical_repository_relative_path(folder) is None:
+            raise Http404
     if wants_repository_view(request):
         if folder:
             detail_url = reverse(

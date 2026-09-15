@@ -11,6 +11,7 @@ import logging
 from typing import Optional
 
 from ..services.git_status import get_git_status
+from .filesystem.permissions import VCS_METADATA_COMPONENTS, resolve_repository_path
 
 logger = logging.getLogger(__name__)
 
@@ -78,11 +79,20 @@ def build_project_file_tree(project) -> Optional[dict]:
     def _build_tree(path, max_depth=10, current_depth=0):
         items = []
         try:
+            safe_items = [
+                item
+                for item in path.iterdir()
+                if resolve_repository_path(
+                    project_path, str(item.relative_to(project_path))
+                )
+                is not None
+            ]
             for item in sorted(
-                path.iterdir(), key=lambda x: (not x.is_dir(), x.name.lower())
+                safe_items, key=lambda x: (not x.is_dir(), x.name.lower())
             ):
+                if item.name.casefold() in VCS_METADATA_COMPONENTS:
+                    continue
                 if item.name.startswith(".") and item.name not in [
-                    ".git",
                     ".gitignore",
                     ".gitkeep",
                     # Writer + Scholar workspaces of a SciTeX project live here.
@@ -242,6 +252,8 @@ def _build_remote_file_tree(project) -> Optional[dict]:
                 for item in sorted(
                     path.iterdir(), key=lambda x: (not x.is_dir(), x.name.lower())
                 ):
+                    if item.name.casefold() in VCS_METADATA_COMPONENTS:
+                        continue
                     if item.name.startswith("."):
                         continue
                     if item.name in ["__pycache__", "node_modules", ".venv", "venv"]:
