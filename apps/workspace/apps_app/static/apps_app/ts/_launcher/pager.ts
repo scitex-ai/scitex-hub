@@ -20,9 +20,7 @@
  */
 
 import { packGroups, planSignature } from "./group-pack";
-
-// Never build a page shorter than this; below it, paging is worse than nothing.
-const MIN_PAGE_HEIGHT = 200;
+import { pageHeightFor, type ViewportMemory } from "./page-height";
 // Drag within this many px of an edge for EDGE_DWELL_MS to flip the page.
 const EDGE_ZONE_PX = 44;
 const EDGE_DWELL_MS = 500;
@@ -154,6 +152,7 @@ export class LauncherPager {
   // Last computed page capacity, so a re-measure that changes nothing does not
   // rebuild the DOM (the ResizeObserver below can fire often).
   private lastSignature = "";
+  private viewport: ViewportMemory = { width: 0, minHeight: 0 };
 
   constructor(
     grid: HTMLElement,
@@ -366,17 +365,20 @@ export class LauncherPager {
    * display:none dock measures 0x0: both fall back to the viewport bottom.
    */
   private availableHeight(): number {
-    const gridTop = this.grid.getBoundingClientRect().top;
     const dock = document.querySelector<HTMLElement>(".site-dock");
     const dockRect =
       dock && !dock.classList.contains("site-dock--floating")
         ? dock.getBoundingClientRect()
         : null;
-    const floor =
-      dockRect && dockRect.height > 0 ? dockRect.top : window.innerHeight;
-    const dotsRoom = this.dots.offsetHeight || 26;
-
-    const available = Math.max(MIN_PAGE_HEIGHT, floor - gridTop - dotsRoom - 8);
+    const available = pageHeightFor({
+      gridTop: this.grid.getBoundingClientRect().top,
+      scrollY: window.scrollY || 0,
+      viewportHeight: window.innerHeight,
+      viewportWidth: window.innerWidth,
+      dockTop: dockRect && dockRect.height > 0 ? dockRect.top : null,
+      dotsRoom: this.dots.offsetHeight || 26,
+      viewport: this.viewport,
+    });
     this.grid.style.height = `${available}px`;
     return available;
   }
