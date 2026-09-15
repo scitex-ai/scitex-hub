@@ -11,6 +11,12 @@ source /app/deployment/docker/common/lib/database.src
 source /app/deployment/docker/common/lib/django.src
 source /app/deployment/docker/common/lib/scitex.src
 source /app/deployment/docker/common/lib/slurm.src
+source /app/deployment/docker/common/lib/service_role.src
+
+IS_WEB_ROLE=false
+if is_web_role "$@"; then
+    IS_WEB_ROLE=true
+fi
 
 echo -e "🏭 Production Environment"
 
@@ -65,7 +71,7 @@ echo_success "Template cache cleared"
 # ============================================
 # Pool fills gradually after gunicorn starts.
 # Visitors get "initializing" message until their container is ready.
-if [[ ! "$*" =~ "celery" ]]; then
+if [ "$IS_WEB_ROLE" = true ]; then
     echo_info "Visitor pool will initialize in background after server starts..."
     _init_visitor_pool() {
         sleep 5 # Let gunicorn bind first
@@ -82,6 +88,8 @@ if [[ ! "$*" =~ "celery" ]]; then
         echo_success "Background: visitor pool reconciled (re-clean dispatched async; only verified-clean slots distributable)"
     }
     _init_visitor_pool &
+else
+    echo_info "Skipping visitor pool init/reconcile (non-web service)"
 fi
 
 # ============================================
@@ -163,7 +171,7 @@ start_dev_app_vite() {
 }
 
 # Only start for Django container, not celery
-if [[ ! "$*" =~ "celery" ]]; then
+if [ "$IS_WEB_ROLE" = true ]; then
     start_dev_app_vite
 fi
 
@@ -173,7 +181,7 @@ fi
 # The terminal broker handles pty.fork() in a separate process from Daphne.
 # This prevents asyncio/signal conflicts that can cause deadlocks.
 # Skip for celery workers - they don't handle terminal WebSockets
-if [[ ! "$*" =~ "celery" ]]; then
+if [ "$IS_WEB_ROLE" = true ]; then
     echo_info "Starting terminal broker..."
     python manage.py run_terminal_broker &
     TERMINAL_BROKER_PID=$!
@@ -191,7 +199,7 @@ fi
 # Start SSH Gateway (Background) - Only for main Django app
 # ============================================
 # Skip SSH gateway for celery workers - they don't need it
-if [[ ! "$*" =~ "celery" ]]; then
+if [ "$IS_WEB_ROLE" = true ]; then
     echo_info "Starting SSH gateway on port 2200..."
     python manage.py run_ssh_gateway --port 2200 --host 0.0.0.0 &
     SSH_GATEWAY_PID=$!
@@ -208,7 +216,7 @@ fi
 # ============================================
 # Start Orochi Bridge Daemon (Background) - Syncs Orochi <-> workspace
 # ============================================
-if [[ ! "$*" =~ "celery" ]]; then
+if [ "$IS_WEB_ROLE" = true ]; then
     echo_info "Starting Orochi bridge daemon (10s polling)..."
     python manage.py orochi_bridge --daemon --interval 10 &
     OROCHI_BRIDGE_PID=$!
