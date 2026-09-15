@@ -15,6 +15,11 @@
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
 }
 
+/* display:flex above beats the UA [hidden] rule on leaf pages without a reset. */
+.site-dock-chat[hidden] {
+  display: none;
+}
+
 .site-dock-chat-head {
   display: flex;
   align-items: center;
