@@ -232,6 +232,70 @@ class TestManifestMissFailLoud:
         assert "console.error" in html and "workspace_app/workspace-shell" in html
 
 
+class TestViteCss:
+    """vite_css emits only the stylesheet links of an entry (for <head>)."""
+
+    @pytest.fixture()
+    def vite_with_manifest(self, tmp_path):
+        setup_django()
+        from django.test import override_settings
+
+        import apps.infra.public_app.templatetags.vite as vite_module
+
+        manifest_dir = tmp_path / "staticfiles" / "vite" / ".vite"
+        manifest_dir.mkdir(parents=True)
+        (manifest_dir / "manifest.json").write_text(
+            '{"static/shared/ts/head-styles-base.ts": {"file": "shared/h.js", "isEntry": true,'
+            ' "css": ["assets/own.css"], "imports": ["_chunk.js"]},'
+            ' "_chunk.js": {"file": "chunks/c.js", "css": ["assets/dep.css"]}}'
+        )
+
+        def _reset_manifest_cache():
+            vite_module._manifest_cache = None
+            vite_module._manifest_mtime = 0.0
+            vite_module._manifest_name_index = None
+
+        override = override_settings(BASE_DIR=tmp_path, DEBUG=False)
+        override.enable()
+        _reset_manifest_cache()
+        try:
+            yield vite_module
+        finally:
+            override.disable()
+            _reset_manifest_cache()
+
+    def test_links_imported_chunk_css_before_entry_css(self, vite_with_manifest):
+        # Arrange
+        entry = "shared/head-styles-base"
+
+        # Act
+        html = vite_with_manifest.vite_css(entry)
+
+        # Assert
+        assert html.index("assets/dep.css") < html.index("assets/own.css")
+
+    def test_emits_no_script_tag(self, vite_with_manifest):
+        # Arrange
+        entry = "shared/head-styles-base"
+
+        # Act
+        html = vite_with_manifest.vite_css(entry)
+
+        # Assert
+        assert "<script" not in html
+
+    def test_miss_does_not_raise_in_debug(self, vite_with_manifest):
+        # Arrange
+        from django.test import override_settings
+
+        # Act
+        with override_settings(DEBUG=True, VITE_USE_BUILD=True):
+            html = vite_with_manifest.vite_css("shared/no-such-entry")
+
+        # Assert
+        assert "console.error" in html
+
+
 class TestAllTemplateEntries:
     """Parametrized test: every vite_script entry in templates must resolve to an existing file."""
 

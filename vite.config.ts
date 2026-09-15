@@ -220,7 +220,11 @@ function resolveBridgedBareImports(): Plugin {
         return null;
 
       // Only for files actually under a bridged sibling source tree.
-      if (!bridgeRoots.some((dir) => importer === dir || importer.startsWith(dir + path.sep)))
+      if (
+        !bridgeRoots.some(
+          (dir) => importer === dir || importer.startsWith(dir + path.sep),
+        )
+      )
         return null;
 
       try {
@@ -306,6 +310,9 @@ export default defineConfig(({ command }) => ({
             // @scitex/ui is the npm package name used by figrecipe's frontend
             // imports like @scitex/ui/src/scitex_ui/static/... resolve from repo root
             "@scitex/ui": resolve(SCITEX_UI_STATIC, "../../../.."),
+            // shared/css/primitives/variables.css @imports scitex-ui tokens by
+            // their collectstatic URL; lets the bundled head CSS resolve them.
+            "../../../scitex_ui/css": resolve(SCITEX_UI_STATIC, "css"),
           }
         : {}),
       // Auto-discovered app bridges (e.g. "figrecipe-editor" → sibling repo)

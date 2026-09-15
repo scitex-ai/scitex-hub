@@ -277,6 +277,58 @@ def vite_script(entry_name: str):
             )
 
 
+def _collect_css(manifest: dict, entry: dict) -> list[str]:
+    """CSS files of an entry and every chunk it statically imports, in order."""
+    files: list[str] = []
+    seen_css: set[str] = set()
+    seen_chunks: set[str] = set()
+
+    def walk(chunk: dict) -> None:
+        for imp in chunk.get("imports", []):
+            if imp not in seen_chunks and imp in manifest:
+                seen_chunks.add(imp)
+                walk(manifest[imp])
+        for css_file in chunk.get("css", []):
+            if css_file not in seen_css:
+                seen_css.add(css_file)
+                files.append(css_file)
+
+    walk(entry)
+    return files
+
+
+@register.simple_tag
+def vite_css(entry_name: str):
+    """Emit ONLY the bundled stylesheet(s) of a CSS-importing Vite entry.
+
+    For <head>: dozens of separate <link>/@import files queue behind the
+    browser's six HTTP/1.1 connections and gate first paint and script
+    execution; one bundled file does not.
+    """
+    if settings.DEBUG and not getattr(settings, "VITE_USE_BUILD", False):
+        return vite_script(entry_name)
+
+    manifest = get_manifest()
+    ts_path = _entry_to_ts_path(entry_name)
+    entry = manifest.get(ts_path) or _get_manifest_by_name(entry_name)
+    if not entry:
+        # Not _manifest_miss: raising here would 500 every page in the minute
+        # between a template pull and the Vite rebuild on dev.
+        import logging
+
+        logging.getLogger(__name__).error(
+            "Vite CSS entry '%s' not found in manifest (tried ts_path='%s')", entry_name, ts_path
+        )
+        payload = json.dumps(f"[vite] missing CSS entry: {entry_name}")
+        return mark_safe(f"<script>console.error({payload});</script>")
+    return mark_safe(
+        "".join(
+            f'<link rel="stylesheet" href="{settings.STATIC_URL}vite/{css_file}" />\n'
+            for css_file in _collect_css(manifest, entry)
+        )
+    )
+
+
 @register.simple_tag(takes_context=True)
 def vite_asset_url(context, entry_name: str) -> str:
     """Resolve a Vite entry to its ABSOLUTE JS asset URL (no wrapped <script> tag).

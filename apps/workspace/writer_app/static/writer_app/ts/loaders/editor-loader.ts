@@ -49,7 +49,9 @@ export class EditorLoader {
         console.error("[EditorLoader] Monaco NOT available from local bundle");
       }
 
-      // CodeMirror is a supplemental/fallback editor loaded from a CDN.
+      // CodeMirror is only the fallback; eight sequential CDN loads plus 13
+      // theme stylesheets cost phones ~0.5s when Monaco is already there.
+      if (monacoAvailable) return;
       const codeMirrorAvailable = await this.loadCodeMirror();
 
       // Honest success reporting: only claim success once the libraries are
@@ -101,6 +103,32 @@ export class EditorLoader {
       `https://cdnjs.cloudflare.com/ajax/libs/codemirror/${this.CODEMIRROR_VERSION}/keymap/vim.min.js`,
       `https://cdnjs.cloudflare.com/ajax/libs/codemirror/${this.CODEMIRROR_VERSION}/keymap/emacs.min.js`,
     ];
+
+    const base = `https://cdnjs.cloudflare.com/ajax/libs/codemirror/${this.CODEMIRROR_VERSION}`;
+    const themes = [
+      "zenburn",
+      "monokai",
+      "dracula",
+      "darcula",
+      "ayu-dark",
+      "nord",
+      "cobalt",
+      "eclipse",
+      "neat",
+      "solarized",
+      "elegant",
+    ];
+    for (const href of [
+      `${base}/codemirror.min.css`,
+      `${base}/addon/dialog/dialog.min.css`,
+      ...themes.map((t) => `${base}/theme/${t}.min.css`),
+    ]) {
+      if (document.querySelector(`link[href="${href}"]`)) continue;
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = href;
+      document.head.appendChild(link);
+    }
 
     // Save and disable AMD so CodeMirror UMD modules don't register with RequireJS
     const savedDefine = window.define;

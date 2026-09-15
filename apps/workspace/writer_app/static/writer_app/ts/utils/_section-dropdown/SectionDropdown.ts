@@ -11,6 +11,7 @@ import { statePersistence } from "../../modules/_state-persistence";
 import type { CompilationManager } from "../../modules/_compilation";
 import { renderSectionDropdown } from "./rendering";
 import { setupSectionEvents } from "./events";
+import { fetchSectionsConfig } from "../../_writer/_config/sections-config";
 
 /**
  * Populate the custom section dropdown with sections from the API
@@ -80,8 +81,7 @@ export async function populateSectionDropdownDirect(
   }
 
   try {
-    const response = await fetch("/apps/writer/api/sections-config/");
-    const data = await response.json();
+    const data = await fetchSectionsConfig();
 
     if (!data.success || !data.hierarchy) {
       console.error("[Writer] Failed to load sections hierarchy");

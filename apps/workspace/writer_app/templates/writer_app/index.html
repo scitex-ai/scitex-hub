@@ -7,11 +7,7 @@
     {% if project %}- {{ project.name }}{% endif %}
 {% endblock %}
 {% block extra_css %}
-    <!-- Writer variables (module accent color, theme tokens) -->
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/shared/variables.css' %}?v={{ build_id }}" />
     {% include "writer_app/index_partials/_writer_css.html" %}
-    {% include "writer_app/index_partials/codemirror_css.html" %}
 {% endblock %}
 {% block writer_content %}
     {% include "writer_app/index_partials/demo_banner.html" %}

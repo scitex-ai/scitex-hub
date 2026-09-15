@@ -4,6 +4,7 @@
  */
 
 import { FileTreeNode } from "../_file_tree";
+import { fetchSectionsConfig } from "../../_writer/_config/sections-config";
 
 export interface SectionConfig {
   id: string;
@@ -99,8 +100,7 @@ export class SectionDropdownManager {
 
     try {
       // Fetch hierarchical sections configuration
-      const response = await fetch("/apps/writer/api/sections-config/");
-      const data = await response.json();
+      const data = await fetchSectionsConfig();
 
       if (!data.success || !data.hierarchy) {
         console.error("[SectionDropdown] Failed to load sections hierarchy");
