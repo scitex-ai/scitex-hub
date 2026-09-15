@@ -200,9 +200,7 @@
   }
 
   /* Floating shortcut/help affordances cover the text on a phone. */
-  .writer-page .writer-shortcuts-fab,
-  .writer-page #keyboard-shortcuts-fab,
-  .writer-page .shortcuts-fab {
+  .writer-workspace .monaco-editor .iPadShowKeyboard {
     display: none !important;
   }
 
