@@ -39,8 +39,31 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  select-python-versions:
+    name: Select Python compatibility matrix
+    runs-on: >-
+      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+          && fromJSON('["ubuntu-latest"]')
+          || fromJSON('["self-hosted","Linux","X64","scitex-local-cpu"]') }}
+    outputs:
+      versions: ${{ steps.matrix.outputs.versions }}
+    steps:
+      - name: Refuse to run fork-authored code on self-hosted infrastructure
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository &&
+          runner.environment == 'self-hosted'
+        run: exit 1
+      - uses: actions/checkout@v4
+      - id: matrix
+        name: Apply event/base policy
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+        run: echo "versions=$(python3 scripts/ci/python_matrix.py --event "$EVENT_NAME" --base-ref "$BASE_REF")" >> "$GITHUB_OUTPUT"
+
   test:
-    name: pytest-matrix-on-ubuntu-py${{ matrix.python-version }}
+    name: pytest py${{ matrix.python-version }} shard ${{ matrix.shard }}/3
     # Same-repo runs: scitex-docker runners (scitex-compute-03/04), inside a
     # throwaway job container so the suite never sees the runner host's $HOME
     # or fleet credentials, and postgres is reached by service name (no host
@@ -57,7 +80,10 @@ jobs:
       # uid 1000 = the runner user on both hosts (and `ubuntu` in the image), so
       # workspace files stay removable by the runner and root-bypass of file
       # permissions cannot mask a test.
-      options: --user 1000:1000 --cpus 8 --memory 16g
+      # Do not cap CPU: compute-03/04 each expose ~32 cores and the operator
+      # explicitly authorized all-core CI. nice/ionice below keep batch work
+      # subordinate to interactive host workloads.
+      options: --user 1000:1000 --memory 16g
       # The docker CLI only, read-only and WITHOUT the daemon socket: the
       # compose tests run `docker compose config`, which needs no daemon.
       volumes:
@@ -70,7 +96,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12", "3.13"]
+        python-version: ${{ fromJSON(needs.select-python-versions.outputs.versions) }}
+        shard: [0, 1, 2]
+    needs: [select-python-versions]
     # PostgreSQL is the only engine Django supports here now. This matrix used
     # to run with no database service at all and set a flag that swapped the
     # ENGINE for a local file-backed one -- so the required status checks were
@@ -160,8 +188,7 @@ jobs:
           SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
           SCITEX_HUB_DB_HOST_DEV: ${{ job.container.id && 'postgres' || 'localhost' }}
           SCITEX_HUB_DB_PORT_DEV: ${{ job.container.id && '5432' || job.services.postgres.ports['5432'] }}
-          # Matches --cpus 8 in the container; hosted VMs have 4 vCPUs.
-          PYTEST_XDIST_WORKERS: ${{ job.container.id && '8' || 'auto' }}
+
           # No Redis broker in this job, so .delay() would raise
           # kombu.exceptions.OperationalError. Run tasks inline instead
           # (settings_celery.py). This is now purely a Celery switch -- it no
@@ -173,14 +200,37 @@ jobs:
           # audit gate's scitex-dev subcommands) resolves to THIS venv rather
           # than to whatever the shared runner happens to have installed.
           export PATH="$PWD/.venv/bin:$PATH"
-          # loadgroup with tests/conftest.py's groups: one per file (intra-file
-          # order unchanged), visitor_pool as one. Each worker gets its own test
-          # database from pytest-django.
-          .venv/bin/python -m pytest tests/ -n "$PYTEST_XDIST_WORKERS" --dist loadgroup --cov=src/scitex_hub --cov-report=xml --cov-report=term
+          # Files are indivisible test groups and are greedily balanced by the
+          # number of collected test definitions. Every Python version runs all
+          # three disjoint groups, preserving full compatibility coverage.
+          mapfile -t TEST_FILES < <(.venv/bin/python scripts/ci/pytest_shards.py files \
+            --index "${{ matrix.shard }}" --count 3)
+          WORKERS=$(.venv/bin/python scripts/ci/pytest_shards.py workers)
+          echo "shard=${{ matrix.shard }} files=${#TEST_FILES[@]} effective_cpus=${WORKERS}"
+          nice -n 10 ionice -c 2 -n 7 .venv/bin/python -m pytest \
+            "${TEST_FILES[@]}" -n "$WORKERS" --dist loadgroup \
+            --cov=src/scitex_hub --cov-report=xml:coverage-${{ matrix.python-version }}-${{ matrix.shard }}.xml \
+            --cov-report=term
       - name: Upload coverage to Codecov
         if: always() && matrix.python-version == '3.12'
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.xml
+          files: ./coverage-${{ matrix.python-version }}-${{ matrix.shard }}.xml
           fail_ci_if_error: false
+
+  ci-gate:
+    name: Python CI aggregate gate
+    runs-on: [self-hosted, Linux, X64, scitex-local-cpu]
+    needs: [select-python-versions, test]
+    if: always()
+    steps:
+      - name: Require matrix selection and every shard
+        env:
+          MATRIX_RESULT: ${{ needs.select-python-versions.result }}
+          SHARDS_RESULT: ${{ needs.test.result }}
+        run: |
+          if [ "$MATRIX_RESULT" != "success" ] || [ "$SHARDS_RESULT" != "success" ]; then
+            echo "matrix=$MATRIX_RESULT shards=$SHARDS_RESULT"
+            exit 1
+          fi
