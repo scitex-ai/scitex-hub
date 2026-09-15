@@ -6448,3 +6448,144 @@ msgstr "一致する論文がありません"
 #: apps/workspace/scholar_app/templates/scholar_app/library_partials/library_main.html
 msgid "Try adjusting your search or filters"
 msgstr "検索語やフィルターを変えてみてください"
+
+# --- Recruit page + contact form: English source, Japanese translation (i18n-public) ---
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Recruit: Open-Source Contributors - SciTeX"
+msgstr "採用・コントリビューター募集 | SciTeX"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Join SciTeX as an open-source contributor. Students welcome; issues for first-time contributors are ready."
+msgstr "SciTeX のオープンソース・コントリビューター募集（学生歓迎）。はじめての方向けの Issue を用意しています。"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Speed up research with us"
+msgstr "一緒に、研究の速度を上げませんか"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "SciTeX develops and operates an automation ecosystem for scientific research. Everything is open source, and anyone can take part in development."
+msgstr "SciTeX は、科学研究の自動化エコシステムを開発・運営しています。すべてオープンソースで、誰でも開発に参加できます。"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "What we are looking for now"
+msgstr "いま募集しているもの"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Open-source contributors (students welcome, rolling)"
+msgstr "オープンソース・コントリビューター（学生歓迎・随時）"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "We are looking for people to contribute to SciTeX, which we develop in the open on GitHub. No prior experience is required; we keep issues ready for first-time contributors."
+msgstr "GitHub 上で公開している SciTeX の開発に参加していただける方を募集しています。経験の有無は問いません。はじめての方向けの Issue を用意しています。"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "How to join: start from a <code>good first issue</code> on GitHub and send a pull request"
+msgstr "参加方法: GitHub の <code>good first issue</code> から着手し、Pull Request を送る"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Tech stack: Python / PyTorch / Django / TypeScript / Docker, Apptainer / LLM APIs"
+msgstr "使用技術: Python / PyTorch / Django / TypeScript / Docker・Apptainer / LLM API"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "License: AGPL-3.0 (we ask contributors to agree to the CLA)"
+msgstr "ライセンス: AGPL-3.0（CLA へのご同意をお願いしています）"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "What you gain"
+msgstr "参加すると得られるもの"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Technical mentorship from a researcher-developer"
+msgstr "研究者かつ開発者からの技術指導"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Through code review and design discussions, we pass on the craft of both research and software development."
+msgstr "コードレビューと設計の議論を通じて、研究とソフトウェア開発の両方の作法をお伝えします。"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "A public track record"
+msgstr "公開された実績"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Your contributions stay on GitHub under your name, ready to show as your own work."
+msgstr "貢献は GitHub にあなたの名前で残り、そのまま実績として示せます。"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Experience building something people actually use"
+msgstr "実際に使われるものを作る経験"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "This is software researchers use every day."
+msgstr "研究者が日々使うソフトウェアです。"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Coming next"
+msgstr "これから始めるもの"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Paid participation"
+msgstr "有給での参加"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "(part-time or contract) — we will start this as the business grows."
+msgstr "（アルバイト・業務委託）— 事業の成長に合わせて開始します。"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "If you are interested, reach out through a GitHub issue or at the address below."
+msgstr "ご関心のある方は、GitHub の Issue か、下記までご連絡ください。"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Open good first issues"
+msgstr "good first issue 一覧"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Contact:"
+msgstr "お問い合わせ:"
+
+#: apps/infra/public_app/templates/public_app/legal/contact.html
+msgid "Contact — SciTeX"
+msgstr "お問い合わせ — SciTeX"
+
+#: apps/infra/public_app/templates/public_app/legal/contact.html
+msgid "Get in touch with our team for demos, technical support, or product questions."
+msgstr "デモのご依頼、技術サポート、製品に関するご質問はお気軽にご連絡ください。"
+
+#: apps/infra/public_app/templates/public_app/legal/contact.html
+msgid "Explore institutional plans, request a demo, or discuss enterprise solutions for your research team."
+msgstr "機関向けプランの検討、デモのご依頼、研究チーム向けの導入についてご相談いただけます。"
+
+#: apps/infra/public_app/templates/public_app/legal/contact.html
+msgid "Ask product questions, report problems, or share feedback to help us improve."
+msgstr "製品に関するご質問、不具合のご報告、改善のためのご意見をお寄せください。"
+
+#: apps/infra/public_app/templates/public_app/legal/contact.html
+msgid "Questions about partnerships, media inquiries, or anything else? We would love to hear from you."
+msgstr "提携、取材、その他のご質問もお気軽にお寄せください。"
+
+#: apps/infra/public_app/templates/public_app/legal/contact.html
+msgid "Connect with researchers worldwide and share knowledge in our Slack workspace"
+msgstr "Slack ワークスペースで世界中の研究者とつながり、知見を共有できます"
+
+#: apps/infra/public_app/templates/public_app/legal/contact.html
+msgid "Contact form"
+msgstr "お問い合わせフォーム"
+
+#: apps/infra/public_app/templates/public_app/legal/contact.html
+msgid "Thank you. We have received your inquiry and will get back to you."
+msgstr "お問い合わせを受け付けました。ありがとうございます。担当より折り返しご連絡します。"
+
+#: apps/infra/public_app/templates/public_app/legal/contact.html
+msgid "Inquiry type"
+msgstr "種別"
+
+#: apps/infra/public_app/templates/public_app/legal/contact.html
+msgid "Your inquiry"
+msgstr "ご相談内容"
+
+#: apps/infra/public_app/templates/public_app/legal/contact.html
+msgid "Tell us what you are struggling with or what you would like to do."
+msgstr "いま困っていること、やりたいことをお聞かせください。"
+
+#: apps/infra/public_app/views/legal.py
+msgid "Please describe your inquiry."
+msgstr "ご相談内容をご記入ください。"

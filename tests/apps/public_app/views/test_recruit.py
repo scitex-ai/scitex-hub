@@ -8,7 +8,7 @@ welcome). Copy is legally reviewed:
 - The ONLY current offering is voluntary OSS contribution — never
   phrased as unpaid work for the company (no 無給 / "unpaid" wording).
 - University-credit internships and paid roles appear ONLY as future
-  items under これから始めるもの / Coming next.
+  items under "Coming next" (JA: これから始めるもの).
 - Contact email: ``branding.RECRUIT_EMAIL`` (operator-decided 2026-07-22).
   The template injects it via the ``site_branding`` context processor, so this
   file reads the constant too — a test that repeated the literal would be one
@@ -42,21 +42,36 @@ class TestRecruitPage:
         templates = [t.name for t in response.templates if t.name]
         assert "public_app/pages/recruit.html" in templates
 
-    def test_recruit_page_shows_japanese_heading(self, client):
-        # Arrange
+    def test_recruit_page_defaults_to_english_heading(self, client):
+        # Arrange: no language cookie, so the English source renders
         url = reverse("public_app:recruit")
         # Act
         content = client.get(url).content.decode("utf-8")
         # Assert
-        assert "一緒に、研究の速度を上げませんか" in content
+        assert "Speed up research with us" in content
 
-    def test_recruit_page_shows_english_heading(self, client):
-        # Arrange
+    def test_recruit_page_default_omits_hardcoded_japanese(self, client):
+        # Arrange: Japanese appears only via the ja catalog
         url = reverse("public_app:recruit")
         # Act
         content = client.get(url).content.decode("utf-8")
         # Assert
-        assert "Build the tools that speed up science" in content
+        assert "一緒に、研究の速度を上げませんか" not in content
+
+    def test_recruit_heading_has_japanese_translation(self):
+        # Arrange: the Japanese copy lives in the catalog, not the template
+        from pathlib import Path
+
+        from django.conf import settings
+
+        po_path = Path(settings.BASE_DIR, "locale/ja/LC_MESSAGES/django.po")
+        # Act
+        po = po_path.read_text(encoding="utf-8")
+        # Assert
+        assert (
+            'msgid "Speed up research with us"\n'
+            'msgstr "一緒に、研究の速度を上げませんか"' in po
+        )
 
     def test_recruit_page_mentions_good_first_issue(self, client):
         # Arrange
@@ -95,7 +110,7 @@ class TestRecruitPage:
         # Assert
         assert branding.RECRUIT_EMAIL in content
 
-    @pytest.mark.parametrize("heading", ["これから始めるもの", "Coming next"])
+    @pytest.mark.parametrize("heading", ["Coming next"])
     def test_recruit_page_lists_future_items_section_heading(self, client, heading):
         # Arrange: internships / paid roles may appear ONLY as future
         # items under these headings (legal review)

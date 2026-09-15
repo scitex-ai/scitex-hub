@@ -50,9 +50,9 @@ def contact(request):
             "request": (request.POST.get("request") or "").strip(),
         }
         if not form["name"]:
-            errors["name"] = "お名前をご記入ください。"
+            errors["name"] = translation.gettext("Please enter your name.")
         if not form["request"]:
-            errors["request"] = "ご相談内容をご記入ください。"
+            errors["request"] = translation.gettext("Please describe your inquiry.")
         if not errors:
             from ..models import ServiceInquiry
 

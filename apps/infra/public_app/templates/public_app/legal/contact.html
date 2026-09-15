@@ -3,10 +3,7 @@
 {% load static %}
 {% load i18n %}
 
-{% block title %}
-    Contact —
-    SciTeX
-{% endblock %}
+{% block title %}{% trans "Contact — SciTeX" %}{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'public_app/css/demos/00-demos.css' %}" />
     <style>
@@ -293,8 +290,7 @@
         <header class="minimal-hero">
             <h1 class="minimal-hero-title">{% trans "How can we help?" %}</h1>
             <p class="minimal-hero-subtitle">
-                Get in touch with our team for demos, technical support, or product
-                questions.
+                {% trans "Get in touch with our team for demos, technical support, or product questions." %}
             </p>
         </header>
     </div>
@@ -307,8 +303,7 @@
             </div>
             <h3>{% trans "Sales & Demos" %}</h3>
             <p>
-                Explore institutional plans, request a demo, or discuss enterprise
-                solutions for your research team.
+                {% trans "Explore institutional plans, request a demo, or discuss enterprise solutions for your research team." %}
             </p>
             <a href="mailto:sales@scitex.ai" class="contact-card-btn">
                 {% trans "Talk to sales" %} <i class="fas fa-arrow-right"></i>
@@ -321,8 +316,7 @@
             </div>
             <h3>{% trans "Help & Support" %}</h3>
             <p>
-                Ask product questions, report problems, or share feedback to help us
-                improve.
+                {% trans "Ask product questions, report problems, or share feedback to help us improve." %}
             </p>
             <a href="mailto:{{ CONTACT_EMAIL }}" class="contact-card-btn">
                 {% trans "Contact support" %} <i class="fas fa-arrow-right"></i>
@@ -335,8 +329,7 @@
             </div>
             <h3>{% trans "General Contact" %}</h3>
             <p>
-                Questions about partnerships, media inquiries, or anything else? We'd love
-                to hear from you.
+                {% trans "Questions about partnerships, media inquiries, or anything else? We would love to hear from you." %}
             </p>
             <a href="mailto:hello@scitex.ai" class="contact-card-btn">
                 {% trans "Send us an email" %} <i class="fas fa-arrow-right"></i>
@@ -345,44 +338,44 @@
     </div>
     <!-- Direct inquiry form -->
     <div class="contact-form-section">
-        <h2 class="contact-form-title">お問い合わせフォーム</h2>
+        <h2 class="contact-form-title">{% trans "Contact form" %}</h2>
         {% if submitted %}
         <div class="contact-form-success" role="status">
-            お問い合わせを受け付けました。ありがとうございます。担当より折り返しご連絡します。
+            {% trans "Thank you. We have received your inquiry and will get back to you." %}
         </div>
         {% else %}
         <form class="contact-form" method="post" action="{% url 'public_app:contact' %}">
             {% csrf_token %}
             <div class="contact-form-row">
                 <div class="contact-form-field">
-                    <label for="ct-name">お名前 <span class="req">*</span></label>
+                    <label for="ct-name">{% trans "Name" %} <span class="req">*</span></label>
                     <input type="text" id="ct-name" name="name" value="{{ form.name }}" maxlength="120" required
                            {% if errors.name %}class="has-error"{% endif %}>
                     {% if errors.name %}<p class="form-error">{{ errors.name }}</p>{% endif %}
                 </div>
                 <div class="contact-form-field">
-                    <label for="ct-email">メールアドレス</label>
+                    <label for="ct-email">{% trans "Email address" %}</label>
                     <input type="email" id="ct-email" name="email" value="{{ form.email }}" maxlength="200">
                 </div>
             </div>
             <div class="contact-form-row">
                 <div class="contact-form-field">
-                    <label for="ct-type">種別</label>
+                    <label for="ct-type">{% trans "Inquiry type" %}</label>
                     <select id="ct-type" name="type">
-                        <option value="support"{% if form.type == 'support' %} selected{% endif %}>サポート / Help &amp; Support</option>
-                        <option value="sales"{% if form.type == 'sales' %} selected{% endif %}>販売・デモ / Sales &amp; Demos</option>
-                        <option value="general"{% if form.type == 'general' %} selected{% endif %}>その他 / General</option>
+                        <option value="support"{% if form.type == 'support' %} selected{% endif %}>{% trans "Help & Support" %}</option>
+                        <option value="sales"{% if form.type == 'sales' %} selected{% endif %}>{% trans "Sales & Demos" %}</option>
+                        <option value="general"{% if form.type == 'general' %} selected{% endif %}>{% trans "General" %}</option>
                     </select>
                 </div>
             </div>
             <div class="contact-form-field">
-                <label for="ct-request">ご相談内容 <span class="req">*</span></label>
+                <label for="ct-request">{% trans "Your inquiry" %} <span class="req">*</span></label>
                 <textarea id="ct-request" name="request" rows="6" required
                           {% if errors.request %}class="has-error"{% endif %}
-                          placeholder="いま困っていること、やりたいことをお聞かせください。">{{ form.request }}</textarea>
+                          placeholder="{% trans 'Tell us what you are struggling with or what you would like to do.' %}">{{ form.request }}</textarea>
                 {% if errors.request %}<p class="form-error">{{ errors.request }}</p>{% endif %}
             </div>
-            <button type="submit" class="contact-form-submit">送信する</button>
+            <button type="submit" class="contact-form-submit">{% trans "Send" %}</button>
         </form>
         {% endif %}
     </div>
@@ -396,8 +389,7 @@
                     <i class="fab fa-slack" style="margin-right: 0.5rem; color: var(--_scitex-04)"></i>{% trans "Join our Community" %}
                 </h4>
                 <p>
-                    Connect with researchers worldwide and share knowledge in our Slack
-                    workspace
+                    {% trans "Connect with researchers worldwide and share knowledge in our Slack workspace" %}
                 </p>
                 <a href="https://join.slack.com/t/scitex-ai/shared_invite/zt-2zbwx67n3-L6aaBdGKPMYZbBxl6yjXRA"
                    target="_blank">
