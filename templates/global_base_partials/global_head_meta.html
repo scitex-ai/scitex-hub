@@ -48,20 +48,20 @@
 <link rel="shortcut icon" type="image/svg+xml" href="{% static SCITEX_FAVICON %}" />
 <link rel="alternate icon" type="image/svg+xml" href="{% static SCITEX_FAVICON %}" />
 <!-- PWA -->
-<link rel="manifest" href="/manifest.json" />
+<link rel="manifest" href="/manifest.json?v=4" />
 <meta name="theme-color" content="#0d1117" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="SciTeX" />
 <meta name="mobile-web-app-capable" content="yes" />
 {% comment %}
-   Home-screen icon: brand circle at 70% of the tile (15% margin) on the dark
-   manifest background, so iOS's rounded mask never clips the circle. iOS
+   Home-screen icon: navy logo at 70% of the tile (15% margin) on opaque white
+   (iOS renders transparent pixels black), clear of the rounded mask. iOS
    caches touch icons hard -- bump the filename (and ?v) on any change.
 {% endcomment %}
 <link rel="apple-touch-icon"
       sizes="180x180"
-      href="{% static 'shared/images/favicons/apple-touch-icon-padded-180.png' %}?v=3" />
+      href="{% static 'shared/images/favicons/apple-touch-icon-padded-180.png' %}?v=4" />
 {% if user.is_authenticated %}
     <meta name="user-registration-date" content="{{ user.date_joined|date:'c' }}" />
 {% endif %}
