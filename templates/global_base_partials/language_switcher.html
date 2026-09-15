@@ -8,8 +8,8 @@ column), not the header — operator ledger #32 and the later header/footer TODO
 batch. It is included ONLY by global_footer.html; the .site-footer rule in
 11-dropdown-menu.css opens the menu upward there.
 
-The trigger is a globe icon + a chevron (no word), so it never shows the
-current language name. The menu lists every configured language by its ENGLISH
+The trigger is a globe icon + the 2-letter code of the current language
+("EN" / "JA", operator 2026-09-15) + a chevron; never the language name. The menu lists every configured language by its ENGLISH
 name (English / 日本語 / …) with a check on the active one. Still a real POST
 to set_language (Django 4.0+ answers a GET with 405), with a CSRF token and a
 `next` so the reader stays on their page.
@@ -26,14 +26,15 @@ menu.
             id="lang-select-trigger"
             aria-haspopup="true"
             aria-expanded="false"
-            aria-label="Language"
-            data-tooltip="Language">
+            aria-label="Language">
+        {% comment %}No data-tooltip: a tapped tooltip stuck open on touch (operator iPhone 2026-09-15).{% endcomment %}
         <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" fill="none"
              style="display: inline-block; vertical-align: -2px">
             <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.3" />
             <ellipse cx="8" cy="8" rx="3" ry="6.5" stroke="currentColor" stroke-width="1.1" />
             <line x1="1.5" y1="8" x2="14.5" y2="8" stroke="currentColor" stroke-width="1.1" />
         </svg>
+        <span class="lang-select-code">{{ CURRENT_LANGUAGE|slice:":2"|upper }}</span>
         <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true" fill="currentColor"
              style="display: inline-block; vertical-align: -1px; margin-left: 3px">
             <path d="M4 6l4 4 4-4H4z" />

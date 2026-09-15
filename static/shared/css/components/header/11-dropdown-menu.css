@@ -106,6 +106,14 @@
   justify-content: center;
 }
 
+.lang-select-code {
+  margin-left: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
 /* The menu is a .header-dropdown (absolute, top:100%, right:0). Position it
    relative to the .lang-select wrapper so it hangs off the globe button, not
    the whole header-right cluster. */

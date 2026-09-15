@@ -80,7 +80,10 @@
    user's own choice of where it may cover, so the reservation goes away. On
    app-shell pages the body is border-box and viewport-pinned, so this shrinks
    the shell instead of pushing it off-screen. */
-body:has(> .site-dock:not(.site-dock--floating)) {
+body:has(> .site-dock:not(.site-dock--floating)),
+/* A pill is easily nudged into floating by a tap; it still must not cover the
+   last footer links (operator iPhone 2026-09-15). */
+body:has(> .site-dock.site-dock--minimized) {
   padding-bottom: var(--site-dock-clearance) !important;
 }
 
