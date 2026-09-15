@@ -159,6 +159,19 @@ class ProjectScopeTest(TestCase):
         # Assert
         assert b'data-current="scope-me/paper"' in response.content
 
+    def test_writer_places_the_picker_above_its_panes(self):
+        # Arrange
+        pytest.importorskip("scitex_ui.templatetags.scitex_project_picker")
+        from django.template.loader import render_to_string
+
+        # Act
+        html = render_to_string(
+            "writer_app/index_partials/project_picker.html",
+            {"request": self._request(), "current_project": self.paper},
+        )
+        # Assert
+        assert '<div class="writer-project-scope"><link' in html
+
     def test_user_scope_app_renders_no_picker(self):
         # Arrange
         context = Context({"request": self._request()})

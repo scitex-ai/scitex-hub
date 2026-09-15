@@ -4,6 +4,7 @@
   "name": "writer",
   "label": "Writer",
   "app_name": "writer_app",
+  "scope": "project",
   "icon": "fas fa-pen",
   "description": "Scientific manuscript editor: LaTeX editing with live preview, figure/table management, bibliography, PDF compilation.",
   "pip_package": "scitex-writer",
