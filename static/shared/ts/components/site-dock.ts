@@ -10,7 +10,7 @@
  * 2. Drag: the grabber moves the dock anywhere in the viewport. The position is
  *    remembered per device in localStorage. Dropping the dock back at the
  *    bottom, or Escape on the grabber, docks it again.
- * 3. Minimize: the "_" button or one tap / click on the grip collapses the dock
+ * 3. Minimize: one tap / click on the grip collapses the dock
  *    to a grip pill; tapping the pill restores it. Enter / Space on the grip
  *    toggles. A press that travels TAP_SLOP_PX is a drag and never toggles.
  *    Remembered per device.
@@ -124,7 +124,6 @@ class SiteDock {
     if (typeof ResizeObserver !== "undefined") {
       new ResizeObserver(() => syncDockHeight(this.dock)).observe(this.dock);
     }
-    this.initMinimize();
     this.initDrag();
     this.initHistory();
     initChatPanel(this.dock);
@@ -177,15 +176,6 @@ class SiteDock {
   private toggleMinimized(on: boolean): void {
     setMinimized(this.dock, on);
     this.restorePosition();
-  }
-
-  private initMinimize(): void {
-    this.dock
-      .querySelector<HTMLElement>("[data-dock-minimize]")
-      ?.addEventListener("click", () => {
-        this.toggleMinimized(true);
-        this.grabber?.focus({ preventScroll: true });
-      });
   }
 
   private initDrag(): void {

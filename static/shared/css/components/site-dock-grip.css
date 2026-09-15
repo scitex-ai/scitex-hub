@@ -91,11 +91,6 @@
   outline-offset: -2px;
 }
 
-/* Minimize: the chat window's "_" glyph at the end of the controls. */
-.site-dock-minimize svg {
-  pointer-events: none;
-}
-
 /* Minimized: a small pill of grip blocks, same anchor. Tap restores, drag moves. */
 .site-dock.site-dock--minimized {
   display: flex;

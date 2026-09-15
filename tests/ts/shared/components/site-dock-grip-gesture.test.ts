@@ -27,7 +27,7 @@ function pointer(
 
 function makeDock(): { dock: HTMLElement; grip: HTMLElement } {
   document.body.innerHTML =
-    "<nav data-site-dock><button data-dock-grabber></button><button data-dock-minimize></button></nav>";
+    "<nav data-site-dock><button data-dock-grabber></button></nav>";
   const dock = document.querySelector<HTMLElement>("[data-site-dock]")!;
   dock.getBoundingClientRect = () =>
     ({ left: 100, top: 700, width: 200, height: 100 }) as DOMRect;
@@ -76,7 +76,7 @@ describe("site dock grip gesture", () => {
   });
 
   it("a drag moves the dock", () => {
-    const { dock, grip } = makeDock();
+    const { grip } = makeDock();
     tap(grip, 0, -400);
     expect(
       window.localStorage.getItem("stx-site-dock-position"),
@@ -98,9 +98,12 @@ describe("site dock grip gesture", () => {
     expect(dock.classList.contains(MINIMIZED_CLASS)).toBe(true);
   });
 
-  it("the minimize button still minimizes", () => {
-    const { dock } = makeDock();
-    dock.querySelector<HTMLElement>("[data-dock-minimize]")!.click();
-    expect(dock.classList.contains(MINIMIZED_CLASS)).toBe(true);
+  it("Space on the pill restores the dock", () => {
+    const { dock, grip } = makeDock();
+    tap(grip);
+    grip.dispatchEvent(
+      new KeyboardEvent("keydown", { key: " ", bubbles: true }),
+    );
+    expect(dock.classList.contains(MINIMIZED_CLASS)).toBe(false);
   });
 });

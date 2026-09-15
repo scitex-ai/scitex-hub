@@ -202,6 +202,15 @@ class SiteDockOnEveryPageTest(TestCase):
         # Assert
         assert (grip.group(1), "fa-grip" in grip.group(2)) == ("Tap to minimize, drag to move", True)
 
+    def test_dock_has_no_minimize_button(self):
+        # Operator 2026-09-15 04:07: the grip tap minimizes; no "_" button.
+        # Arrange
+        url = "/apps/"
+        # Act
+        dock = _dock_html(self.client.get(url).content)
+        # Assert
+        assert "data-dock-minimize" not in dock
+
     def test_dock_phone_grip_is_a_compact_block_glyph(self):
         # Operator 2026-09-15: a 4x3 app-grid glyph, not a wide tiled strip.
         # Arrange
