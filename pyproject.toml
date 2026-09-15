@@ -665,6 +665,9 @@ markers = [
     "user: User management tests",
     "integration: Integration tests",
     "django_db: Tests requiring database access (pytest-django)",
+    # Registered here too: tests/conftest.py adds it to every item, and jobs
+    # without pytest-xdist installed still run with --strict-markers.
+    "xdist_group(name): pytest-xdist scheduling group (--dist loadgroup)",
     "security: Exploit-regression tests for confirmed security findings",
     # A guard exists to stop ONE named defect coming back. Declaring which defect is
     # not documentation: a guard whose author cannot state the defect in a sentence
