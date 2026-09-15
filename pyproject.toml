@@ -482,6 +482,9 @@ all = [
     # Without this dep pytest exits 4 with "unrecognized arguments:
     # --timeout=120".
     "pytest-timeout>=2.0",
+    # pytest-matrix passes `-n auto --dist loadfile`; without xdist pytest
+    # exits 4 on "unrecognized arguments: -n".
+    "pytest-xdist>=3.6",
     # --- Sphinx docs build (run by CI on tag) ---
     "sphinx>=7.0",
     "sphinx-rtd-theme>=2.0",
