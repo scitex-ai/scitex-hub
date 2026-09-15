@@ -79,12 +79,19 @@ export class NodeSheet {
     this.onClose = onClose;
   }
 
-  /** Visible height, so the graph can centre the node above the sheet. */
+  private isSidePanel(): boolean {
+    return window.innerWidth > 768;
+  }
+
+  /** Space the sheet covers: bottom on phones, right side on desktop. */
   height(): number {
-    // On wide screens the sheet sits in a corner, so centre in the full stage.
-    if (this.el.classList.contains("hidden") || window.innerWidth > 768)
-      return 0;
+    if (this.el.classList.contains("hidden") || this.isSidePanel()) return 0;
     return this.el.offsetHeight;
+  }
+
+  width(): number {
+    if (this.el.classList.contains("hidden") || !this.isSidePanel()) return 0;
+    return this.el.offsetWidth + 24;
   }
 
   hide(): void {
