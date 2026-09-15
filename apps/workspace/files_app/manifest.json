@@ -7,7 +7,7 @@
   "scope": "user",
   "visibility": "public",
   "availability": "available",
-  "show_in_launcher": true,
+  "show_in_launcher": false,
   "icon": "fas fa-file-lines",
   "description": "Your whole SciTeX workspace: Downloads, Recordings and every project folder. Upload, download, move, rename and delete files.",
   "license": "AGPL-3.0",

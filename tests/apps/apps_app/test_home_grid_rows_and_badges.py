@@ -149,19 +149,19 @@ class HomePagesTest(TestCase):
         # Assert
         assert keys == ["foundation", "work", "publication", "system", "tools"]
 
-    def test_foundation_group_holds_the_infrastructure_apps_and_storage(self):
+    def test_foundation_group_has_one_project_entry_and_infrastructure(self):
         # Arrange
         groups = self._groups()
         # Act
         names = [c.get("name") for c in groups[0]["cells"] if not c.get("is_planned")]
         # Assert
-        assert names == ["my_projects", "agents", "todo", "storage", "files"]
+        assert names == ["my_projects", "agents", "todo", "storage"]
 
-    def test_files_placeholder_is_gone_once_the_files_app_exists(self):
+    def test_files_is_an_internal_service_not_a_launcher_app(self):
         # Arrange
         groups = self._groups()
         # Act
-        names = [c.get("name") for g in groups for c in g["cells"] if c.get("is_planned")]
+        names = [c.get("name") for g in groups for c in g["cells"]]
         # Assert
         assert "files" not in names
 
