@@ -26,6 +26,7 @@ from django.utils import translation
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 HEADER_TEMPLATE = "global_base_partials/global_header.html"
+FOOTER_TEMPLATE = "global_base_partials/global_footer.html"
 MENU_MARKER = 'id="mobile-header-menu"'
 
 
@@ -47,6 +48,14 @@ def _render_header(language: str) -> str:
     context = {"request": request, "user": request.user, "SCITEX_FAVICON": "favicon.svg"}
     with translation.override(language):
         return render_to_string(HEADER_TEMPLATE, context)
+
+
+def _render_footer(language: str) -> str:
+    request = RequestFactory().get("/")
+    request.user = AnonymousUser()
+    context = {"request": request, "user": request.user}
+    with translation.override(language):
+        return render_to_string(FOOTER_TEMPLATE, context)
 
 
 def _menu(html: str) -> str:
@@ -95,19 +104,19 @@ def test_close_control_starts_collapsed():
     assert 'aria-expanded="false"' in tag
 
 
-def test_ja_menu_translates_toggle_dark_mode():
+def test_ja_menu_translates_switch_to_dark_mode():
     # Arrange
-    expected = "ダークモード切り替え"
+    expected = "ダークモードに切り替える"
     # Act
     menu = _menu(_render_header("ja"))
     # Assert
     assert expected in menu
 
 
-def test_en_menu_keeps_toggle_dark_mode():
+def test_en_menu_keeps_switch_to_dark_mode():
     """Control for the test above."""
     # Arrange
-    expected = "Toggle dark mode"
+    expected = "Switch to dark mode"
     # Act
     menu = _menu(_render_header("en"))
     # Assert
@@ -130,3 +139,23 @@ def test_ja_close_label_is_translated():
     tag = _hamburger_tag(html)
     # Assert
     assert 'data-label-close="メニューを閉じる"' in tag
+
+
+@pytest.mark.parametrize(
+    ("language", "href", "label"),
+    [
+        ("en", "/tokushoho-en/", "Legal Notice"),
+        ("ja", "/tokushoho/", "特定商取引法に基づく表記"),
+    ],
+)
+def test_legal_notice_link_follows_the_active_language(language, href, label):
+    menu = _menu(_render_header(language))
+    assert f'href="{href}"' in menu and f"<span>{label}</span>" in menu
+
+
+@pytest.mark.parametrize(
+    ("language", "company"),
+    [("en", "SciTeX Inc"), ("ja", "株式会社SciTeX")],
+)
+def test_footer_company_name_follows_the_active_language(language, company):
+    assert company in _render_footer(language)

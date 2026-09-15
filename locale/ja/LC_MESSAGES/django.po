@@ -5807,6 +5807,15 @@ msgstr "メニュー"
 msgid "Toggle dark mode"
 msgstr "ダークモード切り替え"
 
+msgid "Switch to dark mode"
+msgstr "ダークモードに切り替える"
+
+msgid "Switch to light mode"
+msgstr "ライトモードに切り替える"
+
+msgid "SciTeX Inc"
+msgstr "株式会社SciTeX"
+
 #: templates/global_base_partials/global_header.html
 msgid "Workspace"
 msgstr "ワークスペース"

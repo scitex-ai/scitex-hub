@@ -49,11 +49,10 @@ EXPECTED_TILE_ORDER = [
     "Agents",
     "Cards",
     "Storage",
-    "Files",
     # WORK (Stats keeps its slot until its app lands)
     "Scholar",
+    "Stats",
     "FigRecipe",
-    "stats",
     "Writer",
     "Chat",
     "Clew",
@@ -89,6 +88,9 @@ def _manifest_labels():
     for path in manifests + links:
         data = json.loads(path.read_text(encoding="utf-8"))
         labels[data["name"]] = data["label"]
+    from apps.workspace.apps_app.planned_apps import PLANNED_APPS
+
+    labels.update({app.id: app.name_en for app in PLANNED_APPS})
     return labels
 
 
@@ -132,13 +134,13 @@ class GridLauncherTest(TestCase):
         # Assert
         assert labels.get("my_projects") == "My Projects"
 
-    def test_mobile_menu_offers_my_projects(self):
+    def test_mobile_menu_does_not_duplicate_my_projects(self):
         # Arrange
         self.client.force_login(self.staff)
         # Act
         response = self.client.get("/apps/my-projects/")
         # Assert
-        assert b"<span>My Projects</span>" in response.content
+        assert b"<span>My Projects</span>" not in response.content
 
 
 @pytest.fixture(name="compiled_catalogs")
