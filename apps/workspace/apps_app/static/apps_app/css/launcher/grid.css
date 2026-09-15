@@ -67,36 +67,37 @@
   pointer-events: none;
 }
 
+/* Group bands alternate brand washes: navy, gold, slate. */
 .launcher-group[data-group="foundation"] {
-  --launcher-band: rgba(59, 130, 246, 0.08); /* blue */
+  --launcher-band: rgba(26, 42, 64, 0.06); /* navy */
 }
 
 .launcher-group[data-group="work"] {
-  --launcher-band: rgba(16, 185, 129, 0.08); /* green */
+  --launcher-band: rgba(184, 149, 106, 0.1); /* gold */
 }
 
 .launcher-group[data-group="publish"] {
-  --launcher-band: rgba(168, 85, 247, 0.08); /* violet */
+  --launcher-band: rgba(86, 96, 109, 0.08); /* slate */
 }
 
 .launcher-group[data-group="system"] {
-  --launcher-band: rgba(245, 158, 11, 0.09); /* amber */
+  --launcher-band: rgba(26, 42, 64, 0.06); /* navy */
 }
 
 [data-theme="dark"] .launcher-group[data-group="foundation"] {
-  --launcher-band: rgba(96, 165, 250, 0.1);
+  --launcher-band: rgba(152, 172, 198, 0.08);
 }
 
 [data-theme="dark"] .launcher-group[data-group="work"] {
-  --launcher-band: rgba(52, 211, 153, 0.09);
+  --launcher-band: rgba(212, 168, 122, 0.08);
 }
 
 [data-theme="dark"] .launcher-group[data-group="publish"] {
-  --launcher-band: rgba(192, 132, 252, 0.1);
+  --launcher-band: rgba(170, 179, 191, 0.07);
 }
 
 [data-theme="dark"] .launcher-group[data-group="system"] {
-  --launcher-band: rgba(251, 191, 36, 0.09);
+  --launcher-band: rgba(152, 172, 198, 0.08);
 }
 
 .launcher-tile {
