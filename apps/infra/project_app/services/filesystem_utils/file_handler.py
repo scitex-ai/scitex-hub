@@ -6,12 +6,12 @@ This class aggregates functionality from other modules.
 """
 
 from pathlib import Path
-from typing import List, Dict, Tuple
+from typing import Dict, List, Tuple
 
-from .constants import VIEWABLE_EXTENSIONS, BINARY_EXTENSIONS, IGNORE_PATTERNS
-from .file_operations import get_file_info, read_file_content, write_file_content
-from .directory_operations import list_directory, get_directory_stats, find_files
+from .constants import BINARY_EXTENSIONS, IGNORE_PATTERNS, VIEWABLE_EXTENSIONS
+from .directory_operations import find_files, get_directory_stats, list_directory
 from .file_detection import is_text_file, quick_hash
+from .file_operations import get_file_info, read_file_content, write_file_content
 
 
 class NativeFileHandler:
@@ -48,10 +48,16 @@ class NativeFileHandler:
 
     @staticmethod
     def write_file_content(
-        file_path: Path, content: str, create_dirs: bool = True
+        file_path: Path,
+        content: str,
+        create_dirs: bool = True,
+        *,
+        trusted_root: Path,
     ) -> Tuple[bool, str]:
         """Write content directly to filesystem."""
-        return write_file_content(file_path, content, create_dirs)
+        return write_file_content(
+            file_path, content, create_dirs, trusted_root=trusted_root
+        )
 
     @staticmethod
     def is_text_file(file_path: Path) -> bool:
