@@ -93,9 +93,9 @@ def list_jobs(user: Optional[str] = None, state: Optional[str] = None) -> Dict:
     except subprocess.TimeoutExpired:
         logger.error("SLURM squeue command timed out")
         return _error_response("SLURM command timed out")
-    except Exception as e:
-        logger.error(f"Error listing jobs: {str(e)}")
-        return _error_response(str(e))
+    except Exception:
+        logger.exception("Error listing SLURM jobs")
+        return _error_response("Unable to list jobs.")
 
 
 def _parse_job_line(line: str) -> Optional[Dict]:

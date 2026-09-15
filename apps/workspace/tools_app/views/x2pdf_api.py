@@ -57,7 +57,18 @@ def _dispatch(request, job_id: str) -> None:
 
 
 def _public(meta: dict, job_id: str) -> dict:
-    keys = ("status", "kind", "title", "pages", "notes", "size", "filename", "error", "original_name", "url")
+    keys = (
+        "status",
+        "kind",
+        "title",
+        "pages",
+        "notes",
+        "size",
+        "filename",
+        "error",
+        "original_name",
+        "url",
+    )
     return {"job": job_id, **{k: meta[k] for k in keys if k in meta}}
 
 
@@ -71,7 +82,10 @@ def api_x2pdf_create(request):
     if upload is not None:
         if upload.size > MAX_INPUT_BYTES:
             return JsonResponse(
-                {"error": _("The file is larger than %(mb)d MB.") % {"mb": MAX_INPUT_BYTES // (1024 * 1024)}},
+                {
+                    "error": _("The file is larger than %(mb)d MB.")
+                    % {"mb": MAX_INPUT_BYTES // (1024 * 1024)}
+                },
                 status=413,
             )
         job_id = jobs.create_job(request.user, upload=upload)
@@ -80,8 +94,10 @@ def api_x2pdf_create(request):
             url = "https://" + url
         try:
             validate_url(url)
-        except UnsafeURLError as exc:
-            return JsonResponse({"error": str(exc)}, status=400)
+        except UnsafeURLError:
+            return JsonResponse(
+                {"error": _("The supplied URL is not allowed.")}, status=400
+            )
         job_id = jobs.create_job(request.user, url=url)
     _dispatch(request, job_id)
     path = jobs.job_dir(request.user, job_id)
@@ -106,7 +122,11 @@ def api_x2pdf_status(request, job_id):
 def api_x2pdf_pdf(request, job_id):
     path = jobs.job_dir(request.user, job_id)
     meta = jobs.read_meta(path) if path else {}
-    if path is None or meta.get("status") != "done" or not (path / "output.pdf").is_file():
+    if (
+        path is None
+        or meta.get("status") != "done"
+        or not (path / "output.pdf").is_file()
+    ):
         return JsonResponse({"error": _("Conversion not found.")}, status=404)
     return FileResponse(
         open(path / "output.pdf", "rb"),
@@ -125,6 +145,8 @@ def api_x2pdf_save(request, job_id):
     meta = jobs.read_meta(path) if path else {}
     if path is None or meta.get("status") != "done":
         return JsonResponse({"error": _("Conversion not found.")}, status=404)
-    saved = save_to_downloads(request.user, meta.get("filename") or "converted.pdf", path / "output.pdf")
+    saved = save_to_downloads(
+        request.user, meta.get("filename") or "converted.pdf", path / "output.pdf"
+    )
     rel = saved.relative_to(user_root(request.user)).as_posix()
     return JsonResponse({"saved": rel, "files_url": "/apps/files/"})

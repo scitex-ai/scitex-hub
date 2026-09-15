@@ -12,6 +12,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 
+from apps.security import safe_log_field
+
 from ..services.citation_graph import get_citation_graph_service
 
 logger = logging.getLogger(__name__)
@@ -84,9 +86,9 @@ def build_network(request, service=None):
 
         use_cache = request.GET.get("no_cache", "false").lower() != "true"
 
-    except ValueError as e:
+    except ValueError:
         return Response(
-            {"error": f"Invalid parameter: {str(e)}"},
+            {"error": "Invalid numeric parameter."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -110,10 +112,10 @@ def build_network(request, service=None):
             {"error": "Citation graph service unavailable - database not configured"},
             status=status.HTTP_503_SERVICE_UNAVAILABLE,
         )
-    except Exception as e:
-        logger.error(f"Error building citation network for {doi}: {e}", exc_info=True)
+    except Exception:
+        logger.exception("Error building citation network for %s", safe_log_field(doi))
         return Response(
-            {"error": f"Failed to build citation network: {str(e)}"},
+            {"error": "Unable to build citation network."},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -153,9 +155,9 @@ def build_network_multi(request, service=None):
         num_related = int(request.GET.get("num_related_per_doi", 20))
         num_related = max(1, min(num_related, 50))
         use_cache = request.GET.get("no_cache", "false").lower() != "true"
-    except ValueError as e:
+    except ValueError:
         return Response(
-            {"error": f"Invalid parameter: {str(e)}"},
+            {"error": "Invalid numeric parameter."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -174,10 +176,10 @@ def build_network_multi(request, service=None):
             {"error": "Citation graph service unavailable"},
             status=status.HTTP_503_SERVICE_UNAVAILABLE,
         )
-    except Exception as e:
-        logger.error(f"Error building multi-DOI network: {e}", exc_info=True)
+    except Exception:
+        logger.exception("Error building multi-DOI network")
         return Response(
-            {"error": f"Failed to build citation network: {str(e)}"},
+            {"error": "Unable to build citation network."},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -211,9 +213,9 @@ def build_network_query(request, service=None):
         search_limit = int(request.GET.get("search_limit", 10))
         search_limit = max(1, min(search_limit, 20))
         use_cache = request.GET.get("no_cache", "false").lower() != "true"
-    except ValueError as e:
+    except ValueError:
         return Response(
-            {"error": f"Invalid parameter: {str(e)}"},
+            {"error": "Invalid numeric parameter."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -233,10 +235,10 @@ def build_network_query(request, service=None):
             {"error": "Citation graph service unavailable"},
             status=status.HTTP_503_SERVICE_UNAVAILABLE,
         )
-    except Exception as e:
-        logger.error(f"Error building query network for '{query}': {e}", exc_info=True)
+    except Exception:
+        logger.exception("Error building query network for %s", safe_log_field(query))
         return Response(
-            {"error": f"Failed to build citation network: {str(e)}"},
+            {"error": "Unable to build citation network."},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -292,9 +294,9 @@ def get_related_papers(request, service=None):
 
         use_cache = request.GET.get("no_cache", "false").lower() != "true"
 
-    except ValueError as e:
+    except ValueError:
         return Response(
-            {"error": f"Invalid parameter: {str(e)}"},
+            {"error": "Invalid numeric parameter."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -308,10 +310,10 @@ def get_related_papers(request, service=None):
             status=status.HTTP_200_OK,
         )
 
-    except Exception as e:
-        logger.error(f"Error getting related papers for {doi}: {e}", exc_info=True)
+    except Exception:
+        logger.exception("Error getting related papers for %s", safe_log_field(doi))
         return Response(
-            {"error": f"Failed to get related papers: {str(e)}"},
+            {"error": "Unable to get related papers."},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -362,10 +364,10 @@ def paper_summary(request):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-    except Exception as e:
-        logger.error(f"Error getting paper summary for {doi}: {e}", exc_info=True)
+    except Exception:
+        logger.exception("Error getting paper summary for %s", safe_log_field(doi))
         return Response(
-            {"error": f"Failed to get paper summary: {str(e)}"},
+            {"error": "Unable to get paper summary."},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
@@ -392,9 +394,9 @@ def health(request):
         health_status = service.health_check()
         return Response(health_status, status=status.HTTP_200_OK)
 
-    except Exception as e:
-        logger.error(f"Health check failed: {e}", exc_info=True)
+    except Exception:
+        logger.exception("Citation graph health check failed")
         return Response(
-            {"status": "unhealthy", "error": str(e)},
+            {"status": "unhealthy", "error": "Citation graph service unavailable."},
             status=status.HTTP_503_SERVICE_UNAVAILABLE,
         )

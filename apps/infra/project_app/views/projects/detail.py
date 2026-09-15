@@ -9,8 +9,10 @@ Display project details with GitHub-style file browser and README.
 from __future__ import annotations
 
 import logging
+from urllib.parse import quote
 
 from django.shortcuts import redirect, render
+from django.urls import reverse
 
 from ...decorators import project_access_required
 from ...models import ProjectFork, ProjectStar, ProjectWatch
@@ -227,8 +229,14 @@ def project_tree_or_blob(request, username, slug, branch=None, path=None):
     folder = (path or "").strip("/")
     if wants_repository_view(request):
         if folder:
-            return redirect(f"/{username}/{slug}/{folder}/")
-        return redirect(f"/{username}/{slug}/?view={REPOSITORY_VIEW}")
+            detail_url = reverse(
+                "project_app:detail", kwargs={"username": username, "slug": slug}
+            )
+            return redirect(f"{detail_url}{quote(folder, safe='/')}/")
+        detail_url = reverse(
+            "project_app:detail", kwargs={"username": username, "slug": slug}
+        )
+        return redirect(f"{detail_url}?view={REPOSITORY_VIEW}")
     # GitHub also serves files under /tree/: /tree/main/AGENTS.md opens the
     # file in the viewer instead of trying to expand a folder of that name.
     focus_path, open_file = resolve_tree_path(project, folder)

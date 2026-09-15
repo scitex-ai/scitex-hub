@@ -9,6 +9,8 @@ import subprocess
 from pathlib import Path
 from typing import Dict, Optional
 
+from apps.security import safe_log_field
+
 from .script_generator import create_batch_script
 
 logger = logging.getLogger(__name__)
@@ -62,16 +64,20 @@ def submit_job(
             time_limit=time_limit,
             env_vars=env_vars or {},
         )
-    except ValueError as e:
-        logger.warning(f"Rejected job submission for user {user_id}: {e}")
-        return {"success": False, "message": str(e)}
+    except ValueError:
+        logger.warning(
+            "Rejected job submission for user %s",
+            safe_log_field(user_id),
+            exc_info=True,
+        )
+        return {"success": False, "message": "Invalid job configuration."}
 
     # Save batch file
     batch_file = job_scripts_dir / f"job_{user_id}_{job_name}.sh"
     batch_file.write_text(batch_script)
     batch_file.chmod(0o755)
 
-    logger.info(f"Created batch script: {batch_file}")
+    logger.info("Created batch script: %s", safe_log_field(batch_file))
 
     # Submit to SLURM
     cmd = ["sbatch", str(batch_file)]
@@ -87,10 +93,9 @@ def submit_job(
             "partition": partition,
             "message": f"Job {job_id} submitted successfully",
         }
-    except subprocess.CalledProcessError as e:
-        error_msg = e.stderr.strip()
-        logger.error(f"Job submission failed for user {user_id}: {error_msg}")
-        return {"success": False, "message": error_msg}
+    except subprocess.CalledProcessError:
+        logger.exception("Job submission failed for user %s", safe_log_field(user_id))
+        return {"success": False, "message": "Job submission failed."}
 
 
 def get_job_status(job_id: int) -> Dict:
