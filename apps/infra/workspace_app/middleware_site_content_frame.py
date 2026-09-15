@@ -83,7 +83,8 @@ def inject_frame_stylesheet(request, response) -> None:
     body = body[:head_end] + link + body[head_end:]
     header = _leaf_header(request, body)
     if header:
-        body_open = re.search(r"<body[^>]*>", body)
+        # Search past </head>: inline scripts in the head spell out "<body>".
+        body_open = re.compile(r"<body[^>]*>").search(body, body.find("</head>"))
         if body_open:
             body = body[: body_open.end()] + header + body[body_open.end():]
     data = body.encode(charset)
