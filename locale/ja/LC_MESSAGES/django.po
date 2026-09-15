@@ -6856,3 +6856,93 @@ msgstr "セルフホストのライセンスと料金"
 #: apps/infra/public_app/templates/public_app/pages/setup.html
 msgid "Why open source"
 msgstr "オープンソースである理由"
+
+# --- X2PDF tool (apps/workspace/tools_app) ---
+#: apps/workspace/tools_app/templates/tools_app/tools/x2pdf.html
+msgid "X2PDF: convert any file or URL to PDF | SciTeX"
+msgstr "X2PDF：ファイルやURLをPDFに変換 | SciTeX"
+
+#: apps/workspace/tools_app/templates/tools_app/tools/x2pdf.html
+msgid "Convert Word, HTML, Markdown, images, text or a web page URL to PDF, then save it to Files or download it."
+msgstr "Word、HTML、Markdown、画像、テキスト、WebページのURLをPDFに変換し、ファイルに保存またはダウンロードできます。"
+
+#: apps/workspace/tools_app/templates/tools_app/tools/x2pdf.html
+msgid "Back to Tools"
+msgstr "ツール一覧に戻る"
+
+#: apps/workspace/tools_app/templates/tools_app/tools/x2pdf.html
+msgid "Drop any file, or paste a web page URL, and get a PDF back. Conversion is best effort and runs on SciTeX servers."
+msgstr "ファイルをドロップするか、WebページのURLを貼り付けるとPDFに変換します。変換はベストエフォートで、SciTeXのサーバー上で行われます。"
+
+#: apps/workspace/tools_app/templates/tools_app/tools/x2pdf.html
+msgid "Choose a file or drop it here"
+msgstr "ファイルを選択、またはここにドロップ"
+
+#: apps/workspace/tools_app/templates/tools_app/tools/x2pdf.html
+#, python-format
+msgid "Word, HTML, Markdown, images, text and code, PDF. Up to %(max_mb)s MB."
+msgstr "Word、HTML、Markdown、画像、テキスト・コード、PDF に対応。最大 %(max_mb)s MB。"
+
+#: apps/workspace/tools_app/templates/tools_app/tools/x2pdf.html
+msgid "Web page URL"
+msgstr "WebページのURL"
+
+#: apps/workspace/tools_app/templates/tools_app/tools/x2pdf.html
+msgid "Convert URL"
+msgstr "URLを変換"
+
+#: apps/workspace/tools_app/templates/tools_app/tools/x2pdf.html
+msgid "Save to Files"
+msgstr "ファイルに保存"
+
+#: apps/workspace/tools_app/templates/tools_app/tools/x2pdf.html
+msgid "Convert another"
+msgstr "別のファイルを変換"
+
+#: apps/workspace/tools_app/templates/tools_app/tools/x2pdf.html
+msgid "PDF preview"
+msgstr "PDFプレビュー"
+
+#: apps/workspace/tools_app/views/x2pdf_api.py
+#, python-format
+msgid "Converting %s"
+msgstr "%s を変換中"
+
+#: apps/workspace/tools_app/views/x2pdf_api.py
+msgid "Conversion failed."
+msgstr "変換に失敗しました。"
+
+#: apps/workspace/tools_app/views/x2pdf_api.py
+msgid "Choose a file or enter a URL."
+msgstr "ファイルを選択するか、URLを入力してください。"
+
+#: apps/workspace/tools_app/views/x2pdf_api.py
+msgid "Sign in to use this tool, then try again."
+msgstr "このツールを使うにはサインインしてから、もう一度お試しください。"
+
+#: apps/workspace/tools_app/views/x2pdf_api.py
+#, python-format
+msgid "The server returned %s without a JSON body."
+msgstr "サーバーが JSON 以外の応答を返しました（%s）。"
+
+#: apps/workspace/tools_app/views/x2pdf_api.py
+msgid "1 page"
+msgstr "1ページ"
+
+#: apps/workspace/tools_app/views/x2pdf_api.py
+#, python-format
+msgid "%s pages"
+msgstr "%sページ"
+
+#: apps/workspace/tools_app/views/x2pdf_api.py
+msgid "Saved to Files:"
+msgstr "ファイルに保存しました："
+
+#: apps/workspace/tools_app/views/x2pdf_api.py
+#, python-format
+msgid "The file is larger than %(mb)d MB."
+msgstr "ファイルが %(mb)d MB を超えています。"
+
+#: apps/workspace/tools_app/views/x2pdf_api.py
+msgid "Conversion not found."
+msgstr "変換結果が見つかりません。"

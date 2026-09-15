@@ -1,0 +1,388 @@
+{% extends base_template|default:"global_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "X2PDF: convert any file or URL to PDF | SciTeX" %}{% endblock %}
+{% block meta_description %}
+    {% trans "Convert Word, HTML, Markdown, images, text or a web page URL to PDF, then save it to Files or download it." %}
+{% endblock %}
+{% block extra_css %}
+    <style>
+        .x2pdf {
+            box-sizing: border-box;
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 20px 16px 40px;
+            color: var(--workspace-text-primary, var(--text-primary));
+            font-family: inherit;
+        }
+
+        .x2pdf *,
+        .x2pdf *::before,
+        .x2pdf *::after { box-sizing: border-box; }
+
+        .x2pdf-back { font-size: 13px; color: var(--workspace-text-link, var(--color-primary)); text-decoration: none; }
+        .x2pdf-head { margin: 8px 0 18px; }
+        .x2pdf-head h1 { font-size: 22px; margin: 0 0 4px; font-weight: 600; }
+        .x2pdf-head p { margin: 0; font-size: 13px; color: var(--workspace-text-secondary, var(--text-secondary)); line-height: 1.5; }
+
+        .x2pdf-card {
+            background: var(--workspace-bg-secondary, var(--bg-surface));
+            border: 1px solid var(--workspace-border-default, var(--border-default));
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .x2pdf-drop {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            min-height: 150px;
+            padding: 20px 12px;
+            border: 2px dashed var(--workspace-border-default, var(--border-default));
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            color: var(--workspace-text-secondary, var(--text-secondary));
+            font-size: 13px;
+            transition: border-color .15s ease, background .15s ease;
+        }
+
+        .x2pdf-drop:hover,
+        .x2pdf-drop:focus-visible,
+        .x2pdf-drop.dragover {
+            border-color: var(--workspace-text-link, var(--color-primary));
+            background: var(--workspace-bg-tertiary, var(--bg-muted));
+            outline: none;
+        }
+
+        .x2pdf-drop i { font-size: 28px; color: var(--workspace-text-muted, var(--text-muted)); }
+        .x2pdf-drop strong { color: var(--workspace-text-primary, var(--text-primary)); font-size: 15px; }
+        .x2pdf-types { font-size: 11px; color: var(--workspace-text-muted, var(--text-muted)); line-height: 1.5; }
+
+        .x2pdf-or {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 14px 0;
+            font-size: 12px;
+            color: var(--workspace-text-muted, var(--text-muted));
+        }
+
+        .x2pdf-or::before,
+        .x2pdf-or::after { content: ""; flex: 1; border-top: 1px solid var(--workspace-border-default, var(--border-default)); }
+
+        .x2pdf-url { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        .x2pdf-url input {
+            flex: 1 1 220px;
+            min-width: 0;
+            height: 40px;
+            padding: 0 12px;
+            border-radius: 6px;
+            border: 1px solid var(--workspace-border-default, var(--border-default));
+            background: var(--workspace-bg-primary, var(--bg-page));
+            color: var(--workspace-text-primary, var(--text-primary));
+            font: inherit;
+            font-size: 14px;
+        }
+
+        .x2pdf-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            height: 40px;
+            padding: 0 14px;
+            border-radius: 6px;
+            border: 1px solid var(--workspace-border-default, var(--border-default));
+            background: transparent;
+            color: var(--workspace-text-primary, var(--text-primary));
+            font: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            text-decoration: none;
+        }
+
+        .x2pdf-btn:hover:not(:disabled) { background: var(--workspace-bg-tertiary, var(--bg-muted)); }
+        .x2pdf-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+        .x2pdf-btn.primary {
+            background: var(--color-primary, #4a6fa5);
+            border-color: var(--color-primary, #4a6fa5);
+            color: var(--text-on-primary, #fff);
+        }
+
+        .x2pdf-btn.primary:hover:not(:disabled) { filter: brightness(1.08); background: var(--color-primary, #4a6fa5); }
+
+        .x2pdf-progress { margin-top: 16px; }
+        .x2pdf-progress[hidden] { display: none; }
+        .x2pdf-progress-label { font-size: 13px; margin-bottom: 8px; color: var(--workspace-text-secondary, var(--text-secondary)); word-break: break-all; }
+
+        .x2pdf-bar {
+            position: relative;
+            height: 4px;
+            overflow: hidden;
+            border-radius: 2px;
+            background: var(--workspace-bg-tertiary, var(--bg-muted));
+        }
+
+        .x2pdf-bar::after {
+            content: "";
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 35%;
+            border-radius: 2px;
+            background: var(--color-primary, #4a6fa5);
+            animation: x2pdf-slide 1.2s ease-in-out infinite;
+        }
+
+        @keyframes x2pdf-slide { from { left: -35%; } to { left: 100%; } }
+
+        @media (prefers-reduced-motion: reduce) { .x2pdf-bar::after { animation: none; width: 100%; opacity: .5; } }
+
+        .x2pdf-error {
+            margin-top: 14px;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--status-error, #d9534f);
+            background: var(--workspace-bg-tertiary, var(--bg-muted));
+        }
+
+        .x2pdf-result { margin-top: 16px; }
+        .x2pdf-file { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .x2pdf-file i { font-size: 26px; color: var(--status-error, #d9534f); flex: none; }
+        .x2pdf-file-name { font-weight: 600; font-size: 14px; word-break: break-all; }
+        .x2pdf-file-meta { font-size: 12px; color: var(--workspace-text-muted, var(--text-muted)); }
+        .x2pdf-notes { margin: 8px 0 0; padding-left: 18px; font-size: 12px; color: var(--workspace-text-secondary, var(--text-secondary)); }
+        .x2pdf-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+        .x2pdf-saved { margin-top: 10px; font-size: 13px; color: var(--status-success, #3c9d5d); word-break: break-all; }
+        .x2pdf-saved a { color: inherit; }
+
+        .x2pdf-preview {
+            display: block;
+            width: 100%;
+            height: 70vh;
+            min-height: 360px;
+            margin-top: 14px;
+            border: 1px solid var(--workspace-border-default, var(--border-default));
+            border-radius: 6px;
+            background: #fff;
+        }
+
+        @media (max-width: 480px) {
+            .x2pdf { padding: 12px 12px 32px; }
+            .x2pdf-head h1 { font-size: 19px; }
+            .x2pdf-url .x2pdf-btn { flex: 1 1 100%; }
+            .x2pdf-actions .x2pdf-btn { flex: 1 1 calc(50% - 4px); }
+            .x2pdf-preview { height: 60vh; }
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="x2pdf">
+        {% if not embed %}
+            <a class="x2pdf-back" href="{% url 'tools_app:tools' %}">← {% trans "Back to Tools" %}</a>
+        {% endif %}
+        <div class="x2pdf-head">
+            <h1>X2PDF</h1>
+            <p>{% trans "Drop any file, or paste a web page URL, and get a PDF back. Conversion is best effort and runs on SciTeX servers." %}</p>
+        </div>
+        {% csrf_token %}
+        <div class="x2pdf-card">
+            <div id="x2pdfDrop" class="x2pdf-drop" role="button" tabindex="0">
+                <i class="fas fa-file-arrow-up" aria-hidden="true"></i>
+                <strong>{% trans "Choose a file or drop it here" %}</strong>
+                <span class="x2pdf-types">{% blocktrans %}Word, HTML, Markdown, images, text and code, PDF. Up to {{ max_mb }} MB.{% endblocktrans %}</span>
+            </div>
+            <input id="x2pdfFile" type="file" hidden>
+            <div class="x2pdf-or">{% trans "or" %}</div>
+            <form id="x2pdfUrlForm" class="x2pdf-url">
+                <input id="x2pdfUrl"
+                       type="url"
+                       inputmode="url"
+                       autocomplete="off"
+                       placeholder="https://example.com"
+                       aria-label="{% trans 'Web page URL' %}">
+                <button id="x2pdfUrlBtn" class="x2pdf-btn primary" type="submit">{% trans "Convert URL" %}</button>
+            </form>
+            <div id="x2pdfProgress" class="x2pdf-progress" hidden>
+                <div id="x2pdfProgressLabel" class="x2pdf-progress-label"></div>
+                <div class="x2pdf-bar"></div>
+            </div>
+            <div id="x2pdfError" class="x2pdf-error" role="alert" hidden></div>
+            <div id="x2pdfResult" class="x2pdf-result" hidden>
+                <div class="x2pdf-file">
+                    <i class="fas fa-file-pdf" aria-hidden="true"></i>
+                    <div>
+                        <div id="x2pdfName" class="x2pdf-file-name"></div>
+                        <div id="x2pdfMeta" class="x2pdf-file-meta"></div>
+                    </div>
+                </div>
+                <ul id="x2pdfNotes" class="x2pdf-notes" hidden></ul>
+                <div class="x2pdf-actions">
+                    <button id="x2pdfPreviewBtn" class="x2pdf-btn" type="button">
+                        <i class="fas fa-eye" aria-hidden="true"></i>{% trans "Preview" %}
+                    </button>
+                    <button id="x2pdfSaveBtn" class="x2pdf-btn" type="button">
+                        <i class="fas fa-folder-open" aria-hidden="true"></i>{% trans "Save to Files" %}
+                    </button>
+                    <a id="x2pdfDownload" class="x2pdf-btn primary" href="#">
+                        <i class="fas fa-download" aria-hidden="true"></i>{% trans "Download" %}
+                    </a>
+                    <button id="x2pdfResetBtn" class="x2pdf-btn" type="button">{% trans "Convert another" %}</button>
+                </div>
+                <div id="x2pdfSaved" class="x2pdf-saved" hidden></div>
+                <iframe id="x2pdfPreview" class="x2pdf-preview" title="{% trans 'PDF preview' %}" hidden></iframe>
+            </div>
+        </div>
+    </div>
+    {{ x2pdf_strings|json_script:"x2pdf-strings" }}
+    <script>
+  (function () {
+    const S = JSON.parse(document.getElementById('x2pdf-strings').textContent);
+    const API = '/apps/tools/api/x2pdf/';
+    const $ = (id) => document.getElementById(id);
+    const drop = $('x2pdfDrop'), fileInput = $('x2pdfFile'), urlForm = $('x2pdfUrlForm');
+    const urlInput = $('x2pdfUrl'), urlBtn = $('x2pdfUrlBtn');
+    const progress = $('x2pdfProgress'), progressLabel = $('x2pdfProgressLabel');
+    const errorBox = $('x2pdfError'), result = $('x2pdfResult'), preview = $('x2pdfPreview');
+    const notes = $('x2pdfNotes'), saved = $('x2pdfSaved'), saveBtn = $('x2pdfSaveBtn');
+    let job = null, busy = false;
+
+    const csrf = () => (document.querySelector('[name=csrfmiddlewaretoken]') || {}).value || '';
+
+    async function readJson(res) {
+      const text = await res.text();
+      try { return JSON.parse(text); } catch (e) {
+        if (res.redirected || res.status === 401 || res.status === 403) throw new Error(S.signIn);
+        throw new Error(S.serverError.replace('%s', res.status));
+      }
+    }
+
+    function setBusy(label) {
+      busy = !!label;
+      progress.hidden = !label;
+      progressLabel.textContent = label || '';
+      urlBtn.disabled = busy;
+      drop.setAttribute('aria-disabled', busy ? 'true' : 'false');
+    }
+
+    function showError(msg) { errorBox.textContent = msg; errorBox.hidden = !msg; }
+
+    function reset() {
+      job = null;
+      result.hidden = true;
+      preview.hidden = true;
+      preview.removeAttribute('src');
+      saved.hidden = true;
+      saveBtn.disabled = false;
+      showError('');
+    }
+
+    function sizeText(bytes) {
+      if (!bytes && bytes !== 0) return '';
+      return bytes < 1048576 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / 1048576).toFixed(1)} MB`;
+    }
+
+    async function start(form, label) {
+      if (busy) return;
+      reset();
+      setBusy(label);
+      try {
+        const res = await fetch(API, { method: 'POST', body: form, headers: { 'X-CSRFToken': csrf() } });
+        const data = await readJson(res);
+        if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+        await poll(data);
+      } catch (e) {
+        showError(e.message);
+      } finally {
+        setBusy('');
+      }
+    }
+
+    async function poll(data) {
+      const began = Date.now();
+      while (data.status === 'queued' || data.status === 'running') {
+        progressLabel.textContent = `${progressLabel.textContent.split(' · ')[0]} · ${Math.round((Date.now() - began) / 1000)}s`;
+        await new Promise((r) => setTimeout(r, 1200));
+        const res = await fetch(`${API}${data.job}/`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        data = await readJson(res);
+        if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      }
+      if (data.status !== 'done') throw new Error(data.error || S.failed);
+      job = data;
+      $('x2pdfName').textContent = data.filename;
+      const pages = data.pages === 1 ? S.onePage : S.pages.replace('%s', data.pages);
+      $('x2pdfMeta').textContent = [pages, sizeText(data.size)].filter(Boolean).join(' · ');
+      notes.innerHTML = '';
+      (data.notes || []).forEach((n) => { const li = document.createElement('li'); li.textContent = n; notes.appendChild(li); });
+      notes.hidden = !(data.notes || []).length;
+      $('x2pdfDownload').href = `${API}${data.job}/pdf/?download=1`;
+      result.hidden = false;
+    }
+
+    function chooseFile(file) {
+      if (!file) return;
+      const form = new FormData();
+      form.append('file', file);
+      start(form, S.converting.replace('%s', file.name));
+    }
+
+    drop.addEventListener('click', () => { if (!busy) fileInput.click(); });
+    drop.addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && !busy) { e.preventDefault(); fileInput.click(); } });
+    fileInput.addEventListener('change', () => { chooseFile(fileInput.files[0]); fileInput.value = ''; });
+    drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('dragover'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
+    drop.addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('dragover'); chooseFile(e.dataTransfer.files[0]); });
+
+    urlForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const url = urlInput.value.trim();
+      if (!url) { showError(S.needInput); return; }
+      const form = new FormData();
+      form.append('url', url);
+      start(form, S.converting.replace('%s', url));
+    });
+
+    $('x2pdfPreviewBtn').addEventListener('click', () => {
+      if (!job) return;
+      if (preview.hidden) {
+        preview.src = `${API}${job.job}/pdf/`;
+        preview.hidden = false;
+        preview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } else {
+        preview.hidden = true;
+      }
+    });
+
+    saveBtn.addEventListener('click', async () => {
+      if (!job) return;
+      saveBtn.disabled = true;
+      try {
+        const res = await fetch(`${API}${job.job}/save/`, { method: 'POST', headers: { 'X-CSRFToken': csrf() } });
+        const data = await readJson(res);
+        if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+        saved.textContent = '';
+        saved.append(`${S.savedTo} `);
+        const link = document.createElement('a');
+        link.href = data.files_url;
+        link.target = '_top';
+        link.textContent = data.saved;
+        saved.appendChild(link);
+        saved.hidden = false;
+      } catch (e) {
+        saveBtn.disabled = false;
+        showError(e.message);
+      }
+    });
+
+    $('x2pdfResetBtn').addEventListener('click', () => { reset(); urlInput.value = ''; });
+  })();
+    </script>
+{% endblock %}
