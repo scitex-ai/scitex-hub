@@ -226,7 +226,7 @@
 }
 
 .launcher-badge-new {
-  background: var(--app-accent-hub, #6a5a8a);
+  background: var(--color-primary, #1a2a40);
 }
 
 .launcher-sr-only {
@@ -359,8 +359,8 @@
 }
 
 .launcher-pop-item.primary {
-  background: var(--app-accent-hub, #6a5a8a);
-  color: #fff;
+  background: var(--color-primary, #1a2a40);
+  color: var(--color-on-primary, #fff);
   font-weight: 600;
 }
 
@@ -376,7 +376,7 @@
 }
 
 .launcher-tile.popover-anchor .launcher-tile-icon {
-  outline: 2px solid var(--app-accent-hub, #6a5a8a);
+  outline: 2px solid var(--stx-accent, #b8956a);
   outline-offset: 3px;
 }
 
@@ -430,7 +430,7 @@
 }
 
 .launcher-slot--add:focus-visible {
-  outline: 2px solid var(--app-accent-hub, #6a5a8a);
+  outline: 2px solid var(--stx-accent, #b8956a);
   outline-offset: 2px;
 }
 

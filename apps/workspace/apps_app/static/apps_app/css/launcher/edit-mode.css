@@ -97,7 +97,7 @@
   }
 
   .launcher-grid.edit-mode .launcher-tile .launcher-tile-icon {
-    outline: 2px dashed var(--app-accent-hub, #6a5a8a);
+    outline: 2px dashed var(--stx-accent, #b8956a);
     outline-offset: 3px;
   }
 

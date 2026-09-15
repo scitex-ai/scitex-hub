@@ -25,7 +25,7 @@ button.launcher-tile.launcher-tile--planned:hover {
 }
 
 button.launcher-tile.launcher-tile--planned:focus-visible {
-  outline: 2px solid var(--app-accent-hub, #6a5a8a);
+  outline: 2px solid var(--stx-accent, #b8956a);
   outline-offset: 2px;
 }
 
@@ -144,12 +144,12 @@ button.launcher-tile.launcher-tile--planned:focus-visible {
 
 .planned-sheet-btn--primary {
   border-color: transparent;
-  background: var(--app-accent-hub, #6a5a8a);
-  color: #fff;
+  background: var(--color-primary, #1a2a40);
+  color: var(--color-on-primary, #fff);
 }
 
 .planned-sheet-btn--primary:hover {
-  background: var(--app-accent-hub, #6a5a8a);
+  background: var(--color-primary-hover, #243752);
   filter: brightness(1.08);
 }
 

@@ -11,7 +11,10 @@
   --files-border: var(--workspace-border-default, var(--border-color, #d9dde3));
   --files-text: var(--workspace-text-primary, var(--text-primary, #1d2330));
   --files-muted: var(--workspace-text-muted, var(--text-muted, #6b7280));
-  --files-accent: var(--accent, #3b6fd8);
+  --files-accent: var(--color-primary, #1a2a40);
+  --files-on-accent: var(--color-on-primary, #fff);
+  --files-gold: var(--stx-accent, #8c6c44);
+  --files-link: var(--text-link, #2c5d8f);
   --files-danger: var(--color-danger, #d64545);
 }
 
@@ -86,14 +89,14 @@
 .files-row-more:focus-visible,
 .files-crumb:focus-visible,
 .files-sheet-action:focus-visible {
-  outline: 2px solid var(--files-accent);
+  outline: 2px solid var(--files-gold);
   outline-offset: 2px;
 }
 
 .files-btn-primary {
   background: var(--files-accent);
   border-color: var(--files-accent);
-  color: #fff;
+  color: var(--files-on-accent);
 }
 
 .files-btn-danger {
@@ -129,7 +132,7 @@
 .files-place.is-active {
   background: var(--files-accent);
   border-color: var(--files-accent);
-  color: #fff;
+  color: var(--files-on-accent);
 }
 
 .files-breadcrumb {
@@ -146,7 +149,7 @@
   padding: 0 8px;
   border: 0;
   background: transparent;
-  color: var(--files-accent);
+  color: var(--files-link);
   font: inherit;
   cursor: pointer;
 }
@@ -216,7 +219,7 @@
 
 .files-row-icon {
   width: 24px;
-  color: var(--files-accent);
+  color: var(--files-gold);
   font-size: 1.15rem;
   text-align: center;
 }
@@ -349,7 +352,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 3px dashed var(--files-accent);
+  border: 3px dashed var(--files-gold);
   border-radius: 16px;
   background: color-mix(in srgb, var(--files-bg) 85%, transparent);
   font-size: 1.2rem;
