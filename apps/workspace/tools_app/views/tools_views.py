@@ -202,8 +202,10 @@ def tool_scrape_citations(request):
 
 
 def tool_run_stats(request):
-    """Statistics Calculator tool detail page."""
-    return render(request, "tools_app/tools/run-stats.html", _tool_context(request))
+    """Old Statistics Calculator URL; the Stats app replaced it."""
+    from django.shortcuts import redirect
+
+    return redirect("/apps/stats/", permanent=False)
 
 
 # Document tools
