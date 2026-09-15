@@ -58,6 +58,10 @@ jobs:
       # workspace files stay removable by the runner and root-bypass of file
       # permissions cannot mask a test.
       options: --user 1000:1000 --cpus 8 --memory 16g
+    # Inside a job container `run:` defaults to sh, which rejects pipefail.
+    defaults:
+      run:
+        shell: bash
     strategy:
       fail-fast: false
       matrix:
