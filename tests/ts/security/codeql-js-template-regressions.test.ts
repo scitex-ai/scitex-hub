@@ -33,11 +33,11 @@ describe("CodeQL JavaScript and template regressions", () => {
     expect(sidebar).not.toMatch(/location\.href\s*=\s*href/);
   });
 
-  it("constructs workspace viewer errors as text and sanitizes logs", () => {
+  it("constructs workspace viewer errors as text without logging paths", () => {
     const viewer = source(
       "static/shared/ts/components/workspace-viewer/index.ts",
     );
-    expect(viewer).toContain("sanitizeLogValue");
+    expect(viewer).toContain('"[WorkspaceViewer] Failed to load a file"');
     expect(viewer).not.toMatch(/mediaContainer\.innerHTML\s*=/);
     expect(viewer).toContain("createViewerPlaceholder");
   });
