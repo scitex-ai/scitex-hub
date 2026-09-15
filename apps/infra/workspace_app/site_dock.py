@@ -121,6 +121,8 @@ def dock_items(path: str, user=None) -> list[DockItem]:
 
 def should_render_dock(request) -> bool:
     """The dock is for signed-in users: every target behind it requires login."""
+    if request.GET.get("embed") == "1":
+        return False  # the floating dock chat's iframe: no chrome inside it
     user = getattr(request, "user", None)
     return bool(getattr(user, "is_authenticated", False))
 
