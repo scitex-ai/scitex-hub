@@ -40,6 +40,7 @@ from apps.workspace.apps_app.views.launcher_order import (
     DEFAULT_LAUNCHER_ORDER,
     default_order_value,
 )
+from tests.tracked_source import tracked_source_files
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 
@@ -76,16 +77,15 @@ EXPECTED_TILE_ORDER = [
 
 def _manifest_labels():
     labels = {}
-    manifests = sorted((_REPO_ROOT / "apps" / "workspace").glob("*/manifest.json"))
-    manifests += sorted(
-        (_REPO_ROOT / "apps" / "workspace" / "tools_app" / "manifests").glob("*.json")
+    manifests = tracked_source_files(
+        _REPO_ROOT,
+        (
+            "apps/workspace/*/manifest.json",
+            "apps/workspace/tools_app/manifests/*.json",
+            "apps/workspace/apps_app/launcher_links/*.json",
+        ),
     )
-    links = sorted(
-        (_REPO_ROOT / "apps" / "workspace" / "apps_app" / "launcher_links").glob(
-            "*.json"
-        )
-    )
-    for path in manifests + links:
+    for path in manifests:
         data = json.loads(path.read_text(encoding="utf-8"))
         labels[data["name"]] = data["label"]
     from apps.workspace.apps_app.planned_apps import PLANNED_APPS

@@ -47,6 +47,8 @@ from pathlib import Path
 import pytest
 from django.conf import settings
 
+from tests.tracked_source import TrackedSourceFile, tracked_source_files
+
 REPO = Path(settings.BASE_DIR)
 STORE_MANIFEST = REPO / "apps" / "workspace" / "apps_app" / "manifest.json"
 GLOBAL_BASE = REPO / "templates" / "global_base.html"
@@ -75,8 +77,9 @@ def _viewport_model():
     return _load("test_app_home_launcher_not_starved_by_footer")
 
 
-def _body_classes(manifest: Path) -> list[str]:
-    return json.loads(manifest.read_text(encoding="utf-8")).get("body_class", "").split()
+def _body_classes(manifest: Path | TrackedSourceFile) -> list[str]:
+    text = manifest.text() if isinstance(manifest, TrackedSourceFile) else manifest.read_text(encoding="utf-8")
+    return json.loads(text).get("body_class", "").split()
 
 
 def test_store_manifest_declares_the_launcher_marker() -> None:
@@ -117,10 +120,10 @@ def test_the_control_a_store_page_without_the_marker_hides_the_footer(footer_mod
 
 def test_the_inventory_of_launcher_surfaces_is_exactly_the_store() -> None:
     # Arrange — every module manifest that claims the launcher-surface marker.
-    manifests = sorted((REPO / "apps").rglob("manifest.json"))
+    manifests = tracked_source_files(REPO, ("apps/**/manifest.json",))
     # Act
     claiming = sorted(
-        m.parent.name for m in manifests if "app-home" in _body_classes(m)
+        Path(m.path).parent.name for m in manifests if "app-home" in _body_classes(m)
     )
     # Assert — `/` gets the marker from global_base.html, not a manifest; the
     # store is the only module that is a launcher rather than a workspace.

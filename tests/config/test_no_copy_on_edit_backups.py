@@ -49,10 +49,11 @@ are tracked.
 """
 
 import re
-import subprocess
 from pathlib import Path
 
 import pytest
+
+from tests.tracked_source import tracked_source_files
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -94,13 +95,7 @@ _EXEMPT_PARTS = frozenset(
 
 def _tracked_paths() -> frozenset:
     """Every path git tracks, repo-relative. Empty set is a hard failure, not 'clean'."""
-    completed = subprocess.run(
-        ["git", "-C", str(_REPO_ROOT), "ls-files", "-z"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    return frozenset(p for p in completed.stdout.split("\0") if p)
+    return frozenset(source.path for source in tracked_source_files(_REPO_ROOT))
 
 
 def _strip_backup_suffix(name: str) -> "str | None":
@@ -113,11 +108,10 @@ def _strip_backup_suffix(name: str) -> "str | None":
 
 
 def _candidate_files():
-    """Every file under the repo, skipping trees we do not police."""
-    for path in _REPO_ROOT.rglob("*"):
-        if not path.is_file():
-            continue
-        if _EXEMPT_PARTS.intersection(path.relative_to(_REPO_ROOT).parts):
+    """Every tracked index path, excluding explicitly unpoliced trees."""
+    for source in tracked_source_files(_REPO_ROOT):
+        path = Path(source.path)
+        if _EXEMPT_PARTS.intersection(path.parts):
             continue
         yield path
 
@@ -127,7 +121,7 @@ def _shadow_copies_of_tracked_files():
     tracked = _tracked_paths()
     found = []
     for path in _candidate_files():
-        relative = path.relative_to(_REPO_ROOT)
+        relative = path
         original_name = _strip_backup_suffix(relative.name)
         if original_name is None:
             continue
