@@ -357,6 +357,33 @@ def build_container(
             "error": "apptainer not found on PATH",
         }
 
+    # apptainer shells out to mksquashfs to write the SIF, so a present
+    # apptainer is not sufficient. Without this the build starts and fails
+    # DEEP, and the reader is then debugging apptainer instead of reading a
+    # refusal from us:
+    #     FATAL: while searching for mksquashfs: exec: "mksquashfs":
+    #     executable file not found in $PATH
+    # Measured 2026-08-26 in BOTH the prod and staging images (byte-identical
+    # error, prod still privileged at the time — so it is the image, not the
+    # container's privileges).
+    #
+    # The message names the REMEDY and the SCOPE, not just the absence. The
+    # scope half matters: this binary is needed by `apptainer build` and NOT by
+    # `apptainer exec`, so a reader whose workspace launches fine does not need
+    # to wonder whether this is their problem. Hub's own workspace path
+    # (console_app/services/apptainer_runner.py) only ever execs a PREBUILT
+    # container, which is why the images have shipped without mksquashfs for
+    # months without anyone noticing.
+    if not shutil.which("mksquashfs"):
+        return {
+            "success": False,
+            "sif_path": "",
+            "error": (
+                "mksquashfs not found on PATH (install squashfs-tools; "
+                "required for `apptainer build`, not for `apptainer exec`)"
+            ),
+        }
+
     out = output_dir or app_dir
     out.mkdir(parents=True, exist_ok=True)
     sif_name = def_path.stem + ".sif"

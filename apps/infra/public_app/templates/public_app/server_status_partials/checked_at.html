@@ -1,0 +1,1 @@
+{% comment %}Server renders UTC in the active language; local-time.js swaps in the viewer's zone.{% endcomment %}<time id="checked-at" datetime="{{ status.checked_at }}" data-local-time>{% if status.checked_at_dt %}{{ status.checked_at_dt|date:"DATETIME_FORMAT" }} UTC{% else %}{{ status.checked_at }}{% endif %}</time>

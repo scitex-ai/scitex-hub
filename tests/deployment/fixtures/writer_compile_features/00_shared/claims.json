@@ -1,0 +1,9 @@
+{
+  "version": "1.0",
+  "claims": {
+    "fixture_claim": {
+      "type": "citation",
+      "value": {"text": "The feature fixture claim resolved."}
+    }
+  }
+}

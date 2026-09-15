@@ -1,11 +1,8 @@
 {% extends 'global_base.html' %}
 
-{% load static %}
+{% load static i18n %}
 
-{% block title %}
-    Appearance -
-    Settings - SciTeX
-{% endblock %}
+{% block title %}{% trans "Appearance" %} - {% trans "Settings" %} - SciTeX{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/layouts/settings-layout.css' %}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/theme-cards.css' %}" />
@@ -88,40 +85,42 @@
             <!-- Right Content -->
             <main class="settings-content">
                 <div class="settings-header">
-                    <h1 class="settings-title">Appearance</h1>
-                    <p class="settings-subtitle">Customize how SciTeX looks and feels for you</p>
+                    <h1 class="settings-title">{% trans "Appearance" %}</h1>
+                    <p class="settings-subtitle">{% trans "Customize how SciTeX looks and feels for you" %}</p>
                 </div>
                 <details class="settings-details">
                     <summary class="settings-summary">
-                        <i class="fas fa-palette"></i> Theme mode
+                        <i class="fas fa-palette"></i> {% trans "Theme mode" %}
                     </summary>
                     <div class="theme-options">
-                        <p class="appearance-description">Choose how SciTeX looks to you. Select between light and dark themes.</p>
+                        <p class="appearance-description">{% trans "Choose how SciTeX looks to you. Select between light and dark themes." %}</p>
                         <div class="theme-modes">
                             <div class="theme-mode-card"
                                  id="mode-light"
                                  onclick="window.SciTeX.theme.set('light')">
                                 <div class="theme-mode-icon">☀️</div>
-                                <div class="theme-mode-title">Light</div>
-                                <div class="theme-mode-desc">Use light theme</div>
+                                <div class="theme-mode-title">{% trans "Light" %}</div>
+                                <div class="theme-mode-desc">{% trans "Use light theme" %}</div>
                             </div>
                             <div class="theme-mode-card"
                                  id="mode-dark"
                                  onclick="window.SciTeX.theme.set('dark')">
                                 <div class="theme-mode-icon">🌙</div>
-                                <div class="theme-mode-title">Dark</div>
-                                <div class="theme-mode-desc">Use dark theme</div>
+                                <div class="theme-mode-title">{% trans "Dark" %}</div>
+                                <div class="theme-mode-desc">{% trans "Use dark theme" %}</div>
                             </div>
                         </div>
                         <div class="theme-preview">
-                            <h3 class="preview-title">Preview</h3>
+                            <h3 class="preview-title">{% trans "Preview" %}</h3>
                             <div class="preview-box">
-                                <h3>Sample Content</h3>
+                                <h3>{% trans "Sample Content" %}</h3>
                                 <p>
-                                    This is how text and content will appear with your selected theme.
-                                    Links look like <a href="#">this</a> and buttons look like this:
+                                    {% blocktrans trimmed %}
+                                        This is how text and content will appear with your selected theme.
+                                        Links look like <a href="#">this</a> and buttons look like this:
+                                    {% endblocktrans %}
                                 </p>
-                                <button>Example Button</button>
+                                <button>{% trans "Example Button" %}</button>
                             </div>
                         </div>
                     </div>
@@ -129,18 +128,20 @@
                 <!-- Code Highlighting Themes Section -->
                 <details class="settings-details">
                     <summary class="settings-summary">
-                        <i class="fas fa-code"></i> Code highlighting themes
+                        <i class="fas fa-code"></i> {% trans "Code highlighting themes" %}
                     </summary>
                     <div class="theme-options code-theme-section">
                         <p class="appearance-description">
-                            Choose syntax highlighting themes for code viewing. You can select
-                            different themes for light and dark modes.
+                            {% blocktrans trimmed %}
+                                Choose syntax highlighting themes for code viewing. You can select
+                                different themes for light and dark modes.
+                            {% endblocktrans %}
                         </p>
                         <!-- Dark Mode Code Theme -->
                         <div class="code-theme-section">
-                            <label for="code-theme-dark-selector" class="code-theme-label">Dark mode code theme</label>
+                            <label for="code-theme-dark-selector" class="code-theme-label">{% trans "Dark mode code theme" %}</label>
                             <select id="code-theme-dark-selector" class="form-select code-theme-selector">
-                                <option value="nord">Nord (Default)</option>
+                                <option value="nord">Nord ({% trans "Default" %})</option>
                                 <option value="tokyo-night-dark">Tokyo Night Dark</option>
                                 <option value="dracula">Dracula</option>
                                 <option value="monokai">Monokai</option>
@@ -151,22 +152,24 @@
                         </div>
                         <!-- Light Mode Code Theme -->
                         <div>
-                            <label for="code-theme-light-selector" class="code-theme-label">Light mode code theme</label>
+                            <label for="code-theme-light-selector" class="code-theme-label">{% trans "Light mode code theme" %}</label>
                             <select id="code-theme-light-selector" class="form-select code-theme-selector">
                                 <option value="tokyo-night-light">Tokyo Night Light</option>
                                 <option value="atom-one-light">Atom One Light</option>
                                 <option value="github">GitHub Light</option>
                                 <option value="stackoverflow-light">StackOverflow Light</option>
-                                <option value="default">Default</option>
+                                <option value="default">{% trans "Default" %}</option>
                                 <option value="xcode">Xcode</option>
                             </select>
                         </div>
                         <!-- Code Preview -->
                         <div class="code-theme-section">
-                            <h3 class="code-preview-header">Preview</h3>
+                            <h3 class="code-preview-header">{% trans "Preview" %}</h3>
                             <p class="code-preview-description">
-                                This preview shows how code will appear with your selected theme.
-                                Try changing themes to see the difference.
+                                {% blocktrans trimmed %}
+                                    This preview shows how code will appear with your selected theme.
+                                    Try changing themes to see the difference.
+                                {% endblocktrans %}
                             </p>
                             <div class="code-preview-container">
                                 <div class="code-preview-lang-bar">
@@ -195,12 +198,31 @@ print(f"Mean: {stats['mean']:.2f}")</code></pre>
                         </div>
                     </div>
                 </details>
+                <details class="settings-details" id="getting-started-settings" open>
+                    <summary class="settings-summary">
+                        <i class="fas fa-list-check"></i> {% trans "Getting started" %}
+                    </summary>
+                    <div class="theme-options">
+                        <p class="appearance-description">{% trans "Bring the Getting started checklist back to Home." %}</p>
+                        <form method="post" action="{% url 'first_run_reshow' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-secondary">{% trans "Show Getting started again" %}</button>
+                        </form>
+                    </div>
+                </details>
             </main>
         </div>
     </div>
     <!-- Load highlight.js for code preview -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script>
+  {% trans "Preferences saved" as t_saved %}{% trans "Failed to save" as t_failed %}{% trans "Error saving" as t_error %}
+  const APPEARANCE_I18N = {
+    saved: "✓ {{ t_saved|escapejs }}",
+    failed: "✗ {{ t_failed|escapejs }}",
+    error: "✗ {{ t_error|escapejs }}",
+  };
+
   // Helper function to get CSRF token
   function getCookie(name) {
     let cookieValue = null;
@@ -289,13 +311,13 @@ print(f"Mean: {stats['mean']:.2f}")</code></pre>
         const data = await response.json();
 
         if (data.success) {
-          statusEl.textContent = "✓ Preferences saved";
+          statusEl.textContent = APPEARANCE_I18N.saved;
           statusEl.style.color = "var(--color-success-fg)";
           setTimeout(() => {
             statusEl.textContent = "";
           }, 2000);
         } else {
-          statusEl.textContent = "✗ Failed to save";
+          statusEl.textContent = APPEARANCE_I18N.failed;
           statusEl.style.color = "var(--color-danger-fg)";
           setTimeout(() => {
             statusEl.textContent = "";
@@ -303,7 +325,7 @@ print(f"Mean: {stats['mean']:.2f}")</code></pre>
         }
       } catch (error) {
         console.error("Failed to save code theme preferences:", error);
-        statusEl.textContent = "✗ Error saving";
+        statusEl.textContent = APPEARANCE_I18N.error;
         statusEl.style.color = "var(--color-danger-fg)";
         setTimeout(() => {
           statusEl.textContent = "";

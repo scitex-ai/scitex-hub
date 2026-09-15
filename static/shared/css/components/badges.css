@@ -71,6 +71,12 @@
   background-color: var(--status-warning);
 }
 
+/* Brand highlight ("Recommended"): gold with navy text in both themes. */
+.badge-brand {
+  color: var(--stx-navy-900, #1a2a40);
+  background-color: var(--stx-gold, #b8956a);
+}
+
 .badge-error {
   color: var(--text-inverse);
   background-color: var(--status-error);

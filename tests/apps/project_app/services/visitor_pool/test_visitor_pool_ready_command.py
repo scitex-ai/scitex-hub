@@ -23,6 +23,7 @@ Real DB via pytest-django ``TestCase`` — no mocks (STX-NM001). The command
 reads the pool through the real ORM, so the rows below are the whole fixture.
 """
 
+import json
 import secrets
 from datetime import timedelta
 from io import StringIO
@@ -203,6 +204,12 @@ class TestHealthyPoolPassesQuietly(TestCase):
         output = _run()
         # Assert
         assert "allocatable" in output
+
+    def test_result_includes_machine_readable_reason_and_counts(self):
+        self._fill_with_headroom()
+        payload = json.loads(_run().splitlines()[0])
+        assert payload["reason"] == "minimum_allocatable_proven"
+        assert payload["counts"]["allocatable"] >= 1
 
 
 if __name__ == "__main__":

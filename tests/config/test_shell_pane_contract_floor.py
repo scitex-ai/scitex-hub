@@ -106,7 +106,21 @@ LAST_WITHOUT_TEXT_LINK = Version("0.14.0")
 #: ``shell/theme.css``, so one token needs two different floors depending on
 #: which file a consumer links. 0.16.0 is the first release good on every token
 #: in both layers. A version that needs no caveat beats the justifiable minimum.
-DECLARED_FLOOR = Version("0.16.0")
+#:
+#: RAISED 0.16.0 -> 0.20.3 on 2026-09-14 by a THIRD contract: the Agents launcher
+#: app (#803) declares ``accent_color: "agents"``, and ``--app-accent-agents``
+#: first ships in scitex-ui 0.20.3 (PR #228; 0.20.2 is the release before it,
+#: read from the release list, not sampled). Below that the Agents tile renders
+#: with no accent bar -- the silent failure test_every_app_accent_token_resolves
+#: exists to catch.
+AGENTS_ACCENT_FLOOR = Version("0.20.3")
+LAST_WITHOUT_AGENTS_ACCENT = Version("0.20.2")
+#: RAISED 0.21.0 -> 0.22.0 on 2026-09-15: exact first release whose picker tag
+#: loads ``js/app/project-selector.js`` and ships the canonical responsive
+#: ``.stx-app-header__slot--project-selector`` placement contract.
+PROJECT_PICKER_FLOOR = Version("0.22.0")
+LAST_WITHOUT_PROJECT_HEADER_CONTRACT = Version("0.21.0")
+DECLARED_FLOOR = PROJECT_PICKER_FLOOR
 
 #: A pane name scitex-ui does not know. Any value outside PANE_NAMES works;
 #: this one is obviously synthetic so a reader does not mistake it for a real
@@ -197,6 +211,43 @@ def test_declared_floor_excludes_every_release_without_the_link_token(
     )
 
 
+def test_declared_floor_excludes_every_release_without_the_agents_accent(
+    scitex_ui_requirements: list[tuple[str, Requirement]],
+) -> None:
+    # Arrange — the THIRD contract: a manifest names its accent by string, so a
+    # release lacking the token renders the tile with no accent and no error.
+    # Act
+    permissive = [
+        (group, str(req.specifier))
+        for group, req in scitex_ui_requirements
+        if req.specifier.contains(LAST_WITHOUT_AGENTS_ACCENT)
+    ]
+
+    # Assert
+    assert permissive == [], (
+        f"these pyproject.toml groups declare a scitex-ui range permitting "
+        f"{LAST_WITHOUT_AGENTS_ACCENT}, a release without '--app-accent-agents': "
+        f"{permissive}. Raise each floor to {AGENTS_ACCENT_FLOOR}."
+    )
+
+
+def test_declared_floor_excludes_the_last_release_without_the_project_header_contract(
+    scitex_ui_requirements: list[tuple[str, Requirement]],
+) -> None:
+    # Arrange / Act — 0.21 has the tag but loads the old entry and has no slot guard.
+    permissive = [
+        (group, str(req.specifier))
+        for group, req in scitex_ui_requirements
+        if req.specifier.contains(LAST_WITHOUT_PROJECT_HEADER_CONTRACT)
+    ]
+
+    # Assert
+    assert permissive == [], (
+        "these declarations still admit scitex-ui 0.21.0, before the canonical "
+        f"project-selector entry/header slot contract: {permissive}"
+    )
+
+
 def test_declared_floor_still_admits_the_version_it_declares(
     scitex_ui_requirements: list[tuple[str, Requirement]],
 ) -> None:
@@ -219,8 +270,9 @@ def test_declared_floor_still_admits_the_version_it_declares(
     assert over_raised == [], (
         f"these pyproject.toml groups declare a scitex-ui range excluding "
         f"{DECLARED_FLOOR}, the version hub declares as its floor: "
-        f"{over_raised}. Both contracts are satisfied there -- panes since "
-        f"{PANES_FLOOR}, '--text-link' since {TEXT_LINK_FLOOR} -- so excluding "
+        f"{over_raised}. Every contract is satisfied there -- panes since "
+        f"{PANES_FLOOR}, '--text-link' since {TEXT_LINK_FLOOR}, "
+        f"'--app-accent-agents' since {AGENTS_ACCENT_FLOOR} -- so excluding "
         f"it is over-raising, not caution."
     )
 

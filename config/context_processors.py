@@ -321,6 +321,13 @@ def mounted_app_launcher(request):
     if not is_mounted_standalone_page:
         return {}
 
+    from apps.infra.workspace_app.site_dock import should_render_dock
+
+    # The site dock (injected into these pages for signed-in users) is the way
+    # out; a floating Back-to-Store link would only cover the app's own header.
+    if should_render_dock(request):
+        return {}
+
     launcher = {"url": "/apps/store/", "label": "Back to Store"}
     if _ui_launcher_context is not None:
         return _ui_launcher_context(launcher)
@@ -352,3 +359,28 @@ def scitex_env(request):
         # marker the tab title uses, so chrome and tab never disagree.
         "SCITEX_ENV_MARKER": branding.title_marker(env, settings.SCITEX_APP_MODE),
     }
+
+
+def header_logo(request):
+    """Logo link + tooltip.
+
+    SIGNED IN → the logo is the way Home: /apps/ on every page, including
+    /landing/ (operator brief, Home + dock redesign 2026-09-14 — the header
+    "Apps" dropdown was removed on the understanding that the logo goes Home).
+
+    SIGNED OUT keeps the earlier "point to the half you are not in" rule:
+    - on the landing page (/landing/) → / , title "Go to Apps Home"
+    - everywhere else → /landing/, title "Go to Landing Page"
+    (/apps/ would only redirect a signed-out visitor to sign-up.)
+
+    A view may still override ``header_logo_href`` in its own context (the
+    pool-full page does, to a page that always renders).
+    """
+    user = getattr(request, "user", None)
+    if getattr(user, "is_authenticated", False):
+        return {"header_logo_href": "/apps/", "header_logo_title": "Go to Home"}
+    path = request.path
+    if path.startswith("/landing"):
+        return {"header_logo_href": "/", "header_logo_title": "Go to Apps Home"}
+    return {"header_logo_href": "/landing/", "header_logo_title": "Go to Landing Page"}
+

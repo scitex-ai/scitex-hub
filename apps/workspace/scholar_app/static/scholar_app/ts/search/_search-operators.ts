@@ -129,7 +129,7 @@ export function initSearchOperators(): void {
     "literatureSearchForm",
   ) as HTMLFormElement | null;
   const searchInput =
-    document.querySelector<HTMLInputElement>('input[name="q"]');
+    document.querySelector<HTMLInputElement>('[name="q"]');
 
   if (searchForm && searchInput) {
     searchForm.addEventListener("submit", (e) => {

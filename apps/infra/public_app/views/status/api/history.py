@@ -12,12 +12,19 @@ from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 
 from ....models import ServerMetrics
+from ..access import admin_only_json_response
 
 logger = logging.getLogger("scitex")
 
 
 def server_metrics_history_api(request):
-    """API endpoint for historical server metrics (returns JSON)."""
+    """API endpoint for historical server metrics (returns JSON).
+
+    Host resource metrics: instance admins only (403 JSON otherwise).
+    """
+    denied = admin_only_json_response(request)
+    if denied is not None:
+        return denied
     try:
         hours = int(request.GET.get("hours", 24))
         limit = int(request.GET.get("limit", 1000))
@@ -35,8 +42,9 @@ def server_metrics_history_api(request):
         }
 
         return JsonResponse(data)
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+    except Exception:
+        logger.exception("Status history request failed")
+        return JsonResponse({"error": "Unable to retrieve status history."}, status=500)
 
 
 def _format_metric(m) -> dict:
@@ -60,7 +68,10 @@ def _format_metric(m) -> dict:
 
 
 def server_metrics_export_csv(request):
-    """Export server metrics as CSV file."""
+    """Export server metrics as CSV file. Instance admins only (403 JSON otherwise)."""
+    denied = admin_only_json_response(request)
+    if denied is not None:
+        return denied
     try:
         hours = int(request.GET.get("hours", 24))
         start_time = timezone.now() - timedelta(hours=hours)
@@ -81,8 +92,9 @@ def server_metrics_export_csv(request):
             writer.writerow(_format_metric_csv_row(m))
 
         return response
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+    except Exception:
+        logger.exception("Status history request failed")
+        return JsonResponse({"error": "Unable to retrieve status history."}, status=500)
 
 
 def _get_csv_header() -> list[str]:

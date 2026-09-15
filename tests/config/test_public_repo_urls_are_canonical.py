@@ -50,6 +50,8 @@ from pathlib import Path
 
 import pytest
 
+from tests.tracked_source import TrackedSourceFile, tracked_source_files
+
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 
 # Public-facing surfaces: what a visitor renders, plus the packaging/doc metadata
@@ -107,19 +109,14 @@ _KNOWN_DEAD_AWAITING_DECISION = 8
 
 
 def _targets():
-    out = []
-    for d in _SCAN_DIRS:
-        root = _REPO_ROOT / d
-        if root.is_dir():
-            out.extend(p for p in root.rglob("*") if p.is_file())
-    out.extend(_REPO_ROOT / f for f in _SCAN_FILES if (_REPO_ROOT / f).is_file())
-    return out
+    patterns = tuple(f"{directory}/*" for directory in _SCAN_DIRS) + _SCAN_FILES
+    return tracked_source_files(_REPO_ROOT, patterns)
 
 
-def _read(path):
+def _read(path: TrackedSourceFile):
     try:
-        return path.read_text(encoding="utf-8")
-    except (UnicodeDecodeError, OSError):
+        return path.text()
+    except UnicodeDecodeError:
         return ""
 
 
@@ -160,7 +157,7 @@ def test_no_stale_repo_url(needle, reason):
     corpus = _ALL
     # Act
     offenders = [
-        str(p.relative_to(_REPO_ROOT)) for p in corpus if needle in _read(p)
+        p.path for p in corpus if needle in _read(p)
     ]
     # Assert
     assert offenders == [], (

@@ -2,6 +2,18 @@
 
 <link rel="stylesheet" href="{% static 'apps_app/css/apps.css' %}" />
 <div class="apps-container">
+    <section class="apps-sdk-guide" aria-labelledby="apps-sdk-guide-title">
+        <div class="apps-sdk-guide-icon" aria-hidden="true"><i class="fas fa-cubes"></i></div>
+        <div class="apps-sdk-guide-copy">
+            <span class="apps-sdk-guide-kicker">Build for SciTeX</span>
+            <h2 id="apps-sdk-guide-title">SciTeX™ SDK</h2>
+            <p><code>scitex-app</code> and <code>scitex-ui</code> form one SDK for local, cloud, and self-hosted apps.</p>
+        </div>
+        <div class="apps-sdk-guide-actions">
+            <a href="/apps/create/" class="apps-sdk-guide-primary"><i class="fas fa-plus" aria-hidden="true"></i> Create an app</a>
+            <a href="https://github.com/scitex-ai/scitex-app" class="apps-sdk-guide-secondary" target="_blank" rel="noopener">SDK documentation <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+        </div>
+    </section>
     <!-- Registry org banner -->
     {% if apps_org %}
         <a href="/{{ apps_org }}/" class="apps-org-banner">

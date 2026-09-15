@@ -1,0 +1,36 @@
+{
+  "$schema": "scitex-app-manifest",
+  "$schema_version": "2.0.0",
+  "name": "tools-pdf",
+  "label": "PDF Tools",
+  "app_name": "tools_app",
+  "icon": "fas fa-file-pdf",
+  "description": "Merge, split, compress and convert PDFs; extract text and figures.",
+  "license": "AGPL-3.0",
+  "order": 36,
+  "category": "utility",
+  "accent_color": "tools",
+  "body_class": "tools-page",
+  "partial_template": "tools_app/tools_partial.html",
+  "context_builder": "apps.workspace.tools_app.views.tools_views.build_pdf_tools_context",
+  "url": "/apps/tools/pdf/",
+  "tree_mode": "tools",
+  "ai_hint": "Merge, split, compress and convert PDFs; extract text and figures.",
+  "allowed_extensions": [],
+  "hidden_patterns": [
+    "__pycache__",
+    "node_modules",
+    ".git",
+    ".venv"
+  ],
+  "privileges": [],
+  "builtin": true,
+  "dependencies": {
+    "python": [],
+    "system": [],
+    "node": [],
+    "r": [],
+    "other": []
+  },
+  "container": null
+}

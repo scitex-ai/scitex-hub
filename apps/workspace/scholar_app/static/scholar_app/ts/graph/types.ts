@@ -28,6 +28,7 @@ export interface NetworkNode {
   is_seed: boolean;
   similarity_score?: number;
   citation_count?: number;
+  journal?: string;
   x?: number;
   y?: number;
   vx?: number;
@@ -52,8 +53,10 @@ export interface NetworkData {
     top_n?: number;
     num_related_per_doi?: number;
     num_seeds?: number;
-    weights: Record<string, number>;
+    weights?: Record<string, number>;
     cached: boolean;
+    source?: string;
+    error?: string;
   };
 }
 

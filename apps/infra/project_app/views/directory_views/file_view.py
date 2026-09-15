@@ -21,6 +21,7 @@ from __future__ import annotations
 import logging
 
 from django.contrib import messages
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 
 from ...models import Project
@@ -48,14 +49,36 @@ def project_file_view(request, username, slug, file_path):
     user = get_object_or_404(User, username=username)
     project = get_object_or_404(Project, slug=slug, owner=user)
 
+    from ...services.filesystem.permissions import canonical_repository_relative_path
+
+    if canonical_repository_relative_path(file_path) is None:
+        raise Http404
+
     # Check access
     if not check_project_read_access(request, project):
         messages.error(request, "You don't have permission to access this file.")
         return redirect("project_app:detail", username=username, slug=slug)
 
+    # A plain /blob/<path> link opens the file-tree Project UI with the file
+    # open in the viewer (operator 2026-09-14: one Project UI on every entry
+    # point). Explicit modes (?mode=raw|download|edit|blame) and
+    # ?view=repository keep the GitHub-style file screen below.
+    if not request.GET.get("mode") and not request.GET.get("view"):
+        from ..projects.detail import render_project_tree
+
+        return render_project_tree(
+            request,
+            project,
+            username,
+            open_file=file_path,
+            repository_view_url=f"/{username}/{slug}/blob/{file_path}?view=repository",
+        )
+
     # Get file context
     result = get_file_context(request, username, slug, file_path)
     if result is None:
+        if mode in ("raw", "download"):
+            raise Http404
         messages.error(request, "File not found or invalid path.")
         return redirect("project_app:detail", username=username, slug=slug)
 

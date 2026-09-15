@@ -1,0 +1,25 @@
+{% load i18n %}
+{% comment %}
+   Academic License boundary (SSOT §1) and beta service-quality / price
+   policies (SSOT §2, §4-8), shared by /pricing/ and /services/. Text comes
+   from pricing_pages.academic_license_boundary() / beta_policies().
+   Context: academic_license_boundary, beta_policies.
+{% endcomment %}
+<div class="pricing-policies">
+    <div class="pricing-policy-block" id="academic-license">
+        <h3 class="pricing-rate-card-title">{% trans "Academic License boundary" %}</h3>
+        <ul class="pricing-policy-list">
+            {% for line in academic_license_boundary %}
+            <li>{{ line }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="pricing-policy-block" id="beta-policies">
+        <h3 class="pricing-rate-card-title">{% trans "Support and service quality during beta" %}</h3>
+        <ul class="pricing-policy-list">
+            {% for line in beta_policies %}
+            <li>{{ line }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>

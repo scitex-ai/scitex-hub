@@ -1,10 +1,21 @@
 {% extends "global_base.html" %}
 
-{% load static vite %}
+{% load i18n static vite %}
 
 {% block title %}Home{% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'apps_app/css/launcher.css' %}" />
+    {# Linked DIRECTLY with ?v={{ build_id }}, not through launcher.css's      #}
+    {# @import. An @import URL carries no cache-buster, so a phone kept the    #}
+    {# PREVIOUS grid/mobile.css after the Home + dock redesign deployed: arrows #}
+    {# rendered as unstyled white buttons, the globe badge at full icon size,  #}
+    {# and desktop-only tiles still dimmed (operator iPhone, 2026-09-14).      #}
+    {# The icon box + category palette is shared with the site dock. #}
+    <link rel="stylesheet" href="{% static 'shared/css/components/app-icon.css' %}?v={{ build_id }}" />
+    <link rel="stylesheet" href="{% static 'apps_app/css/launcher/core.css' %}?v={{ build_id }}" />
+    <link rel="stylesheet" href="{% static 'apps_app/css/launcher/grid.css' %}?v={{ build_id }}" />
+    <link rel="stylesheet" href="{% static 'apps_app/css/launcher/planned.css' %}?v={{ build_id }}" />
+    <link rel="stylesheet" href="{% static 'apps_app/css/launcher/mobile.css' %}?v={{ build_id }}" />
+    <link rel="stylesheet" href="{% static 'apps_app/css/launcher/edit-mode.css' %}?v={{ build_id }}" />
 {% endblock %}
 {% block content %}
     <div class="launcher" id="app-launcher" data-max-pins="{{ max_pins }}">
@@ -32,71 +43,100 @@
                 </div>
             </div>
         {% endif %}
+        {% if first_run %}
+            {% include "apps_app/partials/first_run_checklist.html" %}
+        {% endif %}
         <div class="launcher-section-head">
             <h2>All apps</h2>
         </div>
-        <div class="launcher-grid" id="launcher-grid">
-            {% for tile in tiles %}
-                {# Availability is a registry/catalog FIELD (operator, Telegram #}
-                {# 1483) — the template only renders it. Coming-soon tiles get #}
-                {# no href at all: an <a> without href neither navigates nor   #}
-                {# focuses as a link, while the press-in tap effect survives.  #}
-                <a {% if tile.is_launchable %}href="{{ tile.launch_url }}"{% else %}aria-disabled="true"{% endif %}
-                   class="launcher-tile"
-                   draggable="false"
-                   data-module="{{ tile.name }}"
-                   data-category="{{ tile.category }}"
-                   data-label="{{ tile.label }}"
-                   data-availability="{{ tile.availability }}"
-                   data-installed="{% if tile.is_installed %}1{% else %}0{% endif %}"
-                   data-pinned="{% if tile.is_pinned %}1{% else %}0{% endif %}"
-                   data-detail-url="{{ tile.detail_url }}"
-                   data-version="{{ tile.version }}"
-                   title="{{ tile.label }}{% if tile.version_label %} {{ tile.version_label }}{% endif %}{% if tile.availability == 'coming_soon' %} — Coming Soon{% endif %}{% if tile.description %} — {{ tile.description }}{% endif %}">
-                    {# One badge slot: the availability badge outranks NEW — #}
-                    {# "you cannot use this yet" is the message that matters. #}
-                    {% if tile.availability == 'coming_soon' %}
-                        <span class="launcher-badge launcher-badge-coming-soon">Coming Soon</span>
-                    {% elif tile.availability == 'desktop_only' %}
-                        {# Visible on mobile only (launcher/mobile.css). #}
-                        <span class="launcher-badge launcher-badge-desktop-only">Desktop-only</span>
-                        {% if tile.is_new %}<span class="launcher-badge launcher-badge-new">NEW</span>{% endif %}
-                    {% elif tile.is_new %}
-                        <span class="launcher-badge launcher-badge-new">NEW</span>
+        <div class="launcher-pager">
+            {# Desktop page arrows (launcher/pager.ts unhides them when there is #}
+            {# more than one page; CSS shows them only for a fine pointer).      #}
+            <button type="button"
+                    class="launcher-page-arrow launcher-page-arrow--prev"
+                    id="launcher-page-prev"
+                    aria-label="{% trans 'Previous page' %}"
+                    title="{% trans 'Previous page' %}"
+                    hidden>
+                <i class="fas fa-chevron-left" aria-hidden="true"></i>
+            </button>
+            <div class="launcher-grid" id="launcher-grid">
+                <div class="launcher-page launcher-page--favorites" data-launcher-fixed-page="favorites" aria-label="{% trans 'Favorites' %}">
+                    {% if favorite_tiles %}
+                        <div class="launcher-group launcher-favorites-grid" role="group" aria-label="{% trans 'Favorites' %}">
+                            {% for tile in favorite_tiles %}{% include "apps_app/partials/launcher_tile.html" %}{% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="launcher-favorites-empty">
+                            <i class="far fa-star" aria-hidden="true"></i>
+                            <strong>{% trans "No favorites yet" %}</strong>
+                            <span>{% trans "Edit an app to add a shortcut here." %}</span>
+                        </div>
                     {% endif %}
-                    {% if tile.is_installed %}<span class="launcher-dot-installed" title="Installed"></span>{% endif %}
-                    <span class="launcher-tile-icon" data-tile-category="{{ tile.category }}">
-                        <i class="{{ tile.icon_fa }}" aria-hidden="true"></i>
-                    </span>
-                    <span class="launcher-tile-name">{{ tile.label }}</span>
-                    {% if tile.version_label %}<span class="launcher-tile-version">{{ tile.version_label }}</span>{% endif %}
-                </a>
-            {% endfor %}
+                </div>
+                {# One band per group (Foundation / Work / System, operator    #}
+                {# 2026-09-14): a 4-column grid with a soft group tint. The     #}
+                {# translated aria-label is ALSO the visible band label        #}
+                {# (grid.css ::before, in the band padding, never a grid cell). #}
+                {# pager.ts re-packs the bands into pages without splitting a  #}
+                {# row.                                                          #}
+                {% for group in groups %}
+                    <div class="launcher-group" role="group" data-group="{{ group.key }}" aria-label="{% trans group.label %}">
+                        {% for tile in group.cells %}
+                            {% if tile.is_planned %}
+                                {% include "apps_app/partials/launcher_planned_tile.html" %}
+                            {% else %}
+                                {% include "apps_app/partials/launcher_tile.html" %}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+            <button type="button"
+                    class="launcher-page-arrow launcher-page-arrow--next"
+                    id="launcher-page-next"
+                    aria-label="{% trans 'Next page' %}"
+                    title="{% trans 'Next page' %}"
+                    hidden>
+                <i class="fas fa-chevron-right" aria-hidden="true"></i>
+            </button>
         </div>
-        {# Page dots for the mobile pager (launcher/pager.ts fills these in and #}
-        {# unhides them once there is more than one page). Rendered empty and   #}
-        {# hidden so a no-JS / desktop launcher shows nothing at all.           #}
-        <div class="launcher-dots" id="launcher-dots" role="tablist" aria-label="App pages" hidden></div>
+        {# Page dots (launcher/pager.ts fills these in: one per page, the current #}
+        {# one highlighted). Rendered empty and hidden so a no-JS launcher shows   #}
+        {# a plain grid and nothing pretending to page.                            #}
+        {% include "apps_app/partials/launcher_planned_sheet.html" %}
+        <div class="launcher-dots" id="launcher-dots" role="tablist" aria-label="{% trans 'App pages' %}" hidden></div>
+        {# Tiles for docked apps: dragging one out of the dock puts its tile back on the grid. #}
+        <template id="launcher-dock-tiles">
+            {% for group in launcher_groups %}
+                <div class="launcher-group" data-group="{{ group.key }}" role="group" aria-label="{% trans group.label %}"></div>
+            {% endfor %}
+            {% for tile in dock_tiles %}
+                {% include "apps_app/partials/launcher_tile.html" %}
+            {% endfor %}
+        </template>
+        <dialog id="launcher-display-dialog" class="launcher-display-dialog" aria-labelledby="launcher-display-title">
+            <form method="dialog" id="launcher-display-form">
+                <header class="launcher-display-header">
+                    <button type="button" id="launcher-display-cancel" class="launcher-display-cancel">Cancel</button>
+                    <h3 id="launcher-display-title">Edit app display</h3>
+                    <button type="submit" class="launcher-display-save">Save</button>
+                </header>
+                <label>Display name <input id="launcher-display-name" name="display_name" maxlength="100" autocomplete="off" required /></label>
+                <label>Font Awesome icon <input id="launcher-display-icon" name="icon" placeholder="fas fa-flask" /></label>
+                <label>Icon color <input id="launcher-display-color" name="icon_color" type="color" value="#ffffff" /></label>
+                <div class="launcher-display-actions">
+                    <button type="button" id="launcher-display-favorite"><i class="far fa-star" aria-hidden="true"></i> Add to Favorites</button>
+                    <button type="button" id="launcher-display-reset">Reset to manifest defaults</button>
+                    <button type="button" id="launcher-display-uninstall" class="launcher-display-uninstall" hidden>
+                        <i class="fas fa-minus-circle" aria-hidden="true"></i> Uninstall app
+                    </button>
+                </div>
+            </form>
+        </dialog>
     </div>
-    <!-- Mobile dock (fixed bottom, < 640px only) -->
-    <nav class="launcher-dock" aria-label="Quick access">
-        <a href="/" class="launcher-dock-item active">
-            <i class="fas fa-house" aria-hidden="true"></i>
-            <span>Home</span>
-        </a>
-        <a href="/chat/" class="launcher-dock-item">
-            <i class="fas fa-comment" aria-hidden="true"></i>
-            <span>Chat</span>
-        </a>
-        <a href="/files/" class="launcher-dock-item">
-            <i class="fas fa-folder" aria-hidden="true"></i>
-            <span>Files</span>
-        </a>
-        <a href="/apps/store/" class="launcher-dock-item">
-            <i class="fas fa-border-all" aria-hidden="true"></i>
-            <span>App Store</span>
-        </a>
-    </nav>
+    {# The dock is no longer part of this page: global_base.html renders it on #}
+    {# EVERY page (global_base_partials/site_dock.html).                        #}
 {% endblock %}
 {% block extra_js %}
     {% vite_script 'apps_app/launcher' %}

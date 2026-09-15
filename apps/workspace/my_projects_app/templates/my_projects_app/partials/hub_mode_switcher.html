@@ -1,0 +1,30 @@
+{% comment %}
+Hub mode switcher — shared between index.html and index_partial.html.
+
+Org context: shows "org-slug | project-slug" tabs.
+Personal context: NO tab row (operator 2026-09-14). It used to read
+"My | Settings | project-slug": "My" was the user's own profile, reachable
+at /<username>/ and now linked from account Settings as "Public profile";
+"Settings" was an inline copy of /accounts/settings/ (Profile, Privacy).
+With both gone a lone project tab is not a tab row, so nothing renders.
+{% endcomment %}
+{% if is_org_context %}
+    <div class="hub-mode-switcher" id="hub-mode-switcher">
+        <a href="/{{ org_slug }}/" class="hub-mode">
+            <i class="fas fa-building"></i> {{ org_slug }}
+        </a>
+        <a href="#"
+           class="hub-mode hub-mode-active"
+           data-hub-mode="projects"
+           {% if current_project %}data-project-id="{{ current_project.id }}"{% endif %}>
+            <i class="fas fa-folder-open"></i>
+            <span class="hub-mode-project-label">
+                {% if current_project %}
+                    {{ current_project.slug }}
+                {% else %}
+                    —
+                {% endif %}
+            </span>
+        </a>
+    </div>
+{% endif %}

@@ -20,7 +20,7 @@ view (hand-rolled fakes), and rendering goes through the real template.
 
 import time
 
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth import get_user_model
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.http import HttpResponse
 from django.test import RequestFactory, SimpleTestCase, TestCase
@@ -75,9 +75,13 @@ def _make_checks(slow_name=None):
 
 
 def _status_request():
-    """A real GET request with session + anonymous user attached."""
+    """A real GET request with session + an (unsaved) staff user attached.
+
+    The full page with its check sections is instance-admin only since the
+    2026-09-14 site audit; the deadline rendering is an admin-view contract.
+    """
     request = RequestFactory().get(URL)
-    request.user = AnonymousUser()
+    request.user = get_user_model()(username="status-staff", is_staff=True)
     SessionMiddleware(lambda req: HttpResponse()).process_request(request)
     return request
 

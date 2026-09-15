@@ -89,12 +89,12 @@
     {
       "module": "scitex.sh",
       "attrs": [],
-      "why": "scitex/__init__.py:153 maps scitex.sh -> scitex_sh via _LazyModule, and neither hub's pyproject nor scitex's declares scitex-sh. Undeclared at every level means no floor check can ever see it."
+      "why": "scitex/__init__.py:153 maps scitex.sh -> scitex_sh via _LazyModule. Until 2026-09-05 neither hub's pyproject nor scitex's declared scitex-sh, so no floor check could see it; hub now declares scitex-sh>=0.2.0 (pyproject). The probe stays: a floor proves a version was resolved, this proves the lazy import actually reaches a module in the image."
     },
     {
       "module": "scitex.decorators",
       "attrs": [],
-      "why": "scitex/__init__.py:97 maps scitex.decorators -> scitex_decorators, likewise undeclared everywhere. The other half of the 2026-08-22 pair."
+      "why": "scitex/__init__.py:97 maps scitex.decorators -> scitex_decorators, the other half of the 2026-08-22 pair. Declared by hub since 2026-09-05 (scitex-decorators>=0.1.12); the probe stays for the same reason as scitex.sh — it is what scitex.io's own loader imports first."
     },
     {
       "module": "scitex.stats",

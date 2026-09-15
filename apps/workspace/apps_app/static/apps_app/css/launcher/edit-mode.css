@@ -1,0 +1,167 @@
+/* ============================================================
+   App Launcher — edit / rearrange mode (iPhone-home jiggle + drag)
+
+   Long-press (touch) or the right-click "Rearrange" action toggles .edit-mode
+   on the grid: every tile wiggles and can be dragged to a new slot. The order
+   persists SERVER-SIDE per user via POST api/reorder/ on exit (launcher.ts),
+   so a reorder made on the phone shows identically on the desktop.
+
+   The WIGGLE is unchanged (operator, 2026-09-14 16:34Z: iOS-like is fine).
+   The SWAP is what was startling: displaced icons jumped. launcher.ts now
+   waits for the pointer to dwell ~150ms over a slot before reordering, then
+   slides the displaced icons (FLIP) over --launcher-travel-ms on
+   --launcher-travel-easing. Under prefers-reduced-motion the travel is 0 and
+   there is no wiggle.
+   Exit: tap empty space or press Escape. There is no Done pill: the operator
+   removed it on 2026-07-13 because it read as meaningless.
+   ============================================================ */
+
+.launcher-grid {
+  --launcher-travel-ms: 320;
+  --launcher-travel-easing: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes launcher-jiggle {
+  0% {
+    transform: rotate(-1.15deg);
+  }
+  50% {
+    transform: rotate(1.15deg);
+  }
+  100% {
+    transform: rotate(-1.15deg);
+  }
+}
+
+.launcher-grid.edit-mode .launcher-tile {
+  animation: launcher-jiggle 0.24s ease-in-out infinite;
+  cursor: grab;
+  /* A press that starts on a tile drags it — never scrolls the page. */
+  touch-action: none;
+}
+
+/* Stagger the phase so tiles don't wiggle in lockstep (more organic). */
+.launcher-grid.edit-mode .launcher-tile:nth-child(2n) {
+  animation-duration: 0.26s;
+  animation-delay: -0.13s;
+}
+
+.launcher-grid.edit-mode .launcher-tile:nth-child(3n) {
+  animation-duration: 0.22s;
+  animation-delay: -0.07s;
+}
+
+/* The hover lift fights the jiggle — suppress it while editing. */
+.launcher-grid.edit-mode .launcher-tile:hover .launcher-tile-icon {
+  transform: none;
+}
+
+/* The tile being dragged KEEPS wiggling (iOS does), floats above, and its icon
+   lifts. The jiggle rotates the TILE while the scale/shadow lift the ICON, so
+   the two transforms never fight. */
+.launcher-grid.edit-mode .launcher-tile.dragging {
+  z-index: 5;
+  cursor: grabbing;
+  opacity: 0.96;
+  /* Let elementFromPoint see the tile beneath the one being dragged. */
+  pointer-events: none;
+}
+
+.launcher-grid.edit-mode .launcher-tile.dragging .launcher-tile-icon {
+  transform: scale(1.08);
+  box-shadow:
+    0 16px 36px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+/* Held over the dock: the tile fades to show it is leaving the grid. */
+.launcher-grid.edit-mode .launcher-tile.launcher-tile--to-dock {
+  opacity: 0.3;
+}
+
+.launcher-edit-control {
+  display: none;
+  position: absolute;
+  z-index: 8;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+}
+.launcher-grid.edit-mode .launcher-edit-control { display: inline-flex; }
+.launcher-uninstall-control { top: 0; right: 5px; background: #d92d3a; }
+.launcher-display-control { top: 30px; right: 5px; background: #334155; font-size: 10px; }
+.launcher-edit-control:focus-visible { outline: 3px solid var(--stx-accent, #b8956a); outline-offset: 2px; }
+
+.launcher-display-dialog {
+  position: fixed;
+  inset: max(12px, env(safe-area-inset-top)) 16px auto;
+  max-width: 430px;
+  width: calc(100% - 32px);
+  max-height: calc(100dvh - max(24px, env(safe-area-inset-top)) - max(16px, env(safe-area-inset-bottom)));
+  margin: 0 auto;
+  padding: 0;
+  overflow: auto;
+  border: 1px solid var(--border-default, #d0d7de);
+  border-radius: 14px;
+  color: var(--text-primary);
+  background: var(--bg-page, #fff);
+}
+.launcher-display-dialog::backdrop { background: rgba(0, 0, 0, 0.6); }
+.launcher-display-dialog form, .launcher-display-dialog label { display: flex; flex-direction: column; gap: 8px; }
+.launcher-display-dialog form { gap: 16px; padding: 0 18px 18px; }
+.launcher-display-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  margin: 0 -18px;
+  padding: 12px 16px;
+  background: var(--bg-page, #fff);
+  border-bottom: 1px solid var(--border-default, #d0d7de);
+}
+.launcher-display-header h3 { margin: 0; font-size: 1rem; text-align: center; white-space: nowrap; }
+.launcher-display-header button { border: 0; background: transparent; color: var(--workspace-icon-primary, #1d4ed8); font-weight: 600; }
+.launcher-display-cancel { justify-self: start; }
+.launcher-display-save { justify-self: end; }
+.launcher-display-dialog input { padding: 9px; }
+.launcher-display-actions { display: grid; gap: 8px; }
+.launcher-display-actions button { min-height: 44px; }
+.launcher-display-uninstall { color: #fff; background: #d92d3a; border: 1px solid #b4232f; font-weight: 700; }
+.launcher-display-uninstall[hidden] { display: none; }
+
+/* Reduced motion: no wiggle and instant moves, but NEVER an invisible edit
+   mode. A bare `animation: none` once removed the only signal that the grid
+   had become editable, so a static tilt and a dashed ring mark the tiles. */
+@media (prefers-reduced-motion: reduce) {
+  .launcher-grid {
+    --launcher-travel-ms: 0;
+  }
+
+  .launcher-grid.edit-mode .launcher-tile {
+    animation: none;
+    transform: rotate(-1.2deg);
+  }
+
+  .launcher-grid.edit-mode .launcher-tile:nth-child(2n) {
+    transform: rotate(1.2deg);
+  }
+
+  .launcher-grid.edit-mode .launcher-tile .launcher-tile-icon {
+    outline: 2px dashed var(--stx-accent, #b8956a);
+    outline-offset: 3px;
+  }
+
+  /* The lifted tile stays upright so it reads as "held". */
+  .launcher-grid.edit-mode .launcher-tile.dragging {
+    transform: none;
+  }
+}
+
+/* EOF */

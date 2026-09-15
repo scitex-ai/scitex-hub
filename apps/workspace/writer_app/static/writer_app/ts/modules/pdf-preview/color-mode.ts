@@ -20,8 +20,7 @@ export class ColorModeManager {
    */
   static initializeColorMode(): "light" | "dark" {
     const savedMode = localStorage.getItem("pdf-color-mode") as
-      | ("light" | "dark")
-      | null;
+      ("light" | "dark") | null;
     if (savedMode === "dark" || savedMode === "light") {
       return savedMode;
     }
@@ -107,8 +106,11 @@ export class ColorModeManager {
     );
 
     try {
-      const response = await fetch(themedPdfUrl, { method: "HEAD" });
-      if (response.ok) {
+      const pdfExists = await this.compilationHandler.checkExistingPdf(
+        sectionName,
+        colorMode,
+      );
+      if (pdfExists) {
         console.log("[ColorModeManager] Themed PDF exists, displaying");
         this.viewer.displayPdf(themedPdfUrl + `?t=${Date.now()}`);
       } else if (content) {

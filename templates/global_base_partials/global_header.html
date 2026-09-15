@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n landing_i18n %}
 {% load static %}
 {% load module_icons %}
 
@@ -24,7 +24,7 @@
         <!-- Left: Logo + Main Navigation -->
         <div class="header-left">
             {# Logo IS the favicon: same brand mark, same per-environment colour #}
-            {# (navy=prod, navy-on-white=staging, green=dev), resolved once from #}
+            {# (navy=prod+dev, navy-on-white=staging), resolved once from #}
             {# settings.SCITEX_ENV. Chrome and tab icon can no longer disagree. #}
             {# header_logo_href: pages stuck BEFORE a session exists (e.g. the #}
             {# cookie-consent / pool-full page) override this to a page that #}
@@ -35,6 +35,10 @@
                      alt="SciTeX{% if SCITEX_ENV_MARKER %} ({{ SCITEX_ENV_MARKER }}){% endif %}"
                      class="header-logo-icon" />
             </a>
+            <span class="header-build-meta">
+                <span class="header-hub-version" title="SciTeX Hub version"><span class="header-hub-product">SciTeX™ Cloud </span>v{{ SCITEX_HUB_VERSION }}</span>
+                <time id="header-local-clock" class="header-local-clock" aria-label="Local time"></time>
+            </span>
             {% if user.is_authenticated %}
                 <!-- AI Assistant Toggle (right of logo) -->
                 <button id="stx-shell-ai-fab"
@@ -65,810 +69,98 @@
                         <rect x="27" y="16" width="2" height="4" rx="1" fill="white" />
                     </svg>
                 </button>
+                {# The header "Apps" dropdown was REMOVED (operator, 2026-09-14): #}
+                {# the logo is the way Home, and the site dock carries Home, My   #}
+                {# Projects, Chat and App Store on every page.                    #}
             {% endif %}
-            <!-- Project Selector (authenticated users + visitors only) -->
-            <div class="header-project-selector-inline"
-                 {% if not user.is_authenticated and not visitor_username %}style="display: none"{% endif %}>
-                <button id="project-selector-toggle"
-                        class="project-selector-btn"
-                        {% if user.is_authenticated %}data-active-project-id="{% with active=user.profile.get_active_project %}{{ active.id|default:'' }}{% endwith %}"{% endif %}
-                        title="{% if user.is_authenticated %}Switch projects{% else %}Current project{% endif %}">
-                    <span id="project-selector-text" class="project-selector-text">
-                        {% if user.is_authenticated %}
-                            {% with active=user.profile.get_active_project %}{{ active.name|default:"No Projects" }}{% endwith %}
-                        {% elif visitor_username %}
-                            {{ project.name|default:"Handwritten Digits (Example)" }}
-                        {% else %}
-                            SciTeX
-                        {% endif %}
-                    </span>
-                    <svg width="12"
-                         height="12"
-                         viewBox="0 0 16 16"
-                         fill="currentColor"
-                         style="margin-left: 4px">
-                        <path d="M4 6l4 4 4-4H4z" />
-                    </svg>
-                </button>
-                <!-- Project Dropdown Menu -->
-                <div id="project-selector-dropdown"
-                     class="project-selector-dropdown"
-                     style="display: none">
-                    {% if user.is_authenticated %}
-                        {% if user.profile.get_user_projects %}
-                            <div class="dropdown-section">
-                                {% for project in user.profile.get_user_projects %}
-                                    <button type="button"
-                                            class="dropdown-project-item"
-                                            data-project-id="{{ project.id }}"
-                                            data-project-name="{{ project.name }}"
-                                            data-project-slug="{{ project.slug }}"
-                                            data-project-owner="{{ project.owner.username }}">
-                                        <span class="project-item-name">{{ project.name }}</span>
-                                        <div style="display: flex; align-items: center; gap: 4px; margin-left: auto">
-                                            <a href="/{{ project.owner.username }}/{{ project.slug }}/"
-                                               class="project-item-jump-btn"
-                                               title="Go to {{ project.name }} repository"
-                                               onclick="event.stopPropagation();"
-                                               target="_blank"
-                                               style="display: inline-flex;
-                                                      align-items: center;
-                                                      justify-content: center;
-                                                      width: 20px;
-                                                      height: 20px;
-                                                      border-radius: 3px;
-                                                      color: var(--text-muted);
-                                                      text-decoration: none;
-                                                      transition: all 0.15s ease">
-                                                <i class="fas fa-folder-open" style="font-size: 12px"></i>
-                                            </a>
-                                            <span class="project-item-check"
-                                                  style="display: {% if user.profile.last_active_repository and user.profile.last_active_repository.id == project.id %}inline-flex{% else %}none{% endif %};
-                                                         align-items: center;
-                                                         justify-content: center">
-                                                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                                                    <path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 11-1.06-1.06L12.72 4.22a.75.75 0 011.06 0z" />
-                                                </svg>
-                                            </span>
-                                        </div>
-                                    </button>
-                                {% endfor %}
-                            </div>
-                            <div class="dropdown-divider"></div>
-                        {% endif %}
-                        <a href="/new/" class="dropdown-project-item dropdown-create-new">
-                            <svg width="14"
-                                 height="14"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor"
-                                 style="margin-right: 6px">
-                                <path d="M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z" />
-                            </svg>
-                            <span>Create New Project</span>
-                        </a>
-                    {% elif visitor_username %}
-                        <div class="dropdown-section">
-                            <div class="dropdown-section-title">Current Project</div>
-                            <div class="dropdown-project-item" style="cursor: default; opacity: 0.9">
-                                <span class="project-item-name">{{ project.name|default:"Handwritten Digits (Example)" }}</span>
-                            </div>
-                        </div>
-                        <div class="dropdown-divider"></div>
-                        <a href="/auth/signup/" class="dropdown-project-item dropdown-create-new">
-                            <svg width="14"
-                                 height="14"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor"
-                                 style="margin-right: 6px">
-                                <path d="M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z" />
-                            </svg>
-                            <span>Sign up to save your work</span>
-                        </a>
-                    {% else %}
-                        <a href="/auth/signin/" class="dropdown-project-item dropdown-create-new">
-                            <svg width="14"
-                                 height="14"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor"
-                                 style="margin-right: 6px">
-                                <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z" />
-                                <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z" />
-                            </svg>
-                            <span>Sign in to access projects</span>
-                        </a>
-                        <a href="/auth/signup/" class="dropdown-project-item dropdown-create-new">
-                            <svg width="14"
-                                 height="14"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor"
-                                 style="margin-right: 6px">
-                                <path d="M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z" />
-                            </svg>
-                            <span>Sign up (Free)</span>
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
             <!-- Module navigation handled by module_tab_bar.html below header -->
         </div>
-        <!-- Center: Search -->
-        <div class="header-center">
-            <div class="header-search">
-                <img src="{% static 'shared/images/icons_svg/scitex-search-icon.svg' %}"
-                     alt=""
-                     class="header-search-icon" />
-                <input type="text"
-                       placeholder="Search or jump to..."
-                       id="global-search"
-                       autocomplete="off"
-                       readonly />
-                <kbd class="search-shortcut-badge">/</kbd>
-            </div>
-        </div>
-        <!-- Search Modal (GitHub-style) -->
-        <div id="search-modal" class="search-modal" style="display: none">
-            <div class="search-modal-backdrop"></div>
-            <div class="search-modal-content">
-                <div class="search-modal-header">
-                    <div class="search-modal-input-wrapper">
-                        <img src="{% static 'shared/images/icons_svg/scitex-search-icon.svg' %}"
-                             alt=""
-                             class="search-modal-icon" />
-                        <input type="text"
-                               id="search-modal-input"
-                               class="search-modal-input"
-                               placeholder="Search or jump to..."
-                               autocomplete="off"
-                               autofocus />
-                    </div>
-                </div>
-                <div class="search-modal-results" id="search-modal-results">
-                    <!-- Results will be populated here -->
-                </div>
-                <div class="search-modal-footer">
-                    <a href="#" class="search-modal-footer-link">Search syntax tips</a>
-                    <a href="#" class="search-modal-footer-link">Give feedback</a>
-                </div>
-            </div>
-        </div>
-        <!-- Mobile-only Read-Only / Visitor badge (tappable: occupancy + sign-in prompt) -->
-        {% if is_visitor %}
-            <button type="button"
-                    class="header-visitor-badge-mobile"
-                    id="header-visitor-badge-mobile"
-                    aria-haspopup="true"
-                    aria-expanded="false"
-                    {% if visitor_expires_at %}data-expires-at="{{ visitor_expires_at.isoformat }}"{% endif %}>
-                {% if is_readonly %}
-                    <i class="fas fa-lock header-visitor-badge-mobile-icon"></i>Read-Only
-                {% elif visitor_username %}
-                    <i class="fas fa-user-clock header-visitor-badge-mobile-icon"></i>Visitor #{{ visitor_username|slice:"8:" }}
-                {% else %}
-                    <i class="fas fa-user-clock header-visitor-badge-mobile-icon"></i>Visitor
-                {% endif %}
-                {% comment %} `ready`, not `allocated`: on a 390px badge a bare fraction has
-                   no room to explain itself, so it must be the number that
-                   governs. "14/16 in use" implied two spare while ready was 0. {% endcomment %}
-                {% if is_readonly and visitor_pool_status %}
-                    <span class="header-visitor-badge-mobile-slots">{{ visitor_pool_status.ready }}/{{ visitor_pool_status.total }} free</span>
-                {% endif %}
-                {% if visitor_expires_at %}
-                    <span class="header-visitor-badge-mobile-countdown"
-                          id="mobile-header-visitor-countdown">⏰ --:--</span>
-                {% endif %}
-            </button>
-            {# Inline hidden attr is load-bearing: the popover is re-parented #}
-            {# to <body> by the script below, and its default-hidden state must #}
-            {# NOT depend on the external stylesheet — with a stale/failed CSS #}
-            {# bundle the popover otherwise renders as a raw text blob over the #}
-            {# header on every page (nav-404 batch #6, double-banner report). #}
-            <div class="header-visitor-badge-popover"
-                 id="header-visitor-badge-popover"
-                 hidden
-                 role="dialog"
-                 aria-label="Visitor session details">
-                {% if is_readonly %}
-                    <strong>Read-only session</strong>
-                    <div>{{ readonly_visitor_reason_detail }}</div>
-                {% else %}
-                    <strong>Visitor session</strong>
-                    <div>Your work lasts only for this session.</div>
-                {% endif %}
-                {% comment %} `ready`, not `allocated`: allocation needs a slot that is free
-                   AND workspace_ready AND not quarantined. Reporting occupancy
-                   here contradicted the reason copy above whenever free != ready
-                   — "2 spare" next to "no slot was ready for you". {% endcomment %}
-                {% if is_readonly and visitor_pool_status %}
-                    <div class="header-visitor-badge-popover-slots">{{ visitor_pool_status.ready }} of {{ visitor_pool_status.total }} visitor slots available</div>
-                {% endif %}
-                <div class="header-visitor-badge-popover-actions">
-                    <a href="/auth/signup/" class="header-btn header-btn-primary">{% trans "Sign up" %}</a>
-                    <a href="/auth/login/?next={{ request.path }}" class="header-btn">{% trans "Log in" %}</a>
-                </div>
-            </div>
-            <!-- Inline handler: badge popover must work even if the JS bundle fails -->
-            <!-- hook-bypass: inline-script — visitor fail-loud UX must not depend on Vite -->
-            <script>
-            (function() {
-                var badge = document.getElementById('header-visitor-badge-mobile');
-                var pop = document.getElementById('header-visitor-badge-popover');
-                if (!badge || !pop) return;
-                // Escape the header's stacking context: .global-header is
-                // z-index:1000, BELOW the mobile sidebar rail (1010) and
-                // drawer (1100), so the popover rendered inside it was
-                // painted under the sidebar regardless of its own z-index.
-                // As a direct <body> child its z-index:10001 wins (same
-                // re-parenting fix as the launcher dock).
-                if (pop.parentElement !== document.body) {
-                    document.body.appendChild(pop);
-                }
-                function placePopover() {
-                    var rect = badge.getBoundingClientRect();
-                    var margin = 8;
-                    pop.style.top = (rect.bottom + 6) + 'px';
-                    // Shift horizontally to stay fully inside the viewport
-                    // on narrow screens (<=767px).
-                    var left = Math.max(
-                        margin,
-                        Math.min(rect.left, window.innerWidth - pop.offsetWidth - margin)
-                    );
-                    pop.style.left = left + 'px';
-                }
-                // The hidden attribute (set in the markup) is the CSS-free
-                // safety net: keep it in sync with .open so the popover can
-                // never sit visible-but-unstyled when the stylesheet is
-                // stale or fails to load.
-                badge.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    var open = pop.classList.toggle('open');
-                    if (open) { pop.removeAttribute('hidden'); } else { pop.setAttribute('hidden', ''); }
-                    badge.setAttribute('aria-expanded', open ? 'true' : 'false');
-                    if (open) placePopover();
-                });
-                window.addEventListener('resize', function() {
-                    if (pop.classList.contains('open')) placePopover();
-                });
-                document.addEventListener('click', function(e) {
-                    if (!badge.contains(e.target) && !pop.contains(e.target)) {
-                        pop.classList.remove('open');
-                        pop.setAttribute('hidden', '');
-                        badge.setAttribute('aria-expanded', 'false');
-                    }
-                });
-            })();
-            </script>
-        {% endif %}
-        <!-- Mobile Hamburger Button (visible only on mobile via CSS).
+        {% include 'global_base_partials/global_header/search.html' %}
+        <!-- Mobile-only Read-Only / Visitor badge removed 2026-09-11 (visitor
+             retirement, card drop-visitor-readonly-freemium-20260911): there is
+             no longer a visitor/readonly role, so the badge, popover, and its
+             inline handler are dead. Anonymous users get the Sign in / Sign up
+             buttons in the shared menu below. -->
+        <!-- Shared Hamburger Button (rightmost at every viewport width).
              Inline fail-safe wiring lives in global_header/hamburger_inline.html
              (included after the menu markup below). -->
-        <button class="mobile-hamburger" id="mobile-hamburger-btn" aria-label="Menu">
-            <i class="fas fa-bars"></i>
+        {# The same button is the close control while the menu is open: the #}
+        {# inline handler swaps the icon, aria-expanded and aria-label.      #}
+        <button type="button"
+                class="mobile-hamburger"
+                id="mobile-hamburger-btn"
+                aria-controls="mobile-header-menu"
+                aria-expanded="false"
+                aria-label="{% trans 'Open menu' %}"
+                data-label-open="{% trans 'Open menu' %}"
+                data-label-close="{% trans 'Close menu' %}">
+            <i class="fas fa-bars" aria-hidden="true"></i>
         </button>
-        <!-- Right: Actions + User Menu -->
-        <div class="header-right">
-            <!-- Language toggle. Placed FIRST in header-right on the operator's
-                 instruction (2026-08-23): 「1番下のフッターにあるよりもヘッダーに
-                 あったほうがいい」. It reuses .header-btn so it inherits the brand
-                 tokens rather than the browser's native widget styling, which is
-                 what made the previous <select> look out of place. -->
-            {% include 'global_base_partials/language_switcher.html' %}
-            <!-- Theme Toggle (always visible) -->
-            <button id="theme-toggle" class="theme-toggle" data-tooltip="Toggle light/dark theme">
-                <i class="fas fa-adjust"></i>
-            </button>
-            <!-- Product Tour -->
-            <button id="product-tour-btn" class="theme-toggle" data-tooltip="Product Tour">
-                <i class="fas fa-question-circle"></i>
-            </button>
-            <!-- Keyboard Shortcuts Help (Alt+/ for modal, click for page) -->
-            <a href="/keyboard-shortcuts/"
-               id="shortcuts-help-btn"
-               class="theme-toggle"
-               data-tooltip="Keyboard Shortcuts (Alt+/ for quick view)">
-                <i class="fas fa-keyboard"></i>
-            </a>
-            <!-- Notification Center (staff in prod, everyone in dev) -->
-            {% if DEBUG or user.is_staff %}
-                <div id="notification-center"
-                     class="header-notification-center"
-                     style="position: relative;
-                            display: inline-flex">
-                    <button id="notification-bell" class="theme-toggle" data-tooltip="Notifications">
-                        <i class="fas fa-bell"></i>
-                        <span id="notification-badge" class="notification-badge" style="display: none">0</span>
-                    </button>
-                    <div id="notification-dropdown" class="notification-dropdown" style="display: none">
-                        <div class="notification-header">
-                            <span>System Notifications</span>
-                            <button id="notification-clear" class="notification-clear-btn" title="Clear all">
-                                <i class="fas fa-check-double"></i>
-                            </button>
-                        </div>
-                        <div id="notification-list" class="notification-list">
-                            <div class="notification-empty">All systems operational</div>
-                        </div>
-                        <a href="{% url 'public_app:server_status' %}" class="notification-footer">View full status</a>
-                    </div>
-                </div>
-            {% endif %}
-            <!-- Server Status with live health indicator -->
-            <a href="{% url 'public_app:server_status' %}"
-               id="server-stx-shell-status-bar__btn"
-               class="theme-toggle"
-               data-tooltip="System Status"
-               style="font-size: 18px;
-                      position: relative">
-                <span id="server-status-indicator"
-                      class="status-dot"
-                      style="position: absolute;
-                             top: 8px;
-                             right: 8px;
-                             width: 8px;
-                             height: 8px;
-                             border-radius: 50%;
-                             background: #4caf50;
-                             border: 2px solid var(--bg-page);
-                             box-shadow: 0 0 4px rgba(76, 175, 80, 0.6)"></span>
-                <i class="fas fa-server"></i>
-            </a>
-            {% if is_visitor %}
-                <!-- Visitor Menu (Integrated badge + dropdown) -->
-                <div class="header-user-menu">
-                    <button class="header-user-toggle visitor-button"
-                            id="visitor-menu-toggle"
-                            {% if visitor_expires_at %}data-expires-at="{{ visitor_expires_at.isoformat }}"{% endif %}>
-                        <svg width="16"
-                             height="16"
-                             viewBox="0 0 16 16"
-                             fill="currentColor"
-                             style="margin-right: 6px">
-                            <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
-                            <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z" />
-                        </svg>
-                        <span id="visitor-mode-text">
-                            {% if is_readonly %}
-                                Read-Only Mode
-                            {% elif visitor_username %}
-                                Visitor #{{ visitor_username|slice:"8:" }}
-                            {% else %}
-                                Visitor Mode
-                            {% endif %}
-                        </span>
-                        {% comment %} Report the ALLOCATABLE count, not occupancy.
-                           `allocated/total` answered the wrong question:
-                           allocation needs a slot that is free AND
-                           workspace_ready AND not quarantined — which is
-                           exactly `visitor_pool_status.ready`. Measured on prod
-                           2026-07-30 the badge read "14/16 in use", implying two
-                           spare, while `ready` was 0; every visitor correctly
-                           fell through to read-only and the UI appeared to
-                           contradict itself. The number was never wrong, it
-                           just was not the one that governs.
-                           Exposing occupancy here is DELIBERATE (see
-                           PoolOccupancyContextTest, "Pool occupancy is exposed
-                           next to the Read-Only badge") — so this keeps the
-                           feature and fixes the quantity. The WHY is carried
-                           separately by readonly_visitor_reason_detail, already
-                           rendered in the popovers below. {% endcomment %}
-                        {% if is_readonly and visitor_pool_status %}
-                            <span class="header-visitor-slots" id="visitor-pool-occupancy">{{ visitor_pool_status.ready }} of {{ visitor_pool_status.total }} visitor slots available</span>
-                        {% endif %}
-                        {% if visitor_expires_at %}
-                            <span id="visitor-countdown"
-                                  style="margin-left: 6px;
-                                         font-family: 'JetBrains Mono', monospace;
-                                         font-weight: 600;
-                                         font-size: 0.9em">⏰ --:--</span>
-                        {% endif %}
-                        <svg width="12"
-                             height="12"
-                             viewBox="0 0 16 16"
-                             fill="currentColor"
-                             style="margin-left: 6px">
-                            <path d="M4 6l4 4 4-4H4z" />
-                        </svg>
-                    </button>
-                    <div class="header-dropdown" id="visitor-menu-dropdown" style="display: none">
-                        <!-- Visitor Info Header -->
-                        <div class="dropdown-header">
-                            <div class="dropdown-user-info">
-                                <strong>Visitor Mode</strong>
-                                <div class="dropdown-user-username">{{ user.username }}</div>
-                            </div>
-                        </div>
-                        <div style="padding: 12px 16px;
-                                    font-size: 13px;
-                                    color: var(--text-primary);
-                                    line-height: 1.5;
-                                    background: var(--bg-muted);
-                                    border-radius: 6px;
-                                    margin: 8px">
-                            <svg width="14"
-                                 height="14"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor"
-                                 style="margin-right: 4px;
-                                        vertical-align: text-bottom;
-                                        color: var(--color-attention-fg)">
-                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
-                                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z" />
-                            </svg>
-                            {% if is_readonly %}
-                                {{ readonly_visitor_reason_detail }} You can view everything; sign up or log in to make changes.
-                                {% comment %} `ready`, not `allocated` — see the note on the
-                                   other popover. {% endcomment %}
-                                {% if visitor_pool_status %}
-                                    ({{ visitor_pool_status.ready }} of {{ visitor_pool_status.total }} visitor slots available.)
-                                {% endif %}
-                            {% else %}
-                                Your work will be kept only during this session. To save to disk for future sessions, create an account.
-                            {% endif %}
-                        </div>
-                        <!-- Allocated Resources -->
-                        <div style="padding: 8px 16px;
-                                    font-size: 12px;
-                                    color: var(--text-primary);
-                                    display: flex;
-                                    gap: 12px;
-                                    justify-content: center">
-                            <span title="CPU cores allocated">
-                                <i class="fas fa-microchip" style="margin-right: 4px; opacity: 0.7;"></i>
-                                {{ visitor_cpus|default:"2" }} CPU
-                            </span>
-                            <span title="Memory allocated">
-                                <i class="fas fa-memory" style="margin-right: 4px; opacity: 0.7;"></i>
-                                {{ visitor_memory_gb|default:"4" }} GB
-                            </span>
-                            <span title="Session duration">
-                                <i class="fas fa-clock" style="margin-right: 4px; opacity: 0.7;"></i>
-                                1 hour
-                            </span>
-                        </div>
-                        <div class="dropdown-divider"></div>
-                        <!-- Primary CTA: Sign Up -->
-                        <a href="/auth/signup/"
-                           class="dropdown-item"
-                           style="background: #238636;
-                                  color: white;
-                                  font-weight: 600;
-                                  text-align: center;
-                                  border-radius: 6px;
-                                  margin: 4px 8px;
-                                  width: calc(100% - 16px)">
-                            <svg width="16"
-                                 height="16"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor"
-                                 style="margin-right: 8px;
-                                        vertical-align: text-bottom">
-                                <path d="M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z" />
-                            </svg>
-                            Sign Up (Free)
-                        </a>
-                        <a href="/auth/signin/" class="dropdown-item" style="text-align: center">
-                            <svg width="16"
-                                 height="16"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor"
-                                 style="margin-right: 8px;
-                                        vertical-align: text-bottom">
-                                <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z" />
-                                <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z" />
-                            </svg>
-                            Sign In
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a href="/auth/logout/" class="dropdown-item visitor-end-session-link">
-                            <svg class="dropdown-item-icon"
-                                 width="14"
-                                 height="14"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z" />
-                                <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z" />
-                            </svg>
-                            End Visitor Session
-                        </a>
-                    </div>
-                </div>
-                <!-- Inline fallback: visitor menu + countdown work even if Vite/JS bundle fails to load -->
-                <script>
-                (function() {
-                    var btn = document.getElementById('visitor-menu-toggle');
-                    var dd = document.getElementById('visitor-menu-dropdown');
-                    if (btn && dd) {
-                        btn.setAttribute('data-inline-handler', 'true');
-                        btn.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
-                        });
-                        document.addEventListener('click', function(e) {
-                            if (!btn.contains(e.target) && !dd.contains(e.target)) {
-                                dd.style.display = 'none';
-                            }
-                        });
-                    }
-                    // Inline countdown fallback — runs only if Vite timer hasn't started within 3s
-                    var expiresAtStr = btn && btn.getAttribute('data-expires-at');
-                    if (!expiresAtStr) {
-                        var mobileBadge = document.querySelector('.header-visitor-badge-mobile');
-                        if (mobileBadge) expiresAtStr = mobileBadge.getAttribute('data-expires-at');
-                    }
-                    if (expiresAtStr) {
-                        var expiresAt = new Date(expiresAtStr);
-                        if (!isNaN(expiresAt.getTime())) {
-                            setTimeout(function() {
-                                // Only start if Vite hasn't already taken over (check if countdown shows time)
-                                var cs = document.getElementById('visitor-countdown');
-                                if (cs && cs.textContent.indexOf('--:--') !== -1) {
-                                    btn.setAttribute('data-inline-countdown', 'true');
-                                    var targets = [
-                                        document.getElementById('visitor-countdown'),
-                                        document.getElementById('mobile-header-visitor-countdown'),
-                                        document.getElementById('mobile-visitor-countdown')
-                                    ];
-                                    setInterval(function() {
-                                        var left = expiresAt.getTime() - Date.now();
-                                        if (left <= 0) {
-                                            targets.forEach(function(el) { if (el) { el.textContent = 'EXPIRED'; el.style.color = '#f44336'; } });
-                                            return;
-                                        }
-                                        var m = Math.floor((left % 3600000) / 60000);
-                                        var s = Math.floor((left % 60000) / 1000);
-                                        var t = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
-                                        targets.forEach(function(el) {
-                                            if (el) {
-                                                el.textContent = el.id === 'mobile-visitor-countdown' ? t : '\u23F0 ' + t;
-                                                el.style.color = left < 300000 ? '#f44336' : left < 900000 ? '#ff9800' : 'inherit';
-                                            }
-                                        });
-                                    }, 1000);
-                                }
-                            }, 3000);
-                        }
-                    }
-                })();
-                </script>
-                <!-- Visible Sign In / Sign Up buttons for visitors -->
-                <a href="/auth/signin/" class="header-btn" data-tooltip="Sign in to your account">{% trans "Sign in" %}</a>
-                <a href="/auth/signup/"
-                   class="header-btn header-btn-primary"
-                   data-tooltip="Create a new account">{% trans "Sign up" %}</a>
-            {% elif user.is_authenticated %}
-                <!-- User Menu -->
-                <div class="header-user-menu">
-                    <button class="header-user-toggle" id="user-menu-toggle">
-                        <div class="header-avatar">
-                            {% if user.profile.avatar %}
-                                <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" />
-                            {% else %}
-                                {{ user.username|slice:":1"|upper }}
-                            {% endif %}
-                        </div>
-                        <svg width="12"
-                             height="12"
-                             viewBox="0 0 16 16"
-                             fill="currentColor"
-                             style="margin-left: 4px">
-                            <path d="M4 6l4 4 4-4H4z" />
-                        </svg>
-                    </button>
-                    <div class="header-dropdown" id="user-menu-dropdown" style="display: none">
-                        <!-- User Info Header -->
-                        <div class="dropdown-header">
-                            <div class="dropdown-user-info">
-                                <strong>{{ user.get_full_name|default:user.username }}</strong>
-                                <div class="dropdown-user-username">@{{ user.username }}</div>
-                            </div>
-                        </div>
-                        <!-- Your Projects -->
-                        <a href="/apps/home/" class="dropdown-item">
-                            <svg class="dropdown-item-icon"
-                                 width="16"
-                                 height="16"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor">
-                                <path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8zM5 12.25a.25.25 0 0 1 .25-.25h3.5a.25.25 0 0 1 .25.25v3.25a.25.25 0 0 1-.4.2l-1.45-1.087a.25.25 0 0 0-.3 0L5.4 15.7a.25.25 0 0 1-.4-.2z" />
-                            </svg>
-                            Your projects
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <!-- Account Switcher (Multi-account support) -->
-                        <div class="dropdown-divider"></div>
-                        <div id="account-switcher-container" style="padding: 8px 16px">
-                            <!-- Switcher dropdown (only shown when multiple accounts) -->
-                            <div id="account-switcher-dropdown-wrapper" style="display: none">
-                                <div style="font-size: 12px;
-                                            color: var(--text-muted);
-                                            margin-bottom: 8px;
-                                            font-weight: 600">
-                                    <svg width="14"
-                                         height="14"
-                                         viewBox="0 0 16 16"
-                                         fill="currentColor"
-                                         style="margin-right: 4px;
-                                                vertical-align: text-bottom">
-                                        <path d="M10.5 5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zm.061 3.073a4 4 0 1 0-5.123 0 6.004 6.004 0 0 0-3.431 5.142.75.75 0 0 0 1.498.07 4.5 4.5 0 0 1 8.99 0 .75.75 0 1 0 1.498-.07 6.005 6.005 0 0 0-3.432-5.142z" />
-                                    </svg>
-                                    Switch Account
-                                </div>
-                                <select id="account-switcher"
-                                        style="width: 100%;
-                                               padding: 6px 8px;
-                                               border: 1px solid var(--border-default);
-                                               border-radius: 6px;
-                                               background: var(--bg-page);
-                                               color: var(--text-primary);
-                                               margin-bottom: 8px">
-                                    <option value="">Loading...</option>
-                                </select>
-                            </div>
-                            <!-- Add account link (always visible) -->
-                            <a href="/auth/login/?next={{ request.path }}"
-                               class="dropdown-item"
-                               style="padding: 4px 0;
-                                      font-size: 13px">
-                                <svg width="14"
-                                     height="14"
-                                     viewBox="0 0 16 16"
-                                     fill="currentColor"
-                                     style="margin-right: 6px;
-                                            vertical-align: text-bottom">
-                                    <path d="M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z" />
-                                </svg>
-                                Add another account
-                            </a>
-                        </div>
-                        <div class="dropdown-divider"></div>
-                        <!-- Settings -->
-                        <a href="{% url 'accounts_app:profile_edit' %}" class="dropdown-item">
-                            <svg width="16"
-                                 height="16"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor"
-                                 style="display: inline-block;
-                                        vertical-align: text-bottom;
-                                        margin-right: 8px">
-                                <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z" />
-                                <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319z" />
-                            </svg>
-                            Settings
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <!-- Sign Out -->
-                        <a href="/auth/logout/" class="dropdown-item">
-                            <svg width="16"
-                                 height="16"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor"
-                                 style="display: inline-block;
-                                        vertical-align: text-bottom;
-                                        margin-right: 8px">
-                                <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z" />
-                                <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z" />
-                            </svg>
-                            Sign out
-                        </a>
-                    </div>
-                </div>
-            {% else %}
-                <!-- Not logged in -->
-                <a href="/auth/signin/" class="header-btn" data-tooltip="Sign in to your account">{% trans "Sign in" %}</a>
-                <a href="/auth/signup/" class="header-btn" data-tooltip="Create a new account">{% trans "Sign up" %}</a>
-            {% endif %}
-        </div>
     </div>
-    <!-- Mobile Header Menu Overlay (visible only when hamburger is tapped) -->
-    <div class="mobile-header-menu" id="mobile-header-menu">
-        <button class="mobile-menu-item" id="mobile-theme-toggle-btn">
-            <i class="fas fa-adjust"></i>
-            <span>Toggle Theme</span>
+    <!-- Shared menu: identical control and actions at every viewport width. -->
+    <div class="mobile-header-menu" id="mobile-header-menu" role="navigation" aria-label="{% trans 'Menu' %}">
+        {% if user.is_authenticated %}
+            <div class="mobile-menu-item mobile-menu-item--section">{% trans "User & Profile" %}</div>
+            <a href="/accounts/profile/" class="mobile-menu-item mobile-menu-item--user mobile-menu-item--indent">
+                <i aria-hidden="true" class="fas fa-user-circle"></i>
+                <span>@{{ user.username }}</span>
+            </a>
+            <a href="/accounts/settings/" class="mobile-menu-item mobile-menu-item--indent">
+                <i aria-hidden="true" class="fas fa-cog"></i>
+                <span>{% trans "Settings" %}</span>
+            </a>
+            <a href="/auth/logout/" class="mobile-menu-item mobile-menu-item--indent">
+                <i aria-hidden="true" class="fas fa-sign-out-alt"></i>
+                <span>{% trans "Sign Out" %}</span>
+            </a>
+            <div class="mobile-menu-divider"></div>
+        {% endif %}
+        <div class="mobile-menu-item mobile-menu-item--section">{% trans "Appearance" %}</div>
+        <button type="button" class="mobile-menu-item mobile-menu-item--indent" id="theme-toggle" aria-label="{% trans 'Switch to dark mode' %}" data-label-dark="{% trans 'Switch to dark mode' %}" data-label-light="{% trans 'Switch to light mode' %}">
+            <i class="fas fa-circle-half-stroke" aria-hidden="true"></i>
+            <span data-theme-toggle-label>{% trans "Switch to dark mode" %}</span>
+        </button>
+        <button type="button" class="mobile-menu-item mobile-menu-item--indent" id="product-tour-btn" aria-label="{% trans 'Product tour' %}">
+            <i class="fas fa-question-circle" aria-hidden="true"></i>
+            <span>{% trans "Product tour" %}</span>
         </button>
         {# Developer-facing entries: shown to staff (and in dev), hidden for #}
         {# ordinary users/visitors so the menu stays focused (operator,      #}
         {# 2026-07-21). Same gate as the header notification center.         #}
+        {# "Settings" grouping (operator ledger Header item, 2026-09-13): the #}
+        {# app's reference/developer entries now live under a labelled        #}
+        {# "Settings" section rather than loose at the top. Keyboard          #}
+        {# Shortcuts is UN-GATED — it is a public reference page                #}
+        {# (/keyboard-shortcuts/ = 200 anonymous), so a normal user can        #}
+        {# reach it; only Server Status stays staff/dev-gated (it is a          #}
+        {# diagnostic, not a help page). The "notification" half of this item   #}
+        {# is decision-pending: the bell was removed by the operator's          #}
+        {# header-declutter directive, so re-adding notification chrome         #}
+        {# would contradict that ruling — not done here.                        #}
+        <div class="mobile-menu-divider"></div>
+        <div class="mobile-menu-item mobile-menu-item--section">{% trans "Help" %}</div>
+        <a href="/keyboard-shortcuts/" class="mobile-menu-item mobile-menu-item--indent">
+            <i aria-hidden="true" class="fas fa-keyboard"></i>
+            <span>{% trans "Keyboard Shortcuts" %}</span>
+        </a>
         {% if DEBUG or user.is_staff %}
-            <a href="{% url 'public_app:server_status' %}" class="mobile-menu-item">
-                <i class="fas fa-server"></i>
-                <span>Server Status</span>
-            </a>
-            <a href="/keyboard-shortcuts/" class="mobile-menu-item">
-                <i class="fas fa-keyboard"></i>
-                <span>Keyboard Shortcuts</span>
+            <div class="mobile-menu-item mobile-menu-item--section">{% trans "Developer" %}</div>
+            <a href="{% url 'public_app:server_status' %}" class="mobile-menu-item mobile-menu-item--indent">
+                <i aria-hidden="true" class="fas fa-server"></i>
+                <span>{% trans "Server Status" %}</span>
             </a>
         {% endif %}
         <div class="mobile-menu-divider"></div>
-        {% if is_visitor %}
-            <div class="mobile-menu-item mobile-menu-item--muted">
-                {% if is_readonly %}
-                    <i class="fas fa-lock"></i>
-                    <span id="mobile-visitor-info">Read-Only Mode</span>
-                {% elif visitor_username %}
-                    <i class="fas fa-user-clock"></i>
-                    <span id="mobile-visitor-info">Visitor #{{ visitor_username|slice:"8:" }}
-                        {% if visitor_expires_at %}
-                            — <span id="mobile-visitor-countdown"
-       data-expires-at="{{ visitor_expires_at.isoformat }}">--:--</span>
-                        {% endif %}
-                    </span>
-                {% else %}
-                    <i class="fas fa-user-clock"></i>
-                    <span id="mobile-visitor-info">Visitor Mode</span>
-                {% endif %}
-            </div>
-        {% endif %}
-        {% if user.is_authenticated %}
-            {% if not is_visitor %}
-                <div class="mobile-menu-item mobile-menu-item--user">
-                    <i class="fas fa-user-circle"></i>
-                    <span>@{{ user.username }}</span>
-                </div>
-            {% endif %}
-            <div class="mobile-menu-divider"></div>
-            {% if is_visitor %}
-                <!-- Visitor sessions: Sign In / Sign Up FIRST (operator-confirmed 2026-07-07:
-                     visitors must always see the login path, not account-holder items) -->
-                <a href="/auth/signin/" class="mobile-menu-item">
-                    <i class="fas fa-sign-in-alt"></i>
-                    <span>Sign In</span>
-                </a>
-                <a href="/auth/signup/" class="mobile-menu-item">
-                    <i class="fas fa-user-plus"></i>
-                    <span>Sign Up</span>
-                </a>
-                <div class="mobile-menu-divider"></div>
-            {% endif %}
-            <a href="/workspace/" class="mobile-menu-item">
-                <i class="fas fa-th-large"></i>
-                <span>Workspace</span>
-            </a>
-            <a href="/chat/" class="mobile-menu-item mobile-menu-item--indent">
-                <i class="fas fa-comment"></i>
-                <span>Chat</span>
-            </a>
-            {# Console (terminal) is a developer/power tool — staff/dev only, #}
-            {# consistent with Server Status + Keyboard Shortcuts above.       #}
-            {% if DEBUG or user.is_staff %}
-                <a href="/console/" class="mobile-menu-item mobile-menu-item--indent">
-                    <i class="fas fa-terminal"></i>
-                    <span>Console</span>
-                </a>
-            {% endif %}
-            <a href="/files/" class="mobile-menu-item mobile-menu-item--indent">
-                <i class="fas fa-folder"></i>
-                <span>Files</span>
-            </a>
-            {% if not is_visitor %}
-                <!-- Account-holder items: hidden for visitor sessions -->
-                <a href="/accounts/profile/" class="mobile-menu-item">
-                    <i class="fas fa-user"></i>
-                    <span>Profile</span>
-                </a>
-                <a href="/accounts/settings/" class="mobile-menu-item">
-                    <i class="fas fa-cog"></i>
-                    <span>Settings</span>
-                </a>
-            {% endif %}
-            <div class="mobile-menu-divider"></div>
-            {% if is_visitor %}
-                <a href="/auth/logout/" class="mobile-menu-item">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>End Visitor Session</span>
-                </a>
-            {% else %}
-                <a href="/auth/logout/" class="mobile-menu-item">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Sign Out</span>
-                </a>
-            {% endif %}
-        {% else %}
+        <!-- Visitor-mode row removed 2026-09-11 (visitor retirement): there is
+             no longer a visitor/readonly role. -->
+        {% if not user.is_authenticated %}
             <a href="/auth/signin/" class="mobile-menu-item">
-                <i class="fas fa-sign-in-alt"></i>
-                <span>Sign In</span>
+                <i aria-hidden="true" class="fas fa-sign-in-alt"></i>
+                <span>{% trans "Sign In" %}</span>
             </a>
             <a href="/auth/signup/" class="mobile-menu-item">
-                <i class="fas fa-user-plus"></i>
-                <span>Sign Up</span>
+                <i aria-hidden="true" class="fas fa-user-plus"></i>
+                <span>{% trans "Sign Up" %}</span>
             </a>
         {% endif %}
         {% comment %}
@@ -886,25 +178,27 @@
           visitor session is exactly who needs to read it before transacting.
         {% endcomment %}
         <div class="mobile-menu-divider"></div>
-        <a href="{% url 'public_app:terms' %}" class="mobile-menu-item">
-            <i class="fas fa-file-contract"></i>
-            <span>Terms</span>
+        <div class="mobile-menu-item mobile-menu-item--section">{% trans "Legal" %}</div>
+        <a href="{% url 'public_app:terms' %}" class="mobile-menu-item mobile-menu-item--indent">
+            <i aria-hidden="true" class="fas fa-file-contract"></i>
+            <span>{% trans "Terms" %}</span>
         </a>
-        <a href="{% url 'public_app:privacy' %}" class="mobile-menu-item">
-            <i class="fas fa-user-shield"></i>
-            <span>Privacy</span>
+        <a href="{% url 'public_app:privacy' %}" class="mobile-menu-item mobile-menu-item--indent">
+            <i aria-hidden="true" class="fas fa-user-shield"></i>
+            <span>{% trans "Privacy" %}</span>
         </a>
-        <a href="{% url 'public_app:cookies' %}" class="mobile-menu-item">
-            <i class="fas fa-cookie-bite"></i>
-            <span>Cookies</span>
+        <a href="{% url 'public_app:cookies' %}" class="mobile-menu-item mobile-menu-item--indent">
+            <i aria-hidden="true" class="fas fa-cookie-bite"></i>
+            <span>{% trans "Cookies" %}</span>
         </a>
-        <a href="{% url 'public_app:tokushoho' %}" class="mobile-menu-item">
-            <i class="fas fa-scale-balanced"></i>
-            <span>特定商取引法に基づく表記</span>
+        {% tokushoho_url as tokushoho_href %}
+        <a href="{{ tokushoho_href }}" class="mobile-menu-item mobile-menu-item--indent">
+            <i aria-hidden="true" class="fas fa-scale-balanced"></i>
+            <span>{% trans "Legal Notice" %}</span>
         </a>
-        <a href="{% url 'public_app:contact' %}" class="mobile-menu-item">
-            <i class="fas fa-envelope"></i>
-            <span>Contact</span>
+        <a href="{% url 'public_app:contact' %}" class="mobile-menu-item mobile-menu-item--indent">
+            <i aria-hidden="true" class="fas fa-envelope"></i>
+            <span>{% trans "Contact" %}</span>
         </a>
     </div>
     {% include 'global_base_partials/global_header/hamburger_inline.html' %}

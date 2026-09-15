@@ -70,7 +70,7 @@ MODULE_CLASSES = frozenset({"workspace-page", "writer-module", "no-transition"})
 LANDING_CLASSES = frozenset({"workspace-page", "landing-page"})
 
 VIEWPORT_LOCKING = {
-    "max-height": "100vh",
+    "max-height": "100dvh",
     "overflow": "hidden",
 }
 

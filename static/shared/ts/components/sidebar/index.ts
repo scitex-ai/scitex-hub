@@ -15,6 +15,22 @@ import { handleSidebarKeyDown } from "./keyboard";
 const STORAGE_KEY_SIDEBAR = "ws-sidebar-state";
 const STORAGE_KEY_PANE = "ws-active-pane";
 
+export function safeSameOriginNavigationUrl(raw: string): string | null {
+  try {
+    const url = new URL(raw, window.location.href);
+    return url.origin === window.location.origin &&
+      /^https?:$/.test(url.protocol)
+      ? url.href
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function isSafeModuleName(value: string): boolean {
+  return /^[a-z][a-z0-9_]{0,63}$/.test(value);
+}
+
 type PaneId = "chat" | "console" | "files" | "editor" | "module";
 
 class WorkspaceSidebar {
@@ -87,14 +103,15 @@ class WorkspaceSidebar {
     const trackModule =
       urlModule || document.body.getAttribute("data-track-module");
 
-    if (trackModule === "home" && path === "/") {
+    if (trackModule === "my_projects" && path === "/") {
       // Root "/" renders the Hub (Gitea-style dashboard) in the module pane.
       // Activate it so the hub content is visible instead of falling through
       // to the last-used core pane (which would hide the hub content).
       this.switchPane("module", false);
       // Clear all sidebar-item highlights — the logo link is the "Home" affordance
       this.items?.forEach((i) => i.classList.remove("active"));
-    } else if (trackModule && trackModule !== "files") {
+    } else if (urlModule || (trackModule && trackModule !== "files")) {
+      // "files" alone is the root /files/ editor pane; /apps/files/ is the Files app.
       this.switchPane("module", false);
       this.highlightModuleItem(trackModule);
     } else if (path.startsWith("/ai-setup/")) {
@@ -357,6 +374,10 @@ class WorkspaceSidebar {
   ): Promise<void> {
     const pane = document.getElementById("main-content");
     if (!pane) return;
+    if (!isSafeModuleName(moduleName)) {
+      console.error("[sidebar] Refused invalid module identifier");
+      return;
+    }
 
     // If already showing this module, skip
     const current = pane.getAttribute("data-app-accent");
@@ -367,10 +388,13 @@ class WorkspaceSidebar {
     pane.classList.add("switching");
 
     try {
-      const resp = await fetch(`/apps/workspace/content/${moduleName}/`, {
-        headers: { "X-Workspace-Shell": "1" },
-        credentials: "same-origin",
-      });
+      const resp = await fetch(
+        `/apps/workspace/content/${encodeURIComponent(moduleName)}/`,
+        {
+          headers: { "X-Workspace-Shell": "1" },
+          credentials: "same-origin",
+        },
+      );
 
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
@@ -395,7 +419,12 @@ class WorkspaceSidebar {
       pane.setAttribute("data-app-accent", moduleName);
       pane.style.removeProperty("--app-accent-color");
       const href = item.getAttribute("href") || `/apps/${moduleName}/`;
-      history.pushState({ module: moduleName }, "", href);
+      const safeHref = safeSameOriginNavigationUrl(href);
+      history.pushState(
+        { module: moduleName },
+        "",
+        safeHref ?? `/apps/${encodeURIComponent(moduleName)}/`,
+      );
 
       document.dispatchEvent(
         new CustomEvent("workspace:module-injected", {
@@ -406,7 +435,8 @@ class WorkspaceSidebar {
       console.error("[sidebar] Failed to load module:", moduleName, err);
       // Fallback: navigate normally
       const href = item.getAttribute("href") || `/apps/${moduleName}/`;
-      location.href = href;
+      const safeHref = safeSameOriginNavigationUrl(href);
+      if (safeHref) location.assign(safeHref);
     } finally {
       pane.classList.remove("switching");
     }

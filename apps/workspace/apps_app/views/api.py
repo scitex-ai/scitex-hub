@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import json
+import logging
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -17,7 +18,23 @@ from ..models import (
     ModuleReview,
     ModuleStar,
 )
+from ..services.launcher_display import (
+    DisplayOverrideRejected,
+    save_display_override,
+    save_favorite,
+    validate_display_override,
+)
+from ..services.launcher_dock import (
+    DOCK_CAPACITY,
+    HOME_BUTTON,
+    DockRejected,
+    save_dock_apps,
+    validate_dock_apps,
+)
+from ..services.launcher_links import save_link_tile_orders
 from .helpers import can_view_module, ensure_builtin_modules
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -28,6 +45,11 @@ def api_install(request, module_name):
     if not can_view_module(request.user, app_module):
         return JsonResponse(
             {"success": False, "error": "Module not available."}, status=403
+        )
+    if app_module.availability == "coming_soon":
+        return JsonResponse(
+            {"success": False, "error": "Module is not available to install."},
+            status=409,
         )
 
     _, created = ModuleInstallation.objects.get_or_create(
@@ -91,6 +113,11 @@ def api_toggle(request, module_name):
     """Toggle module enabled/disabled state."""
     ensure_builtin_modules()
     app_module = get_object_or_404(AppsModule, module_name=module_name)
+    if app_module.availability == "coming_soon":
+        return JsonResponse(
+            {"success": False, "error": "Module is not available to enable."},
+            status=409,
+        )
     installation = ModuleInstallation.objects.filter(
         user=request.user, module=app_module
     ).first()
@@ -249,7 +276,10 @@ def api_reorder(request):
             dev_inst = dev_installations[name]
             dev_inst.tab_order = tab_order
             dev_inst.save(update_fields=["tab_order"])
-        elif name in all_modules:
+        elif (
+            name in all_modules
+            and all_modules[name].availability != "coming_soon"
+        ):
             # Auto-create installation for modules without one (e.g. clew)
             inst, _created = ModuleInstallation.objects.update_or_create(
                 user=request.user,
@@ -258,7 +288,43 @@ def api_reorder(request):
             )
             installations[name] = inst
 
+    # Link tiles (Chat, Settings) have no AppsModule row; keep their positions
+    # too, or the first drag would jump them to the front of the grid.
+    save_link_tile_orders(request.user, order)
+
     return JsonResponse({"success": True, "message": "Tab order updated."})
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_dock(request):
+    """Save which apps the user keeps in the dock, in order."""
+    from .launcher import _build_tiles
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "Invalid JSON."}, status=400)
+
+    ensure_builtin_modules()
+    known_apps = {
+        tile["name"]
+        for tile in _build_tiles(request)
+        if not tile["is_add_slot"] and not tile.get("is_planned")
+    } | {HOME_BUTTON}
+    try:
+        dock_apps = validate_dock_apps(data.get("dock"), known_apps)
+        save_dock_apps(request.user, dock_apps)
+    except DockRejected:
+        return JsonResponse(
+            {
+                "success": False,
+                "error": "Dock request rejected.",
+                "capacity": DOCK_CAPACITY,
+            },
+            status=400,
+        )
+    return JsonResponse({"success": True, "dock": dock_apps, "capacity": DOCK_CAPACITY})
 
 
 @login_required
@@ -293,6 +359,38 @@ def api_update_config(request, module_name):
 
 @login_required
 @require_http_methods(["POST"])
+def api_launcher_display(request, module_name):
+    """Save safe, per-user launcher display metadata without changing the app."""
+    app_module = get_object_or_404(AppsModule, module_name=module_name)
+    if not can_view_module(request.user, app_module):
+        return JsonResponse(
+            {"success": False, "error": "Module not available."}, status=403
+        )
+    ensure_builtin_modules()
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "Invalid JSON."}, status=400)
+    try:
+        if "favorite" in data:
+            if not isinstance(data["favorite"], bool):
+                raise DisplayOverrideRejected("Favorite must be true or false.")
+            save_favorite(request.user, module_name, data["favorite"])
+            return JsonResponse({"success": True, "favorite": data["favorite"]})
+        override = (
+            None if data.get("reset") is True else validate_display_override(data)
+        )
+        save_display_override(request.user, module_name, override)
+    except (AttributeError, DisplayOverrideRejected):
+        logger.warning("Display override rejected", exc_info=True)
+        return JsonResponse(
+            {"success": False, "error": "Display override rejected."}, status=400
+        )
+    return JsonResponse({"success": True, "override": override})
+
+
+@login_required
+@require_http_methods(["POST"])
 def api_fork(request, module_name):
     """Fork a user app's source project into the requester's Gitea account."""
     app_module = get_object_or_404(AppsModule, module_name=module_name)
@@ -315,8 +413,11 @@ def api_fork(request, module_name):
         result = client.fork_repository(owner, repo, organization=request.user.username)
         fork_url = f"/{request.user.username}/{result.get('name', repo)}/"
         return JsonResponse({"success": True, "url": fork_url})
-    except Exception as exc:
-        return JsonResponse({"success": False, "error": str(exc)}, status=500)
+    except Exception:
+        logger.exception("Failed to fork app source")
+        return JsonResponse(
+            {"success": False, "error": "Unable to fork app source."}, status=500
+        )
 
 
 @require_http_methods(["GET"])

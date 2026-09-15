@@ -42,6 +42,7 @@ import threading
 
 import pytest
 
+from tests.e2e.playwright.conftest import pooled_visitor_context
 from tests.e2e.playwright.content_check import (
     BrowserProblemLog,
     body_text_problem,
@@ -52,6 +53,8 @@ from tests.e2e.playwright.content_check import (
     read_content_signals,
     stuck_placeholder_problem,
 )
+from tests.e2e.playwright.page_ready import wait_for_page_ready
+from tests.e2e.playwright.test_capture_screenshots import navigate_product_page
 
 # A real, valid 1x1 PNG. Served over HTTP so the healthy fixture's image
 # genuinely loads and reports a non-zero naturalWidth.
@@ -419,6 +422,99 @@ def test_a_clean_page_reports_no_browser_errors(problems_for):
     count = len(problems)
     # Assert
     assert count == 0, problems
+
+
+def test_product_navigation_returns_at_response_commit():
+    """A stalled optional resource cannot block the product-readiness checks."""
+
+    class RecordingPage:
+        def __init__(self):
+            self.call = None
+
+        def goto(self, route, **kwargs):
+            self.call = (route, kwargs)
+            return "response"
+
+    page = RecordingPage()
+
+    response = navigate_product_page(page, "/apps/figrecipe/")
+
+    assert response == "response"
+    assert page.call == (
+        "/apps/figrecipe/",
+        {"wait_until": "commit", "timeout": 15_000},
+    )
+
+
+def test_screenshot_readiness_does_not_wait_for_global_load():
+    class RecordingPage:
+        def __init__(self):
+            self.calls = []
+
+        def wait_for_load_state(self, state):
+            raise AssertionError(f"global {state!r} wait is forbidden")
+
+        def wait_for_function(self, expression, **kwargs):
+            self.calls.append(("function", expression, kwargs))
+
+        def wait_for_timeout(self, timeout):
+            self.calls.append(("timeout", timeout))
+
+    page = RecordingPage()
+
+    wait_for_page_ready(page, wait_for_load=False)
+
+    assert [kind for kind, *_rest in page.calls] == ["function", "timeout"]
+
+
+def test_pooled_screenshot_context_blocks_service_worker_navigation_cache(
+    monkeypatch,
+):
+    class RecordingContext:
+        def __init__(self):
+            self.cookies = None
+
+        def set_default_timeout(self, timeout):
+            self.timeout = timeout
+
+        def add_cookies(self, cookies):
+            self.cookies = cookies
+
+        def close(self):
+            pass
+
+    class RecordingBrowser:
+        def __init__(self):
+            self.options = None
+            self.context = RecordingContext()
+
+        def new_context(self, **options):
+            self.options = options
+            return self.context
+
+    # A deterministic key so the injected cookie is assertable. The conftest
+    # reads this env var (it refuses an empty/malformed one).
+    monkeypatch.setenv("SCITEX_SCREENSHOT_SESSION", "a" * 32)
+
+    browser = RecordingBrowser()
+    fixture = pooled_visitor_context.__wrapped__(browser, "http://127.0.0.1:8000")
+
+    next(fixture)
+    fixture.close()
+
+    # The context opts out of service-worker-driven navigation caching.
+    assert browser.options["service_workers"] == "block"
+    # The pooled-visitor sessionid cookie is injected into the context, so
+    # every photographed page renders as a real visitor (not anonymous).
+    cookies = browser.context.cookies
+    assert cookies is not None
+    assert cookies == [
+        {
+            "name": "sessionid",
+            "value": "a" * 32,
+            "url": "http://127.0.0.1:8000",
+        }
+    ]
 
 
 # EOF

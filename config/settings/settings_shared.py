@@ -10,8 +10,6 @@ settings_integrations, settings_commerce
 import os
 from pathlib import Path
 
-import scitex as stx
-
 from config import branding
 from config._env import (
     getenv_with_legacy_alias as _getenv_alias,
@@ -20,7 +18,7 @@ from config._env import (
     require_env_with_legacy_alias as _require_env_alias,
 )
 
-from ._optional_apps import optional_upstream_apps
+from ._optional_apps import optional_upstream_apps, with_plugin_apps
 
 
 # ---------------------------------------
@@ -94,6 +92,9 @@ SCITEX_ENV = branding.normalize_env(os.environ.get("SCITEX_HUB_ENV", "developmen
 # `scitex-writer gui` on its own port) sets this to branding.MODE_STANDALONE
 # so its tab reads "Writer — SciTeX (standalone)" instead of "Writer — SciTeX".
 SCITEX_APP_MODE = branding.MODE_HUB
+
+# Storage leaf asks the hub which directories belong to the requester.
+SCITEX_STORAGE_VOLUMES_PROVIDER = "apps.workspace.storage_app.volumes.user_volumes"
 
 # ---------------------------------------
 # Paths
@@ -208,6 +209,8 @@ THIRD_PARTY_APPS.append("scitex_ui")
 # lives in _optional_apps.py — including the scitex-cards rename-window
 # shim and the reason it exists. Extracted 2026-08-16.
 THIRD_PARTY_APPS.extend(optional_upstream_apps())
+# Plugin apps: `pip install <pkg>` with a `scitex.apps` entry point (scitex_app.plugins).
+THIRD_PARTY_APPS = with_plugin_apps(THIRD_PARTY_APPS)
 
 LOCAL_APPS = discover_local_apps()
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -228,6 +231,24 @@ elif _scitex_hub_env in ("prod",):
     _scitex_hub_env = "production"
 SCITEX_UI_ELEMENT_INSPECTOR = _scitex_hub_env in ("development", "staging")
 
+# Host service for leaf apps' project pickers (scitex_ui.project_scope).
+SCITEX_PROJECT_PROVIDER = "apps.infra.project_app.services.project_scope.HubProjectProvider"
+SCITEX_PROJECT_PROVIDER_URL = "api_project_scope"
+
+# ── Internal-app release channel ────────────────────────────────────────
+# Whether "internal"-visibility apps (Cards, Storage, todo, …) are released
+# to EVERY authenticated user on this deployment — not just staff. Operator
+# ruling (card hub-cards-internal-entitlement-20260913, 2026-09-13): internal
+# is a release-channel property, not an admin-role property. Accounts allowed
+# to log in to a development deployment are the SciTeX team, so the dev
+# settings module forces this True; production keeps it False (internal apps
+# hidden unless a deployment deliberately releases them). Staff always see
+# internal apps regardless (see can_view_internal_app). Env-overridable so a
+# specific deployment can opt in without a code change.
+SCITEX_HUB_INTERNAL_APPS_RELEASED = (
+    _getenv_alias("SCITEX_HUB_INTERNAL_APPS_RELEASED", "false") or "false"
+).lower() in ("1", "true", "yes", "on")
+
 # ── On-site agent auth (HMAC shared secret) ────────────────────────────
 # Shared with the MCP client running inside the user's agent container
 # (scitex_hub._mcp_tools.api.get_on_site_env injects the same value as
@@ -237,51 +258,10 @@ SCITEX_UI_ELEMENT_INSPECTOR = _scitex_hub_env in ("development", "staging")
 # previous IP-based signal was client-forgeable (X-Forwarded-For).
 ONSITE_AUTH_SECRET = os.environ.get("SCITEX_HUB_ONSITE_SECRET", "")
 
-MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    # i18n rails (F: tokushoho/commerce pages). Locale resolution must sit
-    # after SessionMiddleware and before CommonMiddleware per Django docs.
-    # Scope decision: only legal/landing surfaces are authored in Japanese
-    # for now — the app interior stays untranslated.
-    "django.middleware.locale.LocaleMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    # Resolve Authorization: Bearer <jwt> → request.user for plain Django
-    # views. Browser cookie-sessions short-circuit before this runs
-    # (request.user already authenticated), so the middleware is a pure
-    # addition that opens the JWT door to existing endpoints without
-    # touching any view. See apps/infra/accounts_app/middleware.py.
-    "apps.infra.accounts_app.middleware.JWTBearerToSessionMiddleware",
-    "apps.infra.project_app.middleware.OnSiteAuthMiddleware",
-    "allauth.account.middleware.AccountMiddleware",
-    "apps.infra.project_app.middleware.VisitorAutoLoginMiddleware",
-    "apps.infra.project_app.middleware.VisitorExpirationMiddleware",
-    "apps.infra.project_app.middleware.VisitorAppRedirectMiddleware",
-    # Default-deny site-wide write guard for the shared readonly-visitor
-    # role (card hub-visitor-slot-isolation-audit — closes the exact gap
-    # that produced the field-found "Plaque" leak: per-view opt-in guards
-    # had missed project creation entirely). Must run AFTER
-    # VisitorAutoLoginMiddleware so request.user/session-role is final.
-    # Per-view guards (file_save.py, todo_app middleware below) still
-    # apply first for their richer error copy; this is the safety net.
-    "apps.infra.project_app.middleware_readonly_write_guard.ReadonlyVisitorWriteGuardMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "apps.infra.project_app.middleware.GuestSessionMiddleware",
-    # Scope the mounted scitex-todo board (/todo/) to the requesting
-    # user's workspace store + enforce the phase-1 read-only gate. Must
-    # run AFTER Authentication + VisitorAutoLogin so request.user is
-    # final; no-ops in one prefix check for every other path (and when
-    # the scitex_cards package is not installed).
-    "apps.workspace.todo_app.middleware.TodoBoardTenancyMiddleware",
-    # Injects the Alt+I element inspector into HTML responses when
-    # SCITEX_UI_ELEMENT_INSPECTOR is on (see above). Async-capable as
-    # of scitex-ui 0.6.1 — do not downgrade below that pin.
-    "scitex_ui.middleware.ElementInspectorMiddleware",
-]
+# The MIDDLEWARE stack (order-sensitive, commented per entry) lives in its own
+# module; imported under the same name so env modules can extend it.
+from .settings_middleware import MIDDLEWARE  # noqa: E402, F401
+
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
@@ -315,6 +295,7 @@ TEMPLATES = [
                 "config.context_processors.scitex_env",
                 "config.context_processors.writer_api_base",
                 "config.context_processors.mounted_app_launcher",
+                "config.context_processors.header_logo",
                 "apps.infra.workspace_app.context_processors.workspace_context",
             ],
             "loaders": [
@@ -482,15 +463,5 @@ from .settings_logging import *  # noqa: E402, F401, F403
 
 # SIMPLE_JWT requires SECRET_KEY defined above
 SIMPLE_JWT = get_simple_jwt_settings(SECRET_KEY)  # noqa: F821
-
-
-@stx.session
-def main(CONFIG=stx.session.INJECTED):
-    """Settings module — not meant to be executed directly."""
-    return 0
-
-
-if __name__ == "__main__":
-    main()
 
 # EOF

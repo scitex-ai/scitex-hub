@@ -55,8 +55,10 @@
 #   0  every measured volume has headroom
 #   1  CRITICAL — a volume is under CRIT_FREE_PCT% free
 #   2  WARNING  — a volume is under WARN_FREE_PCT% free, or is unmeasurable
-#   `make status` discards these (run_section ends `|| true`); they exist so
-#   the same script can gate a deploy step or a cron job.
+#   `make status` PROPAGATES them since 2026-09-05: check-status.sh keeps every
+#   section's exit code, ends with a FAIL/WARN summary, and exits 1 when any
+#   section failed (2 = WARN is reported, not gated). The same script can
+#   also gate a deploy step or a cron job directly.
 #
 # Called by: make status -> deployment/host-setup/checks/check-status.sh
 

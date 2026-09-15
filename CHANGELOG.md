@@ -9,6 +9,27 @@ verbatim. See [ADR-0001](docs/adr/0001-rename-scitex-cloud-to-scitex-hub.md).
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.20.0-alpha] - 2026-09-15
+
+Alpha release train for the unified SciTeX application platform.
+
+### Added
+- Unified SciTeX SDK guidance for `scitex-app` and `scitex-ui` in the App Store.
+- User-customizable launcher app names, icons, and colors with iPhone-style
+  edit-mode uninstall controls.
+- Canonical Hub version/date-time metadata and standardized browser tab titles.
+
+### Changed
+- Standardized the responsive header, hamburger menu, project-app identity,
+  and launcher/dock interaction across desktop and mobile.
+- Canonicalized My Projects and Public Projects internal identities and routes.
+- Made My Projects the single user-facing entry to project files.
+
+### Removed
+- Retired the Slides app and removed Mail and Screen Recorder placeholders.
+- Removed stale Discovery, Files, Tools, and retired app entries from user-facing
+  launcher and App Store surfaces.
+
 ## [0.19.0] - 2026-07-17
 
 Rolls up ~200 commits since v0.18.2. Headline: the visitor pool became a
@@ -100,7 +121,7 @@ and the launcher/apps received their first product-polish wave.
 - **Project**: `scitex-cloud` → `scitex-hub` end-to-end. PyPI distribution
   (`pip install scitex-hub`), Python module (`import scitex_hub`), GitHub
   repository, display name ("SciTeX Hub"), Django sub-app
-  (`hub_app` → `repo_app`), and runtime env var prefix
+  (`hub_app` → `my_projects_app`), and runtime env var prefix
   (`SCITEX_CLOUD_*` → `SCITEX_HUB_*`). See
   [ADR-0001](docs/adr/0001-rename-scitex-cloud-to-scitex-hub.md) for the
   full rationale (cloud implies vendor-hosted, but this is a self-hostable
@@ -213,18 +234,18 @@ and the launcher/apps received their first product-polish wave.
 ## [0.12.18] - 2026-03-08
 
 ### Added
-- **Discovery app**: Standalone workspace module at `/discovery/` with hub-consistent tab/card styling
-- **Discovery owner badges**: Avatar photos (or initial-letter circles) for repo owners and user cards
+- **Public Projects app**: Standalone workspace module at `/apps/public-projects/` with hub-consistent tab/card styling
+- **Public Projects owner badges**: Avatar photos (or initial-letter circles) for repo owners and user cards
 - **Hub Settings tab**: Inline AJAX settings (no full navigation), 2nd tab in mode switcher
 - **Hub repo filter**: Fuzzy search on Your Repositories with Ctrl+K shortcut and `⌃K` kbd badge
 - **Hub current-project label**: Shows slug only (e.g. `test-001-app`) instead of `Current Project (slug)`
 
 ### Changed
 - **Hub sidebar**: Removed redundant account links card; renamed "Edit profile" → "Settings"
-- **Discovery queries**: `select_related("owner__profile")` to avoid N+1 on avatar lookups
+- **Public Projects queries**: `select_related("owner__profile")` to avoid N+1 on avatar lookups
 
 ### Fixed
-- **Discovery 404**: Added root URL handler (`/discovery/` → workspace shell with discovery module)
+- **Public Projects 404**: Added root URL handler (`/apps/public-projects/` → workspace shell with the Public Projects module)
 
 ## [0.12.10] - 2026-03-08
 

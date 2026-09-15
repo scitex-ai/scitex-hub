@@ -7,104 +7,108 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_noop as N_
+from django.utils.translation import ngettext
 from django.views.decorators.http import require_http_methods
 
 from apps.workspace.console_app.services.agents_config import DEFAULT_MCP_GROUPS
 
 logger = logging.getLogger(__name__)
 
-# Display metadata for each MCP tool group
+# Display metadata for each MCP tool group. Labels are marked with N_ (no-op)
+# and translated when the page context is built, in the request language.
 MCP_GROUP_INFO = {
     "PLT": {
-        "display": "Plotting",
+        "display": N_("Plotting"),
         "icon": "fa-chart-line",
-        "desc": "Create publication-ready figures",
+        "desc": N_("Create publication-ready figures"),
     },
     "STATS": {
-        "display": "Statistics",
+        "display": N_("Statistics"),
         "icon": "fa-calculator",
-        "desc": "Statistical tests with effect sizes",
+        "desc": N_("Statistical tests with effect sizes"),
     },
     "SCHOLAR": {
-        "display": "Literature",
+        "display": N_("Literature"),
         "icon": "fa-book",
-        "desc": "Search papers, manage citations",
+        "desc": N_("Search papers, manage citations"),
     },
     "WRITER": {
-        "display": "Manuscript",
+        "display": N_("Manuscript"),
         "icon": "fa-pen-fancy",
-        "desc": "LaTeX writing, PDF compilation",
+        "desc": N_("LaTeX writing, PDF compilation"),
     },
     "CLEW": {
-        "display": "Pipelines",
+        "display": N_("Pipelines"),
         "icon": "fa-project-diagram",
-        "desc": "CLEW pipeline execution",
+        "desc": N_("CLEW pipeline execution"),
     },
     "AUDIO": {
-        "display": "Speech",
+        "display": N_("Speech"),
         "icon": "fa-volume-up",
-        "desc": "Text-to-speech in browser",
+        "desc": N_("Text-to-speech in browser"),
     },
     "DIAGRAM": {
-        "display": "Diagrams",
+        "display": N_("Diagrams"),
         "icon": "fa-sitemap",
-        "desc": "Mermaid, Graphviz diagrams",
+        "desc": N_("Mermaid, Graphviz diagrams"),
     },
     "CAPTURE": {
-        "display": "Screenshots",
+        "display": N_("Screenshots"),
         "icon": "fa-camera",
-        "desc": "Capture screenshots",
+        "desc": N_("Capture screenshots"),
     },
     "INTROSPECT": {
-        "display": "API Inspector",
+        "display": N_("API Inspector"),
         "icon": "fa-search-plus",
-        "desc": "Explore scitex API",
+        "desc": N_("Explore scitex API"),
     },
     "TEMPLATE": {
-        "display": "Templates",
+        "display": N_("Templates"),
         "icon": "fa-copy",
-        "desc": "Project templates",
+        "desc": N_("Project templates"),
     },
     "PROJECT": {
-        "display": "File Management",
+        "display": N_("File Management"),
         "icon": "fa-folder-open",
-        "desc": "Read/write project files",
+        "desc": N_("Read/write project files"),
     },
     "DATASET": {
-        "display": "Datasets",
+        "display": N_("Datasets"),
         "icon": "fa-database",
-        "desc": "Access research datasets",
+        "desc": N_("Access research datasets"),
     },
-    "DEV": {"display": "Developer", "icon": "fa-code", "desc": "Development tools"},
+    "DEV": {"display": N_("Developer"), "icon": "fa-code", "desc": N_("Development tools")},
     "LINTER": {
-        "display": "Code Quality",
+        "display": N_("Code Quality"),
         "icon": "fa-check-circle",
-        "desc": "Linting and code checks",
+        "desc": N_("Linting and code checks"),
     },
     "SOCIAL": {
-        "display": "Social",
+        "display": N_("Social"),
         "icon": "fa-share-alt",
-        "desc": "Social media posting",
+        "desc": N_("Social media posting"),
     },
     "UI": {
-        "display": "Notifications",
+        "display": N_("Notifications"),
         "icon": "fa-bell",
-        "desc": "Browser notifications",
+        "desc": N_("Browser notifications"),
     },
     "USAGE": {
-        "display": "Usage",
+        "display": N_("Usage"),
         "icon": "fa-tachometer-alt",
-        "desc": "Usage tracking",
+        "desc": N_("Usage tracking"),
     },
 }
 
 # Logical categories for organized display
 MCP_CATEGORIES = [
-    ("Research & Analysis", ["PLT", "STATS", "DATASET"]),
-    ("Writing & Publishing", ["SCHOLAR", "WRITER", "DIAGRAM"]),
-    ("Development", ["DEV", "LINTER", "INTROSPECT", "TEMPLATE", "PROJECT"]),
-    ("Automation", ["CLEW", "CAPTURE", "AUDIO", "UI", "SOCIAL"]),
-    ("System", ["USAGE"]),
+    (N_("Research & Analysis"), ["PLT", "STATS", "DATASET"]),
+    (N_("Writing & Publishing"), ["SCHOLAR", "WRITER", "DIAGRAM"]),
+    (N_("Development"), ["DEV", "LINTER", "INTROSPECT", "TEMPLATE", "PROJECT"]),
+    (N_("Automation"), ["CLEW", "CAPTURE", "AUDIO", "UI", "SOCIAL"]),
+    (N_("System"), ["USAGE"]),
 ]
 
 
@@ -142,9 +146,9 @@ def _get_mcp_status() -> dict:
         from scitex.mcp_server import mcp as mcp_server
 
         if not FASTMCP_AVAILABLE:
-            return {"status": "unavailable", "message": "FastMCP not installed"}
+            return {"status": "unavailable", "message": _("FastMCP not installed")}
         if mcp_server is None:
-            return {"status": "unavailable", "message": "MCP server not initialized"}
+            return {"status": "unavailable", "message": _("MCP server not initialized")}
 
         # FastMCP 2.x/3.x compat
         from scitex._mcp_tools._compat import get_tools_sync
@@ -153,7 +157,10 @@ def _get_mcp_status() -> dict:
         count = len(tools)
         return {
             "status": "healthy",
-            "message": f"{count} tools loaded",
+            "message": ngettext(
+                "%(count)d tool loaded", "%(count)d tools loaded", count
+            )
+            % {"count": count},
             "count": count,
         }
     except Exception as e:
@@ -176,16 +183,16 @@ def _build_categories_context(prefs: dict) -> list[dict]:
             groups.append(
                 {
                     "name": name,
-                    "display": info["display"],
+                    "display": _(info["display"]) if info["desc"] else info["display"],
                     "icon": info["icon"],
-                    "desc": info["desc"],
+                    "desc": _(info["desc"]) if info["desc"] else "",
                     "enabled": enabled,
                     "tool_count": tool_counts.get(name, 0),
                     "tools": tool_names.get(name, []),
                 }
             )
         if groups:
-            categories.append({"name": cat_name, "groups": groups})
+            categories.append({"name": _(cat_name), "groups": groups})
     return categories
 
 
@@ -239,10 +246,12 @@ def mcp_settings(request):
         if regenerated:
             messages.success(
                 request,
-                "MCP tool preferences saved. Changes apply next time you start Claude Code.",
+                _(
+                    "MCP tool preferences saved. Changes apply next time you start Claude Code."
+                ),
             )
         else:
-            messages.success(request, "MCP tool preferences saved.")
+            messages.success(request, _("MCP tool preferences saved."))
 
         return redirect("accounts_app:mcp_tools")
 

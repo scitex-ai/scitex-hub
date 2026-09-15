@@ -1,4 +1,4 @@
-{% load static %}
+{% load static vite %}
 
 <!-- hook-bypass: inline-style -->
 <!-- Critical CSS inlined: FOUC spinner must render before ANY external CSS loads.
@@ -72,95 +72,9 @@
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
         integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" {# pragma: allowlist secret #}
         crossorigin="visitor" />
-        <!-- Design Tokens - Load colors first for CSS variables -->
+        {# Local head CSS is bundled (list + order in static/shared/ts/head-styles-*.ts); #}
+        {# ~100 separate link/@import files queued behind six connections and held first paint. #}
+        {% vite_css 'shared/head-styles-base' %}
         <link rel="stylesheet"
-              href="{% static 'shared/css/primitives/variables.css' %}?v={{ build_id }}" />
-        <!-- Icon Size Utilities -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/icon-sizes.css' %}?v={{ build_id }}" />
-        <!-- Master Stylesheet - Imports all common, component, and page styles -->
-        <link rel="stylesheet" href="{% static 'shared/css/common.css' %}?v={{ build_id }}" />
-        <!-- Additional Specific Styles -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/base/bootstrap-override/index.css' %}?v={{ build_id }}" />
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/modal.css' %}?v={{ build_id }}" />
-        <!-- Keyboard Shortcuts Modal Styles -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/shortcuts-modal.css' %}?v={{ build_id }}" />
-        <!-- Global Base Layout Styles -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/layouts/global-base.css' %}?v={{ build_id }}" />
-        <!-- Collapsible Panel (shared collapsed states, click-to-expand) -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/collapsible-panel.css' %}?v={{ build_id }}" />
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/collapsible-panel-compat.css' %}?v={{ build_id }}" />
-        <!-- Module Interior Mobile Collapse (≤767px: stack split panes, hide resizers) -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/module-mobile-collapse.css' %}?v={{ build_id }}" />
-        <!-- Panel Resizer — now loaded from scitex-ui via Vite -->
-        <!-- Zen Mode Styles (F11 for distraction-free writing) -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/zen-mode.css' %}?v={{ build_id }}" />
-        <!-- Product Tour (step-by-step guided walkthrough) -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/product-tour.css' %}?v={{ build_id }}" />
-        <!-- Cookie Consent Banner -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/cookie-consent.css' %}?v={{ build_id }}" />
-        <!-- Global AI Chat floating panel -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/global-ai-chat.css' %}?v={{ build_id }}" />
-        <!-- Module Tab Bar — workspace navigation across module pages -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/module-tab-bar.css' %}?v={{ build_id }}" />
-        <!-- Workspace Sidebar — Claude.ai-inspired single-pane navigation -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/workspace-sidebar.css' %}?v={{ build_id }}" />
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/workspace-sidebar-project.css' %}?v={{ build_id }}" />
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/workspace-sidebar-responsive.css' %}?v={{ build_id }}" />
-        <!-- Workspace Layout — single active pane architecture -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/workspace-layout.css' %}?v={{ build_id }}" />
-        <!-- Workspace Chat — Claude.ai-inspired welcome screen -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/workspace-chat.css' %}?v={{ build_id }}" />
-        <!-- Workspace Shell — pane layout overrides (split, AI panel, console) -->
-        <link rel="stylesheet"
-              href="{% static 'workspace_app/css/workspace-shell.css' %}?v={{ build_id }}" />
-        <!-- Workspace Tab Bar — shared chat sessions + console tabs (single source of truth) -->
-        <link rel="stylesheet"
-              href="{% static 'workspace_app/css/workspace-tabbar.css' %}?v={{ build_id }}" />
-        <!-- Workspace Chat Pane — Claude.ai-inspired message styling -->
-        <link rel="stylesheet"
-              href="{% static 'workspace_app/css/workspace-chat-pane.css' %}?v={{ build_id }}" />
-        <link rel="stylesheet"
-              href="{% static 'workspace_app/css/workspace-chat-pane-mobile.css' %}?v={{ build_id }}" />
-        <!-- Workspace Console Pane — terminal full-pane styling -->
-        <link rel="stylesheet"
-              href="{% static 'workspace_app/css/workspace-console-pane.css' %}?v={{ build_id }}" />
-        <!-- AI Setup Hub — AI agent configuration cards -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/ai-setup-hub.css' %}?v={{ build_id }}" />
-        <!-- Shell CSS: stx-shell-sidebar, panel-resizer, workspace-three-col,
-             workspace-viewer, workspace-viewer-preview — now loaded from
-             scitex-ui via Vite (see static/shared/ts/shell-css-imports.ts) -->
-        <!-- Footer Collapse (collapsible footer on workspace pages) -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/footer-collapse.css' %}?v={{ build_id }}" />
-        <!-- Repository Monitor (live file-change feed in worktree pane) -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/repo-monitor.css' %}?v={{ build_id }}" />
-        <!-- Media viewer styles (shared across console and workspace viewer) -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/media-viewer.css' %}?v={{ build_id }}" />
-        <!-- Workspace Files Tree — now loaded from scitex-ui via Vite -->
-        <!-- Context-zoom indicator (per-pane Ctrl+Wheel zoom badge) -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/context-zoom-indicator.css' %}?v={{ build_id }}" />
-        <!-- Notification Center (bell icon + dropdown in header) -->
-        <link rel="stylesheet"
-              href="{% static 'shared/css/components/notification-center.css' %}?v={{ build_id }}" />
+              href="{% static 'shared/css/layouts/site-content-frame.css' %}?v={{ build_id }}" />
+        {% vite_css 'shared/head-styles-shell' %}

@@ -17,7 +17,3 @@
 [data-theme="light"] .form-select {
   background: var(--workspace-bg-primary);
 }
-
-[data-theme="light"] .graph-canvas-wrapper {
-  background: var(--workspace-bg-primary);
-}

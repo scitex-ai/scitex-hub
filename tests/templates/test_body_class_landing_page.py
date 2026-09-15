@@ -15,7 +15,7 @@ so the class means "the marketing page is rendering: hide the app shell, show th
 footer". #499 applied it based on the SESSION ROLE
 (`{% if not user.is_authenticated or is_visitor %}`) to fix a footer missing for
 visitors on /landing/. That branch also covers `/` — and `/` is not the landing page
-for a visitor: root_dispatch (repo_app/views/dispatch.py) redirects only
+for a visitor: root_dispatch (my_projects_app/views/dispatch.py) redirects only
 ROLE_ANONYMOUS to marketing and renders the app-launcher for every other role.
 
 Result: every visitor's launcher carried `landing-page` and the whole shell was

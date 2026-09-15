@@ -37,6 +37,10 @@ VISIBILITY_CHOICES = [
     ("private", "Private"),
     ("unlisted", "Unlisted"),
     ("public", "Public"),
+    # Release-channel visibility (registry.py:103, launcher.py:307): "internal"
+    # = staff/operators only (WIP apps before dogfood is stable). The launcher
+    # already gates on it; the store listing must too.
+    ("internal", "Internal (staff only)"),
 ]
 
 # Launcher-tile availability (card hub-launcher-tile-availability-states).
@@ -379,6 +383,57 @@ class DevInstallation(models.Model):
     def get_module_name(self):
         """Unique module name scoped to avoid collision with published apps."""
         return f"dev__{self.source_owner}__{self.source_repo}"
+
+
+class FirstRunProgress(models.Model):
+    """Per-user progress through the Home "Getting started" checklist."""
+
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name="first_run_progress"
+    )
+    # {step_key: ISO-8601 timestamp of the moment the step was completed}
+    completed_steps = models.JSONField(default=dict, blank=True)
+    dismissed_at = models.DateTimeField(null=True, blank=True)
+    # "Don't show again": the card is not rendered at all until Settings brings it back.
+    hidden_at = models.DateTimeField(null=True, blank=True)
+    # Brought back from Settings; shows the card past the new-user window too.
+    reshown_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "First-run progress"
+        verbose_name_plural = "First-run progress"
+
+    def __str__(self):
+        return f"{self.user.username}: {len(self.completed_steps)} steps done"
+
+
+class PlannedAppInterest(models.Model):
+    """A user asked to hear when a planned app ships, or offered to build it."""
+
+    KIND_CHOICES = [
+        ("notify", "Notify me"),
+        ("build", "Build this app"),
+    ]
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="planned_app_interests"
+    )
+    # An id from planned_apps.PLANNED_APPS; not a FK, the app does not exist yet.
+    app_id = models.CharField(max_length=64, db_index=True)
+    kind = models.CharField(max_length=10, choices=KIND_CHOICES, default="notify")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "app_id", "kind"], name="unique_planned_app_interest"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} → {self.app_id} ({self.kind})"
 
 
 # EOF

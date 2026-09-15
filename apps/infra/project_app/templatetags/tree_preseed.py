@@ -20,11 +20,23 @@ logger = logging.getLogger(__name__)
 register = template.Library()
 
 
-@register.simple_tag
-def tree_preseed_script(project):
+@register.simple_tag(takes_context=True)
+def tree_preseed_script(context, project):
     """Generate inline script to pre-seed sessionStorage with tree data."""
     if not project:
         return ""
+
+    # Writer's page and the shell's worktree pane both call this; a second copy
+    # doubled the HTML (~300 KB each) and rebuilt the tree.
+    request = context.get("request")
+    seeded = getattr(request, "_tree_preseeded", None) if request is not None else None
+    if seeded is not None and project.pk in seeded:
+        return ""
+    if request is not None:
+        if seeded is None:
+            seeded = set()
+            request._tree_preseeded = seeded
+        seeded.add(project.pk)
 
     try:
         from apps.infra.project_app.services.file_tree_builder import (

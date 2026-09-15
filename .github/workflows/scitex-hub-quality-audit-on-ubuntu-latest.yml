@@ -73,11 +73,11 @@ jobs:
     # not excluded for having once been busy." Queueing is a CAPACITY
     # observation with a shelf life, not a property of Spartan.
     #
-    # SO: this job runs on ubuntu-latest because nobody has re-measured
-    # since the reversal — that is inertia, not a justification. Do NOT
-    # read this file as "we must avoid Spartan." If you are here to decide
-    # where CI runs, the live question per §4 is which machine turns the
-    # loop fastest TODAY; measure both pools and move it if Spartan wins.
+    # RE-MEASURED 2026-09-15: hosted is capped at 20 concurrent jobs org-wide
+    # (Free plan) and hub PR jobs queued 5-14 min for 10-90s of work, while
+    # scitex-local-cpu (scitex-compute-01..04, 108 cores) sat idle. So trusted
+    # runs now go there; Spartan stays off because its runners sit on an HPC
+    # login node.
     #
     # (Kept rather than deleted: scitex-dev's audit source cites this
     # repo's PR #561 as the measured case for retiring the PS-169 ratchet,
@@ -88,9 +88,24 @@ jobs:
     # API, not assumed), and GitHub-hosted runners are free for public
     # repositories. So the cost that justified moving here is not being
     # re-incurred by moving back.
-    runs-on: ubuntu-latest
+    # scitex-local-cpu (scitex-compute-01..04) for trusted runs; fork PRs stay
+    # on ephemeral hosted VMs. Same predicate as scitex-ai/.github import-smoke.
+    runs-on: >-
+      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+          && fromJSON('["ubuntu-latest"]')
+          || fromJSON('["self-hosted","Linux","X64","scitex-local-cpu"]') }}
     timeout-minutes: 20
     steps:
+      # Backstop for the runs-on predicate: never check out fork code on our hardware.
+      - name: Refuse to run fork-authored code on self-hosted infrastructure
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository &&
+          runner.environment == 'self-hosted'
+        run: |
+          echo "::error::Fork-authored code is not run on self-hosted runners."
+          exit 1
+
       - uses: actions/checkout@v4
 
       # uv, not setup-python + bare pip. The spartan runner's toolcache

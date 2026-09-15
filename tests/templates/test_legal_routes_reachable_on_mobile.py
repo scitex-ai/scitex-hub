@@ -34,6 +34,13 @@ permitted relocating the footer on a small screen — 「小さいサイズモ�
 ときにはどこかに逃がしてもいい」 — but not deleting it, and "relocated" only
 counts if something actually carries the links.
 
+UPDATE 2026-09-14 (Home + dock redesign). The operator asked for the footer to
+scroll into view above the dock on the phone Home as well. That is now safe:
+the app home body scrolls, and the site dock reserves its band as body padding,
+so the footer's last row clears the dock. The last tests in this file pin both
+halves. The hamburger Legal section stays, because deeper workspace pages still
+hide the footer on a phone.
+
 WHAT THIS MODEL DOES AND DOES NOT DO. It reads the template SOURCE and checks
 which `{% url %}` tags appear inside the mobile menu container and at what
 template nesting depth. It does not render, so it cannot prove the links are
@@ -92,6 +99,8 @@ def _conditional_depth_at(source: str, position: int) -> int:
 
 
 def _url_tag_positions(source: str, route: str) -> list[int]:
+    if route == "public_app:tokushoho":
+        return [m.start() for m in re.finditer(r"{%-?\s*tokushoho_url\b", source)]
     pattern = re.compile(r"{%-?\s*url\s+['\"]" + re.escape(route) + r"['\"]")
     return [m.start() for m in pattern.finditer(source)]
 
@@ -122,7 +131,7 @@ def test_the_menu_contains_entries_other_than_the_legal_ones():
     # Arrange
     menu = _mobile_menu_source(_template_text())
     # Act
-    has_other_items = "mobile-theme-toggle-btn" in menu
+    has_other_items = 'id="theme-toggle"' in menu
     # Assert
     assert has_other_items
 
@@ -160,63 +169,80 @@ def test_legal_route_is_not_gated_behind_a_conditional(route):
     assert 0 in depths
 
 
+def _css(relpath: str) -> str:
+    css = (Path(settings.BASE_DIR) / relpath).read_text(encoding="utf-8")
+    return re.sub(r"/\*.*?\*/", "", css, flags=re.DOTALL)
+
+
 def test_the_mobile_menu_reserves_the_dock_band():
     """The menu must pad its scroll end past the fixed dock.
 
     The menu is `position: fixed; bottom: 0`, so it runs to the viewport edge,
-    and the launcher dock floats over its last ~78px at the SAME z-index (1100)
-    while sitting later in the DOM — so the dock paints on top and eats taps
-    there.
+    and the dock floats over its last band while sitting later in the DOM — so
+    the dock paints on top and eats taps there.
 
     Measured on production at 390px with this branch's Legal section rendered:
     scrolled fully down, `a[href="/contact/"]` sat at y 784..828 and
-    elementFromPoint at its centre returned `.launcher-dock`. The menu could
-    only scroll 21px — nowhere near enough to lift a 44px row clear of a 64px
-    dock — so the last legal entry was permanently untappable.
-
-    With the clearance the same measurement puts it at 698..742, clear of the
-    dock's 766 top, and the scroll range goes 21px -> 107px.
+    elementFromPoint at its centre returned the dock. The menu could only scroll
+    21px — nowhere near enough to lift a 44px row clear of a 64px dock — so the
+    last legal entry was permanently untappable.
 
     Without this rule the Legal section still PASSES every other test in this
     file — present in the menu, at depth 0 — while its last entry cannot be
     tapped. That is exactly the "renders but is unreachable" failure this whole
     branch exists to remove, so it gets its own guard.
+
+    2026-09-14: the dock became the SITE dock on every page (.site-dock), so the
+    reservation is keyed on it.
     """
     # Arrange
-    css = (
-        Path(settings.BASE_DIR)
-        / "static/shared/css/components/header/14-responsive.css"
-    ).read_text(encoding="utf-8")
-    without_comments = re.sub(r"/\*.*?\*/", "", css, flags=re.DOTALL)
+    css = _css("static/shared/css/components/header/14-responsive.css")
     # Act
     reserves_band = re.search(
-        r":has\(\.launcher-dock\)[^{]*\.mobile-header-menu\s*\{[^}]*padding-bottom",
-        without_comments,
+        r":has\(\.site-dock\)[^{]*\.mobile-header-menu\s*\{[^}]*padding-bottom",
+        css,
     )
     # Assert
     assert reserves_band is not None
 
 
-def test_the_mobile_footer_hide_rule_still_covers_the_app_home():
-    """The mobile hide rule must NOT exclude `.app-home`.
+def test_the_page_reserves_the_dock_band_so_the_footer_clears_it():
+    """While the dock sits at the bottom, the body reserves its band.
 
-    This is the regression guard for the measured defect. Adding
-    `:not(.app-home)` here — the change that looks symmetrical with
-    workspace-layout.css and was in fact written first — un-hides a 627px footer
-    inside the launcher's fixed viewport and puts 特商法 under the dock.
-
-    The asymmetry between the two files is deliberate and each carries a comment
-    saying so. If a future change makes the launcher scroll on mobile, this
-    guard is the thing to revisit, with the pager re-measured.
+    This is what makes it safe to show the footer on the phone app home (see
+    the next test). The defect measured on 2026-08-10 was 特商法 and Cookies
+    rendering UNDER the fixed dock with no way to scroll them clear. With the
+    body padded by the dock's clearance, the end of the document, which is the
+    footer's last row, scrolls up to sit above the dock.
     """
     # Arrange
-    css = (
-        Path(settings.BASE_DIR) / "static/shared/css/components/footer.css"
-    ).read_text(encoding="utf-8")
-    without_comments = re.sub(r"/\*.*?\*/", "", css, flags=re.DOTALL)
+    css = _css("static/shared/css/components/site-dock.css")
     # Act
-    excludes_app_home = re.search(
-        r"body\.workspace-page[^{]*:not\(\.app-home\)[^{]*\.site-footer", without_comments
+    reserves = re.search(
+        r"body:has\(>\s*\.site-dock[^{]*\{[^}]*padding-bottom:\s*var\(--site-dock-clearance\)",
+        css,
     )
     # Assert
-    assert excludes_app_home is None
+    assert reserves is not None
+
+
+def test_the_phone_app_home_shows_the_footer():
+    """The mobile footer hide rule now EXCLUDES `.app-home`.
+
+    This file used to assert the opposite. That was right while the launcher
+    shell was pinned to 100dvh and the dock covered the footer's last links.
+    Operator, 2026-09-14: swiping down on Home must reveal the footer above the
+    dock. Two things now make that safe. The app home body scrolls (global-base.css,
+    "App Home Override"), and the page reserves the dock band (previous test).
+    Deeper workspace pages still hide the footer on a phone.
+    """
+    # Arrange
+    css = _css("static/shared/css/components/footer.css")
+    # Act
+    excludes_app_home = re.search(
+        r"body\.workspace-page[^{]*:not\(\.app-home\)[^{]*\.site-footer", css
+    )
+    # Assert
+    assert excludes_app_home is not None
+
+

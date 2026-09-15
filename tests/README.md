@@ -356,6 +356,8 @@ import pytest
 from playwright.sync_api import Page
 from scitex.browser import show_step, show_test_result, inject_visual_effects
 
+from tests.e2e.playwright.page_ready import wait_for_page_ready
+
 
 class TestCreatePlot:
     """UI tests for plot creation in Vis app."""
@@ -369,7 +371,11 @@ class TestCreatePlot:
         # Step 1: Navigate to Vis
         show_step(page, 1, 5, "Opening Vis app...", "info")
         page.goto(f"{base_url}/vis/")
-        page.wait_for_load_state("networkidle")
+        # NOT `wait_for_load_state("networkidle")`. A SciTeX page held by a
+        # pooled visitor polls a heartbeat for as long as it is open, so
+        # "500ms with no requests in flight" never arrives and the wait can
+        # only time out. See tests/e2e/playwright/page_ready.py.
+        wait_for_page_ready(page)
 
         # Step 2: Open gallery panel
         show_step(page, 2, 5, "Opening plot gallery...", "info")

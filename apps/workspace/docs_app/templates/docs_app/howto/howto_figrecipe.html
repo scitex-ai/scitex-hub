@@ -1,0 +1,76 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load i18n static %}
+
+{% block title %}{% trans "How to use FigRecipe" %} — {% trans "SciTeX Documentation" %}{% endblock %}
+{% block content %}
+    {% include "docs_app/howto/_howto_styles.html" %}
+    <div class="container py-5" style="max-width: 900px">
+        <h1 class="mb-4">
+            <i class="fas fa-palette me-2"></i>{% trans "How to use FigRecipe" %}
+        </h1>
+        <p class="lead text-muted mb-5">
+            {% trans "FigRecipe makes publication-ready figures and exports them as PNG, SVG or PDF." %}
+        </p>
+        <section class="api-section">
+            <h2>{% trans "Steps" %}</h2>
+            <ol class="howto-steps">
+                <li>
+                    {% blocktrans trimmed %}
+                        Open <strong>FigRecipe</strong> from Home. It opens with a demo figure in the middle.
+                    {% endblocktrans %}
+                    <img class="howto-shot"
+                         src="{% static 'docs_app/images/howto/figrecipe-01-open.jpg' %}"
+                         alt="{% trans 'FigRecipe with the demo figure' %}"
+                         loading="lazy" />
+                </li>
+                <li>
+                    {% blocktrans trimmed %}
+                        Pick a plot type in the left rail, for example <strong>Line</strong>, <strong>Scatter</strong> or <strong>Bar</strong>. A gallery of templates for that type opens.
+                    {% endblocktrans %}
+                    <img class="howto-shot"
+                         src="{% static 'docs_app/images/howto/figrecipe-02-templates.jpg' %}"
+                         alt="{% trans 'The Line templates gallery' %}"
+                         loading="lazy" />
+                </li>
+                <li>
+                    {% blocktrans trimmed %}
+                        Click a template. The plot appears in the viewer, and the number under the rail counts the plots in your figure.
+                    {% endblocktrans %}
+                    <img class="howto-shot"
+                         src="{% static 'docs_app/images/howto/figrecipe-03-added.jpg' %}"
+                         alt="{% trans 'A line plot added from a template' %}"
+                         loading="lazy" />
+                </li>
+                <li>
+                    {% blocktrans trimmed %}
+                        Click <strong>Export</strong>, type a file name and choose <strong>PNG</strong> (300 DPI), <strong>SVG</strong> or <strong>PDF</strong>.
+                    {% endblocktrans %}
+                    <img class="howto-shot"
+                         src="{% static 'docs_app/images/howto/figrecipe-04-export.jpg' %}"
+                         alt="{% trans 'The Export Figure dialog' %}"
+                         loading="lazy" />
+                </li>
+                <li>
+                    {% blocktrans trimmed %}
+                        Click the export button at the bottom of the dialog. The figure file downloads to your computer.
+                    {% endblocktrans %}
+                </li>
+            </ol>
+        </section>
+        <section class="api-section">
+            <h2>{% trans "Tips" %}</h2>
+            <ul>
+                <li>{% trans "Choose SVG or PDF when a journal asks for vector figures." %}</li>
+                <li>{% trans "The demo figure comes from demo_first_figure.yaml in your first project, so you can open that recipe again later." %}</li>
+            </ul>
+        </section>
+        <section class="api-section">
+            <h2>{% trans "Troubleshooting" %}</h2>
+            <ul>
+                <li>{% trans "The template gallery covers the figure: close it with the X button in its corner." %}</li>
+                <li>{% trans "Nothing downloads: check that your browser allows downloads from this site." %}</li>
+            </ul>
+        </section>
+    </div>
+{% endblock %}

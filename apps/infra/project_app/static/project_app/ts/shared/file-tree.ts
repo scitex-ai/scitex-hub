@@ -21,9 +21,16 @@ const HIDDEN_FILES_KEY = "scitex-show-hidden-files";
 /** System noise files always hidden */
 const SYSTEM_NOISE = [".DS_Store", "Thumbs.db"];
 
+/** Dot-directories shown even with hidden files off: the Writer + Scholar workspaces */
+const ALWAYS_VISIBLE_DOTDIRS = [".scitex"];
+
 /** Check if a file/directory name is a dotfile (hidden) */
 function isDotfile(name: string): boolean {
-  return name.startsWith(".") && !SYSTEM_NOISE.includes(name);
+  return (
+    name.startsWith(".") &&
+    !SYSTEM_NOISE.includes(name) &&
+    !ALWAYS_VISIBLE_DOTDIRS.includes(name)
+  );
 }
 
 /** Check if a file is system noise (always hidden) */

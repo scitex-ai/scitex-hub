@@ -7,6 +7,8 @@ from __future__ import annotations
 import logging
 import types
 
+from django.conf import settings
+
 from apps.infra.workspace_app.registry import get_module
 
 from ..models import (
@@ -53,14 +55,40 @@ def ensure_builtin_modules():
 
     from apps.infra.workspace_app.registry import get_all_modules
 
-    registered_names = {m.name for m in get_all_modules()}
+    all_modules = get_all_modules()
+    registered_names = {m.name for m in all_modules}
     existing_names = set(
         AppsModule.objects.filter(is_builtin=True).values_list("module_name", flat=True)
     )
 
     if registered_names <= existing_names:
-        _builtins_ensured = True
-        return
+        # All builtin names present. The manifest is the SSoT for release-
+        # channel visibility, though: a row seeded before its manifest flipped
+        # to "internal" keeps the stale "public" value, and this fast path would
+        # never correct it — leaking internal builtins (Cards, Storage) to the
+        # public App Store for anonymous users (hub-store-tiles-cards-internal-
+        # visibility-regression-20260914). Take the fast path ONLY when no
+        # builtin's stored visibility has drifted from its manifest; otherwise
+        # fall through to the idempotent update_or_create sync below.
+        registry_state = {
+            m.name: (
+                m.visibility or "public",
+                m.availability or "available",
+                m.builtin,
+            )
+            for m in all_modules
+        }
+        stored_state = list(
+            AppsModule.objects.filter(is_builtin=True).values_list(
+                "module_name", "visibility", "availability", "is_builtin"
+            )
+        )
+        if all(
+            registry_state.get(name) == tuple(values)
+            for name, *values in stored_state
+        ):
+            _builtins_ensured = True
+            return
 
     try:
         from django.db import transaction
@@ -73,18 +101,91 @@ def ensure_builtin_modules():
             created, _ = seed_builtins()
         if created:
             logger.info("[apps] Auto-seeded %d built-in modules", created)
+        # Mark ensured ONLY after a successful sync. A transient failure
+        # (DB blip, migration mid-flight) must NOT set the flag, or this
+        # process would never retry and could keep serving stale
+        # visibility rows (the resync-retry gap the review flagged).
+        _builtins_ensured = True
     except Exception:
-        logger.exception("[apps] Failed to auto-seed built-in modules")
-    _builtins_ensured = True
+        logger.exception(
+            "[apps] Failed to auto-seed built-in modules; _builtins_ensured "
+            "stays False so the next call retries (a transient failure must "
+            "not permanently skip the visibility resync in this process)."
+        )
+
+
+def can_view_internal_app(user) -> bool:
+    """Whether ``user`` may see/open an ``internal``-visibility app.
+
+    Operator ruling (card hub-cards-internal-entitlement-20260913, 2026-09-13):
+    "internal" is a RELEASE-CHANNEL property, not an admin-role property. On a
+    development deployment (where every authenticated account is a SciTeX team
+    member), every authenticated user sees internal apps; anonymous users stay
+    redirected. On production, internal apps stay hidden unless the deployment
+    opts in via SCITEX_HUB_INTERNAL_APPS_RELEASED. Staff always see internal
+    apps on any deployment (operators). DEBUG is deliberately NOT the switch —
+    it is observed, not the product contract.
+    """
+    if not user.is_authenticated:
+        return False
+    if user.is_staff:
+        return True
+    return bool(getattr(settings, "SCITEX_HUB_INTERNAL_APPS_RELEASED", False))
+
+
+def _cards_mount_gate(user) -> bool:
+    from apps.workspace.todo_app.middleware import cards_board_access_allowed
+
+    return cards_board_access_allowed(user)
+
+
+def _agents_mount_gate(user) -> bool:
+    from apps.workspace.agents_app.views import _fleet_access_allowed
+
+    return _fleet_access_allowed(user)
+
+
+#: Module name -> the predicate its MOUNT enforces. Each entry delegates to the
+#: gate itself (never a copy), so a tile and its route cannot disagree:
+#:   todo   (/apps/cards/)  staff-only, JSON 403 — todo_app/middleware.py
+#:   agents (/apps/agents/) superuser, staff or a listed SAC operator,
+#:                          plain-text 403 — agents_app/views.py
+_MOUNT_GATES = {
+    "todo": _cards_mount_gate,
+    "agents": _agents_mount_gate,
+}
+
+
+def can_open_mounted_app(user, module_name: str) -> bool:
+    """Whether opening ``module_name``'s launcher tile would get past its mount.
+
+    Operator 2026-09-14: Cards and Agents are meant for everyone eventually
+    (scoped to the user's own data); until then a tile the user cannot open is
+    a dead end, so the grid launcher and the header app launcher both drop it.
+    Apps without a mount-level gate are unaffected.
+    """
+    gate = _MOUNT_GATES.get(module_name)
+    return gate is None or gate(user)
 
 
 def can_view_module(user, app_module):
     """Check if user can view/install this module based on visibility.
 
     public   → everyone
+    internal → release-channel gate (WIP apps); is_builtin must NOT bypass it
     unlisted → any authenticated user (direct URL / org-gated discovery)
     private  → author, staff, or users sharing an org with the author
     """
+    # "internal" is a release-channel property, not a builtin/admin property.
+    # The previous `or app_module.is_builtin` short-circuit leaked internal
+    # builtins (Cards/todo_app, Storage) to EVERYONE — including anonymous
+    # users — in the App Store (regression hub-store-tiles-cards-internal-
+    # visibility-regression-20260914). Gate internal FIRST so is_builtin can
+    # never override it; delegate to can_view_internal_app (staff, or an
+    # authenticated user on a deployment that opted in via
+    # SCITEX_HUB_INTERNAL_APPS_RELEASED; anonymous -> False).
+    if app_module.visibility == "internal":
+        return can_view_internal_app(user)
     if app_module.visibility == "public" or app_module.is_builtin:
         return True
     if not user.is_authenticated:
@@ -126,14 +227,25 @@ def browse_context(request, current_project=None):
     )
     from django.db.models import Q
 
-    # Base: public apps always visible
+    # Base: public apps always visible. "internal" is deliberately NOT in the
+    # base — it is staff/operators-only (WIP apps before dogfood is stable),
+    # added to the staff branch below (card compass-impl-app-visibility-gate).
     visibility_q = Q(visibility="public")
 
     if request.user.is_authenticated:
         # Unlisted: authenticated users can see with direct link — show to author + staff
         visibility_q |= Q(visibility="unlisted", author=request.user)
+        # Internal is a RELEASE-CHANNEL decision (can_view_internal_app): staff
+        # always, and a regular user on a RELEASED deployment. It is consulted
+        # for EVERY authenticated user here — not only inside the is_staff
+        # branch — so an ordinary authenticated dev (flag true on dev) sees the
+        # internal builtins in the store, matching the can_view_module policy.
+        # Anonymous never reaches this branch, so internal stays hidden from them.
+        if can_view_internal_app(request.user):
+            visibility_q |= Q(visibility="internal")
         if request.user.is_staff:
-            visibility_q |= Q(visibility__in=["unlisted", "private"])
+            # Staff/operators see unlisted + private + internal (WIP apps).
+            visibility_q |= Q(visibility__in=["unlisted", "private", "internal"])
         else:
             # Private: author or shared-org members
             from apps.infra.organizations_app.models import Organization
@@ -162,7 +274,17 @@ def browse_context(request, current_project=None):
     DEFAULT_DISABLED: set[str] = set()
 
     # Core modules that should not appear in the store listing
-    STORE_HIDDEN: set[str] = {"console", "home", "store"}
+    STORE_HIDDEN: set[str] = {
+        "console",
+        "discovery",
+        "files",
+        "home",
+        "my_projects",
+        "repo",
+        "slides",
+        "store",
+        "tools",
+    }
 
     # Annotate with user-specific state
     install_map = {}  # module_name -> {is_enabled, tab_order}

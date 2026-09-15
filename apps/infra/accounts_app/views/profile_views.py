@@ -16,7 +16,10 @@ def calculate_storage_usage(user):
 
     total_storage_bytes = 0
     try:
-        for project in Project.objects.filter(user=user, project_type="local"):
+        # Project's FK to the user is `owner` (there is no `user` field); the
+        # old `user=user` filter raised FieldError, which the except below
+        # swallowed, so storage always read 0 B.
+        for project in Project.objects.filter(owner=user, project_type="local"):
             project_path = (
                 Path(project.git_clone_path)
                 if hasattr(project, "git_clone_path") and project.git_clone_path
@@ -66,9 +69,14 @@ def gather_resource_statistics(user):
         user=user, status__in=["starting", "running"]
     ).count()
 
-    # SSH keys count
-    workspace_ssh_keys = user.ssh_public_keys.filter(key_type="workspace").count()
-    git_ssh_keys = user.ssh_public_keys.filter(key_type="git").count()
+    # SSH keys count. Two sources, not one relation with a key_type split:
+    # - workspace keys are user-uploaded WorkspaceSSHKey rows
+    #   (related_name="workspace_ssh_keys"; key_type there is the algorithm,
+    #   e.g. rsa/ed25519, never "workspace"/"git");
+    # - the git key is the single server-generated UserProfile.ssh_public_key.
+    workspace_ssh_keys = user.workspace_ssh_keys.count()
+    profile = UserProfile.objects.filter(user=user).first()
+    git_ssh_keys = 1 if profile is not None and profile.ssh_public_key else 0
     total_ssh_keys = workspace_ssh_keys + git_ssh_keys
 
     # Storage usage

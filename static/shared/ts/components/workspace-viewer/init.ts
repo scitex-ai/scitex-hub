@@ -69,8 +69,8 @@ function initWorkspaceViewer(): void {
     (window as any).toggleShortcutsModal?.();
   });
 
-  // Listen for file-open events (double-click) from ANY tree container.
-  // Single-click (file-select) only highlights — does NOT open in viewer.
+  // Listen for file-open events from ANY tree container (a single click/tap
+  // or Enter on a file, or a /blob/ deep link).
   document.addEventListener("file-open", ((e: CustomEvent) => {
     const path = e.detail?.path;
     if (path) {
@@ -103,14 +103,12 @@ function openFileInViewer(
 ): void {
   const sidebar = document.getElementById("ws-viewer-sidebar");
 
-  // Toggle: if same file is already open, collapse the viewer pane
+  // Tapping the file that is already open keeps it open. (This used to
+  // collapse the viewer, which made sense only while opening needed a
+  // double-click; with a single tap it hid the file on the second tap.)
   const activeFile = sidebar?.dataset.aiViewerActive?.split(" (")[0] ?? "";
   const isCollapsed = sidebar?.classList.contains("collapsed");
-  if (activeFile === path && !isCollapsed) {
-    sidebar?.classList.add("collapsed");
-    sidebar!.style.width = "";
-    return;
-  }
+  if (activeFile === path && !isCollapsed) return;
 
   // Hide empty state
   if (emptyState) emptyState.style.display = "none";

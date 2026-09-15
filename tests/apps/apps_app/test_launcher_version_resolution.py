@@ -107,11 +107,11 @@ class GuestLauncherVersionResolutionTest(TestCase):
         assert writer_tile is not None and writer_tile["version"] == expected
 
     def test_guest_launcher_hub_internal_home_tile_omits_version_label(self):
-        # Arrange — "home" (repo_app) ships no pip_package, so it must show
+        # Arrange — "my_projects" (my_projects_app) ships no pip_package, so it must show
         # no version label at all (not "v0.1.0").
         # Act
         resp = self._render_guest_after_authenticated()
-        home_tile = self._tile(resp, "home")
+        home_tile = self._tile(resp, "my_projects")
         # Assert
         assert home_tile is not None and home_tile["version_label"] == ""
 

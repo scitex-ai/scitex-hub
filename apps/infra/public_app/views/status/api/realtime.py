@@ -12,13 +12,20 @@ from django.contrib.sessions.models import Session
 from django.http import JsonResponse
 from django.utils import timezone
 
+from ..access import admin_only_json_response
 from ..helpers import get_gpu_utilization
 
 logger = logging.getLogger("scitex")
 
 
 def server_status_api(request):
-    """API endpoint for real-time server metrics (returns JSON)."""
+    """API endpoint for real-time server metrics (returns JSON).
+
+    Host resource metrics: instance admins only (403 JSON otherwise).
+    """
+    denied = admin_only_json_response(request)
+    if denied is not None:
+        return denied
     try:
         data = {
             "timestamp": int(time.time() * 1000),
@@ -79,8 +86,11 @@ def server_status_api(request):
             data["total_users_count"] = None
 
         return JsonResponse(data)
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+    except Exception:
+        logger.exception("Realtime status collection failed")
+        return JsonResponse(
+            {"error": "Unable to retrieve realtime status."}, status=500
+        )
 
 
 def visitor_resources_api(request):

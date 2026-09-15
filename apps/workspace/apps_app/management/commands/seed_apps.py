@@ -19,29 +19,33 @@ _CATEGORY_MAP = {
     "figrecipe": "visualization",
     "console": "utility",
     "clew": "reference",
-    "home": "utility",
+    "my_projects": "utility",
     "tools": "utility",
     "store": "utility",
-    "discovery": "social",
+    "public_projects": "social",
     "docs": "reference",
     "todo": "utility",
     "storage": "data",
+    "files": "data",
 }
 
 # Module descriptions
 _DESCRIPTIONS = {
-    "writer": "LaTeX manuscript editor with live preview, bibliography management, and figure insertion.",
+    "writer": "Scientific writing.",
     "scholar": "Literature search, BibTeX management, and citation enrichment powered by scitex.scholar.",
-    "figrecipe": "Interactive figure editor: create and edit publication-ready matplotlib plots with drag-and-drop layout, statistical annotations, and multi-panel composition.",
+    "figrecipe": "Publication-ready figure creation.",
     "console": "Python console with file browser for running scripts and managing project files.",
     "clew": "Verification system — trace manuscript claims (statistics, figures, tables) back through computational chains to source data.",
-    "home": "Home workspace — project overview with recent activity, file browser, and quick actions.",
+    "my_projects": "Home workspace — project overview with recent activity, file browser, and quick actions.",
     "tools": "Collection of standalone research utilities — converters, calculators, and helpers.",
     "store": "Browse, install, and manage workspace modules.",
-    "discovery": "Discover public repositories, researchers, and organizations across the SciTeX community.",
+    "public_projects": "Discover public repositories, researchers, and organizations across the SciTeX community.",
     "docs": "Documentation hub — Python packages, MCP tools, API reference, and self-hosting guide.",
-    "todo": "Read-only board view of your project's task cards (scitex-todo store) — kanban columns, dependency graph, and status colors.",
+    "todo": "Task and collaboration management.",
+    "agents": "Agent lifecycle management.",
+    "stats": "Statistical analysis.",
     "storage": "Browse your storage across the machines you can reach.",
+    "files": "Your whole SciTeX workspace: Downloads, Recordings and every project folder.",
 }
 
 # Modules under active development
@@ -86,9 +90,14 @@ def ensure_builtin_modules(author_username="ywatanabe"):
             # Availability comes from the manifest too (SSoT for builtins).
             # A manifest that declares nothing means fully available.
             "availability": mod.availability or "available",
-            "is_builtin": True,
+            "is_builtin": mod.builtin,
             "is_verified": True,
-            "visibility": "public",
+            # Release-channel visibility comes from the manifest (SSoT).
+            # A manifest without the key defaults to "public" (registry.py:349).
+            # "internal" = staff/operators only (WIP apps) — the launcher
+            # already gates on this (launcher.py:307); the store listing must
+            # too (card compass-impl-app-visibility-gate-20260910, P0).
+            "visibility": mod.visibility or "public",
             "status": "wip" if mod.name in _WIP_MODULES else "stable",
         }
 

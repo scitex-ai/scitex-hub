@@ -32,6 +32,12 @@ source /app/deployment/docker/common/lib/database.src
 source /app/deployment/docker/common/lib/django.src
 source /app/deployment/docker/common/lib/scitex.src
 source /app/deployment/docker/common/lib/slurm.src
+source /app/deployment/docker/common/lib/service_role.src
+
+IS_WEB_ROLE=false
+if is_web_role "$@"; then
+    IS_WEB_ROLE=true
+fi
 
 MIGRATION_SENTINEL="/app/logs/.migrations_done"
 
@@ -115,6 +121,46 @@ start_platform_vite() {
         echo_warning "Installing Node dependencies..."
         npm install --silent 2>&1 | grep -v "npm WARN" || true
     fi
+
+    # SCITEX_HUB_VITE_USE_BUILD=true means Django ignores this dev server and
+    # reads staticfiles/vite/.vite/manifest.json instead (see
+    # public_app/templatetags/vite.py). Starting the dev server in that mode
+    # serves nobody, and if nothing produces the manifest the declaration
+    # cannot be honoured: get_manifest() returns {}, every platform entry
+    # misses, and under DEBUG the FIRST page a visitor opens raises
+    # TemplateSyntaxError -- i.e. Django's technical 500, settings table
+    # included. Measured on the public compute-03 preview 2026-09-06: every
+    # route answered 500 with 254,257 bytes for four days, because this stack
+    # sets the flag (deployment/docker/envs/.env.dev) and never built.
+    #
+    # So honour the flag: BUILD, and skip the dev server it tells us not to
+    # use. ~30s at boot is the honest cost of asking for a built bundle, and
+    # it self-heals a wiped volume. A remote preview needs this path anyway --
+    # the dev server emits script tags pointing at window.location.hostname
+    # :5173, which no off-host visitor can reach.
+    # Lowercased first, because settings_dev.py:155 compares
+    # os.environ[...].lower() against ("1", "true", "yes"). Matching a fixed
+    # set of spellings here instead would accept a different set of values
+    # than Django does -- "TRUE" would build nothing while Django read the
+    # manifest -- which is the same declaration-vs-reality split this whole
+    # change exists to close. tests/config/
+    # test_dev_entrypoint_agrees_with_django_on_vite_use_build.py pins them
+    # together.
+    case "$(printf '%s' "${SCITEX_HUB_VITE_USE_BUILD:-false}" | tr '[:upper:]' '[:lower:]')" in
+        1|true|yes)
+            echo_info "SCITEX_HUB_VITE_USE_BUILD is set -- building the Vite bundle instead of starting the dev server..."
+            if npm run build >>/app/logs/vite-build.log 2>&1; then
+                echo_success "Vite build complete (staticfiles/vite/.vite/manifest.json)"
+            else
+                # Loud, not fatal: Django's own system check (public_app.E001)
+                # refuses the boot and names the missing path, which is the
+                # single place that message belongs. Duplicating the refusal
+                # here would just make the real one harder to find.
+                echo_warning "Vite build FAILED -- see /app/logs/vite-build.log. Django will refuse to start (public_app.E001)."
+            fi
+            return 0
+            ;;
+    esac
 
     # Check if platform Vite is already running
     if pgrep -f "vite.*5173" >/dev/null 2>&1; then
@@ -211,17 +257,8 @@ start_typescript_build_watcher_fallback() {
     fi
 }
 
-# Only start web-related services for the Django container (not celery/flower)
-# Check if the command ($@) is the Django runserver
-IS_DJANGO_CONTAINER=false
-for arg in "$@"; do
-    if [ "$arg" = "runserver" ]; then
-        IS_DJANGO_CONTAINER=true
-        break
-    fi
-done
-
-if [ "$IS_DJANGO_CONTAINER" = true ]; then
+# Only start web-related services for the explicit web command.
+if [ "$IS_WEB_ROLE" = true ]; then
     # Start Vite servers (platform + dev app)
     start_platform_vite
     start_devapp_vite
@@ -283,8 +320,8 @@ fi
 # ============================================
 # Initialize Visitor Pool
 # ============================================
-# Only run on first start (fast-path check handles restarts gracefully)
-if [ ! -f "$MIGRATION_SENTINEL" ]; then
+# Creation is idempotent; only web boot may create or quarantine slots.
+if [ "$IS_WEB_ROLE" = true ]; then
     initialize_visitor_pool() {
         echo_info "Initializing visitor pool..."
         if python manage.py create_visitor_pool --verbosity 0; then
@@ -296,11 +333,8 @@ if [ ! -f "$MIGRATION_SENTINEL" ]; then
         fi
     }
     initialize_visitor_pool
-else
-    echo_info "Hot-reload restart - visitor pool already initialized"
-fi
 
-# Boot fail-safe (runs on EVERY container start, including restarts after
+# Boot fail-safe (runs on EVERY web-container start, including restarts after
 # an unclean shutdown): quarantine every slot as unverified (synchronous,
 # DB-only), then ENQUEUE the per-slot wipe+verify re-clean to Celery via
 # --async so Django serves immediately instead of blocking on the clone
@@ -317,6 +351,9 @@ if python manage.py reconcile_visitor_slots --async; then
 else
     echo_error "reconcile_visitor_slots --async FAILED — slots stay quarantined, visitors will be READ-ONLY"
     echo_error "  -> is the SLURM controller up? try: squeue"
+fi
+else
+    echo_info "Skipping visitor pool init/reconcile (non-web service)"
 fi
 
 # ============================================
@@ -457,7 +494,7 @@ start_gitea_auto_sync_if_needed() {
     fi
 }
 # Django-only: terminal broker, SSH gateway, auto-sync (skip for celery/flower)
-if [ "$IS_DJANGO_CONTAINER" = true ]; then
+if [ "$IS_WEB_ROLE" = true ]; then
     start_terminal_broker_if_needed
     start_ssh_gateway_if_needed
     start_gitea_auto_sync_if_needed

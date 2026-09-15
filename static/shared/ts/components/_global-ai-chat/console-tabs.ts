@@ -20,7 +20,16 @@ function getSessionId(tabName: string): string {
   const key = `scitex-console-session-${tabName}`;
   let id = localStorage.getItem(key);
   if (!id) {
-    id = crypto.randomUUID();
+    // randomUUID only exists in secure contexts; plain-http self-hosts lack it.
+    id =
+      typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c) =>
+            (
+              +c ^
+              (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (+c / 4)))
+            ).toString(16),
+          );
     localStorage.setItem(key, id);
   }
   return id;

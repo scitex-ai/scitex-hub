@@ -1,6 +1,7 @@
 {% extends "global_base.html" %}
+{% load i18n %}
 
-{% block title %}{{ section_title }} — AI Setup — SciTeX{% endblock %}
+{% block title %}{% blocktrans trimmed %}{{ section_title }} — AI Setup — SciTeX{% endblocktrans %}{% endblock %}
 {% block content %}
     <div class="stx-app-miller">
         <!-- Col 1: Section nav -->
@@ -20,7 +21,7 @@
         <!-- Col 3: Detail (populated by JS on item click) -->
         <div class="stx-app-miller__col stx-app-miller__col--detail"
              id="ai-setup-detail-col">
-            <div class="stx-app-miller__detail-empty">Select an item to view details</div>
+            <div class="stx-app-miller__detail-empty">{% trans "Select an item to view details" %}</div>
         </div>
     </div>
 {% endblock %}

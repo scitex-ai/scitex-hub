@@ -11,8 +11,10 @@ from django.views.decorators.http import require_http_methods
 
 from apps.infra.project_app.models import Project
 from apps.infra.project_app.services.filesystem.permissions import (
-    validate_path_in_project,
+    canonical_repository_relative_path,
+    resolve_repository_path,
 )
+from apps.security import safe_log_field
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +28,10 @@ def api_get_file_content(request, file_path):
     - raw: Optional. If 'true', returns raw file content (for images, PDFs, etc.)
     - download: Optional. If 'true', adds Content-Disposition header for download.
     """
+    canonical_path = canonical_repository_relative_path(file_path)
+    if canonical_path is None:
+        return JsonResponse({"error": "File not found"}, status=404)
+    file_path = canonical_path.as_posix()
     project_id = request.GET.get("project_id")
     raw = request.GET.get("raw", "").lower() == "true"
     download = request.GET.get("download", "").lower() == "true"
@@ -95,23 +101,28 @@ def api_get_file_content(request, file_path):
         service_manager = ProjectServiceManager(project)
         project_path = service_manager.get_project_path()
 
-        file_full_path = project_path / file_path
+        # The resolver returns None when the project's directory does not exist
+        # on disk (a DB row whose working copy was never cloned, or was
+        # removed). That is "nothing here", not a server fault: answer 404 so
+        # the viewer shows a not-found state. `None / file_path` used to raise
+        # TypeError and surface as a 500 (site audit 2026-09-14, D11).
+        if project_path is None:
+            return JsonResponse(
+                {"success": False, "error": "Project directory not found"},
+                status=404,
+            )
 
-        # Security check: component-wise containment (a prefix match is NOT
+
+        # Security check: canonical component-wise containment (a prefix match is NOT
         # containment -- project_path/"../proj-other" string-prefix-matches
         # project_path and would escape into another tenant's project).
         #
-        # CONTAINMENT ONLY -- deliberately no tenant-ownership / user-jail
-        # check here. Authorization is already enforced per-project at the
-        # top of this view (owner OR collaborator OR visibility == "public").
-        # Adding a user-jail check would break anonymous browsing of PUBLIC
-        # projects, which is a real product feature.
-        # OPEN QUESTION for the operator: should an anonymous reader of a
-        # public project be able to read *any* in-project file (e.g. .env,
-        # .git/config)? A per-file denylist inside public projects is out of
-        # scope for this containment sweep.
-        if not validate_path_in_project(project_path, file_full_path):
-            return JsonResponse({"error": "Invalid file path"}, status=400)
+        # Authorization above intentionally permits public repository reads;
+        # resolve_repository_path adds the separate VCS-metadata and symlink
+        # boundary before any existence check or file read.
+        file_full_path = resolve_repository_path(project_path, file_path)
+        if file_full_path is None:
+            return JsonResponse({"error": "File not found"}, status=404)
 
         if not file_full_path.exists():
             return JsonResponse({"error": "File not found"}, status=404)
@@ -139,9 +150,9 @@ def api_get_file_content(request, file_path):
 
     except UnicodeDecodeError:
         return JsonResponse({"error": "Binary file cannot be edited"}, status=400)
-    except Exception as e:
-        logger.error(f"Error reading file {file_path}: {e}", exc_info=True)
-        return JsonResponse({"error": str(e)}, status=500)
+    except Exception:
+        logger.exception("Error reading file %s", safe_log_field(file_path))
+        return JsonResponse({"error": "Unable to read file."}, status=500)
 
 
 def _serve_raw_file(file_path: Path, original_path: str, download: bool = False):

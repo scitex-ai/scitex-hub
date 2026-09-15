@@ -4,12 +4,64 @@ Permission checks for project filesystem operations.
 This module handles all permission-related validation.
 """
 
-from pathlib import Path
+import posixpath
+from pathlib import Path, PurePosixPath
+from urllib.parse import unquote
 
 from django.conf import settings
 from django.contrib.auth.models import User
 
 from ...models import Project
+
+VCS_METADATA_COMPONENTS = frozenset(
+    {".git", ".hg", ".svn", ".bzr", "_darcs", "cvs"}
+)
+
+
+def canonical_repository_relative_path(value: str) -> PurePosixPath | None:
+    """Canonicalize an untrusted repository path and deny VCS metadata.
+
+    URL decoding is repeated to close double-encoding bypasses. Backslashes are
+    treated as separators as a conservative cross-platform rule. ``None`` is
+    deliberately the only rejection result so callers can answer a uniform 404.
+    """
+    decoded = str(value or "")
+    for _ in range(5):
+        next_value = unquote(decoded)
+        if next_value == decoded:
+            break
+        decoded = next_value
+    if "\x00" in decoded:
+        return None
+    decoded = decoded.replace("\\", "/")
+    raw_parts = [part for part in decoded.split("/") if part not in ("", ".")]
+    if decoded.startswith("/") or ".." in raw_parts:
+        return None
+    normalized = posixpath.normpath(decoded)
+    if normalized in ("", ".") or normalized.startswith("../"):
+        return None
+    path = PurePosixPath(normalized)
+    if any(part.casefold() in VCS_METADATA_COMPONENTS for part in path.parts):
+        return None
+    return path
+
+
+def resolve_repository_path(project_path: Path, value: str) -> Path | None:
+    """Resolve a browser path inside a repository without crossing VCS metadata."""
+    relative = canonical_repository_relative_path(value)
+    if relative is None:
+        return None
+    try:
+        root = Path(project_path).resolve()
+        target = (root / Path(*relative.parts)).resolve()
+        resolved_relative = target.relative_to(root)
+    except (OSError, RuntimeError, ValueError):
+        return None
+    if any(
+        part.casefold() in VCS_METADATA_COMPONENTS for part in resolved_relative.parts
+    ):
+        return None
+    return target
 
 
 def get_user_data_root(user: User) -> Path:

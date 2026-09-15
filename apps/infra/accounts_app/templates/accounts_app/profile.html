@@ -1,25 +1,39 @@
 {% extends "global_base.html" %}
 
-{% load static vite %}
+{% load static vite i18n %}
 
 {% block title %}
-    My Profile -
+    {% trans "My Profile" %} -
     SciTeX
 {% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'accounts_app/css/profile.css' %}" />
 {% endblock %}
 {% block content %}
+    {% comment %}
+    Banner (site audit 2026-09-14, D8): it used a fixed light blue
+    (--scitex-color-07) in both themes, and the heading inherited the theme's
+    heading colour, so in dark mode the username was near-white on light blue
+    and invisible. Colours now come from theme tokens (profile.css), the banner
+    is a compact avatar + name row, and the avatar falls back to the username's
+    initial so it is never an empty circle.
+    {% endcomment %}
     <div class="profile-header">
         <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-2">
-                    <div class="profile-avatar">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+            <div class="profile-header-row">
+                <div class="profile-avatar" aria-hidden="true">
+                    {% if user.first_name or user.last_name %}
+                        {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                    {% else %}
+                        {{ user.username|first|upper }}
+                    {% endif %}
                 </div>
-                <div class="col-md-10">
-                    <h1>{{ user.get_full_name|default:user.username }}</h1>
-                    <p class="text-muted mb-0">Member since {{ user.date_joined|date:"M Y" }}</p>
-                    {% if profile.academic_title %}<p class="mb-0">{{ profile.academic_title }}</p>{% endif %}
+                <div class="profile-header-text">
+                    <h1 class="profile-name">{{ user.get_full_name|default:user.username }}</h1>
+                    <p class="profile-meta">
+                        {% blocktrans trimmed with date=user.date_joined|date:"YEAR_MONTH_FORMAT" %}Member since {{ date }}{% endblocktrans %}
+                    </p>
+                    {% if profile.academic_title %}<p class="profile-meta">{{ profile.academic_title }}</p>{% endif %}
                 </div>
             </div>
         </div>
@@ -30,134 +44,88 @@
             <div class="col-md-8">
                 <div class="profile-section">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h2>Profile Information</h2>
-                        <button class="btn btn-outline-primary" id="editProfileBtn" onclick="toggleEditMode()">
-                            <i class="fas fa-edit"></i> Edit Profile
-                        </button>
+                        <h2>{% trans "Profile Information" %}</h2>
+                        {% comment %}
+                        Editing happens on the unified settings page (accounts_app:profile_edit).
+                        The inline edit form that used to live here POSTed JSON to
+                        'core:api-user-profile', a route removed with the workspace_app merge,
+                        so {% url %} raised NoReverseMatch and the page 500'd.
+                        {% endcomment %}
+                        <a class="btn btn-outline-primary"
+                           id="editProfileBtn"
+                           href="{% url 'accounts_app:profile_edit' %}">
+                            <i class="fas fa-edit"></i> {% trans "Edit Profile" %}
+                        </a>
                     </div>
-                    <form id="profileForm" method="post" action="{% url 'core:api-user-profile' %}">
-                        {% csrf_token %}
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="profile-field">
-                                    <div class="profile-label">First Name</div>
-                                    <div class="profile-value">{{ user.first_name|default:"Not set" }}</div>
-                                    <input type="text"
-                                           name="first_name"
-                                           class="form-control profile-input"
-                                           value="{{ user.first_name }}" />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="profile-field">
-                                    <div class="profile-label">Last Name</div>
-                                    <div class="profile-value">{{ user.last_name|default:"Not set" }}</div>
-                                    <input type="text"
-                                           name="last_name"
-                                           class="form-control profile-input"
-                                           value="{{ user.last_name }}" />
-                                </div>
+                    {% trans "Not set" as not_set %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="profile-field">
+                                <div class="profile-label">{% trans "First Name" %}</div>
+                                <div class="profile-value">{{ user.first_name|default:not_set }}</div>
                             </div>
                         </div>
-                        <div class="profile-field">
-                            <div class="profile-label">Email</div>
+                        <div class="col-md-6">
+                            <div class="profile-field">
+                                <div class="profile-label">{% trans "Last Name" %}</div>
+                                <div class="profile-value">{{ user.last_name|default:not_set }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {# D8: a label with no value read as broken; the row is shown only when there is an email. #}
+                    {% if user.email %}
+                        <div class="profile-field" data-profile-field="email">
+                            <div class="profile-label">{% trans "Email" %}</div>
                             <div class="profile-value">{{ user.email }}</div>
-                            <input type="email"
-                                   name="email"
-                                   class="form-control profile-input"
-                                   value="{{ user.email }}" />
                         </div>
-                        <div class="profile-field">
-                            <div class="profile-label">Academic Title</div>
-                            <div class="profile-value">{{ profile.academic_title|default:"Not set" }}</div>
-                            <select name="academic_title" class="form-control profile-input">
-                                <option value="">Select title</option>
-                                <option value="undergraduate"
-                                        {% if profile.academic_title == "undergraduate" %}selected{% endif %}>
-                                    Undergraduate Student
-                                </option>
-                                <option value="graduate"
-                                        {% if profile.academic_title == "graduate" %}selected{% endif %}>
-                                    Graduate Student
-                                </option>
-                                <option value="phd_candidate"
-                                        {% if profile.academic_title == "phd_candidate" %}selected{% endif %}>
-                                    PhD Candidate
-                                </option>
-                                <option value="postdoc" {% if profile.academic_title == "postdoc" %}selected{% endif %}>
-                                    Postdoctoral Researcher
-                                </option>
-                                <option value="professor"
-                                        {% if profile.academic_title == "professor" %}selected{% endif %}>
-                                    Professor
-                                </option>
-                                <option value="researcher"
-                                        {% if profile.academic_title == "researcher" %}selected{% endif %}>
-                                    Research Scientist
-                                </option>
-                            </select>
-                        </div>
-                        <div class="profile-field">
-                            <div class="profile-label">Institution</div>
-                            <div class="profile-value">{{ profile.institution|default:"Not set" }}</div>
-                            <input type="text"
-                                   name="institution"
-                                   class="form-control profile-input"
-                                   value="{{ profile.institution }}" />
-                        </div>
-                        <div class="profile-field">
-                            <div class="profile-label">Department</div>
-                            <div class="profile-value">{{ profile.department|default:"Not set" }}</div>
-                            <input type="text"
-                                   name="department"
-                                   class="form-control profile-input"
-                                   value="{{ profile.department }}" />
-                        </div>
-                        <div class="profile-field">
-                            <div class="profile-label">Research Interests</div>
-                            <div class="profile-value">{{ profile.research_interests|default:"Not set" }}</div>
-                            <textarea name="research_interests" class="form-control profile-input" rows="3">
-{{ profile.research_interests }}</textarea>
-                        </div>
-                        <div class="profile-field">
-                            <div class="profile-label">Bio</div>
-                            <div class="profile-value">{{ profile.bio|default:"Not set" }}</div>
-                            <textarea name="bio" class="form-control profile-input" rows="4">
-{{ profile.bio }}</textarea>
-                        </div>
-                        <div class="edit-actions">
-                            <button type="submit" class="btn btn-primary">Save Changes</button>
-                            <button type="button" class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
-                        </div>
-                    </form>
+                    {% endif %}
+                    <div class="profile-field">
+                        <div class="profile-label">{% trans "Academic Title" %}</div>
+                        <div class="profile-value">{{ profile.academic_title|default:not_set }}</div>
+                    </div>
+                    <div class="profile-field">
+                        <div class="profile-label">{% trans "Institution" %}</div>
+                        <div class="profile-value">{{ profile.institution|default:not_set }}</div>
+                    </div>
+                    <div class="profile-field">
+                        <div class="profile-label">{% trans "Department" %}</div>
+                        <div class="profile-value">{{ profile.department|default:not_set }}</div>
+                    </div>
+                    <div class="profile-field">
+                        <div class="profile-label">{% trans "Research Interests" %}</div>
+                        <div class="profile-value">{{ profile.research_interests|default:not_set }}</div>
+                    </div>
+                    <div class="profile-field">
+                        <div class="profile-label">{% trans "Bio" %}</div>
+                        <div class="profile-value">{{ profile.bio|default:not_set }}</div>
+                    </div>
                 </div>
                 <!-- Account Settings -->
                 <div class="profile-section">
-                    <h2>Account Settings</h2>
+                    <h2>{% trans "Account Settings" %}</h2>
                     <div class="profile-field">
-                        <div class="profile-label">Username</div>
+                        <div class="profile-label">{% trans "Username" %}</div>
                         <div class="profile-value">{{ user.username }}</div>
                     </div>
                     <div class="profile-field">
-                        <div class="profile-label">Account Status</div>
+                        <div class="profile-label">{% trans "Account Status" %}</div>
                         <div class="profile-value">
-                            <span class="badge bg-success">Active</span>
+                            <span class="badge bg-success">{% trans "Active" %}</span>
                         </div>
                     </div>
                     <div class="mt-3">
                         <a href="{% url 'auth_app:forgot_password' %}" class="btn btn-outline-secondary">
-                            <i class="fas fa-key"></i> Change Password
+                            <i class="fas fa-key"></i> {% trans "Change Password" %}
                         </a>
                     </div>
                     <hr class="my-4" />
                     <div class="profile-field">
-                        <div class="profile-label text-danger">Danger Zone</div>
+                        <div class="profile-label text-danger">{% trans "Danger Zone" %}</div>
                         <p class="text-muted small mb-3">
-                            Once you delete your account, there is no going back. Please be
-                            certain.
+                            {% trans "Once you delete your account, there is no going back. Please be certain." %}
                         </p>
                         <a href="{% url 'auth_app:delete_account' %}" class="btn btn-outline-danger">
-                            <i class="fas fa-trash-alt"></i> Delete Account
+                            <i class="fas fa-trash-alt"></i> {% trans "Delete Account" %}
                         </a>
                     </div>
                 </div>
@@ -167,39 +135,39 @@
                 <!-- Allocated Resources -->
                 <div class="profile-section">
                     <h3>
-                        <i class="fas fa-server"></i> Allocated Resources
+                        <i class="fas fa-server"></i> {% trans "Allocated Resources" %}
                     </h3>
                     <!-- Projects Breakdown -->
                     <div class="stats-card stats-card-projects">
                         <div class="stats-number">{{ resources.total_projects }}</div>
-                        <div class="stats-label">Total Projects</div>
+                        <div class="stats-label">{% trans "Total Projects" %}</div>
                         <div class="stats-breakdown">
                             <div>
-                                <i class="fas fa-folder"></i> {{ resources.local_projects }} Local
+                                <i class="fas fa-folder"></i> {% blocktrans trimmed with count=resources.local_projects %}{{ count }} local{% endblocktrans %}
                             </div>
                             <div>
-                                <i class="fas fa-cloud"></i> {{ resources.remote_projects }} Remote
+                                <i class="fas fa-cloud"></i> {% blocktrans trimmed with count=resources.remote_projects %}{{ count }} remote{% endblocktrans %}
                             </div>
                         </div>
                     </div>
                     <!-- Storage Usage -->
                     <div class="stats-card stats-card-storage">
                         <div class="stats-number">{{ resources.storage_used }}</div>
-                        <div class="stats-label">Storage Used</div>
+                        <div class="stats-label">{% trans "Storage Used" %}</div>
                         <div class="stats-breakdown">
-                            <i class="fas fa-database"></i> Local projects only
+                            <i class="fas fa-database"></i> {% trans "Local projects only" %}
                         </div>
                     </div>
                     <!-- SSH Credentials -->
                     <div class="stats-card stats-card-ssh">
                         <div class="stats-number">{{ resources.total_ssh_keys }}</div>
-                        <div class="stats-label">SSH Keys</div>
+                        <div class="stats-label">{% trans "SSH Keys" %}</div>
                         <div class="stats-breakdown">
                             <div>
-                                <i class="fas fa-terminal"></i> {{ resources.workspace_ssh_keys }} Workspace
+                                <i class="fas fa-terminal"></i> {% blocktrans trimmed with count=resources.workspace_ssh_keys %}{{ count }} workspace{% endblocktrans %}
                             </div>
                             <div>
-                                <i class="fab fa-git-alt"></i> {{ resources.git_ssh_keys }} Git
+                                <i class="fab fa-git-alt"></i> {% blocktrans trimmed with count=resources.git_ssh_keys %}{{ count }} Git{% endblocktrans %}
                             </div>
                         </div>
                     </div>
@@ -207,9 +175,9 @@
                     {% if resources.remote_credentials > 0 %}
                         <div class="stats-card stats-card-remote">
                             <div class="stats-number">{{ resources.remote_credentials }}</div>
-                            <div class="stats-label">Remote Credentials</div>
+                            <div class="stats-label">{% trans "Remote Credentials" %}</div>
                             <div class="stats-breakdown">
-                                <i class="fas fa-key"></i> For remote projects
+                                <i class="fas fa-key"></i> {% trans "For remote projects" %}
                             </div>
                         </div>
                     {% endif %}
@@ -217,54 +185,54 @@
                     {% if resources.active_services > 0 %}
                         <div class="stats-card stats-card-services">
                             <div class="stats-number">{{ resources.active_services }}</div>
-                            <div class="stats-label">Active Services</div>
+                            <div class="stats-label">{% trans "Active Services" %}</div>
                             <div class="stats-breakdown">
-                                <i class="fas fa-cogs"></i> TensorBoard, Jupyter, etc.
+                                <i class="fas fa-cogs"></i> {% trans "TensorBoard, Jupyter, etc." %}
                             </div>
                         </div>
                     {% endif %}
                     <!-- Collaborations -->
                     <div class="stats-card stats-card-collaborations">
                         <div class="stats-number">{{ resources.total_collaborations }}</div>
-                        <div class="stats-label">Collaborations</div>
+                        <div class="stats-label">{% trans "Collaborations" %}</div>
                         <div class="stats-breakdown">
-                            <i class="fas fa-users"></i> Projects you collaborate on
+                            <i class="fas fa-users"></i> {% trans "Projects you collaborate on" %}
                         </div>
                     </div>
                     <!-- Quick Actions -->
                     <div class="stats-quick-actions">
                         <a href="{% url 'accounts_app:ssh_keys' %}"
                            class="btn btn-outline-primary btn-sm w-100 mb-2">
-                            <i class="fas fa-key"></i> Manage SSH Keys
+                            <i class="fas fa-key"></i> {% trans "Manage SSH Keys" %}
                         </a>
-                        <a href="{% url 'project_app:create' %}"
+                        <a href="{% url 'project_create' %}"
                            class="btn btn-outline-success btn-sm w-100">
-                            <i class="fas fa-plus"></i> Create New Project
+                            <i class="fas fa-plus"></i> {% trans "Create New Project" %}
                         </a>
                     </div>
                 </div>
                 <div class="profile-section">
-                    <h3>Privacy Settings</h3>
+                    <h3>{% trans "Privacy Settings" %}</h3>
                     <div class="form-check mb-2">
                         <input class="form-check-input"
                                type="checkbox"
                                id="publicProfile"
                                {% if profile.is_public %}checked{% endif %} />
-                        <label class="form-check-label" for="publicProfile">Make profile public</label>
+                        <label class="form-check-label" for="publicProfile">{% trans "Make profile public" %}</label>
                     </div>
                     <div class="form-check mb-2">
                         <input class="form-check-input"
                                type="checkbox"
                                id="showEmail"
                                {% if profile.show_email %}checked{% endif %} />
-                        <label class="form-check-label" for="showEmail">Show email to other users</label>
+                        <label class="form-check-label" for="showEmail">{% trans "Show email to other users" %}</label>
                     </div>
                     <div class="form-check mb-2">
                         <input class="form-check-input"
                                type="checkbox"
                                id="allowMessages"
                                {% if profile.allow_messages %}checked{% endif %} />
-                        <label class="form-check-label" for="allowMessages">Allow messages from other users</label>
+                        <label class="form-check-label" for="allowMessages">{% trans "Allow messages from other users" %}</label>
                     </div>
                 </div>
             </div>

@@ -10,6 +10,8 @@ import requests
 from django.http import JsonResponse
 from django.utils import timezone
 
+from apps.infra.public_app.services.credential_health import run_credential_preflight
+
 from ..compute_resources import check_container_runtime_status, check_slurm_status
 from ..health_checks import (
     check_api_services,
@@ -51,8 +53,8 @@ def healthz(request):
             return JsonResponse({"status": "healthy", "color": "#22c55e"})
         else:
             return JsonResponse({"status": "error", "color": "#ef4444"})
-    except Exception as e:
-        logger.exception(f"Error in healthz: {e}")
+    except Exception:
+        logger.exception("Error in healthz")
         return JsonResponse({"status": "error", "color": "#ef4444"}, status=500)
 
 
@@ -69,6 +71,7 @@ def server_health_status_api(request):
         check_slurm_status(status_data)
         check_container_runtime_status(status_data)
         check_user_data_permissions(status_data)
+        status_data["credential_health"] = run_credential_preflight()
         # The anonymous-visitor product path. Every other check above was green
         # for ~1h35m on 2026-08-16 while all 16 visitor slots sat quarantined
         # and every visitor silently got the shared readonly account. Read-only:
@@ -87,20 +90,23 @@ def server_health_status_api(request):
         # Build issues list from non-healthy services
         issues = _build_issues_list(status_data)
 
-        # Build response
+        # Build response. Credential detail is staff-only; public output remains
+        # a generic aggregate and cannot reveal which secret failed.
+        payload = {
+            "status": overall_status,
+            "color": color,
+            "timestamp": timezone.now().isoformat(),
+            "issues": issues,
+            "services": _build_services_dict(status_data),
+        }
+        if getattr(getattr(request, "user", None), "is_staff", False):
+            payload["credentials"] = status_data["credential_health"]
+        return JsonResponse(payload)
+    except Exception:
+        logger.exception("Error in server_health_status_api")
         return JsonResponse(
-            {
-                "status": overall_status,
-                "color": color,
-                "timestamp": timezone.now().isoformat(),
-                "issues": issues,
-                "services": _build_services_dict(status_data),
-            }
-        )
-    except Exception as e:
-        logger.exception(f"Error in server_health_status_api: {e}")
-        return JsonResponse(
-            {"status": "error", "color": "#ef4444", "error": str(e)}, status=500
+            {"status": "error", "color": "#ef4444", "error": "Health check failed."},
+            status=500,
         )
 
 
@@ -160,6 +166,9 @@ def _determine_overall_health(status_data: dict) -> tuple[str, str]:
         has_errors = True
     elif visitor_pool.get("health_class") == "warning":
         has_warnings = True
+
+    if status_data.get("credential_health", {}).get("overall") == "unhealthy":
+        has_errors = True
 
     # Determine final status
     if has_errors:
@@ -225,6 +234,9 @@ def _build_services_dict(status_data: dict) -> dict:
         "visitor_pool_quarantined": status_data.get("visitor_pool", {}).get(
             "quarantined"
         ),
+        "credential_health": status_data.get("credential_health", {}).get(
+            "overall", "unknown"
+        ),
     }
 
 
@@ -253,7 +265,7 @@ def _build_issues_list(status_data: dict) -> list[dict]:
             {
                 "service": "Database",
                 "level": "error",
-                "message": db.get("error", "Connection failed"),
+                "message": "Database connection failed",
             }
         )
 
@@ -264,7 +276,7 @@ def _build_issues_list(status_data: dict) -> list[dict]:
             {
                 "service": "Redis",
                 "level": "error",
-                "message": redis.get("error", "Connection failed"),
+                "message": "Redis connection failed",
             }
         )
 
@@ -275,7 +287,7 @@ def _build_issues_list(status_data: dict) -> list[dict]:
             {
                 "service": "Compute",
                 "level": "error",
-                "message": slurm.get("error", "SLURM unavailable"),
+                "message": "SLURM unavailable",
             }
         )
     elif slurm.get("health_class") == "warning":
@@ -283,7 +295,7 @@ def _build_issues_list(status_data: dict) -> list[dict]:
             {
                 "service": "Compute",
                 "level": "warning",
-                "message": slurm.get("details", "Degraded"),
+                "message": "Compute service degraded",
             }
         )
 
@@ -294,7 +306,7 @@ def _build_issues_list(status_data: dict) -> list[dict]:
             {
                 "service": "Container Runtime",
                 "level": "warning",
-                "message": apptainer.get("error", "Not available"),
+                "message": "Container runtime unavailable",
             }
         )
 
@@ -316,7 +328,7 @@ def _build_issues_list(status_data: dict) -> list[dict]:
                 {
                     "service": ssh.get("name", "SSH"),
                     "level": "warning",
-                    "message": ssh.get("error", "Not responding"),
+                    "message": "SSH service not responding",
                 }
             )
 
@@ -327,7 +339,7 @@ def _build_issues_list(status_data: dict) -> list[dict]:
                 {
                     "service": api.get("name", "API"),
                     "level": "warning",
-                    "message": api.get("error", "Not responding"),
+                    "message": "API service not responding",
                 }
             )
 
@@ -338,7 +350,7 @@ def _build_issues_list(status_data: dict) -> list[dict]:
             {
                 "service": "User Data",
                 "level": "warning",
-                "message": perms.get("message", "Permission issues"),
+                "message": "User data permissions are invalid",
             }
         )
 
@@ -355,7 +367,19 @@ def _build_issues_list(status_data: dict) -> list[dict]:
             {
                 "service": "Visitor Pool",
                 "level": visitor_pool.get("level", "warning"),
-                "message": visitor_pool.get("message", "Visitor pool degraded"),
+                "message": (
+                    "Visitor pool degraded; readonly-visitor access may be unavailable. "
+                    "Run `python manage.py reconcile_visitor_slots --repair-only`."
+                ),
+            }
+        )
+
+    if status_data.get("credential_health", {}).get("overall") == "unhealthy":
+        issues.append(
+            {
+                "service": "Internal service",
+                "level": "error",
+                "message": "Internal service authentication is unavailable",
             }
         )
 
@@ -378,8 +402,13 @@ def versions_api(request):
             packages[pkg] = {"installed": version(pkg), "status": "ok"}
         except PackageNotFoundError:
             packages[pkg] = {"installed": None, "status": "not_installed"}
-        except Exception as e:
-            packages[pkg] = {"installed": None, "status": "error", "error": str(e)}
+        except Exception:
+            logger.exception("Package version check failed for %s", pkg)
+            packages[pkg] = {
+                "installed": None,
+                "status": "error",
+                "error": "Version check failed.",
+            }
 
     # Include scitex-hub version from settings
     cloud_version = getattr(settings, "SCITEX_HUB_VERSION", "unknown")

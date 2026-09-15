@@ -45,9 +45,24 @@ jobs:
     # could not have told us which half was at fault. Both are now proven
     # on this pool independently — vitest (node) and the pytest matrix
     # (python) are green — so it can move.
-    runs-on: ubuntu-latest
+    # scitex-local-cpu (scitex-compute-01..04) for trusted runs; fork PRs stay
+    # on ephemeral hosted VMs. Same predicate as scitex-ai/.github import-smoke.
+    runs-on: >-
+      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+          && fromJSON('["ubuntu-latest"]')
+          || fromJSON('["self-hosted","Linux","X64","scitex-local-cpu"]') }}
 
     steps:
+      # Backstop for the runs-on predicate: never check out fork code on our hardware.
+      - name: Refuse to run fork-authored code on self-hosted infrastructure
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository &&
+          runner.environment == 'self-hosted'
+        run: |
+          echo "::error::Fork-authored code is not run on self-hosted runners."
+          exit 1
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -73,14 +88,14 @@ jobs:
           # comment above says must not happen, failing silently rather than
           # loudly. --seed puts pip in the venv so the fallback stays jailed.
           uv venv --seed --python 3.11 .venv
-          # Floor kept in step with pyproject.toml's declaration (>=0.16.0).
+          # Floor kept in step with pyproject.toml's declaration (>=0.21.0).
           # It read >=0.2.0 until 2026-08-18 -- fourteen minor versions below
           # what hub declares. That never failed, because `>=` resolves to the
           # newest release, so CI happened to install a version that satisfied
           # a constraint CI did not state. A second, lower floor that is only
           # ever right by accident is the kind of disagreement that surfaces
           # the day someone pins for an unrelated reason.
-          uv pip install --python .venv/bin/python "scitex-ui>=0.16.0"
+          uv pip install --python .venv/bin/python "scitex-ui>=0.21.0"
           # install_apps.sh shells `pip`/`python` itself, so put the venv
           # ahead of anything the shared runner has on PATH.
           echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
@@ -109,9 +124,24 @@ jobs:
     # Node on ubuntu-latest needs no toolcache probing — actions/setup-node
     # uses the hosted image's preinstalled versions, which is the case the
     # canary existed to establish for the self-hosted pool.
-    runs-on: ubuntu-latest
+    # scitex-local-cpu (scitex-compute-01..04) for trusted runs; fork PRs stay
+    # on ephemeral hosted VMs. Same predicate as scitex-ai/.github import-smoke.
+    runs-on: >-
+      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+          && fromJSON('["ubuntu-latest"]')
+          || fromJSON('["self-hosted","Linux","X64","scitex-local-cpu"]') }}
 
     steps:
+      # Backstop for the runs-on predicate: never check out fork code on our hardware.
+      - name: Refuse to run fork-authored code on self-hosted infrastructure
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository &&
+          runner.environment == 'self-hosted'
+        run: |
+          echo "::error::Fork-authored code is not run on self-hosted runners."
+          exit 1
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -128,9 +158,29 @@ jobs:
 
   terminal-tests:
     name: "Terminal Broker & Session Tests (Python)"
-    runs-on: ubuntu-latest
+    # Same-repo runs: scitex-docker (scitex-compute-03/04) inside a throwaway
+    # job container (no host $HOME, postgres by service name). Fork PRs: hosted.
+    runs-on: >-
+      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+          && fromJSON('["ubuntu-latest"]')
+          || fromJSON('["scitex-docker"]') }}
+    container:
+      image: >-
+        ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+            && '' || 'buildpack-deps:noble' }}
+      options: --user 1000:1000 --cpus 4 --memory 8g
 
     steps:
+      # Backstop for the runs-on predicate: never check out fork code on our hardware.
+      - name: Refuse to run fork-authored code on self-hosted infrastructure
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository &&
+          runner.environment == 'self-hosted'
+        run: |
+          echo "::error::Fork-authored code is not run on self-hosted runners."
+          exit 1
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -180,7 +230,17 @@ jobs:
 
   security-regression:
     name: "Security Regression Gates (tests/security/)"
-    runs-on: ubuntu-latest
+    # Same-repo runs: scitex-docker (scitex-compute-03/04) inside a throwaway
+    # job container (no host $HOME, postgres by service name). Fork PRs: hosted.
+    runs-on: >-
+      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+          && fromJSON('["ubuntu-latest"]')
+          || fromJSON('["scitex-docker"]') }}
+    container:
+      image: >-
+        ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+            && '' || 'buildpack-deps:noble' }}
+      options: --user 1000:1000 --cpus 4 --memory 8g
 
     # The behavioural gates here build real tenants and execute real views
     # against a real database, so they need one. Previously this job ran with
@@ -195,7 +255,7 @@ jobs:
           POSTGRES_USER: scitex
           POSTGRES_PASSWORD: scitex_test_pass  # pragma: allowlist secret
         ports:
-          - 5432:5432
+          - 5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -203,6 +263,16 @@ jobs:
           --health-retries 5
 
     steps:
+      # Backstop for the runs-on predicate: never check out fork code on our hardware.
+      - name: Refuse to run fork-authored code on self-hosted infrastructure
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository &&
+          runner.environment == 'self-hosted'
+        run: |
+          echo "::error::Fork-authored code is not run on self-hosted runners."
+          exit 1
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -246,8 +316,8 @@ jobs:
           SCITEX_HUB_DB_NAME_DEV: scitex_test
           SCITEX_HUB_DB_USER_DEV: scitex
           SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
-          SCITEX_HUB_DB_HOST_DEV: localhost
-          SCITEX_HUB_DB_PORT_DEV: "5432"
+          SCITEX_HUB_DB_HOST_DEV: ${{ job.container.id && 'postgres' || 'localhost' }}
+          SCITEX_HUB_DB_PORT_DEV: ${{ job.container.id && '5432' || job.services.postgres.ports['5432'] }}
           SCITEX_HUB_TEST_MODE: "1"
         run: |
           python -m pytest \
@@ -264,8 +334,8 @@ jobs:
           SCITEX_HUB_DB_NAME_DEV: scitex_test
           SCITEX_HUB_DB_USER_DEV: scitex
           SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
-          SCITEX_HUB_DB_HOST_DEV: localhost
-          SCITEX_HUB_DB_PORT_DEV: "5432"
+          SCITEX_HUB_DB_HOST_DEV: ${{ job.container.id && 'postgres' || 'localhost' }}
+          SCITEX_HUB_DB_PORT_DEV: ${{ job.container.id && '5432' || job.services.postgres.ports['5432'] }}
           SCITEX_HUB_TEST_MODE: "1"
         run: |
           COUNT=$(python -m pytest tests/security/ -m security \
@@ -294,7 +364,11 @@ jobs:
     # public) and slow, which is exactly the trade the operator's 2026-08-05
     # CI ruling endorses for work where speed does not matter. Four lines of
     # bash qualify.
-    runs-on: ubuntu-latest
+    #
+    # 2026-09-15: hosted is now the SLOW pool (Free plan: 20 concurrent hosted
+    # jobs org-wide, 50+ runs queued), so this runs on scitex-local-cpu. It
+    # checks out nothing, so a fork PR runs no foreign code here.
+    runs-on: [self-hosted, Linux, X64, scitex-local-cpu]
     needs: [typescript-check, vitest, terminal-tests, security-regression]
     if: always()
 

@@ -1,13 +1,15 @@
 /**
- * Rendering functions for repository maintenance UI
+ * Rendering functions for the Project Health UI
  * @module repository/admin/rendering
+ *
+ * Everything is built with DOM nodes + textContent: user-visible strings come
+ * from the i18n catalog and names come from the API, so neither may be parsed
+ * as HTML.
  */
 
-import {
-  HealthData,
-  RepositoryIssue,
-  FilterType,
-} from "./types";
+import { HealthData, RepositoryIssue, FilterType } from "./types";
+import { createEl } from "./dom";
+import { t } from "./i18n";
 
 /**
  * Escapes HTML special characters
@@ -23,6 +25,31 @@ export function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (m) => map[m]);
 }
 
+function healthCard(
+  filter: FilterType,
+  extraClass: string,
+  currentFilter: FilterType,
+  value: number,
+  label: string,
+  title: string,
+): HTMLElement {
+  const classes = ["health-card", extraClass];
+  if (currentFilter === filter) {
+    classes.push("active");
+  }
+  return createEl(
+    "div",
+    {
+      className: classes.filter(Boolean).join(" "),
+      attrs: { "data-filter": filter, title },
+    },
+    [
+      createEl("div", { className: "health-card-value", text: String(value) }),
+      createEl("div", { className: "health-card-label", text: label }),
+    ],
+  );
+}
+
 /**
  * Renders the health status cards
  */
@@ -31,126 +58,202 @@ export function renderHealthStatus(
   currentFilter: FilterType,
 ): void {
   const stats = data.stats;
-  const html = `
-        <div class="health-card success ${currentFilter === "healthy" ? "active" : ""}" data-filter="healthy" title="Click to show only healthy repositories">
-            <div class="health-card-value">${stats.healthy_count}</div>
-            <div class="health-card-label">Healthy</div>
-        </div>
-        <div class="health-card warning ${currentFilter === "warnings" ? "active" : ""}" data-filter="warnings" title="Click to show only warnings">
-            <div class="health-card-value">${stats.warnings}</div>
-            <div class="health-card-label">Warnings</div>
-        </div>
-        <div class="health-card ${stats.critical_issues > 0 ? "critical" : ""} ${currentFilter === "critical" ? "active" : ""}" data-filter="critical" title="Click to show only critical issues">
-            <div class="health-card-value">${stats.critical_issues}</div>
-            <div class="health-card-label">Critical</div>
-        </div>
-        <div class="health-card ${currentFilter === "all" ? "active" : ""}" data-filter="all" title="Click to show all repositories">
-            <div class="health-card-value">${stats.total_django_projects}</div>
-            <div class="health-card-label">Total Projects</div>
-        </div>
-    `;
   const statusEl = document.getElementById("health-status");
-  if (statusEl) {
-    statusEl.innerHTML = html;
+  if (!statusEl) {
+    return;
   }
+  statusEl.replaceChildren(
+    healthCard(
+      "healthy",
+      "success",
+      currentFilter,
+      stats.healthy_count,
+      t("card.healthy.label", "Healthy"),
+      t("card.healthy.title", "Click to show only healthy projects"),
+    ),
+    healthCard(
+      "warnings",
+      "warning",
+      currentFilter,
+      stats.warnings,
+      t("card.warnings.label", "Warnings"),
+      t("card.warnings.title", "Click to show only warnings"),
+    ),
+    healthCard(
+      "critical",
+      stats.critical_issues > 0 ? "critical" : "",
+      currentFilter,
+      stats.critical_issues,
+      t("card.critical.label", "Critical"),
+      t("card.critical.title", "Click to show only critical issues"),
+    ),
+    healthCard(
+      "all",
+      "",
+      currentFilter,
+      stats.total_django_projects,
+      t("card.total.label", "Total Projects"),
+      t("card.total.title", "Click to show all projects"),
+    ),
+  );
+}
+
+const PRESENT = "✓ ";
+const ABSENT = "✗ ";
+
+interface IssueColumns {
+  local: string;
+  project: string;
+  repository: string;
+  typeLabel: string;
+  message: string;
+}
+
+function issueColumns(issue: RepositoryIssue): IssueColumns {
+  const local = t("value.local", "Local");
+  const project = t("value.project", "Project");
+  const repository = t("value.repository", "Repository");
+  const missing = t("value.missing", "Missing");
+  const columns: IssueColumns = {
+    local: "—",
+    project: "—",
+    repository: "—",
+    typeLabel: "",
+    message: issue.message,
+  };
+
+  if (issue.issue_type === "healthy") {
+    columns.local = PRESENT + local;
+    columns.project = PRESENT + project;
+    columns.repository = PRESENT + repository;
+    columns.typeLabel = t("type.healthy", "In sync");
+    columns.message = t("message.healthy", "Project healthy and in sync");
+  } else if (issue.issue_type === "orphaned_in_gitea") {
+    columns.repository = PRESENT + repository;
+    columns.typeLabel = t("type.orphaned_in_gitea", "Orphaned in Gitea");
+    columns.message = t(
+      "message.orphaned_in_gitea",
+      "Repository exists in Gitea but no project found",
+    );
+  } else if (issue.issue_type === "missing_in_gitea") {
+    columns.local = "?";
+    columns.project = PRESENT + project;
+    columns.repository = ABSENT + missing;
+    columns.typeLabel = t("type.missing_in_gitea", "Repository missing");
+    columns.message = t(
+      "message.missing_in_gitea",
+      "Project exists but its Gitea repository was not found",
+    );
+  } else if (issue.issue_type === "missing_directory") {
+    columns.local = ABSENT + missing;
+    columns.project = PRESENT + project;
+    columns.repository = PRESENT + repository;
+    columns.typeLabel = t("type.missing_directory", "Local directory missing");
+    const text = t("message.missing_directory", "Local git directory missing");
+    columns.message = issue.detail ? `${text}: ${issue.detail}` : text;
+  }
+  return columns;
+}
+
+function actionButton(
+  label: string,
+  handlerName: "confirmRestore" | "confirmSync",
+  name: string,
+): HTMLButtonElement {
+  const button = createEl("button", {
+    className: "issue-button sync",
+    text: label,
+    attrs: { type: "button" },
+  });
+  button.addEventListener("click", () => {
+    const handler = (window as any)[handlerName];
+    if (typeof handler === "function") {
+      handler(name);
+    }
+  });
+  return button;
+}
+
+function statusColumn(label: string, value: string): HTMLElement {
+  return createEl("div", { className: "status-column" }, [
+    createEl("div", { className: "status-label", text: label }),
+    createEl("div", { className: "status-value", text: value }),
+  ]);
 }
 
 /**
- * Renders a single repository issue card
+ * Renders a single project issue card
  */
-export function renderIssue(issue: RepositoryIssue): string {
+export function renderIssue(issue: RepositoryIssue): HTMLElement {
   const icon = issue.is_healthy ? "✓" : issue.is_critical ? "✗" : "⚠";
-  const iconClass = issue.is_healthy
-    ? "healthy"
-    : issue.is_critical
-      ? "critical"
-      : "warning";
-  const name = issue.project_slug || issue.gitea_name || "Unknown";
-
-  let localStatus = "—";
-  let djangoStatus = "—";
-  let giteaStatus = "—";
-  let issueTypeDisplay = "";
-
-  if (issue.issue_type === "healthy") {
-    localStatus = "✓ Local";
-    djangoStatus = "✓ Project";
-    giteaStatus = "✓ Repository";
-    issueTypeDisplay = "In sync";
-  } else if (issue.issue_type === "orphaned_in_gitea") {
-    localStatus = "—";
-    djangoStatus = "—";
-    giteaStatus = "✓ Repository";
-    issueTypeDisplay = "Orphaned in Gitea";
-  } else if (issue.issue_type === "missing_in_gitea") {
-    localStatus = "?";
-    djangoStatus = "✓ Project";
-    giteaStatus = "✗ Missing";
-    issueTypeDisplay = "Repository missing";
-  } else if (issue.issue_type === "missing_directory") {
-    localStatus = "✗ Missing";
-    djangoStatus = "✓ Project";
-    giteaStatus = "✓ Repository";
-    issueTypeDisplay = "Local directory missing";
-  }
-
-  let actions = "";
-  if (issue.issue_type === "orphaned_in_gitea") {
-    actions = `
-            <button class="issue-button sync" onclick="confirmRestore('${escapeHtml(name)}')">
-                ↺ Restore Project
-            </button>
-        `;
-  } else if (
-    issue.issue_type === "missing_in_gitea" ||
-    issue.issue_type === "missing_directory"
-  ) {
-    actions = `
-            <button class="issue-button sync" onclick="confirmSync('${escapeHtml(name)}')">
-                🔄 Sync Repository
-            </button>
-        `;
-  }
-
   const status = issue.is_healthy
     ? "healthy"
     : issue.is_critical
       ? "critical"
       : "warning";
+  const name =
+    issue.project_slug ||
+    issue.gitea_name ||
+    t("issue.unknown_name", "Unknown");
+  const columns = issueColumns(issue);
 
-  return `
-        <div class="issue-item issue-card" data-status="${status}">
-            <div class="issue-header">
-                <div class="issue-icon ${iconClass}">${icon}</div>
-                <div class="issue-content" style="flex: 1;">
-                    <div class="issue-title">
-                        <span class="issue-name">${escapeHtml(name)}</span>
-                        <span style="margin-left: 0.5rem; color: var(--color-fg-muted);">${issueTypeDisplay}</span>
-                    </div>
-                    <div style="font-size: 0.875rem; color: var(--color-fg-muted); margin-top: 0.25rem;">
-                        ${issue.message}
-                    </div>
-                </div>
-            </div>
-            <div class="issue-status-columns">
-                <div class="status-column">
-                    <div class="status-label">Local</div>
-                    <div class="status-value">${localStatus}</div>
-                </div>
-                <div class="status-column">
-                    <div class="status-label">Django Project</div>
-                    <div class="status-value">${djangoStatus}</div>
-                </div>
-                <div class="status-column">
-                    <div class="status-label">Gitea Repository</div>
-                    <div class="status-value">${giteaStatus}</div>
-                </div>
-            </div>
-            <div class="issue-actions">
-                ${actions}
-            </div>
-        </div>
-    `;
+  const actions = createEl("div", { className: "issue-actions" });
+  if (issue.issue_type === "orphaned_in_gitea") {
+    actions.appendChild(
+      actionButton(
+        "↺ " + t("action.restore", "Restore Project"),
+        "confirmRestore",
+        name,
+      ),
+    );
+  } else if (
+    issue.issue_type === "missing_in_gitea" ||
+    issue.issue_type === "missing_directory"
+  ) {
+    actions.appendChild(
+      actionButton(
+        "🔄 " + t("action.sync", "Sync Project"),
+        "confirmSync",
+        name,
+      ),
+    );
+  }
+
+  const header = createEl("div", { className: "issue-header" }, [
+    createEl("div", {
+      className: `issue-icon ${status}`,
+      text: icon,
+    }),
+    createEl("div", { className: "issue-content", style: "flex: 1;" }, [
+      createEl("div", { className: "issue-title" }, [
+        createEl("span", { className: "issue-name", text: name }),
+        createEl("span", {
+          text: columns.typeLabel,
+          style: "margin-left: 0.5rem; color: var(--color-fg-muted);",
+        }),
+      ]),
+      createEl("div", {
+        text: columns.message,
+        style:
+          "font-size: 0.875rem; color: var(--color-fg-muted); margin-top: 0.25rem;",
+      }),
+    ]),
+  ]);
+
+  const statusColumns = createEl("div", { className: "issue-status-columns" }, [
+    statusColumn(t("column.local", "Local"), columns.local),
+    statusColumn(t("column.project", "Project"), columns.project),
+    statusColumn(
+      t("column.repository", "Gitea Repository"),
+      columns.repository,
+    ),
+  ]);
+
+  return createEl(
+    "div",
+    { className: "issue-item issue-card", attrs: { "data-status": status } },
+    [header, statusColumns, actions],
+  );
 }
 
 /**
@@ -165,18 +268,23 @@ export function renderIssues(data: HealthData): void {
   }
 
   if (issues.length === 0) {
-    issuesListEl.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-state-icon">✓</div>
-                <div class="empty-state-title">All repositories are healthy!</div>
-                <div class="empty-state-message">No synchronization issues detected</div>
-            </div>
-        `;
+    issuesListEl.replaceChildren(
+      createEl("div", { className: "empty-state" }, [
+        createEl("div", { className: "empty-state-icon", text: "✓" }),
+        createEl("div", {
+          className: "empty-state-title",
+          text: t("empty.title", "All projects are healthy!"),
+        }),
+        createEl("div", {
+          className: "empty-state-message",
+          text: t("empty.message", "No synchronization issues detected"),
+        }),
+      ]),
+    );
     return;
   }
 
-  const html = issues.map((issue) => renderIssue(issue)).join("");
-  issuesListEl.innerHTML = html;
+  issuesListEl.replaceChildren(...issues.map((issue) => renderIssue(issue)));
 }
 
 /**
@@ -209,6 +317,6 @@ export function applyFilter(filter: FilterType): void {
   });
 
   console.log(
-    `[Repository Maintenance] Showing ${visibleCount}/${issueCards.length} repositories`,
+    `[Project Health] Showing ${visibleCount}/${issueCards.length} projects`,
   );
 }

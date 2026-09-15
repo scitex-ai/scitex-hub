@@ -1,3 +1,4 @@
+{% load i18n %}
 <!-- Main Editor -->
 <div class="writer-main" id="editor-main">
     <div class="writer-editor">
@@ -95,6 +96,10 @@
                     <!-- File Tabs hidden: Writer uses section sidebar, not file tabs -->
                     <!-- Monaco Editor Container (replaces textarea) -->
                     <div id="writer-monaco-editor" class="writer-monaco-editor"></div>
+                    <div id="writer-loading-overlay" class="writer-loading-overlay" role="status" aria-live="polite">
+                        <div class="writer-loading-spinner" aria-hidden="true"></div>
+                        <span>{% translate "Opening manuscript…" %}</span>
+                    </div>
                     <!-- Hidden textarea for fallback/compatibility -->
                     <textarea id="latex-editor-textarea"
                               class="latex-editor-textarea hidden"

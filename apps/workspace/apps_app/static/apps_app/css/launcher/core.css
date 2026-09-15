@@ -49,9 +49,9 @@
 }
 
 .launcher-guest-btn-signup {
-  background: var(--app-accent-hub, #6a5a8a);
-  border-color: var(--app-accent-hub, #6a5a8a);
-  color: #fff;
+  background: var(--color-primary, #1a2a40);
+  border-color: var(--color-primary, #1a2a40);
+  color: var(--color-on-primary, #fff);
 }
 
 .launcher-guest-btn:hover {

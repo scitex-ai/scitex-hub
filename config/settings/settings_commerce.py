@@ -57,9 +57,16 @@ Environment keys (document in SECRET/.env.nas when finalized):
                                          sk_live_...)
 - ``SCITEX_HUB_STRIPE_WEBHOOK_SECRET``   Stripe webhook signing secret
                                          (whsec_...)
+- ``SCITEX_HUB_STRIPE_PRICE_<PRICING_ID>`` Stripe price id per pricing.json
+                                         subscription row, e.g.
+                                         SCITEX_HUB_STRIPE_PRICE_SUBSCRIPTION_GENERAL
+- ``SCITEX_HUB_BILLING_PROVIDER``        billing provider name (default: stripe)
+
+Setup + demo script: docs/ops/stripe-test-mode.md
 """
 
 import json
+import os
 
 from config._env import getenv_with_legacy_alias as _getenv_alias
 
@@ -95,7 +102,7 @@ COMPANY_ADDRESS = (
     or ""
 )
 # Representative phone — operator-confirmed 2026-07-18 (Telegram 1536).
-COMPANY_PHONE = _getenv_alias("SCITEX_HUB_COMPANY_PHONE", "080-4022-3567") or ""
+COMPANY_PHONE = _getenv_alias("SCITEX_HUB_COMPANY_PHONE", "+81-80-4022-3567") or ""
 # Public contact for the 特定商取引法 disclosure — operator-confirmed
 # 2026-07-30 (「メールは info@scitex.ai で大丈夫です」), and they had already
 # confirmed the mailbox delivers (「info@scitex.ai はもちろん届きますよ」).
@@ -191,5 +198,17 @@ BILLING_PLANS = _load_billing_plans()
 # ---------------------------------------
 STRIPE_SECRET_KEY = _getenv_alias("SCITEX_HUB_STRIPE_SECRET_KEY", "") or ""
 STRIPE_WEBHOOK_SECRET = _getenv_alias("SCITEX_HUB_STRIPE_WEBHOOK_SECRET", "") or ""
+
+# Which BillingProvider implementation serves card setup and subscriptions.
+BILLING_PROVIDER = os.environ.get("SCITEX_HUB_BILLING_PROVIDER", "stripe") or "stripe"
+
+# SCITEX_HUB_STRIPE_PRICE_SUBSCRIPTION_GENERAL=price_... maps to the pricing.json
+# row "subscription-general"; `manage.py stripe_bootstrap_test` prints these lines.
+STRIPE_PRICE_ENV_PREFIX = "SCITEX_HUB_STRIPE_PRICE_"
+STRIPE_PRICE_IDS = {
+    name[len(STRIPE_PRICE_ENV_PREFIX) :].lower().replace("_", "-"): value
+    for name, value in os.environ.items()
+    if name.startswith(STRIPE_PRICE_ENV_PREFIX) and value
+}
 
 # EOF

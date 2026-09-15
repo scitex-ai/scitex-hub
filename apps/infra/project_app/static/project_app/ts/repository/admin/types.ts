@@ -17,6 +17,8 @@ export interface RepositoryIssue {
   gitea_name?: string;
   issue_type: string;
   message: string;
+  /** Language-neutral detail for the message (e.g. the missing local path). */
+  detail?: string;
 }
 
 export interface HealthData {

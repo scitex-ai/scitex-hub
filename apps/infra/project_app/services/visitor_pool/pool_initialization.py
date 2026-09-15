@@ -14,6 +14,7 @@ from django.contrib.auth.models import User
 from apps.infra.project_app.models import Project
 
 from .demo_seed import try_seed_demo_content
+from .landing import land_visitor_on
 from .workspace_manager import TEMPLATE_MARKER_RELPATH, WorkspaceManager
 
 logger = logging.getLogger(__name__)
@@ -63,6 +64,10 @@ class PoolInitializer:
             GiteaIntegration.ensure_user_in_gitea(username, visitor_num)
 
             project, project_created = cls._create_default_project(user, project_slug)
+            # Open the slot on the demo. The user was created first, so the
+            # profile signal already pointed this profile at the `dotfiles`
+            # home project and will not revisit it (see .landing).
+            land_visitor_on(user, project)
 
             success = cls._initialize_project_directory(user, project, project_slug)
             if success:
@@ -243,6 +248,19 @@ class PoolInitializer:
             # Override description for readonly
             project.description = "Read-only demo — sign up for full access!"
             project.save(update_fields=["description"])
+
+        # Point this account at the demo, exactly as the pooled visitor-NNN
+        # slots are pointed. Unconditional, not gated on project_created: the
+        # account long predates this call and its pointer still needs moving.
+        #
+        # THIS IS THE ACCOUNT MOST ARRIVALS ACTUALLY GET. The middleware binds
+        # readonly-visitor for any request classified as needing no workspace
+        # — the public landing page included — so it serves the FIRST SCREEN
+        # even while the pool has free slots. Measured on the dev preview
+        # 2026-09-05: the site read "dotfiles — SciTeX (dev)" with "2 of 4
+        # visitor slots available", because the earlier fix moved the four
+        # pooled slots and left this one behind.
+        land_visitor_on(user, project)
 
         success = cls._initialize_project_directory(user, project, project_slug)
         if success:

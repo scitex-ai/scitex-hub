@@ -1,5 +1,5 @@
 {% load static %}
-{% load i18n %}
+{% load i18n landing_i18n %}
 
 <footer class="site-footer" id="site-footer">
     <div class="footer-inner">
@@ -8,7 +8,7 @@
                 <!-- Column 1: Brand -->
                 <div class="footer-section footer-brand">
                     <div class="footer-logo">
-                        <h3>SciTeX</h3>
+                        <h3>SciTeX™</h3>
                     </div>
                     <p class="footer-tagline">{{ SITE_TAGLINE }}</p>
                     <div class="footer-social">
@@ -21,11 +21,13 @@
                         <a href="https://www.youtube.com/@SciTeX-Official" title="YouTube"><i class="fab fa-youtube"></i></a>
                     </div>
                     <p class="footer-contact">
-                        <a href="mailto:{{ CONTACT_EMAIL }}"><i class="fas fa-envelope"></i> {{ CONTACT_EMAIL }}</a>
+                        <a href="mailto:{{ CONTACT_EMAIL }}">{{ CONTACT_EMAIL }}</a>
                     </p>
                     <p class="footer-copyright">
-                        &copy; 2025–2026 SciTeX. {% trans "All rights reserved." %} <span class="footer-version">v{{ SCITEX_HUB_VERSION }}</span>
+                        &copy; 2025–2026 {% trans "SciTeX Inc" %} {% trans "All rights reserved." %} <span class="footer-version">v{{ SCITEX_HUB_VERSION }}</span>
                     </p>
+                    <!-- Language selector (operator 2026-09-12 ledger #32: footer, not header) -->
+                    {% include 'global_base_partials/language_switcher.html' %}
                 </div>
                 <!-- Column 2: Community -->
                 <div class="footer-section">
@@ -47,7 +49,7 @@
                             <a href="{% url 'public_app:pricing' %}">{% trans "Premium" %}</a>
                         </li>
                         <li>
-                            <a href="{% url 'public_app:donate' %}"><i class="fas fa-heart"></i> {% trans "Support SciTeX" %}</a>
+                            <a href="{% url 'public_app:donate' %}">{% trans "Support SciTeX" %}</a>
                         </li>
                         <li>
                             <a href="{% url 'public_app:setup' %}">{% trans "Self-Hosting Guide" %}</a>
@@ -59,11 +61,16 @@
                     <h3>{% trans "Developers" %}</h3>
                     <ul class="footer-links">
                         <li>
-                            <a href="{% url 'public_app:api_docs' %}">{% trans "Web API Docs" %}</a>
+                            <a href="/docs/">{% trans "Docs" %}</a>
                         </li>
                         <li>
-                            <a href="{% url 'dev_app:tests_category' category='web-api' %}">{% trans "Web API Tests" %}</a>
+                            <a href="{% url 'public_app:api_docs' %}">{% trans "Web API Docs" %}</a>
                         </li>
+                        {% if user.is_staff or user.is_superuser %}
+                            <li>
+                                <a href="{% url 'dev_app:tests_category' category='web-api' %}">{% trans "Web API Tests" %}</a>
+                            </li>
+                        {% endif %}
                         <li>
                             <a href="{% url 'public_app:releases' %}">{% trans "Releases" %}</a>
                         </li>
@@ -71,9 +78,15 @@
                             <a href="https://github.com/scitex-ai/scitex-hub/issues"
                                target="_blank">{% trans "Bug Reports" %}</a>
                         </li>
-                        <li>
-                            <a href="{% url 'dev_app:design' %}">{% trans "Design System" %}</a>
-                        </li>
+                        {% comment %}
+                            /dev/ pages are admin-only on prod (dev_app/access.py), so the
+                            two dev links above and here are shown to staff only.
+                        {% endcomment %}
+                        {% if user.is_staff or user.is_superuser %}
+                            <li>
+                                <a href="{% url 'dev_app:design' %}">{% trans "Design System" %}</a>
+                            </li>
+                        {% endif %}
                         <li>
                             <a href="{% url 'public_app:server_status' %}">{% trans "Server Status" %}</a>
                         </li>
@@ -93,7 +106,8 @@
                             <a href="{% url 'public_app:cookies' %}">{% trans "Cookies" %}</a>
                         </li>
                         <li>
-                            <a href="{% url 'public_app:tokushoho' %}">特定商取引法に基づく表記</a>
+                            {% tokushoho_url as tokushoho_href %}
+                            <a href="{{ tokushoho_href }}">{% trans "Legal Notice" %}</a>
                         </li>
                         {% comment %}
                             The mailto: above is not a contact ROUTE: a visitor with no mail
@@ -116,7 +130,8 @@
             </div>
         </div>
         <!-- Dev-only buttons (hidden in production) -->
-        {% if DEBUG %}
+        {# Staff only: dev is used by real testers, and these buttons cancel every SLURM job. #}
+        {% if DEBUG and request.user.is_staff %}
             <div class="footer-dev-tools">
                 <span class="dev-tools-label">Dev Tools:</span>
                 <button id="page-refresh-btn" class="dev-tool-btn" title="Refresh page (Ctrl+Shift+R)">

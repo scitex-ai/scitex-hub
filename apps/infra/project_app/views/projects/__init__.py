@@ -8,7 +8,6 @@ Exports all project-related views.
 
 from .api import (
     api_check_name_availability,
-    api_me,
     api_project_create,
     api_project_create_jwt,
     api_project_detail,
@@ -38,7 +37,6 @@ __all__ = [
     "project_live_viewer",
     "project_live_viewer_api",
     "api_check_name_availability",
-    "api_me",
     "api_project_list",
     "api_project_list_jwt",
     "api_project_create",

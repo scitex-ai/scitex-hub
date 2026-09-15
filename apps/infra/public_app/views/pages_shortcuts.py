@@ -4,7 +4,14 @@
 Keyboard shortcuts data for SciTeX.
 
 Contains keyboard shortcut definitions organized by context.
+The English strings here are the gettext msgids (SSoT);
+:func:`translated_shortcuts_data` produces a per-request, active-language
+deep copy for the view.
 """
+
+import copy
+
+from django.utils.translation import gettext as _
 
 # Keyboard shortcuts data organized by context
 KEYBOARD_SHORTCUTS_DATA = [
@@ -178,6 +185,28 @@ KEYBOARD_SHORTCUTS_DATA = [
         ],
     },
 ]
+
+
+def translated_shortcuts_data():
+    """Per-request, active-language deep copy of KEYBOARD_SHORTCUTS_DATA.
+
+    The module-level KEYBOARD_SHORTCUTS_DATA holds the English msgids (the SSoT).
+    This function deep-copies it and translates every user-visible display field
+    (name, description, title — the ones the template renders) with the
+    *current* active language, so a request rendered under the ja locale gets
+    Japanese and under en-us gets English. The keys (functional: Alt+F,
+    Ctrl+Shift+N, …), icons (emoji), and slugs are left untouched — they are
+    not translatable.
+    """
+    data = copy.deepcopy(KEYBOARD_SHORTCUTS_DATA)
+    for ctx in data:
+        ctx["name"] = _(ctx["name"])
+        ctx["description"] = _(ctx["description"])
+        for section in ctx["sections"]:
+            section["title"] = _(section["title"])
+            for shortcut in section["shortcuts"]:
+                shortcut["description"] = _(shortcut["description"])
+    return data
 
 
 # EOF

@@ -23,7 +23,7 @@ services:
       dockerfile: deployment/docker/Dockerfile
       args:
         BUILDKIT_INLINE_CACHE: 1
-        SLURM_VERSION: ${SCITEX_HUB_SLURM_VERSION:-24.05.5}
+        SLURM_VERSION: ${SCITEX_HUB_SLURM_VERSION:-23.11.4}
     image: scitex-hub-dev-django:latest
     volumes:
       # Live code reload
@@ -44,6 +44,7 @@ services:
       - ../../../openalex-local:/openalex-local:cached
       - ../../../scitex-scholar:/scitex-scholar:cached
       - ../../../scitex-container:/scitex-container:cached
+      - ${SCITEX_AGENT_CONTAINER_SOURCE_DIR:-../../../scitex-agent-container}:/scitex-agent-container:cached
       - ../../../scitex-clew:/scitex-clew:cached
       - ../../../scitex-plt:/scitex-plt:cached
       - ../../../scitex-audio:/scitex-audio:cached
@@ -59,6 +60,10 @@ services:
       - ../../.cache/containers:/app/.cache/containers
       # Docker socket
       - /var/run/docker.sock:/var/run/docker.sock
+      # SAC listener bearer. Developers without a listener configured get an
+      # empty read-only file and an explicit "listener unavailable" dashboard;
+      # compose itself remains startable.
+      - ${SCITEX_AGENT_CONTAINER_API_TOKEN_FILE_HOST:-/dev/null}:/run/secrets/sac-listen-token:ro
       # User workspace
       - ../../data/users:/app/data/users
       # Singularity container images
@@ -69,8 +74,12 @@ services:
       - /run/munge:/run/munge
       - /var/log/slurm:/var/log/slurm
       - /etc/passwd:/host/etc/passwd:ro
-      # Exclude generated files
-      - /app/staticfiles
+      # Exclude generated files.
+      # NOT /app/staticfiles: `static_volume:/app/staticfiles` above already
+      # shadows the host bind AND persists it. Two mounts on one destination
+      # in one service means the last wins, so this bare entry silently
+      # replaced the named volume with an anonymous one. Gated by
+      # tests/config/test_compose_never_mounts_one_path_twice_in_a_service.py
       - /app/.cache
       - /app/.jsbuild
     # Loopback-only, like docker-compose.preview.yml: this stack runs
@@ -98,6 +107,10 @@ services:
       WATCHFILES_FORCE_POLLING: "true"
       SCITEX_WRITER_CACHE_DIR: /app/.cache
       SCITEX_UI_STATIC: /scitex-ui/src/scitex_ui/static/scitex_ui
+      SCITEX_AGENT_CONTAINER_API_URL: ${SCITEX_AGENT_CONTAINER_API_URL:-http://host.docker.internal:7878}
+      SCITEX_AGENT_CONTAINER_API_TOKEN_FILE: /run/secrets/sac-listen-token
+      SCITEX_AGENT_CONTAINER_LIFECYCLE_OPERATORS: ${SCITEX_AGENT_CONTAINER_LIFECYCLE_OPERATORS:-}
+      SCITEX_AGENT_CONTAINER_CROSSHOST_OPERATORS: ${SCITEX_AGENT_CONTAINER_CROSSHOST_OPERATORS:-}
     depends_on:
       postgres:
         condition: service_healthy
@@ -150,7 +163,7 @@ services:
       context: ../..
       dockerfile: deployment/docker/Dockerfile
       args:
-        SLURM_VERSION: ${SCITEX_HUB_SLURM_VERSION:-24.05.5}
+        SLURM_VERSION: ${SCITEX_HUB_SLURM_VERSION:-23.11.4}
     image: scitex-hub-dev-django:latest
     volumes:
       - ../..:/app:cached
@@ -169,6 +182,7 @@ services:
       - ../../../openalex-local:/openalex-local:cached
       - ../../../scitex-scholar:/scitex-scholar:cached
       - ../../../scitex-container:/scitex-container:cached
+      - ${SCITEX_AGENT_CONTAINER_SOURCE_DIR:-../../../scitex-agent-container}:/scitex-agent-container:cached
       - ../../../scitex-clew:/scitex-clew:cached
       - ../../../scitex-plt:/scitex-plt:cached
       - ../../../scitex-audio:/scitex-audio:cached
@@ -186,19 +200,55 @@ services:
       redis:
         condition: service_started
     entrypoint: ["/app/deployment/docker/common/scripts/entrypoint-dev.sh"]
+    # POOL=THREADS, NOT PREFORK. The prefork pool wedges on this host: after
+    # one boot burst the parent stops acknowledging completed tasks, its QoS
+    # window jams full of reservations with worker_pid=None / time_start=None
+    # / acknowledged=false, `inspect active` is empty, the control channel
+    # still answers ping, and nothing is logged. Five fixes failed against it
+    # (tini #379, -O fair + --max-tasks-per-child #381, the celery<5.6 pin
+    # with --without-gossip/mingle/heartbeat #384). The differential
+    # experiment that settled it: same container, same code, same broker,
+    # differing ONLY by --pool=threads, drained 48 tasks in 200s where
+    # prefork never exceeded 6. See docker_prod/docker-compose.yml for the
+    # full history and tests/develop/test_celery_worker_pool.py for the gate.
+    #
+    # The prefork-only flags are dropped deliberately: -O fair is a prefork
+    # child-dispatch strategy and --max-tasks-per-child / --max-memory-per-child
+    # recycle fork children, of which a threads pool has none. Celery ignores
+    # them under --pool=threads, so leaving them in place is dead config that
+    # reads as an active mitigation for the very wedge they failed to fix.
     command: >
       celery -A config --broker=redis://redis:6379/1 worker
       --loglevel=info
       --queues=celery,ai_queue,search_queue,compute_queue,vis_queue
+      --pool=threads
       --concurrency=4
       --prefetch-multiplier=1
+      --without-gossip
+      --without-mingle
+      --without-heartbeat
     restart: unless-stopped
+    # Healthcheck asserts EXECUTION, not connectivity.
+    #
+    # This worker serves both `celery` and `vis_queue`, so both beacon stamps
+    # are checked: a worker that drains one queue while starving the other is
+    # unhealthy, and the visitor-slot re-clean rides on vis_queue.
+    #
+    # It previously pinged redis, which stays green through a total dispatch
+    # wedge -- measured on dev 2026-09-05, where the worker had executed
+    # nothing for 12.9h while docker reported "healthy" and the visitor pool
+    # sat quarantined. The same wedge was measured on prod 2026-07-14/17 and
+    # is why check_queue_liveness.sh exists; only the non-prod compose files
+    # were left behind on the ping.
+    #
+    # retries 10 x interval 60s: ~10 min of consecutive staleness before
+    # docker marks unhealthy, so a busy-but-draining worker is never flagged.
     healthcheck:
-      test: ["CMD", "python", "-c", "import redis; r = redis.Redis(host='redis', port=6379); r.ping()"]
-      interval: 30s
+      test: ["CMD", "bash", "-c", "/app/deployment/docker/common/scripts/check_queue_liveness.sh celery 600 && /app/deployment/docker/common/scripts/check_queue_liveness.sh vis_queue 600"]
+      interval: 60s
       timeout: 10s
-      retries: 3
-      start_period: 120s
+      retries: 10
+      start_period: 300s
     networks:
       - scitex-network
 
@@ -210,7 +260,7 @@ services:
       context: ../..
       dockerfile: deployment/docker/Dockerfile
       args:
-        SLURM_VERSION: ${SCITEX_HUB_SLURM_VERSION:-24.05.5}
+        SLURM_VERSION: ${SCITEX_HUB_SLURM_VERSION:-23.11.4}
     image: scitex-hub-dev-django:latest
     volumes:
       - ../..:/app:cached
@@ -229,6 +279,7 @@ services:
       - ../../../openalex-local:/openalex-local:cached
       - ../../../scitex-scholar:/scitex-scholar:cached
       - ../../../scitex-container:/scitex-container:cached
+      - ${SCITEX_AGENT_CONTAINER_SOURCE_DIR:-../../../scitex-agent-container}:/scitex-agent-container:cached
       - ../../../scitex-clew:/scitex-clew:cached
       - ../../../scitex-plt:/scitex-plt:cached
       - ../../../scitex-audio:/scitex-audio:cached

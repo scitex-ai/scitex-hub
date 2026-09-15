@@ -25,9 +25,13 @@ from __future__ import annotations
 
 from config import branding
 from config.context_processors import site_branding
+from django.utils import translation
 
-EXPECTED_PRIMARY = "Research Automation for AI and Humans"
-EXPECTED_SECONDARY = "Open-source Scientific Research Automation Ecosystem"
+EXPECTED_PRIMARY = "Open-source Ecosystem for Scientific Research"
+# The operator revised the tagline 2026-09-12: the two lines were collapsed to
+# the single primary above; the secondary was dropped ("" — still exposed by the
+# context processor so the hero's <p> renders empty, not errors).
+EXPECTED_SECONDARY = ""
 
 
 # ---------------------------------------------------------------------------
@@ -51,22 +55,24 @@ def test_secondary_tagline_is_the_operator_text():
     assert actual == expected
 
 
-def test_secondary_tagline_spells_scientific_correctly():
-    """Positive half of the spelling pair -- see the module docstring."""
+def test_tagline_spells_scientific_correctly():
+    """Positive half of the spelling pair -- see the module docstring. The
+    tagline is now a single primary line (the secondary was dropped
+    2026-09-12), so the "Scientific" guard points at the primary."""
     # Arrange
     expected_word = "Scientific"
     # Act
-    actual = branding.SITE_TAGLINE_SECONDARY
+    actual = branding.SITE_TAGLINE
     # Assert
     assert expected_word in actual
 
 
-def test_secondary_tagline_does_not_carry_the_scitentific_typo():
+def test_tagline_does_not_carry_the_scitentific_typo():
     """Negative half. Non-vacuous: the test above proves the string exists."""
     # Arrange
     typo = "scitentific"
     # Act
-    actual = branding.SITE_TAGLINE_SECONDARY.lower()
+    actual = branding.SITE_TAGLINE.lower()
     # Assert
     assert typo not in actual
 
@@ -77,11 +83,14 @@ def test_secondary_tagline_does_not_carry_the_scitentific_typo():
 def test_context_processor_exposes_the_secondary_tagline():
     """Without this key the hero renders an EMPTY paragraph, not an error --
     Django resolves an unknown template variable to "". That silent blank is
-    exactly why this is asserted rather than assumed."""
+    exactly why this is asserted rather than assumed. Pinned to EN: the tagline
+    goes through gettext, so a prior test leaking JA as the active language
+    would otherwise make the assertion order-dependent."""
     # Arrange
     request = None  # site_branding ignores the request
     # Act
-    context = site_branding(request)
+    with translation.override("en"):
+        context = site_branding(request)
     # Assert
     assert context["SITE_TAGLINE_SECONDARY"] == EXPECTED_SECONDARY
 
@@ -89,8 +98,9 @@ def test_context_processor_exposes_the_secondary_tagline():
 def test_context_processor_still_exposes_the_primary_tagline():
     # Arrange
     request = None
-    # Act
-    context = site_branding(request)
+    # Act — EN-pinned for the same reason as the secondary test above.
+    with translation.override("en"):
+        context = site_branding(request)
     # Assert
     assert context["SITE_TAGLINE"] == EXPECTED_PRIMARY
 

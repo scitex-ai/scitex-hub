@@ -9,8 +9,34 @@ import { initVisitorCountdown } from "./visitor-countdown";
 // Storage key for header collapse state
 const HEADER_COLLAPSE_STORAGE_KEY = "scitex-header-collapsed";
 
-/** Mobile hamburger menu toggle */
-function initializeMobileHamburger(): void {
+function initializeHeaderClock(): void {
+  const clock = document.getElementById("header-local-clock");
+  if (!(clock instanceof HTMLTimeElement)) return;
+
+  const update = (): void => {
+    const now = new Date();
+    clock.dateTime = now.toISOString();
+    const date = now.toLocaleDateString("sv-SE", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    const time = now.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+    clock.textContent = `${date} ${time}`;
+    clock.title = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  };
+
+  update();
+  window.setInterval(update, 1000);
+}
+
+/** Shared hamburger menu toggle (desktop and mobile use the same control). */
+export function initializeHeaderMenu(): void {
   const btn = document.getElementById("mobile-hamburger-btn");
   const menu = document.getElementById("mobile-header-menu");
   if (!btn || !menu) return;
@@ -21,42 +47,54 @@ function initializeMobileHamburger(): void {
   // second listener here would toggle the menu twice per tap = dead UI).
   if (btn.hasAttribute("data-inline-handler")) return;
 
+  // Mirrors global_header/hamburger_inline.html (the authoritative wiring).
+  const labelOpen = btn.getAttribute("data-label-open") || "Open menu";
+  const labelClose = btn.getAttribute("data-label-close") || "Close menu";
+  const setState = (open: boolean): void => {
+    menu.classList.toggle("open", open);
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+    btn.setAttribute("aria-label", open ? labelClose : labelOpen);
+    const icon = btn.querySelector("i");
+    if (icon) icon.className = open ? "fas fa-times" : "fas fa-bars";
+  };
+  const close = (returnFocus: boolean): void => {
+    if (!menu.classList.contains("open")) return;
+    setState(false);
+    if (returnFocus) btn.focus();
+  };
+
   btn.addEventListener("click", (e) => {
     e.stopPropagation(); // Prevent header collapse handlers from firing
-    const isOpen = menu.classList.toggle("open");
-    const icon = btn.querySelector("i");
-    if (icon) {
-      icon.className = isOpen ? "fas fa-times" : "fas fa-bars";
-    }
+    setState(!menu.classList.contains("open"));
   });
 
-  // Theme toggle inside mobile menu
-  const themeBtn = document.getElementById("mobile-theme-toggle-btn");
-  if (themeBtn) {
-    themeBtn.addEventListener("click", () => {
-      const desktopToggle = document.getElementById(
-        "theme-toggle",
-      ) as HTMLElement;
-      if (desktopToggle) desktopToggle.click();
-      menu.classList.remove("open");
-      const icon = btn.querySelector("i");
-      if (icon) icon.className = "fas fa-bars";
-    });
-  }
 
   // Close menu when clicking a link
   menu.querySelectorAll("a.mobile-menu-item").forEach((link) => {
-    link.addEventListener("click", () => {
-      menu.classList.remove("open");
-      const icon = btn.querySelector("i");
-      if (icon) icon.className = "fas fa-bars";
-    });
+    link.addEventListener("click", () => close(false));
+  });
+
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    if (
+      menu.classList.contains("open") &&
+      target instanceof Node &&
+      !menu.contains(target) &&
+      !btn.contains(target)
+    ) {
+      close(false);
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") close(true);
   });
 }
 
 function initializeHeader(): void {
-  // Initialize mobile hamburger menu
-  initializeMobileHamburger();
+  initializeHeaderClock();
+  // Initialize the one responsive header menu
+  initializeHeaderMenu();
   // Initialize header collapse toggle
   initializeHeaderCollapse();
 

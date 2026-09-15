@@ -42,7 +42,7 @@ from pathlib import Path
 import pytest
 from django.conf import settings
 from django.template.loader import render_to_string
-from django.test import RequestFactory
+from django.test import Client, RequestFactory
 from django.urls import NoReverseMatch, reverse
 from django.utils import translation
 
@@ -55,8 +55,8 @@ SWITCHER_TEMPLATE = "global_base_partials/language_switcher.html"
 # One string per surface, chosen because each proves a DIFFERENT link in the
 # chain: the constant path (branding.py -> context processor), the plain
 # template path, and the interpolating one (blocktrans).
-CTA_EN = "Enter as visitor"
-CTA_JA = "ゲストとして試す"
+CTA_EN = "Try SciTeX™ Cloud with 30-day Free Trial"
+CTA_JA = "30日間無料トライアルで SciTeX™ クラウドを試す"
 
 
 def _reverse_or_none(name):
@@ -175,27 +175,52 @@ def test_set_language_endpoint_is_routed():
 
 
 # ---------------------------------------------------------------------------
-# Automatic selection from the browser's Accept-Language header
+# English by default: Accept-Language no longer auto-selects Japanese
 # ---------------------------------------------------------------------------
+# 2026-09-11 supersedes the 2026-08-23 "automatic from browser preference"
+# decision: the landing must render English for an anonymous visitor even when
+# the browser advertises Accept-Language: ja. Japanese appears only after the
+# visitor explicitly selects it (footer switcher -> django_language cookie).
 @pytest.mark.parametrize(
-    ("header", "expected"),
+    "header",
     [
-        ("ja", "ja"),
-        ("ja-JP,ja;q=0.9,en;q=0.8", "ja"),
-        ("en-US,en;q=0.9", "en"),
-        # An unsupported language must fall back to English rather than 404 or
-        # half-translate. Operator, 2026-08-23: 「日本語、英語、意外は私が見ても
-        # わからないので今のところは非対応で問題ないです」
-        ("fr-FR,fr;q=0.9", "en"),
+        "ja",
+        "ja-JP,ja;q=0.9,en;q=0.8",
+        "en-US,en;q=0.9",
+        "fr-FR,fr;q=0.9",
     ],
 )
-def test_accept_language_header_selects_the_language(header, expected):
-    # Arrange
+def test_english_default_middleware_strips_language_preference(header):
+    """EnglishDefaultLanguageMiddleware removes the browser preference when
+    the visitor has made no explicit choice, so LocaleMiddleware falls through
+    to LANGUAGE_CODE (English) instead of auto-selecting from Accept-Language.
+    `get_language_from_request` alone would still pick ja — that is exactly the
+    hole the middleware closes, so apply it before resolving."""
+    from apps.infra.public_app.middlewares import EnglishDefaultLanguageMiddleware
+
     request = RequestFactory().get("/", HTTP_ACCEPT_LANGUAGE=header)
-    # Act
+    middleware = EnglishDefaultLanguageMiddleware(lambda r: r)
+    middleware(request)
     actual = translation.get_language_from_request(request, check_path=False)
-    # Assert
-    assert actual == expected, f"Accept-Language {header!r} chose {actual!r}"
+    assert actual == "en", (
+        f"Accept-Language {header!r} must NOT auto-select Japanese once the "
+        f"middleware strips it; expected 'en', got {actual!r}."
+    )
+
+
+def test_explicit_ja_cookie_is_preserved_despite_english_browser():
+    """An explicit django_language=ja (footer switcher) survives the middleware
+    and beats an en-advertising browser — the user's choice is honored."""
+    from apps.infra.public_app.middlewares import EnglishDefaultLanguageMiddleware
+
+    request = RequestFactory().get(
+        "/", HTTP_ACCEPT_LANGUAGE="en-US,en;q=0.9",
+        **{"HTTP_COOKIE": "django_language=ja"},
+    )
+    middleware = EnglishDefaultLanguageMiddleware(lambda r: r)
+    middleware(request)
+    actual = translation.get_language_from_request(request, check_path=False)
+    assert actual == "ja"
 
 
 # ---------------------------------------------------------------------------
@@ -409,21 +434,17 @@ def test_switcher_posts_rather_than_gets(switcher_html):
     assert expected in actual
 
 
-def test_switcher_offers_the_other_language_under_ja(switcher_html):
-    """A TOGGLE names its DESTINATION, so under ja the label is English.
-
-    The control changed shape on the operator's instruction (2026-08-23): it was
-    a <select> in the footer offering both languages; it is now a toggle in the
-    header offering the one you are not in. These tests changed with it rather
-    than being loosened — the old "offers both" assertion would now be asserting
-    a control that no longer exists.
+def test_switcher_lists_all_configured_languages(switcher_html):
+    """A DROPDOWN lists every configured language (operator 2026-09-12: the
+    2-state toggle became a multi-language dropdown), so under ja BOTH
+    English and 日本語 appear, each as a real set_language form.
     """
     # Arrange
-    expected = "English"
+    expected = ("English", "日本語")
     # Act
     actual = switcher_html
     # Assert
-    assert expected in actual
+    assert all(name in actual for name in expected)
 
 
 def test_switcher_submits_the_other_language_under_ja(switcher_html):
@@ -456,10 +477,12 @@ def test_switcher_submits_japanese_under_en(switcher_en_html):
 
 def test_switcher_reuses_the_header_button_class(switcher_html):
     """No bespoke colours. The operator rejected the first version for looking
-    unlike the rest of the header 「ブランドのカラーと合ってない」; reusing
-    .header-btn is what makes it inherit the brand tokens."""
+    unlike its neighbours; reusing a shared button class is what makes it
+    inherit the brand tokens. (2026-09-12: the 2-state toggle became a
+    multi-language dropdown whose trigger reuses .header-btn, the same class
+    Sign in / Sign up use.)"""
     # Arrange
-    expected = 'class="header-btn"'
+    expected = 'class="header-btn'
     # Act
     actual = switcher_html
     # Assert
@@ -474,3 +497,90 @@ def test_switcher_returns_to_the_current_page(switcher_html):
     actual = switcher_html
     # Assert
     assert expected in actual
+
+
+def test_no_raw_multiline_django_comments_in_header_partial():
+    """A multi-line {# #} is NOT a valid Django comment — Django's {# #} is
+    single-line only, so a block whose opening {# and closing #} are on
+    different lines renders VERBATIM to every visitor (operator-observed on
+    PR #769, 2026-09-11). The header partial must use {% comment %} for
+    anything spanning lines. Scans the template source (no DB needed)."""
+    from pathlib import Path
+
+    header = (Path(__file__).resolve().parents[2] / "templates" / "global_base_partials" / "global_header.html").read_text(encoding="utf-8")
+    lines = header.splitlines()
+    offenders = []
+    open_line = None
+    for i, line in enumerate(lines, 1):
+        # A {# that is not closed by #} on the same line opens a raw block.
+        if open_line is None and "{#" in line and "#}" not in line:
+            # ignore {% comment %} (valid multi-line) lines
+            if "{% comment %}" not in line:
+                open_line = i
+        elif open_line is not None and "#}" in line:
+            offenders.append((open_line, i))
+            open_line = None
+    if open_line is not None:
+        offenders.append((open_line, len(lines)))
+    assert not offenders, (
+        f"multi-line raw {{# #}} comment(s) would render verbatim: "
+        f"{[f'lines {a}-{b}' for a, b in offenders]}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# The rendered pricing page is fully localized in BOTH directions.
+#
+# This is the assertion class the 66 pricing/SSOT tests could not catch: they
+# check pricing.py's output (already translated) and the template label (a real
+# JA msgid), but never the RENDERED PAGE. The bug they missed (found 2026-09-11
+# via a live switch-click) was a DOUBLE translation: pricing.py localizes
+# price/price_note/included at call time, and landing_pricing.html applied
+# |translate_dynamic to those already-JA strings again. The JA catalog has no
+# JA msgids, so Django fell back to the en catalog's stale develop-era reverse
+# mappings (msgid "月額 1,490円" -> "¥1,490/month") and reverted them to English
+# on the Japanese page. The rendered-page check below fails if that regresses.
+# ---------------------------------------------------------------------------
+def _landing(client_cookie=None):
+    from django.test import Client
+
+    c = Client()
+    if client_cookie:
+        c.cookies["django_language"] = client_cookie
+    return c.get(
+        "/landing/", HTTP_ACCEPT_LANGUAGE="ja-JP,ja;q=0.9,en;q=0.5"
+    ).content.decode("utf-8", "replace")
+
+
+def test_landing_pricing_renders_fully_english_by_default():
+    html = _landing()
+    # Two-plan row (Free pane dropped 2026-09-12): Cloud | On-Prem. Prices are
+    # ALWAYS USD on the marketing card (operator: "drop the yen at all").
+    assert '<html lang="en"' in html
+    assert "Cloud" in html and "SciTeX Self-Hosted" in html
+    assert "$19/mo" in html and "$39/mo" in html
+    assert 'data-variant="academic"' in html and 'data-variant="general"' in html
+    assert "30-day free trial" in html
+    assert "32 GB Cool storage included" in html
+    assert "$10 compute credit per billing cycle (Coming soon)" in html
+    assert "internet egress per billing cycle" in html
+    # NO Japanese price data leaks into the English default
+    for ja in ("クラウド", "月額 1,490円", "通常利用の範囲の通信", "円相当"):
+        assert ja not in html, f"Japanese {ja!r} leaked into the English default landing"
+
+
+def test_landing_pricing_renders_fully_japanese_when_selected():
+    html = _landing(client_cookie="ja")
+    # JA renders the plan copy Japanese, but prices stay USD (operator:
+    # "always use USD for clarity" — the yen reference lives on /tokushoho/).
+    assert '<html lang="ja"' in html
+    assert "クラウド" in html and "セルフホスト" in html
+    assert "$19/mo" in html and "$39/mo" in html
+    assert "学術" in html and "非学術" in html
+    assert "30日間の無料トライアル" in html
+    assert "Cool ストレージ 32 GB 込み" in html
+    assert "計算クレジット $10 / 請求サイクル（近日提供）" in html
+    assert "インターネットへの送信" in html
+    # NO Japanese yen price (the SSoT yen values) leaks onto the USD card
+    for jp in ("月額 1,490円", "円相当の計算クレジット"):
+        assert jp not in html, f"JPY {jp!r} leaked onto the USD landing"

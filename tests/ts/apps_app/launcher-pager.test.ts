@@ -40,9 +40,12 @@ interface Harness {
 function build(tileCount: number, dockTop = DOCK_TOP): Harness {
   document.body.innerHTML = "";
   window.innerHeight = VIEWPORT_H;
+  // jsdom cannot resolve the --launcher-cols custom property, so the pager
+  // falls back to the viewport-width breakpoints: 390px = 4 columns.
+  window.innerWidth = 390;
 
   const dock = document.createElement("nav");
-  dock.className = "launcher-dock";
+  dock.className = "site-dock";
   // The rect carries PRESENCE, not just position: the pager reads a
   // non-zero height as "dock is rendered" (a display:none dock measures
   // 0x0). It must NOT read offsetParent — that is null BY SPEC for
@@ -100,7 +103,10 @@ function setMobile(isMobile: boolean): void {
 window.matchMedia = ((q: string) =>
   ({
     get matches() {
-      return q.includes("max-width: 767px") ? mobile : false;
+      if (q.includes("max-width: 767px")) return mobile;
+      // Desktop = a fine hovering pointer; the phone fixture is touch.
+      if (q.includes("pointer: fine")) return !mobile;
+      return false;
     },
     media: q,
     addEventListener: () => {},
@@ -117,6 +123,61 @@ describe("LauncherPager", () => {
   beforeEach(() => {
     document.head.innerHTML = "";
     setMobile(true);
+    history.replaceState(null, "", "/apps/");
+  });
+
+  it("uses zero-based canonical hashes with Favorites before Home", () => {
+    const { grid, dots } = build(12);
+    styleGap(grid);
+    const favorites = document.createElement("div");
+    favorites.className = "launcher-page launcher-page--favorites";
+    favorites.dataset.launcherFixedPage = "favorites";
+    grid.prepend(favorites);
+    history.replaceState(null, "", "/apps/#1");
+    let scrolledTo = -1;
+    grid.scrollTo = ((opts: ScrollToOptions) => {
+      scrolledTo = opts.left ?? -1;
+      grid.scrollLeft = scrolledTo;
+    }) as typeof grid.scrollTo;
+    const pager = new LauncherPager(grid, dots);
+
+    pager.init();
+
+    expect(grid.querySelectorAll(".launcher-page")[0]).toBe(favorites);
+    expect(scrolledTo).toBe(390);
+    expect(window.location.hash).toBe("#1");
+    expect(dots.children[0].getAttribute("aria-label")).toContain("Favorites");
+    expect(dots.children[1].getAttribute("aria-label")).toContain("Home");
+  });
+
+  it("keeps arrows, swipe, hashchange, and invalid initial hashes synchronized", () => {
+    const { grid, dots } = build(20);
+    styleGap(grid);
+    const favorites = document.createElement("div");
+    favorites.className = "launcher-page launcher-page--favorites";
+    favorites.dataset.launcherFixedPage = "favorites";
+    grid.prepend(favorites);
+    history.replaceState(null, "", "/apps/#favorite");
+    grid.scrollTo = ((opts: ScrollToOptions) => {
+      grid.scrollLeft = opts.left ?? 0;
+    }) as typeof grid.scrollTo;
+    const pager = new LauncherPager(grid, dots);
+
+    pager.init();
+    expect(window.location.hash).toBe("#1");
+    expect(grid.scrollLeft).toBe(390);
+
+    pager.goTo(2);
+    expect(window.location.hash).toBe("#2");
+    expect(grid.scrollLeft).toBe(780);
+
+    grid.scrollLeft = 0;
+    grid.dispatchEvent(new Event("scroll"));
+    expect(window.location.hash).toBe("#0");
+
+    history.replaceState(null, "", "/apps/#2");
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+    expect(grid.scrollLeft).toBe(780);
   });
 
   it("re-measures after a LATE layout instead of trusting the first reading", () => {
@@ -204,7 +265,7 @@ describe("LauncherPager", () => {
     // passed because it force-defined offsetParent truthy.
     const { grid, pager } = build(12);
     styleGap(grid);
-    const dock = document.querySelector<HTMLElement>(".launcher-dock");
+    const dock = document.querySelector<HTMLElement>(".site-dock");
     expect(dock!.offsetParent).toBeNull(); // fixture matches the real browser
 
     pager.apply();
@@ -220,7 +281,7 @@ describe("LauncherPager", () => {
     // then use the viewport bottom, not a stale dock position.
     const { grid, pager } = build(8);
     styleGap(grid);
-    const dock = document.querySelector<HTMLElement>(".launcher-dock")!;
+    const dock = document.querySelector<HTMLElement>(".site-dock")!;
     dock.getBoundingClientRect = () => ({ top: 0, height: 0 }) as DOMRect;
 
     pager.apply();
@@ -251,7 +312,9 @@ describe("LauncherPager", () => {
     }
   });
 
-  it("shows page dots only when there is more than one page", () => {
+  it("shows one dot per page, even when everything fits on one page", () => {
+    // Operator, 2026-09-14: dots under the grid show the current page. A
+    // single page still shows its one dot, so the Home screen reads as a page.
     const many = build(12);
     styleGap(many.grid);
     many.pager.apply();
@@ -260,32 +323,71 @@ describe("LauncherPager", () => {
       many.grid.querySelectorAll(".launcher-page").length,
     );
 
-    // A single page needs no dots — a lone dot says nothing and steals the
-    // vertical space we just fought to give back to the icons.
     const few = build(2);
     styleGap(few.grid);
     few.pager.apply();
-    expect(few.dots.hidden).toBe(true);
+    expect([few.dots.hidden, few.dots.children.length]).toEqual([false, 1]);
   });
 
-  it("tears the pages down on desktop, preserving order", () => {
-    const { grid, dots, pager } = build(12);
+  it("pages on desktop too — phone and desktop are the same UI", () => {
+    // The pager used to tear its pages down above 767px. Since 2026-09-14 the
+    // dock is on every page at every width, so the desktop grid pages too.
+    const { grid, pager } = build(12);
     styleGap(grid);
     const before = tileOrder(grid);
-
-    pager.apply(); // mobile → paged
-    expect(pager.paged).toBe(true);
-
     setMobile(false);
-    pager.apply(); // desktop → flat grid again
 
-    expect(pager.paged).toBe(false);
-    expect(grid.querySelectorAll(".launcher-page")).toHaveLength(0);
+    pager.apply();
+
+    expect(pager.paged).toBe(true);
     expect(tileOrder(grid)).toEqual(before);
-    // The explicit height was a paging artefact; the desktop grid must not
-    // inherit it or it would clip the vertical list.
-    expect(grid.style.height).toBe("");
-    expect(dots.hidden).toBe(true);
+  });
+
+  it("stops bounding pages by a dock the user dragged away", () => {
+    // A floating dock is not at the bottom, so the page may use the full
+    // viewport height (the body no longer reserves the dock band either).
+    const { grid, pager } = build(8);
+    styleGap(grid);
+    document.querySelector(".site-dock")!.classList.add("site-dock--floating");
+
+    pager.apply();
+
+    const height = parseFloat(grid.style.height);
+    expect(height).toBeGreaterThan(DOCK_TOP - GRID_TOP);
+  });
+
+  it("keeps the page arrows hidden on a phone, even with several pages", () => {
+    // Operator iPhone, 2026-09-14: arrows showed as stray white boxes above the
+    // grid and beside the dock. Swipe + dots is the phone UI.
+    const { grid, dots } = build(40); // 390px wide, touch (setMobile(true))
+    styleGap(grid);
+    const prev = document.createElement("button");
+    const next = document.createElement("button");
+    const pager = new LauncherPager(grid, dots, { prev, next });
+
+    pager.init();
+
+    expect([prev.hidden, next.hidden]).toEqual([true, true]);
+  });
+
+  it("enables the desktop arrows only when there is somewhere to go", () => {
+    const { grid, dots } = build(40);
+    window.innerWidth = 1440;
+    setMobile(false); // fine hovering pointer
+    styleGap(grid);
+    const prev = document.createElement("button");
+    const next = document.createElement("button");
+    const pager = new LauncherPager(grid, dots, { prev, next });
+
+    pager.init();
+
+    // On the first page of several: arrows shown, Back-arrow disabled.
+    expect([prev.hidden, prev.disabled, next.hidden, next.disabled]).toEqual([
+      false,
+      true,
+      false,
+      false,
+    ]);
   });
 
   it("scrolls by the MEASURED page width, not the container's", () => {
@@ -296,7 +398,8 @@ describe("LauncherPager", () => {
     // clientWidth maths drifted one-eighth of a page per page and landed
     // the dots on the wrong index. Measuring keeps the pager correct under
     // ANY future flex-basis change.
-    const { grid, pager } = build(12);
+    // 20 tiles = three pages, so goTo(2) is a real page (goTo clamps).
+    const { grid, pager } = build(20);
     styleGap(grid);
     pager.apply();
 

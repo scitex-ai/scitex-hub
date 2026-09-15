@@ -8,6 +8,8 @@ from django.utils import timezone
 # Import here for backwards compatibility
 from apps.infra.auth_app.models import EmailVerification  # noqa
 
+from .billing_models import BillingEvent, PaymentMethod, PlanSubscription  # noqa: F401
+
 # EmailVerification model definition moved to apps.infra.auth_app.models
 # Import statement above provides backwards compatibility
 
@@ -457,29 +459,6 @@ class SiteHealthProbe(models.Model):
             else "failed"
         )
         return f"Probe at {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')} ({rt})"
-
-
-class BillingEvent(models.Model):
-    """Minimal record of signature-verified Stripe webhook events.
-
-    Scaffold only — entitlement logic (mapping events to subscriptions)
-    is a separate card (hub-billing-entitlement-minimal). ``event_id``
-    is the Stripe event id (``evt_...``) and is unique so webhook
-    retries stay idempotent.
-    """
-
-    event_id = models.CharField(max_length=255, unique=True)
-    event_type = models.CharField(max_length=255)
-    payload = models.JSONField()
-    received_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["-received_at"]
-        verbose_name = "Billing Event"
-        verbose_name_plural = "Billing Events"
-
-    def __str__(self):
-        return f"{self.event_type} ({self.event_id})"
 
 
 class ServiceInquiry(models.Model):

@@ -1,8 +1,8 @@
 {% extends "global_base.html" %}
 
-{% load static vite %}
+{% load static vite i18n %}
 
-{% block title %}Repository Health - Settings{% endblock %}
+{% block title %}{% trans "Project Health - Settings" %}{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/layouts/settings-layout.css' %}" />
     <style>
@@ -376,30 +376,30 @@
             <!-- Right Content -->
             <main class="settings-content">
                 <div class="settings-header">
-                    <h1 class="settings-title">Repository Health</h1>
-                    <p class="settings-subtitle">Monitor and manage the health of your Git repositories.</p>
+                    <h1 class="settings-title">{% trans "Project Health" %}</h1>
+                    <p class="settings-subtitle">{% trans "Monitor and manage the health of your projects." %}</p>
                 </div>
                 {% csrf_token %}
                 <!-- Username data for TypeScript -->
                 <div id="maintenance-data" style="display: none" data-username="{{ username }}"></div>
                 <!-- Error message -->
                 <div id="error-message" class="error-message" style="display: none">
-                    <strong>Error:</strong> <span id="error-text"></span>
+                    <strong>{% trans "Error:" %}</strong> <span id="error-text"></span>
                 </div>
                 <!-- Health status cards -->
                 <div class="health-status" id="health-status">
                     <div class="health-card">
                         <div class="loading-spinner"></div>
-                        <div class="health-card-label">Loading...</div>
+                        <div class="health-card-label">{% trans "Loading..." %}</div>
                     </div>
                 </div>
                 <!-- Issues list -->
                 <div class="issues-section">
-                    <h2>Repository Status</h2>
+                    <h2>{% trans "Project Status" %}</h2>
                     <div class="issues-list" id="issues-list">
                         <div style="text-align: center; padding: 2rem; color: var(--text-secondary)">
                             <div class="loading-spinner"></div>
-                            Loading repository information...
+                            {% trans "Loading project information..." %}
                         </div>
                     </div>
                 </div>
@@ -409,20 +409,22 @@
     <!-- Confirmation dialog -->
     <div class="confirmation-dialog" id="confirmation-dialog">
         <div class="dialog-content">
-            <div class="dialog-title">Confirm Action</div>
+            <div class="dialog-title">{% trans "Confirm Action" %}</div>
             <div class="dialog-message" id="dialog-message"></div>
             <div class="dialog-actions">
                 <button type="button"
                         class="dialog-button cancel"
                         id="dialog-cancel"
-                        onclick="closeDialog()">Cancel</button>
+                        onclick="closeDialog()">{% trans "Cancel" %}</button>
                 <button type="button"
                         class="dialog-button confirm"
                         id="dialog-confirm"
-                        onclick="executeAction()">Confirm</button>
+                        onclick="executeAction()">{% trans "Confirm" %}</button>
             </div>
         </div>
     </div>
-    <!-- Repository Maintenance Script (TypeScript-compiled) -->
+    <!-- Translated strings for the client-rendered list (read by ts/repository/admin/i18n.ts) -->
+    {{ project_health_i18n|json_script:"project-health-i18n" }}
+    <!-- Project Health maintenance script (TypeScript-compiled) -->
     {% vite_script 'project_app/repository/admin/index' %}
 {% endblock %}

@@ -69,7 +69,7 @@ export function initializeFilters() {
   const advancedFilters = document.getElementById("advancedFilters");
   const clearFiltersBtn = document.getElementById("clearFilters");
   const saveSearchBtn = document.getElementById("saveSearch");
-  const searchInput = document.querySelector('input[name="q"]');
+  const searchInput = document.querySelector('[name="q"]');
   // Toggle advanced filters
   if (toggleAdvancedFilters && advancedFilters) {
     toggleAdvancedFilters.addEventListener("click", function () {

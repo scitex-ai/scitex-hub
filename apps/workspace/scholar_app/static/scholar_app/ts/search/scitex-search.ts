@@ -310,7 +310,8 @@ function startUnifiedSearch(query: string): void {
  * Execute the search flow: hide empty state, show quotes, start search
  */
 function executeSearch(searchInput: HTMLInputElement): void {
-  const query = searchInput.value.trim();
+  // Lines typed with Shift+Enter are just more terms.
+  const query = searchInput.value.replace(/\s+/g, " ").trim();
   if (!query) return;
 
   console.log("[SciTeX Search] Executing search for:", query);
@@ -362,7 +363,7 @@ function initSearch(): void {
     "literatureSearchForm",
   ) as HTMLFormElement | null;
   const searchInput = document.querySelector(
-    'input[name="q"]',
+    '[name="q"]',
   ) as HTMLInputElement | null;
 
   if (!searchForm || !searchInput) {
@@ -373,6 +374,19 @@ function initSearch(): void {
   }
 
   // Input history (Up/Down, Ctrl+P/N) handled globally by shared/ts/utils/input-history.ts
+
+  // The query box is a textarea: Enter searches, Shift+Enter adds a line.
+  searchInput.addEventListener("keydown", (e: KeyboardEvent) => {
+    if (e.key !== "Enter" || e.shiftKey || e.isComposing) return;
+    e.preventDefault();
+    executeSearch(searchInput);
+  });
+  const autoGrow = () => {
+    searchInput.style.height = "auto";
+    searchInput.style.height = `${searchInput.scrollHeight + 2}px`;
+  };
+  searchInput.addEventListener("input", autoGrow);
+  if (searchInput.value) autoGrow();
 
   // Intercept form submission
   searchForm.addEventListener("submit", function (e: Event) {

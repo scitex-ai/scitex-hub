@@ -20,6 +20,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Optional
 
+from .registry_overrides import MANIFEST_OVERRIDES
+
 logger = logging.getLogger(__name__)
 
 # Tile availability states (card hub-launcher-tile-availability-states).
@@ -44,6 +46,10 @@ class ModuleConfig:
     icon_fa: str = ""  # Full FontAwesome class, e.g. "fas fa-pen"
     icon_svg_tab: str = ""  # Custom SVG for tab bar
     icon_svg_nav: str = ""  # Custom SVG for nav bar
+    # Optional small overlay glyph on the launcher tile, e.g. "fas fa-globe".
+    # My Projects and Public Projects share ONE folder icon (operator,
+    # 2026-09-14); the globe badge + tile colour is what tells them apart.
+    icon_badge: str = ""
 
     # Templates
     partial_template: str = ""  # e.g. "writer_app/writer_partial.html"
@@ -84,6 +90,8 @@ class ModuleConfig:
     # manifest declared nothing — readers fall back to the AppsModule
     # catalog row, then to "available". Never invented in a template.
     availability: str = ""
+    availability_reason: str = ""
+    builtin: bool = True
 
     # Launcher-grid visibility. Some registered modules are workspace
     # panes / nav items, not standalone launcher apps — e.g. Clew (opens
@@ -94,11 +102,16 @@ class ModuleConfig:
     # This comment used to say comms "lives in the left sidebar at /chat/".
     # It does not, and that sentence cost the site a page: comms is the
     # real-time MESSAGING app at /apps/comms/, while /chat/ is the LLM
-    # welcome pane dispatched by repo_app.views.dispatch.root_dispatch.
+    # welcome pane dispatched by my_projects_app.views.dispatch.root_dispatch.
     # They are different surfaces, and /chat/ has no registry entry at
     # all — so its absence from the launcher grid was never a decision
     # anyone made, it just followed from a mistaken identity.
     show_in_launcher: bool = True
+
+    # Release-channel visibility. "public" (default) = visible to all users.
+    # "internal" = staff/operators only (WIP apps before dogfood is stable).
+    # The manifest is the SSoT; the AppsModule DB row can override per-deployment.
+    visibility: str = "public"
 
     # Runtime state (set by context processor, not persisted)
     is_active: bool = False
@@ -167,39 +180,8 @@ def _import_builder(dotted_path: str) -> Optional[Callable]:
         return None
 
 
-# ---------------------------------------------------------------------------
-# Clew SVG icons (custom — not in JSON, defined here)
-# ---------------------------------------------------------------------------
-_CLEW_SVG_NAV = (
-    '<svg class="nav-icon-svg" viewBox="0 0 100 100" fill="none" '
-    'xmlns="http://www.w3.org/2000/svg" width="20" height="20">'
-    '<circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="5"/>'
-    '<line x1="10" y1="50" x2="90" y2="50" stroke="currentColor" stroke-width="4.5"/>'
-    '<line x1="13" y1="35" x2="87" y2="35" stroke="currentColor" stroke-width="4"/>'
-    '<line x1="13" y1="65" x2="87" y2="65" stroke="currentColor" stroke-width="4"/>'
-    '<path d="M30 12 Q70 30 70 50 Q70 70 30 88" stroke="currentColor" stroke-width="4" fill="none"/>'
-    '<path d="M70 12 Q30 30 30 50 Q30 70 70 88" stroke="currentColor" stroke-width="4" fill="none"/>'
-    '<line x1="85" y1="82" x2="95" y2="95" stroke="currentColor" stroke-width="4.5" stroke-linecap="round"/>'
-    "</svg>"
-)
-
-_CLEW_SVG_TAB = (
-    '<svg class="tab-icon-svg" viewBox="0 0 100 100" fill="none" '
-    'xmlns="http://www.w3.org/2000/svg" width="16" height="16" style="flex-shrink:0">'
-    '<circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="5"/>'
-    '<line x1="10" y1="50" x2="90" y2="50" stroke="currentColor" stroke-width="4.5"/>'
-    '<line x1="13" y1="35" x2="87" y2="35" stroke="currentColor" stroke-width="4"/>'
-    '<line x1="13" y1="65" x2="87" y2="65" stroke="currentColor" stroke-width="4"/>'
-    '<path d="M30 12 Q70 30 70 50 Q70 70 30 88" stroke="currentColor" stroke-width="4" fill="none"/>'
-    '<path d="M70 12 Q30 30 30 50 Q30 70 70 88" stroke="currentColor" stroke-width="4" fill="none"/>'
-    '<line x1="85" y1="82" x2="95" y2="95" stroke="currentColor" stroke-width="4.5" stroke-linecap="round"/>'
-    "</svg>"
-)
-
 # Per-module overrides that cannot be expressed in JSON (e.g. SVG icons)
-_MANIFEST_OVERRIDES: dict[str, dict] = {
-    "clew": {"icon_svg_tab": _CLEW_SVG_TAB, "icon_svg_nav": _CLEW_SVG_NAV},
-}
+_MANIFEST_OVERRIDES = MANIFEST_OVERRIDES
 
 
 # ---------------------------------------------------------------------------
@@ -209,7 +191,7 @@ _APPS_ROOT = Path(__file__).resolve().parent.parent.parent  # project root / app
 
 # (manifest_path_relative_to_apps_root, )
 _BUILTIN_MANIFEST_PATHS: list[str] = [
-    "workspace/repo_app/manifest.json",
+    "workspace/my_projects_app/manifest.json",
     "workspace/writer_app/manifest.json",
     "workspace/scholar_app/manifest.json",
     "workspace/figrecipe_app/manifest.json",
@@ -221,12 +203,19 @@ _BUILTIN_MANIFEST_PATHS: list[str] = [
     # (fa-wrench, full tool set, same /apps/tools/ URL); public_app is the
     # public/landing-page infra app and must not double-register as a
     # duplicate workspace module — that broke get_all_modules() uniqueness.
-    "workspace/discovery_app/manifest.json",
+    "workspace/public_projects_app/manifest.json",
     "workspace/docs_app/manifest.json",
     "workspace/apps_app/manifest.json",
     "workspace/console_app/manifest.json",
     "workspace/tools_app/manifest.json",
+    # One launcher tile per Tools category, all served by tools_app.
+    "workspace/tools_app/manifests/image.json",
+    "workspace/tools_app/manifests/pdf.json",
+    "workspace/tools_app/manifests/text.json",
+    "workspace/tools_app/manifests/developer.json",
+    "workspace/tools_app/manifests/media.json",
     "workspace/comms_app/manifest.json",
+    "workspace/files_app/manifest.json",
 ]
 
 # Upstream plugin-app tiles (the package ships its own Django app; hub mounts
@@ -248,11 +237,24 @@ _BUILTIN_MANIFEST_PATHS: list[str] = [
 for _pkg_names, _tile_manifest in (
     (("scitex_cards", "scitex_todo"), "workspace/todo_app/manifest.json"),
     (("scitex_storage",), "workspace/storage_app/manifest.json"),
+    (
+        ("scitex_agent_container._django",),
+        "workspace/agents_app/manifest.json",
+    ),
 ):
     try:
         from importlib.util import find_spec as _find_spec
 
-        if any(_find_spec(_name) is not None for _name in _pkg_names):
+        # A submodule probe raises ModuleNotFoundError when its parent package
+        # is absent. Absence is the expected state for optional apps, not an
+        # exceptional registry failure worth a traceback on every boot.
+        def _available(_name: str) -> bool:
+            try:
+                return _find_spec(_name) is not None
+            except ModuleNotFoundError:
+                return False
+
+        if any(_available(_name) for _name in _pkg_names):
             _BUILTIN_MANIFEST_PATHS.append(_tile_manifest)
     except Exception:
         logger.exception("[registry] %s tile probe failed", _pkg_names[0])
@@ -329,6 +331,7 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
         label=data["label"],
         app_name=data["app_name"],
         icon_fa=data.get("icon", ""),
+        icon_badge=data.get("icon_badge", ""),
         icon_svg_tab=overrides.get("icon_svg_tab", ""),
         icon_svg_nav=overrides.get("icon_svg_nav", ""),
         partial_template=data.get("partial_template", ""),
@@ -339,8 +342,11 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
         order=data.get("order", 50),
         category=data.get("category", ""),
         availability=_resolve_availability(data),
+        availability_reason=str(data.get("availability_reason", "")),
+        builtin=bool(data.get("builtin", True)),
         default_enabled=data.get("default_enabled", True),
         show_in_launcher=data.get("show_in_launcher", True),
+        visibility=data.get("visibility", "public"),
         ai_hint=data.get("ai_hint", ""),
         accent_color=data.get("accent_color", ""),
         docs_slug=data.get("docs_slug", ""),
@@ -424,7 +430,7 @@ def is_workspace_path(path: str) -> bool:
 def extract_module_from_path(path: str) -> Optional[str]:
     """Extract module name from URL path. Returns None if not a module path."""
     if path == "/":
-        return "home"
+        return "my_projects"
     for mod in sorted(_registry, key=lambda m: len(m.get_url()), reverse=True):
         if path.startswith(mod.get_url()):
             return mod.name
@@ -491,7 +497,7 @@ def discover_external_modules() -> None:
 # ---------------------------------------------------------------------------
 # ModuleTestMixin — re-exported for backwards compatibility
 # ---------------------------------------------------------------------------
-from apps.infra.workspace_app.test_mixin import ModuleTestMixin  # noqa: F401
+from apps.infra.workspace_app.test_mixin import ModuleTestMixin  # noqa: E402,F401
 
 # Run external module discovery at import time
 discover_external_modules()

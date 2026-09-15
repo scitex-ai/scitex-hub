@@ -33,8 +33,59 @@
   flex-shrink: 0;
 }
 
+/* Navy #1a2a40 circle lifts to ~#243752 on the dark header; white S stays white. */
+[data-theme="dark"] .header-logo-icon,
+[data-theme="dark"] .sidebar-logo-icon,
+[data-theme="dark"] .stx-leaf-site-header-logo img {
+  filter: brightness(1.37);
+}
+
 /* Ensure logo link has proper spacing */
 .header-left .header-logo {
   margin-right: var(--spacing-md, 12px);
 }
 
+/* Keep the 36px mark visually unchanged while providing a comfortable 48px
+   desktop pointer target. Negative outer margin preserves header alignment. */
+@media (min-width: 769px) {
+  .header-left .header-logo {
+    padding: 6px;
+    margin: -6px calc(var(--spacing-md, 12px) - 6px) -6px -6px;
+  }
+}
+
+.header-build-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.header-local-clock {
+  font-variant-numeric: tabular-nums;
+}
+
+.header-local-clock::before {
+  content: "·";
+  margin-right: 0.45rem;
+}
+
+@media (max-width: 768px) {
+  .header-build-meta {
+    display: inline-flex;
+    gap: 0.25rem;
+    font-size: 0.55rem;
+    line-height: 1;
+  }
+
+  .header-hub-product {
+    display: none;
+  }
+
+  .header-local-clock::before {
+    margin-right: 0.25rem;
+  }
+}

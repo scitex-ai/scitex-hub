@@ -35,4 +35,7 @@ concurrency:
 jobs:
   import-smoke:
     uses: scitex-ai/.github/.github/workflows/import-smoke.yml@main
+    # The callee routes fork PRs to ubuntu-latest itself and guards checkout.
+    with:
+      runs_on: '["self-hosted","Linux","X64","scitex-local-cpu"]'
     secrets: inherit

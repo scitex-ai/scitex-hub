@@ -7,6 +7,7 @@ from pathlib import Path
 from django.conf import settings
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import render
+from django.utils.translation import gettext_lazy as _
 
 from ._context_builders import build_page_context
 from ._sphinx import (  # noqa: F401 — sphinx_raw used by urls.py
@@ -21,6 +22,57 @@ from ._sphinx import (  # noqa: F401 — sphinx_raw used by urls.py
 # ---------------------------------------------------------------------------
 DOCS_PAGES = [
     # ── Getting Started ─────────────────────────────────────────────
+    # First entry is the landing page a first-time visitor sees.
+    {
+        "slug": "overview",
+        "label": _("Overview"),
+        "icon": "fas fa-compass",
+        "template": "docs_app/docs_overview.html",
+        "badges": ["user"],
+    },
+    # ── How-to guides ───────────────────────────────────────────────
+    {
+        "slug": "howto-projects",
+        "label": _("How to: Projects"),
+        "icon": "fas fa-folder",
+        "template": "docs_app/howto/howto_projects.html",
+        "badges": ["user"],
+    },
+    {
+        "slug": "howto-scholar",
+        "label": _("How to: Scholar"),
+        "icon": "fas fa-graduation-cap",
+        "template": "docs_app/howto/howto_scholar.html",
+        "badges": ["user"],
+    },
+    {
+        "slug": "howto-writer",
+        "label": _("How to: Writer"),
+        "icon": "fas fa-pen",
+        "template": "docs_app/howto/howto_writer.html",
+        "badges": ["user"],
+    },
+    {
+        "slug": "howto-figrecipe",
+        "label": _("How to: FigRecipe"),
+        "icon": "fas fa-palette",
+        "template": "docs_app/howto/howto_figrecipe.html",
+        "badges": ["user"],
+    },
+    {
+        "slug": "howto-chat",
+        "label": _("How to: Chat"),
+        "icon": "fas fa-comments",
+        "template": "docs_app/howto/howto_chat.html",
+        "badges": ["user"],
+    },
+    {
+        "slug": "howto-cards-agents",
+        "label": _("What are Cards and Agents?"),
+        "icon": "fas fa-robot",
+        "template": "docs_app/howto/howto_cards_agents.html",
+        "badges": ["user"],
+    },
     {
         "slug": "mcp-tools-local",
         "label": "MCP Tools (Local)",
@@ -197,6 +249,8 @@ DOCS_PAGES = [
 
 _PAGES_BY_SLUG = {p["slug"]: p for p in DOCS_PAGES}
 
+DEFAULT_DOC_SLUG = "overview"
+
 try:
     register_sphinx_packages(DOCS_PAGES, _PAGES_BY_SLUG)
 except Exception:
@@ -240,7 +294,7 @@ def build_docs_context(request, current_project=None):
     return {
         "current_project": current_project,
         "docs_pages": DOCS_PAGES,
-        "active_doc": DOCS_PAGES[0]["slug"] if DOCS_PAGES else "",
+        "active_doc": DEFAULT_DOC_SLUG,
     }
 
 

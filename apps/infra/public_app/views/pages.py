@@ -18,8 +18,13 @@ from pathlib import Path
 
 from django.http import Http404
 from django.shortcuts import render
+from django.utils.translation import gettext as _
 
-from .pages_data import KEYBOARD_SHORTCUTS_DATA, OG_BASE_URL, VIDEO_CATALOG
+from .pages_data import (
+    OG_BASE_URL,
+    VIDEO_CATALOG,
+    translated_shortcuts_data,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -158,9 +163,9 @@ def services(request):
             "budget": (request.POST.get("budget") or "").strip(),
         }
         if not form["name"]:
-            errors["name"] = "お名前をご記入ください。"
+            errors["name"] = _("Please enter your name.")
         if not form["request"]:
-            errors["request"] = "ご相談内容をご記入ください。"
+            errors["request"] = _("Please enter what you would like to discuss.")
         if not errors:
             from ..models import ServiceInquiry
 
@@ -174,9 +179,8 @@ def services(request):
             submitted = True
             form = {"name": "", "affiliation": "", "request": "", "budget": ""}
 
-    from ..pricing import load_pricing, plan_rows, pricing_rows
-
-    _plans = plan_rows()
+    from ..pricing import load_pricing, published_price_rows
+    from ..pricing_pages import pricing_page_context
 
     return render(
         request,
@@ -185,20 +189,16 @@ def services(request):
             "submitted": submitted,
             "errors": errors,
             "form": form,
-            # Prices come from data/pricing.json — the single source of truth.
-            # They were hand-written in the template until 2026-08-02, which is
-            # how /services/ and /landing/ drifted 2.7x apart on the same
-            # service. Do not put a literal amount back into the template;
+            # Prices come from data/pricing.json — the single source of truth
+            # (SSOT Provisional v1.0, USD). /pricing/ calls the same
+            # pricing_page_context(), so the two pages cannot drift apart. Do
+            # not put a literal amount back into the template;
             # tests/apps/public_app/test_pricing_ssot.py fails if you do.
-            "pricing_rows": pricing_rows(),
-            "pricing_plans": _plans,
-            # Keyed by id as well as ordered: the mobile plan cards are three
-            # separate <article> blocks, and addressing them positionally
-            # (plans.0/.1/.2) would silently show the wrong plan's price if the
-            # JSON order ever changed — a swap the SSoT guard cannot detect,
-            # because every amount would still come from pricing.json.
-            "pricing_plan_by_id": {p["id"]: p for p in _plans},
-            "pricing_notes": load_pricing()["notes"],
+            "published_price_rows": published_price_rows(),
+            **pricing_page_context(),
+            # Budget choices are stored verbatim on ServiceInquiry, so they
+            # live in the SSOT too (USD, anchored on the service floors).
+            "budget_options": load_pricing()["inquiry_budget_options"],
         },
     )
 
@@ -231,6 +231,13 @@ def video_player(request, video_id):
             "video_title": video["title"],
             "video_url": video["url"],
             "video_description": video["description"],
+            "video_captions_url": video.get("captions", ""),
+            "video_ja_captions_url": video.get("ja_captions", ""),
+            "video_ja_url": video.get("ja_url", ""),
+            "video_mobile_url": video.get("mobile_url", ""),
+            "video_ja_mobile_url": video.get("ja_mobile_url", ""),
+            "video_narrated": video.get("narrated", False),
+            "video_playback_rate": video.get("playback_rate", 4),
             "video_id": video_id,
             "og_url": page_url,
             "og_image": og_image,
@@ -283,26 +290,29 @@ def fundraising(request):
 
 
 def pricing(request):
-    """SciTeX pricing page - subscription plans and feature comparison.
+    """SciTeX pricing page - renders the SSOT, never its own copy.
 
-    The rendered public state stays the truthful alpha-free framing.
-    Underneath, the page is Stripe-ready: paid plans come from
-    ``SCITEX_HUB_BILLING_PLANS`` (settings_commerce; prices are
-    tax-inclusive 税込 per 総額表示義務) and are shown to staff only
-    while billing is in testing (operator directive 2026-07-08).
+    The plan names, prices, and tier descriptions all come from
+    ``data/pricing.json`` via ``pricing.tier_rows()`` and
+    ``pricing.published_price_groups()`` -- the same helpers /services/ and
+    /tokushoho/ use. Before this fix (2026-09-10 compass L539/L550/L652),
+    the template hard-coded five plans (Visitor/Registered/Pro/Team/Lab/
+    Enterprise) that ``pricing.json`` had already retired on 2026-08-28/09-02;
+    the page and the SSoT therefore disagreed, and the SSoT guard
+    (test_pricing_ssot.py) could not see it because it only scans for price
+    LITERALS, not for stale plan names. A literal amount in this template is
+    a regression the guard fails on; a plan name that the SSoT does not carry
+    is the defect this rewrite removes.
+
+    The rendered public state stays the truthful announced-but-not-billing
+    framing: ``pricing.json`` ``_subscription_status.state`` keeps this page,
+    ``BILLING_PLANS`` (empty) and the 特商法 disclosure saying the SAME thing.
     """
     from django.conf import settings
 
-    from ..pricing import format_amount, load_pricing
+    from ..pricing import load_pricing
+    from ..pricing_pages import pricing_page_context
 
-    # The page showed twelve USD amounts while /services/ showed JPY -- two
-    # LIVE public pages quoting different currencies for the same product,
-    # measured on prod 2026-08-03 (/pricing/ 18 "$" and 0 "円"; /services/ 0
-    # "$" and 16 "円"). Operator directive, repeated: prices are JPY, from one
-    # source of truth. So the "free" label is rendered by the same function
-    # that renders every other price rather than typed into the template --
-    # format_amount() is the one place deciding that a zero amount reads as
-    # 無料 rather than as a zero with a currency symbol.
     pricing_data = load_pricing()
 
     return render(
@@ -311,25 +321,28 @@ def pricing(request):
         {
             "billing_plans": settings.BILLING_PLANS,
             "stripe_configured": bool(settings.STRIPE_SECRET_KEY),
-            "free_price": format_amount(0),
             # Not cosmetic: pricing.json's _subscription_status is the key that
             # keeps this page, BILLING_PLANS (empty) and the 特商法 disclosure
-            # (「有料プランは現在準備中です」) saying the SAME thing. A site that
-            # both denies and advertises paid plans is the defect being fixed.
+            # saying the SAME thing.
             "subscription_state": pricing_data["_subscription_status"]["state"],
+            # Plans, included resources, rate card and policies from the SSOT —
+            # the same builder /services/ uses. Never an amount typed here.
+            **pricing_page_context(),
         },
     )
 
 
 def keyboard_shortcuts(request):
     """Keyboard shortcuts reference page with tabs by context and search."""
+    # Per-request, active-language data (EN msgids translated; keys/icons untouched).
+    contexts = translated_shortcuts_data()
     # Calculate total shortcuts
     total_shortcuts = sum(
-        len(s["shortcuts"]) for ctx in KEYBOARD_SHORTCUTS_DATA for s in ctx["sections"]
+        len(s["shortcuts"]) for ctx in contexts for s in ctx["sections"]
     )
 
     context = {
-        "contexts": KEYBOARD_SHORTCUTS_DATA,
+        "contexts": contexts,
         "total_shortcuts": total_shortcuts,
     }
 

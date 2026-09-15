@@ -133,7 +133,7 @@ export function initSearchControls(): void {
 // Keyboard shortcut: Ctrl+K to toggle search input focus, Esc to blur, Enter to search
 function initKeyboardShortcuts(): void {
   const searchInput = document.querySelector<HTMLInputElement>(
-    'input[name="q"], .search-input',
+    '[name="q"], .search-input',
   );
   const searchForm = document.getElementById(
     "literatureSearchForm",

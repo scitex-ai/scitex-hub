@@ -1,0 +1,46 @@
+{% load static i18n %}
+{% comment %}
+Public half of /server-status/ for anyone who is not an instance admin
+(site audit 2026-09-14). Overall state + per-service state + 90-day uptime,
+from the same cached data as /status/ and /api/public-status/. No host
+metrics, no chart containers, no chart script: nothing here calls an
+admin-only endpoint. local-time.js only rewrites "last checked" into the
+viewer's own time zone.
+{% endcomment %}
+<div class="public-services" id="publicServices">
+    <div class="public-services__banner public-services__banner--{{ status.overall }}">
+        {% include "public_app/server_status_partials/overall_label.html" with overall=status.overall %}
+    </div>
+    <p class="public-services__note">{% trans "Uptime over the past 90 days." %}</p>
+    <ul class="public-services__list">
+        {% for svc in status.services %}
+            <li class="public-services__row">
+                <div class="public-services__head">
+                    <span class="public-services__name">{% trans svc.name %}</span>
+                    <span class="public-services__state public-services__state--{{ svc.status }}">
+                        {% if svc.status == "operational" %}
+                            {% trans "Operational" %}
+                        {% elif svc.status == "degraded" %}
+                            {% trans "Degraded" %}
+                        {% else %}
+                            {% trans "Down" %}
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="public-services__bar" aria-hidden="true">
+                    {% for day in svc.uptime_days %}<span class="public-services__day public-services__day--{{ day }}"></span>{% endfor %}
+                </div>
+                <div class="public-services__labels">
+                    <span>{% trans "90 days ago" %}</span>
+                    <span>{% blocktrans with pct=svc.uptime_pct %}{{ pct }}% uptime{% endblocktrans %}</span>
+                    <span>{% trans "Today" %}</span>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+    <p class="public-services__note">
+        {% trans "Last checked:" %}
+        {% include "public_app/server_status_partials/checked_at.html" %}
+    </p>
+</div>
+<script src="{% static 'public_app/js/local-time.js' %}" defer></script>

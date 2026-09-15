@@ -1,0 +1,75 @@
+/**
+ * @component Leaf Host Chrome
+ * @description Site header, themed page ground and dock clearance for leaf apps
+ *   rendered in scitex-ui's standalone shell (injected by SiteContentFrameMiddleware).
+ * @category Layouts
+ * @file /static/shared/css/layouts/leaf-host-chrome.css
+ * @darkmode true
+ */
+
+html,
+body,
+body.workspace-page {
+  background: var(--bg-page, #0d1117);
+}
+
+.stx-leaf-site-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-sizing: border-box;
+  height: calc(64px + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
+  border-bottom: 1px solid var(--border-muted, rgba(127, 127, 127, 0.25));
+  background: var(--bg-page, #0d1117);
+}
+
+.stx-leaf-site-header-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  height: 64px;
+  padding-inline: 16px;
+}
+
+.stx-leaf-site-header-logo {
+  display: inline-flex;
+  flex: none;
+}
+
+.stx-leaf-site-header-logo img {
+  width: 36px;
+  height: 36px;
+}
+
+/* Same dark-mode lift as the hub header logo (03-logo.css). */
+[data-theme="dark"] .stx-leaf-site-header-logo img {
+  filter: brightness(1.37);
+}
+
+.stx-leaf-site-header-title {
+  overflow: hidden;
+  color: var(--text-primary, inherit);
+  font-size: 16px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The page scrolls past the fixed dock instead of ending under it. */
+body:has(> .stx-leaf-site-header) {
+  padding-bottom: var(--site-dock-clearance, 0px);
+}
+
+@media (min-width: 1024px) {
+  body > .stx-leaf-site-header .stx-leaf-site-header-inner {
+    width: var(--site-content-max-width, 90vw);
+    margin-inline: auto;
+  }
+
+  body:has(> .stx-leaf-site-header) > .workspace-three-col {
+    height: calc(100vh - 65px - var(--site-dock-clearance, 0px));
+    max-height: calc(100vh - 65px - var(--site-dock-clearance, 0px));
+  }
+}

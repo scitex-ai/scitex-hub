@@ -10,6 +10,7 @@
   "license": "AGPL-3.0",
   "keyboard_shortcut": "C",
   "availability": "desktop_only",
+  "show_in_launcher": false,
   "order": 40,
   "accent_color": "console",
   "body_class": "console-page",

@@ -1,9 +1,113 @@
-/* ---------- App grid ---------- */
+/* ---------- App grid ----------
+   --launcher-cols is the ONE column count: the flat (no-JS) grid and every
+   page of the pager use it, and launcher/pager.ts reads it back to size pages,
+   so the page maths cannot drift from what CSS lays out.
+
+   4 at EVERY width (operator, 2026-09-14): the launcher order is designed in
+   rows of 4, one group per row (views/launcher_order.py LAUNCHER_GROUPS), and
+   empty .launcher-slot cells finish a short group's row. 6 columns made the
+   groups interleave. On a desktop the grid is centred at a max-width with
+   larger icons instead (below). */
 .launcher-grid {
+  --launcher-cols: 4;
+  --launcher-panel-radius: 24px;
+  --launcher-tile-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/* ---------- Group bands (operator, 2026-09-14) ----------
+   Foundation / Work / System, each its own 4-column grid on a soft tinted
+   rounded band, like iOS widget stacks. App icon colours are unchanged; the
+   tint is low-alpha so tile names keep their contrast. Three distinct hues,
+   with a light and a dark variant. */
+.launcher-group {
+  --launcher-band: transparent;
+  /* Headroom for the group's name (below), added to the TOP padding at every
+     breakpoint. pager.ts reads the band's padding back, so pages still stop
+     above the dock. */
+  --launcher-group-label-room: 16px;
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 26px 14px;
-  margin-bottom: 40px;
+  grid-template-columns: repeat(var(--launcher-cols, 4), minmax(0, 1fr));
+  grid-auto-rows: min-content;
+  align-content: start;
+  gap: 22px 8px;
+  padding: calc(12px + var(--launcher-group-label-room)) 8px 12px;
+  border-radius: var(--launcher-panel-radius);
+  background: var(--launcher-band);
+}
+
+/* The group's name, top-left, in the band's padding (operator 2026-09-14: the
+   tints mean nothing to a first-time user). It is the band's own translated
+   aria-label, so the name read out and the name shown can never differ, and
+   pager.ts copies that label onto every band it builds.
+   position:absolute is load-bearing: a pseudo-element of a GRID container is
+   otherwise a grid item and would take the first cell, shifting every tile.
+   The '/ ""' alt text keeps screen readers from announcing the name twice
+   (the group role already announces it); the first declaration is the
+   fallback for engines without alt-text support. */
+.launcher-group[aria-label]::before {
+  content: attr(aria-label);
+  content: attr(aria-label) / "";
+  position: absolute;
+  top: 8px;
+  left: 14px;
+  right: 14px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--workspace-text-muted, var(--text-muted, #8b93a1));
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+/* Group bands alternate brand washes: navy, gold, slate. */
+.launcher-group[data-group="foundation"] {
+  --launcher-band: rgba(26, 42, 64, 0.06); /* navy */
+}
+
+.launcher-group[data-group="work"] {
+  --launcher-band: rgba(184, 149, 106, 0.1); /* gold */
+}
+
+.launcher-group[data-group="publication"] {
+  --launcher-band: rgba(86, 96, 109, 0.08); /* slate */
+}
+
+.launcher-group[data-group="system"] {
+  --launcher-band: rgba(26, 42, 64, 0.06); /* navy */
+}
+
+.launcher-group[data-group="tools"] {
+  --launcher-band: rgba(86, 96, 109, 0.08); /* slate */
+}
+
+[data-theme="dark"] .launcher-group[data-group="foundation"] {
+  --launcher-band: rgba(152, 172, 198, 0.08);
+}
+
+[data-theme="dark"] .launcher-group[data-group="work"] {
+  --launcher-band: rgba(212, 168, 122, 0.08);
+}
+
+[data-theme="dark"] .launcher-group[data-group="publication"] {
+  --launcher-band: rgba(170, 179, 191, 0.07);
+}
+
+[data-theme="dark"] .launcher-group[data-group="system"] {
+  --launcher-band: rgba(152, 172, 198, 0.08);
+}
+
+[data-theme="dark"] .launcher-group[data-group="tools"] {
+  --launcher-band: rgba(170, 179, 191, 0.07);
 }
 
 .launcher-tile {
@@ -15,7 +119,7 @@
   text-decoration: none;
   cursor: pointer;
   padding: 10px 4px 8px;
-  border-radius: 14px;
+  border-radius: var(--launcher-tile-radius);
   /* Tiles are <a> elements. Without this the browser's native link-drag
      hijacks a press-and-move and swallows pointermove, so drag-to-reorder
      silently does nothing. Belt-and-braces with preventDefault on dragstart
@@ -30,21 +134,6 @@
   text-decoration: none;
 }
 
-.launcher-tile-icon {
-  width: 64px;
-  height: 64px;
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  box-shadow:
-    0 6px 18px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  /* Springy pop — the overshoot on settle gives icons an iOS "bounce". */
-  transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
 .launcher-tile:hover .launcher-tile-icon {
   transform: translateY(-3px) scale(1.05);
 }
@@ -54,11 +143,6 @@
 .launcher-tile:active .launcher-tile-icon {
   transform: scale(0.9);
   transition: transform 0.09s ease-out;
-}
-
-.launcher-tile-icon i {
-  font-size: 26px;
-  color: #fff;
 }
 
 .launcher-tile-name {
@@ -72,6 +156,13 @@
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+}
+
+/* Japanese names break only between words (the <wbr> hints from the
+   phrase_breaks filter), never inside a katakana run: "マイプロジェク/ト". */
+.launcher-tile-name:lang(ja) {
+  word-break: keep-all;
+  overflow-wrap: normal;
 }
 
 .launcher-tile:hover .launcher-tile-name {
@@ -96,23 +187,89 @@
   opacity: 0.85;
 }
 
-/* ---------- Badges + installed dot ---------- */
-.launcher-badge {
+/* ---------- Badges + installed dot ----------
+   ONE badge slot, INSIDE the icon box: small round glyphs stacked down its
+   top-right corner (partials/launcher_tile_badges.html). The slot is
+   absolutely positioned against .launcher-tile-icon with NON-negative
+   offsets, so it can never leave the icon, let alone the tile. The old text
+   pills were pushed out with translateX(46px) and, at 390px, clipped the icon
+   and ran into the neighbouring tile (operator screenshot 2026-09-14). */
+
+/* Sizes are PERCENTAGES of the icon box, so they stay small corner marks at
+   every icon size: a status badge is 28% of the icon, the Public Projects
+   globe 36%. Several badges line up along the top edge (row-reverse from the
+   right), never down across the main glyph. */
+.launcher-tile-badges {
   position: absolute;
-  top: 4px;
-  right: 50%;
-  transform: translateX(46px);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  padding: 2px 6px;
-  border-radius: 999px;
+  top: 2px;
+  right: 2px;
+  display: flex;
+  flex-direction: row-reverse;
+  gap: 2px;
   z-index: 2;
+  pointer-events: auto;
+  width: auto;
+  max-width: 60%;
+}
+
+.launcher-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  border-radius: 50%;
+  line-height: 1;
+  background: rgba(10, 12, 20, 0.72);
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+/* A badge sized against the ICON (60-64px), not against the badge row. */
+.launcher-tile-icon .launcher-badge {
+  width: calc(var(--launcher-icon-size, 64px) * 0.28);
+  height: calc(var(--launcher-icon-size, 64px) * 0.28);
+}
+
+.launcher-tile-icon .launcher-badge i {
+  font-size: calc(var(--launcher-icon-size, 64px) * 0.15);
+  color: inherit;
 }
 
 .launcher-badge-new {
-  background: var(--app-accent-hub, #6a5a8a);
-  color: #fff;
+  background: var(--color-primary, #1a2a40);
+}
+
+.launcher-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Secondary glyph on the icon itself (manifest "icon_badge"): the globe that
+   tells Public Projects apart from My Projects, which share one folder icon.
+   Bottom-right, so it never collides with the status badges up top. */
+.launcher-tile-icon-badge {
+  position: absolute;
+  right: 5%;
+  bottom: 5%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: calc(var(--launcher-icon-size, 64px) * 0.36);
+  height: calc(var(--launcher-icon-size, 64px) * 0.36);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.launcher-tile-icon .launcher-tile-icon-badge i {
+  font-size: calc(var(--launcher-icon-size, 64px) * 0.22);
+  color: #2f9e5f;
 }
 
 /* ---------- Availability (registry/catalog field, honest can/cannot
@@ -122,10 +279,7 @@
    the press-in tap effect (an explicit operator allowance) but carries
    no href, so nothing navigates. */
 .launcher-badge-coming-soon {
-  background: var(--workspace-bg-elevated, var(--workspace-bg-tertiary));
-  color: var(--workspace-text-secondary);
-  border: 1px solid var(--workspace-border-default);
-  white-space: nowrap;
+  background: rgba(10, 12, 20, 0.8);
 }
 
 .launcher-tile[data-availability="coming_soon"] {
@@ -150,14 +304,11 @@
   transform: none;
 }
 
-/* Desktop-only: fully usable here, so the desktop grid shows nothing.
-   The badge + dimming appear under the mobile breakpoint (mobile.css). */
-.launcher-badge-desktop-only {
-  display: none;
-  background: var(--workspace-bg-elevated, var(--workspace-bg-tertiary));
-  color: var(--workspace-text-secondary);
-  border: 1px solid var(--workspace-border-default);
-  white-space: nowrap;
+/* Desktop-only = "mobile layout coming soon" (operator 2026-09-14: not yet,
+   not never). Same glyph at every width, and the tile is NOT dimmed or
+   blocked anywhere: it opens on a phone too. */
+.launcher-badge-dev-only {
+  background: #b7791f;
 }
 
 .launcher-dot-installed {
@@ -173,40 +324,10 @@
   z-index: 2;
 }
 
-/* ---------- Icon gradients (palette keyed by category) ----------
-   Follow-up: replace with manifest-driven per-app branding. */
-.launcher-tile-icon[data-tile-category="writing"] {
-  background: linear-gradient(135deg, #4c8dff, #2f5fd0);
-}
-
-.launcher-tile-icon[data-tile-category="reference"] {
-  background: linear-gradient(135deg, #9d7bff, #6b46c1);
-}
-
-.launcher-tile-icon[data-tile-category="visualization"] {
-  background: linear-gradient(135deg, #ff8a5c, #d95f2b);
-}
-
-.launcher-tile-icon[data-tile-category="data"] {
-  background: linear-gradient(135deg, #39c6c0, #1f8a8a);
-}
-
-.launcher-tile-icon[data-tile-category="analysis"] {
-  background: linear-gradient(135deg, #ffb454, #e08c1a);
-}
-
-.launcher-tile-icon[data-tile-category="utility"] {
-  background: linear-gradient(135deg, #8b98a9, #5b6572);
-}
-
-.launcher-tile-icon[data-tile-category="social"] {
-  background: linear-gradient(135deg, #63d489, #2f9e5f);
-}
-
-.launcher-tile-icon[data-tile-category="other"],
-.launcher-tile-icon:not([data-tile-category]) {
-  background: linear-gradient(135deg, #e4b34a, #b8862b);
-}
+/* ---------- Icon box + gradients ----------
+   The coloured rounded-square icon (size, shape, glyph colour and the
+   per-category gradients) lives in shared/css/components/app-icon.css, so
+   the site dock on EVERY page draws the very same icon as the Home tile. */
 
 /* ---------- Context popover (flip/shift-aware, built by TS) ---------- */
 .launcher-popover {
@@ -249,8 +370,8 @@
 }
 
 .launcher-pop-item.primary {
-  background: var(--app-accent-hub, #6a5a8a);
-  color: #fff;
+  background: var(--color-primary, #1a2a40);
+  color: var(--color-on-primary, #fff);
   font-weight: 600;
 }
 
@@ -266,97 +387,74 @@
 }
 
 .launcher-tile.popover-anchor .launcher-tile-icon {
-  outline: 2px solid var(--app-accent-hub, #6a5a8a);
+  outline: 2px solid var(--stx-accent, #b8956a);
   outline-offset: 3px;
 }
 
-/* ---------- Edit / rearrange mode (iPhone-home jiggle + drag) ----------
-   Long-press (touch) or the right-click "Rearrange" action toggles
-   .edit-mode on the grid: every tile wiggles and can be dragged to a new
-   slot. Order persists via POST api/reorder/ on exit (see launcher.ts). */
-@keyframes launcher-jiggle {
-  0% {
-    transform: rotate(-1.15deg);
+/* ---------- App Creator: the empty "+" slot (operator, 2026-09-14) ----------
+   Not an app: a dashed, unfilled rounded square the size of an app icon, always
+   the last cell of Work (partials/launcher_add_slot.html). Two classes so it
+   beats mobile.css's .launcher-slot { pointer-events: none }. */
+.launcher-slot.launcher-slot--add {
+  --launcher-icon-size: 64px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 10px 4px 8px;
+  border-radius: 14px;
+  pointer-events: auto;
+  text-decoration: none;
+  color: var(--workspace-text-secondary, #6b7280);
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+.launcher-slot-add-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: var(--launcher-icon-size);
+  height: var(--launcher-icon-size);
+  border: 2px dashed currentColor;
+  border-radius: 16px;
+  background: transparent;
+  opacity: 0.45;
+  transition:
+    opacity 0.15s ease,
+    transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.launcher-slot-add-box i {
+  font-size: 22px;
+  color: currentColor;
+}
+
+.launcher-slot--add:hover .launcher-slot-add-box,
+.launcher-slot--add:focus-visible .launcher-slot-add-box {
+  opacity: 0.8;
+}
+
+.launcher-slot--add:active .launcher-slot-add-box {
+  transform: scale(0.9);
+}
+
+.launcher-slot--add:focus-visible {
+  outline: 2px solid var(--stx-accent, #b8956a);
+  outline-offset: 2px;
+}
+
+@media (min-width: 768px) {
+  .launcher-slot.launcher-slot--add {
+    --launcher-icon-size: 68px;
+    padding: 6px 4px 4px;
   }
-  50% {
-    transform: rotate(1.15deg);
-  }
-  100% {
-    transform: rotate(-1.15deg);
-  }
 }
 
-.launcher-grid.edit-mode .launcher-tile {
-  animation: launcher-jiggle 0.24s ease-in-out infinite;
-  cursor: grab;
-  /* A press that starts on a tile drags it — never scrolls the page. */
-  touch-action: none;
-}
-
-/* Stagger the phase so tiles don't wiggle in lockstep (more organic). */
-.launcher-grid.edit-mode .launcher-tile:nth-child(2n) {
-  animation-duration: 0.26s;
-  animation-delay: -0.13s;
-}
-
-.launcher-grid.edit-mode .launcher-tile:nth-child(3n) {
-  animation-duration: 0.22s;
-  animation-delay: -0.07s;
-}
-
-/* The hover lift fights the jiggle — suppress it while editing. */
-.launcher-grid.edit-mode .launcher-tile:hover .launcher-tile-icon {
-  transform: none;
-}
-
-/* The tile being dragged: KEEPS wiggling (iOS does — the icon under your
-   finger goes on jiggling), floats above, scales up. It inherits the
-   launcher-jiggle animation from the .edit-mode rule above; do NOT set
-   `animation: none` here (that froze the very tile you are moving). The
-   jiggle rotates the TILE while the scale/shadow below lift the ICON, so
-   the two transforms never fight. */
-.launcher-grid.edit-mode .launcher-tile.dragging {
-  z-index: 5;
-  cursor: grabbing;
-  opacity: 0.96;
-  /* Let elementFromPoint see the tile beneath the one being dragged. */
-  pointer-events: none;
-}
-
-.launcher-grid.edit-mode .launcher-tile.dragging .launcher-tile-icon {
-  transform: scale(1.14);
-  box-shadow:
-    0 18px 44px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
-}
-
-/* NOTE: the floating "Done" pill was REMOVED (operator, 2026-07-13: it read
-   as meaningless). Edit mode now exits by tapping anywhere OUTSIDE a tile,
-   or Escape — see launcher.ts. Do not reintroduce a Done button. */
-
-/* Reduced motion: drop the wobble, but NEVER leave edit mode invisible.
-   A bare `animation: none` here removed the only signal that the grid had
-   become editable — a user with "reduce motion" on (a very common setting)
-   long-pressed and saw nothing happen. Keep the affordance, lose the motion:
-   a frozen alternating tilt plus a dashed ring reads as "these are pick-up-able"
-   without anything moving. Drag-to-reorder is unaffected either way. */
-@media (prefers-reduced-motion: reduce) {
-  .launcher-grid.edit-mode .launcher-tile {
-    animation: none;
-    transform: rotate(-1.2deg);
-  }
-
-  .launcher-grid.edit-mode .launcher-tile:nth-child(2n) {
-    transform: rotate(1.2deg);
-  }
-
-  .launcher-grid.edit-mode .launcher-tile .launcher-tile-icon {
-    outline: 2px dashed var(--app-accent-hub, #6a5a8a);
-    outline-offset: 3px;
-  }
-
-  /* The lifted tile stays upright so it reads as "held". */
-  .launcher-grid.edit-mode .launcher-tile.dragging {
-    transform: none;
+@media (max-width: 640px) {
+  .launcher-slot.launcher-slot--add {
+    --launcher-icon-size: 60px;
+    padding-inline: 2px;
   }
 }

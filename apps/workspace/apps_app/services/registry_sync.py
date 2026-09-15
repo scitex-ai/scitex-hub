@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import logging
 
+from apps.security import safe_log_field
+
 logger = logging.getLogger(__name__)
 
 APPS_ORG = "scitex-apps"
@@ -47,6 +49,8 @@ def sync_app_pr_to_django(
             defaults={
                 "name": repo_slug,
                 "description": f"SciTeX app: {repo_slug}",
+                # App submissions are reviewed in the open.
+                "visibility": "public",
                 "gitea_repo_url": f"{settings.GITEA_URL}/{APPS_ORG}/{repo_slug}",
             },
         )
@@ -99,9 +103,11 @@ def ensure_registry_read_access(owner: str, repo: str) -> None:
         client.add_collaborator(
             owner=APPS_ORG, repo=repo, username=owner, permission="read"
         )
-    except Exception as e:
+    except Exception:
         logger.warning(
-            "[registry_sync] Failed to grant read access to %s: %s", owner, e
+            "[registry_sync] Failed to grant read access to %s",
+            safe_log_field(owner),
+            exc_info=True,
         )
 
 

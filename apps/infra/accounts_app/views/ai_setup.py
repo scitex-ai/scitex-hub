@@ -4,6 +4,8 @@ import logging
 import time
 
 from django.shortcuts import render
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 
 logger = logging.getLogger(__name__)
 
@@ -47,38 +49,38 @@ def _get_categories():
     """Get the AI Setup section categories."""
     categories = [
         {
-            "name": "Skills",
-            "description": "Specialized capabilities that guide AI behavior",
+            "name": _("Skills"),
+            "description": _("Specialized capabilities that guide AI behavior"),
             "icon": "fas fa-graduation-cap",
             "url": "/ai-setup/skills/",
         },
         {
-            "name": "Commands",
-            "description": "Slash commands that trigger predefined workflows",
+            "name": _("Commands"),
+            "description": _("Slash commands that trigger predefined workflows"),
             "icon": "fas fa-terminal",
             "url": "/ai-setup/commands/",
         },
         {
-            "name": "Hooks",
-            "description": "Automated actions triggered by events",
+            "name": _("Hooks"),
+            "description": _("Automated actions triggered by events"),
             "icon": "fas fa-bolt",
             "url": "/ai-setup/hooks/",
         },
         {
-            "name": "MCP Servers",
-            "description": "Model Context Protocol servers and tools",
+            "name": _("MCP Servers"),
+            "description": _("Model Context Protocol servers and tools"),
             "icon": "fas fa-plug",
             "url": "/ai-setup/mcp-servers/",
         },
         {
-            "name": "CLI Commands",
-            "description": "Command-line tools in the terminal environment",
+            "name": _("CLI Commands"),
+            "description": _("Command-line tools in the terminal environment"),
             "icon": "fas fa-code",
             "url": "/ai-setup/cli-commands/",
         },
         {
-            "name": "AI Providers",
-            "description": "API keys and model preferences for AI backends",
+            "name": _("AI Providers"),
+            "description": _("API keys and model preferences for AI backends"),
             "icon": "fas fa-brain",
             "url": "/accounts/settings/ai-providers/",
         },
@@ -88,11 +90,11 @@ def _get_categories():
 
 # Valid section names and their display info
 _SECTIONS = {
-    "skills": {"title": "Skills", "icon": "fas fa-graduation-cap"},
-    "commands": {"title": "Commands", "icon": "fas fa-terminal"},
-    "hooks": {"title": "Hooks", "icon": "fas fa-bolt"},
-    "mcp-servers": {"title": "MCP Servers", "icon": "fas fa-plug"},
-    "cli-commands": {"title": "CLI Commands", "icon": "fas fa-code"},
+    "skills": {"title": gettext_lazy("Skills"), "icon": "fas fa-graduation-cap"},
+    "commands": {"title": gettext_lazy("Commands"), "icon": "fas fa-terminal"},
+    "hooks": {"title": gettext_lazy("Hooks"), "icon": "fas fa-bolt"},
+    "mcp-servers": {"title": gettext_lazy("MCP Servers"), "icon": "fas fa-plug"},
+    "cli-commands": {"title": gettext_lazy("CLI Commands"), "icon": "fas fa-code"},
 }
 
 

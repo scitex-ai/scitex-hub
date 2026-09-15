@@ -1,0 +1,146 @@
+/* ============================================================
+   Site dock grip + minimized pill (split from site-dock.css; load after it)
+
+   Markup: templates/global_base_partials/site_dock.html
+   Behaviour: static/shared/ts/components/site-dock.ts,
+              _site-dock/minimize.ts (tap toggles the pill, drag moves)
+   ============================================================ */
+
+/* Grip: a drag-handle glyph (fa-grip-vertical) just right of Back, in flow,
+   with a 44x44 hit area. The first version was a thin bar overhanging
+   the top edge, which the operator could not recognise as draggable
+   (2026-09-14). A separator line sets it apart from the navigation buttons. */
+.site-dock-grabber {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  margin: 0 2px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--site-dock-fg);
+  opacity: 0.75;
+  cursor: grab;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.site-dock-grabber::after {
+  content: "";
+  position: absolute;
+  right: -2px;
+  top: 10px;
+  bottom: 10px;
+  width: 1px;
+  background: var(--site-dock-border);
+}
+
+.site-dock-grabber i {
+  font-size: 18px;
+  pointer-events: none;
+}
+
+/* Phone and pill grip: a compact app-grid glyph of 4x3 square blocks
+   (operator 2026-09-15: the wide tiled grip felt cramped and too wide).
+   6px blocks on an 8px pitch give exactly 30x22. Desktop shows the <i> glyph. */
+.site-dock-grabber-blocks {
+  display: none;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 22px;
+  pointer-events: none;
+  background-image: linear-gradient(
+    90deg,
+    var(--site-dock-fg) 6px,
+    transparent 6px
+  );
+  background-size: 8px 8px;
+  -webkit-mask-image: linear-gradient(#000 6px, transparent 6px);
+  mask-image: linear-gradient(#000 6px, transparent 6px);
+  -webkit-mask-size: 8px 8px;
+  mask-size: 8px 8px;
+  opacity: 0.6;
+}
+
+.site-dock-grabber:hover .site-dock-grabber-blocks,
+.site-dock--dragging .site-dock-grabber-blocks {
+  opacity: 0.95;
+}
+
+.site-dock-grabber:hover,
+.site-dock-grabber:focus-visible {
+  opacity: 1;
+  background: var(--site-dock-active-bg);
+}
+
+.site-dock--dragging .site-dock-grabber,
+.site-dock-grabber:active {
+  cursor: grabbing;
+  opacity: 1;
+}
+
+.site-dock-grabber:focus-visible {
+  outline: 2px solid var(--site-dock-fg-active);
+  outline-offset: -2px;
+}
+
+/* Minimized: a small pill of grip blocks, same anchor. Tap restores, drag moves. */
+.site-dock.site-dock--minimized {
+  display: flex;
+  width: auto;
+  height: var(--site-dock-pill-height);
+  padding: 0 4px;
+  border-radius: calc(var(--site-dock-pill-height) / 2);
+}
+
+.site-dock--minimized > :not(.site-dock-grabber) {
+  display: none;
+}
+
+.site-dock--minimized .site-dock-grabber {
+  width: 84px;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  border-radius: calc(var(--site-dock-pill-height) / 2);
+  opacity: 1;
+}
+
+.site-dock--minimized .site-dock-grabber::after,
+.site-dock--minimized .site-dock-grabber i {
+  display: none;
+}
+
+.site-dock--minimized .site-dock-grabber-blocks {
+  display: block;
+}
+
+/* The block glyph is canonical in both expanded and minimized states. The
+   whole middle cell between Back and Forward is the drag/tap target. */
+@media (min-width: 0px) {
+  .site-dock-grabber {
+    justify-self: stretch;
+    width: 100%;
+    height: 48px;
+    margin: 0;
+    opacity: 1;
+  }
+
+  .site-dock-grabber::after,
+  .site-dock-grabber i {
+    display: none;
+  }
+
+  .site-dock-grabber-blocks {
+    display: block;
+  }
+}
+
+/* EOF */

@@ -83,6 +83,29 @@ def test_full_workspace_path_gets_no_launcher():
     assert context == {}
 
 
+def _signed_in(request):
+    request.user = type("SignedIn", (), {"is_authenticated": True})()
+    return request
+
+
+def test_cards_path_with_the_site_dock_gets_no_launcher():
+    # Arrange: signed-in pages get the site dock, which is already the way out.
+    request = _signed_in(RequestFactory().get("/apps/cards/chat/"))
+    # Act
+    context = mounted_app_launcher(request)
+    # Assert
+    assert context == {}
+
+
+def test_embedded_cards_page_keeps_its_launcher():
+    # Arrange: ?embed=1 renders no dock, so the back-link must stay.
+    request = _signed_in(RequestFactory().get("/apps/cards/?embed=1"))
+    # Act
+    context = mounted_app_launcher(request)
+    # Assert
+    assert "launcher" in context
+
+
 def test_storage_and_scholar_do_not_collide():
     # Arrange: two requests, one in scope and one not.
     storage_request = RequestFactory().get("/apps/storage/")

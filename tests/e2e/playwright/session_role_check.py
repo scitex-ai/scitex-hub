@@ -44,9 +44,9 @@ from __future__ import annotations
 #: Must be one ``VisitorAutoLoginMiddleware`` allocates on: it deliberately
 #: does NOT allocate on ``/``, ``/landing/``, ``/apps/tools/`` or
 #: ``/auth/*`` for an unauthenticated request, because a first-time reader
-#: must reach the marketing pages anonymously. ``/apps/home/`` is not in
+#: must reach the marketing pages anonymously. ``/apps/my-projects/`` is not in
 #: that skip list, and is in the capture set anyway.
-VISITOR_WARMUP_ROUTE = "/apps/home/"
+VISITOR_WARMUP_ROUTE = "/apps/my-projects/"
 
 #: The body attribute carrying the canonical session role.
 SESSION_ROLE_ATTR = "data-session-role"
@@ -113,6 +113,36 @@ _DIAGNOSIS_UNKNOWN = (
 
 class NotAPooledVisitorError(AssertionError):
     """The captured session was not a writable pooled visitor slot."""
+
+
+def is_authenticated_user_role(role: str) -> bool:
+    """True ONLY for a registered account (``role == "user"``).
+
+    The mobile E2E fixtures authenticate as an EXPLICIT test user — not a
+    pooled visitor, not the readonly fallback, not anonymous. Requiring the
+    exact ``ROLE_USER`` rather than merely "not anonymous" is what stops a
+    fixture from running a test against a session it did not intend: a
+    ``readonly_visitor`` or a stale anonymous state is as wrong as no session
+    at all, because a logged-out page still returns 200.
+
+    Browser-free and pure, so it is pinned by an ordinary pytest (no
+    Playwright) in tests/e2e/playwright/test_auth_fixture_role_validation.py.
+    """
+    return role == ROLE_USER
+
+
+def authenticated_user_role_failure(role: str, where: str) -> str:
+    """Failure text for a context that MUST be a registered user but is not.
+
+    Reuses the role-meaning table so the diagnosis names what the observed
+    role actually is (anonymous / readonly / pooled / unknown / no attribute).
+    """
+    meaning = _DIAGNOSIS.get(role, _DIAGNOSIS_UNKNOWN)
+    return (
+        f"{where} has session role {role!r}; this fixture requires a "
+        f"registered user ({SESSION_ROLE_ATTR}={ROLE_USER!r}). "
+        f"meaning: {meaning}"
+    )
 
 
 def diagnose_session_role(role: str) -> str:

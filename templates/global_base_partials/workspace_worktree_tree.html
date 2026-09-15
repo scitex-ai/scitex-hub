@@ -1,0 +1,39 @@
+{% load tree_preseed i18n %}
+{% comment %}
+The live workspace file tree mount (WorkspaceFilesTree, auto-init.ts). Included
+once per page: directly by workspace_worktree_pane.html, or nested under the
+current project's row by project_tree_list.html in the Project UI.
+
+data-read-only  "true" when the viewer cannot write to this project: the tree
+                then offers no new file / upload / rename / delete / move.
+                The server refuses those writes regardless (can_edit).
+data-focus-path a /tree/<branch>/<path> deep link's folder, expanded on load.
+data-open-file  a /blob/<path> deep link's file, opened in the viewer on load.
+{% endcomment %}
+{% if current_project %}
+    {% tree_preseed_script current_project %}
+{% endif %}
+<div id="ws-worktree-tree"
+     data-workspace-tree
+     {% if current_project %} data-project-id="{{ current_project.id }}" data-project-slug="{{ current_project.slug }}" data-username="{{ current_project.owner.username }}" {% endif %}
+     {% if project_tree_ui %} data-read-only="{% if project_tree_can_write %}false{% else %}true{% endif %}" {% endif %}
+     {% if tree_focus_path %} data-focus-path="{{ tree_focus_path }}" {% endif %}
+     {% if tree_open_file %} data-open-file="{{ tree_open_file }}" {% endif %}>
+</div>
+{% if project_tree_ui and current_project and project_tree_is_empty %}
+    <div class="ws-tree-empty" data-tree-empty>
+        <i class="fas fa-folder-open" aria-hidden="true"></i>
+        <span class="ws-tree-empty__title">{% trans "No files yet" %}</span>
+        {% if project_tree_can_write %}
+            <div class="ws-tree-empty__actions">
+                <button type="button" class="ws-tree-empty__btn" data-tree-empty-action="upload">
+                    <i class="fas fa-upload" aria-hidden="true"></i> {% trans "Upload" %}
+                </button>
+                <button type="button" class="ws-tree-empty__btn" data-tree-empty-action="new-file">
+                    <i class="fas fa-file" aria-hidden="true"></i> {% trans "New file" %}
+                </button>
+                <input type="file" multiple hidden data-tree-upload-input />
+            </div>
+        {% endif %}
+    </div>
+{% endif %}

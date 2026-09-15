@@ -15,6 +15,37 @@ function getElements() {
   };
 }
 
+// --- Phone tabs (scitex-ui panes: "Tools | <tool>") ---
+type StxPanes = { show(pane: string, app?: string): boolean };
+
+// "tools" for the full list, "tools-<category>" for a launcher tile.
+const PANES_ROOT = ".tools-workspace[data-stx-panes]";
+
+function whenPanes(
+  root: HTMLElement,
+  cb: (panes: StxPanes) => void,
+  tries = 60,
+): void {
+  const panes = (window as unknown as { stxPanes?: StxPanes }).stxPanes;
+  if (panes && root.querySelector("[data-stx-pane-tab]")) cb(panes);
+  else if (tries > 0)
+    requestAnimationFrame(() => whenPanes(root, cb, tries - 1));
+}
+
+function syncToolTab(name: string | null): void {
+  const root = document.querySelector<HTMLElement>(PANES_ROOT);
+  if (!root) return;
+  const app = root.getAttribute("data-stx-panes") || "tools";
+  root.toggleAttribute("data-tool-open", name !== null);
+  whenPanes(root, (panes) => {
+    const label = root.querySelector(
+      '[data-stx-pane-tab="tool"] .stx-panes__tab-label',
+    );
+    if (label && name) label.textContent = name;
+    panes.show(name ? "tool" : "list", app);
+  });
+}
+
 // --- Tool loading ---
 function loadTool(navItem: HTMLElement): void {
   const el = getElements();
@@ -24,7 +55,8 @@ function loadTool(navItem: HTMLElement): void {
   // Show iframe, hide placeholder
   el.placeholder?.setAttribute("hidden", "");
   el.iframe.removeAttribute("hidden");
-  el.iframe.src = toolUrl;
+  // Re-tapping the open tool keeps its state instead of reloading it.
+  if (el.iframe.getAttribute("src") !== toolUrl) el.iframe.src = toolUrl;
 
   // Update active state in nav (every listing of the same tool)
   document.querySelectorAll(".tools-nav-item").forEach((item) => {
@@ -39,6 +71,7 @@ function loadTool(navItem: HTMLElement): void {
   // fragment is updated so the page path is preserved on either tools route.
   const slug = navItem.dataset.toolSlug || "";
   if (slug) history.replaceState(null, "", `#${slug}`);
+  syncToolTab(navItem.dataset.toolName || slug);
 }
 
 function closeTool(): void {
@@ -57,6 +90,7 @@ function closeTool(): void {
     "",
     window.location.pathname + window.location.search,
   );
+  syncToolTab(null);
 }
 
 // --- Sidebar domain expand/collapse ---
@@ -160,12 +194,14 @@ function revealNavItem(navItem: HTMLElement): void {
 
 function restoreFromHash(): void {
   const hash = decodeURIComponent(window.location.hash.slice(1));
-  if (!hash) return;
-  const navItem = findNavItemBySlug(hash);
-  if (navItem) {
-    revealNavItem(navItem);
-    loadTool(navItem);
+  const navItem = hash ? findNavItemBySlug(hash) : null;
+  if (!navItem) {
+    const iframe = getElements().iframe;
+    if (!iframe || iframe.hasAttribute("hidden")) syncToolTab(null);
+    return;
   }
+  revealNavItem(navItem);
+  loadTool(navItem);
 }
 
 // --- Listen for Ctrl+K forwarded from iframe ---

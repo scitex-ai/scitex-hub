@@ -1,17 +1,19 @@
-{% load static %}
+{% load static i18n %}
 
 <!-- Literature Search - Full Width Layout (Controls in Right Panel) -->
 <div class="search-container-full-width">
     <form id="literatureSearchForm" onsubmit="event.preventDefault();">
         <!-- Search Input (Full Width) -->
         <div class="input-group input-group-lg mb-4">
-            <input type="text"
-                   name="q"
-                   class="form-control search-input"
-                   placeholder='Search papers (e.g., hippocampus -a Smith -j Nature -ymin 2020 -ifmin 5)'
-                   value="{{ query }}"
-                   autocomplete="off"
-                   autofocus />
+            {# Multi-line so the full example shows; Enter submits, Shift+Enter adds a line (scitex-search.ts). #}
+            <textarea name="q"
+                      rows="3"
+                      class="form-control search-input"
+                      placeholder="{% trans 'Search papers' %}&#10;{% trans 'e.g. hippocampus -a Smith -ymin 2020 -ymax 2024' %}"
+                      aria-label="{% trans 'Search papers' %}"
+                      autocomplete="off"
+                      enterkeyhint="search"
+                      autofocus>{{ query }}</textarea>
             <kbd class="search-shortcut-badge">Ctrl+K</kbd>
             <button type="submit" class="btn btn-primary search-btn" id="searchButton">
                 <i class="fas fa-search"></i> Search

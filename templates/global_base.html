@@ -1,4 +1,4 @@
-{% load static vite branding_tags i18n %}{% get_current_language as LANGUAGE_CODE %}
+{% load static vite branding_tags i18n site_dock %}{% get_current_language as LANGUAGE_CODE %}
 
 <!DOCTYPE html>
 {% comment %}
@@ -20,7 +20,8 @@
    tests/apps/public_app/views/test_landing_body_class.py, which exists for
    exactly this and named the offender by file and line.
 {% endcomment %}
-<html lang="{{ LANGUAGE_CODE }}">
+{# The floating dock chat's embed follows the page it floats over (?theme=). #}
+<html lang="{{ LANGUAGE_CODE }}"{% if request.GET.embed == '1' %}{% if request.GET.theme == 'light' or request.GET.theme == 'dark' %} data-theme="{{ request.GET.theme }}" data-color-mode="{{ request.GET.theme }}"{% endif %}{% endif %}>
     <head>
         {# Single source of truth for tab titles: config/branding.py #}
         <title>{% page_title %}</title>
@@ -52,7 +53,7 @@
         class on the session role — `{% if not user.is_authenticated or is_visitor %}`
         — to fix a footer that was missing for visitors ON /landing/ (#499).
         But this branch also covers `/`, and `/` is NOT the landing page for a
-        visitor: repo_app/views/dispatch.py root_dispatch redirects only
+        visitor: my_projects_app/views/dispatch.py root_dispatch redirects only
         ROLE_ANONYMOUS to marketing and renders the app-launcher for every other
         role. So every visitor's launcher got `landing-page` and was hidden —
         13 launcher tiles present in the DOM, all 0x0, header and footer the only
@@ -64,6 +65,11 @@
         genuinely ambiguous:
             /landing/  -> always the landing page, for ANY role (keeps #499 fixed)
             /          -> landing page ONLY when anonymous; otherwise the launcher
+            /apps/     -> the launcher (Home) for signed-in users; anonymous
+                          requests are redirected to sign-up before rendering.
+                          It carries `app-home` like `/`, so the Home grid
+                          scrolls down to reveal the footer above the dock
+                          (operator, 2026-09-14).
         Do not reintroduce `is_visitor` here. If a future session-specific need
         arises, add a SEPARATE class rather than overloading this one — and note
         that the durable fix is to stop hiding .site-footer globally and
@@ -84,12 +90,12 @@
     {% endcomment %}
     <body data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}"
           data-session-role="{{ session_role|default:'anonymous' }}"
-          data-user-type="{% if session_role == 'readonly_visitor' %}read-only{% elif session_role == 'visitor' %}visitor{% elif user.is_authenticated %}registered{% else %}anonymous{% endif %}"
+          data-user-type="{% if user.is_authenticated %}registered{% else %}anonymous{% endif %}"
           {% if user.is_authenticated %}data-current-username="{{ user.username }}"{% endif %}
           data-track-module="{% if active_module %}{{ active_module.get_track_module }}{% elif '/server-status' in request.path %}server_status{% elif '/explore/' in request.path %}explore{% elif '/workspace/' in request.path %}files{% endif %}"
           {% if request.initial_pane %}data-initial-pane="{{ request.initial_pane }}"{% endif %}
           {% if request.chat_session_token %}data-chat-session-token="{{ request.chat_session_token }}"{% endif %}
-          class="{% if request.path == '/' or request.path == '/landing/' %}workspace-page{% if request.path == '/landing/' or not user.is_authenticated %} landing-page{% else %} no-transition app-home{% endif %}{% elif active_module %}workspace-page {{ active_module.body_class }} no-transition{% elif '/workspace/' in request.path %}workspace-page no-transition{% elif '/explore/' in request.path %}workspace-page explore-page{% endif %}">
+          class="{% if request.GET.embed == '1' %}stx-embed {% endif %}{% if request.path == '/' or request.path == '/apps/' or request.path == '/landing/' %}workspace-page{% if request.path == '/landing/' or not user.is_authenticated %} landing-page{% else %} no-transition app-home{% endif %}{% elif active_module %}workspace-page {{ active_module.body_class }} no-transition{% elif '/workspace/' in request.path %}workspace-page no-transition{% elif '/explore/' in request.path %}workspace-page explore-page{% endif %}">
         <!-- Loading screen — hides FOUC until CSS/JS adds body.app-ready -->
         <!-- hook-bypass: inline-script -->
         <div id="app-loading-screen">
@@ -116,7 +122,7 @@
         <!-- Hidden CSRF token for JavaScript API calls -->
         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
         <!-- Header: shown on non-workspace pages only (sidebar replaces it on workspace) -->
-        {% include 'global_base_partials/global_header.html' %}
+        {% if request.GET.embed != '1' %}{% include 'global_base_partials/global_header.html' %}{% endif %}
         <!-- Django Messages (success hidden — only show errors/warnings) -->
         {% if messages %}
             <div class="container django-messages-container">
@@ -147,7 +153,9 @@
                     <!-- Console pane: JS moves AI panel here in console mode -->
                     <div class="workspace-pane" id="pane-console" data-pane="console"></div>
                     <!-- Editor pane (file tree left + viewer/editor right) -->
-                    <div class="workspace-pane" id="pane-editor" data-pane="editor">
+                    {# Server-renders active when a view asks for it — opening a #}
+                    {# project (/<owner>/<slug>/) lands on this file tree by default. #}
+                    <div class="workspace-pane{% if request.initial_pane == 'editor' %} active{% endif %}" id="pane-editor" data-pane="editor">
                         <div class="editor-split-layout">
                             <div class="editor-split-left">
                                 {% block workspace_worktree_pane %}
@@ -160,7 +168,7 @@
                     <!-- Module pane (active module content). Default-active on
                          every workspace page EXCEPT /chat/, where the chat pane
                          above takes over. -->
-                    <div class="workspace-pane{% if request.initial_pane != 'chat' %} active{% endif %}" id="pane-module" data-pane="module">
+                    <div class="workspace-pane{% if request.initial_pane != 'chat' and request.initial_pane != 'editor' %} active{% endif %}" id="pane-module" data-pane="module">
                     {% else %}
                         <!-- Non-workspace pages: standard layout with header -->
                         {% if not workspace_has_panes or not user.is_authenticated %}
@@ -176,7 +184,9 @@
                 </div>
             </div>
         {% endif %}
-        {% include 'global_base_partials/global_footer.html' %}
+        {% if request.GET.embed != '1' %}{% include 'global_base_partials/global_footer.html' %}{% endif %}
+        {# Site-wide dock on every page (signed-in users only; the tag decides). #}
+        {% site_dock %}
         {% if not is_workspace_page %}
             {% include 'global_base_partials/global_ai_panel.html' %}
         {% endif %}

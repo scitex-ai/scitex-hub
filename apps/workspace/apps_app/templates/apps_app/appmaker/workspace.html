@@ -1,0 +1,94 @@
+{% extends "global_base.html" %}
+{% load static i18n scitex_project_picker %}
+{% block title %}{{ app_label }}{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'apps_app/css/appmaker.css' %}?v={{ build_id }}" />
+{% endblock %}
+{% block content %}
+    <div class="appmaker" id="appmaker-workspace">
+        <header class="appmaker-head stx-app-header">
+            <div class="stx-app-header__identity">
+                <h1 class="appmaker-title">{{ app_label }}</h1>
+                <span class="appmaker-head-meta">
+                    <i class="fas fa-lock" aria-hidden="true"></i>
+                    {% trans "Private project" %} · {{ request.user.username }}/{{ project.slug }}
+                </span>
+            </div>
+            <div class="stx-app-header__slot--project-selector">
+                {% scitex_project_picker scope="project" current=project %}
+            </div>
+            <div class="appmaker-actions">
+                <div class="appmaker-action">
+                    <button type="button"
+                            class="appmaker-btn appmaker-btn-primary"
+                            id="appmaker-run"
+                            data-run-url="{{ run_url }}"
+                            data-running-label="{% trans 'Starting…' %}"
+                            data-open-label="{% trans 'Open app' %}">
+                        <i class="fas fa-play" aria-hidden="true"></i>
+                        <span>{% trans "Run privately" %}</span>
+                    </button>
+                    <a class="appmaker-btn"
+                       id="appmaker-open"
+                       href="{{ dev_tab_url|default:'#' }}"
+                       {% if not dev_tab_url %}hidden{% endif %}>
+                        <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i> {% trans "Open app" %}
+                    </a>
+                    <span class="appmaker-action-note" id="appmaker-run-status" role="status">{% trans "Only you can see the app tab." %}</span>
+                </div>
+                <div class="appmaker-action">
+                    <button type="button" class="appmaker-btn" disabled aria-describedby="appmaker-publish-note">
+                        <i class="fas fa-upload" aria-hidden="true"></i> {% trans "Publish" %}
+                    </button>
+                    <span class="appmaker-action-note" id="appmaker-publish-note">{% trans "Coming soon — requires verified phone, card and ORCID" %}</span>
+                </div>
+            </div>
+        </header>
+        <div class="appmaker-grid">
+            <section class="appmaker-panel appmaker-files-panel" aria-labelledby="appmaker-files-title">
+                <h2 class="appmaker-panel-title" id="appmaker-files-title">{% trans "Files" %}</h2>
+                <ul class="appmaker-files">
+                    {% for path in files %}
+                        <li>
+                            <a class="appmaker-file" href="{{ file_base_url }}{{ path }}?mode=edit">
+                                <i class="far fa-file-code" aria-hidden="true"></i>{{ path }}
+                            </a>
+                        </li>
+                    {% empty %}
+                        <li class="appmaker-help">{% trans "No files yet." %}</li>
+                    {% endfor %}
+                </ul>
+            </section>
+            {% include "apps_app/appmaker/_agent_chat_panel.html" %}
+        </div>
+    </div>
+    <!-- hook-bypass: inline-script -->
+    <script>
+        (function () {
+            var btn = document.getElementById("appmaker-run");
+            if (!btn) return;
+            var openLink = document.getElementById("appmaker-open");
+            var status = document.getElementById("appmaker-run-status");
+            btn.addEventListener("click", function () {
+                var csrf = document.querySelector("input[name=csrfmiddlewaretoken]");
+                btn.disabled = true;
+                status.textContent = btn.dataset.runningLabel;
+                fetch(btn.dataset.runUrl, {
+                    method: "POST",
+                    headers: { "X-CSRFToken": csrf ? csrf.value : "" },
+                    credentials: "same-origin"
+                }).then(function (r) { return r.json(); }).then(function (data) {
+                    btn.disabled = false;
+                    if (!data.success) { status.textContent = data.error || "Error"; return; }
+                    openLink.href = data.url;
+                    openLink.hidden = false;
+                    status.textContent = "";
+                    window.location.href = data.url;
+                }).catch(function (err) {
+                    btn.disabled = false;
+                    status.textContent = String(err);
+                });
+            });
+        })();
+    </script>
+{% endblock %}

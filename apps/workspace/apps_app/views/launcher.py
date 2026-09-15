@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 """Workspace home launcher — app-grid home page (approved design 2026-07-07).
 
-Serves the iPhone-style app grid at the workspace root ("/"): a
-responsive tile grid IS the home, with per-user pin-to-sidebar
-persistence (capped at MAX_PINNED_MODULES).
+Serves the iPhone-style app grid at the workspace root ("/") and /apps/: a
+responsive tile grid IS the home. Pin-to-sidebar state lives in
+launcher_pins.py (re-exported below).
 
 Django stays thin here: this module only assembles registry data
 (workspace module registry + published store apps) for the template.
@@ -14,68 +14,78 @@ from __future__ import annotations
 
 import logging
 from datetime import timedelta
+from urllib.parse import urlencode
 
 from django.contrib.auth.decorators import login_required
-from django.db import transaction
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import render
 from django.utils import timezone
-from django.views.decorators.http import require_http_methods
+from django.utils.translation import get_language
 
 from apps.infra.workspace_app.registry import get_all_modules
 
-from ..models import AppsModule, ModuleInstallation
+from ..models import AppsModule, ModuleInstallation, PlannedAppInterest
+from ..planned_apps import visible_planned_apps
+from ..services.first_run import checklist_context, should_show_checklist
+from ..services.launcher_display import get_display_overrides, get_favorites
+from ..services.launcher_dock import get_dock_apps
+from ..services.launcher_links import get_launcher_links, get_link_tile_orders
 from ..services.manifest_display import prettify_module_name
-from .helpers import ensure_builtin_modules
+from .helpers import (
+    can_view_internal_app,
+    ensure_builtin_modules,
+)
+from .launcher_order import (
+    DEFAULT_LAUNCHER_ORDER,  # noqa: F401  (re-export)
+    LAUNCHER_GROUPS,
+    TRAILING_APPS,
+    group_cells,
+    group_of,
+    group_rank,
+)
+from .launcher_order import default_order_value as _default_order_value
+
+# Sidebar pin state lives in launcher_pins.py; re-exported so existing imports
+# (views/__init__.py, the workspace context processor, tests) keep working.
+from .launcher_pins import (  # noqa: F401  (re-export)
+    _MI_DEFAULT_TAB_ORDER,
+    MAX_PINNED_MODULES,
+    api_pin,
+    default_pinned_module_names,
+    get_pinned_module_names,
+    seed_default_pins,
+)
 
 logger = logging.getLogger(__name__)
-
-# Sidebar pin cap — keeps the reduced sidebar scannable.
-MAX_PINNED_MODULES = 5
 
 # Store apps published within this window get a NEW badge.
 NEW_BADGE_DAYS = 14
 
-# Curated default tile order. The raw registry order read "weird" to the
-# operator (Telegram 992/997, 2026-07-12); this gives the research apps a
-# natural first-screen order. Modules not listed sort after these by label.
-# A per-user drag-reorder (api_reorder) overrides this entirely.
-DEFAULT_LAUNCHER_ORDER = [
-    "home",
-    "writer",
-    "scholar",
-    "figrecipe",
-    "console",
-    "discovery",
-    "clew",
-    "tools",
-    "docs",
-    "todo",
-    "store",
-]
-_DEFAULT_ORDER_INDEX = {name: i for i, name in enumerate(DEFAULT_LAUNCHER_ORDER)}
-
-# Model defaults for the tab_order columns. A row still holding the default
-# was created incidentally (e.g. by pinning), not by an explicit launcher
-# reorder — so it keeps the curated position rather than jumping the tile.
-_MI_DEFAULT_TAB_ORDER = 50
+# Model default for DevInstallation.tab_order (see launcher_pins for the
+# ModuleInstallation one): a row still holding it was never explicitly reordered.
 _DEV_DEFAULT_TAB_ORDER = 95
 
-# The sidebar renders its own Home entry, so pinning "home" would double it.
-_SIDEBAR_HOME_MODULE = "home"
+# Tombstones for retired/renamed built-ins. Existing database rows can remain
+# until the deployment migration runs; they must never reappear as community
+# apps in step 2 below.
+_RETIRED_MODULE_IDS = frozenset({"home", "discovery", "slides"})
+
+# Rendered as an empty "+" slot, not an app (operator, 2026-09-14): always the
+# last cell of Work, never reorderable, never dockable.
+APP_CREATOR_SLOT = "create-app"
 
 
-def _default_order_value(name: str) -> int:
-    """Curated launcher position (lower sorts earlier).
+def _is_dev_only(visibility: str, row) -> bool:
+    """Whether a tile is still a work in progress, from EXISTING metadata only.
 
-    Curated apps occupy 10..110; anything uncurated sorts after them (by
-    label). Reorder positions written by api_reorder live at 1000+, well
-    clear of both, so an explicit user choice always wins.
+    Two fields already say that, and nothing new is invented here:
+      * ``visibility == "internal"``: the registry's own definition is "staff /
+        operators only (WIP apps before dogfood is stable)" (registry.py). Who
+        may SEE such a tile is unchanged (the release-channel gate in
+        _build_tiles still hides it from anyone not entitled); an entitled
+        viewer now also sees that it is unfinished.
+      * ``AppsModule.status == "wip"``: the catalogue's "Work in Progress".
     """
-    idx = _DEFAULT_ORDER_INDEX.get(name)
-    if idx is not None:
-        return (idx + 1) * 10
-    return 500_000
+    return visibility == "internal" or getattr(row, "status", "") == "wip"
 
 
 def _version_label(version: str) -> str:
@@ -132,123 +142,44 @@ def guest_role_for(user) -> str:
     return ""
 
 
-def default_pinned_module_names() -> list[str]:
-    """The pin set a user starts with, before they pin anything themselves.
-
-    Reuses DEFAULT_LAUNCHER_ORDER so the sidebar and the launcher grid agree
-    on which apps lead — no second curated list to drift. "home" is excluded
-    because the sidebar renders its own Home entry above the pinned loop.
-    """
-    registered = {mod.name for mod in get_all_modules()}
+def _planned_tiles(user, real_app_names: set[str]) -> list[dict]:
+    """Coming-soon tiles for planned apps no real app has replaced."""
+    language = get_language() or "en"
+    interests: set[tuple[str, str]] = set()
+    if user.is_authenticated:
+        interests = set(
+            PlannedAppInterest.objects.filter(user=user).values_list("app_id", "kind")
+        )
     return [
-        name
-        for name in DEFAULT_LAUNCHER_ORDER
-        if name != _SIDEBAR_HOME_MODULE and name in registered
-    ][:MAX_PINNED_MODULES]
-
-
-def _appsmodule_catalog(names: list[str]) -> dict[str, AppsModule]:
-    """AppsModule rows for the given module names, keyed by name."""
-    return {
-        app.module_name: app
-        for app in AppsModule.objects.filter(module_name__in=names)
-    }
-
-
-def _is_pool_account(user) -> bool:
-    """Visitor-pool accounts: the rotating visitor-NNN slots + the shared
-    read-only fallback. These are shared, recycled identities — seeding pins
-    for them populates the sidebar for EVERY future visitor of that slot
-    (operator report 2026-07-17: "the sidebar came back"), and their pin
-    state is meaningless across the slot wipe anyway."""
-    from apps.infra.project_app.services.visitor_pool import VisitorPool
-
-    return user.username.startswith(VisitorPool.VISITOR_USER_PREFIX) or (
-        user.username == VisitorPool.READONLY_VISITOR_USERNAME
-    )
-
-
-def seed_default_pins(user) -> bool:
-    """Give a user their starting pins. Idempotent; True if it created any row.
-
-    Pins only ever on row CREATION, so a module the user deliberately unpinned
-    keeps its row (without the "pinned" key) and is never resurrected. Rows are
-    real (not virtual) because api_pin reads the flag straight off the row — a
-    virtual default would make the first unpin click *pin* instead.
-
-    Seeded rows keep the model-default tab_order, which marks them incidental,
-    so they never masquerade as an explicit drag-reorder.
-
-    Pool accounts (visitor-NNN, readonly-visitor) are never seeded: visitors
-    get the minimal sidebar and discover apps through the launcher grid.
-    """
-    if _is_pool_account(user):
-        return False
-    ensure_builtin_modules()
-    names = default_pinned_module_names()
-    catalog = _appsmodule_catalog(names)
-
-    if len(catalog) < len(names):
-        # ensure_builtin_modules() memoises on a PROCESS-GLOBAL flag and returns
-        # before it ever looks at the DB, so it can report "already seeded" while
-        # the rows are in fact gone (a test-transaction rollback, or a DB reset
-        # against a warm process). Pinning nothing here would silently reinstate
-        # the empty sidebar this function exists to prevent — so seed for real.
-        from ..management.commands.seed_apps import (
-            ensure_builtin_modules as seed_builtins,
-        )
-
-        with transaction.atomic():
-            seed_builtins()
-        catalog = _appsmodule_catalog(names)
-        missing = [name for name in names if name not in catalog]
-        if missing:
-            logger.warning(
-                "[launcher] No AppsModule row for default pins %s even after "
-                "seeding — those apps will be absent from the sidebar.",
-                missing,
-            )
-
-    created_any = False
-    # Created in curated order, so ascending ids give the sidebar that order.
-    for name in names:
-        app_module = catalog.get(name)
-        if app_module is None:
-            continue
-        _, created = ModuleInstallation.objects.get_or_create(
-            user=user,
-            module=app_module,
-            defaults={
-                "is_enabled": True,
-                "tab_order": _MI_DEFAULT_TAB_ORDER,
-                "config": {"pinned": True},
-            },
-        )
-        created_any = created_any or created
-    return created_any
-
-
-def get_pinned_module_names(user) -> list[str]:
-    """Names of modules the user pinned to the sidebar (stable order).
-
-    No pins at all means the user has either never been seeded or unpinned
-    everything. Seeding is idempotent, so the second case stays empty — an
-    empty sidebar the user chose is respected.
-    """
-    if not user.is_authenticated:
-        return []
-
-    def _query() -> list[str]:
-        return list(
-            ModuleInstallation.objects.filter(user=user, config__pinned=True)
-            .order_by("tab_order", "id")
-            .values_list("module__module_name", flat=True)[:MAX_PINNED_MODULES]
-        )
-
-    names = _query()
-    if not names and seed_default_pins(user):
-        names = _query()
-    return names
+        {
+            "name": app.id,
+            "label": app.name(language),
+            "icon_fa": app.icon,
+            "category": app.category,
+            "description": app.description(language),
+            "is_planned": True,
+            "icon_badge": "",
+            "is_dev_only": False,
+            "launch_url": "",
+            "detail_url": "",
+            "version": "",
+            "version_label": "",
+            "is_pinned": False,
+            "is_new": False,
+            "availability": "coming_soon",
+            "is_launchable": False,
+            "is_installed": False,
+            "notified": (app.id, "notify") in interests,
+            "building": (app.id, "build") in interests,
+            # brief = the planned id; description = the brief text to prefill
+            # until #859's create view reads the brief itself.
+            "create_url": "/apps/create/?"
+            + urlencode(
+                {"name": app.name_en, "brief": app.id, "description": app.brief}
+            ),
+        }
+        for app in visible_planned_apps(real_app_names)
+    ]
 
 
 def _build_tiles(request) -> list[dict]:
@@ -263,6 +194,8 @@ def _build_tiles(request) -> list[dict]:
             )
         )
     pinned_names = set(get_pinned_module_names(request.user))
+    display_overrides = get_display_overrides(request.user)
+    favorite_names = set(get_favorites(request.user))
     new_cutoff = timezone.now() - timedelta(days=NEW_BADGE_DAYS)
 
     # Per-user launcher order set by drag-reorder (api_reorder). Only rows
@@ -277,10 +210,25 @@ def _build_tiles(request) -> list[dict]:
                 user_orders[_name] = _order
 
     tiles: list[dict] = []
-    seen: set[str] = set()
+    seen: set[str] = set(_RETIRED_MODULE_IDS)
 
     # 1. Workspace module registry — same source that builds the sidebar.
+    # "internal" visibility is a RELEASE-CHANNEL gate, not an admin-role gate
+    # (card hub-cards-internal-entitlement-20260913): on a development
+    # deployment every authenticated team member sees internal apps (the
+    # channel flag), anonymous users never do; staff see them everywhere.
+    can_internal = can_view_internal_app(request.user)
     for mod in get_all_modules():
+        # Release-channel gate: internal/WIP apps are hidden when the user is
+        # not entitled (compass §8 L281-292, §21 L642-643).
+        if not can_internal and mod.visibility == "internal":
+            seen.add(mod.name)
+            continue
+        # NO mount gate here. Operator ruling 2026-09-14 15:48Z: Cards and
+        # Agents are PRE-INSTALLED apps shown to everyone; only their CONTENT
+        # depends on the user ("removing the whole app is wrong"). An earlier
+        # version hid their tiles with can_open_mounted_app(); the mounts keep
+        # their own per-user handling, the grid does not second-guess them.
         # Some registered modules are workspace panes / nav items, not
         # standalone launcher apps (Clew opens within a manuscript; comms
         # is reached from the workspace rather than the grid). They opt out
@@ -300,16 +248,21 @@ def _build_tiles(request) -> list[dict]:
         # (their manifest lives in another repo — migration 0017 seeds
         # the operator-named coming_soon rows). Same precedence rule as
         # category below.
-        availability = mod.availability or (
-            row.availability if row else "available"
-        )
+        availability = mod.availability or (row.availability if row else "available")
         tiles.append(
             {
                 "name": mod.name,
                 "label": mod.label,
                 "icon_fa": mod.icon_fa or "fas fa-puzzle-piece",
-                "launch_url": mod.get_url(),
+                "icon_badge": mod.icon_badge,
+                "is_dev_only": _is_dev_only(mod.visibility, row),
+                "launch_url": (
+                    mod.get_url()
+                    if (row and row.is_builtin) or mod.name in installed_names
+                    else f"/apps/store/{mod.name}/"
+                ),
                 "availability": availability,
+                "availability_reason": mod.availability_reason,
                 # Coming-soon tiles must never navigate (operator: a tap
                 # effect is fine, navigation is not). The template drops
                 # the href from this single flag.
@@ -321,12 +274,14 @@ def _build_tiles(request) -> list[dict]:
                 # unseeded app fall through to "other" and render with the
                 # generic yellow puzzle gradient.
                 "category": mod.category or (row.category if row else "other"),
-                "description": row.short_description if row else mod.ai_hint,
+                "description": mod.ai_hint or (row.short_description if row else ""),
                 # Deployed version from the app manifest (SSOT). Empty when the
                 # manifest omits it — the tile hides the label, never breaks.
                 "version": mod.version,
                 "version_label": _version_label(mod.version),
-                "is_installed": True,  # registry modules are built in
+                "is_installed": bool(
+                    (row and row.is_builtin) or mod.name in installed_names
+                ),
                 "is_pinned": mod.name in pinned_names,
                 "is_new": False,
                 "detail_url": f"/apps/store/{mod.name}/",
@@ -356,10 +311,13 @@ def _build_tiles(request) -> list[dict]:
                 # puzzle icon — visible and honest, never fabricated.
                 "label": row.label or prettify_module_name(row.module_name),
                 "icon_fa": row.icon or "fas fa-puzzle-piece",
+                "icon_badge": "",
+                "is_dev_only": _is_dev_only(row.visibility, row),
                 "launch_url": f"/apps/store/{row.module_name}/",
                 "category": row.category,
                 # No registry entry here, so the catalog row IS the SSoT.
                 "availability": row.availability,
+                "availability_reason": "",
                 "is_launchable": row.availability != "coming_soon",
                 "description": row.short_description,
                 # Community store apps are not in the registry (no manifest
@@ -385,11 +343,16 @@ def _build_tiles(request) -> list[dict]:
                     "name": dev.module_name,
                     "label": dev.label or dev.source_repo,
                     "icon_fa": dev.icon or "fas fa-puzzle-piece",
+                    "icon_badge": "",
+                    # A dev install is the developer's own unpublished work:
+                    # nobody else can see it, which is what "dev-only" means.
+                    "is_dev_only": True,
                     "launch_url": f"/apps/{dev.module_name}/",
                     "category": "other",
                     # Dev installs are the developer's own work-in-progress;
                     # gating their launch would block the dev loop itself.
                     "availability": "available",
+                    "availability_reason": "",
                     "is_launchable": True,
                     "description": dev.description,
                     # Dev-installed apps carry no manifest version — mark "dev".
@@ -402,14 +365,80 @@ def _build_tiles(request) -> list[dict]:
                 }
             )
 
-    # Apply order: explicit per-user positions win; otherwise the curated
-    # default. Ties break by label so the grid render is deterministic.
-    tiles.sort(
-        key=lambda t: (
-            user_orders.get(t["name"], _default_order_value(t["name"])),
-            t["label"].lower(),
+    # 4. Built-in link tiles (Chat, Settings): an existing hub page, not an app.
+    # See services/launcher_links.py for why they stay out of the registry.
+    # They have no AppsModule row, so a user's drag position for them is kept
+    # on the launcher's own (App Store) installation row instead.
+    if request.user.is_authenticated:
+        user_orders.update(get_link_tile_orders(request.user))
+    for link in get_launcher_links():
+        if link.name in seen:
+            continue
+        tiles.append(
+            {
+                "name": link.name,
+                "label": link.label,
+                "icon_fa": link.icon,
+                "icon_badge": "",
+                "is_dev_only": False,
+                "is_link": True,
+                "launch_url": link.url,
+                "category": link.category,
+                "availability": "available",
+                "availability_reason": "",
+                "is_launchable": True,
+                "description": link.description,
+                "version": "",
+                "version_label": "",
+                "is_installed": True,
+                "is_pinned": False,
+                "is_new": False,
+                "detail_url": "",
+            }
         )
+        seen.add(link.name)
+
+    # 5. Planned apps: a Coming-soon tile until a real app takes the id.
+    tiles.extend(
+        _planned_tiles(request.user, seen | installed_names | {t["name"] for t in tiles})
     )
+
+    # Display overrides affect only presentation. Canonical ids, URLs, and
+    # manifest/catalog metadata remain untouched.
+    for tile in tiles:
+        tile["manifest_label"] = tile["label"]
+        tile["manifest_icon_fa"] = tile["icon_fa"]
+        tile["icon_color"] = ""
+        override = display_overrides.get(tile["name"], {})
+        tile["label"] = override.get("display_name") or tile["label"]
+        tile["icon_fa"] = override.get("icon") or tile["icon_fa"]
+        tile["icon_color"] = override.get("icon_color") or ""
+        row = catalog.get(tile["name"])
+        tile["can_uninstall"] = bool(
+            row and not row.is_builtin and tile["name"] in installed_names
+        )
+        tile["can_edit_display"] = bool(row)
+        tile["is_favorite"] = tile["name"] in favorite_names
+
+    # Apply order: the GROUP first (groups never interleave, operator
+    # 2026-09-14), then explicit per-user positions, then the curated default.
+    # Ties break by label so the grid render is deterministic.
+    # Once the user has reordered, planned tiles (never saved) go last in
+    # their group; the App Creator slot (TRAILING_APPS) is always after them.
+    def _position(tile: dict) -> int:
+        if tile["name"] in TRAILING_APPS:
+            return 2_000_000
+        if tile["name"] in user_orders:
+            return user_orders[tile["name"]]
+        if tile.get("is_planned") and user_orders:
+            return 1_000_000
+        return _default_order_value(tile["name"])
+
+    tiles.sort(key=lambda t: (group_rank(t["name"]), _position(t), t["label"].lower()))
+    for tile in tiles:
+        tile["user_ordered"] = tile["name"] in user_orders
+        tile["group"] = group_of(tile["name"])
+        tile["is_add_slot"] = tile["name"] == APP_CREATOR_SLOT
     return tiles
 
 
@@ -417,12 +446,38 @@ def launcher_context(request) -> dict:
     """Template context for the launcher home page."""
     ensure_builtin_modules()
     tiles = _build_tiles(request)
+    dock_apps = set(get_dock_apps(request.user)) - {APP_CREATOR_SLOT}
+    grid_tiles = [tile for tile in tiles if tile["name"] not in dock_apps]
+    favorite_order = get_favorites(request.user)
+    by_name = {tile["name"]: tile for tile in tiles}
+    favorite_tiles = []
+    for name in favorite_order:
+        if name in by_name:
+            alias = dict(by_name[name])
+            alias["is_favorite_alias"] = True
+            alias["can_uninstall"] = False
+            favorite_tiles.append(alias)
+    is_guest = is_guest_launcher_user(request.user)
     return {
+        "first_run": (
+            checklist_context(request.user)
+            if request.user.is_authenticated
+            and not is_guest
+            and should_show_checklist(request.user)
+            else None
+        ),
+        # Every app the user can open, wherever it sits (grid or dock).
         "tiles": tiles,
+        # The grid: 4-column group bands holding only the apps NOT in the dock.
+        "groups": group_cells(grid_tiles),
+        "favorite_tiles": favorite_tiles,
+        # Kept in a <template> so dragging an app out of the dock can restore its tile.
+        "dock_tiles": [tile for tile in tiles if tile["name"] in dock_apps],
+        "launcher_groups": LAUNCHER_GROUPS,
         "installed_count": sum(1 for t in tiles if t["is_installed"]),
         "max_pins": MAX_PINNED_MODULES,
         # Guest mode: visitors see tiles + a prominent Sign in / Sign up CTA.
-        "is_guest_launcher": is_guest_launcher_user(request.user),
+        "is_guest_launcher": is_guest,
         # ...but a writable pool visitor and a read-only fallback are NOT the
         # same experience, so the copy must differ (operator, 2026-07-12).
         "guest_role": guest_role_for(request.user),
@@ -433,56 +488,6 @@ def launcher_context(request) -> dict:
 def launcher(request):
     """Workspace home — the app-launcher grid (served at the root URL)."""
     return render(request, "apps_app/launcher.html", launcher_context(request))
-
-
-@login_required
-@require_http_methods(["POST"])
-def api_pin(request, module_name):
-    """Toggle a module's pinned-to-sidebar flag (per-user, capped)."""
-    ensure_builtin_modules()
-    app_module = get_object_or_404(AppsModule, module_name=module_name)
-    inst = ModuleInstallation.objects.filter(
-        user=request.user, module=app_module
-    ).first()
-    currently_pinned = bool(inst and (inst.config or {}).get("pinned"))
-
-    if not currently_pinned:
-        pinned_count = ModuleInstallation.objects.filter(
-            user=request.user, config__pinned=True
-        ).count()
-        if pinned_count >= MAX_PINNED_MODULES:
-            return JsonResponse(
-                {
-                    "success": False,
-                    "error": (
-                        f"Pin limit reached ({MAX_PINNED_MODULES}). "
-                        "Unpin another app first."
-                    ),
-                },
-                status=400,
-            )
-
-    if inst is None:
-        # Pinning implies the module is part of the user's workspace.
-        inst = ModuleInstallation.objects.create(
-            user=request.user, module=app_module, is_enabled=True, tab_order=50
-        )
-
-    config = inst.config or {}
-    if currently_pinned:
-        config.pop("pinned", None)
-    else:
-        config["pinned"] = True
-    inst.config = config
-    inst.save(update_fields=["config"])
-
-    return JsonResponse(
-        {
-            "success": True,
-            "pinned": not currently_pinned,
-            "pinned_modules": get_pinned_module_names(request.user),
-        }
-    )
 
 
 # EOF

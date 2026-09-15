@@ -1,0 +1,82 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load i18n static %}
+
+{% block title %}{% trans "How to use Projects" %} — {% trans "SciTeX Documentation" %}{% endblock %}
+{% block content %}
+    {% include "docs_app/howto/_howto_styles.html" %}
+    <div class="container py-5" style="max-width: 900px">
+        <h1 class="mb-4">
+            <i class="fas fa-folder me-2"></i>{% trans "How to use Projects" %}
+        </h1>
+        <p class="lead text-muted mb-5">
+            {% trans "A project is a folder for one piece of research. Create one, then browse its files." %}
+        </p>
+        <section class="api-section">
+            <h2>{% trans "Steps" %}</h2>
+            <ol class="howto-steps">
+                <li>
+                    {% blocktrans trimmed %}
+                        Sign in. Home shows your apps. <strong>My Projects</strong> lists the projects you own.
+                    {% endblocktrans %}
+                    <img class="howto-shot"
+                         src="{% static 'docs_app/images/howto/projects-01-home.jpg' %}"
+                         alt="{% trans 'Home with the My Projects tile' %}"
+                         loading="lazy" />
+                </li>
+                <li>
+                    {% url 'project_create' as new_project_url %}
+                    {% blocktrans trimmed %}
+                        Open <a href="{{ new_project_url }}">Create new project</a>. Keep <strong>SciTeX Minimal</strong> selected, type a name and, if you like, a description.
+                    {% endblocktrans %}
+                    <img class="howto-shot"
+                         src="{% static 'docs_app/images/howto/projects-02-new.jpg' %}"
+                         alt="{% trans 'The Create new project form' %}"
+                         loading="lazy" />
+                </li>
+                <li>
+                    {% blocktrans trimmed %}
+                        Click <strong>Create project</strong>. The project opens with its file tree on the left. A new project starts with <code>README.md</code> and <code>LICENSE</code>.
+                    {% endblocktrans %}
+                    <img class="howto-shot"
+                         src="{% static 'docs_app/images/howto/projects-03-tree.jpg' %}"
+                         alt="{% trans 'The new project in the file tree' %}"
+                         loading="lazy" />
+                </li>
+                <li>
+                    {% blocktrans trimmed %}
+                        Click a file in the tree to open it in the <strong>Viewer</strong>.
+                    {% endblocktrans %}
+                    <img class="howto-shot"
+                         src="{% static 'docs_app/images/howto/projects-04-file.jpg' %}"
+                         alt="{% trans 'README.md open in the Viewer' %}"
+                         loading="lazy" />
+                </li>
+                <li>
+                    {% blocktrans trimmed %}
+                        Click the <strong>Repository view</strong> icon above the tree. It lists every file with its last commit, and has tabs for Issues, Pull requests and Settings.
+                    {% endblocktrans %}
+                    <img class="howto-shot"
+                         src="{% static 'docs_app/images/howto/projects-05-repository.jpg' %}"
+                         alt="{% trans 'The repository view of a project' %}"
+                         loading="lazy" />
+                </li>
+            </ol>
+        </section>
+        <section class="api-section">
+            <h2>{% trans "Tips" %}</h2>
+            <ul>
+                <li>{% trans "Use lowercase letters and hyphens in project names, for example sleep-memory-study." %}</li>
+                <li>{% trans "Every project is a Git repository. The repository view shows its branches and commits." %}</li>
+                <li>{% trans "Scholar and Writer keep their files inside the project, in the hidden .scitex folder." %}</li>
+            </ul>
+        </section>
+        <section class="api-section">
+            <h2>{% trans "Troubleshooting" %}</h2>
+            <ul>
+                <li>{% trans "A project looks empty in the tree: click the small arrow next to its name to expand it." %}</li>
+                <li>{% trans "You cannot find the manuscript folders: open the repository view, where the hidden .scitex folder is listed." %}</li>
+            </ul>
+        </section>
+    </div>
+{% endblock %}

@@ -50,12 +50,12 @@ apps/workspace/*/static/*/ts/ (app code imports via @/components/*)
 
 | App | Shortcut | Description |
 |-----|----------|-------------|
-| repo_app | Alt+H | User dashboard, projects |
+| my_projects_app | Alt+H | User dashboard, projects |
 | writer_app | Alt+W | LaTeX manuscript editor |
 | scholar_app | Alt+S | Literature management |
 | figrecipe_app | Alt+F | Interactive figure editor |
 | clew_app | Alt+R | Verification & reproducibility |
-| discovery_app | Alt+X | Dataset discovery |
+| public_projects_app | Alt+X | Dataset discovery |
 | docs_app | Alt+D | Documentation viewer |
 | apps_app | Alt+M | App Store (browse, install, publish) |
 | console_app | - | Terminal & job management |

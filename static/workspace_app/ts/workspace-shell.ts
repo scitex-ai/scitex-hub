@@ -7,7 +7,7 @@
 import { initNewPanels } from "@/components/workspace-panel-resizer";
 
 const STORAGE_KEY = "ws-active-module";
-const DEFAULT_MODULE = "home";
+const DEFAULT_MODULE = "my_projects";
 const CONTENT_BASE = "/apps/workspace/content/";
 
 /** Read module names from the DOM data attribute set by the registry context processor. */
@@ -157,11 +157,11 @@ const PANE_HINTS = ["chat", "editor"];
 
 function getInitialModule(): string {
   // 1. Server-rendered active module — set from the URL by the view.
-  //    Module index routes like /apps/discovery/ render the shell
+  //    Module index routes like /apps/public-projects/ render the shell
   //    directly and do NOT match the /workspace/<module>/ pattern
   //    below; without this the shell fell through to localStorage and
-  //    loaded whatever module the user last used (usually "home"),
-  //    so the Discovery tile appeared to navigate to /apps/home/
+  //    loaded whatever module the user last used (usually "my_projects"),
+  //    so the Public Projects tile appeared to navigate to /apps/my-projects/
   //    (nav-404 batch #2).
   const served = document
     .getElementById("workspace-shell")

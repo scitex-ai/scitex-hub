@@ -1,0 +1,10 @@
+{
+  "$schema": "scitex-launcher-link",
+  "$schema_version": "1.0.0",
+  "name": "chat",
+  "label": "Chat",
+  "icon": "fas fa-comment",
+  "category": "writing",
+  "url": "/chat/",
+  "description": "Chat with the SciTeX AI assistant."
+}

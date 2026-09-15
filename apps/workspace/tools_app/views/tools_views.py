@@ -7,11 +7,15 @@ Individual tool detail page views. Each renders a specific tool template.
 
 from __future__ import annotations
 
+from functools import partial
+
+from django.http import Http404
 from django.shortcuts import render
 
 from apps.infra.project_app.services.project_utils import get_current_project
 
-from .tools_data import get_tool_domains
+from .tools_data import get_category, get_category_domains, get_tool_domains
+from .tools_icons import with_icons
 
 _EMBED_BASE = "tools_app/tools/tool_embed_base.html"
 _GLOBAL_BASE = "global_base.html"
@@ -26,14 +30,41 @@ def _tool_context(request):
     }
 
 
-def build_tools_context(request, current_project=None):
+def build_tools_context(request, current_project=None, category=None):
     """Build tools-specific context for both full page and partial views."""
-    domains = get_tool_domains()
+    if category:
+        domains = with_icons(get_category_domains(category))
+        label = get_category(category)["label"]
+    else:
+        domains = with_icons(get_tool_domains())
+        label = "Tools"
     return {
         "domains": domains,
         "total_tools": sum(len(d["tools"]) for d in domains),
         "current_project": current_project,
+        "tools_category": category or "",
+        "tools_title": label,
+        "panes_app": f"tools-{category}" if category else "tools",
     }
+
+
+# Manifest context_builder targets, one per launcher tile.
+build_image_tools_context = partial(build_tools_context, category="image")
+build_pdf_tools_context = partial(build_tools_context, category="pdf")
+build_text_tools_context = partial(build_tools_context, category="text")
+build_developer_tools_context = partial(build_tools_context, category="developer")
+build_media_tools_context = partial(build_tools_context, category="media")
+
+
+def tools_category(request, category):
+    """One launcher tile's tools (e.g. /apps/tools/pdf/)."""
+    if not get_category(category):
+        raise Http404("Unknown tools category")
+    current_project = None
+    if request.user.is_authenticated:
+        current_project = get_current_project(request, user=request.user)
+    context = build_tools_context(request, current_project, category=category)
+    return render(request, "tools_app/tools.html", context)
 
 
 def tools(request):
@@ -201,8 +232,10 @@ def tool_scrape_citations(request):
 
 
 def tool_run_stats(request):
-    """Statistics Calculator tool detail page."""
-    return render(request, "tools_app/tools/run-stats.html", _tool_context(request))
+    """Old Statistics Calculator URL; the Stats app replaced it."""
+    from django.shortcuts import redirect
+
+    return redirect("/apps/stats/", permanent=False)
 
 
 # Document tools

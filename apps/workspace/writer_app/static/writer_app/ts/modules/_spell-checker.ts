@@ -5,15 +5,18 @@
  * Uses modular components for parsing, dictionary management, word checking, and decorations.
  */
 
-import type { SpellCheckConfig } from './_spell-checker/types';
-import { LaTeXParser } from './_spell-checker/latex-parser';
-import { DictionaryManager } from './_spell-checker/dictionary-manager';
-import { WordChecker } from './_spell-checker/word-checker';
-import { DecorationsManager, injectSpellCheckStyles } from './_spell-checker/decorations-manager';
+import type { SpellCheckConfig } from "./_spell-checker/types";
+import { LaTeXParser } from "./_spell-checker/latex-parser";
+import { DictionaryManager } from "./_spell-checker/dictionary-manager";
+import { WordChecker } from "./_spell-checker/word-checker";
+import {
+  DecorationsManager,
+  injectSpellCheckStyles,
+} from "./_spell-checker/decorations-manager";
 
 // Re-export types and utility functions
-export type { SpellCheckConfig } from './_spell-checker/types';
-export { injectSpellCheckStyles } from './_spell-checker/decorations-manager';
+export type { SpellCheckConfig } from "./_spell-checker/types";
+export { injectSpellCheckStyles } from "./_spell-checker/decorations-manager";
 
 export class SpellChecker {
   private monaco: any;
@@ -27,12 +30,16 @@ export class SpellChecker {
   private wordChecker: WordChecker;
   private decorationsManager: DecorationsManager;
 
-  constructor(monaco: any, editor: any, config: Partial<SpellCheckConfig> = {}) {
+  constructor(
+    monaco: any,
+    editor: any,
+    config: Partial<SpellCheckConfig> = {},
+  ) {
     this.monaco = monaco;
     this.editor = editor;
     this.config = {
       enabled: true,
-      language: 'en-US',
+      language: "en-US",
       skipLaTeXCommands: true,
       skipMathMode: true,
       skipCodeBlocks: true,
@@ -42,28 +49,36 @@ export class SpellChecker {
     // Initialize custom dictionary
     const customWords = new Set<string>();
     if (this.config.customDictionary) {
-      this.config.customDictionary.forEach(w => customWords.add(w.toLowerCase()));
+      this.config.customDictionary.forEach((w) =>
+        customWords.add(w.toLowerCase()),
+      );
     }
 
     // Initialize modular components
     this.latexParser = new LaTeXParser(
       this.config.skipLaTeXCommands,
       this.config.skipMathMode,
-      this.config.skipCodeBlocks
+      this.config.skipCodeBlocks,
     );
     this.dictionaryManager = new DictionaryManager(this.config.language);
     this.wordChecker = new WordChecker(customWords);
     this.decorationsManager = new DecorationsManager(this.monaco, this.editor);
 
-    // Initialize Typo.js dictionary
-    this.dictionaryManager.initializeDictionary().then(() => {
-      // Re-check spelling once dictionary is loaded
-      if (this.checkingEnabled) {
-        this.checkSpelling();
-      }
-    });
+    // 550 KB dictionary + a synchronous Typo.js parse: start it after the
+    // editor is on screen, not during first load.
+    const loadDictionary = () =>
+      this.dictionaryManager.initializeDictionary().then(() => {
+        if (this.checkingEnabled) {
+          this.checkSpelling();
+        }
+      });
+    window.setTimeout(() => {
+      const idle = (window as any).requestIdleCallback;
+      if (idle) idle(loadDictionary, { timeout: 3000 });
+      else loadDictionary();
+    }, 2500);
 
-    console.log('[SpellChecker] Initialized with config:', this.config);
+    console.log("[SpellChecker] Initialized with config:", this.config);
   }
 
   /**
@@ -71,7 +86,7 @@ export class SpellChecker {
    */
   enable(): void {
     if (!this.config.enabled) {
-      console.log('[SpellChecker] Spell checking is disabled');
+      console.log("[SpellChecker] Spell checking is disabled");
       return;
     }
 
@@ -97,7 +112,7 @@ export class SpellChecker {
     // Register code action provider for spelling suggestions
     this.registerCodeActionProvider();
 
-    console.log('[SpellChecker] Enabled');
+    console.log("[SpellChecker] Enabled");
   }
 
   /**
@@ -105,7 +120,7 @@ export class SpellChecker {
    */
   recheckAll(): void {
     if (this.checkingEnabled) {
-      console.log('[SpellChecker] Manually re-checking all content');
+      console.log("[SpellChecker] Manually re-checking all content");
       this.checkSpelling();
     }
   }
@@ -116,7 +131,7 @@ export class SpellChecker {
   disable(): void {
     this.checkingEnabled = false;
     this.decorationsManager.clearDecorations();
-    console.log('[SpellChecker] Disabled');
+    console.log("[SpellChecker] Disabled");
   }
 
   /**
@@ -142,23 +157,27 @@ export class SpellChecker {
         const isCorrect = await this.wordChecker.isWordCorrect(
           word.text,
           this.dictionaryManager.getDictionary(),
-          this.dictionaryManager.isLoaded()
+          this.dictionaryManager.isLoaded(),
         );
 
         if (!isCorrect) {
           // Calculate absolute position in document
-          const startPos = model.getPositionAt(region.startOffset + word.startIndex);
-          const endPos = model.getPositionAt(region.startOffset + word.endIndex);
+          const startPos = model.getPositionAt(
+            region.startOffset + word.startIndex,
+          );
+          const endPos = model.getPositionAt(
+            region.startOffset + word.endIndex,
+          );
 
           const range = new this.monaco.Range(
             startPos.lineNumber,
             startPos.column,
             endPos.lineNumber,
-            endPos.column
+            endPos.column,
           );
 
           misspelledRanges.push(
-            this.decorationsManager.createSpellingDecoration(range, word.text)
+            this.decorationsManager.createSpellingDecoration(range, word.text),
           );
         }
       }
@@ -167,21 +186,23 @@ export class SpellChecker {
     // Apply decorations
     this.decorationsManager.setDecorations(misspelledRanges);
 
-    console.log(`[SpellChecker] Found ${misspelledRanges.length} potential spelling errors`);
+    console.log(
+      `[SpellChecker] Found ${misspelledRanges.length} potential spelling errors`,
+    );
   }
 
   /**
    * Register code action provider for spelling suggestions
    */
   private registerCodeActionProvider(): void {
-    this.monaco.languages.registerCodeActionProvider('latex', {
+    this.monaco.languages.registerCodeActionProvider("latex", {
       provideCodeActions: (model: any, range: any, context: any) => {
         const actions: any[] = [];
 
         // Check if this is a spelling error
         const decorations = model.getDecorationsInRange(range);
-        const hasSpellingError = decorations.some((d: any) =>
-          d.options.className === 'spell-error'
+        const hasSpellingError = decorations.some(
+          (d: any) => d.options.className === "spell-error",
         );
 
         if (!hasSpellingError) {
@@ -193,14 +214,14 @@ export class SpellChecker {
         // Add to custom dictionary action
         actions.push({
           title: `Add "${word}" to dictionary`,
-          kind: 'quickfix',
+          kind: "quickfix",
           isPreferred: false,
           edit: {
             edits: [],
           },
           command: {
-            id: 'spellchecker.addToCustomDictionary',
-            title: 'Add to Dictionary',
+            id: "spellchecker.addToCustomDictionary",
+            title: "Add to Dictionary",
             arguments: [word],
           },
         });
@@ -214,14 +235,14 @@ export class SpellChecker {
 
     // Register command for adding words to custom dictionary
     this.editor.addAction({
-      id: 'spellchecker.addToCustomDictionary',
-      label: 'Add to Custom Dictionary',
+      id: "spellchecker.addToCustomDictionary",
+      label: "Add to Custom Dictionary",
       run: (editor: any, word: string) => {
         this.addToCustomDictionary(word);
       },
     });
 
-    console.log('[SpellChecker] Code action provider registered');
+    console.log("[SpellChecker] Code action provider registered");
   }
 
   /**
@@ -231,11 +252,14 @@ export class SpellChecker {
     this.wordChecker.addCustomWord(word);
 
     // Save to localStorage
-    const stored = localStorage.getItem('scitex_custom_dictionary');
+    const stored = localStorage.getItem("scitex_custom_dictionary");
     const customDict = stored ? JSON.parse(stored) : [];
     if (!customDict.includes(word.toLowerCase())) {
       customDict.push(word.toLowerCase());
-      localStorage.setItem('scitex_custom_dictionary', JSON.stringify(customDict));
+      localStorage.setItem(
+        "scitex_custom_dictionary",
+        JSON.stringify(customDict),
+      );
     }
 
     // Re-check spelling to clear the error
@@ -246,7 +270,7 @@ export class SpellChecker {
     // Show toast notification
     const showToast = (window as any).showToast;
     if (showToast) {
-      showToast(`Added "${word}" to dictionary`, 'success');
+      showToast(`Added "${word}" to dictionary`, "success");
     }
   }
 
@@ -254,12 +278,14 @@ export class SpellChecker {
    * Load custom dictionary from localStorage
    */
   loadCustomDictionary(): void {
-    const stored = localStorage.getItem('scitex_custom_dictionary');
+    const stored = localStorage.getItem("scitex_custom_dictionary");
     if (stored) {
       const customDict = JSON.parse(stored);
       const customWords = new Set(customDict);
       this.wordChecker.setCustomWords(customWords);
-      console.log(`[SpellChecker] Loaded ${customWords.size} words from custom dictionary`);
+      console.log(
+        `[SpellChecker] Loaded ${customWords.size} words from custom dictionary`,
+      );
     }
   }
 
@@ -268,8 +294,8 @@ export class SpellChecker {
    */
   clearCustomDictionary(): void {
     this.wordChecker.setCustomWords(new Set());
-    localStorage.removeItem('scitex_custom_dictionary');
+    localStorage.removeItem("scitex_custom_dictionary");
     this.checkSpelling();
-    console.log('[SpellChecker] Custom dictionary cleared');
+    console.log("[SpellChecker] Custom dictionary cleared");
   }
 }

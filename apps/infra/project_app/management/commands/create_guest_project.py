@@ -40,6 +40,8 @@ class Command(BaseCommand):
                 "name": "Demo Project",
                 "description": "Try SciTeX Hub features without signing up. This is a read-only demo workspace.",
                 "status": "active",
+                # Visitors without an account must be able to open it.
+                "visibility": "public",
                 "hypotheses": "This is a demonstration project for exploring SciTeX Hub capabilities.",
             },
         )

@@ -35,9 +35,12 @@ docstring, and would miss ``os.environ.get`` spelled across two lines.
 """
 
 import ast
+import hmac
 from pathlib import Path
 
 import pytest
+
+from tests.tracked_source import tracked_source_files
 
 # Anything whose NAME says "this is a credential".
 SECRET_NAME_MARKERS = (
@@ -125,16 +128,8 @@ def _repo_root() -> Path:
 
 
 def _python_files(root: Path):
-    # Match SKIP_DIRS against the path RELATIVE to the repo root, never the
-    # absolute path. When this runs inside a linked worktree the root is itself
-    # ".../.worktrees/<name>/", so an absolute-path check matches ".worktrees"
-    # on EVERY file and the scan silently visits nothing — passing by measuring
-    # zero. That is the exact "a gate that cannot fail is not a gate" defect
-    # this file exists to catch, and it shipped here first time round.
-    for path in root.rglob("*.py"):
-        if any(part in SKIP_DIRS for part in path.relative_to(root).parts):
-            continue
-        yield path
+    """Tracked Python blobs from the index, including staged content."""
+    return tracked_source_files(root, ("*.py",))
 
 
 def _is_secret_name(name: str) -> bool:
@@ -226,12 +221,12 @@ def _scan_repo():
     violations = []
     for path in _python_files(root):
         try:
-            source = path.read_text(encoding="utf-8")
-        except (OSError, UnicodeDecodeError):
+            source = path.text()
+        except UnicodeDecodeError:
             continue
-        for lineno, env_name, default in find_usable_secret_defaults(source, str(path)):
+        for lineno, env_name, default in find_usable_secret_defaults(source, path.path):
             violations.append(
-                f"{path.relative_to(root)}:{lineno} {env_name} falls back to a "
+                f"{path.path}:{lineno} {env_name} falls back to a "
                 f"usable literal ({len(default)} chars)"
             )
     return violations
@@ -240,20 +235,20 @@ def _scan_repo():
 def _scan_repo_for_burned_credential():
     """Return ``path:lineno`` for every default equal to the burned password."""
     root = _repo_root()
-    here = Path(__file__).resolve()
+    here = Path(__file__).resolve().relative_to(root).as_posix()
     offenders = []
     for path in _python_files(root):
-        if path.resolve() == here:
+        if path.path == here:
             continue
         try:
-            source = path.read_text(encoding="utf-8")
-        except (OSError, UnicodeDecodeError):
+            source = path.text()
+        except UnicodeDecodeError:
             continue
         for lineno, _env_name, default in find_usable_secret_defaults(
-            source, str(path)
+            source, path.path
         ):
             if default == BURNED_CREDENTIAL:
-                offenders.append(f"{path.relative_to(root)}:{lineno}")
+                offenders.append(f"{path.path}:{lineno}")
     return offenders
 
 
@@ -287,7 +282,7 @@ def test_detector_reports_the_burned_default_value():
     # Act
     _lineno, _env_name, default = next(iter(find_usable_secret_defaults(source)))
     # Assert
-    assert default == BURNED_CREDENTIAL
+    assert hmac.compare_digest(default, BURNED_CREDENTIAL)
 
 
 def test_detector_flags_an_abbreviated_credential_name():
@@ -353,8 +348,7 @@ def test_no_secret_setting_falls_back_to_a_usable_literal():
 def test_the_burned_credential_is_not_a_default_anywhere_in_python():
     # Arrange
     remedy = (
-        f"{BURNED_CREDENTIAL!r} authenticated as test-user on PRODUCTION on "
-        "2026-08-16. It must never be a code default again.\n"
+        "The retired production credential must never be a code default again.\n"
     )
     # Act
     offenders = _scan_repo_for_burned_credential()

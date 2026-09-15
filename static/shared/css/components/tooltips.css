@@ -51,8 +51,10 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* Show tooltip on hover - with delay */
-[data-tooltip]:hover::after {
+/* Show tooltip on hover - with delay - and on keyboard focus, so a control
+   whose only content is its tooltip is not silent for keyboard users. */
+[data-tooltip]:hover::after,
+[data-tooltip]:focus-visible::after {
   opacity: 1;
   transition-delay: 0.5s; /* Delay applies on hover too */
 }
@@ -136,7 +138,8 @@
     z-index: 9;
 }
 
-[data-tooltip]:hover::before {
+[data-tooltip]:hover::before,
+[data-tooltip]:focus-visible::before {
     opacity: 1;
 }
 

@@ -1,11 +1,9 @@
 {% extends "global_base.html" %}
 
 {% load static %}
+{% load i18n %}
 
-{% block title %}
-    Terms of Use
-    - SciTeX
-{% endblock %}
+{% block title %}{% trans "Terms of Use - SciTeX" %}{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
     <style>
@@ -89,254 +87,179 @@
             color: var(--text-secondary);
             line-height: 1.8;
         }
+
+        .lang-ref-note {
+            margin: 0.75rem auto 0;
+            max-width: 800px;
+            padding: 0.55rem 0.9rem;
+            font-size: 0.85rem;
+            color: var(--text-muted, #666);
+            background: var(--bg-muted, #f4f5f7);
+            border-left: 3px solid var(--border-muted, #d0d4d9);
+            border-radius: 0 6px 6px 0;
+        }
     </style>
 {% endblock %}
 {% block content %}
     <div class="container pt-4">
         <header class="minimal-hero">
-            <h1 class="minimal-hero-title">Terms of Use</h1>
-            <p class="minimal-hero-subtitle">Please read these terms carefully before using our platform</p>
+            <h1 class="minimal-hero-title">{% trans "Terms of Use" %}</h1>
+            <p class="minimal-hero-subtitle">{% trans "Please read these terms carefully before using our platform" %}</p>
+            <p class="lang-ref-note">
+                {% trans "This is the Japanese reference version of the Terms of Use. The English version is the governing document." %}
+            </p>
         </header>
     </div>
     <section class="policy-section">
         <div class="container policy-container">
             <div class="policy-content">
                 <article>
-                    <h2 id="agreement">Agreement to Terms</h2>
+                    <h2 id="agreement">{% trans "Agreement to Terms" %}</h2>
                     <p>
-                        These Terms of Use constitute a legally binding agreement made between
-                        you, whether personally or on behalf of an entity ("you") and SciTeX
-                        ("we," "us," or "our"), concerning your access to and use of the
-                        SciTeX platform and all associated services.
+                        {% trans "These Terms of Use constitute a legally binding agreement made between you, whether personally or on behalf of an entity (\"you\") and SciTeX (\"we,\" \"us,\" or \"our\"), concerning your access to and use of the SciTeX platform and all associated services." %}
                     </p>
                     <p>
-                        By accessing or using the SciTeX platform, you agree to be bound by
-                        these Terms of Use. If you disagree with any part of the terms, then
-                        you may not access the platform.
+                        {% trans "By accessing or using the SciTeX platform, you agree to be bound by these Terms of Use. If you disagree with any part of the terms, then you may not access the platform." %}
                     </p>
                     <div class="highlight"
                          role="note"
                          aria-label="Important information about terms changes">
                         <p>
-                            We reserve the right to change these Terms of Use at any time. We
-                            will notify you of any changes by posting the new Terms of Use on
-                            this page and updating the "Last Updated" date. Your continued use
-                            of the platform following the posting of revised Terms of Use means
-                            that you accept and agree to the changes.
+                            {% trans "We reserve the right to change these Terms of Use at any time. We will notify you of any changes by posting the new Terms of Use on this page and updating the Last Updated date. Your continued use of the platform following the posting of revised Terms of Use means that you accept and agree to the changes." %}
                         </p>
                     </div>
-                    <h2 id="intellectual-property">Intellectual Property Rights</h2>
+                    <h2 id="intellectual-property">{% trans "Intellectual Property Rights" %}</h2>
                     <p>
-                        Unless otherwise indicated, the SciTeX platform is our proprietary
-                        property and all source code, databases, functionality, software,
-                        website designs, audio, video, text, photographs, and graphics on the
-                        platform (collectively, the "Content") and the trademarks, service
-                        marks, and logos contained therein (the "Marks") are owned or
-                        controlled by us or licensed to us, and are protected by copyright and
-                        trademark laws and various other intellectual property rights.
+                        {% trans "Unless otherwise indicated, the SciTeX platform is our proprietary property and all source code, databases, functionality, software, website designs, audio, video, text, photographs, and graphics on the platform (collectively, the \"Content\") and the trademarks, service marks, and logos contained therein (the \"Marks\") are owned or controlled by us or licensed to us, and are protected by copyright and trademark laws and various other intellectual property rights." %}
                     </p>
                     <div class="highlight"
                          role="note"
                          aria-label="Important information about open source availability">
                         <p>
-                            SciTeX codebase is fully open and available at no cost as long as
-                            customers can utilize it independently. Our code is open-source and
-                            can be freely used, modified, and distributed according to the terms
-                            of our license. For users who prefer not to manage their own
-                            installations, we offer a web interface as a service for a fee.
+                            {% trans "SciTeX codebase is fully open and available at no cost as long as customers can utilize it independently. Our code is open-source and can be freely used, modified, and distributed according to the terms of our license. For users who prefer not to manage their own installations, we offer a web interface as a service for a fee." %}
                         </p>
                     </div>
                     <p>
-                        Provided that you are eligible to use the platform, you are granted a
-                        limited license to access and use the platform and to download or
-                        print a copy of any portion of the Content to which you have properly
-                        gained access solely for your personal, non-commercial use. We reserve
-                        all rights not expressly granted to you in and to the platform, the
-                        Content, and the Marks.
+                        {% trans "Provided that you are eligible to use the platform, you are granted a limited license to access and use the platform and to download or print a copy of any portion of the Content to which you have properly gained access solely for your personal, non-commercial use. We reserve all rights not expressly granted to you in and to the platform, the Content, and the Marks." %}
                     </p>
-                    <h2 id="user-representations">User Representations</h2>
-                    <p>By using the SciTeX platform, you represent and warrant that:</p>
+                    <h2 id="user-representations">{% trans "User Representations" %}</h2>
+                    <p>{% trans "By using the SciTeX platform, you represent and warrant that:" %}</p>
                     <ol>
                         <li>
-                            You have the legal capacity and you agree to comply with these Terms
-                            of Use.
+                            {% trans "You have the legal capacity and you agree to comply with these Terms of Use." %}
                         </li>
                         <li>
-                            You are not a minor in the jurisdiction in which you reside, or if a
-                            minor, you have received parental permission to use the platform.
+                            {% trans "You are not a minor in the jurisdiction in which you reside, or if a minor, you have received parental permission to use the platform." %}
                         </li>
                         <li>
-                            You will not access the platform through automated or non-human
-                            means, whether through a bot, script, or otherwise.
+                            {% trans "You will not access the platform through automated or non-human means, whether through a bot, script, or otherwise." %}
                         </li>
                         <li>
-                            You will not use the platform for any illegal or unauthorized
-                            purpose.
+                            {% trans "You will not use the platform for any illegal or unauthorized purpose." %}
                         </li>
                         <li>
-                            Your use of the platform will not violate any applicable law or
-                            regulation.
+                            {% trans "Your use of the platform will not violate any applicable law or regulation." %}
                         </li>
                     </ol>
                     <p>
-                        If you provide any information that is untrue, inaccurate, not
-                        current, or incomplete, we have the right to suspend or terminate your
-                        account and refuse any and all current or future use of the platform
-                        (or any portion thereof).
+                        {% trans "If you provide any information that is untrue, inaccurate, not current, or incomplete, we have the right to suspend or terminate your account and refuse any and all current or future use of the platform (or any portion thereof)." %}
                     </p>
-                    <h2 id="user-registration">User Registration</h2>
+                    <h2 id="user-registration">{% trans "User Registration" %}</h2>
                     <p>
-                        You may be required to register with the platform. You agree to keep
-                        your password confidential and will be responsible for all use of your
-                        account and password. We reserve the right to remove, reclaim, or
-                        change a username you select if we determine, in our sole discretion,
-                        that such username is inappropriate, obscene, or otherwise
-                        objectionable.
+                        {% trans "You may be required to register with the platform. You agree to keep your password confidential and will be responsible for all use of your account and password. We reserve the right to remove, reclaim, or change a username you select if we determine, in our sole discretion, that such username is inappropriate, obscene, or otherwise objectionable." %}
                     </p>
-                    <h2 id="user-content">User Content</h2>
-                    <h3 id="content-ownership">Content Ownership</h3>
+                    <h2 id="user-content">{% trans "User Content" %}</h2>
+                    <h3 id="content-ownership">{% trans "Content Ownership" %}</h3>
                     <p>
-                        You retain all rights to your research data, documents, code, and
-                        other content that you upload, post, or otherwise make available on
-                        the platform ("User Content"). By uploading User Content, you grant us
-                        a non-exclusive, royalty-free, worldwide license to use, copy, modify,
-                        and display your User Content in connection with the operation of the
-                        SciTeX platform and providing services to you.
+                        {% trans "You retain all rights to your research data, documents, code, and other content that you upload, post, or otherwise make available on the platform (\"User Content\"). By uploading User Content, you grant us a non-exclusive, royalty-free, worldwide license to use, copy, modify, and display your User Content in connection with the operation of the SciTeX platform and providing services to you." %}
                     </p>
-                    <h3 id="content-responsibility">Content Responsibility</h3>
+                    <h3 id="content-responsibility">{% trans "Content Responsibility" %}</h3>
                     <p>
-                        You are solely responsible for your User Content. You represent and
-                        warrant that:
+                        {% trans "You are solely responsible for your User Content. You represent and warrant that:" %}
                     </p>
                     <ol>
                         <li>
-                            You own the User Content or have the right to use it and grant us
-                            the rights and license as provided in these Terms of Use.
+                            {% trans "You own the User Content or have the right to use it and grant us the rights and license as provided in these Terms of Use." %}
                         </li>
                         <li>
-                            The User Content does not violate the privacy rights, publicity
-                            rights, copyrights, contract rights, or any other rights of any
-                            person.
+                            {% trans "The User Content does not violate the privacy rights, publicity rights, copyrights, contract rights, or any other rights of any person." %}
                         </li>
                         <li>
-                            The User Content does not contain any material that solicits
-                            personal information from anyone under the age of 18 or exploit
-                            people under the age of 18 in a sexual or violent manner.
+                            {% trans "The User Content does not contain any material that solicits personal information from anyone under the age of 18 or exploit people under the age of 18 in a sexual or violent manner." %}
                         </li>
                         <li>
-                            The User Content does not violate any applicable law, regulation, or
-                            rule.
+                            {% trans "The User Content does not violate any applicable law, regulation, or rule." %}
                         </li>
                     </ol>
-                    <h3 id="content-review">Content Review</h3>
+                    <h3 id="content-review">{% trans "Content Review" %}</h3>
                     <p>
-                        We do not review all User Content before it is posted on the platform,
-                        and cannot ensure prompt removal of objectionable User Content after
-                        it has been posted. Accordingly, we assume no liability for any action
-                        or inaction regarding User Content.
+                        {% trans "We do not review all User Content before it is posted on the platform, and cannot ensure prompt removal of objectionable User Content after it has been posted. Accordingly, we assume no liability for any action or inaction regarding User Content." %}
                     </p>
-                    <h2 id="prohibited-activities">Prohibited Activities</h2>
+                    <h2 id="prohibited-activities">{% trans "Prohibited Activities" %}</h2>
                     <p>
-                        You may not access or use the platform for any purpose other than that
-                        for which we make the platform available. The platform may not be used
-                        in connection with any commercial endeavors except those that are
-                        specifically endorsed or approved by us.
+                        {% trans "You may not access or use the platform for any purpose other than that for which we make the platform available. The platform may not be used in connection with any commercial endeavors except those that are specifically endorsed or approved by us." %}
                     </p>
-                    <p>As a user of the platform, you agree not to:</p>
+                    <p>{% trans "As a user of the platform, you agree not to:" %}</p>
                     <ol>
                         <li>
-                            Systematically retrieve data or other content from the platform to
-                            create or compile, directly or indirectly, a collection,
-                            compilation, database, or directory without written permission from
-                            us.
+                            {% trans "Systematically retrieve data or other content from the platform to create or compile, directly or indirectly, a collection, compilation, database, or directory without written permission from us." %}
                         </li>
                         <li>
-                            Make any unauthorized use of the platform, including collecting
-                            usernames and/or email addresses of users by electronic or other
-                            means for the purpose of sending unsolicited email, or creating user
-                            accounts by automated means or under false pretenses.
+                            {% trans "Make any unauthorized use of the platform, including collecting usernames and/or email addresses of users by electronic or other means for the purpose of sending unsolicited email, or creating user accounts by automated means or under false pretenses." %}
                         </li>
                         <li>
-                            Use the platform in a manner inconsistent with any applicable laws
-                            or regulations.
+                            {% trans "Use the platform in a manner inconsistent with any applicable laws or regulations." %}
                         </li>
                         <li>
-                            Trick, defraud, or mislead us and other users, especially in any
-                            attempt to learn sensitive account information such as user
-                            passwords.
+                            {% trans "Trick, defraud, or mislead us and other users, especially in any attempt to learn sensitive account information such as user passwords." %}
                         </li>
                         <li>
-                            Engage in any automated use of the system, such as using scripts to
-                            send messages or upload content.
+                            {% trans "Engage in any automated use of the system, such as using scripts to send messages or upload content." %}
                         </li>
                         <li>
-                            Attempt to impersonate another user or person or use the username of
-                            another user.
+                            {% trans "Attempt to impersonate another user or person or use the username of another user." %}
                         </li>
                         <li>
-                            Upload or transmit (or attempt to upload or to transmit) viruses,
-                            Trojan horses, or other malicious code that interferes with the
-                            platform's operation.
+                            {% trans "Upload or transmit (or attempt to upload or to transmit) viruses, Trojan horses, or other malicious code that interferes with the platform's operation." %}
                         </li>
                         <li>
-                            Upload or transmit (or attempt to upload or to transmit) any
-                            material that acts as a passive or active information collection or
-                            transmission mechanism without proper authorization.
+                            {% trans "Upload or transmit (or attempt to upload or to transmit) any material that acts as a passive or active information collection or transmission mechanism without proper authorization." %}
                         </li>
                         <li>
-                            Use any automated system, including scripts, bots, or scrapers to
-                            access the platform, except as explicitly permitted.
+                            {% trans "Use any automated system, including scripts, bots, or scrapers to access the platform, except as explicitly permitted." %}
                         </li>
                     </ol>
-                    <h2 id="subscription-terms">Subscription Terms</h2>
-                    <h3 id="payment">Payment</h3>
-                    <p>We accept the following forms of payment:</p>
+                    <h2 id="subscription-terms">{% trans "Subscription Terms" %}</h2>
+                    <h3 id="payment">{% trans "Payment" %}</h3>
+                    <p>{% trans "We accept the following forms of payment:" %}</p>
                     <ul>
-                        <li>Visa</li>
-                        <li>Mastercard</li>
-                        <li>American Express</li>
-                        <li>Discover</li>
+                        <li>{% trans "Visa" %}</li>
+                        <li>{% trans "Mastercard" %}</li>
+                        <li>{% trans "American Express" %}</li>
+                        <li>{% trans "Discover" %}</li>
                     </ul>
                     <p>
-                        You agree to provide current, complete, and accurate purchase and
-                        account information for all purchases made via the platform. You
-                        further agree to promptly update account and payment information,
-                        including email address, payment method, and payment card expiration
-                        date, so that we can complete your transactions and contact you as
-                        needed.
+                        {% trans "You agree to provide current, complete, and accurate purchase and account information for all purchases made via the platform. You further agree to promptly update account and payment information, including email address, payment method, and payment card expiration date, so that we can complete your transactions and contact you as needed." %}
                     </p>
-                    <h3 id="free-trial">Free Trial</h3>
+                    <h3 id="free-trial">{% trans "Free Trial" %}</h3>
                     <p>
-                        We may, at our sole discretion, offer a subscription with a free trial
-                        for a limited period of time. At the end of the free trial period, you
-                        will be automatically charged the applicable subscription fee unless
-                        you cancel your subscription.
+                        {% trans "We may, at our sole discretion, offer a subscription with a free trial for a limited period of time. At the end of the free trial period, you will be automatically charged the applicable subscription fee unless you cancel your subscription." %}
                     </p>
-                    <h3 id="cancellation">Cancellation</h3>
+                    <h3 id="cancellation">{% trans "Cancellation" %}</h3>
                     <p>
-                        You can cancel your subscription at any time by logging into your
-                        account. Your cancellation will take effect at the end of the current
-                        paid term. If you are unsatisfied with our services, please email us
-                        at
+                        {% trans "You can cancel your subscription at any time by logging into your account. Your cancellation will take effect at the end of the current paid term. If you are unsatisfied with our services, please email us at" %}
                         <a href="mailto:{{ CONTACT_EMAIL }}" aria-label="Email support at {{ CONTACT_EMAIL }}">{{ CONTACT_EMAIL }}</a>.
                     </p>
-                    <h2 id="termination">Termination</h2>
+                    <h2 id="termination">{% trans "Termination" %}</h2>
                     <p>
-                        We may terminate or suspend your account and bar access to the
-                        platform immediately, without prior notice or liability, under our
-                        sole discretion, for any reason whatsoever and without limitation,
-                        including but not limited to a breach of the Terms.
+                        {% trans "We may terminate or suspend your account and bar access to the platform immediately, without prior notice or liability, under our sole discretion, for any reason whatsoever and without limitation, including but not limited to a breach of the Terms." %}
                     </p>
                     <p>
-                        If you wish to terminate your account, you may simply discontinue
-                        using the platform, or contact us at
+                        {% trans "If you wish to terminate your account, you may simply discontinue using the platform, or contact us at" %}
                         <a href="mailto:{{ CONTACT_EMAIL }}" aria-label="Email support at {{ CONTACT_EMAIL }}">{{ CONTACT_EMAIL }}</a>.
                     </p>
                     <p>
-                        All provisions of the Terms which by their nature should survive
-                        termination shall survive termination, including, without limitation,
-                        ownership provisions, warranty disclaimers, indemnity, and limitations
-                        of liability.
+                        {% trans "All provisions of the Terms which by their nature should survive termination shall survive termination, including, without limitation, ownership provisions, warranty disclaimers, indemnity, and limitations of liability." %}
                     </p>
                     {% comment %} No directors / employees / agents / subsidiaries /
                        affiliates / partners are named in this clause or in the
@@ -351,27 +274,13 @@
                        When SciTeX incorporates (2026-08-08) and if it ever has
                        officers or employees, reintroduce them DELIBERATELY, naming
                        only the ones that exist. {% endcomment %}
-                    <h2 id="limitation-of-liability">Limitation of Liability</h2>
+                    <h2 id="limitation-of-liability">{% trans "Limitation of Liability" %}</h2>
                     <p>
-                        In no event will we be liable
-                        to you or any third party for any direct, indirect, consequential,
-                        exemplary, incidental, special, or punitive damages, including lost
-                        profit, lost revenue, loss of data, or other damages arising from your
-                        use of the platform, even if we have been advised of the possibility
-                        of such damages.
+                        {% trans "In no event will we be liable to you or any third party for any direct, indirect, consequential, exemplary, incidental, special, or punitive damages, including lost profit, lost revenue, loss of data, or other damages arising from your use of the platform, even if we have been advised of the possibility of such damages." %}
                     </p>
-                    <h2 id="indemnification">Indemnification</h2>
+                    <h2 id="indemnification">{% trans "Indemnification" %}</h2>
                     <p>
-                        You agree to defend, indemnify, and hold us harmless
-                        from and against any loss, damage, liability,
-                        claim, or demand, including reasonable attorneys' fees and expenses,
-                        made by any third party due to or arising out of: (1) your use of the
-                        platform; (2) breach of these Terms of Use; (3) any breach of your
-                        representations and warranties set forth in these Terms of Use; (4)
-                        your violation of the rights of a third party, including but not
-                        limited to intellectual property rights; or (5) any overt harmful act
-                        toward any other user of the platform with whom you connected via the
-                        platform.
+                        {% trans "You agree to defend, indemnify, and hold us harmless from and against any loss, damage, liability, claim, or demand, including reasonable attorneys' fees and expenses, made by any third party due to or arising out of: (1) your use of the platform; (2) breach of these Terms of Use; (3) any breach of your representations and warranties set forth in these Terms of Use; (4) your violation of the rights of a third party, including but not limited to intellectual property rights; or (5) any overt harmful act toward any other user of the platform with whom you connected via the platform." %}
                     </p>
                     {% comment %} 準拠法 (governing law) and 裁判管轄 (venue) are two
                        DIFFERENT facts and stay in two separate clauses below. Both
@@ -398,25 +307,17 @@
                        Do not "refresh" these two clauses from a US template. They are
                        pinned by tests/apps/public_app/views/test_terms_jurisdiction.py,
                        which fails if a US state or venue reappears here. {% endcomment %}
-                    <h2 id="governing-law">Governing Law</h2>
+                    <h2 id="governing-law">{% trans "Governing Law" %}</h2>
                     <p>
-                        These Terms of Use and your use of the platform are governed by and
-                        construed in accordance with the laws of Japan (日本法), without
-                        regard to its conflict of law principles.
+                        {% trans "These Terms of Use and your use of the platform are governed by and construed in accordance with the laws of Japan (日本法), without regard to its conflict of law principles." %}
                     </p>
-                    <h2 id="dispute-resolution">Dispute Resolution</h2>
+                    <h2 id="dispute-resolution">{% trans "Dispute Resolution" %}</h2>
                     <p>
-                        Any legal action of whatever nature brought by either you or us shall
-                        be commenced or prosecuted exclusively in the Shizuoka District Court
-                        (静岡地方裁判所) in Japan, which is the district court with jurisdiction
-                        over our registered office, and you hereby consent to that exclusive
-                        jurisdiction and waive any objection to it.
+                        {% trans "Any legal action of whatever nature brought by either you or us shall be commenced or prosecuted exclusively in the Shizuoka District Court (静岡地方裁判所) in Japan, which is the district court with jurisdiction over our registered office, and you hereby consent to that exclusive jurisdiction and waive any objection to it." %}
                     </p>
-                    <h2 id="contact-us">Contact Us</h2>
+                    <h2 id="contact-us">{% trans "Contact Us" %}</h2>
                     <p>
-                        In order to resolve a complaint regarding the platform or to receive
-                        further information regarding use of the platform, please contact us
-                        at:
+                        {% trans "In order to resolve a complaint regarding the platform or to receive further information regarding use of the platform, please contact us at:" %}
                     </p>
                     {% comment %} No postal address here on purpose. The previous entry was
                        a PERSONAL HOME ADDRESS published on a public page. The
@@ -431,7 +332,7 @@
                     <address>
                         SciTeX
                         <br />
-                        Email:
+                        {% trans "Email:" %}
                         <a href="mailto:{{ LEGAL_EMAIL }}"
                            aria-label="Email SciTeX at {{ LEGAL_EMAIL }}">{{ LEGAL_EMAIL }}</a>
                     </address>
@@ -439,8 +340,8 @@
             </div>
             <div class="policy-meta">
                 <p>
-                    <strong>Last Updated:</strong>
-                    <time datetime="2026-01-22">January 22, 2026</time>
+                    <strong>{% trans "Last Updated:" %}</strong>
+                    <time datetime="2026-01-22">{% trans "January 22, 2026" %}</time>
                 </p>
             </div>
         </div>

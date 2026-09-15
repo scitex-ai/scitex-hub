@@ -1,314 +1,168 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""Tests for apps/scholar_app/api/citation_graph.py"""
+"""Citation graph API returns a drawable network (nodes + citation edges)."""
 
-import pytest
+from rest_framework.test import APIRequestFactory
 
-# from apps.workspace.scholar_app.api.citation_graph import ...
+from apps.workspace.scholar_app.api.citation_graph import (
+    build_network_multi,
+    build_network_query,
+)
+from apps.workspace.scholar_app.services.citation_graph.online import (
+    OnlineCrossrefGraphSource,
+    extract_doi,
+)
+from apps.workspace.scholar_app.services.citation_graph.service import (
+    CitationGraphService,
+)
+
+SEED = "10.1000/seed"
 
 
-class TestPlaceholder:
-    """Placeholder test class - replace with actual tests."""
+def _work(doi, title, cited_by, refs, year=2020):
+    return {
+        "DOI": doi,
+        "title": [title],
+        "author": [{"family": "Doe", "given": "Jane"}],
+        "issued": {"date-parts": [[year]]},
+        "container-title": ["Journal of Fixtures"],
+        "is-referenced-by-count": cited_by,
+        "reference": [{"key": r, "DOI": r} for r in refs] + [{"key": "no-doi"}],
+    }
 
-    def test_placeholder_pending_implementation(self):
-        """Placeholder test - implement actual tests."""
-        # Arrange
-        # Act
-        # Assert
-        pytest.skip("Not implemented yet")
+
+WORKS = {
+    SEED: _work(SEED, "Seed paper", 500, ["10.1000/a", "10.1000/b", "10.1000/c"]),
+    "10.1000/a": _work("10.1000/a", "Paper A", 900, ["10.1000/b"], 2015),
+    "10.1000/b": _work("10.1000/b", "Paper B", 300, [], 2010),
+    "10.1000/c": _work("10.1000/c", "Paper C", 10, ["10.1000/a"], 2018),
+}
 
 
-if __name__ == "__main__":
-    import os
+def fixture_fetch(url, params):
+    if "query.bibliographic" in params:
+        return {"message": {"items": [{"DOI": SEED}]}}
+    dois = [f.split(":", 1)[1] for f in params["filter"].split(",")]
+    return {"message": {"items": [WORKS[d] for d in dois if d in WORKS]}}
 
-    import pytest
 
-    pytest.main([os.path.abspath(__file__)])
+class _LocalServerDown:
+    """What crossref-local's builder hands back when its server is unreachable."""
 
-# --------------------------------------------------------------------------------
-# Start of Source Code from: apps/scholar_app/api/citation_graph.py
-# --------------------------------------------------------------------------------
-# """
-# Citation Graph API Endpoints
-#
-# Provides REST API for building and analyzing citation networks.
-# """
-#
-# import logging
-# from rest_framework.decorators import api_view, throttle_classes, permission_classes
-# from rest_framework.permissions import AllowAny
-# from rest_framework.response import Response
-# from rest_framework import status
-# from rest_framework.throttling import AnonRateThrottle
-#
-# from ..services.citation_graph import get_citation_graph_service
-#
-# logger = logging.getLogger(__name__)
-#
-#
-# class CitationGraphThrottle(AnonRateThrottle):
-#     """Rate limit for citation graph API: 50 requests per hour (computation intensive)"""
-#     rate = '50/hour'
-#
-#
-# @api_view(['GET'])
-# @permission_classes([AllowAny])
-# @throttle_classes([CitationGraphThrottle])
-# def build_network(request):
-#     """
-#     Build citation network graph for a paper.
-#
-#     GET /api/scholar/citation-graph/network/
-#
-#     Query params:
-#         - doi (required): DOI of the seed paper
-#         - top_n (optional): Number of similar papers to include (default: 20, max: 50)
-#         - weight_coupling (optional): Weight for bibliographic coupling (default: 2.0)
-#         - weight_cocitation (optional): Weight for co-citation (default: 2.0)
-#         - weight_direct (optional): Weight for direct citations (default: 1.0)
-#         - no_cache (optional): Skip cache and rebuild (default: false)
-#
-#     Returns:
-#         JSON with network graph:
-#         {
-#             "seed": "10.1038/...",
-#             "nodes": [...],
-#             "edges": [...],
-#             "metadata": {
-#                 "top_n": 20,
-#                 "weights": {...},
-#                 "cached": false
-#             }
-#         }
-#
-#     Example:
-#         curl "https://scitex.ai/api/scholar/citation-graph/network/?doi=10.1038/s41586-020-2008-3&top_n=20"
-#     """
-#     # Validate DOI
-#     doi = request.GET.get('doi')
-#     if not doi:
-#         return Response(
-#             {'error': 'DOI parameter required'},
-#             status=status.HTTP_400_BAD_REQUEST
-#         )
-#
-#     # Parse parameters
-#     try:
-#         top_n = int(request.GET.get('top_n', 20))
-#         if top_n < 1 or top_n > 50:
-#             return Response(
-#                 {'error': 'top_n must be between 1 and 50'},
-#                 status=status.HTTP_400_BAD_REQUEST
-#             )
-#
-#         weight_coupling = float(request.GET.get('weight_coupling', 2.0))
-#         weight_cocitation = float(request.GET.get('weight_cocitation', 2.0))
-#         weight_direct = float(request.GET.get('weight_direct', 1.0))
-#
-#         use_cache = request.GET.get('no_cache', 'false').lower() != 'true'
-#
-#     except ValueError as e:
-#         return Response(
-#             {'error': f'Invalid parameter: {str(e)}'},
-#             status=status.HTTP_400_BAD_REQUEST
-#         )
-#
-#     # Build network
-#     try:
-#         service = get_citation_graph_service()
-#         network = service.build_network(
-#             doi=doi,
-#             top_n=top_n,
-#             weight_coupling=weight_coupling,
-#             weight_cocitation=weight_cocitation,
-#             weight_direct=weight_direct,
-#             use_cache=use_cache
-#         )
-#
-#         return Response(network, status=status.HTTP_200_OK)
-#
-#     except FileNotFoundError as e:
-#         logger.error(f"Database not found: {e}")
-#         return Response(
-#             {'error': 'Citation graph service unavailable - database not configured'},
-#             status=status.HTTP_503_SERVICE_UNAVAILABLE
-#         )
-#     except Exception as e:
-#         logger.error(f"Error building citation network for {doi}: {e}", exc_info=True)
-#         return Response(
-#             {'error': f'Failed to build citation network: {str(e)}'},
-#             status=status.HTTP_500_INTERNAL_SERVER_ERROR
-#         )
-#
-#
-# @api_view(['GET'])
-# @permission_classes([AllowAny])
-# @throttle_classes([CitationGraphThrottle])
-# def get_related_papers(request):
-#     """
-#     Get list of papers related to a given paper (lightweight endpoint).
-#
-#     GET /api/scholar/citation-graph/related/
-#
-#     Query params:
-#         - doi (required): DOI of the paper
-#         - limit (optional): Number of papers to return (default: 10, max: 30)
-#         - no_cache (optional): Skip cache (default: false)
-#
-#     Returns:
-#         JSON with list of related papers sorted by similarity:
-#         {
-#             "doi": "10.1038/...",
-#             "related": [
-#                 {
-#                     "id": "10.1016/...",
-#                     "title": "...",
-#                     "year": 2020,
-#                     "authors": [...],
-#                     "similarity_score": 42.5
-#                 },
-#                 ...
-#             ]
-#         }
-#
-#     Example:
-#         curl "https://scitex.ai/api/scholar/citation-graph/related/?doi=10.1038/s41586-020-2008-3&limit=10"
-#     """
-#     # Validate DOI
-#     doi = request.GET.get('doi')
-#     if not doi:
-#         return Response(
-#             {'error': 'DOI parameter required'},
-#             status=status.HTTP_400_BAD_REQUEST
-#         )
-#
-#     # Parse parameters
-#     try:
-#         limit = int(request.GET.get('limit', 10))
-#         if limit < 1 or limit > 30:
-#             return Response(
-#                 {'error': 'limit must be between 1 and 30'},
-#                 status=status.HTTP_400_BAD_REQUEST
-#             )
-#
-#         use_cache = request.GET.get('no_cache', 'false').lower() != 'true'
-#
-#     except ValueError as e:
-#         return Response(
-#             {'error': f'Invalid parameter: {str(e)}'},
-#             status=status.HTTP_400_BAD_REQUEST
-#         )
-#
-#     # Get related papers
-#     try:
-#         service = get_citation_graph_service()
-#         related = service.get_related_papers(
-#             doi=doi,
-#             limit=limit,
-#             use_cache=use_cache
-#         )
-#
-#         return Response(
-#             {
-#                 'doi': doi,
-#                 'related': related,
-#                 'count': len(related)
-#             },
-#             status=status.HTTP_200_OK
-#         )
-#
-#     except Exception as e:
-#         logger.error(f"Error getting related papers for {doi}: {e}", exc_info=True)
-#         return Response(
-#             {'error': f'Failed to get related papers: {str(e)}'},
-#             status=status.HTTP_500_INTERNAL_SERVER_ERROR
-#         )
-#
-#
-# @api_view(['GET'])
-# @permission_classes([AllowAny])
-# def paper_summary(request):
-#     """
-#     Get summary information for a paper (no rate limiting - simple lookup).
-#
-#     GET /api/scholar/citation-graph/paper/
-#
-#     Query params:
-#         - doi (required): DOI of the paper
-#
-#     Returns:
-#         JSON with paper summary:
-#         {
-#             "doi": "10.1038/...",
-#             "title": "...",
-#             "year": 2020,
-#             "authors": [...],
-#             "journal": "Nature",
-#             "reference_count": 45,
-#             "citation_count": 123
-#         }
-#
-#     Example:
-#         curl "https://scitex.ai/api/scholar/citation-graph/paper/?doi=10.1038/s41586-020-2008-3"
-#     """
-#     # Validate DOI
-#     doi = request.GET.get('doi')
-#     if not doi:
-#         return Response(
-#             {'error': 'DOI parameter required'},
-#             status=status.HTTP_400_BAD_REQUEST
-#         )
-#
-#     # Get summary
-#     try:
-#         service = get_citation_graph_service()
-#         summary = service.get_paper_summary(doi)
-#
-#         if summary:
-#             return Response(summary, status=status.HTTP_200_OK)
-#         else:
-#             return Response(
-#                 {'error': 'Paper not found in database'},
-#                 status=status.HTTP_404_NOT_FOUND
-#             )
-#
-#     except Exception as e:
-#         logger.error(f"Error getting paper summary for {doi}: {e}", exc_info=True)
-#         return Response(
-#             {'error': f'Failed to get paper summary: {str(e)}'},
-#             status=status.HTTP_500_INTERNAL_SERVER_ERROR
-#         )
-#
-#
-# @api_view(['GET'])
-# @permission_classes([AllowAny])
-# def health(request):
-#     """
-#     Health check for citation graph service (no rate limiting).
-#
-#     GET /api/scholar/citation-graph/health/
-#
-#     Returns:
-#         JSON with service health status
-#
-#     Example:
-#         curl "https://scitex.ai/api/scholar/citation-graph/health/"
-#     """
-#     try:
-#         service = get_citation_graph_service()
-#         health_status = service.health_check()
-#         return Response(health_status, status=status.HTTP_200_OK)
-#
-#     except Exception as e:
-#         logger.error(f"Health check failed: {e}", exc_info=True)
-#         return Response(
-#             {
-#                 'status': 'unhealthy',
-#                 'error': str(e)
-#             },
-#             status=status.HTTP_503_SERVICE_UNAVAILABLE
-#         )
+    class _Graph:
+        def __init__(self, dois):
+            self.dois = dois
 
-# --------------------------------------------------------------------------------
-# End of Source Code from: apps/scholar_app/api/citation_graph.py
-# --------------------------------------------------------------------------------
+        def to_dict(self):
+            return {
+                "seed": self.dois[0],
+                "seed_dois": self.dois,
+                "nodes": [{"id": d, "title": "", "is_seed": True} for d in self.dois],
+                "edges": [],
+                "metadata": {},
+            }
+
+    def build_from_dois(self, dois, num_related_per_doi):
+        return self._Graph(dois)
+
+    def build_from_query(self, query, num_related_per_doi, search_limit):
+        raise ConnectionError("crossref-local refused")
+
+
+def _service():
+    return CitationGraphService(
+        builder=_LocalServerDown(),
+        online_source=OnlineCrossrefGraphSource(fetch_json=fixture_fetch),
+    )
+
+
+def _multi_request():
+    return APIRequestFactory().get(
+        "/apps/scholar/citation-graph/network/multi/",
+        {"dois": SEED, "num_related_per_doi": "10", "no_cache": "true"},
+    )
+
+
+def _query_request():
+    return APIRequestFactory().get(
+        "/apps/scholar/citation-graph/network/query/",
+        {"q": "fixture topic", "num_related_per_doi": "2", "no_cache": "true"},
+    )
+
+
+def test_multi_endpoint_returns_seed_and_cited_papers_as_nodes():
+    # Arrange
+    request = _multi_request()
+    # Act
+    response = build_network_multi(request, service=_service())
+    # Assert
+    assert {n["id"] for n in response.data["nodes"]} == {
+        SEED,
+        "10.1000/a",
+        "10.1000/b",
+        "10.1000/c",
+    }
+
+
+def test_multi_endpoint_marks_the_titled_seed_node():
+    # Arrange
+    request = _multi_request()
+    # Act
+    response = build_network_multi(request, service=_service())
+    # Assert
+    assert [(n["id"], n["title"]) for n in response.data["nodes"] if n["is_seed"]] == [
+        (SEED, "Seed paper")
+    ]
+
+
+def test_multi_endpoint_returns_citation_edges_among_graph_papers():
+    # Arrange
+    request = _multi_request()
+    # Act
+    response = build_network_multi(request, service=_service())
+    # Assert
+    assert {(e["source"], e["target"]) for e in response.data["edges"]} == {
+        (SEED, "10.1000/a"),
+        (SEED, "10.1000/b"),
+        (SEED, "10.1000/c"),
+        ("10.1000/a", "10.1000/b"),
+        ("10.1000/c", "10.1000/a"),
+    }
+
+
+def test_query_endpoint_keeps_most_cited_references_when_local_is_down():
+    # Arrange
+    request = _query_request()
+    # Act
+    response = build_network_query(request, service=_service())
+    # Assert
+    assert [n["id"] for n in response.data["nodes"] if not n["is_seed"]] == [
+        "10.1000/a",
+        "10.1000/b",
+    ]
+
+
+def test_query_endpoint_labels_the_online_crossref_source():
+    # Arrange
+    request = _query_request()
+    # Act
+    response = build_network_query(request, service=_service())
+    # Assert
+    assert response.data["metadata"]["source"] == "crossref_online"
+
+
+def test_extract_doi_normalises_doi_org_urls():
+    # Arrange
+    text = "https://doi.org/10.1038/Nature14539"
+    # Act
+    doi = extract_doi(text)
+    # Assert
+    assert doi == "10.1038/nature14539"
+
+
+def test_extract_doi_returns_none_for_topics():
+    # Arrange
+    text = "deep learning review"
+    # Act
+    doi = extract_doi(text)
+    # Assert
+    assert doi is None

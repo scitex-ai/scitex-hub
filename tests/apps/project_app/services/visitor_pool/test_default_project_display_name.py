@@ -366,29 +366,31 @@ class TestPoolInitializerNamesProjectForHumans:
 
 
 class TestHeaderTemplateFallback:
-    """global_header.html renders ``project.name`` with a hardcoded default."""
+    """The header never renders a load-bearing slug as a project name.
 
-    def test_both_fallbacks_are_the_display_name(self, header_markup):
-        """Positive: both live sites render human text, not the slug.
+    History: #513 added a human-text fallback (``Handwritten Digits (Example)``)
+    at the visitor branch of the project selector so a nameless visitor project
+    never showed the raw ``default-project`` slug. The project selector itself
+    was REMOVED from the header 2026-09-11 (header declutter, bc9248804) —
+    project selection now lives in the workspace sidebar. These tests keep the
+    original invariant (no slug-rendering fallback in the header) and assert the
+    retired display-name fallback is gone.
 
-        WAS THREE, NOW TWO — and this test caught the change, which is
-        exactly what it is for. #513 added the fallback at three sites; the
-        third lived inside the second, CSS-hidden copy of the project
-        selector (``.header-project-selector``, hidden by
-        ``header/02-layout.css:19-21``). This PR deletes that dead block, so
-        only the two LIVE sites remain.
+    (An earlier revision of this class also asserted the header rendered
+    ``{{ project.name }}`` >= 3 times as anti-vacuity; that block no longer
+    exists — the selector was removed — so that method is gone too.)
+    """
 
-        Kept as ``== 2`` rather than ``>= 2``: an exact count fails at 1 and
-        at 3, so it is the presence assertion and the no-duplicate assertion
-        in one expression. ``>=`` would go quiet if a future edit
-        reintroduced the hidden copy.
-        """
+    def test_visitor_display_name_fallback_is_retired(self, header_markup):
+        """The ``Handwritten Digits (Example)`` fallback lived in the deleted
+        visitor branch — assert it is gone so a reintroduced visitor selector
+        doesn't silently ship the retired copy."""
         # Arrange
         human_fallback = f'|default:"{DISPLAY_NAME}"'
         # Act
         actual = header_markup.count(human_fallback)
         # Assert
-        assert actual == 2
+        assert actual == 0
 
     def test_no_fallback_renders_the_slug(self, header_markup):
         """Negative sibling, with the marker DERIVED from the live slug.
@@ -402,15 +404,6 @@ class TestHeaderTemplateFallback:
         actual = header_markup.count(slug_fallback)
         # Assert
         assert actual == 0
-
-    def test_template_still_renders_the_project_name(self, header_markup):
-        """Anti-vacuity: the block being asserted on still exists."""
-        # Arrange
-        rendered_field = "{{ project.name"
-        # Act
-        actual = header_markup.count(rendered_field)
-        # Assert
-        assert actual >= 3
 
 
 if __name__ == "__main__":

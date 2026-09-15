@@ -4,6 +4,7 @@
  */
 
 import { StorageManager } from "@/utils/storage";
+import { fetchSectionsConfig } from "../_writer/_config/sections-config";
 
 export interface Section {
   id: string;
@@ -84,8 +85,7 @@ export class SectionsManager {
    */
   async loadHierarchy(): Promise<void> {
     try {
-      const response = await fetch("/apps/writer/api/sections-config/");
-      const data = await response.json();
+      const data = await fetchSectionsConfig();
 
       if (data.success && data.hierarchy) {
         this.hierarchy = data.hierarchy;

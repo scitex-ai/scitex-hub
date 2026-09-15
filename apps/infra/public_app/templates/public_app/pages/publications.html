@@ -1,9 +1,10 @@
 {% extends "global_base.html" %}
 
 {% load static %}
+{% load i18n %}
 
-{% block title %}Publications Using SciTeX{% endblock %}
-{% block meta_description %}Research papers published using SciTeX tools.{% endblock %}
+{% block title %}{% trans "Publications Using SciTeX" %}{% endblock %}
+{% block meta_description %}{% trans "Research papers published using SciTeX tools." %}{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'public_app/css/about/00-about.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/about/02-context.css' %}" />
@@ -151,28 +152,28 @@
 {% block content %}
     <div class="about-container">
         <header class="minimal-hero">
-            <h1 class="minimal-hero-title">Publications Using SciTeX</h1>
+            <h1 class="minimal-hero-title">{% trans "Publications Using SciTeX" %}</h1>
         </header>
         <article class="about-narrative">
             <section class="about-section">
-                <h2>Impact</h2>
+                <h2>{% trans "Impact" %}</h2>
                 <div class="stats-grid">
                     <div>
                         <div class="stat-value">{{ stats.publication_count }}</div>
-                        <div class="stat-label">Publication Count</div>
+                        <div class="stat-label">{% trans "Publication Count" %}</div>
                     </div>
                     <div>
                         <div class="stat-value">{{ stats.institutions }}</div>
-                        <div class="stat-label">Institutions</div>
+                        <div class="stat-label">{% trans "Institutions" %}</div>
                     </div>
                     <div>
                         <div class="stat-value">{{ stats.countries }}</div>
-                        <div class="stat-label">Countries</div>
+                        <div class="stat-label">{% trans "Countries" %}</div>
                     </div>
                 </div>
             </section>
             <section class="about-section">
-                <h2>Published Works</h2>
+                <h2>{% trans "Published Works" %}</h2>
                 {% for paper in papers %}
                     <div class="paper-card">
                         <h3 class="paper-title">{{ paper.title }}</h3>
@@ -182,40 +183,40 @@
                         <div class="paper-actions">
                             {% if paper.paper_url %}
                                 <a href="{{ paper.paper_url }}" target="_blank">
-                                    <i class="fas fa-external-link-alt"></i> Paper
+                                    <i class="fas fa-external-link-alt"></i> {% trans "Paper" %}
                                 </a>
                             {% endif %}
                             {% if paper.code_url %}
                                 <a href="{{ paper.code_url }}" target="_blank">
-                                    <i class="fab fa-github"></i> Code
+                                    <i class="fab fa-github"></i> {% trans "Code" %}
                                 </a>
                             {% endif %}
                         </div>
                     </div>
                 {% empty %}
-                    <p>No publications yet.</p>
+                    <p>{% trans "No publications yet." %}</p>
                 {% endfor %}
             </section>
             <section class="about-section">
-                <h2>Submit Your Work</h2>
-                <p style="margin-bottom: 1.5rem;">Published research using SciTeX? We'd love to feature it.</p>
+                <h2>{% trans "Submit Your Work" %}</h2>
+                <p style="margin-bottom: 1.5rem;">{% trans "Published research using SciTeX? We'd love to feature it." %}</p>
                 <form action="mailto:{{ CONTACT_EMAIL }}"
                       method="GET"
                       enctype="text/plain"
                       class="submit-form">
                     <div class="form-group">
-                        <label for="user-email">Email</label>
+                        <label for="user-email">{% trans "Email" %}</label>
                         <input type="email" id="user-email" name="from" placeholder="your@email.com" required />
                     </div>
                     <div class="form-group">
-                        <label for="paper-doi">DOI or Link</label>
+                        <label for="paper-doi">{% trans "DOI or Link" %}</label>
                         <input type="text"
                                id="paper-doi"
                                name="subject"
                                placeholder="https://doi.org/... or paper URL"
                                required />
                     </div>
-                    <button type="submit" class="submit-btn">Submit</button>
+                    <button type="submit" class="submit-btn">{% trans "Submit" %}</button>
                 </form>
             </section>
         </article>

@@ -94,7 +94,7 @@ ROUTES_WITHOUT_GLOBAL_BASE = frozenset({"/apps/cards/"})
 # line and it is picked up by both jobs.
 PAGES = [
     ("/", "00-workspace-home", "Workspace home"),
-    ("/apps/home/", "01-projects", "Projects"),
+    ("/apps/my-projects/", "01-projects", "Projects"),
     ("/apps/writer/", "02-writer", "Writer"),
     ("/apps/scholar/", "03-scholar", "Scholar"),
     ("/apps/figrecipe/", "04-figrecipe", "FigRecipe"),
@@ -137,53 +137,24 @@ DECLARED_ABSENT_MEDIA = {
     ),
 }
 
-# The ONE signal in this set that CI cannot currently produce, declared
-# with what was measured rather than quietly dropped.
-#
-# STRICT xfail on purpose. It reports XFAIL (visible, with this reason)
-# while the gap exists, and the moment the gap closes the unexpected PASS
-# becomes a FAILURE — so the declaration cannot outlive the thing it
-# describes. Nothing else about Writer is relaxed: HTTP status, the pooled
-# -visitor role, the body-text floor, the no-stuck-placeholder scan, the
-# broken-image scan and the file-selector check all remain hard gates on
-# this page.
-#
-# WHAT WAS MEASURED, run 32058021573, with the JavaScript finally
-# executing (1 failed / 96 passed, 103s):
-#
-#   demo_seed logged "Seeded demo content into
-#   data/users/visitor-00N/proj/default-project (20 files)" for every
-#   slot, so the manuscript payload IS on disk —
-#   services/visitor_pool/demo_seed_payload/writer/ ships title, authors,
-#   abstract, introduction, methods, results, discussion and two figures.
-#
-#   #section-selector-text nevertheless resolves to "No sections found"
-#   (NOT "Loading..." — the file tree answered, and answered empty), and
-#   #current-word-count is the CURRENT SECTION's count
-#   (index_partials/main_editor.html: title="Current section word count").
-#   With no section open, 0 is the honest number, not a stuck default.
-#
-# So what is missing is not the files: it is whatever turns seeded .tex
-# files on disk into sections the Writer will list, in a CI deployment
-# with SCITEX_HUB_VISITOR_POOL_GITEA_ENABLED=false. That is a visitor-pool
-# / Writer question with its own root cause, not a screenshot-gate
-# question, and weakening this assertion to hide it would put the capture
-# straight back to certifying an empty editor.
-WRITER_WORD_COUNT_REASON = (
-    "CI's visitor workspace surfaces no Writer sections: the demo seed "
-    "writes 20 files per slot (confirmed in the run log) but "
-    "#section-selector-text resolves to 'No sections found', so the "
-    "current-section word count is honestly 0. Needs a visitor-pool/Writer "
-    "fix, not a weaker assertion. Strict: this xfail FAILS the moment CI "
-    "starts showing a manuscript, forcing it to be removed."
-)
-
 FORCE_LIGHT = """
 () => {
   document.documentElement.setAttribute('data-theme', 'light');
   document.documentElement.style.colorScheme = 'light';
 }
 """
+
+
+def navigate_product_page(page, route):
+    """Navigate without waiting for unrelated subresources to finish loading.
+
+    Product readiness is asserted separately by ``wait_for_page_ready``. Return
+    when the main-document response is committed so neither the global load
+    event nor DOMContentLoaded can be held hostage by the product's large
+    subresource graph. The hard hydration, content, and image checks still run
+    before accepting or photographing the page.
+    """
+    return page.goto(route, wait_until="commit", timeout=15_000)
 
 
 @pytest.fixture(scope="session")
@@ -211,9 +182,11 @@ def measured_content(pooled_visitor_page, content_report):
             # Reset immediately BEFORE the navigation, so what is collected
             # belongs to this route and not to the tail of the last one.
             browser_problems.reset()
-            page.goto(route)
+            navigate_product_page(page, route)
             wait_for_page_ready(
-                page, hydration_signal=route not in ROUTES_WITHOUT_GLOBAL_BASE
+                page,
+                hydration_signal=route not in ROUTES_WITHOUT_GLOBAL_BASE,
+                wait_for_load=False,
             )
             page.evaluate(FORCE_LIGHT)
             signals = read_content_signals(page, PAGE_ELEMENT_SIGNALS.get(route))
@@ -237,7 +210,7 @@ class TestProductScreenshots:
         page = pooled_visitor_page
 
         # Act
-        response = page.goto(route)
+        response = navigate_product_page(page, route)
 
         # Assert — a redirect is fine (sign-in walls, canonical paths);
         # a server error is not, and is what this is here to catch.
@@ -263,11 +236,13 @@ class TestProductScreenshots:
         # Arrange
         page = pooled_visitor_page
         carries_marker = route not in ROUTES_WITHOUT_GLOBAL_BASE
-        page.goto(route)
-        wait_for_page_ready(page, hydration_signal=carries_marker)
+        navigate_product_page(page, route)
+        wait_for_page_ready(
+            page, hydration_signal=carries_marker, wait_for_load=False
+        )
         if not carries_marker:
-            page.goto(VISITOR_WARMUP_ROUTE)
-            wait_for_page_ready(page)
+            navigate_product_page(page, VISITOR_WARMUP_ROUTE)
+            wait_for_page_ready(page, wait_for_load=False)
 
         # Act
         role = page.evaluate(READ_SESSION_ROLE_JS)
@@ -280,7 +255,7 @@ class TestProductScreenshots:
     ):
         # Arrange
         page = pooled_visitor_page
-        page.goto(route)
+        navigate_product_page(page, route)
         # Wait for the product's own hydration signal, not `load` and not
         # `networkidle` — see tests/e2e/playwright/page_ready.py. These pages
         # hydrate after load, and photographing them too early captures empty
@@ -290,7 +265,9 @@ class TestProductScreenshots:
         # is a condition it can never reach (measured 2026-08-16 in CI run
         # 31955719803: 30s timeout, 33 errors, nothing actually broken).
         wait_for_page_ready(
-            page, hydration_signal=route not in ROUTES_WITHOUT_GLOBAL_BASE
+            page,
+            hydration_signal=route not in ROUTES_WITHOUT_GLOBAL_BASE,
+            wait_for_load=False,
         )
         page.evaluate(FORCE_LIGHT)
 
@@ -385,7 +362,6 @@ class TestWriterShowsAManuscript:
         # Assert
         assert problem == "", problem
 
-    @pytest.mark.xfail(strict=True, reason=WRITER_WORD_COUNT_REASON)
     def test_word_count_is_positive(self, measured_content):
         # Arrange
         signals = measured_content(WRITER_ROUTE)

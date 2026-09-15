@@ -20,7 +20,7 @@ PAGES = [
     "/console/",
     "/vis/",
     "/clew/",
-    "/apps/home/",
+    "/apps/my-projects/",
     "/tools/",
     "/releases/",
     "/server-status/",

@@ -63,7 +63,7 @@ class VisitorAutoLoginMiddleware:
         """Attach the shared readonly-visitor to ONE request, no session write.
 
         The page must still RENDER (a repo view read by an anonymous
-        request, and /apps/home/, which redirects a logged-out browser to
+        request, and /apps/my-projects/, which redirects a logged-out browser to
         the pool-full page) — so the request needs an identity. It does NOT
         need a slot, and it must not persist: no ``login()``, therefore no
         session row, no cookie, and no stickiness onto the visitor's next
@@ -98,7 +98,7 @@ class VisitorAutoLoginMiddleware:
         # launcher instead of the marketing landing (the bug this fixes), and
         # (b) it burns a scarce pool slot for a page that does no workspace
         # work. A visitor still gets a slot the instant they CHOOSE to enter
-        # the workspace via the hero CTA (/apps/home/), which is deliberately
+        # the workspace via the hero CTA (/apps/my-projects/), which is deliberately
         # NOT listed here.
         #
         # These MUST be EXACT matches, never a startswith prefix: "/" is a

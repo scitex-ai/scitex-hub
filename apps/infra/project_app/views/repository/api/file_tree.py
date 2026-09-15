@@ -10,15 +10,17 @@ This module contains API endpoints for navigating project file structure.
 """
 
 from __future__ import annotations
+
 import logging
 import subprocess
 
-from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
 
 from ....models import Project
+from ....services.filesystem.permissions import VCS_METADATA_COMPONENTS
 from .permissions import check_project_read_access
 
 logger = logging.getLogger(__name__)
@@ -131,11 +133,14 @@ def api_file_tree(request, username, slug):
             for item in sorted(
                 path.iterdir(), key=lambda x: (not x.is_dir(), x.name.lower())
             ):
+                if item.name.casefold() in VCS_METADATA_COMPONENTS:
+                    continue
                 # Skip hidden files except .git directory, .gitignore, and .gitkeep
                 if item.name.startswith(".") and item.name not in [
-                    ".git",
                     ".gitignore",
                     ".gitkeep",
+                    # Writer + Scholar workspaces of a SciTeX project live here.
+                    ".scitex",
                 ]:
                     continue
                 # Skip common non-essential directories

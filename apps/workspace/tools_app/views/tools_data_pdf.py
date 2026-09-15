@@ -10,6 +10,14 @@ from __future__ import annotations
 # PDF tools (shares some with Image)
 PDF_TOOLS = [
     {
+        "name": "X2PDF",
+        "slug": "x2pdf",
+        "description": "Convert almost any file or a web page URL to PDF: Word, HTML, Markdown, images, text and code.",
+        "use_case": "Turn a Word draft, a web page or a screenshot into a PDF to share",
+        "bookmarklet_url": "/apps/tools/x2pdf/",
+        "icon": "🔄",
+    },
+    {
         "name": "PDF Text & Figure Extractor",
         "slug": "pdf-text-figure-extractor",
         "description": "Pull the text and the embedded figures out of a PDF, with table layout preserved.",

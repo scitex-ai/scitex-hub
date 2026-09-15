@@ -57,61 +57,14 @@
             </div>
         </div>
         <!-- Graph Visualization Area -->
-        <div id="graphVisualization" class="graph-visualization hidden">
-            <div class="graph-card graph-card--full">
-                <div class="graph-card__header">
-                    <div class="graph-card__title">
-                        <i class="fas fa-share-alt"></i>
-                        <span id="graphTitle">Citation Network</span>
-                    </div>
-                    <div class="graph-controls">
-                        <button class="btn-control" id="fitViewBtn" title="Fit to View">
-                            <i class="fas fa-expand"></i>
-                        </button>
-                        <button class="btn-control" id="resetZoomBtn" title="Reset Zoom">
-                            <i class="fas fa-compress-arrows-alt"></i>
-                        </button>
-                        <button class="btn-control" id="downloadSvgBtn" title="Download SVG">
-                            <i class="fas fa-download"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="graph-card__body graph-canvas-wrapper">
-                    <div id="graphCanvas"></div>
-                    <!-- Node Details Panel (appears on node click) -->
-                    <div id="nodeDetailsPanel" class="node-details-panel hidden"></div>
-                </div>
-            </div>
-        </div>
-        <!-- Related Papers List -->
-        <div id="relatedPapersList" class="related-papers-section hidden">
-            <div class="graph-card">
-                <div class="graph-card__header">
-                    <div class="graph-card__title">
-                        <i class="fas fa-list-ol"></i>
-                        <span>Related Papers</span>
-                    </div>
-                </div>
-                <div class="graph-card__body">
-                    <div id="relatedPapersContent"></div>
-                </div>
-            </div>
-        </div>
-        <!-- Loading State -->
-        <div id="graphLoading" class="graph-loading hidden"></div>
-        <!-- Error State -->
-        <div id="graphError" class="graph-error hidden">
-            <i class="fas fa-exclamation-triangle"></i>
-            <p id="graphErrorMessage"></p>
-            <button class="btn-retry"
-                    onclick="document.getElementById('graphError').classList.add('hidden')">Dismiss</button>
-        </div>
+        {% include "scholar_app/graph_partials/graph_stage.html" %}
     </div>
     <!-- Configuration for JavaScript (read by scholar-config.ts) -->
     <div id="citation-graph-config"
          class="hidden"
          data-url-build-network="{% url 'scholar_app:citation_graph_network' %}"
          data-url-build-network-multi="{% url 'scholar_app:citation_graph_network_multi' %}"
+         data-url-build-network-query="{% url 'scholar_app:citation_graph_network_query' %}"
          data-url-related-papers="{% url 'scholar_app:citation_graph_related' %}"
          data-url-paper-summary="{% url 'scholar_app:citation_graph_paper' %}"
          data-url-health="{% url 'scholar_app:citation_graph_health' %}"></div>

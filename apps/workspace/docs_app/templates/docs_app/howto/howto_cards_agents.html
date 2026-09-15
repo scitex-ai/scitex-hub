@@ -1,0 +1,73 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load i18n static %}
+
+{% block title %}{% trans "What are Cards and Agents?" %} — {% trans "SciTeX Documentation" %}{% endblock %}
+{% block content %}
+    {% include "docs_app/howto/_howto_styles.html" %}
+    <div class="container py-5" style="max-width: 900px">
+        <h1 class="mb-4">
+            <i class="fas fa-robot me-2"></i>{% trans "What are Cards and Agents?" %}
+        </h1>
+        <p class="lead text-muted mb-5">
+            {% trans "Cards are tasks. Agents are AI assistants that can work on your projects. Both apps are on Home." %}
+        </p>
+        <section class="api-section">
+            <h2>{% trans "Steps" %}</h2>
+            <ol class="howto-steps">
+                <li>
+                    {% blocktrans trimmed %}
+                        On Home, find <strong>Cards</strong> and <strong>Agents</strong> in the <strong>Foundation</strong> group, next to My Projects.
+                    {% endblocktrans %}
+                    <img class="howto-shot"
+                         src="{% static 'docs_app/images/howto/cards-agents-01-tiles.jpg' %}"
+                         alt="{% trans 'The Cards and Agents tiles on Home' %}"
+                         loading="lazy" />
+                </li>
+                <li>
+                    {% blocktrans trimmed %}
+                        Open <strong>Cards</strong>. A card is one task: what to do, who owns it and its status. People and AI agents use the same cards to keep track of work.
+                    {% endblocktrans %}
+                </li>
+                <li>
+                    {% blocktrans trimmed %}
+                        Your own cards are listed on this page. Until you have some, it says <strong>Your own cards will appear here</strong>. Nothing from other people is shown on it.
+                    {% endblocktrans %}
+                    <img class="howto-shot"
+                         src="{% static 'docs_app/images/howto/cards-agents-02-cards.jpg' %}"
+                         alt="{% trans 'The Cards page' %}"
+                         loading="lazy" />
+                </li>
+                <li>
+                    {% blocktrans trimmed %}
+                        Open <strong>Agents</strong>. An agent is an AI assistant that runs on its own and works on tasks. Your agents will be listed here; until then the page says <strong>Your own agents will appear here</strong>.
+                    {% endblocktrans %}
+                    <img class="howto-shot"
+                         src="{% static 'docs_app/images/howto/cards-agents-03-agents.jpg' %}"
+                         alt="{% trans 'The Agents page' %}"
+                         loading="lazy" />
+                </li>
+                <li>
+                    {% url 'pane-chat' as chat_url %}
+                    {% blocktrans trimmed %}
+                        To talk to an AI assistant today, use <a href="{{ chat_url }}">Chat</a>. To connect your own AI agent, such as Claude Code, read the MCP Tools pages in this documentation.
+                    {% endblocktrans %}
+                </li>
+            </ol>
+        </section>
+        <section class="api-section">
+            <h2>{% trans "Tips" %}</h2>
+            <ul>
+                <li>{% trans "Back to Home on the Cards or Agents page returns you to your apps." %}</li>
+                <li>{% trans "See How to use Chat for connecting an AI provider." %}</li>
+            </ul>
+        </section>
+        <section class="api-section">
+            <h2>{% trans "Troubleshooting" %}</h2>
+            <ul>
+                <li>{% trans "The page takes a while to open: wait a few seconds, then reload if it stays blank." %}</li>
+                <li>{% trans "You expected to see a teammate's cards: this page shows only your own cards." %}</li>
+            </ul>
+        </section>
+    </div>
+{% endblock %}

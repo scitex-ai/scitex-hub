@@ -1,0 +1,92 @@
+/* Project creation (/new/) on phones.
+ *
+ * Site audit 2026-09-14, D3: at 390px the 220px tab column stayed beside the
+ * form, so the form card was 107px wide, the name input 63px ("my-rese") and
+ * the description wrapped one word per line. On phones the tab column is
+ * replaced by a one-line type picker above a full-width, single-column form
+ * with 44px controls. Loaded after create_landing.css. */
+
+/* The picker exists in the markup at every width; only phones show it. */
+.create-type-picker {
+  display: none;
+}
+
+.create-type-picker .form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--color-fg-default, #e6edf3);
+}
+
+.create-type-select {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  font-size: 1rem;
+  background-color: var(--color-canvas-default, #0d1117);
+  border: 1px solid var(--color-border-default, #30363d);
+  border-radius: 6px;
+  color: var(--color-fg-default, #c9d1d9);
+}
+
+@media (max-width: 768px) {
+  .create-page {
+    padding: 1rem;
+  }
+
+  .create-title {
+    font-size: 1.375rem;
+    margin-bottom: 1rem;
+  }
+
+  .create-two-col {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .create-type-picker {
+    display: block;
+    width: 100%;
+  }
+
+  .create-sidebar {
+    display: none;
+  }
+
+  .create-main,
+  .create-form-card {
+    width: 100%;
+  }
+
+  .create-form-card {
+    padding: 1rem;
+  }
+
+  .create-type-select,
+  form.create-form-card .form-control,
+  form.create-form-card select.form-control {
+    width: 100%;
+    min-height: 44px;
+    font-size: 1rem; /* 16px: iOS does not zoom into the field on focus */
+  }
+
+  form.create-form-card textarea.form-control {
+    min-height: 88px;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .app-icon-btn {
+    width: 44px;
+    height: 44px;
+  }
+}

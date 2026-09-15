@@ -6,14 +6,61 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 
 from django.contrib.auth.decorators import login_required
 from django.http import FileResponse, HttpResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
 
+from apps.infra.platform_app.services.paths import is_within, resolve_within
+from apps.security import safe_log_field
+
 from ..auth_utils import api_login_optional, get_user_for_request
 
 logger = logging.getLogger(__name__)
+
+FULL_DOCUMENT_PDF_DIRS = {
+    "manuscript.pdf": "01_manuscript",
+    "supplementary.pdf": "02_supplementary",
+    "revision.pdf": "03_revision",
+}
+
+
+def writer_pdf_candidates(writer_dir: Path, pdf_filename: str) -> list[Path]:
+    """Locations a Writer PDF may live in, most specific first."""
+    candidates = []
+    preview = resolve_within(writer_dir, ".preview")
+    candidate = resolve_within(preview, pdf_filename) if preview is not None else None
+    if candidate is not None:
+        candidates.append(candidate)
+    if pdf_filename in FULL_DOCUMENT_PDF_DIRS:
+        document_dir = resolve_within(writer_dir, FULL_DOCUMENT_PDF_DIRS[pdf_filename])
+        candidate = (
+            resolve_within(document_dir, pdf_filename)
+            if document_dir is not None
+            else None
+        )
+        if candidate is not None:
+            candidates.append(candidate)
+    output_dir = resolve_within(writer_dir, "preview_output")
+    candidate = (
+        resolve_within(output_dir, pdf_filename) if output_dir is not None else None
+    )
+    if candidate is not None:
+        candidates.append(candidate)
+    return candidates
+
+
+def find_writer_pdf(writer_dir: Path, pdf_filename: str) -> Path | None:
+    """First existing Writer PDF named ``pdf_filename``, or None."""
+    return next(
+        (
+            path
+            for path in writer_pdf_candidates(writer_dir, pdf_filename)
+            if path.exists()
+        ),
+        None,
+    )
 
 
 @api_login_optional
@@ -40,7 +87,7 @@ def pdf_view(request, project_id, pdf_filename=None):
             )
 
         # Get project
-        project = Project.objects.get(id=project_id)
+        Project.objects.get(id=project_id)
         writer_service = WriterService(project_id, user.id)
 
         # Handle doc_type query parameter (for compiled full manuscripts)
@@ -54,59 +101,29 @@ def pdf_view(request, project_id, pdf_filename=None):
             }
             pdf_filename = doc_type_map.get(doc_type, "manuscript.pdf")
             logger.info(
-                f"[PDFView] Mapped doc_type={doc_type} to filename={pdf_filename}"
+                "[PDFView] Mapped doc_type=%s to filename=%s",
+                safe_log_field(doc_type),
+                safe_log_field(pdf_filename),
             )
 
         # If no filename specified, look for main compiled PDF
         if not pdf_filename:
             pdf_filename = "main.pdf"
 
-        logger.info(f"[PDFView] Serving PDF: {pdf_filename} for project {project_id}")
+        logger.info(
+            "[PDFView] Serving PDF=%s for project=%s",
+            safe_log_field(pdf_filename),
+            safe_log_field(project_id),
+        )
 
-        # Search for PDF in multiple locations
-        writer_dir = writer_service.writer_dir  # Already at scitex/writer/
-        pdf_path = None
-        checked_paths = []
+        checked_paths = writer_pdf_candidates(writer_service.writer_dir, pdf_filename)
+        pdf_path = find_writer_pdf(writer_service.writer_dir, pdf_filename)
 
-        # 1. Preview directory (for section previews)
-        preview_dir = writer_dir / ".preview"
-        preview_path = preview_dir / pdf_filename
-        checked_paths.append(str(preview_path))
-        if preview_path.exists():
-            pdf_path = preview_path
-            logger.info("[PDFView] Found PDF in .preview directory")
-
-        # 2. Full manuscript PDFs in document type directories
-        if not pdf_path and pdf_filename in [
-            "manuscript.pdf",
-            "supplementary.pdf",
-            "revision.pdf",
-        ]:
-            doc_type_map = {
-                "manuscript.pdf": "01_manuscript",
-                "supplementary.pdf": "02_supplementary",
-                "revision.pdf": "03_revision",
-            }
-            doc_dir = doc_type_map.get(pdf_filename)
-            if doc_dir:
-                full_path = writer_dir / doc_dir / pdf_filename
-                checked_paths.append(str(full_path))
-                if full_path.exists():
-                    pdf_path = full_path
-                    logger.info(f"[PDFView] Found full PDF in {doc_dir} directory")
-
-        # 3. Fallback to old preview_output directory for backward compatibility
         if not pdf_path:
-            legacy_preview = writer_service.writer_dir / "preview_output" / pdf_filename
-            checked_paths.append(str(legacy_preview))
-            if legacy_preview.exists():
-                pdf_path = legacy_preview
-                logger.info("[PDFView] Found PDF in legacy preview_output directory")
-
-        # If still not found, return 404
-        if not pdf_path:
-            logger.error(f"[PDFView] PDF not found: {pdf_filename}")
-            logger.error(f"[PDFView] Checked paths: {', '.join(checked_paths)}")
+            logger.error("[PDFView] PDF not found: %s", safe_log_field(pdf_filename))
+            logger.error(
+                "[PDFView] Checked paths: %s", safe_log_field(checked_paths)
+            )
             # For HEAD requests, return simple 404 without JSON body
             if request.method == "HEAD":
                 return HttpResponse(status=404)
@@ -115,7 +132,7 @@ def pdf_view(request, project_id, pdf_filename=None):
                 status=404,
             )
 
-        logger.info(f"[PDFView] Serving PDF from: {pdf_path}")
+        logger.info("[PDFView] Serving PDF from: %s", safe_log_field(pdf_path))
 
         # For HEAD requests, just return 200 OK without file content
         if request.method == "HEAD":
@@ -140,9 +157,9 @@ def pdf_view(request, project_id, pdf_filename=None):
         return JsonResponse(
             {"success": False, "error": "Project not found"}, status=404
         )
-    except Exception as e:
-        logger.error(f"Error serving PDF: {e}", exc_info=True)
-        return JsonResponse({"success": False, "error": str(e)}, status=500)
+    except Exception:
+        logger.exception("Error serving PDF for project %s", safe_log_field(project_id))
+        return JsonResponse({"success": False, "error": "Unable to serve PDF."}, status=500)
 
 
 @login_required
@@ -167,9 +184,9 @@ def presence_list_view(request, project_id):
             }
         )
 
-    except Exception as e:
-        logger.error(f"Error getting presence list: {e}", exc_info=True)
-        return JsonResponse({"success": False, "error": str(e)}, status=500)
+    except Exception:
+        logger.exception("Error getting presence list for %s", safe_log_field(project_id))
+        return JsonResponse({"success": False, "error": "Unable to list presence."}, status=500)
 
 
 @require_http_methods(["GET"])
@@ -213,9 +230,14 @@ def thumbnail_view(request, project_id, thumbnail_name):
             if not project_path:
                 raise ValueError(f"Project path not found for project {project.id}")
 
-        thumb_path = project_path / "scitex" / "thumbnails" / thumbnail_name
+        thumbnails = resolve_within(project_path, "scitex/thumbnails")
+        thumb_path = (
+            resolve_within(thumbnails, thumbnail_name)
+            if thumbnails is not None
+            else None
+        )
 
-        if thumb_path.exists():
+        if thumb_path is not None and thumb_path.exists():
             return FileResponse(open(thumb_path, "rb"), content_type="image/jpeg")
         else:
             # Return placeholder
@@ -233,9 +255,11 @@ def thumbnail_view(request, project_id, thumbnail_name):
         return JsonResponse(
             {"success": False, "error": "Project not found"}, status=404
         )
-    except Exception as e:
-        logger.error(f"[Thumbnail] Error serving {thumbnail_name}: {e}")
-        return JsonResponse({"success": False, "error": str(e)}, status=500)
+    except Exception:
+        logger.exception(
+            "[Thumbnail] Error serving %s", safe_log_field(thumbnail_name)
+        )
+        return JsonResponse({"success": False, "error": "Unable to serve thumbnail."}, status=500)
 
 
 @api_login_optional
@@ -293,7 +317,7 @@ def synctex_reverse_lookup(request, project_id):
             )
 
         # Get project and writer service
-        project = Project.objects.get(id=project_id)
+        Project.objects.get(id=project_id)
         writer_service = WriterService(project_id, user.id)
         writer_dir = writer_service.writer_dir
 
@@ -310,31 +334,45 @@ def synctex_reverse_lookup(request, project_id):
 
         doc_dir_name = doc_type_dirs.get(pdf_filename)
         if doc_dir_name:
-            candidate = writer_dir / doc_dir_name / pdf_filename
-            search_locations.append(candidate)
-            if candidate.exists():
+            document_dir = resolve_within(writer_dir, doc_dir_name)
+            candidate = (
+                resolve_within(document_dir, pdf_filename)
+                if document_dir is not None
+                else None
+            )
+            if candidate is not None:
+                search_locations.append(candidate)
+            if candidate is not None and candidate.exists():
                 pdf_path = candidate
 
         # Also check logs directory where latexmk outputs
         if not pdf_path and doc_dir_name:
-            logs_dir = writer_dir / doc_dir_name / "logs"
-            if logs_dir.exists():
-                candidate = logs_dir / pdf_filename
-                search_locations.append(candidate)
-                if candidate.exists():
+            logs_dir = resolve_within(writer_dir, f"{doc_dir_name}/logs")
+            if logs_dir is not None and logs_dir.exists():
+                candidate = resolve_within(logs_dir, pdf_filename)
+                if candidate is not None:
+                    search_locations.append(candidate)
+                if candidate is not None and candidate.exists():
                     pdf_path = candidate
 
         # Preview directory
         if not pdf_path:
-            candidate = writer_dir / ".preview" / pdf_filename
-            search_locations.append(candidate)
-            if candidate.exists():
+            preview_dir = resolve_within(writer_dir, ".preview")
+            candidate = (
+                resolve_within(preview_dir, pdf_filename)
+                if preview_dir is not None
+                else None
+            )
+            if candidate is not None:
+                search_locations.append(candidate)
+            if candidate is not None and candidate.exists():
                 pdf_path = candidate
 
         if not pdf_path:
             logger.error(
-                f"[SyncTeX] PDF not found: {pdf_filename}, "
-                f"checked: {[str(p) for p in search_locations]}"
+                "[SyncTeX] PDF not found=%s checked=%s",
+                safe_log_field(pdf_filename),
+                safe_log_field([str(p) for p in search_locations]),
             )
             return JsonResponse(
                 {"success": False, "error": f"PDF not found: {pdf_filename}"},
@@ -347,16 +385,24 @@ def synctex_reverse_lookup(request, project_id):
 
         # Also check logs directory for synctex file
         if not synctex_gz.exists() and not synctex_plain.exists() and doc_dir_name:
-            logs_dir = writer_dir / doc_dir_name / "logs"
-            synctex_gz = logs_dir / pdf_path.stem
-            synctex_gz = logs_dir / (pdf_path.stem + ".synctex.gz")
-            synctex_plain = logs_dir / (pdf_path.stem + ".synctex")
+            logs_dir = resolve_within(writer_dir, f"{doc_dir_name}/logs")
+            if logs_dir is None:
+                return JsonResponse(
+                    {"success": False, "error": "Invalid SyncTeX path."}, status=400
+                )
+            synctex_gz = resolve_within(logs_dir, pdf_path.stem + ".synctex.gz")
+            synctex_plain = resolve_within(logs_dir, pdf_path.stem + ".synctex")
+            if synctex_gz is None or synctex_plain is None:
+                return JsonResponse(
+                    {"success": False, "error": "Invalid SyncTeX path."}, status=400
+                )
 
         if not synctex_gz.exists() and not synctex_plain.exists():
             logger.warning(
-                f"[SyncTeX] No .synctex.gz found for {pdf_filename}. "
-                f"Checked: {synctex_gz}, {synctex_plain}. "
-                f"Ensure compilation uses -synctex=1 flag."
+                "[SyncTeX] No data for %s. Checked: %s, %s",
+                safe_log_field(pdf_filename),
+                safe_log_field(synctex_gz),
+                safe_log_field(synctex_plain),
             )
             return JsonResponse(
                 {
@@ -369,7 +415,7 @@ def synctex_reverse_lookup(request, project_id):
         # Run synctex edit command
         # synctex edit -o "page:x:y:file.pdf"
         synctex_query = f"{page}:{x}:{y}:{pdf_path}"
-        logger.info(f'[SyncTeX] Running: synctex edit -o "{synctex_query}"')
+        logger.info('[SyncTeX] Running query "%s"', safe_log_field(synctex_query))
 
         result = subprocess.run(
             ["synctex", "edit", "-o", synctex_query],
@@ -379,9 +425,9 @@ def synctex_reverse_lookup(request, project_id):
             cwd=str(writer_dir),
         )
 
-        logger.info(f"[SyncTeX] stdout: {result.stdout[:500]}")
+        logger.info("[SyncTeX] stdout: %s", safe_log_field(result.stdout))
         if result.stderr:
-            logger.warning(f"[SyncTeX] stderr: {result.stderr[:500]}")
+            logger.warning("[SyncTeX] stderr: %s", safe_log_field(result.stderr))
 
         if result.returncode != 0:
             return JsonResponse(
@@ -403,7 +449,7 @@ def synctex_reverse_lookup(request, project_id):
         column_match = re.search(r"Column:(-?\d+)", output)
 
         if not input_match or not line_match:
-            logger.warning(f"[SyncTeX] Could not parse output: {output[:300]}")
+            logger.warning("[SyncTeX] Could not parse output: %s", safe_log_field(output))
             return JsonResponse(
                 {
                     "success": False,
@@ -421,10 +467,22 @@ def synctex_reverse_lookup(request, project_id):
         try:
             relative_path = source_path.relative_to(writer_dir)
         except ValueError:
-            # Already relative or outside writer_dir
-            relative_path = source_path
+            return JsonResponse(
+                {"success": False, "error": "SyncTeX returned an invalid source path."},
+                status=500,
+            )
+        if not is_within(writer_dir, source_path):
+            return JsonResponse(
+                {"success": False, "error": "SyncTeX returned an invalid source path."},
+                status=500,
+            )
 
-        logger.info(f"[SyncTeX] Result: {relative_path}:{source_line}:{source_column}")
+        logger.info(
+            "[SyncTeX] Result: %s:%s:%s",
+            safe_log_field(relative_path),
+            safe_log_field(source_line),
+            safe_log_field(source_column),
+        )
 
         return JsonResponse(
             {
@@ -443,9 +501,9 @@ def synctex_reverse_lookup(request, project_id):
         return JsonResponse(
             {"success": False, "error": "SyncTeX lookup timed out"}, status=500
         )
-    except Exception as e:
-        logger.error(f"[SyncTeX] Error: {e}", exc_info=True)
-        return JsonResponse({"success": False, "error": str(e)}, status=500)
+    except Exception:
+        logger.exception("[SyncTeX] Error for project %s", safe_log_field(project_id))
+        return JsonResponse({"success": False, "error": "SyncTeX lookup failed."}, status=500)
 
 
 # EOF

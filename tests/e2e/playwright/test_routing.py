@@ -9,6 +9,27 @@ Verify route behavior:
 """
 
 import pytest
+from tests.e2e.playwright.page_ready import wait_for_page_ready
+
+# WHY THESE TESTS DO NOT WAIT FOR `networkidle`
+#
+# `networkidle` means "500 ms with zero requests in flight". A SciTeX page
+# held by a pooled visitor session runs a heartbeat/countdown poller for as
+# long as the page is open (PoolAllocator.extend_session_on_activity), so
+# that condition never arrives and the wait always times out. The page is
+# fine; the question is unanswerable.
+#
+# Measured twice, same exception both times:
+#   2026-08-16, CI run 31955719803 -- 30s timeout, 33 errors, capture down.
+#   2026-09-06, job 101449817274   -- 30s timeout, 14/14 mobile tests
+#                                     ERRORED in fixture setup, so not one
+#                                     assertion in the mobile suite had
+#                                     ever been evaluated.
+#
+# `wait_for_page_ready` (load -> body.app-ready -> short settle) was written
+# after the first of those and is the sanctioned wait. See
+# tests/e2e/playwright/page_ready.py for why each step is there and why none
+# of them can hide a broken page.
 
 
 class TestVisitorRouting:
@@ -26,7 +47,7 @@ class TestVisitorRouting:
     def test_visitor_redirected_to_landing(self, desktop_page, pw_base_url, path):
         """Unauthenticated access to protected routes redirects to landing or login."""
         desktop_page.goto(path)
-        desktop_page.wait_for_load_state("networkidle")
+        wait_for_page_ready(desktop_page)
         url = desktop_page.url
 
         # Should be redirected to landing ("/") or login page
@@ -53,7 +74,7 @@ class TestAuthenticatedRouting:
     def test_auth_user_reaches_hub(self, visitor_desktop_page, pw_base_url, screenshot):
         """Authenticated user navigating to / reaches hub or dashboard."""
         visitor_desktop_page.goto("/")
-        visitor_desktop_page.wait_for_load_state("networkidle")
+        wait_for_page_ready(visitor_desktop_page)
         screenshot(visitor_desktop_page, "auth_hub")
         url = visitor_desktop_page.url
 
@@ -71,7 +92,7 @@ class TestAuthenticatedRouting:
     def test_auth_user_reaches_app(self, visitor_desktop_page, path):
         """Authenticated user can access app routes."""
         resp = visitor_desktop_page.goto(path)
-        visitor_desktop_page.wait_for_load_state("networkidle")
+        wait_for_page_ready(visitor_desktop_page)
         url = visitor_desktop_page.url
 
         # Should not be redirected to login

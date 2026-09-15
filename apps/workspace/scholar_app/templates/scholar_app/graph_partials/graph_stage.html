@@ -1,0 +1,57 @@
+<div id="graphVisualization" class="graph-visualization hidden">
+    <div class="graph-card graph-card--full">
+        <div class="graph-card__header">
+            <div class="graph-card__title">
+                <i class="fas fa-share-alt"></i>
+                <span id="graphTitle">Citation Network</span>
+            </div>
+            <div class="graph-controls">
+                <button type="button" class="btn-control" id="zoomOutBtn" title="Zoom out" aria-label="Zoom out">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <button type="button" class="btn-control" id="zoomInBtn" title="Zoom in" aria-label="Zoom in">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <button type="button" class="btn-control" id="fitViewBtn" title="Fit to view" aria-label="Fit to view">
+                    <i class="fas fa-expand"></i>
+                </button>
+                <button type="button" class="btn-control" id="downloadPngBtn" title="Download PNG" aria-label="Download PNG">
+                    <i class="fas fa-download"></i>
+                </button>
+            </div>
+        </div>
+        <div class="graph-card__body graph-canvas-wrapper">
+            <div id="graphCanvas" class="cg-stage"></div>
+            <div class="cg-overlay">
+                <span id="graphSummary" class="cg-overlay__summary"></span>
+                <span id="graphHint" class="cg-overlay__hint"></span>
+            </div>
+            <div id="graphNodeSheet" class="cg-sheet hidden" role="dialog" aria-live="polite"></div>
+        </div>
+    </div>
+</div>
+<div id="graphEmpty" class="graph-empty hidden" role="status">
+    <i class="fas fa-project-diagram" aria-hidden="true"></i>
+    <p class="graph-empty__title"></p>
+    <p class="graph-empty__body"></p>
+</div>
+<div id="relatedPapersList" class="related-papers-section hidden">
+    <div class="graph-card">
+        <div class="graph-card__header">
+            <div class="graph-card__title">
+                <i class="fas fa-list-ol"></i><span id="relatedPapersHeading">Papers in this graph</span>
+            </div>
+        </div>
+        <div class="graph-card__body">
+            <div id="relatedPapersContent"></div>
+        </div>
+    </div>
+</div>
+<div id="graphLoading" class="graph-loading hidden" role="status"></div>
+<div id="graphError" class="graph-error hidden">
+    <i class="fas fa-exclamation-triangle"></i>
+    <p id="graphErrorMessage"></p>
+    <button type="button"
+            class="btn-retry"
+            onclick="document.getElementById('graphError').classList.add('hidden')">Dismiss</button>
+</div>

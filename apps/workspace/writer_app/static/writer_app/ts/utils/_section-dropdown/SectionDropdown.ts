@@ -11,6 +11,7 @@ import { statePersistence } from "../../modules/_state-persistence";
 import type { CompilationManager } from "../../modules/_compilation";
 import { renderSectionDropdown } from "./rendering";
 import { setupSectionEvents } from "./events";
+import { fetchSectionsConfig } from "../../_writer/_config/sections-config";
 
 /**
  * Populate the custom section dropdown with sections from the API
@@ -23,8 +24,7 @@ import { setupSectionEvents } from "./events";
 export async function populateSectionDropdownDirect(
   docType: string = "manuscript",
   onFileSelectCallback:
-    | ((sectionId: string, sectionName: string) => void)
-    | null = null,
+    ((sectionId: string, sectionName: string) => void) | null = null,
   compilationManager?: CompilationManager,
   state?: any,
 ): Promise<void> {
@@ -80,21 +80,26 @@ export async function populateSectionDropdownDirect(
   }
 
   try {
-    const response = await fetch("/apps/writer/api/sections-config/");
-    const data = await response.json();
+    const data = await fetchSectionsConfig();
 
     if (!data.success || !data.hierarchy) {
       console.error("[Writer] Failed to load sections hierarchy");
       console.error("[Writer] API response:", data);
 
-      // Fallback: Show error in dropdown
-      dropdownContainer.innerHTML = `
-                <div style="padding: 16px; text-align: center; color: var(--color-fg-muted);">
-                    <i class="fas fa-exclamation-triangle" style="margin-bottom: 8px; font-size: 24px;"></i>
-                    <div>Failed to load sections</div>
-                    <div style="font-size: 0.75rem; margin-top: 4px;">Check console for details</div>
-                </div>
-            `;
+      // Fallback: construct a fixed error state without an HTML parser sink.
+      const errorState = document.createElement("div");
+      errorState.style.cssText =
+        "padding: 16px; text-align: center; color: var(--color-fg-muted);";
+      const errorIcon = document.createElement("i");
+      errorIcon.className = "fas fa-exclamation-triangle";
+      errorIcon.style.cssText = "margin-bottom: 8px; font-size: 24px;";
+      const errorTitle = document.createElement("div");
+      errorTitle.textContent = "Failed to load sections";
+      const errorHint = document.createElement("div");
+      errorHint.style.cssText = "font-size: 0.75rem; margin-top: 4px;";
+      errorHint.textContent = "Check console for details";
+      errorState.append(errorIcon, errorTitle, errorHint);
+      dropdownContainer.replaceChildren(errorState);
       selectorText.textContent = "Error loading sections";
       return;
     }
@@ -124,9 +129,9 @@ export async function populateSectionDropdownDirect(
       return;
     }
 
-    // Render the dropdown HTML
-    const html = renderSectionDropdown(sections, docType);
-    dropdownContainer.innerHTML = html;
+    // Replace existing children with DOM nodes; section data is never parsed as HTML.
+    const content = renderSectionDropdown(sections, docType);
+    dropdownContainer.replaceChildren(content);
     console.log(
       "[Writer] Custom dropdown populated with",
       sections.length,

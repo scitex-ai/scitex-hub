@@ -1,6 +1,7 @@
 {% load vite tree_preseed %}
 
 {% include "writer_app/index_partials/_writer_css.html" %}
+{% include "writer_app/shared/_app_header.html" %}
 {% if needs_project_creation %}
     <div class="container py-5">
         <div class="row justify-content-center">
@@ -18,9 +19,12 @@
             </div>
         </div>
     </div>
+{% elif project and not writer_initialized %}
+    {% include "writer_app/index_partials/manuscript_empty_state.html" %}
 {% else %}
     <!-- Writer workspace — file tree provided by shared worktree pane in three-column layout -->
-    <div class="writer-workspace">
+    <div class="writer-workspace" data-mobile-pane="editor">
+        {% include "writer_app/index_partials/mobile_pane_tabs.html" %}
         <!-- Main content: editor + preview -->
         <div class="writer-container">{% include "writer_app/index_partials/main_editor.html" %}</div>
         <!-- Details resizer (unified resizer system) -->

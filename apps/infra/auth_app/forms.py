@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import annotations
-from django import forms
-from django.contrib.auth.models import User
+
 import re
+
+from django import forms
+from django.utils.translation import gettext_lazy as _
 
 
 class SignupForm(forms.Form):
@@ -15,7 +17,7 @@ class SignupForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "Choose a username (e.g., john-doe-42)",
+                "placeholder": _("Choose a username (e.g., john-doe-42)"),
             }
         ),
         help_text="Username may only contain alphanumeric characters, hyphens, and underscores. Cannot begin or end with a hyphen.",
@@ -27,14 +29,14 @@ class SignupForm(forms.Form):
     )
     password = forms.CharField(
         widget=forms.PasswordInput(
-            attrs={"class": "form-control", "placeholder": "Create a strong password"}
+            attrs={"class": "form-control", "placeholder": _("Create a strong password")}
         )
     )
     password2 = forms.CharField(
         widget=forms.PasswordInput(
-            attrs={"class": "form-control", "placeholder": "Confirm your password"}
+            attrs={"class": "form-control", "placeholder": _("Confirm your password")}
         ),
-        label="Confirm Password",
+        label=_("Confirm Password"),
     )
     agree_terms = forms.BooleanField(
         required=True,
@@ -96,18 +98,29 @@ class SignupForm(forms.Form):
         if username.lower() in reserved_usernames:
             raise forms.ValidationError("This username is reserved.")
 
-        # Check uniqueness (case-insensitive)
-        if User.objects.filter(username__iexact=username).exists():
-            raise forms.ValidationError("This username is already taken.")
-
+        # NO UNIQUENESS CHECK HERE, deliberately (hub auth lifecycle P0).
+        #
+        # This validator used to raise "This username is already taken." for any
+        # existing row, which made signup()'s inactive-account resume/expiry
+        # branch UNREACHABLE: form.is_valid() was already False, so a pending
+        # signup could never be resumed and its owner was told to "wait 1 hour
+        # for the account to expire" — advice that led nowhere, because the
+        # expiry branch it referred to could not run either.
+        #
+        # Existence is a LIFECYCLE question with four answers (create / resend /
+        # resume / refuse) and a field validator can only say "no". It is
+        # decided in the view via auth_app.pending_signup.classify_pending_signup,
+        # so the response can be both actionable and non-enumerating.
         return username
 
     def clean_email(self):
-        """Validate email is unique."""
-        email = self.cleaned_data["email"]
-        if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("An account with this email already exists.")
-        return email
+        """Normalise the address. Existence is NOT decided here.
+
+        Same reason as ``clean_username``: a uniqueness error here would mask
+        the pending/resume path. See auth_app.pending_signup for the lifecycle
+        and for why the answer must not reveal whether an address is known.
+        """
+        return self.cleaned_data["email"].strip().lower()
 
     def clean(self):
         """Validate passwords match."""

@@ -20,6 +20,8 @@ Research tool page views:
 from django.urls import path
 
 from apps.workspace.tools_app import views
+from apps.workspace.tools_app.views import x2pdf_api
+from apps.workspace.tools_app.views.tools_views import tools_category
 
 app_name = "tools_app"
 
@@ -126,6 +128,23 @@ urlpatterns = [
         views.tool_render_mmd,
         name="tool_render_mmd",
     ),
+    path("tools/x2pdf/", x2pdf_api.tool_x2pdf, name="tool_x2pdf"),
+    path("tools/api/x2pdf/", x2pdf_api.api_x2pdf_create, name="api_x2pdf_create"),
+    path(
+        "tools/api/x2pdf/<str:job_id>/",
+        x2pdf_api.api_x2pdf_status,
+        name="api_x2pdf_status",
+    ),
+    path(
+        "tools/api/x2pdf/<str:job_id>/pdf/",
+        x2pdf_api.api_x2pdf_pdf,
+        name="api_x2pdf_pdf",
+    ),
+    path(
+        "tools/api/x2pdf/<str:job_id>/save/",
+        x2pdf_api.api_x2pdf_save,
+        name="api_x2pdf_save",
+    ),
     path(
         "tools/extract-pdf/",
         views.tool_extract_pdf,
@@ -181,6 +200,12 @@ urlpatterns = [
         "tools/convert-docx-to-latex/",
         views.tool_convert_docx_to_latex,
         name="tool_convert_docx_to_latex",
+    ),
+    # Launcher tiles (image, pdf, text, developer, media); last so tool routes win.
+    path(
+        "tools/<slug:category>/",
+        tools_category,
+        name="tools_category",
     ),
 ]
 

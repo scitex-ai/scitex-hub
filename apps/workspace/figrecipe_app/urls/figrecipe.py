@@ -345,7 +345,13 @@ _api_view = WorkingDirScopedView(
 
 @login_required
 def editor_page(request):
-    return _editor_view(request)
+    # Stamp the app-scope marker the figrecipe bundle's mountProjectSelectorByScope
+    # reads (d8528de contract). The figrecipe bridge calls the raw leaf editor_page
+    # (not scitex-app's scitex_editor_page host view), so the marker is not injected
+    # upstream — this is the one place the hub applies the shared contract.
+    response = _editor_view(request)
+    from apps.infra.workspace_app.scope_meta import inject_scope_meta
+    return inject_scope_meta(response, "figrecipe")
 
 
 @login_required

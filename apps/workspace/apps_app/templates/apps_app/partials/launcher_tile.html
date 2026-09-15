@@ -1,0 +1,40 @@
+{% load i18n launcher_text %}
+{% if tile.is_add_slot %}{% include "apps_app/partials/launcher_add_slot.html" %}{% else %}
+{# Availability is a registry/catalog FIELD (operator, Telegram 1483) —   #}
+{# the template only renders it. Coming-soon tiles get no href at all: an #}
+{# <a> without href neither navigates nor focuses as a link, while the    #}
+{# press-in tap effect survives.                                          #}
+<a {% if tile.is_launchable %}href="{{ tile.launch_url }}"{% else %}aria-disabled="true"{% endif %}
+   class="launcher-tile"
+   draggable="false"
+   data-module="{{ tile.name }}"
+   data-group="{{ tile.group }}"
+   data-category="{{ tile.category }}"
+   data-label="{{ tile.label }}"
+   data-availability="{{ tile.availability }}"
+   data-installed="{% if tile.is_installed %}1{% else %}0{% endif %}"
+   data-pinned="{% if tile.is_pinned %}1{% else %}0{% endif %}"
+   data-favorite="{% if tile.is_favorite %}1{% else %}0{% endif %}"
+   {% if tile.is_favorite_alias %}data-favorite-alias="1"{% endif %}
+   data-detail-url="{{ tile.detail_url }}"
+   data-version="{{ tile.version }}"
+   data-manifest-label="{{ tile.manifest_label }}"
+   data-manifest-icon="{{ tile.manifest_icon_fa }}"
+   {% if tile.is_link %}data-link-only="1"{% endif %}
+   {% if tile.is_dev_only %}data-dev-only="1"{% endif %}
+   title="{{ tile.label }}{% if tile.version_label %} {{ tile.version_label }}{% endif %}{% if tile.availability == 'coming_soon' %} — {% if tile.availability_reason %}{{ tile.availability_reason }}{% else %}Coming Soon{% endif %}{% endif %}{% if tile.description %} — {{ tile.description }}{% endif %}">
+    {% if tile.is_installed %}<span class="launcher-dot-installed" title="Installed"></span>{% endif %}
+    {% if tile.can_uninstall %}<span role="button" tabindex="-1" class="launcher-edit-control launcher-uninstall-control" aria-label="Uninstall {{ tile.label }}" title="Uninstall {{ tile.label }}"><i class="fas fa-minus" aria-hidden="true"></i></span>{% endif %}
+    {% if tile.can_edit_display %}<span role="button" tabindex="-1" class="launcher-edit-control launcher-display-control" aria-label="Edit {{ tile.label }} display" title="Edit display"><i class="fas fa-pen" aria-hidden="true"></i></span>{% endif %}
+    <span class="launcher-tile-icon" data-tile-category="{{ tile.category }}"{% if tile.icon_color %} style="--launcher-glyph-color: {{ tile.icon_color }}"{% endif %}>
+        <i class="{{ tile.icon_fa }}" aria-hidden="true"></i>
+        {% if tile.icon_badge %}
+            <span class="launcher-tile-icon-badge" aria-hidden="true"><i class="{{ tile.icon_badge }}"></i></span>
+        {% endif %}
+        {% include "apps_app/partials/launcher_tile_badges.html" %}
+    </span>
+    {% trans tile.label context "app name" as tile_name %}
+    <span class="launcher-tile-name">{{ tile_name|phrase_breaks }}</span>
+    {% if tile.version_label %}<span class="launcher-tile-version">{{ tile.version_label }}</span>{% endif %}
+</a>
+{% endif %}

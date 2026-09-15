@@ -15,6 +15,8 @@ Expected strings are independent literals, never read back off the row
 the tile was built from.
 """
 
+import re
+
 import pytest
 from django.contrib.auth.models import User
 from django.test import TestCase
@@ -30,17 +32,16 @@ from apps.workspace.apps_app.models import AppsModule
 class ManifestAvailabilityContractTest(TestCase):
     """The manifest is the SSoT: availability flows into ModuleConfig."""
 
-    def test_writer_manifest_declares_desktop_only(self):
-        # Arrange — writer is a LaTeX editing surface, desktop work
-        expected = "desktop_only"
+    def test_writer_manifest_is_available(self):
+        expected = "available"
         # Act
         mod = get_module("writer")
         # Assert
         assert mod is not None and mod.availability == expected
 
-    def test_figrecipe_manifest_declares_desktop_only(self):
+    def test_figrecipe_manifest_is_available(self):
         # Arrange
-        expected = "desktop_only"
+        expected = "available"
         # Act
         mod = get_module("figrecipe")
         # Assert
@@ -100,13 +101,13 @@ class ModelAvailabilityDefaultTest(TestCase):
 class SeedCopiesAvailabilityTest(TestCase):
     """ensure_builtin_modules mirrors the manifest state into the catalog."""
 
-    def test_seed_stamps_writer_row_desktop_only(self):
+    def test_seed_stamps_writer_row_available(self):
         # Arrange
         from apps.workspace.apps_app.management.commands.seed_apps import (
             ensure_builtin_modules,
         )
 
-        expected = "desktop_only"
+        expected = "available"
         # Act
         ensure_builtin_modules()
         row = AppsModule.objects.get(module_name="writer")
@@ -156,17 +157,15 @@ class LauncherTileAvailabilityTest(TestCase):
         resp = self.client.get("/")
         return next(t for t in resp.context["tiles"] if t["name"] == name)
 
-    def test_writer_tile_is_desktop_only(self):
+    def test_writer_tile_is_available(self):
         # Arrange
-        expected = "desktop_only"
+        expected = "available"
         # Act
         tile = self._tile("writer")
         # Assert
         assert tile["availability"] == expected
 
-    def test_desktop_only_tile_stays_launchable(self):
-        # Arrange — desktop-only gates the PHONE, not the desktop; the
-        # tile keeps its href and CSS/TS handle the mobile side.
+    def test_available_writer_tile_stays_launchable(self):
         expected = True
         # Act
         tile = self._tile("writer")
@@ -261,22 +260,31 @@ class LauncherTemplateAvailabilityTest(TestCase):
         # Assert
         assert expected in resp.content
 
-    def test_desktop_only_tile_carries_data_availability(self):
-        # Arrange — writer declares desktop_only in its manifest
-        expected = b'data-availability="desktop_only"'
+    def test_writer_tile_carries_available_state(self):
         # Act
         resp = self.client.get("/")
         # Assert
-        assert expected in resp.content
+        match = re.search(
+            rb'<a[^>]*class="launcher-tile"[^>]*data-module="writer"[^>]*>',
+            resp.content,
+            re.DOTALL,
+        )
+        assert match is not None
+        writer = match.group(0)
+        assert b'data-availability="available"' in writer
 
-    def test_desktop_only_badge_rendered(self):
-        # Arrange — the badge is always in the DOM; CSS shows it under the
-        # mobile breakpoint only (media queries are not testable here).
-        expected = b"launcher-badge-desktop-only"
+    def test_writer_has_no_desktop_only_badge(self):
         # Act
         resp = self.client.get("/")
         # Assert
-        assert expected in resp.content
+        match = re.search(
+            rb'<a[^>]*class="launcher-tile"[^>]*data-module="writer"[^>]*>.*?</a>',
+            resp.content,
+            re.DOTALL,
+        )
+        assert match is not None
+        writer = match.group(0)
+        assert b"launcher-badge-desktop-only" not in writer
 
     def test_available_tile_keeps_its_href(self):
         # Arrange — scholar launches everywhere

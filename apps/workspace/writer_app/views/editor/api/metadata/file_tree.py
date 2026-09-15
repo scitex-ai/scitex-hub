@@ -11,7 +11,9 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
 
+from apps.infra.platform_app.services.paths import is_within
 from apps.infra.project_app.models import Project
+from apps.security import safe_log_field
 
 logger = logging.getLogger(__name__)
 
@@ -91,11 +93,15 @@ def file_tree_view(request, project_id=None):
                 for item in sorted(
                     path.iterdir(), key=lambda x: (not x.is_dir(), x.name.lower())
                 ):
+                    if not is_within(project_path, item):
+                        continue
                     # Skip hidden files except .git directory, .gitignore, and .gitkeep
                     if item.name.startswith(".") and item.name not in [
                         ".git",
                         ".gitignore",
                         ".gitkeep",
+                        # Writer + Scholar workspaces of a SciTeX project live here.
+                        ".scitex",
                     ]:
                         continue
                     # Skip common non-essential directories
@@ -139,9 +145,11 @@ def file_tree_view(request, project_id=None):
 
         return JsonResponse({"success": True, "tree": tree})
 
-    except Exception as e:
-        logger.error(f"Error getting file tree: {e}", exc_info=True)
-        return JsonResponse({"success": False, "error": str(e)})
+    except Exception:
+        logger.exception("Error getting file tree for %s", safe_log_field(project_id))
+        return JsonResponse(
+            {"success": False, "error": "Unable to load file tree."}, status=500
+        )
 
 
 def _build_remote_tree_response(project):
@@ -164,6 +172,8 @@ def _build_remote_tree_response(project):
                 for item in sorted(
                     path.iterdir(), key=lambda x: (not x.is_dir(), x.name.lower())
                 ):
+                    if not is_within(project_path, item):
+                        continue
                     if item.name.startswith("."):
                         continue
                     if item.name in ["__pycache__", "node_modules", ".venv", "venv"]:
@@ -189,9 +199,13 @@ def _build_remote_tree_response(project):
         tree = build_tree(project_path)
         return JsonResponse({"success": True, "tree": tree})
 
-    except Exception as e:
-        logger.error(f"Remote file tree error: {e}", exc_info=True)
-        return JsonResponse({"success": False, "error": str(e)})
+    except Exception:
+        logger.exception(
+            "Remote file tree error for project %s", safe_log_field(project.id)
+        )
+        return JsonResponse(
+            {"success": False, "error": "Unable to load file tree."}, status=500
+        )
 
 
 # EOF

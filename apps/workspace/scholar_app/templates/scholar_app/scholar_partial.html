@@ -50,14 +50,11 @@
                prior state, and it is how anything gets INTO the Library.
             {% endcomment %}
             <a href="#search" class="scholar-tab" data-tab="search">
-                <i class="fas fa-search"></i> Search
+                <i class="fas fa-search"></i> Search databases
             </a>
             <a href="#library" class="scholar-tab" data-tab="library">
                 <i class="fas fa-book-reader"></i> Library
                 {% if library_count %}<span class="scholar-tab-badge">{{ library_count }}</span>{% endif %}
-            </a>
-            <a href="#bibtex" class="scholar-tab" data-tab="bibtex">
-                <i class="fas fa-wand-magic-sparkles"></i> Metadata Enrichment
             </a>
             <a href="#graph" class="scholar-tab" data-tab="graph">
                 <i class="fas fa-project-diagram"></i> Citation Graph
@@ -91,26 +88,6 @@
             null
         {% endif %}
         '></div>
-</div>
-<!-- BibTeX Tab -->
-<div id="tab-bibtex" class="scholar-tab-content" data-tab="bibtex">
-    <div class="bibtex-main-content">
-        {% include "scholar_app/bibtex_partials/enrich.html" %}
-        {% if current_project %}
-            {% include "writer_app/compilation_view_partials/ai2_modal.html" %}
-        {% endif %}
-    </div>
-    <div class="h-resizer scholar-tab-resizer"
-         id="bibtex-resizer"
-         data-h-resizer
-         data-in-app
-         data-left=".bibtex-main-content"
-         data-right="#bibtex-controls-panel"
-         data-threshold="120"
-         data-storage-key="scholar-bibtex-split"></div>
-    <div class="bibtex-controls-inline" id="bibtex-controls-panel">
-        {% include "scholar_app/bibtex_partials/status_tiles.html" %}
-    </div>
 </div>
 <!-- Graph Tab -->
 <div id="tab-graph" class="scholar-tab-content" data-tab="graph">
@@ -175,66 +152,7 @@
                 <i class="fas fa-plus"></i>
             </button>
         </div>
-        <div id="graphVisualization" class="graph-visualization hidden">
-            <div class="graph-card graph-card--full">
-                <div class="graph-card__header">
-                    <div class="graph-card__title">
-                        <i class="fas fa-share-alt"></i>
-                        <span id="graphTitle">Citation Network</span>
-                    </div>
-                    <div class="graph-controls">
-                        <div class="edge-filter-group" title="Toggle edge types">
-                            <button class="edge-filter-btn active"
-                                    data-edge-type="coupling"
-                                    title="Bibliographic coupling">
-                                <span class="edge-color-dot edge-dot-coupling"></span>Coupling
-                            </button>
-                            <button class="edge-filter-btn active" data-edge-type="cocitation" title="Co-citation">
-                                <span class="edge-color-dot edge-dot-cocitation"></span>Co-cite
-                            </button>
-                            <button class="edge-filter-btn active" data-edge-type="direct" title="Direct citation">
-                                <span class="edge-color-dot edge-dot-direct"></span>Direct
-                            </button>
-                        </div>
-                        <button class="btn-control" id="fitViewBtn" title="Fit to View">
-                            <i class="fas fa-expand"></i>
-                        </button>
-                        <button class="btn-control" id="resetZoomBtn" title="Reset Zoom">
-                            <i class="fas fa-compress-arrows-alt"></i>
-                        </button>
-                        <button class="btn-control" id="graphSaveBtn2" title="Save Graph">
-                            <i class="fas fa-save"></i>
-                        </button>
-                        <button class="btn-control" id="downloadSvgBtn" title="Download SVG">
-                            <i class="fas fa-download"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="graph-card__body graph-canvas-wrapper">
-                    <div id="graphCanvas"></div>
-                    <div id="nodeDetailsPanel" class="node-details-panel hidden"></div>
-                </div>
-            </div>
-        </div>
-        <div id="relatedPapersList" class="related-papers-section hidden">
-            <div class="graph-card">
-                <div class="graph-card__header">
-                    <div class="graph-card__title">
-                        <i class="fas fa-list-ol"></i><span>Related Papers</span>
-                    </div>
-                </div>
-                <div class="graph-card__body">
-                    <div id="relatedPapersContent"></div>
-                </div>
-            </div>
-        </div>
-        <div id="graphLoading" class="graph-loading hidden"></div>
-        <div id="graphError" class="graph-error hidden">
-            <i class="fas fa-exclamation-triangle"></i>
-            <p id="graphErrorMessage"></p>
-            <button class="btn-retry"
-                    onclick="document.getElementById('graphError').classList.add('hidden')">Dismiss</button>
-        </div>
+        {% include "scholar_app/graph_partials/graph_stage.html" %}
     </div>
     <div class="h-resizer scholar-tab-resizer"
          id="graph-resizer"
@@ -361,6 +279,7 @@
      class="hidden"
      data-url-build-network="{% url 'scholar_app:citation_graph_network' %}"
      data-url-build-network-multi="{% url 'scholar_app:citation_graph_network_multi' %}"
+     data-url-build-network-query="{% url 'scholar_app:citation_graph_network_query' %}"
      data-url-related-papers="{% url 'scholar_app:citation_graph_related' %}"
      data-url-paper-summary="{% url 'scholar_app:citation_graph_paper' %}"
      data-url-health="{% url 'scholar_app:citation_graph_health' %}"
@@ -371,7 +290,7 @@
      data-url-delete-graph="/apps/scholar/api/graph/saved/__ID__/delete/"
      data-url-refresh-graph="/apps/scholar/api/graph/saved/__ID__/refresh/"></div>
 <!-- External libraries -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js" integrity="sha384-/gBUOLHADjY2rp6bHB0IyW9AC28q4OsnirJScje4l1crgYW7Qarx3dH8zcqcUgmy" crossorigin="anonymous"></script>
 {% vite_script 'scholar_app/init/plotly-init' %}
 <!-- Scholar scripts -->
 {% vite_script 'scholar_app/search/source-health-check' %}
