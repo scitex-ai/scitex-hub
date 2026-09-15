@@ -5,6 +5,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import {
+  gripTap,
   LIVE_HEIGHT_VAR,
   MINIMIZED_CLASS,
   readMinimized,
@@ -59,6 +60,18 @@ describe("site dock minimize", () => {
     expect(
       dock.querySelector("[data-dock-grabber]")?.getAttribute("aria-label"),
     ).toBe("Show dock");
+  });
+
+  it("double-tap on the grip minimizes the dock", () => {
+    expect(
+      gripTap(1000, { minimized: false, lastTap: 800, lastRestore: 0 }),
+    ).toBe("minimize");
+  });
+
+  it("the second tap of a pill-restoring double-tap is swallowed", () => {
+    expect(
+      gripTap(1000, { minimized: false, lastTap: 0, lastRestore: 800 }),
+    ).toBe("ignore");
   });
 
   it("chat panel keeps a phone width above a minimized pill", () => {

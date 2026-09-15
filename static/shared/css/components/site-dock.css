@@ -6,7 +6,7 @@
 
    Every app is its tile icon (the Home tile's size) with a short caption under
    it. Back at the far left, Forward at the far right, the grip beside Back; on
-   a phone those controls take a second row, [<] [wide grip] [>], so the apps
+   a phone those controls take a second row, [<] [grip] [>] [_], so the apps
    get the full width. Fixed to the
    bottom centre by default, above everything else on the page. The grabber
    drags it anywhere; a dragged dock carries .site-dock--floating and inline
@@ -45,8 +45,7 @@
      --site-dock-live-height (minimized: the pill's), so the reservation follows. */
   --site-dock-clearance: calc(
     var(--site-dock-live-height, var(--site-dock-height)) +
-      var(--site-dock-gap) + 8px +
-      env(safe-area-inset-bottom, 0px)
+      var(--site-dock-gap) + 8px + env(safe-area-inset-bottom, 0px)
   );
   --site-dock-bg: rgba(255, 255, 255, 0.82);
   --site-dock-border: rgba(0, 0, 0, 0.1);
@@ -312,126 +311,6 @@ body:has(> .site-dock:not(.site-dock--floating)) {
   transform: none;
 }
 
-/* Grip: a drag-handle glyph (fa-grip-vertical) just right of Back, in flow,
-   with a 44x44 hit area. The first version was a thin bar overhanging
-   the top edge, which the operator could not recognise as draggable
-   (2026-09-14). A separator line sets it apart from the navigation buttons. */
-.site-dock-grabber {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  width: 44px;
-  min-width: 44px;
-  height: 44px;
-  min-height: 44px;
-  margin: 0 2px 0 0;
-  padding: 0;
-  border: 0;
-  border-radius: 12px;
-  background: transparent;
-  color: var(--site-dock-fg);
-  opacity: 0.75;
-  cursor: grab;
-  touch-action: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.site-dock-grabber::after {
-  content: "";
-  position: absolute;
-  right: -2px;
-  top: 10px;
-  bottom: 10px;
-  width: 1px;
-  background: var(--site-dock-border);
-}
-
-.site-dock-grabber i {
-  font-size: 18px;
-  pointer-events: none;
-}
-
-/* The phone's wide grip: the glyph's dots tiled across the handle; desktop
-   shows the glyph itself. */
-.site-dock-grabber-dots {
-  display: none;
-  pointer-events: none;
-  height: 18px;
-  /* Square blocks, not dots or a bar: a bar reads as a seek/scroll bar. */
-  background-image: linear-gradient(90deg, var(--site-dock-fg) 7px, transparent 7px);
-  background-size: 11px 11px;
-  background-repeat: round;
-  -webkit-mask-image: linear-gradient(#000 7px, transparent 7px);
-  mask-image: linear-gradient(#000 7px, transparent 7px);
-  -webkit-mask-size: 11px 11px;
-  mask-size: 11px 11px;
-  -webkit-mask-repeat: round;
-  mask-repeat: round;
-  border-radius: 2px;
-  opacity: 0.55;
-}
-
-.site-dock-grabber:hover .site-dock-grabber-dots,
-.site-dock--dragging .site-dock-grabber-dots {
-  opacity: 0.95;
-}
-
-.site-dock-grabber:hover,
-.site-dock-grabber:focus-visible {
-  opacity: 1;
-  background: var(--site-dock-active-bg);
-}
-
-.site-dock--dragging .site-dock-grabber,
-.site-dock-grabber:active {
-  cursor: grabbing;
-  opacity: 1;
-}
-
-.site-dock-grabber:focus-visible {
-  outline: 2px solid var(--site-dock-fg-active);
-  outline-offset: -2px;
-}
-
-/* Minimize: the chat window's "_" glyph at the end of the controls. */
-.site-dock-minimize svg {
-  pointer-events: none;
-}
-
-/* Minimized: a small pill of grip blocks, same anchor. Tap restores, drag moves. */
-.site-dock.site-dock--minimized {
-  display: flex;
-  width: auto;
-  height: var(--site-dock-pill-height);
-  padding: 0 4px;
-  border-radius: calc(var(--site-dock-pill-height) / 2);
-}
-
-.site-dock--minimized > :not(.site-dock-grabber) {
-  display: none;
-}
-
-.site-dock--minimized .site-dock-grabber {
-  width: 84px;
-  height: 100%;
-  min-height: 0;
-  margin: 0;
-  border-radius: calc(var(--site-dock-pill-height) / 2);
-  opacity: 1;
-}
-
-.site-dock--minimized .site-dock-grabber::after,
-.site-dock--minimized .site-dock-grabber i {
-  display: none;
-}
-
-.site-dock--minimized .site-dock-grabber-dots {
-  display: block;
-  width: 62px;
-}
-
 @media (min-width: 768px) {
   :root {
     --site-dock-icon: 68px;
@@ -439,14 +318,14 @@ body:has(> .site-dock:not(.site-dock--floating)) {
 }
 
 /* Phones: the apps take the whole first row, in equal cells. The second row is
-   [<] far left, a wide dotted grip filling the centre, [>] far right
-   (operator 2026-09-14: the small grid-dots grip was hard to hit with a
-   finger). */
+   [<] far left, a compact block grip centred, [>] and [_] at the right. Row 2
+   is 52px so the grip's hit area is not cramped (operator 2026-09-15). */
 @media (max-width: 640px) {
   :root {
     --site-dock-icon: 60px;
+    --site-dock-row2: 52px;
     --site-dock-height: calc(
-      var(--site-dock-app-height) + 1px + var(--site-dock-item) + 2 *
+      var(--site-dock-app-height) + 1px + var(--site-dock-row2) + 2 *
         var(--site-dock-pad)
     );
   }
@@ -454,7 +333,7 @@ body:has(> .site-dock:not(.site-dock--floating)) {
   .site-dock {
     display: grid;
     grid-template-columns: 44px minmax(0, 1fr) 44px 44px;
-    grid-template-rows: var(--site-dock-app-height) var(--site-dock-item);
+    grid-template-rows: var(--site-dock-app-height) var(--site-dock-row2);
     gap: 0;
     padding-block: var(--site-dock-pad);
   }
@@ -480,25 +359,10 @@ body:has(> .site-dock:not(.site-dock--floating)) {
     letter-spacing: -0.02em;
   }
 
+  /* Sizing and glyph: site-dock-grip.css. */
   .site-dock-grabber {
     grid-column: 2;
     grid-row: 2;
-    width: auto;
-    margin: 0 4px;
-    opacity: 1;
-  }
-
-  .site-dock-grabber::after,
-  .site-dock-grabber i {
-    display: none;
-  }
-
-  /* Operator 2026-09-14: a plain bar did not read as "grab here"; two rows of
-     the old grip's dots spread across the handle do. `round` spaces the dots
-     evenly so none is cut at the edges. */
-  .site-dock-grabber-dots {
-    display: block;
-    width: calc(100% - 16px);
   }
 
   .site-dock-history {

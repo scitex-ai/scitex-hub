@@ -45,6 +45,21 @@ export function setMinimized(dock: HTMLElement, on: boolean): void {
   syncDockHeight(dock);
 }
 
+export const DOUBLE_TAP_MS = 320;
+
+export type GripTap = "restore" | "minimize" | "ignore" | "arm";
+
+/** What a tap (not a drag) on the grip does. A double-tap toggles the pill;
+ *  the second tap of a double-tap that restored the pill is swallowed. */
+export function gripTap(
+  now: number,
+  state: { minimized: boolean; lastTap: number; lastRestore: number },
+): GripTap {
+  if (state.minimized) return "restore";
+  if (now - state.lastRestore < DOUBLE_TAP_MS) return "ignore";
+  return now - state.lastTap < DOUBLE_TAP_MS ? "minimize" : "arm";
+}
+
 export function isMinimized(dock: HTMLElement): boolean {
   return dock.classList.contains(MINIMIZED_CLASS);
 }

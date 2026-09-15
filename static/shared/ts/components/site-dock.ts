@@ -8,10 +8,11 @@
  *    its position:fixed into "floats mid-screen" (the iOS failure the old
  *    launcher dock hit, operator msgs 608-610).
  * 2. Drag: the grabber moves the dock anywhere in the viewport. The position is
- *    remembered per device in localStorage. A double-click or double-tap on the
- *    grabber, or dropping the dock back at the bottom, docks it again.
- * 3. Minimize: the "_" button collapses the dock to a grip pill; tapping the
- *    pill (or Enter / Space on it) restores it. Remembered per device.
+ *    remembered per device in localStorage. Dropping the dock back at the
+ *    bottom, or Escape on the grabber, docks it again.
+ * 3. Minimize: the "_" button or a double-tap / double-click on the grip
+ *    collapses the dock to a grip pill; tapping the pill (or Enter / Space on
+ *    it) restores it. Remembered per device.
  * 4. Back / Forward: history.back() / history.forward(), enabled from the
  *    in-site history stack (_site-dock/history-stack.ts). Where the browser has
  *    the Navigation API its canGoBack / canGoForward answer is used directly.
@@ -30,6 +31,7 @@ import {
 } from "./_site-dock/history-stack";
 import { initChatPanel } from "./_site-dock/chat-panel";
 import {
+  gripTap,
   isMinimized,
   readMinimized,
   setMinimized,
@@ -44,7 +46,6 @@ import {
 
 const POSITION_KEY = "stx-site-dock-position";
 const HISTORY_KEY = "stx-site-dock-history";
-const DOUBLE_TAP_MS = 320;
 const KEY_STEP_PX = 24;
 
 interface NavigationApi {
@@ -192,12 +193,7 @@ class SiteDock {
     const grabber = this.grabber;
     if (!grabber) return;
 
-    grabber.addEventListener("dblclick", (e) => {
-      e.preventDefault();
-      // The first click of this pair restored a minimized dock; keep its place.
-      if (Date.now() - this.lastRestore < 600) return;
-      this.reset();
-    });
+    grabber.addEventListener("dblclick", (e) => e.preventDefault());
 
     grabber.addEventListener("pointerdown", (down: PointerEvent) => {
       if (down.pointerType === "mouse" && down.button !== 0) return;
@@ -251,20 +247,16 @@ class SiteDock {
           this.settle(left, top);
           return;
         }
-        if (isMinimized(this.dock)) {
-          this.toggleMinimized(false);
-          this.lastTap = 0;
-          return;
-        }
-        // A tap, not a drag: two taps in quick succession reset (touch has no
-        // reliable dblclick).
+        // Handled here for mouse too: touch has no reliable dblclick.
         const now = Date.now();
-        if (e.pointerType !== "mouse" && now - this.lastTap < DOUBLE_TAP_MS) {
-          this.reset();
-          this.lastTap = 0;
-        } else {
-          this.lastTap = now;
-        }
+        const action = gripTap(now, {
+          minimized: isMinimized(this.dock),
+          lastTap: this.lastTap,
+          lastRestore: this.lastRestore,
+        });
+        if (action === "restore") this.toggleMinimized(false);
+        if (action === "minimize") this.toggleMinimized(true);
+        this.lastTap = action === "arm" ? now : 0;
       };
 
       grabber.addEventListener("pointermove", onMove);

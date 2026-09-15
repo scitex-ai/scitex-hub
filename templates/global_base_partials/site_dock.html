@@ -3,6 +3,7 @@
 {% if site_dock_items %}
     <link rel="stylesheet" href="{% static 'shared/css/components/app-icon.css' %}?v={{ build_id }}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/site-dock.css' %}?v={{ build_id }}" />
+    <link rel="stylesheet" href="{% static 'shared/css/components/site-dock-grip.css' %}?v={{ build_id }}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/site-dock-chat.css' %}?v={{ build_id }}" />
     <nav class="site-dock" id="site-dock" data-site-dock data-dock-capacity="{{ site_dock_capacity }}" aria-label="{% trans 'Dock' %}">
         {# Order: Back, grip, apps, Forward. On a phone the apps take row 1 and row 2 reads [<] [grip] [>]. #}
@@ -18,12 +19,12 @@
                 class="site-dock-grabber"
                 data-dock-grabber
                 data-label-move="{% trans 'Move dock' %}"
-                data-title-move="{% trans 'Move dock (double-click to reset)' %}"
+                data-title-move="{% trans 'Move dock (double-click to minimize)' %}"
                 data-label-show="{% trans 'Show dock' %}"
                 aria-label="{% trans 'Move dock' %}"
-                title="{% trans 'Move dock (double-click to reset)' %}">
+                title="{% trans 'Move dock (double-click to minimize)' %}">
             <i class="fas fa-grip-vertical" aria-hidden="true"></i>
-            <span class="site-dock-grabber-dots" aria-hidden="true"></span>
+            <span class="site-dock-grabber-blocks" aria-hidden="true"></span>
         </button>
         <span class="site-dock-apps" data-dock-apps>
             {% for item in site_dock_items %}

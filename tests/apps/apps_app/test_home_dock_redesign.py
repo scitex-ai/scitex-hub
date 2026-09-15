@@ -192,14 +192,14 @@ class SiteDockOnEveryPageTest(TestCase):
         # Assert
         assert (grip.group(1), "fa-grip" in grip.group(2)) == ("Move dock", True)
 
-    def test_dock_phone_grip_is_tiled_dots(self):
-        # Operator 2026-09-14: the wide phone handle reads as the dotted grip, not a bar.
+    def test_dock_phone_grip_is_a_compact_block_glyph(self):
+        # Operator 2026-09-15: a 4x3 app-grid glyph, not a wide tiled strip.
         # Arrange
-        dock = _dock_html(self.client.get("/apps/").content)
+        css = _site_css("site-dock-grip.css")
         # Act
-        has_dots = '<span class="site-dock-grabber-dots"' in dock
+        rule = re.search(r"\.site-dock-grabber-blocks\s*\{([^}]*)\}", css).group(1)
         # Assert
-        assert has_dots
+        assert re.search(r"width:\s*30px;\s*height:\s*22px", rule)
 
     def test_dock_reads_back_grip_apps_forward(self):
         # Operator 2026-09-14: Back far left, Forward far right, grip between.
@@ -215,7 +215,7 @@ class SiteDockOnEveryPageTest(TestCase):
 
     def test_dock_grip_hit_area_is_at_least_44px(self):
         # Arrange
-        css = _site_css("site-dock.css")
+        css = _site_css("site-dock-grip.css")
         # Act
         rule = re.search(r"\.site-dock-grabber\s*\{([^}]*)\}", css).group(1)
         sizes = [int(v) for v in re.findall(r"min-(?:width|height):\s*(\d+)px", rule)]
