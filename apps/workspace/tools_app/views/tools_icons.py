@@ -34,6 +34,7 @@ TOOL_ICONS = {
     "scitex-plot-tester": "fa-vial",
     "statistics-calculator": "fa-calculator",
     "citation-scraper": "fa-quote-right",
+    "x2pdf": "fa-file-arrow-up",
     "pdf-text-figure-extractor": "fa-file-export",
     "pdf-compressor": "fa-file-zipper",
     "pdf-merger": "fa-object-group",

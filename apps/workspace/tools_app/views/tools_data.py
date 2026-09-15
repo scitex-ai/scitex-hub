@@ -30,7 +30,31 @@ __all__ = [
     "DEVELOPER_TOOLS",
     "RESEARCH_TOOLS",
     "get_tool_domains",
+    "TOOL_CATEGORIES",
+    "get_category",
+    "get_category_domains",
 ]
+
+# Launcher tiles: each groups one or more domains. Keep in step with
+# tools_app/manifests/<slug>.json and launcher_order.py.
+TOOL_CATEGORIES = {
+    "image": {"label": "Image Tools", "domains": ("image", "rendering")},
+    "pdf": {"label": "PDF Tools", "domains": ("pdf",)},
+    "text": {"label": "Text Tools", "domains": ("text", "research")},
+    "developer": {"label": "Developer Tools", "domains": ("development",)},
+    "media": {"label": "Media Tools", "domains": ("video", "audio")},
+}
+
+
+def get_category(slug):
+    """The category dict for ``slug``, or None."""
+    return TOOL_CATEGORIES.get(slug)
+
+
+def get_category_domains(slug):
+    """The domains shown under one launcher tile, in the category's order."""
+    by_slug = {d["slug"]: d for d in get_tool_domains()}
+    return [by_slug[s] for s in TOOL_CATEGORIES[slug]["domains"] if s in by_slug]
 
 
 def get_tool_domains():

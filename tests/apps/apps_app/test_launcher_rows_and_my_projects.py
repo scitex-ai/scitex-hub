@@ -56,6 +56,11 @@ EXPECTED_TILE_ORDER = [
     "stats",
     "Writer",
     "Chat",
+    "Image Tools",
+    "PDF Tools",
+    "Text Tools",
+    "Developer Tools",
+    "Media Tools",
     "Tools",
     "Console",
     "Clew",
@@ -73,6 +78,9 @@ EXPECTED_TILE_ORDER = [
 def _manifest_labels():
     labels = {}
     manifests = sorted((_REPO_ROOT / "apps" / "workspace").glob("*/manifest.json"))
+    manifests += sorted(
+        (_REPO_ROOT / "apps" / "workspace" / "tools_app" / "manifests").glob("*.json")
+    )
     links = sorted(
         (_REPO_ROOT / "apps" / "workspace" / "apps_app" / "launcher_links").glob(
             "*.json"

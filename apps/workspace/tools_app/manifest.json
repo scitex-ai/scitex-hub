@@ -10,6 +10,7 @@
   "license": "AGPL-3.0",
   "keyboard_shortcut": "T",
   "order": 35,
+  "show_in_launcher": false,
   "accent_color": "tools",
   "body_class": "tools-page",
   "partial_template": "tools_app/tools_partial.html",

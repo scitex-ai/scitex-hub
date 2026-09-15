@@ -70,6 +70,13 @@ LAUNCHER_GROUPS: tuple[LauncherGroup, ...] = (
             "stats",  # a Coming-soon tile until the app ships (planned_apps.py)
             "writer",
             "chat",  # link tile -> /chat/
+            # Tools split into category tiles (operator, 2026-09-15); "tools"
+            # stays registered for /apps/tools/ but is hidden from the grid.
+            "tools-image",
+            "tools-pdf",
+            "tools-text",
+            "tools-developer",
+            "tools-media",
             "tools",
             "console",
             "clew",

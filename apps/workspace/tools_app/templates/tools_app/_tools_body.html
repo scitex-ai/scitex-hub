@@ -8,9 +8,9 @@
          data-project-slug="{{ current_project.slug }}"
          data-mode="tools"></div>
 {% endif %}
-{% trans "Tools" as tools_label %}
+{% trans tools_title|default:"Tools" as tools_label %}
 {% trans "Tool" as tool_label %}
-{% scitex_panes "tools" layout="app" active="list" css_class=workspace_class %}
+{% scitex_panes panes_app|default:"tools" layout="app" active="list" css_class=workspace_class %}
 {% scitex_pane "list" label=tools_label order=1 css_class="tools-nav-panel collapsible-panel" %}
 <div class="tools-nav-header">
     <button class="panel-toggle-btn left-panel-toggle"

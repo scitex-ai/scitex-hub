@@ -21,6 +21,7 @@ from django.urls import path
 
 from apps.workspace.tools_app import views
 from apps.workspace.tools_app.views import x2pdf_api
+from apps.workspace.tools_app.views.tools_views import tools_category
 
 app_name = "tools_app"
 
@@ -199,6 +200,12 @@ urlpatterns = [
         "tools/convert-docx-to-latex/",
         views.tool_convert_docx_to_latex,
         name="tool_convert_docx_to_latex",
+    ),
+    # Launcher tiles (image, pdf, text, developer, media); last so tool routes win.
+    path(
+        "tools/<slug:category>/",
+        tools_category,
+        name="tools_category",
     ),
 ]
 

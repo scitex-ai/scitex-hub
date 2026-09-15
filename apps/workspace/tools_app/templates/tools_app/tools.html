@@ -2,7 +2,7 @@
 
 {% load static vite tree_preseed %}
 
-{% block title %}SciTeX Tools{% endblock %}
+{% block title %}SciTeX {{ tools_title|default:"Tools" }}{% endblock %}
 {% block meta_description %}
     Free browser-based tools for
     researchers: bookmarklets for element inspection, citation scraping, and more.

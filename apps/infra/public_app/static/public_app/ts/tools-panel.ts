@@ -18,25 +18,31 @@ function getElements() {
 // --- Phone tabs (scitex-ui panes: "Tools | <tool>") ---
 type StxPanes = { show(pane: string, app?: string): boolean };
 
-function whenPanes(cb: (panes: StxPanes) => void, tries = 60): void {
+// "tools" for the full list, "tools-<category>" for a launcher tile.
+const PANES_ROOT = ".tools-workspace[data-stx-panes]";
+
+function whenPanes(
+  root: HTMLElement,
+  cb: (panes: StxPanes) => void,
+  tries = 60,
+): void {
   const panes = (window as unknown as { stxPanes?: StxPanes }).stxPanes;
-  const mounted = document.querySelector(
-    '[data-stx-panes="tools"] [data-stx-pane-tab]',
-  );
-  if (panes && mounted) cb(panes);
-  else if (tries > 0) requestAnimationFrame(() => whenPanes(cb, tries - 1));
+  if (panes && root.querySelector("[data-stx-pane-tab]")) cb(panes);
+  else if (tries > 0)
+    requestAnimationFrame(() => whenPanes(root, cb, tries - 1));
 }
 
 function syncToolTab(name: string | null): void {
-  const root = document.querySelector<HTMLElement>('[data-stx-panes="tools"]');
+  const root = document.querySelector<HTMLElement>(PANES_ROOT);
   if (!root) return;
+  const app = root.getAttribute("data-stx-panes") || "tools";
   root.toggleAttribute("data-tool-open", name !== null);
-  whenPanes((panes) => {
+  whenPanes(root, (panes) => {
     const label = root.querySelector(
       '[data-stx-pane-tab="tool"] .stx-panes__tab-label',
     );
     if (label && name) label.textContent = name;
-    panes.show(name ? "tool" : "list", "tools");
+    panes.show(name ? "tool" : "list", app);
   });
 }
 

@@ -191,7 +191,11 @@ class HomePagesTest(TestCase):
             ("stats", True),
             ("writer", False),
             ("chat", False),
-            ("tools", False),
+            ("tools-image", False),
+            ("tools-pdf", False),
+            ("tools-text", False),
+            ("tools-developer", False),
+            ("tools-media", False),
             ("create-app", False),
         ]
 
