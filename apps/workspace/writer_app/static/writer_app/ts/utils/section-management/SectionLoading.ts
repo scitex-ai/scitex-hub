@@ -9,6 +9,7 @@ import type { PDFPreviewManager } from "../../modules/pdf-preview/index";
 // Direct import to avoid circular dependency through barrel re-export
 import { setLoadingContent } from "../../modules/auto-save";
 import { getWriterConfig } from "../../_helpers";
+import { takePrefetched } from "../../_writer/_config/prefetch";
 import { getUserContext } from "../ui";
 import { syncDropdownToSection } from "../_section-dropdown/index";
 import { updateSectionUI } from "./SectionUI";
@@ -50,9 +51,8 @@ export async function loadSectionContent(
       sectionName,
     );
 
-    const response = await fetch(
-      `/apps/writer/api/project/${config.projectId}/section/${sectionName}/?doc_type=${docType}`,
-    );
+    const url = `/apps/writer/api/project/${config.projectId}/section/${sectionName}/?doc_type=${docType}`;
+    const response = await (takePrefetched(url) ?? fetch(url));
 
     if (!response.ok) {
       const error = await response.text();

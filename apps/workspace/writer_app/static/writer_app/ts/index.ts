@@ -123,10 +123,22 @@ import {
 import { editorLoader } from "./loaders/editor-loader";
 
 import { prefetchSectionsConfig } from "./_writer/_config/sections-config";
+import { prefetch, sectionContentUrl } from "./_writer/_config/prefetch";
 
-// The section list gates the first section load; start it before init work.
-if ((window as any).WRITER_CONFIG?.writerInitialized) {
-  prefetchSectionsConfig();
+// The section list and the likely first section gate the first paint of
+// text; start both before the editor's init work. A wrong guess is unused.
+{
+  const cfg = (window as any).WRITER_CONFIG;
+  if (cfg?.writerInitialized && cfg.projectId) {
+    prefetchSectionsConfig();
+    const doctype = statePersistence.getSavedDoctype() || "manuscript";
+    const guess =
+      statePersistence.getSavedSectionForDoctype(doctype) ||
+      statePersistence.getSavedSection() ||
+      `${doctype}/abstract`;
+    const url = sectionContentUrl(cfg.projectId, guess);
+    if (url && guess.startsWith(`${doctype}/`)) prefetch(url);
+  }
 }
 
 // Initialize editors immediately (before DOM ready)
