@@ -16,12 +16,18 @@ function initializeHeaderClock(): void {
   const update = (): void => {
     const now = new Date();
     clock.dateTime = now.toISOString();
-    clock.textContent = now.toLocaleTimeString([], {
+    const date = now.toLocaleDateString("sv-SE", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    const time = now.toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
       hour12: false,
     });
+    clock.textContent = `${date} ${time}`;
     clock.title = Intl.DateTimeFormat().resolvedOptions().timeZone;
   };
 
