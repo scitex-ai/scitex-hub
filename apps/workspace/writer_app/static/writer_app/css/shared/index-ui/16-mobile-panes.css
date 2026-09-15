@@ -194,9 +194,18 @@
     display: none !important;
   }
 
+  .writer-workspace > .writer-details {
+    flex: 1 1 0 !important;
+    max-height: none !important;
+    border-left: 0;
+  }
+
   .writer-workspace .writer-details .details-content {
     display: block !important;
-    overflow-y: auto;
+    flex: 1 1 0;
+    min-height: 0;
+    max-height: none !important;
+    overflow-y: auto !important;
   }
 
   /* Floating shortcut/help affordances cover the text on a phone. */
