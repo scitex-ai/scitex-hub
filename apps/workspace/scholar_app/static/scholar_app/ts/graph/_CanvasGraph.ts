@@ -139,11 +139,11 @@ export class CanvasGraph {
     this.requestFrame();
   }
 
-  centerOnNode(node: NetworkNode, sheetHeight = 0): void {
+  centerOnNode(node: NetworkNode, sheetHeight = 0, sheetWidth = 0): void {
     const target = centerOn(
       this.transform,
       { x: node.x || 0, y: node.y || 0 },
-      this.width,
+      this.width - sheetWidth,
       this.height,
       sheetHeight,
       Math.max(this.transform.k, 1),

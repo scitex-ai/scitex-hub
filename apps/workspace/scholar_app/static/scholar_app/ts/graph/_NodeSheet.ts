@@ -79,12 +79,19 @@ export class NodeSheet {
     this.onClose = onClose;
   }
 
-  /** Visible height, so the graph can centre the node above the sheet. */
+  private isSidePanel(): boolean {
+    return window.innerWidth > 768;
+  }
+
+  /** Space the sheet covers: bottom on phones, right side on desktop. */
   height(): number {
-    // On wide screens the sheet sits in a corner, so centre in the full stage.
-    if (this.el.classList.contains("hidden") || window.innerWidth > 768)
-      return 0;
+    if (this.el.classList.contains("hidden") || this.isSidePanel()) return 0;
     return this.el.offsetHeight;
+  }
+
+  width(): number {
+    if (this.el.classList.contains("hidden") || !this.isSidePanel()) return 0;
+    return this.el.offsetWidth + 24;
   }
 
   hide(): void {
@@ -119,7 +126,7 @@ export class NodeSheet {
         <button type="button" class="cg-sheet__btn cg-sheet__btn--primary" data-act="add">
           <i class="fas fa-bookmark"></i> <span>${gt("addToLibrary")}</span>
         </button>
-        ${node.is_seed ? "" : `<button type="button" class="cg-sheet__btn" data-act="explore"><i class="fas fa-project-diagram"></i> ${gt("explore")}</button>`}
+        ${node.is_seed ? "" : `<button type="button" class="cg-sheet__btn" data-act="explore" title="${gt("explore")}"><i class="fas fa-project-diagram"></i> ${gt("exploreShort")}</button>`}
       </div>`;
     this.el.classList.remove("hidden");
     this.el.querySelector(".cg-sheet__close")?.addEventListener("click", () => {

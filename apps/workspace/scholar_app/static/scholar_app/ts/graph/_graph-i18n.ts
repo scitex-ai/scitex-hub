@@ -14,6 +14,10 @@ const STRINGS = {
     ja: "先にプロジェクトを選択してください",
   },
   explore: { en: "Explore from here", ja: "ここから探索" },
+  exploreShort: { en: "Explore", ja: "探索" },
+  startFrom: { en: "Start the graph from", ja: "グラフの起点" },
+  modeSearch: { en: "A DOI or title", ja: "DOI・タイトル" },
+  modeLibrary: { en: "My library", ja: "マイライブラリ" },
   close: { en: "Close", ja: "閉じる" },
   building: {
     en: "Building citation network…",

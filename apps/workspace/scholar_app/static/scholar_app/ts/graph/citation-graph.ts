@@ -251,7 +251,7 @@ class CitationGraphManager {
     this.graph?.select(node);
     this.sheet?.show(node);
     const sheetH = this.sheet?.height() || 0;
-    this.graph?.centerOnNode(node, sheetH);
+    this.graph?.centerOnNode(node, sheetH, this.sheet?.width() || 0);
   }
 
   private renderPaperList(nodes: NetworkNode[]): void {

@@ -102,8 +102,8 @@
   position: absolute;
   top: 36px;
   right: 12px;
-  width: min(400px, calc(100% - 24px));
-  max-height: 55%;
+  width: min(360px, calc(100% - 24px));
+  max-height: calc(100% - 48px);
   overflow-y: auto;
   padding: 10px 16px 14px;
   background: var(--cg-sheet-bg);
@@ -302,7 +302,39 @@
     display: block;
   }
 
-  .cg-sheet__btn {
-    min-height: 40px;
+  .cg-sheet {
+    padding-top: 6px;
   }
+
+  .cg-sheet__grip {
+    margin-bottom: 4px;
+  }
+
+  .cg-sheet__title {
+    margin: 2px 0 4px;
+  }
+
+  /* All actions in one row so none falls below the sheet's visible edge. */
+  .cg-sheet__actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .cg-sheet__btn {
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 6px;
+    font-size: 12.5px;
+    text-align: center;
+    line-height: 1.15;
+  }
+}
+
+.graph-input-legend {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
 }

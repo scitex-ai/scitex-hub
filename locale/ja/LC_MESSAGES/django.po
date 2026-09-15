@@ -1950,7 +1950,7 @@ msgstr "合併・買収・資産譲渡に関与する場合、あなたの情報
 msgid "Security of Your Information"
 msgstr "情報のセキュリティ"
 
-msgid "We use administrative, technical, and physical security measures to help protect your personal information. While we have taken reasonable steps to secure the personal information you provide to us, please be aware that despite our efforts, no security measures are perfect or impenetrable, and no method of data transmission can be guaranteed against any intercepting or other type of misuse."
+msgid "We use administrative, technical, and physical security measures to help protect your personal information. While we have taken reasonable steps to secure the personal information you provide to us, please be aware that despite our efforts, no security measures are perfect or impenetrable, and no method of data transmission can be guaranteed against any interception or other type of misuse."
 msgstr "行政的・技術的・物理的なセキュリティ対策により、あなたの個人情報を保護しています。ご提供いただく個人情報の保護に合理的な措置を講じているものの、どんな努力をしてもセキュリティ対策は完全ではなく、データの送信方法は傍受やその他の不正利用から完全に保証されるものではないことをご理解ください。"
 
 msgid "Cookies and Tracking Technologies"
@@ -6448,3 +6448,403 @@ msgstr "一致する論文がありません"
 #: apps/workspace/scholar_app/templates/scholar_app/library_partials/library_main.html
 msgid "Try adjusting your search or filters"
 msgstr "検索語やフィルターを変えてみてください"
+
+# --- Recruit page + contact form: English source, Japanese translation (i18n-public) ---
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Recruit: Open-Source Contributors - SciTeX"
+msgstr "採用・コントリビューター募集 | SciTeX"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Join SciTeX as an open-source contributor. Students welcome; issues for first-time contributors are ready."
+msgstr "SciTeX のオープンソース・コントリビューター募集（学生歓迎）。はじめての方向けの Issue を用意しています。"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Speed up research with us"
+msgstr "一緒に、研究の速度を上げませんか"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "SciTeX develops and operates an automation ecosystem for scientific research. Everything is open source, and anyone can take part in development."
+msgstr "SciTeX は、科学研究の自動化エコシステムを開発・運営しています。すべてオープンソースで、誰でも開発に参加できます。"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "What we are looking for now"
+msgstr "いま募集しているもの"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Open-source contributors (students welcome, rolling)"
+msgstr "オープンソース・コントリビューター（学生歓迎・随時）"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "We are looking for people to contribute to SciTeX, which we develop in the open on GitHub. No prior experience is required; we keep issues ready for first-time contributors."
+msgstr "GitHub 上で公開している SciTeX の開発に参加していただける方を募集しています。経験の有無は問いません。はじめての方向けの Issue を用意しています。"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "How to join: start from a <code>good first issue</code> on GitHub and send a pull request"
+msgstr "参加方法: GitHub の <code>good first issue</code> から着手し、Pull Request を送る"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Tech stack: Python / PyTorch / Django / TypeScript / Docker, Apptainer / LLM APIs"
+msgstr "使用技術: Python / PyTorch / Django / TypeScript / Docker・Apptainer / LLM API"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "License: AGPL-3.0 (we ask contributors to agree to the CLA)"
+msgstr "ライセンス: AGPL-3.0（CLA へのご同意をお願いしています）"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "What you gain"
+msgstr "参加すると得られるもの"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Technical mentorship from a researcher-developer"
+msgstr "研究者かつ開発者からの技術指導"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Through code review and design discussions, we pass on the craft of both research and software development."
+msgstr "コードレビューと設計の議論を通じて、研究とソフトウェア開発の両方の作法をお伝えします。"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "A public track record"
+msgstr "公開された実績"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Your contributions stay on GitHub under your name, ready to show as your own work."
+msgstr "貢献は GitHub にあなたの名前で残り、そのまま実績として示せます。"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Experience building something people actually use"
+msgstr "実際に使われるものを作る経験"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "This is software researchers use every day."
+msgstr "研究者が日々使うソフトウェアです。"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Coming next"
+msgstr "これから始めるもの"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Paid participation"
+msgstr "有給での参加"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "(part-time or contract) — we will start this as the business grows."
+msgstr "（アルバイト・業務委託）— 事業の成長に合わせて開始します。"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "If you are interested, reach out through a GitHub issue or at the address below."
+msgstr "ご関心のある方は、GitHub の Issue か、下記までご連絡ください。"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Open good first issues"
+msgstr "good first issue 一覧"
+
+#: apps/infra/public_app/templates/public_app/pages/recruit.html
+msgid "Contact:"
+msgstr "お問い合わせ:"
+
+#: apps/infra/public_app/templates/public_app/legal/contact.html
+msgid "Contact — SciTeX"
+msgstr "お問い合わせ — SciTeX"
+
+#: apps/infra/public_app/templates/public_app/legal/contact.html
+msgid "Get in touch with our team for demos, technical support, or product questions."
+msgstr "デモのご依頼、技術サポート、製品に関するご質問はお気軽にご連絡ください。"
+
+#: apps/infra/public_app/templates/public_app/legal/contact.html
+msgid "Explore institutional plans, request a demo, or discuss enterprise solutions for your research team."
+msgstr "機関向けプランの検討、デモのご依頼、研究チーム向けの導入についてご相談いただけます。"
+
+#: apps/infra/public_app/templates/public_app/legal/contact.html
+msgid "Ask product questions, report problems, or share feedback to help us improve."
+msgstr "製品に関するご質問、不具合のご報告、改善のためのご意見をお寄せください。"
+
+#: apps/infra/public_app/templates/public_app/legal/contact.html
+msgid "Questions about partnerships, media inquiries, or anything else? We would love to hear from you."
+msgstr "提携、取材、その他のご質問もお気軽にお寄せください。"
+
+#: apps/infra/public_app/templates/public_app/legal/contact.html
+msgid "Connect with researchers worldwide and share knowledge in our Slack workspace"
+msgstr "Slack ワークスペースで世界中の研究者とつながり、知見を共有できます"
+
+#: apps/infra/public_app/templates/public_app/legal/contact.html
+msgid "Contact form"
+msgstr "お問い合わせフォーム"
+
+#: apps/infra/public_app/templates/public_app/legal/contact.html
+msgid "Thank you. We have received your inquiry and will get back to you."
+msgstr "お問い合わせを受け付けました。ありがとうございます。担当より折り返しご連絡します。"
+
+#: apps/infra/public_app/templates/public_app/legal/contact.html
+msgid "Inquiry type"
+msgstr "種別"
+
+#: apps/infra/public_app/templates/public_app/legal/contact.html
+msgid "Your inquiry"
+msgstr "ご相談内容"
+
+#: apps/infra/public_app/templates/public_app/legal/contact.html
+msgid "Tell us what you are struggling with or what you would like to do."
+msgstr "いま困っていること、やりたいことをお聞かせください。"
+
+#: apps/infra/public_app/views/legal.py
+msgid "Please describe your inquiry."
+msgstr "ご相談内容をご記入ください。"
+
+# --- About + Cookie policy browser steps (i18n-public) ---
+#: apps/infra/public_app/templates/public_app/pages/about.html
+msgid "Reproducibility remains an issue. \"Reproducible\" on paper doesn't mean actually reproduced. Manually verifying code-to-manuscript consistency is tedious and error-prone."
+msgstr "再現性は依然として課題です。論文上の「再現可能」は、実際に再現されたことを意味しません。コードと原稿の整合性を手作業で確認するのは手間がかかり、ミスも起こりがちです。"
+
+# ---- Self-Hosting Guide (public_app/pages/setup.html) ----
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Self-Hosting Guide - SciTeX Hub"
+msgstr "セルフホスティング手順 - SciTeX Hub"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Run your own SciTeX Hub with Docker Compose: requirements, quick start, configuration, optional services, upgrades, backups and licensing."
+msgstr "Docker Compose で自分の SciTeX Hub を運用する方法：動作要件、クイックスタート、設定、オプションサービス、アップグレード、バックアップ、ライセンス。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Run your own SciTeX Hub on a workstation, a lab server or a cloud VM."
+msgstr "ワークステーション、研究室のサーバー、クラウド VM で、自分の SciTeX Hub を運用できます。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "One Docker Compose stack serves the same apps as scitex.ai:"
+msgstr "1 つの Docker Compose スタックで、scitex.ai と同じアプリが動きます："
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "literature search, BibTeX libraries and citation networks."
+msgstr "文献検索、BibTeX ライブラリ、引用ネットワーク。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "LaTeX manuscripts with live PDF preview."
+msgstr "PDF をリアルタイムでプレビューしながら書ける LaTeX 原稿。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "reproducible, editable scientific figures."
+msgstr "再現可能で編集できる科学論文用の図。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "project files backed by Gitea repositories, plus storage browsing."
+msgstr "Gitea リポジトリで管理されるプロジェクトファイルと、ストレージの閲覧。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "a task board shared by people and agents."
+msgstr "人とエージェントが共有するタスクボード。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "persistent per-project AI agents."
+msgstr "プロジェクトごとに常駐する AI エージェント。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "an AI assistant through LiteLLM. Each user brings their own provider key (BYOK), so the server needs no LLM key."
+msgstr "LiteLLM を介した AI アシスタント。各ユーザーが自分のプロバイダーキーを使う（BYOK）ため、サーバー側に LLM キーは不要です。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Cards, Storage and Agents appear only when their packages (scitex-cards, scitex-storage, scitex-agent-container) are installed in the Django image."
+msgstr "Cards、Storage、Agents は、それぞれのパッケージ（scitex-cards、scitex-storage、scitex-agent-container）が Django イメージにインストールされている場合にのみ表示されます。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "web app, REST API and WebSockets (port 8000)"
+msgstr "Web アプリ、REST API、WebSocket（ポート 8000）"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Redis 7 for cache and the Celery broker"
+msgstr "キャッシュと Celery ブローカー用の Redis 7"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "background and scheduled jobs"
+msgstr "バックグラウンドジョブと定期ジョブ"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Git server that stores every project"
+msgstr "すべてのプロジェクトを保存する Git サーバー"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "self-hosted, cookie-free analytics"
+msgstr "Cookie を使わないセルフホスト型のアクセス解析"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Production adds pgbouncer, nginx, autoheal and an optional cloudflared tunnel. Compose files live in <code>deployment/docker/docker_dev/</code> and <code>deployment/docker/docker_prod/</code>."
+msgstr "本番環境では pgbouncer、nginx、autoheal と、任意の cloudflared トンネルが加わります。Compose ファイルは <code>deployment/docker/docker_dev/</code> と <code>deployment/docker/docker_prod/</code> にあります。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Requirements"
+msgstr "動作要件"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Linux (Windows via WSL2)"
+msgstr "Linux（Windows は WSL2 経由）"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Docker Engine with the Compose v2 plugin (<code>deployment/docker/common/install_docker.sh</code> installs both)"
+msgstr "Docker Engine と Compose v2 プラグイン（<code>deployment/docker/common/install_docker.sh</code> で両方をインストールできます）"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Git and GNU Make"
+msgstr "Git と GNU Make"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "8 GB RAM or more recommended"
+msgstr "メモリ 8 GB 以上を推奨"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "No host Python or Node.js needed: the images ship Python 3.11 and Node.js 20"
+msgstr "ホストに Python や Node.js は不要です（イメージに Python 3.11 と Node.js 20 が含まれます）"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Every Make target needs an explicit <code>ENV</code> (<code>dev</code>, <code>staging</code> or <code>prod</code>)."
+msgstr "Make ターゲットには必ず <code>ENV</code>（<code>dev</code>、<code>staging</code>、<code>prod</code> のいずれか）を指定してください。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Open <code>http://localhost:8000</code>. The first start runs migrations and creates <code>test-user</code>; its password is printed in the Django log unless you set <code>SCITEX_HUB_TEST_USER_PASSWORD</code>."
+msgstr "<code>http://localhost:8000</code> を開きます。初回起動時にマイグレーションが実行され、<code>test-user</code> が作成されます。<code>SCITEX_HUB_TEST_USER_PASSWORD</code> を設定しない場合、そのパスワードは Django のログに出力されます。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Production"
+msgstr "本番環境"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Create <code>deployment/docker/envs/.env.prod</code> from the same template and set:"
+msgstr "同じテンプレートから <code>deployment/docker/envs/.env.prod</code> を作成し、次を設定します："
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Prepare the host. <code>make ENV=prod start</code> checks the service user and SLURM before it starts anything."
+msgstr "ホストを準備します。<code>make ENV=prod start</code> は、起動前にサービスユーザーと SLURM を確認します。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Configuration"
+msgstr "設定"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "All settings come from the env file. The template <code>deployment/docker/envs/.env.example</code> lists everything; these matter most. Never commit a filled-in env file."
+msgstr "設定はすべて env ファイルから読み込まれます。全項目はテンプレート <code>deployment/docker/envs/.env.example</code> にあり、特に重要なのは以下です。値を記入した env ファイルは決してコミットしないでください。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Variable"
+msgstr "変数"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Django secret. Generate a fresh random value per deployment."
+msgstr "Django のシークレット。デプロイごとに新しいランダム値を生成してください。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Public URL. Its host also becomes the site domain used in links and e-mails."
+msgstr "公開 URL。そのホスト名は、リンクやメールで使うサイトドメインにもなります。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Comma-separated host names Django accepts."
+msgstr "Django が受け付けるホスト名（カンマ区切り）。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "PostgreSQL credentials, used by Django, Gitea and Umami."
+msgstr "Django、Gitea、Umami が使う PostgreSQL の認証情報。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Redis for cache and Celery."
+msgstr "キャッシュと Celery 用の Redis。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Gitea admin account. Regenerate the API token with <code>make ENV=&lt;env&gt; gitea-token</code>."
+msgstr "Gitea の管理者アカウント。API トークンは <code>make ENV=&lt;env&gt; gitea-token</code> で再発行できます。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "SMTP for sign-up, password reset and notifications."
+msgstr "登録、パスワード再設定、通知に使う SMTP。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Where site-down alerts go. Unset means nobody is alerted."
+msgstr "サイト停止アラートの送信先。未設定の場合、誰にも通知されません。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Optional Google and ORCID sign-in (with their client secrets)."
+msgstr "任意の Google / ORCID ログイン（各クライアントシークレットと併せて設定）。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Optional Services"
+msgstr "オプションサービス"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "set <code>SCITEX_HUB_STRIPE_SECRET_KEY</code> and <code>SCITEX_HUB_STRIPE_WEBHOOK_SECRET</code> to enable paid plans. Without them the hub runs normally; card setup and subscriptions stay disabled."
+msgstr "<code>SCITEX_HUB_STRIPE_SECRET_KEY</code> と <code>SCITEX_HUB_STRIPE_WEBHOOK_SECRET</code> を設定すると有料プランが有効になります。未設定でも Hub は通常どおり動作し、カード登録とサブスクリプションのみ無効になります。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "publish the hub without opening ports: set <code>SCITEX_HUB_CLOUDFLARE_TUNNEL_TOKEN_PROD</code> for the <code>cloudflared</code> service. See <code>deployment/docs/09_CLOUDFLARE_TUNNEL.md</code>."
+msgstr "ポートを開けずに Hub を公開できます。<code>cloudflared</code> サービス用に <code>SCITEX_HUB_CLOUDFLARE_TUNNEL_TOKEN_PROD</code> を設定してください。詳しくは <code>deployment/docs/09_CLOUDFLARE_TUNNEL.md</code> を参照してください。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "runs browser terminals and compute jobs in Apptainer containers. See <code>deployment/slurm/README.md</code>."
+msgstr "ブラウザ上のターミナルと計算ジョブを Apptainer コンテナで実行します。詳しくは <code>deployment/slurm/README.md</code> を参照してください。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "point <code>SCITEX_AGENT_CONTAINER_API_URL</code> at the host's <code>sac listen</code> and mount its token file with <code>SCITEX_AGENT_CONTAINER_API_TOKEN_FILE_HOST</code>."
+msgstr "<code>SCITEX_AGENT_CONTAINER_API_URL</code> をホストの <code>sac listen</code> に向け、そのトークンファイルを <code>SCITEX_AGENT_CONTAINER_API_TOKEN_FILE_HOST</code> でマウントします。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Local paper databases"
+msgstr "ローカル論文データベース"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "CrossRef Local and OpenAlex Local for offline search, via <code>CROSSREF_LOCAL_API_URL</code> and <code>OPENALEX_LOCAL_API_URL</code>."
+msgstr "オフライン検索用の CrossRef Local と OpenAlex Local。<code>CROSSREF_LOCAL_API_URL</code> と <code>OPENALEX_LOCAL_API_URL</code> で接続します。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Adding Apps"
+msgstr "アプリの追加"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Apps are Python packages. Any installed package that declares a <code>scitex.apps</code> entry point is added to Django, mounted under <code>/apps/&lt;name&gt;/</code> and listed in the launcher, with no hub code changes. Add the package to the Django image and rebuild. App authors start with the <code>scitex-app</code> SDK:"
+msgstr "アプリは Python パッケージです。<code>scitex.apps</code> エントリポイントを宣言したパッケージをインストールすると、Hub のコードを変更することなく、Django に追加され、<code>/apps/&lt;name&gt;/</code> にマウントされ、ランチャーに表示されます。パッケージを Django イメージに追加して再ビルドしてください。アプリ開発者は <code>scitex-app</code> SDK から始められます："
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Upgrading"
+msgstr "アップグレード"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "<code>rebuild</code> builds new images while the old stack keeps serving, checks the new image, then swaps containers. <code>restart</code> does not pick up new code."
+msgstr "<code>rebuild</code> は、既存のスタックを稼働させたまま新しいイメージをビルドし、検証してからコンテナを入れ替えます。<code>restart</code> では新しいコードは反映されません。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Backups"
+msgstr "バックアップ"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "<code>db-backup</code> writes a timestamped <code>pg_dump</code> to <code>deployment/backups/</code> (create the directory first). Also back up the Gitea volume, the user data directory (<code>/opt/scitex/data/users</code> in production, <code>data/users/</code> in dev) and your env file."
+msgstr "<code>db-backup</code> は、タイムスタンプ付きの <code>pg_dump</code> を <code>deployment/backups/</code> に書き出します（先にディレクトリを作成してください）。あわせて Gitea ボリューム、ユーザーデータディレクトリ（本番は <code>/opt/scitex/data/users</code>、開発は <code>data/users/</code>）、env ファイルもバックアップしてください。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Start with <code>make status</code>, <code>make ENV=&lt;env&gt; ps</code> and <code>make ENV=&lt;env&gt; logs-error</code>."
+msgstr "まず <code>make status</code>、<code>make ENV=&lt;env&gt; ps</code>、<code>make ENV=&lt;env&gt; logs-error</code> を確認してください。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "<code>password authentication failed</code>: the env file still uses old <code>SCITEX_CLOUD_*</code> names; rename them to <code>SCITEX_HUB_*</code>."
+msgstr "<code>password authentication failed</code>：env ファイルに旧名 <code>SCITEX_CLOUD_*</code> が残っています。<code>SCITEX_HUB_*</code> に変更してください。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Links or e-mails show the wrong domain: fix <code>SCITEX_HUB_SITE_URL</code> and restart."
+msgstr "リンクやメールのドメインが誤っている：<code>SCITEX_HUB_SITE_URL</code> を修正して再起動してください。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Code changes not visible: run <code>rebuild</code>, not <code>restart</code>."
+msgstr "コードの変更が反映されない：<code>restart</code> ではなく <code>rebuild</code> を実行してください。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Port conflicts between environments: <code>make stop-all</code>, then start one."
+msgstr "環境間でポートが競合する：<code>make stop-all</code> を実行してから、1 つだけ起動してください。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Production start refused: run <code>deployment/host-setup/scripts/create-scitex-user.sh</code> and fix what <code>check-slurm.sh</code> reports."
+msgstr "本番環境が起動しない：<code>deployment/host-setup/scripts/create-scitex-user.sh</code> を実行し、<code>check-slurm.sh</code> が報告する問題を修正してください。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "SciTeX Hub is free software under the GNU AGPL v3.0: you may run, study, modify and share it, and a modified version offered as a network service must publish its source. Universities and public research institutions can also use the free Academic License. Proprietary use requires the Commercial License."
+msgstr "SciTeX Hub は GNU AGPL v3.0 のもとで無料のフリーソフトウェアです。実行、調査、改変、再配布ができ、改変版をネットワークサービスとして提供する場合はそのソースコードを公開する必要があります。大学・公的研究機関は無料のアカデミックライセンスも利用できます。プロプライエタリな利用には商用ライセンスが必要です。"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Self-hosted licenses and pricing"
+msgstr "セルフホストのライセンスと料金"
+
+#: apps/infra/public_app/templates/public_app/pages/setup.html
+msgid "Why open source"
+msgstr "オープンソースである理由"
