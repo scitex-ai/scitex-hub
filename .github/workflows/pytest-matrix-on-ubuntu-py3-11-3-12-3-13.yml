@@ -41,10 +41,23 @@ concurrency:
 jobs:
   test:
     name: pytest-matrix-on-ubuntu-py${{ matrix.python-version }}
-    # Stays GitHub-hosted: the postgres service container needs Docker (absent
-    # on scitex-compute-01/02) and a port per job, and the suite must not see a
-    # persistent $HOME holding live fleet credentials.
-    runs-on: ubuntu-latest
+    # Same-repo runs: scitex-docker runners (scitex-compute-03/04), inside a
+    # throwaway job container so the suite never sees the runner host's $HOME
+    # or fleet credentials, and postgres is reached by service name (no host
+    # port, so parallel jobs on one host cannot collide). Fork PRs: hosted VM,
+    # no container, postgres on a random localhost port.
+    runs-on: >-
+      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+          && fromJSON('["ubuntu-latest"]')
+          || fromJSON('["scitex-docker"]') }}
+    container:
+      image: >-
+        ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+            && '' || 'buildpack-deps:noble' }}
+      # uid 1000 = the runner user on both hosts (and `ubuntu` in the image), so
+      # workspace files stay removable by the runner and root-bypass of file
+      # permissions cannot mask a test.
+      options: --user 1000:1000 --cpus 8 --memory 16g
     strategy:
       fail-fast: false
       matrix:
@@ -63,14 +76,25 @@ jobs:
           POSTGRES_DB: scitex_test
           POSTGRES_USER: scitex
           POSTGRES_PASSWORD: scitex_test_pass  # pragma: allowlist secret
+        # Random host port: only the hosted (no-container) path uses it.
         ports:
-          - 5432:5432
+          - 5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
     steps:
+      # Backstop for the runs-on predicate: never check out fork code on our hardware.
+      - name: Refuse to run fork-authored code on self-hosted infrastructure
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository &&
+          runner.environment == 'self-hosted'
+        run: |
+          echo "::error::Fork-authored code is not run on self-hosted runners."
+          exit 1
+
       - uses: actions/checkout@v4
       # uv, NOT setup-python + bare pip. The runner's toolcache Python is
       # uv-managed, so pip into it dies with PEP 668
@@ -115,8 +139,10 @@ jobs:
           SCITEX_HUB_DB_NAME_DEV: scitex_test
           SCITEX_HUB_DB_USER_DEV: scitex
           SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
-          SCITEX_HUB_DB_HOST_DEV: localhost
-          SCITEX_HUB_DB_PORT_DEV: "5432"
+          SCITEX_HUB_DB_HOST_DEV: ${{ job.container.id && 'postgres' || 'localhost' }}
+          SCITEX_HUB_DB_PORT_DEV: ${{ job.container.id && '5432' || job.services.postgres.ports['5432'] }}
+          # Matches --cpus 8 in the container; hosted VMs have 4 vCPUs.
+          PYTEST_XDIST_WORKERS: ${{ job.container.id && '8' || 'auto' }}
           # No Redis broker in this job, so .delay() would raise
           # kombu.exceptions.OperationalError. Run tasks inline instead
           # (settings_celery.py). This is now purely a Celery switch -- it no
@@ -128,11 +154,17 @@ jobs:
           # audit gate's scitex-dev subcommands) resolves to THIS venv rather
           # than to whatever the shared runner happens to have installed.
           export PATH="$PWD/.venv/bin:$PATH"
+<<<<<<< HEAD
           # -n auto uses every vCPU on the hosted runner (4). loadfile keeps each
           # file on one worker, so intra-file ordering is unchanged; each worker
           # gets its own test database from pytest-django. Measured on PR #772:
           # -13%/-27%/-23% wall on the three legs.
           .venv/bin/python -m pytest tests/ -n auto --dist loadgroup --cov=src/scitex_hub --cov-report=xml --cov-report=term
+=======
+          # loadfile keeps each file on one worker, so intra-file ordering is
+          # unchanged; each worker gets its own test database from pytest-django.
+          .venv/bin/python -m pytest tests/ -n "$PYTEST_XDIST_WORKERS" --dist loadfile --cov=src/scitex_hub --cov-report=xml --cov-report=term
+>>>>>>> 07db263fe (ci: run pytest-matrix, security and terminal suites on scitex-docker job containers)
       - name: Upload coverage to Codecov
         if: always() && matrix.python-version == '3.12'
         uses: codecov/codecov-action@v5

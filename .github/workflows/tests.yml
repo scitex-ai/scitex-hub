@@ -158,9 +158,29 @@ jobs:
 
   terminal-tests:
     name: "Terminal Broker & Session Tests (Python)"
-    runs-on: ubuntu-latest
+    # Same-repo runs: scitex-docker (scitex-compute-03/04) inside a throwaway
+    # job container (no host $HOME, postgres by service name). Fork PRs: hosted.
+    runs-on: >-
+      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+          && fromJSON('["ubuntu-latest"]')
+          || fromJSON('["scitex-docker"]') }}
+    container:
+      image: >-
+        ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+            && '' || 'buildpack-deps:noble' }}
+      options: --user 1000:1000 --cpus 4 --memory 8g
 
     steps:
+      # Backstop for the runs-on predicate: never check out fork code on our hardware.
+      - name: Refuse to run fork-authored code on self-hosted infrastructure
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository &&
+          runner.environment == 'self-hosted'
+        run: |
+          echo "::error::Fork-authored code is not run on self-hosted runners."
+          exit 1
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -210,7 +230,17 @@ jobs:
 
   security-regression:
     name: "Security Regression Gates (tests/security/)"
-    runs-on: ubuntu-latest
+    # Same-repo runs: scitex-docker (scitex-compute-03/04) inside a throwaway
+    # job container (no host $HOME, postgres by service name). Fork PRs: hosted.
+    runs-on: >-
+      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+          && fromJSON('["ubuntu-latest"]')
+          || fromJSON('["scitex-docker"]') }}
+    container:
+      image: >-
+        ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+            && '' || 'buildpack-deps:noble' }}
+      options: --user 1000:1000 --cpus 4 --memory 8g
 
     # The behavioural gates here build real tenants and execute real views
     # against a real database, so they need one. Previously this job ran with
@@ -225,7 +255,7 @@ jobs:
           POSTGRES_USER: scitex
           POSTGRES_PASSWORD: scitex_test_pass  # pragma: allowlist secret
         ports:
-          - 5432:5432
+          - 5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -233,6 +263,16 @@ jobs:
           --health-retries 5
 
     steps:
+      # Backstop for the runs-on predicate: never check out fork code on our hardware.
+      - name: Refuse to run fork-authored code on self-hosted infrastructure
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository &&
+          runner.environment == 'self-hosted'
+        run: |
+          echo "::error::Fork-authored code is not run on self-hosted runners."
+          exit 1
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -276,8 +316,8 @@ jobs:
           SCITEX_HUB_DB_NAME_DEV: scitex_test
           SCITEX_HUB_DB_USER_DEV: scitex
           SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
-          SCITEX_HUB_DB_HOST_DEV: localhost
-          SCITEX_HUB_DB_PORT_DEV: "5432"
+          SCITEX_HUB_DB_HOST_DEV: ${{ job.container.id && 'postgres' || 'localhost' }}
+          SCITEX_HUB_DB_PORT_DEV: ${{ job.container.id && '5432' || job.services.postgres.ports['5432'] }}
           SCITEX_HUB_TEST_MODE: "1"
         run: |
           python -m pytest \
@@ -294,8 +334,8 @@ jobs:
           SCITEX_HUB_DB_NAME_DEV: scitex_test
           SCITEX_HUB_DB_USER_DEV: scitex
           SCITEX_HUB_DB_PASSWORD_DEV: scitex_test_pass  # pragma: allowlist secret
-          SCITEX_HUB_DB_HOST_DEV: localhost
-          SCITEX_HUB_DB_PORT_DEV: "5432"
+          SCITEX_HUB_DB_HOST_DEV: ${{ job.container.id && 'postgres' || 'localhost' }}
+          SCITEX_HUB_DB_PORT_DEV: ${{ job.container.id && '5432' || job.services.postgres.ports['5432'] }}
           SCITEX_HUB_TEST_MODE: "1"
         run: |
           COUNT=$(python -m pytest tests/security/ -m security \
