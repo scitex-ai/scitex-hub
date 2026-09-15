@@ -1950,7 +1950,7 @@ msgstr "合併・買収・資産譲渡に関与する場合、あなたの情報
 msgid "Security of Your Information"
 msgstr "情報のセキュリティ"
 
-msgid "We use administrative, technical, and physical security measures to help protect your personal information. While we have taken reasonable steps to secure the personal information you provide to us, please be aware that despite our efforts, no security measures are perfect or impenetrable, and no method of data transmission can be guaranteed against any intercepting or other type of misuse."
+msgid "We use administrative, technical, and physical security measures to help protect your personal information. While we have taken reasonable steps to secure the personal information you provide to us, please be aware that despite our efforts, no security measures are perfect or impenetrable, and no method of data transmission can be guaranteed against any interception or other type of misuse."
 msgstr "行政的・技術的・物理的なセキュリティ対策により、あなたの個人情報を保護しています。ご提供いただく個人情報の保護に合理的な措置を講じているものの、どんな努力をしてもセキュリティ対策は完全ではなく、データの送信方法は傍受やその他の不正利用から完全に保証されるものではないことをご理解ください。"
 
 msgid "Cookies and Tracking Technologies"
@@ -6589,3 +6589,8 @@ msgstr "いま困っていること、やりたいことをお聞かせくださ
 #: apps/infra/public_app/views/legal.py
 msgid "Please describe your inquiry."
 msgstr "ご相談内容をご記入ください。"
+
+# --- About + Cookie policy browser steps (i18n-public) ---
+#: apps/infra/public_app/templates/public_app/pages/about.html
+msgid "Reproducibility remains an issue. \"Reproducible\" on paper doesn't mean actually reproduced. Manually verifying code-to-manuscript consistency is tedious and error-prone."
+msgstr "再現性は依然として課題です。論文上の「再現可能」は、実際に再現されたことを意味しません。コードと原稿の整合性を手作業で確認するのは手間がかかり、ミスも起こりがちです。"
