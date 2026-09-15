@@ -1,0 +1,479 @@
+/* Scholar controls: one height, one radius, one primary colour across the
+   Search / Library / Citation tabs. Same shape as Files and Slides (44px tap
+   targets on phones, rounded controls, pill chips). Linked last so it wins
+   over the older per-tab sheets; :root raises specificity instead of more
+   !important. Primary is the SciTeX navy (dark: link blue), as in the chat. */
+
+.scholar-main {
+  --sch-control-h: 38px;
+  --sch-radius: 10px;
+  --sch-primary: #1a2a40;
+  --sch-on-primary: #ffffff;
+  --sch-surface: var(--workspace-bg-primary, #f5f4f2);
+  --sch-surface-2: var(--workspace-bg-tertiary, #e8e7e5);
+  --sch-border: var(--workspace-border-default, #c0bfbd);
+  --sch-text: var(--text-primary, #333333);
+  --sch-muted: var(--text-muted, #777777);
+  --sch-ring: color-mix(in srgb, var(--sch-primary) 22%, transparent);
+}
+
+:root[data-theme="dark"] .scholar-main {
+  --sch-primary: var(--text-link, #58a6ff);
+  --sch-on-primary: #0d1117;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .scholar-main {
+    --sch-primary: var(--text-link, #58a6ff);
+    --sch-on-primary: #0d1117;
+  }
+}
+
+@media (max-width: 768px) {
+  .scholar-main {
+    --sch-control-h: 44px;
+  }
+}
+
+/* ── Top tabs: segmented control ─────────────────────────────── */
+:root .scholar-main .scholar-tabs {
+  gap: 2px;
+  padding: 3px;
+  min-height: 0;
+  flex: 0 1 auto;
+  background: var(--sch-surface-2);
+  border: 1px solid var(--sch-border);
+  border-radius: calc(var(--sch-radius) + 2px);
+  scrollbar-width: none;
+}
+
+:root .scholar-main .scholar-tab {
+  justify-content: center;
+  min-height: calc(var(--sch-control-h) - 4px);
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--sch-radius);
+  color: var(--sch-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+:root .scholar-main .scholar-tab:hover {
+  background: transparent;
+  color: var(--sch-text);
+}
+
+:root .scholar-main .scholar-tab.active {
+  background: var(--sch-surface);
+  color: var(--sch-text);
+  font-weight: 600;
+  border: 0;
+  box-shadow:
+    0 0 0 1px var(--sch-border),
+    0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+:root .scholar-main .scholar-tab.active i {
+  color: var(--sch-primary);
+}
+
+.scholar-tab-label-short {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  :root .scholar-main .pane-header {
+    height: auto;
+    min-height: 0;
+    padding: 8px 12px;
+  }
+
+  :root .scholar-main .pane-header-actions:empty {
+    display: none;
+  }
+
+  :root .scholar-main .scholar-tabs {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    flex: 1;
+    width: 100%;
+    overflow: visible;
+  }
+
+  :root .scholar-main .scholar-tab {
+    padding: 0 6px;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .scholar-tab-label-long {
+    display: none;
+  }
+
+  .scholar-tab-label-short {
+    display: inline;
+  }
+}
+
+/* ── Shared control skin ─────────────────────────────────────── */
+:root
+  .scholar-main
+  :is(
+    .library-search-input,
+    .library-filter-select,
+    .graph-form .form-input,
+    .graph-form .form-select,
+    .search-container-full-width .search-input
+  ) {
+  box-sizing: border-box;
+  height: var(--sch-control-h) !important;
+  min-height: var(--sch-control-h) !important;
+  margin: 0;
+  background-color: var(--sch-surface) !important;
+  border: 1px solid var(--sch-border) !important;
+  border-radius: var(--sch-radius) !important;
+  color: var(--sch-text) !important;
+  font-size: 14px;
+  box-shadow: none !important;
+}
+
+:root
+  .scholar-main
+  :is(
+    .library-search-input,
+    .library-filter-select,
+    .graph-form .form-input,
+    .graph-form .form-select,
+    .search-container-full-width .search-input
+  ):focus {
+  border-color: var(--sch-primary) !important;
+  box-shadow: 0 0 0 3px var(--sch-ring) !important;
+  outline: none;
+}
+
+/* 16px stops iOS zooming the page on focus. */
+@media (max-width: 768px) {
+  :root
+    .scholar-main
+    :is(
+      .library-search-input,
+      .library-filter-select,
+      .graph-form .form-input,
+      .graph-form .form-select,
+      .search-container-full-width .search-input
+    ) {
+    font-size: 16px;
+  }
+}
+
+/* Buttons: primary = navy fill, secondary = neutral outline. */
+:root .scholar-main :is(.btn-build, .search-container-full-width .search-btn) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--sch-control-h);
+  padding: 0 16px;
+  margin: 0 !important;
+  background: var(--sch-primary) !important;
+  border: 1px solid var(--sch-primary) !important;
+  border-radius: var(--sch-radius) !important;
+  color: var(--sch-on-primary) !important;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: none !important;
+}
+
+:root
+  .scholar-main
+  :is(.btn-build, .search-container-full-width .search-btn):hover {
+  filter: brightness(1.15);
+}
+
+:root .scholar-main :is(.btn-build, .search-btn):focus-visible {
+  outline: 2px solid var(--sch-primary);
+  outline-offset: 2px;
+}
+
+:root .scholar-main :is(.toolbar-btn, .btn-control) {
+  min-height: var(--sch-control-h);
+  border-radius: var(--sch-radius);
+  border: 1px solid var(--sch-border);
+  background: var(--sch-surface);
+  color: var(--sch-text);
+}
+
+:root .scholar-main .btn-control {
+  width: var(--sch-control-h);
+  height: var(--sch-control-h);
+}
+
+:root .scholar-main .toolbar-btn--primary:not(:disabled) {
+  border-color: var(--sch-primary);
+  color: var(--sch-primary);
+}
+
+:root .scholar-main :is(.toolbar-btn, .btn-control):hover:not(:disabled) {
+  border-color: var(--sch-primary);
+  color: var(--sch-primary);
+  background: var(--sch-surface);
+}
+
+/* ── Library toolbar ─────────────────────────────────────────── */
+:root .scholar-main .library-toolbar {
+  gap: 8px;
+  padding: 10px 16px;
+  background: transparent;
+  border-bottom: 1px solid var(--sch-border);
+}
+
+:root .scholar-main .library-collection-filter {
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  gap: 6px;
+}
+
+:root .scholar-main .library-collection-pill {
+  min-height: calc(var(--sch-control-h) - 6px);
+  padding: 0 14px;
+  border: 1px solid var(--sch-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--sch-text);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+:root .scholar-main .library-collection-pill:hover {
+  border-color: var(--sch-primary);
+}
+
+:root .scholar-main .library-collection-pill.active {
+  background: var(--sch-primary);
+  border-color: var(--sch-primary);
+  color: var(--sch-on-primary);
+}
+
+:root .scholar-main .library-search-input-wrapper .library-search-input {
+  padding-left: 36px;
+}
+
+:root .scholar-main .library-search-icon {
+  left: 13px;
+}
+
+:root .scholar-main .library-filter-select {
+  padding: 0 32px 0 12px;
+}
+
+@media (max-width: 768px) {
+  :root .scholar-main .library-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "search search"
+      "chips sort";
+    align-items: center;
+    padding: 12px;
+  }
+
+  :root .scholar-main .library-search-input-wrapper {
+    grid-area: search;
+  }
+
+  :root .scholar-main .library-collection-filter {
+    grid-area: chips;
+  }
+
+  :root .scholar-main .library-collection-pill {
+    min-height: var(--sch-control-h);
+  }
+
+  :root .scholar-main .library-filter-controls {
+    grid-area: sort;
+  }
+
+  :root .scholar-main .library-filter-select {
+    max-width: 48vw;
+  }
+}
+
+/* ── Search tab: query row ───────────────────────────────────── */
+:root .scholar-main .search-container-full-width .input-group {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: stretch;
+}
+
+:root .scholar-main .search-container-full-width .search-input {
+  width: 100%;
+  padding: 0 5.5rem 0 14px !important;
+}
+
+:root .scholar-main .search-container-full-width .search-btn {
+  width: 7.5rem;
+}
+
+/* Badge and help sit inside the input's right edge: button + gap + inset. */
+:root .scholar-main .input-group .search-help-btn {
+  right: calc(7.5rem + 8px + 4px);
+  min-width: 32px;
+  min-height: 32px;
+}
+
+:root .scholar-main .input-group .search-shortcut-badge {
+  right: calc(7.5rem + 8px + 40px);
+}
+
+:root .scholar-main .results-toolbar {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+:root .scholar-main .toolbar-actions {
+  flex-wrap: wrap;
+}
+
+:root .scholar-main .toolbar-btn {
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  :root .scholar-main .search-container-full-width .input-group {
+    grid-template-columns: minmax(0, 1fr);
+    padding-top: 12px;
+  }
+
+  :root .scholar-main .search-container-full-width .search-input {
+    padding-right: 48px !important;
+  }
+
+  :root .scholar-main .search-container-full-width .search-btn {
+    width: 100%;
+  }
+
+  :root .scholar-main .input-group .search-shortcut-badge {
+    display: none;
+  }
+
+  /* Help "?" stays inside the input, now on row 1 of the stack. */
+  :root .scholar-main .input-group .search-help-btn {
+    right: 4px;
+    top: calc(12px + var(--sch-control-h) / 2);
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  :root .scholar-main .search-help-popup {
+    left: 0;
+    right: 0;
+    min-width: 0;
+  }
+
+  :root .scholar-main .toolbar-status {
+    margin-left: 0;
+    flex-wrap: wrap;
+  }
+}
+
+/* ── Citation tab: flat toolbar, no boxed card ───────────────── */
+:root .scholar-main .graph-input-section .graph-card {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+:root .scholar-main .graph-input-section .graph-card__header {
+  padding: 0 0 10px;
+  background: transparent;
+  border: 0;
+}
+
+:root .scholar-main .graph-input-section .graph-card__body {
+  padding: 0;
+}
+
+:root .scholar-main .graph-input-tabs {
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 2px;
+  padding: 3px;
+  margin-bottom: 10px;
+  background: var(--sch-surface-2);
+  border: 1px solid var(--sch-border);
+  border-radius: calc(var(--sch-radius) + 2px);
+}
+
+:root .scholar-main .graph-input-tab {
+  justify-content: center;
+  min-height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--sch-radius);
+  color: var(--sch-muted);
+}
+
+:root .scholar-main .graph-input-tab.active {
+  background: var(--sch-surface);
+  color: var(--sch-text);
+  font-weight: 600;
+  box-shadow:
+    0 0 0 1px var(--sch-border),
+    0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+:root .scholar-main .graph-input-tab.active i {
+  color: var(--sch-primary);
+}
+
+/* Input | Build | count on desktop; input on its own row on phones. */
+:root .scholar-main #graphInputSearch .form-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: stretch;
+}
+
+:root .scholar-main #graphInputSearch :is(.form-group--doi, .input-wrapper) {
+  display: contents;
+}
+
+:root .scholar-main #graphInputSearch .form-group--options {
+  width: auto;
+  margin: 0;
+}
+
+:root .scholar-main #graphInputSearch .form-select {
+  min-width: 5.5rem;
+}
+
+:root .scholar-main .graph-input-section {
+  padding-bottom: 4px;
+}
+
+@media (max-width: 768px) {
+  :root .scholar-main .graph-input-tabs {
+    display: grid;
+    width: 100%;
+  }
+
+  :root .scholar-main .graph-input-tab {
+    min-height: 38px;
+  }
+
+  :root .scholar-main #graphInputSearch .form-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  :root .scholar-main #graphSearchInput {
+    grid-column: 1 / -1;
+  }
+
+  :root .scholar-main .citation-graph-container {
+    padding: 12px;
+  }
+}
