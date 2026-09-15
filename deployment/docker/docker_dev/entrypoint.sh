@@ -32,6 +32,12 @@ source /app/deployment/docker/common/lib/database.src
 source /app/deployment/docker/common/lib/django.src
 source /app/deployment/docker/common/lib/scitex.src
 source /app/deployment/docker/common/lib/slurm.src
+source /app/deployment/docker/common/lib/service_role.src
+
+IS_WEB_ROLE=false
+if is_web_role "$@"; then
+    IS_WEB_ROLE=true
+fi
 
 MIGRATION_SENTINEL="/app/logs/.migrations_done"
 
@@ -251,17 +257,8 @@ start_typescript_build_watcher_fallback() {
     fi
 }
 
-# Only start web-related services for the Django container (not celery/flower)
-# Check if the command ($@) is the Django runserver
-IS_DJANGO_CONTAINER=false
-for arg in "$@"; do
-    if [ "$arg" = "runserver" ]; then
-        IS_DJANGO_CONTAINER=true
-        break
-    fi
-done
-
-if [ "$IS_DJANGO_CONTAINER" = true ]; then
+# Only start web-related services for the explicit web command.
+if [ "$IS_WEB_ROLE" = true ]; then
     # Start Vite servers (platform + dev app)
     start_platform_vite
     start_devapp_vite
@@ -323,8 +320,8 @@ fi
 # ============================================
 # Initialize Visitor Pool
 # ============================================
-# Only run on first start (fast-path check handles restarts gracefully)
-if [ ! -f "$MIGRATION_SENTINEL" ]; then
+# Creation is idempotent; only web boot may create or quarantine slots.
+if [ "$IS_WEB_ROLE" = true ]; then
     initialize_visitor_pool() {
         echo_info "Initializing visitor pool..."
         if python manage.py create_visitor_pool --verbosity 0; then
@@ -336,11 +333,8 @@ if [ ! -f "$MIGRATION_SENTINEL" ]; then
         fi
     }
     initialize_visitor_pool
-else
-    echo_info "Hot-reload restart - visitor pool already initialized"
-fi
 
-# Boot fail-safe (runs on EVERY container start, including restarts after
+# Boot fail-safe (runs on EVERY web-container start, including restarts after
 # an unclean shutdown): quarantine every slot as unverified (synchronous,
 # DB-only), then ENQUEUE the per-slot wipe+verify re-clean to Celery via
 # --async so Django serves immediately instead of blocking on the clone
@@ -357,6 +351,9 @@ if python manage.py reconcile_visitor_slots --async; then
 else
     echo_error "reconcile_visitor_slots --async FAILED — slots stay quarantined, visitors will be READ-ONLY"
     echo_error "  -> is the SLURM controller up? try: squeue"
+fi
+else
+    echo_info "Skipping visitor pool init/reconcile (non-web service)"
 fi
 
 # ============================================
@@ -497,7 +494,7 @@ start_gitea_auto_sync_if_needed() {
     fi
 }
 # Django-only: terminal broker, SSH gateway, auto-sync (skip for celery/flower)
-if [ "$IS_DJANGO_CONTAINER" = true ]; then
+if [ "$IS_WEB_ROLE" = true ]; then
     start_terminal_broker_if_needed
     start_ssh_gateway_if_needed
     start_gitea_auto_sync_if_needed

@@ -1,0 +1,17 @@
+#!/bin/bash
+# Classify only the web commands declared by the supported compose files.
+# Unknown commands are non-web so they can never trigger mutating boot setup.
+is_web_role() {
+    case "${1:-}" in
+        daphne)
+            return 0
+            ;;
+        python|python3)
+            [ "${2:-}" = "manage.py" ] && [ "${3:-}" = "runserver" ]
+            return
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
