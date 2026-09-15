@@ -45,19 +45,18 @@ export function setMinimized(dock: HTMLElement, on: boolean): void {
   syncDockHeight(dock);
 }
 
-export const DOUBLE_TAP_MS = 320;
+/** Pointer travel below this is a tap; at or beyond it the press is a drag. */
+export const TAP_SLOP_PX = 7;
 
-export type GripTap = "restore" | "minimize" | "ignore" | "arm";
+export function isDrag(dx: number, dy: number): boolean {
+  return Math.hypot(dx, dy) >= TAP_SLOP_PX;
+}
 
-/** What a tap (not a drag) on the grip does. A double-tap toggles the pill;
- *  the second tap of a double-tap that restored the pill is swallowed. */
-export function gripTap(
-  now: number,
-  state: { minimized: boolean; lastTap: number; lastRestore: number },
-): GripTap {
-  if (state.minimized) return "restore";
-  if (now - state.lastRestore < DOUBLE_TAP_MS) return "ignore";
-  return now - state.lastTap < DOUBLE_TAP_MS ? "minimize" : "arm";
+export type GripTap = "restore" | "minimize";
+
+/** One tap on the grip toggles the pill (operator 2026-09-15). */
+export function gripTap(minimized: boolean): GripTap {
+  return minimized ? "restore" : "minimize";
 }
 
 export function isMinimized(dock: HTMLElement): boolean {

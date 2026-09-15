@@ -6,10 +6,12 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import {
   gripTap,
+  isDrag,
   LIVE_HEIGHT_VAR,
   MINIMIZED_CLASS,
   readMinimized,
   setMinimized,
+  TAP_SLOP_PX,
 } from "@/components/_site-dock/minimize";
 import { panelRect } from "@/components/_site-dock/chat-float";
 
@@ -62,16 +64,20 @@ describe("site dock minimize", () => {
     ).toBe("Show dock");
   });
 
-  it("double-tap on the grip minimizes the dock", () => {
-    expect(
-      gripTap(1000, { minimized: false, lastTap: 800, lastRestore: 0 }),
-    ).toBe("minimize");
+  it("one tap on the grip minimizes the dock", () => {
+    expect(gripTap(false)).toBe("minimize");
   });
 
-  it("the second tap of a pill-restoring double-tap is swallowed", () => {
-    expect(
-      gripTap(1000, { minimized: false, lastTap: 0, lastRestore: 800 }),
-    ).toBe("ignore");
+  it("one tap on the pill restores the dock", () => {
+    expect(gripTap(true)).toBe("restore");
+  });
+
+  it("travel under the slop is a tap", () => {
+    expect(isDrag(TAP_SLOP_PX - 1, 0)).toBe(false);
+  });
+
+  it("travel at the slop is a drag", () => {
+    expect(isDrag(0, TAP_SLOP_PX)).toBe(true);
   });
 
   it("chat panel keeps a phone width above a minimized pill", () => {

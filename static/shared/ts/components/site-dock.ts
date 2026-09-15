@@ -10,9 +10,10 @@
  * 2. Drag: the grabber moves the dock anywhere in the viewport. The position is
  *    remembered per device in localStorage. Dropping the dock back at the
  *    bottom, or Escape on the grabber, docks it again.
- * 3. Minimize: the "_" button or a double-tap / double-click on the grip
- *    collapses the dock to a grip pill; tapping the pill (or Enter / Space on
- *    it) restores it. Remembered per device.
+ * 3. Minimize: the "_" button or one tap / click on the grip collapses the dock
+ *    to a grip pill; tapping the pill restores it. Enter / Space on the grip
+ *    toggles. A press that travels TAP_SLOP_PX is a drag and never toggles.
+ *    Remembered per device.
  * 4. Back / Forward: history.back() / history.forward(), enabled from the
  *    in-site history stack (_site-dock/history-stack.ts). Where the browser has
  *    the Navigation API its canGoBack / canGoForward answer is used directly.
@@ -32,6 +33,7 @@ import {
 import { initChatPanel } from "./_site-dock/chat-panel";
 import {
   gripTap,
+  isDrag,
   isMinimized,
   readMinimized,
   setMinimized,
@@ -99,8 +101,6 @@ class SiteDock {
   private back: HTMLButtonElement | null;
   private forward: HTMLButtonElement | null;
   private stack: HistoryStack;
-  private lastTap = 0;
-  private lastRestore = 0;
 
   constructor(dock: HTMLElement) {
     this.dock = dock;
@@ -176,7 +176,6 @@ class SiteDock {
 
   private toggleMinimized(on: boolean): void {
     setMinimized(this.dock, on);
-    if (!on) this.lastRestore = Date.now();
     this.restorePosition();
   }
 
@@ -216,7 +215,7 @@ class SiteDock {
         if (e.pointerId !== down.pointerId) return;
         if (
           !moved &&
-          Math.hypot(e.clientX - down.clientX, e.clientY - down.clientY) < 4
+          !isDrag(e.clientX - down.clientX, e.clientY - down.clientY)
         ) {
           return;
         }
@@ -247,16 +246,9 @@ class SiteDock {
           this.settle(left, top);
           return;
         }
-        // Handled here for mouse too: touch has no reliable dblclick.
-        const now = Date.now();
-        const action = gripTap(now, {
-          minimized: isMinimized(this.dock),
-          lastTap: this.lastTap,
-          lastRestore: this.lastRestore,
-        });
-        if (action === "restore") this.toggleMinimized(false);
-        if (action === "minimize") this.toggleMinimized(true);
-        this.lastTap = action === "arm" ? now : 0;
+        // A cancelled press (e.g. the browser took the gesture) is not a tap.
+        if (e.type === "pointercancel") return;
+        this.toggleMinimized(gripTap(isMinimized(this.dock)) === "minimize");
       };
 
       grabber.addEventListener("pointermove", onMove);
@@ -272,9 +264,9 @@ class SiteDock {
         ArrowUp: [0, -KEY_STEP_PX],
         ArrowDown: [0, KEY_STEP_PX],
       };
-      if ((e.key === "Enter" || e.key === " ") && isMinimized(this.dock)) {
+      if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        this.toggleMinimized(false);
+        this.toggleMinimized(!isMinimized(this.dock));
         return;
       }
       if (e.key === "Escape") {

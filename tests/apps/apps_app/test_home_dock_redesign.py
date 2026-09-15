@@ -193,14 +193,14 @@ class SiteDockOnEveryPageTest(TestCase):
             dock,
         )
 
-    def test_dock_has_a_grip_labelled_move_dock(self):
-        # Operator 2026-09-14: the drag area must be a recognisable grip.
+    def test_dock_has_a_grip_labelled_tap_and_drag(self):
+        # Operator 2026-09-14/15: a recognisable grip; one tap minimizes, drag moves.
         # Arrange
         dock = _dock_html(self.client.get("/apps/").content)
         # Act
         grip = re.search(r'<button[^>]*data-dock-grabber[^>]*aria-label="([^"]+)"[^>]*>\s*<i class="([^"]+)"', dock)
         # Assert
-        assert (grip.group(1), "fa-grip" in grip.group(2)) == ("Move dock", True)
+        assert (grip.group(1), "fa-grip" in grip.group(2)) == ("Tap to minimize, drag to move", True)
 
     def test_dock_phone_grip_is_a_compact_block_glyph(self):
         # Operator 2026-09-15: a 4x3 app-grid glyph, not a wide tiled strip.

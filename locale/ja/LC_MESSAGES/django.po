@@ -5414,6 +5414,14 @@ msgid "Move dock (double-click to reset)"
 msgstr "ドックを移動（ダブルクリックで元の位置に戻す）"
 
 #: templates/global_base_partials/site_dock.html
+msgid "Tap to minimize, drag to move"
+msgstr "タップで最小化、ドラッグで移動"
+
+#: templates/global_base_partials/site_dock.html
+msgid "Tap to show dock, drag to move"
+msgstr "タップでドックを表示、ドラッグで移動"
+
+#: templates/global_base_partials/site_dock.html
 msgid "Minimize dock"
 msgstr "ドックを最小化"
 

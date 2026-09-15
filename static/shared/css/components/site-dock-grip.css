@@ -3,7 +3,7 @@
 
    Markup: templates/global_base_partials/site_dock.html
    Behaviour: static/shared/ts/components/site-dock.ts,
-              _site-dock/minimize.ts (double-tap toggles the pill)
+              _site-dock/minimize.ts (tap toggles the pill, drag moves)
    ============================================================ */
 
 /* Grip: a drag-handle glyph (fa-grip-vertical) just right of Back, in flow,
