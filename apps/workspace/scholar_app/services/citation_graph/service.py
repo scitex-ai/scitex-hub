@@ -14,6 +14,8 @@ from typing import Dict, List, Optional
 
 from django.core.cache import cache
 
+from .online import OnlineCrossrefGraphSource
+
 logger = logging.getLogger(__name__)
 
 
@@ -25,12 +27,35 @@ class CitationGraphService:
     crossref_local.Config (via scitex.scholar.citation_graph).
     """
 
-    def __init__(self):
-        """Initialize service — delegates detection to scitex."""
-        from scitex.scholar.citation_graph import CitationGraphBuilder
+    def __init__(self, builder=None, online_source=None):
+        """``builder`` / ``online_source`` are injectable for tests."""
+        if builder is None:
+            from scitex.scholar.citation_graph import CitationGraphBuilder
 
-        self.builder = CitationGraphBuilder()  # auto-detects via Config
-        logger.info("Citation graph service initialized")
+            builder = CitationGraphBuilder()  # auto-detects via Config
+        self.builder = builder
+        self.online_source = online_source or OnlineCrossrefGraphSource()
+
+    @staticmethod
+    def _is_empty(result: Dict) -> bool:
+        """crossref-local down answers with bare, untitled seed nodes and no edges."""
+        if result.get("edges"):
+            return False
+        return not any(n.get("title") for n in result.get("nodes", []))
+
+    def _local_or_online(self, build_local, build_online, label: str) -> Dict:
+        try:
+            result = build_local()
+            if not self._is_empty(result):
+                return result
+        except Exception as e:
+            logger.warning(f"crossref-local graph failed for {label}: {e}")
+        logger.info(f"Citation graph for {label}: using online Crossref")
+        return build_online()
+
+    def _cache_set(self, key: str, result: Dict) -> None:
+        if result.get("nodes"):
+            cache.set(key, result, 3600)
 
     def _cache_key(self, prefix: str, doi: str, **kwargs) -> str:
         """Create cache key from parameters."""
@@ -82,17 +107,19 @@ class CitationGraphService:
                 cached["metadata"]["cached"] = True
                 return cached
 
-        graph = self.builder.build(
-            seed_doi=doi,
-            top_n=top_n,
-            weight_coupling=weight_coupling,
-            weight_cocitation=weight_cocitation,
-            weight_direct=weight_direct,
+        result = self._local_or_online(
+            lambda: self.builder.build(
+                seed_doi=doi,
+                top_n=top_n,
+                weight_coupling=weight_coupling,
+                weight_cocitation=weight_cocitation,
+                weight_direct=weight_direct,
+            ).to_dict(),
+            lambda: self.online_source.build_from_dois([doi], num_related_per_doi=top_n),
+            doi,
         )
-
-        result = graph.to_dict()
         result["metadata"]["cached"] = False
-        cache.set(cache_key, result, 3600)
+        self._cache_set(cache_key, result)
 
         logger.info(
             f"Built network for {doi}: "
@@ -125,14 +152,18 @@ class CitationGraphService:
                 cached["metadata"]["cached"] = True
                 return cached
 
-        graph = self.builder.build_from_dois(
-            dois=dois,
-            num_related_per_doi=num_related_per_doi,
+        result = self._local_or_online(
+            lambda: self.builder.build_from_dois(
+                dois=dois,
+                num_related_per_doi=num_related_per_doi,
+            ).to_dict(),
+            lambda: self.online_source.build_from_dois(
+                dois, num_related_per_doi=num_related_per_doi
+            ),
+            ",".join(dois),
         )
-
-        result = graph.to_dict()
         result["metadata"]["cached"] = False
-        cache.set(cache_key, result, 3600)
+        self._cache_set(cache_key, result)
 
         logger.info(
             f"Built multi-seed network for {len(dois)} DOIs: "
@@ -161,15 +192,20 @@ class CitationGraphService:
                 cached["metadata"]["cached"] = True
                 return cached
 
-        graph = self.builder.build_from_query(
-            query=query,
-            num_related_per_doi=num_related_per_doi,
-            search_limit=search_limit,
+        result = self._local_or_online(
+            lambda: self.builder.build_from_query(
+                query=query,
+                num_related_per_doi=num_related_per_doi,
+                search_limit=search_limit,
+            ).to_dict(),
+            # One seed online keeps the picture readable and the Crossref calls few.
+            lambda: self.online_source.build_from_query(
+                query, num_related_per_doi=num_related_per_doi, search_limit=1
+            ),
+            repr(query),
         )
-
-        result = graph.to_dict()
         result["metadata"]["cached"] = False
-        cache.set(cache_key, result, 3600)
+        self._cache_set(cache_key, result)
 
         logger.info(
             f"Built query network for '{query}': "

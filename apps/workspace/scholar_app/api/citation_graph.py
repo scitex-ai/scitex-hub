@@ -32,7 +32,7 @@ class HealthCheckThrottle(AnonRateThrottle):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 @throttle_classes([CitationGraphThrottle])
-def build_network(request):
+def build_network(request, service=None):
     """
     Build citation network graph for a paper.
 
@@ -92,7 +92,7 @@ def build_network(request):
 
     # Build network
     try:
-        service = get_citation_graph_service()
+        service = service or get_citation_graph_service()
         network = service.build_network(
             doi=doi,
             top_n=top_n,
@@ -121,7 +121,7 @@ def build_network(request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 @throttle_classes([CitationGraphThrottle])
-def build_network_multi(request):
+def build_network_multi(request, service=None):
     """
     Build citation network from multiple seed DOIs.
 
@@ -160,7 +160,7 @@ def build_network_multi(request):
         )
 
     try:
-        service = get_citation_graph_service()
+        service = service or get_citation_graph_service()
         network = service.build_network_from_dois(
             dois=dois,
             num_related_per_doi=num_related,
@@ -185,7 +185,7 @@ def build_network_multi(request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 @throttle_classes([CitationGraphThrottle])
-def build_network_query(request):
+def build_network_query(request, service=None):
     """
     Build citation network from a text query.
     All logic (search, DOI detection, graph building) lives in scitex.scholar.
@@ -218,7 +218,7 @@ def build_network_query(request):
         )
 
     try:
-        service = get_citation_graph_service()
+        service = service or get_citation_graph_service()
         network = service.build_network_from_query(
             query=query,
             num_related_per_doi=num_related,
@@ -244,7 +244,7 @@ def build_network_query(request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 @throttle_classes([CitationGraphThrottle])
-def get_related_papers(request):
+def get_related_papers(request, service=None):
     """
     Get list of papers related to a given paper (lightweight endpoint).
 
@@ -300,7 +300,7 @@ def get_related_papers(request):
 
     # Get related papers
     try:
-        service = get_citation_graph_service()
+        service = service or get_citation_graph_service()
         related = service.get_related_papers(doi=doi, limit=limit, use_cache=use_cache)
 
         return Response(
