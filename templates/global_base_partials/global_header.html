@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n landing_i18n %}
 {% load static %}
 {% load module_icons %}
 
@@ -36,7 +36,7 @@
                      class="header-logo-icon" />
             </a>
             <span class="header-build-meta">
-                <span class="header-hub-version" title="SciTeX Hub version"><span class="header-hub-product">SciTeX Hub </span>v{{ SCITEX_HUB_VERSION }}</span>
+                <span class="header-hub-version" title="SciTeX Hub version"><span class="header-hub-product">SciTeX™ Cloud </span>v{{ SCITEX_HUB_VERSION }}</span>
                 <time id="header-local-clock" class="header-local-clock" aria-label="Local time"></time>
             </span>
             {% if user.is_authenticated %}
@@ -100,22 +100,27 @@
     <!-- Shared menu: identical control and actions at every viewport width. -->
     <div class="mobile-header-menu" id="mobile-header-menu" role="navigation" aria-label="{% trans 'Menu' %}">
         {% if user.is_authenticated %}
-            <a href="/accounts/profile/" class="mobile-menu-item mobile-menu-item--user">
+            <div class="mobile-menu-item mobile-menu-item--section">{% trans "User & Profile" %}</div>
+            <a href="/accounts/profile/" class="mobile-menu-item mobile-menu-item--user mobile-menu-item--indent">
                 <i aria-hidden="true" class="fas fa-user-circle"></i>
                 <span>@{{ user.username }}</span>
             </a>
-            <a href="/accounts/settings/" class="mobile-menu-item">
+            <a href="/accounts/settings/" class="mobile-menu-item mobile-menu-item--indent">
                 <i aria-hidden="true" class="fas fa-cog"></i>
                 <span>{% trans "Settings" %}</span>
             </a>
+            <a href="/auth/logout/" class="mobile-menu-item mobile-menu-item--indent">
+                <i aria-hidden="true" class="fas fa-sign-out-alt"></i>
+                <span>{% trans "Sign Out" %}</span>
+            </a>
             <div class="mobile-menu-divider"></div>
         {% endif %}
-        <div class="mobile-menu-item mobile-menu-item--section">{% trans "Appearance & help" %}</div>
-        <button type="button" class="mobile-menu-item" id="theme-toggle" aria-label="{% trans 'Switch to dark mode' %}" data-label-dark="{% trans 'Switch to dark mode' %}" data-label-light="{% trans 'Switch to light mode' %}">
+        <div class="mobile-menu-item mobile-menu-item--section">{% trans "Appearance" %}</div>
+        <button type="button" class="mobile-menu-item mobile-menu-item--indent" id="theme-toggle" aria-label="{% trans 'Switch to dark mode' %}" data-label-dark="{% trans 'Switch to dark mode' %}" data-label-light="{% trans 'Switch to light mode' %}">
             <i class="fas fa-circle-half-stroke" aria-hidden="true"></i>
             <span data-theme-toggle-label>{% trans "Switch to dark mode" %}</span>
         </button>
-        <button type="button" class="mobile-menu-item" id="product-tour-btn" aria-label="{% trans 'Product tour' %}">
+        <button type="button" class="mobile-menu-item mobile-menu-item--indent" id="product-tour-btn" aria-label="{% trans 'Product tour' %}">
             <i class="fas fa-question-circle" aria-hidden="true"></i>
             <span>{% trans "Product tour" %}</span>
         </button>
@@ -132,11 +137,14 @@
         {# is decision-pending: the bell was removed by the operator's          #}
         {# header-declutter directive, so re-adding notification chrome         #}
         {# would contradict that ruling — not done here.                        #}
+        <div class="mobile-menu-divider"></div>
+        <div class="mobile-menu-item mobile-menu-item--section">{% trans "Help" %}</div>
         <a href="/keyboard-shortcuts/" class="mobile-menu-item mobile-menu-item--indent">
             <i aria-hidden="true" class="fas fa-keyboard"></i>
             <span>{% trans "Keyboard Shortcuts" %}</span>
         </a>
         {% if DEBUG or user.is_staff %}
+            <div class="mobile-menu-item mobile-menu-item--section">{% trans "Developer" %}</div>
             <a href="{% url 'public_app:server_status' %}" class="mobile-menu-item mobile-menu-item--indent">
                 <i aria-hidden="true" class="fas fa-server"></i>
                 <span>{% trans "Server Status" %}</span>
@@ -145,13 +153,7 @@
         <div class="mobile-menu-divider"></div>
         <!-- Visitor-mode row removed 2026-09-11 (visitor retirement): there is
              no longer a visitor/readonly role. -->
-        {% if user.is_authenticated %}
-            <div class="mobile-menu-divider"></div>
-            <a href="/auth/logout/" class="mobile-menu-item">
-                <i aria-hidden="true" class="fas fa-sign-out-alt"></i>
-                <span>{% trans "Sign Out" %}</span>
-            </a>
-        {% else %}
+        {% if not user.is_authenticated %}
             <a href="/auth/signin/" class="mobile-menu-item">
                 <i aria-hidden="true" class="fas fa-sign-in-alt"></i>
                 <span>{% trans "Sign In" %}</span>
@@ -176,23 +178,25 @@
           visitor session is exactly who needs to read it before transacting.
         {% endcomment %}
         <div class="mobile-menu-divider"></div>
-        <a href="{% url 'public_app:terms' %}" class="mobile-menu-item">
+        <div class="mobile-menu-item mobile-menu-item--section">{% trans "Legal" %}</div>
+        <a href="{% url 'public_app:terms' %}" class="mobile-menu-item mobile-menu-item--indent">
             <i aria-hidden="true" class="fas fa-file-contract"></i>
             <span>{% trans "Terms" %}</span>
         </a>
-        <a href="{% url 'public_app:privacy' %}" class="mobile-menu-item">
+        <a href="{% url 'public_app:privacy' %}" class="mobile-menu-item mobile-menu-item--indent">
             <i aria-hidden="true" class="fas fa-user-shield"></i>
             <span>{% trans "Privacy" %}</span>
         </a>
-        <a href="{% url 'public_app:cookies' %}" class="mobile-menu-item">
+        <a href="{% url 'public_app:cookies' %}" class="mobile-menu-item mobile-menu-item--indent">
             <i aria-hidden="true" class="fas fa-cookie-bite"></i>
             <span>{% trans "Cookies" %}</span>
         </a>
-        <a href="{% url 'public_app:tokushoho' %}" class="mobile-menu-item">
+        {% tokushoho_url as tokushoho_href %}
+        <a href="{{ tokushoho_href }}" class="mobile-menu-item mobile-menu-item--indent">
             <i aria-hidden="true" class="fas fa-scale-balanced"></i>
-            <span>特定商取引法に基づく表記</span>
+            <span>{% trans "Legal Notice" %}</span>
         </a>
-        <a href="{% url 'public_app:contact' %}" class="mobile-menu-item">
+        <a href="{% url 'public_app:contact' %}" class="mobile-menu-item mobile-menu-item--indent">
             <i aria-hidden="true" class="fas fa-envelope"></i>
             <span>{% trans "Contact" %}</span>
         </a>

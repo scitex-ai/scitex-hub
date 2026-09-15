@@ -4,11 +4,11 @@
 
 Operator contract -- one pattern everywhere:
 
-    <Detail> · <App> — SciTeX            hub, production
-    <App> — SciTeX (dev|staging)         hub, non-production
-    <App> — SciTeX (standalone)          a standalone app, any environment
+    <Detail> · <App> — SciTeX™            hub, production
+    <App> — SciTeX™ (dev|staging)         hub, non-production
+    <App> — SciTeX™ (standalone)          a standalone app, any environment
 
-The product name is spelled EXACTLY "SciTeX"; app names are Capitalized
+The product name is spelled EXACTLY "SciTeX™"; app names are Capitalized
 ("Todo", never "todo"); the version never appears; and a hub-embedded app must
 be distinguishable from the same app running standalone.
 """
@@ -30,11 +30,11 @@ from ._branding_helpers import FakeRequest, render
 
 
 # ---------------------------------------------------------------------------
-# Names: Capitalized, and the brand is exactly "SciTeX"
+# Names: Capitalized, and the brand is exactly "SciTeX™"
 # ---------------------------------------------------------------------------
 def test_site_name_is_exactly_scitex():
     # Arrange
-    expected = "SciTeX"
+    expected = "SciTeX™"
 
     # Act
     actual = branding.SITE_NAME
@@ -96,7 +96,7 @@ def test_every_app_prefix_is_a_path_that_actually_exists():
     app_for_path() matches with str.startswith. The map used to be keyed on bare
     names ("/scholar/", "/figrecipe/", ...) while the real routes are
     /apps/scholar/, /apps/figrecipe/ — so NONE of those entries ever matched a
-    request, and every one of those apps rendered a tab titled just "SciTeX".
+    request, and every one of those apps rendered a tab titled just "SciTeX™".
     The old tests missed it because they asserted app_for_path("/figrecipe/...")
     — a URL that 404s — instead of the URL a user is actually on.
 
@@ -149,7 +149,7 @@ def test_app_for_path(path, expected):
 # ---------------------------------------------------------------------------
 def test_hub_production_title_is_unmarked():
     # Arrange
-    expected = "Writer — SciTeX"
+    expected = "Writer — SciTeX™"
 
     # Act
     title = branding.page_title(app="Writer", env="production")
@@ -161,8 +161,8 @@ def test_hub_production_title_is_unmarked():
 @pytest.mark.parametrize(
     ("env", "expected"),
     [
-        ("development", "Writer — SciTeX (dev)"),
-        ("staging", "Writer — SciTeX (staging)"),
+        ("development", "Writer — SciTeX™ (dev)"),
+        ("staging", "Writer — SciTeX™ (staging)"),
     ],
 )
 def test_hub_non_production_titles_are_marked(env, expected):
@@ -178,7 +178,7 @@ def test_hub_non_production_titles_are_marked(env, expected):
 def test_standalone_title_carries_the_standalone_marker():
     """Operator: a standalone app must be tellable from the tab alone."""
     # Arrange
-    expected = "Writer — SciTeX (standalone)"
+    expected = "Writer — SciTeX™ (standalone)"
 
     # Act
     title = branding.page_title(
@@ -204,7 +204,7 @@ def test_standalone_title_differs_from_hub_embedded_title():
 
 def test_standalone_marker_wins_over_environment():
     # Arrange
-    expected = "Writer — SciTeX (standalone)"
+    expected = "Writer — SciTeX™ (standalone)"
 
     # Act
     title = branding.page_title(
@@ -217,7 +217,7 @@ def test_standalone_marker_wins_over_environment():
 
 def test_detail_precedes_the_app():
     # Arrange
-    expected = "my-proj · Writer — SciTeX"
+    expected = "my-proj · Writer — SciTeX™"
 
     # Act
     title = branding.page_title(app="Writer", detail="my-proj", env="production")
@@ -228,7 +228,7 @@ def test_detail_precedes_the_app():
 
 def test_title_without_an_app_is_just_the_brand():
     # Arrange
-    expected = "SciTeX"
+    expected = "SciTeX™"
 
     # Act
     title = branding.page_title(env="production")
@@ -239,7 +239,7 @@ def test_title_without_an_app_is_just_the_brand():
 
 def test_title_without_an_app_still_carries_the_environment_marker():
     # Arrange
-    expected = "SciTeX (dev)"
+    expected = "SciTeX™ (dev)"
 
     # Act
     title = branding.page_title(env="development")
@@ -288,7 +288,7 @@ def test_template_tag_builds_the_title_from_the_request_path():
     title = branding_tags.page_title(context)
 
     # Assert
-    assert title == "Scholar — SciTeX"
+    assert title == "Scholar — SciTeX™"
 
 
 @override_settings(SCITEX_ENV="development", SCITEX_APP_MODE=branding.MODE_HUB)
@@ -300,7 +300,7 @@ def test_template_tag_marks_the_development_environment():
     title = branding_tags.page_title(context)
 
     # Assert
-    assert title == "Cards — SciTeX (dev)"
+    assert title == "Cards — SciTeX™ (dev)"
 
 
 @override_settings(SCITEX_ENV="production", SCITEX_APP_MODE=branding.MODE_STANDALONE)
@@ -312,7 +312,7 @@ def test_template_tag_marks_a_standalone_app():
     title = branding_tags.page_title(context)
 
     # Assert
-    assert title == "Writer — SciTeX (standalone)"
+    assert title == "Writer — SciTeX™ (standalone)"
 
 
 @override_settings(SCITEX_ENV="production", SCITEX_APP_MODE=branding.MODE_HUB)
@@ -327,7 +327,7 @@ def test_template_tag_uses_the_current_project_as_detail():
     title = branding_tags.page_title(context)
 
     # Assert
-    assert title == "my-proj · Writer — SciTeX"
+    assert title == "my-proj · Writer — SciTeX™"
 
 
 @override_settings(SCITEX_ENV="production", SCITEX_APP_MODE=branding.MODE_HUB)
@@ -342,7 +342,7 @@ def test_template_tag_uses_the_profile_username_as_detail():
     title = branding_tags.page_title(context)
 
     # Assert
-    assert title == "ywatanabe — SciTeX"
+    assert title == "ywatanabe — SciTeX™"
 
 
 @override_settings(SCITEX_ENV="production", SCITEX_APP_MODE=branding.MODE_HUB)
@@ -355,7 +355,7 @@ def test_template_tag_honours_an_explicit_page_title_detail():
     title = branding_tags.page_title(context)
 
     # Assert
-    assert title == "Library · Scholar — SciTeX"
+    assert title == "Library · Scholar — SciTeX™"
 
 
 @override_settings(SCITEX_ENV="production", SCITEX_APP_MODE=branding.MODE_HUB)
@@ -374,7 +374,7 @@ def test_explicit_page_title_detail_wins_over_the_project_slug():
     title = branding_tags.page_title(context)
 
     # Assert
-    assert title == "Library · Scholar — SciTeX"
+    assert title == "Library · Scholar — SciTeX™"
 
 
 # ---------------------------------------------------------------------------
@@ -393,15 +393,15 @@ def test_page_title_tag_is_loadable_and_renders_in_a_real_template():
     html = render(source)
 
     # Assert
-    assert html == "<title>Writer — SciTeX (dev)</title>"
+    assert html == "<title>Writer — SciTeX™ (dev)</title>"
 
 
 @pytest.mark.parametrize(
     ("template_name", "path", "expected"),
     [
-        ("public_app/public_status.html", "/status/", "Status — SciTeX (dev)"),
-        ("writer_app/pdf_debug.html", "/apps/writer/pdf-debug/", "Writer — SciTeX (dev)"),
-        ("500.html", "/apps/comms/", "Comms — SciTeX (dev)"),
+        ("public_app/public_status.html", "/status/", "Status — SciTeX™ (dev)"),
+        ("writer_app/pdf_debug.html", "/apps/writer/pdf-debug/", "Writer — SciTeX™ (dev)"),
+        ("500.html", "/apps/comms/", "Comms — SciTeX™ (dev)"),
     ],
 )
 @override_settings(SCITEX_ENV="development", SCITEX_APP_MODE=branding.MODE_HUB)
@@ -418,7 +418,7 @@ def test_hub_owned_standalone_templates_use_the_canonical_title(template_name, p
 # ---------------------------------------------------------------------------
 # The project detail is the project's NAME, not its URL slug
 # ---------------------------------------------------------------------------
-# A first-time visitor's tab read "default-project · Chat — SciTeX (dev)" on
+# A first-time visitor's tab read "default-project · Chat — SciTeX™ (dev)" on
 # the dev preview (measured 2026-09-05) while the same page rendered the
 # project's actual name, "Handwritten Digits (Example)", five times in its
 # body. The tab is often the only place a user sees which project they are in,
@@ -438,7 +438,7 @@ def test_the_project_name_is_preferred_over_the_slug():
     title = branding_tags.page_title(context)
 
     # Assert
-    assert title == "Handwritten Digits (Example) · Writer — SciTeX"
+    assert title == "Handwritten Digits (Example) · Writer — SciTeX™"
 
 
 @override_settings(SCITEX_ENV="production", SCITEX_APP_MODE=branding.MODE_HUB)
@@ -455,7 +455,7 @@ def test_the_slug_is_still_used_when_the_project_has_no_name():
     title = branding_tags.page_title(context)
 
     # Assert
-    assert title == "my-proj · Writer — SciTeX"
+    assert title == "my-proj · Writer — SciTeX™"
 
 
 @override_settings(SCITEX_ENV="production", SCITEX_APP_MODE=branding.MODE_HUB)
@@ -472,7 +472,7 @@ def test_a_whitespace_only_name_falls_back_to_the_slug():
     title = branding_tags.page_title(context)
 
     # Assert
-    assert title == "my-proj · Writer — SciTeX"
+    assert title == "my-proj · Writer — SciTeX™"
 
 
 @override_settings(SCITEX_ENV="production", SCITEX_APP_MODE=branding.MODE_HUB)
@@ -488,7 +488,7 @@ def test_the_name_is_stripped_before_it_reaches_the_title():
     title = branding_tags.page_title(context)
 
     # Assert
-    assert title == "Handwritten Digits (Example) · Writer — SciTeX"
+    assert title == "Handwritten Digits (Example) · Writer — SciTeX™"
 
 
 @override_settings(SCITEX_ENV="production", SCITEX_APP_MODE=branding.MODE_HUB)
@@ -509,4 +509,4 @@ def test_an_explicit_detail_still_wins_over_the_project_name():
     title = branding_tags.page_title(context)
 
     # Assert
-    assert title == "Library · Scholar — SciTeX"
+    assert title == "Library · Scholar — SciTeX™"

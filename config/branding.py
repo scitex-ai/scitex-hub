@@ -51,7 +51,7 @@ def gettext_noop(message):
 
 
 # Core branding
-SITE_NAME = "SciTeX"
+SITE_NAME = "SciTeX™"
 # The tagline is TWO lines: the promise, then what SciTeX is. Both are shown
 # together wherever the brand introduces itself (the landing hero), so they are
 # defined together here rather than one in a template and one in Python.
@@ -104,7 +104,7 @@ CONTACT_DOMAIN = "scitex.ai"
 CONTACT_EMAIL = f"info@{CONTACT_DOMAIN}"
 
 LEGAL_EMAIL = f"legal@{CONTACT_DOMAIN}"
-PRIVACY_EMAIL = f"privacy@{CONTACT_DOMAIN}"
+PRIVACY_EMAIL = CONTACT_EMAIL
 RECRUIT_EMAIL = f"recruit@{CONTACT_DOMAIN}"
 NOREPLY_EMAIL = f"noreply@{CONTACT_DOMAIN}"
 

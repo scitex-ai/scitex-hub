@@ -99,6 +99,8 @@ def _conditional_depth_at(source: str, position: int) -> int:
 
 
 def _url_tag_positions(source: str, route: str) -> list[int]:
+    if route == "public_app:tokushoho":
+        return [m.start() for m in re.finditer(r"{%-?\s*tokushoho_url\b", source)]
     pattern = re.compile(r"{%-?\s*url\s+['\"]" + re.escape(route) + r"['\"]")
     return [m.start() for m in pattern.finditer(source)]
 
@@ -129,7 +131,7 @@ def test_the_menu_contains_entries_other_than_the_legal_ones():
     # Arrange
     menu = _mobile_menu_source(_template_text())
     # Act
-    has_other_items = "mobile-theme-toggle-btn" in menu
+    has_other_items = 'id="theme-toggle"' in menu
     # Assert
     assert has_other_items
 

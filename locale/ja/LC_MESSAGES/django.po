@@ -3227,6 +3227,9 @@ msgstr "料金は公開済みです。カード決済は Stripe の法人審査�
 msgid "Specified Commercial Transactions Act disclosure"
 msgstr "特定商取引法に基づく表記"
 
+msgid "Legal Notice"
+msgstr "特定商取引法に基づく表記"
+
 msgid "Rate card"
 msgstr "料金表"
 

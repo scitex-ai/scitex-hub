@@ -285,16 +285,22 @@
                        this page and asserts the real address is in the response
                        body -- so an accidental unset fails loudly.
                     {% endcomment %}
+                    {% get_current_language as LANGUAGE_CODE %}
                     <address>
-                        {{ SITE_NAME }}
-                        <br />
-                        {% if COMPANY_ADDRESS %}
-                            {{ COMPANY_ADDRESS }}
+                        {% if LANGUAGE_CODE|slice:":2" == "ja" %}
+                            株式会社SciTeX
                             <br />
+                            {% if COMPANY_ADDRESS %}{{ COMPANY_ADDRESS }}<br />{% endif %}
+                        {% else %}
+                            SciTeX Inc.
+                            <br />
+                            Shizuoka City Co-Creation Space<br />
+                            7F PEGASART, 3-21 Miyukicho, Aoi-ku<br />
+                            Shizuoka 420-0857, Japan<br />
                         {% endif %}
                         {% trans "Email:" %}
-                        <a href="mailto:{{ PRIVACY_EMAIL }}"
-                           aria-label="Email {{ SITE_NAME }} about privacy at {{ PRIVACY_EMAIL }}">{{ PRIVACY_EMAIL }}</a>
+                        <a href="mailto:{{ CONTACT_EMAIL }}"
+                           aria-label="Email SciTeX Inc. at {{ CONTACT_EMAIL }}">{{ CONTACT_EMAIL }}</a>
                     </address>
                     <div class="highlight" role="note" style="margin-top: var(--spacing-lg)">
                         <p>
