@@ -30,17 +30,16 @@ from apps.workspace.apps_app.models import AppsModule
 class ManifestAvailabilityContractTest(TestCase):
     """The manifest is the SSoT: availability flows into ModuleConfig."""
 
-    def test_writer_manifest_declares_desktop_only(self):
-        # Arrange — writer is a LaTeX editing surface, desktop work
-        expected = "desktop_only"
+    def test_writer_manifest_is_available(self):
+        expected = "available"
         # Act
         mod = get_module("writer")
         # Assert
         assert mod is not None and mod.availability == expected
 
-    def test_figrecipe_manifest_declares_desktop_only(self):
+    def test_figrecipe_manifest_is_available(self):
         # Arrange
-        expected = "desktop_only"
+        expected = "available"
         # Act
         mod = get_module("figrecipe")
         # Assert

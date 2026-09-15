@@ -266,7 +266,7 @@ def _build_tiles(request) -> list[dict]:
                 # unseeded app fall through to "other" and render with the
                 # generic yellow puzzle gradient.
                 "category": mod.category or (row.category if row else "other"),
-                "description": row.short_description if row else mod.ai_hint,
+                "description": mod.ai_hint or (row.short_description if row else ""),
                 # Deployed version from the app manifest (SSOT). Empty when the
                 # manifest omits it — the tile hides the label, never breaks.
                 "version": mod.version,
