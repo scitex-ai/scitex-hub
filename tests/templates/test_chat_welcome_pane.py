@@ -18,22 +18,22 @@ def test_quick_action_chips_are_gone():
     assert "chat-shortcut-btn" not in pane
 
 
-def test_light_mode_uses_the_navy_logo():
+def test_welcome_uses_the_official_navy_circle_icon():
     # Arrange
-    pattern = r"navy-bg-transparent\.svg[^>]*chat-welcome-logo--light"
+    pattern = r"scitex-icon-navy-inverted\.svg[^>]*chat-welcome-logo"
     # Act
     pane = PANE_PATH.read_text(encoding="utf-8")
     # Assert
     assert re.search(pattern, pane, re.S)
 
 
-def test_white_logo_only_in_both_dark_theme_states():
+def test_light_mode_has_no_grey_halo_fill():
     # Arrange
-    token = "--chat-logo-dark-display: block"
+    token = "--chat-halo-fill: 0;"
     # Act
     css = CSS_PATH.read_text(encoding="utf-8")
     # Assert
-    assert css.count(token) == 2
+    assert token in css
 
 
 def test_accent_is_the_official_scitex_navy():
