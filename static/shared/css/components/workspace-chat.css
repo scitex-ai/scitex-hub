@@ -2,6 +2,33 @@
    Workspace Chat Pane — Claude.ai-inspired welcome screen
    ============================================================ */
 
+/* #1a2a40 is the official SciTeX navy (`navy` / --_scitex-01 in
+   scripts/utils/icons/generate_scitex_icons.py); scitex-ui's runtime
+   --_scitex-01 is a grey, so the brand value is pinned here. */
+:root {
+  --chat-brand-navy: #1a2a40;
+  --chat-accent: var(--chat-brand-navy);
+  --chat-halo-rgb: 26, 42, 64;
+  --chat-logo-light-display: block;
+  --chat-logo-dark-display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --chat-accent: var(--text-link, #58a6ff);
+    --chat-halo-rgb: 56, 139, 253;
+    --chat-logo-light-display: none;
+    --chat-logo-dark-display: block;
+  }
+}
+
+:root[data-theme="dark"] {
+  --chat-accent: var(--text-link, #58a6ff);
+  --chat-halo-rgb: 56, 139, 253;
+  --chat-logo-light-display: none;
+  --chat-logo-dark-display: block;
+}
+
 .ws-chat-pane {
   display: flex;
   flex-direction: column;
@@ -41,20 +68,20 @@
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgba(56, 139, 253, 0.15) 0%,
+    rgba(var(--chat-halo-rgb), 0.15) 0%,
     transparent 70%
   );
-  box-shadow: 0 0 60px 20px rgba(56, 139, 253, 0.08);
+  box-shadow: 0 0 60px 20px rgba(var(--chat-halo-rgb), 0.08);
   animation: chat-logo-pulse 4s ease-in-out infinite;
 }
 
 @keyframes chat-logo-pulse {
   0%,
   100% {
-    box-shadow: 0 0 60px 20px rgba(56, 139, 253, 0.08);
+    box-shadow: 0 0 60px 20px rgba(var(--chat-halo-rgb), 0.08);
   }
   50% {
-    box-shadow: 0 0 80px 30px rgba(56, 139, 253, 0.15);
+    box-shadow: 0 0 80px 30px rgba(var(--chat-halo-rgb), 0.15);
   }
 }
 
@@ -62,6 +89,14 @@
   width: 96px;
   height: 96px;
   transition: transform 300ms ease;
+}
+
+.chat-welcome-logo--light {
+  display: var(--chat-logo-light-display);
+}
+
+.chat-welcome-logo--dark {
+  display: var(--chat-logo-dark-display);
 }
 
 /* Spin the logo when AI is thinking */
@@ -99,11 +134,12 @@
   border: 1px solid var(--border-default, #30363d);
   border-radius: 16px;
   padding: 16px;
+  cursor: text;
   transition: border-color 200ms ease;
 }
 
 .chat-welcome-input-box:focus-within {
-  border-color: var(--text-link, #58a6ff);
+  border-color: var(--chat-accent);
 }
 
 .chat-welcome-input {
@@ -116,8 +152,9 @@
   line-height: 1.5;
   resize: none;
   font-family: inherit;
-  min-height: 24px;
-  max-height: 200px;
+  min-height: 4.5em;
+  max-height: 240px;
+  overflow-y: auto;
 }
 
 .chat-welcome-input::placeholder {
@@ -187,39 +224,6 @@
   50% {
     opacity: 0.7;
   }
-}
-
-/* ── Quick action shortcuts ────────────────────────────────── */
-.chat-welcome-shortcuts {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-}
-
-.chat-shortcut-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  background: none;
-  border: 1px solid var(--border-default, #30363d);
-  border-radius: 20px;
-  color: var(--text-secondary, #c9d1d9);
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 150ms ease;
-  white-space: nowrap;
-}
-
-.chat-shortcut-btn:hover {
-  background: var(--bg-secondary, #161b22);
-  border-color: var(--text-secondary, #c9d1d9);
-  color: var(--text-primary, #f0f6fc);
-}
-
-.chat-shortcut-btn i {
-  font-size: 14px;
 }
 
 /* ── Hidden state ──────────────────────────────────────────── */
@@ -355,13 +359,8 @@
     font-size: 16px;
   }
 
-  .chat-welcome-shortcuts {
-    gap: 6px;
-  }
-
-  .chat-shortcut-btn {
-    padding: 8px 14px;
-    font-size: 13px;
+  .chat-welcome-input {
+    min-height: 96px;
   }
 
   .chat-messages-area {

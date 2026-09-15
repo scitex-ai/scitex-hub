@@ -17,8 +17,6 @@ function initChatWelcome(): void {
   const welcomeInput = document.getElementById(
     "chat-welcome-input",
   ) as HTMLTextAreaElement | null;
-  const shortcutBtns =
-    document.querySelectorAll<HTMLElement>(".chat-shortcut-btn");
 
   if (!welcomeInput || !welcomePane) return;
 
@@ -83,16 +81,20 @@ function initChatWelcome(): void {
     }
   });
 
-  // Shortcut buttons
-  shortcutBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const prompt = btn.getAttribute("data-prompt") || "";
-      if (prompt) {
-        sendToAiChat(prompt);
-        hideWelcome(welcomePane);
-      }
+  const growWelcomeInput = (): void => {
+    welcomeInput.style.height = "auto";
+    welcomeInput.style.height = `${welcomeInput.scrollHeight}px`;
+  };
+  welcomeInput.addEventListener("input", growWelcomeInput);
+  growWelcomeInput();
+
+  // The whole box is the tap target, not just the textarea's text lines.
+  document
+    .querySelector<HTMLElement>(".chat-welcome-input-box")
+    ?.addEventListener("click", (e) => {
+      if ((e.target as HTMLElement).closest("button")) return;
+      welcomeInput.focus();
     });
-  });
 
   // Camera button — proxy to AI panel camera
   document
@@ -166,7 +168,10 @@ function showWelcome(welcomePane: HTMLElement): void {
   const input = document.getElementById(
     "chat-welcome-input",
   ) as HTMLTextAreaElement | null;
-  if (input) input.value = "";
+  if (input) {
+    input.value = "";
+    input.style.height = "";
+  }
 }
 
 function checkForExistingMessages(welcomePane: HTMLElement): void {
