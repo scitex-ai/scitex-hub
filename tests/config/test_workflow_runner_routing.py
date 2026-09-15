@@ -21,8 +21,8 @@ FORK_PREDICATE = (
     "github.event.pull_request.head.repo.full_name != github.repository"
 )
 REQUIRED_CONTEXTS_KEPT = {
-    ("pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml", "test"):
-        "pytest-matrix-on-ubuntu-py${{ matrix.python-version }}",
+    ("pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml", "ci-gate"):
+        "Python CI aggregate gate",
     ("cli-import-smoke-on-ubuntu-latest.yml", "cli-import-smoke"):
         "cli-import-smoke-on-ubuntu-latest",
     # No `name:`, so the required context is the job key, "audit".
