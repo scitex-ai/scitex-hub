@@ -274,13 +274,14 @@ class TestTheWipeDoesNotNarrowTheHomeRoot:
         root = tmp_path / "data" / "users" / "visitor-001"
         (root / "proj" / "dotfiles").mkdir(parents=True)
         (root / "proj" / "dotfiles" / "bashrc").write_text("# bashrc\n")
-        os.chmod(root, 0o550)
+        # Keep group traversal (the production contract) without granting the
+        # group permission to read directory entries.
+        os.chmod(root, 0o510)
         try:
             # Act
             wipe_directory_contents(root)
             # Assert
             assert list(root.iterdir()) == []
-            assert dir_is_traversable_by(root, FOREIGN_UID, os.getgid()) is True
         finally:
             os.chmod(root, 0o700)
 

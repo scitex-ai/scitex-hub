@@ -46,6 +46,14 @@ def test_content_section_target_is_confined_to_document_directory(tmp_path):
     assert _section_target(service, "abstract", "unknown") is None
 
 
+def test_content_api_does_not_return_an_absolute_server_path():
+    source = Path(
+        "apps/workspace/writer_app/views/editor/api/content.py"
+    ).read_text(encoding="utf-8")
+
+    assert '"file_path": str(file_path)' not in source
+
+
 def test_pdf_candidates_reject_filename_traversal(tmp_path):
     writer_dir = tmp_path / "writer"
     writer_dir.mkdir()
