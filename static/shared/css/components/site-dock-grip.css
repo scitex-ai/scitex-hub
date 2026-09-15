@@ -122,11 +122,12 @@
   display: block;
 }
 
-/* Phones: the block glyph centred in row 2 with an invisible 88x48 hit area. */
-@media (max-width: 640px) {
+/* The block glyph is canonical in both expanded and minimized states. The
+   whole middle cell between Back and Forward is the drag/tap target. */
+@media (min-width: 0px) {
   .site-dock-grabber {
-    justify-self: center;
-    width: 88px;
+    justify-self: stretch;
+    width: 100%;
     height: 48px;
     margin: 0;
     opacity: 1;

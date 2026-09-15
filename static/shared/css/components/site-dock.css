@@ -314,16 +314,11 @@ body:has(> .site-dock.site-dock--minimized) {
   transform: none;
 }
 
-@media (min-width: 768px) {
-  :root {
-    --site-dock-icon: 68px;
-  }
-}
-
-/* Phones: the apps take the whole first row, in equal cells. The second row is
+/* The mobile dock is canonical at every width: apps take the whole first row
+   in equal cells. The second row is
    [<] far left, a compact block grip centred, [>] far right. Row 2
-   is 52px so the grip's hit area is not cramped (operator 2026-09-15). */
-@media (max-width: 640px) {
+   is 52px so the grip's hit area is not cramped. */
+@media (min-width: 0px) {
   :root {
     --site-dock-icon: 60px;
     --site-dock-row2: 52px;

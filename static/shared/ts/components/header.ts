@@ -74,6 +74,18 @@ export function initializeHeaderMenu(): void {
     link.addEventListener("click", () => close(false));
   });
 
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    if (
+      menu.classList.contains("open") &&
+      target instanceof Node &&
+      !menu.contains(target) &&
+      !btn.contains(target)
+    ) {
+      close(false);
+    }
+  });
+
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") close(true);
   });

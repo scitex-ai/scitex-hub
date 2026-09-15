@@ -60,6 +60,13 @@
             close(false);
         });
     });
+    document.addEventListener('click', function(e) {
+        if (!isOpen()) return;
+        var target = e.target;
+        if (target instanceof Node && !menu.contains(target) && !btn.contains(target)) {
+            close(false);
+        }
+    });
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && isOpen()) close(true);
     });

@@ -213,16 +213,15 @@ function updateToggleButton(): void {
   // load, which is why the server-rendered half-circle never showed.
   // Because the icon alone does not say what it does, the label carries both
   // the action and the current state.
-  const labels = {
-    light: "Light",
-    dark: "Dark",
-  } as const;
-
-  // Note: title attribute removed to avoid duplicate tooltips with data-tooltip
-  toggleBtn.setAttribute(
-    "aria-label",
-    `Toggle dark mode (current: ${labels[theme]})`,
+  const actionLabel =
+    theme === "dark"
+      ? toggleBtn.dataset.labelLight || "Switch to light mode"
+      : toggleBtn.dataset.labelDark || "Switch to dark mode";
+  toggleBtn.setAttribute("aria-label", actionLabel);
+  const visibleLabel = toggleBtn.querySelector<HTMLElement>(
+    "[data-theme-toggle-label]",
   );
+  if (visibleLabel) visibleLabel.textContent = actionLabel;
 }
 
 /**
