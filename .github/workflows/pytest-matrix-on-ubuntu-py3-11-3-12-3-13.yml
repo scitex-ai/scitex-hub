@@ -58,6 +58,11 @@ jobs:
       # workspace files stay removable by the runner and root-bypass of file
       # permissions cannot mask a test.
       options: --user 1000:1000 --cpus 8 --memory 16g
+      # The docker CLI only, read-only and WITHOUT the daemon socket: the
+      # compose tests run `docker compose config`, which needs no daemon.
+      volumes:
+        - /usr/bin/docker:/usr/bin/docker:ro
+        - /usr/libexec/docker/cli-plugins:/usr/libexec/docker/cli-plugins:ro
     # Inside a job container `run:` defaults to sh, which rejects pipefail.
     defaults:
       run:
