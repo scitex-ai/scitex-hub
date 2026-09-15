@@ -661,7 +661,7 @@ RUN uv pip install --system --no-cache \
     "scitex-linter==0.3.1" \
     # 0.21.0 (2026-09-14): project picker tag + gettext catalog tag; matches the
     # pyproject floor, so C0 and C1 agree again.
-    "scitex-ui==0.21.0" \
+    "scitex-ui==0.22.0" \
     "openalex-local==0.6.0" \
     "crossref-local==0.6.4"
 
@@ -796,6 +796,11 @@ RUN python -c "import scitex.io" && \
     python -c "import scitex; scitex.plt.load_style" && \
     python -c "import scitex_decorators, scitex_sh" && \
     echo "✅ scitex.io + scitex.plt.load_style verified in the RUNTIME image"
+
+# Authoritative relationship gate. This runs after every runtime-stage install
+# and inspects installed versions, Requires-Dist edges, and import contracts in
+# the environment that is actually shipped.
+RUN python scripts/deploy/verify_image_dependency_contract.py
 
 # Back to root — root-init.sh handles UID fixup then drops to scitex
 USER root
