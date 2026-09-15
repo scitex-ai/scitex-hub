@@ -73,7 +73,12 @@ def project_is_empty(project) -> bool:
     if not root or not root.exists():
         return True
     try:
-        return not any(entry.name != ".git" for entry in root.iterdir())
+        from .filesystem.permissions import VCS_METADATA_COMPONENTS
+
+        return not any(
+            entry.name.casefold() not in VCS_METADATA_COMPONENTS
+            for entry in root.iterdir()
+        )
     except OSError:
         return False
 
@@ -143,7 +148,7 @@ def resolve_tree_path(project, path: str) -> tuple[str, str]:
         return path, ""
     try:
         from apps.infra.project_app.services.filesystem.permissions import (
-            validate_path_in_project,
+            resolve_repository_path,
         )
         from apps.infra.project_app.services.project_filesystem import (
             get_project_filesystem_manager,
@@ -154,8 +159,8 @@ def resolve_tree_path(project, path: str) -> tuple[str, str]:
         )
         if root is None:
             return path, ""
-        target = root / path
-        if validate_path_in_project(root, target) and target.is_file():
+        target = resolve_repository_path(root, path)
+        if target is not None and target.is_file():
             return "", path
     except (OSError, ValueError):
         logger.debug(
