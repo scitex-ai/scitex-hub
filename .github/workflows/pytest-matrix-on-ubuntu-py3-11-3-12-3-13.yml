@@ -158,17 +158,10 @@ jobs:
           # audit gate's scitex-dev subcommands) resolves to THIS venv rather
           # than to whatever the shared runner happens to have installed.
           export PATH="$PWD/.venv/bin:$PATH"
-<<<<<<< HEAD
-          # -n auto uses every vCPU on the hosted runner (4). loadfile keeps each
-          # file on one worker, so intra-file ordering is unchanged; each worker
-          # gets its own test database from pytest-django. Measured on PR #772:
-          # -13%/-27%/-23% wall on the three legs.
-          .venv/bin/python -m pytest tests/ -n auto --dist loadgroup --cov=src/scitex_hub --cov-report=xml --cov-report=term
-=======
-          # loadfile keeps each file on one worker, so intra-file ordering is
-          # unchanged; each worker gets its own test database from pytest-django.
-          .venv/bin/python -m pytest tests/ -n "$PYTEST_XDIST_WORKERS" --dist loadfile --cov=src/scitex_hub --cov-report=xml --cov-report=term
->>>>>>> 07db263fe (ci: run pytest-matrix, security and terminal suites on scitex-docker job containers)
+          # loadgroup with tests/conftest.py's groups: one per file (intra-file
+          # order unchanged), visitor_pool as one. Each worker gets its own test
+          # database from pytest-django.
+          .venv/bin/python -m pytest tests/ -n "$PYTEST_XDIST_WORKERS" --dist loadgroup --cov=src/scitex_hub --cov-report=xml --cov-report=term
       - name: Upload coverage to Codecov
         if: always() && matrix.python-version == '3.12'
         uses: codecov/codecov-action@v5
