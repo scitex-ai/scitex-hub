@@ -10,6 +10,8 @@ from django.utils.translation import gettext as _
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.http import require_GET, require_POST
 
+from apps.infra.platform_app.services.paths import resolve_within
+
 from ..x2pdf import jobs
 from ..x2pdf.convert import MAX_INPUT_BYTES
 from ..x2pdf.ssrf import UnsafeURLError, validate_url
@@ -122,14 +124,16 @@ def api_x2pdf_status(request, job_id):
 def api_x2pdf_pdf(request, job_id):
     path = jobs.job_dir(request.user, job_id)
     meta = jobs.read_meta(path) if path else {}
+    output = resolve_within(path, "output.pdf") if path else None
     if (
         path is None
+        or output is None
         or meta.get("status") != "done"
-        or not (path / "output.pdf").is_file()
+        or not output.is_file()
     ):
         return JsonResponse({"error": _("Conversion not found.")}, status=404)
     return FileResponse(
-        open(path / "output.pdf", "rb"),
+        open(output, "rb"),
         content_type="application/pdf",
         as_attachment=request.GET.get("download") == "1",
         filename=meta.get("filename") or "converted.pdf",
@@ -143,10 +147,11 @@ def api_x2pdf_save(request, job_id):
 
     path = jobs.job_dir(request.user, job_id)
     meta = jobs.read_meta(path) if path else {}
-    if path is None or meta.get("status") != "done":
+    output = resolve_within(path, "output.pdf") if path else None
+    if path is None or output is None or meta.get("status") != "done":
         return JsonResponse({"error": _("Conversion not found.")}, status=404)
     saved = save_to_downloads(
-        request.user, meta.get("filename") or "converted.pdf", path / "output.pdf"
+        request.user, meta.get("filename") or "converted.pdf", output
     )
     rel = saved.relative_to(user_root(request.user)).as_posix()
     return JsonResponse({"saved": rel, "files_url": "/apps/files/"})

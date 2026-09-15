@@ -1,5 +1,7 @@
 """Files app filesystem rules: every path stays inside the user's root."""
 
+import os
+
 from django.contrib.auth.models import User
 from django.test import override_settings
 
@@ -92,10 +94,47 @@ def test_save_to_downloads_deduplicates_names(tmp_path):
 def test_save_to_downloads_copies_from_a_path(tmp_path):
     # Arrange
     user = User(username="alice")
-    source = tmp_path / "export.pdf"
-    source.write_bytes(b"%PDF-1.7")
     # Act
     with override_settings(BASE_DIR=tmp_path / "hub"):
+        source = fs.user_root(user) / "export.pdf"
+        source.write_bytes(b"%PDF-1.7")
         saved = fs.save_to_downloads(user, source.name, source)
     # Assert
     assert saved.read_bytes() == b"%PDF-1.7"
+
+
+def test_save_to_downloads_rejects_source_outside_user_root(tmp_path):
+    user = User(username="alice")
+    source = tmp_path / "outside.pdf"
+    source.write_bytes(b"secret")
+    with override_settings(BASE_DIR=tmp_path / "hub"):
+        error = _refusal(lambda: fs.save_to_downloads(user, source.name, source))
+    assert isinstance(error, fs.WorkspacePathError)
+
+
+def test_save_to_downloads_rejects_symlink_source_escape(tmp_path):
+    user = User(username="alice")
+    outside = tmp_path / "outside.pdf"
+    outside.write_bytes(b"secret")
+    with override_settings(BASE_DIR=tmp_path / "hub"):
+        root = fs.user_root(user)
+        source = root / "escape.pdf"
+        source.symlink_to(outside)
+        error = _refusal(lambda: fs.save_to_downloads(user, source.name, source))
+    assert isinstance(error, fs.WorkspacePathError)
+
+
+def test_saved_download_is_private(tmp_path):
+    user = User(username="alice")
+    with override_settings(BASE_DIR=tmp_path):
+        saved = fs.save_to_downloads(user, "private.txt", b"secret")
+    assert (os.stat(saved).st_mode & 0o777) == 0o600
+
+
+def test_sibling_prefix_escape_is_rejected(tmp_path):
+    root = tmp_path / "alice"
+    sibling = tmp_path / "alice-secret"
+    root.mkdir()
+    sibling.mkdir()
+    error = _refusal(lambda: fs.resolve_path(root, "../alice-secret/key"))
+    assert isinstance(error, fs.WorkspacePathError)

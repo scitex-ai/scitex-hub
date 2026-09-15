@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Union
 
+from apps.infra.platform_app.services.paths import is_within, resolve_within
 from apps.infra.project_app.services.filesystem.permissions import (
     get_user_data_root,
 )
@@ -67,11 +68,7 @@ def normalize(rel: str) -> str:
 
 
 def _inside(root: Path, candidate: Path) -> bool:
-    try:
-        candidate.resolve().relative_to(root.resolve())
-        return True
-    except (ValueError, OSError):
-        return False
+    return is_within(root, candidate)
 
 
 def resolve_path(root: Path, rel: str, *, follow: bool = True) -> Path:
@@ -80,9 +77,13 @@ def resolve_path(root: Path, rel: str, *, follow: bool = True) -> Path:
     ``follow=False`` checks only the parent chain, so a symlink itself can
     be renamed or deleted without touching what it points at.
     """
-    candidate = root.joinpath(*_clean_parts(rel))
-    check = candidate if follow else candidate.parent
-    if not _inside(root, check):
+    parts = _clean_parts(rel)
+    if follow:
+        candidate = resolve_within(root, "/".join(parts))
+    else:
+        parent = resolve_within(root, "/".join(parts[:-1]))
+        candidate = parent / parts[-1] if parent is not None and parts else parent
+    if candidate is None:
         raise WorkspacePathError("path leaves the workspace")
     return candidate
 
@@ -142,7 +143,7 @@ def _write_exclusive(directory: Path, filename: str, chunks) -> Path:
     while True:
         target = unique_path(directory, filename)
         try:
-            fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644)
+            fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         except FileExistsError:
             continue
         with os.fdopen(fd, "wb") as out:
@@ -216,10 +217,17 @@ def save_to_downloads(user, filename: str, data: Union[bytes, str, Path]) -> Pat
 
     ``data`` is the file content (bytes) or a path to copy from.
     """
-    downloads = user_root(user) / DOWNLOADS
+    root = user_root(user)
+    downloads = resolve_within(root, DOWNLOADS)
+    if downloads is None:
+        raise WorkspacePathError("invalid downloads path")
     if isinstance(data, (bytes, bytearray)):
         return _write_exclusive(downloads, filename, [bytes(data)])
-    with open(data, "rb") as source:
+    relative_source = os.path.relpath(os.fspath(data), os.fspath(root))
+    source_path = resolve_within(root, relative_source)
+    if source_path is None:
+        raise WorkspacePathError("source leaves the workspace")
+    with open(source_path, "rb") as source:
         return _write_exclusive(
             downloads, filename, iter(lambda: source.read(1 << 20), b"")
         )
