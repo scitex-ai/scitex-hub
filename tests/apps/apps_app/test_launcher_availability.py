@@ -15,6 +15,8 @@ Expected strings are independent literals, never read back off the row
 the tile was built from.
 """
 
+import re
+
 import pytest
 from django.contrib.auth.models import User
 from django.test import TestCase
@@ -259,19 +261,29 @@ class LauncherTemplateAvailabilityTest(TestCase):
         assert expected in resp.content
 
     def test_writer_tile_carries_available_state(self):
-        expected = b'data-module="writer"'
         # Act
         resp = self.client.get("/")
         # Assert
-        writer = resp.content.split(expected, 1)[1].split(b"</a>", 1)[0]
+        match = re.search(
+            rb'<a[^>]*class="launcher-tile"[^>]*data-module="writer"[^>]*>',
+            resp.content,
+            re.DOTALL,
+        )
+        assert match is not None
+        writer = match.group(0)
         assert b'data-availability="available"' in writer
 
     def test_writer_has_no_desktop_only_badge(self):
-        expected = b'data-module="writer"'
         # Act
         resp = self.client.get("/")
         # Assert
-        writer = resp.content.split(expected, 1)[1].split(b"</a>", 1)[0]
+        match = re.search(
+            rb'<a[^>]*class="launcher-tile"[^>]*data-module="writer"[^>]*>.*?</a>',
+            resp.content,
+            re.DOTALL,
+        )
+        assert match is not None
+        writer = match.group(0)
         assert b"launcher-badge-desktop-only" not in writer
 
     def test_available_tile_keeps_its_href(self):

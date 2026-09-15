@@ -192,7 +192,7 @@ class LandingHeaderFooterTodoBatchTest(TestCase):
         # Arrange
         button = self._theme_toggle()
         # Act
-        has_half_circle = "theme-toggle-icon-half-circle" in button
+        has_half_circle = "fa-circle-half-stroke" in button
         # Assert
         assert has_half_circle
 

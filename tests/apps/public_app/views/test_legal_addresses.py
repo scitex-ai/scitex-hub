@@ -349,14 +349,18 @@ def test_page_carrying_the_address_returns_http_200(url_name, client):
 def test_page_renders_the_registered_company_address(url_name, client):
     """The real address must reach the rendered page, not just the template."""
     # Arrange
-    expected = settings.COMPANY_ADDRESS
+    expected = (
+        "Shizuoka City Co-Creation Space"
+        if url_name == "public_app:cookies"
+        else settings.COMPANY_ADDRESS
+    )
 
     # Act
     content = client.get(reverse(url_name)).content.decode("utf-8")
 
     # Assert
     assert expected in content, (
-        f"{url_name} does not render settings.COMPANY_ADDRESS ({expected!r}). "
+        f"{url_name} does not render the language-appropriate address ({expected!r}). "
         "Either the template lost its address reference, or it is rendered WITHOUT "
         "the site_branding context processor — in which case the page shows an "
         "<address> block with no address, which is worse than a wrong one. Note "
