@@ -97,9 +97,9 @@ def classify_visitor_pool(pool_status: dict) -> dict:
 
     ``allocatable`` — never ``free``, and never "the workspace is clean" — is
     the number that answers "can the NEXT visitor get a real slot?". Allocation
-    requires ``quarantined=False`` AND ``is_active=False`` AND
-    ``workspace_ready=True``; a slot failing any of the three is not servable
-    however healthy it looks.
+    requires ``quarantined=False`` AND ``workspace_ready=True`` AND no active,
+    unexpired lease. The shared lifecycle predicate supplies that count; this
+    read-only view does not recreate allocation logic.
 
     WHY THIS IS NOT #628's PREDICATE. That version keyed on ``ready == 0`` or
     ``quarantined > 0``, which catches "everything QUARANTINED" (the incident

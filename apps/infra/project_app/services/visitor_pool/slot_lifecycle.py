@@ -26,6 +26,15 @@ from django.utils import timezone
 
 from apps.infra.project_app.models import VisitorAllocation
 
+
+def allocatable_slot_q(now=None):
+    """Canonical database predicate for capacity available to a new lease."""
+    now = now or timezone.now()
+    return Q(quarantined=False, workspace_ready=True) & (
+        Q(is_active=False) | Q(expires_at__lte=now)
+    )
+
+
 logger = logging.getLogger(__name__)
 
 VISITOR_USER_PREFIX = "visitor-"
@@ -84,9 +93,7 @@ def is_allocation_stale(allocation, now=None) -> bool:
         return True
     if allocation.last_activity is not None:
         return allocation.last_activity < idle_cutoff
-    return (
-        allocation.allocated_at is not None and allocation.allocated_at < idle_cutoff
-    )
+    return allocation.allocated_at is not None and allocation.allocated_at < idle_cutoff
 
 
 def quarantine_slot(allocation: VisitorAllocation, reason: str) -> None:
@@ -119,9 +126,7 @@ def quarantine_slot(allocation: VisitorAllocation, reason: str) -> None:
 
 def get_or_create_allocation(visitor_number: int) -> VisitorAllocation:
     """Fetch (or create, in an unverified state) the slot's allocation row."""
-    allocation = VisitorAllocation.objects.filter(
-        visitor_number=visitor_number
-    ).first()
+    allocation = VisitorAllocation.objects.filter(visitor_number=visitor_number).first()
     if allocation is None:
         allocation = VisitorAllocation.objects.create(
             visitor_number=visitor_number,

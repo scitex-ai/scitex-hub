@@ -51,6 +51,7 @@ Usage:
     python manage.py visitor_pool_ready --warn-below 4        # loud, still 0
 """
 
+import json
 import time
 
 from django.core.management.base import BaseCommand, CommandError
@@ -127,8 +128,8 @@ class Command(BaseCommand):
 
         part = partition_pool_status(VisitorPool.get_pool_status())
         while True:
-            if part["allocatable"] >= min_ready:
-                self._report_pass(part, warn_below)
+            if not part["inconsistent"] and part["allocatable"] >= min_ready:
+                self._report_pass(part, min_ready, warn_below)
                 return
             if time.monotonic() >= deadline:
                 break
@@ -140,7 +141,25 @@ class Command(BaseCommand):
             time.sleep(options["interval"])
             part = partition_pool_status(VisitorPool.get_pool_status())
 
-        cause = capacity_cause(part)
+        if part["inconsistent"]:
+            cause = "inconsistent"
+            repair = "inspect the visitor-pool census; its counts do not reconcile"
+        else:
+            cause = capacity_cause(part)
+            repair = REPAIR_BY_CAUSE[cause]
+        self.stdout.write(
+            json.dumps(
+                {
+                    "ok": False,
+                    "reason": "minimum_allocatable_not_proven",
+                    "cause": cause,
+                    "minimum": min_ready,
+                    "counts": part,
+                    "repair": repair,
+                },
+                sort_keys=True,
+            )
+        )
         # CommandError exits 1, which is what makes this usable as a gate.
         raise CommandError(
             f"VISITOR POOL NOT READY: allocatable={part['allocatable']} "
@@ -149,12 +168,12 @@ class Command(BaseCommand):
             f"  -> EVERY anonymous visitor is being served the shared "
             f"readonly-visitor account (reason=no_ready_slot).\n"
             f"  -> Cause: {cause}.\n"
-            f"  -> Repair: {REPAIR_BY_CAUSE[cause]}\n"
+            f"  -> Repair: {repair}\n"
             f"  -> Do NOT run plain `reconcile_visitor_slots` against a live "
             f"pool: its Phase 1 quarantines every slot, healthy ones included."
         )
 
-    def _report_pass(self, part: dict, warn_below: int) -> None:
+    def _report_pass(self, part: dict, min_ready: int, warn_below: int) -> None:
         """Print the passing result — loudly when the headroom is thin.
 
         Passing and being healthy are different questions, and the deploy gate
@@ -162,6 +181,17 @@ class Command(BaseCommand):
         1`` and is one arrival from the outage; printing a bare OK there is the
         same over-narrow report this whole change exists to fix.
         """
+        self.stdout.write(
+            json.dumps(
+                {
+                    "ok": True,
+                    "reason": "minimum_allocatable_proven",
+                    "minimum": min_ready,
+                    "counts": part,
+                },
+                sort_keys=True,
+            )
+        )
         summary = (
             f"{part['allocatable']}/{part['total']} visitor slot(s) "
             f"allocatable ({describe_partition(part)})"

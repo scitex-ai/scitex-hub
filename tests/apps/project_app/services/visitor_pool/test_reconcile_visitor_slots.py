@@ -212,7 +212,8 @@ class TestReconcileRecleanReturnsSlot(TestCase):
         # Arrange: setUp created a stale is_active zombie + its user/project.
         # Act
         reset_and_verify_slot(
-            self.allocation, gitea_client=FakeGiteaClient(),
+            self.allocation,
+            gitea_client=FakeGiteaClient(),
             clone_fn=fake_clone,
             run_cmd=NO_CONTAINER_HOST,
         )
@@ -224,7 +225,8 @@ class TestReconcileRecleanReturnsSlot(TestCase):
         # Arrange: setUp created a stale is_active zombie + its user/project.
         # Act
         reset_and_verify_slot(
-            self.allocation, gitea_client=FakeGiteaClient(),
+            self.allocation,
+            gitea_client=FakeGiteaClient(),
             clone_fn=fake_clone,
             run_cmd=NO_CONTAINER_HOST,
         )
@@ -253,7 +255,8 @@ class TestReconcileFailedRecleanQuarantines(TestCase):
         # Arrange: setUp created a stale is_active zombie + its user/project.
         # Act: the clone blows up mid-reset.
         ok = reset_and_verify_slot(
-            self.allocation, gitea_client=FakeGiteaClient(),
+            self.allocation,
+            gitea_client=FakeGiteaClient(),
             clone_fn=_boom_clone,
             run_cmd=NO_CONTAINER_HOST,
         )
@@ -265,7 +268,8 @@ class TestReconcileFailedRecleanQuarantines(TestCase):
         # Arrange: setUp created a stale is_active zombie + its user/project.
         # Act
         reset_and_verify_slot(
-            self.allocation, gitea_client=FakeGiteaClient(),
+            self.allocation,
+            gitea_client=FakeGiteaClient(),
             clone_fn=_boom_clone,
             run_cmd=NO_CONTAINER_HOST,
         )
@@ -333,6 +337,30 @@ class TestQuarantinedSlotNotServed(TestCase):
         project, _ = VisitorPool.allocate_visitor(session)
         # Assert
         assert project is None
+
+
+class TestRepairOnlyPreservesHealthySlots(TestCase):
+    def test_repair_only_does_not_requarantine_or_dispatch_healthy_slot(self):
+        allocation = get_or_create_allocation(1)
+        VisitorAllocation.objects.filter(pk=allocation.pk).update(
+            is_active=False, workspace_ready=True, quarantined=False
+        )
+        dispatched = []
+
+        call_command(
+            "reconcile_visitor_slots",
+            "--repair-only",
+            "--async",
+            visitor=1,
+            enqueue_fn=dispatched.append,
+        )
+
+        allocation.refresh_from_db()
+        assert (allocation.quarantined, allocation.workspace_ready, dispatched) == (
+            False,
+            True,
+            [],
+        )
 
 
 class TestReconcileAsyncDispatch(TestCase):
@@ -476,9 +504,7 @@ class TestReconcileAsyncDispatch(TestCase):
             raise RuntimeError("broker unreachable")
 
         # Act
-        call_command(
-            "reconcile_visitor_slots", "--async", visitor=1, enqueue_fn=_boom
-        )
+        call_command("reconcile_visitor_slots", "--async", visitor=1, enqueue_fn=_boom)
         self.allocation.refresh_from_db()
         # Assert
         assert (self.allocation.quarantined, self.allocation.workspace_ready) == (

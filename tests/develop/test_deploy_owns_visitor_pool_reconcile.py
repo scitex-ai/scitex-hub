@@ -71,7 +71,7 @@ PRE_FIX_REBUILD_VERIFY = "\n".join(
     [
         'echo -e "${CYAN}  7. Verifying the service is actually up...${NC}"',
         "VERIFY_FAILED=0",
-        'STRANDED="$($COMPOSE_CMD ps -a --status=created --format \'{{.Name}}\')"',
+        "STRANDED=\"$($COMPOSE_CMD ps -a --status=created --format '{{.Name}}')\"",
         'if [ -n "$STRANDED" ]; then',
         "    VERIFY_FAILED=1",
         "fi",
@@ -120,9 +120,7 @@ MUTATING_PROBE_GATE = "\n".join(
 
 def _uncommented_lines(script: str) -> list:
     """Lines that actually execute — comment text must not satisfy a gate."""
-    return [
-        line for line in script.splitlines() if not line.lstrip().startswith("#")
-    ]
+    return [line for line in script.splitlines() if not line.lstrip().startswith("#")]
 
 
 def _startup_reconcile_violations(entrypoint: str) -> list:
@@ -183,23 +181,17 @@ def _deploy_gate_violations(script: str) -> list:
 
 
 def _repair_hint_violations(script: str) -> list:
-    """The failure path must name the repair, and the SAFE repair."""
+    """The shell must not override the command's cause-specific repair."""
     block = _gate_block(script)
     if not block:
         return ["no visitor-pool gate at all, so no repair can be named"]
 
-    hint_lines = [line for line in block if RECONCILE_COMMAND in line]
-    if not hint_lines:
+    hint_lines = [line for line in block[1:] if RECONCILE_COMMAND in line]
+    if hint_lines:
         return [
-            "the visitor-pool failure path does not name the repair command; "
-            "on 2026-08-16 the repair existed only inside a card comment "
-            "addressed to whoever deployed next"
-        ]
-    if not any(SAFE_REPAIR_FLAG in line for line in hint_lines):
-        return [
-            f"the named repair omits {SAFE_REPAIR_FLAG!r}: plain "
-            f"{RECONCILE_COMMAND} quarantines every slot including healthy "
-            f"ones, so following this hint on a live degraded pool makes it worse"
+            "the deploy shell hardcodes a reconcile repair after the command; "
+            "that is correct for quarantine but a no-op for held capacity. "
+            "visitor_pool_ready must own the cause-specific repair"
         ]
     return []
 
@@ -236,8 +228,13 @@ def test_deploy_script_asserts_the_visitor_pool_post_condition(rebuild_script):
     assert violations == []
 
 
-def test_deploy_failure_path_names_the_safe_repair(rebuild_script):
-    """The red message hands the next operator the fix, not archaeology."""
+def test_protected_deploy_names_an_explicit_minimum(rebuild_script):
+    block = _gate_block(rebuild_script)
+    assert any("visitor_pool_ready --min-ready 1" in line for line in block)
+
+
+def test_deploy_failure_path_preserves_cause_specific_repair(rebuild_script):
+    """The shell must not replace the command's measured repair with a guess."""
     # Arrange
     script = rebuild_script
     # Act
@@ -281,7 +278,9 @@ def test_checker_rejects_probing_with_the_mutating_reconcile():
 def test_checker_rejects_an_entrypoint_that_dropped_the_reconcile():
     """Red-proof: deleting the start-up reconcile must fail loudly."""
     # Arrange
-    script = 'echo_info "Initializing visitor pool..."\npython manage.py create_visitor_pool'
+    script = (
+        'echo_info "Initializing visitor pool..."\npython manage.py create_visitor_pool'
+    )
     # Act
     violations = _startup_reconcile_violations(script)
     # Assert

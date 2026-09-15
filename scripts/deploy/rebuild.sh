@@ -476,7 +476,7 @@ if docker ps --format '{{.Names}}' | grep -q "^${DJANGO_CONTAINER}$"; then
         echo -e "${GREEN}   Visitor pool has distributable slots${NC}"
     else
         echo -e "${RED}   ❌ Visitor pool has NO distributable slot — every anonymous visitor gets read-only${NC}" >&2
-        echo -e "${YELLOW}      docker exec ${DJANGO_CONTAINER} python manage.py reconcile_visitor_slots --repair-only${NC}" >&2
+        echo -e "${YELLOW}      See visitor_pool_ready JSON/cause above for the matching repair; quarantine and capacity exhaustion require different actions.${NC}" >&2
         echo -e "${YELLOW}      docker logs --tail 100 scitex-hub-${ENV}-celery_worker_vis-1${NC}" >&2
         VERIFY_FAILED=1
     fi
