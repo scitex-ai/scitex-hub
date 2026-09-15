@@ -320,7 +320,8 @@ urlpatterns = [
     # --- Favicon ---
     path(
         "favicon.ico",
-        RedirectView.as_view(url="/static/shared/images/favicon.png", permanent=True),
+        # Non-permanent so a later icon change is not pinned by a cached 301.
+        RedirectView.as_view(url="/static/shared/images/favicons/favicon.png?v=7", permanent=False),
     ),
     # --- GitHub-like operations ---
     path("new/", project_create, name="project_create"),
