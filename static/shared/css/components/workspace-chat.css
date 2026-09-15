@@ -2,11 +2,10 @@
    Workspace Chat Pane — Claude.ai-inspired welcome screen
    ============================================================ */
 
-/* #1a2a40 is the official SciTeX navy (`navy` / --_scitex-01 in
-   scripts/utils/icons/generate_scitex_icons.py); scitex-ui's runtime
-   --_scitex-01 is a grey, so the brand value is pinned here. */
+/* The SciTeX navy comes from scitex-ui's light --color-primary; dark resets
+   that token, so the fallback keeps the dock chat head navy there. */
 :root {
-  --chat-brand-navy: #1a2a40;
+  --chat-brand-navy: var(--color-primary, #1a2a40);
   --chat-accent: var(--chat-brand-navy);
   /* Light: the dark-mode blue halo is invisible on white, so a soft navy. */
   --chat-halo-rgb: 30, 41, 59;

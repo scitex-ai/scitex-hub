@@ -56,7 +56,7 @@ def test_placeholder_lists_three_examples():
 
 def test_accent_is_the_official_scitex_navy():
     # Arrange
-    token = "--chat-brand-navy: #1a2a40"
+    token = "--chat-brand-navy: var(--color-primary, #1a2a40)"
     # Act
     css = CSS_PATH.read_text(encoding="utf-8")
     # Assert

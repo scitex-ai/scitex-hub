@@ -36,6 +36,20 @@
   opacity: 0.8;
 }
 
+/* A mask, not an <img>: an img paints the SVG's currentColor as black, which
+   vanished on the dark header. Painted with the header text token instead. */
+.header-search-icon,
+.header-search-mobile-icon,
+.search-modal-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  background-color: var(--text-secondary);
+  -webkit-mask: url("../../../images/icons_svg/scitex-search-icon.svg") center /
+    contain no-repeat;
+  mask: url("../../../images/icons_svg/scitex-search-icon.svg") center / contain
+    no-repeat;
+}
+
 .header-search-icon {
   position: absolute;
   left: 10px;
@@ -45,7 +59,6 @@
   height: 16px;
   width: 16px;
   opacity: 0.6;
-  transition: filter 0.2s ease;
 }
 
 [data-theme="dark"] .header-search {
@@ -54,7 +67,6 @@
 
 [data-theme="dark"] .header-search-icon,
 [data-theme="dark"] .header-search-mobile-icon {
-  filter: brightness(1.3) sepia(0.2) saturate(1.3) hue-rotate(180deg);
   opacity: 0.85;
 }
 

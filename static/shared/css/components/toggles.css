@@ -80,7 +80,7 @@
 }
 
 .scitex-toggle-label:hover::before {
-  border-color: var(--status-success);
+  border-color: var(--color-primary, var(--status-success));
 }
 
 /* =========================
@@ -89,14 +89,14 @@
 
 .scitex-toggle:checked + .scitex-toggle-label {
   background-color: var(--bg-muted);
-  border-color: var(--status-success);
+  border-color: var(--color-primary, var(--status-success));
   color: var(--text-primary);
 }
 
 /* Checkmark in the square when checked */
 .scitex-toggle:checked + .scitex-toggle-label::before {
-  background-color: var(--status-success);
-  border-color: var(--status-success);
+  background-color: var(--color-primary, var(--status-success));
+  border-color: var(--color-primary, var(--status-success));
   content: "✓";
   color: white;
   font-size: 14px;
@@ -109,12 +109,12 @@
 
 .scitex-toggle:checked + .scitex-toggle-label:hover {
   background-color: var(--bg-page);
-  border-color: var(--status-success);
+  border-color: var(--color-primary, var(--status-success));
 }
 
 .scitex-toggle:checked + .scitex-toggle-label:hover::before {
-  background-color: var(--status-success);
-  border-color: var(--status-success);
+  background-color: var(--color-primary, var(--status-success));
+  border-color: var(--color-primary, var(--status-success));
 }
 
 /* =========================
@@ -235,8 +235,8 @@
 
 /* Checked state - green background */
 .ios-toggle input:checked + .ios-toggle-slider {
-  background-color: var(--color-success-emphasis);
-  border-color: var(--color-success-emphasis);
+  background-color: var(--color-primary, var(--color-success-emphasis));
+  border-color: var(--color-primary, var(--color-success-emphasis));
 }
 
 /* Checked state - knob slides to the right */

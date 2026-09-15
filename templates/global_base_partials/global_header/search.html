@@ -6,9 +6,7 @@
             data-search-open
             aria-haspopup="dialog"
             aria-controls="search-modal">
-        <img src="{% static 'shared/images/icons_svg/scitex-search-icon.svg' %}"
-             alt=""
-             class="header-search-icon" />
+        <span class="header-search-icon" aria-hidden="true"></span>
         <span class="header-search-placeholder">{% trans "Search or jump to…" %}</span>
         <kbd class="search-shortcut-badge">/</kbd>
     </button>
@@ -19,9 +17,7 @@
         aria-haspopup="dialog"
         aria-controls="search-modal"
         aria-label="{% trans "Search" %}">
-    <img src="{% static 'shared/images/icons_svg/scitex-search-icon.svg' %}"
-         alt=""
-         class="header-search-mobile-icon" />
+    <span class="header-search-mobile-icon" aria-hidden="true"></span>
 </button>
 <div id="search-modal"
      class="search-modal"
@@ -35,9 +31,7 @@
     <div class="search-modal-content">
         <div class="search-modal-header">
             <div class="search-modal-input-wrapper">
-                <img src="{% static 'shared/images/icons_svg/scitex-search-icon.svg' %}"
-                     alt=""
-                     class="search-modal-icon" />
+                <span class="search-modal-icon" aria-hidden="true"></span>
                 <input type="search"
                        id="search-modal-input"
                        class="search-modal-input"

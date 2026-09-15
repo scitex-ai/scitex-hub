@@ -2,19 +2,19 @@
    Search / Library / Citation tabs. Same shape as Files and Slides (44px tap
    targets on phones, rounded controls, pill chips). Linked last so it wins
    over the older per-tab sheets; :root raises specificity instead of more
-   !important. Primary is the SciTeX navy (dark: link blue), as in the chat. */
+   !important. Primary is the light-theme token (dark: link blue), as in the chat. */
 
 .scholar-main {
   --sch-control-h: 38px;
   --sch-radius: 10px;
-  --sch-primary: #1a2a40;
-  --sch-on-primary: #ffffff;
+  --sch-primary: var(--color-primary, #1a2a40);
+  --sch-on-primary: var(--color-on-primary, #ffffff);
   --sch-surface: var(--workspace-bg-primary, #f5f4f2);
   --sch-surface-2: var(--workspace-bg-tertiary, #e8e7e5);
   --sch-border: var(--workspace-border-default, #c0bfbd);
   --sch-text: var(--text-primary, #333333);
   --sch-muted: var(--text-muted, #777777);
-  --sch-ring: color-mix(in srgb, var(--sch-primary) 22%, transparent);
+  --sch-ring: var(--focus-ring-color, color-mix(in srgb, var(--sch-primary) 22%, transparent));
 }
 
 :root[data-theme="dark"] .scholar-main {

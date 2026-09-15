@@ -191,10 +191,6 @@ body.search-modal-open {
   border-radius: 4px;
 }
 
-[data-theme="dark"] .search-modal-icon {
-  filter: brightness(1.3) sepia(0.2) saturate(1.3) hue-rotate(180deg);
-}
-
 @media (max-width: 768px) {
   .search-modal {
     padding: 0;
