@@ -356,7 +356,10 @@ def _build_issues_list(status_data: dict) -> list[dict]:
             {
                 "service": "Visitor Pool",
                 "level": visitor_pool.get("level", "warning"),
-                "message": "Visitor pool degraded; run the pool reconciliation command.",
+                "message": (
+                    "Visitor pool degraded; readonly-visitor access may be unavailable. "
+                    "Run `python manage.py reconcile_visitor_slots --repair-only`."
+                ),
             }
         )
 
