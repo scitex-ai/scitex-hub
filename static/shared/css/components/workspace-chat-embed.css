@@ -25,7 +25,8 @@ body.stx-embed .workspace-content {
 body.stx-embed .chat-welcome-input,
 body.stx-embed .chat-input,
 body.stx-embed #pane-chat .stx-shell-ai-input {
-  font-size: 15px !important;
+  /* 16px: iOS Safari zooms the page when a focused field is smaller. */
+  font-size: 16px !important;
   line-height: 1.4 !important;
 }
 
