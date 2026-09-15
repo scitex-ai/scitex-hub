@@ -129,7 +129,8 @@
             </div>
         </div>
         <!-- Dev-only buttons (hidden in production) -->
-        {% if DEBUG %}
+        {# Staff only: dev is used by real testers, and these buttons cancel every SLURM job. #}
+        {% if DEBUG and request.user.is_staff %}
             <div class="footer-dev-tools">
                 <span class="dev-tools-label">Dev Tools:</span>
                 <button id="page-refresh-btn" class="dev-tool-btn" title="Refresh page (Ctrl+Shift+R)">
