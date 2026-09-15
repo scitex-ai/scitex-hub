@@ -324,16 +324,20 @@ body:has(> .site-dock:not(.site-dock--floating)) {
   :root {
     --site-dock-icon: 60px;
     --site-dock-row2: 52px;
+    /* Keeps the active app's highlight off the row divider (operator 2026-09-15). */
+    --site-dock-row1-gap: 6px;
     --site-dock-height: calc(
-      var(--site-dock-app-height) + 1px + var(--site-dock-row2) + 2 *
-        var(--site-dock-pad)
+      var(--site-dock-app-height) + var(--site-dock-row1-gap) + 1px +
+        var(--site-dock-row2) + 2 * var(--site-dock-pad)
     );
   }
 
   .site-dock {
     display: grid;
     grid-template-columns: 44px minmax(0, 1fr) 44px 44px;
-    grid-template-rows: var(--site-dock-app-height) var(--site-dock-row2);
+    grid-template-rows:
+      calc(var(--site-dock-app-height) + var(--site-dock-row1-gap))
+      var(--site-dock-row2);
     gap: 0;
     padding-block: var(--site-dock-pad);
   }
@@ -341,6 +345,8 @@ body:has(> .site-dock:not(.site-dock--floating)) {
   .site-dock-apps {
     grid-column: 1 / -1;
     grid-row: 1;
+    box-sizing: border-box;
+    padding-bottom: var(--site-dock-row1-gap);
     gap: 4px;
     border-bottom: 1px solid var(--site-dock-border);
   }
