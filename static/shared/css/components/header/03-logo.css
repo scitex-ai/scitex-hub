@@ -44,3 +44,25 @@
 .header-left .header-logo {
   margin-right: var(--spacing-md, 12px);
 }
+
+/* Keep the 36px mark visually unchanged while providing a comfortable 48px
+   desktop pointer target. Negative outer margin preserves header alignment. */
+@media (min-width: 769px) {
+  .header-left .header-logo {
+    padding: 6px;
+    margin: -6px calc(var(--spacing-md, 12px) - 6px) -6px -6px;
+  }
+}
+
+.header-hub-version {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .header-hub-version {
+    display: none;
+  }
+}

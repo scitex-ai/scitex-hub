@@ -405,9 +405,9 @@ export class AIPanelChatMode {
             errEl.textContent = msg + " ";
             const link = document.createElement("a");
             link.href = data.settings_url;
-            link.textContent = "Go to Settings > AI Providers";
-            link.style.color = "inherit";
-            link.style.textDecoration = "underline";
+            link.className = "stx-shell-ai-error-action";
+            link.textContent = "Set up an AI provider";
+            link.setAttribute("aria-label", "Open Settings, AI Providers");
             errEl.appendChild(link);
           } else {
             errEl.textContent = msg;

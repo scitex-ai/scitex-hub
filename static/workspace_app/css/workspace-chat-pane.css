@@ -281,6 +281,29 @@
   max-width: 85%;
 }
 
+#pane-chat .stx-shell-ai-error-action {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 8px;
+  padding: 7px 10px;
+  color: #fff;
+  background: var(--workspace-icon-primary, #1d4ed8);
+  border: 1px solid var(--workspace-icon-primary, #1d4ed8);
+  border-radius: 5px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+#pane-chat .stx-shell-ai-error-action::after {
+  content: " →";
+}
+
+#pane-chat .stx-shell-ai-error-action:hover,
+#pane-chat .stx-shell-ai-error-action:focus-visible {
+  filter: brightness(1.12);
+  text-decoration: none;
+}
+
 /* Typing indicator — with spinning avatar */
 #pane-chat .stx-shell-ai-typing {
   font-size: 14px;
