@@ -345,6 +345,12 @@ urlpatterns = [
     path("<str:username>/", include(("apps.infra.project_app.urls", "user_projects"))),
 ]
 
+# --- Plugin apps (pip-installed, scitex.apps entry point) ---
+# First so a hub catch-all cannot swallow them; routes the hub serves are skipped.
+from apps.workspace.apps_app.services.plugin_apps import plugin_urlpatterns  # noqa: E402
+
+urlpatterns[:0] = plugin_urlpatterns(urlpatterns)
+
 # --- Debug-only ---
 if settings.DEBUG:
     if "django_browser_reload" in settings.INSTALLED_APPS:

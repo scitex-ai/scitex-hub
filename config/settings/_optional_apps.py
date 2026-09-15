@@ -19,6 +19,7 @@ read the same.
 
 from __future__ import annotations
 
+import importlib.util
 import logging
 import os
 from importlib import import_module
@@ -413,6 +414,37 @@ def optional_upstream_apps() -> list[str]:
         publish_cards_store_target()
 
     return entries
+
+
+def with_plugin_apps(entries: list[str], plugins=None) -> list[str]:
+    """``entries`` plus every ``scitex.apps`` entry point (``pip install`` = app).
+
+    A plugin replaces a hand-written entry for the same app package in place.
+    One whose AppConfig module cannot be found is skipped with a warning, so a
+    broken wheel costs its own app, not hub startup.
+    """
+    try:
+        from scitex_app.plugins import discover_plugin_apps, installed_app_paths
+    except ImportError:
+        return entries
+    usable = []
+    for plugin in discover_plugin_apps() if plugins is None else plugins:
+        module = plugin.app_config.rpartition(".")[0]
+        try:
+            found = importlib.util.find_spec(module) is not None
+        except (ImportError, ValueError):
+            found = False
+        if found:
+            usable.append(plugin)
+        else:
+            logger.warning(
+                "scitex.apps entry point %r names %s, whose module %s is not "
+                "importable; app skipped.",
+                plugin.name,
+                plugin.app_config,
+                module,
+            )
+    return installed_app_paths(entries, usable)
 
 
 # EOF

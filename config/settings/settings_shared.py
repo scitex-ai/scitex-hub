@@ -20,7 +20,7 @@ from config._env import (
     require_env_with_legacy_alias as _require_env_alias,
 )
 
-from ._optional_apps import optional_upstream_apps
+from ._optional_apps import optional_upstream_apps, with_plugin_apps
 
 
 # ---------------------------------------
@@ -208,6 +208,8 @@ THIRD_PARTY_APPS.append("scitex_ui")
 # lives in _optional_apps.py — including the scitex-cards rename-window
 # shim and the reason it exists. Extracted 2026-08-16.
 THIRD_PARTY_APPS.extend(optional_upstream_apps())
+# Plugin apps: `pip install <pkg>` with a `scitex.apps` entry point (scitex_app.plugins).
+THIRD_PARTY_APPS = with_plugin_apps(THIRD_PARTY_APPS)
 
 LOCAL_APPS = discover_local_apps()
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
