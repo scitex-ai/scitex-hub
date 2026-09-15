@@ -10,10 +10,10 @@ count read as availability while 16 of 16 slots were held (prod 2026-08-16
 15:55Z). Both numbers were correct. Neither answered "can the NEXT visitor get
 a real slot?".
 
-``allocatable`` answers exactly that, with exactly the predicate
-``PoolAllocator._try_allocate_slot`` serves::
+``allocatable`` answers exactly that, using the shared lifecycle predicate::
 
-    quarantined=False AND is_active=False AND workspace_ready=True
+    quarantined=False AND workspace_ready=True
+    AND NOT (is_active=True AND expires_at > now)
 
 Pinned here row-by-row so a future edit to either side fails loudly.
 
@@ -127,17 +127,19 @@ class TestHeldSlotsAreNotAllocatable(TestCase):
         assert entry["cause"] == "saturated"
 
 
-class TestReclaimableIsNotAllocatable(TestCase):
-    """Capacity that returns LATER is not capacity the next request gets."""
+class TestExpiredLeaseDoesNotHoldCapacity(TestCase):
+    """An expired lease no longer holds a verified-clean slot."""
 
-    def test_expired_active_slot_is_reclaimable_not_allocatable(self):
-        # Arrange — probation lapsed, workspace still clean
+    def test_expired_active_clean_slot_is_allocatable(self):
+        # Arrange — the expired lease no longer holds a verified-clean slot
         _mk(1, expires_in_minutes=-5)
         # Act
         status = VisitorPool.get_pool_status()
         # Assert
-        assert (status["reclaimable"], status["allocatable"]) == (1, 0)
+        assert status["allocatable"] == 1
 
+
+class TestReclaimableIsNotAllocatable(TestCase):
     def test_idle_active_slot_is_reclaimable_not_live(self):
         # Arrange — future expiry but the visitor walked away (the zombie)
         _mk(1, expires_in_minutes=30, last_activity_minutes_ago=31)
@@ -147,8 +149,8 @@ class TestReclaimableIsNotAllocatable(TestCase):
         assert (status["reclaimable"], status["live"]) == (1, 0)
 
     def test_reclaimable_slot_still_reports_free_for_back_compat(self):
-        # Arrange — ``free`` keeps its old meaning; three consumers read it
-        _mk(1, expires_in_minutes=-5)
+        # Arrange — idle but unexpired; reset is still required before reuse
+        _mk(1, expires_in_minutes=30, last_activity_minutes_ago=31)
         # Act
         status = VisitorPool.get_pool_status()
         # Assert
