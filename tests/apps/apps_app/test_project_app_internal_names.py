@@ -93,7 +93,19 @@ def test_project_module_id_migration_preserves_installations():
     old_public = AppsModule.objects.create(module_name="discovery")
     old_mine = AppsModule.objects.create(module_name="home")
     public_install = ModuleInstallation.objects.create(
-        user=user, module=old_public, tab_order=17, config={"pinned": True}
+        user=user,
+        module=old_public,
+        tab_order=17,
+        config={
+            "pinned": True,
+            "launcher_dock": ["home", "discovery", "slides", "chat"],
+            "launcher_link_order": {
+                "home": 10,
+                "discovery": 20,
+                "slides": 30,
+                "chat": 40,
+            },
+        },
     )
     mine_install = ModuleInstallation.objects.create(
         user=user, module=old_mine, tab_order=23, config={"pinned": True}
@@ -112,3 +124,25 @@ def test_project_module_id_migration_preserves_installations():
     assert not AppsModule.objects.filter(module_name__in=["discovery", "home"]).exists()
     assert not AppsModule.objects.filter(module_name="slides").exists()
     assert not PlannedAppInterest.objects.filter(app_id="mail").exists()
+    assert public_install.config["launcher_dock"] == [
+        "my_projects",
+        "public_projects",
+        "chat",
+    ]
+    assert public_install.config["launcher_link_order"] == {
+        "my_projects": 10,
+        "public_projects": 20,
+        "chat": 40,
+    }
+
+
+@pytest.mark.django_db(transaction=True)
+def test_project_module_id_migration_refuses_identity_collisions():
+    migration = importlib.import_module(
+        "apps.workspace.apps_app.migrations.0022_canonical_project_module_names"
+    )
+    AppsModule.objects.create(module_name="home")
+    AppsModule.objects.create(module_name="my_projects")
+
+    with pytest.raises(RuntimeError, match="home.*my_projects"):
+        migration.rename_project_modules(importlib.import_module("django.apps").apps, None)
