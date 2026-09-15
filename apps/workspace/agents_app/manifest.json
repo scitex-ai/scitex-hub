@@ -25,7 +25,7 @@
   "allowed_extensions": [],
   "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv"],
   "privileges": [],
-  "builtin": true,
+  "builtin": false,
   "dependencies": {
     "python": ["scitex-agent-container[gui]"],
     "system": [],

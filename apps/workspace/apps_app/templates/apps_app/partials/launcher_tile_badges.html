@@ -20,7 +20,7 @@
 {% if tile.availability == 'coming_soon' or tile.availability == 'desktop_only' or tile.is_dev_only or tile.is_new %}
     <span class="launcher-tile-badges">
         {% if tile.availability == 'coming_soon' %}
-            <span class="launcher-badge launcher-badge-coming-soon" role="img" aria-label="{% trans 'Coming Soon' %}" title="{% trans 'Coming Soon' %}">
+            <span class="launcher-badge launcher-badge-coming-soon" role="img" aria-label="{% if tile.availability_reason %}{{ tile.availability_reason }}{% else %}{% trans 'Coming Soon' %}{% endif %}" title="{% if tile.availability_reason %}{{ tile.availability_reason }}{% else %}{% trans 'Coming Soon' %}{% endif %}">
                 <i class="fas fa-hourglass-half" aria-hidden="true"></i><span class="launcher-sr-only">Coming Soon</span>
             </span>
         {% elif tile.availability == 'desktop_only' %}

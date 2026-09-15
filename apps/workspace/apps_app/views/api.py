@@ -46,6 +46,11 @@ def api_install(request, module_name):
         return JsonResponse(
             {"success": False, "error": "Module not available."}, status=403
         )
+    if app_module.availability == "coming_soon":
+        return JsonResponse(
+            {"success": False, "error": "Module is not available to install."},
+            status=409,
+        )
 
     _, created = ModuleInstallation.objects.get_or_create(
         user=request.user,
@@ -108,6 +113,11 @@ def api_toggle(request, module_name):
     """Toggle module enabled/disabled state."""
     ensure_builtin_modules()
     app_module = get_object_or_404(AppsModule, module_name=module_name)
+    if app_module.availability == "coming_soon":
+        return JsonResponse(
+            {"success": False, "error": "Module is not available to enable."},
+            status=409,
+        )
     installation = ModuleInstallation.objects.filter(
         user=request.user, module=app_module
     ).first()
@@ -266,7 +276,10 @@ def api_reorder(request):
             dev_inst = dev_installations[name]
             dev_inst.tab_order = tab_order
             dev_inst.save(update_fields=["tab_order"])
-        elif name in all_modules:
+        elif (
+            name in all_modules
+            and all_modules[name].availability != "coming_soon"
+        ):
             # Auto-create installation for modules without one (e.g. clew)
             inst, _created = ModuleInstallation.objects.update_or_create(
                 user=request.user,

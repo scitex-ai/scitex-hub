@@ -5,6 +5,8 @@
   "label": "Cards",
   "app_name": "todo_app",
   "visibility": "public",
+  "availability": "coming_soon",
+  "availability_reason": "Requires scitex-cards 0.53.1 and canonical per-tenant store verification.",
   "icon": "fas fa-list-check",
   "description": "Task and collaboration management.",
   "pip_package": "scitex-todo",

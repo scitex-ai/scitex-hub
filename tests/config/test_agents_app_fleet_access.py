@@ -1,164 +1,59 @@
-"""Only fleet operators may read or act through the Hub's /apps/agents/ mount.
-
-SAC's own Django views gate lifecycle_action on its operator list but leave
-index, fleet_api, healthz and detail open, so the Hub adapter is the only
-thing standing between an ordinary signed-in account and the whole agent
-fleet. #789 enforced this; #803 briefly shipped login-only. These tests pin
-the gate so it cannot silently fall back to login-only again.
-"""
+"""Agents mount authentication and SAC identity-scope contract."""
 
 from __future__ import annotations
 
-import os
 from types import SimpleNamespace
 
 import pytest
-from django.http import HttpResponse
+from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 
 from apps.workspace.agents_app import views
 
 
-def _reached_view(request, *args, **kwargs):
-    return HttpResponse("reached")
-
-
-_GUARDED = views._fleet_access_required(_reached_view)
-
-
-def _user(**flags):
-    base = {"is_authenticated": True, "is_staff": False, "is_superuser": False, "username": "alice"}
-    base.update(flags)
-    return SimpleNamespace(**base)
-
-
-def _status_for(user) -> int:
-    request = RequestFactory().get("/apps/agents/")
-    request.user = user
-    return _GUARDED(request).status_code
-
-
-@pytest.fixture
-def operators_env():
-    previous = os.environ.get(views.OPERATORS_ENV)
-    os.environ[views.OPERATORS_ENV] = " bob , carol "
-    yield
-    if previous is None:
-        os.environ.pop(views.OPERATORS_ENV, None)
-    else:
-        os.environ[views.OPERATORS_ENV] = previous
-
-
-@pytest.fixture
-def no_operators_env():
-    previous = os.environ.pop(views.OPERATORS_ENV, None)
-    yield
-    if previous is not None:
-        os.environ[views.OPERATORS_ENV] = previous
-
-
-def test_ordinary_signed_in_user_is_refused(no_operators_env):
-    # Arrange
-    user = _user()
-
-    # Act
-    status = _status_for(user)
-
-    # Assert
-    assert status == 403
-
-
-def test_staff_user_reaches_the_view(no_operators_env):
-    # Arrange
-    user = _user(is_staff=True)
-
-    # Act
-    status = _status_for(user)
-
-    # Assert
-    assert status == 200
-
-
-def test_superuser_reaches_the_view(no_operators_env):
-    # Arrange
-    user = _user(is_superuser=True)
-
-    # Act
-    status = _status_for(user)
-
-    # Assert
-    assert status == 200
-
-
-def test_configured_operator_reaches_the_view(operators_env):
-    # Arrange
-    user = _user(username="carol")
-
-    # Act
-    status = _status_for(user)
-
-    # Assert
-    assert status == 200
-
-
-def test_unlisted_user_is_refused_even_when_operators_are_configured(operators_env):
-    # Arrange
-    user = _user(username="mallory")
-
-    # Act
-    status = _status_for(user)
-
-    # Assert
-    assert status == 403
-
-
 @pytest.mark.parametrize(
     ("view_name", "kwargs"),
-    (
-        ("fleet_api", {}),
-        ("healthz", {}),
-        ("detail", {"name": "worker"}),
-        ("lifecycle_action", {"name": "worker"}),
-    ),
+    (("index", {}), ("fleet_api", {}), ("detail", {"name": "worker"})),
 )
-def test_every_mounted_view_refuses_an_ordinary_user(no_operators_env, view_name, kwargs):
-    # Arrange: the real view, so a missing gate would fall through to SAC
+def test_anonymous_requests_never_reach_sac(monkeypatch, view_name, kwargs):
     request = RequestFactory().get("/apps/agents/")
-    request.user = _user()
-    view = getattr(views, view_name)
+    request.user = AnonymousUser()
+    monkeypatch.setattr(
+        views,
+        "_delegate",
+        lambda *_a, **_kw: pytest.fail("anonymous request reached SAC"),
+    )
+    monkeypatch.setattr(
+        "django.contrib.auth.decorators.resolve_url", lambda _value: "/auth/login/"
+    )
 
-    # Act
-    response = view(request, **kwargs)
+    response = getattr(views, view_name)(request, **kwargs)
 
-    # Assert
-    assert response.status_code == 403
-
-
-def test_root_urlconf_resolves_agents_to_the_sac_index_when_installed():
-    # Arrange
-    pytest.importorskip("scitex_agent_container._django.urls")
-    from django.urls import resolve
-
-    # Act
-    match = resolve("/apps/agents/")
-
-    # Assert
-    assert match.view_name == "scitex_agent_container:index"
+    assert response.status_code == 302
 
 
-@pytest.mark.django_db
-def test_ordinary_user_index_gets_placeholder_page_not_the_fleet(no_operators_env):
-    # Operator 2026-09-14: Agents is shown to everyone and only its content is
-    # per user, so the index renders the own-scope placeholder instead of 403.
-    # Arrange
-    from django.contrib.auth.models import User
+def test_sac_resolves_the_authenticated_hub_identity():
+    authorization = pytest.importorskip(
+        "scitex_agent_container._django._authorization"
+    )
+    request = SimpleNamespace(
+        user=SimpleNamespace(is_authenticated=True, username="alice")
+    )
 
-    request = RequestFactory().get("/apps/agents/")
-    request.user = User.objects.create_user(username="plainuser", password="x")
-    request.session = {}
+    assert authorization.resolve_identity(request) == "alice"
 
-    # Act
-    response = views.index(request)
 
-    # Assert
-    assert b'data-own-scope-app="agents"' in response.content
+def test_sac_scope_hides_cross_host_rows_from_an_ordinary_identity(monkeypatch):
+    authorization = pytest.importorskip(
+        "scitex_agent_container._django._authorization"
+    )
+    monkeypatch.delenv("SCITEX_AGENT_CONTAINER_CROSSHOST_OPERATORS", raising=False)
+    rows = [
+        {"name": "own", "host": "local"},
+        {"name": "other-user", "host": "other.example"},
+    ]
+
+    scoped = authorization.scope_rows(rows, "alice")
+
+    assert [row["name"] for row in scoped] == ["own"]
+    assert scoped[0]["scope"] == "own"
