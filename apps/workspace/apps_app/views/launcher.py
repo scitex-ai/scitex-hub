@@ -63,6 +63,11 @@ NEW_BADGE_DAYS = 14
 # ModuleInstallation one): a row still holding it was never explicitly reordered.
 _DEV_DEFAULT_TAB_ORDER = 95
 
+# Tombstones for retired/renamed built-ins. Existing database rows can remain
+# until the deployment migration runs; they must never reappear as community
+# apps in step 2 below.
+_RETIRED_MODULE_IDS = frozenset({"home", "discovery", "slides"})
+
 # Rendered as an empty "+" slot, not an app (operator, 2026-09-14): always the
 # last cell of Work, never reorderable, never dockable.
 APP_CREATOR_SLOT = "create-app"
@@ -202,7 +207,7 @@ def _build_tiles(request) -> list[dict]:
                 user_orders[_name] = _order
 
     tiles: list[dict] = []
-    seen: set[str] = set()
+    seen: set[str] = set(_RETIRED_MODULE_IDS)
 
     # 1. Workspace module registry — same source that builds the sidebar.
     # "internal" visibility is a RELEASE-CHANNEL gate, not an admin-role gate
