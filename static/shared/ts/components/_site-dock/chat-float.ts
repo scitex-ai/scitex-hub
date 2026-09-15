@@ -82,7 +82,9 @@ export function panelRect(
   vp: { width: number; height: number },
 ): Rect {
   const phone = vp.width <= PHONE_MAX;
-  const width = phone ? dock.width : Math.min(DESKTOP_W, vp.width - 2 * MARGIN);
+  // A minimized dock is a small pill; the panel keeps a usable phone width.
+  const phoneW = dock.width < 240 ? vp.width - 2 * MARGIN : dock.width;
+  const width = phone ? phoneW : Math.min(DESKTOP_W, vp.width - 2 * MARGIN);
   const wanted = phone
     ? Math.min(vp.height * PHONE_H_RATIO, PHONE_H_MAX)
     : DESKTOP_H;

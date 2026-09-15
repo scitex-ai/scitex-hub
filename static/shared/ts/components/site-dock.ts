@@ -10,7 +10,9 @@
  * 2. Drag: the grabber moves the dock anywhere in the viewport. The position is
  *    remembered per device in localStorage. A double-click or double-tap on the
  *    grabber, or dropping the dock back at the bottom, docks it again.
- * 3. Back / Forward: history.back() / history.forward(), enabled from the
+ * 3. Minimize: the "_" button collapses the dock to a grip pill; tapping the
+ *    pill (or Enter / Space on it) restores it. Remembered per device.
+ * 4. Back / Forward: history.back() / history.forward(), enabled from the
  *    in-site history stack (_site-dock/history-stack.ts). Where the browser has
  *    the Navigation API its canGoBack / canGoForward answer is used directly.
  *
@@ -27,6 +29,12 @@ import {
   recordVisit,
 } from "./_site-dock/history-stack";
 import { initChatPanel } from "./_site-dock/chat-panel";
+import {
+  isMinimized,
+  readMinimized,
+  setMinimized,
+  syncDockHeight,
+} from "./_site-dock/minimize";
 import {
   type DockPosition,
   fromPixels,
@@ -91,6 +99,7 @@ class SiteDock {
   private forward: HTMLButtonElement | null;
   private stack: HistoryStack;
   private lastTap = 0;
+  private lastRestore = 0;
 
   constructor(dock: HTMLElement) {
     this.dock = dock;
@@ -104,8 +113,17 @@ class SiteDock {
     if (this.dock.parentElement !== document.body) {
       document.body.appendChild(this.dock);
     }
+    if (readMinimized()) setMinimized(this.dock, true);
     this.restorePosition();
-    window.addEventListener("resize", () => this.restorePosition());
+    syncDockHeight(this.dock);
+    window.addEventListener("resize", () => {
+      this.restorePosition();
+      syncDockHeight(this.dock);
+    });
+    if (typeof ResizeObserver !== "undefined") {
+      new ResizeObserver(() => syncDockHeight(this.dock)).observe(this.dock);
+    }
+    this.initMinimize();
     this.initDrag();
     this.initHistory();
     initChatPanel(this.dock);
@@ -155,12 +173,29 @@ class SiteDock {
     this.restorePosition();
   }
 
+  private toggleMinimized(on: boolean): void {
+    setMinimized(this.dock, on);
+    if (!on) this.lastRestore = Date.now();
+    this.restorePosition();
+  }
+
+  private initMinimize(): void {
+    this.dock
+      .querySelector<HTMLElement>("[data-dock-minimize]")
+      ?.addEventListener("click", () => {
+        this.toggleMinimized(true);
+        this.grabber?.focus({ preventScroll: true });
+      });
+  }
+
   private initDrag(): void {
     const grabber = this.grabber;
     if (!grabber) return;
 
     grabber.addEventListener("dblclick", (e) => {
       e.preventDefault();
+      // The first click of this pair restored a minimized dock; keep its place.
+      if (Date.now() - this.lastRestore < 600) return;
       this.reset();
     });
 
@@ -216,6 +251,11 @@ class SiteDock {
           this.settle(left, top);
           return;
         }
+        if (isMinimized(this.dock)) {
+          this.toggleMinimized(false);
+          this.lastTap = 0;
+          return;
+        }
         // A tap, not a drag: two taps in quick succession reset (touch has no
         // reliable dblclick).
         const now = Date.now();
@@ -240,6 +280,11 @@ class SiteDock {
         ArrowUp: [0, -KEY_STEP_PX],
         ArrowDown: [0, KEY_STEP_PX],
       };
+      if ((e.key === "Enter" || e.key === " ") && isMinimized(this.dock)) {
+        e.preventDefault();
+        this.toggleMinimized(false);
+        return;
+      }
       if (e.key === "Escape") {
         e.preventDefault();
         this.reset();
