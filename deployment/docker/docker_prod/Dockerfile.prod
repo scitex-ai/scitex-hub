@@ -550,7 +550,12 @@ COPY scripts/deploy/verify_image_dependency_contract.py /opt/scitex-image-contra
 #   (a) use the -binary variant, or
 #   (b) add build-essential to runtime apt-get (increases image size), or
 #   (c) pre-build the wheel in python-builder and copy it over.
-RUN uv pip install --system --no-cache ".[all]"
+ARG SCITEX_HUB_DEPENDENCY_RESOLUTION
+RUN test -n "${SCITEX_HUB_DEPENDENCY_RESOLUTION}" && \
+    echo "dependency resolution: ${SCITEX_HUB_DEPENDENCY_RESOLUTION}" && \
+    uv pip install --system --no-cache ".[all]"
+ENV SCITEX_HUB_DEPENDENCY_RESOLUTION=${SCITEX_HUB_DEPENDENCY_RESOLUTION}
+LABEL org.scitex-hub.dependency-resolution=${SCITEX_HUB_DEPENDENCY_RESOLUTION}
 
 # /apps/docs/python/ resolves this generated tree from installed package data.
 RUN python -c "from importlib.resources import files; p = files('scitex_hub').joinpath('_sphinx_html/index.html'); assert p.is_file() and '<html' in p.read_text(encoding='utf-8').lower()"
