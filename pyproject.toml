@@ -458,10 +458,11 @@ all = [
     # added by scitex-ui PR #228 and 0.20.3 is the first release after 0.20.2
     # (release list read 2026-09-14; scitex-ui confirmed 0.20.3 on PyPI 10:05Z).
     #
-    # RAISED 0.20.3 -> 0.21.0 on 2026-09-14: first release with the
-    # `scitex_project_picker` template tag + `scitex_ui.project_scope` (#232) and
-    # the `scitex_js_catalog` gettext tag (#231), which hub's project picker uses.
-    "scitex-ui>=0.21.0",
+    # RAISED 0.21.0 -> 0.22.0 on 2026-09-15: exact first release whose
+    # `scitex_project_picker` loads canonical js/app/project-selector.js and whose
+    # `.stx-app-header__slot--project-selector` owns left/phone placement. Hub
+    # deliberately adds no consumer placement CSS; the source contract test locks it.
+    "scitex-ui>=0.22.0",
     # --- GUI (dearpygui-based modules) ---
     "dearpygui>=1.11",
     "cairosvg>=2.9.0",
@@ -575,8 +576,8 @@ dev = [
     # entry -- read it there rather than duplicating it here, so there is one
     # place to correct when the next token moves. RAISED 0.16.0 -> 0.20.3 on
     # 2026-09-14 in lockstep with [all] (--app-accent-agents). RAISED 0.20.3 ->
-    # 0.21.0 the same day in lockstep with [all] (project picker, gettext tag).
-    "scitex-ui>=0.21.0",
+    # 0.22.0 on 2026-09-15 in lockstep with [all] (canonical selector entry/slot).
+    "scitex-ui>=0.22.0",
 ]
 
 [project.scripts]
