@@ -107,6 +107,12 @@ msgstr "料金"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
 #: apps/infra/public_app/templates/public_app/pages/pricing.html
+#: apps/infra/public_app/templates/public_app/features.html
+#: apps/infra/public_app/templates/public_app/products/hub.html
+#: apps/infra/public_app/templates/public_app/release_note.html
+#: apps/infra/public_app/views/landing.py
+#: apps/workspace/console_app/templates/console_app/console_partial.html
+#: apps/workspace/console_app/templates/console_app/workspace.html
 msgid "Start your 30-day trial"
 msgstr "30日間のトライアルを開始"
 
