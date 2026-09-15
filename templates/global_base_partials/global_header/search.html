@@ -1,0 +1,66 @@
+{% load i18n static %}
+<div class="header-center">
+    <button type="button"
+            class="header-search"
+            id="global-search"
+            data-search-open
+            aria-haspopup="dialog"
+            aria-controls="search-modal">
+        <img src="{% static 'shared/images/icons_svg/scitex-search-icon.svg' %}"
+             alt=""
+             class="header-search-icon" />
+        <span class="header-search-placeholder">{% trans "Search or jump to…" %}</span>
+        <kbd class="search-shortcut-badge">/</kbd>
+    </button>
+</div>
+<button type="button"
+        class="header-search-mobile-trigger"
+        data-search-open
+        aria-haspopup="dialog"
+        aria-controls="search-modal"
+        aria-label="{% trans "Search" %}">
+    <img src="{% static 'shared/images/icons_svg/scitex-search-icon.svg' %}"
+         alt=""
+         class="header-search-mobile-icon" />
+</button>
+<div id="search-modal"
+     class="search-modal"
+     role="dialog"
+     aria-modal="true"
+     aria-label="{% trans "Search" %}"
+     data-endpoint="{% url 'api_header_search' %}"
+     data-no-results-text="{% trans "No results" %}"
+     hidden>
+    <div class="search-modal-backdrop" data-search-close></div>
+    <div class="search-modal-content">
+        <div class="search-modal-header">
+            <div class="search-modal-input-wrapper">
+                <img src="{% static 'shared/images/icons_svg/scitex-search-icon.svg' %}"
+                     alt=""
+                     class="search-modal-icon" />
+                <input type="search"
+                       id="search-modal-input"
+                       class="search-modal-input"
+                       role="combobox"
+                       aria-expanded="false"
+                       aria-autocomplete="list"
+                       aria-controls="search-modal-results"
+                       placeholder="{% trans "Search or jump to…" %}"
+                       autocomplete="off"
+                       spellcheck="false" />
+            </div>
+            <button type="button" class="search-modal-cancel" data-search-close>{% trans "Cancel" %}</button>
+        </div>
+        <div class="search-modal-results"
+             id="search-modal-results"
+             role="listbox"
+             aria-label="{% trans "Search results" %}">
+            <p class="search-modal-hint">{% trans "Search apps, projects, docs and settings" %}</p>
+        </div>
+        <div class="search-modal-footer" aria-hidden="true">
+            <span><kbd>↑</kbd><kbd>↓</kbd> {% trans "to navigate" %}</span>
+            <span><kbd>Enter</kbd> {% trans "to open" %}</span>
+            <span><kbd>Esc</kbd> {% trans "to close" %}</span>
+        </div>
+    </div>
+</div>

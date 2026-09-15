@@ -2,9 +2,12 @@ from django.contrib.auth.models import User
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.views.decorators.http import require_GET
 
 from apps.infra.project_app.models import Project
+from apps.workspace.scholar_app.middleware.rate_limit import rate_limit
 
+from .header_search import grouped_search_results
 from .models import GlobalSearchQuery
 
 
@@ -290,6 +293,16 @@ def autocomplete(request):
             pass
 
     return JsonResponse({"suggestions": suggestions})
+
+
+@require_GET
+@rate_limit("api_header_search")
+def header_search_api(request):
+    """Grouped command-palette results, access-checked for request.user."""
+    query = request.GET.get("q", "")
+    return JsonResponse(
+        {"query": query, "groups": grouped_search_results(request, query)}
+    )
 
 
 def search_stats(request):

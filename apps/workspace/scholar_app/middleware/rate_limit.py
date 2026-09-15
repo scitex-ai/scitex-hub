@@ -40,6 +40,8 @@ ENDPOINT_LIMITS = {
     # also a key-validity oracle, so it gets a bounded bucket rather than
     # the tier default.
     "api_me": {"requests": 120, "window": 60},
+    # Header command palette: one request per debounced keystroke.
+    "api_header_search": {"requests": 120, "window": 60},
 }
 
 

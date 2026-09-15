@@ -5860,6 +5860,35 @@ msgstr "プランが有効になりました。ご契約ありがとうござい
 msgid "Your plan will end at the close of the current billing period."
 msgstr "プランは現在の請求期間の終了時に終了します。"
 
+# Header command palette (global_header/search.html).
+#: templates/global_base_partials/global_header/search.html
+msgid "Search or jump to…"
+msgstr "検索またはジャンプ…"
+
+#: templates/global_base_partials/global_header/search.html
+msgid "No results"
+msgstr "該当する結果はありません"
+
+#: templates/global_base_partials/global_header/search.html
+msgid "Search results"
+msgstr "検索結果"
+
+#: templates/global_base_partials/global_header/search.html
+msgid "Search apps, projects, docs and settings"
+msgstr "アプリ、プロジェクト、ドキュメント、設定を検索"
+
+#: templates/global_base_partials/global_header/search.html
+msgid "to navigate"
+msgstr "で移動"
+
+#: templates/global_base_partials/global_header/search.html
+msgid "to open"
+msgstr "で開く"
+
+#: templates/global_base_partials/global_header/search.html
+msgid "to close"
+msgstr "で閉じる"
+
 #: apps/workspace/writer_app/templates/writer_app/index_partials/manuscript_empty_state.html
 msgid "No manuscript yet"
 msgstr "原稿はまだありません"

@@ -71,46 +71,7 @@
             {% endif %}
             <!-- Module navigation handled by module_tab_bar.html below header -->
         </div>
-        <!-- Center: Search -->
-        <div class="header-center">
-            <div class="header-search">
-                <img src="{% static 'shared/images/icons_svg/scitex-search-icon.svg' %}"
-                     alt=""
-                     class="header-search-icon" />
-                <input type="text"
-                       placeholder="Search or jump to..."
-                       id="global-search"
-                       autocomplete="off"
-                       readonly />
-                <kbd class="search-shortcut-badge">/</kbd>
-            </div>
-        </div>
-        <!-- Search Modal (GitHub-style) -->
-        <div id="search-modal" class="search-modal" style="display: none">
-            <div class="search-modal-backdrop"></div>
-            <div class="search-modal-content">
-                <div class="search-modal-header">
-                    <div class="search-modal-input-wrapper">
-                        <img src="{% static 'shared/images/icons_svg/scitex-search-icon.svg' %}"
-                             alt=""
-                             class="search-modal-icon" />
-                        <input type="text"
-                               id="search-modal-input"
-                               class="search-modal-input"
-                               placeholder="Search or jump to..."
-                               autocomplete="off"
-                               autofocus />
-                    </div>
-                </div>
-                <div class="search-modal-results" id="search-modal-results">
-                    <!-- Results will be populated here -->
-                </div>
-                <div class="search-modal-footer">
-                    <a href="#" class="search-modal-footer-link">Search syntax tips</a>
-                    <a href="#" class="search-modal-footer-link">Give feedback</a>
-                </div>
-            </div>
-        </div>
+        {% include 'global_base_partials/global_header/search.html' %}
         <!-- Mobile-only Read-Only / Visitor badge removed 2026-09-11 (visitor
              retirement, card drop-visitor-readonly-freemium-20260911): there is
              no longer a visitor/readonly role, so the badge, popover, and its

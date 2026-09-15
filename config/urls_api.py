@@ -27,6 +27,7 @@ from apps.infra.project_app.views.projects.api import (
     api_switch_active_project,
 )
 from apps.infra.project_app.views.projects.scope_api import api_project_scope
+from apps.infra.search_app.views import header_search_api
 from apps.workspace.apps_app.views import api_registry_webhook, api_submit_jwt
 
 urlpatterns = [
@@ -113,6 +114,7 @@ urlpatterns = [
     path("events/list/", list_events, name="event_list"),
     # User search
     path("users/search/", api_search_users, name="api_search_users"),
+    path("search/", header_search_api, name="api_header_search"),
     # Shared workspace API
     path("workspace/", include("apps.infra.workspace_api.urls")),
     # Public Scholar API (v1)
