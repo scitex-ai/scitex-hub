@@ -141,13 +141,13 @@ class HomePagesTest(TestCase):
         return self.client.get("/apps/").context["groups"]
 
     def test_groups_come_in_the_operator_order(self):
-        # Operator 2026-09-14: Foundation, Work, Publish, System, never interleaved.
+        # Operator 2026-09-15: Foundation, Work, Publication, System, Tools.
         # Arrange
         groups = self._groups()
         # Act
         keys = [group["key"] for group in groups]
         # Assert
-        assert keys == ["foundation", "work", "publish", "system"]
+        assert keys == ["foundation", "work", "publication", "system", "tools"]
 
     def test_foundation_group_holds_the_infrastructure_apps_and_storage(self):
         # Arrange
@@ -187,15 +187,10 @@ class HomePagesTest(TestCase):
         # Assert
         assert cells == [
             ("scholar", False),
-            ("figrecipe", False),
             ("stats", True),
+            ("figrecipe", False),
             ("writer", False),
             ("chat", False),
-            ("tools-image", False),
-            ("tools-pdf", False),
-            ("tools-text", False),
-            ("tools-developer", False),
-            ("tools-media", False),
             ("create-app", False),
         ]
 
@@ -207,8 +202,16 @@ class HomePagesTest(TestCase):
         # Assert
         assert b'class="launcher-slot"' not in content
 
-    def test_publish_group_holds_slides_and_public_projects(self):
+    def test_work_group_follows_the_research_lifecycle(self):
         # Proposed 2026-09-14 (Telegram 6040): showing work outside.
+        # Arrange
+        groups = self._groups()
+        # Act
+        names = [c.get("name") for c in groups[1]["cells"] if not c.get("is_planned")]
+        # Assert
+        assert names[:4] == ["scholar", "stats", "figrecipe", "writer"]
+
+    def test_publication_group_holds_slides_and_public_projects(self):
         # Arrange
         groups = self._groups()
         # Act
@@ -216,7 +219,7 @@ class HomePagesTest(TestCase):
         # Assert
         assert names == ["slides", "discovery"]
 
-    def test_publish_group_holds_the_live_paper_and_agentic_journal_placeholders(self):
+    def test_publication_group_holds_the_publication_placeholders(self):
         # Arrange
         groups = self._groups()
         # Act
@@ -240,6 +243,20 @@ class HomePagesTest(TestCase):
         # Assert
         assert names == ["settings", "docs", "store"]
 
+    def test_tools_group_is_last_and_holds_the_utility_tiles(self):
+        # Arrange
+        groups = self._groups()
+        # Act
+        names = [cell.get("name") for cell in groups[-1]["cells"]]
+        # Assert
+        assert names == [
+            "tools-image",
+            "tools-pdf",
+            "tools-text",
+            "tools-developer",
+            "tools-media",
+        ]
+
     def test_each_group_is_an_aria_group_with_a_translatable_label(self):
         # Arrange
         content = self.client.get("/apps/").content.decode("utf-8")
@@ -252,8 +269,9 @@ class HomePagesTest(TestCase):
         assert bands == [
             ("foundation", "Foundation"),
             ("work", "Work"),
-            ("publish", "Publish"),
+            ("publication", "Publication"),
             ("system", "System"),
+            ("tools", "Tools"),
         ]
 
     def test_every_tile_carries_its_group(self):
@@ -276,8 +294,8 @@ class HomePagesTest(TestCase):
         dark = re.findall(r'^\[data-theme="dark"\] \.launcher-group\[data-group="(\w+)"\]\s*\{\s*--launcher-band', css, re.M)
         # Assert
         assert (sorted(light), sorted(dark)) == (
-            ["foundation", "publish", "system", "work"],
-            ["foundation", "publish", "system", "work"],
+            ["foundation", "publication", "system", "tools", "work"],
+            ["foundation", "publication", "system", "tools", "work"],
         )
 
     def test_grid_is_four_columns_at_every_width(self):
@@ -323,7 +341,13 @@ class HomePagesTest(TestCase):
         # Act
         labels = re.findall(r'class="launcher-group" role="group" data-group="(\w+)" aria-label="([^"]+)"', content)
         # Assert
-        assert dict(labels) == {"foundation": "Foundation", "work": "Work", "publish": "Publish", "system": "System"}
+        assert dict(labels) == {
+            "foundation": "Foundation",
+            "work": "Work",
+            "publication": "Publication",
+            "system": "System",
+            "tools": "Tools",
+        }
 
     def test_page_arrows_render_hidden(self):
         # Arrange

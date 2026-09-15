@@ -66,28 +66,37 @@ LAUNCHER_GROUPS: tuple[LauncherGroup, ...] = (
         "Work",
         (
             "scholar",
-            "figrecipe",
             "stats",  # a Coming-soon tile until the app ships (planned_apps.py)
+            "figrecipe",
             "writer",
             "chat",  # link tile -> /chat/
-            # Tools split into category tiles (operator, 2026-09-15); "tools"
-            # stays registered for /apps/tools/ but is hidden from the grid.
+            "clew",
+            "create-app",  # App Creator: the empty "+" slot, always last in Work
+        ),
+    ),
+    LauncherGroup(
+        "publication",
+        "Publication",
+        ("slides", "discovery"),
+    ),
+    LauncherGroup(
+        "system",
+        "System",
+        ("settings", "docs", "store"),  # settings = link tile; store = App Store
+    ),
+    LauncherGroup(
+        "tools",
+        "Tools",
+        (
             "tools-image",
             "tools-pdf",
             "tools-text",
             "tools-developer",
             "tools-media",
-            "tools",
             "console",
-            "clew",
-            "create-app",  # App Creator: the empty "+" slot, always last in Work
+            # The aggregate route stays registered but hidden from the grid.
+            "tools",
         ),
-    ),
-    LauncherGroup("publish", "Publish", ("slides", "discovery")),
-    LauncherGroup(
-        "system",
-        "System",
-        ("settings", "docs", "store"),  # settings = link tile; store = App Store
     ),
 )
 
