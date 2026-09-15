@@ -260,6 +260,9 @@ APP_NAMES = {
     "/apps/figrecipe/": "FigRecipe",
     "/apps/console/": "Console",
     "/apps/cards/": "Cards",
+    "/apps/agents/": "Agents",
+    "/apps/llm/": "LLM",
+    "/apps/comms/": "Comms",
     "/apps/storage/": "Storage",
     "/apps/stats/": "Stats",
     "/apps/files/": "Files",
@@ -273,6 +276,7 @@ APP_NAMES = {
 
 # Hub sections that are not products, but still need a stable tab label.
 SECTION_NAMES = {
+    "/status/": "Status",
     "/explore/": "Explore",
     "/social/explore/": "Explore",
     "/browse/": "Files",

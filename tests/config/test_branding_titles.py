@@ -15,8 +15,13 @@ be distinguishable from the same app running standalone.
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 import pytest
-from django.test import override_settings
+from django.contrib.auth.models import AnonymousUser
+from django.template import Context
+from django.template.loader import get_template
+from django.test import RequestFactory, override_settings
 
 from apps.infra.project_app.templatetags import branding_tags
 from config import branding
@@ -54,12 +59,15 @@ def test_app_names_are_capitalized(app_name):
 def test_every_app_the_operator_named_has_a_title():
     # Arrange
     expected = {
+        "Agents",
         "Cards",
         "Writer",
         "Scholar",
         "FigRecipe",
         "Console",
         "Clew",
+        "Comms",
+        "LLM",
         "Public Projects",
         "My Projects",
         "Storage",
@@ -115,6 +123,10 @@ def test_every_app_prefix_is_a_path_that_actually_exists():
     [
         ("/writer/", "Writer"),
         ("/apps/cards/", "Cards"),
+        ("/apps/agents/", "Agents"),
+        ("/apps/llm/", "LLM"),
+        ("/apps/comms/", "Comms"),
+        ("/status/", "Status"),
         ("/apps/figrecipe/some/deep/page", "FigRecipe"),
         ("/social/explore/", "Explore"),  # longest prefix wins over /explore/
         ("/browse/", "Files"),
@@ -382,6 +394,25 @@ def test_page_title_tag_is_loadable_and_renders_in_a_real_template():
 
     # Assert
     assert html == "<title>Writer — SciTeX (dev)</title>"
+
+
+@pytest.mark.parametrize(
+    ("template_name", "path", "expected"),
+    [
+        ("public_app/public_status.html", "/status/", "Status — SciTeX (dev)"),
+        ("writer_app/pdf_debug.html", "/apps/writer/pdf-debug/", "Writer — SciTeX (dev)"),
+        ("500.html", "/apps/comms/", "Comms — SciTeX (dev)"),
+    ],
+)
+@override_settings(SCITEX_ENV="development", SCITEX_APP_MODE=branding.MODE_HUB)
+def test_hub_owned_standalone_templates_use_the_canonical_title(template_name, path, expected):
+    request = cast(Any, RequestFactory().get(path))
+    request.user = AnonymousUser()
+    request.session = {}
+
+    html = get_template(template_name).template.render(Context({"request": request}))
+
+    assert f"<title>{expected}</title>" in html
 
 
 # ---------------------------------------------------------------------------

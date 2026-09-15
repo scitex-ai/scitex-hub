@@ -1,4 +1,4 @@
-{% load static i18n %}
+{% load static i18n branding_tags %}
 
 <!DOCTYPE html>
 {% get_current_language as LANGUAGE_CODE %}
@@ -6,7 +6,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>{% trans "SciTeX Status" %}</title>
+        <title>{% page_title %}</title>
         <link rel="stylesheet" href="{% static 'public_app/css/public-status.css' %}" />
         <link rel="icon"
               href="{% static 'shared/images/favicons/favicon.ico' %}"
