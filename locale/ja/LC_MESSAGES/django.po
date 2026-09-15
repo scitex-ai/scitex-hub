@@ -6337,24 +6337,21 @@ msgid "Restore"
 msgstr "元に戻す"
 
 #: templates/global_base_partials/workspace_chat_pane.html
-msgid "You can ask about this page or your project"
+msgid "Ask about this page or your project"
 msgstr "この画面やプロジェクトについて質問できます"
+
+#: templates/global_base_partials/workspace_chat_pane.html
+msgctxt "chat example bullet"
+msgid "• "
+msgstr "・"
 
 #: templates/global_base_partials/workspace_chat_pane.html
 msgid "How do I use this page?"
 msgstr "今いるページの使い方を教えて"
 
 #: templates/global_base_partials/workspace_chat_pane.html
-msgid "What can I do with SciTeX Cloud?"
-msgstr "SciTeX Cloudで何ができる？"
-
-#: templates/global_base_partials/workspace_chat_pane.html
 msgid "Summarise project A"
 msgstr "プロジェクトAを要約して"
-
-#: templates/global_base_partials/workspace_chat_pane.html
-msgid "What are the latest results of project A?"
-msgstr "プロジェクトAの最新の結果を教えて"
 
 #: templates/global_base_partials/workspace_chat_pane.html
 msgid "Where was that data?"

@@ -8,18 +8,16 @@
 :root {
   --chat-brand-navy: #1a2a40;
   --chat-accent: var(--chat-brand-navy);
-  /* Light: no halo; even a faint navy glow reads as a grey disc. */
+  /* Light: the dark-mode blue halo is invisible on white, so a soft navy. */
   --chat-halo-rgb: 30, 41, 59;
-  --chat-halo-fill: 0;
-  --chat-halo-glow: 0;
-  --chat-halo-glow-peak: 0;
+  --chat-halo-glow: 0.18;
+  --chat-halo-glow-peak: 0.3;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --chat-accent: var(--text-link, #58a6ff);
     --chat-halo-rgb: 56, 139, 253;
-    --chat-halo-fill: 0.15;
     --chat-halo-glow: 0.08;
     --chat-halo-glow-peak: 0.15;
   }
@@ -28,7 +26,6 @@
 :root[data-theme="dark"] {
   --chat-accent: var(--text-link, #58a6ff);
   --chat-halo-rgb: 56, 139, 253;
-  --chat-halo-fill: 0.15;
   --chat-halo-glow: 0.08;
   --chat-halo-glow-peak: 0.15;
 }
@@ -63,18 +60,15 @@
   gap: 24px;
 }
 
+/* The pre-#876 halo, sized to the icon so the glow starts at its edge. */
 .chat-welcome-logo-glow {
+  --chat-logo-size: 120px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 160px;
-  height: 160px;
+  width: var(--chat-logo-size);
+  height: var(--chat-logo-size);
   border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(var(--chat-halo-rgb), var(--chat-halo-fill)) 0%,
-    transparent 70%
-  );
   box-shadow: 0 0 60px 20px rgba(var(--chat-halo-rgb), var(--chat-halo-glow));
   animation: chat-logo-pulse 4s ease-in-out infinite;
 }
@@ -91,23 +85,10 @@
 }
 
 .chat-welcome-logo {
-  width: 120px;
-  height: 120px;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   transition: transform 300ms ease;
-  animation: chat-logo-breathe 3.5s ease-in-out infinite;
-}
-
-@keyframes chat-logo-breathe {
-  0%,
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(26, 42, 64, 0.18);
-  }
-  50% {
-    transform: scale(1.04);
-    box-shadow: 0 0 22px 6px rgba(26, 42, 64, 0.22);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -124,14 +105,8 @@
     padding-block: 16px;
   }
 
-  .chat-welcome-logo-glow {
-    width: 72px;
-    height: 72px;
-  }
-
-  .chat-welcome .chat-welcome-logo {
-    width: 56px;
-    height: 56px;
+  .chat-welcome .chat-welcome-logo-glow {
+    --chat-logo-size: 56px;
   }
 }
 
@@ -194,8 +169,8 @@
   line-height: 1.5;
   resize: none;
   font-family: inherit;
-  /* six placeholder lines: the heading plus five example prompts */
-  min-height: 9em;
+  /* four placeholder lines: the heading plus three example prompts */
+  min-height: 6em;
   max-height: 240px;
   overflow-y: auto;
 }
@@ -377,13 +352,7 @@
   }
 
   .chat-welcome-logo-glow {
-    width: 120px;
-    height: 120px;
-  }
-
-  .chat-welcome-logo {
-    width: 88px;
-    height: 88px;
+    --chat-logo-size: 88px;
   }
 
   .chat-welcome-tagline {
@@ -402,8 +371,9 @@
     font-size: 16px;
   }
 
+  /* one extra line for the heading wrapping at 390px */
   .chat-welcome-input {
-    min-height: 9em;
+    min-height: 7.5em;
   }
 
   .chat-messages-area {

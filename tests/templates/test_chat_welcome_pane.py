@@ -27,13 +27,31 @@ def test_welcome_uses_the_official_navy_circle_icon():
     assert re.search(pattern, pane, re.S)
 
 
-def test_light_mode_has_no_grey_halo_fill():
+def test_light_mode_halo_is_a_visible_navy_tint():
     # Arrange
-    token = "--chat-halo-fill: 0;"
+    tokens = ("--chat-halo-rgb: 30, 41, 59;", "--chat-halo-glow: 0.18;")
     # Act
     css = CSS_PATH.read_text(encoding="utf-8")
     # Assert
-    assert token in css
+    assert all(t in css for t in tokens)
+
+
+def test_halo_keeps_the_original_4s_pulse():
+    # Arrange
+    rule = "animation: chat-logo-pulse 4s ease-in-out infinite"
+    # Act
+    css = CSS_PATH.read_text(encoding="utf-8")
+    # Assert
+    assert rule in css
+
+
+def test_placeholder_lists_three_examples():
+    # Arrange
+    pattern = r'placeholder="([^"]*)"'
+    # Act
+    placeholder = re.search(pattern, PANE_PATH.read_text(encoding="utf-8")).group(1)
+    # Assert
+    assert placeholder.count("{{ bullet }}") == 3
 
 
 def test_accent_is_the_official_scitex_navy():
@@ -45,9 +63,9 @@ def test_accent_is_the_official_scitex_navy():
     assert token in css
 
 
-def test_input_is_96px_tall_on_phones():
+def test_input_is_five_lines_tall_on_phones():
     # Arrange
-    rule = "min-height: 96px"
+    rule = "min-height: 7.5em"
     # Act
     css = CSS_PATH.read_text(encoding="utf-8")
     # Assert

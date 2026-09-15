@@ -13,10 +13,11 @@
             </div>
             <div class="chat-welcome-input-area">
                 <div class="chat-welcome-input-box">
+                    {% trans "• " context "chat example bullet" as bullet %}
                     <textarea id="chat-welcome-input"
                               class="chat-welcome-input"
-                              rows="6"
-                              placeholder="{% trans 'You can ask about this page or your project' %}&#10;・{% trans 'How do I use this page?' %}&#10;・{% trans 'What can I do with SciTeX Cloud?' %}&#10;・{% trans 'Summarise project A' %}&#10;・{% trans 'What are the latest results of project A?' %}&#10;・{% trans 'Where was that data?' %}"
+                              rows="4"
+                              placeholder="{% trans 'Ask about this page or your project' %}&#10;{{ bullet }}{% trans 'How do I use this page?' %}&#10;{{ bullet }}{% trans 'Summarise project A' %}&#10;{{ bullet }}{% trans 'Where was that data?' %}"
                               autocomplete="off">{{ request.GET.prompt|default:""|truncatechars:500 }}</textarea>
                     <div class="chat-welcome-input-actions">
                         <button class="chat-welcome-attach" title="Attach file">
