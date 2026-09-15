@@ -126,7 +126,7 @@ export class NodeSheet {
         <button type="button" class="cg-sheet__btn cg-sheet__btn--primary" data-act="add">
           <i class="fas fa-bookmark"></i> <span>${gt("addToLibrary")}</span>
         </button>
-        ${node.is_seed ? "" : `<button type="button" class="cg-sheet__btn" data-act="explore"><i class="fas fa-project-diagram"></i> ${gt("explore")}</button>`}
+        ${node.is_seed ? "" : `<button type="button" class="cg-sheet__btn" data-act="explore" title="${gt("explore")}"><i class="fas fa-project-diagram"></i> ${gt("exploreShort")}</button>`}
       </div>`;
     this.el.classList.remove("hidden");
     this.el.querySelector(".cg-sheet__close")?.addEventListener("click", () => {

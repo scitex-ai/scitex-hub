@@ -9,6 +9,7 @@ import {
   startInspiringSpinner,
   type SpinnerHandle,
 } from "@/components/inspiring-spinner";
+import { gt } from "./_graph-i18n";
 
 export interface GraphInputCallbacks {
   onBuildGraph: (dois: string[]) => void;
@@ -26,7 +27,33 @@ export class GraphInputHandler {
     this.bindEvents();
   }
 
+  /** The inner Search|Library switch sits under the page tabs; label it as a start-point choice. */
+  private labelModeSwitch(): void {
+    const tabs = document.querySelector<HTMLElement>(".graph-input-tabs");
+    if (!tabs || tabs.dataset.labelled) return;
+    tabs.dataset.labelled = "1";
+    tabs.setAttribute("role", "tablist");
+    tabs.setAttribute("aria-label", gt("startFrom"));
+    const legend = document.createElement("div");
+    legend.className = "graph-input-legend";
+    legend.textContent = gt("startFrom");
+    tabs.before(legend);
+    const labels: Record<string, string> = {
+      search: gt("modeSearch"),
+      library: gt("modeLibrary"),
+    };
+    tabs.querySelectorAll<HTMLElement>(".graph-input-tab").forEach((tab) => {
+      const text = labels[tab.dataset.inputMode || ""];
+      if (!text) return;
+      const icon = tab.querySelector("i");
+      tab.textContent = "";
+      if (icon) tab.append(icon, " ");
+      tab.append(text);
+    });
+  }
+
   private bindEvents(): void {
+    this.labelModeSwitch();
     // Input mode tabs (DOI / Search / Library)
     document.querySelectorAll(".graph-input-tab").forEach((tab) => {
       tab.addEventListener("click", (e) => {
