@@ -81,7 +81,10 @@ export class NodeSheet {
 
   /** Visible height, so the graph can centre the node above the sheet. */
   height(): number {
-    return this.el.classList.contains("hidden") ? 0 : this.el.offsetHeight;
+    // On wide screens the sheet sits in a corner, so centre in the full stage.
+    if (this.el.classList.contains("hidden") || window.innerWidth > 768)
+      return 0;
+    return this.el.offsetHeight;
   }
 
   hide(): void {

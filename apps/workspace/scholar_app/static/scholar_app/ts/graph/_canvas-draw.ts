@@ -15,6 +15,7 @@ export interface GraphTheme {
   selected: string;
   label: string;
   halo: string;
+  fontFamily: string;
 }
 
 export function readGraphTheme(el: Element): GraphTheme {
@@ -30,6 +31,8 @@ export function readGraphTheme(el: Element): GraphTheme {
     selected: v("--cg-selected", "#f59e0b"),
     label: v("--cg-label", "#0f172a"),
     halo: v("--cg-halo", "rgba(255,255,255,0.85)"),
+    // Canvas does not inherit page fonts; reuse the page's stack (JP fallback included).
+    fontFamily: `${s.fontFamily || "sans-serif"}, "Hiragino Sans", "Noto Sans JP", sans-serif`,
   };
 }
 
@@ -85,16 +88,33 @@ export function drawGraph(ctx: CanvasRenderingContext2D, st: DrawState): void {
   }
   ctx.globalAlpha = 1;
 
-  ctx.font = `600 ${12 / t.k}px system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif`;
+  const fontPx = 12 / t.k;
+  ctx.font = `600 ${fontPx.toFixed(3)}px ${theme.fontFamily}`;
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
   ctx.lineJoin = "round";
-  for (const n of st.nodes) {
-    const show =
-      n === sel || st.labelled.has(n) || t.k > 1.6 || (near?.has(n) ?? false);
-    if (!show || !n.title) continue;
-    const text = n.title.length > 34 ? `${n.title.slice(0, 32)}…` : n.title;
+  // Selected first, then seeds and top-cited, so they win label collisions.
+  const rank = (n: NetworkNode) =>
+    n === sel ? 0 : st.labelled.has(n) ? 1 : near?.has(n) ? 2 : 3;
+  const candidates = st.nodes
+    .filter((n) => n.title && (rank(n) < 3 || t.k > 1.6))
+    .sort((a, b) => rank(a) - rank(b));
+  const placed: [number, number, number, number][] = [];
+  for (const n of candidates) {
+    const text = n.title.length > 30 ? `${n.title.slice(0, 28)}…` : n.title;
     const y = (n.y || 0) + radius(n) + 4 / t.k;
+    const w = ctx.measureText(text).width;
+    const box: [number, number, number, number] = [
+      (n.x || 0) - w / 2,
+      y,
+      (n.x || 0) + w / 2,
+      y + fontPx * 1.2,
+    ];
+    const clash = placed.some(
+      (b) => box[0] < b[2] && box[2] > b[0] && box[1] < b[3] && box[3] > b[1],
+    );
+    if (clash && n !== sel) continue;
+    placed.push(box);
     ctx.lineWidth = 3 / t.k;
     ctx.strokeStyle = theme.halo;
     ctx.strokeText(text, n.x || 0, y);
