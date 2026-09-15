@@ -66,8 +66,8 @@ LAUNCHER_GROUPS: tuple[LauncherGroup, ...] = (
         "Work",
         (
             "scholar",
-            "figrecipe",
             "stats",  # a Coming-soon tile until the app ships (planned_apps.py)
+            "figrecipe",
             "writer",
             "chat",  # link tile -> /chat/
             "clew",
