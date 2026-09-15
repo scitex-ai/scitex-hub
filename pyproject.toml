@@ -362,6 +362,10 @@ all = [
     "nbformat>=5.9",
     "nbconvert>=7.17.0",
     "weasyprint>=60.0",
+    # tools_app.x2pdf imports PdfReader/PdfWriter at conversion time. Keep this
+    # in the shipped runtime graph: image/PDF conversion runs in web and Celery,
+    # not only in development or tests.
+    "pypdf>=5.0",
     "pygments",
     # --- Validation ---
     "pydantic<2.12",

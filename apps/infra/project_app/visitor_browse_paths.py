@@ -63,7 +63,7 @@ _REPO_BROWSE_RE = re.compile(
 )
 
 #: Hub launcher mount (``config/urls.py``: ``path("apps/my-projects/", ...)``).
-HUB_INDEX_PATH = "/apps/home"
+HUB_INDEX_PATH = "/apps/my-projects"
 
 #: The query parameter the crawl enumerates sequentially
 #: (``/apps/my-projects/?project=NNNNN``). NOTHING in the hub reads it — the
