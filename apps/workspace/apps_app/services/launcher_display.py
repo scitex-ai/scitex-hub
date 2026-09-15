@@ -7,6 +7,7 @@ import re
 from .launcher_links import _owner_installation
 
 DISPLAY_OVERRIDES_KEY = "launcher_display_overrides"
+FAVORITES_KEY = "launcher_favorites"
 _ICON_RE = re.compile(
     r"^(?:fas|far|fab|fal|fad|fat|fa-solid|fa-regular|fa-brands|fa-light|fa-duotone|fa-thin) fa-[a-z0-9-]+$"
 )
@@ -73,5 +74,34 @@ def save_display_override(user, module_name: str, override: dict[str, str] | Non
         config[DISPLAY_OVERRIDES_KEY] = overrides
     else:
         config.pop(DISPLAY_OVERRIDES_KEY, None)
+    installation.config = config
+    installation.save(update_fields=["config"])
+
+
+def get_favorites(user) -> list[str]:
+    """Return ordered shortcut ids from the launcher owner's config."""
+    if not getattr(user, "is_authenticated", False):
+        return []
+    installation = _owner_installation(user, create=False)
+    saved = (installation.config or {}).get(FAVORITES_KEY, []) if installation else []
+    if not isinstance(saved, list):
+        return []
+    return list(dict.fromkeys(name for name in saved if isinstance(name, str) and name))
+
+
+def save_favorite(user, module_name: str, favorite: bool) -> None:
+    installation = _owner_installation(user, create=True)
+    if installation is None:
+        raise DisplayOverrideRejected("Launcher owner is not installed.")
+    config = dict(installation.config or {})
+    favorites = get_favorites(user)
+    if favorite and module_name not in favorites:
+        favorites.append(module_name)
+    elif not favorite:
+        favorites = [name for name in favorites if name != module_name]
+    if favorites:
+        config[FAVORITES_KEY] = favorites
+    else:
+        config.pop(FAVORITES_KEY, None)
     installation.config = config
     installation.save(update_fields=["config"])

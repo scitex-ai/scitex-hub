@@ -150,7 +150,7 @@ class AppLauncher {
         ".launcher-tile",
       );
       // Planned apps never move or dock: no long-press, no drag.
-      if (tile && !tile.dataset.planned) this.handlePointerDown(e, tile);
+      if (tile && !tile.dataset.planned && !tile.dataset.favoriteAlias) this.handlePointerDown(e, tile);
     });
     this.grid.addEventListener("click", (e) => {
       const tile = (e.target as HTMLElement).closest<HTMLElement>(
@@ -331,7 +331,7 @@ class AppLauncher {
     // parent is the tile we are OVER — on a paged grid that is its page, which
     // is what lets a tile move between pages at all.
     const order = Array.from(
-      this.grid.querySelectorAll<HTMLElement>(".launcher-tile"),
+      this.grid.querySelectorAll<HTMLElement>(".launcher-tile:not([data-favorite-alias])"),
     );
     const from = order.indexOf(this.dragTile);
     const to = order.indexOf(over);
@@ -412,7 +412,7 @@ class AppLauncher {
    */
   private reorderWithTravel(mutate: () => void): void {
     const tiles = Array.from(
-      this.grid.querySelectorAll<HTMLElement>(".launcher-tile"),
+      this.grid.querySelectorAll<HTMLElement>(".launcher-tile:not([data-favorite-alias])"),
     );
     const before = new Map<HTMLElement, DOMRect>();
     tiles.forEach((t) => before.set(t, t.getBoundingClientRect()));
@@ -482,7 +482,7 @@ class AppLauncher {
 
   private async persistOrder(): Promise<void> {
     const order = Array.from(
-      this.grid.querySelectorAll<HTMLElement>(".launcher-tile"),
+      this.grid.querySelectorAll<HTMLElement>(".launcher-tile:not([data-favorite-alias])"),
     )
       .map((t) => t.dataset.module || "")
       .filter(Boolean);

@@ -26,7 +26,7 @@ from apps.infra.workspace_app.registry import get_all_modules
 from ..models import AppsModule, ModuleInstallation, PlannedAppInterest
 from ..planned_apps import visible_planned_apps
 from ..services.first_run import checklist_context, should_show_checklist
-from ..services.launcher_display import get_display_overrides
+from ..services.launcher_display import get_display_overrides, get_favorites
 from ..services.launcher_dock import get_dock_apps
 from ..services.launcher_links import get_launcher_links, get_link_tile_orders
 from ..services.manifest_display import prettify_module_name
@@ -195,6 +195,7 @@ def _build_tiles(request) -> list[dict]:
         )
     pinned_names = set(get_pinned_module_names(request.user))
     display_overrides = get_display_overrides(request.user)
+    favorite_names = set(get_favorites(request.user))
     new_cutoff = timezone.now() - timedelta(days=NEW_BADGE_DAYS)
 
     # Per-user launcher order set by drag-reorder (api_reorder). Only rows
@@ -407,6 +408,7 @@ def _build_tiles(request) -> list[dict]:
             row and not row.is_builtin and tile["name"] in installed_names
         )
         tile["can_edit_display"] = bool(row)
+        tile["is_favorite"] = tile["name"] in favorite_names
 
     # Apply order: the GROUP first (groups never interleave, operator
     # 2026-09-14), then explicit per-user positions, then the curated default.
@@ -436,6 +438,15 @@ def launcher_context(request) -> dict:
     tiles = _build_tiles(request)
     dock_apps = set(get_dock_apps(request.user)) - {APP_CREATOR_SLOT}
     grid_tiles = [tile for tile in tiles if tile["name"] not in dock_apps]
+    favorite_order = get_favorites(request.user)
+    by_name = {tile["name"]: tile for tile in tiles}
+    favorite_tiles = []
+    for name in favorite_order:
+        if name in by_name:
+            alias = dict(by_name[name])
+            alias["is_favorite_alias"] = True
+            alias["can_uninstall"] = False
+            favorite_tiles.append(alias)
     is_guest = is_guest_launcher_user(request.user)
     return {
         "first_run": (
@@ -449,6 +460,7 @@ def launcher_context(request) -> dict:
         "tiles": tiles,
         # The grid: 4-column group bands holding only the apps NOT in the dock.
         "groups": group_cells(grid_tiles),
+        "favorite_tiles": favorite_tiles,
         # Kept in a <template> so dragging an app out of the dock can restore its tile.
         "dock_tiles": [tile for tile in tiles if tile["name"] in dock_apps],
         "launcher_groups": LAUNCHER_GROUPS,

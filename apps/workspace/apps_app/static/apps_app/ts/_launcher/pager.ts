@@ -153,6 +153,7 @@ export class LauncherPager {
   // rebuild the DOM (the ResizeObserver below can fire often).
   private lastSignature = "";
   private viewport: ViewportMemory = { width: 0, minHeight: 0 };
+  private requestedPage: number | null = null;
 
   constructor(
     grid: HTMLElement,
@@ -167,6 +168,7 @@ export class LauncherPager {
 
   init(): void {
     this.apply();
+    this.syncFromHash(true);
 
     // MEASURE LATE, NOT EARLY. How much room a page gets is the gap between the
     // TOP OF THE GRID and the dock — and the grid's top depends on everything
@@ -186,9 +188,15 @@ export class LauncherPager {
     const relayout = () => this.apply();
     window.addEventListener("resize", relayout);
     window.addEventListener("orientationchange", relayout);
-    this.grid.addEventListener("scroll", () => this.syncControls(), {
-      passive: true,
-    });
+    this.grid.addEventListener("scroll", () => {
+      this.syncControls();
+      const current = this.currentPage();
+      if (this.requestedPage === null || current === this.requestedPage) {
+        this.requestedPage = null;
+        this.replaceHash(current);
+      }
+    }, { passive: true });
+    window.addEventListener("hashchange", () => this.syncFromHash(false));
 
     this.prev?.addEventListener("click", () =>
       this.goTo(this.currentPage() - 1),
@@ -224,7 +232,7 @@ export class LauncherPager {
   private tiles(): HTMLElement[] {
     return Array.from(
       this.grid.querySelectorAll<HTMLElement>(".launcher-tile, .launcher-slot"),
-    );
+    ).filter((cell) => !cell.closest("[data-launcher-fixed-page]"));
   }
 
   /** Gap between two bands on a page (launcher/mobile.css .launcher-page row-gap). */
@@ -269,6 +277,7 @@ export class LauncherPager {
   private page(force = false): void {
     const cells = this.tiles();
     if (!cells.length) return;
+    const fixed = this.grid.querySelector<HTMLElement>("[data-launcher-fixed-page]");
 
     // Cells grouped by their band (Foundation / Work / System). A grid without
     // bands (tests, older markup) is one unlabelled group.
@@ -311,7 +320,7 @@ export class LauncherPager {
         groupGap: parseFloat(this.pageGap()) || 0,
       },
     );
-    const signature = planSignature(plan);
+    const signature = `${fixed ? "fixed:" : ""}${planSignature(plan)}`;
     const scrollLeft = this.grid.scrollLeft;
 
     this.grid.classList.add("launcher-grid--paged");
@@ -328,7 +337,9 @@ export class LauncherPager {
     // Old CONTAINERS only (pages, bands); a flat grid's cells are direct
     // children too, and they are about to be moved, not removed.
     const cellSet = new Set<Element>(cells);
-    const old = Array.from(this.grid.children).filter((el) => !cellSet.has(el));
+    const old = Array.from(this.grid.children).filter(
+      (el) => el !== fixed && !cellSet.has(el),
+    );
     plan.forEach((chunks) => {
       const page = document.createElement("div");
       page.className = "launcher-page";
@@ -351,7 +362,7 @@ export class LauncherPager {
     });
     old.forEach((el) => el.remove());
 
-    const pageCount = plan.length;
+    const pageCount = plan.length + (fixed ? 1 : 0);
     this.buildDots(pageCount);
     // Keep the reader where they were across a relayout (e.g. rotation).
     this.grid.scrollLeft = scrollLeft;
@@ -401,7 +412,9 @@ export class LauncherPager {
       dot.type = "button";
       dot.className = "launcher-dot";
       dot.setAttribute("role", "tab");
-      dot.setAttribute("aria-label", `Page ${i + 1} of ${pageCount}`);
+      const fixed = !!this.grid.querySelector("[data-launcher-fixed-page]");
+      const name = fixed && i === 0 ? "Favorites" : `Home ${fixed ? i : i + 1}`;
+      dot.setAttribute("aria-label", `${name}, page ${i + 1} of ${pageCount}`);
       dot.addEventListener("click", () => this.goTo(i));
       this.dots.appendChild(dot);
     }
@@ -442,10 +455,42 @@ export class LauncherPager {
     }
   }
 
+  private replaceHash(index: number): void {
+    const hash = `#${index}`;
+    if (window.location.hash !== hash) history.replaceState(null, "", hash);
+  }
+
+  private syncFromHash(initial: boolean): void {
+    const count = this.pageCount();
+    if (!count) return;
+    const raw = window.location.hash.slice(1);
+    const parsed = /^\d+$/.test(raw) ? Number(raw) : NaN;
+    const fallback = this.grid.querySelector("[data-launcher-fixed-page]") ? 1 : 0;
+    const target = Math.min(
+      Math.max(0, Number.isFinite(parsed) ? parsed : fallback),
+      count - 1,
+    );
+    this.replaceHash(target);
+    this.requestedPage = target;
+    this.scrollToPage(target, initial ? "auto" : "smooth");
+    if (this.currentPage() === target) this.requestedPage = null;
+    this.syncControls();
+  }
+
+  private scrollToPage(index: number, behavior: ScrollBehavior): void {
+    const left = index * this.pageWidth;
+    if (typeof this.grid.scrollTo === "function") this.grid.scrollTo({ left, behavior });
+    else this.grid.scrollLeft = left;
+  }
+
   goTo(index: number): void {
     const last = Math.max(0, this.pageCount() - 1);
     const target = Math.min(Math.max(0, index), last);
-    this.grid.scrollTo({ left: target * this.pageWidth, behavior: "smooth" });
+    if (window.location.hash !== `#${target}`) window.location.hash = String(target);
+    this.requestedPage = target;
+    this.scrollToPage(target, "smooth");
+    if (this.currentPage() === target) this.requestedPage = null;
+    this.syncControls();
   }
 
   /**

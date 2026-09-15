@@ -123,6 +123,61 @@ describe("LauncherPager", () => {
   beforeEach(() => {
     document.head.innerHTML = "";
     setMobile(true);
+    history.replaceState(null, "", "/apps/");
+  });
+
+  it("uses zero-based canonical hashes with Favorites before Home", () => {
+    const { grid, dots } = build(12);
+    styleGap(grid);
+    const favorites = document.createElement("div");
+    favorites.className = "launcher-page launcher-page--favorites";
+    favorites.dataset.launcherFixedPage = "favorites";
+    grid.prepend(favorites);
+    history.replaceState(null, "", "/apps/#1");
+    let scrolledTo = -1;
+    grid.scrollTo = ((opts: ScrollToOptions) => {
+      scrolledTo = opts.left ?? -1;
+      grid.scrollLeft = scrolledTo;
+    }) as typeof grid.scrollTo;
+    const pager = new LauncherPager(grid, dots);
+
+    pager.init();
+
+    expect(grid.querySelectorAll(".launcher-page")[0]).toBe(favorites);
+    expect(scrolledTo).toBe(390);
+    expect(window.location.hash).toBe("#1");
+    expect(dots.children[0].getAttribute("aria-label")).toContain("Favorites");
+    expect(dots.children[1].getAttribute("aria-label")).toContain("Home");
+  });
+
+  it("keeps arrows, swipe, hashchange, and invalid initial hashes synchronized", () => {
+    const { grid, dots } = build(20);
+    styleGap(grid);
+    const favorites = document.createElement("div");
+    favorites.className = "launcher-page launcher-page--favorites";
+    favorites.dataset.launcherFixedPage = "favorites";
+    grid.prepend(favorites);
+    history.replaceState(null, "", "/apps/#favorite");
+    grid.scrollTo = ((opts: ScrollToOptions) => {
+      grid.scrollLeft = opts.left ?? 0;
+    }) as typeof grid.scrollTo;
+    const pager = new LauncherPager(grid, dots);
+
+    pager.init();
+    expect(window.location.hash).toBe("#1");
+    expect(grid.scrollLeft).toBe(390);
+
+    pager.goTo(2);
+    expect(window.location.hash).toBe("#2");
+    expect(grid.scrollLeft).toBe(780);
+
+    grid.scrollLeft = 0;
+    grid.dispatchEvent(new Event("scroll"));
+    expect(window.location.hash).toBe("#0");
+
+    history.replaceState(null, "", "/apps/#2");
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+    expect(grid.scrollLeft).toBe(780);
   });
 
   it("re-measures after a LATE layout instead of trusting the first reading", () => {

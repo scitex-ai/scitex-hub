@@ -158,3 +158,53 @@ class LauncherEditControlsTest(TestCase):
         self.client.logout()
         response = self._post_display(self.community.module_name, {"reset": True})
         assert response.status_code == 302
+
+    def test_favorite_is_an_alias_and_is_stored_on_launcher_owner(self):
+        response = self._post_display(self.community.module_name, {"favorite": True})
+        assert response.status_code == 200, response.json()
+
+        owner = ModuleInstallation.objects.get(
+            user=self.user, module__module_name="store"
+        )
+        target = ModuleInstallation.objects.get(user=self.user, module=self.community)
+        assert owner.config["launcher_favorites"] == [self.community.module_name]
+        assert target.config == {}
+
+        page = self.client.get("/apps/")
+        favorite = page.context["favorite_tiles"]
+        canonical = [
+            tile
+            for group in page.context["groups"]
+            for tile in group["cells"]
+            if not tile.get("is_add_slot")
+        ]
+        assert [tile["name"] for tile in favorite] == [self.community.module_name]
+        assert self.community.module_name in [tile["name"] for tile in canonical]
+        assert favorite[0]["is_favorite_alias"] is True
+
+    def test_favorite_can_be_removed_without_changing_display_override(self):
+        self._post_display(
+            self.community.module_name,
+            {
+                "display_name": "My Lab",
+                "icon": "fas fa-microscope",
+                "icon_color": "#12abcd",
+            },
+        )
+        self._post_display(self.community.module_name, {"favorite": True})
+
+        response = self._post_display(self.community.module_name, {"favorite": False})
+        assert response.status_code == 200, response.json()
+        owner = ModuleInstallation.objects.get(
+            user=self.user, module__module_name="store"
+        )
+        assert "launcher_favorites" not in owner.config
+        assert owner.config["launcher_display_overrides"][self.community.module_name]
+        assert self.client.get("/apps/").context["favorite_tiles"] == []
+
+    def test_launcher_renders_favorites_page_empty_state_and_dialog_action(self):
+        html = self.client.get("/apps/").content.decode()
+        assert 'data-launcher-fixed-page="favorites"' in html
+        assert "No favorites yet" in html
+        assert 'id="launcher-display-favorite"' in html
+        assert 'data-favorite="0"' in html

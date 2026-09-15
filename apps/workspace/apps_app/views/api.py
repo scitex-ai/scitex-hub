@@ -19,6 +19,7 @@ from ..models import (
 )
 from ..services.launcher_display import (
     DisplayOverrideRejected,
+    save_favorite,
     save_display_override,
     validate_display_override,
 )
@@ -351,6 +352,11 @@ def api_launcher_display(request, module_name):
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON."}, status=400)
     try:
+        if "favorite" in data:
+            if not isinstance(data["favorite"], bool):
+                raise DisplayOverrideRejected("Favorite must be true or false.")
+            save_favorite(request.user, module_name, data["favorite"])
+            return JsonResponse({"success": True, "favorite": data["favorite"]})
         override = None if data.get("reset") is True else validate_display_override(data)
         save_display_override(request.user, module_name, override)
     except (AttributeError, DisplayOverrideRejected) as rejection:

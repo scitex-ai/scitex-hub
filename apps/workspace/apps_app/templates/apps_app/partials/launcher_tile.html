@@ -14,6 +14,8 @@
    data-availability="{{ tile.availability }}"
    data-installed="{% if tile.is_installed %}1{% else %}0{% endif %}"
    data-pinned="{% if tile.is_pinned %}1{% else %}0{% endif %}"
+   data-favorite="{% if tile.is_favorite %}1{% else %}0{% endif %}"
+   {% if tile.is_favorite_alias %}data-favorite-alias="1"{% endif %}
    data-detail-url="{{ tile.detail_url }}"
    data-version="{{ tile.version }}"
    data-manifest-label="{{ tile.manifest_label }}"

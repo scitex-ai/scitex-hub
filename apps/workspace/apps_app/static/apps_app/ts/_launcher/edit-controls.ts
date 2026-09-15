@@ -34,6 +34,7 @@ export class LauncherEditControls {
     }, true);
     document.getElementById("launcher-display-cancel")?.addEventListener("click", () => this.dialog?.close());
     document.getElementById("launcher-display-reset")?.addEventListener("click", () => void this.save(true));
+    document.getElementById("launcher-display-favorite")?.addEventListener("click", () => void this.toggleFavorite());
     document.getElementById("launcher-display-uninstall")?.addEventListener("click", () => {
       if (this.tile) void this.uninstall(this.tile, true);
     });
@@ -62,7 +63,10 @@ export class LauncherEditControls {
     try {
       await this.post(`/apps/store/api/${encodeURIComponent(name)}/uninstall/`);
       if (fromDialog) this.dialog?.close();
-      tile.remove();
+      this.grid.querySelectorAll<HTMLElement>(".launcher-tile")
+        .forEach((matching) => {
+          if (matching.dataset.module === name) matching.remove();
+        });
       this.rebalance();
       showToast(`${label} uninstalled.`, "success");
     } catch (error) {
@@ -83,7 +87,63 @@ export class LauncherEditControls {
     this.input("launcher-display-color").value = box?.style.getPropertyValue("--launcher-glyph-color").trim() || "#ffffff";
     const uninstall = document.getElementById("launcher-display-uninstall") as HTMLButtonElement | null;
     if (uninstall) uninstall.hidden = !tile.querySelector(".launcher-uninstall-control");
+    this.syncFavoriteButton(tile.dataset.favorite === "1");
     this.dialog.showModal();
+  }
+
+  private syncFavoriteButton(favorite: boolean): void {
+    const button = document.getElementById("launcher-display-favorite");
+    if (button) button.innerHTML = `<i class="${favorite ? "fas" : "far"} fa-star" aria-hidden="true"></i> ${favorite ? "Remove from Favorites" : "Add to Favorites"}`;
+  }
+
+  private async toggleFavorite(): Promise<void> {
+    const name = this.tile?.dataset.module || "";
+    if (!name) return;
+    const favorite = this.tile?.dataset.favorite !== "1";
+    try {
+      await this.post(`/apps/store/api/${encodeURIComponent(name)}/launcher-display/`, { favorite });
+      this.grid.querySelectorAll<HTMLElement>(".launcher-tile")
+        .forEach((tile) => {
+          if (tile.dataset.module === name) tile.dataset.favorite = favorite ? "1" : "0";
+        });
+      this.syncFavoritePage(name, favorite);
+      this.syncFavoriteButton(favorite);
+      showToast(favorite ? "Added to Favorites." : "Removed from Favorites.", "success");
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : "Could not update Favorites.", "error");
+    }
+  }
+
+  private syncFavoritePage(name: string, favorite: boolean): void {
+    const page = this.grid.querySelector<HTMLElement>("[data-launcher-fixed-page='favorites']");
+    if (!page) return;
+    const aliases = Array.from(page.querySelectorAll<HTMLElement>("[data-favorite-alias]"))
+      .filter((tile) => tile.dataset.module === name);
+    if (!favorite) {
+      aliases.forEach((tile) => tile.remove());
+      if (!page.querySelector("[data-favorite-alias]")) {
+        page.innerHTML = '<div class="launcher-favorites-empty"><i class="far fa-star" aria-hidden="true"></i><strong>No favorites yet</strong><span>Edit an app to add a shortcut here.</span></div>';
+      }
+      return;
+    }
+    if (aliases.length) return;
+    const source = Array.from(this.grid.querySelectorAll<HTMLElement>(".launcher-tile:not([data-favorite-alias])"))
+      .find((tile) => tile.dataset.module === name);
+    if (!source) return;
+    page.querySelector(".launcher-favorites-empty")?.remove();
+    let group = page.querySelector<HTMLElement>(".launcher-favorites-grid");
+    if (!group) {
+      group = document.createElement("div");
+      group.className = "launcher-group launcher-favorites-grid";
+      group.dataset.group = "favorites";
+      group.setAttribute("role", "group");
+      group.setAttribute("aria-label", "Favorites");
+      page.appendChild(group);
+    }
+    const alias = source.cloneNode(true) as HTMLElement;
+    alias.dataset.favoriteAlias = "1";
+    alias.querySelector(".launcher-uninstall-control")?.remove();
+    group.appendChild(alias);
   }
 
   private async save(reset: boolean): Promise<void> {

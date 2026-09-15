@@ -4,10 +4,15 @@ import { LauncherEditControls } from "@apps_app/_launcher/edit-controls";
 
 function grid(): HTMLElement {
   document.body.innerHTML = `<div id="launcher-grid" class="edit-mode">
-    <a class="launcher-tile" data-module="community" data-label="Community">
+    <a class="launcher-tile" data-module="community" data-label="Community" data-favorite="0">
       <span role="button" tabindex="-1" class="launcher-edit-control launcher-uninstall-control">-</span>
+      <span class="launcher-tile-icon"><i class="fas fa-cube"></i></span>
     </a>
-  </div>`;
+  </div>
+  <dialog id="launcher-display-dialog"><form id="launcher-display-form">
+    <input id="launcher-display-name"><input id="launcher-display-icon"><input id="launcher-display-color" type="color">
+    <button id="launcher-display-favorite" type="button"></button>
+  </form></dialog>`;
   return document.getElementById("launcher-grid") as HTMLElement;
 }
 
@@ -36,5 +41,32 @@ describe("LauncherEditControls", () => {
       expect.objectContaining({ method: "POST", credentials: "same-origin" }),
     );
     expect(rebalance).toHaveBeenCalledOnce();
+  });
+
+  it("adds and removes a favorite through the existing display dialog", async () => {
+    const host = grid();
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const controls = new LauncherEditControls(host, vi.fn());
+    controls.init();
+    const dialog = document.getElementById("launcher-display-dialog") as HTMLDialogElement;
+    dialog.showModal = vi.fn();
+    controls.open(host.querySelector(".launcher-tile") as HTMLElement);
+    const button = document.getElementById("launcher-display-favorite") as HTMLButtonElement;
+
+    expect(button.textContent).toContain("Add to Favorites");
+    button.click();
+    await vi.waitFor(() =>
+      expect(host.querySelector<HTMLElement>(".launcher-tile")?.dataset.favorite).toBe("1"),
+    );
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/apps/store/api/community/launcher-display/",
+      expect.objectContaining({ body: JSON.stringify({ favorite: true }) }),
+    );
+    expect(host.querySelector<HTMLElement>(".launcher-tile")?.dataset.favorite).toBe("1");
+    expect(button.textContent).toContain("Remove from Favorites");
   });
 });

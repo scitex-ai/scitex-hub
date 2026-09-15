@@ -61,6 +61,19 @@
                 <i class="fas fa-chevron-left" aria-hidden="true"></i>
             </button>
             <div class="launcher-grid" id="launcher-grid">
+                <div class="launcher-page launcher-page--favorites" data-launcher-fixed-page="favorites" aria-label="{% trans 'Favorites' %}">
+                    {% if favorite_tiles %}
+                        <div class="launcher-group launcher-favorites-grid" role="group" aria-label="{% trans 'Favorites' %}">
+                            {% for tile in favorite_tiles %}{% include "apps_app/partials/launcher_tile.html" %}{% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="launcher-favorites-empty">
+                            <i class="far fa-star" aria-hidden="true"></i>
+                            <strong>{% trans "No favorites yet" %}</strong>
+                            <span>{% trans "Edit an app to add a shortcut here." %}</span>
+                        </div>
+                    {% endif %}
+                </div>
                 {# One band per group (Foundation / Work / System, operator    #}
                 {# 2026-09-14): a 4-column grid with a soft group tint. The     #}
                 {# translated aria-label is ALSO the visible band label        #}
@@ -113,6 +126,7 @@
                 <label>Font Awesome icon <input id="launcher-display-icon" name="icon" placeholder="fas fa-flask" /></label>
                 <label>Icon color <input id="launcher-display-color" name="icon_color" type="color" value="#ffffff" /></label>
                 <div class="launcher-display-actions">
+                    <button type="button" id="launcher-display-favorite"><i class="far fa-star" aria-hidden="true"></i> Add to Favorites</button>
                     <button type="button" id="launcher-display-reset">Reset to manifest defaults</button>
                     <button type="button" id="launcher-display-uninstall" class="launcher-display-uninstall" hidden>
                         <i class="fas fa-minus-circle" aria-hidden="true"></i> Uninstall app
