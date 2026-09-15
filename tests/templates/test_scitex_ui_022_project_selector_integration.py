@@ -9,6 +9,8 @@ from pathlib import Path
 
 import pytest
 
+from tests.tracked_source import TrackedSourceFile, tracked_source_files
+
 REPO = Path(__file__).resolve().parents[2]
 WRITER_INDEX = REPO / "apps/workspace/writer_app/templates/writer_app/index.html"
 WRITER_PARTIAL = REPO / "apps/workspace/writer_app/templates/writer_app/writer_partial.html"
@@ -18,7 +20,9 @@ APPMAKER = REPO / "apps/workspace/apps_app/templates/apps_app/appmaker/workspace
 OLD_WRAPPER = REPO / "apps/workspace/writer_app/templates/writer/_project_picker.html"
 
 
-def _text(path: Path) -> str:
+def _text(path: Path | TrackedSourceFile) -> str:
+    if isinstance(path, TrackedSourceFile):
+        return path.text()
     return path.read_text(encoding="utf-8")
 
 
@@ -54,8 +58,8 @@ def test_appmaker_real_header_uses_the_same_canonical_slot() -> None:
 
 
 def test_hub_templates_use_only_the_canonical_picker_tag() -> None:
-    templates = (REPO / "apps").glob("**/templates/**/*.html")
-    offenders = [str(path.relative_to(REPO)) for path in templates if "project-picker.js" in _text(path)]
+    templates = tracked_source_files(REPO, ("apps/**/templates/**/*.html",))
+    offenders = [path.path for path in templates if "project-picker.js" in _text(path)]
     assert offenders == []
 
 

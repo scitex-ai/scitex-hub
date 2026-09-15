@@ -27,6 +27,8 @@ from pathlib import Path
 
 import pytest
 
+from tests.tracked_source import tracked_source_files
+
 pytestmark = pytest.mark.security
 
 # `.resolve()).startswith(`  or  `.resolve().startswith(`  — a call chained off resolve().
@@ -34,7 +36,8 @@ _CHAINED = re.compile(r"\.resolve\(\)\)?\.startswith\(")
 # `.startswith(str(<expr>.resolve()`  — resolve() inside the startswith argument.
 _ARG = re.compile(r"\.startswith\(\s*str\([^)]*\.resolve\(\)")
 
-_APPS_ROOT = Path(__file__).resolve().parents[2] / "apps"
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+_APPS_ROOT = _REPO_ROOT / "apps"
 
 
 def _code_lines(source: str) -> dict[int, str]:
@@ -54,7 +57,7 @@ def _code_lines(source: str) -> dict[int, str]:
             if srow == erow and tok.string:
                 per_line.setdefault(srow, []).append(tok.string)
     except (tokenize.TokenError, IndentationError, SyntaxError):
-        return {i: ln for i, ln in enumerate(source.splitlines(), start=1)}
+        return dict(enumerate(source.splitlines(), start=1))
     return {ln: "".join(toks) for ln, toks in per_line.items()}
 
 
@@ -70,12 +73,12 @@ def find_prefix_containment(source: str) -> list[tuple[int, str]]:
 def test_no_prefix_match_path_containment_under_apps():
     """The real gate: no live ``resolve()+startswith`` containment check under apps/."""
     # Arrange
-    py_files = sorted(_APPS_ROOT.rglob("*.py"))
+    py_files = tracked_source_files(_REPO_ROOT, ("apps/**/*.py",))
     # Act
     offenders = [
-        f"{py.relative_to(_APPS_ROOT.parent)}:{lineno}: {code.strip()}"
+        f"{py.path}:{lineno}: prefix containment"
         for py in py_files
-        for lineno, code in find_prefix_containment(py.read_text(encoding="utf-8"))
+        for lineno, code in find_prefix_containment(py.text())
     ]
     # Assert
     assert not offenders, (

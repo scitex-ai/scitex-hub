@@ -25,6 +25,8 @@ from pathlib import Path
 
 import yaml
 
+from tests.tracked_source import tracked_source_files
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 # Discovered, not enumerated, so a compose file added tomorrow is covered without
@@ -50,7 +52,7 @@ UNPARSEABLE_PORTS = ["0.0.0.0:1:1"]
 
 def compose_files():
     """Every compose file under ``deployment/``, sorted for stable test ids."""
-    return sorted(REPO_ROOT.glob(COMPOSE_GLOB))
+    return tracked_source_files(REPO_ROOT, (COMPOSE_GLOB,))
 
 
 def environment(service):
