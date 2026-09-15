@@ -2,12 +2,12 @@
 # File: tests/config/test_branding_favicon.py
 """The favicon COLOUR encodes the ENVIRONMENT (config/branding.py).
 
-Operator contract: prod / staging / dev must be distinguishable from the tab
-icon alone --
+Operator contract --
 
     production  -> white snake on NAVY   (the official product look)
     staging     -> NAVY snake on WHITE   ("ネイビーのヘビーなもの")
-    development -> white snake on GREEN
+    development -> white snake on NAVY   (green circle retired 2026-09-15;
+                                          the "(dev)" tab marker tells dev apart)
 
 All three are the SAME brand mark, differing only in colour. The choice is
 driven by ``settings.SCITEX_ENV`` -- i.e. by which settings module Django is
@@ -76,9 +76,9 @@ def test_normalize_mode_raises_on_unknown():
 # ---------------------------------------------------------------------------
 # The colour map
 # ---------------------------------------------------------------------------
-def test_each_environment_gets_a_distinct_favicon():
+def test_staging_favicon_differs_from_production():
     # Arrange
-    envs = branding.KNOWN_ENVS
+    envs = (branding.ENV_PRODUCTION, branding.ENV_STAGING)
 
     # Act
     icons = {branding.favicon_for_env(env) for env in envs}
@@ -87,12 +87,23 @@ def test_each_environment_gets_a_distinct_favicon():
     assert len(icons) == len(envs)
 
 
+def test_no_environment_serves_the_green_circle():
+    # Arrange
+    envs = branding.KNOWN_ENVS
+
+    # Act
+    green = [env for env in envs if "green" in branding.favicon_for_env(env)]
+
+    # Assert
+    assert green == []
+
+
 @pytest.mark.parametrize(
     ("env", "suffix"),
     [
         ("production", "white-bg-navy.svg"),
         ("staging", "navy-bg-white.svg"),
-        ("development", "white-bg-green.svg"),
+        ("development", "white-bg-navy.svg"),
     ],
 )
 def test_favicon_colour_matches_the_operator_specification(env, suffix):

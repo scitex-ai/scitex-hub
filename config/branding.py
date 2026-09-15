@@ -202,7 +202,8 @@ def normalize_mode(value):
 #
 #     production  -> white snake on NAVY        (the official product look)
 #     staging     -> NAVY snake on WHITE        (heavy / high-contrast)
-#     development -> white snake on GREEN
+#     development -> white snake on NAVY        (operator 2026-09-15: the green
+#                    circle is retired; the tab title's "(dev)" marks dev)
 #
 # These SVGs are produced by the existing brand-mark generator,
 # ``scripts/utils/icons/generate_scitex_icons.py`` (which owns the snake path
@@ -213,7 +214,7 @@ _ICON_DIR = "shared/images/scitex_logos/scitex-icons/generated"
 FAVICON_BY_ENV = {
     ENV_PRODUCTION: f"{_ICON_DIR}/scitex-icon-white-bg-navy.svg",
     ENV_STAGING: f"{_ICON_DIR}/scitex-icon-navy-bg-white.svg",
-    ENV_DEVELOPMENT: f"{_ICON_DIR}/scitex-icon-white-bg-green.svg",
+    ENV_DEVELOPMENT: f"{_ICON_DIR}/scitex-icon-white-bg-navy.svg",
 }
 
 
