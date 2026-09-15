@@ -84,8 +84,8 @@ def section_view(request, project_id, section_name):
 
                 content = writer_service.read_section(name, doc_type)
 
-                if content is None:
-                    raise ValueError(f"read_section returned None for {name}")
+                if not isinstance(content, str):
+                    raise TypeError("read_section returned non-text content")
 
                 logger.info(
                     "[SectionView GET] Read %d chars for %s",
@@ -97,9 +97,6 @@ def section_view(request, project_id, section_name):
                     {
                         "success": True,
                         "content": content,
-                        "section_name": name,
-                        "section_id": section_name,
-                        "doc_type": doc_type,
                     }
                 )
 
