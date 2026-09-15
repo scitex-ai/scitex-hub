@@ -1,0 +1,2 @@
+Hub-owned Writer feature fixture: [claim:fixture_claim]
+Compiled by SciTeX Writer v-fixture
