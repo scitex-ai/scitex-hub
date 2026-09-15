@@ -321,6 +321,13 @@ def mounted_app_launcher(request):
     if not is_mounted_standalone_page:
         return {}
 
+    from apps.infra.workspace_app.site_dock import should_render_dock
+
+    # The site dock (injected into these pages for signed-in users) is the way
+    # out; a floating Back-to-Store link would only cover the app's own header.
+    if should_render_dock(request):
+        return {}
+
     launcher = {"url": "/apps/store/", "label": "Back to Store"}
     if _ui_launcher_context is not None:
         return _ui_launcher_context(launcher)
