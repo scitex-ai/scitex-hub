@@ -18,10 +18,10 @@
 .site-dock-chat-head {
   display: flex;
   align-items: center;
-  gap: 4px;
-  height: 40px;
+  gap: 0;
+  height: 44px;
   flex: none;
-  padding-inline: 14px 6px;
+  padding-inline: 14px 0;
   background: var(--chat-brand-navy, #1a2a40);
   color: #ffffff;
 }
@@ -36,20 +36,34 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
   border: 0;
-  border-radius: 8px;
+  border-radius: 0;
   background: transparent;
   color: inherit;
-  font-size: 15px;
-  text-decoration: none;
   cursor: pointer;
 }
 
 .site-dock-chat-btn:hover,
 .site-dock-chat-btn:focus-visible {
   background: rgba(255, 255, 255, 0.16);
+}
+
+.site-dock-chat-btn[data-dock-chat-close]:hover,
+.site-dock-chat-btn[data-dock-chat-close]:focus-visible {
+  background: #c42b1c;
+}
+
+.site-dock-chat-glyph-restore,
+.site-dock-chat.is-maximized .site-dock-chat-glyph-max {
+  display: none;
+}
+
+.site-dock-chat.is-maximized .site-dock-chat-glyph-restore {
+  display: block;
 }
 
 .site-dock-chat-frame {

@@ -51,11 +51,17 @@
     <section class="site-dock-chat" id="site-dock-chat" data-dock-chat-panel hidden aria-label="{% trans 'Chat' %}">
         <header class="site-dock-chat-head">
             <span class="site-dock-chat-title">{% trans 'Chat' %}</span>
-            <a class="site-dock-chat-btn" href="/chat/" data-dock-chat-expand aria-label="{% trans 'Open full chat' %}" title="{% trans 'Open full chat' %}">
-                <i class="fas fa-up-right-and-down-left-from-center" aria-hidden="true"></i>
-            </a>
+            <button type="button" class="site-dock-chat-btn" data-dock-chat-minimize aria-label="{% trans 'Minimize' %}" title="{% trans 'Minimize' %}">
+                <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 12.5h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>
+            </button>
+            <button type="button" class="site-dock-chat-btn" data-dock-chat-maximize
+                    data-label-max="{% trans 'Maximize' %}" data-label-restore="{% trans 'Restore' %}"
+                    aria-label="{% trans 'Maximize' %}" title="{% trans 'Maximize' %}">
+                <svg class="site-dock-chat-glyph-max" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><rect x="3" y="3" width="10" height="10" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+                <svg class="site-dock-chat-glyph-restore" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M5.5 5.5V3h7.5v7.5h-2.5" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="none"/><rect x="3" y="5.5" width="7.5" height="7.5" rx="1" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>
+            </button>
             <button type="button" class="site-dock-chat-btn" data-dock-chat-close aria-label="{% trans 'Close' %}" title="{% trans 'Close' %}">
-                <i class="fas fa-xmark" aria-hidden="true"></i>
+                <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>
             </button>
         </header>
         <iframe class="site-dock-chat-frame" data-dock-chat-frame title="{% trans 'Chat' %}"></iframe>

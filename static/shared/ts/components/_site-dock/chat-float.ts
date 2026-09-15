@@ -27,6 +27,36 @@ export function embedUrl(path: string, title: string): string {
   return `${CHAT_URL}?${qs.toString()}`;
 }
 
+const MAX_W = 1100;
+const MAX_H = 900;
+
+export function toggleMaximized(maximized: boolean): boolean {
+  return !maximized;
+}
+
+/** Maximized: nearly the whole viewport on the dock's free side, centred on desktop. */
+export function maximizedRect(
+  dock: Rect,
+  vp: { width: number; height: number },
+): Rect {
+  const above = dock.top - GAP - MARGIN;
+  const below = vp.height - (dock.top + dock.height) - GAP - MARGIN;
+  const placeAbove = above >= below;
+  const room = Math.max(160, placeAbove ? above : below);
+  const areaTop = placeAbove ? MARGIN : dock.top + dock.height + GAP;
+  const phone = vp.width <= PHONE_MAX;
+  const width = phone
+    ? vp.width - 2 * MARGIN
+    : Math.min(MAX_W, vp.width - 2 * MARGIN);
+  const height = phone ? room : Math.min(MAX_H, room);
+  return {
+    left: Math.round((vp.width - width) / 2),
+    top: Math.round(areaTop + (room - height) / 2),
+    width,
+    height,
+  };
+}
+
 /** The panel sits just above the dock (below it when the dock is near the top). */
 export function panelRect(
   dock: Rect,

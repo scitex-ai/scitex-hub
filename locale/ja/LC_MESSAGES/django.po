@@ -6323,3 +6323,39 @@ msgstr "このアプリを作る"
 #: apps/workspace/apps_app/templates/apps_app/partials/launcher_planned_sheet.html
 msgid "You'll be credited as author"
 msgstr "作った人は著者として表示されます"
+
+#: templates/global_base_partials/site_dock.html
+msgid "Minimize"
+msgstr "最小化"
+
+#: templates/global_base_partials/site_dock.html
+msgid "Maximize"
+msgstr "最大化"
+
+#: templates/global_base_partials/site_dock.html
+msgid "Restore"
+msgstr "元に戻す"
+
+#: templates/global_base_partials/workspace_chat_pane.html
+msgid "You can ask about this page or your project"
+msgstr "この画面やプロジェクトについて質問できます"
+
+#: templates/global_base_partials/workspace_chat_pane.html
+msgid "How do I use this page?"
+msgstr "今いるページの使い方を教えて"
+
+#: templates/global_base_partials/workspace_chat_pane.html
+msgid "What can I do with SciTeX Cloud?"
+msgstr "SciTeX Cloudで何ができる？"
+
+#: templates/global_base_partials/workspace_chat_pane.html
+msgid "Summarise project A"
+msgstr "プロジェクトAを要約して"
+
+#: templates/global_base_partials/workspace_chat_pane.html
+msgid "What are the latest results of project A?"
+msgstr "プロジェクトAの最新の結果を教えて"
+
+#: templates/global_base_partials/workspace_chat_pane.html
+msgid "Where was that data?"
+msgstr "あのデータどこにあったっけ？"

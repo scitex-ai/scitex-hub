@@ -1,4 +1,4 @@
-{% load static %}
+{% load static i18n %}
 
 {% if user.is_authenticated %}
     <div class="ws-chat-pane" id="ws-chat-pane">
@@ -10,14 +10,13 @@
                          alt="SciTeX"
                          class="chat-welcome-logo" />
                 </div>
-                <p class="chat-welcome-tagline">Ask anything about Scientific Research</p>
             </div>
             <div class="chat-welcome-input-area">
                 <div class="chat-welcome-input-box">
                     <textarea id="chat-welcome-input"
                               class="chat-welcome-input"
-                              rows="3"
-                              placeholder="How can I help you today?"
+                              rows="6"
+                              placeholder="{% trans 'You can ask about this page or your project' %}&#10;・{% trans 'How do I use this page?' %}&#10;・{% trans 'What can I do with SciTeX Cloud?' %}&#10;・{% trans 'Summarise project A' %}&#10;・{% trans 'What are the latest results of project A?' %}&#10;・{% trans 'Where was that data?' %}"
                               autocomplete="off">{{ request.GET.prompt|default:""|truncatechars:500 }}</textarea>
                     <div class="chat-welcome-input-actions">
                         <button class="chat-welcome-attach" title="Attach file">

@@ -95,6 +95,50 @@
   height: 120px;
   border-radius: 50%;
   transition: transform 300ms ease;
+  animation: chat-logo-breathe 3.5s ease-in-out infinite;
+}
+
+@keyframes chat-logo-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(26, 42, 64, 0.18);
+  }
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 0 22px 6px rgba(26, 42, 64, 0.22);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-welcome-logo,
+  .chat-welcome-logo-glow {
+    animation: none;
+  }
+}
+
+/* Embedded floating panel or a short viewport: a small logo, none when cramped. */
+@media (max-height: 560px), (max-width: 640px) {
+  .chat-welcome {
+    gap: 16px;
+    padding-block: 16px;
+  }
+
+  .chat-welcome-logo-glow {
+    width: 72px;
+    height: 72px;
+  }
+
+  .chat-welcome .chat-welcome-logo {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+@media (max-height: 380px) {
+  .chat-welcome-hero {
+    display: none;
+  }
 }
 
 /* Spin the logo when AI is thinking */
@@ -150,7 +194,8 @@
   line-height: 1.5;
   resize: none;
   font-family: inherit;
-  min-height: 4.5em;
+  /* six placeholder lines: the heading plus five example prompts */
+  min-height: 9em;
   max-height: 240px;
   overflow-y: auto;
 }
@@ -358,7 +403,7 @@
   }
 
   .chat-welcome-input {
-    min-height: 96px;
+    min-height: 9em;
   }
 
   .chat-messages-area {
