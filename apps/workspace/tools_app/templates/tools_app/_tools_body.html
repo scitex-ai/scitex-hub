@@ -1,0 +1,80 @@
+{% load i18n scitex_panes %}
+{% comment %}Shared by tools.html and tools_partial.html. Phones (<=640px) get "Tools | <tool>" tabs from scitex-ui panes.{% endcomment %}
+{% if current_project %}
+    <div id="workspace-project-config"
+         style="display: none"
+         data-project-id="{{ current_project.id }}"
+         data-username="{{ current_project.owner.username }}"
+         data-project-slug="{{ current_project.slug }}"
+         data-mode="tools"></div>
+{% endif %}
+{% trans "Tools" as tools_label %}
+{% trans "Tool" as tool_label %}
+{% scitex_panes "tools" layout="app" active="list" css_class=workspace_class %}
+{% scitex_pane "list" label=tools_label order=1 css_class="tools-nav-panel collapsible-panel" %}
+<div class="tools-nav-header">
+    <button class="panel-toggle-btn left-panel-toggle"
+            id="tools-nav-toggle"
+            title="{% trans 'Collapse tools panel' %}">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+    <span class="panel-title">{{ tools_label }}</span>
+    <span class="tools-nav-header-title"><i class="fas fa-wrench"></i> {{ tools_label }}</span>
+</div>
+<div class="tools-search-bar">
+    <span class="search-icon"><i class="fas fa-search"></i></span>
+    <input type="text"
+           enterkeyhint="search"
+           class="search-input"
+           id="searchInput"
+           placeholder="{% trans 'Search tools…' %}"
+           autocomplete="off" />
+    <span class="search-shortcut">Ctrl K</span>
+</div>
+<div class="tools-nav-list" id="tools-nav-list">
+    {% for domain in domains %}
+        <div class="tools-nav-domain">
+            <button class="tools-nav-domain-header expanded" data-domain="{{ domain.slug }}">
+                <i class="fas {{ domain.fa_icon }} tools-nav-domain-icon" aria-hidden="true"></i>
+                <span class="tools-nav-domain-name">{{ domain.name }}</span>
+                <span class="tools-nav-count">{{ domain.tools|length }}</span>
+                <i class="fas fa-chevron-right tools-nav-chevron"></i>
+            </button>
+            <div class="tools-nav-items expanded">
+                {% for tool in domain.tools %}
+                    <a class="tools-nav-item"
+                       id="tool-{{ domain.slug }}-{{ tool.slug }}"
+                       href="#{{ tool.slug }}"
+                       data-tool-url="{{ tool.bookmarklet_url }}?embed=1"
+                       data-tool-name="{{ tool.name }}"
+                       data-tool-slug="{{ tool.slug }}">
+                        <i class="fas {{ tool.fa_icon }} tools-nav-item-icon" aria-hidden="true"></i>
+                        <span class="tools-nav-item-name">{{ tool.name }}</span>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endscitex_pane %}
+<div class="panel-resizer"
+     id="tools-nav-resizer"
+     data-panel-resizer
+     data-storage-prefix="scitex-workspace-"
+     data-target=".tools-nav-panel"
+     data-direction="left"
+     data-min-width="40"
+     data-default-width="260"
+     data-storage-key="tools-nav-width"
+     data-toggle-btn="tools-nav-toggle"
+     data-collapse-key="scitex-workspace-tools-nav-collapsed"></div>
+{% scitex_pane "tool" label=tool_label order=2 css_class="tools-content-panel" %}
+<div class="tools-content-body" id="tools-content-body">
+    <div class="tools-placeholder" id="tools-placeholder">
+        <i class="fas fa-wrench"></i>
+        <p>{% trans "Select a tool from the list" %}</p>
+    </div>
+    <iframe id="tools-iframe" class="tools-iframe" src="" frameborder="0" hidden></iframe>
+</div>
+{% endscitex_pane %}
+{% endscitex_panes %}

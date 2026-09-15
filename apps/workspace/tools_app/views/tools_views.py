@@ -12,6 +12,7 @@ from django.shortcuts import render
 from apps.infra.project_app.services.project_utils import get_current_project
 
 from .tools_data import get_tool_domains
+from .tools_icons import with_icons
 
 _EMBED_BASE = "tools_app/tools/tool_embed_base.html"
 _GLOBAL_BASE = "global_base.html"
@@ -28,7 +29,7 @@ def _tool_context(request):
 
 def build_tools_context(request, current_project=None):
     """Build tools-specific context for both full page and partial views."""
-    domains = get_tool_domains()
+    domains = with_icons(get_tool_domains())
     return {
         "domains": domains,
         "total_tools": sum(len(d["tools"]) for d in domains),
