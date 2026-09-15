@@ -68,14 +68,12 @@ ENTRY_POINTS = [
 ]
 
 
-def test_provide_jobs_returns_exactly_one_spec():
-    """hub declares ONE periodic job, no more and no fewer."""
-    # Arrange
-    expected_count = 1
+def test_provide_jobs_includes_exactly_one_preview_sync_spec():
+    """Hub declares one preview sync even when other periodic jobs coexist."""
     # Act
-    jobs = provide_jobs()
+    jobs = [job for job in provide_jobs() if job.name == JOB_NAME]
     # Assert
-    assert len(jobs) == expected_count
+    assert len(jobs) == 1
 
 
 def test_job_is_named_after_the_package():
