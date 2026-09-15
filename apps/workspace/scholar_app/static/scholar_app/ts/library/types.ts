@@ -24,6 +24,7 @@ export interface LibraryPaper {
   importance_rating: number;
   personal_notes: string;
   tags: string[];
+  collection_ids?: string[];
   saved_at: string;
 }
 

@@ -35,6 +35,28 @@
   }
 }
 
+/* One panel inset for every tab, so the first control starts at the same
+   x/y under the tab bar on Search, Library and Citations. */
+.scholar-main {
+  --sch-panel-pad: 16px;
+}
+
+:root
+  .scholar-main
+  :is(.scholar-search-container, .library-toolbar, .citation-graph-container) {
+  padding: var(--sch-panel-pad) !important;
+}
+
+:root .scholar-main .search-container-full-width .input-group {
+  margin: 0 0 var(--sch-panel-pad) !important;
+  padding: 0 !important;
+}
+
+/* The tab label already says Citations. */
+:root .scholar-main .graph-input-section .graph-card__header {
+  display: none;
+}
+
 /* ── Top tabs: segmented control ─────────────────────────────── */
 :root .scholar-main .scholar-tabs {
   gap: 2px;
@@ -223,37 +245,12 @@
 /* ── Library toolbar ─────────────────────────────────────────── */
 :root .scholar-main .library-toolbar {
   gap: 8px;
-  padding: 10px 16px;
   background: transparent;
   border-bottom: 1px solid var(--sch-border);
 }
 
 :root .scholar-main .library-collection-filter {
   min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-  gap: 6px;
-}
-
-:root .scholar-main .library-collection-pill {
-  min-height: calc(var(--sch-control-h) - 6px);
-  padding: 0 14px;
-  border: 1px solid var(--sch-border);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--sch-text);
-  font-size: 13px;
-  font-weight: 500;
-}
-
-:root .scholar-main .library-collection-pill:hover {
-  border-color: var(--sch-primary);
-}
-
-:root .scholar-main .library-collection-pill.active {
-  background: var(--sch-primary);
-  border-color: var(--sch-primary);
-  color: var(--sch-on-primary);
 }
 
 :root .scholar-main .library-search-input-wrapper .library-search-input {
@@ -265,39 +262,33 @@
 }
 
 :root .scholar-main .library-filter-select {
+  width: 100%;
+  max-width: none;
   padding: 0 32px 0 12px;
+  text-overflow: ellipsis;
 }
 
-@media (max-width: 768px) {
-  :root .scholar-main .library-toolbar {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      "search search"
-      "chips sort";
-    align-items: center;
-    padding: 12px;
-  }
+/* Collection and sort are the same select, splitting row 2 equally. */
+:root .scholar-main .library-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    "search search"
+    "collection sort";
+  align-items: center;
+}
 
-  :root .scholar-main .library-search-input-wrapper {
-    grid-area: search;
-  }
+:root .scholar-main .library-search-input-wrapper {
+  grid-area: search;
+}
 
-  :root .scholar-main .library-collection-filter {
-    grid-area: chips;
-  }
+:root .scholar-main .library-collection-filter {
+  grid-area: collection;
+}
 
-  :root .scholar-main .library-collection-pill {
-    min-height: var(--sch-control-h);
-  }
-
-  :root .scholar-main .library-filter-controls {
-    grid-area: sort;
-  }
-
-  :root .scholar-main .library-filter-select {
-    max-width: 48vw;
-  }
+:root .scholar-main .library-filter-controls {
+  grid-area: sort;
+  min-width: 0;
 }
 
 /* ── Search tab: query row ───────────────────────────────────── */
@@ -308,24 +299,39 @@
   align-items: stretch;
 }
 
-:root .scholar-main .search-container-full-width .search-input {
+/* The query is a ~3-line textarea that grows with its content (JS). */
+:root .scholar-main .search-container-full-width textarea.search-input {
   width: 100%;
-  padding: 0 5.5rem 0 14px !important;
+  height: auto !important;
+  min-height: calc(3 * 1.4em + 20px) !important;
+  max-height: 40vh;
+  padding: 10px 44px 10px 14px !important;
+  line-height: 1.4;
+  resize: none;
+  overflow-y: auto;
+}
+
+:root .scholar-main .search-container-full-width .input-group {
+  align-items: start;
 }
 
 :root .scholar-main .search-container-full-width .search-btn {
   width: 7.5rem;
 }
 
-/* Badge and help sit inside the input's right edge: button + gap + inset. */
+/* Help "?" at the input's top-right; the Ctrl+K hint sits beside it. */
 :root .scholar-main .input-group .search-help-btn {
+  top: 4px;
   right: calc(7.5rem + 8px + 4px);
-  min-width: 32px;
-  min-height: 32px;
+  transform: none;
+  min-width: 36px;
+  min-height: 36px;
 }
 
 :root .scholar-main .input-group .search-shortcut-badge {
-  right: calc(7.5rem + 8px + 40px);
+  top: 12px;
+  transform: none;
+  right: calc(7.5rem + 8px + 44px);
 }
 
 :root .scholar-main .results-toolbar {
@@ -344,11 +350,6 @@
 @media (max-width: 768px) {
   :root .scholar-main .search-container-full-width .input-group {
     grid-template-columns: minmax(0, 1fr);
-    padding-top: 12px;
-  }
-
-  :root .scholar-main .search-container-full-width .search-input {
-    padding-right: 48px !important;
   }
 
   :root .scholar-main .search-container-full-width .search-btn {
@@ -362,7 +363,6 @@
   /* Help "?" stays inside the input, now on row 1 of the stack. */
   :root .scholar-main .input-group .search-help-btn {
     right: 4px;
-    top: calc(12px + var(--sch-control-h) / 2);
     min-width: 40px;
     min-height: 40px;
   }
@@ -471,9 +471,5 @@
 
   :root .scholar-main #graphSearchInput {
     grid-column: 1 / -1;
-  }
-
-  :root .scholar-main .citation-graph-container {
-    padding: 12px;
   }
 }

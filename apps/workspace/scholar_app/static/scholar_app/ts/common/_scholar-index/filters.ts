@@ -85,7 +85,7 @@ export function initializeFilters(): void {
     "saveSearch",
   ) as HTMLElement | null;
   const searchInput = document.querySelector(
-    'input[name="q"]',
+    '[name="q"]',
   ) as HTMLInputElement | null;
 
   // Toggle advanced filters

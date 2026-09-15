@@ -215,7 +215,7 @@ export function handleSourceChange(): void {
 
   // Auto-submit search if there's a query
   const searchInput = document.querySelector(
-    'input[name="q"]',
+    '[name="q"]',
   ) as HTMLInputElement | null;
   if (searchInput && searchInput.value.trim()) {
     const autoSubmitForm = document.querySelector(

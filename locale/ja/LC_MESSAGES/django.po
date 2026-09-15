@@ -6376,3 +6376,75 @@ msgstr "詳細"
 #: apps/workspace/writer_app/templates/writer_app/index_partials/main_editor.html
 msgid "Opening manuscript…"
 msgstr "原稿を開いています…"
+
+#: apps/workspace/scholar_app/templates/scholar_app/search_partials/search.html
+msgid "Search papers"
+msgstr "論文を検索"
+
+#: apps/workspace/scholar_app/templates/scholar_app/search_partials/search.html
+msgid "e.g. hippocampus -a Smith -ymin 2020 -ymax 2024"
+msgstr "例: hippocampus -a Smith -ymin 2020 -ymax 2024"
+
+#: apps/workspace/scholar_app/templates/scholar_app/library_partials/library_main.html
+msgid "Collection"
+msgstr "コレクション"
+
+#: apps/workspace/scholar_app/templates/scholar_app/library_partials/library_main.html
+msgid "All papers"
+msgstr "すべての論文"
+
+#: apps/workspace/scholar_app/templates/scholar_app/library_partials/library_main.html
+msgid "Search papers from library"
+msgstr "ライブラリから論文を検索"
+
+#: apps/workspace/scholar_app/templates/scholar_app/library_partials/library_main.html
+msgid "Sort papers"
+msgstr "並べ替え"
+
+#: apps/workspace/scholar_app/templates/scholar_app/library_partials/library_main.html
+msgid "Newest"
+msgstr "新しい順"
+
+#: apps/workspace/scholar_app/templates/scholar_app/library_partials/library_main.html
+msgid "Oldest"
+msgstr "古い順"
+
+#: apps/workspace/scholar_app/templates/scholar_app/library_partials/library_main.html
+msgid "Most important"
+msgstr "重要度が高い順"
+
+#: apps/workspace/scholar_app/templates/scholar_app/library_partials/library_main.html
+msgid "Least important"
+msgstr "重要度が低い順"
+
+#: apps/workspace/scholar_app/templates/scholar_app/library_partials/library_main.html
+msgid "Year (new)"
+msgstr "出版年が新しい順"
+
+#: apps/workspace/scholar_app/templates/scholar_app/library_partials/library_main.html
+msgid "Year (old)"
+msgstr "出版年が古い順"
+
+#: apps/workspace/scholar_app/templates/scholar_app/library_partials/library_main.html
+msgid "Title A–Z"
+msgstr "タイトル A–Z"
+
+#: apps/workspace/scholar_app/templates/scholar_app/library_partials/library_main.html
+msgid "Title Z–A"
+msgstr "タイトル Z–A"
+
+#: apps/workspace/scholar_app/templates/scholar_app/library_partials/library_main.html
+msgid "No papers in your library yet"
+msgstr "ライブラリに論文がまだありません"
+
+#: apps/workspace/scholar_app/templates/scholar_app/library_partials/library_main.html
+msgid "Start by importing papers from BibTeX or adding them manually"
+msgstr "BibTeX から論文をインポートするか、手動で追加してください"
+
+#: apps/workspace/scholar_app/templates/scholar_app/library_partials/library_main.html
+msgid "No matching papers"
+msgstr "一致する論文がありません"
+
+#: apps/workspace/scholar_app/templates/scholar_app/library_partials/library_main.html
+msgid "Try adjusting your search or filters"
+msgstr "検索語やフィルターを変えてみてください"

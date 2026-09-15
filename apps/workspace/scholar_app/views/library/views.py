@@ -48,7 +48,7 @@ def api_library_papers(request):
             entries = (
                 UserLibrary.objects.filter(user=request.user)
                 .select_related("paper")
-                .prefetch_related("paper__authors")
+                .prefetch_related("paper__authors", "collections")
                 .order_by("-saved_at")
             )
             papers = []
@@ -81,6 +81,7 @@ def api_library_papers(request):
                         "importance_rating": entry.importance_rating,
                         "personal_notes": entry.personal_notes,
                         "tags": entry.tags,
+                        "collection_ids": [str(c.id) for c in entry.collections.all()],
                         "saved_at": (
                             entry.saved_at.isoformat() if entry.saved_at else None
                         ),

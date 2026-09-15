@@ -4,7 +4,7 @@
  * Supports card/table view modes and keyboard navigation
  */
 
-import { LibraryPaper, UpdatePaperData } from "./types";
+import { API, LibraryPaper, UpdatePaperData } from "./types";
 import { LibraryAPI } from "./_api";
 import { LibraryFilters } from "./_filters";
 import { LibraryRenderers } from "./_renderers";
@@ -14,9 +14,11 @@ class LibraryManager {
   private selectedPaperId: string | null = null;
   private activeStatusFilter: string | null = null;
   private searchQuery: string = "";
+  private activeCollection: string = "all";
 
   async initialize(): Promise<void> {
     await this.fetchPapers();
+    void this.loadCollections();
     this.renderStats();
     this.applyFilters();
     this.renderPaperList();
@@ -64,11 +66,42 @@ class LibraryManager {
   }
 
   private applyFilters(): void {
+    const inCollection =
+      this.activeCollection === "all"
+        ? this.papers
+        : this.papers.filter((p) =>
+            p.collection_ids?.includes(this.activeCollection),
+          );
     this.filteredPapers = LibraryFilters.applyFilters(
-      this.papers,
+      inCollection,
       this.activeStatusFilter,
       this.searchQuery,
     );
+  }
+
+  private async loadCollections(): Promise<void> {
+    const select = document.getElementById(
+      "library-collection-select",
+    ) as HTMLSelectElement | null;
+    if (!select) return;
+    select.addEventListener("change", () => {
+      this.activeCollection = select.value;
+      this.applyFilters();
+      this.renderPaperList();
+    });
+    try {
+      const res = await fetch(API.collections, { credentials: "same-origin" });
+      if (!res.ok) return;
+      const data = await res.json();
+      for (const c of data.collections || []) {
+        const opt = document.createElement("option");
+        opt.value = String(c.id);
+        opt.textContent = c.name;
+        select.appendChild(opt);
+      }
+    } catch (error) {
+      console.error("Failed to load collections:", error);
+    }
   }
 
   private renderPaperList(): void {

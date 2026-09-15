@@ -41,7 +41,7 @@ function initTabs(): void {
     if (targetTab === "search") {
       setTimeout((): void => {
         const searchInput = document.querySelector<HTMLInputElement>(
-          '#search-tab input[name="q"]',
+          '#search-tab [name="q"]',
         );
         if (searchInput) {
           searchInput.focus();
@@ -98,7 +98,7 @@ function initTabs(): void {
 
   // Enable Enter key to submit search form
   const searchInput: HTMLInputElement | null = document.querySelector(
-    '#search-tab input[name="q"]',
+    '#search-tab [name="q"]',
   );
   const searchForm: HTMLFormElement | null = document.getElementById(
     "literatureSearchForm",

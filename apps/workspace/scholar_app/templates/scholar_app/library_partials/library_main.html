@@ -1,39 +1,53 @@
-{% load static %}
+{% load static i18n %}
 
 <!-- Hidden file input for BibTeX import (referenced by JS) -->
 <input type="file" id="bibtex-file-input" accept=".bib" hidden />
-<!-- Unified toolbar: collection filter + search + sort -->
+<!-- Unified toolbar: search, then collection + sort selects -->
 <div class="library-toolbar">
-    <div class="library-collection-filter" id="library-collection-filter">
-        <button class="library-collection-pill active" data-collection="all">All</button>
-        <!-- Additional collections loaded via JS -->
+    <div class="library-collection-filter">
+        <!-- The user's collections are appended by _library-manager.ts -->
+        <select class="library-filter-select"
+                id="library-collection-select"
+                aria-label="{% trans 'Collection' %}"
+                title="{% trans 'Collection' %}">
+            <option value="all">{% trans "All papers" %}</option>
+        </select>
     </div>
     <div class="library-search-input-wrapper">
         <i class="fas fa-search library-search-icon"></i>
         <input type="text"
                class="library-search-input"
                id="library-search-input"
-               placeholder="Search papers..." />
+               placeholder="{% trans 'Search papers from library' %}" />
         <button class="library-search-clear" id="library-search-clear" hidden>
             <i class="fas fa-times"></i>
         </button>
     </div>
     <div class="library-filter-controls">
-        <select class="library-filter-select" id="library-sort-select">
-            <option value="date_added_desc">Date Added (Newest)</option>
-            <option value="date_added_asc">Date Added (Oldest)</option>
-            <option value="importance_desc">Importance (High to Low)</option>
-            <option value="importance_asc">Importance (Low to High)</option>
-            <option value="year_desc">Publication Year (Newest)</option>
-            <option value="year_asc">Publication Year (Oldest)</option>
-            <option value="title_asc">Title (A-Z)</option>
-            <option value="title_desc">Title (Z-A)</option>
+        <!-- Short labels so the selected option fits the phone toolbar. -->
+        <select class="library-filter-select"
+                id="library-sort-select"
+                aria-label="{% trans 'Sort papers' %}"
+                title="{% trans 'Sort papers' %}">
+            <option value="date_added_desc">{% trans "Newest" %}</option>
+            <option value="date_added_asc">{% trans "Oldest" %}</option>
+            <option value="importance_desc">{% trans "Most important" %}</option>
+            <option value="importance_asc">{% trans "Least important" %}</option>
+            <option value="year_desc">{% trans "Year (new)" %}</option>
+            <option value="year_asc">{% trans "Year (old)" %}</option>
+            <option value="title_asc">{% trans "Title A–Z" %}</option>
+            <option value="title_desc">{% trans "Title Z–A" %}</option>
         </select>
     </div>
 </div>
 <!-- Paper List -->
 <div class="library-papers-container">
-    <div class="library-papers-list" id="library-papers-list">
+    <div class="library-papers-list"
+         id="library-papers-list"
+         data-empty-title="{% trans 'No papers in your library yet' %}"
+         data-empty-description="{% trans 'Start by importing papers from BibTeX or adding them manually' %}"
+         data-empty-filtered-title="{% trans 'No matching papers' %}"
+         data-empty-filtered-description="{% trans 'Try adjusting your search or filters' %}">
         <!-- Loading spinner -->
         <div class="library-loading" id="library-loading">
             <i class="fas fa-spinner fa-spin"></i>
@@ -42,8 +56,8 @@
         <!-- Empty state -->
         <div class="library-empty-state" id="library-empty-state" hidden>
             <i class="fas fa-books"></i>
-            <div class="library-empty-title">No papers in your library</div>
-            <div class="library-empty-description">Import a BibTeX file or add papers from the Search tab to get started.</div>
+            <div class="library-empty-title">{% trans "No papers in your library yet" %}</div>
+            <div class="library-empty-description">{% trans "Start by importing papers from BibTeX or adding them manually" %}</div>
         </div>
         <!-- Paper cards loaded via JS -->
     </div>
