@@ -10,6 +10,8 @@ import requests
 from django.http import JsonResponse
 from django.utils import timezone
 
+from apps.infra.public_app.services.credential_health import run_credential_preflight
+
 from ..compute_resources import check_container_runtime_status, check_slurm_status
 from ..health_checks import (
     check_api_services,
@@ -69,6 +71,7 @@ def server_health_status_api(request):
         check_slurm_status(status_data)
         check_container_runtime_status(status_data)
         check_user_data_permissions(status_data)
+        status_data["credential_health"] = run_credential_preflight()
         # The anonymous-visitor product path. Every other check above was green
         # for ~1h35m on 2026-08-16 while all 16 visitor slots sat quarantined
         # and every visitor silently got the shared readonly account. Read-only:
@@ -87,16 +90,18 @@ def server_health_status_api(request):
         # Build issues list from non-healthy services
         issues = _build_issues_list(status_data)
 
-        # Build response
-        return JsonResponse(
-            {
-                "status": overall_status,
-                "color": color,
-                "timestamp": timezone.now().isoformat(),
-                "issues": issues,
-                "services": _build_services_dict(status_data),
-            }
-        )
+        # Build response. Credential detail is staff-only; public output remains
+        # a generic aggregate and cannot reveal which secret failed.
+        payload = {
+            "status": overall_status,
+            "color": color,
+            "timestamp": timezone.now().isoformat(),
+            "issues": issues,
+            "services": _build_services_dict(status_data),
+        }
+        if getattr(getattr(request, "user", None), "is_staff", False):
+            payload["credentials"] = status_data["credential_health"]
+        return JsonResponse(payload)
     except Exception:
         logger.exception("Error in server_health_status_api")
         return JsonResponse(
@@ -162,6 +167,9 @@ def _determine_overall_health(status_data: dict) -> tuple[str, str]:
     elif visitor_pool.get("health_class") == "warning":
         has_warnings = True
 
+    if status_data.get("credential_health", {}).get("overall") == "unhealthy":
+        has_errors = True
+
     # Determine final status
     if has_errors:
         return "error", "#ef4444"
@@ -225,6 +233,9 @@ def _build_services_dict(status_data: dict) -> dict:
         "visitor_pool_total": status_data.get("visitor_pool", {}).get("total"),
         "visitor_pool_quarantined": status_data.get("visitor_pool", {}).get(
             "quarantined"
+        ),
+        "credential_health": status_data.get("credential_health", {}).get(
+            "overall", "unknown"
         ),
     }
 
@@ -360,6 +371,15 @@ def _build_issues_list(status_data: dict) -> list[dict]:
                     "Visitor pool degraded; readonly-visitor access may be unavailable. "
                     "Run `python manage.py reconcile_visitor_slots --repair-only`."
                 ),
+            }
+        )
+
+    if status_data.get("credential_health", {}).get("overall") == "unhealthy":
+        issues.append(
+            {
+                "service": "Internal service",
+                "level": "error",
+                "message": "Internal service authentication is unavailable",
             }
         )
 
