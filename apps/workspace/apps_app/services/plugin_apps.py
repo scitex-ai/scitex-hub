@@ -41,7 +41,14 @@ def _route_taken(route: str, existing) -> bool:
 def plugin_urlpatterns(existing) -> list:
     """One ``include()`` per plugin, skipping routes the hub already serves."""
     from django.urls import include, path
-    from scitex_app.plugins import mount_route
+
+    try:
+        from scitex_app.plugins import mount_route  # type: ignore[import-not-found]
+    except ImportError:
+        # scitex-app is an optional integration surface. Released wheels that
+        # predate the plugin API must still boot the Hub; no discovered plugin
+        # means there is nothing to mount.
+        return []
 
     patterns = []
     for config in _configs():
