@@ -10,7 +10,10 @@ let pending: Promise<any> | null = null;
 let releaseScheduled = false;
 
 function start(): Promise<any> {
-  const request = fetch(URL).then((response) => response.json());
+  const early = (window as any).__writerSectionsConfig as
+    Promise<any> | undefined;
+  (window as any).__writerSectionsConfig = undefined;
+  const request = early || fetch(URL).then((response) => response.json());
   pending = request;
   releaseScheduled = false;
   request.catch(() => {

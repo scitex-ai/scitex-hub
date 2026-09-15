@@ -169,6 +169,12 @@
       },
       csrfToken: '{{ csrf_token }}'
   };
+  // Queue the section list ahead of ~150 bundle/static requests; the dev
+  // server answers them one at a time and the first section load waits on it.
+  if (window.WRITER_CONFIG.writerInitialized) {
+      window.__writerSectionsConfig = fetch("/apps/writer/api/sections-config/", {credentials: "same-origin"}).then(function (r) { return r.json(); });
+      window.__writerSectionsConfig.catch(function () {});
+  }
 
   // Inject project context into global AI panel
   document.addEventListener("DOMContentLoaded", () => {
