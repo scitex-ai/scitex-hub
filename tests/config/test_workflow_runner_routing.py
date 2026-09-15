@@ -51,7 +51,7 @@ def _self_hosted_pr_jobs():
             checks_out = any(
                 "actions/checkout" in str(step.get("uses", "")) for step in steps
             )
-            if "self-hosted" in runs_on and checks_out:
+            if ("self-hosted" in runs_on or "scitex-docker" in runs_on) and checks_out:
                 yield pytest.param(path.name, key, job, id=f"{path.name}::{key}")
 
 
@@ -89,6 +89,31 @@ def test_fork_guard_is_the_first_step(filename, key, job):
     # Assert
     assert FORK_PREDICATE in guard_if and "runner.environment == 'self-hosted'" in guard_if, (
         f"{filename}::{key} must refuse fork code on self-hosted before checkout."
+    )
+
+
+DOCKER_JOBS = [p for p in SELF_HOSTED_PR_JOBS if "scitex-docker" in str(p.values[2]["runs-on"])]
+
+
+def test_the_docker_scan_found_the_suites():
+    # Arrange
+    jobs = DOCKER_JOBS
+    # Act
+    count = len(jobs)
+    # Assert
+    assert count >= 3, f"only {count} scitex-docker jobs found; the scan is vacuous"
+
+
+@pytest.mark.parametrize("filename,key,job", DOCKER_JOBS)
+def test_docker_jobs_run_in_a_non_root_job_container(filename, key, job):
+    # Arrange
+    container = job.get("container") or {}
+    # Act
+    image, options = str(container.get("image", "")), str(container.get("options", ""))
+    # Assert
+    assert "buildpack-deps" in image and "--user 1000:1000" in options, (
+        f"{filename}::{key} runs on a persistent scitex-docker host outside a "
+        "non-root job container, so the suite can read the runner user's $HOME."
     )
 
 

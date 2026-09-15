@@ -43,6 +43,7 @@ Exit codes are deliberate and not overloaded: 0 success, 1 a real failure
 """
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -64,8 +65,15 @@ def compile_catalog(po_path: Path) -> Path:
     mo_path = po_path.with_suffix(".mo")
     with po_path.open("r", encoding="utf-8") as handle:
         catalog = read_po(handle, locale=po_path.parent.parent.name)
-    with mo_path.open("wb") as handle:
-        write_mo(handle, catalog)
+    # Write-then-rename: a reader (a parallel test worker, a running server)
+    # must never open a truncated .mo, which gettext rejects with struct.error.
+    tmp_path = mo_path.with_name(f".{mo_path.name}.{os.getpid()}.tmp")
+    try:
+        with tmp_path.open("wb") as handle:
+            write_mo(handle, catalog)
+        os.replace(tmp_path, mo_path)
+    finally:
+        tmp_path.unlink(missing_ok=True)
     return mo_path
 
 
