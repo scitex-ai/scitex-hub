@@ -62,11 +62,11 @@ _REPO_BROWSE_RE = re.compile(
     r"^/[^/]+/[^/]+/(?:" + "|".join(REPO_BROWSE_SEGMENTS) + r")(?:/|$)"
 )
 
-#: Hub launcher mount (``config/urls.py``: ``path("apps/home/", ...)``).
+#: Hub launcher mount (``config/urls.py``: ``path("apps/my-projects/", ...)``).
 HUB_INDEX_PATH = "/apps/home"
 
 #: The query parameter the crawl enumerates sequentially
-#: (``/apps/home/?project=NNNNN``). NOTHING in the hub reads it — the
+#: (``/apps/my-projects/?project=NNNNN``). NOTHING in the hub reads it — the
 #: launcher resolves the current project from the session and the user's
 #: profile (``get_current_project``), never from ``request.GET``. So a
 #: numeric ``?project=`` is a probe by construction, not a deep link any
@@ -84,9 +84,9 @@ def is_repo_browse_path(path: str) -> bool:
 
 
 def is_hub_project_enumeration(path: str, query_params) -> bool:
-    """True for ``/apps/home/?project=<numeric-id>`` — the enumeration probe.
+    """True for ``/apps/my-projects/?project=<numeric-id>`` — the enumeration probe.
 
-    A bare ``/apps/home/`` is the hero CTA, the one deliberate "enter the
+    A bare ``/apps/my-projects/`` is the hero CTA, the one deliberate "enter the
     workspace" click, and MUST keep allocating. Only the numeric
     ``?project=`` form is exempt.
     """

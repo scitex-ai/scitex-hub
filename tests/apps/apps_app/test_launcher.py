@@ -246,7 +246,7 @@ class LauncherHomeTest(TestCase):
 
     def test_old_home_stays_reachable_at_apps_home(self):
         # Arrange
-        url = "/apps/home/"
+        url = "/apps/my-projects/"
         # Act
         resp = self.client.get(url)
         # Assert
@@ -452,7 +452,7 @@ class DefaultPinSeedTest(TestCase):
         # Act
         pinned = get_pinned_module_names(user)
         # Assert
-        assert "home" not in pinned
+        assert "my_projects" not in pinned
 
     def test_default_pins_follow_the_curated_launcher_order(self):
         # Arrange — sidebar and launcher grid must agree on which apps lead.
@@ -471,7 +471,7 @@ class DefaultPinSeedTest(TestCase):
         expected = [
             name
             for name in DEFAULT_LAUNCHER_ORDER
-            if name != "home" and name in registered and name not in hidden
+            if name != "my_projects" and name in registered and name not in hidden
         ][:MAX_PINNED_MODULES]
         # Act
         pinned = get_pinned_module_names(self.user)

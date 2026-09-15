@@ -414,7 +414,7 @@ def visitor_mobile_page(visitor_mobile_context):
 
         Captures the cookie jar, the sessionid specifically, page.url and the
         rendered session role. The curl probe already proved the server holds
-        a session across /apps/home/ -> /chat/ -> / for a logged-in user, so
+        a session across /apps/my-projects/ -> /chat/ -> / for a logged-in user, so
         these snapshots localize WHERE the mobile profile is logged out.
         """
         cookies = page.context.cookies()

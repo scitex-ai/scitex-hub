@@ -37,19 +37,19 @@ class PlannedAppTileTest(TestCase):
         # Arrange
         url = "/apps/"
         # Act
-        tile = _planned_tile(self.client.get(url).content.decode("utf-8"), "mail")
+        tile = _planned_tile(self.client.get(url).content.decode("utf-8"), "grant-writer")
         # Assert
         assert "launcher-badge-coming-soon" in tile
 
     def test_placeholder_is_hidden_once_a_real_app_has_its_id(self):
         # Arrange
         AppsModule.objects.create(
-            module_name="scitex-mail-app", label="Mail", visibility="public"
+            module_name="scitex-grant-writer-app", label="Grant Writer", visibility="public"
         )
         # Act
         content = self.client.get("/apps/").content.decode("utf-8")
         # Assert
-        assert _planned_tile(content, "mail") == ""
+        assert _planned_tile(content, "grant-writer") == ""
 
     def test_create_app_stays_the_last_work_tile_after_the_placeholders(self):
         # Arrange
@@ -78,11 +78,11 @@ class PlannedAppInterestTest(TestCase):
 
     def test_notify_me_is_recorded_once_per_user(self):
         # Arrange
-        record_planned_app_interest(self.user, "slides", "notify")
+        record_planned_app_interest(self.user, "grant-writer", "notify")
         # Act
-        record_planned_app_interest(self.user, "slides", "notify")
+        record_planned_app_interest(self.user, "grant-writer", "notify")
         # Assert
-        assert PlannedAppInterest.objects.filter(user=self.user, app_id="slides").count() == 1
+        assert PlannedAppInterest.objects.filter(user=self.user, app_id="grant-writer").count() == 1
 
     def test_notify_and_build_are_separate_interests(self):
         # Arrange

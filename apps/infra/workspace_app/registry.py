@@ -100,7 +100,7 @@ class ModuleConfig:
     # This comment used to say comms "lives in the left sidebar at /chat/".
     # It does not, and that sentence cost the site a page: comms is the
     # real-time MESSAGING app at /apps/comms/, while /chat/ is the LLM
-    # welcome pane dispatched by repo_app.views.dispatch.root_dispatch.
+    # welcome pane dispatched by my_projects_app.views.dispatch.root_dispatch.
     # They are different surfaces, and /chat/ has no registry entry at
     # all — so its absence from the launcher grid was never a decision
     # anyone made, it just followed from a mistaken identity.
@@ -189,7 +189,7 @@ _APPS_ROOT = Path(__file__).resolve().parent.parent.parent  # project root / app
 
 # (manifest_path_relative_to_apps_root, )
 _BUILTIN_MANIFEST_PATHS: list[str] = [
-    "workspace/repo_app/manifest.json",
+    "workspace/my_projects_app/manifest.json",
     "workspace/writer_app/manifest.json",
     "workspace/scholar_app/manifest.json",
     "workspace/figrecipe_app/manifest.json",
@@ -201,8 +201,7 @@ _BUILTIN_MANIFEST_PATHS: list[str] = [
     # (fa-wrench, full tool set, same /apps/tools/ URL); public_app is the
     # public/landing-page infra app and must not double-register as a
     # duplicate workspace module — that broke get_all_modules() uniqueness.
-    "workspace/discovery_app/manifest.json",
-    "workspace/slides_app/manifest.json",
+    "workspace/public_projects_app/manifest.json",
     "workspace/docs_app/manifest.json",
     "workspace/apps_app/manifest.json",
     "workspace/console_app/manifest.json",
@@ -427,7 +426,7 @@ def is_workspace_path(path: str) -> bool:
 def extract_module_from_path(path: str) -> Optional[str]:
     """Extract module name from URL path. Returns None if not a module path."""
     if path == "/":
-        return "home"
+        return "my_projects"
     for mod in sorted(_registry, key=lambda m: len(m.get_url()), reverse=True):
         if path.startswith(mod.get_url()):
             return mod.name

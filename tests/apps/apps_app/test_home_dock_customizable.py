@@ -68,11 +68,11 @@ class CustomisableDockTest(TestCase):
         # Act
         dock = get_dock_apps(user)
         # Assert
-        assert dock == ["launcher", "home", "chat", "store"]
+        assert dock == ["launcher", "my_projects", "chat", "store"]
 
     def test_the_default_dock_is_what_the_dock_renders(self):
         # Arrange
-        url = "/apps/discovery/"
+        url = "/apps/public-projects/"
         # Act
         response = self.client.get(url)
         # Assert
@@ -96,10 +96,10 @@ class CustomisableDockTest(TestCase):
 
     def test_the_dock_order_persists_through_the_api(self):
         # Arrange
-        dock = ["scholar", "launcher", "home"]
+        dock = ["scholar", "launcher", "my_projects"]
         _post_dock(self.client, dock)
         # Act
-        response = self.client.get("/apps/home/")
+        response = self.client.get("/apps/my-projects/")
         # Assert
         assert _rendered_dock_apps(response) == dock
 
@@ -108,13 +108,13 @@ class CustomisableDockTest(TestCase):
         _post_dock(self.client, ["launcher", "scholar"])
         # Act
         self.client.force_login(self.other_user)
-        response = self.client.get("/apps/home/")
+        response = self.client.get("/apps/my-projects/")
         # Assert
         assert _rendered_dock_apps(response) == list(DEFAULT_DOCK_APPS)
 
     def test_an_app_dragged_into_the_dock_leaves_the_grid(self):
         # Arrange
-        _post_dock(self.client, ["launcher", "home", "scholar"])
+        _post_dock(self.client, ["launcher", "my_projects", "scholar"])
         # Act
         response = self.client.get("/apps/")
         # Assert
@@ -122,7 +122,7 @@ class CustomisableDockTest(TestCase):
 
     def test_an_app_dragged_out_of_the_dock_returns_to_the_grid(self):
         # Arrange
-        _post_dock(self.client, ["launcher", "home", "store"])
+        _post_dock(self.client, ["launcher", "my_projects", "store"])
         # Act
         response = self.client.get("/apps/")
         # Assert
@@ -130,7 +130,7 @@ class CustomisableDockTest(TestCase):
 
     def test_the_api_refuses_more_apps_than_the_dock_holds(self):
         # Arrange
-        too_many = ["launcher", "home", "chat", "store", "scholar", "writer"]
+        too_many = ["launcher", "my_projects", "chat", "store", "scholar", "writer"]
         # Act
         response = _post_dock(self.client, too_many[: DOCK_CAPACITY + 1])
         # Assert
@@ -138,7 +138,7 @@ class CustomisableDockTest(TestCase):
 
     def test_a_dock_at_capacity_is_accepted(self):
         # Arrange
-        full = ["launcher", "home", "chat", "store", "scholar", "writer"]
+        full = ["launcher", "my_projects", "chat", "store", "scholar", "writer"]
         # Act
         response = _post_dock(self.client, full[:DOCK_CAPACITY])
         # Assert
@@ -146,7 +146,7 @@ class CustomisableDockTest(TestCase):
 
     def test_a_refused_dock_is_not_saved(self):
         # Arrange
-        too_many = ["launcher", "home", "chat", "store", "scholar", "writer"]
+        too_many = ["launcher", "my_projects", "chat", "store", "scholar", "writer"]
         # Act
         _post_dock(self.client, too_many[: DOCK_CAPACITY + 1])
         # Assert
@@ -162,7 +162,7 @@ class CustomisableDockTest(TestCase):
 
     def test_the_api_refuses_an_app_listed_twice(self):
         # Arrange
-        dock = ["launcher", "home", "home"]
+        dock = ["launcher", "my_projects", "my_projects"]
         # Act
         response = _post_dock(self.client, dock)
         # Assert
@@ -170,7 +170,7 @@ class CustomisableDockTest(TestCase):
 
     def test_the_api_keeps_home_in_the_dock(self):
         # Arrange
-        dock = ["home", "chat"]
+        dock = ["my_projects", "chat"]
         # Act
         response = _post_dock(self.client, dock)
         # Assert

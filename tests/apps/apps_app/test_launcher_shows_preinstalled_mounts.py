@@ -72,7 +72,7 @@ def test_a_plain_users_first_row_is_the_infrastructure_row():
     # Act
     first_row = _tile_names(username, is_staff=False)[:4]
     # Assert
-    assert first_row == ["home", "discovery", "agents", "todo"]
+    assert first_row == ["my_projects", "public_projects", "agents", "todo"]
 
 
 # EOF

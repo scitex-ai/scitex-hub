@@ -38,7 +38,11 @@ export function buildNavUrl(
     return `/apps/workspace/${state.module}/`;
   }
   if (pathname.startsWith("/apps/") || pathname.startsWith("/workspace/")) {
-    return `/apps/${state.module}/`;
+    const routeSlugs: Record<string, string> = {
+      my_projects: "my-projects",
+      public_projects: "public-projects",
+    };
+    return `/apps/${routeSlugs[state.module] ?? state.module}/`;
   }
   if (projectBase && pathname.startsWith(projectBase)) {
     if (!state.file) return pathname + search;

@@ -54,7 +54,7 @@ def _compiled_catalogs():
 
 def test_my_projects_is_captioned_projects_in_the_dock():
     # Arrange
-    item = DockItem(key="home", label="My Projects", icon="", url="/apps/home/")
+    item = DockItem(key="my_projects", label="My Projects", icon="", url="/apps/my-projects/")
     # Act
     caption = item.caption
     # Assert

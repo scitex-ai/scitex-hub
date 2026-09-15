@@ -137,7 +137,7 @@
                             </div>
                         </div>
                         <!-- My Projects (operator TODO 49: "Projects" -> "My Projects") -->
-                        <a href="/apps/home/" class="dropdown-item" data-nav="my-projects">
+                        <a href="/apps/my-projects/" class="dropdown-item" data-nav="my-projects">
                             <svg class="dropdown-item-icon"
                                  width="16"
                                  height="16"
@@ -272,11 +272,11 @@
                 <span>@{{ user.username }}</span>
             </div>
             <div class="mobile-menu-divider"></div>
-            <a href="/apps/home/" class="mobile-menu-item" data-nav="my-projects">
+            <a href="/apps/my-projects/" class="mobile-menu-item" data-nav="my-projects">
                 <i aria-hidden="true" class="fas fa-folder"></i>
                 <span>{% trans "My Projects" context "app name" %}</span>
             </a>
-            <a href="/apps/discovery/" class="mobile-menu-item" data-nav="public-projects">
+            <a href="/apps/public-projects/" class="mobile-menu-item" data-nav="public-projects">
                 <i aria-hidden="true" class="fas fa-globe"></i>
                 <span>{% trans "Public Projects" context "app name" %}</span>
             </a>

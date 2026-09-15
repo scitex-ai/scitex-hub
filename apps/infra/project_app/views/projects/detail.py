@@ -65,7 +65,7 @@ def project_detail(request, username, slug):
 
         is_org_context = Organization.objects.filter(slug=username).exists()
 
-        from apps.workspace.repo_app.views.index import build_hub_context
+        from apps.workspace.my_projects_app.views.index import build_hub_context
 
         context = build_hub_context(
             request, current_project=project, include_file_browser=True
@@ -73,7 +73,7 @@ def project_detail(request, username, slug):
         if is_org_context:
             context["is_org_context"] = True
             context["org_slug"] = username
-        return render(request, "repo_app/index.html", context)
+        return render(request, "my_projects_app/index.html", context)
 
     # NOTE: an unauthenticated `?port=` branch used to live here and forwarded
     # the request to http://127.0.0.1:<port> (CodeQL py/partial-ssrf #9385,
@@ -255,7 +255,7 @@ def render_project_tree(request, project, username, **tree_kwargs):
     standalone page: the workspace shell itself is a signed-in surface.
     """
     if request.user.is_authenticated:
-        from apps.workspace.repo_app.views.index import render_project_tree_ui
+        from apps.workspace.my_projects_app.views.index import render_project_tree_ui
 
         return render_project_tree_ui(
             request, project, url_owner=username, **tree_kwargs

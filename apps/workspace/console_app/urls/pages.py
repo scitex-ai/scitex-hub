@@ -27,7 +27,7 @@ urlpatterns = [
         name="user_default_workspace",
     ),
     # Console index — workspace shell with the console module active
-    # (same pattern as discovery_app). The old RedirectView to /writer/
+    # (same pattern as public_projects_app). The old RedirectView to /writer/
     # sent the launcher's Console tile to the Writer app (nav-404 batch #1).
     path("", workspace_shell, {"module": "console"}, name="index"),
     # Landing pages

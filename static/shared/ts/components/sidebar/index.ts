@@ -87,7 +87,7 @@ class WorkspaceSidebar {
     const trackModule =
       urlModule || document.body.getAttribute("data-track-module");
 
-    if (trackModule === "home" && path === "/") {
+    if (trackModule === "my_projects" && path === "/") {
       // Root "/" renders the Hub (Gitea-style dashboard) in the module pane.
       // Activate it so the hub content is visible instead of falling through
       // to the last-used core pane (which would hide the hub content).

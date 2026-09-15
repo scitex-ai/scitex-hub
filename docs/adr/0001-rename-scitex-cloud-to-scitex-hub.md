@@ -38,8 +38,8 @@ Rename `scitex-cloud` → `scitex-hub` end-to-end:
 2. Python module name: `scitex_cloud` → `scitex_hub`
 3. GitHub repository: `ywatanabe1989/scitex-cloud` → `ywatanabe1989/scitex-hub`
 4. Display name in docs, README, badges, screenshots: "SciTeX Cloud" → "SciTeX Hub"
-5. Sub-app: `apps/workspace/hub_app` → `apps/workspace/repo_app`
-   (to avoid the "hub_app inside scitex_hub" naming nesting; `repo_app`
+5. Sub-app: `apps/workspace/hub_app` → `apps/workspace/my_projects_app`
+   (to avoid the "hub_app inside scitex_hub" naming nesting; `my_projects_app`
    also matches its actual responsibility — a Gitea-backed repo browser).
 
 ### Migration policy

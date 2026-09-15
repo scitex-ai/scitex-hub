@@ -155,7 +155,7 @@ class HomePagesTest(TestCase):
         # Act
         names = [c.get("name") for c in groups[0]["cells"] if not c.get("is_planned")]
         # Assert
-        assert names == ["home", "agents", "todo", "storage", "files"]
+        assert names == ["my_projects", "agents", "todo", "storage", "files"]
 
     def test_files_placeholder_is_gone_once_the_files_app_exists(self):
         # Arrange
@@ -172,7 +172,7 @@ class HomePagesTest(TestCase):
         # Act
         first_row = [cell.get("name") for cell in groups[0]["cells"][:4]]
         # Assert
-        assert first_row == ["home", "agents", "todo", "storage"]
+        assert first_row == ["my_projects", "agents", "todo", "storage"]
 
     def test_missing_stats_app_is_a_coming_soon_tile_not_an_empty_cell(self):
         # Walkthrough 2026-09-14: the held Stats gap read as a broken grid.
@@ -211,13 +211,13 @@ class HomePagesTest(TestCase):
         # Assert
         assert names[:4] == ["scholar", "stats", "figrecipe", "writer"]
 
-    def test_publication_group_holds_slides_and_public_projects(self):
+    def test_publication_group_holds_public_projects_and_hides_slides(self):
         # Arrange
         groups = self._groups()
         # Act
         names = [c.get("name") for c in groups[2]["cells"] if not c.get("is_planned")]
         # Assert
-        assert names == ["slides", "discovery"]
+        assert names == ["public_projects"]
 
     def test_publication_group_holds_the_publication_placeholders(self):
         # Arrange
@@ -227,13 +227,6 @@ class HomePagesTest(TestCase):
         # Assert
         assert planned == ["live-paper", "agentic-journal"]
 
-    def test_slides_placeholder_is_gone_once_the_slides_app_exists(self):
-        # Arrange
-        groups = self._groups()
-        # Act
-        names = [c.get("name") for g in groups for c in g["cells"] if c.get("is_planned")]
-        # Assert
-        assert "slides" not in names
 
     def test_system_group_holds_settings_docs_and_app_store(self):
         # Arrange

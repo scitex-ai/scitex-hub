@@ -264,11 +264,11 @@ APP_NAMES = {
     "/apps/stats/": "Stats",
     "/apps/files/": "Files",
     "/apps/clew/": "Clew",
-    "/apps/discovery/": "Public Projects",
+    "/apps/public-projects/": "Public Projects",
     "/apps/store/": "Store",
     "/apps/docs/": "Docs",
     "/apps/tools/": "Tools",
-    "/apps/home/": "My Projects",
+    "/apps/my-projects/": "My Projects",
 }
 
 # Hub sections that are not products, but still need a stable tab label.

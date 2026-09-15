@@ -11,9 +11,9 @@ hero presents three options: an explicit "Enter as visitor" primary button
 the alternatives. The rest of the marketing landing is unchanged (operator:
 keep the existing landing).
 
-The CTA target MOVED from /apps/home/ to /enter/ (card
+The CTA target MOVED from /apps/my-projects/ to /enter/ (card
 hub-visitor-funnel-first-impression-20260730). Both provision a slot, but
-/apps/home/ renders the Gitea repository browser — deliberately, per the
+/apps/my-projects/ renders the Gitea repository browser — deliberately, per the
 approved 2026-07-07 design — so a visitor's first screen was a file listing.
 /enter/ provisions and then lands on the app launcher.
 
@@ -60,10 +60,10 @@ class LandingHeroCtaTest(TestCase):
         # disappeared entirely.
         # Act
         resp = self.client.get("/landing/")
-        # Assert — /apps/home/ keeps serving the repo browser by design
-        # (approved 2026-07-07, repo_app/views/dispatch.py:13-17), so the hero
+        # Assert — /apps/my-projects/ keeps serving the repo browser by design
+        # (approved 2026-07-07, my_projects_app/views/dispatch.py:13-17), so the hero
         # must not send a first-time visitor there.
-        assert b'href="/apps/home/" class="hero-cta-button"' not in resp.content
+        assert b'href="/apps/my-projects/" class="hero-cta-button"' not in resp.content
 
     def test_hero_cta_note_promises_only_the_free_account_and_tier(self):
         # Arrange: an anonymous visitor

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Home + site-dock screenshot set: phone and desktop, dark and light, one command.
 
-Captures /apps/, /apps/home/, /apps/discovery/ and a leaf page
+Captures /apps/, /apps/my-projects/, /apps/public-projects/ and a leaf page
 (/apps/scholar/v2/) at 390x844 (DPR 3, touch), 1280x800, 1440x900 and
 1920x1080, in dark and light, signed in as the probe user. Writes PNGs to --out
 and prints one JSON geometry probe per capture, covering what the operator
@@ -42,8 +42,8 @@ PROBE_USERNAME = "leader-probe-staff-agents"
 
 PAGES = [
     ("apps", "/apps/"),
-    ("myprojects", "/apps/home/"),
-    ("discovery", "/apps/discovery/"),
+    ("myprojects", "/apps/my-projects/"),
+    ("public_projects", "/apps/public-projects/"),
     ("scholar", "/apps/scholar/v2/"),
 ]
 SIZES = [
@@ -62,7 +62,7 @@ PROBE = """() => {
   const head = q('.launcher-section-head');
   const header = q('.global-header');
   const page = q('.launcher-page');
-  const icon = q('.launcher-tile[data-module="discovery"] .launcher-tile-icon');
+  const icon = q('.launcher-tile[data-module="public_projects"] .launcher-tile-icon');
   const globe = q('.launcher-tile-icon-badge');
   const figIcon = q('.launcher-tile[data-module="figrecipe"] .launcher-tile-icon');
   const monitor = q('.launcher-tile[data-module="figrecipe"] .launcher-badge');

@@ -25,7 +25,7 @@ came back). Neither failure mode can hide.
 
 The id is matched in its ``id="..."`` ATTRIBUTE form, not as a bare string.
 ``project-selector-text`` and ``project-selector-dropdown`` are also CLASS
-names used by an unrelated surface (repo_app/partials/user_profile_content.html),
+names used by an unrelated surface (my_projects_app/partials/user_profile_content.html),
 so the bare strings would count those too and the assertion would be about
 the wrong markup.
 

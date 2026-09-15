@@ -92,7 +92,7 @@ present), grouped into layer sub-packages:
 Each app is a directory named **`<name>_app`** (or `<name>_api` for
 API-only apps) containing at minimum an `apps.py` with an `AppConfig`
 whose `name` is the **full dotted path**
-(e.g. `name = "apps.workspace.repo_app"`). Typical app internals:
+(e.g. `name = "apps.workspace.my_projects_app"`). Typical app internals:
 `apps.py`, `urls/`, `views/`, `templates/`, `static/`, plus
 `models.py`/`models/`, `migrations/`, `manifest.json`, `skill.py` as
 needed.

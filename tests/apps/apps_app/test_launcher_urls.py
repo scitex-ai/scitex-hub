@@ -88,16 +88,16 @@ class LauncherTileUrlTest(TestCase):
         # Assert
         assert b'data-active-module="console"' in resp.content
 
-    def test_discovery_index_renders_discovery_module(self):
+    def test_public_projects_index_renders_discovery_module(self):
         # Arrange
-        url = "/apps/discovery/"
+        url = "/apps/public-projects/"
         # Act
         resp = self.client.get(url)
-        # Assert — the page must serve the discovery module, not fall back to
-        # "home" (nav-404 batch #2). Since 2026-09-14 it is one server-rendered
+        # Assert — the page must serve the Public Projects module, not fall back to
+        # "my_projects" (nav-404 batch #2). Since 2026-09-14 it is one server-rendered
         # pane rather than the three-pane shell that loaded it over AJAX, so
         # the module's own content is what proves it.
-        assert b'id="discovery-content"' in resp.content
+        assert b'id="public-projects-content"' in resp.content
 
     def test_comms_index_still_resolves(self):
         # Arrange — the launcher "Chat" tile was dropped (launcher pass 2,

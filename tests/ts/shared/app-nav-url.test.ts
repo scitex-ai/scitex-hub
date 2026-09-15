@@ -41,13 +41,20 @@ describe("in-app navigation URL", () => {
     expect(url).toBe("/alice/study/tree/main/docs");
   });
 
-  it("keeps module pages on their module URL", () => {
+  it("keeps My Projects on its canonical route", () => {
     // Arrange
-    const loc = { pathname: "/apps/home/", search: "" };
-    const state = { module: "home", file: "README.md" };
+    const loc = { pathname: "/apps/my-projects/", search: "" };
+    const state = { module: "my_projects", file: "README.md" };
     // Act
     const url = buildNavUrl(loc, state, "/alice/study/");
     // Assert
-    expect(url).toBe("/apps/home/");
+    expect(url).toBe("/apps/my-projects/");
+  });
+
+  it("keeps Public Projects on its canonical route", () => {
+    const loc = { pathname: "/apps/public-projects/", search: "" };
+    const state = { module: "public_projects" };
+
+    expect(buildNavUrl(loc, state, null)).toBe("/apps/public-projects/");
   });
 });

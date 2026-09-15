@@ -46,7 +46,7 @@ def visitor_enter(request):
 
     The slot is NOT allocated here. VisitorAutoLoginMiddleware does it, because
     this path is deliberately absent from that middleware's skip lists — the
-    same mechanism that used to make /apps/home/ the entry. By the time this
+    same mechanism that used to make /apps/my-projects/ the entry. By the time this
     view runs, the session is already a visitor, so all that remains is to send
     them to "/", where root_dispatch renders the launcher for any non-anonymous
     role.
@@ -56,9 +56,9 @@ def visitor_enter(request):
         first-time browsers reach the marketing landing anonymously without
         burning a pool slot. Sending an anonymous visitor there just bounces
         them back to the page they clicked from.
-      - /apps/home/ must keep serving the Gitea-style project view: that is the
+      - /apps/my-projects/ must keep serving the Gitea-style project view: that is the
         approved 2026-07-07 design, stated in
-        apps/workspace/repo_app/views/dispatch.py:13-17.
+        apps/workspace/my_projects_app/views/dispatch.py:13-17.
     Entering as a visitor is therefore its own named action, instead of a side
     effect of visiting a repository URL — which is how a visitor came to be
     shown a file browser as their first impression of the product.

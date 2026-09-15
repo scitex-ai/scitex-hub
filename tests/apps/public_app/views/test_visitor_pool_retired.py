@@ -168,7 +168,7 @@ class TestAnonymousFunnelAfterRetirement:
 
     DB-free on purpose: these routes (workspace_shell's redirect, the
     marketing pages) need no ORM. The DB-backed arm — "a browser hitting
-    /apps/home/ or /apps/store/ gets 302 to /auth/login/, no visitor-001..N
+    /apps/my-projects/ or /apps/store/ gets 302 to /auth/login/, no visitor-001..N
     row created" — runs in CI where Postgres exists.
     """
 

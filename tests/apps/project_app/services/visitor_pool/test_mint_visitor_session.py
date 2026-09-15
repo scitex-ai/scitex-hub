@@ -62,7 +62,7 @@ def _request_as(session_store):
     from django.contrib.auth.middleware import AuthenticationMiddleware
     from django.test import RequestFactory
 
-    req = RequestFactory().get("/apps/home/")
+    req = RequestFactory().get("/apps/my-projects/")
     req.session = session_store
     AuthenticationMiddleware(lambda r: None).process_request(req)
     return req

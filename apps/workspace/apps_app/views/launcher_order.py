@@ -28,7 +28,7 @@ from __future__ import annotations
 # row keeps its empty cells rather than pulling the next group's app up:
 #   FOUNDATION (基盤): My Projects, Agents, Cards, Storage, Files
 #   WORK (作業):       Scholar, FigRecipe, (Stats), Writer, Chat, Tools
-#   PUBLISH (発信):    Slides, Public Projects — showing work outside
+#   PUBLISH (発信):    Public Projects — showing work outside
 #                      (proposed 2026-09-14, Telegram 6040; pending operator)
 #   SYSTEM (システム): Settings, Docs, App Store
 # Within a group the order is the operator's earlier order (infrastructure,
@@ -59,15 +59,15 @@ LAUNCHER_GROUPS: tuple[LauncherGroup, ...] = (
     LauncherGroup(
         "foundation",
         "Foundation",
-        ("home", "agents", "todo", "storage", "files"),
+        ("my_projects", "agents", "todo", "storage", "files"),
     ),
     LauncherGroup(
         "work",
         "Work",
         (
             "scholar",
-            "stats",  # a Coming-soon tile until the app ships (planned_apps.py)
             "figrecipe",
+            "stats",  # a Coming-soon tile until the app ships (planned_apps.py)
             "writer",
             "chat",  # link tile -> /chat/
             "clew",
@@ -77,7 +77,7 @@ LAUNCHER_GROUPS: tuple[LauncherGroup, ...] = (
     LauncherGroup(
         "publication",
         "Publication",
-        ("slides", "discovery"),
+        ("public_projects",),
     ),
     LauncherGroup(
         "system",

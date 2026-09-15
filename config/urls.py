@@ -26,8 +26,8 @@ from apps.infra.project_app.views import (
 from apps.infra.public_app.views import healthz
 from apps.workspace.apps_app.views import app_create as app_create_views
 from apps.workspace.apps_app.views import first_run as first_run_views
-from apps.workspace.repo_app.views.dispatch import root_dispatch
-from apps.workspace.repo_app.views.index import current_project_view
+from apps.workspace.my_projects_app.views.dispatch import root_dispatch
+from apps.workspace.my_projects_app.views.index import current_project_view
 from config.pwa import serve_root_static
 from config.urls_helpers import RESERVED_PATHS, dev_module_view  # noqa: F401
 
@@ -198,13 +198,16 @@ urlpatterns = [
         name="oauth-userinfo",
     ),
     path("oauth/", include("oauth2_provider.urls", namespace="oauth2_provider")),
-    # --- Hub ---
-    path("apps/home/api/", include("apps.workspace.repo_app.urls.api")),
-    path("apps/home/", include("apps.workspace.repo_app.urls.index")),
-    # --- Discovery ---
+    # --- My Projects ---
     path(
-        "apps/discovery/",
-        include(("apps.workspace.discovery_app.urls", "discovery_app")),
+        "apps/my-projects/api/",
+        include("apps.workspace.my_projects_app.urls.api"),
+    ),
+    path("apps/my-projects/", include("apps.workspace.my_projects_app.urls.index")),
+    # --- Public Projects ---
+    path(
+        "apps/public-projects/",
+        include(("apps.workspace.public_projects_app.urls", "public_projects_app")),
     ),
     # --- App modules (/apps/) ---
     path("apps/scholar/", include(("apps.workspace.scholar_app.urls", "scholar_app"))),
@@ -277,7 +280,6 @@ urlpatterns = [
     ),
     path("apps/llm/", include(("apps.infra.llm_app.urls", "llm_app"))),
     path("apps/clew/", include(("apps.workspace.clew_app.urls", "clew_app"))),
-    path("apps/slides/", include(("apps.workspace.slides_app.urls", "slides_app"))),
     path("apps/store/", include(("apps.workspace.apps_app.urls", "apps_app"))),
     path("apps/comms/", include(("apps.workspace.comms_app.urls", "comms_app"))),
     path("apps/files/", include(("apps.workspace.files_app.urls", "files_app"))),
@@ -336,11 +338,6 @@ urlpatterns = [
     # --- Dev module shell ---
     path("dev__<str:rest>/", dev_module_view, name="dev_module_shell"),
     # --- Hub shortcuts ---
-    path(
-        "explore/",
-        RedirectView.as_view(url="/apps/discovery/", permanent=True, query_string=True),
-        name="hub_explore_redirect",
-    ),
     path("current-project/", current_project_view, name="hub_current_project"),
     # --- GitHub-style catch-all (MUST BE LAST) ---
     path("<str:username>/", include(("apps.infra.project_app.urls", "user_projects"))),

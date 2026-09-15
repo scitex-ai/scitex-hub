@@ -1,5 +1,5 @@
 /* Scholar controls: one height, one radius, one primary colour across the
-   Search / Library / Citation tabs. Same shape as Files and Slides (44px tap
+   Search / Library / Citation tabs. Same shape as Files (44px tap
    targets on phones, rounded controls, pill chips). Linked last so it wins
    over the older per-tab sheets; :root raises specificity instead of more
    !important. Primary is the light-theme token (dark: link blue), as in the chat. */

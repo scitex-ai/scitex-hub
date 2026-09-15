@@ -15,7 +15,7 @@ tile. It lives beside the link-tile order, on the App Store installation row's
 from __future__ import annotations
 
 HOME_BUTTON = "launcher"
-DEFAULT_DOCK_APPS = (HOME_BUTTON, "home", "chat", "store")
+DEFAULT_DOCK_APPS = (HOME_BUTTON, "my_projects", "chat", "store")
 
 # Five 42px slots still fit a 360px phone beside the grip and both arrows.
 DOCK_CAPACITY = 5

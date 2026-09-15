@@ -51,13 +51,13 @@ def project_file_view(request, username, slug, file_path):
 
     # Authenticated users → render through hub workspace (except raw/download)
     if request.user.is_authenticated and mode not in ("raw", "download"):
-        from apps.workspace.repo_app.views.index import build_hub_context
+        from apps.workspace.my_projects_app.views.index import build_hub_context
 
         project = get_object_or_404(Project, slug=slug, owner__username=username)
         context = build_hub_context(
             request, current_project=project, include_file_browser=True
         )
-        return render(request, "repo_app/index.html", context)
+        return render(request, "my_projects_app/index.html", context)
     user = get_object_or_404(User, username=username)
     project = get_object_or_404(Project, slug=slug, owner=user)
 

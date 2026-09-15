@@ -34,33 +34,33 @@ describe("site dock history stack", () => {
   });
 
   it("offers Back but not Forward after following links", () => {
-    const stack = visit("/apps/", "/apps/home/", "/apps/discovery/");
+    const stack = visit("/apps/", "/apps/my-projects/", "/apps/public-projects/");
     expect([canGoBack(stack), canGoForward(stack)]).toEqual([true, false]);
   });
 
   it("offers Forward after going Back", () => {
-    const here = visit("/apps/", "/apps/home/", "/apps/discovery/");
-    const back = recordVisit(here, "/apps/home/", "back_forward");
+    const here = visit("/apps/", "/apps/my-projects/", "/apps/public-projects/");
+    const back = recordVisit(here, "/apps/my-projects/", "back_forward");
     expect([back.index, canGoForward(back)]).toEqual([1, true]);
   });
 
   it("walks Forward again to the end, where Forward dims", () => {
-    const here = visit("/apps/", "/apps/home/", "/apps/discovery/");
-    const back = recordVisit(here, "/apps/home/", "back_forward");
-    const forward = recordVisit(back, "/apps/discovery/", "back_forward");
+    const here = visit("/apps/", "/apps/my-projects/", "/apps/public-projects/");
+    const back = recordVisit(here, "/apps/my-projects/", "back_forward");
+    const forward = recordVisit(back, "/apps/public-projects/", "back_forward");
     expect([forward.index, canGoForward(forward)]).toEqual([2, false]);
   });
 
   it("drops the forward entries when a new link is followed after Back", () => {
-    const here = visit("/apps/", "/apps/home/", "/apps/discovery/");
-    const back = recordVisit(here, "/apps/home/", "back_forward");
+    const here = visit("/apps/", "/apps/my-projects/", "/apps/public-projects/");
+    const back = recordVisit(here, "/apps/my-projects/", "back_forward");
     const branched = recordVisit(back, "/apps/store/", "navigate");
-    expect(branched.entries).toEqual(["/apps/", "/apps/home/", "/apps/store/"]);
+    expect(branched.entries).toEqual(["/apps/", "/apps/my-projects/", "/apps/store/"]);
   });
 
   it("does not add an entry when the page is reloaded", () => {
-    const here = visit("/apps/", "/apps/home/");
-    const reloaded = recordVisit(here, "/apps/home/", "reload");
+    const here = visit("/apps/", "/apps/my-projects/");
+    const reloaded = recordVisit(here, "/apps/my-projects/", "reload");
     expect(reloaded).toEqual(here);
   });
 

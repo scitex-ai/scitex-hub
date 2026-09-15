@@ -44,9 +44,9 @@ from __future__ import annotations
 #: Must be one ``VisitorAutoLoginMiddleware`` allocates on: it deliberately
 #: does NOT allocate on ``/``, ``/landing/``, ``/apps/tools/`` or
 #: ``/auth/*`` for an unauthenticated request, because a first-time reader
-#: must reach the marketing pages anonymously. ``/apps/home/`` is not in
+#: must reach the marketing pages anonymously. ``/apps/my-projects/`` is not in
 #: that skip list, and is in the capture set anyway.
-VISITOR_WARMUP_ROUTE = "/apps/home/"
+VISITOR_WARMUP_ROUTE = "/apps/my-projects/"
 
 #: The body attribute carrying the canonical session role.
 SESSION_ROLE_ATTR = "data-session-role"

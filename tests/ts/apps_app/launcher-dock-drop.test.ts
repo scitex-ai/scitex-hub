@@ -105,16 +105,16 @@ describe("dockCapacity", () => {
 describe("dropIntoDock", () => {
   it("inserts a grid app at the drop slot", () => {
     // Arrange
-    const dock = ["launcher", "home", "chat"];
+    const dock = ["launcher", "my_projects", "chat"];
     // Act
     const change = dropIntoDock(dock, "scholar", 1, 5);
     // Assert
-    expect(change.dock).toEqual(["launcher", "scholar", "home", "chat"]);
+    expect(change.dock).toEqual(["launcher", "scholar", "my_projects", "chat"]);
   });
 
   it("refuses a grid app when the dock is full", () => {
     // Arrange
-    const dock = ["launcher", "home", "chat", "store", "docs"];
+    const dock = ["launcher", "my_projects", "chat", "store", "docs"];
     // Act
     const change = dropIntoDock(dock, "scholar", 2, 5);
     // Assert
@@ -123,7 +123,7 @@ describe("dropIntoDock", () => {
 
   it("leaves a full dock unchanged when it refuses", () => {
     // Arrange
-    const dock = ["launcher", "home", "chat", "store", "docs"];
+    const dock = ["launcher", "my_projects", "chat", "store", "docs"];
     // Act
     const change = dropIntoDock(dock, "scholar", 2, 5);
     // Assert
@@ -132,36 +132,36 @@ describe("dropIntoDock", () => {
 
   it("reorders an app already in a full dock", () => {
     // Arrange
-    const dock = ["launcher", "home", "chat", "store", "docs"];
+    const dock = ["launcher", "my_projects", "chat", "store", "docs"];
     // Act
     const change = dropIntoDock(dock, "docs", 0, 5);
     // Assert
-    expect(change.dock).toEqual(["docs", "launcher", "home", "chat", "store"]);
+    expect(change.dock).toEqual(["docs", "launcher", "my_projects", "chat", "store"]);
   });
 
   it("never lists an app twice", () => {
     // Arrange
-    const dock = ["launcher", "home", "chat"];
+    const dock = ["launcher", "my_projects", "chat"];
     // Act
-    const change = dropIntoDock(dock, "home", 3, 5);
+    const change = dropIntoDock(dock, "my_projects", 3, 5);
     // Assert
-    expect(change.dock.filter((name) => name === "home")).toHaveLength(1);
+    expect(change.dock.filter((name) => name === "my_projects")).toHaveLength(1);
   });
 });
 
 describe("dropOutOfDock", () => {
   it("removes a dragged-out app from the dock", () => {
     // Arrange
-    const dock = ["launcher", "home", "chat"];
+    const dock = ["launcher", "my_projects", "chat"];
     // Act
     const change = dropOutOfDock(dock, "chat", ["launcher"]);
     // Assert
-    expect(change.dock).toEqual(["launcher", "home"]);
+    expect(change.dock).toEqual(["launcher", "my_projects"]);
   });
 
   it("keeps Home in the dock", () => {
     // Arrange
-    const dock = ["launcher", "home", "chat"];
+    const dock = ["launcher", "my_projects", "chat"];
     // Act
     const change = dropOutOfDock(dock, "launcher", ["launcher"]);
     // Assert

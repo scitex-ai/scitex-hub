@@ -73,7 +73,7 @@
                         <div class="sidebar-project-list" id="sidebar-project-list">
                             {% if user.is_authenticated and user.profile.get_user_projects %}
                                 {% for project in user.profile.get_user_projects %}
-                                    <a href="/apps/home/?project={{ project.id }}"
+                                    <a href="/apps/my-projects/?project={{ project.id }}"
                                        class="sidebar-project-item"
                                        data-project-id="{{ project.id }}"
                                        data-project-search="{{ project.owner.username }}/{{ project.slug }} {{ project.name }}">

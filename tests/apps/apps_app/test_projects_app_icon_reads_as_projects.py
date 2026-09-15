@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # File: tests/apps/apps_app/test_projects_app_icon_reads_as_projects.py
-"""The Projects app's icon says "projects", not "home".
+"""The Projects app's icon says "projects", not "my_projects".
 
 OPERATOR, Telegram 4794, 2026-09-05: the project app uses a HOUSE icon, which
 reads wrong; he wants a project/file icon.
@@ -17,7 +17,7 @@ WHY THE MANIFEST IS THE ONLY PLACE THIS CHANGES
 source of truth for module icon rendering". Every surface goes through the
 ``{% module_icon %}`` tag, which delegates there. So the manifest decides.
 
-There WAS a second-looking place — repo_app/views/index.py put
+There WAS a second-looking place — my_projects_app/views/index.py put
 ``"module_icon": "fa-home"`` in its context — and it was a decoy: no template
 renders ``{{ module_icon }}`` (checked with a positive control that the search
 does find ``{{ `` in those same templates). It is removed in this change, so
@@ -34,11 +34,11 @@ from pathlib import Path
 
 from apps.infra.workspace_app.registry import get_all_modules, get_module
 
-PROJECTS_MODULE = "home"
+PROJECTS_MODULE = "my_projects"
 
 # tests/apps/apps_app/ -> repo root
 _REPO_ROOT = Path(__file__).resolve().parents[3]
-_MANIFEST = _REPO_ROOT / "apps" / "workspace" / "repo_app" / "manifest.json"
+_MANIFEST = _REPO_ROOT / "apps" / "workspace" / "my_projects_app" / "manifest.json"
 
 
 def test_the_projects_manifest_is_on_disk():

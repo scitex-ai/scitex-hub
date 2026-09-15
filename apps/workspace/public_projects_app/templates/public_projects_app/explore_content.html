@@ -1,0 +1,78 @@
+{% comment %}
+Discovery explore content — returned by /public-projects/api/explore/?tab=...
+Also included directly in public_projects_partial.html for initial render.
+{% endcomment %}
+{% load static i18n %}
+
+{% if tab == 'repositories' %}
+    {# Same Explorer/Finder list look as My Projects (project_tree_list.html). #}
+    {% include "global_base_partials/project_tree_list.html" with projects=repositories show_owner=True show_meta=True empty_text=_("No public projects yet.") %}
+{% elif tab == 'users' %}
+    <div class="projects-grid">
+        {% if users %}
+            {% for u in users %}
+                <div class="project-card">
+                    <div class="public-projects-user-card-inner">
+                        {% if u.profile.avatar %}
+                            <img src="{{ u.profile.avatar.url }}"
+                                 class="public-projects-user-avatar-img"
+                                 alt="{{ u.username }}" />
+                        {% else %}
+                            <div class="public-projects-user-avatar">{{ u.username|slice:":1"|upper }}</div>
+                        {% endif %}
+                        <div class="public-projects-user-info">
+                            <div>
+                                <a href="/{{ u.username }}/" class="public-projects-user-name">{{ u.get_full_name|default:u.username }}</a>
+                            </div>
+                            <p class="public-projects-user-handle">@{{ u.username }}</p>
+                            <div class="project-meta">
+                                <span class="meta-item"><i class="fas fa-book"></i> {{ u.repo_count }} {% trans "projects" %}</span>
+                                <span class="meta-item"><i class="fas fa-users"></i> {{ u.follower_count }} followers</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="public-projects-empty">No users to display</p>
+        {% endif %}
+    </div>
+{% elif tab == 'groups' %}
+    <div class="projects-grid">
+        {% if organizations %}
+            {% for org in organizations %}
+                <div class="project-card">
+                    <div class="public-projects-user-card-inner">
+                        <div class="public-projects-user-avatar">
+                            {% if org.avatar %}
+                                <img src="{{ org.avatar.url }}"
+                                     alt="{{ org.name }}"
+                                     class="public-projects-user-avatar-img" />
+                            {% elif org.avatar_static_url %}
+                                <img src="{% static org.avatar_static_url %}"
+                                     alt="{{ org.name }}"
+                                     class="public-projects-user-avatar-img" />
+                            {% else %}
+                                <i class="fas fa-building"></i>
+                            {% endif %}
+                        </div>
+                        <div class="public-projects-user-info">
+                            <div>
+                                <a href="/{{ org.slug }}/" class="public-projects-user-name">{{ org.name }}</a>
+                            </div>
+                            <p class="public-projects-user-handle">@{{ org.slug }}</p>
+                            {% if org.description %}<p class="text-muted">{{ org.description|truncatewords:20 }}</p>{% endif %}
+                            <div class="project-meta">
+                                <span class="meta-item">
+                                    <i class="fas fa-users"></i> {{ org.member_count }} member{{ org.member_count|pluralize }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="public-projects-empty">No organizations to display</p>
+        {% endif %}
+    </div>
+{% endif %}

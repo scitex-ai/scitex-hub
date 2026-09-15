@@ -56,22 +56,22 @@ EXPECTED_TILE_ORDER = [
     "stats",
     "Writer",
     "Chat",
-    "Image Tools",
-    "PDF Tools",
-    "Text Tools",
-    "Developer Tools",
-    "Media Tools",
-    "Tools",
-    "Console",
     "Clew",
     "App Creator",
-    # PUBLISH (proposed 2026-09-14, Telegram 6040)
-    "Slides",
+    # PUBLISH
     "Public Projects",
     # SYSTEM
     "Settings",
     "Docs",
     "App Store",
+    # TOOLS
+    "Image Tools",
+    "PDF Tools",
+    "Text Tools",
+    "Developer Tools",
+    "Media Tools",
+    "Console",
+    "Tools",
 ]
 
 
@@ -130,13 +130,13 @@ class GridLauncherTest(TestCase):
         # Act
         labels = {tile["name"]: tile["label"] for tile in tiles}
         # Assert
-        assert labels.get("home") == "My Projects"
+        assert labels.get("my_projects") == "My Projects"
 
     def test_mobile_menu_offers_my_projects(self):
         # Arrange
         self.client.force_login(self.staff)
         # Act
-        response = self.client.get("/apps/home/")
+        response = self.client.get("/apps/my-projects/")
         # Assert
         assert b"<span>My Projects</span>" in response.content
 
@@ -163,7 +163,7 @@ def _tile_label(username, name):
 @pytest.mark.django_db
 def test_grid_names_my_projects_in_japanese(compiled_catalogs):
     # Arrange — the grid renders {% trans tile.label context "app name" %}
-    label = _tile_label("launcher-rows-ja", "home")
+    label = _tile_label("launcher-rows-ja", "my_projects")
     # Act
     with translation.override("ja"):
         rendered = pgettext("app name", label)
@@ -174,7 +174,7 @@ def test_grid_names_my_projects_in_japanese(compiled_catalogs):
 @pytest.mark.django_db
 def test_grid_names_public_projects_in_japanese(compiled_catalogs):
     # Arrange
-    label = _tile_label("launcher-rows-ja2", "discovery")
+    label = _tile_label("launcher-rows-ja2", "public_projects")
     # Act
     with translation.override("ja"):
         rendered = pgettext("app name", label)

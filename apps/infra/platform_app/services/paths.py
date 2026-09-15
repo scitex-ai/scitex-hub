@@ -11,7 +11,7 @@ inside a try/except) was written out by hand in more than a dozen modules. Two
 things follow from that, and both were live in this repo:
 
 1. It drifts. `apps/workspace/apps_app/views/dev_project_files.py` had it
-   right — resolve first, then decide. `apps/workspace/repo_app/views/
+   right — resolve first, then decide. `apps/workspace/my_projects_app/views/
    api_browse.py` had the same lines in the WRONG ORDER: it called
    `.exists()` / `.is_file()` on the joined path and only checked containment
    afterwards, so a traversal fragment was still answered with a truthful

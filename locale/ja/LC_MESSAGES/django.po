@@ -3282,7 +3282,7 @@ msgstr "パブリックプロジェクト"
 # Unified file-tree Project UI (operator 2026-09-14): My Projects and Public
 # Projects share one Explorer/Finder-style tree.
 #: templates/global_base_partials/project_tree_list.html
-#: apps/workspace/discovery_app/templates/discovery_app/discovery_partial.html
+#: apps/workspace/public_projects_app/templates/public_projects_app/public_projects_partial.html
 msgid "Projects"
 msgstr "プロジェクト"
 
@@ -3298,7 +3298,7 @@ msgstr "新規プロジェクト"
 msgid "Stars"
 msgstr "スター"
 
-#: apps/workspace/discovery_app/templates/discovery_app/explore_content.html
+#: apps/workspace/public_projects_app/templates/public_projects_app/explore_content.html
 msgid "No public projects yet."
 msgstr "公開プロジェクトはまだありません。"
 
@@ -3322,19 +3322,19 @@ msgstr "ツリーからファイルを選択してください"
 msgid "Public profile"
 msgstr "公開プロフィール"
 
-#: apps/workspace/repo_app/templates/repo_app/partials/user_profile_content.html
+#: apps/workspace/my_projects_app/templates/my_projects_app/partials/user_profile_content.html
 msgid "Your projects"
 msgstr "あなたのプロジェクト"
 
-#: apps/workspace/repo_app/templates/repo_app/partials/user_profile_content.html
+#: apps/workspace/my_projects_app/templates/my_projects_app/partials/user_profile_content.html
 msgid "No matching projects"
 msgstr "一致するプロジェクトはありません"
 
-#: apps/workspace/repo_app/templates/repo_app/partials/user_profile_content.html
+#: apps/workspace/my_projects_app/templates/my_projects_app/partials/user_profile_content.html
 msgid "No visible projects"
 msgstr "表示できるプロジェクトはありません"
 
-#: apps/workspace/discovery_app/templates/discovery_app/explore_content.html
+#: apps/workspace/public_projects_app/templates/public_projects_app/explore_content.html
 msgid "projects"
 msgstr "件のプロジェクト"
 
@@ -6236,84 +6236,6 @@ msgstr "アプリエージェントと話すには、ご自身の API キーで 
 #: apps/workspace/apps_app (create app)
 msgid "Connect an AI provider"
 msgstr "AI プロバイダーを接続"
-
-# Slides app (card hub-slides-app-agent-aware-20260914).
-#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
-msgctxt "app name"
-msgid "Slides"
-msgstr "スライド"
-
-#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
-msgid "Unsaved changes"
-msgstr "未保存の変更があります"
-
-#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
-msgid "Could not save"
-msgstr "保存できませんでした"
-
-#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
-msgid "Deck name"
-msgstr "スライド名"
-
-#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
-msgid "No image files found in this project."
-msgstr "このプロジェクトに画像ファイルがありません。"
-
-#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
-msgid "Pick a deck or create one."
-msgstr "スライドを選ぶか、新しく作成してください。"
-
-#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
-msgid "Read only: you cannot edit this project."
-msgstr "閲覧のみ: このプロジェクトは編集できません。"
-
-#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
-msgid "Deck"
-msgstr "スライド"
-
-#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
-msgid "New deck"
-msgstr "新しいスライド"
-
-#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
-msgid "New deck from project"
-msgstr "プロジェクトから作成"
-
-#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
-msgid "Insert figure"
-msgstr "図を挿入"
-
-#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
-msgid "Export PDF"
-msgstr "PDFに書き出し"
-
-#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
-msgid "Editor"
-msgstr "エディタ"
-
-#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
-msgid "Slide Markdown"
-msgstr "スライドのMarkdown"
-
-#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
-msgid "Title"
-msgstr "タイトル"
-
-#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
-msgid "Next slide"
-msgstr "次のスライド"
-
-#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
-msgid "Close"
-msgstr "閉じる"
-
-#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
-msgid "Slides live in a project. Choose one:"
-msgstr "スライドはプロジェクトに保存されます。プロジェクトを選んでください:"
-
-#: apps/workspace/slides_app/templates/slides_app/slides_partial.html
-msgid "You have no projects yet."
-msgstr "まだプロジェクトがありません。"
 
 #: apps/workspace/apps_app/templates/apps_app/partials/first_run_checklist.html
 msgid "Don't show again"

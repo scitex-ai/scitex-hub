@@ -27,7 +27,7 @@ never overwritten.
 | 23:05 | Read-only forensic across all 6 postgres-data volumes via scratch-volume clones. Found: `scitex-cloud-nas_postgres_data` holds the real 82-user data; `scitex-cloud-prod_postgres_data` and `scitex-hub-nas_postgres_data` both carry an unrelated 24-user test-user dataset. |
 | 23:13 | Re-rolled the rollback compose to point at `scitex-cloud-nas_postgres_data` (matching the OLD compose's `name:`). Postgres opened cleanly (log: "Skipping initialization"). |
 | 23:14 | Row-counts: auth_user=82, latest=155\|nhk2202. |
-| 23:20 | scitex.ai externally 200 + text/html (45 KB) + Django access log shows real /landing/ and /apps/home/ traffic. RESTORED. |
+| 23:20 | scitex.ai externally 200 + text/html (45 KB) + Django access log shows real /landing/ and /apps/my-projects/ traffic. RESTORED. |
 
 ## Root causes
 

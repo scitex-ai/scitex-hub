@@ -34,15 +34,15 @@ MAX_PINNED_MODULES = 5
 # reorder — so it keeps the curated position rather than jumping the tile.
 _MI_DEFAULT_TAB_ORDER = 50
 
-# The sidebar renders its own Home entry, so pinning "home" would double it.
-_SIDEBAR_HOME_MODULE = "home"
+# The sidebar renders its own Home entry, so pinning "my_projects" would double it.
+_SIDEBAR_HOME_MODULE = "my_projects"
 
 
 def default_pinned_module_names(user=None) -> list[str]:
     """The pin set a user starts with, before they pin anything themselves.
 
     Reuses DEFAULT_LAUNCHER_ORDER so the sidebar and the launcher grid agree
-    on which apps lead — no second curated list to drift. "home" is excluded
+    on which apps lead — no second curated list to drift. "my_projects" is excluded
     because the sidebar renders its own Home entry above the pinned loop.
 
     An app that opted OUT of the grid (manifest ``show_in_launcher: false``)

@@ -121,7 +121,7 @@ class SiteDockOnEveryPageTest(TestCase):
 
     def test_base_template_renders_the_dock_on_public_projects(self):
         # Arrange
-        url = "/apps/discovery/"
+        url = "/apps/public-projects/"
         # Act
         response = self.client.get(url)
         # Assert
@@ -129,7 +129,7 @@ class SiteDockOnEveryPageTest(TestCase):
 
     def test_base_template_renders_the_dock_on_my_projects(self):
         # Arrange
-        url = "/apps/home/"
+        url = "/apps/my-projects/"
         # Act
         response = self.client.get(url)
         # Assert
@@ -138,7 +138,7 @@ class SiteDockOnEveryPageTest(TestCase):
     def test_a_hub_page_gets_exactly_one_dock(self):
         # Arrange — the base template renders it; the middleware must not add
         # a second copy.
-        url = "/apps/discovery/"
+        url = "/apps/public-projects/"
         # Act
         response = self.client.get(url)
         # Assert
@@ -176,20 +176,20 @@ class SiteDockOnEveryPageTest(TestCase):
 
     def test_the_dock_stays_on_public_projects(self):
         # Arrange — the reported bug: the dock disappeared on Public Projects.
-        url = "/apps/discovery/"
+        url = "/apps/public-projects/"
         # Act
         dock = _dock_html(self.client.get(url).content)
         # Assert
-        assert 'data-dock-item="home"' in dock
+        assert 'data-dock-item="my_projects"' in dock
 
     def test_dock_projects_button_opens_my_projects(self):
         # Arrange
-        url = "/apps/discovery/"
+        url = "/apps/public-projects/"
         # Act
         dock = _dock_html(self.client.get(url).content)
         # Assert
         assert re.search(
-            r'<a href="/apps/home/"\s+class="site-dock-item[^"]*"\s+data-dock-item="home"',
+            r'<a href="/apps/my-projects/"\s+class="site-dock-item[^"]*"\s+data-dock-item="my_projects"',
             dock,
         )
 
@@ -252,7 +252,7 @@ class SiteDockOnEveryPageTest(TestCase):
 
     def test_dock_home_button_is_the_house(self):
         # Arrange
-        items = dock_items("/apps/discovery/")
+        items = dock_items("/apps/public-projects/")
         # Act
         home = next(item for item in items if item.key == "launcher")
         # Assert
@@ -263,10 +263,10 @@ class SiteDockOnEveryPageTest(TestCase):
         # their Home tile, not a bare glyph.
         # Arrange
         dock = _dock_html(self.client.get("/apps/").content)
-        tile = next(t for t in self.client.get("/apps/").context["tiles"] if t["name"] == "home")
+        tile = next(t for t in self.client.get("/apps/").context["tiles"] if t["name"] == "my_projects")
         # Act
         icon = re.search(
-            r'data-dock-item="home".*?<span class="launcher-tile-icon[^"]*" data-tile-category="([^"]+)"',
+            r'data-dock-item="my_projects".*?<span class="launcher-tile-icon[^"]*" data-tile-category="([^"]+)"',
             dock,
             re.DOTALL,
         )
@@ -283,7 +283,7 @@ class SiteDockOnEveryPageTest(TestCase):
 
     def test_dock_loads_the_shared_app_icon_palette(self):
         # Arrange — the dock is on pages that never load the launcher CSS.
-        response = self.client.get("/apps/home/")
+        response = self.client.get("/apps/my-projects/")
         # Act
         linked = b"shared/css/components/app-icon.css" in response.content
         # Assert
@@ -311,7 +311,7 @@ class SiteDockOnEveryPageTest(TestCase):
         # The logo used to point signed-in users at /landing/ everywhere but
         # the landing page. The operator's brief: the logo is the way Home.
         # Arrange
-        url = "/apps/discovery/"
+        url = "/apps/public-projects/"
         # Act
         content = self.client.get(url).content
         # Assert
@@ -336,7 +336,7 @@ class SiteDockOnEveryPageTest(TestCase):
 
     def test_header_no_longer_renders_the_apps_dropdown(self):
         # Arrange
-        url = "/apps/discovery/"
+        url = "/apps/public-projects/"
         # Act
         response = self.client.get(url)
         # Assert
@@ -370,7 +370,7 @@ class ManifestIconTest(TestCase):
 
     def test_my_and_public_projects_share_one_folder_icon(self):
         # Arrange
-        mine, public = _manifest("repo_app"), _manifest("discovery_app")
+        mine, public = _manifest("my_projects_app"), _manifest("public_projects_app")
         # Act
         icons = {mine["icon"], public["icon"]}
         # Assert
@@ -378,7 +378,7 @@ class ManifestIconTest(TestCase):
 
     def test_public_projects_carries_the_globe_badge(self):
         # Arrange
-        app_dir = "discovery_app"
+        app_dir = "public_projects_app"
         # Act
         badge = _manifest(app_dir).get("icon_badge")
         # Assert
@@ -386,7 +386,7 @@ class ManifestIconTest(TestCase):
 
     def test_projects_tiles_differ_in_colour(self):
         # Arrange
-        mine, public = _manifest("repo_app"), _manifest("discovery_app")
+        mine, public = _manifest("my_projects_app"), _manifest("public_projects_app")
         # Act
         categories = (mine.get("category"), public.get("category"))
         # Assert — utility = grey, social = green (launcher/grid.css)
@@ -468,7 +468,7 @@ class SettingsAndChatTilesTest(TestCase):
         # has seeded the catalogue). Within the System group, drop App Store in
         # front of Settings (reorder stays within a group).
         self.client.get("/apps/")
-        order = ["home", "discovery", "scholar", "chat", "store", "docs", "settings"]
+        order = ["my_projects", "public_projects", "scholar", "chat", "store", "docs", "settings"]
         # Act
         self.client.post(
             "/apps/store/api/reorder/",
@@ -482,7 +482,7 @@ class SettingsAndChatTilesTest(TestCase):
     def test_a_saved_order_never_moves_an_app_into_another_group(self):
         # Arrange — a stale / hand-made order that puts Settings first.
         self.client.get("/apps/")
-        order = ["settings", "home", "discovery"]
+        order = ["settings", "my_projects", "public_projects"]
         # Act
         self.client.post(
             "/apps/store/api/reorder/",

@@ -22,9 +22,6 @@ LEGACY_APP_NAMES = [
     "llm",
     "clew",
     # Moved to /apps/ prefix
-    "home",
-    "hub",
-    "discovery",
     "tools",
     "docs",
 ]

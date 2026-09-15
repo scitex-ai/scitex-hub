@@ -33,7 +33,7 @@ HOME_CATEGORY = "home"
 
 #: Dock captions sit under a narrow icon, so the long app names get a short
 #: form there (operator, 2026-09-14: Home / Projects / Chat / Apps).
-DOCK_SHORT_LABELS = {"home": "Projects", "store": "Apps"}
+DOCK_SHORT_LABELS = {"my_projects": "Projects", "store": "Apps"}
 
 #: Marker attribute on the rendered dock. SiteDockMiddleware checks for it so a
 #: page that already rendered the dock is never given a second one.

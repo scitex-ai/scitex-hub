@@ -187,7 +187,7 @@ def test_every_resolvable_url_appears_in_the_assistant_context():
 def test_page_match_prefers_the_most_specific_app():
     """Longest prefix wins, so a shallow mount cannot claim every page.
 
-    repo_app previously declared page_patterns=['/'] and get_skill_for_page
+    my_projects_app previously declared page_patterns=['/'] and get_skill_for_page
     returned the FIRST substring match over dict order, so which app's
     capabilities the assistant loaded depended on registration order.
     """

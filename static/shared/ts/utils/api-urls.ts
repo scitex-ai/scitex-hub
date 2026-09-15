@@ -21,8 +21,8 @@ export const API_URLS = {
   },
   // --- Hub ---
   hub: {
-    setActiveProject: "/apps/home/api/set-active-project/",
-    updateTopics: "/apps/home/api/update-topics/",
+    setActiveProject: "/apps/my-projects/api/set-active-project/",
+    updateTopics: "/apps/my-projects/api/update-topics/",
   },
   // --- Accounts ---
   accounts: {

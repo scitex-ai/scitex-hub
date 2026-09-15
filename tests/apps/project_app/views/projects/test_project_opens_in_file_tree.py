@@ -73,7 +73,7 @@ class ProjectOpensInFileTreeTest(TestCase):
     def test_public_projects_listing_links_straight_to_the_project(self):
         """The hub's Public Projects list used href="#" — a dead link."""
         # Arrange
-        url = "/apps/home/api/explore/?tab=repositories"
+        url = "/apps/my-projects/api/explore/?tab=repositories"
         link = 'href="/tree-other/tree-public-study/"'
         # Act
         response = self.client.get(url)

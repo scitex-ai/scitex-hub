@@ -8,7 +8,7 @@ SciTeX page held by a POOLED VISITOR never has that: the visitor session
 runs a heartbeat/countdown poller (the same one that promotes the 2-minute
 probation lease to a full session — ``PoolAllocator.extend_session_on_activity``),
 so requests keep arriving forever. Measured in CI on 2026-08-16, run
-31955719803: ``wait_for_load_state("networkidle")`` on ``/apps/home/`` threw
+31955719803: ``wait_for_load_state("networkidle")`` on ``/apps/my-projects/`` threw
 ``TimeoutError: Timeout 30000ms exceeded`` and took the whole capture down
 with 33 errors. Nothing was broken about the page — the wait condition was
 simply one this page can never satisfy.

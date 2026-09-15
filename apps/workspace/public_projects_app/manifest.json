@@ -1,0 +1,35 @@
+{
+  "$schema": "scitex-app-manifest",
+  "$schema_version": "2.0.0",
+  "name": "public_projects",
+  "label": "Public Projects",
+  "app_name": "public_projects_app",
+  "icon": "fas fa-folder",
+  "icon_badge": "fas fa-globe",
+  "category": "social",
+  "description": "Discover public repositories, researchers, and organizations.",
+  "version": "0.14.0",
+  "license": "AGPL-3.0",
+  "keyboard_shortcut": "X",
+  "order": 11,
+  "accent_color": "public_projects",
+  "body_class": "public-projects-page",
+  "partial_template": "public_projects_app/public_projects_partial.html",
+  "context_builder": "apps.workspace.public_projects_app.views.build_public_projects_context",
+  "url": "/apps/public-projects/",
+  "ai_hint": "Discover public repositories, researchers, and organizations.",
+  "allowed_extensions": [],
+  "hidden_patterns": ["__pycache__", "node_modules", ".git", ".venv"],
+  "privileges": [
+    {"type": "network", "scope": "api.dandi.org,api.openneuro.org,physionet.org", "reason": "Search and fetch public dataset metadata"}
+  ],
+  "builtin": true,
+  "dependencies": {
+    "python": [],
+    "system": [],
+    "node": [],
+    "r": [],
+    "other": []
+  },
+  "container": null
+}

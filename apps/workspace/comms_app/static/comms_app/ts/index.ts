@@ -4,7 +4,7 @@
  * This is the Vite entry point loaded by comms_partial.html
  * (`{% vite_script 'comms_app/index' %}`). Mounts ChatPanel onto
  * #comms-root when present, same self-init convention as
- * discovery_app/ts/index.ts.
+ * public_projects_app/ts/index.ts.
  */
 
 import { ChatPanel } from "./chat-panel";

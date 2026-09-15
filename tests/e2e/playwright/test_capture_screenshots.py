@@ -94,7 +94,7 @@ ROUTES_WITHOUT_GLOBAL_BASE = frozenset({"/apps/cards/"})
 # line and it is picked up by both jobs.
 PAGES = [
     ("/", "00-workspace-home", "Workspace home"),
-    ("/apps/home/", "01-projects", "Projects"),
+    ("/apps/my-projects/", "01-projects", "Projects"),
     ("/apps/writer/", "02-writer", "Writer"),
     ("/apps/scholar/", "03-scholar", "Scholar"),
     ("/apps/figrecipe/", "04-figrecipe", "FigRecipe"),

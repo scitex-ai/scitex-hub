@@ -8,7 +8,7 @@ The defect this protects against has now been diagnosed twice, correctly
 both times, and came back anyway:
 
     2026-08-16  CI run 31955719803. `wait_for_load_state("networkidle")` on
-                /apps/home/ timed out at 30s and took the screenshot capture
+                /apps/my-projects/ timed out at 30s and took the screenshot capture
                 down with 33 errors. Diagnosed exactly. The fix shipped as
                 tests/e2e/playwright/page_ready.py, whose docstring explains
                 in full why this product can never reach networkidle.

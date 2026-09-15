@@ -148,7 +148,7 @@
 
 /* ── Public Projects list and the My Projects module pane ─────────────── */
 
-.discovery-tab-content .ws-project-list,
+.public-projects-tab-content .ws-project-list,
 .ws-project-module-list {
   max-width: 960px;
 }

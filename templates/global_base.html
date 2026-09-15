@@ -53,7 +53,7 @@
         class on the session role — `{% if not user.is_authenticated or is_visitor %}`
         — to fix a footer that was missing for visitors ON /landing/ (#499).
         But this branch also covers `/`, and `/` is NOT the landing page for a
-        visitor: repo_app/views/dispatch.py root_dispatch redirects only
+        visitor: my_projects_app/views/dispatch.py root_dispatch redirects only
         ROLE_ANONYMOUS to marketing and renders the app-launcher for every other
         role. So every visitor's launcher got `landing-page` and was hidden —
         13 launcher tiles present in the DOM, all 0x0, header and footer the only

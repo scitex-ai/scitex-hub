@@ -106,7 +106,7 @@ class TestModuleRegistry(TestCase):
         # Modules now live under the /apps/ prefix (apps standardization);
         # the old top-level /writer/ and /tools/ are legacy redirects.
         self.assertTrue(is_workspace_path("/apps/writer/"))
-        self.assertTrue(is_workspace_path("/apps/home/"))
+        self.assertTrue(is_workspace_path("/apps/my-projects/"))
         self.assertTrue(is_workspace_path("/apps/tools/"))
         self.assertFalse(is_workspace_path("/admin/"))
         # "/" is the workspace root (maps to the home module).
@@ -116,9 +116,9 @@ class TestModuleRegistry(TestCase):
         """get_module_names() returns all registered names."""
         names = get_module_names()
         self.assertIn("writer", names)
-        # The dashboard module is registered as "home" (repo_app/manifest.json);
+        # The dashboard module is registered as "my_projects" (my_projects_app/manifest.json);
         # it was previously called "hub".
-        self.assertIn("home", names)
+        self.assertIn("my_projects", names)
         self.assertIn("tools", names)
 
     def test_modules_ordered(self):
