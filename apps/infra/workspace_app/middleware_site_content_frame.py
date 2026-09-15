@@ -20,7 +20,8 @@ logger = logging.getLogger(__name__)
 
 FRAME_STYLESHEET = "shared/css/layouts/site-content-frame.css"
 LEAF_CHROME_STYLESHEET = "shared/css/layouts/leaf-host-chrome.css"
-STANDALONE_SHELL_MARKER = 'id="workspace-three-col"'
+LEAF_DEFAULT_FAVICON = "scitex_ui/img/scitex-favicon.svg"
+STANDALONE_SHELL_MARKER ='id="workspace-three-col"'
 LEAF_HEADER_MARKER = "data-leaf-site-header"
 # Leaves that draw their own top bar (Scholar v2) keep it instead of a second one.
 OWN_HEADER_MARKERS = ('class="app-header"', 'class="global-header"')
@@ -62,6 +63,19 @@ def _leaf_header(request, body: str) -> str:
         return ""
 
 
+def _hub_favicon(request, body: str) -> str:
+    """Swap scitex-ui's default tab icon for the hub's so a leaf tab matches its header logo."""
+    from django.templatetags.static import static
+
+    from config.context_processors import scitex_env
+
+    default_href = static(LEAF_DEFAULT_FAVICON)
+    if f'href="{default_href}"' not in body:
+        return body
+    hub_href = static(scitex_env(request)["SCITEX_FAVICON"])
+    return body.replace(f'href="{default_href}"', f'href="{hub_href}"')
+
+
 def _body_open_tag(body: str):
     """The real <body> tag; comments and head scripts in the shell spell out "<body>"."""
     start = body.find("</head>")
@@ -92,6 +106,7 @@ def inject_frame_stylesheet(request, response) -> None:
         f'<link rel="stylesheet" href="{static(LEAF_CHROME_STYLESHEET)}" />'
     )
     body = body[:head_end] + link + body[head_end:]
+    body = _hub_favicon(request, body)
     header = _leaf_header(request, body)
     if header:
         body_open = _body_open_tag(body)

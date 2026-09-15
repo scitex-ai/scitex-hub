@@ -135,6 +135,25 @@ def test_leaf_page_with_its_own_app_header_gets_no_second_header():
     assert "data-leaf-site-header" not in rendered
 
 
+def test_standalone_leaf_tab_icon_is_the_hub_favicon():
+    # Arrange
+    from django.templatetags.static import static
+
+    from config.context_processors import scitex_env
+
+    default_href = static("scitex_ui/img/scitex-favicon.svg")
+    html = STANDALONE_PAGE.replace("</head>", f'<link rel="icon" href="{default_href}" /></head>')
+    request = RequestFactory().get("/")
+    request.user = AnonymousUser()
+    hub_href = static(scitex_env(request)["SCITEX_FAVICON"])
+
+    # Act
+    rendered = _inject(html)
+
+    # Assert
+    assert f'rel="icon" href="{hub_href}"' in rendered
+
+
 def test_page_without_the_standalone_shell_is_left_unchanged():
     # Arrange
     html = "<html><head></head><body><main id=\"main-content\"></main></body></html>"

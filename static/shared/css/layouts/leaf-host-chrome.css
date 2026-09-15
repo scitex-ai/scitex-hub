@@ -43,6 +43,11 @@ body.workspace-page {
   height: 36px;
 }
 
+/* Same dark-mode lift as the hub header logo (03-logo.css). */
+[data-theme="dark"] .stx-leaf-site-header-logo img {
+  filter: brightness(1.37);
+}
+
 .stx-leaf-site-header-title {
   overflow: hidden;
   color: var(--text-primary, inherit);
