@@ -10,6 +10,50 @@
   padding: 0.75rem 1rem 1rem;
 }
 
+.apps-sdk-guide {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  margin: 0.75rem 0 1rem;
+  padding: 1rem 1.1rem;
+  color: var(--text-primary);
+  background: linear-gradient(135deg, rgba(15, 36, 64, 0.08), rgba(183, 142, 56, 0.08));
+  border: 1px solid rgba(183, 142, 56, 0.38);
+  border-left: 4px solid #b78e38;
+}
+
+.apps-sdk-guide-icon {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  color: #b78e38;
+  background: #0f2440;
+}
+
+.apps-sdk-guide-kicker {
+  color: #9b762f;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.apps-sdk-guide h2 { margin: 0.08rem 0 0.2rem; font-size: 1rem; }
+.apps-sdk-guide p { margin: 0; color: var(--text-muted); font-size: 0.8rem; }
+.apps-sdk-guide-actions { display: flex; gap: 0.55rem; }
+.apps-sdk-guide-actions a { padding: 0.5rem 0.7rem; font-size: 0.78rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.apps-sdk-guide-primary { color: #fff; background: #0f2440; border: 1px solid #0f2440; }
+.apps-sdk-guide-secondary { color: var(--text-primary); border: 1px solid var(--workspace-border-default, var(--border-color)); }
+.apps-sdk-guide-actions a:hover { border-color: #b78e38; }
+
+@media (max-width: 760px) {
+  .apps-sdk-guide { grid-template-columns: auto minmax(0, 1fr); }
+  .apps-sdk-guide-actions { grid-column: 1 / -1; }
+  .apps-sdk-guide-actions a { flex: 1; text-align: center; }
+}
+
 /* ─── Registry Org Banner ──────────────────────────────────────── */
 .apps-org-banner {
   display: flex;

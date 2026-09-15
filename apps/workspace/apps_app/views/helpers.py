@@ -264,7 +264,17 @@ def browse_context(request, current_project=None):
     DEFAULT_DISABLED: set[str] = set()
 
     # Core modules that should not appear in the store listing
-    STORE_HIDDEN: set[str] = {"console", "my_projects", "store"}
+    STORE_HIDDEN: set[str] = {
+        "console",
+        "discovery",
+        "files",
+        "home",
+        "my_projects",
+        "repo",
+        "slides",
+        "store",
+        "tools",
+    }
 
     # Annotate with user-specific state
     install_map = {}  # module_name -> {is_enabled, tab_order}
