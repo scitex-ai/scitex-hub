@@ -41,8 +41,9 @@ concurrency:
 jobs:
   test:
     name: pytest-matrix-on-ubuntu-py${{ matrix.python-version }}
-    # Spartan self-hosted, not paid GitHub-hosted runners (Spartan-first
-    # directive). Proven on the audit job first — see run 30329982563.
+    # Stays GitHub-hosted: the postgres service container needs Docker (absent
+    # on scitex-compute-01/02) and a port per job, and the suite must not see a
+    # persistent $HOME holding live fleet credentials.
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -127,7 +128,11 @@ jobs:
           # audit gate's scitex-dev subcommands) resolves to THIS venv rather
           # than to whatever the shared runner happens to have installed.
           export PATH="$PWD/.venv/bin:$PATH"
-          .venv/bin/python -m pytest tests/ --cov=src/scitex_hub --cov-report=xml --cov-report=term
+          # -n auto uses every vCPU on the hosted runner (4). loadfile keeps each
+          # file on one worker, so intra-file ordering is unchanged; each worker
+          # gets its own test database from pytest-django. Measured on PR #772:
+          # -13%/-27%/-23% wall on the three legs.
+          .venv/bin/python -m pytest tests/ -n auto --dist loadgroup --cov=src/scitex_hub --cov-report=xml --cov-report=term
       - name: Upload coverage to Codecov
         if: always() && matrix.python-version == '3.12'
         uses: codecov/codecov-action@v5

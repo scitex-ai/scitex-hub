@@ -45,9 +45,24 @@ jobs:
     # could not have told us which half was at fault. Both are now proven
     # on this pool independently — vitest (node) and the pytest matrix
     # (python) are green — so it can move.
-    runs-on: ubuntu-latest
+    # scitex-local-cpu (scitex-compute-01..04) for trusted runs; fork PRs stay
+    # on ephemeral hosted VMs. Same predicate as scitex-ai/.github import-smoke.
+    runs-on: >-
+      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+          && fromJSON('["ubuntu-latest"]')
+          || fromJSON('["self-hosted","Linux","X64","scitex-local-cpu"]') }}
 
     steps:
+      # Backstop for the runs-on predicate: never check out fork code on our hardware.
+      - name: Refuse to run fork-authored code on self-hosted infrastructure
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository &&
+          runner.environment == 'self-hosted'
+        run: |
+          echo "::error::Fork-authored code is not run on self-hosted runners."
+          exit 1
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -109,9 +124,24 @@ jobs:
     # Node on ubuntu-latest needs no toolcache probing — actions/setup-node
     # uses the hosted image's preinstalled versions, which is the case the
     # canary existed to establish for the self-hosted pool.
-    runs-on: ubuntu-latest
+    # scitex-local-cpu (scitex-compute-01..04) for trusted runs; fork PRs stay
+    # on ephemeral hosted VMs. Same predicate as scitex-ai/.github import-smoke.
+    runs-on: >-
+      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+          && fromJSON('["ubuntu-latest"]')
+          || fromJSON('["self-hosted","Linux","X64","scitex-local-cpu"]') }}
 
     steps:
+      # Backstop for the runs-on predicate: never check out fork code on our hardware.
+      - name: Refuse to run fork-authored code on self-hosted infrastructure
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository &&
+          runner.environment == 'self-hosted'
+        run: |
+          echo "::error::Fork-authored code is not run on self-hosted runners."
+          exit 1
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -294,7 +324,11 @@ jobs:
     # public) and slow, which is exactly the trade the operator's 2026-08-05
     # CI ruling endorses for work where speed does not matter. Four lines of
     # bash qualify.
-    runs-on: ubuntu-latest
+    #
+    # 2026-09-15: hosted is now the SLOW pool (Free plan: 20 concurrent hosted
+    # jobs org-wide, 50+ runs queued), so this runs on scitex-local-cpu. It
+    # checks out nothing, so a fork PR runs no foreign code here.
+    runs-on: [self-hosted, Linux, X64, scitex-local-cpu]
     needs: [typescript-check, vitest, terminal-tests, security-regression]
     if: always()
 

@@ -31,8 +31,23 @@ jobs:
     name: No absolute-target tracked symlinks
     # Pure bash + git, no Python at all — so unlike the other migrated jobs
     # this one needs no uv/venv step, just the runner change.
-    runs-on: ubuntu-latest
+    # scitex-local-cpu (scitex-compute-01..04) for trusted runs; fork PRs stay
+    # on ephemeral hosted VMs. Same predicate as scitex-ai/.github import-smoke.
+    runs-on: >-
+      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+          && fromJSON('["ubuntu-latest"]')
+          || fromJSON('["self-hosted","Linux","X64","scitex-local-cpu"]') }}
     steps:
+      # Backstop for the runs-on predicate: never check out fork code on our hardware.
+      - name: Refuse to run fork-authored code on self-hosted infrastructure
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository &&
+          runner.environment == 'self-hosted'
+        run: |
+          echo "::error::Fork-authored code is not run on self-hosted runners."
+          exit 1
+
       - name: Checkout code
         uses: actions/checkout@v4
 
