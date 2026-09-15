@@ -18,7 +18,6 @@ import { MarkdownPreviewPanel } from "./_MarkdownPreview";
 import { loadMonaco } from "./_monaco-loader";
 import { TabManager } from "./_TabManager";
 import { ViewerRouter } from "./_ViewerRouter";
-import { sanitizeLogValue } from "./_security";
 import {
   detectFileType,
   detectShebang,
@@ -256,9 +255,8 @@ export class WorkspaceViewer {
     if (load.kind !== "ok") {
       if (load.kind === "error") {
         console.error(
-          "[WorkspaceViewer] Failed to load file:",
-          sanitizeLogValue(filePath),
-          load,
+          "[WorkspaceViewer] Failed to load a file",
+          { loadKind: load.kind },
         );
       }
       this.loadedText = null;
