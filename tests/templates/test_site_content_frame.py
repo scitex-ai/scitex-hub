@@ -12,6 +12,7 @@ No mocks. One assertion per test.
 import re
 from pathlib import Path
 
+from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
 from django.test import RequestFactory
 
@@ -40,6 +41,7 @@ def _desktop_rule_for(selector: str) -> str:
 
 def _inject(html: str) -> str:
     request = RequestFactory().get("/apps/scholar/v2/")
+    request.user = AnonymousUser()
     response = HttpResponse(html, content_type="text/html; charset=utf-8")
     inject_frame_stylesheet(request, response)
     return response.content.decode()
@@ -98,6 +100,28 @@ def test_standalone_leaf_page_gets_the_frame_stylesheet():
 
     # Assert
     assert FRAME_STYLESHEET in rendered.split("</head>", 1)[0]
+
+
+def test_standalone_leaf_page_gets_the_hub_site_header():
+    # Arrange
+    html = STANDALONE_PAGE
+
+    # Act
+    rendered = _inject(html)
+
+    # Assert
+    assert "data-leaf-site-header" in rendered.split('id="workspace-three-col"', 1)[0]
+
+
+def test_leaf_page_with_its_own_app_header_gets_no_second_header():
+    # Arrange
+    html = STANDALONE_PAGE.replace("<body>", '<body><header class="app-header"></header>')
+
+    # Act
+    rendered = _inject(html)
+
+    # Assert
+    assert "data-leaf-site-header" not in rendered
 
 
 def test_page_without_the_standalone_shell_is_left_unchanged():

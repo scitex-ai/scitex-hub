@@ -1,0 +1,9 @@
+{% load static i18n %}
+<header class="stx-leaf-site-header" data-leaf-site-header>
+    <div class="stx-leaf-site-header-inner">
+        <a href="/apps/" class="stx-leaf-site-header-logo" title="{% trans 'Home' %}" aria-label="{% trans 'Home' %}">
+            <img src="{% static SCITEX_FAVICON %}" alt="SciTeX" width="36" height="36" />
+        </a>
+        {% if leaf_app_title %}<span class="stx-leaf-site-header-title">{{ leaf_app_title }}</span>{% endif %}
+    </div>
+</header>

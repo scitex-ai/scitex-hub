@@ -10,14 +10,20 @@ the stylesheet link before ``</head>`` of those documents.
 
 from __future__ import annotations
 
+import html
 import logging
+import re
 
-from asgiref.sync import iscoroutinefunction, markcoroutinefunction
+from asgiref.sync import iscoroutinefunction, markcoroutinefunction, sync_to_async
 
 logger = logging.getLogger(__name__)
 
 FRAME_STYLESHEET = "shared/css/layouts/site-content-frame.css"
+LEAF_CHROME_STYLESHEET = "shared/css/layouts/leaf-host-chrome.css"
 STANDALONE_SHELL_MARKER = 'id="workspace-three-col"'
+LEAF_HEADER_MARKER = "data-leaf-site-header"
+# Leaves that draw their own top bar (Scholar v2) keep it instead of a second one.
+OWN_HEADER_MARKERS = ('class="app-header"', 'class="global-header"')
 
 
 def is_standalone_leaf_page(request, response) -> bool:
@@ -34,8 +40,30 @@ def is_standalone_leaf_page(request, response) -> bool:
     return headers.get("Sec-Fetch-Dest", "") not in ("iframe", "frame", "embed", "object")
 
 
+def _leaf_header(request, body: str) -> str:
+    """The hub site header for a leaf page, or "" when the page brings its own."""
+    if request.GET.get("embed") == "1" or LEAF_HEADER_MARKER in body:
+        return ""
+    if any(marker in body for marker in OWN_HEADER_MARKERS):
+        return ""
+    from django.template.loader import render_to_string
+
+    match = re.search(r"<title>(.*?)</title>", body, re.S)
+    title = html.unescape(match.group(1)).strip() if match else ""
+    from config.context_processors import scitex_env
+
+    try:
+        return render_to_string(
+            "global_base_partials/leaf_site_header.html",
+            {"leaf_app_title": title, **scitex_env(request)},
+        )
+    except Exception:
+        logger.exception("[site-content-frame] leaf header failed for %s", request.path)
+        return ""
+
+
 def inject_frame_stylesheet(request, response) -> None:
-    """Add the frame stylesheet link to a standalone leaf page that lacks it."""
+    """Give a standalone leaf page the hub frame, header and themed ground."""
     if not is_standalone_leaf_page(request, response):
         return
     charset = response.charset or "utf-8"
@@ -48,8 +76,17 @@ def inject_frame_stylesheet(request, response) -> None:
 
     from django.templatetags.static import static
 
-    link = f'<link rel="stylesheet" href="{static(FRAME_STYLESHEET)}" />'
-    data = (body[:head_end] + link + body[head_end:]).encode(charset)
+    link = (
+        f'<link rel="stylesheet" href="{static(FRAME_STYLESHEET)}" />'
+        f'<link rel="stylesheet" href="{static(LEAF_CHROME_STYLESHEET)}" />'
+    )
+    body = body[:head_end] + link + body[head_end:]
+    header = _leaf_header(request, body)
+    if header:
+        body_open = re.search(r"<body[^>]*>", body)
+        if body_open:
+            body = body[: body_open.end()] + header + body[body_open.end():]
+    data = body.encode(charset)
     response.content = data
     if response.get("Content-Length") is not None:
         response["Content-Length"] = str(len(data))
@@ -76,7 +113,8 @@ class SiteContentFrameMiddleware:
 
     async def __acall__(self, request):
         response = await self.get_response(request)
-        self._safe_inject(request, response)
+        # The header render runs context processors that read request.user.
+        await sync_to_async(self._safe_inject)(request, response)
         return response
 
     @staticmethod
