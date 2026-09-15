@@ -35,6 +35,25 @@ from ...models import Manuscript
 logger = logging.getLogger(__name__)
 
 
+def _strip_stray_template_bracket(user, project):
+    # Workspaces made from the pre-#393 template end abstract.tex with a lone 」.
+    try:
+        from apps.infra.project_app.services.project_filesystem import (
+            get_project_filesystem_manager,
+        )
+        from apps.infra.project_app.services.writer_workspace_layout import (
+            get_writer_workspace_path,
+        )
+
+        from ...services.template_stray_bracket import strip_stray_brackets
+
+        root = get_project_filesystem_manager(user).get_project_root_path(project)
+        if root:
+            strip_stray_brackets(get_writer_workspace_path(root))
+    except Exception as exc:  # noqa: BLE001 - cleanup must never block opening
+        logger.warning("stray-bracket cleanup failed for %s: %s", project, exc)
+
+
 def build_writer_context(request, current_project=None):
     """Build writer-specific template context for both full page and partial views."""
     document_type = request.GET.get("doc_type", "manuscript")
@@ -112,6 +131,8 @@ def build_writer_context(request, current_project=None):
                                 exc_info=True,
                             )
                             context["writer_init_error"] = str(e)
+
+        _strip_stray_template_bracket(request.user, current_project)
 
         context["manuscript"] = manuscript
         context["manuscript_id"] = manuscript.id
