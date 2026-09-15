@@ -75,6 +75,17 @@
 
 @media (max-width: 768px) {
   .header-build-meta {
+    display: inline-flex;
+    gap: 0.25rem;
+    font-size: 0.55rem;
+    line-height: 1;
+  }
+
+  .header-hub-product {
     display: none;
+  }
+
+  .header-local-clock::before {
+    margin-right: 0.25rem;
   }
 }
