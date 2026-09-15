@@ -19,6 +19,7 @@ from django.views.decorators.http import require_http_methods
 
 from apps.infra.platform_app.services.paths import is_within, resolve_within
 from apps.infra.project_app.services.filesystem.permissions import get_user_data_root
+from apps.security import safe_log_field
 
 logger = logging.getLogger(__name__)
 
@@ -91,8 +92,11 @@ def api_dev_file_read(request, owner, repo, project_slug):
     try:
         content = safe_path.read_text(encoding="utf-8", errors="replace")
         return JsonResponse({"success": True, "content": content, "path": rel_path})
-    except OSError as exc:
-        return JsonResponse({"success": False, "error": str(exc)}, status=500)
+    except OSError:
+        logger.exception("Failed to read dev project file %s", safe_log_field(rel_path))
+        return JsonResponse(
+            {"success": False, "error": "Unable to read file."}, status=500
+        )
 
 
 @login_required
@@ -137,8 +141,11 @@ def api_dev_file_write(request, owner, repo, project_slug):
         safe_path.parent.mkdir(parents=True, exist_ok=True)
         safe_path.write_text(content, encoding="utf-8")
         return JsonResponse({"success": True, "path": rel_path})
-    except OSError as exc:
-        return JsonResponse({"success": False, "error": str(exc)}, status=500)
+    except OSError:
+        logger.exception("Failed to write dev project file %s", safe_log_field(rel_path))
+        return JsonResponse(
+            {"success": False, "error": "Unable to write file."}, status=500
+        )
 
 
 @login_required
@@ -169,8 +176,11 @@ def api_dev_file_delete(request, owner, repo, project_slug):
     try:
         safe_path.unlink()
         return JsonResponse({"success": True, "path": rel_path})
-    except OSError as exc:
-        return JsonResponse({"success": False, "error": str(exc)}, status=500)
+    except OSError:
+        logger.exception("Failed to delete dev project file %s", safe_log_field(rel_path))
+        return JsonResponse(
+            {"success": False, "error": "Unable to delete file."}, status=500
+        )
 
 
 @login_required

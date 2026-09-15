@@ -51,8 +51,8 @@ def healthz(request):
             return JsonResponse({"status": "healthy", "color": "#22c55e"})
         else:
             return JsonResponse({"status": "error", "color": "#ef4444"})
-    except Exception as e:
-        logger.exception(f"Error in healthz: {e}")
+    except Exception:
+        logger.exception("Error in healthz")
         return JsonResponse({"status": "error", "color": "#ef4444"}, status=500)
 
 
@@ -97,8 +97,8 @@ def server_health_status_api(request):
                 "services": _build_services_dict(status_data),
             }
         )
-    except Exception as e:
-        logger.exception(f"Error in server_health_status_api: {e}")
+    except Exception:
+        logger.exception("Error in server_health_status_api")
         return JsonResponse(
             {"status": "error", "color": "#ef4444", "error": "Health check failed."},
             status=500,
@@ -254,7 +254,7 @@ def _build_issues_list(status_data: dict) -> list[dict]:
             {
                 "service": "Database",
                 "level": "error",
-                "message": db.get("error", "Connection failed"),
+                "message": "Database connection failed",
             }
         )
 
@@ -265,7 +265,7 @@ def _build_issues_list(status_data: dict) -> list[dict]:
             {
                 "service": "Redis",
                 "level": "error",
-                "message": redis.get("error", "Connection failed"),
+                "message": "Redis connection failed",
             }
         )
 
@@ -276,7 +276,7 @@ def _build_issues_list(status_data: dict) -> list[dict]:
             {
                 "service": "Compute",
                 "level": "error",
-                "message": slurm.get("error", "SLURM unavailable"),
+                "message": "SLURM unavailable",
             }
         )
     elif slurm.get("health_class") == "warning":
@@ -284,7 +284,7 @@ def _build_issues_list(status_data: dict) -> list[dict]:
             {
                 "service": "Compute",
                 "level": "warning",
-                "message": slurm.get("details", "Degraded"),
+                "message": "Compute service degraded",
             }
         )
 
@@ -295,7 +295,7 @@ def _build_issues_list(status_data: dict) -> list[dict]:
             {
                 "service": "Container Runtime",
                 "level": "warning",
-                "message": apptainer.get("error", "Not available"),
+                "message": "Container runtime unavailable",
             }
         )
 
@@ -317,7 +317,7 @@ def _build_issues_list(status_data: dict) -> list[dict]:
                 {
                     "service": ssh.get("name", "SSH"),
                     "level": "warning",
-                    "message": ssh.get("error", "Not responding"),
+                    "message": "SSH service not responding",
                 }
             )
 
@@ -328,7 +328,7 @@ def _build_issues_list(status_data: dict) -> list[dict]:
                 {
                     "service": api.get("name", "API"),
                     "level": "warning",
-                    "message": api.get("error", "Not responding"),
+                    "message": "API service not responding",
                 }
             )
 
@@ -339,7 +339,7 @@ def _build_issues_list(status_data: dict) -> list[dict]:
             {
                 "service": "User Data",
                 "level": "warning",
-                "message": perms.get("message", "Permission issues"),
+                "message": "User data permissions are invalid",
             }
         )
 
@@ -356,7 +356,7 @@ def _build_issues_list(status_data: dict) -> list[dict]:
             {
                 "service": "Visitor Pool",
                 "level": visitor_pool.get("level", "warning"),
-                "message": visitor_pool.get("message", "Visitor pool degraded"),
+                "message": "Visitor pool degraded; run the pool reconciliation command.",
             }
         )
 

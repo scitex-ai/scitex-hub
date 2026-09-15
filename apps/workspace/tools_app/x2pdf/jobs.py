@@ -19,6 +19,7 @@ from pathlib import Path, PurePosixPath
 
 from apps.infra.platform_app.services.paths import resolve_within
 from apps.infra.project_app.services.filesystem.permissions import get_user_data_root
+from apps.security import safe_log_field
 
 from .convert import ConversionError, convert_file, convert_url
 from .naming import derive_pdf_filename
@@ -161,7 +162,7 @@ def run_job(path: Path) -> dict:
     except ConversionError as exc:
         meta.update(status="error", error=str(exc))
     except Exception:
-        logger.exception("x2pdf conversion crashed (%s)", path.name)
+        logger.exception("x2pdf conversion crashed (%s)", safe_log_field(path.name))
         meta.update(status="error", error="Conversion failed unexpectedly.")
     finally:
         shutil.rmtree(work, ignore_errors=True)

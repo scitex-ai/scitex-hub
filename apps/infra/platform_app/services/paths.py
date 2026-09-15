@@ -48,9 +48,23 @@ USAGE
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 __all__ = ["is_within", "resolve_within"]
+
+
+def _realpath_allow_missing(path: Path) -> Path:
+    """Resolve links while allowing a missing suffix and rejecting link loops."""
+    raw = os.path.normpath(os.fspath(path))
+    try:
+        return Path(os.path.realpath(raw, strict=True))
+    except FileNotFoundError:
+        parent, name = os.path.split(raw)
+        if not name or parent == raw:
+            raise
+        resolved_parent = _realpath_allow_missing(Path(parent))
+        return Path(os.path.normpath(os.fspath(resolved_parent / name)))
 
 
 def is_within(root: Path, target: Path) -> bool:
@@ -73,9 +87,12 @@ def is_within(root: Path, target: Path) -> bool:
     cannot turn a filesystem error into an unhandled 500.
     """
     try:
-        Path(target).resolve().relative_to(Path(root).resolve())
-        return True
-    except (ValueError, OSError, RuntimeError):
+        root_resolved = _realpath_allow_missing(Path(root))
+        target_resolved = _realpath_allow_missing(Path(target))
+        return os.path.commonpath((root_resolved, target_resolved)) == os.fspath(
+            root_resolved
+        )
+    except (TypeError, ValueError, OSError, RuntimeError):
         # RuntimeError: pathlib raises it on a symlink loop.
         return False
 
@@ -113,7 +130,7 @@ def resolve_within(root: Path, fragment: str | None) -> Path | None:
         return None
 
     try:
-        root_resolved = Path(root).resolve()
+        root_resolved = _realpath_allow_missing(Path(root))
         candidate = (root_resolved / text) if text else root_resolved
     except (ValueError, OSError, RuntimeError):
         return None
@@ -123,6 +140,6 @@ def resolve_within(root: Path, fragment: str | None) -> Path | None:
         return None
 
     try:
-        return candidate.resolve()
+        return _realpath_allow_missing(candidate)
     except (ValueError, OSError, RuntimeError):
         return None

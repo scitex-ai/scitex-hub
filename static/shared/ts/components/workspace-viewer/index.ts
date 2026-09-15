@@ -18,6 +18,7 @@ import { MarkdownPreviewPanel } from "./_MarkdownPreview";
 import { loadMonaco } from "./_monaco-loader";
 import { TabManager } from "./_TabManager";
 import { ViewerRouter } from "./_ViewerRouter";
+import { sanitizeLogValue } from "./_security";
 import {
   detectFileType,
   detectShebang,
@@ -49,6 +50,22 @@ function writeStorage(key: string, value: string): void {
   } catch {
     /* storage unavailable: keep the in-memory choice */
   }
+}
+
+function createViewerPlaceholder(
+  label: string,
+  detail: string,
+  code = false,
+): HTMLElement {
+  const placeholder = document.createElement("div");
+  placeholder.className = "ws-viewer-placeholder";
+  const paragraph = document.createElement("p");
+  paragraph.appendChild(document.createTextNode(label));
+  const value = document.createElement(code ? "code" : "span");
+  value.textContent = detail;
+  paragraph.appendChild(value);
+  placeholder.appendChild(paragraph);
+  return placeholder;
 }
 
 /** Extensions that support edit (Monaco) + preview (rendered) toggle */
@@ -238,7 +255,11 @@ export class WorkspaceViewer {
     );
     if (load.kind !== "ok") {
       if (load.kind === "error") {
-        console.error("[WorkspaceViewer] Failed to load file:", filePath, load);
+        console.error(
+          "[WorkspaceViewer] Failed to load file:",
+          sanitizeLogValue(filePath),
+          load,
+        );
       }
       this.loadedText = null;
       // Not a file to edit or preview: no Editor label, no mode toggle.
@@ -286,20 +307,25 @@ export class WorkspaceViewer {
 
     const viewer = this.router.getViewer(filePath);
     if (!viewer) {
-      this.mediaContainer.innerHTML = `
-        <div class="ws-viewer-placeholder">
-          <p>Cannot preview: <code>${filePath.split("/").pop()}</code></p>
-        </div>`;
+      this.mediaContainer.replaceChildren(
+        createViewerPlaceholder(
+          "Cannot preview: ",
+          filePath.split("/").pop() ?? filePath,
+          true,
+        ),
+      );
       return;
     }
     try {
       await viewer.render(this.mediaContainer, filePath, this.projectId);
     } catch (err) {
       console.error("[WorkspaceViewer] Viewer render error:", err);
-      this.mediaContainer.innerHTML = `
-        <div class="ws-viewer-placeholder">
-          <p>Error rendering file: ${err instanceof Error ? err.message : String(err)}</p>
-        </div>`;
+      this.mediaContainer.replaceChildren(
+        createViewerPlaceholder(
+          "Error rendering file: ",
+          err instanceof Error ? err.message : String(err),
+        ),
+      );
     }
   }
 
