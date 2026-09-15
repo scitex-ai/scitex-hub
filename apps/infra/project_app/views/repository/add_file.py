@@ -11,6 +11,7 @@ from django.contrib.auth.models import User
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 
 from ...models import Project
 from .api.file_ops_utils import get_project_path, validate_path
@@ -123,7 +124,14 @@ def project_upload_files(request, username, slug):
         project_url = reverse(
             "project_app:detail", kwargs={"username": username, "slug": slug}
         )
-        return redirect(f"{project_url}{quote(clean_dir, safe='/')}/")
+        redirect_url = f"{project_url}{quote(clean_dir, safe='/')}/"
+        if url_has_allowed_host_and_scheme(
+            redirect_url,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure(),
+        ):
+            return redirect(redirect_url)
+        return redirect("project_app:detail", username=username, slug=slug)
     return redirect("project_app:detail", username=username, slug=slug)
 
 

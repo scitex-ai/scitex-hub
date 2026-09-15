@@ -161,7 +161,9 @@ def save_upload(root: Path, folder_rel: str, uploaded_file) -> Path:
 
 def make_dir(root: Path, parent_rel: str, name: str) -> Path:
     parent = resolve_path(root, parent_rel)
-    target = parent / _valid_name(name)
+    target = resolve_within(parent, _valid_name(name))
+    if target is None or not is_within(root, target):
+        raise WorkspacePathError("path leaves the workspace")
     target.mkdir()
     return target
 
@@ -182,9 +184,13 @@ def _guard_mutable(root: Path, rel: str) -> Path:
 
 def rename(root: Path, rel: str, new_name: str) -> Path:
     source = _guard_mutable(root, rel)
-    target = source.parent / _valid_name(new_name)
+    target = resolve_within(source.parent, _valid_name(new_name))
+    if target is None or not is_within(root, target):
+        raise WorkspacePathError("path leaves the workspace")
     if target.exists() or target.is_symlink():
         raise FileExistsError(new_name)
+    if not is_within(root, source):
+        raise WorkspacePathError("path leaves the workspace")
     source.rename(target)
     return target
 
@@ -200,6 +206,8 @@ def move(root: Path, rel: str, dest_folder_rel: str) -> Path:
     target = dest_folder / source.name
     if target.exists() or target.is_symlink():
         raise FileExistsError(source.name)
+    if not is_within(root, source) or not is_within(root, target):
+        raise WorkspacePathError("path leaves the workspace")
     shutil.move(str(source), str(target))
     return target
 

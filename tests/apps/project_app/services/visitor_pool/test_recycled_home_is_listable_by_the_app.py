@@ -274,15 +274,15 @@ class TestTheWipeDoesNotNarrowTheHomeRoot:
         root = tmp_path / "data" / "users" / "visitor-001"
         (root / "proj" / "dotfiles").mkdir(parents=True)
         (root / "proj" / "dotfiles" / "bashrc").write_text("# bashrc\n")
-        os.chmod(root, 0o555)
+        os.chmod(root, 0o550)
         try:
             # Act
             wipe_directory_contents(root)
             # Assert
             assert list(root.iterdir()) == []
-            assert _app_can_list(root) is True
+            assert dir_is_traversable_by(root, FOREIGN_UID, os.getgid()) is True
         finally:
-            os.chmod(root, APP_TRAVERSABLE_DIR_MODE)
+            os.chmod(root, 0o700)
 
     @pytest.mark.guards(defect=DEFECT)
     def test_that_wipe_still_empties_the_directory(self, read_only_visitor_home):

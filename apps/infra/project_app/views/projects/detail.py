@@ -13,6 +13,7 @@ from urllib.parse import quote
 
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 
 from ...decorators import project_access_required
 from ...models import ProjectFork, ProjectStar, ProjectWatch
@@ -232,7 +233,14 @@ def project_tree_or_blob(request, username, slug, branch=None, path=None):
             detail_url = reverse(
                 "project_app:detail", kwargs={"username": username, "slug": slug}
             )
-            return redirect(f"{detail_url}{quote(folder, safe='/')}/")
+            redirect_url = f"{detail_url}{quote(folder, safe='/')}/"
+            if url_has_allowed_host_and_scheme(
+                redirect_url,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            ):
+                return redirect(redirect_url)
+            return redirect("project_app:detail", username=username, slug=slug)
         detail_url = reverse(
             "project_app:detail", kwargs={"username": username, "slug": slug}
         )

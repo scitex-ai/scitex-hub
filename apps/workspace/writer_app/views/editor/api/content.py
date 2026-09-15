@@ -11,9 +11,30 @@ import logging
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
+from apps.infra.platform_app.services.paths import resolve_within
+from apps.security import safe_log_field
+
 from ..auth_utils import api_login_optional, get_user_for_request
 
 logger = logging.getLogger(__name__)
+
+DOCUMENT_DIRS = {
+    "manuscript": "01_manuscript/contents",
+    "supplementary": "02_supplementary/contents",
+    "revision": "03_revision/contents",
+    "shared": "shared",
+}
+
+
+def _section_target(writer_service, section_name: str, doc_type: str):
+    """Return the canonical section path only when Writer would stay confined."""
+    directory = DOCUMENT_DIRS.get(doc_type)
+    if directory is None or not isinstance(section_name, str):
+        return None
+    section_dir = resolve_within(writer_service.writer_dir, directory)
+    if section_dir is None:
+        return None
+    return resolve_within(section_dir, f"{section_name}.tex")
 
 
 @api_login_optional
@@ -32,7 +53,7 @@ def section_view(request, project_id, section_name):
         from ....configs.sections_config import parse_section_id
         from ....services import WriterService
 
-        project = Project.objects.get(id=project_id)
+        Project.objects.get(id=project_id)
 
         user, is_visitor = get_user_for_request(request, project_id)
         if not user:
@@ -47,9 +68,18 @@ def section_view(request, project_id, section_name):
             try:
                 doc_type = request.GET.get("doc_type", category)
 
+                file_path = _section_target(writer_service, name, doc_type)
+                if file_path is None:
+                    return JsonResponse(
+                        {"success": False, "error": "Invalid section path"}, status=400
+                    )
+
                 logger.info(
-                    f"[SectionView GET] Reading section: {section_name} -> "
-                    f"category={category}, name={name}, doc_type={doc_type}"
+                    "[SectionView GET] Reading section=%s category=%s name=%s doc_type=%s",
+                    safe_log_field(section_name),
+                    safe_log_field(category),
+                    safe_log_field(name),
+                    safe_log_field(doc_type),
                 )
 
                 content = writer_service.read_section(name, doc_type)
@@ -57,18 +87,11 @@ def section_view(request, project_id, section_name):
                 if content is None:
                     raise ValueError(f"read_section returned None for {name}")
 
-                logger.info(f"[SectionView GET] Read {len(content)} chars for {name}")
-
-                doc_dir_map = {
-                    "manuscript": "01_manuscript/contents",
-                    "supplementary": "02_supplementary/contents",
-                    "revision": "03_revision/contents",
-                    "shared": "shared",
-                }
-                section_dir = writer_service.writer_dir / doc_dir_map.get(
-                    doc_type, "01_manuscript/contents"
+                logger.info(
+                    "[SectionView GET] Read %d chars for %s",
+                    len(content),
+                    safe_log_field(name),
                 )
-                file_path = section_dir / f"{name}.tex"
 
                 return JsonResponse(
                     {
@@ -81,12 +104,12 @@ def section_view(request, project_id, section_name):
                     }
                 )
 
-            except Exception as e:
-                logger.error(
-                    f"Error reading section {section_name}: {e}", exc_info=True
+            except Exception:
+                logger.exception(
+                    "Error reading section %s", safe_log_field(section_name)
                 )
                 return JsonResponse(
-                    {"success": False, "error": f"Failed to read section: {e}"},
+                    {"success": False, "error": "Failed to read section."},
                     status=500,
                 )
 
@@ -110,10 +133,19 @@ def section_view(request, project_id, section_name):
                         status=400,
                     )
 
+                if _section_target(writer_service, name, doc_type) is None:
+                    return JsonResponse(
+                        {"success": False, "error": "Invalid section path"}, status=400
+                    )
+
                 logger.info(
-                    f"[SectionView POST] Writing section: {section_name} -> "
-                    f"category={category}, name={name}, doc_type={doc_type}, "
-                    f"length: {len(content)}"
+                    "[SectionView POST] Writing section=%s category=%s name=%s "
+                    "doc_type=%s length=%d",
+                    safe_log_field(section_name),
+                    safe_log_field(category),
+                    safe_log_field(name),
+                    safe_log_field(doc_type),
+                    len(content),
                 )
 
                 success = writer_service.write_section(name, content, doc_type)
@@ -134,12 +166,12 @@ def section_view(request, project_id, section_name):
                         status=500,
                     )
 
-            except Exception as e:
-                logger.error(
-                    f"Error writing section {section_name}: {e}", exc_info=True
+            except Exception:
+                logger.exception(
+                    "Error writing section %s", safe_log_field(section_name)
                 )
                 return JsonResponse(
-                    {"success": False, "error": f"Failed to write section: {e}"},
+                    {"success": False, "error": "Failed to write section."},
                     status=500,
                 )
 
@@ -147,9 +179,9 @@ def section_view(request, project_id, section_name):
         return JsonResponse(
             {"success": False, "error": "Project not found"}, status=404
         )
-    except Exception as e:
-        logger.error(f"Error in section_view: {e}", exc_info=True)
-        return JsonResponse({"success": False, "error": str(e)}, status=500)
+    except Exception:
+        logger.exception("Error in section_view for project %s", safe_log_field(project_id))
+        return JsonResponse({"success": False, "error": "Unable to process request."}, status=500)
 
 
 @api_login_optional
@@ -178,7 +210,7 @@ def save_sections_view(request, project_id):
 
         from ....services import WriterService
 
-        project = Project.objects.get(id=project_id)
+        Project.objects.get(id=project_id)
 
         user, is_visitor = get_user_for_request(request, project_id)
         if not user:
@@ -203,6 +235,9 @@ def save_sections_view(request, project_id):
                     continue
 
                 category, section_name = parse_section_id(section_id)
+                if _section_target(writer_service, section_name, category) is None:
+                    error_list.append(f"{section_id}: Invalid section path")
+                    continue
                 success = writer_service.write_section(section_name, content, category)
 
                 if success:
@@ -210,9 +245,11 @@ def save_sections_view(request, project_id):
                 else:
                     error_list.append(f"{section_id}: write_section returned False")
 
-            except Exception as e:
-                logger.error(f"Error saving section {section_id}: {e}", exc_info=True)
-                error_list.append(f"{section_id}: {e}")
+            except Exception:
+                logger.exception(
+                    "Error saving section %s", safe_log_field(section_id)
+                )
+                error_list.append(f"{section_id}: Save failed")
 
         if error_list:
             return JsonResponse(
@@ -241,10 +278,10 @@ def save_sections_view(request, project_id):
         return JsonResponse(
             {"success": False, "error": "Project not found"}, status=404
         )
-    except Exception as e:
-        logger.error(f"Error saving sections: {e}", exc_info=True)
+    except Exception:
+        logger.exception("Error saving sections for project %s", safe_log_field(project_id))
         return JsonResponse(
-            {"success": False, "error": f"Server error: {e}"}, status=500
+            {"success": False, "error": "Unable to save sections."}, status=500
         )
 
 
@@ -280,26 +317,10 @@ def read_tex_file_view(request, project_id):
                 {"success": False, "error": "Project has no local path configured"},
                 status=400,
             )
-        full_path = workspace_path / file_path
-
-        # Security: component-wise containment, not a string prefix match.
-        # CONTAINMENT ONLY -- this view is @api_login_optional, so an
-        # unauthenticated caller can reach it. Whether that anonymous access
-        # is intended sharing or an oversight is a product question left for
-        # the operator; this sweep only confines the path to the workspace.
-        from apps.infra.project_app.services.filesystem.permissions import (
-            validate_path_in_project,
-        )
-
-        try:
-            full_path = full_path.resolve()
-            if not validate_path_in_project(workspace_path, full_path):
-                return JsonResponse(
-                    {"success": False, "error": "Path outside workspace"}, status=403
-                )
-        except (OSError, RuntimeError) as e:
+        full_path = resolve_within(workspace_path, file_path)
+        if full_path is None:
             return JsonResponse(
-                {"success": False, "error": f"Invalid path: {e}"}, status=400
+                {"success": False, "error": "Invalid path"}, status=400
             )
 
         if not full_path.exists():
@@ -317,19 +338,21 @@ def read_tex_file_view(request, project_id):
                     "filename": full_path.name,
                 }
             )
-        except Exception as e:
-            logger.error(f"Error reading file {file_path}: {e}")
+        except Exception:
+            logger.exception("Error reading file %s", safe_log_field(file_path))
             return JsonResponse(
-                {"success": False, "error": f"Failed to read file: {e}"}, status=500
+                {"success": False, "error": "Failed to read file."}, status=500
             )
 
     except Project.DoesNotExist:
         return JsonResponse(
             {"success": False, "error": "Project not found"}, status=404
         )
-    except Exception as e:
-        logger.error(f"Error in read_tex_file_view: {e}", exc_info=True)
-        return JsonResponse({"success": False, "error": str(e)}, status=500)
+    except Exception:
+        logger.exception(
+            "Error in read_tex_file_view for project %s", safe_log_field(project_id)
+        )
+        return JsonResponse({"success": False, "error": "Unable to read file."}, status=500)
 
 
 # View aliases for backward compatibility
