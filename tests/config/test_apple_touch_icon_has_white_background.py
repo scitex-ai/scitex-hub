@@ -3,7 +3,7 @@
 """The iOS home-screen icon padding must be opaque white.
 
 iOS renders transparent (or dark) padding as black; the operator wants the
-navy logo centred on white.
+navy circle logo centred on white.
 """
 
 from __future__ import annotations
