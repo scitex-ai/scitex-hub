@@ -26,6 +26,7 @@ import {
   parseStack,
   recordVisit,
 } from "./_site-dock/history-stack";
+import { initChatPanel } from "./_site-dock/chat-panel";
 import {
   type DockPosition,
   fromPixels,
@@ -107,6 +108,7 @@ class SiteDock {
     window.addEventListener("resize", () => this.restorePosition());
     this.initDrag();
     this.initHistory();
+    initChatPanel(this.dock);
   }
 
   /* ── Position ───────────────────────────────────────────── */
