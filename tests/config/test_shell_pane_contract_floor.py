@@ -115,9 +115,11 @@ LAST_WITHOUT_TEXT_LINK = Version("0.14.0")
 #: exists to catch.
 AGENTS_ACCENT_FLOOR = Version("0.20.3")
 LAST_WITHOUT_AGENTS_ACCENT = Version("0.20.2")
-#: RAISED 0.20.3 -> 0.21.0 on 2026-09-14: the project picker template tag and
-#: ``scitex_ui.project_scope`` (scitex-ui #232) first ship in 0.21.0.
-PROJECT_PICKER_FLOOR = Version("0.21.0")
+#: RAISED 0.21.0 -> 0.22.0 on 2026-09-15: exact first release whose picker tag
+#: loads ``js/app/project-selector.js`` and ships the canonical responsive
+#: ``.stx-app-header__slot--project-selector`` placement contract.
+PROJECT_PICKER_FLOOR = Version("0.22.0")
+LAST_WITHOUT_PROJECT_HEADER_CONTRACT = Version("0.21.0")
 DECLARED_FLOOR = PROJECT_PICKER_FLOOR
 
 #: A pane name scitex-ui does not know. Any value outside PANE_NAMES works;
@@ -226,6 +228,23 @@ def test_declared_floor_excludes_every_release_without_the_agents_accent(
         f"these pyproject.toml groups declare a scitex-ui range permitting "
         f"{LAST_WITHOUT_AGENTS_ACCENT}, a release without '--app-accent-agents': "
         f"{permissive}. Raise each floor to {AGENTS_ACCENT_FLOOR}."
+    )
+
+
+def test_declared_floor_excludes_the_last_release_without_the_project_header_contract(
+    scitex_ui_requirements: list[tuple[str, Requirement]],
+) -> None:
+    # Arrange / Act — 0.21 has the tag but loads the old entry and has no slot guard.
+    permissive = [
+        (group, str(req.specifier))
+        for group, req in scitex_ui_requirements
+        if req.specifier.contains(LAST_WITHOUT_PROJECT_HEADER_CONTRACT)
+    ]
+
+    # Assert
+    assert permissive == [], (
+        "these declarations still admit scitex-ui 0.21.0, before the canonical "
+        f"project-selector entry/header slot contract: {permissive}"
     )
 
 

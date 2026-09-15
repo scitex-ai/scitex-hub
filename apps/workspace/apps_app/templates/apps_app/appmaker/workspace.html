@@ -1,18 +1,21 @@
 {% extends "global_base.html" %}
-{% load static i18n %}
+{% load static i18n scitex_project_picker %}
 {% block title %}{{ app_label }}{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'apps_app/css/appmaker.css' %}?v={{ build_id }}" />
 {% endblock %}
 {% block content %}
     <div class="appmaker" id="appmaker-workspace">
-        <header class="appmaker-head">
-            <div>
+        <header class="appmaker-head stx-app-header">
+            <div class="stx-app-header__identity">
                 <h1 class="appmaker-title">{{ app_label }}</h1>
                 <span class="appmaker-head-meta">
                     <i class="fas fa-lock" aria-hidden="true"></i>
                     {% trans "Private project" %} · {{ request.user.username }}/{{ project.slug }}
                 </span>
+            </div>
+            <div class="stx-app-header__slot--project-selector">
+                {% scitex_project_picker scope="project" current=project %}
             </div>
             <div class="appmaker-actions">
                 <div class="appmaker-action">

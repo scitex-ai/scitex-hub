@@ -86,6 +86,7 @@ def workspace_page(request, slug):
     files = list_app_files(project)
     context = {
         "project": project,
+        "current_project": project,
         "app_label": manifest.get("label") or project.name,
         "files": files,
         "file_base_url": f"/{request.user.username}/{project.slug}/blob/",
