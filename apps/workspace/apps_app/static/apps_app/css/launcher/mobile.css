@@ -78,6 +78,16 @@
   padding-bottom: 0;
 }
 
+/* Home's shell is as tall as the launcher, not calc(100dvh - 44px): on iOS
+   dvh changes while the toolbar collapses, so the document grew and shrank
+   under the finger, and the fixed viewport height left an empty band above
+   the dock before the footer (operator iPhone, 2026-09-15). The footer still
+   follows, so the legal links stay reachable. !important: an app-home rule
+   elsewhere pins the shell height the same way. */
+body.workspace-page.app-home .workspace-layout:has(#app-launcher) {
+  height: auto !important;
+}
+
 /* flex-direction: row is LOAD-BEARING. The un-paged grid (grid.css) is a
    COLUMN of group bands, and this rule used to inherit that: every page then
    stacked VERTICALLY inside a box with overflow-y: hidden, so the scroller was
