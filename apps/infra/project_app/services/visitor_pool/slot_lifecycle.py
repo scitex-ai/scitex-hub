@@ -20,11 +20,11 @@ import logging
 import secrets
 from datetime import timedelta
 
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.utils import timezone
 
-from apps.infra.project_app.models import VisitorAllocation
+from apps.infra.project_app.models import Project, VisitorAllocation
 
 
 def allocatable_slot_q(now=None):
@@ -196,25 +196,48 @@ def reset_and_verify_slot(
 
     from .workspace_manager import WorkspaceManager
 
-    allocation.refresh_from_db()
-    if allocation.is_active and allocation.expires_at > timezone.now():
-        logger.warning(
-            f"[VisitorPool] Refusing reset of ACTIVE slot "
-            f"visitor-{allocation.visitor_number:03d}"
-        )
-        return False
-
     username = visitor_username(allocation.visitor_number)
+    user = None
     try:
-        user = User.objects.get(username=username)
-    except User.DoesNotExist:
-        quarantine_slot(allocation, f"visitor user {username} missing")
-        return False
+        # Lock for the ENTIRE destructive DB reset, not merely the final ready
+        # flip. Celery retries, boot reconcile and an operator command can all
+        # target one slot; without this lock they can interleave delete/create
+        # and manufacture the same (owner, name) concurrently.
+        with transaction.atomic():
+            locked = VisitorAllocation.objects.select_for_update().get(
+                pk=allocation.pk
+            )
+            if locked.is_active and locked.expires_at > timezone.now():
+                logger.warning(
+                    f"[VisitorPool] Refusing reset of ACTIVE slot "
+                    f"visitor-{locked.visitor_number:03d}"
+                )
+                return False
 
-    try:
-        WorkspaceManager.reset_visitor_workspace(
-            user, gitea_client=gitea_client, clone_fn=clone_fn, run_cmd=run_cmd
-        )
+            try:
+                user = User.objects.get(username=username)
+            except User.DoesNotExist:
+                quarantine_slot(locked, f"visitor user {username} missing")
+                return False
+
+            WorkspaceManager.reset_visitor_workspace(
+                user, gitea_client=gitea_client, clone_fn=clone_fn, run_cmd=run_cmd
+            )
+
+            locked.quarantined = False
+            locked.quarantined_at = None
+            locked.quarantine_reason = ""
+            locked.is_active = False
+            locked.workspace_ready = True
+            locked.save(
+                update_fields=[
+                    "quarantined",
+                    "quarantined_at",
+                    "quarantine_reason",
+                    "is_active",
+                    "workspace_ready",
+                ]
+            )
     except Exception as exc:
         # Quarantine the slot (correct), but do not let it take the whole site
         # with it. A reset that raised mid-pipeline can leave the home root at
@@ -225,25 +248,33 @@ def reset_and_verify_slot(
         from .home_access import leave_home_root_listable
         from .home_state import visitor_home_root
 
-        leave_home_root_listable(visitor_home_root(user))
-        quarantine_slot(allocation, f"reset failed: {exc}")
+        if user is not None:
+            leave_home_root_listable(visitor_home_root(user))
+        allocation.refresh_from_db()
+        reason = f"reset failed: {exc}"
+        if isinstance(exc, IntegrityError) and user is not None:
+            slug = WorkspaceManager.DEFAULT_PROJECT_SLUG
+            name = WorkspaceManager.DEFAULT_PROJECT_DISPLAY_NAME
+            slug_exists = Project.objects.filter(owner=user, slug=slug).exists()
+            name_exists = Project.objects.filter(owner=user, name=name).exists()
+            if name_exists and not slug_exists:
+                identity_reason = "divergent_lookup_constraint"
+            elif slug_exists:
+                identity_reason = "stale_transient_default_row"
+            else:
+                identity_reason = "alternate_creator_or_concurrent_insert"
+            # Constants and booleans only: never log owner identifiers or DB
+            # values. The slot number is already the public operational key.
+            reason = (
+                "reset failed: project_identity_collision "
+                f"reason={identity_reason} slot={allocation.visitor_number} "
+                f"attempt_slug={slug!r} attempt_name={name!r} "
+                f"slug_exists={slug_exists} name_exists={name_exists}"
+            )
+        quarantine_slot(allocation, reason)
         return False
 
     allocation.refresh_from_db()
-    allocation.quarantined = False
-    allocation.quarantined_at = None
-    allocation.quarantine_reason = ""
-    allocation.is_active = False
-    allocation.workspace_ready = True
-    allocation.save(
-        update_fields=[
-            "quarantined",
-            "quarantined_at",
-            "quarantine_reason",
-            "is_active",
-            "workspace_ready",
-        ]
-    )
     logger.info(
         f"[VisitorPool] Slot visitor-{allocation.visitor_number:03d} verified "
         f"clean and returned to pool"
