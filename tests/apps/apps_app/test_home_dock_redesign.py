@@ -416,16 +416,16 @@ class SettingsAndChatTilesTest(TestCase):
             order.index("tools"),
             order.index("settings"),
         )
-        # Assert — Chat is Work (after Writer, before Tools); Settings leads System
-        assert order.index("writer") < chat < tools < settings_ < order.index("docs")
+        # Assert — Chat is Work; Settings leads System; Tools is the final group.
+        assert order.index("writer") < chat < settings_ < order.index("docs") < tools
 
-    def test_stats_keeps_its_slot_between_figrecipe_and_writer(self):
+    def test_stats_keeps_its_slot_between_scholar_and_figrecipe(self):
         # Arrange
         order = DEFAULT_LAUNCHER_ORDER
         # Act
         slot = order.index("stats")
         # Assert
-        assert order.index("figrecipe") < slot < order.index("writer")
+        assert order.index("scholar") < slot < order.index("figrecipe")
 
     def test_settings_tile_opens_account_settings(self):
         # Arrange

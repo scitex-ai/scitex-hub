@@ -381,7 +381,7 @@ class TestTokushohoPage:
         # Act
         content = client.get(url).content.decode("utf-8")
         # Assert
-        assert reverse("public_app:tokushoho") in content
+        assert reverse("public_app:tokushoho_en") in content
 
 
 class TestCommerceSettingsDefaults:

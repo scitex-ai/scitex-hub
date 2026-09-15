@@ -207,7 +207,7 @@ class HomePagesTest(TestCase):
         # Arrange
         groups = self._groups()
         # Act
-        names = [c.get("name") for c in groups[1]["cells"] if not c.get("is_planned")]
+        names = [c.get("name") for c in groups[1]["cells"]]
         # Assert
         assert names[:4] == ["scholar", "stats", "figrecipe", "writer"]
 
