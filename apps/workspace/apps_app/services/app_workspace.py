@@ -64,7 +64,7 @@ def apply_file_edit(user, project, rel_path: str, content: str) -> str:
         raise EditRefused("Path is outside the project")
     if ".git" in target.relative_to(project_dir.resolve()).parts:
         raise EditRefused("Path is outside the project")
-    ok, message = write_file_content(target, content)
+    ok, message = write_file_content(target, content, trusted_root=project_dir)
     if not ok:
         raise EditRefused(message)
     logger.info(

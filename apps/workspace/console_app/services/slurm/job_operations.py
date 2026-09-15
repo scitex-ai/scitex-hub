@@ -9,6 +9,7 @@ import subprocess
 from pathlib import Path
 from typing import Dict, Optional
 
+from apps.infra.platform_app.services.paths import resolve_within
 from apps.security import safe_log_field
 
 from .script_generator import create_batch_script
@@ -73,7 +74,9 @@ def submit_job(
         return {"success": False, "message": "Invalid job configuration."}
 
     # Save batch file
-    batch_file = job_scripts_dir / f"job_{user_id}_{job_name}.sh"
+    batch_file = resolve_within(job_scripts_dir, f"job_{user_id}_{job_name}.sh")
+    if batch_file is None:
+        return {"success": False, "message": "Invalid job configuration."}
     batch_file.write_text(batch_script)
     batch_file.chmod(0o755)
 
