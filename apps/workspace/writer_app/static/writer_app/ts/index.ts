@@ -122,6 +122,13 @@ import {
 // Import and initialize editor loader (must happen before DOMContentLoaded)
 import { editorLoader } from "./loaders/editor-loader";
 
+import { prefetchSectionsConfig } from "./_writer/_config/sections-config";
+
+// The section list gates the first section load; start it before init work.
+if ((window as any).WRITER_CONFIG?.writerInitialized) {
+  prefetchSectionsConfig();
+}
+
 // Initialize editors immediately (before DOM ready)
 (async () => {
   try {
