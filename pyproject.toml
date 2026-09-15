@@ -592,7 +592,12 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.setuptools.package-data]
-scitex_hub = ["skills/*.md", "skills/references/*.md", "_skills/**/*.md"]
+scitex_hub = [
+    "skills/*.md",
+    "skills/references/*.md",
+    "_skills/**/*.md",
+    "_sphinx_html/**",
+]
 
 [tool.setuptools.package-dir]
 "" = "src"
