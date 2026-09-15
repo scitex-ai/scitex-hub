@@ -177,14 +177,14 @@ class ProjectScopeTest(TestCase):
         # Assert
         assert HubProjectProvider().last_visited(request) == project_key(opened)
 
-    def test_writer_leaf_picker_maps_the_hub_project(self):
+    def test_writer_shared_header_picker_maps_the_hub_project(self):
         # Arrange
         _require_sdk_host_service()
         from django.template.loader import render_to_string
 
         # Act
         html = render_to_string(
-            "writer/_project_picker.html",
+            "writer_app/shared/_app_header.html",
             {"request": self._request(), "current_project": self.paper},
         )
         # Assert
