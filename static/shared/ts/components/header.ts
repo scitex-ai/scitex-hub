@@ -9,6 +9,26 @@ import { initVisitorCountdown } from "./visitor-countdown";
 // Storage key for header collapse state
 const HEADER_COLLAPSE_STORAGE_KEY = "scitex-header-collapsed";
 
+function initializeHeaderClock(): void {
+  const clock = document.getElementById("header-local-clock");
+  if (!(clock instanceof HTMLTimeElement)) return;
+
+  const update = (): void => {
+    const now = new Date();
+    clock.dateTime = now.toISOString();
+    clock.textContent = now.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+    clock.title = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  };
+
+  update();
+  window.setInterval(update, 1000);
+}
+
 /** Mobile hamburger menu toggle */
 function initializeMobileHamburger(): void {
   const btn = document.getElementById("mobile-hamburger-btn");
@@ -65,6 +85,7 @@ function initializeMobileHamburger(): void {
 }
 
 function initializeHeader(): void {
+  initializeHeaderClock();
   // Initialize mobile hamburger menu
   initializeMobileHamburger();
   // Initialize header collapse toggle

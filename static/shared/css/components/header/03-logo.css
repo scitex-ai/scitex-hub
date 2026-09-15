@@ -54,15 +54,27 @@
   }
 }
 
-.header-hub-version {
+.header-build-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   color: var(--text-muted);
   font-size: 0.68rem;
   font-weight: 500;
   white-space: nowrap;
 }
 
+.header-local-clock {
+  font-variant-numeric: tabular-nums;
+}
+
+.header-local-clock::before {
+  content: "·";
+  margin-right: 0.45rem;
+}
+
 @media (max-width: 768px) {
-  .header-hub-version {
+  .header-build-meta {
     display: none;
   }
 }

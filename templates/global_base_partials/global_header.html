@@ -35,7 +35,10 @@
                      alt="SciTeX{% if SCITEX_ENV_MARKER %} ({{ SCITEX_ENV_MARKER }}){% endif %}"
                      class="header-logo-icon" />
             </a>
-            <span class="header-hub-version" title="SciTeX Hub version">SciTeX Hub v{{ SCITEX_HUB_VERSION }}</span>
+            <span class="header-build-meta">
+                <span class="header-hub-version" title="SciTeX Hub version">SciTeX Hub v{{ SCITEX_HUB_VERSION }}</span>
+                <time id="header-local-clock" class="header-local-clock" aria-label="Local time"></time>
+            </span>
             {% if user.is_authenticated %}
                 <!-- AI Assistant Toggle (right of logo) -->
                 <button id="stx-shell-ai-fab"
