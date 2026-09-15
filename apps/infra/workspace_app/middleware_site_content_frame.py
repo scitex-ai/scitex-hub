@@ -62,6 +62,17 @@ def _leaf_header(request, body: str) -> str:
         return ""
 
 
+def _body_open_tag(body: str):
+    """The real <body> tag; comments and head scripts in the shell spell out "<body>"."""
+    start = body.find("</head>")
+    comments = [m.span() for m in re.finditer(r"<!--.*?-->", body, re.S)]
+    for match in re.finditer(r"<body\b[^>]*>", body[start:]):
+        pos = start + match.start()
+        if not any(a <= pos < b for a, b in comments):
+            return re.compile(r"<body\b[^>]*>").match(body, pos)
+    return None
+
+
 def inject_frame_stylesheet(request, response) -> None:
     """Give a standalone leaf page the hub frame, header and themed ground."""
     if not is_standalone_leaf_page(request, response):
@@ -83,8 +94,7 @@ def inject_frame_stylesheet(request, response) -> None:
     body = body[:head_end] + link + body[head_end:]
     header = _leaf_header(request, body)
     if header:
-        # Search past </head>: inline scripts in the head spell out "<body>".
-        body_open = re.compile(r"<body[^>]*>").search(body, body.find("</head>"))
+        body_open = _body_open_tag(body)
         if body_open:
             body = body[: body_open.end()] + header + body[body_open.end():]
     data = body.encode(charset)

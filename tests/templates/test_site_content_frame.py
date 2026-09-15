@@ -113,15 +113,15 @@ def test_standalone_leaf_page_gets_the_hub_site_header():
     assert "data-leaf-site-header" in rendered.split('id="workspace-three-col"', 1)[0]
 
 
-def test_site_header_lands_in_body_not_in_a_head_script_mentioning_body():
+def test_site_header_skips_a_body_tag_inside_a_comment():
     # Arrange
-    html = STANDALONE_PAGE.replace("</title>", "</title><script>'<body>'</script>")
+    html = STANDALONE_PAGE.replace("</head>", "</head><!-- mirrors onto <body> -->")
 
     # Act
     rendered = _inject(html)
 
     # Assert
-    assert "data-leaf-site-header" not in rendered.split("</head>", 1)[0]
+    assert "data-leaf-site-header" in rendered.split("-->", 1)[1]
 
 
 def test_leaf_page_with_its_own_app_header_gets_no_second_header():
