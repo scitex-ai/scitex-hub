@@ -104,14 +104,19 @@
         </template>
         <dialog id="launcher-display-dialog" class="launcher-display-dialog" aria-labelledby="launcher-display-title">
             <form method="dialog" id="launcher-display-form">
-                <h3 id="launcher-display-title">Edit app display</h3>
-                <label>Display name <input id="launcher-display-name" name="display_name" maxlength="100" required /></label>
+                <header class="launcher-display-header">
+                    <button type="button" id="launcher-display-cancel" class="launcher-display-cancel">Cancel</button>
+                    <h3 id="launcher-display-title">Edit app display</h3>
+                    <button type="submit" class="launcher-display-save">Save</button>
+                </header>
+                <label>Display name <input id="launcher-display-name" name="display_name" maxlength="100" autocomplete="off" required /></label>
                 <label>Font Awesome icon <input id="launcher-display-icon" name="icon" placeholder="fas fa-flask" /></label>
                 <label>Icon color <input id="launcher-display-color" name="icon_color" type="color" value="#ffffff" /></label>
                 <div class="launcher-display-actions">
                     <button type="button" id="launcher-display-reset">Reset to manifest defaults</button>
-                    <button type="button" id="launcher-display-cancel">Cancel</button>
-                    <button type="submit">Save</button>
+                    <button type="button" id="launcher-display-uninstall" class="launcher-display-uninstall" hidden>
+                        <i class="fas fa-minus-circle" aria-hidden="true"></i> Uninstall app
+                    </button>
                 </div>
             </form>
         </dialog>

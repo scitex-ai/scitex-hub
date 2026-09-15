@@ -34,6 +34,9 @@ export class LauncherEditControls {
     }, true);
     document.getElementById("launcher-display-cancel")?.addEventListener("click", () => this.dialog?.close());
     document.getElementById("launcher-display-reset")?.addEventListener("click", () => void this.save(true));
+    document.getElementById("launcher-display-uninstall")?.addEventListener("click", () => {
+      if (this.tile) void this.uninstall(this.tile, true);
+    });
     document.getElementById("launcher-display-form")?.addEventListener("submit", (event) => {
       event.preventDefault();
       void this.save(false);
@@ -52,12 +55,13 @@ export class LauncherEditControls {
     return result;
   }
 
-  private async uninstall(tile: HTMLElement): Promise<void> {
+  private async uninstall(tile: HTMLElement, fromDialog = false): Promise<void> {
     const name = tile.dataset.module || "";
     const label = tile.dataset.label || name;
     if (!name || !window.confirm(`Uninstall ${label}?`)) return;
     try {
       await this.post(`/apps/store/api/${encodeURIComponent(name)}/uninstall/`);
+      if (fromDialog) this.dialog?.close();
       tile.remove();
       this.rebalance();
       showToast(`${label} uninstalled.`, "success");
@@ -77,6 +81,8 @@ export class LauncherEditControls {
     this.input("launcher-display-icon").value = tile.querySelector(".launcher-tile-icon > i")?.className || "";
     const box = tile.querySelector<HTMLElement>(".launcher-tile-icon");
     this.input("launcher-display-color").value = box?.style.getPropertyValue("--launcher-glyph-color").trim() || "#ffffff";
+    const uninstall = document.getElementById("launcher-display-uninstall") as HTMLButtonElement | null;
+    if (uninstall) uninstall.hidden = !tile.querySelector(".launcher-uninstall-control");
     this.dialog.showModal();
   }
 
