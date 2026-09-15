@@ -3,6 +3,7 @@
  * Handles Light/Dark mode switching with localStorage persistence and database sync
  */
 
+import { EMBED_THEME_MESSAGE } from "../components/_site-dock/chat-float";
 import { getCsrfToken } from "./csrf";
 
 type Theme = "light" | "dark";
@@ -242,7 +243,34 @@ function setupToggleButton(): void {
 /**
  * Initialize theme on page load
  */
+/** The dock chat embed (?embed=1&theme=) follows its parent page, not storage. */
+export function embedPinnedTheme(search: string): Theme | null {
+  const qs = new URLSearchParams(search);
+  if (qs.get("embed") !== "1") return null;
+  const theme = qs.get("theme");
+  return theme === THEME_LIGHT || theme === THEME_DARK ? theme : null;
+}
+
+function followParentTheme(): void {
+  window.addEventListener("message", (e: MessageEvent) => {
+    if (e.origin !== window.location.origin || e.source !== window.parent) {
+      return;
+    }
+    const data = e.data as { type?: string; theme?: string } | null;
+    if (data?.type !== EMBED_THEME_MESSAGE) return;
+    if (data.theme === THEME_LIGHT || data.theme === THEME_DARK) {
+      applyTheme(data.theme);
+    }
+  });
+}
+
 async function initTheme(): Promise<void> {
+  const pinned = embedPinnedTheme(window.location.search);
+  if (pinned) {
+    applyTheme(pinned);
+    followParentTheme();
+    return;
+  }
   // Try to load from database first (for authenticated users)
   const db = await loadThemeFromDatabase();
   const theme = resolveInitialTheme(db, localStorage.getItem(STORAGE_KEY));

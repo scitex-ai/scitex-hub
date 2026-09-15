@@ -18,12 +18,31 @@ const DESKTOP_H = 520;
 const PHONE_H_RATIO = 0.5;
 const PHONE_H_MAX = 520;
 
-export function embedUrl(path: string, title: string): string {
+export type EmbedTheme = "light" | "dark";
+
+/** postMessage type the parent sends when its theme changes (theme-switcher.ts listens). */
+export const EMBED_THEME_MESSAGE = "stx-embed-theme";
+
+/** The page's effective theme: its data-theme, else the OS preference. */
+export function effectiveTheme(
+  dataTheme: string | null,
+  prefersDark: boolean,
+): EmbedTheme {
+  if (dataTheme === "light" || dataTheme === "dark") return dataTheme;
+  return prefersDark ? "dark" : "light";
+}
+
+export function embedUrl(
+  path: string,
+  title: string,
+  theme?: EmbedTheme,
+): string {
   const qs = new URLSearchParams({
     embed: "1",
     ctx_path: path.slice(0, 200),
     ctx_title: title.slice(0, 120),
   });
+  if (theme) qs.set("theme", theme);
   return `${CHAT_URL}?${qs.toString()}`;
 }
 

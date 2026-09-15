@@ -20,7 +20,8 @@
    tests/apps/public_app/views/test_landing_body_class.py, which exists for
    exactly this and named the offender by file and line.
 {% endcomment %}
-<html lang="{{ LANGUAGE_CODE }}">
+{# The floating dock chat's embed follows the page it floats over (?theme=). #}
+<html lang="{{ LANGUAGE_CODE }}"{% if request.GET.embed == '1' %}{% if request.GET.theme == 'light' or request.GET.theme == 'dark' %} data-theme="{{ request.GET.theme }}" data-color-mode="{{ request.GET.theme }}"{% endif %}{% endif %}>
     <head>
         {# Single source of truth for tab titles: config/branding.py #}
         <title>{% page_title %}</title>

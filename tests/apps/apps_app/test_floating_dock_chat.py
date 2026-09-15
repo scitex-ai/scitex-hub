@@ -6,6 +6,7 @@ and the chat's system prompt names the page under the panel."""
 
 from pathlib import Path
 
+from django.contrib.auth.models import AnonymousUser
 from django.template.loader import render_to_string
 from django.test import RequestFactory
 
@@ -43,6 +44,17 @@ def test_embed_flag_drops_site_header_and_footer():
     base = (_REPO_ROOT / "templates/global_base.html").read_text("utf-8")
     # Assert
     assert guard in base
+
+
+def test_embed_follows_the_parent_page_light_theme():
+    # Arrange
+    request = RequestFactory().get("/chat/", {"embed": "1", "theme": "light"})
+    request.user = AnonymousUser()
+    request.session = {}
+    # Act
+    html = render_to_string("global_base.html", request=request)
+    # Assert
+    assert 'data-theme="light" data-color-mode="light">' in html
 
 
 def test_system_prompt_names_the_page_under_the_float():

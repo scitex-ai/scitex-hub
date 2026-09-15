@@ -17,7 +17,11 @@
         // Canonical key "stx-theme" (converged with scitex-ui); legacy
         // key read as fallback for one release cycle. Default dark —
         // matches theme-switcher.ts's new-visitor default.
-        const theme = localStorage.getItem("stx-theme")
+        // The dock chat embed is pinned to its parent page's theme.
+        const qs = new URLSearchParams(window.location.search);
+        const pinned = qs.get("embed") === "1" ? qs.get("theme") : null;
+        const theme = (pinned === "light" || pinned === "dark") ? pinned
+            : localStorage.getItem("stx-theme")
             || localStorage.getItem("scitex-theme-preference")
             || "dark";
         if (theme === "dark") {

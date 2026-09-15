@@ -385,18 +385,4 @@
   }
 }
 
-/* /chat/?embed=1 inside the floating dock chat: the chat pane only. */
-body.stx-embed #workspace-sidebar,
-body.stx-embed #mobile-top-bar,
-body.stx-embed .module-tab-bar {
-  display: none !important;
-}
-
-body.stx-embed .workspace-content {
-  margin-left: 0 !important;
-  padding-top: 0 !important;
-}
-
-body.stx-embed .chat-input-area {
-  padding-bottom: 10px;
-}
+/* /chat/?embed=1 (the floating dock chat): workspace-chat-embed.css */

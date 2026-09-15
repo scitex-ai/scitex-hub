@@ -4,6 +4,8 @@
  */
 
 import {
+  EMBED_THEME_MESSAGE,
+  effectiveTheme,
   embedUrl,
   maximizedRect,
   panelRect,
@@ -57,9 +59,32 @@ export function initChatPanel(dock: HTMLElement): void {
     panel.style.height = `${rect.height}px`;
   };
 
+  const darkQuery = window.matchMedia?.("(prefers-color-scheme: dark)");
+  const pageTheme = () =>
+    effectiveTheme(
+      document.documentElement.getAttribute("data-theme"),
+      darkQuery?.matches ?? false,
+    );
+  const syncTheme = () => {
+    frame.contentWindow?.postMessage(
+      { type: EMBED_THEME_MESSAGE, theme: pageTheme() },
+      window.location.origin,
+    );
+  };
+  frame.addEventListener("load", syncTheme);
+  new MutationObserver(syncTheme).observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["data-theme"],
+  });
+  darkQuery?.addEventListener?.("change", syncTheme);
+
   const setOpen = (open: boolean) => {
     if (open && !frame.getAttribute("src")) {
-      frame.src = embedUrl(window.location.pathname, document.title);
+      frame.src = embedUrl(
+        window.location.pathname,
+        document.title,
+        pageTheme(),
+      );
     }
     panel.hidden = !open;
     toggle.setAttribute("aria-expanded", String(open));

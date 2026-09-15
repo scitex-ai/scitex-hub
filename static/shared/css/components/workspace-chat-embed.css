@@ -1,0 +1,109 @@
+/* /chat/?embed=1 inside the floating dock chat: the chat pane only, sized for a
+   small panel. Loaded after workspace-chat-pane*.css so these rules win. */
+
+body.stx-embed {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* The boot curtain is hardcoded dark; over a light page it read as a dark chat. */
+html[data-theme="light"] body.stx-embed #app-loading-screen {
+  background: var(--bg-primary, #faf9f7);
+}
+
+body.stx-embed #workspace-sidebar,
+body.stx-embed #mobile-top-bar,
+body.stx-embed .module-tab-bar {
+  display: none !important;
+}
+
+body.stx-embed .workspace-content {
+  margin-left: 0 !important;
+  padding-top: 0 !important;
+}
+
+body.stx-embed .chat-welcome-input,
+body.stx-embed .chat-input,
+body.stx-embed #pane-chat .stx-shell-ai-input {
+  font-size: 15px !important;
+  line-height: 1.4 !important;
+}
+
+/* One slim row: "+" and the conversation history; copy/print/delete/share hidden. */
+body.stx-embed #pane-chat .stx-shell-ai-sessions-bar {
+  height: 32px;
+  padding: 0 6px !important;
+  gap: 4px !important;
+  border-bottom: 1px solid var(--border-default, #30363d) !important;
+}
+
+body.stx-embed
+  #pane-chat
+  .stx-shell-ai-sessions-bar
+  .stx-shell-ai-panel-actions,
+body.stx-embed #pane-chat .stx-shell-ai-sessions-bar .stx-shell-ai-share-btn {
+  display: none !important;
+}
+
+body.stx-embed #pane-chat .stx-shell-ai-new-chat {
+  width: 26px !important;
+  height: 26px !important;
+  padding: 0 !important;
+  font-size: 13px !important;
+}
+
+body.stx-embed #pane-chat .stx-shell-ai-session-item {
+  font-size: 12px !important;
+  padding: 2px 8px !important;
+}
+
+body.stx-embed #pane-chat .stx-shell-ai-session-close {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  font-size: 12px !important;
+  margin-left: 0;
+}
+
+/* The welcome overlay starts below the tab row instead of under it. */
+body.stx-embed #pane-chat .ws-chat-pane {
+  top: 32px;
+}
+
+body.stx-embed .chat-welcome {
+  gap: 10px;
+  padding: 10px 10px 12px;
+}
+
+body.stx-embed .chat-welcome-input-box {
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+body.stx-embed .chat-welcome-input-actions {
+  margin-top: 4px;
+}
+
+body.stx-embed #pane-chat .stx-shell-ai-messages {
+  padding: 8px 10px !important;
+}
+
+body.stx-embed #pane-chat .stx-shell-ai-input-area,
+body.stx-embed .chat-input-area {
+  padding: 4px 8px 8px !important;
+}
+
+body.stx-embed #pane-chat .stx-shell-ai-input-wrap {
+  padding: 8px 12px 6px !important;
+  border-radius: 12px !important;
+}
+
+body.stx-embed #pane-chat .stx-shell-ai-input {
+  min-height: 42px !important;
+}
+
+body.stx-embed #pane-chat .stx-shell-ai-model-badge {
+  margin-top: 4px;
+  padding: 2px 10px;
+  font-size: 12px !important;
+}
