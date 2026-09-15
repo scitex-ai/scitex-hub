@@ -174,8 +174,23 @@ class SiteDock {
   }
 
   private toggleMinimized(on: boolean): void {
+    const before = this.dock.getBoundingClientRect();
+    const wasFloating = this.dock.classList.contains("site-dock--floating");
     setMinimized(this.dock, on);
-    this.restorePosition();
+    if (!wasFloating) {
+      // A bottom-docked launcher stays centred at the exact same anchor. Do
+      // not resurrect an old stored floating position just because its width
+      // changed while minimizing.
+      this.dockToBottom();
+      return;
+    }
+
+    // A floating launcher contracts/expands around its current centre rather
+    // than treating its old top-left as the new anchor and jumping sideways.
+    const after = this.box();
+    const left = before.left + before.width / 2 - after.width / 2;
+    const top = before.top + before.height / 2 - after.height / 2;
+    this.settle(left, top);
   }
 
   private initDrag(): void {
