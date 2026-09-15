@@ -33,6 +33,8 @@ from __future__ import annotations
 
 import logging
 
+from apps.security import safe_log_field
+
 logger = logging.getLogger(__name__)
 
 # ?view=<this> keeps the GitHub-style repository screen (secondary link).
@@ -155,8 +157,13 @@ def resolve_tree_path(project, path: str) -> tuple[str, str]:
         target = root / path
         if validate_path_in_project(root, target) and target.is_file():
             return "", path
-    except (OSError, ValueError) as exc:
-        logger.debug("resolve_tree_path(%s, %r): %s", project, path, exc)
+    except (OSError, ValueError):
+        logger.debug(
+            "resolve_tree_path(project=%s, path=%s)",
+            safe_log_field(project),
+            safe_log_field(path),
+            exc_info=True,
+        )
     return path, ""
 
 

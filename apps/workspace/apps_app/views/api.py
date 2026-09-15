@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import json
+import logging
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -19,8 +20,8 @@ from ..models import (
 )
 from ..services.launcher_display import (
     DisplayOverrideRejected,
-    save_favorite,
     save_display_override,
+    save_favorite,
     validate_display_override,
 )
 from ..services.launcher_dock import (
@@ -32,6 +33,8 @@ from ..services.launcher_dock import (
 )
 from ..services.launcher_links import save_link_tile_orders
 from .helpers import can_view_module, ensure_builtin_modules
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -299,14 +302,16 @@ def api_dock(request):
     try:
         dock_apps = validate_dock_apps(data.get("dock"), known_apps)
         save_dock_apps(request.user, dock_apps)
-    except DockRejected as rejection:
+    except DockRejected:
         return JsonResponse(
-            {"success": False, "error": str(rejection), "capacity": DOCK_CAPACITY},
+            {
+                "success": False,
+                "error": "Dock request rejected.",
+                "capacity": DOCK_CAPACITY,
+            },
             status=400,
         )
-    return JsonResponse(
-        {"success": True, "dock": dock_apps, "capacity": DOCK_CAPACITY}
-    )
+    return JsonResponse({"success": True, "dock": dock_apps, "capacity": DOCK_CAPACITY})
 
 
 @login_required
@@ -345,7 +350,9 @@ def api_launcher_display(request, module_name):
     """Save safe, per-user launcher display metadata without changing the app."""
     app_module = get_object_or_404(AppsModule, module_name=module_name)
     if not can_view_module(request.user, app_module):
-        return JsonResponse({"success": False, "error": "Module not available."}, status=403)
+        return JsonResponse(
+            {"success": False, "error": "Module not available."}, status=403
+        )
     ensure_builtin_modules()
     try:
         data = json.loads(request.body)
@@ -357,10 +364,15 @@ def api_launcher_display(request, module_name):
                 raise DisplayOverrideRejected("Favorite must be true or false.")
             save_favorite(request.user, module_name, data["favorite"])
             return JsonResponse({"success": True, "favorite": data["favorite"]})
-        override = None if data.get("reset") is True else validate_display_override(data)
+        override = (
+            None if data.get("reset") is True else validate_display_override(data)
+        )
         save_display_override(request.user, module_name, override)
-    except (AttributeError, DisplayOverrideRejected) as rejection:
-        return JsonResponse({"success": False, "error": str(rejection)}, status=400)
+    except (AttributeError, DisplayOverrideRejected):
+        logger.warning("Display override rejected", exc_info=True)
+        return JsonResponse(
+            {"success": False, "error": "Display override rejected."}, status=400
+        )
     return JsonResponse({"success": True, "override": override})
 
 
@@ -388,8 +400,11 @@ def api_fork(request, module_name):
         result = client.fork_repository(owner, repo, organization=request.user.username)
         fork_url = f"/{request.user.username}/{result.get('name', repo)}/"
         return JsonResponse({"success": True, "url": fork_url})
-    except Exception as exc:
-        return JsonResponse({"success": False, "error": str(exc)}, status=500)
+    except Exception:
+        logger.exception("Failed to fork app source")
+        return JsonResponse(
+            {"success": False, "error": "Unable to fork app source."}, status=500
+        )
 
 
 @require_http_methods(["GET"])

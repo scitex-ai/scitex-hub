@@ -86,8 +86,11 @@ def server_status_api(request):
             data["total_users_count"] = None
 
         return JsonResponse(data)
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+    except Exception:
+        logger.exception("Realtime status collection failed")
+        return JsonResponse(
+            {"error": "Unable to retrieve realtime status."}, status=500
+        )
 
 
 def visitor_resources_api(request):

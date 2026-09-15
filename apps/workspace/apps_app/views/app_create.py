@@ -173,8 +173,11 @@ def api_apply(request, slug):
         written = apply_file_edit(
             request.user, project, str(data.get("path", "")), content
         )
-    except EditRefused as exc:
-        return JsonResponse({"success": False, "error": str(exc)}, status=403)
+    except EditRefused:
+        logger.warning("App edit refused", exc_info=True)
+        return JsonResponse(
+            {"success": False, "error": "App edit was refused."}, status=403
+        )
     return JsonResponse({"success": True, "path": written})
 
 
@@ -184,8 +187,11 @@ def api_run(request, slug):
     project = owned_app_project(request.user, slug)
     try:
         install = run_privately(request.user, project)
-    except ValueError as exc:
-        return JsonResponse({"success": False, "error": str(exc)}, status=400)
+    except ValueError:
+        logger.warning("Private app launch rejected", exc_info=True)
+        return JsonResponse(
+            {"success": False, "error": "Unable to launch app."}, status=400
+        )
     return JsonResponse({"success": True, "url": dev_tab_url(install)})
 
 

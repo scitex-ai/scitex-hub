@@ -100,7 +100,8 @@ def server_health_status_api(request):
     except Exception as e:
         logger.exception(f"Error in server_health_status_api: {e}")
         return JsonResponse(
-            {"status": "error", "color": "#ef4444", "error": str(e)}, status=500
+            {"status": "error", "color": "#ef4444", "error": "Health check failed."},
+            status=500,
         )
 
 
@@ -378,8 +379,13 @@ def versions_api(request):
             packages[pkg] = {"installed": version(pkg), "status": "ok"}
         except PackageNotFoundError:
             packages[pkg] = {"installed": None, "status": "not_installed"}
-        except Exception as e:
-            packages[pkg] = {"installed": None, "status": "error", "error": str(e)}
+        except Exception:
+            logger.exception("Package version check failed for %s", pkg)
+            packages[pkg] = {
+                "installed": None,
+                "status": "error",
+                "error": "Version check failed.",
+            }
 
     # Include scitex-hub version from settings
     cloud_version = getattr(settings, "SCITEX_HUB_VERSION", "unknown")

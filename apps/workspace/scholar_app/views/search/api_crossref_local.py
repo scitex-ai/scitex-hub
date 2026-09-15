@@ -152,7 +152,7 @@ def api_search_crossref_local(request, _search=None, _online_fallback=None):
                 "status": "error",
                 "source": "crossref_local",
                 "error": "Package not installed",
-                "detail": str(e),
+                "detail": "The local search dependency is unavailable.",
             },
             status=503,
         )
@@ -170,14 +170,18 @@ def api_search_crossref_local(request, _search=None, _online_fallback=None):
                 "status": "error",
                 "source": "crossref_local",
                 "error": "Database not found",
-                "detail": str(e),
+                "detail": "The local search dependency is unavailable.",
             },
             status=503,
         )
     except Exception as e:
         logger.exception(f"CrossRef Local search failed: {e}")
         return JsonResponse(
-            {"status": "error", "source": "crossref_local", "error": str(e)},
+            {
+                "status": "error",
+                "source": "crossref_local",
+                "error": "Local search failed.",
+            },
             status=500,
         )
 

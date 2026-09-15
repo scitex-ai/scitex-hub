@@ -39,6 +39,8 @@ from __future__ import annotations
 
 import logging
 
+from apps.security import safe_log_field
+
 logger = logging.getLogger(__name__)
 
 __all__ = ["land_visitor_on"]
@@ -64,9 +66,9 @@ def land_visitor_on(visitor_user, project) -> bool:
     profile.save(update_fields=["last_active_repository"])
     logger.info(
         "[VisitorPool] %s opens on %s (%s)",
-        visitor_user.username,
-        project.name,
-        project.slug,
+        safe_log_field(visitor_user.username),
+        safe_log_field(project.name),
+        safe_log_field(project.slug),
     )
     return True
 

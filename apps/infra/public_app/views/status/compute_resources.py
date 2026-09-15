@@ -128,12 +128,13 @@ def check_slurm_status(status_data):
             "error": "SLURM not installed",
             "checks": checks,
         }
-    except Exception as e:
+    except Exception:
+        logger.exception("SLURM status check failed")
         status_data["slurm"] = {
             "is_running": False,
             "status": "error",
             "health_class": "unhealthy",
-            "error": str(e),
+            "error": "SLURM status check failed",
             "checks": checks,
         }
 

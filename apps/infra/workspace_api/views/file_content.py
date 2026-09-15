@@ -13,6 +13,7 @@ from apps.infra.project_app.models import Project
 from apps.infra.project_app.services.filesystem.permissions import (
     validate_path_in_project,
 )
+from apps.security import safe_log_field
 
 logger = logging.getLogger(__name__)
 
@@ -150,9 +151,9 @@ def api_get_file_content(request, file_path):
 
     except UnicodeDecodeError:
         return JsonResponse({"error": "Binary file cannot be edited"}, status=400)
-    except Exception as e:
-        logger.error(f"Error reading file {file_path}: {e}", exc_info=True)
-        return JsonResponse({"error": str(e)}, status=500)
+    except Exception:
+        logger.exception("Error reading file %s", safe_log_field(file_path))
+        return JsonResponse({"error": "Unable to read file."}, status=500)
 
 
 def _serve_raw_file(file_path: Path, original_path: str, download: bool = False):

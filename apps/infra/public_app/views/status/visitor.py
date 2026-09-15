@@ -278,7 +278,7 @@ def visitor_fill_slots_api(request):
         )
     except Exception as e:
         logger.error(f"[VisitorPool] Fill slots failed: {e}")
-        return JsonResponse({"error": str(e)}, status=500)
+        return JsonResponse({"error": "Visitor pool operation failed."}, status=500)
 
 
 @require_POST
@@ -303,7 +303,7 @@ def visitor_free_slots_api(request):
         )
     except Exception as e:
         logger.error(f"[VisitorPool] Free slots failed: {e}")
-        return JsonResponse({"error": str(e)}, status=500)
+        return JsonResponse({"error": "Visitor pool operation failed."}, status=500)
 
 
 def visitor_heartbeat_api(request):
@@ -402,7 +402,7 @@ def visitor_pool_initialize_api(request):
 
     except Exception as e:
         logger.error(f"[VisitorPool] Failed to initialize pool: {e}")
-        return JsonResponse({"error": str(e)}, status=500)
+        return JsonResponse({"error": "Visitor pool operation failed."}, status=500)
 
 
 # EOF

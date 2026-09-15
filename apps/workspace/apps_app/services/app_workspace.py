@@ -9,6 +9,8 @@ from pathlib import Path
 
 from django.http import Http404
 
+from apps.security import safe_log_field
+
 logger = logging.getLogger(__name__)
 
 _MAX_EDIT_BYTES = 1024 * 1024
@@ -69,7 +71,7 @@ def apply_file_edit(user, project, rel_path: str, content: str) -> str:
         "[app_workspace] %s applied edit to %s/%s",
         user.username,
         project.slug,
-        rel_path,
+        safe_log_field(rel_path),
     )
     return str(target.relative_to(project_dir.resolve()))
 

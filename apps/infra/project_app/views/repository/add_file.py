@@ -10,6 +10,7 @@ from urllib.parse import quote
 from django.contrib.auth.models import User
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from ...models import Project
 from .api.file_ops_utils import get_project_path, validate_path
@@ -70,7 +71,12 @@ def project_new_file(request, username, slug):
 
     full_path.parent.mkdir(parents=True, exist_ok=True)
     full_path.write_text(content, encoding="utf-8")
-    return redirect(f"/{username}/{slug}/blob/{quote(rel_path)}")
+    return redirect(
+        "project_app:file_view",
+        username=username,
+        slug=slug,
+        file_path=rel_path,
+    )
 
 
 def project_upload_files(request, username, slug):
@@ -113,7 +119,12 @@ def project_upload_files(request, username, slug):
     logger.info("Uploaded %d file(s) to %s/%s", len(targets), username, slug)
 
     clean_dir = directory.strip().strip("/")
-    return redirect(f"/{username}/{slug}/{quote(clean_dir) + '/' if clean_dir else ''}")
+    if clean_dir:
+        project_url = reverse(
+            "project_app:detail", kwargs={"username": username, "slug": slug}
+        )
+        return redirect(f"{project_url}{quote(clean_dir, safe='/')}/")
+    return redirect("project_app:detail", username=username, slug=slug)
 
 
 # EOF
