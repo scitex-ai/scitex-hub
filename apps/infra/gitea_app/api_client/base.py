@@ -8,11 +8,12 @@ for interacting with the Gitea REST API.
 """
 
 import re
+from typing import Dict
 from urllib.parse import quote
 
 import requests
-from typing import Dict
 from django.conf import settings
+
 from ..exceptions import GiteaAPIError
 
 
@@ -165,9 +166,11 @@ class BaseGiteaClient:
                 if response.text:
                     error_msg = response.text[:200]
 
-            raise GiteaAPIError(error_msg)
+            raise GiteaAPIError(
+                error_msg, status_code=response.status_code
+            ) from None
         except requests.RequestException as e:
-            raise GiteaAPIError(f"Request failed: {e}")
+            raise GiteaAPIError(f"Request failed: {e}") from e
 
 
 # EOF
