@@ -17,6 +17,8 @@ from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 from urllib.parse import unquote, urlsplit
 
+from apps.infra.platform_app.services.paths import resolve_within
+
 from .ssrf import FetchError, UnsafeURLError, safe_fetch
 
 MAX_INPUT_BYTES = 50 * 1024 * 1024
@@ -213,8 +215,8 @@ def render_html(
         if local_root is None:
             return route.abort()
         rel = unquote(urlsplit(url).path).lstrip("/")
-        candidate = (local_root / rel).resolve()
-        if not candidate.is_file() or not candidate.is_relative_to(local_root.resolve()):
+        candidate = resolve_within(local_root, rel)
+        if candidate is None or not candidate.is_file():
             return route.abort()
         route.fulfill(status=200, body=candidate.read_bytes())
 
@@ -456,7 +458,18 @@ def _finalize(result: Result) -> Result:
     return result
 
 
-def convert_file(src: Path, work: Path, original_name: str, max_bytes: int = MAX_INPUT_BYTES) -> Result:
+def _job_path(job_root: Path, candidate: Path) -> Path:
+    """Return a canonical path inside one trusted conversion job."""
+    relative = os.path.relpath(os.fspath(candidate), os.fspath(job_root))
+    safe = resolve_within(job_root, relative)
+    if safe is None:
+        raise ConversionError("Conversion path leaves the job directory.")
+    return safe
+
+
+def convert_file(src: Path, work: Path, original_name: str, max_bytes: int = MAX_INPUT_BYTES, *, job_root: Path) -> Result:
+    src = _job_path(job_root, src)
+    work = _job_path(job_root, work)
     if src.stat().st_size > max_bytes:
         raise ConversionError(f"The file is larger than {max(1, max_bytes // (1024 * 1024))} MB.")
     with open(src, "rb") as fh:
@@ -473,7 +486,8 @@ _CTYPE_EXT = {
 }
 
 
-def convert_url(url: str, work: Path) -> Result:
+def convert_url(url: str, work: Path, *, job_root: Path) -> Result:
+    work = _job_path(job_root, work)
     try:
         fetched = safe_fetch(url, max_bytes=MAX_INPUT_BYTES, timeout=30,
                              accept="text/html,application/xhtml+xml,*/*;q=0.8")
@@ -491,6 +505,8 @@ def convert_url(url: str, work: Path) -> Result:
     ext = _CTYPE_EXT.get(ctype)
     if ext and not leaf.lower().endswith(ext):
         leaf += ext
-    src = work / ("input" + (PurePosixPath(leaf).suffix[:12] or ".bin"))
+    src = resolve_within(work, "input" + (PurePosixPath(leaf).suffix[:12] or ".bin"))
+    if src is None:
+        raise ConversionError("Conversion path leaves the job directory.")
     src.write_bytes(fetched.body)
-    return convert_file(src, work, leaf)
+    return convert_file(src, work, leaf, job_root=job_root)

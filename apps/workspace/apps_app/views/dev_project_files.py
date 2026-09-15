@@ -11,11 +11,14 @@ from __future__ import annotations
 
 import json
 import logging
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
+
+from apps.infra.platform_app.services.paths import is_within, resolve_within
+from apps.infra.project_app.services.filesystem.permissions import get_user_data_root
 
 logger = logging.getLogger(__name__)
 
@@ -28,18 +31,16 @@ def _resolve_safe_path(project_dir: Path, rel_path: str) -> Path | None:
 
     Returns None if the path escapes project_dir.
     """
-    try:
-        resolved = (project_dir / rel_path).resolve()
-        project_dir_resolved = project_dir.resolve()
-        resolved.relative_to(project_dir_resolved)  # raises ValueError if outside
-        return resolved
-    except (ValueError, OSError):
+    if not isinstance(rel_path, str) or "\x00" in rel_path or "\\" in rel_path:
         return None
+    pure = PurePosixPath(rel_path)
+    if pure.is_absolute() or ".." in pure.parts:
+        return None
+    return resolve_within(project_dir, rel_path)
 
 
 def _get_project_dir(request, project_slug: str) -> Path | None:
     """Get the project directory for the authenticated user."""
-    from django.conf import settings
 
     from apps.infra.project_app.models import Project
 
@@ -51,9 +52,10 @@ def _get_project_dir(request, project_slug: str) -> Path | None:
     except Project.DoesNotExist:
         return None
 
-    base = Path(settings.BASE_DIR) / "data" / "users" / request.user.username / "proj"
-    candidate = base / project.slug
-    if candidate.is_dir():
+    user_root = get_user_data_root(request.user)
+    base = resolve_within(user_root, "proj")
+    candidate = resolve_within(base, project.slug) if base is not None else None
+    if candidate is not None and candidate.is_dir():
         return candidate
     return None
 
@@ -198,6 +200,8 @@ def api_dev_file_list(request, owner, repo, project_slug):
 
     entries = []
     for item in sorted(safe_path.iterdir()):
+        if not is_within(project_dir, item):
+            continue
         rel = str(item.relative_to(project_dir))
         entries.append(
             {
