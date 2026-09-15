@@ -21,7 +21,7 @@ from django.views.decorators.http import require_http_methods
 from apps.infra.workspace_app.registry import get_all_modules
 
 from ..models import AppsModule, ModuleInstallation
-from .helpers import ensure_builtin_modules
+from .helpers import can_view_internal_app, ensure_builtin_modules
 from .launcher_order import DEFAULT_LAUNCHER_ORDER
 
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ _MI_DEFAULT_TAB_ORDER = 50
 _SIDEBAR_HOME_MODULE = "home"
 
 
-def default_pinned_module_names() -> list[str]:
+def default_pinned_module_names(user=None) -> list[str]:
     """The pin set a user starts with, before they pin anything themselves.
 
     Reuses DEFAULT_LAUNCHER_ORDER so the sidebar and the launcher grid agree
@@ -57,8 +57,20 @@ def default_pinned_module_names() -> list[str]:
 
     Link tiles (Chat, Settings) and the reserved "stats" slot are not
     registered modules, so the ``registered`` filter drops them as well.
+
+    Given a ``user``, apps the launcher grid hides from that user are dropped
+    by the grid's own release-channel check (``can_view_internal_app``), so a
+    pin never leads to an app the user cannot open. There is deliberately no
+    mount gate: Cards and Agents are shown to everyone (operator 2026-09-14
+    15:48Z) and serve non-staff an own-scope page, not a 403.
     """
-    hidden = {mod.name for mod in get_all_modules() if not mod.show_in_launcher}
+    can_internal = user is None or can_view_internal_app(user)
+    hidden = {
+        mod.name
+        for mod in get_all_modules()
+        if not mod.show_in_launcher
+        or (not can_internal and mod.visibility == "internal")
+    }
     registered = {mod.name for mod in get_all_modules()}
     return [
         name
@@ -104,7 +116,7 @@ def seed_default_pins(user) -> bool:
     if _is_pool_account(user):
         return False
     ensure_builtin_modules()
-    names = default_pinned_module_names()
+    names = default_pinned_module_names(user)
     catalog = _appsmodule_catalog(names)
 
     if len(catalog) < len(names):

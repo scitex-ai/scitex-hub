@@ -65,7 +65,7 @@ export class VisitorManager {
           <p style="color: var(--text-muted); margin: 0; font-size: 13px; line-height: 1.5;">
             You can create and edit files, but your 60-minute session will expire.
             <a href="/auth/signup/" style="color: var(--workspace-icon-primary); text-decoration: none;">
-              Sign up free
+              Start your 30-day trial
             </a> to save permanently.
           </p>
         </div>

@@ -1,6 +1,6 @@
 {% extends 'global_base.html' %}
 
-{% load static vite %}
+{% load static vite i18n %}
 
 {% block title %}Release Notes - SciTeX Hub{% endblock %}
 {% block extra_css %}
@@ -983,7 +983,7 @@
                 collaboration
             </p>
             <div class="cta-buttons">
-                <a href="/signup/" class="btn btn-primary">Get Started Free</a>
+                <a href="{% url 'auth_app:signup' %}" class="btn btn-primary">{% trans "Start your 30-day trial" %}</a>
                 <a href="{% url 'public_app:index' %}#features" class="btn btn-outline-primary">Learn More</a>
             </div>
         </div>

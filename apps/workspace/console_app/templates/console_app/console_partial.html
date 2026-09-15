@@ -1,4 +1,4 @@
-{% load static vite tree_preseed %}
+{% load static vite tree_preseed i18n %}
 
 <!-- Critical xterm helper rules — inline so they apply before xterm.open() with no CDN latency -->
 <style>
@@ -613,7 +613,7 @@
             <a href="{% url 'auth_app:signup' %}"
                class="file-modal-btn file-modal-btn-primary signup-warning-link">
                 <i class="fas fa-user-plus signup-warning-link-icon"></i>
-                Sign Up Free
+                {% trans "Start your 30-day trial" %}
             </a>
         </div>
     </div>

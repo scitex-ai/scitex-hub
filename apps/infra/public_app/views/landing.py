@@ -21,6 +21,7 @@ import importlib.metadata
 
 from django.db import connection, transaction
 from django.shortcuts import render
+from django.utils.translation import gettext as _
 
 # Pip package names for ecosystem table (scitex-hub uses SCITEX_HUB_VERSION from context processor)
 _ECOSYSTEM_PACKAGES = [
@@ -148,7 +149,7 @@ def premium_subscription(request):
                 "File organization & project structure",
                 "Simple data visualization",
             ],
-            "cta_text": "Get Started Free",
+            "cta_text": _("Start your 30-day trial"),
             "cta_url": "/signup/",
             "popular": False,
         },
@@ -171,7 +172,7 @@ def premium_subscription(request):
                 "Advanced bibliography management",
                 "Statistical validation tools",
             ],
-            "cta_text": "Start Free Trial",
+            "cta_text": _("Start your 30-day trial"),
             "cta_url": "/signup/?plan=standard",
             "popular": False,
         },
@@ -194,7 +195,7 @@ def premium_subscription(request):
                 "JST/MEXT grant optimization",
                 "Advanced statistical analysis",
             ],
-            "cta_text": "Start Free Trial",
+            "cta_text": _("Start your 30-day trial"),
             "cta_url": "/signup/?plan=professional",
             "popular": True,
         },
