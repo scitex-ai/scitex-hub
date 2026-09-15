@@ -296,9 +296,13 @@ export class LauncherPager {
       {
         available: this.availableHeight(),
         cols: readColumns(this.grid, window.innerWidth),
-        rowHeight:
-          this.grid.querySelector<HTMLElement>(".launcher-tile")
-            ?.offsetHeight ?? 0,
+        // The TALLEST tile: a "Coming soon" tile carries an extra badge line.
+        rowHeight: Math.max(
+          0,
+          ...Array.from(
+            this.grid.querySelectorAll<HTMLElement>(".launcher-tile"),
+          ).map((t) => t.offsetHeight),
+        ),
         rowGap,
         bandPadding: bandStyle
           ? (parseFloat(bandStyle.paddingTop) || 0) +

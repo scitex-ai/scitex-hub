@@ -262,6 +262,19 @@ body.workspace-page.app-home .workspace-layout:has(#app-launcher) {
     padding: 14px 10px 0;
   }
 
+  /* Home is an app screen on a phone: it ends at the page dots and never
+     scrolls vertically; overflow goes to the next horizontal page (operator
+     iPhone, 2026-09-15). The footer stays on every public page. */
+  body.workspace-page.app-home:has(#app-launcher) .site-footer {
+    display: none !important;
+  }
+
+  html:has(#app-launcher),
+  body.workspace-page.app-home:has(#app-launcher) {
+    overflow: hidden !important;
+    overscroll-behavior-y: none;
+  }
+
   /* Phone-tight band spacing (pager.ts reads these back off the computed
      style, so the page maths cannot drift from the layout). */
   .launcher-group {
