@@ -60,6 +60,11 @@ if [[ "$PARENT_DIR" == "/" ]] || [[ ! -w "$PARENT_DIR" ]]; then
 fi
 
 FORCE_CLONE=false
+PYTHON_MODE="${SCITEX_APPS_PYTHON_MODE:-editable}"
+if [[ "$PYTHON_MODE" != "editable" && "$PYTHON_MODE" != "image-only" ]]; then
+    echo "ERROR: SCITEX_APPS_PYTHON_MODE must be editable or image-only" >&2
+    exit 2
+fi
 if [[ "${1:-}" == "--clone" ]]; then
     FORCE_CLONE=true
 fi
@@ -304,7 +309,11 @@ for i in $(seq 0 $((APP_COUNT - 1))); do
     # what catches a fresh image rebuild: /app/.apps (and its git state)
     # persists across rebuilds, but site-packages is baked into the image
     # and resets to the Dockerfile-pinned PyPI version every time.
-    if [[ -n "$PIP_PKG" ]]; then
+    if [[ -n "$PIP_PKG" ]] && [[ "$PYTHON_MODE" == "image-only" ]]; then
+        # Production clones remain available to Vite bridge discovery, but must
+        # never replace the wheel graph validated while building the image.
+        echo "Image-only Python mode: preserving baked $PIP_PKG (no editable install)"
+    elif [[ -n "$PIP_PKG" ]]; then
         if [[ ! -d "$SIBLING_DIR" ]]; then
             echo "WARNING: $SIBLING_DIR not available — skipping pip install for $NAME"
         else

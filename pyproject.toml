@@ -304,7 +304,7 @@ all = [
     # every requirement of the PUBLIC `dev` extra to be closed under
     # `all` — and because a deployment installing `[all]` genuinely wants
     # the board it mounts.
-    "scitex-cards>=0.32.1",
+    "scitex-cards>=0.53.1",
     # --- Django stack (web framework + DRF + auth + ORM + ASGI) ---
     "Django>=5.2.11",
     "djangorestframework>=3.16",
@@ -553,7 +553,7 @@ dev = [
     # Those tests exist to stop the ?store= tenancy channel being deleted;
     # skipped, they protect nothing while reading as protection.
     # Same rationale as the PS-210 block above.
-    "scitex-cards>=0.32.1",
+    "scitex-cards>=0.53.1",
     # Same floor as [all], and it must STAY the same — the two are swept
     # together by tests/config/test_shell_pane_contract_floor.py, which reads
     # every dependency group rather than one, precisely so the copies cannot

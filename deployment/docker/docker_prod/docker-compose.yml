@@ -145,6 +145,7 @@ services:
       # across boots instead of re-fetching from the network every time.
       - UV_CACHE_DIR=/app/.cache/uv
       - NPM_CONFIG_CACHE=/app/.cache/npm
+      - SCITEX_APPS_PYTHON_MODE=image-only
     depends_on:
       pgbouncer:
         condition: service_healthy
@@ -439,6 +440,7 @@ services:
       - SCITEX_HUB_BUILD_ID=b0a2a30c
       - UV_CACHE_DIR=/app/.cache/uv
       - NPM_CONFIG_CACHE=/app/.cache/npm
+      - SCITEX_APPS_PYTHON_MODE=image-only
 
     depends_on:
       pgbouncer:
@@ -565,6 +567,7 @@ services:
       - SCITEX_DIR=/app/.scitex
       - UV_CACHE_DIR=/app/.cache/uv
       - NPM_CONFIG_CACHE=/app/.cache/npm
+      - SCITEX_APPS_PYTHON_MODE=image-only
 
     depends_on:
       pgbouncer:
@@ -623,6 +626,7 @@ services:
       - SCITEX_HUB_BUILD_ID=b0a2a30c
       - UV_CACHE_DIR=/app/.cache/uv
       - NPM_CONFIG_CACHE=/app/.cache/npm
+      - SCITEX_APPS_PYTHON_MODE=image-only
 
     depends_on:
       pgbouncer:
