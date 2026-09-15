@@ -90,7 +90,7 @@ def ensure_builtin_modules(author_username="ywatanabe"):
             # Availability comes from the manifest too (SSoT for builtins).
             # A manifest that declares nothing means fully available.
             "availability": mod.availability or "available",
-            "is_builtin": True,
+            "is_builtin": mod.builtin,
             "is_verified": True,
             # Release-channel visibility comes from the manifest (SSoT).
             # A manifest without the key defaults to "public" (registry.py:349).

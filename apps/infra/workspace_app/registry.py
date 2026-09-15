@@ -90,6 +90,8 @@ class ModuleConfig:
     # manifest declared nothing — readers fall back to the AppsModule
     # catalog row, then to "available". Never invented in a template.
     availability: str = ""
+    availability_reason: str = ""
+    builtin: bool = True
 
     # Launcher-grid visibility. Some registered modules are workspace
     # panes / nav items, not standalone launcher apps — e.g. Clew (opens
@@ -340,6 +342,8 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
         order=data.get("order", 50),
         category=data.get("category", ""),
         availability=_resolve_availability(data),
+        availability_reason=str(data.get("availability_reason", "")),
+        builtin=bool(data.get("builtin", True)),
         default_enabled=data.get("default_enabled", True),
         show_in_launcher=data.get("show_in_launcher", True),
         visibility=data.get("visibility", "public"),
@@ -493,7 +497,7 @@ def discover_external_modules() -> None:
 # ---------------------------------------------------------------------------
 # ModuleTestMixin — re-exported for backwards compatibility
 # ---------------------------------------------------------------------------
-from apps.infra.workspace_app.test_mixin import ModuleTestMixin  # noqa: F401
+from apps.infra.workspace_app.test_mixin import ModuleTestMixin  # noqa: E402,F401
 
 # Run external module discovery at import time
 discover_external_modules()
