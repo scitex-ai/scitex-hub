@@ -369,6 +369,14 @@ export class AIPanelChatMode {
     const slug = readActiveProjectSlug();
     if (slug) this.context.project_slug = slug;
     this.context.page_hints = this.collectPageHints();
+    // Floating dock chat: answer about the page under the iframe, not /chat/.
+    const qs = new URLSearchParams(window.location.search);
+    const ctxPath = qs.get("ctx_path");
+    if (ctxPath) {
+      this.context.ctx_path = ctxPath;
+      this.context.ctx_title = qs.get("ctx_title") ?? "";
+      this.context.page = ctxPath;
+    }
 
     try {
       const resp = await fetch("/apps/llm/api/chat/stream/", {
@@ -492,8 +500,11 @@ export class AIPanelChatMode {
   /* ── Mic / Recording ───────────────────────────────────────── */
 
   toggleRecording(): void {
-    toggleChatMic(this.recorder, this.inputEl, this.micBtn, () =>
-      this.sttModelSelect?.value ?? "",
+    toggleChatMic(
+      this.recorder,
+      this.inputEl,
+      this.micBtn,
+      () => this.sttModelSelect?.value ?? "",
     );
   }
 }

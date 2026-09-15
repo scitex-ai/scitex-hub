@@ -94,7 +94,7 @@
           data-track-module="{% if active_module %}{{ active_module.get_track_module }}{% elif '/server-status' in request.path %}server_status{% elif '/explore/' in request.path %}explore{% elif '/workspace/' in request.path %}files{% endif %}"
           {% if request.initial_pane %}data-initial-pane="{{ request.initial_pane }}"{% endif %}
           {% if request.chat_session_token %}data-chat-session-token="{{ request.chat_session_token }}"{% endif %}
-          class="{% if request.path == '/' or request.path == '/apps/' or request.path == '/landing/' %}workspace-page{% if request.path == '/landing/' or not user.is_authenticated %} landing-page{% else %} no-transition app-home{% endif %}{% elif active_module %}workspace-page {{ active_module.body_class }} no-transition{% elif '/workspace/' in request.path %}workspace-page no-transition{% elif '/explore/' in request.path %}workspace-page explore-page{% endif %}">
+          class="{% if request.GET.embed == '1' %}stx-embed {% endif %}{% if request.path == '/' or request.path == '/apps/' or request.path == '/landing/' %}workspace-page{% if request.path == '/landing/' or not user.is_authenticated %} landing-page{% else %} no-transition app-home{% endif %}{% elif active_module %}workspace-page {{ active_module.body_class }} no-transition{% elif '/workspace/' in request.path %}workspace-page no-transition{% elif '/explore/' in request.path %}workspace-page explore-page{% endif %}">
         <!-- Loading screen — hides FOUC until CSS/JS adds body.app-ready -->
         <!-- hook-bypass: inline-script -->
         <div id="app-loading-screen">
@@ -121,7 +121,7 @@
         <!-- Hidden CSRF token for JavaScript API calls -->
         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
         <!-- Header: shown on non-workspace pages only (sidebar replaces it on workspace) -->
-        {% include 'global_base_partials/global_header.html' %}
+        {% if request.GET.embed != '1' %}{% include 'global_base_partials/global_header.html' %}{% endif %}
         <!-- Django Messages (success hidden — only show errors/warnings) -->
         {% if messages %}
             <div class="container django-messages-container">
@@ -183,7 +183,7 @@
                 </div>
             </div>
         {% endif %}
-        {% include 'global_base_partials/global_footer.html' %}
+        {% if request.GET.embed != '1' %}{% include 'global_base_partials/global_footer.html' %}{% endif %}
         {# Site-wide dock on every page (signed-in users only; the tag decides). #}
         {% site_dock %}
         {% if not is_workspace_page %}

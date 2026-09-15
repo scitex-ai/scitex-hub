@@ -3,6 +3,7 @@
 {% if site_dock_items %}
     <link rel="stylesheet" href="{% static 'shared/css/components/app-icon.css' %}?v={{ build_id }}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/site-dock.css' %}?v={{ build_id }}" />
+    <link rel="stylesheet" href="{% static 'shared/css/components/site-dock-chat.css' %}?v={{ build_id }}" />
     <nav class="site-dock" id="site-dock" data-site-dock data-dock-capacity="{{ site_dock_capacity }}" aria-label="{% trans 'Dock' %}">
         {# Order: Back, grip, apps, Forward. On a phone the apps take row 1 and row 2 reads [<] [grip] [>]. #}
         <button type="button"
@@ -26,6 +27,7 @@
                 <a href="{{ item.url }}"
                    class="site-dock-item site-dock-app{% if item.active %} is-active{% endif %}"
                    data-dock-item="{{ item.key }}"
+                   {% if item.key == 'chat' %}data-dock-chat-toggle aria-expanded="false"{% endif %}
                    draggable="false"
                    aria-label="{% trans item.label context 'app name' %}"
                    title="{% trans item.label context 'app name' %}"
@@ -46,5 +48,17 @@
             <i class="fas fa-chevron-right" aria-hidden="true"></i>
         </button>
     </nav>
+    <section class="site-dock-chat" id="site-dock-chat" data-dock-chat-panel hidden aria-label="{% trans 'Chat' %}">
+        <header class="site-dock-chat-head">
+            <span class="site-dock-chat-title">{% trans 'Chat' %}</span>
+            <a class="site-dock-chat-btn" href="/chat/" data-dock-chat-expand aria-label="{% trans 'Open full chat' %}" title="{% trans 'Open full chat' %}">
+                <i class="fas fa-up-right-and-down-left-from-center" aria-hidden="true"></i>
+            </a>
+            <button type="button" class="site-dock-chat-btn" data-dock-chat-close aria-label="{% trans 'Close' %}" title="{% trans 'Close' %}">
+                <i class="fas fa-xmark" aria-hidden="true"></i>
+            </button>
+        </header>
+        <iframe class="site-dock-chat-frame" data-dock-chat-frame title="{% trans 'Chat' %}"></iframe>
+    </section>
     {% vite_script 'shared/components/site-dock' %}
 {% endif %}
