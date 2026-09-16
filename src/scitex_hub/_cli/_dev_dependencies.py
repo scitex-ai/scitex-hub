@@ -239,17 +239,32 @@ def _editable_pth_maps_root(
     dist: metadata.Distribution, expected_root: Path
 ) -> bool:
     """Prove the installed editable adds ``expected_root`` to sys.path."""
+    try:
+        install_root = Path(str(dist.locate_file(""))).resolve(strict=True)
+    except (AttributeError, OSError, TypeError, ValueError):
+        return False
     for item in dist.files or ():
-        if Path(str(item)).suffix != ".pth":
+        relative = Path(str(item))
+        if (
+            relative.is_absolute()
+            or relative.parent != Path(".")
+            or relative.suffix != ".pth"
+        ):
             continue
         try:
             pth = Path(str(dist.locate_file(item)))
+            if pth.parent.resolve(strict=True) != install_root:
+                continue
             lines = pth.read_text(encoding="utf-8").splitlines()
         except (AttributeError, OSError, TypeError, ValueError):
             continue
         for raw_line in lines:
             line = raw_line.strip()
-            if not line or line.startswith("#") or line.startswith("import "):
+            if (
+                not line
+                or line.startswith("#")
+                or line.startswith(("import ", "import\t"))
+            ):
                 continue
             mapped = Path(line)
             if not mapped.is_absolute():
