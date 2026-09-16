@@ -118,14 +118,6 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 # hub-default-queue-immortal-beat-backlog (2026-07-21); regression gate:
 # tests/apps/public_app/test_beat_schedule_expiry.py.
 CELERY_BEAT_SCHEDULE = {
-    # Clean up expired visitor allocations every 5 minutes
-    "cleanup-expired-visitor-allocations": {
-        "task": "apps.infra.public_app.tasks.cleanup_expired_visitor_allocations",
-        "schedule": 300.0,  # Every 5 minutes (in seconds)
-        "options": {
-            "expire_seconds": 270,  # Expire after 4.5 minutes if not started
-        },
-    },
     # NOTE: there is deliberately no server-status chart-render entry here.
     # It was removed on 2026-07-30 (operator decision) after measuring that it
     # dispatched 48 child tasks EVERY 60 SECONDS (8 metrics x 3 windows x 2

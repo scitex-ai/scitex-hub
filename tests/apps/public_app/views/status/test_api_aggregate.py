@@ -14,9 +14,7 @@ hub's internals. What it must guarantee:
 - the SAME check registry as the page, so the two can never drift into
   disagreeing about the same server;
 - NO widening of exposure: checks outside ``_CHECK_PLACEMENTS`` are not called
-  here either, so the JSON carries exactly the keys the page already renders;
-- datetimes survive encoding — the visitor pool writes ``expires_at`` as a real
-  datetime, which plain ``json.dumps`` refuses.
+  here either, so the JSON carries exactly the keys the page already renders.
 
 No mock library: the check registry and deadline are INJECTED, exactly as
 ``tests/.../test_server.py`` does for the page.
@@ -24,8 +22,6 @@ No mock library: the check registry and deadline are INJECTED, exactly as
 
 import json
 import time
-from datetime import datetime
-from datetime import timezone as dt_timezone
 
 from django.contrib.auth import get_user_model
 from django.contrib.sessions.middleware import SessionMiddleware
@@ -45,16 +41,8 @@ FAST_DEADLINE_S = 30.0
 DEADLINE_S = 1.5
 SLOW_S = 8.0
 
-# A fixed instant, so the assertion is on the ENCODING, not on the clock.
-EXPIRES_AT = datetime(2026, 8, 4, 12, 30, 0, tzinfo=dt_timezone.utc)
-
-
 def _noop_check(status_data):
     """Fast fake: leaves its private status dict untouched."""
-
-
-def _noop_visitor_check(request, status_data):
-    """Fast fake for the (request, status_data)-taking visitor check."""
 
 
 def _database_marker_check(status_data):
@@ -66,37 +54,17 @@ def _database_marker_check(status_data):
     }
 
 
-def _visitor_datetime_check(request, status_data):
-    """Fake visitor-pool check writing a real datetime, as the live one does."""
-    status_data["visitor_pool"] = {
-        "pool_status": {"allocated": 1, "total": 16},
-        "allocations": [
-            {
-                "slot_number": 1,
-                "status": "allocated",
-                "expires_at": EXPIRES_AT,
-                "minutes_remaining": 55,
-                "visitor_username": "visitor-001",
-                "is_current_user": False,
-            }
-        ],
-        "session_lifetime_hours": 1,
-    }
-
-
 def _slow_check(status_data):
     """Stuck check: sleeps well past the pool deadline."""
     time.sleep(SLOW_S)
 
 
-def _make_checks(slow_name=None, visitor_check=None):
+def _make_checks(slow_name=None):
     """Hand-rolled fake registry mirroring server._CHECK_PLACEMENTS."""
     checks = {}
     for name in server._CHECK_PLACEMENTS:
         if name == slow_name:
             checks[name] = _slow_check
-        elif name == "check_visitor_pool_status":
-            checks[name] = visitor_check or _noop_visitor_check
         elif name == "check_database":
             checks[name] = _database_marker_check
         else:
@@ -268,28 +236,6 @@ class PartialResultTest(SimpleTestCase):
         assert response.status_code == 200
 
 
-class DatetimeEncodingTest(SimpleTestCase):
-    """The live visitor-pool check writes datetimes; json.dumps refuses those."""
-
-    def test_visitor_slot_expiry_encodes_as_iso_string(self):
-        # Arrange
-        checks = _make_checks(visitor_check=_visitor_datetime_check)
-        # Act
-        _, body = _call(checks, FAST_DEADLINE_S)
-        # Assert
-        slot = body["status_data"]["visitor_pool"]["allocations"][0]
-        assert slot["expires_at"] == "2026-08-04T12:30:00Z"
-
-    def test_visitor_slot_identity_survives_encoding(self):
-        # Arrange
-        checks = _make_checks(visitor_check=_visitor_datetime_check)
-        # Act
-        _, body = _call(checks, FAST_DEADLINE_S)
-        # Assert
-        slot = body["status_data"]["visitor_pool"]["allocations"][0]
-        assert slot["visitor_username"] == "visitor-001"
-
-
 class NoDriftFromThePageTest(SimpleTestCase):
     """The API and the page must measure the same machine the same way."""
 
@@ -373,6 +319,11 @@ class ExposureIsUnchangedTest(SimpleTestCase):
         _, body = _call(checks, FAST_DEADLINE_S)
         # Assert
         assert "user_data_permissions" not in body["status_data"]
+
+    def test_visitor_pool_key_absent_from_payload(self):
+        checks = _make_checks()
+        _, body = _call(checks, FAST_DEADLINE_S)
+        assert "visitor_pool" not in body["status_data"]
 
 
 class RoutingTest(SimpleTestCase):

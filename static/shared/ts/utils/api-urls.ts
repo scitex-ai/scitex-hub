@@ -16,9 +16,7 @@ export const API_URLS = {
     list: "/api/project/list/",
     checkName: "/api/project/check-name/",
   },
-  visitor: {
-    heartbeat: "/api/visitor/heartbeat/",
-  },
+
   // --- Hub ---
   hub: {
     setActiveProject: "/apps/my-projects/api/set-active-project/",
@@ -119,7 +117,6 @@ export const NAV_URLS = {
     project: (projectId: number | string) =>
       `/apps/writer/project/${projectId}/`,
   },
-  visitorExpired: "/visitor-expired/",
 } as const;
 
 // EOF

@@ -12,15 +12,15 @@ test_visitor_failloud), whose premise is now the opposite.
 What "retired" means here, precisely:
   - the three Visitor* middlewares are NO LONGER in settings.MIDDLEWARE, so an
     anonymous browser is never auto-provisioned into visitor-001..N;
-  - the visitor provisioning/state routes return 301 (entry) or 410 Gone
-    (state + pool API) rather than a dead shell;
-  - the visitor-pool management commands are deleted;
+  - the sole legacy entry route redirects signed-out users to signup;
+  - visitor state and pool API routes are absent from the public URL surface;
+  - the visitor-pool management commands remain dormant in this bounded slice;
   - the safety nets that protect real users / pre-retirement readonly rows
     (ReadonlyVisitorWriteGuard, GuestSession, OnSiteAuth, TodoBoardTenancy)
     are still in the chain.
 
 These run WITHOUT a database: they assert on settings, the urlconf, and the
-route responses (redirect / 410), none of which touch the ORM. The DB-backed
+signup redirect; removed route names no longer reverse. The DB-backed
 behaviour (anonymous user genuinely stays anonymous, no slot row created) is
 the CI arm.
 """
@@ -32,7 +32,7 @@ import importlib.util
 import pytest
 from django.conf import settings
 from django.test import Client
-
+from django.urls import NoReverseMatch, reverse
 
 # The three middlewares the retirement removes from the request chain.
 _RETIRED_MIDDLEWARES = (
@@ -80,40 +80,37 @@ class TestVisitorRoutesRetired:
     def setup_method(self):
         self.client = Client()
 
-    def test_enter_redirects_to_signin_first(self):
-        # The old /enter/ CTA target now funnels to signup (301, permanent).
+    def test_enter_redirects_signed_out_users_to_signup(self):
         response = self.client.get("/enter/", follow=False)
         assert response.status_code == 301
         assert response.headers["Location"] == "/auth/signup/"
 
     @pytest.mark.parametrize(
-        "path",
+        "name",
         [
-            "/visitor-status/",
-            "/visitor-expired/",
-            "/visitor-restart/",
-            "/visitor-pool-full/",
+            "visitor_status",
+            "visitor_expired",
+            "visitor_restart",
+            "visitor_pool_full",
         ],
     )
-    def test_visitor_state_pages_are_gone(self, path):
-        # No anonymous browser is provisioned any more, so these states have
-        # no source — 410 Gone, not a dead shell.
-        response = self.client.get(path, follow=False)
-        assert response.status_code == 410
+    def test_visitor_state_pages_are_not_routed(self, name):
+        with pytest.raises(NoReverseMatch):
+            reverse(f"public_app:{name}")
 
     @pytest.mark.parametrize(
-        "path",
+        "name",
         [
-            "/api/visitor-pool/initialize/",
-            "/api/visitor-pool/fill-slots/",
-            "/api/visitor-pool/free-slots/",
-            "/api/visitor/heartbeat/",
-            "/api/visitor/resources/",
+            "visitor_pool_initialize_api",
+            "visitor_fill_slots_api",
+            "visitor_free_slots_api",
+            "visitor_heartbeat_api",
+            "visitor_resources_api",
         ],
     )
-    def test_visitor_pool_api_is_gone(self, path):
-        response = self.client.get(path, follow=False)
-        assert response.status_code == 410
+    def test_visitor_pool_api_is_not_routed(self, name):
+        with pytest.raises(NoReverseMatch):
+            reverse(f"public_app:{name}")
 
 
 class TestVisitorPoolManagementCommandsSurviveAsDormant:

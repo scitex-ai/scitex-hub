@@ -39,7 +39,7 @@
 {% vite_script 'shared/components/header' %}
 <!-- Header command palette (/, Ctrl/Cmd+K) -->
 {% vite_script 'shared/components/search' %}
-<!-- Dev Tools (visitor pool management, DEBUG only) -->
+<!-- Dev Tools (DEBUG only) -->
 {% if DEBUG %}
     {% vite_script 'shared/components/dev-tools' %}
 {% endif %}
@@ -49,8 +49,6 @@
 {% vite_script 'shared/components/project-selector' %}
 <!-- Analytics (module usage tracking) -->
 {% vite_script 'shared/utils/analytics' %}
-<!-- Visitor Session Heartbeat -->
-{% vite_script 'shared/utils/visitor-heartbeat' %}
 <!-- Read-only visitor write guard (actionable Sign up / Log in / retry toast) -->
 {% vite_script 'shared/utils/readonly-visitor-guard' %}
 <!-- Product Tour (step-by-step guided walkthrough) -->

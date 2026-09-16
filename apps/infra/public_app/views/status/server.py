@@ -41,7 +41,7 @@ from .health_checks import (
     check_redis,
     check_ssh_services,
 )
-from .helpers import check_registered_users_count, check_visitor_pool_status
+from .helpers import check_registered_users_count
 from .package_versions import check_package_versions
 from .public_status import _get_status_data, with_checked_at_datetime
 from .system_metrics import check_system_resources
@@ -69,7 +69,6 @@ _CHECK_PLACEMENTS = {
     "check_registered_users_count": ("registered_users", "dict", "Registered Users"),
     "check_package_versions": ("package_versions", "list", "Package Versions"),
     "check_gitea_orgs": ("gitea_orgs", "list", "Gitea Organisations"),
-    "check_visitor_pool_status": ("visitor_pool", "dict", "Visitor Pool"),
 }
 
 
@@ -165,10 +164,7 @@ def _collect_status_data(request, checks, deadline_seconds):
     try:
         future_names = {}
         for name, fn in checks.items():
-            if name == "check_visitor_pool_status":
-                future = pool.submit(_run_check, fn, request)
-            else:
-                future = pool.submit(_run_check, fn)
+            future = pool.submit(_run_check, fn)
             future_names[future] = name
         done, _ = wait(future_names, timeout=deadline_seconds)
     finally:

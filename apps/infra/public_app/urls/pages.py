@@ -7,35 +7,16 @@ Template-serving and page views:
 - SEO files (robots.txt)
 - Landing and concept pages
 - Documentation pages
-- Status and visitor pages
+- Status pages
 - API key management
 - Release notes
 """
 
-from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import path
 from django.views.generic import RedirectView
 
 from .. import views
-
-
-def _visitor_retired_410(request):
-    """410 Gone for a retired visitor-session surface.
-
-    The visitor pool was retired 2026-09-10 (operator ruling: "drop visitor
-    entirely"), so the anonymous states these routes served — status,
-    expired, restart, pool-full — have no source. 410 (not 404) tells an old
-    link or client "this existed and was retired on purpose" rather than
-    "we don't know what you meant"; the body says what to do instead.
-    """
-    return HttpResponse(
-        "The visitor sandbox was retired (2026-09-10). Sign up or sign in to "
-        "continue — signup starts a 30-day free trial.",
-        status=410,
-        content_type="text/plain",
-    )
-
 
 urlpatterns = [
     # SEO files
@@ -118,15 +99,7 @@ urlpatterns = [
     path("status/", views.public_status_view, name="public-status"),
     path("server-status/", views.server_status, name="server_status"),
     path("healthz/", views.healthz, name="healthz"),
-    # Visitor session surfaces — RETIRED 2026-09-10 with the pool. No
-    # anonymous browser is provisioned any more, so the visitor
-    # status/expired/restart/pool-full states have no source; each returns
-    # 410 Gone so an old link or client gets a clear "retired" signal
-    # rather than a dead shell (compass L658).
-    path("visitor-status/", _visitor_retired_410, name="visitor_status"),
-    path("visitor-expired/", _visitor_retired_410, name="visitor_expired"),
-    path("visitor-restart/", _visitor_retired_410, name="visitor_restart"),
-    path("visitor-pool-full/", _visitor_retired_410, name="visitor_pool_full"),
+
     # SciTeX API Key Management
     path("api-keys/", views.scitex_api_keys, name="scitex_api_keys"),
     # Release Notes

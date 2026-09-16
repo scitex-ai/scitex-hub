@@ -2,7 +2,6 @@
 
 import logging
 
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 
 from apps.infra.project_app.services.project_scope import project_for_scope_app
@@ -13,7 +12,7 @@ logger = logging.getLogger(__name__)
 def figure_editor(request, figrecipe_embedded=False):
     """Main figure editor — mounts figrecipe React editor.
 
-    If visitor pool is exhausted, redirect to visitor-pool-full page.
+    Signed-out browsers are sent to the signup-first entry point.
     """
     if not request.user.is_authenticated:
         user_agent = request.META.get("HTTP_USER_AGENT", "")
@@ -22,7 +21,7 @@ def figure_editor(request, figrecipe_embedded=False):
             for browser in ["Mozilla", "Chrome", "Safari", "Firefox", "Edge", "Opera"]
         )
         if is_browser:
-            return redirect("public_app:visitor_pool_full")
+            return redirect("auth_app:signup")
         return render(
             request,
             "figrecipe_app/editor.html",

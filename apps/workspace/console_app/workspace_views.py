@@ -22,8 +22,7 @@ def code_workspace(request):
     URL: /code/ (replaces index redirect)
     Gets project from header dropdown via get_current_project()
 
-    Visitor auto-login is handled by VisitorAutoLoginMiddleware.
-    If visitor pool is exhausted, redirect to visitor-pool-full page.
+    Signed-out browsers are sent to the signup-first entry point.
     """
     context = {
         # is_visitor handled by context processor
@@ -32,7 +31,7 @@ def code_workspace(request):
         "module_icon": "fa-code",
     }
 
-    # Check if user is not authenticated (visitor allocation may have failed)
+    # Signed-out browser requests join through signup.
     if not request.user.is_authenticated:
         # Check if this is a browser request (has typical browser User-Agent)
         user_agent = request.META.get("HTTP_USER_AGENT", "")
@@ -42,11 +41,8 @@ def code_workspace(request):
         )
 
         if is_browser:
-            # Browser request but not authenticated - visitor pool likely exhausted
-            logger.info(
-                "[Code] Browser request not authenticated - redirecting to visitor-pool-full"
-            )
-            return redirect("public_app:visitor_pool_full")
+            logger.info("[Code] Signed-out browser redirected to signup")
+            return redirect("auth_app:signup")
 
         # Non-browser request (API, bot, etc.) - just return the page
         return render(request, "console_app/workspace.html", context)
