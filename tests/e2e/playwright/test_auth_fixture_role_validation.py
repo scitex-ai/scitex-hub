@@ -38,10 +38,6 @@ class TestIsAuthenticatedUserRole:
         # "" means the page has no data-session-role at all -- cannot vouch.
         assert is_authenticated_user_role("") is False
 
-    def test_rejects_readonly_visitor_role(self):
-        # A readonly fallback is NOT a registered user; running against it
-        # would be the same vacuous-pass defect.
-        assert is_authenticated_user_role(ROLE_READONLY_VISITOR) is False
 
     def test_rejects_pooled_visitor_role(self):
         # The mobile fixtures log in as a real account, not a pooled slot.

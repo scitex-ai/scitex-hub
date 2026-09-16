@@ -80,7 +80,6 @@ POOL_AGNOSTIC_FLAGS = (
 # the assertion read THAT service's command and not the sibling's.
 WORKER_QUEUE_MARKERS = {
     "celery_worker": "--queues=celery,ai_queue,search_queue,compute_queue",
-    "celery_worker_vis": "--queues=vis_queue",
 }
 
 
@@ -187,33 +186,6 @@ def test_prod_celery_worker_keeps_pool_agnostic_flags(service):
     )
 
 
-def test_prod_celery_workers_do_not_share_one_command():
-    """Guard the guard: prove per-service keying, not whole-file matching.
-
-    ``celery_worker_vis`` has carried ``--pool=threads`` since #385. If the
-    lookup above ever degrades into a substring match over the whole compose
-    file, every assertion in this module would pass on the vis worker's
-    flags while the shared worker silently stayed prefork. Requiring that
-    each command own its OWN queue selector and NOT the sibling's makes that
-    degradation fail here first.
-    """
-    # Arrange
-    shared_marker = WORKER_QUEUE_MARKERS["celery_worker"]
-    vis_marker = WORKER_QUEUE_MARKERS["celery_worker_vis"]
-    # Act
-    shared = _service_command("celery_worker")
-    vis = _service_command("celery_worker_vis")
-    # Assert
-    assert (
-        shared_marker in shared
-        and vis_marker not in shared
-        and vis_marker in vis
-        and shared_marker not in vis
-    ), (
-        "each prod celery worker must own its OWN queue selector and not the "
-        f"sibling's; celery_worker={shared!r}; celery_worker_vis={vis!r}"
-    )
-
 
 @pytest.mark.parametrize(
     "spelling",
@@ -286,13 +258,13 @@ def test_prefork_flag_detector_ignores_the_flags_we_keep():
 
 DEPLOYMENT_DIR = REPO_ROOT / "deployment"
 
-# Measured 2026-09-06: six celery worker services across five compose files.
+# The retired visitor-only worker is gone; five stacks each declare one worker.
 # Floors, not equalities, so adding a worker does not fail the suite -- but a
 # discovery that silently returns NOTHING cannot pass, which is the failure
 # mode that matters. Every per-worker assertion below is parametrized over
 # this population, and a parametrize over an EMPTY list runs zero tests and
 # reports success, which reads exactly like "all workers conform".
-CELERY_WORKER_FLOOR = 6
+CELERY_WORKER_FLOOR = 5
 CELERY_WORKER_FILE_FLOOR = 5
 
 

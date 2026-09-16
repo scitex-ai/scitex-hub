@@ -222,13 +222,7 @@ DOCS_PAGES = [
         "template": "docs_app/docs_shared_css_system.html",
         "badges": ["dev"],
     },
-    {
-        "slug": "visitor-lifecycle",
-        "label": "Visitor Lifecycle",
-        "icon": "fas fa-user-clock",
-        "template": "docs_app/docs_visitor_lifecycle.html",
-        "badges": ["dev"],
-    },
+
     # ── Administration ──────────────────────────────────────────────
     {
         "slug": "self-hosting",

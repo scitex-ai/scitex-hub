@@ -3,13 +3,18 @@
 # Timestamp: "2025-11-04 20:46:58 (ywatanabe)"
 # File: /home/ywatanabe/proj/scitex-hub/apps/writer_app/views/index/main.py
 # ----------------------------------------
-"""Main index view for SciTeX Writer - Simple editor/PDF viewer layout."""
-
 from __future__ import annotations
+
+import os
+
+__FILE__ = "./apps/writer_app/views/index/main.py"
+__DIR__ = os.path.dirname(__FILE__)
+# ----------------------------------------
+
+"""Main index view for SciTeX Writer - Simple editor/PDF viewer layout."""
 
 import json
 import logging
-import os
 
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
@@ -23,13 +28,8 @@ from apps.infra.project_app.services.project_utils import (
 from apps.infra.project_app.services.writer_workspace_layout import (
     get_manuscript_path,
 )
-from apps.security import safe_log_field
 
 from ...models import Manuscript
-
-__FILE__ = "./apps/writer_app/views/index/main.py"
-__DIR__ = os.path.dirname(__FILE__)
-# ----------------------------------------
 
 logger = logging.getLogger(__name__)
 
@@ -49,12 +49,8 @@ def _strip_stray_template_bracket(user, project):
         root = get_project_filesystem_manager(user).get_project_root_path(project)
         if root:
             strip_stray_brackets(get_writer_workspace_path(root))
-    except Exception:  # noqa: BLE001 - cleanup must never block opening
-        logger.warning(
-            "stray-bracket cleanup failed for %s",
-            safe_log_field(project),
-            exc_info=True,
-        )
+    except Exception as exc:  # noqa: BLE001 - cleanup must never block opening
+        logger.warning("stray-bracket cleanup failed for %s: %s", project, exc)
 
 
 def build_writer_context(request, current_project=None):
@@ -116,22 +112,20 @@ def build_writer_context(request, current_project=None):
 
                             ensure_workspace(str(project_root))
                             logger.info(
-                                "Auto-initialized writer workspace for: %s",
-                                safe_log_field(current_project.slug),
+                                f"Auto-initialized writer workspace for: {current_project.slug}"
                             )
-                        except Exception:
+                        except Exception as e:
                             # No silent fallback: a failed auto-init used to
                             # be swallowed at WARNING, leaving a context that
                             # claimed nothing was wrong while the editor
                             # rendered empty. Surface it in BOTH rails — the
                             # log and the template context.
                             logger.error(
-                                "Failed to auto-initialize writer workspace for %s at %s",
-                                safe_log_field(current_project.slug),
-                                safe_log_field(project_root),
+                                "Failed to auto-initialize writer workspace for "
+                                f"{current_project.slug} at {project_root}: {e}",
                                 exc_info=True,
                             )
-                            context["writer_init_error"] = "Writer workspace initialization failed."
+                            context["writer_init_error"] = str(e)
 
         _strip_stray_template_bracket(request.user, current_project)
 
@@ -199,9 +193,7 @@ def initialize_workspace(request):
 
         if not project_root:
             # Create project directory if it doesn't exist
-            logger.info(
-                "Creating project directory for project %s", safe_log_field(project_id)
-            )
+            logger.info(f"Creating project directory for project {project_id}")
             success, project_root = manager.create_project_directory(
                 project, use_template=False
             )
@@ -210,7 +202,7 @@ def initialize_workspace(request):
                     {"success": False, "error": "Failed to create project directory"},
                     status=500,
                 )
-            logger.info("Project directory created at %s", safe_log_field(project_root))
+            logger.info(f"Project directory created at {project_root}")
 
         # Get or create manuscript
         # Since project is OneToOneField, only use project for lookup
@@ -244,10 +236,9 @@ def initialize_workspace(request):
                 manuscript_dir = writer_service.writer_dir / "01_manuscript"
                 if manuscript_dir.exists():
                     logger.info(
-                        "Writer workspace initialized successfully for project %s",
-                        safe_log_field(project_id),
+                        f"Writer workspace initialized successfully for project {project_id}"
                     )
-                    logger.info("  Structure: %s", safe_log_field(writer_service.writer_dir))
+                    logger.info(f"  Structure: {writer_service.writer_dir}")
                     logger.info(
                         f"Manuscript {manuscript.id} writer_initialized is now auto-detected as True"
                     )
@@ -260,15 +251,12 @@ def initialize_workspace(request):
                     f"Writer directory not created at {writer_service.writer_dir}"
                 )
 
-        except Exception:
-            logger.exception(
-                "Failed to initialize writer workspace for %s",
-                safe_log_field(project_id),
-            )
+        except Exception as e:
+            logger.error(f"Failed to initialize writer workspace: {e}", exc_info=True)
             return JsonResponse(
                 {
                     "success": False,
-                    "error": "Failed to initialize Writer.",
+                    "error": f"Failed to initialize Writer: {str(e)}",
                 },
                 status=500,
             )
@@ -285,14 +273,8 @@ def initialize_workspace(request):
         return JsonResponse(
             {"success": False, "error": "Project not found"}, status=404
         )
-    except Exception:
-        logger.exception(
-            "Failed to process Writer initialization for %s",
-            safe_log_field(locals().get("project_id", "unknown")),
-        )
-        return JsonResponse(
-            {"success": False, "error": "Unable to initialize Writer."}, status=500
-        )
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 
 # EOF

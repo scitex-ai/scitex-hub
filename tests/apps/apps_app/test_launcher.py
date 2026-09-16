@@ -548,10 +548,6 @@ class TestPoolAccountsAreNeverSeeded(TestCase):
             username="visitor-001",
             password="TestPass123!",  # pragma: allowlist secret
         )
-        cls.readonly = User.objects.create_user(
-            username="readonly-visitor",
-            password="TestPass123!",  # pragma: allowlist secret
-        )
 
     def test_visitor_account_is_not_seeded(self):
         # Arrange
@@ -578,13 +574,6 @@ class TestPoolAccountsAreNeverSeeded(TestCase):
         # Assert
         assert pinned == []
 
-    def test_readonly_visitor_is_not_seeded(self):
-        # Arrange
-        user = self.readonly
-        # Act
-        created = seed_default_pins(user)
-        # Assert
-        assert created is False
 
     def test_regular_user_seeding_is_unaffected(self):
         # Arrange — the guard must not break the self-heal for real users

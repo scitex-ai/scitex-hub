@@ -26,11 +26,7 @@ VISITOR_COMMANDS = {
     "reset_visitor_workspaces.py",
     "visitor_pool_ready.py",
 }
-ALLOWED_VISITOR_SERVICE_FILES = {
-    "__init__.py",
-    "pool_health.py",
-    "visitor_pool.py",
-}
+
 
 
 def _runtime_python_files():
@@ -59,12 +55,8 @@ def test_authenticated_runtime_does_not_import_visitor_pool():
     assert offenders == []
 
 
-def test_visitor_service_is_status_only():
-    remaining = {
-        path.name for path in VISITOR_PACKAGE.glob("*.py") if path.is_file()
-    }
-
-    assert remaining == ALLOWED_VISITOR_SERVICE_FILES
+def test_visitor_service_package_is_removed():
+    assert list(VISITOR_PACKAGE.glob("*.py")) == []
 
 
 def test_visitor_management_commands_are_removed():
