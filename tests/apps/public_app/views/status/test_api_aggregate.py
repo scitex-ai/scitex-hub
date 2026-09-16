@@ -266,7 +266,7 @@ class NoDriftFromThePageTest(SimpleTestCase):
         server.check_database = _database_marker_check
         # Act
         try:
-            resolved = getattr(aggregate._server_module(), "check_database")
+            resolved = aggregate._server_module().check_database
         finally:
             server.check_database = original
         # Assert

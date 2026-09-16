@@ -17,7 +17,6 @@ from apps.infra.public_app.views.status.api.health import _build_services_dict
 from apps.infra.public_app.views.status.api.history import _format_metric
 from apps.infra.public_app.views.status.api.series import CHART_SPECS
 
-
 ROOT = Path(__file__).resolve().parents[5]
 PUBLIC_APP = ROOT / "apps" / "infra" / "public_app"
 

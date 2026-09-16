@@ -274,7 +274,7 @@ def _filter_modules_for_user(request, modules):
 
     # Show modules unless explicitly disabled via installation record
     visible = []
-    for idx, mod in enumerate(modules):
+    for mod in modules:
         inst = installations.get(mod.name)
         if inst is None:
             if not mod.default_enabled:

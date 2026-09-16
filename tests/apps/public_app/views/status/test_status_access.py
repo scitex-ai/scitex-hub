@@ -54,7 +54,12 @@ FULL_STATUS_DATA = {
     ],
     "ssh_services": [],
     "api_services": [
-        dict(name="Gitea", status="up", health_class="healthy", url="http://10.0.0.5:3000")
+        {
+            "name": "Gitea",
+            "status": "up",
+            "health_class": "healthy",
+            "url": "http://10.0.0.5:3000",
+        }
     ],
     "database": {"status": "connected", "health_class": "healthy", "name": "scitex_prod"},
     "redis": {},
