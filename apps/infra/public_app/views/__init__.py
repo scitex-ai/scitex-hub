@@ -118,6 +118,8 @@ __all__ = [
     "cancel_subscription",
     "open_billing_portal",
     # Status
+    "public_status_view",
+    "public_status_api",
     "server_status",
     "server_status_api",
     "status_api",

@@ -31,8 +31,11 @@ from django.shortcuts import render
 from config.django_db_threads import close_database_connections_after
 
 from .access import is_instance_admin
-from .compute_resources import check_container_runtime_status, check_slurm_status
-from .gitea_orgs import check_gitea_orgs
+from .compute_resources import (  # noqa: F401 - resolved dynamically by name
+    check_container_runtime_status,
+    check_slurm_status,
+)
+from .gitea_orgs import check_gitea_orgs  # noqa: F401 - resolved dynamically by name
 from .health_checks import (
     check_api_services,
     check_database,
@@ -40,11 +43,11 @@ from .health_checks import (
     check_docker_containers,
     check_redis,
     check_ssh_services,
-)
-from .helpers import check_registered_users_count
-from .package_versions import check_package_versions
+)  # noqa: F401 - resolved dynamically through _CHECK_PLACEMENTS
+from .helpers import check_registered_users_count  # noqa: F401 - dynamic registry
+from .package_versions import check_package_versions  # noqa: F401 - dynamic registry
 from .public_status import _get_status_data, with_checked_at_datetime
-from .system_metrics import check_system_resources
+from .system_metrics import check_system_resources  # noqa: F401 - dynamic registry
 
 logger = logging.getLogger(__name__)
 

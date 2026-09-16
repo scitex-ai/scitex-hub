@@ -372,7 +372,7 @@ def _rates(rows: list[dict], field: str) -> list[float | None]:
     that clamps to 0 rather than reporting negative throughput.
     """
     rates: list[float | None] = [None]
-    for prev, cur in zip(rows, rows[1:]):
+    for prev, cur in zip(rows, rows[1:], strict=False):
         prev_value, cur_value = prev[field], cur[field]
         if prev_value is None or cur_value is None:
             rates.append(None)
