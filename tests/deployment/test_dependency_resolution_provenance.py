@@ -81,7 +81,11 @@ def test_changed_dependency_input_preserves_layers_before_local_install(dockerfi
     text = dockerfile.read_text()
     old = _instruction_cache_keys(text, "release-1")
     new = _instruction_cache_keys(text, "release-2")
-    changed = [index for index, pair in enumerate(zip(old, new)) if pair[0] != pair[1]]
+    changed = [
+        index
+        for index, pair in enumerate(zip(old, new, strict=True))
+        if pair[0] != pair[1]
+    ]
 
     logical_install = next(
         index
@@ -116,18 +120,18 @@ def _all_build_args(compose: Path):
 def test_release_compose_fails_closed_when_dependency_input_is_missing(compose: Path):
     builds = _all_build_args(compose)
     assert builds
-    assert {name: args.get(ARG) for name, args in builds.items()} == {
-        name: f"${{{ARG}:?set by protected rebuild}}" for name in builds
-    }
+    assert {name: args.get(ARG) for name, args in builds.items()} == dict.fromkeys(
+        builds, f"${{{ARG}:?set by protected rebuild}}"
+    )
 
 
 @pytest.mark.parametrize("compose", DEV_COMPOSE, ids=lambda path: str(path.relative_to(REPO)))
 def test_dev_compose_keeps_ordinary_source_builds_working(compose: Path):
     builds = _all_build_args(compose)
     assert builds
-    assert {name: args.get(ARG) for name, args in builds.items()} == {
-        name: f"${{{ARG}:-dev}}" for name in builds
-    }
+    assert {name: args.get(ARG) for name, args in builds.items()} == dict.fromkeys(
+        builds, f"${{{ARG}:-dev}}"
+    )
 
 
 def test_protected_rebuild_passes_committed_nonce_explicitly():
