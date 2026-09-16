@@ -54,7 +54,6 @@ from tests.e2e.playwright.content_check import (
     loading_marker_problem,
     nonzero_count_problem,
     read_content_signals,
-    stuck_placeholder_problem,
     undeclared_absent_media_problem,
 )
 from tests.e2e.playwright.page_ready import wait_for_page_ready
@@ -338,19 +337,19 @@ class TestCapturedPageHasContent:
 class TestWriterShowsAManuscript:
     """02-writer.png showed an editor with nothing in it.
 
-    The file selector still read "Loading...", the word count still read
-    "0", and the manuscript pane was empty — all three are the literal
-    defaults shipped by ``index_partials/main_editor.html``. A screenshot
-    of Writer that contains no writing is not a screenshot of Writer.
+    The package-owned editor renders section tabs after its section API
+    resolves and updates ``#word-count`` after loading the active section.
+    Empty tabs or a zero count therefore still identify the blank-editor
+    failure without depending on the retired Hub-owned editor markup.
     """
 
-    def test_file_selector_resolved(self, measured_content):
+    def test_section_tabs_resolved(self, measured_content):
         # Arrange
         signals = measured_content(WRITER_ROUTE)
 
         # Act
-        problem = stuck_placeholder_problem(
-            signals, "file_selector", f"Writer ({WRITER_ROUTE})"
+        problem = empty_container_problem(
+            signals, "section_tabs", f"Writer ({WRITER_ROUTE})"
         )
 
         # Assert
