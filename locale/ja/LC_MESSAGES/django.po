@@ -5808,6 +5808,14 @@ msgid "Toggle dark mode"
 msgstr "ダークモード切り替え"
 
 #: templates/global_base_partials/global_header.html
+msgid "Switch to dark mode"
+msgstr "ダークモードに切り替える"
+
+#: templates/global_base_partials/global_header.html
+msgid "Switch to light mode"
+msgstr "ライトモードに切り替える"
+
+#: templates/global_base_partials/global_header.html
 msgid "Workspace"
 msgstr "ワークスペース"
 

@@ -135,7 +135,7 @@ def test_phone_dock_icon_matches_the_phone_tile_icon():
         _css("apps/workspace/apps_app/static/apps_app/css/launcher/mobile.css"),
         "@media (max-width: 640px)",
     )
-    dock = _media_block(_dock_css(), "@media (max-width: 640px)")
+    dock = _media_block(_dock_css(), "@media (min-width: 0px)")
     # Act
     sizes = (
         re.search(r"--launcher-icon-size:\s*(\d+)px", tile).group(1),
@@ -145,25 +145,20 @@ def test_phone_dock_icon_matches_the_phone_tile_icon():
     assert sizes[0] == sizes[1]
 
 
-def test_desktop_dock_icon_matches_the_desktop_tile_icon():
+def test_desktop_dock_keeps_the_canonical_dock_icon_size():
+    # The dock now deliberately uses one layout/icon scale at every width;
+    # Home's launcher may scale its own grid up on wide screens.
     # Arrange
-    tile = _media_block(
-        _css("apps/workspace/apps_app/static/apps_app/css/launcher/mobile.css"),
-        "@media (min-width: 768px)",
-    )
-    dock = _media_block(_dock_css(), "@media (min-width: 768px)")
+    dock = _media_block(_dock_css(), "@media (min-width: 0px)")
     # Act
-    sizes = (
-        re.search(r"--launcher-icon-size:\s*(\d+)px", tile).group(1),
-        re.search(r"--site-dock-icon:\s*(\d+)px", dock).group(1),
-    )
+    size = re.search(r"--site-dock-icon:\s*(\d+)px", dock).group(1)
     # Assert
-    assert sizes[0] == sizes[1]
+    assert size == "60"
 
 
 def test_phone_dock_gives_the_apps_their_own_row():
     # Arrange
-    phone = _media_block(_dock_css(), "@media (max-width: 640px)")
+    phone = _media_block(_dock_css(), "@media (min-width: 0px)")
     # Act
     rule = re.search(r"\.site-dock-apps\s*\{([^}]*)\}", phone).group(1)
     # Assert
@@ -173,7 +168,7 @@ def test_phone_dock_gives_the_apps_their_own_row():
 def test_phone_second_row_is_back_grip_forward():
     # Operator 2026-09-14: [<] far left, wide grip in the centre, [>] far right.
     # Arrange
-    phone = _media_block(_dock_css(), "@media (max-width: 640px)")
+    phone = _media_block(_dock_css(), "@media (min-width: 0px)")
     # Act
     columns = tuple(
         re.search(selector + r"\s*\{[^}]*?grid-column:\s*(\d+)", phone).group(1)
@@ -189,7 +184,7 @@ def test_phone_second_row_is_back_grip_forward():
 
 def test_phone_grip_fills_the_centre_between_44px_arrows():
     # Arrange
-    phone = _media_block(_dock_css(), "@media (max-width: 640px)")
+    phone = _media_block(_dock_css(), "@media (min-width: 0px)")
     # Act
     rule = re.search(r"\.site-dock\s*\{([^}]*)\}", phone).group(1)
     # Assert

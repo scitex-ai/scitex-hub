@@ -462,6 +462,7 @@ all = [
     "dearpygui>=1.11",
     "cairosvg>=2.9.0",
     "Pillow>=12.1.1",
+    "pypdf>=4.0",
     # --- MCP server surface ---
     "fastmcp>=2.0.0",
     "pyyaml>=6.0",

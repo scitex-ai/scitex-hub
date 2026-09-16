@@ -351,9 +351,9 @@ def _build_tiles(request) -> list[dict]:
         seen.add(link.name)
 
     # 5. Planned apps: a Coming-soon tile until a real app takes the id.
-    tiles.extend(
-        _planned_tiles(request.user, seen | installed_names | {t["name"] for t in tiles})
-    )
+    # Only a tile that is actually present replaces a planned app. A hidden or
+    # non-launcher registry module must not suppress its Coming Soon placeholder.
+    tiles.extend(_planned_tiles(request.user, {t["name"] for t in tiles}))
 
     # Display overrides affect only presentation. Canonical ids, URLs, and
     # manifest/catalog metadata remain untouched.
