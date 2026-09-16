@@ -66,12 +66,6 @@ services:
       - uv_cache_volume:/app/.cache/uv
       - npm_cache_volume:/app/.cache/npm
 
-      # scitex-code for citation_graph module (until published to PyPI)
-      - /home/ywatanabe/proj/scitex-code/src/scitex/scholar/citation_graph:/usr/local/lib/python3.11/site-packages/scitex/scholar/citation_graph:ro
-
-      # scitex-container for terminal command building (until published to PyPI)
-      - /home/ywatanabe/proj/scitex-container/src/scitex_container:/usr/local/lib/python3.11/site-packages/scitex_container:ro
-
       # User workspace data directory (must match SCITEX_SLURM_USER_DATA_ROOT for terminal passwd files)
       - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
 
@@ -304,7 +298,7 @@ services:
     # `entrypoint:` REPLACES the image's ENTRYPOINT wholesale, so every service
     # that overrides it silently drops tini — which left celery running as PID 1
     # with no init and no reaper. See the header note above `celery_worker_vis`.
-    entrypoint: ["/usr/bin/tini", "--", "/entrypoint.sh"]
+    entrypoint: ["/usr/bin/tini", "--", "/image-runtime.sh", "/entrypoint.sh"]
     # NOTE: vis_queue is deliberately NOT here — it has its own worker below.
     # This worker's `celery` queue is a firehose (the since-deleted status-chart
     # renderer alone fanned out 48 subtasks every 60s on a 4-core N100 — removed
@@ -412,8 +406,6 @@ services:
       - /var/log/slurm:/var/log/slurm
       # Mount host passwd for SLURM UID synchronization
       - /etc/passwd:/host/etc/passwd:ro
-      # scitex-code for citation_graph module (until published to PyPI)
-      - /home/ywatanabe/proj/scitex-code/src/scitex/scholar/citation_graph:/usr/local/lib/python3.11/site-packages/scitex/scholar/citation_graph:ro
       # The local bibliographic databases, SAME sources and targets as the
       # django service above. warm_public_status_cache runs HERE (celery beat
       # -> this worker) and computes the public /status/ page's verdicts by
@@ -530,7 +522,7 @@ services:
     image: scitex-hub-prod-django:latest
     labels:
       - autoheal=true
-    entrypoint: ["/usr/bin/tini", "--", "/entrypoint.sh"]
+    entrypoint: ["/usr/bin/tini", "--", "/image-runtime.sh", "/entrypoint.sh"]
     command: >
       celery -A config --broker=redis://redis:6379/1 worker
       --loglevel=info
@@ -605,7 +597,7 @@ services:
       - autoheal=true
     # tini — same reason as the workers above (the compose entrypoint override
     # otherwise discards the image's tini and leaves celery as PID 1).
-    entrypoint: ["/usr/bin/tini", "--", "/entrypoint.sh"]
+    entrypoint: ["/usr/bin/tini", "--", "/image-runtime.sh", "/entrypoint.sh"]
     command: celery -A config --broker=redis://redis:6379/1 beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
 
     volumes:

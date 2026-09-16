@@ -211,6 +211,11 @@ for cache_dir in /app/.cache/uv /app/.cache/npm; do
 done
 echo "✅ uv/npm cache directories ready"
 
+if [ "${SCITEX_APPS_PYTHON_MODE:-editable}" = "image-only" ]; then
+    echo "🔒 Verifying immutable production Python runtime..."
+    gosu scitex python /opt/scitex-image-contract/scripts/deploy/verify_image_dependency_contract.py
+else
+
 # ============================================
 # Fix system site-packages ownership (uv --system editable installs)
 # ============================================
@@ -234,12 +239,9 @@ echo "✅ uv/npm cache directories ready"
 # the STALE PINNED WHEEL instead of the develop checkout this script exists to
 # install. Confirmed live: 130,409 of ~130,421 site-packages entries root-owned.
 #
-# The DURABLE fix is in Dockerfile.prod (the site-packages COPY carries
-# --chown, and the root-run `uv pip install` layers chown their delta), so a
-# freshly built image already ships scitex-owned packages and the sweep below
-# finds nothing. What remains here is the BELT: it repairs an image built
-# before that fix, and catches a regression if a future root-context install
-# layer re-contaminates the tree.
+# This branch is editable/development mode only. Production image-only mode
+# exits through the verifier above and keeps the package tree root-owned.
+# Editable mode deliberately grants the scitex user replacement rights here.
 SITE_PACKAGES="/usr/local/lib/python3.11/site-packages"
 if [ -d "$SITE_PACKAGES" ]; then
     # Debris from a SIGTERM'd install: uv/pip stage a replacement package as
@@ -257,13 +259,9 @@ if [ -d "$SITE_PACKAGES" ]; then
     fi
 
     # ...and REPLACING a package needs write on that package's OWN directory,
-    # recursively. Skip anything on a different filesystem: docker-compose
-    # bind-mounts host paths READ-ONLY *inside* site-packages (scitex_container,
-    # scitex/scholar/citation_graph). Neither is scitex-owned (uid 1001 / root),
-    # so a plain `! -user scitex` sweep would try to chown them, fail EROFS, and
-    # — under `set -e` — crash-loop the container. Filtering on find's device id
-    # (%D) skips the mount points AND everything beneath them without hardcoding
-    # their paths, so a new :ro bind in compose cannot silently break boot.
+    # recursively. Skip anything on a different filesystem so an explicit
+    # development-only read-only mount cannot make the ownership repair fail
+    # with EROFS and crash-loop the container under `set -e`.
     # Measured on live prod: the full walk is ~230ms over 130k entries, so this
     # is cheap enough to assert on every boot rather than trust the image.
     SP_DEV=$(stat -c '%d' "$SITE_PACKAGES")
@@ -322,6 +320,7 @@ if [ -d "$BIN_DIR" ] && [ "$(stat -c '%U' "$BIN_DIR" 2>/dev/null)" != "scitex" ]
     echo "✅ /usr/local/bin ownership fixed (top-level only, non-recursive)"
 else
     echo "✅ /usr/local/bin ownership OK"
+fi
 fi
 
 # ============================================
