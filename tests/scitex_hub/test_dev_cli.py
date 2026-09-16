@@ -320,6 +320,80 @@ def test_console_entrypoint_rejects_malformed_callable_segments():
     )
 
 
+def test_duplicate_metadata_owner_rows_are_one_unambiguous_owner():
+    dependency_module = import_module("scitex_hub._cli._dev_dependencies")
+
+    report = dependency_module.build_dependency_report(
+        distribution="scitex-hpc",
+        module="scitex_hpc",
+        executable="scitex-hpc",
+        capability="validate_customer_policy",
+        domain="slurm",
+        version="0.9.0",
+        package_owners=["scitex-hpc", "scitex-hpc"],
+        module_file_owned=True,
+        console_entrypoint_value="scitex_hpc._cli:main",
+        capability_entrypoint_value="scitex_hpc:validate_customer_policy",
+        runtime_validation={"ready": True},
+    )
+
+    assert report["ready"] is True
+
+
+def test_editable_distribution_proves_module_from_direct_url(tmp_path):
+    dependency_module = import_module("scitex_hub._cli._dev_dependencies")
+    root = tmp_path / "scitex-storage"
+    package = root / "src" / "scitex_storage"
+    package.mkdir(parents=True)
+    (package / "__init__.py").write_text("", encoding="utf-8")
+    (root / "pyproject.toml").write_text(
+        '[project]\nname = "scitex-storage"\n', encoding="utf-8"
+    )
+
+    class EditableDistribution:
+        files = ()
+        metadata = {"Name": "scitex-storage"}
+
+        @staticmethod
+        def read_text(name):
+            if name == "direct_url.json":
+                return json.dumps(
+                    {"url": root.as_uri(), "dir_info": {"editable": True}}
+                )
+            return None
+
+    assert dependency_module._module_file_owned(
+        EditableDistribution(), "scitex_storage"
+    )
+
+
+def test_editable_distribution_rejects_mismatched_project_owner(tmp_path):
+    dependency_module = import_module("scitex_hub._cli._dev_dependencies")
+    root = tmp_path / "attacker"
+    package = root / "src" / "scitex_storage"
+    package.mkdir(parents=True)
+    (package / "__init__.py").write_text("", encoding="utf-8")
+    (root / "pyproject.toml").write_text(
+        '[project]\nname = "attacker-dist"\n', encoding="utf-8"
+    )
+
+    class EditableDistribution:
+        files = ()
+        metadata = {"Name": "scitex-storage"}
+
+        @staticmethod
+        def read_text(name):
+            if name == "direct_url.json":
+                return json.dumps(
+                    {"url": root.as_uri(), "dir_info": {"editable": True}}
+                )
+            return None
+
+    assert not dependency_module._module_file_owned(
+        EditableDistribution(), "scitex_storage"
+    )
+
+
 def test_all_check_collections_use_list_schema(monkeypatch):
     dev_module = import_module("scitex_hub._cli.dev")
     monkeypatch.setattr(

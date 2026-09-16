@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+import json
+import tomllib
 from dataclasses import dataclass
 from importlib import metadata
 from pathlib import Path
 from typing import Any
+from urllib.parse import unquote, urlparse
+from urllib.request import url2pathname
 
 CAPABILITY_ENTRYPOINT_GROUP = "scitex_hub.dev"
 
@@ -100,7 +104,9 @@ def build_dependency_report(
 ) -> dict[str, Any]:
     """Build a fail-closed verdict without importing leaf package code."""
     expected_owner = _normalise_dist(distribution)
-    normalised_owners = sorted(_normalise_dist(name) for name in package_owners)
+    normalised_owners = sorted(
+        {_normalise_dist(name) for name in package_owners}
+    )
     expected_capability = f"{module}:{capability}"
     preflight_checks = [
         _check("distribution", version is not None, version, "installed distribution"),
@@ -176,11 +182,45 @@ def _entrypoint_value(
     return matches[0] if len(matches) == 1 else None
 
 
+def _editable_module_file_owned(
+    dist: metadata.Distribution, module: str
+) -> bool:
+    """Verify a PEP 610 editable source tree without importing its code."""
+    try:
+        direct_url = json.loads(dist.read_text("direct_url.json") or "")
+        parsed = urlparse(direct_url["url"])
+        if direct_url.get("dir_info", {}).get("editable") is not True:
+            return False
+        if parsed.scheme != "file" or parsed.netloc not in {"", "localhost"}:
+            return False
+        root = Path(url2pathname(unquote(parsed.path))).resolve(strict=True)
+        project_data = tomllib.loads(
+            (root / "pyproject.toml").read_text(encoding="utf-8")
+        )
+        project_name = project_data["project"]["name"]
+        distribution_name = dist.metadata["Name"]
+    except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError):
+        return False
+    if _normalise_dist(project_name) != _normalise_dist(distribution_name):
+        return False
+
+    relative = Path(*module.split(".")) / "__init__.py"
+    for candidate in (root / "src" / relative, root / relative):
+        try:
+            resolved = candidate.resolve(strict=True)
+            resolved.relative_to(root)
+        except (OSError, ValueError):
+            continue
+        if resolved == candidate and resolved.is_file():
+            return True
+    return False
+
+
 def _module_file_owned(dist: metadata.Distribution, module: str) -> bool:
     relative = Path(*module.split(".")) / "__init__.py"
     files = {Path(str(item)) for item in (dist.files or ())}
     if relative not in files:
-        return False
+        return _editable_module_file_owned(dist, module)
     source = Path(str(dist.locate_file(relative))).resolve()
     distribution_root = Path(str(dist.locate_file(""))).resolve()
     try:
@@ -212,6 +252,8 @@ def inspect_leaf(spec: LeafSpec) -> dict[str, Any]:
     package_owners = list(
         metadata.packages_distributions().get(spec.module.split(".")[0], [])
     )
+    if not package_owners and module_owned and dist is not None:
+        package_owners = [dist.metadata.get("Name", spec.distribution)]
     return build_dependency_report(
         distribution=spec.distribution,
         module=spec.module,
