@@ -97,7 +97,7 @@ def test_close_control_starts_collapsed():
 
 def test_ja_menu_translates_toggle_dark_mode():
     # Arrange
-    expected = "ダークモード切り替え"
+    expected = "ダークモードに切り替える"
     # Act
     menu = _menu(_render_header("ja"))
     # Assert
@@ -107,7 +107,7 @@ def test_ja_menu_translates_toggle_dark_mode():
 def test_en_menu_keeps_toggle_dark_mode():
     """Control for the test above."""
     # Arrange
-    expected = "Toggle dark mode"
+    expected = "Switch to dark mode"
     # Act
     menu = _menu(_render_header("en"))
     # Assert
