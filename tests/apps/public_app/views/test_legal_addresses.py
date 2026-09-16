@@ -350,6 +350,7 @@ def test_page_renders_the_registered_company_address(url_name, client):
     """The real address must reach the rendered page, not just the template."""
     # Arrange
     expected = settings.COMPANY_ADDRESS
+    client.cookies["django_language"] = "ja"
 
     # Act
     content = client.get(reverse(url_name)).content.decode("utf-8")
