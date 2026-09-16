@@ -115,14 +115,11 @@ RUNTIME_MEDIA_REASON = (
 #: per page, by the tests — the probe only measures.
 PAGE_ELEMENT_SIGNALS = {
     "/apps/writer/": {
-        # index_partials/main_editor.html ships this reading "Loading...".
-        # It is replaced by ts/utils/_section-dropdown/SectionDropdown.ts
-        # once the file tree resolves; still reading "Loading..." means it
-        # never did.
-        "file_selector": "#section-selector-text",
-        # Same partial ships this as "0". A manuscript with no words in it
-        # is the empty editor the operator was shown.
-        "word_count": "#current-word-count",
+        # The package-owned Writer editor populates one tab per manuscript
+        # section. Present-but-empty means its section API never resolved.
+        "section_tabs": "#section-tabs",
+        # The package template ships "0 words" until content loads.
+        "word_count": "#word-count",
     },
     "/apps/figrecipe/": {
         # figrecipe_partial.html's mount point for the FigRecipe bundle.
