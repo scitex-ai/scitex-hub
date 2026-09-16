@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import json
+import re
 import tomllib
 from dataclasses import dataclass
 from importlib import metadata
 from pathlib import Path
 from typing import Any
-from urllib.parse import unquote, urlparse
+from urllib.parse import urlparse
 from urllib.request import url2pathname
 
 CAPABILITY_ENTRYPOINT_GROUP = "scitex_hub.dev"
@@ -72,7 +73,7 @@ def _check(name: str, ok: bool, observed: Any, expected: str) -> dict[str, Any]:
 
 
 def _normalise_dist(name: str) -> str:
-    return name.lower().replace("_", "-")
+    return re.sub(r"[-_.]+", "-", name).lower()
 
 
 def _valid_console_entrypoint(value: str | None, module: str) -> bool:
@@ -188,24 +189,42 @@ def _editable_module_file_owned(
     """Verify a PEP 610 editable source tree without importing its code."""
     try:
         direct_url = json.loads(dist.read_text("direct_url.json") or "")
-        parsed = urlparse(direct_url["url"])
-        if direct_url.get("dir_info", {}).get("editable") is not True:
+        if not isinstance(direct_url, dict):
             return False
+        direct_url_value = direct_url.get("url")
+        dir_info = direct_url.get("dir_info")
+        if not isinstance(direct_url_value, str) or not isinstance(dir_info, dict):
+            return False
+        if dir_info.get("editable") is not True:
+            return False
+        parsed = urlparse(direct_url_value)
         if parsed.scheme != "file" or parsed.netloc not in {"", "localhost"}:
             return False
-        root = Path(url2pathname(unquote(parsed.path))).resolve(strict=True)
+        root = Path(url2pathname(parsed.path)).resolve(strict=True)
         project_data = tomllib.loads(
             (root / "pyproject.toml").read_text(encoding="utf-8")
         )
         project_name = project_data["project"]["name"]
         distribution_name = dist.metadata["Name"]
-    except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError):
+    except (
+        AttributeError,
+        OSError,
+        KeyError,
+        TypeError,
+        ValueError,
+        json.JSONDecodeError,
+    ):
+        return False
+    if not isinstance(project_name, str) or not isinstance(distribution_name, str):
         return False
     if _normalise_dist(project_name) != _normalise_dist(distribution_name):
         return False
 
     relative = Path(*module.split(".")) / "__init__.py"
-    for candidate in (root / "src" / relative, root / relative):
+    candidates = ((root / "src", root / "src" / relative), (root, root / relative))
+    for source_root, candidate in candidates:
+        if not _editable_pth_maps_root(dist, source_root):
+            continue
         try:
             resolved = candidate.resolve(strict=True)
             resolved.relative_to(root)
@@ -213,6 +232,34 @@ def _editable_module_file_owned(
             continue
         if resolved == candidate and resolved.is_file():
             return True
+    return False
+
+
+def _editable_pth_maps_root(
+    dist: metadata.Distribution, expected_root: Path
+) -> bool:
+    """Prove the installed editable adds ``expected_root`` to sys.path."""
+    for item in dist.files or ():
+        if Path(str(item)).suffix != ".pth":
+            continue
+        try:
+            pth = Path(str(dist.locate_file(item)))
+            lines = pth.read_text(encoding="utf-8").splitlines()
+        except (AttributeError, OSError, TypeError, ValueError):
+            continue
+        for raw_line in lines:
+            line = raw_line.strip()
+            if not line or line.startswith("#") or line.startswith("import "):
+                continue
+            mapped = Path(line)
+            if not mapped.is_absolute():
+                mapped = pth.parent / mapped
+            try:
+                mapped = mapped.resolve(strict=True)
+            except OSError:
+                continue
+            if mapped == expected_root:
+                return True
     return False
 
 

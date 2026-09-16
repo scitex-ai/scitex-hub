@@ -2,6 +2,7 @@
 
 import json
 from importlib import import_module
+from pathlib import Path
 
 from click.testing import CliRunner
 
@@ -349,9 +350,13 @@ def test_editable_distribution_proves_module_from_direct_url(tmp_path):
     (root / "pyproject.toml").write_text(
         '[project]\nname = "scitex-storage"\n', encoding="utf-8"
     )
+    site = tmp_path / "site-packages"
+    site.mkdir()
+    pth = site / "_editable_scitex_storage.pth"
+    pth.write_text(f"{root / 'src'}\n", encoding="utf-8")
 
     class EditableDistribution:
-        files = ()
+        files = (Path(pth.name),)
         metadata = {"Name": "scitex-storage"}
 
         @staticmethod
@@ -361,6 +366,10 @@ def test_editable_distribution_proves_module_from_direct_url(tmp_path):
                     {"url": root.as_uri(), "dir_info": {"editable": True}}
                 )
             return None
+
+        @staticmethod
+        def locate_file(name):
+            return site / str(name)
 
     assert dependency_module._module_file_owned(
         EditableDistribution(), "scitex_storage"
@@ -387,6 +396,91 @@ def test_editable_distribution_rejects_mismatched_project_owner(tmp_path):
                 return json.dumps(
                     {"url": root.as_uri(), "dir_info": {"editable": True}}
                 )
+            return None
+
+    assert not dependency_module._module_file_owned(
+        EditableDistribution(), "scitex_storage"
+    )
+
+
+def test_editable_distribution_requires_declared_pth_mapping(tmp_path):
+    dependency_module = import_module("scitex_hub._cli._dev_dependencies")
+    root = tmp_path / "scitex-storage"
+    package = root / "src" / "scitex_storage"
+    package.mkdir(parents=True)
+    (package / "__init__.py").write_text("", encoding="utf-8")
+    (root / "pyproject.toml").write_text(
+        '[project]\nname = "scitex-storage"\n', encoding="utf-8"
+    )
+
+    class EditableDistribution:
+        files = ()
+        metadata = {"Name": "scitex-storage"}
+
+        @staticmethod
+        def read_text(name):
+            if name == "direct_url.json":
+                return json.dumps(
+                    {"url": root.as_uri(), "dir_info": {"editable": True}}
+                )
+            return None
+
+    assert not dependency_module._module_file_owned(
+        EditableDistribution(), "scitex_storage"
+    )
+
+
+def test_editable_distribution_does_not_double_decode_file_url(tmp_path):
+    dependency_module = import_module("scitex_hub._cli._dev_dependencies")
+    claimed = tmp_path / "editable%2Froot"
+    confused = tmp_path / "editable" / "root"
+    claimed.mkdir()
+    package = confused / "src" / "scitex_storage"
+    package.mkdir(parents=True)
+    (package / "__init__.py").write_text("", encoding="utf-8")
+    for root in (claimed, confused):
+        (root / "pyproject.toml").write_text(
+            '[project]\nname = "scitex-storage"\n', encoding="utf-8"
+        )
+    site = tmp_path / "site-packages"
+    site.mkdir()
+    pth = site / "_editable_scitex_storage.pth"
+    pth.write_text(f"{confused / 'src'}\n", encoding="utf-8")
+
+    class EditableDistribution:
+        files = (Path(pth.name),)
+        metadata = {"Name": "scitex-storage"}
+
+        @staticmethod
+        def read_text(name):
+            if name == "direct_url.json":
+                return json.dumps(
+                    {"url": claimed.as_uri(), "dir_info": {"editable": True}}
+                )
+            return None
+
+        @staticmethod
+        def locate_file(name):
+            return site / str(name)
+
+    assert not dependency_module._module_file_owned(
+        EditableDistribution(), "scitex_storage"
+    )
+
+
+def test_editable_distribution_malformed_metadata_fails_closed(tmp_path):
+    dependency_module = import_module("scitex_hub._cli._dev_dependencies")
+    root = tmp_path / "scitex-storage"
+    root.mkdir()
+
+    class EditableDistribution:
+        files = ()
+        metadata = {"Name": "scitex-storage"}
+
+        @staticmethod
+        def read_text(name):
+            if name == "direct_url.json":
+                return json.dumps({"url": root.as_uri(), "dir_info": None})
             return None
 
     assert not dependency_module._module_file_owned(
