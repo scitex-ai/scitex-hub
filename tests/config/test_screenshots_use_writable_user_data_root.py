@@ -37,6 +37,7 @@ def test_registered_screenshot_user_gets_a_real_writer_workspace():
         "Project.objects.get_or_create",
         "create_project_directory",
         "ensure_workspace",
+        "last_active_repository",
     )
     for token in required:
         assert token in run
