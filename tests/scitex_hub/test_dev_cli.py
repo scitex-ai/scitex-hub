@@ -599,6 +599,41 @@ def test_editable_distribution_rejects_tab_import_pth_line(tmp_path):
     )
 
 
+def test_editable_distribution_preserves_leading_pth_whitespace(tmp_path):
+    dependency_module = import_module("scitex_hub._cli._dev_dependencies")
+    root = tmp_path / "scitex-storage"
+    package = root / "src" / "scitex_storage"
+    package.mkdir(parents=True)
+    (package / "__init__.py").write_text("", encoding="utf-8")
+    (root / "pyproject.toml").write_text(
+        '[project]\nname = "scitex-storage"\n', encoding="utf-8"
+    )
+    site = tmp_path / "site-packages"
+    site.mkdir()
+    pth = site / "_editable_scitex_storage.pth"
+    pth.write_text(f" {root / 'src'}\n", encoding="utf-8")
+
+    class EditableDistribution:
+        files = (Path(pth.name),)
+        metadata = {"Name": "scitex-storage"}
+
+        @staticmethod
+        def read_text(name):
+            if name == "direct_url.json":
+                return json.dumps(
+                    {"url": root.as_uri(), "dir_info": {"editable": True}}
+                )
+            return None
+
+        @staticmethod
+        def locate_file(name):
+            return site / str(name)
+
+    assert not dependency_module._module_file_owned(
+        EditableDistribution(), "scitex_storage"
+    )
+
+
 def test_all_check_collections_use_list_schema(monkeypatch):
     dev_module = import_module("scitex_hub._cli.dev")
     monkeypatch.setattr(

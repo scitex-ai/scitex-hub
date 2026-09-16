@@ -262,7 +262,9 @@ def _editable_pth_maps_root(
         except (AttributeError, OSError, TypeError, ValueError):
             continue
         for raw_line in lines:
-            line = raw_line.strip()
+            # Match site.addpackage(): path lines keep leading whitespace;
+            # only trailing whitespace is removed before resolution.
+            line = raw_line.rstrip()
             if (
                 not line
                 or line.startswith("#")
