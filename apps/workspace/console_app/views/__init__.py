@@ -76,7 +76,6 @@ from .visualization_views import (
 
 # Workspace views
 from .workspace_views import (
-    guest_session_view,
     user_default_workspace,
 )
 
@@ -123,7 +122,6 @@ __all__ = [
     "process_data_visualization",
     "create_research_report",
     # Workspace views
-    "guest_session_view",
     "user_default_workspace",
     # Project views
     "project_code",

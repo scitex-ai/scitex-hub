@@ -29,7 +29,6 @@ from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.test import RequestFactory, TestCase
 
-from apps.workspace.apps_app.models import AppsModule
 from apps.workspace.apps_app.views.launcher_order import DEFAULT_LAUNCHER_ORDER
 
 _WORKSPACE = Path(settings.BASE_DIR) / "apps" / "workspace"
@@ -416,8 +415,8 @@ class SettingsAndChatTilesTest(TestCase):
             order.index("tools"),
             order.index("settings"),
         )
-        # Assert — Chat is Work (after Writer, before Tools); Settings leads System
-        assert order.index("writer") < chat < tools < settings_ < order.index("docs")
+        # Assert — Chat ends Work; Settings leads System; Tools is the final group.
+        assert order.index("writer") < chat < settings_ < order.index("docs") < tools
 
     def test_stats_keeps_its_slot_between_figrecipe_and_writer(self):
         # Arrange

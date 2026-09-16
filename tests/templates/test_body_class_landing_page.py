@@ -60,19 +60,8 @@ def _body_classes(content: bytes) -> set[str]:
     return set(attr.group(1).decode().split())
 
 
-@pytest.fixture
-def visitor(django_user_model):
-    """A pool visitor. The role is derived from the username by get_user_role()."""
-    return django_user_model.objects.create_user(
-        username="visitor-001", password="Password123!"
-    )
 
 
-@pytest.fixture
-def readonly_visitor(django_user_model):
-    return django_user_model.objects.create_user(
-        username="readonly-visitor", password="Password123!"
-    )
 
 
 @pytest.fixture
@@ -87,25 +76,7 @@ class TestLandingPageClassIsPathBased:
 
     # ---- THE REGRESSION ----------------------------------------------------
 
-    @pytest.mark.django_db
-    def test_visitor_at_root_does_not_get_landing_page_class(self, client, visitor):
-        # Arrange: a pool visitor, whose "/" renders the app launcher
-        client.force_login(visitor)
-        # Act
-        resp = client.get("/")
-        # Assert — `landing-page` here would hide .workspace-layout entirely
-        assert "landing-page" not in _body_classes(resp.content)
 
-    @pytest.mark.django_db
-    def test_readonly_visitor_at_root_does_not_get_landing_page_class(
-        self, client, readonly_visitor
-    ):
-        # Arrange: a read-only visitor also lands on the launcher, not marketing
-        client.force_login(readonly_visitor)
-        # Act
-        resp = client.get("/")
-        # Assert
-        assert "landing-page" not in _body_classes(resp.content)
 
     @pytest.mark.django_db
     def test_registered_user_at_root_does_not_get_landing_page_class(
@@ -132,27 +103,9 @@ class TestLandingPageClassIsPathBased:
         # Assert — the marker must actually be emitted somewhere
         assert "landing-page" in _body_classes(resp.content)
 
-    @pytest.mark.django_db
-    def test_visitor_at_landing_gets_landing_page_class(self, client, visitor):
-        # Arrange: a visitor viewing the marketing page — this is #499's real bug,
-        # which must STAY fixed: their footer depends on this class.
-        client.force_login(visitor)
-        # Act
-        resp = client.get("/landing/")
-        # Assert
-        assert "landing-page" in _body_classes(resp.content)
 
     # ---- THE SHELL MUST STILL BE CLAIMED --------------------------------
 
-    @pytest.mark.django_db
-    def test_visitor_at_root_still_gets_workspace_page_class(self, client, visitor):
-        # Arrange: guards against "fixing" this by emitting no classes at all,
-        # which would also satisfy every negative assertion above.
-        client.force_login(visitor)
-        # Act
-        resp = client.get("/")
-        # Assert
-        assert "workspace-page" in _body_classes(resp.content)
 
 
 class TestLandingPageClassContractStillExists:

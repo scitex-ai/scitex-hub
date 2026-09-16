@@ -8,18 +8,21 @@ BibTeX Upload View
 Handle BibTeX file upload and start enrichment job.
 """
 
-import logging
 import hashlib
+import logging
 from pathlib import Path
-from django.shortcuts import redirect
+
 from django.contrib import messages
-from django.http import JsonResponse
-from django.views.decorators.http import require_http_methods
-from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+from django.http import JsonResponse
+from django.shortcuts import redirect
 from django.utils import timezone
-from ...models import BibTeXEnrichmentJob
+from django.views.decorators.http import require_http_methods
+
 from apps.workspace.scholar_app.api_auth import api_key_optional
+
+from ...models import BibTeXEnrichmentJob
 
 logger = logging.getLogger(__name__)
 
@@ -32,17 +35,21 @@ def bibtex_upload(request):
     # Check for API key authentication
     api_authenticated = hasattr(request, "api_user")
 
-    # Get authenticated user (from API key or session)
     if api_authenticated:
         user = request.api_user
-        is_authenticated = True
     else:
+        if not request.user.is_authenticated:
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                return JsonResponse(
+                    {
+                        "success": False,
+                        "error": "Authentication required. Sign up or log in.",
+                        "signup_url": "/auth/signup/",
+                    },
+                    status=401,
+                )
+            return redirect("auth_app:signup")
         user = request.user
-        is_authenticated = request.user.is_authenticated
-
-        # Ensure session exists for visitor users
-        if not is_authenticated and not request.session.session_key:
-            request.session.create()
 
     # Check if file was uploaded
     if "bibtex_file" not in request.FILES:
@@ -71,84 +78,23 @@ def bibtex_upload(request):
         messages.error(request, "Please upload a .bib file.")
         return redirect("scholar_app:bibtex_enrichment")
 
-    # Job management: One user = One job at a time
-    if is_authenticated:
-        # Authenticated users: Can cancel old jobs and start new ones
-        existing_jobs = BibTeXEnrichmentJob.objects.filter(
-            user=user, status__in=["pending", "processing"]
+    # One authenticated user has one active job at a time; a new upload wins.
+    existing_jobs = BibTeXEnrichmentJob.objects.filter(
+        user=user, status__in=["pending", "processing"]
+    )
+    for old_job in existing_jobs:
+        old_job.status = "cancelled"
+        old_job.error_message = "Cancelled - new job uploaded"
+        old_job.completed_at = timezone.now()
+        old_job.processing_log += "\n\n✗ Cancelled by user uploading new file"
+        old_job.save(
+            update_fields=[
+                "status",
+                "error_message",
+                "completed_at",
+                "processing_log",
+            ]
         )
-
-        # Cancel all existing jobs - new upload takes priority
-        for old_job in existing_jobs:
-            old_job.status = "cancelled"
-            old_job.error_message = "Cancelled - new job uploaded"
-            old_job.completed_at = timezone.now()
-            old_job.processing_log += "\n\n✗ Cancelled by user uploading new file"
-            old_job.save(
-                update_fields=[
-                    "status",
-                    "error_message",
-                    "completed_at",
-                    "processing_log",
-                ]
-            )
-
-    else:
-        # Visitor users: Ask if they want to cancel old job
-        existing_jobs = (
-            BibTeXEnrichmentJob.objects.filter(
-                session_key=request.session.session_key,
-                status__in=["pending", "processing"],
-            )
-            if request.session.session_key
-            else BibTeXEnrichmentJob.objects.none()
-        )
-
-        if existing_jobs.exists():
-            # Check if user explicitly wants to cancel old job
-            force_cancel = request.POST.get("force_cancel") == "true"
-
-            if force_cancel:
-                # User chose to cancel old job - proceed with cancellation
-                for old_job in existing_jobs:
-                    old_job.status = "cancelled"
-                    old_job.error_message = "Cancelled - new job uploaded"
-                    old_job.completed_at = timezone.now()
-                    old_job.processing_log += (
-                        "\n\n✗ Cancelled by user uploading new file"
-                    )
-                    old_job.save(
-                        update_fields=[
-                            "status",
-                            "error_message",
-                            "completed_at",
-                            "processing_log",
-                        ]
-                    )
-            else:
-                # Show confirmation dialog to user
-                existing_job = existing_jobs.first()
-                if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-                    return JsonResponse(
-                        {
-                            "success": False,
-                            "requires_confirmation": True,
-                            "existing_job": {
-                                "id": str(existing_job.id),
-                                "filename": existing_job.original_filename or "Unknown",
-                                "progress": existing_job.get_progress_percentage(),
-                                "status": existing_job.status,
-                            },
-                            "message": "You already have a job in progress. Cancel it and start new job?",
-                        },
-                        status=409,
-                    )
-                else:
-                    messages.warning(
-                        request,
-                        f'You already have a job in progress: "{existing_job.original_filename or "Unknown"}". Please wait for it to complete.',
-                    )
-                    return redirect("scholar_app:bibtex_enrichment")
 
     # Get optional parameters
     project_name = request.POST.get("project_name", "").strip() or None
@@ -157,24 +103,13 @@ def bibtex_upload(request):
     browser_mode = request.POST.get("browser_mode", "stealth")
     use_cache = request.POST.get("use_cache", "on") == "on"
 
-    # Get project if specified (for authenticated users or visitors with assigned project)
+    # A selected project must belong to the authenticated caller.
     project = None
     if project_id:
         from apps.infra.project_app.models import Project
 
         try:
-            if is_authenticated:
-                # Authenticated user - must own the project
-                project = Project.objects.get(id=project_id, owner=user)
-            else:
-                # Visitor user - check if this is their assigned project from pool
-                from apps.infra.project_app.services.visitor_pool import VisitorPool
-
-                visitor_project_id = request.session.get(
-                    VisitorPool.SESSION_KEY_PROJECT_ID
-                )
-                if visitor_project_id and str(visitor_project_id) == str(project_id):
-                    project = Project.objects.get(id=project_id)
+            project = Project.objects.get(id=project_id, owner=user)
         except Project.DoesNotExist:
             if api_authenticated:
                 return JsonResponse(
@@ -183,11 +118,7 @@ def bibtex_upload(request):
             messages.error(request, "Selected project not found.")
             return redirect("scholar_app:bibtex_enrichment")
 
-    # Save uploaded file - use user ID or session key
-    if is_authenticated:
-        user_identifier = str(user.id)
-    else:
-        user_identifier = f"visitor_{request.session.session_key}"
+    user_identifier = str(user.id)
 
     file_content = bibtex_file.read()
 
@@ -195,28 +126,15 @@ def bibtex_upload(request):
     content_hash = hashlib.sha256(file_content).hexdigest()
 
     # Check for duplicate: same user + same content hash + completed job
-    if is_authenticated:
-        existing_completed = (
-            BibTeXEnrichmentJob.objects.filter(
-                user=user,
-                content_hash=content_hash,
-                status="completed",
-            )
-            .order_by("-completed_at")
-            .first()
+    existing_completed = (
+        BibTeXEnrichmentJob.objects.filter(
+            user=user,
+            content_hash=content_hash,
+            status="completed",
         )
-    else:
-        existing_completed = (
-            BibTeXEnrichmentJob.objects.filter(
-                session_key=request.session.session_key,
-                content_hash=content_hash,
-                status="completed",
-            )
-            .order_by("-completed_at")
-            .first()
-            if request.session.session_key
-            else None
-        )
+        .order_by("-completed_at")
+        .first()
+    )
 
     if existing_completed:
         # Return cached result instead of re-processing
@@ -251,9 +169,8 @@ def bibtex_upload(request):
     # Also save uploaded file to project's bib_files directory if project exists
     if project and project.git_clone_path:
         try:
-            import shutil
             from datetime import datetime
-            from django.conf import settings
+
 
             # Create bib_files directory in project
             project_bib_dir = (
@@ -280,8 +197,8 @@ def bibtex_upload(request):
 
     # Create enrichment job
     job = BibTeXEnrichmentJob.objects.create(
-        user=user if is_authenticated else None,
-        session_key=request.session.session_key if not is_authenticated else None,
+        user=user,
+        session_key=None,
         input_file=file_path,
         original_filename=original_filename,
         content_hash=content_hash,
@@ -295,6 +212,7 @@ def bibtex_upload(request):
 
     # Start processing immediately in a background thread
     import threading
+
     from .utils import process_bibtex_job
 
     thread = threading.Thread(target=process_bibtex_job, args=(job,))

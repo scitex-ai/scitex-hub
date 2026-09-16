@@ -85,7 +85,7 @@ class MyProjectsOpensFileTreeTest(TestCase):
     def test_in_page_my_projects_lists_projects_in_the_tree_look(self):
         """The sidebar loads My Projects in-page; it injected the repo screen."""
         # Arrange
-        url = "/apps/workspace/content/home/"
+        url = "/apps/workspace/content/my_projects/"
         row = b'data-project-row="home-me/home-study"'
         # Act
         response = self.client.get(url, HTTP_X_WORKSPACE_SHELL="1")

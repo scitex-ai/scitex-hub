@@ -63,27 +63,6 @@ echo_success "Template cache cleared"
 # ============================================
 # Initialize Visitor Pool (Background - non-blocking)
 # ============================================
-# Pool fills gradually after gunicorn starts.
-# Visitors get "initializing" message until their container is ready.
-if [[ ! "$*" =~ "celery" ]]; then
-    echo_info "Visitor pool will initialize in background after server starts..."
-    _init_visitor_pool() {
-        sleep 5 # Let gunicorn bind first
-        # Boot fail-safe (security: prevent data leakage from previous
-        # container's visitor sessions): create pool accounts, then
-        # reconcile — every slot is quarantined as unverified and only
-        # returns to circulation after the wipe+verify pipeline passes.
-        echo_info "Background: reconciling visitor pool (quarantine now, re-clean dispatched async)..."
-        python manage.py create_visitor_pool --verbosity 0 2>&1 | grep -v "ERRO\|WARN" || true
-        # --async: quarantine synchronously then ENQUEUE the wipe+verify to
-        # Celery. Slots stay quarantined (not allocatable) until a worker
-        # verifies each clean — visitor-slot isolation preserved.
-        python manage.py reconcile_visitor_slots --async 2>&1 | grep -v "ERRO\|WARN" || true
-        echo_success "Background: visitor pool reconciled (re-clean dispatched async; only verified-clean slots distributable)"
-    }
-    _init_visitor_pool &
-fi
-
 # ============================================
 # Conditional NPM Install & TypeScript Build
 # ============================================

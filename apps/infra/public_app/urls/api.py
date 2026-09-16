@@ -5,40 +5,16 @@ Public App API URLs
 
 REST API endpoints:
 - Server status, health, versions, and metrics
-- Visitor pool management
+
 - MCP tools
 - Research tools API (image metadata, docx2tex)
 - Statistical analysis
 - Plot generation
 """
 
-from django.http import JsonResponse
 from django.urls import path
 
 from .. import api_views, views
-
-
-def _visitor_api_retired_410(request):
-    """JSON 410 Gone for a retired visitor-pool API endpoint.
-
-    The visitor pool was retired 2026-09-10 (operator ruling: "drop visitor
-    entirely"). These management endpoints (initialize / fill-slots /
-    free-slots / heartbeat / resources) had no client left to call them once
-    the middleware stopped provisioning slots; 410 Gone (not 404) tells an
-    old client "retired on purpose" with the reason in the body.
-    """
-    return JsonResponse(
-        {
-            "error": "visitor_pool_retired",
-            "detail": (
-                "The visitor sandbox was retired on 2026-09-10 (signup-first: "
-                "email verification + card registration starts a 30-day free "
-                "trial). This endpoint is permanently gone."
-            ),
-        },
-        status=410,
-    )
-
 
 urlpatterns = [
     # Status API endpoints
@@ -75,14 +51,7 @@ urlpatterns = [
         views.server_metrics_series_api,
         name="server_metrics_series",
     ),
-    # Visitor pool API — RETIRED 2026-09-10 (operator ruling: "drop visitor
-    # entirely"). All five management endpoints now 410 Gone; no client
-    # remains to call them once the middleware stopped provisioning slots.
-    path("api/visitor-pool/initialize/", _visitor_api_retired_410, name="visitor_pool_initialize_api"),
-    path("api/visitor-pool/fill-slots/", _visitor_api_retired_410, name="visitor_fill_slots_api"),
-    path("api/visitor-pool/free-slots/", _visitor_api_retired_410, name="visitor_free_slots_api"),
-    path("api/visitor/heartbeat/", _visitor_api_retired_410, name="visitor_heartbeat_api"),
-    path("api/visitor/resources/", _visitor_api_retired_410, name="visitor_resources_api"),
+
     # MCP tools API
     path(
         "api/mcp/tools/",
