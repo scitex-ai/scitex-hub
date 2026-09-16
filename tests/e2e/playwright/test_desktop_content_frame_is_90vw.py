@@ -12,6 +12,7 @@ One assertion per test.
 """
 
 import pytest
+
 from tests.e2e.playwright.conftest import TEST_USER
 from tests.e2e.playwright.page_ready import wait_for_page_ready
 
@@ -52,9 +53,9 @@ def _probe(page, path):
 
 
 @pytest.mark.parametrize("path", PAGES)
-def test_desktop_frame_is_ninety_percent_of_the_viewport(visitor_desktop_page, path):
+def test_desktop_frame_is_ninety_percent_of_the_viewport(authenticated_desktop_page, path):
     # Arrange
-    page = visitor_desktop_page
+    page = authenticated_desktop_page
 
     # Act
     frame = _probe(page, path)
@@ -64,9 +65,9 @@ def test_desktop_frame_is_ninety_percent_of_the_viewport(visitor_desktop_page, p
 
 
 @pytest.mark.parametrize("path", PAGES)
-def test_desktop_frame_is_centred(visitor_desktop_page, path):
+def test_desktop_frame_is_centred(authenticated_desktop_page, path):
     # Arrange
-    page = visitor_desktop_page
+    page = authenticated_desktop_page
 
     # Act
     frame = _probe(page, path)
@@ -76,9 +77,9 @@ def test_desktop_frame_is_centred(visitor_desktop_page, path):
 
 
 @pytest.mark.parametrize("path", PAGES)
-def test_phone_page_has_no_horizontal_scroll(visitor_mobile_page, path):
+def test_phone_page_has_no_horizontal_scroll(authenticated_mobile_page, path):
     # Arrange
-    page = visitor_mobile_page
+    page = authenticated_mobile_page
 
     # Act
     frame = _probe(page, path)

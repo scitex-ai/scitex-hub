@@ -23,22 +23,17 @@ per user and serves dark by default, so each page sets
 ``data-theme="light"`` on <html> before the shot. Verified against
 production: that flips body from rgb(13,17,23) to rgb(250,249,247).
 
-A VISITOR SESSION, deliberately — AND CHECKED, not merely asserted in
-prose. These run as the pooled visitor, not as a real account, so nothing
+A SYNTHETIC REGISTERED-USER SESSION, deliberately — AND CHECKED, not merely asserted in
+prose. These run as the synthetic registered user, not as a real account, so nothing
 in the artifact can contain anybody's private project, manuscript or chat
 history. A screenshot artifact is downloadable by anyone who can read the
 run; it must never carry real user data.
 
-That sentence used to be the whole guarantee. It is now enforced twice:
-the ``pooled_visitor_page`` fixture refuses to hand out a page unless the
-session really is a writable pool slot, and every page below re-reads
-``body[data-session-role]`` after navigating. Neither of the original
-failure conditions could see this: when the pool has no verified-clean
-slot, allocation falls back to the SHARED readonly-visitor account, which
-returns 200 and renders a full page — so HTTP<400 passes, non-blank text
-passes, and the artifact quietly shows the wrong product. Both CI (broken
-Gitea credential, this PR) and production (15/16 slots quarantined) were
-measured in exactly that state on 2026-08-16.
+That guarantee is enforced twice: ``screenshot_test_page`` proves the
+synthetic account at setup, and every page below re-reads
+``body[data-session-role]`` after navigating. A logged-out response also
+returns 200 and renders text, so HTTP status and non-blank checks alone do
+not prove the artifact is exercising the authenticated product.
 
 FULL PAGE, deliberately: ``screenshot(..., full_page=True)`` in the shared
 fixture, so a long page is captured whole rather than cropped at the fold.
@@ -64,9 +59,9 @@ from tests.e2e.playwright.content_check import (
 )
 from tests.e2e.playwright.page_ready import wait_for_page_ready
 from tests.e2e.playwright.session_role_check import (
+    AUTHENTICATED_WARMUP_ROUTE,
     READ_SESSION_ROLE_JS,
     REQUIRED_ROLE,
-    VISITOR_WARMUP_ROUTE,
     wrong_role_message,
 )
 
@@ -82,7 +77,7 @@ from tests.e2e.playwright.session_role_check import (
 # the browser context, not to one page's markup, so the check does not
 # disappear for these routes — it is taken on the warm-up route immediately
 # after the page has been visited in the same context (see
-# test_page_is_a_pooled_visitor_session). A route added here still has to
+# test_page_uses_synthetic_registered_account). A route added here still has to
 # prove the session; it just proves it one navigation later.
 ROUTES_WITHOUT_GLOBAL_BASE = frozenset({"/apps/cards/"})
 
@@ -158,7 +153,7 @@ def navigate_product_page(page, route):
 
 
 @pytest.fixture(scope="session")
-def measured_content(pooled_visitor_page, content_report):
+def measured_content(screenshot_test_page, content_report):
     """Measure a route's content ONCE, and let every check read that read.
 
     Session-scoped and cached BY ROUTE on purpose. The alternative —
@@ -173,12 +168,12 @@ def measured_content(pooled_visitor_page, content_report):
     """
     cache = {}
     browser_problems = BrowserProblemLog()
-    browser_problems.attach(pooled_visitor_page)
+    browser_problems.attach(screenshot_test_page)
 
     def _for(route):
         if route not in cache:
             slug, title = ROUTES[route]
-            page = pooled_visitor_page
+            page = screenshot_test_page
             # Reset immediately BEFORE the navigation, so what is collected
             # belongs to this route and not to the tail of the last one.
             browser_problems.reset()
@@ -205,9 +200,9 @@ def measured_content(pooled_visitor_page, content_report):
 
 @pytest.mark.parametrize("route,slug,title", PAGES, ids=[p[1] for p in PAGES])
 class TestProductScreenshots:
-    def test_page_is_served(self, pooled_visitor_page, route, slug, title):
+    def test_page_is_served(self, screenshot_test_page, route, slug, title):
         # Arrange
-        page = pooled_visitor_page
+        page = screenshot_test_page
 
         # Act
         response = navigate_product_page(page, route)
@@ -217,16 +212,15 @@ class TestProductScreenshots:
         status = response.status if response else 0
         assert status < 400, f"{title} ({route}) returned HTTP {status}"
 
-    def test_page_is_a_pooled_visitor_session(
-        self, pooled_visitor_page, route, slug, title
+    def test_page_uses_synthetic_registered_account(
+        self, screenshot_test_page, route, slug, title
     ):
         """Re-checked PER PAGE, not once at setup.
 
-        The warm-up proves the pool served a slot at the start of the run;
-        this proves the session is STILL a pooled visitor on the page about
-        to be photographed. A slot can lapse mid-run (the lease starts as a
-        2-minute probation), and a lapsed session silently becomes the
-        readonly-visitor fallback or anonymous — both of which render fine.
+        The warm-up proves the synthetic account at the start of the run;
+        this proves the session is still authenticated on the page about to
+        be photographed. A dropped session silently becomes anonymous, which
+        still renders a plausible page.
 
         For a route that does not render the marker
         (ROUTES_WITHOUT_GLOBAL_BASE) the page is still VISITED first, in
@@ -234,14 +228,14 @@ class TestProductScreenshots:
         warm-up route. Same session, same cookies, one navigation later.
         """
         # Arrange
-        page = pooled_visitor_page
+        page = screenshot_test_page
         carries_marker = route not in ROUTES_WITHOUT_GLOBAL_BASE
         navigate_product_page(page, route)
         wait_for_page_ready(
             page, hydration_signal=carries_marker, wait_for_load=False
         )
         if not carries_marker:
-            navigate_product_page(page, VISITOR_WARMUP_ROUTE)
+            navigate_product_page(page, AUTHENTICATED_WARMUP_ROUTE)
             wait_for_page_ready(page, wait_for_load=False)
 
         # Act
@@ -251,18 +245,18 @@ class TestProductScreenshots:
         assert role == REQUIRED_ROLE, wrong_role_message(role, f"{title} ({route})")
 
     def test_page_renders_and_is_captured(
-        self, pooled_visitor_page, screenshot, route, slug, title
+        self, screenshot_test_page, screenshot, route, slug, title
     ):
         # Arrange
-        page = pooled_visitor_page
+        page = screenshot_test_page
         navigate_product_page(page, route)
         # Wait for the product's own hydration signal, not `load` and not
         # `networkidle` — see tests/e2e/playwright/page_ready.py. These pages
         # hydrate after load, and photographing them too early captures empty
         # containers (measured 2026-08-16 — reading a page mid-hydration
         # produced four false "this is broken" reports in one session); but a
-        # pooled-visitor session polls a heartbeat forever, so `networkidle`
-        # is a condition it can never reach (measured 2026-08-16 in CI run
+        # product pages poll background APIs, so `networkidle` is a condition
+        # they may never reach (measured 2026-08-16 in CI run
         # 31955719803: 30s timeout, 33 errors, nothing actually broken).
         wait_for_page_ready(
             page,

@@ -23,7 +23,7 @@ echo_error() { echo -e "${RED}ERRO: $1${NC}"; }
 echo_header() { echo_info "=== $1 ==="; }
 # ---------------------------------------
 
-# Reset all users and projects for fresh start, with preparing visitor pool
+# Reset all users and projects for a fresh start.
 
 # Colors
 BLUE='\033[0;34m'
@@ -128,28 +128,6 @@ run_reset_command() {
     return 0
 }
 
-# Recreate visitor pool after reset
-# Example: recreate_visitor_pool "dev"
-recreate_visitor_pool() {
-    local env="$1"
-    local container_name="scitex-hub-$env-web-1"
-
-    echo_header "Step 3/3: Recreating visitor pool"
-    echo_info "Container: $container_name"
-    echo_info "Command: python manage.py create_visitor_pool"
-    echo ""
-
-    if docker exec "$container_name" python manage.py create_visitor_pool; then
-        echo_success "✓ Visitor pool recreated (4 visitor accounts with workspaces)"
-        return 0
-    else
-        echo_error "Failed to recreate visitor pool"
-        echo_warning "You may need to run manually:"
-        echo_warning "  docker exec $container_name python manage.py create_visitor_pool"
-        return 1
-    fi
-}
-
 # Main function
 # Example: main --dry-run
 main() {
@@ -223,14 +201,6 @@ main() {
     # Run reset command in Docker
     if ! run_reset_command "$env" "$cmd_args"; then
         exit 1
-    fi
-
-    # Recreate visitor pool (only if actual deletion was performed)
-    if [[ -n "$confirm" ]]; then
-        echo ""
-        if ! recreate_visitor_pool "$env"; then
-            echo_warning "Continuing despite visitor pool recreation failure..."
-        fi
     fi
 
     # Success message

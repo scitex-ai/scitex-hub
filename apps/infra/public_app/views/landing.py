@@ -84,13 +84,12 @@ def index(request):
     """
     Cloud app index view - Landing page for all users.
 
-    Shows the landing page to all visitors, including authenticated users.
-    Visitor auto-login is handled by VisitorAutoLoginMiddleware.
+    Shows the landing page to signed-out and authenticated users.
 
     non_atomic_requests: Disables ATOMIC_REQUESTS for this read-only view.
     In ASGI mode (Daphne), middleware and views run in different threads,
-    so the middleware's visitor-allocation DB operations can leave the
-    thread-local connection dirty via PgBouncer (transaction pool mode).
+    so middleware DB operations can leave the thread-local connection dirty
+    via PgBouncer (transaction pool mode).
     Without the atomic wrapper, individual template queries can succeed
     even if earlier ones fail, preventing cascading 500 errors on startup.
     """

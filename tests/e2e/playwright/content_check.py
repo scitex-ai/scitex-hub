@@ -5,7 +5,7 @@
 WHY THIS EXISTS. ``.github/workflows/screenshots.yml`` says its second job
 is that "a page that starts erroring is caught by the job that photographs
 it". Until this module existed it did not do that. The capture asserted
-three things — HTTP < 400, ``body[data-session-role] == "visitor"``, and
+three things — HTTP < 400, ``body[data-session-role] == "user"``, and
 ``document.body.innerText`` being non-empty — and every one of them passes
 on a page that rendered nothing a human would call content.
 

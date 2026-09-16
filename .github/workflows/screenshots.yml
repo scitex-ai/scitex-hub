@@ -96,22 +96,6 @@ jobs:
       - name: Install Python dependencies
         run: pip install -e ".[all,dev]" || pip install -e ".[dev]" || pip install -e .
 
-      - name: Install the visitor-pool template packages
-        # NOT covered by the line above. The visitor pool clones each slot's
-        # workspace through `scitex.template`, which scitex-hub does not
-        # declare as a dependency and the `[all]` extra does not reliably
-        # pull in — prod installs it by an explicit pin in
-        # deployment/docker/docker_prod/Dockerfile.prod (which spells out why
-        # the version is pinned rather than floated: 0.6.7 quarantined every
-        # slot, and visitor_pool/template_clone.py imports 0.7.0's
-        # `clone_template_result` UNCONDITIONALLY). Measured 2026-08-16 with
-        # `SCITEX_HUB_VISITOR_POOL_GITEA_ENABLED=false` and no pin:
-        # `create_visitor_pool` reaches the clone and dies with
-        # "ImportError: scitex.template.clone_template: `scitex_template` is
-        # required". The Gitea crash used to hide this one behind it.
-        # Same pins as prod, so CI photographs the workspace prod builds.
-        run: pip install "scitex-template==0.7.0" "scitex-writer==2.26.1"
-
       - name: Install sibling workspace apps (scitex-ui, figrecipe)
         # Same canonical script the e2e-mobile and typescript-check jobs use;
         # package.json declares these as file: siblings and vite needs them
@@ -140,10 +124,7 @@ jobs:
           # resolve exactly the /static/vite/<file> URLs the manifest emits.
           #
           # Measured 2026-08-17, CI run 32056013931: without this, every
-          # /static/vite/*.js answered HTTP 500, no JavaScript ran, and the
-          # visitor heartbeat (itself a Vite entry) never fired — so the
-          # pooled visitor's 120s probation lease was never promoted to its
-          # full hour and expired part-way through the 400s capture.
+          # /static/vite/*.js answered HTTP 500 and no JavaScript ran.
           rm -rf static/vite
           cp -r staticfiles/vite static/vite
           echo "vite assets staged: $(find static/vite -type f | wc -l) files"
@@ -163,20 +144,6 @@ jobs:
           SCITEX_HUB_ENV: development
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
           SCITEX_HUB_USER_DATA_ROOT: ${{ runner.temp }}/scitex-users
-          # THIS RUNNER HAS NO GITEA. Declaring that is the supported way to
-          # run the visitor pool without a git backend
-          # (visitor_pool/gitea_integration.py:_gitea_enabled — "an explicit,
-          # logged opt-out, not a silent fallback: when disabled we WARN and
-          # skip"), and it is already exercised by
-          # tests/apps/project_app/services/visitor_pool/
-          # test_reconcile_visitor_slots.py's no-Gitea deployment class.
-          # Visitors get a workspace and no git SSH access, which is exactly
-          # right for a browse-only capture.
-          #
-          # Undeclared, pool init raised GiteaAPIError("Gitea API token not
-          # configured") on visitor-001 and produced ZERO usable slots. That
-          # crash is what the old `|| true` on the next step was hiding.
-          SCITEX_HUB_VISITOR_POOL_GITEA_ENABLED: "false"
           # THIS RUNNER HAS NO VITE DEV SERVER EITHER, and until this line
           # existed the capture photographed a product with NONE of its
           # JavaScript loaded.
@@ -222,45 +189,19 @@ jobs:
 
           python manage.py migrate --run-syncdb
 
-          # The capture runs as a POOLED VISITOR, never a real account, so
-          # the artifact can never contain someone's private project,
-          # manuscript or chat history. Anyone who can read the run can
-          # download the artifact.
-          #
-          # NOT `|| true`. A step that cannot fail is not a check, and this
-          # one guards the artifact's entire privacy claim: with no pool,
-          # allocation falls back to the shared readonly-visitor, every page
-          # renders perfectly, and the job goes green with the wrong product
-          # in the PNGs.
-          python manage.py create_visitor_pool --verbosity 0
-
-          # create_visitor_pool builds users/projects/workspaces but creates
-          # no VisitorAllocation rows, and allocation refuses a slot with no
-          # row ("no allocation row (unverified) — run reconcile_visitor_slots").
-          # This is the same order the container entrypoints use
-          # (deployment/docker/common/scripts/entrypoint-prod.sh). Inline, not
-          # --async: there is no Celery worker in this job to pick the work up.
-          python manage.py reconcile_visitor_slots
-
-          # Both commands above exit 0 even when the pool ends up serving
-          # nobody, so ask the question directly, before spending 20 minutes
-          # of browser time on a capture that could only be wrong.
-          python manage.py assert_visitor_pool_ready
-
-          # Mint a deterministic pooled-visitor session for the capture (card
-          # hub-product-screenshot-visitor-regression-20260913). #764 removed
-          # VisitorAutoLoginMiddleware, which used to auto-pool the capture's
-          # anonymous browser into a visitor slot. The capture is ASYNC
-          # (Channels) so it cannot query the DB itself (SynchronousOnlyOperation);
-          # the sync server step mints here — same DB + SCITEX_HUB_REDIS_URL as
-          # the runserver below, so the session lands in the store the server
-          # reads. --output writes the clean 40-char key to a FILE: capturing
-          # this command's STDOUT as the key corrupted it (run 34730332276 —
-          # stdout also carries the settings Redis-fallback warning, so the
-          # 'key' was 150 chars). The capture step reads the file.
-          python manage.py mint_visitor_session \
-            --output "$RUNNER_TEMP/screenshot_visitor_session.txt"
-          test -s "$RUNNER_TEMP/screenshot_visitor_session.txt"
+          # Screenshot artifacts use a reset synthetic account, never an
+          # operator or customer identity. The same credentials are supplied to
+          # the Playwright capture step below.
+          python manage.py shell -c "
+          from django.contrib.auth.models import User
+          u, created = User.objects.get_or_create(
+              username='test-user',
+              defaults={'email': 'test@example.com'}
+          )
+          u.set_password('Password123!')
+          u.save()
+          print(f'Synthetic screenshot user ready (created={created})')
+          "
 
           # `from_docker` is manage.py's own escape hatch, not a trick to get
           # around it: the guard at manage.py:19-23 fires on a bare
@@ -315,27 +256,12 @@ jobs:
           SCITEX_HUB_ENV: development
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
           SCITEX_HUB_USER_DATA_ROOT: ${{ runner.temp }}/scitex-users
-          # Same declarations as the step above: this runner has no Gitea and
-          # no Vite dev server. Both must match the server step — the server
-          # is the process that renders the <script> tags, but a mismatch here
-          # is the kind of drift that makes a later reader think the capture
-          # ran against different settings than it did.
-          SCITEX_HUB_VISITOR_POOL_GITEA_ENABLED: "false"
           SCITEX_HUB_VITE_USE_BUILD: "1"
           SCITEX_BASE_URL: http://127.0.0.1:8000
+          SCITEX_E2E_TEST_USER: test-user
+          SCITEX_E2E_TEST_PASS: "Password123!"
           DEBUG: "1"
         run: |
-          # Read the pooled-visitor session key minted by the server step and
-          # export it for the conftest, which injects it as the sessionid
-          # cookie so every page photographs as a writable pooled visitor.
-          # Read from the FILE (not the mint command's stdout — stdout also
-          # carries settings-import prints; see the server-step comment). The
-          # conftest needs the same DB + SCITEX_HUB_REDIS_URL as the server,
-          # both set in this step's env above. (card
-          # hub-product-screenshot-visitor-regression-20260913.)
-          export SCITEX_SCREENSHOT_SESSION="$(cat "$RUNNER_TEMP/screenshot_visitor_session.txt")"
-          test -n "$SCITEX_SCREENSHOT_SESSION"
-
           # --browser chromium is REQUIRED, not decoration. tests/conftest.py's
           # pytest_collection_modifyitems skips everything under tests/e2e/
           # unless --browser was passed explicitly ("E2E/browser test skipped in
@@ -417,9 +343,8 @@ jobs:
         # A capture failure is usually the server dying under it, and that
         # story is only in the server's own stdout — the pytest output shows
         # the symptom. Print it rather than making the next person re-run the
-        # job to find out. (The visitor-pool half already printed itself:
-        # assert_visitor_pool_ready reports total/ready/quarantined every run,
-        # and a wrong-session failure names the role it got.)
+        # job to find out. Authentication failures also print the rendered
+        # session role and the synthetic account's login diagnosis.
         if: failure()
         run: |
           set -euo pipefail

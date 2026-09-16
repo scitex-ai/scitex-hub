@@ -14,7 +14,6 @@ Single source of truth: `SECRET/.env.{ENV}`
 
 | Variable                            | Description             |
 |-------------------------------------|-------------------------|
-| `SCITEX_HUB_VISITOR_POOL_SIZE`          | Number of visitor slots |
 | `SCITEX_HUB_SSH_PORT_{ENV}`       | SSH gateway port        |
 | `SCITEX_HUB_GITEA_SSH_PORT_{ENV}` | Gitea SSH port          |
 
@@ -25,7 +24,6 @@ Single source of truth: `SECRET/.env.{ENV}`
 | `apps/public_app/views.py:625`                            | `server_status()` - Main view        |
 | `apps/public_app/views.py:1051`                           | `server_status_api()` - API endpoint |
 | `apps/public_app/templates/public_app/server_status.html` | HTML template                        |
-| `apps/project_app/services/visitor_pool.py:42`            | `POOL_SIZE` definition               |
 | `deployment/docker/docker_prod/docker-compose.yml`        | Docker healthcheck definitions       |
 
 ## What It Shows
@@ -42,7 +40,6 @@ Host computer metrics (all processes, not just SciTeX).
 | GPU          | Graphics load (if available)                      |
 | Disk I/O     | Read/write speed                                  |
 | Network I/O  | Upload/download speed                             |
-| Visitor Pool | Available slots (X / `$SCITEX_HUB_VISITOR_POOL_SIZE`) |
 | Active Users | Logged-in users                                   |
 
 ### 2. Docker Services (9 containers)
