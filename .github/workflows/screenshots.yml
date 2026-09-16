@@ -194,13 +194,38 @@ jobs:
           # the Playwright capture step below.
           python manage.py shell -c "
           from django.contrib.auth.models import User
+          from apps.infra.project_app.models import Project
+          from apps.infra.project_app.services.project_filesystem import get_project_filesystem_manager
+          from scitex.writer import ensure_workspace
+
           u, created = User.objects.get_or_create(
               username='test-user',
               defaults={'email': 'test@example.com'}
           )
           u.set_password('Password123!')
           u.save()
-          print(f'Synthetic screenshot user ready (created={created})')
+
+          project, project_created = Project.objects.get_or_create(
+              owner=u,
+              slug='screenshot-study',
+              defaults={
+                  'name': 'Screenshot Study',
+                  'visibility': 'private',
+                  'is_home': True,
+              },
+          )
+          manager = get_project_filesystem_manager(u)
+          success, project_root = manager.create_project_directory(
+              project, use_template=False
+          )
+          if not success or project_root is None:
+              raise RuntimeError('Failed to create the synthetic screenshot project')
+          writer_root = ensure_workspace(str(project_root))
+          print(
+              f'Synthetic registered screenshot account ready '
+              f'(user_created={created}, project_created={project_created}, '
+              f'writer_root={writer_root})'
+          )
           "
 
           # `from_docker` is manage.py's own escape hatch, not a trick to get

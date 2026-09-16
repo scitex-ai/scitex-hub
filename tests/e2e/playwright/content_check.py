@@ -115,11 +115,12 @@ RUNTIME_MEDIA_REASON = (
 #: per page, by the tests — the probe only measures.
 PAGE_ELEMENT_SIGNALS = {
     "/apps/writer/": {
-        # The package-owned Writer editor populates one tab per manuscript
-        # section. Present-but-empty means its section API never resolved.
-        "section_tabs": "#section-tabs",
-        # The package template ships "0 words" until content loads.
-        "word_count": "#word-count",
+        # The Hub reference editor remains the current /apps/writer/ product
+        # route until its package-owned replacement reaches parity. Its
+        # dropdown starts as "Loading..." and is replaced after sections load.
+        "file_selector": "#section-selector-text",
+        # The reference template ships this as "0" until content loads.
+        "word_count": "#current-word-count",
     },
     "/apps/figrecipe/": {
         # figrecipe_partial.html's mount point for the FigRecipe bundle.
