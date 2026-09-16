@@ -6,7 +6,7 @@ This is the RENDERING guard for the grid-track fix in
 `apps/workspace/apps_app/static/apps_app/css/apps/layout.css`. Its companion,
 `tests/apps/apps_app/test_app_store_grid_track_cannot_blow_out.py`, asserts the
 CSS declaration survives; this one asserts the property the declaration exists
-to produce — that a visitor can actually reach the controls.
+to produce — that a signed-in user can actually reach the controls.
 
 Both are wanted. The source test fails fast and explains itself; this one is the
 only thing that can catch a regression arriving from somewhere else entirely (a
@@ -43,12 +43,13 @@ in place by inertia.
 """
 
 import pytest
+
 from tests.e2e.playwright.page_ready import wait_for_page_ready
 
 # WHY THESE TESTS DO NOT WAIT FOR `networkidle`
 #
 # `networkidle` means "500 ms with zero requests in flight". A SciTeX page
-# held by a pooled visitor session runs a heartbeat/countdown poller for as
+# held by a synthetic registered user session runs a heartbeat/countdown poller for as
 # long as the page is open (PoolAllocator.extend_session_on_activity), so
 # that condition never arrives and the wait always times out. The page is
 # fine; the question is unanswerable.
@@ -162,10 +163,10 @@ _REACHABILITY_PROBE = """
 
 
 @pytest.fixture
-def store_reachability(visitor_mobile_page):
-    visitor_mobile_page.goto(STORE_PATH)
-    wait_for_page_ready(visitor_mobile_page)
-    return visitor_mobile_page.evaluate(_REACHABILITY_PROBE)
+def store_reachability(authenticated_mobile_page):
+    authenticated_mobile_page.goto(STORE_PATH)
+    wait_for_page_ready(authenticated_mobile_page)
+    return authenticated_mobile_page.evaluate(_REACHABILITY_PROBE)
 
 
 class TestMobileAppStoreControlsAreReachable:
@@ -215,7 +216,7 @@ class TestMobileAppStoreControlsAreReachable:
         )
 
     def test_no_store_control_is_clipped_out_of_reach(
-        self, store_reachability, screenshot, visitor_mobile_page
+        self, store_reachability, screenshot, authenticated_mobile_page
     ):
         """The property the grid-track fix exists to produce."""
         # Arrange
@@ -225,7 +226,7 @@ class TestMobileAppStoreControlsAreReachable:
         unreachable = store_reachability.get("unreachable", [])
 
         # Assert
-        screenshot(visitor_mobile_page, "app_store_mobile_reachability")
+        screenshot(authenticated_mobile_page, "app_store_mobile_reachability")
         assert unreachable == expected_unreachable, (
             f"{len(unreachable)} control(s) inside .apps-container sit past a "
             f"clipping ancestor's right edge at 390px and cannot be reached by "

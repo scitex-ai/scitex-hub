@@ -248,18 +248,6 @@ def signup(request):
                 logger.warning(f"Gitea sync failed for {username}: {e}")
                 # Don't fail signup if Gitea sync fails
 
-            # Migrate visitor session data if exists
-            if request.session.session_key:
-                from apps.infra.project_app.services.anonymous_storage import (
-                    migrate_to_user_storage,
-                )
-
-                migrated = migrate_to_user_storage(request.session.session_key, user)
-                if migrated:
-                    logger.info(
-                        f"Migrated visitor session data for new user {username}"
-                    )
-
             # Create email verification record
 
             verification = EmailVerification.objects.create(
@@ -340,27 +328,6 @@ def login_view(request):
             user = authenticate(request, username=username, password=password)
 
             if user is not None:
-                # Migrate visitor session data before login if exists
-                if request.session.session_key:
-                    from apps.infra.project_app.services.anonymous_storage import (
-                        migrate_to_user_storage,
-                    )
-
-                    migrated = migrate_to_user_storage(
-                        request.session.session_key, user
-                    )
-                    if migrated:
-                        import logging
-
-                        logger = logging.getLogger(__name__)
-                        logger.info(
-                            f"Migrated visitor session data for user {user.username}"
-                        )
-                        messages.info(
-                            request,
-                            "Your previous session data has been saved to your account!",
-                        )
-
                 login(request, user)
 
                 # Handle remember me

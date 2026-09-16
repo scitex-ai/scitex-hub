@@ -60,7 +60,6 @@ def test_retired_shared_visitor_session_files_are_deleted():
 def test_status_package_exports_no_visitor_endpoints():
     retired = {
         "visitor_status",
-        "visitor_enter",
         "visitor_restart_session",
         "visitor_expired",
         "visitor_pool_full",

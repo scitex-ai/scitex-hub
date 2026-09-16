@@ -84,16 +84,11 @@ urlpatterns = [
         lambda r, section: redirect("public_app:api_docs_section", section=section),
         name="api_docs_section_legacy",
     ),
-    # Visitor entry — RETIRED 2026-09-10 (operator ruling: "drop visitor
-    # entirely", compass-impl-visitor-pool-retirement-20260910). The old
-    # /enter/ target of the landing hero's "Enter as visitor" CTA now 301s
-    # to the signup-first entry point; the hero itself already points at
-    # /auth/signup/ (leader commit 6811bbd9a). Anyone with the old link in
-    # a bookmark or the old deploy lands on signup, not a dead shell.
+    # Preserve old public bookmarks while enforcing signup-first entry.
     path(
         "enter/",
         RedirectView.as_view(url="/auth/signup/", permanent=True),
-        name="visitor_enter",
+        name="signup_entry_legacy",
     ),
     # Status pages
     path("status/", views.public_status_view, name="public-status"),

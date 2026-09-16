@@ -89,7 +89,7 @@
         was what broke the footer fix. Keep explanations out of tag interiors.
     {% endcomment %}
     <body data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}"
-          data-session-role="{{ session_role|default:'anonymous' }}"
+          data-session-role="{% if user.is_authenticated %}user{% else %}anonymous{% endif %}"
           data-user-type="{% if user.is_authenticated %}registered{% else %}anonymous{% endif %}"
           {% if user.is_authenticated %}data-current-username="{{ user.username }}"{% endif %}
           data-track-module="{% if active_module %}{{ active_module.get_track_module }}{% elif '/server-status' in request.path %}server_status{% elif '/explore/' in request.path %}explore{% elif '/workspace/' in request.path %}files{% endif %}"

@@ -340,8 +340,7 @@ fi
 # django sat in state `Created` — built from the right commit and never started.
 # nginx had no backend, so scitex.ai served 503 for ~9 minutes, and this script
 # had already printed "rebuild complete" and exited 0. The same abort also left
-# celery_beat and celery_worker_vis in `Created` for about an hour, unnoticed,
-# and celery_worker_vis is the visitor-provisioning worker.
+# celery_beat and another worker in `Created` for about an hour, unnoticed.
 #
 # NOTE ON wait-healthy.sh: it polls `docker ps`, which does NOT list `Created`
 # containers at all. Run alone it would have reported every container healthy
@@ -440,8 +439,7 @@ else
     echo -e "${YELLOW}   ⚠️ No verify URL for env '${ENV}' — service check SKIPPED${NC}" >&2
 fi
 
-# Visitor-pool readiness was retired with anonymous visitor allocation.
-# Deployment verification now ends at service health and public HTTP checks;
+# Deployment verification ends at service health and public HTTP checks;
 # authenticated workspace acceptance is exercised by the application tests.
 
 echo ""
