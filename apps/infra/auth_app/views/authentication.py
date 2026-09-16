@@ -260,18 +260,6 @@ def signup(request):
                         f"Migrated visitor session data for new user {username}"
                     )
 
-            # Claim visitor project if user was using visitor pool
-            # This transfers visitor-XXX's default-project to the new user's default-project
-            from apps.infra.project_app.services.visitor_pool import VisitorPool
-
-            claimed_project = VisitorPool.claim_project_on_signup(request.session, user)
-            if claimed_project:
-                logger.info(
-                    f"Claimed visitor project for new user {username}: {claimed_project.id}"
-                )
-            else:
-                logger.info(f"No visitor project to claim for new user {username}")
-
             # Create email verification record
 
             verification = EmailVerification.objects.create(

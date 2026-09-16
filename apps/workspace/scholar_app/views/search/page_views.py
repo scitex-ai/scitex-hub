@@ -21,33 +21,28 @@ from .search_core import simple_search_with_tab
 logger = logging.getLogger(__name__)
 
 
-def _check_signup_redirect(request):
-    """Send unauthenticated browser requests to signup."""
+def _check_authentication_redirect(request):
+    """Send signed-out workspace requests to signup."""
     if not request.user.is_authenticated:
-        user_agent = request.META.get("HTTP_USER_AGENT", "")
-        is_browser = any(
-            browser in user_agent
-            for browser in ["Mozilla", "Chrome", "Safari", "Firefox", "Edge", "Opera"]
-        )
-        if is_browser:
-            logger.info("[Scholar] Signed-out browser redirected to signup")
-            return redirect("auth_app:signup")
+        return redirect("auth_app:signup")
     return None
 
 
 def simple_search(request):
     """Advanced search interface with comprehensive filtering."""
-    signup_redirect = _check_signup_redirect(request)
-    if signup_redirect:
-        return signup_redirect
+    # Check for visitor pool redirect
+    pool_redirect = _check_authentication_redirect(request)
+    if pool_redirect:
+        return pool_redirect
     return simple_search_with_tab(request, active_tab="search")
 
 
 def index(request):
     """Scholar app index/landing page."""
-    signup_redirect = _check_signup_redirect(request)
-    if signup_redirect:
-        return signup_redirect
+    # Check for visitor pool redirect
+    pool_redirect = _check_authentication_redirect(request)
+    if pool_redirect:
+        return pool_redirect
 
     # Simple landing page that shows both features
     context = {
@@ -76,9 +71,10 @@ def scholar_graph(request):
 
 def scholar_unified(request):
     """Unified scholar page with all tabs (search, bibtex, graph)."""
-    signup_redirect = _check_signup_redirect(request)
-    if signup_redirect:
-        return signup_redirect
+    # Check for visitor pool redirect
+    pool_redirect = _check_authentication_redirect(request)
+    if pool_redirect:
+        return pool_redirect
 
     from apps.infra.project_app.models import Project
     from apps.infra.project_app.services import get_current_project
@@ -126,12 +122,6 @@ def scholar_unified(request):
             .select_related("project")
             .order_by("-created_at")[:10]
         )
-    else:
-        # For visitor users, get jobs by session key
-        if request.session.session_key:
-            recent_jobs = BibTeXEnrichmentJob.objects.filter(
-                session_key=request.session.session_key
-            ).order_by("-created_at")[:10]
 
     # Default filter ranges (used when no search results)
     filter_ranges = {
@@ -167,6 +157,10 @@ def scholar_unified(request):
 
 def bibtex_enrichment_view(request, template_name="scholar_app/index.html"):
     """BibTeX Enrichment tab view."""
+    auth_redirect = _check_authentication_redirect(request)
+    if auth_redirect:
+        return auth_redirect
+
     from apps.infra.project_app.models import Project
     from apps.workspace.scholar_app.models import BibTeXEnrichmentJob
 
@@ -180,22 +174,11 @@ def bibtex_enrichment_view(request, template_name="scholar_app/index.html"):
         # Use centralized project getter
         current_project = get_current_project(request, user=request.user)
 
-    # Get user's recent enrichment jobs
-    if request.user.is_authenticated:
-        recent_jobs = (
-            BibTeXEnrichmentJob.objects.filter(user=request.user)
-            .select_related("project")
-            .order_by("-created_at")[:10]
-        )
-    else:
-        # For visitor users, get jobs by session key
-        recent_jobs = (
-            BibTeXEnrichmentJob.objects.filter(
-                session_key=request.session.session_key
-            ).order_by("-created_at")[:10]
-            if request.session.session_key
-            else []
-        )
+    recent_jobs = (
+        BibTeXEnrichmentJob.objects.filter(user=request.user)
+        .select_related("project")
+        .order_by("-created_at")[:10]
+    )
 
     # Default filter ranges (used when no search results)
     filter_ranges = {

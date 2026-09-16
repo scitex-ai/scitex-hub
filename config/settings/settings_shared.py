@@ -262,7 +262,6 @@ ONSITE_AUTH_SECRET = os.environ.get("SCITEX_HUB_ONSITE_SECRET", "")
 # module; imported under the same name so env modules can extend it.
 from .settings_middleware import MIDDLEWARE  # noqa: E402, F401
 
-
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
@@ -286,7 +285,6 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "apps.infra.project_app.context_processors.version_context",
                 "apps.infra.project_app.context_processors.project_context",
-                "apps.infra.project_app.context_processors.visitor_expiration_context",
                 "config.context_processors.cache_buster",
                 "config.context_processors.debug_mode",
                 "config.context_processors.scitex_version",
@@ -462,6 +460,6 @@ from .settings_integrations import *  # noqa: E402, F401, F403
 from .settings_logging import *  # noqa: E402, F401, F403
 
 # SIMPLE_JWT requires SECRET_KEY defined above
-SIMPLE_JWT = get_simple_jwt_settings(SECRET_KEY)  # noqa: F821
+SIMPLE_JWT = get_simple_jwt_settings(SECRET_KEY)  # noqa: F405
 
 # EOF

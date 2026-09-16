@@ -1,57 +1,10 @@
-"""
-Visitor Pool Module
+"""Read-only legacy allocation status API.
 
-Manages pre-allocated visitor accounts for temporary access.
-
-Public API:
-- VisitorPool: Main class for pool management
-- DemoProjectPool: Alias for backward compatibility
-- Session-role model (card hub-visitor-ux-allapps): get_session_role /
-  get_user_role map every request to exactly one of
-  anonymous | readonly_visitor | visitor | user, and
-  readonly_write_rejection() is the canonical structured 403 for
-  write attempts by readonly visitors.
+The public status collector imports :class:`VisitorPool` while historical
+allocation rows remain in the database. Product allocation/session helpers were
+removed with the authenticated-only domain.
 """
 
-from .session_role import (
-    READONLY_REASON_NO_READY_SLOT,
-    READONLY_REASON_POOL_FULL,
-    READONLY_REASON_UNKNOWN,
-    READONLY_REJECTION_REASON,
-    ROLE_ANONYMOUS,
-    ROLE_READONLY_VISITOR,
-    ROLE_USER,
-    ROLE_VISITOR,
-    SESSION_KEY_READONLY_NOTICE,
-    SESSION_KEY_READONLY_REASON,
-    get_readonly_reason,
-    get_session_role,
-    get_user_role,
-    is_readonly_visitor,
-    is_visitor_session,
-    readonly_reason_detail,
-    readonly_write_rejection,
-)
 from .visitor_pool import DemoProjectPool, VisitorPool
 
-__all__ = [
-    "VisitorPool",
-    "DemoProjectPool",
-    "READONLY_REASON_NO_READY_SLOT",
-    "READONLY_REASON_POOL_FULL",
-    "READONLY_REASON_UNKNOWN",
-    "READONLY_REJECTION_REASON",
-    "ROLE_ANONYMOUS",
-    "ROLE_READONLY_VISITOR",
-    "ROLE_USER",
-    "ROLE_VISITOR",
-    "SESSION_KEY_READONLY_NOTICE",
-    "SESSION_KEY_READONLY_REASON",
-    "get_readonly_reason",
-    "get_session_role",
-    "get_user_role",
-    "is_readonly_visitor",
-    "is_visitor_session",
-    "readonly_reason_detail",
-    "readonly_write_rejection",
-]
+__all__ = ["DemoProjectPool", "VisitorPool"]

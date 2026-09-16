@@ -11,10 +11,6 @@ from apps.infra.project_app.models import Project
 from apps.infra.project_app.services.filesystem.permissions import (
     validate_path_in_project,
 )
-from apps.infra.project_app.services.visitor_pool import (
-    is_readonly_visitor,
-    readonly_write_rejection,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -24,11 +20,6 @@ logger = logging.getLogger(__name__)
 def api_save_file(request):
     """Save file content (supports both local and remote projects)."""
     try:
-        # Read-only visitors: reads always work, writes get the canonical
-        # structured 403 (frontend renders Sign up / Log in / retry toast).
-        if is_readonly_visitor(request):
-            return readonly_write_rejection("save files", request)
-
         data = json.loads(request.body)
         project_id = data.get("project_id")
         file_path = data.get("path")

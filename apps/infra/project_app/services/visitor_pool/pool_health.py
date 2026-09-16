@@ -76,14 +76,20 @@ def measure_pool(pool_size: int) -> dict:
     pool are slots that can never be handed out; counting them inflated
     ``ready`` with unreachable capacity.
     """
+    from datetime import timedelta
+
+    from django.db.models import Q
     from django.utils import timezone
 
     from apps.infra.project_app.models import VisitorAllocation
 
-    from .slot_lifecycle import allocatable_slot_q, stale_allocation_q
-
     now = timezone.now()
-    stale = stale_allocation_q(now)
+    idle_cutoff = now - timedelta(minutes=30)
+    stale = (
+        Q(expires_at__lt=now)
+        | Q(last_activity__lt=idle_cutoff)
+        | Q(last_activity__isnull=True, allocated_at__lt=idle_cutoff)
+    )
 
     rows = VisitorAllocation.objects.filter(visitor_number__lte=pool_size)
     usable = rows.filter(quarantined=False)
@@ -97,7 +103,9 @@ def measure_pool(pool_size: int) -> dict:
 
     # Reclaimable is its OWN bucket rather than folded into allocatable: an
     # idle-but-unexpired row still owns its lease until release runs.
-    allocatable_q = allocatable_slot_q(now)
+    allocatable_q = Q(quarantined=False, workspace_ready=True) & (
+        Q(is_active=False) | Q(expires_at__lte=now)
+    )
     reclaimable = (
         usable.filter(is_active=True).filter(stale).exclude(allocatable_q).count()
     )
