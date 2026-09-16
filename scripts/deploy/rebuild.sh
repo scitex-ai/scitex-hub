@@ -81,6 +81,12 @@ fi
 source "$SCRIPT_DIR/compose_env.sh"
 resolve_compose_env "$ENV" "$PROJECT_ROOT"
 
+# A committed release nonce is the deterministic cache input for dependency
+# resolution. Bump deployment/docker/dependency-resolution.nonce deliberately
+# when an unchanged floor should be resolved against newly published wheels.
+export SCITEX_HUB_DEPENDENCY_RESOLUTION
+SCITEX_HUB_DEPENDENCY_RESOLUTION="$("$SCRIPT_DIR/resolve_dependency_resolution.sh" "$ENV")"
+
 # Check docker directory exists
 if [ ! -d "$DOCKER_DIR" ]; then
     echo -e "${RED}Error: Docker directory not found: $DOCKER_DIR${NC}"
@@ -145,6 +151,7 @@ DJANGO_CONTAINER="scitex-hub-${ENV}-django-1"
 # build). 'docker compose build' touches images only, never the running
 # containers, so serving is unaffected here.
 echo -e "${CYAN}  1. Building Docker images (old stack still serving; CPU-limited to keep SSH alive)...${NC}"
+echo "     Dependency resolution provenance: ${SCITEX_HUB_DEPENDENCY_RESOLUTION}"
 export DOCKER_BUILDKIT=1
 # nice -n 10: lower priority so SSH/system processes win CPU contention
 # shellcheck disable=SC2086  # COMPOSE_CMD intentionally word-splits (e.g. "docker compose")

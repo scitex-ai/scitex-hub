@@ -11,6 +11,8 @@ from __future__ import annotations
 import importlib
 import importlib.metadata as metadata
 import json
+import os
+import re
 import stat
 import sys
 import sysconfig
@@ -23,6 +25,16 @@ from packaging.utils import canonicalize_name
 from packaging.version import Version
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+def dependency_resolution_provenance() -> str:
+    """Return the deterministic resolution input embedded by the Dockerfile."""
+    value = os.environ.get("SCITEX_HUB_DEPENDENCY_RESOLUTION", "")
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}", value):
+        raise RuntimeError(
+            "SCITEX_HUB_DEPENDENCY_RESOLUTION provenance is missing or invalid"
+        )
+    return value
 
 
 def sibling(name: str) -> bool:
@@ -104,6 +116,10 @@ def verify() -> list[str]:
         canonicalize_name(name): set(extras)
         for name, extras in contract.get("active_distribution_extras", {}).items()
     }
+    try:
+        dependency_resolution_provenance()
+    except RuntimeError as exc:
+        errors.append(str(exc))
     installed: dict[str, Version] = {}
     for dist in metadata.distributions():
         name = canonicalize_name(dist.metadata.get("Name") or "")
@@ -155,6 +171,11 @@ def verify() -> list[str]:
 
 
 if __name__ == "__main__":
+    try:
+        provenance = dependency_resolution_provenance()
+    except RuntimeError:
+        provenance = "INVALID"
+    print(f"Dependency resolution provenance: {provenance}")
     failures = verify()
     if failures:
         print("PRODUCTION IMAGE DEPENDENCY CONTRACT FAILED", file=sys.stderr)
