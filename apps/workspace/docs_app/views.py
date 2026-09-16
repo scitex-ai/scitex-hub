@@ -369,8 +369,8 @@ def docs_export_batch(request):
 
 
 def docs_python(request):
-    """Serve SciTeX Python package documentation (Sphinx)."""
-    return serve_sphinx_docs(request, "scitex-python", "index.html")
+    """Serve the generated Python API documentation shipped with the Hub."""
+    return serve_sphinx_docs(request, "scitex-hub", "index.html")
 
 
 def docs_api(request):

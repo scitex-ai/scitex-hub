@@ -550,6 +550,9 @@ COPY --chown=scitex:scitex . .
 #   (c) pre-build the wheel in python-builder and copy it over.
 RUN uv pip install --system --no-cache ".[all]"
 
+# /apps/docs/python/ resolves this generated tree from installed package data.
+RUN python -c "from importlib.resources import files; p = files('scitex_hub').joinpath('_sphinx_html/index.html'); assert p.is_file() and '<html' in p.read_text(encoding='utf-8').lower()"
+
 # --- Layer C0: Anchor — cache ecosystem packages (bump rarely) ---
 # Pinned versions to cache the dependency tree. Only update when
 # you want to reset the cache baseline.
