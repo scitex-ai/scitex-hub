@@ -26,7 +26,7 @@ def test_every_hub_python_service_forbids_runtime_editable_overrides():
     assert {
         service: _environment(service).get("SCITEX_APPS_PYTHON_MODE")
         for service in IMAGE_SERVICES
-    } == {service: "image-only" for service in IMAGE_SERVICES}
+    } == dict.fromkeys(IMAGE_SERVICES, "image-only")
 
 
 def test_image_only_mode_skips_editable_installs():
