@@ -2,11 +2,23 @@
 
 from __future__ import annotations
 
+from importlib.util import find_spec
+
 import pytest
 from django.contrib.auth.models import User
 
 from apps.workspace.apps_app.management.commands.seed_apps import ensure_builtin_modules
 from apps.workspace.apps_app.models import AppsModule, ModuleInstallation
+
+try:
+    AGENTS_DJANGO_AVAILABLE = find_spec("scitex_agent_container._django") is not None
+except ModuleNotFoundError:
+    AGENTS_DJANGO_AVAILABLE = False
+
+requires_agents_django = pytest.mark.skipif(
+    not AGENTS_DJANGO_AVAILABLE,
+    reason="scitex_agent_container._django is not installed",
+)
 
 
 class _Fleet:
@@ -23,6 +35,7 @@ class _Fleet:
 
 
 @pytest.mark.django_db
+@requires_agents_django
 def test_plain_user_can_install_agents_and_only_their_row_changes(client):
     alice = User.objects.create_user("agents-alice")
     bob = User.objects.create_user("agents-bob")
@@ -66,6 +79,7 @@ def test_cards_dependency_hold_blocks_install_and_toggle(client):
 
 
 @pytest.mark.django_db
+@requires_agents_django
 def test_launcher_routes_uninstalled_agents_to_store_then_installed_agents_to_app(client):
     user = User.objects.create_user("agents-launcher")
     client.force_login(user)

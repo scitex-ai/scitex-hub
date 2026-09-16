@@ -1,10 +1,12 @@
 """Repository readers must never expose version-control internals."""
 
+import shutil
 from importlib.util import find_spec
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, User
 from django.test import RequestFactory, TestCase
 
@@ -119,10 +121,14 @@ class TestRepositoryVcsRoutes(TestCase):
         self.private = Project.objects.create(
             owner=self.owner, slug="private-repo", name="private", visibility="private"
         )
+        user_root = Path(settings.BASE_DIR) / "data" / "users" / self.owner.username
+        self.addCleanup(shutil.rmtree, user_root, ignore_errors=True)
         self.roots = {}
         for project in (self.public, self.private):
+            expected_root = user_root / "proj" / project.slug
+            expected_root.mkdir(parents=True, exist_ok=True)
             root = get_project_filesystem_manager(self.owner).get_project_root_path(project)
-            root.mkdir(parents=True, exist_ok=True)
+            assert root == expected_root
             (root / "README.md").write_text("NORMAL")
             (root / ".git" / "objects" / "pack").mkdir(parents=True)
             (root / ".git" / "HEAD").write_text("SECRET")

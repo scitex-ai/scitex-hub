@@ -30,7 +30,7 @@ Two layers:
    (``get_file_context`` and ``project_directory_dynamic``) with a REAL
    ``Project`` + owner and a REAL sibling-tenant directory on disk, and asserts
    the out-of-project read is refused (``get_file_context`` returns ``None``;
-   the browse view returns a redirect instead of a 200 listing).
+   the browse view raises ``Http404`` instead of listing the sibling).
 """
 
 from __future__ import annotations
@@ -40,6 +40,7 @@ import uuid
 from pathlib import Path
 
 import pytest
+from django.http import Http404
 
 from apps.infra.project_app.services.filesystem.permissions import (
     validate_path_in_project,
@@ -111,6 +112,7 @@ def owner_project_with_sibling(db):
     """
     from django.conf import settings
     from django.contrib.auth.models import User
+
     from apps.infra.project_app.models import Project
 
     suffix = uuid.uuid4().hex[:8]
@@ -139,8 +141,8 @@ def owner_project_with_sibling(db):
 
 def _authed_get(user, path="/browse/"):
     """A real authenticated GET request with session + messages attached."""
-    from django.test import RequestFactory
     from django.contrib.messages.storage.fallback import FallbackStorage
+    from django.test import RequestFactory
 
     request = RequestFactory().get(path)
     request.user = user
@@ -184,7 +186,7 @@ class TestRoutedReadDoesNotEscape:
         # Assert
         assert result is not None
 
-    def test_browse_rejects_sibling_prefix_directory_with_redirect(
+    def test_browse_rejects_sibling_prefix_directory_with_404(
         self, owner_project_with_sibling
     ):
         # Arrange
@@ -195,12 +197,11 @@ class TestRoutedReadDoesNotEscape:
         user, project, _, _, _ = owner_project_with_sibling
         request = _authed_get(user)
         directory_path = f"../{project.slug}-secret"
-        # Act
-        response = project_directory_dynamic(
-            request, user.username, project.slug, directory_path
-        )
-        # Assert: rejection is a redirect, never a 200 listing of the sibling.
-        assert response.status_code == 302
+        # Act / Assert
+        with pytest.raises(Http404):
+            project_directory_dynamic(
+                request, user.username, project.slug, directory_path
+            )
 
 
 if __name__ == "__main__":
