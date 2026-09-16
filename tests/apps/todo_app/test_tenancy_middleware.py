@@ -297,9 +297,6 @@ class TodoPhase1ReadOnlyGateTest(TestCase):
     def setUpTestData(cls):
         cls.alice = User.objects.create_user(username="alice", is_staff=True)
         Project.objects.create(owner=cls.alice, name="Proj A", slug="proj-a")
-        cls.readonly_visitor = User.objects.create_user(
-            username="readonly-visitor", is_staff=True
-        )
 
     def setUp(self):
         self.rf = RequestFactory()
@@ -330,26 +327,7 @@ class TodoPhase1ReadOnlyGateTest(TestCase):
         # Assert
         assert captured.get("called") is None
 
-    def test_readonly_visitor_post_gets_structured_308_rejection(self):
-        # Arrange
-        request = _request(
-            self.rf, self.readonly_visitor, path="/apps/cards/resolve", method="post"
-        )
-        # Act
-        response, _ = _run(request)
-        # Assert
-        assert json.loads(response.content)["reason"] == "readonly-visitor"
 
-    def test_readonly_visitor_get_is_never_blocked(self):
-        # Arrange — fail-loud doctrine: views always render for readonly.
-        Project.objects.create(
-            owner=self.readonly_visitor, name="Tour", slug="tour"
-        )
-        request = _request(self.rf, self.readonly_visitor)
-        # Act
-        response, _ = _run(request)
-        # Assert
-        assert response.status_code == 200
 
 
 def _csrf_post(rf, user, path, valid_token=True):
@@ -389,9 +367,6 @@ class TodoOpenedWriteSubsetTest(TestCase):
     def setUpTestData(cls):
         cls.alice = User.objects.create_user(username="alice", is_staff=True)
         Project.objects.create(owner=cls.alice, name="Proj A", slug="proj-a")
-        cls.readonly_visitor = User.objects.create_user(
-            username="readonly-visitor", is_staff=True
-        )
 
     def setUp(self):
         self.rf = RequestFactory()
@@ -515,31 +490,7 @@ class TodoOpenedWriteSubsetTest(TestCase):
         # Assert
         assert captured.get("called") is None
 
-    def test_readonly_visitor_cannot_write_to_an_opened_route(self):
-        # Arrange
-        Project.objects.create(
-            owner=self.readonly_visitor, name="Tour", slug="tour"
-        )
-        request = _csrf_post(
-            self.rf, self.readonly_visitor, "/apps/cards/dm/thread/operator"
-        )
-        # Act
-        response, _ = _run(request)
-        # Assert
-        assert json.loads(response.content)["reason"] == "readonly-visitor"
 
-    def test_readonly_visitor_write_never_reaches_the_board(self):
-        # Arrange
-        Project.objects.create(
-            owner=self.readonly_visitor, name="Tour2", slug="tour2"
-        )
-        request = _csrf_post(
-            self.rf, self.readonly_visitor, "/apps/cards/dm/thread/operator"
-        )
-        # Act
-        _, captured = _run(request)
-        # Assert
-        assert captured.get("called") is None
 
     def test_opened_route_without_csrf_token_is_refused(self):
         # Arrange — the upstream dm_thread_view is @csrf_exempt and the hub

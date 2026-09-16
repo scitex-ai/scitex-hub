@@ -197,41 +197,6 @@ function initializeHeader(): void {
     });
   }
 
-  // Visitor menu dropdown (visitors)
-  const visitorMenuToggle = document.getElementById("visitor-menu-toggle");
-  const visitorMenuDropdown = document.getElementById(
-    "visitor-menu-dropdown",
-  ) as HTMLElement;
-
-  if (visitorMenuToggle && visitorMenuDropdown) {
-    // Skip click/outside-click handlers if inline fallback already attached
-    // (inline <script> in global_header.html sets data-inline-handler="true")
-    if (!visitorMenuToggle.hasAttribute("data-inline-handler")) {
-      visitorMenuToggle.addEventListener("click", function (e) {
-        e.stopPropagation();
-        const isVisible = visitorMenuDropdown.style.display !== "none";
-        visitorMenuDropdown.style.display = isVisible ? "none" : "block";
-      });
-
-      // Close dropdown when clicking outside
-      document.addEventListener("click", function (e) {
-        if (
-          !visitorMenuToggle.contains(e.target as Node) &&
-          !visitorMenuDropdown.contains(e.target as Node)
-        ) {
-          visitorMenuDropdown.style.display = "none";
-        }
-      });
-    }
-
-    // Close dropdown when pressing Escape (always add — inline fallback doesn't handle Escape)
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape") {
-        visitorMenuDropdown.style.display = "none";
-      }
-    });
-  }
-
   // Page refresh button handler
   const pageRefreshBtn = document.getElementById("page-refresh-btn");
   if (pageRefreshBtn) {

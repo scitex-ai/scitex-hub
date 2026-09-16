@@ -40,6 +40,10 @@ RETIRED_SHARED_FILES = (
     "static/shared/ts/components/visitor-countdown.ts",
     "static/shared/ts/utils/visitor-heartbeat.ts",
     "static/shared/ts/utils/visitor-session-lease.ts",
+    "static/shared/ts/utils/readonly-visitor-guard.ts",
+    "static/shared/css/components/header/15-visitor-badge.css",
+    "static/public_app/css/server-status/visitor-pool.css",
+    "static/public_app/css/server-status/slots.css",
 )
 
 

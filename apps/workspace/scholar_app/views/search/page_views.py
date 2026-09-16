@@ -21,8 +21,8 @@ from .search_core import simple_search_with_tab
 logger = logging.getLogger(__name__)
 
 
-def _check_authentication_redirect(request):
-    """Send signed-out workspace requests to signup."""
+def _check_signup_redirect(request):
+    """Send every unauthenticated workspace request to signup."""
     if not request.user.is_authenticated:
         return redirect("auth_app:signup")
     return None
@@ -30,19 +30,17 @@ def _check_authentication_redirect(request):
 
 def simple_search(request):
     """Advanced search interface with comprehensive filtering."""
-    # Check for visitor pool redirect
-    pool_redirect = _check_authentication_redirect(request)
-    if pool_redirect:
-        return pool_redirect
+    signup_redirect = _check_signup_redirect(request)
+    if signup_redirect:
+        return signup_redirect
     return simple_search_with_tab(request, active_tab="search")
 
 
 def index(request):
     """Scholar app index/landing page."""
-    # Check for visitor pool redirect
-    pool_redirect = _check_authentication_redirect(request)
-    if pool_redirect:
-        return pool_redirect
+    signup_redirect = _check_signup_redirect(request)
+    if signup_redirect:
+        return signup_redirect
 
     # Simple landing page that shows both features
     context = {
@@ -71,10 +69,9 @@ def scholar_graph(request):
 
 def scholar_unified(request):
     """Unified scholar page with all tabs (search, bibtex, graph)."""
-    # Check for visitor pool redirect
-    pool_redirect = _check_authentication_redirect(request)
-    if pool_redirect:
-        return pool_redirect
+    signup_redirect = _check_signup_redirect(request)
+    if signup_redirect:
+        return signup_redirect
 
     from apps.infra.project_app.models import Project
     from apps.infra.project_app.services import get_current_project
@@ -157,9 +154,9 @@ def scholar_unified(request):
 
 def bibtex_enrichment_view(request, template_name="scholar_app/index.html"):
     """BibTeX Enrichment tab view."""
-    auth_redirect = _check_authentication_redirect(request)
-    if auth_redirect:
-        return auth_redirect
+    signup_redirect = _check_signup_redirect(request)
+    if signup_redirect:
+        return signup_redirect
 
     from apps.infra.project_app.models import Project
     from apps.workspace.scholar_app.models import BibTeXEnrichmentJob

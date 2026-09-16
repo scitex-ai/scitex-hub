@@ -531,10 +531,6 @@ def log_user_login(sender, request, user, **kwargs):
                 if provider in ["google", "github"]:
                     method = provider
 
-        # Check if visitor account
-        if user.username.startswith("visitor-"):
-            method = "visitor"
-
         LoginHistory.log_login(user, request, method=method)
 
         # Also update UserProfile login tracking
