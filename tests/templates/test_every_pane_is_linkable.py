@@ -79,7 +79,7 @@ a regular user's page carries ``/chat/`` and ``/files/`` but not ``/console/``
 ``tests/templates/test_workspace_sidebar_pane_visibility.py`` and
 ``tests/apps/apps_app/test_header_mobile_menu_gate.py``. Visibility here also
 means "offered in navigation", never "authorized": ``root_dispatch``
-(``repo_app/views/dispatch.py``) serves ``/console/`` to any authenticated user
+(``my_projects_app/views/dispatch.py``) serves ``/console/`` to any authenticated user
 who types the URL, which predates all of this. It says nothing about anonymous
 visitors either: ``/chat/`` answers 302 -> ``/landing/`` for them
 (``dispatch.py:52-53``), and whether that should change is a product decision

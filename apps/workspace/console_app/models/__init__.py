@@ -6,6 +6,7 @@ Exports all models for backward compatibility:
 """
 
 from .capture import CaptureRequest
+from .compute_identity import ComputeIdentity
 from .execution import CodeExecutionJob, DataAnalysisJob
 from .notebook import CodeLibrary, Notebook
 from .tracking import ProjectService, ResourceUsage, UserQuota
@@ -13,6 +14,8 @@ from .tracking import ProjectService, ResourceUsage, UserQuota
 __all__ = [
     # capture.py
     "CaptureRequest",
+    # compute_identity.py
+    "ComputeIdentity",
     # execution.py
     "CodeExecutionJob",
     "DataAnalysisJob",

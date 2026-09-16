@@ -55,6 +55,7 @@ from ._status_chart_helpers import (
     SETTINGS_CELERY_PATH,
     SETTINGS_DEV_PATH,
     STATUS_URL,
+    StaffClientTestCase,
     code_lines_naming,
     import_error_of,
     seed_metrics,
@@ -180,7 +181,7 @@ class TestChartFanOutIsGone(TestCase):
         assert raised is not None
 
 
-class TestStatusPageRendersChartContainers(TestCase):
+class TestStatusPageRendersChartContainers(StaffClientTestCase):
     """The page must ship a chart container AND its data source, per metric."""
 
     @classmethod

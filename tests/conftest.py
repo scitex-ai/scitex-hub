@@ -273,6 +273,23 @@ _BROWSER_FIXTURES = frozenset(
 )
 
 
+_SERIAL_DIRS = (
+    # Modules here share visitor-001 on-disk trees across FILES, so they race
+    # under xdist (measured, PR #871: 18 failed + 15 errors, all in this dir).
+    os.sep + os.path.join("project_app", "services", "visitor_pool") + os.sep,
+)
+
+
+def _assign_xdist_groups(items):
+    """One xdist group per file (== --dist loadfile), except _SERIAL_DIRS,
+    which share one group so they run on a single worker."""
+    for item in items:
+        path = str(getattr(item, "fspath", ""))
+        serial = next((d for d in _SERIAL_DIRS if d in path), None)
+        item.add_marker(pytest.mark.xdist_group(serial or path))
+
+
+@pytest.hookimpl(tryfirst=True)
 def pytest_collection_modifyitems(config, items):
     """Skip E2E/browser tests in the headless gate; run them when the
     "E2E Mobile Tests" workflow passes ``--browser`` explicitly.
@@ -283,6 +300,7 @@ def pytest_collection_modifyitems(config, items):
     The fixture check is what keeps a plain ``pytest tests/`` from launching a
     browser for the browser-driven tests under ``tests/ui/``.
     """
+    _assign_xdist_groups(items)
     browser_requested = False
     try:
         browser_requested = bool(config.getoption("--browser"))

@@ -59,7 +59,7 @@ LANDING_URL = "/landing/"
 # it stops being reviewed but does not stop being wrong. The registry
 # (apps_app.AppsModule.label) is the authority; it lists FigRecipe, and it
 # still lists Console, so only the one name was stale.
-MODULE_NAMES = ("Scholar", "Writer", "Console", "FigRecipe")
+MODULE_NAMES = ("Scholar", "Writer", "FigRecipe")
 
 
 class _VisibleText(HTMLParser):

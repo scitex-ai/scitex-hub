@@ -130,6 +130,7 @@ REQUIRED_CONFIG = {
         "SCITEX_HUB_ENV": "prod",
         "SCITEX_HUB_DJANGO_SECRET_KEY": "test-only-never-a-real-secret",
         "SCITEX_HUB_GITEA_SSH_PORT": "22",
+        "SCITEX_HUB_GITEA_TOKEN": "test-only-never-connected-with",
         "SCITEX_HUB_POSTGRES_PASSWORD": "test-only-never-connected-with",
     },
     "settings_staging": {

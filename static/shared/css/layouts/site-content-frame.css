@@ -1,0 +1,31 @@
+/**
+ * @component Site Content Frame
+ * @description Desktop pages sit in a centred frame 90% of the viewport wide.
+ * @category Layouts
+ * @file /static/shared/css/layouts/site-content-frame.css
+ * @darkmode true
+ */
+
+/* Shared token, meant for scitex-ui to adopt as-is. The cap only binds above
+   a 2844px viewport, so ordinary and 2560px monitors keep the full 90%. */
+:root {
+  --site-content-max-width: min(90vw, 2560px);
+}
+
+/* Apps without their own accent token (Files, Stats, ...) keep the brand accent
+   line under the header; :where() lets any per-app accent rule still win. */
+:where(#main-content[data-app-accent]) {
+  --app-accent-color: var(--stx-accent);
+}
+
+/* Below 1024px phones and tablets keep their own full-width layout. */
+@media (min-width: 1024px) {
+  .global-header .global-header-inner,
+  body > #main-content,
+  body > .workspace-layout,
+  body > .workspace-three-col {
+    width: var(--site-content-max-width);
+    max-width: none;
+    margin-inline: auto;
+  }
+}

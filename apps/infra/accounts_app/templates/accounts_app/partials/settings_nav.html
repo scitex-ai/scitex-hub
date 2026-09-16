@@ -1,73 +1,18 @@
-{% load static %}
+{% load i18n %}
 
 <!-- Settings Navigation - Reusable partial -->
-<!-- Personal Settings -->
-<div class="settings-nav-section">
-    <div class="settings-nav-header">Personal</div>
-    <a href="{% url 'accounts_app:profile_edit' %}"
-       class="settings-nav-item {% if active == 'profile' %}active{% endif %}">
-        <i class="fas fa-user"></i>
-        <span>Profile</span>
-    </a>
-    <a href="{% url 'accounts_app:appearance' %}"
-       class="settings-nav-item {% if active == 'appearance' %}active{% endif %}">
-        <i class="fas fa-palette"></i>
-        <span>Appearance</span>
-    </a>
-</div>
-<!-- Integrations -->
-<div class="settings-nav-section">
-    <div class="settings-nav-header">Integrations</div>
-    <a href="{% url 'accounts_app:git_integrations' %}"
-       class="settings-nav-item {% if active == 'git_integrations' %}active{% endif %}">
-        <i class="fab fa-git-alt"></i>
-        <span>Git platforms</span>
-    </a>
-    <a href="{% url 'accounts_app:ai_providers' %}"
-       class="settings-nav-item {% if active == 'ai_providers' %}active{% endif %}">
-        <i class="fas fa-robot"></i>
-        <span>AI providers</span>
-    </a>
-    <a href="{% url 'llm_app:usage_dashboard' %}"
-       class="settings-nav-item {% if active == 'ai_usage' %}active{% endif %}">
-        <i class="fas fa-chart-bar"></i>
-        <span>AI usage</span>
-    </a>
-    <a href="{% url 'accounts_app:mcp_tools' %}"
-       class="settings-nav-item {% if active == 'mcp_tools' %}active{% endif %}">
-        <i class="fas fa-puzzle-piece"></i>
-        <span>MCP tools</span>
-    </a>
-</div>
-<!-- Authentication & Tokens -->
-<div class="settings-nav-section">
-    <div class="settings-nav-header">Authentication</div>
-    <a href="{% url 'accounts_app:ssh_keys' %}"
-       class="settings-nav-item {% if active == 'ssh_keys' %}active{% endif %}">
-        <i class="fas fa-key"></i>
-        <span>SSH keys</span>
-    </a>
-    <a href="{% url 'accounts_app:api_keys' %}"
-       class="settings-nav-item {% if active == 'api_keys' %}active{% endif %}">
-        <i class="fas fa-code"></i>
-        <span>API keys</span>
-    </a>
-</div>
-<!-- Privacy -->
-<div class="settings-nav-section">
-    <div class="settings-nav-header">Privacy</div>
-    <a href="{% url 'accounts_app:privacy_settings' %}"
-       class="settings-nav-item {% if active == 'privacy' %}active{% endif %}">
-        <i class="fas fa-shield-alt"></i>
-        <span>Privacy & Analytics</span>
-    </a>
-</div>
-<!-- Repositories (Advanced) -->
-<div class="settings-nav-section">
-    <div class="settings-nav-header">Repositories</div>
-    <a href="{% url 'accounts_app:repository_health' %}"
-       class="settings-nav-item {% if active == 'repository_health' %}active{% endif %}">
-        <i class="fas fa-heartbeat"></i>
-        <span>Repository Health</span>
-    </a>
-</div>
+{% comment %}
+PHONES (<=768px): the full list is 13 items, and it used to fill the whole first
+screen, so a settings page's own content started below the fold (site audit
+2026-09-14, D7). On phones it collapses into the one-line disclosure
+"Settings › <current page>" and the content comes first; the desktop sidebar is
+unchanged. settings-layout.css shows one or the other. A <details> needs no
+JavaScript, so this works on every page that includes the partial.
+{% endcomment %}
+<details class="settings-nav-compact">
+    <summary class="settings-nav-compact-summary" aria-label="{% trans "Settings sections" %}">
+        <span>{% trans "Settings" %}</span> <span aria-hidden="true">›</span> <strong>{% if active == 'profile' %}{% trans "Profile" %}{% elif active == 'appearance' %}{% trans "Appearance" %}{% elif active == 'git_integrations' %}{% trans "Git platforms" %}{% elif active == 'ai_providers' %}{% trans "AI providers" %}{% elif active == 'ai_usage' %}{% trans "AI usage" %}{% elif active == 'mcp_tools' %}{% trans "MCP tools" %}{% elif active == 'ssh_keys' %}{% trans "SSH keys" %}{% elif active == 'api_keys' %}{% trans "API keys" %}{% elif active == 'privacy' %}{% trans "Privacy & Analytics" %}{% elif active == 'billing' %}{% trans "Payment method" %}{% elif active == 'repository_health' %}{% trans "Project Health" %}{% else %}{% trans "Account Settings" %}{% endif %}</strong>
+    </summary>
+    <div class="settings-nav-compact-list">{% include "accounts_app/partials/settings_nav_links.html" %}</div>
+</details>
+<div class="settings-nav-full">{% include "accounts_app/partials/settings_nav_links.html" %}</div>

@@ -102,6 +102,10 @@ _KNOWN_MISSING: dict[str, str] = {
     # So: keep future entries xfail(strict), and give each a removal CONDITION
     # rather than only a reason. A reason explains why the debt exists; a
     # condition tells the test when to stop believing it.
+    #
+    # "agents" was here for one day (2026-09-14, PR #803 -> removed when
+    # scitex-ui 0.20.3 shipped --app-accent-agents and hub's floor was raised to
+    # it). Same pattern: it left under its own removal condition.
 }
 
 

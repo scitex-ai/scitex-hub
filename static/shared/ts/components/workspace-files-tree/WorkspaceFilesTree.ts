@@ -163,6 +163,7 @@ export class WorkspaceFilesTree {
         unstaged: this.gitSummary.modified + this.gitSummary.untracked,
       }),
     );
+    this.contextMenuHandler.setReadOnly(!!config.readOnly);
     this.searchHandler = new SearchHandler(
       () => this.rerender(),
       () => this.treeData,
@@ -331,7 +332,9 @@ export class WorkspaceFilesTree {
   private attachEventListeners(): void {
     if (!this.container) return;
     this.eventHandlers.attachEventListeners(this.container);
-    this.dragDropHandlers.attachDragDropListeners(this.container);
+    // Read-only: no drop-to-upload and no drag-to-move.
+    if (!this.config.readOnly)
+      this.dragDropHandlers.attachDragDropListeners(this.container);
     if (!this.keyboardHandlers) {
       this.keyboardHandlers = new KeyboardHandlers(
         this.config,
@@ -484,6 +487,10 @@ export class WorkspaceFilesTree {
   }
   getSortMode(): SortMode {
     return this.sortMode;
+  }
+  /** Run a named tree action (e.g. "new-file"); read-only trees drop writes. */
+  async runAction(action: string, path = ""): Promise<void> {
+    await this.contextMenuActionHandler?.handle(action, path);
   }
   setOnFileSelect(handler: (path: string, item: TreeItem) => void): void {
     this.config.onFileSelect = handler;

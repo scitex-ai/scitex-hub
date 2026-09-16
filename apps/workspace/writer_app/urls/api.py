@@ -150,6 +150,11 @@ urlpatterns = [
         git_api.git_commit_api,
         name="api_git_commit",
     ),
+    path(
+        "project/<int:project_id>/manuscript-status/",
+        api_views.manuscript_status_view,
+        name="api_manuscript_status",
+    ),
     # PDF and file operations (accept optional trailing slash)
     path(
         "project/<int:project_id>/pdf/<str:pdf_filename>/",

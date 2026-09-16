@@ -21,7 +21,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.infra.project_app.models import Project
 from apps.infra.project_app.services.filesystem.permissions import (
-    validate_path_in_project,
+    resolve_repository_path,
 )
 from apps.infra.project_app.services.syntax_highlighting import detect_language
 
@@ -51,11 +51,13 @@ def project_file_view(request, username, slug, file_path):
 
     # Authenticated users → render through hub workspace (except raw/download)
     if request.user.is_authenticated and mode not in ("raw", "download"):
-        from apps.workspace.repo_app.views.index import build_hub_context
+        from apps.workspace.my_projects_app.views.index import build_hub_context
 
         project = get_object_or_404(Project, slug=slug, owner__username=username)
-        context = build_hub_context(request, current_project=project)
-        return render(request, "repo_app/index.html", context)
+        context = build_hub_context(
+            request, current_project=project, include_file_browser=True
+        )
+        return render(request, "my_projects_app/index.html", context)
     user = get_object_or_404(User, username=username)
     project = get_object_or_404(Project, slug=slug, owner=user)
 
@@ -82,23 +84,9 @@ def project_file_view(request, username, slug, file_path):
         messages.error(request, "Project directory not found.")
         return redirect("project_app:detail", username=username, slug=slug)
 
-    full_file_path = project_path / file_path
-
-    # Security check: component-wise containment (UNROUTED shadowed duplicate).
-    try:
-        full_file_path = full_file_path.resolve()
-        if not validate_path_in_project(project_path, full_file_path):
-            if mode in ("raw", "download"):
-                raise Http404("Invalid file path")
-            messages.error(request, "Invalid file path.")
-            return redirect("project_app:detail", username=username, slug=slug)
-    except Http404:
-        raise
-    except (OSError, RuntimeError):
-        if mode in ("raw", "download"):
-            raise Http404("Invalid file path")
-        messages.error(request, "Invalid file path.")
-        return redirect("project_app:detail", username=username, slug=slug)
+    full_file_path = resolve_repository_path(project_path, file_path)
+    if full_file_path is None:
+        raise Http404
 
     # Check if file exists and is a file
     if not full_file_path.exists() or not full_file_path.is_file():

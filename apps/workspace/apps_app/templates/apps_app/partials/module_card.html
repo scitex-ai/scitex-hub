@@ -114,7 +114,7 @@
                 <i class="fas fa-info-circle" aria-hidden="true"></i> Details
             </a>
         {% endif %}
-        {% if mod_item.app.author %}
+        {% if mod_item.app.author and user.is_staff %}
             <a href="{% if mod_item.is_dev %}/{{ mod_item.dev_owner }}/{{ mod_item.dev_repo }}/{% else %}/{{ mod_item.app.author.username }}/{{ mod_item.app.module_name }}/{% endif %}"
                class="ap-btn-hub"
                title="View in {{ mod_item.app.author.username }}'s Hub"

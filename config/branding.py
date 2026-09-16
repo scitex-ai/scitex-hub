@@ -51,7 +51,7 @@ def gettext_noop(message):
 
 
 # Core branding
-SITE_NAME = "SciTeX"
+SITE_NAME = "SciTeX™"
 # The tagline is TWO lines: the promise, then what SciTeX is. Both are shown
 # together wherever the brand introduces itself (the landing hero), so they are
 # defined together here rather than one in a template and one in Python.
@@ -66,9 +66,9 @@ SITE_NAME = "SciTeX"
 #
 # Translation therefore happens at the USE SITE, in the context processor, where
 # there is a request and an active language. See config/context_processors.py.
-SITE_TAGLINE = gettext_noop("Research Automation for AI and Humans")
+SITE_TAGLINE = gettext_noop("Open-source Ecosystem for Scientific Research")
 SITE_TAGLINE_SECONDARY = gettext_noop(
-    "Open-source Scientific Research Automation Ecosystem"
+    ""
 )
 SITE_DESCRIPTION = gettext_noop(
     "Python toolkit + MCP server for literature search, "
@@ -104,7 +104,7 @@ CONTACT_DOMAIN = "scitex.ai"
 CONTACT_EMAIL = f"info@{CONTACT_DOMAIN}"
 
 LEGAL_EMAIL = f"legal@{CONTACT_DOMAIN}"
-PRIVACY_EMAIL = f"privacy@{CONTACT_DOMAIN}"
+PRIVACY_EMAIL = CONTACT_EMAIL
 RECRUIT_EMAIL = f"recruit@{CONTACT_DOMAIN}"
 NOREPLY_EMAIL = f"noreply@{CONTACT_DOMAIN}"
 
@@ -202,7 +202,8 @@ def normalize_mode(value):
 #
 #     production  -> white snake on NAVY        (the official product look)
 #     staging     -> NAVY snake on WHITE        (heavy / high-contrast)
-#     development -> white snake on GREEN
+#     development -> white snake on NAVY        (operator 2026-09-15: the green
+#                    circle is retired; the tab title's "(dev)" marks dev)
 #
 # These SVGs are produced by the existing brand-mark generator,
 # ``scripts/utils/icons/generate_scitex_icons.py`` (which owns the snake path
@@ -213,7 +214,7 @@ _ICON_DIR = "shared/images/scitex_logos/scitex-icons/generated"
 FAVICON_BY_ENV = {
     ENV_PRODUCTION: f"{_ICON_DIR}/scitex-icon-white-bg-navy.svg",
     ENV_STAGING: f"{_ICON_DIR}/scitex-icon-navy-bg-white.svg",
-    ENV_DEVELOPMENT: f"{_ICON_DIR}/scitex-icon-white-bg-green.svg",
+    ENV_DEVELOPMENT: f"{_ICON_DIR}/scitex-icon-white-bg-navy.svg",
 }
 
 
@@ -259,17 +260,23 @@ APP_NAMES = {
     "/apps/figrecipe/": "FigRecipe",
     "/apps/console/": "Console",
     "/apps/cards/": "Cards",
+    "/apps/agents/": "Agents",
+    "/apps/llm/": "LLM",
+    "/apps/comms/": "Comms",
     "/apps/storage/": "Storage",
+    "/apps/stats/": "Stats",
+    "/apps/files/": "Files",
     "/apps/clew/": "Clew",
-    "/apps/discovery/": "Explore",
+    "/apps/public-projects/": "Public Projects",
     "/apps/store/": "Store",
     "/apps/docs/": "Docs",
     "/apps/tools/": "Tools",
-    "/apps/home/": "Projects",
+    "/apps/my-projects/": "My Projects",
 }
 
 # Hub sections that are not products, but still need a stable tab label.
 SECTION_NAMES = {
+    "/status/": "Status",
     "/explore/": "Explore",
     "/social/explore/": "Explore",
     "/browse/": "Files",
@@ -290,9 +297,54 @@ PANE_NAMES = {
     "/files/": "Files",
 }
 
+# Account pages and the create-project page. They are about the USER, not a
+# project, yet the workspace context processor still hands them the last
+# project the user opened (so the side panes can show it). The tab used to
+# take that as its detail: /accounts/settings/ssh-keys/, /accounts/profile/,
+# /new/ and /console/ all read "dotfiles — SciTeX (dev)" on the dev preview
+# (site audit 2026-09-14). These pages name themselves instead.
+ACCOUNT_PAGE_NAMES = {
+    "/accounts/settings/": "Settings",
+    "/accounts/profile/": "Profile",
+    "/new/": "New project",
+    # /console/ redirects here for a signed-in user (measured on the dev
+    # preview, 2026-09-14); without a label the tab read only the project.
+    "/apps/workspace/console/": "Console",
+}
+
+# Paths whose tab must never borrow the AMBIENT project (current_project /
+# project from context processors). An explicit page_title_detail from a view
+# still applies. The console is a shell, not a project view.
+NON_PROJECT_PREFIXES = (
+    "/accounts/",
+    "/auth/",
+    "/new/",
+    "/console/",
+    "/apps/console/",
+    "/apps/workspace/console/",
+)
+
 # Everything that can name a tab. Apps win over sections on an exact tie;
 # in practice their prefixes are disjoint.
-PATH_LABELS = {**SECTION_NAMES, **PANE_NAMES, **APP_NAMES}
+PATH_LABELS = {**SECTION_NAMES, **ACCOUNT_PAGE_NAMES, **PANE_NAMES, **APP_NAMES}
+
+
+# Launcher pages matched EXACTLY: a "/apps/" prefix would claim every app.
+# The launcher is not about a project, so its tab never names one. The
+# template tag translates these (and only these) labels.
+EXACT_PAGE_NAMES = {
+    "/apps/": gettext_noop("Home"),
+}
+NON_PROJECT_EXACT_PATHS = ("/", "/apps/")
+
+
+def is_project_scoped(path):
+    """Return False for pages that must not name the ambient project."""
+    path = path or ""
+    if path in NON_PROJECT_EXACT_PATHS:
+        return False
+    return not path.startswith(NON_PROJECT_PREFIXES)
+
 
 # Environment -> the parenthetical shown in the tab. Production is unmarked:
 # the public site reads simply "<App> — SciTeX".
@@ -310,6 +362,8 @@ def app_for_path(path):
     shadowed by a shorter one (``/explore/``).
     """
     path = path or ""
+    if path in EXACT_PAGE_NAMES:
+        return EXACT_PAGE_NAMES[path]
     match = None
     for prefix, name in PATH_LABELS.items():
         if path.startswith(prefix) and (match is None or len(prefix) > len(match[0])):

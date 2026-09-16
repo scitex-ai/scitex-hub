@@ -55,17 +55,125 @@ class LauncherHomeTest(TestCase):
         # Assert
         assert b'data-module="writer"' in resp.content
 
-    def test_launcher_tiles_cover_launcher_visible_registry_modules(self):
-        # Arrange — every registry module that opts INTO the launcher
-        # (show_in_launcher, the default) must render a tile.
+    def test_launcher_tiles_cover_the_modules_this_user_MAY_BE_SHOWN(self):
+        """The premise this test asserted was WRONG — the code is right.
+
+        It required every ``show_in_launcher`` module to render a tile, but the
+        launcher ALSO applies a release-channel gate: ``visibility == "internal"``
+        modules (todo, storage) are hidden from NON-STAFF users
+        (``apps/workspace/apps_app/views/launcher.py``: ``not is_staff and
+        mod.visibility == "internal"``). This test user is a regular account, so
+        those modules being absent is correct behaviour, and the old assertion
+        could only ever be satisfied by BREAKING that gate.
+
+        The mistake was asking the registry "what should be visible" WITHOUT the
+        same gate the view uses. Both sides now state the condition, and the
+        companion test below pins it from the other direction.
+        """
+        # Arrange
         from apps.infra.workspace_app.registry import get_all_modules
 
-        visible_names = {m.name for m in get_all_modules() if m.show_in_launcher}
+        is_staff = self.user.is_staff or self.user.is_superuser
+        expected_names = {
+            m.name
+            for m in get_all_modules()
+            if m.show_in_launcher and (is_staff or m.visibility != "internal")
+        }
+
         # Act
         resp = self.client.get("/")
         tile_names = {t["name"] for t in resp.context["tiles"]}
+
         # Assert
-        assert visible_names <= tile_names
+        assert expected_names <= tile_names
+
+    def test_internal_modules_gate_on_the_release_channel_not_staff(self):
+        """Internal modules tile for staff and for non-staff on the dev channel,
+        and are hidden from non-staff on the prod channel — the RELEASE-CHANNEL
+        gate, not an admin-role gate.
+
+        THE PREMISE THIS TEST USED TO ASSERT WAS OVERTURNED. It previously
+        required internal modules (todo, storage) to be hidden from EVERY
+        non-staff user. Card hub-cards-internal-entitlement-20260913
+        (operator ruling 2026-09-13) redefined "internal" as a
+        SCITEX_HUB_INTERNAL_APPS_RELEASED channel property, not a staff
+        property: on the development deployment every authenticated team member
+        sees internal apps. Commit 2ae414e53 shipped the gate change but did not
+        update this test, so it red-lined against its own old premise.
+
+        The pure predicate (can_view_internal_app) is already covered
+        dedicatedly and non-DB-gated in
+        tests/apps/apps_app/test_internal_app_channel.py. This launcher test
+        asserts the CHANNEL behaviour end-to-end through the real view — both
+        ways, for EVERY internal module — so a one-sided relaxation (tile
+        nothing, or tile internal for non-staff on prod) is still caught.
+        """
+        from apps.infra.workspace_app.registry import get_all_modules
+
+        # Exemplar is storage, not todo: operator 2026-09-14 made Cards (todo)
+        # and Agents pre-installed PUBLIC apps shown to everyone (content is
+        # scoped per user), so they no longer exercise the internal channel.
+        modules = {m.name: m for m in get_all_modules()}
+        storage = modules.get("storage")
+        if storage is None:
+            # Skipping is honest, passing vacuously is not.
+            self.skipTest("the storage module is not registered on this host")
+
+        assert storage.visibility == "internal", (
+            "the 'storage' module must be classified INTERNAL — that is the "
+            "gate's input (the release channel decides who sees it). If the "
+            "classification changed on purpose, update this test deliberately."
+        )
+
+        internal = sorted(
+            name
+            for name, mod in modules.items()
+            if mod.visibility == "internal" and mod.show_in_launcher
+        )
+        assert "storage" in internal, "storage is internal but not launcher-visible"
+
+        # self.user is a regular (non-staff) account, already logged in.
+
+        # PRODUCTION CHANNEL (release flag off): non-staff sees NO internal
+        # module — the original staff-gate behaviour, now driven by the flag.
+        with self.settings(SCITEX_HUB_INTERNAL_APPS_RELEASED=False):
+            non_staff_prod = {
+                t["name"] for t in self.client.get("/").context["tiles"]
+            }
+        for name in internal:
+            assert name not in non_staff_prod, (
+                f"{name!r} is internal but must NOT tile for a non-staff user "
+                "when the release channel is off (prod)"
+            )
+
+        # DEV CHANNEL (release flag on): non-staff sees EVERY internal module.
+        # Cards and Agents included: they are pre-installed apps whose content,
+        # not presence, depends on the user (operator ruling 2026-09-14 15:48Z;
+        # test_launcher_shows_preinstalled_mounts.py).
+        with self.settings(SCITEX_HUB_INTERNAL_APPS_RELEASED=True):
+            non_staff_dev = {
+                t["name"] for t in self.client.get("/").context["tiles"]
+            }
+        for name in internal:
+            assert name in non_staff_dev, (
+                f"{name!r} is internal and the dev channel is ON, so it MUST "
+                "tile for an authenticated non-staff team member"
+            )
+
+        # STAFF sees internal modules regardless of the channel (operators).
+        staff_user = User.objects.create_user(
+            username="launcher-staff",
+            password="TestPass123!",  # pragma: allowlist secret
+            is_staff=True,
+        )
+        self.client.force_login(staff_user)
+        with self.settings(SCITEX_HUB_INTERNAL_APPS_RELEASED=False):
+            staff_tiles = {t["name"] for t in self.client.get("/").context["tiles"]}
+        for name in internal:
+            assert name in staff_tiles, (
+                f"{name!r} is internal but must still tile for STAFF even when "
+                "the release channel is off"
+            )
 
     def test_clew_is_not_a_launcher_tile(self):
         # Arrange — Clew opens within a manuscript, not as a standalone
@@ -138,7 +246,7 @@ class LauncherHomeTest(TestCase):
 
     def test_old_home_stays_reachable_at_apps_home(self):
         # Arrange
-        url = "/apps/home/"
+        url = "/apps/my-projects/"
         # Act
         resp = self.client.get(url)
         # Assert
@@ -344,14 +452,26 @@ class DefaultPinSeedTest(TestCase):
         # Act
         pinned = get_pinned_module_names(user)
         # Assert
-        assert "home" not in pinned
+        assert "my_projects" not in pinned
 
     def test_default_pins_follow_the_curated_launcher_order(self):
-        # Arrange — sidebar and launcher grid must agree on which apps lead
+        # Arrange — sidebar and launcher grid must agree on which apps lead.
+        # "Agree" now excludes apps with no tile at all: an app that opted out
+        # of the grid (show_in_launcher=false) must not lead the sidebar
+        # either, or hiding it only half-hides it. Console is the case that
+        # forced this — it sat 5th, exactly at MAX_PINNED_MODULES.
+        from apps.infra.workspace_app.registry import get_all_modules
+
+        # Optional plugin apps (Agents, Cards) now sit in the curated
+        # infrastructure row; they only count where their package is installed
+        # and the registry therefore knows them — the same filter the function
+        # applies.
+        hidden = {m.name for m in get_all_modules() if not m.show_in_launcher}
+        registered = {m.name for m in get_all_modules()}
         expected = [
             name
             for name in DEFAULT_LAUNCHER_ORDER
-            if name != "home"
+            if name != "my_projects" and name in registered and name not in hidden
         ][:MAX_PINNED_MODULES]
         # Act
         pinned = get_pinned_module_names(self.user)
@@ -372,12 +492,9 @@ class DefaultPinSeedTest(TestCase):
         # Act
         get_pinned_module_names(self.user)
         # Assert
-        assert (
-            ModuleInstallation.objects.filter(
-                user=self.user, config__pinned=True
-            ).count()
-            == len(pinned)
-        )
+        assert ModuleInstallation.objects.filter(
+            user=self.user, config__pinned=True
+        ).count() == len(pinned)
 
     def test_seeded_rows_keep_the_default_tab_order(self):
         # Arrange — a seeded row is incidental, not an explicit drag-reorder

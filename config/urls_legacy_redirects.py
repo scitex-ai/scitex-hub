@@ -15,15 +15,13 @@ LEGACY_APP_NAMES = [
     "scholar",
     "console",
     "writer",
+    "figrecipe",
     "workspace",
     "example",
     "notebook",
     "llm",
     "clew",
     # Moved to /apps/ prefix
-    "home",
-    "hub",
-    "discovery",
     "tools",
     "docs",
 ]
@@ -38,10 +36,6 @@ urlpatterns = [
     # App store: old /apps/apps/ → /apps/store/ (and bare /apps/ → /apps/store/)
     path(
         "apps/apps/",
-        RedirectView.as_view(url="/apps/store/", permanent=True, query_string=True),
-    ),
-    path(
-        "apps/",
         RedirectView.as_view(url="/apps/store/", permanent=True, query_string=True),
     ),
 ]

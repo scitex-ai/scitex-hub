@@ -1,7 +1,8 @@
 {% extends "global_base.html" %}
 {% load static %}
 
-{% block title %}Security &amp; Trust | SciTeX{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Security &amp; Trust | SciTeX" %}{% endblock %}
 {% block meta_description %}
     How SciTeX protects your research: strict tenant isolation, project path
     containment, injection hardening, SSRF protection, sandboxed per-user
@@ -17,21 +18,19 @@
         <!-- Hero + live metric                                           -->
         <!-- ============================================================ -->
         <section class="sec-hero">
-            <span class="sec-eyebrow">Security &amp; Trust</span>
-            <h1 class="sec-hero-title">Security you can <span class="sec-accent-text">verify</span>.</h1>
+            <span class="sec-eyebrow">{% trans "Security & Trust" %}</span>
+            <h1 class="sec-hero-title">{% trans "Security you can" %} <span class="sec-accent-text">{% trans "verify" %}</span>.</h1>
             <p class="sec-hero-copy">
-                SciTeX is built so your projects, files, and compute stay yours. Below are
-                the protections we actively implement in code — each one backed by automated
-                tests that run on every commit.
+                {% trans "SciTeX is built so your projects, files, and compute stay yours. Below are the protections we actively implement in code — each one backed by automated tests that run on every commit." %}
             </p>
             <div class="sec-metric" role="status" aria-live="polite">
                 <span class="sec-metric-num">{{ security.test_count }}</span>
                 <span class="sec-metric-label">
-                    automated security regression tests
+                    {% trans "automated security regression tests" %}
                     <span class="sec-metric-stamp">
-                        · last verified
+                        {% trans "· last verified" %}
                         <time datetime="{{ security.generated_at }}">{{ security.generated_at }}</time>
-                        (commit <code>{{ security.commit }}</code>)
+                        {% blocktrans with commit=security.commit %}(commit {{ commit }}){% endblocktrans %}
                     </span>
                 </span>
             </div>
@@ -39,22 +38,22 @@
 
         <!-- Trust strip -->
         <div class="sec-trust">
-            <span class="sec-trust-item">Tenant Isolation</span>
-            <span class="sec-trust-item">Sandboxed Compute</span>
-            <span class="sec-trust-item">Least Privilege</span>
-            <span class="sec-trust-item">Tested Every Commit</span>
+            <span class="sec-trust-item">{% trans "Tenant Isolation" %}</span>
+            <span class="sec-trust-item">{% trans "Sandboxed Compute" %}</span>
+            <span class="sec-trust-item">{% trans "Least Privilege" %}</span>
+            <span class="sec-trust-item">{% trans "Tested Every Commit" %}</span>
         </div>
 
         <!-- ============================================================ -->
         <!-- Protections we implement                                     -->
         <!-- ============================================================ -->
         <section class="sec-section">
-            <p class="sec-kicker">What we do</p>
-            <h2>Protections we implement</h2>
+            <p class="sec-kicker">{% trans "What we do" %}</p>
+            <h2>{% trans "Protections we implement" %}</h2>
             <p class="sec-section-desc">
-                Every item below reflects code that ships today, guarded by the
-                {{ security.test_count }} automated security tests above across
-                {{ security.test_files }} focused suites.
+                {% trans "Every item below reflects code that ships today, guarded by the" %}
+                {{ security.test_count }} {% trans "automated security tests above across" %}
+                {{ security.test_files }} {% trans "focused suites." %}
             </p>
             <div class="sec-measures">
                 {% for cat in security.categories %}
@@ -74,9 +73,8 @@
         <!-- ============================================================ -->
         <section class="sec-section sec-note-section">
             <p class="sec-note">
-                This page describes protections we actively maintain in code and keep
-                under automated testing. Questions about our security practices?
-                <a href="{% url 'public_app:contact' %}">Contact us</a>.
+                {% trans "This page describes protections we actively maintain in code and keep under automated testing. Questions about our security practices?" %}
+                <a href="{% url 'public_app:contact' %}">{% trans "Contact us" %}</a>.
             </p>
         </section>
     </div>

@@ -391,7 +391,7 @@ body
 }
 
 .faq-item h5 i {
-  color: var(--status-warning);
+  color: var(--stx-gold, #b8956a);
 }
 
 .faq-item p {

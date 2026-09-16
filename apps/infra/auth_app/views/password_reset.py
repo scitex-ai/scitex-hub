@@ -1,22 +1,61 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Password reset views: forgot password, reset password confirmation."""
+
 from __future__ import annotations
-from django.shortcuts import render, redirect
+
+from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
+from django.shortcuts import redirect, render
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
-from django.contrib import messages
-from django.conf import settings
+
+#: ONE response for EVERY password-reset outcome: address known, unknown, or a
+#: send that failed. The code used two DIFFERENT success messages, so a caller
+#: could read from the page whether an address was registered — and the send
+#: outcome leaked as well. Both are facts about the INBOX OWNER, not about the
+#: person asking.
+_RESET_RESPONSE = (
+    "If an account with this email exists, you will receive password reset "
+    "instructions."
+)
+
+
+def _reset_feedback(request, email: str, registered: bool, sent: bool) -> None:
+    """Queue the on-screen feedback for a password-reset request.
+
+    PRODUCTION (DEBUG=False): the single indistinguishable _RESET_RESPONSE for
+    every outcome — a caller must not be able to tell whether an address is
+    registered or whether a send succeeded (both are facts about the inbox
+    owner, not the requester). This is the enumeration-oracle guard.
+
+    DEBUG (this dev server): the real outcome, so an operator debugging mail
+    delivery sees "sent to X" vs "no account for X" vs "send failed (…)"
+    instead of the generic line. The DEBUG value is never served to real
+    visitors (the live site runs DEBUG=False), so the guard holds in
+    production. (operator 2026-09-13: the generic banner alone made the reset
+    path look broken — no feedback at all.)
+    """
+    if not settings.DEBUG:
+        messages.success(request, _RESET_RESPONSE)
+        return
+    if not registered:
+        messages.warning(request, f"(debug) No account for {email}; no email sent.")
+    elif sent:
+        messages.success(request, f"(debug) Password reset email sent to {email}.")
+    else:
+        messages.error(request, f"(debug) Send FAILED for {email} — see server log.")
 
 
 def forgot_password(request):
     """Forgot password page with email sending."""
     import logging
+
     from django.core.mail import send_mail
-    from django.utils.http import urlsafe_base64_encode
     from django.utils.encoding import force_bytes
+    from django.utils.http import urlsafe_base64_encode
 
     logger = logging.getLogger(__name__)
 
@@ -28,7 +67,20 @@ def forgot_password(request):
             return render(request, "auth_app/forgot_password.html")
 
         try:
-            user = User.objects.get(email=email)
+            # CASE-INSENSITIVE, TOLERANT OF 0/1/MANY (PR #775 review, the
+            # non-enumerating reset item). `User.objects.get(email=email)` was
+            # three defects at once: case-SENSITIVE while the identity policy is
+            # iexact; it RAISED for an unknown address; and it raised
+            # MultipleObjectsReturned for duplicate legacy emails — a 500 that
+            # told the caller their address was special. `.filter().first()`
+            # answers the same question without raising either way.
+            user = (
+                User.objects.filter(email__iexact=email).order_by("date_joined").first()
+            )
+            if user is None:
+                logger.info("Password reset requested for an unregistered address")
+                _reset_feedback(request, email, registered=False, sent=False)
+                return render(request, "auth_app/forgot_password.html")
 
             # Generate password reset token
             token = default_token_generator.make_token(user)
@@ -120,27 +172,22 @@ The SciTeX Team
                     html_message=html_message,
                 )
                 logger.info(f"Password reset email sent successfully to {email}")
-                messages.success(
-                    request, "Password reset instructions have been sent to your email!"
-                )
+                _reset_feedback(request, email, registered=True, sent=True)
             except Exception as e:
                 logger.error(
                     f"Failed to send password reset email: {str(e)}", exc_info=True
                 )
-                if settings.DEBUG:
-                    messages.error(request, f"Failed to send reset email: {str(e)}")
-                else:
-                    messages.error(
-                        request, "Failed to send reset email. Please try again later."
-                    )
+                # The SEND outcome is not disclosed either: whether a mailbox
+                # accepted a message is a fact about its owner. The requester is
+                # told one thing, always — except in DEBUG, where the real
+                # failure is shown so mail problems are visible, not silent.
+                _reset_feedback(request, email, registered=True, sent=False)
 
         except User.DoesNotExist:
             logger.info(f"Password reset requested for non-existent email: {email}")
-            # For security, don't reveal if email exists
-            messages.success(
-                request,
-                "If an account with this email exists, you will receive password reset instructions.",
-            )
+            # For security, don't reveal if email exists (DEBUG shows the real
+            # outcome; production stays generic).
+            _reset_feedback(request, email, registered=False, sent=False)
 
     return render(request, "auth_app/forgot_password.html")
 

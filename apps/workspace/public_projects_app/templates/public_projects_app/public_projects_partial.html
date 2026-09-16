@@ -1,0 +1,35 @@
+{% comment %}
+Public Projects module partial — rendered by workspace_module_content at /workspace/content/public-projects/
+and included by public_projects_app/index.html for the full page.
+{% endcomment %}
+{% load static vite i18n %}
+
+<link rel="stylesheet" href="{% static 'my_projects_app/css/hub.css' %}" />
+<link rel="stylesheet" href="{% static 'public_projects_app/css/public_projects.css' %}" />
+<div class="public-projects-content" id="public-projects-content">
+    <div class="public-projects-header">
+        <h2>
+            <i class="fas fa-compass"></i> {% trans "Public Projects" context "app name" %}
+        </h2>
+        <p class="text-muted">Discover public projects, researchers and organizations</p>
+    </div>
+    {# Signed-out visitors browse Projects read-only: the Users / Organizations #}
+    {# tabs load over a sign-in-only API, so they are not offered.             #}
+    {% if not public_projects_read_only %}
+        <nav class="public-projects-tabs">
+        {# data-public-projects-tab keeps the API's "repositories" key; only the label changed. #}
+        <a href="#" class="public-projects-tab active" data-public-projects-tab="repositories">
+            <i class="fas fa-folder"></i> {% trans "Projects" %}
+        </a>
+        <a href="#" class="public-projects-tab" data-public-projects-tab="users">
+            <i class="fas fa-users"></i> Users
+        </a>
+        <a href="#" class="public-projects-tab" data-public-projects-tab="groups">
+            <i class="fas fa-building"></i> Organizations
+        </a>
+    </nav>
+    {% endif %}
+    <div class="public-projects-tab-content" id="public-projects-tab-content">{% include "public_projects_app/explore_content.html" %}</div>
+</div>
+{% vite_hmr_client %}
+{% vite_script 'public_projects_app/index' %}

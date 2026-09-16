@@ -1,6 +1,7 @@
+{% load i18n %}
 <!-- Create Name Field Partial -->
 <div class="form-group">
-    <label class="form-label" for="name">Repository Name *</label>
+    <label class="form-label" for="name">{% trans "Project name" %} <span class="required">*</span></label>
     <input type="text"
            class="form-control"
            id="name"
@@ -18,5 +19,5 @@
         <span id="availability-icon"></span>
         <span id="availability-message"></span>
     </div>
-    <div class="help-text">Choose a clear name (lowercase, hyphens for spaces).</div>
+    <div class="help-text">{% trans "Choose a clear name (lowercase, hyphens for spaces)." %}</div>
 </div>

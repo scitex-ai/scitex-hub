@@ -20,6 +20,7 @@ import socket
 from dotenv import load_dotenv
 
 from config import branding
+from config.dev_autoreload import install_templatetag_autoreload
 
 from ._logging_merge import merge_logging
 from .settings_shared import *
@@ -27,6 +28,17 @@ from .settings_shared import *
 # Environment identity -- drives the tab title marker "(dev)" and the GREEN
 # favicon. Literal, not env-var derived: running settings_dev IS development.
 SCITEX_ENV = branding.ENV_DEVELOPMENT
+install_templatetag_autoreload()
+
+# Deployment contract (card hub-cards-internal-entitlement-20260913,
+# operator 2026-09-13): accounts allowed to log in to the development
+# deployment are the SciTeX team, so "internal"-visibility apps are released
+# to every authenticated user here — a release-channel decision, not an
+# is_staff/is_superuser promotion. Env-overridable to False to exercise the
+# production hiding on a dev box. (settings_shared defaults it False.)
+SCITEX_HUB_INTERNAL_APPS_RELEASED = (
+    os.getenv("SCITEX_HUB_INTERNAL_APPS_RELEASED", "true") or "true"
+).lower() in ("1", "true", "yes", "on")
 
 
 # ---------------------------------------
@@ -298,9 +310,32 @@ DATABASES = {
         # — same issue as production (see settings_prod.py).
         # Visitor middleware DB errors cascade to views.
         "ATOMIC_REQUESTS": False,
-        "CONN_MAX_AGE": 600,  # Connection pooling (10 minutes)
+        # CONN_MAX_AGE=0, NOT 600: this server is ASGI (daphne via runserver),
+        # and Django documents that persistent connections must be disabled
+        # under ASGI. Each request runs its sync code in a per-request thread,
+        # so a "persistent" connection is never reused: it is orphaned when the
+        # request ends and stays open on Postgres until garbage collection
+        # happens to reach it. Measured on compute-03 dev, 2026-09-14: one
+        # runserver process held 36 idle backends 21 minutes after starting,
+        # and parallel browsing walked the server into max_connections=100
+        # ("too many clients", site-audit blocker D2). 0 closes the connection
+        # at request_finished, matching settings_prod/settings_staging.
+        "CONN_MAX_AGE": 0,
+        # Dev is moving onto the scitex store server behind PgBouncer in
+        # transaction mode (scitex-primary:55432), where a server-side cursor
+        # opened by QuerySet.iterator() can land on a different backend than
+        # its FETCH. Matches settings_prod; harmless against a direct postgres.
+        "DISABLE_SERVER_SIDE_CURSORS": True,
         "OPTIONS": {
             "connect_timeout": 10,
+            # On the shared store server the hub lives in its own schema of the
+            # store database (the fleet's per-tenant pattern), so the schema is
+            # chosen per connection. PgBouncer there tracks search_path.
+            **(
+                {"options": f"-c search_path={os.environ['SCITEX_HUB_DB_SCHEMA_DEV']}"}
+                if os.environ.get("SCITEX_HUB_DB_SCHEMA_DEV")
+                else {}
+            ),
         },
     }
 }

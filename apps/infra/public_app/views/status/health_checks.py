@@ -119,11 +119,48 @@ def _check_ssh_banner(host: str, port: int, timeout: float = 2.0) -> tuple[bool,
         return False, str(e)
 
 
+#: Environment variable that overrides where the Workspace SSH Gateway is probed.
+SSH_GATEWAY_PROBE_HOST_ENV = "SCITEX_HUB_SSH_GATEWAY_PROBE_HOST"
+
+#: The compose service that runs the gateway. Docker's embedded DNS resolves a
+#: service name from every container on the network, including the service's
+#: own container, so this one name is right from the web process AND from the
+#: celery worker.
+SSH_GATEWAY_SERVICE_NAME = "django"
+
+
+def ssh_gateway_probe_host(env=None, in_docker=None):
+    """Where the Workspace SSH Gateway is reachable FROM THE PROCESS RUNNING THIS CHECK.
+
+    The gateway binds 0.0.0.0:2200 inside the ``django`` container. This check
+    used to probe ``127.0.0.1`` on the theory that it always runs in that same
+    container. It does not: the public /status/ page is served from a cache
+    that ``warm_public_status_cache`` refreshes every 60 s, and that task runs
+    in the CELERY WORKER container, where 127.0.0.1:2200 is nothing. Measured
+    2026-09-05 on production: the page said "Workspace SSH Gateway: Down" for
+    a day while ``socket.create_connection(("127.0.0.1", 2200))`` inside the
+    django container answered ``SSH-2.0-paramiko_5.0.0``. The page was
+    reporting the worker's blind spot as an outage.
+
+    Resolution order: an explicit ``SCITEX_HUB_SSH_GATEWAY_PROBE_HOST`` wins;
+    inside Docker the compose service name (``django``); outside, loopback.
+    ``env`` and ``in_docker`` are parameters so the rule is testable without
+    patching ``os.environ`` or the filesystem.
+    """
+    env = os.environ if env is None else env
+    configured = (env.get(SSH_GATEWAY_PROBE_HOST_ENV) or "").strip()
+    if configured:
+        return configured
+    if in_docker is None:
+        in_docker = Path("/.dockerenv").exists()
+    return SSH_GATEWAY_SERVICE_NAME if in_docker else "127.0.0.1"
+
+
 def check_ssh_services(status_data):
     """Check SSH services (Workspace Gateway and Gitea) with banner verification."""
-    # Workspace SSH Gateway runs in the same container (Django container)
-    # So always check on localhost, regardless of Docker environment
-    workspace_ssh_host = "127.0.0.1"
+    # The gateway runs in the django container; this check may not. See
+    # ssh_gateway_probe_host for the day that difference showed as an outage.
+    workspace_ssh_host = ssh_gateway_probe_host()
 
     # Gitea SSH runs in separate container, use Docker network hostname
     gitea_ssh_host = "gitea" if Path("/.dockerenv").exists() else "127.0.0.1"
@@ -135,11 +172,19 @@ def check_ssh_services(status_data):
             "name": "Workspace SSH Gateway",
             "port": 2200,
             "public_url": "ssh.scitex.ai",
+            # The host this process actually probed. A "down" verdict that
+            # names its vantage point can be checked; one that does not was
+            # believed for a day (2026-09-05).
+            "probed_host": workspace_ssh_host,
             "is_running": is_functional,
             "status": "running" if is_functional else "down",
             "health_class": "healthy" if is_functional else "down",
             "banner": banner_or_error if is_functional else None,
-            "error": None if is_functional else banner_or_error,
+            "error": (
+                None
+                if is_functional
+                else f"{banner_or_error} (probed {workspace_ssh_host}:2200)"
+            ),
         }
     )
 
@@ -198,13 +243,16 @@ def _check_local_db(name, package_name):
 
         if status in ("ok", "healthy", "running"):
             api_url = pkg_info.get("api_url", "")
+            db_path = pkg_info.get("db_path", "")
             result.update(
                 {
                     "is_running": True,
                     "status": "healthy",
                     "health_class": "healthy",
                     "mode": mode,
-                    "details": f"{mode} mode" + (f" ({api_url})" if api_url else ""),
+                    "details": f"{mode} mode"
+                    + (f" ({api_url})" if api_url else "")
+                    + (f" at {db_path}" if db_path else ""),
                 }
             )
         elif status == "unreachable":
@@ -225,12 +273,17 @@ def _check_local_db(name, package_name):
                     "details": f"Status: {status}",
                 }
             )
-    except FileNotFoundError:
+    except FileNotFoundError as e:
+        # "Not configured" hid the real question for a day: configured WHERE?
+        # The worker container reported both local databases degraded because
+        # it had no /data mount, while the django container read them fine.
+        # Name the path this process failed to open so the verdict can be
+        # checked against the container it came from.
         result.update(
             {
                 "status": "degraded",
                 "health_class": "warning",
-                "details": "Database not configured",
+                "details": f"Database file not found from this process: {e}",
             }
         )
     except Exception as e:

@@ -19,8 +19,8 @@ The sibling-PREFIX vector (not plain ``..``) is the one that distinguishes
 containment from a prefix match: a differently-named sibling would be caught
 by both guards, but ``demo`` vs ``demo-secret`` passes the OLD guard and is
 rejected only by the NEW one. So these tests FAIL on the pre-patch code
-(200 + leaked bytes / file written) and PASS after the fix (400, nothing
-leaked / written) — a genuine red/green proof.
+(200 + leaked bytes / file written) and PASS after the fix (concealed 404 for
+reads, 400 for writes, nothing leaked / written) — a genuine red/green proof.
 
 Views are invoked directly via RequestFactory (the real, routed view
 functions) to deliver the raw ``..`` path bytes; the Django test client
@@ -101,12 +101,12 @@ class WorkspaceApiContainmentTest(TestCase):
 
     # -- READ: api_get_file_content ---------------------------------------
 
-    def test_anonymous_sibling_prefix_escape_read_returns_400(self):
+    def test_anonymous_sibling_prefix_escape_read_is_concealed_as_404(self):
         # Arrange
         # Act
         response = self._read(ESCAPE_PATH)
         # Assert
-        assert response.status_code == 400
+        assert response.status_code == 404
 
     def test_anonymous_sibling_prefix_escape_read_leaks_no_bytes(self):
         # Arrange

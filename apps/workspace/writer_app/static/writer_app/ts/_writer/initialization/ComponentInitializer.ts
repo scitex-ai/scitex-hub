@@ -22,6 +22,7 @@ import { PDFScrollZoomHandler } from "../../modules/pdf-scroll-zoom";
 import { HorizontalResizer } from "@/components/resizer";
 import { initPdfContextMenu } from "../../modules/pdf-scroll-zoom/pdf-context-menu";
 import { showToast } from "../../utils/index";
+import { fetchManuscriptStatus } from "../files/ManuscriptStatus";
 import {
   setSectionOpsPdfPreviewManager,
   setDownloadPdfPreviewManager,
@@ -241,16 +242,16 @@ export class ComponentInitializer {
     if (!this.config.projectId) return;
 
     const colorMode = localStorage.getItem("pdf-color-mode") || "light";
-    const pdfUrl = `/apps/writer/api/project/${this.config.projectId}/pdf/preview-abstract-${colorMode}.pdf`;
+    const pdfFilename = `preview-abstract-${colorMode}.pdf`;
+    const pdfUrl = `/apps/writer/api/project/${this.config.projectId}/pdf/${pdfFilename}`;
 
     console.log(
       "[ComponentInitializer] Auto-start: Checking for existing PDF...",
     );
 
-    // Check if PDF exists and load it
-    fetch(pdfUrl, { method: "HEAD" })
-      .then((response) => {
-        if (response.ok) {
+    fetchManuscriptStatus(this.config.projectId, pdfFilename)
+      .then((status) => {
+        if (status.has_pdf) {
           console.log(
             "[ComponentInitializer] Auto-start: Found existing PDF, loading...",
           );

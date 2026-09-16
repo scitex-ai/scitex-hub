@@ -183,7 +183,7 @@ export function handleSourceChange() {
   updateActiveFilterCount();
   updateSourceDisplay();
   // Auto-submit search if there's a query
-  const searchInput = document.querySelector('input[name="q"]');
+  const searchInput = document.querySelector('[name="q"]');
   if (searchInput && searchInput.value.trim()) {
     const autoSubmitForm = document.querySelector("form");
     if (autoSubmitForm) {

@@ -1,0 +1,13 @@
+{% load static i18n %}
+
+{% comment %}
+My Projects, loaded in-page by the workspace sidebar / tab bar
+(/apps/workspace/content/my_projects/). The same project list, in the same file-tree
+look, as the full page (/apps/my-projects/). It used to inject the GitHub-style
+repository screen (branch list, README) for the current project; that screen
+stays at /<owner>/<slug>/?view=repository. Rows open the project, whose page
+is the file tree.
+{% endcomment %}
+<div class="hub-partial-content ws-project-module-list" data-username="{{ user.username }}">
+    {% include 'global_base_partials/project_tree_list.html' with projects=project_nav_projects %}
+</div>

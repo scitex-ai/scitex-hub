@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 
 from apps.infra.accounts_app.models import UserProfile
+from apps.infra.accounts_app.views.project_health_i18n import project_health_catalog
 
 User = get_user_model()
 
@@ -92,11 +93,14 @@ def account_settings(request):
 
 @login_required
 def repository_health(request):
-    """Repository Health inline settings page."""
+    """Project Health inline settings page."""
     return render(
         request,
         "accounts_app/repository_health.html",
-        {"username": request.user.username},
+        {
+            "username": request.user.username,
+            "project_health_i18n": project_health_catalog(),
+        },
     )
 
 

@@ -19,6 +19,7 @@ import type { UndoRedoHandler } from "./UndoRedoHandler";
 import type { ContextMenuHandler } from "./ContextMenuHandler";
 import type { FileActions } from "./FileActions";
 import { TreeUtils } from "./TreeUtils";
+import { isWriteShortcut } from "../_ReadOnly";
 import type { TreeItem } from "../types";
 
 export interface KeyboardHandlerCallbacks {
@@ -168,6 +169,11 @@ export class WorkspaceKeyboardHandler {
         (sidebar.contains(e.target as Node) ||
           sidebar.contains(document.activeElement)));
     if (!isOurTree) {
+      return;
+    }
+
+    // Read-only tree: no cut/paste/delete/rename/new/undo shortcuts.
+    if (this.config.readOnly && isWriteShortcut(e)) {
       return;
     }
 

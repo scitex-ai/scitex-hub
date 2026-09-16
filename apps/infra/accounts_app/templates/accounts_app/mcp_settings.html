@@ -1,8 +1,8 @@
 {% extends 'global_base.html' %}
 
-{% load static vite %}
+{% load static vite i18n %}
 
-{% block title %}MCP Tools - Settings - SciTeX Hub{% endblock %}
+{% block title %}{% trans "MCP Tools - Settings - SciTeX Hub" %}{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/layouts/settings-layout.css' %}" />
     <link rel="stylesheet" href="{% static 'accounts_app/css/mcp_settings.css' %}" />
@@ -15,9 +15,9 @@
             </aside>
             <main class="settings-content">
                 <div class="settings-header">
-                    <h1 class="settings-title">MCP Tools</h1>
+                    <h1 class="settings-title">{% trans "MCP Tools" %}</h1>
                     <p class="settings-subtitle">
-                        Toggle which SciTeX MCP tool groups are available to Claude Code and other AI agents in your terminal.
+                        {% trans "Toggle which SciTeX MCP tool groups are available to Claude Code and other AI agents in your terminal." %}
                     </p>
                 </div>
                 <!-- Server Status -->
@@ -46,7 +46,7 @@
                                         <p class="mcp-toggle-desc">{{ g.desc }}</p>
                                         {% if g.tools %}
                                             <details class="mcp-tools-list">
-                                                <summary>{{ g.tool_count }} tool{{ g.tool_count|pluralize }}</summary>
+                                                <summary>{% blocktrans trimmed count counter=g.tool_count %}{{ counter }} tool{% plural %}{{ counter }} tools{% endblocktrans %}</summary>
                                                 <ul>
                                                     {% for tool in g.tools %}
                                                         <li>
@@ -65,22 +65,22 @@
                     {% endfor %}
                     <div class="mcp-actions">
                         <button type="submit" class="btn btn-primary" id="mcp-save-btn">
-                            <i class="fas fa-save"></i> Save preferences
+                            <i class="fas fa-save"></i> {% trans "Save preferences" %}
                         </button>
                         <button type="button" class="btn btn-outline-secondary" id="mcp-select-all">
-                            <i class="fas fa-check-double"></i> Select all
+                            <i class="fas fa-check-double"></i> {% trans "Select all" %}
                         </button>
                         <button type="button" class="btn btn-outline-secondary" id="mcp-deselect-all">
-                            <i class="fas fa-times"></i> Deselect all
+                            <i class="fas fa-times"></i> {% trans "Deselect all" %}
                         </button>
                         <span id="mcp-save-toast" class="mcp-save-toast" style="display:none">
-                            <i class="fas fa-check"></i> Saved
+                            <i class="fas fa-check"></i> {% trans "Saved" %}
                         </span>
                     </div>
                     <p class="mcp-info">
                         <i class="fas fa-info-circle"></i>
-                        Changes apply next time you start Claude Code in your terminal.
-                        The <code>scitex</code> MCP server runs locally in your container via <code>scitex mcp start</code>.
+                        {% trans "Changes apply next time you start Claude Code in your terminal." %}
+                        {% blocktrans trimmed %}The <code>scitex</code> MCP server runs locally in your container via <code>scitex mcp start</code>.{% endblocktrans %}
                     </p>
                 </form>
             </main>

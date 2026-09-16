@@ -63,6 +63,7 @@ export class FileActions {
     path: string,
     itemEl: HTMLElement,
   ): Promise<{ newPath: string } | null> {
+    if (this.config.readOnly) return null;
     const item = this.findItem(path);
     if (!item) {
       console.error(
@@ -182,6 +183,7 @@ export class FileActions {
   }
 
   async deleteFile(path: string): Promise<void> {
+    if (this.config.readOnly) return;
     // No confirmation - delete directly (files can be recovered via git)
     try {
       const response = await fetch(
@@ -217,6 +219,7 @@ export class FileActions {
   }
 
   async createNewFile(folderPath: string): Promise<void> {
+    if (this.config.readOnly) return;
     // Expand the folder first to show inline input (not needed for root)
     if (folderPath) {
       this.stateManager.expand(folderPath);
@@ -372,6 +375,7 @@ export class FileActions {
   }
 
   async createNewFolder(folderPath: string): Promise<void> {
+    if (this.config.readOnly) return;
     // Expand the folder first to show inline input (not needed for root)
     if (folderPath) {
       this.stateManager.expand(folderPath);

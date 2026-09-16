@@ -1,9 +1,9 @@
 {% extends "global_base.html" %}
+{% load i18n %}
 
-{% block title %}About SciTeX - Tools for Research Automation and Verification{% endblock %}
+{% block title %}{% trans "About SciTeX - Tools for Research Automation and Verification" %}{% endblock %}
 {% block meta_description %}
-    SciTeX provides end-to-end research automation from data to paper,
-    with automated verification to reduce reviewer burden.
+    {% trans "SciTeX provides end-to-end research automation from data to paper, with automated verification to reduce reviewer burden." %}
 {% endblock %}
 {% block extra_css %}
     {% load static %}
@@ -21,49 +21,49 @@
         <!-- Alpha Notice -->
         <div class="about-alpha-notice">
             <i class="fas fa-flask"></i>
-            <span>Alpha Release: Active development. Expect breaking changes.</span>
+            <span>{% trans "Alpha Release: Active development. Expect breaking changes." %}</span>
         </div>
         <!-- Hero Section -->
         <header class="minimal-hero">
-            <h1 class="minimal-hero-title">About SciTeX</h1>
+            <h1 class="minimal-hero-title">{% trans "About SciTeX" %}</h1>
         </header>
         <!-- Narrative Content -->
         <article class="about-narrative">
             <section class="about-section">
-                <h2>Background</h2>
+                <h2>{% trans "Background" %}</h2>
                 <p>
-                    Paper production is getting faster. LLMs have made writing more efficient, and publication volume is growing. Meanwhile, reviewer burden keeps increasing—time is spent on mechanical checks like whether code runs or numbers match.
+                    {% trans "Paper production is getting faster. LLMs have made writing more efficient, and publication volume is growing. Meanwhile, reviewer burden keeps increasing—time is spent on mechanical checks like whether code runs or numbers match." %}
                 </p>
                 <p>
-                    Reproducibility remains an issue. "Reproducible" on paper doesn't mean actually reproduced. Manually verifying code-to-manuscript consistency is tedious and error-prone.
-                </p>
-            </section>
-            <section class="about-section">
-                <h2>What SciTeX Does</h2>
-                <p>
-                    <strong>End-to-end pipeline from data to paper.</strong> Analysis code, figures, and manuscripts are connected in a single workflow. Numbers in the manuscript reference analysis outputs directly—no manual transcription. Figures can be regenerated from source data.
-                </p>
-                <p>
-                    <strong>Automated verification.</strong> Checks whether code runs, outputs match, and results are reproducible. Maintains a state of "reproduced," not just "reproducible."
-                </p>
-                <p>
-                    <strong>Human-AI interoperability.</strong> Code written by humans is readable by AI. Actions taken by AI are recorded as code. Both work in the same format.
-                </p>
-                <p>
-                    <strong>Work anywhere.</strong> Humans or agents, cloud or local, self-hosted or SSH. Same tools, same workflow.
-                </p>
-                <p>
-                    <strong>LLM-provider agnostic.</strong> Use whatever AI tools you prefer. No vendor lock-in.
+                    {% trans 'Reproducibility remains an issue. "Reproducible" on paper doesn\'t mean actually reproduced. Manually verifying code-to-manuscript consistency is tedious and error-prone.' %}
                 </p>
             </section>
             <section class="about-section">
-                <h2>License</h2>
-                <p>AGPL-3.0 for users' freedom. Outputs belong to you.</p>
+                <h2>{% trans "What SciTeX Does" %}</h2>
+                <p>
+                    <strong>{% trans "End-to-end pipeline from data to paper." %}</strong> {% trans "Analysis code, figures, and manuscripts are connected in a single workflow. Numbers in the manuscript reference analysis outputs directly—no manual transcription. Figures can be regenerated from source data." %}
+                </p>
+                <p>
+                    <strong>{% trans "Automated verification." %}</strong> {% trans 'Checks whether code runs, outputs match, and results are reproducible. Maintains a state of "reproduced," not just "reproducible."' %}
+                </p>
+                <p>
+                    <strong>{% trans "Human-AI interoperability." %}</strong> {% trans "Code written by humans is readable by AI. Actions taken by AI are recorded as code. Both work in the same format." %}
+                </p>
+                <p>
+                    <strong>{% trans "Work anywhere." %}</strong> {% trans "Humans or agents, cloud or local, self-hosted or SSH. Same tools, same workflow." %}
+                </p>
+                <p>
+                    <strong>{% trans "LLM-provider agnostic." %}</strong> {% trans "Use whatever AI tools you prefer. No vendor lock-in." %}
+                </p>
             </section>
             <section class="about-section">
-                <h2>Status</h2>
+                <h2>{% trans "License" %}</h2>
+                <p>{% trans "AGPL-3.0 for users' freedom. Outputs belong to you." %}</p>
+            </section>
+            <section class="about-section">
+                <h2>{% trans "Status" %}</h2>
                 <p>
-                    Alpha. Core workflow is functional, but the verification pipeline is still in development. Expect breaking changes.
+                    {% trans "Alpha. Core workflow is functional, but the verification pipeline is still in development. Expect breaking changes." %}
                 </p>
             </section>
         </article>

@@ -1,0 +1,9 @@
+{% extends "global_base.html" %}
+
+{% comment %}
+Public Projects — full page. A single pane: the same partial the workspace
+module loader injects (public_projects_partial.html), rendered server-side.
+{% endcomment %}
+{% block content %}
+    {% include "public_projects_app/public_projects_partial.html" %}
+{% endblock %}

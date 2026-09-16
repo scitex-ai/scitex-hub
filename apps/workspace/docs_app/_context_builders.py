@@ -118,14 +118,12 @@ def _resolve_doc_page(doc_base, page_file: str):
 
     Returns None (never raises) so the caller falls back to index.html.
     """
-    from pathlib import Path
+    from apps.infra.platform_app.services.paths import resolve_within
 
-    if not page_file or page_file.startswith("/") or ".." in Path(page_file).parts:
+    if not page_file or page_file.startswith("/"):
         return None
-    try:
-        target = (doc_base / page_file).resolve()
-        target.relative_to(doc_base.resolve())
-    except (ValueError, OSError, RuntimeError):
+    target = resolve_within(doc_base, page_file)
+    if target is None:
         return None
     return target if target.is_file() else None
 
@@ -156,7 +154,11 @@ def _get_sphinx_package_context(slug: str, sphinx_page: str = None) -> dict:
     target_path = _resolve_doc_page(doc_base, page_file)
     if target_path is None:
         page_file = "index.html"
-        target_path = doc_base / page_file
+        from apps.infra.platform_app.services.paths import resolve_within
+
+        target_path = resolve_within(doc_base, page_file)
+        if target_path is None:
+            return {"doc_content": "<p>Documentation not built yet.</p>"}
         if not target_path.is_file():
             return {"doc_content": "<p>Documentation not built yet.</p>"}
 

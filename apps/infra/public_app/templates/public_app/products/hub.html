@@ -1,5 +1,5 @@
 {% extends "public_app/hub_base.html" %}
-{% load static %}
+{% load static i18n %}
 {%block title%}
     SciTeX Hub - Integrated Research Platform
 {% endblock %}
@@ -143,7 +143,7 @@
                     accelerate their discoveries.
                 </p>
                 <div class="cta-buttons">
-                    <a href="{% url 'public_app:signup' %}" class="btn btn-primary">Start Free Trial</a>
+                    <a href="{% url 'auth_app:signup' %}" class="btn btn-primary">{% trans "Start your 30-day trial" %}</a>
                     <a href="{% url 'public_app:demo' %}" class="btn btn-secondary">Live Demo</a>
                 </div>
             </div>

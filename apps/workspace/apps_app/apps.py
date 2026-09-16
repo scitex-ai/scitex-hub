@@ -23,6 +23,10 @@ class AppsAppConfig(AppConfig):
                 "[apps_app] Skipped loading approved apps (likely during migration)"
             )
 
+        from .services.plugin_apps import register_plugin_modules
+
+        register_plugin_modules()
+
         # Load dev preview apps if configured
         try:
             from django.conf import settings

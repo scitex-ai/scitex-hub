@@ -46,33 +46,53 @@
   text-underline-offset: 3px;
 }
 
-.setup-diagram {
-  display: block;
-  margin: 1rem 0;
+.about-narrative code {
+  overflow-wrap: anywhere;
 }
 
-.setup-diagram-img {
-  width: 100%;
-  max-width: 900px;
-  height: auto;
-  border-radius: 8px;
-  margin: 0 auto;
-  display: block;
+.about-narrative pre code {
+  overflow-wrap: normal;
 }
 
-/* Infrastructure Deployment SVG */
-.setup-architecture-diagram {
-  margin: 1.5rem 0;
+.setup-table-wrap {
   overflow-x: auto;
+  margin: 0.75rem 0;
 }
 
-.setup-architecture-svg {
+.setup-table {
   width: 100%;
-  height: auto;
-  border-radius: 8px;
-  border: 1px solid var(--border-default);
+  border-collapse: collapse;
+  font-size: 0.9rem;
 }
 
-[data-theme="dark"] .setup-architecture-svg {
-  filter: invert(0.88) hue-rotate(180deg);
+.setup-table th,
+.setup-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border-default, #e0e0e0);
+}
+
+.setup-table td:first-child {
+  width: 40%;
+}
+
+@media (max-width: 600px) {
+  .setup-table,
+  .setup-table tbody,
+  .setup-table tr,
+  .setup-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .setup-table thead {
+    display: none;
+  }
+
+  .setup-table td:first-child {
+    width: 100%;
+    border-bottom: none;
+    padding-bottom: 0;
+  }
 }

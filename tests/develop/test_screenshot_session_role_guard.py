@@ -122,13 +122,13 @@ class TestOtherNonVisitorRolesAreRejected:
         rejects = pytest.raises(NotAPooledVisitorError)
         # Assert
         with rejects:
-            assert_pooled_visitor(role, "Projects (/apps/home/)")
+            assert_pooled_visitor(role, "Projects (/apps/my-projects/)")
 
     def test_anonymous_message_says_no_slot_was_allocated(self):
         # Arrange
         role = ROLE_ANONYMOUS
         # Act
-        message = rejection_message(role, "Projects (/apps/home/)")
+        message = rejection_message(role, "Projects (/apps/my-projects/)")
         # Assert
         assert "ANONYMOUS" in message
 

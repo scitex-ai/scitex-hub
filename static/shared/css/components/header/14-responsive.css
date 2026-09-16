@@ -21,13 +21,99 @@
   }
 }
 
-/* --- Hamburger button + mobile menu: hidden on desktop --- */
+/* One 44px hamburger is the rightmost control at every width. */
 .mobile-hamburger {
-  display: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  margin-left: 0;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  position: relative;
+  z-index: 1102;
 }
 
 .mobile-header-menu {
   display: none;
+  position: fixed;
+  top: 52px;
+  right: 12px;
+  width: min(360px, calc(100vw - 24px));
+  max-height: calc(100dvh - 64px);
+  overflow-y: auto;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 12px;
+  background: var(--bg-page, #0d1117);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+  z-index: 1100;
+}
+
+.mobile-header-menu.open {
+  display: flex;
+}
+
+.mobile-header-menu .mobile-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-primary);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.mobile-header-menu .mobile-menu-item:focus-visible,
+.mobile-hamburger:focus-visible {
+  outline: 2px solid var(--text-link, #2f81f7);
+  outline-offset: -2px;
+}
+
+.mobile-header-menu .mobile-menu-divider {
+  height: 1px;
+  margin: 8px 0;
+  background: var(--border-default, #30363d);
+}
+
+.mobile-header-menu .mobile-menu-item i {
+  width: 20px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.mobile-header-menu .mobile-menu-item--user {
+  cursor: default;
+  font-weight: 600;
+}
+
+.mobile-header-menu .mobile-menu-item--indent {
+  padding-left: 40px;
+}
+
+.mobile-header-menu .mobile-menu-item--section {
+  display: block;
+  min-height: 0;
+  padding: 8px 12px 4px;
+  color: var(--text-muted);
+  cursor: default;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 /* Mobile visitor badge: hidden on desktop, shown on mobile */
@@ -54,7 +140,10 @@
     height: 44px;
     justify-content: space-between;
     width: 100%;
-    padding: 0 12px;
+    /* Side insets keep the close control clear of a landscape notch in the
+       edge-to-edge PWA; env() is 0 everywhere else. */
+    padding: 0 calc(12px + env(safe-area-inset-right, 0px)) 0
+      calc(12px + env(safe-area-inset-left, 0px));
   }
 
   .header-center {
@@ -107,6 +196,82 @@
 
   .header-left {
     gap: 8px;
+
+    /* THE HAMBURGER — THE PRIMARY NAVIGATION CONTROL — RENDERED 48px OFF THE
+       RIGHT EDGE OF A 390px VIEWPORT WITHOUT THESE TWO DECLARATIONS.
+
+       `.global-header-inner` is `display: flex; flex-wrap: nowrap` with 364px
+       of content box at 390px. Its three children measure:
+
+           .header-left                  253px   flex 0 1 auto   min-width auto
+           .header-visitor-badge-mobile  142px   flex 0 1 auto   min-width auto
+           .mobile-hamburger              15px   flex 0 1 auto   min-width auto
+           + 2 gaps                      ----
+                                         426px   against 364px available
+
+       Every child is `flex-shrink: 1` AND `min-width: auto`. On a flex item
+       the automatic minimum is its MIN-CONTENT size, so flex-shrink cannot
+       act: nothing shrinks, the row stays 438px wide, and the hamburger --
+       last in source order -- absorbs the entire overflow.
+
+       This is the same mechanism as `.apps-grid { grid-template-columns: 1fr }`
+       (= `minmax(auto, 1fr)`, automatic minimum = min-content), fixed in #741.
+       Same root cause, two layout modes, two pages. Expect more instances:
+       the pattern is any shrinkable box whose automatic minimum is not zeroed.
+
+       MEASURED on prod, /apps/store/, 390x844, mobile UA, anonymous, by
+       mutating these declarations on the live page and reverting:
+
+           as shipped     doc overflow  48   .header-left 253   ham +48 OFF
+           with this fix  doc overflow   0   .header-left 181   ham  -8 on
+           reverted       doc overflow  48   .header-left 253   ham +48 OFF
+
+       `overflow: hidden` IS REQUIRED, and `min-width: 0` alone is a WORSE
+       BUG THAN THE ONE IT FIXES. min-width:0 shrinks .header-left's BOX to
+       181px while its CONTENT stays 253px, so the project selector paints
+       ON TOP OF the visitor badge.
+
+       That was invisible to getBoundingClientRect(), which reports BOXES:
+       the box overlap is 65px WITH AND WITHOUT `overflow: hidden` -- it
+       never moves, so the obvious metric rejects the correct fix. The
+       question is about PAINT, and `document.elementFromPoint()` answers it
+       because it respects clipping. Five probes across the badge's own box:
+
+           as shipped              badge badge badge badge OFFSCREEN
+           min-width:0 only        HEADER-LEFT HEADER-LEFT badge badge badge
+           min-width:0 + hidden    badge badge badge badge badge
+
+       2 of 5 points collide under min-width:0 alone; 0 of 5 with the clip.
+       (The OFFSCREEN in the shipped rows is not an anomaly -- the badge runs
+       to x=411 on a 390 viewport, so that probe point is off-screen. It is
+       the shipped defect appearing in a second instrument.)
+
+       WHAT `overflow: hidden` IS FOR NOW -- READ BEFORE DELETING IT.
+
+       An earlier draft of this change shipped the clip as THE fix and called
+       the mid-glyph cut "known residue, not fixed here". That is no longer
+       the situation, and the note is corrected rather than removed because
+       the wrong version was a claim about what could not be fixed.
+
+       `.project-selector-btn { width: 100% }` below, plus `min-width: 0` on
+       `.project-selector-text` (12-project-selector.css), make the button
+       fill its parent and the project name TRUNCATE WITH A REAL ELLIPSIS.
+       Nothing overflows any more, and the paint-collision count is 0 of 5
+       even with THIS declaration removed -- measured on prod, reverted.
+
+       So `overflow: hidden` is now a SAFETY NET, not the mechanism. Kept
+       because `.header-left` has other children (logo, AI toggle) whose
+       overflow it also contains, and because a regression in the ellipsis
+       chain should degrade to a clip rather than to a project name painted
+       across the visitor badge.
+
+       Its cost, stated so the next person can weigh it: A NET HIDES THE
+       FAILURE IT CATCHES. If `width: 100%` is ever lost, this clip makes the
+       page look almost right instead of obviously wrong. That is why the
+       guard test asserts the ellipsis chain SEPARATELY, rather than settling
+       for "no visible collision". */
+    min-width: 0;
+    overflow: hidden;
   }
 
   /* Hide AI toggle in compact header (accessible via tab bar Console pane) */
@@ -128,6 +293,44 @@
     max-width: 200px;
     font-size: 12px;
     padding: 4px 6px;
+
+    /* `width: 100%` IS WHAT MAKES THE ELLIPSIS POSSIBLE, and the reason is a
+       form-control quirk rather than anything about flexbox.
+
+       This is a <button>. Form controls are SHRINK-TO-FIT: `width: auto`
+       resolves to the element's max-content width, NOT to the containing
+       block, the way a <div> would. So the button stayed 187px wide inside a
+       parent measured at 115px and simply overflowed it.
+
+       That is why none of the obvious levers moved it. All measured on prod,
+       each reverted:
+
+           .project-selector-btn { flex-shrink: 1 }   btn 187   INERT
+           .project-selector-btn { min-width: 0 }     btn 187   INERT
+           .project-selector-btn { max-width: 100% }  btn 187   INERT
+           .project-selector-text { min-width: 0 }    btn 187   INERT
+           .project-selector-btn { width: 100% }      btn 115   <- the lever
+
+       flex-* properties are inert here for a second, independent reason:
+       the parent `.header-project-selector-inline` is `display: block`
+       (02-layout.css), so this button is not a flex ITEM at all and
+       `flex-shrink: 0` in 12-project-selector.css:23 never applied to
+       anything. Two red herrings stacked on one element.
+
+       WITH this line, at 390x844:
+
+           .header-project-selector-inline  115px
+           .project-selector-btn            115px   (was 187, overflowing)
+           .project-selector-text            83px   scrollWidth 155
+           ellipsis                         RENDERS
+           document overflow                0px
+           hamburger                        on-screen
+           paint collisions on the badge    0 of 5
+
+       Scoped to mobile deliberately: on desktop the button should keep its
+       intrinsic 160-220px sizing, where there is room and no truncation is
+       wanted. */
+    width: 100%;
   }
 
   .project-files-btn {
@@ -156,23 +359,69 @@
 
   .mobile-hamburger i {
     font-size: 1.2rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* --- Close control (the hamburger while the menu is open) ---
+
+     2026-09-14 iPhone standalone-PWA report: the close "x" was hard to see and
+     sat half under the sheet's top border. The button keeps its 44x44 hit
+     area; the visible chip is inset 4px so it never touches the header's
+     bottom border, and it uses the page/border/text tokens so it has contrast
+     in both themes. */
+  .mobile-hamburger[aria-expanded="true"]::before {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    border-radius: 10px;
+    background: var(--bg-muted, rgba(127, 127, 127, 0.16));
+    border: 1px solid var(--border-default, #30363d);
+  }
+
+  .mobile-hamburger:focus-visible {
+    outline: 2px solid var(--text-link, #2f81f7);
+    outline-offset: -2px;
+    border-radius: 10px;
+  }
+
+  /* The header's collapse slider sits on the header's bottom edge, right next
+     to the close control; it is meaningless while the sheet is open. */
+  .global-header:has(.mobile-header-menu.open) ~ .header-collapse-toggle {
+    display: none !important;
   }
 
   /* --- Mobile menu overlay --- */
   .mobile-header-menu {
     display: none;
     position: fixed;
-    top: 44px;
+    /* Start BELOW the header, whose height includes the iOS status-bar inset
+       in the standalone PWA (01-container.css). A bare 44px slid the sheet
+       under the header there, clipping the logo and the close control. The
+       inline handler refines this from the header's measured bottom edge. */
+    top: calc(44px + env(safe-area-inset-top, 0px));
     left: 0;
     right: 0;
     bottom: 0;
+    width: auto;
+    max-height: none;
     background: var(--bg-page, #0d1117);
     z-index: 1100;
     flex-direction: column;
-    padding: 16px;
+    padding: 16px calc(16px + env(safe-area-inset-right, 0px))
+      calc(16px + env(safe-area-inset-bottom, 0px))
+      calc(16px + env(safe-area-inset-left, 0px));
     gap: 8px;
     overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     border-top: 1px solid var(--border-default, #30363d);
+  }
+
+  /* Flex items in a scroll container must not shrink to fit it: the sheet
+     scrolls instead of squashing rows and dividers. */
+  .mobile-header-menu > * {
+    flex-shrink: 0;
   }
 
   .mobile-header-menu.open {
@@ -193,14 +442,23 @@
      dock, so the last entry was permanently untappable.
 
      That is the same defect this PR removes from the footer, one layer up:
-     the legal route would exist, render, and not be reachable. Scoped to
-     :has(.launcher-dock) because only launcher pages carry the dock —
-     elsewhere the menu already reaches the viewport edge safely.
-     --launcher-dock-clearance is the launcher's own single source of truth
-     for this band (apps_app/css/launcher/mobile.css), and it ships with the
-     dock; the literal fallback covers the var being absent. */
-  body:has(.launcher-dock) .mobile-header-menu {
-    padding-bottom: var(--launcher-dock-clearance, 102px);
+     the legal route would exist, render, and not be reachable.
+
+     2026-09-14: the dock is now the SITE dock on every page
+     (shared/css/components/site-dock.css), so this is scoped to
+     :has(.site-dock) and reads that file's --site-dock-clearance band. The
+     literal fallback covers the variable being absent. */
+  body:has(.site-dock) .mobile-header-menu {
+    /* --site-dock-clearance already carries the dock height, its gap and
+       env(safe-area-inset-bottom); +16px keeps the last row off the dock's
+       shadow. */
+    padding-bottom: calc(
+      var(
+          --site-dock-clearance,
+          calc(90px + env(safe-area-inset-bottom, 0px))
+        ) +
+        16px
+    );
   }
 
   .mobile-header-menu .mobile-menu-item {
@@ -252,10 +510,24 @@
     font-size: 0.9rem;
   }
 
+  /* Section label ("Settings") — a non-interactive heading that groups the
+     app's reference/developer entries (Keyboard Shortcuts, Server Status). */
+  .mobile-header-menu .mobile-menu-item--section {
+    display: block;
+    padding: 8px 16px 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    cursor: default;
+    min-height: 0;
+  }
+
   /* Show header collapse toggle on mobile (double-click or button to collapse) */
   .header-collapse-toggle {
     display: flex !important;
-    top: 44px;
+    top: calc(44px + env(safe-area-inset-top, 0px));
   }
 
   .global-header.collapsed ~ .header-collapse-toggle {
@@ -265,7 +537,8 @@
 
 @media (max-width: 480px) {
   .global-header-inner {
-    padding: 0 8px;
+    padding: 0 calc(8px + env(safe-area-inset-right, 0px)) 0
+      calc(8px + env(safe-area-inset-left, 0px));
   }
 
   .header-logo span {

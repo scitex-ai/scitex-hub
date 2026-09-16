@@ -1,4 +1,4 @@
-{% load static vite %}
+{% load static vite project_scope_tags %}
 
 <meta charset="UTF-8" />
 <meta name="viewport"
@@ -17,7 +17,11 @@
         // Canonical key "stx-theme" (converged with scitex-ui); legacy
         // key read as fallback for one release cycle. Default dark —
         // matches theme-switcher.ts's new-visitor default.
-        const theme = localStorage.getItem("stx-theme")
+        // The dock chat embed is pinned to its parent page's theme.
+        const qs = new URLSearchParams(window.location.search);
+        const pinned = qs.get("embed") === "1" ? qs.get("theme") : null;
+        const theme = (pinned === "light" || pinned === "dark") ? pinned
+            : localStorage.getItem("stx-theme")
             || localStorage.getItem("scitex-theme-preference")
             || "dark";
         if (theme === "dark") {
@@ -48,17 +52,25 @@
 <link rel="shortcut icon" type="image/svg+xml" href="{% static SCITEX_FAVICON %}" />
 <link rel="alternate icon" type="image/svg+xml" href="{% static SCITEX_FAVICON %}" />
 <!-- PWA -->
-<link rel="manifest" href="/manifest.json" />
+<link rel="manifest" href="/manifest.json?v=6" />
 <meta name="theme-color" content="#0d1117" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="SciTeX" />
 <meta name="mobile-web-app-capable" content="yes" />
+{% comment %}
+   Home-screen icon: navy circle logo at 84% of the tile (8% margin) on opaque white
+   (iOS renders transparent pixels black), clear of the rounded mask. iOS
+   caches touch icons hard -- bump the filename (and ?v) on any change.
+{% endcomment %}
 <link rel="apple-touch-icon"
-      href="{% static 'shared/images/favicons/apple-touch-icon.png' %}?v=2" />
+      sizes="180x180"
+      href="{% static 'shared/images/favicons/apple-touch-icon-padded-180.png' %}?v=6" />
 {% if user.is_authenticated %}
     <meta name="user-registration-date" content="{{ user.date_joined|date:'c' }}" />
 {% endif %}
+{# Host service: project-scope leaf apps place their own picker over this provider. #}
+{% hub_project_provider_meta %}
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="{% block og_type %}website{% endblock %}" />
 <meta property="og:url" content="{% block og_url %}https://scitex.ai/{% endblock %}" />

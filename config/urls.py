@@ -24,8 +24,10 @@ from apps.infra.project_app.views import (
     project_create,
 )
 from apps.infra.public_app.views import healthz
-from apps.workspace.repo_app.views.dispatch import root_dispatch
-from apps.workspace.repo_app.views.index import current_project_view
+from apps.workspace.apps_app.views import app_create as app_create_views
+from apps.workspace.apps_app.views import first_run as first_run_views
+from apps.workspace.my_projects_app.views.dispatch import root_dispatch
+from apps.workspace.my_projects_app.views.index import current_project_view
 from config.pwa import serve_root_static
 from config.urls_helpers import RESERVED_PATHS, dev_module_view  # noqa: F401
 
@@ -76,6 +78,21 @@ def _scitex_storage_installed() -> bool:
         return False
 
 
+def _scitex_agent_container_installed() -> bool:
+    """True when SAC's optional Django dashboard URL contract is importable.
+
+    Probe the include target, not merely the top-level distribution: an older
+    scitex-agent-container checkout can be installed without shipping the
+    dashboard at all.
+    """
+    from importlib.util import find_spec
+
+    try:
+        return find_spec("scitex_agent_container._django.urls") is not None
+    except ModuleNotFoundError:
+        return False
+
+
 urlpatterns = [
     # Language selection. Django's set_language view writes the chosen language
     # to the session/cookie and redirects back to `next`. LocaleMiddleware then
@@ -122,6 +139,49 @@ urlpatterns = [
     path("console/", root_dispatch, name="pane-console", kwargs={"pane": "console"}),
     path("files/", root_dispatch, name="pane-files", kwargs={"pane": "editor"}),
     path("", include("apps.infra.public_app.urls")),
+    # /apps/ is the APPS HOME (launcher grid) for logged-in users — the same
+    # surface that lives at the root, NOT the App Store (/apps/store/). The old
+    # 301 here -> /apps/store/ made the landing page's "Apps" button land on the
+    # store (operator: "apps should be the home of the apps"). root_dispatch
+    # handles the split: anonymous -> landing, logged-in -> launcher (apps
+    # home). Placed before the tools include so /apps/tools/ still resolves.
+    path("apps/", root_dispatch, name="apps_home"),
+    path(
+        "apps/getting-started/dismiss/",
+        first_run_views.dismiss,
+        name="first_run_dismiss",
+    ),
+    path(
+        "apps/getting-started/reshow/",
+        first_run_views.reshow,
+        name="first_run_reshow",
+    ),
+    path(
+        "apps/getting-started/<str:step_key>/",
+        first_run_views.follow_step,
+        name="first_run_step",
+    ),
+    path("apps/create/", app_create_views.create_page, name="app_create"),
+    path(
+        "apps/create/<str:slug>/",
+        app_create_views.workspace_page,
+        name="app_workspace",
+    ),
+    path(
+        "apps/create/<str:slug>/api/chat/",
+        app_create_views.api_chat,
+        name="app_workspace_chat",
+    ),
+    path(
+        "apps/create/<str:slug>/api/apply/",
+        app_create_views.api_apply,
+        name="app_workspace_apply",
+    ),
+    path(
+        "apps/create/<str:slug>/api/run/",
+        app_create_views.api_run,
+        name="app_workspace_run",
+    ),
     path("apps/", include(("apps.workspace.tools_app.urls", "tools_app"))),
     # --- Admin ---
     path("admin/", admin.site.urls),
@@ -138,13 +198,16 @@ urlpatterns = [
         name="oauth-userinfo",
     ),
     path("oauth/", include("oauth2_provider.urls", namespace="oauth2_provider")),
-    # --- Hub ---
-    path("apps/home/api/", include("apps.workspace.repo_app.urls.api")),
-    path("apps/home/", include("apps.workspace.repo_app.urls.index")),
-    # --- Discovery ---
+    # --- My Projects ---
     path(
-        "apps/discovery/",
-        include(("apps.workspace.discovery_app.urls", "discovery_app")),
+        "apps/my-projects/api/",
+        include("apps.workspace.my_projects_app.urls.api"),
+    ),
+    path("apps/my-projects/", include("apps.workspace.my_projects_app.urls.index")),
+    # --- Public Projects ---
+    path(
+        "apps/public-projects/",
+        include(("apps.workspace.public_projects_app.urls", "public_projects_app")),
     ),
     # --- App modules (/apps/) ---
     path("apps/scholar/", include(("apps.workspace.scholar_app.urls", "scholar_app"))),
@@ -207,6 +270,11 @@ urlpatterns = [
         if _scitex_storage_installed()
         else []
     ),
+    *(
+        [path("apps/agents/", include("apps.workspace.agents_app.urls"))]
+        if _scitex_agent_container_installed()
+        else []
+    ),
     path(
         "apps/workspace/", include(("apps.infra.workspace_app.urls", "workspace_app"))
     ),
@@ -214,6 +282,7 @@ urlpatterns = [
     path("apps/clew/", include(("apps.workspace.clew_app.urls", "clew_app"))),
     path("apps/store/", include(("apps.workspace.apps_app.urls", "apps_app"))),
     path("apps/comms/", include(("apps.workspace.comms_app.urls", "comms_app"))),
+    path("apps/files/", include(("apps.workspace.files_app.urls", "files_app"))),
     # --- Dev-installed app modules (/apps/dev__<owner>__<repo>/) ---
     path("apps/dev__<str:rest>/", dev_module_view, name="dev_module_shell_apps"),
     # --- F0+F1 user-published apps (/apps/u/<module_name>/...) ---
@@ -253,7 +322,8 @@ urlpatterns = [
     # --- Favicon ---
     path(
         "favicon.ico",
-        RedirectView.as_view(url="/static/shared/images/favicon.png", permanent=True),
+        # Non-permanent so a later icon change is not pinned by a cached 301.
+        RedirectView.as_view(url="/static/shared/images/favicons/favicon.png?v=7", permanent=False),
     ),
     # --- GitHub-like operations ---
     path("new/", project_create, name="project_create"),
@@ -268,15 +338,16 @@ urlpatterns = [
     # --- Dev module shell ---
     path("dev__<str:rest>/", dev_module_view, name="dev_module_shell"),
     # --- Hub shortcuts ---
-    path(
-        "explore/",
-        RedirectView.as_view(url="/apps/discovery/", permanent=True, query_string=True),
-        name="hub_explore_redirect",
-    ),
     path("current-project/", current_project_view, name="hub_current_project"),
     # --- GitHub-style catch-all (MUST BE LAST) ---
     path("<str:username>/", include(("apps.infra.project_app.urls", "user_projects"))),
 ]
+
+# --- Plugin apps (pip-installed, scitex.apps entry point) ---
+# First so a hub catch-all cannot swallow them; routes the hub serves are skipped.
+from apps.workspace.apps_app.services.plugin_apps import plugin_urlpatterns  # noqa: E402
+
+urlpatterns[:0] = plugin_urlpatterns(urlpatterns)
 
 # --- Debug-only ---
 if settings.DEBUG:

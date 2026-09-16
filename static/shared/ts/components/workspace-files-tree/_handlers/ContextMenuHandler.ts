@@ -6,6 +6,7 @@
  */
 
 import { buildRootMenuItems, buildFileMenuItems } from "./ContextMenuItems";
+import { filterReadOnlyMenu } from "../_ReadOnly";
 
 export interface ContextMenuItem {
   label: string;
@@ -41,6 +42,7 @@ export class ContextMenuHandler {
   private isInSelection: (path: string) => boolean;
   private getGitCounts: () => GitCounts;
   private showTimestamp: number = 0;
+  private readOnly = false;
 
   constructor(
     onAction: (action: string, path: string) => void,
@@ -123,6 +125,20 @@ export class ContextMenuHandler {
 
   /** Delegate to item builders */
   private getMenuItems(
+    isDir: boolean,
+    isRoot: boolean,
+    selCount: number,
+  ): ContextMenuItem[] {
+    const items = this.buildMenuItems(isDir, isRoot, selCount);
+    return this.readOnly ? filterReadOnlyMenu(items) : items;
+  }
+
+  /** Read-only trees show only reading actions (download, filter, history…). */
+  setReadOnly(readOnly: boolean): void {
+    this.readOnly = readOnly;
+  }
+
+  private buildMenuItems(
     isDir: boolean,
     isRoot: boolean,
     selCount: number,

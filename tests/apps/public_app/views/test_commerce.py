@@ -87,7 +87,7 @@ class TestPricingPage:
         # Act
         content = client.get(reverse("public_app:pricing")).content.decode("utf-8")
         # Assert
-        assert "有料プランは準備中です" in content
+        assert "Online card payment is in preparation" in content
 
     def test_pricing_without_plans_links_to_contact_page(self, client, settings):
         # Arrange
@@ -115,7 +115,7 @@ class TestPricingPage:
         # Assert
         assert "Pro (Test)" not in content
 
-    @pytest.mark.parametrize("expected", ["Pro (Test)", "1100", "税込"])
+    @pytest.mark.parametrize("expected", ["Pro (Test)", "1100", "tax included"])
     def test_pricing_with_plans_shows_tax_inclusive_details_to_staff(
         self, staff_client, settings, expected
     ):
@@ -182,7 +182,7 @@ class TestBillingCheckout:
         # Assert
         assert response.status_code == 503
 
-    def test_checkout_without_stripe_key_explains_missing_env_key(
+    def test_checkout_without_stripe_key_returns_generic_client_error(
         self, staff_client, settings
     ):
         # Arrange
@@ -194,7 +194,7 @@ class TestBillingCheckout:
             {"price_id": "price_test_pro_monthly"},
         )
         # Assert
-        assert "SCITEX_HUB_STRIPE_SECRET_KEY" in response.json()["detail"]
+        assert response.json()["detail"] == "Billing service is not configured."
 
     def test_checkout_without_configured_plans_returns_503(
         self, staff_client, settings
@@ -235,14 +235,14 @@ class TestStripeWebhook:
         # Assert
         assert response.status_code == 503
 
-    def test_webhook_without_secret_explains_missing_env_key(self, client, settings):
+    def test_webhook_without_secret_returns_generic_client_error(self, client, settings):
         # Arrange
         settings.STRIPE_WEBHOOK_SECRET = ""
         payload = json.dumps({"id": "evt_1", "type": "ping"}).encode()
         # Act
         response = _post_webhook(client, payload, "t=1,v1=deadbeef")
         # Assert
-        assert "SCITEX_HUB_STRIPE_WEBHOOK_SECRET" in response.json()["detail"]
+        assert response.json()["detail"] == "Billing service is not configured."
 
     def test_webhook_without_signature_header_returns_400(self, client, settings):
         # Arrange

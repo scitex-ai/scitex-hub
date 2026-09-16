@@ -17,9 +17,43 @@ Covers:
 
 import importlib
 import os
+import re
+import subprocess
+import sys
+from pathlib import Path
 
 import pytest
 from django.urls import reverse
+from django.utils import translation
+
+from apps.infra.public_app.templatetags.landing_i18n import translate_dynamic
+
+PROJECT_ROOT = Path(__file__).resolve().parents[4]  # tests/apps/public_app/views/ -> repo root
+
+
+@pytest.fixture(scope="module", autouse=True)
+def compiled_catalogs():
+    """Compile locale/**/*.po -> .mo before any JA assertion reads a catalog.
+
+    /tokushoho/ forces ``translation.override("ja")`` and renders the EN-source
+    pricing SSoT through translate_dynamic / call-time gettext. The JA strings
+    only exist in the compiled .mo, which is gitignored and NOT compiled by the
+    CI pytest step (no msgfmt). Without this the forced-JA page renders the
+    English source and every JA pricing assertion fails — the missing-catalog
+    failure this file is meant to catch. Same fixture as test_i18n_landing /
+    test_published_price_rows.
+    """
+    script = PROJECT_ROOT / "scripts" / "i18n" / "compile_catalogs.py"
+    result = subprocess.run(
+        [sys.executable, str(script)], cwd=PROJECT_ROOT,
+        capture_output=True, text=True,
+    )
+    assert result.returncode == 0, (
+        f"catalog compilation failed ({result.returncode}):\n"
+        f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+    )
+    translation.trans_real._translations.clear()
+    yield
 
 TEST_PLANS = [
     {
@@ -134,34 +168,43 @@ class TestTokushohoPage:
         # Act
         content = client.get(url).content.decode("utf-8")
         # Assert
-        assert "080-4022-3567" in content
+        assert "+81-80-4022-3567" in content
 
     def test_tokushoho_without_billing_plans_publishes_the_price_list(
         self, client, settings
     ):
         """No Stripe plan configured is the PRODUCTION state, and the page must
-        still say what the paid tiers cost.
+        still say what every priced offer costs.
 
-        This branch used to render 有料プランは現在準備中です. That was true while
-        no price had been decided; it stopped being true on 2026-08-28, when the
-        prices were published and only the PAYMENT path stayed pending. A 特商法
-        page that hides the price of the thing it is selling is exactly the
-        defect this branch exists to prevent — so the assertion MOVED to the new
-        requirement rather than being deleted.
+        This branch used to render 有料プランは現在準備中です; on 2026-08-28 it
+        began publishing prices; on 2026-09-03 the catalogue itself changed (the
+        Lab tier was retired, the individual tier split into 学生/一般, and
+        on-premise / contract / consulting got list prices). A 特商法 page that
+        hides — or misstates — the price of the thing it is selling is exactly
+        the defect this branch exists to prevent.
 
-        Prices are read from ``subscription_rows()``, the same pricing.json
+        Prices are read from ``published_price_rows()``, the same pricing.json
         source the page renders, so this test cannot drift into a hardcoded
         number that silently contradicts the page.
         """
         # Arrange
-        from apps.infra.public_app.pricing import subscription_rows
+        from apps.infra.public_app.pricing import published_price_rows
 
         settings.BILLING_PLANS = []
-        rows = subscription_rows()
+        # The view wraps the whole render in translation.override("ja"), so the
+        # page shows the JAPANESE translations of the EN-source SSoT. Compute the
+        # rows the same way (under ja) — otherwise the baked price/storage/
+        # included fields come out English and don't match the page. row["label"]
+        # is not baked; the page renders it through translate_dynamic, so
+        # translate it here too (the 2026-09-11 English-source SSoT switch).
+        with translation.override("ja"):
+            rows = published_price_rows()
+            for row in rows:
+                row["label_ja"] = translate_dynamic(row["label"])
         assert rows, (
-            "Control: subscription_rows() returned nothing, so every price "
+            "Control: published_price_rows() returned nothing, so every price "
             "assertion below would pass vacuously. pricing.json lost its "
-            "subscription amounts — fix that, do not weaken this test."
+            "published_prices — fix that, do not weaken this test."
         )
 
         # Act
@@ -169,13 +212,138 @@ class TestTokushohoPage:
 
         # Assert
         for row in rows:
-            assert row["price"] in content, (
-                f"pricing.json prices {row['name']} at {row['price']}, but the "
-                "特商法 page does not show it."
+            assert row["label_ja"] in content and row["price"] in content, (
+                f"pricing.json publishes {row['label']} (-> {row['label_ja']}) at "
+                f"{row['price']}, but the 特商法 page does not show it."
             )
+        # Assert — the yen reference is a DERIVED artifact (operator 2026-09-13:
+        # "price_jpy should be artifacts … USD is the SSoT"), computed in the
+        # view from the live FX rate, so its exact value is non-deterministic.
+        # We assert the deterministic structure instead: the 円換算（参考）
+        # column is present, the FX method (rate + formula) is explained, and
+        # every row shows a USD price plus a yen reference.
+        assert "円換算（参考）" in content, "the 円換算（参考） column header is missing"
+        assert "USD" in content and "円" in content
+        # The rate explanation: "1ドル = N円" + the formula + the as-of date.
+        assert re.search(r"1ドル = \d+(\.\d+)?円", content), "the FX rate is not explained"
+        assert "計算式" in content or "四捨五入" in content, "the conversion method is not explained"
+        for row in rows:
+            # USD price (deterministic) must be on the page…
+            assert row["price"] in content, f"{row['label']}: USD price {row['price']!r} missing"
+            # …and that row must carry a yen reference (digits + 円, non-empty).
+        # Every row has a non-empty yen reference in its column (the "from"
+        # rows prefix it with 〜, e.g. 〜307,500円).
+        # Free rows (the AGPL / Academic self-hosted licenses) show "—".
+        priced = [row for row in rows if row["usd_amount"]]
+        yen_cells = re.findall(r">〜?\d[\d,]*円<", content)
+        assert len(yen_cells) >= len(priced), (
+            f"expected >= {len(priced)} yen reference cells, found {len(yen_cells)}: {yen_cells}"
+        )
+        for row in rows:
+            for item in row["included"]:
+                assert item in content, f"{row['label']}: included item {item!r} not on the page"
+        # Assert — the 定期購入 disclosures business asked for (operator ruling
+        # 2026-09-10, trial model revision: 30-day trial; if continuing, the
+        # first 30 days are billed from the registration date; if not, the
+        # stored email+card are discarded in 7 days; one trial per
+        # email/card identity; no proration after billing starts).
+        for needle in (
+            "登録後30日間が無料トライアル期間",
+            "初回30日分を登録日から遡って課金",
+            "7日後に破棄",
+            "30日間トライアルを一度しか利用できません",
+            "日割りの返金はありません",
+            "お支払い済みの期間の末日までご利用いただけます",
+            "個別対応します",
+            "SciTeX Cloud Academic（学術）",
+        ):
+            assert needle in content, f"{needle!r} missing from the 特商法 page"
+        # The old "free 30 days then auto-bill on day 31" model is gone.
+        assert "31日目に初回の月額課金が自動で始まり" not in content
+        assert "メールのリンクは必要ありません" not in content
+        assert "サブスク・学生" not in content, "the 学生 name was renamed to 学術 on 2026-09-03 (business.yaml PR #54)"
         assert "審査完了後に開始" in content, (
             "The page must state that online card payment opens after the "
             "Stripe review — that is the only part still 準備中."
+        )
+
+    def test_tokushoho_does_not_price_a_retired_or_unreleased_offer(
+        self, client, settings
+    ):
+        """Two ways a 特商法 page lies, both caught on 2026-09-03.
+
+        RETIRED: 'SciTeX Lab 月額 100,000円' stayed on this page for six days
+        after business retired the tier. The operator found it while filling in
+        the Stripe activation form — the reviewer reads this page, and a price
+        for something not for sale is grounds for a query.
+
+        UNRELEASED: a row dated available_from AFTER the current month must be
+        in pricing.json (so the SSoT is complete) and NOT on the page (so the
+        page does not sell it yet). Every row in the catalogue is dated, and
+        today all of them are on sale, so the catalogue itself cannot supply
+        the fixture; a future-dated row is spliced into the loaded catalogue
+        and the page is rendered against that. This asserts the date gate
+        actually reaches the rendered HTML, not just the function. A control
+        row from the real catalogue must still render, or the assertion would
+        pass on an empty page.
+        """
+        # Arrange
+        import copy
+        from unittest import mock
+
+        from apps.infra.public_app import pricing
+
+        settings.BILLING_PLANS = []
+        real = pricing.load_pricing()
+        catalogue = real["published_prices"]
+        unreleased = {
+            "id": "test-unreleased",
+            "label": "未来の項目（テスト用）",
+            "amount": 1,
+            "unit": "once",
+            "available_from": "2999-01",
+        }
+        spliced = copy.deepcopy(real)
+        spliced["published_prices"].append(unreleased)
+        control = next(
+            r for r in catalogue
+            if r.get("available_from") and not str(r.get("withheld", "")).strip()
+        )
+
+        # Act
+        with mock.patch.object(pricing, "load_pricing", return_value=spliced):
+            content = client.get(reverse("public_app:tokushoho")).content.decode("utf-8")
+
+        # Assert — control: the real catalogue still renders through the patch.
+        # The page forces translation.override("ja"), so the control row's label
+        # renders as its JAPANESE translation, not the EN source. Compare the
+        # JA rendering (the 2026-09-11 English-source SSoT switch).
+        from apps.infra.public_app.templatetags.landing_i18n import translate_dynamic
+
+        with translation.override("ja"):
+            control_label = translate_dynamic(control["label"])
+        assert control_label in content, (
+            f"control row {control['label']!r} (-> {control_label!r}) missing: "
+            "the patched catalogue did not reach the page, so the unreleased "
+            "assertion below proves nothing."
+        )
+
+        # Assert — retired
+        assert "SciTeX Lab" not in content and "100,000" not in content, (
+            "The retired Lab tier (月額 100,000円) is back on the 特商法 page."
+        )
+        # Assert — withheld (amount settled, presentation not; see pricing.json)
+        for row in catalogue:
+            if str(row.get("withheld", "")).strip():
+                assert row["label"] not in content, (
+                    f"{row['label']} is withheld ({row['withheld'][:60]}...) and must "
+                    "not be on the 特商法 page until the operator rules."
+                )
+        # Assert — unreleased
+        assert unreleased["label"] not in content, (
+            f"{unreleased['label']} is dated available_from "
+            f"{unreleased['available_from']} and must not be priced on the "
+            "特商法 page before then."
         )
 
     @pytest.mark.parametrize("expected", ["Pro (Test)", "1100", "税込"])
@@ -213,7 +381,7 @@ class TestTokushohoPage:
         # Act
         content = client.get(url).content.decode("utf-8")
         # Assert
-        assert reverse("public_app:tokushoho") in content
+        assert reverse("public_app:tokushoho_en") in content
 
 
 class TestCommerceSettingsDefaults:
@@ -242,8 +410,9 @@ class TestCommerceSettingsDefaults:
         module = commerce_settings_clean_env
         # Act
         module = importlib.reload(module)
-        # Assert: operator-confirmed representative number (2026-07-18)
-        assert module.COMPANY_PHONE == "080-4022-3567"
+        # Assert: operator-confirmed representative number (2026-07-18; +81
+        # international form added 2026-09-13).
+        assert module.COMPANY_PHONE == "+81-80-4022-3567"
 
     def test_company_contact_email_defaults_to_confirmed_address(
         self, commerce_settings_clean_env

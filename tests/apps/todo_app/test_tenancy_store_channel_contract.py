@@ -106,7 +106,7 @@ class BoardStoreQueryChannelIsRequiredTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.alice = User.objects.create_user(username="alice")
+        cls.alice = User.objects.create_user(username="alice", is_staff=True)
         Project.objects.create(owner=cls.alice, name="Proj A", slug="proj-a")
 
     def setUp(self):
@@ -150,7 +150,7 @@ class BoardStoreQueryChannelRejectsSmugglingTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.alice = User.objects.create_user(username="alice")
+        cls.alice = User.objects.create_user(username="alice", is_staff=True)
         Project.objects.create(owner=cls.alice, name="Proj A", slug="proj-a")
 
     def setUp(self):

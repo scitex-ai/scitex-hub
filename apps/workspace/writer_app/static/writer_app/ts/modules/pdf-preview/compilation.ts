@@ -5,6 +5,7 @@
 
 import { CompilationManager, CompilationOptions } from "../_compilation";
 import { LatexWrapper } from "../_latex-wrapper";
+import { fetchManuscriptStatus } from "../../_writer/files/ManuscriptStatus";
 
 export class CompilationHandler {
   private compilationManager: CompilationManager;
@@ -113,11 +114,12 @@ export class CompilationHandler {
     sectionName: string,
     colorMode: "light" | "dark",
   ): Promise<boolean> {
-    const existingPdfUrl = `/apps/writer/api/project/${this.projectId}/pdf/preview-${sectionName}-${colorMode}.pdf?t=${Date.now()}`;
-
     try {
-      const response = await fetch(existingPdfUrl, { method: "HEAD" });
-      return response.ok;
+      const status = await fetchManuscriptStatus(
+        this.projectId,
+        `preview-${sectionName}-${colorMode}.pdf`,
+      );
+      return status.has_pdf;
     } catch {
       return false;
     }

@@ -13,11 +13,13 @@ This service should be used by:
 - Design galleries for testing
 """
 
-from typing import Optional
 import logging
+from typing import Optional
 
 from pygments.lexers import guess_lexer_for_filename
 from pygments.util import ClassNotFound
+
+from apps.security import safe_log_field
 
 logger = logging.getLogger(__name__)
 
@@ -140,8 +142,12 @@ def detect_language(file_ext: str, file_name: str = "") -> Optional[str]:
             except ClassNotFound:
                 pass
 
-    except Exception as e:
-        logger.debug(f"Error detecting language for {file_name}{file_ext}: {e}")
+    except Exception:
+        logger.debug(
+            "Error detecting language for %s",
+            safe_log_field(f"{file_name}{file_ext}"),
+            exc_info=True,
+        )
 
     # Default to plaintext if no match found
     return "plaintext"

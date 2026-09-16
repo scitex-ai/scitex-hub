@@ -70,8 +70,8 @@ class TodoTenancyStoreResolutionTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.alice = User.objects.create_user(username="alice")
-        cls.bob = User.objects.create_user(username="bob")
+        cls.alice = User.objects.create_user(username="alice", is_staff=True)
+        cls.bob = User.objects.create_user(username="bob", is_staff=True)
         cls.project_a = Project.objects.create(
             owner=cls.alice, name="Proj A", slug="proj-a"
         )
@@ -183,7 +183,7 @@ class TodoTenancyStoreResolutionTest(TestCase):
         # Arrange — user signals auto-create a "dotfiles" project, so
         # strip every project (and the dangling last_active pointer) to
         # arrange a genuinely project-less user.
-        loner = User.objects.create_user(username="loner")
+        loner = User.objects.create_user(username="loner", is_staff=True)
         Project.objects.filter(owner=loner).delete()
         loner = User.objects.get(username="loner")
         request = _request(self.rf, loner)
@@ -295,10 +295,10 @@ class TodoPhase1ReadOnlyGateTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.alice = User.objects.create_user(username="alice")
+        cls.alice = User.objects.create_user(username="alice", is_staff=True)
         Project.objects.create(owner=cls.alice, name="Proj A", slug="proj-a")
         cls.readonly_visitor = User.objects.create_user(
-            username="readonly-visitor"
+            username="readonly-visitor", is_staff=True
         )
 
     def setUp(self):
@@ -387,10 +387,10 @@ class TodoOpenedWriteSubsetTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.alice = User.objects.create_user(username="alice")
+        cls.alice = User.objects.create_user(username="alice", is_staff=True)
         Project.objects.create(owner=cls.alice, name="Proj A", slug="proj-a")
         cls.readonly_visitor = User.objects.create_user(
-            username="readonly-visitor"
+            username="readonly-visitor", is_staff=True
         )
 
     def setUp(self):

@@ -1,4 +1,4 @@
-{% load static module_icons %}
+{% load i18n static module_icons %}
 
 {% if user.is_authenticated %}
     <aside id="workspace-sidebar" class="workspace-sidebar" data-sidebar-state="expanded">
@@ -73,7 +73,7 @@
                         <div class="sidebar-project-list" id="sidebar-project-list">
                             {% if user.is_authenticated and user.profile.get_user_projects %}
                                 {% for project in user.profile.get_user_projects %}
-                                    <a href="/apps/home/?project={{ project.id }}"
+                                    <a href="/apps/my-projects/?project={{ project.id }}"
                                        class="sidebar-project-item"
                                        data-project-id="{{ project.id }}"
                                        data-project-search="{{ project.owner.username }}/{{ project.slug }} {{ project.name }}">
@@ -148,7 +148,7 @@
                        data-app-accent="{{ mod.name }}"
                        title="{{ mod.label }}">
                         {% module_icon mod.name "nav" mod.version mod.icon_fa mod.is_dev %}
-                        <span class="sidebar-label">{{ mod.label }}{% if mod.is_active and mod.version %} <small class="sidebar-item-version">v{{ mod.version }}</small>{% endif %}</span>
+                        <span class="sidebar-label">{% trans mod.label context "app name" %}{% if mod.is_active and mod.version %} <small class="sidebar-item-version">v{{ mod.version }}</small>{% endif %}</span>
                     </a>
                 {% endfor %}
                 {# "All apps" removed (nav-404 batch #11): it pointed at "/" — #}
@@ -174,47 +174,23 @@
                     </a>
                 </div>
                 <div class="sidebar-footer">
-                    {% if is_visitor %}
-                        <!-- Visitor sessions: explicit Sign in / Sign up affordance
-                             (operator-confirmed 2026-07-07 — the login path must
-                             never be hidden behind the visitor username) -->
-                        {# Same structure as the sibling Sign up / End Session #}
-                        {# items — the old avatar-circle + 13px username style #}
-                        {# looked inconsistent next to them (nav-404 batch #8). #}
-                        <a href="/auth/signin/"
-                           class="sidebar-action-btn"
-                           title="Sign in to your account">
-                            <i class="fas fa-sign-in-alt"></i>
-                            <span class="sidebar-label">Sign in</span>
-                        </a>
-                        <a href="/auth/signup/"
-                           class="sidebar-action-btn"
-                           title="Create a free account">
-                            <i class="fas fa-user-plus"></i>
-                            <span class="sidebar-label">Sign up</span>
-                        </a>
-                        <a href="/auth/logout/"
-                           class="sidebar-action-btn sidebar-logout-btn"
-                           title="End Session">
-                            <i class="fas fa-sign-out-alt"></i>
-                            <span class="sidebar-label">End Session</span>
-                        </a>
-                    {% else %}
-                        <a href="/accounts/settings/"
-                           class="sidebar-user"
-                           title="{{ user.username }}">
-                            <span class="sidebar-user-avatar">
-                                <i class="fas fa-user"></i>
-                            </span>
-                            <span class="sidebar-label sidebar-username">{{ user.username }}</span>
-                        </a>
-                        <a href="/auth/logout/"
-                           class="sidebar-action-btn sidebar-logout-btn"
-                           title="Sign Out">
-                            <i class="fas fa-sign-out-alt"></i>
-                            <span class="sidebar-label">Sign Out</span>
-                        </a>
-                    {% endif %}
+                    <!-- Visitor branch removed 2026-09-11 (visitor retirement): the whole
+                         sidebar is already inside the authenticated guard, so the old
+                         visitor / else split was dead code. -->
+                    <a href="/accounts/settings/"
+                       class="sidebar-user"
+                       title="{{ user.username }}">
+                        <span class="sidebar-user-avatar">
+                            <i class="fas fa-user"></i>
+                        </span>
+                        <span class="sidebar-label sidebar-username">{{ user.username }}</span>
+                    </a>
+                    <a href="/auth/logout/"
+                       class="sidebar-action-btn sidebar-logout-btn"
+                       title="Sign Out">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span class="sidebar-label">Sign Out</span>
+                    </a>
                 </div>
             </div>
             <!-- /sidebar-bottom -->

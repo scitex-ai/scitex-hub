@@ -1,11 +1,9 @@
 {% extends "global_base.html" %}
 
 {% load static %}
+{% load i18n %}
 
-{% block title %}
-    Contact —
-    SciTeX
-{% endblock %}
+{% block title %}{% trans "Contact — SciTeX" %}{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'public_app/css/demos/00-demos.css' %}" />
     <style>
@@ -39,14 +37,14 @@
             width: 56px;
             height: 56px;
             margin: 0 auto 1.5rem;
-            background: linear-gradient(135deg, var(--_scitex-04), var(--_scitex-05));
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-size: 1.75rem;
-            box-shadow: 0 4px 12px rgba(26, 42, 64, 0.15);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
         }
 
         .contact-card h3 {
@@ -68,19 +66,19 @@
             align-items: center;
             gap: 0.5rem;
             padding: 0.75rem 1.5rem;
-            background: linear-gradient(135deg, var(--_scitex-03), var(--_scitex-04));
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
             color: white;
             border-radius: 8px;
             text-decoration: none;
             font-weight: 600;
             transition: all 0.2s ease;
-            box-shadow: 0 2px 8px rgba(26, 42, 64, 0.2);
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
         }
 
         .contact-card-btn:hover {
-            background: linear-gradient(135deg, var(--_scitex-02), var(--_scitex-03));
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
             transform: translateX(4px);
-            box-shadow: 0 4px 16px rgba(26, 42, 64, 0.3);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
         }
 
         /* Resources Grid */
@@ -150,7 +148,7 @@
         }
 
         [data-theme="dark"] .contact-card-icon {
-            background: linear-gradient(135deg, var(--_scitex-05), var(--_scitex-06));
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
             color: var(--_scitex-01);
         }
 
@@ -182,15 +180,117 @@
                 padding-right: 1.5rem;
             }
         }
+
+        /* Inquiry form (added 2026-09-10) — bluish gradient submit, matching
+           the contact-card brand buttons */
+        .contact-form-section {
+            max-width: 720px;
+            margin: 0 auto 5rem;
+            padding: 0 2rem;
+        }
+
+        .contact-form-title {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--_scitex-02);
+            margin-bottom: 2rem;
+        }
+
+        .contact-form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        @media (max-width: 640px) {
+            .contact-form-row { grid-template-columns: 1fr; }
+        }
+
+        .contact-form-field { margin-bottom: 1.25rem; }
+        .contact-form-row .contact-form-field { margin-bottom: 0; }
+
+        .contact-form label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--_scitex-03);
+            margin-bottom: 0.4rem;
+        }
+
+        .contact-form .req { color: var(--_scitex-04); }
+
+        .contact-form input,
+        .contact-form select,
+        .contact-form textarea {
+            width: 100%;
+            padding: 0.65rem 0.85rem;
+            font-size: 1rem;
+            color: var(--color-fg-default);
+            background: var(--bg-surface);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .contact-form input:focus,
+        .contact-form select:focus,
+        .contact-form textarea:focus {
+            outline: none;
+            border-color: var(--_scitex-04);
+            box-shadow: 0 0 0 3px rgba(52, 73, 94, 0.12);
+        }
+
+        .contact-form .has-error { border-color: var(--error-color, #a67373); }
+
+        .form-error {
+            font-size: 0.8125rem;
+            color: var(--error-color, #a67373);
+            margin: 0.35rem 0 0;
+        }
+
+        .contact-form-submit {
+            display: inline-block;
+            padding: 0.85rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .contact-form-submit:hover {
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+        }
+
+        .contact-form-success {
+            text-align: center;
+            padding: 2rem;
+            font-size: 1.0625rem;
+            color: var(--success-color, #4a9b7e);
+            background: var(--bg-muted, rgba(0, 0, 0, 0.03));
+            border: 1px solid var(--border-default);
+            border-radius: 12px;
+        }
+
+        [data-theme="dark"] .contact-form-title { color: var(--_scitex-05); }
+        [data-theme="dark"] .contact-form label { color: var(--_scitex-04); }
     </style>
 {% endblock %}
 {% block content %}
     <div class="demos-container">
         <header class="minimal-hero">
-            <h1 class="minimal-hero-title">How can we help?</h1>
+            <h1 class="minimal-hero-title">{% trans "How can we help?" %}</h1>
             <p class="minimal-hero-subtitle">
-                Get in touch with our team for demos, technical support, or product
-                questions.
+                {% trans "Get in touch with our team for demos, technical support, or product questions." %}
             </p>
         </header>
     </div>
@@ -201,13 +301,12 @@
             <div class="contact-card-icon">
                 <i class="fas fa-users"></i>
             </div>
-            <h3>Sales & Demos</h3>
+            <h3>{% trans "Sales & Demos" %}</h3>
             <p>
-                Explore institutional plans, request a demo, or discuss enterprise
-                solutions for your research team.
+                {% trans "Explore institutional plans, request a demo, or discuss enterprise solutions for your research team." %}
             </p>
             <a href="mailto:sales@scitex.ai" class="contact-card-btn">
-                Talk to sales <i class="fas fa-arrow-right"></i>
+                {% trans "Talk to sales" %} <i class="fas fa-arrow-right"></i>
             </a>
         </div>
         <!-- Help & Support -->
@@ -215,13 +314,12 @@
             <div class="contact-card-icon">
                 <i class="fas fa-headset"></i>
             </div>
-            <h3>Help & Support</h3>
+            <h3>{% trans "Help & Support" %}</h3>
             <p>
-                Ask product questions, report problems, or share feedback to help us
-                improve.
+                {% trans "Ask product questions, report problems, or share feedback to help us improve." %}
             </p>
             <a href="mailto:{{ CONTACT_EMAIL }}" class="contact-card-btn">
-                Contact support <i class="fas fa-arrow-right"></i>
+                {% trans "Contact support" %} <i class="fas fa-arrow-right"></i>
             </a>
         </div>
         <!-- General Inquiries -->
@@ -229,62 +327,103 @@
             <div class="contact-card-icon">
                 <i class="fas fa-comments"></i>
             </div>
-            <h3>General Contact</h3>
+            <h3>{% trans "General Contact" %}</h3>
             <p>
-                Questions about partnerships, media inquiries, or anything else? We'd love
-                to hear from you.
+                {% trans "Questions about partnerships, media inquiries, or anything else? We would love to hear from you." %}
             </p>
             <a href="mailto:hello@scitex.ai" class="contact-card-btn">
-                Send us an email <i class="fas fa-arrow-right"></i>
+                {% trans "Send us an email" %} <i class="fas fa-arrow-right"></i>
             </a>
         </div>
     </div>
+    <!-- Direct inquiry form -->
+    <div class="contact-form-section">
+        <h2 class="contact-form-title">{% trans "Contact form" %}</h2>
+        {% if submitted %}
+        <div class="contact-form-success" role="status">
+            {% trans "Thank you. We have received your inquiry and will get back to you." %}
+        </div>
+        {% else %}
+        <form class="contact-form" method="post" action="{% url 'public_app:contact' %}">
+            {% csrf_token %}
+            <div class="contact-form-row">
+                <div class="contact-form-field">
+                    <label for="ct-name">{% trans "Name" %} <span class="req">*</span></label>
+                    <input type="text" id="ct-name" name="name" value="{{ form.name }}" maxlength="120" required
+                           {% if errors.name %}class="has-error"{% endif %}>
+                    {% if errors.name %}<p class="form-error">{{ errors.name }}</p>{% endif %}
+                </div>
+                <div class="contact-form-field">
+                    <label for="ct-email">{% trans "Email address" %}</label>
+                    <input type="email" id="ct-email" name="email" value="{{ form.email }}" maxlength="200">
+                </div>
+            </div>
+            <div class="contact-form-row">
+                <div class="contact-form-field">
+                    <label for="ct-type">{% trans "Inquiry type" %}</label>
+                    <select id="ct-type" name="type">
+                        <option value="support"{% if form.type == 'support' %} selected{% endif %}>{% trans "Help & Support" %}</option>
+                        <option value="sales"{% if form.type == 'sales' %} selected{% endif %}>{% trans "Sales & Demos" %}</option>
+                        <option value="general"{% if form.type == 'general' %} selected{% endif %}>{% trans "General" %}</option>
+                    </select>
+                </div>
+            </div>
+            <div class="contact-form-field">
+                <label for="ct-request">{% trans "Your inquiry" %} <span class="req">*</span></label>
+                <textarea id="ct-request" name="request" rows="6" required
+                          {% if errors.request %}class="has-error"{% endif %}
+                          placeholder="{% trans 'Tell us what you are struggling with or what you would like to do.' %}">{{ form.request }}</textarea>
+                {% if errors.request %}<p class="form-error">{{ errors.request }}</p>{% endif %}
+            </div>
+            <button type="submit" class="contact-form-submit">{% trans "Send" %}</button>
+        </form>
+        {% endif %}
+    </div>
     <!-- Additional Resources -->
     <div class="contact-resources">
-        <h2 class="resources-title">More Resources</h2>
+        <h2 class="resources-title">{% trans "More Resources" %}</h2>
         <div class="resources-grid">
             <!-- Community -->
             <div class="resource-item">
                 <h4>
-                    <i class="fab fa-slack" style="margin-right: 0.5rem; color: var(--_scitex-04)"></i>Join our Community
+                    <i class="fab fa-slack" style="margin-right: 0.5rem; color: var(--_scitex-04)"></i>{% trans "Join our Community" %}
                 </h4>
                 <p>
-                    Connect with researchers worldwide and share knowledge in our Slack
-                    workspace
+                    {% trans "Connect with researchers worldwide and share knowledge in our Slack workspace" %}
                 </p>
                 <a href="https://join.slack.com/t/scitex-ai/shared_invite/zt-2zbwx67n3-L6aaBdGKPMYZbBxl6yjXRA"
                    target="_blank">
-                    Join Slack community <i class="fas fa-external-link-alt"></i>
+                    {% trans "Join Slack community" %} <i class="fas fa-external-link-alt"></i>
                 </a>
             </div>
             <!-- Email -->
             <div class="resource-item">
                 <h4>
-                    <i class="fas fa-envelope" style="margin-right: 0.5rem; color: var(--_scitex-04)"></i>Email Us Directly
+                    <i class="fas fa-envelope" style="margin-right: 0.5rem; color: var(--_scitex-04)"></i>{% trans "Email Us Directly" %}
                 </h4>
-                <p>Prefer email? Send us a message at hello@scitex.ai</p>
+                <p>{% trans "Prefer email? Send us a message at hello@scitex.ai" %}</p>
                 <a href="mailto:hello@scitex.ai">
-                    Send an email <i class="fas fa-arrow-right"></i>
+                    {% trans "Send an email" %} <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
             <!-- Documentation -->
             <div class="resource-item">
                 <h4>
-                    <i class="fas fa-book" style="margin-right: 0.5rem; color: var(--_scitex-04)"></i>Browse Documentation
+                    <i class="fas fa-book" style="margin-right: 0.5rem; color: var(--_scitex-04)"></i>{% trans "Browse Documentation" %}
                 </h4>
-                <p>Find feature overviews, guides, and tutorials for all SciTeX tools</p>
+                <p>{% trans "Find feature overviews, guides, and tutorials for all SciTeX tools" %}</p>
                 <a href="{% url 'docs_app:index' %}">
-                    View documentation <i class="fas fa-arrow-right"></i>
+                    {% trans "View documentation" %} <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
             <!-- Developer Resources -->
             <div class="resource-item">
                 <h4>
-                    <i class="fab fa-github" style="margin-right: 0.5rem; color: var(--_scitex-04)"></i>Developer Resources
+                    <i class="fab fa-github" style="margin-right: 0.5rem; color: var(--_scitex-04)"></i>{% trans "Developer Resources" %}
                 </h4>
-                <p>API documentation, SDKs, and open-source contributions on GitHub</p>
+                <p>{% trans "API documentation, SDKs, and open-source contributions on GitHub" %}</p>
                 <a href="https://github.com/SciTeX-AI" target="_blank">
-                    Explore on GitHub <i class="fas fa-external-link-alt"></i>
+                    {% trans "Explore on GitHub" %} <i class="fas fa-external-link-alt"></i>
                 </a>
             </div>
         </div>

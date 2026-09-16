@@ -83,16 +83,8 @@ DEVELOPER_TOOLS = [
     },
 ]
 
-# Research tools
+# Research tools. Statistics is its own app now (scitex-stats, /apps/stats/).
 RESEARCH_TOOLS = [
-    {
-        "name": "Statistics Calculator",
-        "slug": "statistics-calculator",
-        "description": "30+ statistical tests with effect sizes, post-hoc comparisons, and APA formatting.",
-        "use_case": "Verify experimental results before plotting",
-        "bookmarklet_url": "/apps/tools/run-stats/",
-        "icon": "📈",
-    },
     {
         "name": "Citation Scraper",
         "slug": "citation-scraper",

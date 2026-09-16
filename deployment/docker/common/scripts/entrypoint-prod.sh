@@ -11,6 +11,12 @@ source /app/deployment/docker/common/lib/database.src
 source /app/deployment/docker/common/lib/django.src
 source /app/deployment/docker/common/lib/scitex.src
 source /app/deployment/docker/common/lib/slurm.src
+source /app/deployment/docker/common/lib/service_role.src
+
+IS_WEB_ROLE=false
+if is_web_role "$@"; then
+    IS_WEB_ROLE=true
+fi
 
 echo -e "🏭 NAS Environment"
 
@@ -67,7 +73,7 @@ run_migrations
 # (e.g. figrecipe/index.html, 2026-07-08) that the scitex-user
 # collectstatic in django-1 cannot delete, crash-looping the web
 # container before the visitor-pool reconcile ever runs.
-if [[ ! "$*" =~ "celery" ]]; then
+if [ "$IS_WEB_ROLE" = true ]; then
     collect_static_files
 else
     echo_info "Skipping collectstatic (celery service)"
@@ -91,7 +97,7 @@ fi
 # Inside an `if` like the visitor-pool commands below: a wrong Site domain
 # breaks OAuth and email links, which is bad, but refusing to boot over it is
 # worse. It must not fail SILENTLY though, hence the explicit error.
-if [[ ! "$*" =~ "celery" ]]; then
+if [ "$IS_WEB_ROLE" = true ]; then
     if ! python manage.py sync_site_domain; then
         echo_error "sync_site_domain FAILED — OAuth callbacks and the links in"
         echo_error "  confirmation/password-reset email will use whatever the"
@@ -108,7 +114,7 @@ fi
 # leaving root-owned files under /app/data/users that the scitex-user
 # wipe cannot remove later (the original PermissionError('revision.tex')
 # failure mode the quarantine fail-safe was built against).
-if [[ ! "$*" =~ "celery" ]]; then
+if [ "$IS_WEB_ROLE" = true ]; then
     echo_info "Initializing visitor pool..."
     # Every command below runs inside an `if` so a failure cannot abort boot
     # (set -e): a read-only site beats a site that will not start. But it must
@@ -185,7 +191,7 @@ fi
 #      ONLY writer (as scitex), which is what lets uv initialize the cache
 #      cleanly. Same guard idiom as collectstatic / visitor-pool above and
 #      terminal-broker / SSH below.
-if [[ ! "$*" =~ "celery" ]]; then
+if [ "$IS_WEB_ROLE" = true ]; then
 
 # ============================================
 # Install Workspace Apps (bridge resolution)
@@ -307,7 +313,7 @@ fi
 # ============================================
 # The terminal broker runs PTY operations in a separate process from Daphne
 # to prevent asyncio/signal conflicts that can cause deadlocks
-if [[ ! "$*" =~ "celery" ]]; then
+if [ "$IS_WEB_ROLE" = true ]; then
     echo_info "Starting terminal broker..."
     python manage.py run_terminal_broker &
     TERMINAL_BROKER_PID=$!
@@ -325,7 +331,7 @@ fi
 # Start SSH Gateway (Background) - Only for main Django app
 # ============================================
 # Skip SSH gateway for celery workers - they don't need it
-if [[ ! "$*" =~ "celery" ]]; then
+if [ "$IS_WEB_ROLE" = true ]; then
     echo_info "Starting SSH gateway on port 2200..."
     python manage.py run_ssh_gateway --port 2200 --host 0.0.0.0 &
     SSH_GATEWAY_PID=$!

@@ -125,23 +125,43 @@
             <h1 class="video-player-title">{{ video_title }}</h1>
             <div class="speed-indicator">
                 <i class="fas fa-tachometer-alt"></i>
-                <span id="current-speed">4x</span> speed
+                <span id="current-speed">x{{ video_playback_rate }}</span> speed
             </div>
         </div>
         {% if video_description %}<p class="video-description">{{ video_description }}</p>{% endif %}
         <div class="video-wrapper">
-            <video id="demo-video" controls autoplay muted>
+            <video id="demo-video"
+                   controls
+                   {% if not video_narrated %}autoplay muted{% endif %}
+                   data-default-speed="{{ video_playback_rate }}">
                 <source src="{{ video_url }}" type="video/mp4" />
+                {% if video_captions_url %}<track kind="captions" src="{{ video_captions_url }}" srclang="en" label="English" />{% endif %}
+                {% if video_ja_captions_url %}<track kind="captions" src="{{ video_ja_captions_url }}" srclang="ja" label="日本語" />{% endif %}
                 Your browser does not support the video tag.
             </video>
         </div>
         <div class="speed-controls">
             <button class="speed-btn" data-speed="1">x1</button>
             <button class="speed-btn" data-speed="2">x2</button>
-            <button class="speed-btn active" data-speed="4">x4 (default)</button>
+            <button class="speed-btn" data-speed="4">x4</button>
             <button class="speed-btn" data-speed="8">x8</button>
             <button class="speed-btn" data-speed="16">x16</button>
         </div>
+        {% if video_ja_url %}
+            <a href="{{ video_ja_url }}" class="back-link" lang="ja">
+                <i class="fas fa-language"></i> 日本語版
+            </a>
+        {% endif %}
+        {% if video_mobile_url %}
+            <a href="{{ video_mobile_url }}" class="back-link">
+                <i class="fas fa-mobile-alt"></i> Phone version
+            </a>
+        {% endif %}
+        {% if video_ja_mobile_url %}
+            <a href="{{ video_ja_mobile_url }}" class="back-link" lang="ja">
+                <i class="fas fa-mobile-alt"></i> 日本語 (スマホ版)
+            </a>
+        {% endif %}
         <a href="{% url 'public_app:demos' %}" class="back-link">
             <i class="fas fa-arrow-left"></i> Back to Demos
         </a>
@@ -152,8 +172,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const speedIndicator = document.getElementById('current-speed');
     const speedBtns = document.querySelectorAll('.speed-btn');
 
-    // Set default speed to 4x
-    video.playbackRate = 4.0;
+    const defaultSpeed = parseFloat(video.dataset.defaultSpeed) || 4;
+    video.playbackRate = defaultSpeed;
+    speedBtns.forEach(btn => {
+        btn.classList.toggle('active', parseFloat(btn.dataset.speed) === defaultSpeed);
+    });
 
     // Handle speed button clicks
     speedBtns.forEach(btn => {

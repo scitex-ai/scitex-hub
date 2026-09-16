@@ -107,13 +107,20 @@ export class LibraryRenderers {
     if (!listContainer) return;
 
     if (papers.length === 0) {
+      // Copy is translated server-side into data-* attributes on the list.
+      const d = listContainer.dataset;
+      const title = searchQuery
+        ? d.emptyFilteredTitle || "No matching papers"
+        : d.emptyTitle || "No papers in your library yet";
+      const description = searchQuery
+        ? d.emptyFilteredDescription || "Try adjusting your search or filters"
+        : d.emptyDescription ||
+          "Start by importing papers from BibTeX or adding them manually";
       listContainer.innerHTML = `
         <div class="library-empty-state">
           <i class="fas fa-book-open"></i>
-          <div class="library-empty-state-title">No papers found</div>
-          <div class="library-empty-state-description">
-            ${searchQuery ? "Try adjusting your search or filters" : "Start by importing papers from BibTeX or adding them manually"}
-          </div>
+          <div class="library-empty-state-title">${title}</div>
+          <div class="library-empty-state-description">${description}</div>
         </div>
       `;
       return;

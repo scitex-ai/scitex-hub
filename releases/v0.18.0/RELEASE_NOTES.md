@@ -18,7 +18,7 @@ for the full rationale and migration policy.
 | Python module | `import scitex_cloud` | `import scitex_hub` |
 | GitHub repo | `ywatanabe1989/scitex-cloud` | `ywatanabe1989/scitex-hub` |
 | Display / brand | "SciTeX Cloud" | "SciTeX Hub" |
-| Django sub-app | `apps/workspace/hub_app/` | `apps/workspace/repo_app/` |
+| Django sub-app | `apps/workspace/hub_app/` | `apps/workspace/my_projects_app/` |
 | Runtime env vars | `SCITEX_CLOUD_*` | `SCITEX_HUB_*` |
 | Campaign tokens | `scitex-cloud-campaign-*` | `scitex-hub-campaign-*` (legacy alias accepted) |
 | Container image | `scitex-cloud-shared-v0.1.0.sif` | `scitex-hub-shared-v0.1.0.sif` |

@@ -30,6 +30,8 @@ from pathlib import Path
 
 import pytest
 
+from tests.tracked_source import tracked_source_files
+
 pytestmark = pytest.mark.security
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -83,12 +85,12 @@ def find_session_csrf_exempt(source: str) -> list[tuple[int, str]]:
 def test_no_login_required_view_is_csrf_exempt_under_apps():
     """The real gate: no ``@login_required`` view under apps/ is ``@csrf_exempt``."""
     # Arrange
-    py_files = sorted(_APPS_ROOT.rglob("*.py"))
+    py_files = tracked_source_files(_REPO_ROOT, ("apps/**/*.py",))
     # Act
     offenders = [
-        f"{py.relative_to(_REPO_ROOT)}:{lineno}:{name}"
+        f"{py.path}:{lineno}:{name}"
         for py in py_files
-        for lineno, name in find_session_csrf_exempt(py.read_text(encoding="utf-8"))
+        for lineno, name in find_session_csrf_exempt(py.text())
     ]
     # Assert
     assert offenders == [], (

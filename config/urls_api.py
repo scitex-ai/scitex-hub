@@ -18,14 +18,16 @@ from apps.infra.accounts_app.views.me_token_views import (
     api_me_token_mint,
     api_me_token_revoke,
 )
+from apps.infra.accounts_app.views.me_whoami_views import api_me
 from apps.infra.integrations_app.views_events import list_events, receive_event
 from apps.infra.project_app.views import api_check_name_availability
 from apps.infra.project_app.views.projects.api import (
-    api_me,
     api_project_create_jwt,
     api_project_list_jwt,
     api_switch_active_project,
 )
+from apps.infra.project_app.views.projects.scope_api import api_project_scope
+from apps.infra.search_app.views import header_search_api
 from apps.workspace.apps_app.views import api_registry_webhook, api_submit_jwt
 
 urlpatterns = [
@@ -40,7 +42,8 @@ urlpatterns = [
         csrf_exempt(TokenRefreshView.as_view()),
         name="token_refresh",
     ),
-    # User info
+    # Who is this credential — API key, JWT or session. Opaque id, plan,
+    # key metadata; 401 only for credential facts. See me_whoami_views.
     path("me/", csrf_exempt(api_me), name="api_me"),
     # User-scoped token management — browser-free token issuance for the
     # operator-12909 CLI publish surface. POST mints (unauthenticated;
@@ -78,6 +81,11 @@ urlpatterns = [
         name="api_switch_active_project",
     ),
     path(
+        "project/scope/",
+        api_project_scope,
+        name="api_project_scope",
+    ),
+    path(
         "project/check-name/",
         api_check_name_availability,
         name="api_check_name",
@@ -106,6 +114,7 @@ urlpatterns = [
     path("events/list/", list_events, name="event_list"),
     # User search
     path("users/search/", api_search_users, name="api_search_users"),
+    path("search/", header_search_api, name="api_header_search"),
     # Shared workspace API
     path("workspace/", include("apps.infra.workspace_api.urls")),
     # Public Scholar API (v1)

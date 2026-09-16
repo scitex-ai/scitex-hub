@@ -9,6 +9,41 @@
 .header-project-selector-inline {
   position: relative;
   margin-right: 8px;
+
+  /* THE DECLARATION #743 MEASURED AND THEN FAILED TO SHIP.
+
+     #743 fixed the off-screen hamburger and claimed it also made the project
+     name ellipsise. The first half is true and verified on the deployed site;
+     THE SECOND HALF WAS NOT SHIPPED. My live experiment mutated FOUR elements
+     and the PR carried THREE. This is the fourth.
+
+     Measured on the DEPLOYED site (scitex.ai after the 2026-09-06 rebuild),
+     390x844, mutating this one property and reverting:
+
+       state                        inline  btn  txt  ELLIPSIS
+       as deployed (#743)             187   187  155   false
+       + this min-width: 0            115   115   83   TRUE
+       reverted                       187   187  155   false
+
+     WHY IT IS LOAD-BEARING. This box is a flex item of `.header-left`, so its
+     `min-width: auto` resolves to its MIN-CONTENT width and it never narrows.
+     `.project-selector-btn { width: 100% }` then resolves against an
+     un-narrowed 187px parent and returns 187px -- so the button never shrinks,
+     the text span is never squeezed, and the `text-overflow: ellipsis` on
+     `.project-selector-text` has no overflow to act on.
+
+     Three correct declarations were inert because of one missing floor two
+     levels up. That is the same automatic-minimum rule as the hamburger, the
+     app-store grid track (#741) and the text span itself -- FOURTH instance,
+     and the one that shows the rule has to hold along the WHOLE chain, not at
+     the ends.
+
+     WHAT WAS ALREADY WORKING WITHOUT THIS, so nobody deletes it thinking it is
+     the P1 fix: document overflow is 0 and the hamburger is on-screen with or
+     without this line. `.header-left { overflow: hidden }` was carrying the
+     layout by CLIPPING the overflow. This line is what turns that clip back
+     into a real truncation. */
+  min-width: 0;
 }
 
 .header-center {

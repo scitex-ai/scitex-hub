@@ -11,9 +11,9 @@ hero presents three options: an explicit "Enter as visitor" primary button
 the alternatives. The rest of the marketing landing is unchanged (operator:
 keep the existing landing).
 
-The CTA target MOVED from /apps/home/ to /enter/ (card
+The CTA target MOVED from /apps/my-projects/ to /enter/ (card
 hub-visitor-funnel-first-impression-20260730). Both provision a slot, but
-/apps/home/ renders the Gitea repository browser — deliberately, per the
+/apps/my-projects/ renders the Gitea repository browser — deliberately, per the
 approved 2026-07-07 design — so a visitor's first screen was a file listing.
 /enter/ provisions and then lands on the app launcher.
 
@@ -41,18 +41,17 @@ class LandingHeroCtaTest(TestCase):
         # Act
         resp = self.client.get("/landing/")
         # Assert — explicit, clearly-labeled visitor-entry button
-        assert b"Enter as visitor" in resp.content
+        assert b"Try SciTeX" in resp.content
 
-    def test_hero_cta_targets_visitor_provisioning_entry(self):
+    def test_hero_cta_targets_signup(self):
         # Arrange — the entry path, reversed so a route rename cannot rot this
-        entry = reverse("public_app:visitor_enter").encode()
+        entry = reverse("auth_app:signup").encode()
         # Act
         resp = self.client.get("/landing/")
-        # Assert — target is a visitor-provisioning entry, now the dedicated
-        # /enter/ route rather than /apps/home/. The INVARIANT this test names
-        # is unchanged and still enforced; only the entry moved. /apps/home/
-        # also provisioned, but rendered the Gitea repository browser, so the
-        # first thing a visitor saw was dotfiles and "No commit message" x6.
+        # Assert — signup-first (operator ruling 2026-09-10: the visitor
+        # sandbox is dropped, so the primary CTA goes to /auth/signup/).
+        # Previously /enter/ provisioned a visitor slot and rendered the
+        # Gitea repository browser (dotfiles + "No commit message" x6).
         assert b'href="' + entry + b'"' in resp.content
 
     def test_hero_cta_no_longer_targets_repo_browser(self):
@@ -61,17 +60,20 @@ class LandingHeroCtaTest(TestCase):
         # disappeared entirely.
         # Act
         resp = self.client.get("/landing/")
-        # Assert — /apps/home/ keeps serving the repo browser by design
-        # (approved 2026-07-07, repo_app/views/dispatch.py:13-17), so the hero
+        # Assert — /apps/my-projects/ keeps serving the repo browser by design
+        # (approved 2026-07-07, my_projects_app/views/dispatch.py:13-17), so the hero
         # must not send a first-time visitor there.
-        assert b'href="/apps/home/" class="hero-cta-button"' not in resp.content
+        assert b'href="/apps/my-projects/" class="hero-cta-button"' not in resp.content
 
-    def test_hero_cta_note_explains_no_signup(self):
+    def test_hero_cta_note_promises_only_the_free_account_and_tier(self):
         # Arrange: an anonymous visitor
         # Act
         resp = self.client.get("/landing/")
-        # Assert — subtext makes the "temporary, no sign-up" nature explicit
-        assert b"No sign-up needed" in resp.content
+        # Assert — the hero CTA states the 30-day trial (operator 2026-09-12:
+        # "Try SciTeX™ Cloud with 30-day Free Trial") and the old free-account
+        # note is gone (the CTA itself is the promise).
+        body = resp.content
+        assert "Try SciTeX™ Cloud with 30-day Free Trial".encode() in body
 
     def test_landing_offers_sign_up(self):
         # Arrange: an anonymous visitor
@@ -84,8 +86,11 @@ class LandingHeroCtaTest(TestCase):
         # Arrange: an anonymous visitor
         # Act
         resp = self.client.get("/landing/")
-        # Assert — Sign in alternative points at the real auth URL
-        assert b"/auth/login/" in resp.content
+        # Assert — sign-in is reachable from the global header. The hero's own
+        # "Sign in" link was removed (operator 2026-09-11: "we don't need signin
+        # button in the landing hero as try scitex will handle it"), so this
+        # now points at the header's /auth/signin/ rather than the old /auth/login/.
+        assert b"/auth/signin/" in resp.content
 
 
 if __name__ == "__main__":

@@ -7,14 +7,11 @@
     {% if project %}- {{ project.name }}{% endif %}
 {% endblock %}
 {% block extra_css %}
-    <!-- Writer variables (module accent color, theme tokens) -->
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/shared/variables.css' %}?v={{ build_id }}" />
     {% include "writer_app/index_partials/_writer_css.html" %}
-    {% include "writer_app/index_partials/codemirror_css.html" %}
 {% endblock %}
 {% block writer_content %}
     {% include "writer_app/index_partials/demo_banner.html" %}
+    {% include "writer_app/shared/_app_header.html" %}
     <!-- Show message if visitor pool has errors -->
     {% if pool_error %}
         <div id="pool-error-message" class="container py-5">
@@ -85,62 +82,14 @@
                 </div>
             </div>
         </div>
-    {% elif needs_writer_init %}
-        <div id="writer-init-message" class="container py-5">
-            <div class="row justify-content-center">
-                <div class="col-lg-6">
-                    <div class="card shadow-sm">
-                        <div class="card-body text-center p-5">
-                            <i class="fas fa-pen-fancy fa-3x text-primary mb-3"></i>
-                            <h3 class="mb-3">Initialize Writer</h3>
-                            <p class="text-muted mb-4">
-                                This project does not have a Writer workspace yet.
-                                Initialize one to start writing your manuscript with LaTeX.
-                            </p>
-                            <button id="init-writer-btn"
-                                    class="btn btn-primary btn-lg"
-                                    onclick="initWriterWorkspace()">
-                                <i class="fas fa-magic me-2"></i>Initialize Writer
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <script>
-        function initWriterWorkspace() {
-            var btn = document.getElementById('init-writer-btn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Initializing...';
-            fetch('/apps/writer/api/initialize-workspace/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: JSON.stringify({ project_id: {{ project.id }} })
-            })
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                if (data.success) {
-                    window.location.reload();
-                } else {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-magic me-2"></i>Initialize Writer';
-                    alert('Failed: ' + (data.error || 'Unknown error'));
-                }
-            })
-            .catch(function(err) {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-magic me-2"></i>Initialize Writer';
-                alert('Error: ' + err.message);
-            });
-        }
-        </script>
+    {% elif project and not writer_initialized %}
+        {% include "writer_app/index_partials/manuscript_empty_state.html" %}
     {% else %}
         <!-- Writer workspace — file tree provided by shared worktree pane in three-column layout -->
         <div class="writer-workspace"
+             data-mobile-pane="editor"
              data-ai-hint="Writer workspace: LaTeX manuscript editor, PDF preview, figures/tables/citations management">
+            {% include "writer_app/index_partials/mobile_pane_tabs.html" %}
             <!-- Main content: editor + preview -->
             <div class="writer-container"
                  data-ai-hint="LaTeX editor with CodeMirror, live PDF preview, section navigation">
@@ -174,7 +123,7 @@
         <!-- Table Preview Modal -->
         {% include "writer_app/index_partials/table_preview_modal.html" %}
     {% endif %}
-    {% if not needs_project_creation and not needs_writer_init and not pool_error and not pool_exhausted %}
+    {% if writer_initialized or not project %}{% if not needs_project_creation and not pool_error and not pool_exhausted %}
         <!-- Editor loading is now handled in writer_app/index.ts -->
         <!-- Initialize global variables for writer app -->
         <script>
@@ -188,9 +137,15 @@
       manuscriptTitle: {% if manuscript %}'{{ manuscript.title|escapejs }}'{% else %}'Untitled'{% endif %},
       userId: {% if user.is_authenticated %}{{ user.id }}{% else %}null{% endif %},
       username: {% if user.is_authenticated %}'{{ user.username|escapejs }}'{% else %}null{% endif %},
-      visitorUsername: {% if visitor_username %}'{{ visitor_username|escapejs }}'{% else %}null{% endif %},
+      // Visitor role is retired (2026-09-11): no visitor sessions exist, so these
+      // are always null/false. The keys stay (not deleted) because the Vite
+      // bundle reads them (ui.ts, collaborative/manager.ts, collaboration-panel.ts,
+      // FileTreeSetup.ts) and their `if (config.visitorUsername)` guards simply
+      // never fire — deleting would need a TS edit + rebuild, which is a
+      // separate, larger change than this retirement.
+      visitorUsername: null,
       isDemo: {% if is_demo %}true{% else %}false{% endif %},
-      isVisitor: {% if is_visitor %}true{% else %}false{% endif %},
+      isVisitor: false,
       isAuthenticated: {% if user.is_authenticated %}true{% else %}false{% endif %},
       writerInitialized: {% if writer_initialized %}true{% else %}false{% endif %},
       documentType: '{{ document_type|default:"manuscript" }}',  // Current document type
@@ -214,6 +169,12 @@
       },
       csrfToken: '{{ csrf_token }}'
   };
+  // Queue the section list ahead of ~150 bundle/static requests; the dev
+  // server answers them one at a time and the first section load waits on it.
+  if (window.WRITER_CONFIG.writerInitialized) {
+      window.__writerSectionsConfig = fetch("/apps/writer/api/sections-config/", {credentials: "same-origin"}).then(function (r) { return r.json(); });
+      window.__writerSectionsConfig.catch(function () {});
+  }
 
   // Inject project context into global AI panel
   document.addEventListener("DOMContentLoaded", () => {
@@ -249,5 +210,5 @@
             }
             </script>
         {% endif %}
-    {% endif %}
+    {% endif %}{% endif %}
 {% endblock %}

@@ -31,17 +31,18 @@ This middleware makes the mount multi-tenant while keeping Django thin
    own mutating handlers are POST-only, so this gate covers all of them,
    including the csrf_exempt ``api_dispatch`` catch-all and the
    ``hooks/*`` + ``dm/*`` + ``chat/*`` POST surfaces).
-4. **Provisioning is stated, not crashed through** — the board's card
-   DATA comes from an ambient store, and since the 2026-08-13 zero-config
-   abolition that resolver refuses to invent one. Requests that would read
-   it are answered with an explicit, non-retryable 404 carrying the
-   resolver's own sentence, the ``cards-store-not-configured``
-   discriminator and the hub's own next step, instead of the HTTP 500 the
-   unclassified exception produced. The decision, the measurements and the
-   exemption list live in :mod:`.cards_store_provisioning`; this module
-   only calls it. The CONFIGURATION half — giving a deployment somewhere to
-   state the target — is
-   ``config.settings._optional_apps.publish_cards_store_target``.
+4. **Store provisioning follows the canonical 3-state contract** — the
+   board's card DATA comes from a store the scitex-dev protocol resolves
+   (``scitex_dev.store.host_store``): an UNSET target resolves to the
+   reachable fleet-central node (NORMAL operation, no refusal); a MALFORMED
+   ``$SCITEX_STORE_DSN`` raises ``StoreTargetError`` at resolve time and an
+   unreachable/auth-failing DSN fails at connect — both must stay fail-loud
+   5xx, which is scitex-dev's and Cards' responsibility, not the hub's. The
+   hub therefore synthesizes NO store refusal; the only hub duty here is the
+   CONFIGURATION half, giving a deployment somewhere to state the target:
+   ``config.settings._optional_apps.publish_cards_store_target`` publishes
+   ``$SCITEX_HUB_CARDS_STORE`` as the canonical ``$SCITEX_STORE_DSN`` (without
+   overwriting an explicit ``$SCITEX_STORE_DSN``).
 
 Runs LAST in the request phase (after Authentication + VisitorAutoLogin)
 so ``request.user`` is final, and no-ops in one prefix check for every
@@ -58,8 +59,6 @@ from pathlib import Path
 from django.http import JsonResponse
 from django.middleware.csrf import CsrfViewMiddleware
 from django.shortcuts import redirect
-
-from .cards_store_provisioning import unconfigured_store_response
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +100,23 @@ def _is_writable_path(path: str) -> bool:
     """True only for the explicitly opened mutating routes."""
     return any(pattern.match(path) for pattern in _WRITABLE_PATHS)
 
+
+def cards_board_access_allowed(user) -> bool:
+    """The staff-only gate for the /apps/cards/ mount (P0, 2026-09-14).
+
+    Named so the launcher can hide the Cards tile with THIS predicate rather
+    than a copy of it: a tile a user can see must not open onto the JSON 403
+    below (apps_app.views.helpers.can_open_mounted_app).
+
+    Accounts named in SCITEX_AGENT_CONTAINER_LIFECYCLE_OPERATORS pass too: they
+    are the fleet operators the Agents mount already admits, and the operator's
+    own account is one of them without being Django staff (2026-09-14).
+    """
+    from apps.workspace.agents_app.views import _fleet_access_allowed
+
+    return _fleet_access_allowed(user)
+
+
 # The upstream board routes that render HTML pages a browser NAVIGATES to
 # (board root, chat/DM page, legacy + board-v3 aliases); every other
 # subpath is a JS data endpoint (timeline, fleet/*, dm/*, chat/<id>, the
@@ -128,13 +144,6 @@ _PAGE_PATHS = frozenset(
 _TODO_INSTALLED = (
     find_spec("scitex_cards") is not None or find_spec("scitex_todo") is not None
 )
-
-# PROVISIONING — "is there a card store AT ALL" — is a different question from
-# tenancy ("WHOSE store is this"), needs none of this module's request state,
-# and carries a long measured argument of its own. It lives in
-# `cards_store_provisioning`; this module only calls it, at the seam marked
-# below. No alias is re-exported here: one name per thing, and the module that
-# owns the decision is the one to import from.
 
 
 class TodoBoardTenancyMiddleware:
@@ -181,6 +190,31 @@ class TodoBoardTenancyMiddleware:
                     "login_url": f"/auth/login/?next={_TODO_PREFIX}",
                 },
                 status=401,
+            )
+
+        # --- Staff-only gate (P0, 2026-09-14) -----------------------------
+        # The per-project store injected below does NOT scope the read under
+        # scitex-cards 0.52: the board loads from the $SCITEX_STORE_DSN /
+        # host_store target (the fleet's central board) whatever path we hand
+        # it. Measured on the dev hub: a shared-pool visitor got all 7471
+        # fleet cards from /apps/cards/tasks. Until upstream honours a
+        # per-tenant store, nobody but staff may reach the mount at all —
+        # pages and data alike. Card:
+        # hub-p0-cards-mount-serves-fleet-board-to-any-signed-in-user-20260914
+        if not cards_board_access_allowed(user):
+            # The app stays visible to everyone (operator 2026-09-14): a page
+            # navigation gets a friendly own-scope placeholder with no board
+            # data, while every data fetch and write keeps the JSON 403.
+            if path in _PAGE_PATHS and not is_write:
+                from apps.workspace.agents_app.views import own_scope_placeholder
+
+                return own_scope_placeholder(request, "cards")
+            return JsonResponse(
+                {
+                    "error": ("The Cards board is limited to SciTeX staff for now."),
+                    "reason": "cards-board-staff-only",
+                },
+                status=403,
             )
 
         store = self._resolve_workspace_store(request)
@@ -231,16 +265,6 @@ class TodoBoardTenancyMiddleware:
         params = request.GET.copy()
         params["store"] = str(store)
         request.GET = params
-
-        # --- Provisioning: is there a card store to read at all? ---------
-        # See `cards_store_provisioning` for the whole argument. Placed AFTER
-        # tenancy so the more specific "no active project" answer still wins
-        # for a user who has one to create, and BEFORE the hand-off because
-        # this is a precondition of the board serving anything, not a failure
-        # of it.
-        refusal_response = unconfigured_store_response(path)
-        if refusal_response is not None:
-            return refusal_response
 
         # --- Write gate, part 2: the opened routes, now authenticated ---
         # Reached ONLY by _is_writable_path routes, and only after the user
@@ -354,9 +378,7 @@ class TodoBoardTenancyMiddleware:
         if is_readonly_visitor(request):
             # Structured #308 payload → the shared frontend guard turns
             # it into the Sign up / Log in toast.
-            return readonly_write_rejection(
-                "edit the todo board", request=request
-            )
+            return readonly_write_rejection("edit the todo board", request=request)
         return JsonResponse(
             {
                 "error": (

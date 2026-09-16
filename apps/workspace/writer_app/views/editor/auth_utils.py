@@ -5,10 +5,13 @@
 Handles both authenticated users and visitor visitors with demo projects.
 """
 
-from functools import wraps
-from django.http import JsonResponse
-from apps.infra.project_app.models import Project
 import logging
+from functools import wraps
+
+from django.http import JsonResponse
+
+from apps.infra.project_app.models import Project
+from apps.security import safe_log_field
 
 logger = logging.getLogger(__name__)
 
@@ -80,13 +83,17 @@ def api_login_optional(view_func):
 
             # Debug logging
             logger.info(
-                f"[Auth] Visitor session check: visitor_project_id={visitor_project_id} (type={type(visitor_project_id).__name__}), project_id={project_id} (type={type(project_id).__name__})"
+                "[Auth] Visitor session check: visitor_project_id=%s project_id=%s",
+                safe_log_field(visitor_project_id),
+                safe_log_field(project_id),
             )
 
             # Type-safe comparison (handle int/str mismatches)
             if not visitor_project_id or int(visitor_project_id) != int(project_id):
                 logger.warning(
-                    f"[Auth] Visitor session validation failed: visitor_project_id={visitor_project_id}, project_id={project_id}"
+                    "[Auth] Visitor session validation failed: visitor_project_id=%s project_id=%s",
+                    safe_log_field(visitor_project_id),
+                    safe_log_field(project_id),
                 )
                 return JsonResponse(
                     {
@@ -174,7 +181,8 @@ def get_user_for_request(request, project_id):
         visitor_user_id = request.session.get("visitor_user_id")
         if not visitor_user_id:
             logger.warning(
-                f"[Auth] No visitor_user_id in session for project {project_id}"
+                "[Auth] No visitor_user_id in session for project %s",
+                safe_log_field(project_id),
             )
             return None, False
 
@@ -182,5 +190,7 @@ def get_user_for_request(request, project_id):
             user = User.objects.get(id=visitor_user_id)
             return user, True
         except User.DoesNotExist:
-            logger.error(f"[Auth] Visitor user {visitor_user_id} not found")
+            logger.error(
+                "[Auth] Visitor user %s not found", safe_log_field(visitor_user_id)
+            )
             return None, False

@@ -83,13 +83,18 @@
    Dark Mode
    ========================= */
 
+/* --scitex-color-01-light is a light-palette literal (#444) with no dark value. */
 [data-theme="dark"] .breadcrumb {
-  background-color: var(--scitex-color-01-light);
+  background-color: var(--bg-surface);
   border-color: var(--scitex-color-03);
 }
 
+[data-theme="dark"] .breadcrumb a:not(.breadcrumb-item) {
+  color: var(--text-link);
+}
+
 [data-theme="dark"] .breadcrumb-item {
-  color: var(--scitex-color-05);
+  color: var(--text-secondary);
 }
 
 [data-theme="dark"] .breadcrumb-item:not(.active):hover {

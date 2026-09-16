@@ -101,6 +101,9 @@ body::before {
 body.workspace-page {
   height: 100vh; /* Use exact height instead of min-height for workspace pages */
   max-height: 100vh; /* Prevent growing beyond viewport */
+  /* iOS Safari's 100vh is the toolbar-hidden height, so the pane bottom sat under the site dock. */
+  height: 100dvh;
+  max-height: 100dvh;
   overflow: hidden; /* Prevent body scrolling - panels handle their own overflow */
 }
 
@@ -162,7 +165,8 @@ body.workspace-page.landing-page .site-footer {
 /* =========================
    App Home Override
    ========================= */
-/* The signed-in launcher at `/` renders the footer (workspace-layout.css and
+/* Launcher surfaces — the signed-in launcher at `/` and the app store at
+   /apps/store/, both carrying `.app-home` — render the footer (workspace-layout.css and
    footer.css both exclude `.app-home` from their hide rules, so the 特定商取引法
    disclosure, the policy pages and contact are reachable). A page may not do
    that AND stay pinned to the viewport.

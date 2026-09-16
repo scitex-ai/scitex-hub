@@ -32,7 +32,7 @@ set from ``config/urls.py`` and requires a declaration carrying both a label
 and a visibility for each — it cannot leak the way Console just did.
 
 WHAT VISIBILITY IS, AND IS NOT. It governs whether a nav surface OFFERS the
-pane. It is not an access control: ``root_dispatch`` (``repo_app/views/
+pane. It is not an access control: ``root_dispatch`` (``my_projects_app/views/
 dispatch.py``) redirects ``/console/`` to the workspace shell for any
 authenticated user, so a regular user who types the URL still gets there.
 That was true before this file existed and is not changed by it; if the

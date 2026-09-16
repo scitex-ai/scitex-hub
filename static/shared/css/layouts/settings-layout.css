@@ -1,6 +1,10 @@
 /* GitHub-Style Settings Layout - Shared across all settings pages */
 
 .settings-page {
+  /* width: the page sits in a flex column in the workspace frame, where it
+     shrank to its content (the SSH keys page was 261px wide at 1440). */
+  width: 100%;
+  box-sizing: border-box;
   max-width: 1280px;
   margin: 0 auto;
   padding: 24px 16px;
@@ -300,6 +304,91 @@
 
   .settings-nav {
     position: static;
+  }
+}
+
+/* Phone settings nav: "Settings › <current page>" disclosure.
+   The full 13-item list used to fill the first phone screen, so a settings
+   page's own content started below the fold (site audit 2026-09-14, D7). On
+   phones the list lives inside a closed <details> above the content; the
+   desktop sidebar is untouched. Markup: accounts_app/partials/settings_nav.html. */
+.settings-nav-compact {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .settings-layout {
+    gap: 16px;
+  }
+
+  /* Higher specificity than profile_edit.css's phone rule (display:flex). */
+  .settings-layout .settings-nav {
+    display: block;
+    overflow: visible;
+    padding: 0;
+    border: none;
+    background: none;
+  }
+
+  .settings-nav-full {
+    display: none;
+  }
+
+  .settings-nav-compact {
+    display: block;
+    width: 100%;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: 6px;
+  }
+
+  .settings-nav-compact-summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 12px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+  }
+
+  .settings-nav-compact-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .settings-nav-compact-summary strong {
+    color: var(--text-primary);
+  }
+
+  .settings-nav-compact-summary::after {
+    content: "";
+    margin-left: auto;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 6px 5px 0 5px;
+    border-color: var(--text-secondary) transparent transparent transparent;
+    transition: transform 0.15s;
+  }
+
+  .settings-nav-compact[open] > .settings-nav-compact-summary::after {
+    transform: rotate(180deg);
+  }
+
+  .settings-nav-compact[open] > .settings-nav-compact-summary {
+    border-bottom: 1px solid var(--border-default);
+  }
+
+  .settings-nav-compact-list {
+    padding: 8px;
+  }
+
+  .settings-nav-compact-list .settings-nav-item {
+    min-height: 44px;
+    white-space: normal;
   }
 }
 

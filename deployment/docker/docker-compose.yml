@@ -67,9 +67,38 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "pg_isready", "-h", "localhost", "-p", "6432"]
+      # Asserts a client can CONNECT, AUTHENTICATE and QUERY -- not merely that
+      # the port answers.
+      #
+      # `pg_isready` is libpq's PQping, which returns OK whenever the server
+      # RESPONDS, including when it responds with a REJECTION. Measured
+      # 2026-09-06 on the staging pooler (same image), exit codes:
+      #
+      #                        psql -c 'select 1'      pg_isready
+      #   good credentials             0                    0
+      #   wrong password               2                    0
+      #   unreachable port             2                    0
+      #
+      # So -U/-d would NOT have deepened the old check; only completing a
+      # connection does. This pooler reported `healthy` throughout a
+      # 2026-09-06 production outage in which it refused EVERY client
+      # connection for ~6 minutes, and that green is why the outage was
+      # diagnosed from a log grep instead of from an alarm.
+      #
+      # PGOPTIONS carries the SAME startup parameter Django sends
+      # (config/settings/settings_prod.py `options: -c statement_timeout=...`).
+      # That parameter is what the outage tripped on, and pg_isready never
+      # sends `options` at all -- so without this the probe could not
+      # reproduce the one failure it exists to catch. The gate
+      # tests/config/test_pgbouncer_healthcheck_proves_a_client_can_connect.py
+      # keeps this list equal to what the settings actually send.
+      #
+      # Credentials are read from the container environment (env_file above)
+      # rather than interpolated here, so the password stays out of
+      # `docker inspect` output.
+      test: ["CMD-SHELL", "PGPASSWORD=\"$$SCITEX_HUB_POSTGRES_PASSWORD\" PGOPTIONS='-c statement_timeout=30000' PGCONNECT_TIMEOUT=3 psql -h 127.0.0.1 -p 6432 -U \"$$SCITEX_HUB_POSTGRES_USER\" -d \"$$SCITEX_HUB_POSTGRES_DB\" -tAc 'select 1' > /dev/null"]
       interval: 10s
-      timeout: 3s
+      timeout: 5s
       retries: 5
     networks:
       - scitex-network

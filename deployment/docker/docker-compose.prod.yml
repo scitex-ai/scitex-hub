@@ -40,6 +40,7 @@ services:
       dockerfile: deployment/docker/Dockerfile.prod
       args:
         BUILDKIT_INLINE_CACHE: 1
+        SCITEX_HUB_DEPENDENCY_RESOLUTION: ${SCITEX_HUB_DEPENDENCY_RESOLUTION:?set by protected rebuild}
     image: scitex-hub-prod-django:latest
     entrypoint: ["/usr/bin/tini", "--", "/root-init.sh", "/entrypoint.sh"]
     deploy:
@@ -146,12 +147,33 @@ services:
   celery_worker:
     image: scitex-hub-prod-django:latest
     entrypoint: ["/entrypoint.sh"]
+    # POOL=THREADS, NOT PREFORK. The prefork pool wedges on this host: after
+    # one boot burst the parent stops acknowledging completed tasks, its QoS
+    # window jams full of reservations with worker_pid=None / time_start=None
+    # / acknowledged=false, `inspect active` is empty, the control channel
+    # still answers ping, and nothing is logged. Five fixes failed against it
+    # (tini #379, -O fair + --max-tasks-per-child #381, the celery<5.6 pin
+    # with --without-gossip/mingle/heartbeat #384). The differential
+    # experiment that settled it: same container, same code, same broker,
+    # differing ONLY by --pool=threads, drained 48 tasks in 200s where
+    # prefork never exceeded 6. See docker_prod/docker-compose.yml for the
+    # full history and tests/develop/test_celery_worker_pool.py for the gate.
+    #
+    # The prefork-only flags are dropped deliberately: -O fair is a prefork
+    # child-dispatch strategy and --max-tasks-per-child / --max-memory-per-child
+    # recycle fork children, of which a threads pool has none. Celery ignores
+    # them under --pool=threads, so leaving them in place is dead config that
+    # reads as an active mitigation for the very wedge they failed to fix.
     command: >
       celery -A config --broker=redis://redis:6379/1 worker
       --loglevel=info
       --queues=celery,ai_queue,search_queue,compute_queue,vis_queue
+      --pool=threads
       --concurrency=8
       --prefetch-multiplier=1
+      --without-gossip
+      --without-mingle
+      --without-heartbeat
     deploy:
       resources:
         limits:
@@ -194,12 +216,27 @@ services:
       - "host.docker.internal:host-gateway"
       - "${SCITEX_HUB_SLURM_HOST:-DXP480TPLUS-994}:host-gateway"
     restart: always
+    # Healthcheck asserts EXECUTION, not connectivity.
+    #
+    # This worker serves both `celery` and `vis_queue`, so both beacon stamps
+    # are checked: a worker that drains one queue while starving the other is
+    # unhealthy, and the visitor-slot re-clean rides on vis_queue.
+    #
+    # It previously pinged redis, which stays green through a total dispatch
+    # wedge -- measured on dev 2026-09-05, where the worker had executed
+    # nothing for 12.9h while docker reported "healthy" and the visitor pool
+    # sat quarantined. The same wedge was measured on prod 2026-07-14/17 and
+    # is why check_queue_liveness.sh exists; only the non-prod compose files
+    # were left behind on the ping.
+    #
+    # retries 10 x interval 60s: ~10 min of consecutive staleness before
+    # docker marks unhealthy, so a busy-but-draining worker is never flagged.
     healthcheck:
-      test: ["CMD", "python", "-c", "import redis; r = redis.Redis(host='redis', port=6379); r.ping()"]
-      interval: 30s
+      test: ["CMD", "bash", "-c", "/app/deployment/docker/common/scripts/check_queue_liveness.sh celery 600 && /app/deployment/docker/common/scripts/check_queue_liveness.sh vis_queue 600"]
+      interval: 60s
       timeout: 10s
-      retries: 3
-      start_period: 120s
+      retries: 10
+      start_period: 300s
     networks:
       - scitex-network
 

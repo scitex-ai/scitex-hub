@@ -8,6 +8,7 @@ import { CompilationState } from "./compilation-state";
 import { CompilationUI } from "./compilation-ui";
 import { CompilationOptions, CompilationJob } from "./types";
 import { statusLamp } from "../status-lamp";
+import { CompilationHttpError } from "./compilation-http-error";
 
 export class CompilationPreview {
   private api: CompilationAPI;
@@ -93,7 +94,14 @@ export class CompilationPreview {
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Preview compilation failed";
-      this.state.notifyError(message);
+      // Hand the ERROR ON, not just its message. A refusal (403
+      // readonly-visitor) and a compile failure are different events,
+      // and the preview pane must be able to tell them apart. Flattening
+      // to a string here is what made the pane title an authorization
+      // refusal "Compilation Error".
+      this.state.notifyError(
+        error instanceof CompilationHttpError ? error : message,
+      );
       statusLamp.previewCompilationError();
 
       // Build error log HTML

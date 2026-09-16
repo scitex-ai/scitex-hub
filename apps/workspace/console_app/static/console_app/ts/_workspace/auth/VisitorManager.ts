@@ -64,8 +64,8 @@ export class VisitorManager {
           <strong style="color: var(--text-default); display: block; margin-bottom: 6px;">Visitor Mode</strong>
           <p style="color: var(--text-muted); margin: 0; font-size: 13px; line-height: 1.5;">
             You can create and edit files, but your 60-minute session will expire.
-            <a href="/accounts/signup/" style="color: var(--workspace-icon-primary); text-decoration: none;">
-              Sign up free
+            <a href="/auth/signup/" style="color: var(--workspace-icon-primary); text-decoration: none;">
+              Start your 30-day trial
             </a> to save permanently.
           </p>
         </div>

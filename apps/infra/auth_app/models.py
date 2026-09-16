@@ -1,4 +1,3 @@
-import random
 import string
 from datetime import timedelta
 
@@ -181,6 +180,65 @@ class UserProfile(models.Model):
         return int((completed / len(fields)) * 100)
 
 
+#: How long a verification CODE is valid. The model's expiry, the message shown
+#: to the user and the template all read THIS, so they cannot disagree — the
+#: signup response used to promise 60 minutes while the model enforced 10.
+CODE_VALIDITY = timedelta(minutes=10)
+
+#: Wrong guesses allowed against ONE code before it is burned.
+#:
+#: A 6-digit code is only 10**6 possibilities. That is fine for a human typing
+#: it and trivially small for a script: with no counter, guessing was FREE and
+#: UNLIMITED. Throttling is what makes the keyspace meaningful.
+MAX_CODE_ATTEMPTS = 5
+
+
+class PendingSignup(models.Model):
+    """Authoritative marker: this user is a SIGNUP awaiting verification.
+
+    WHY THIS TABLE EXISTS (PR #775). "Pending" used to be INFERRED, from
+    ``is_active=False`` plus an ``EmailVerification`` row. That shape cannot
+    carry intent: signup, resend and email-change all create verification rows,
+    and nothing records which one did. So a merely SUSPENDED account that
+    happened to have a stale verification row satisfied the pending-signup test,
+    passed the verify endpoint's gate, and was REACTIVATED — a deactivation
+    bypass reachable with an email address.
+
+    "Is this user mid-signup?" is authoritative state, so it is stored as one
+    instead of being guessed from an ambiguous row.
+
+    INVARIANTS (all four are load-bearing):
+      * created ONLY by the signup flow;
+      * ``OneToOne`` to the user, carrying the address the signup was for;
+      * DELETED on successful verification, and by cleanup;
+      * NEVER created by resend, and never by an email change.
+
+    An administrator-disabled account therefore has no row, and no code path
+    may create one for it — which is what closes the bypass.
+    """
+
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name="pending_signup"
+    )
+    email = models.EmailField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    #: PROVENANCE (PR #775 review). Null on a marker created by a real signup.
+    #: Set when an OPERATOR explicitly reconciled a legacy account, which is the
+    #: only way a pre-existing row may acquire signup authority — the evidence is
+    #: not self-authenticating, so a human decision is recorded on the row itself
+    #: rather than implied by its existence.
+    reconciled_at = models.DateTimeField(null=True, blank=True)
+    reconciled_by = models.CharField(max_length=255, blank=True, default="")
+
+    class Meta:
+        verbose_name = "Pending Signup"
+        verbose_name_plural = "Pending Signups"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.email} (pending since {self.created_at:%Y-%m-%d})"
+
+
 class EmailVerification(models.Model):
     """Email verification for user registration"""
 
@@ -193,6 +251,9 @@ class EmailVerification(models.Model):
     verified_at = models.DateTimeField(null=True, blank=True)
     expires_at = models.DateTimeField()
     is_verified = models.BooleanField(default=False)
+    #: Wrong guesses recorded against THIS row. Persisted rather than cached so
+    #: a restart, a cache flush or a second worker cannot reset the budget.
+    attempts = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
         verbose_name = "Email Verification"
@@ -206,23 +267,101 @@ class EmailVerification(models.Model):
         if not self.code:
             self.code = self.generate_code()
         if not self.expires_at:
-            self.expires_at = timezone.now() + timedelta(minutes=10)
+            self.expires_at = timezone.now() + CODE_VALIDITY
         super().save(*args, **kwargs)
 
     @staticmethod
     def generate_code():
-        """Generate a 6-digit verification code"""
-        return "".join(random.choices(string.digits, k=6))
+        """Generate a 6-digit verification code.
+
+        SECURITY: ``secrets``, NOT ``random``. ``random`` is a Mersenne
+        Twister — deterministic from its internal state, and a handful of its
+        outputs is enough to reconstruct that state — so codes minted with it
+        are predictable to anyone who has observed a few. An OTP is a bearer
+        credential; it has to come from the CSPRNG.
+        """
+        import secrets
+
+        return "".join(secrets.choice(string.digits) for _ in range(6))
 
     def is_expired(self):
         """Check if verification code has expired"""
         return timezone.now() > self.expires_at
+
+    def register_failed_attempt(self) -> bool:
+        """Count one WRONG guess. Returns True when the code is now burned.
+
+        A burned code is given an expiry in the past, so the existing
+        ``is_expired`` check refuses it and the owner must request a fresh code
+        — which is itself rate limited. This is what turns "unlimited guesses
+        for ten minutes" into five.
+        """
+        # ATOMIC INCREMENT (PR #775 fourth review). Read-modify-write is a
+        # lost-update: N parallel guesses each read the same value, each write
+        # that value + 1, and the cap is never reached. F() makes the increment
+        # the DATABASE's arithmetic, so every guess counts.
+        from django.db.models import F
+
+        type(self).objects.filter(pk=self.pk).update(attempts=F("attempts") + 1)
+        self.refresh_from_db(fields=["attempts", "expires_at"])
+
+        if self.attempts >= MAX_CODE_ATTEMPTS and not self.is_expired():
+            type(self).objects.filter(pk=self.pk).update(expires_at=timezone.now())
+            self.refresh_from_db(fields=["expires_at"])
+        return self.attempts >= MAX_CODE_ATTEMPTS
 
     def verify(self):
         """Mark verification as completed"""
         self.is_verified = True
         self.verified_at = timezone.now()
         self.save()
+
+    def claim(self) -> bool:
+        """Atomically consume this code. True ONLY for the first caller.
+
+        PR #775 sixth review, P0. The verify endpoint fetched the row, compared
+        the code, and only then marked the row verified — with NO lock held
+        across those three steps. Two concurrent requests carrying the SAME code
+        could therefore both pass the comparison and both proceed to activate:
+        a reused code, and a second activation its owner never performed.
+        Incrementing the wrong-attempt counter with F() did not touch this,
+        because both callers were CORRECT and neither incremented anything.
+
+        What actually has to be atomic is the CLAIM, not the whole request.
+        Holding a row lock across an entire POST would serialise signups against
+        a mail send; a compare-and-swap against the row is sufficient and does
+        not hold a lock while anything slow happens.
+
+        Returns False when the code was already used or has expired since it was
+        read, which is exactly the race this exists to lose safely.
+        """
+        from django.db import transaction
+
+        with transaction.atomic():
+            locked = (
+                type(self)
+                .objects.select_for_update()
+                .filter(pk=self.pk, is_verified=False)
+                .first()
+            )
+            # ATTEMPTS MUST BE HONOURED HERE (PR #775 seventh review). The
+            # wrong-attempt threshold and the successful claim were TWO separate
+            # transitions, so a caller holding a BURNED code could still claim
+            # it: the threshold had been crossed but nothing consulted it on the
+            # success path. One locked transition now decides both, which is the
+            # only way the threshold means anything.
+            if (
+                locked is None
+                or locked.is_expired()
+                or locked.attempts >= MAX_CODE_ATTEMPTS
+            ):
+                return False
+            locked.is_verified = True
+            locked.verified_at = timezone.now()
+            locked.save(update_fields=["is_verified", "verified_at"])
+            self.is_verified = True
+            self.verified_at = locked.verified_at
+            return True
 
 
 # Signal handlers for automatic profile creation and Gitea sync

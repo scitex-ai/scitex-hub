@@ -83,20 +83,18 @@
 }
 
 /* ============================================
-   5-Tier Pricing Cards Layout
+   Plan Cards Layout — /pricing/ renders THREE tiers from data/pricing.json
+   (SciTeX Cloud / Self-Hosted / Professional services, SSOT v1.0). The old
+   5-column template squeezed the 3 cards into the left 3/5 of the row
+   (~240px each, right side empty) after #811; the column count must match
+   the rendered card count. test_pricing_plan_cards_layout.py pins this.
    ============================================ */
 .pricing-cards-wrapper {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 1rem;
-  max-width: 1400px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  max-width: 1200px;
   margin: 0 auto;
-}
-
-@media (max-width: 1200px) {
-  .pricing-cards-wrapper {
-    grid-template-columns: repeat(3, 1fr);
-  }
 }
 
 @media (max-width: 768px) {

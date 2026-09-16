@@ -1,0 +1,8 @@
+{% extends "global_base.html" %}
+{% comment %}
+Host shell for mounted leaf apps. Leaf dashboards (e.g. scitex-agent-container's
+fleet.html / detail.html) extend "scitex_app/app_shell.html" and fill
+scitex_app_content; the host decides the chrome. Without this file the leaf page
+raises TemplateDoesNotExist and /apps/agents/ returns 500 for every permitted user.
+{% endcomment %}
+{% block content %}{% block scitex_app_content %}{% endblock %}{% endblock %}

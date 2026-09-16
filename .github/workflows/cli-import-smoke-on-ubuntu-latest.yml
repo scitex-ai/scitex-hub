@@ -46,7 +46,12 @@ concurrency:
 jobs:
   cli-import-smoke:
     name: cli-import-smoke-on-ubuntu-latest
-    runs-on: ubuntu-latest
+    # scitex-local-cpu (scitex-compute-01..04) for trusted runs; fork PRs stay
+    # on ephemeral hosted VMs. Same predicate as scitex-ai/.github import-smoke.
+    runs-on: >-
+      ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+          && fromJSON('["ubuntu-latest"]')
+          || fromJSON('["self-hosted","Linux","X64","scitex-local-cpu"]') }}
     # 30, not the reflexive 15: hub's CORE dependencies alone pull the scitex
     # umbrella (numpy/matplotlib/fonttools et al), so even a no-extras install
     # is not small. Measured 2026-08-11 in a container: a cold bare
@@ -55,6 +60,16 @@ jobs:
     # real failure and trains people to rerun it.
     timeout-minutes: 30
     steps:
+      # Backstop for the runs-on predicate: never check out fork code on our hardware.
+      - name: Refuse to run fork-authored code on self-hosted infrastructure
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository &&
+          runner.environment == 'self-hosted'
+        run: |
+          echo "::error::Fork-authored code is not run on self-hosted runners."
+          exit 1
+
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:

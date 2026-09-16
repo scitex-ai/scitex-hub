@@ -1,0 +1,89 @@
+/* Floating dock chat: a small panel above the site dock.
+   Markup: templates/global_base_partials/site_dock.html
+   Placement: static/shared/ts/components/site-dock.ts (_site-dock/chat-float.ts) */
+
+.site-dock-chat {
+  position: fixed;
+  z-index: 10049;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--site-dock-chat-bg, #ffffff);
+  border: 1px solid var(--site-dock-border, rgba(0, 0, 0, 0.1));
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
+}
+
+/* display:flex above beats the UA [hidden] rule on leaf pages without a reset. */
+.site-dock-chat[hidden] {
+  display: none;
+}
+
+.site-dock-chat-head {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  height: 44px;
+  flex: none;
+  padding-inline: 14px 0;
+  background: var(--chat-brand-navy, #1a2a40);
+  color: #ffffff;
+}
+
+.site-dock-chat-title {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.site-dock-chat-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.site-dock-chat-btn:hover,
+.site-dock-chat-btn:focus-visible {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.site-dock-chat-btn[data-dock-chat-close]:hover,
+.site-dock-chat-btn[data-dock-chat-close]:focus-visible {
+  background: #c42b1c;
+}
+
+.site-dock-chat-glyph-restore,
+.site-dock-chat.is-maximized .site-dock-chat-glyph-max {
+  display: none;
+}
+
+.site-dock-chat.is-maximized .site-dock-chat-glyph-restore {
+  display: block;
+}
+
+.site-dock-chat-frame {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  background: transparent;
+}
+
+[data-theme="dark"] .site-dock-chat {
+  --site-dock-chat-bg: #1c1f28;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .site-dock-chat {
+    --site-dock-chat-bg: #1c1f28;
+  }
+}

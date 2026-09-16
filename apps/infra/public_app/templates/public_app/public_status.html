@@ -1,11 +1,12 @@
-{% load static %}
+{% load static i18n branding_tags %}
 
 <!DOCTYPE html>
-<html lang="en">
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE }}">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>SciTeX Status</title>
+        <title>{% page_title %}</title>
         <link rel="stylesheet" href="{% static 'public_app/css/public-status.css' %}" />
         <link rel="icon"
               href="{% static 'shared/images/favicons/favicon.ico' %}"
@@ -19,63 +20,65 @@
                     <a href="/" class="status-logo-link">
                         <span class="status-logo-text">SciTeX</span>
                     </a>
-                    <h1 class="status-title">Status</h1>
+                    <h1 class="status-title">{% trans "Status" %}</h1>
                 </div>
             </header>
             <!-- Overall Status Banner -->
-            <div class="status-banner status-banner--{{ status.overall }}" id="overall-banner">
-                {% if status.overall == "operational" %}
-                    All Systems Operational
-                {% elif status.overall == "degraded" %}
-                    Partial System Outage
-                {% else %}
-                    Major System Outage
-                {% endif %}
+            <div class="status-banner status-banner--{{ status.overall }}"
+                 id="overall-banner"
+                 data-label-operational="{% trans "All Systems Operational" %}"
+                 data-label-degraded="{% trans "Degraded performance" %}"
+                 data-label-partial-outage="{% trans "Partial System Outage" %}"
+                 data-label-down="{% trans "Major System Outage" %}">
+                {% include "public_app/server_status_partials/overall_label.html" with overall=status.overall %}
             </div>
             <!-- Uptime header -->
-            <div class="status-uptime-header">Uptime over the past 90 days.</div>
+            <div class="status-uptime-header">{% trans "Uptime over the past 90 days." %}</div>
             <!-- Services with 90-day uptime bars -->
             <section class="status-services" id="services-section">
                 {% for svc in status.services %}
                     <div class="status-service-row">
                         <div class="status-service-header">
-                            <span class="status-service-name">{{ svc.name }}</span>
+                            <span class="status-service-name">{% trans svc.name %}</span>
                             <span class="status-service-label status-service-label--{{ svc.status }}">
                                 {% if svc.status == "operational" %}
-                                    Operational
+                                    {% trans "Operational" %}
                                 {% elif svc.status == "degraded" %}
-                                    Degraded
+                                    {% trans "Degraded" %}
                                 {% else %}
-                                    Down
+                                    {% trans "Down" %}
                                 {% endif %}
                             </span>
                         </div>
                         <div class="status-uptime-bar">
                             {% for day in svc.uptime_days %}
                                 <div class="status-uptime-day status-uptime-day--{{ day }}"
-                                     title="Day {{ forloop.counter }}"></div>
+                                     title="{% blocktrans with n=forloop.counter %}Day {{ n }}{% endblocktrans %}"></div>
                             {% endfor %}
                         </div>
                         <div class="status-uptime-labels">
-                            <span>90 days ago</span>
-                            <span>{{ svc.uptime_pct }}% uptime</span>
-                            <span>Today</span>
+                            <span>{% trans "90 days ago" %}</span>
+                            <span>{% blocktrans with pct=svc.uptime_pct %}{{ pct }}% uptime{% endblocktrans %}</span>
+                            <span>{% trans "Today" %}</span>
                         </div>
                     </div>
                 {% endfor %}
             </section>
             <!-- Past Incidents -->
             <section class="status-incidents">
-                <h2 class="status-section-title">Past Incidents</h2>
-                <p class="status-incidents-empty">No incidents reported.</p>
+                <h2 class="status-section-title">{% trans "Past Incidents" %}</h2>
+                <p class="status-incidents-empty">{% trans "No incidents reported." %}</p>
             </section>
             <!-- Footer -->
             <footer class="status-footer">
-                <span>Last checked: <time id="checked-at">{{ status.checked_at }}</time></span>
+                <span>{% trans "Last checked:" %}
+                    {% include "public_app/server_status_partials/checked_at.html" %}
+                </span>
                 <span class="status-footer-sep">&middot;</span>
-                <a href="/server-status/">Detailed Status</a>
+                <a href="/server-status/">{% trans "Detailed Status" %}</a>
             </footer>
         </div>
+        <script src="{% static 'public_app/js/local-time.js' %}"></script>
         <script src="{% static 'public_app/js/public-status.js' %}"></script>
     </body>
 </html>

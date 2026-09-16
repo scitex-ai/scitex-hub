@@ -11,6 +11,8 @@ All tests use the real Django test client against the real ORM — no
 mocks (same conventions as test_launcher.py).
 """
 
+import re
+
 from django.contrib.auth.models import User
 from django.test import TestCase
 
@@ -37,13 +39,38 @@ class LauncherTileUrlTest(TestCase):
         resp = self.client.get("/")
         return next(t for t in resp.context["tiles"] if t["name"] == name)
 
-    def test_console_tile_url_is_console_route(self):
+    def test_console_url_is_the_console_route(self):
+        """Console has no launcher TILE any more (operator asked for it to be
+        hidden), so this asks the registry for its URL instead of the grid.
+
+        The intent is unchanged and still worth pinning: whatever sends a user
+        to Console — the tab bar, a direct link, the sidebar — must send them
+        to /apps/console/. Only the SUBJECT moved, from the tile to the module
+        that would have produced it.
+
+        This test previously did next(t for t in tiles if t["name"] ==
+        "console") and, once the tile went away, raised StopIteration — which
+        is how it surfaced, on all three CI legs.
+        """
         # Arrange
+        from apps.infra.workspace_app.registry import get_module
+
         module_name = "console"
         # Act
-        tile = self._tile(module_name)
+        module = get_module(module_name)
         # Assert
-        assert tile["launch_url"] == "/apps/console/"
+        assert module is not None and module.get_url() == "/apps/console/"
+
+    def test_console_really_has_no_tile(self):
+        """The other half of the change above: asserting the URL from the
+        registry would keep passing if the tile came back, so pin its absence
+        here rather than leaving it implied."""
+        # Arrange
+        resp = self.client.get("/")
+        # Act
+        names = {t["name"] for t in resp.context["tiles"]}
+        # Assert
+        assert "console" not in names
 
     def test_console_index_does_not_redirect_to_writer(self):
         # Arrange
@@ -61,14 +88,16 @@ class LauncherTileUrlTest(TestCase):
         # Assert
         assert b'data-active-module="console"' in resp.content
 
-    def test_discovery_index_renders_discovery_module_shell(self):
+    def test_public_projects_index_renders_discovery_module(self):
         # Arrange
-        url = "/apps/discovery/"
+        url = "/apps/public-projects/"
         # Act
         resp = self.client.get(url)
-        # Assert — the shell must declare discovery as the module to
-        # load (nav-404 batch #2: shell fell back to "home")
-        assert b'data-active-module="discovery"' in resp.content
+        # Assert — the page must serve the Public Projects module, not fall back to
+        # "my_projects" (nav-404 batch #2). Since 2026-09-14 it is one server-rendered
+        # pane rather than the three-pane shell that loaded it over AJAX, so
+        # the module's own content is what proves it.
+        assert b'id="public-projects-content"' in resp.content
 
     def test_comms_index_still_resolves(self):
         # Arrange — the launcher "Chat" tile was dropped (launcher pass 2,
@@ -101,8 +130,12 @@ class LauncherTileUrlTest(TestCase):
         url = "/"
         # Act
         resp = self.client.get(url)
-        # Assert — the mobile dock Chat entry targets the chat pane
-        assert b'href="/chat/" class="launcher-dock-item"' in resp.content
+        # Assert — the site dock's Chat entry targets the chat pane (the dock
+        # moved from the launcher template to every page on 2026-09-14)
+        assert re.search(
+            rb'<a href="/chat/"\s+class="site-dock-item[^"]*"\s+data-dock-item="chat"',
+            resp.content,
+        )
 
 
 class UserAppModuleUrlTest(TestCase):

@@ -1,0 +1,36 @@
+{
+  "$schema": "scitex-app-manifest",
+  "$schema_version": "2.0.0",
+  "name": "tools-media",
+  "label": "Media Tools",
+  "app_name": "tools_app",
+  "icon": "fas fa-photo-film",
+  "description": "Video editing, GIF making and audio transcription.",
+  "license": "AGPL-3.0",
+  "order": 39,
+  "category": "utility",
+  "accent_color": "tools",
+  "body_class": "tools-page",
+  "partial_template": "tools_app/tools_partial.html",
+  "context_builder": "apps.workspace.tools_app.views.tools_views.build_media_tools_context",
+  "url": "/apps/tools/media/",
+  "tree_mode": "tools",
+  "ai_hint": "Video editing, GIF making and audio transcription.",
+  "allowed_extensions": [],
+  "hidden_patterns": [
+    "__pycache__",
+    "node_modules",
+    ".git",
+    ".venv"
+  ],
+  "privileges": [],
+  "builtin": true,
+  "dependencies": {
+    "python": [],
+    "system": [],
+    "node": [],
+    "r": [],
+    "other": []
+  },
+  "container": null
+}

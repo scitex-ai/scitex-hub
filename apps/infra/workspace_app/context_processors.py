@@ -59,8 +59,8 @@ def workspace_context(request):
     has_panes = is_ws and active_name is not None
     # Non-module workspace pages: user profiles get panes, others don't
     if is_ws and active_name is None:
-        # Org profiles → Discovery context; user profiles → Home context
-        active_name = "discovery" if _is_org_profile_path(path) else "home"
+        # Org profiles → Public Projects context; user profiles → Home context
+        active_name = "public_projects" if _is_org_profile_path(path) else "my_projects"
         if request.user.is_authenticated and (
             _is_user_profile_path(path)
             or path.rstrip("/") == "/new"
@@ -186,6 +186,7 @@ def _is_user_profile_path(path: str) -> bool:
         # It only happened when SIGNED IN — anonymous visitors take another
         # branch and get a working footer — so every casual check looked fine.
         "tokushoho",
+        "tokushoho-en",
         "recruit",
         "services",
         "security",

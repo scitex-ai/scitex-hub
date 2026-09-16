@@ -1,0 +1,90 @@
+/* ============================================================
+   App icon — the coloured rounded-square icon with its glyph.
+
+   ONE definition for every place an app is drawn as an icon:
+     * the Home grid tile   (apps_app/partials/launcher_tile.html)
+     * the site dock        (global_base_partials/site_dock.html)
+   Operator, 2026-09-14: the dock's Home / My Projects / Chat / App Store
+   buttons must show the SAME icons as their Home tiles, not bare glyphs. So
+   the shape and the category palette live here, and both surfaces link this
+   file; a surface only sets --launcher-icon-size (and the glyph size).
+
+   The dock is on every page, including leaf pages that do not load the hub's
+   design tokens, so every colour here is a literal.
+
+   :where() is LOAD-BEARING. On Home this file is linked twice (by the
+   launcher's head and again by the dock partial at the end of <body>), and
+   the later copy would otherwise out-order launcher/mobile.css, whose phone
+   and desktop icon sizes share this selector's specificity. Zero specificity
+   lets every surface's own sizing win regardless of link order.
+   ============================================================ */
+
+:where(.launcher-tile-icon) {
+  --launcher-icon-size: 64px;
+  position: relative;
+  width: var(--launcher-icon-size);
+  height: var(--launcher-icon-size);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  /* Springy pop — the overshoot on settle gives icons an iOS "bounce". */
+  transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+:where(.launcher-tile-icon) i {
+  font-size: 26px;
+  color: var(--launcher-glyph-color, #fff);
+}
+
+/* ---------- Gradients (palette keyed by category) ----------
+   Follow-up: replace with manifest-driven per-app branding. */
+.launcher-tile-icon[data-tile-category="writing"] {
+  background: linear-gradient(135deg, #4c8dff, #2f5fd0);
+}
+
+.launcher-tile-icon[data-tile-category="reference"] {
+  background: linear-gradient(135deg, #9d7bff, #6b46c1);
+}
+
+.launcher-tile-icon[data-tile-category="visualization"] {
+  background: linear-gradient(135deg, #ff8a5c, #d95f2b);
+}
+
+.launcher-tile-icon[data-tile-category="data"] {
+  background: linear-gradient(135deg, #39c6c0, #1f8a8a);
+}
+
+.launcher-tile-icon[data-tile-category="analysis"] {
+  background: linear-gradient(135deg, #ffb454, #e08c1a);
+}
+
+.launcher-tile-icon[data-tile-category="utility"] {
+  background: linear-gradient(135deg, #8b98a9, #5b6572);
+}
+
+.launcher-tile-icon[data-tile-category="social"] {
+  background: linear-gradient(135deg, #63d489, #2f9e5f);
+}
+
+/* Home itself: it is the grid, so it has no tile of its own. The hub accent. */
+.launcher-tile-icon[data-tile-category="home"] {
+  background: linear-gradient(135deg, #8f7bb8, #5d4b86);
+}
+
+.launcher-tile-icon[data-tile-category="other"],
+.launcher-tile-icon:not([data-tile-category]) {
+  background: linear-gradient(135deg, #e4b34a, #b8862b);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(.launcher-tile-icon) {
+    transition: none;
+  }
+}
+
+/* EOF */

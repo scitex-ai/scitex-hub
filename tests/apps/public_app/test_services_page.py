@@ -9,11 +9,41 @@ Covers the load-bearing constraints from the design spec:
 - Email is sent ONLY when SERVICES_INQUIRY_EMAIL is set, and NEVER to recruit@.
 """
 
+import subprocess
+import sys
+from pathlib import Path
+
 import pytest
 from django.core import mail
 from django.urls import reverse
+from django.utils import translation
 
 from apps.infra.public_app.models import ServiceInquiry
+
+PROJECT_ROOT = Path(__file__).resolve().parents[3]  # tests/apps/public_app/ -> repo root
+
+
+@pytest.fixture(scope="module", autouse=True)
+def compiled_catalogs():
+    """Compile locale/**/*.po -> .mo before any JA assertion reads a catalog.
+
+    /services/ renders EN by default, but the test
+    test_get_renders_japanese_when_selected uses ``translation.override("ja")``
+    to verify the JA catalogue is complete. The JA strings only exist in the
+    compiled .mo, which is gitignored and NOT compiled by the CI pytest step
+    (no msgfmt). Same fixture as test_tokushoho / test_i18n_landing.
+    """
+    script = PROJECT_ROOT / "scripts" / "i18n" / "compile_catalogs.py"
+    result = subprocess.run(
+        [sys.executable, str(script)], cwd=PROJECT_ROOT,
+        capture_output=True, text=True,
+    )
+    assert result.returncode == 0, (
+        f"catalog compilation failed ({result.returncode}):\n"
+        f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+    )
+    translation.trans_real._translations.clear()
+    yield
 
 
 @pytest.fixture
@@ -65,36 +95,134 @@ class TestServicesGet:
         # Arrange
         # Act
         resp = client.get(services_url)
-        # Assert
-        assert "解析相談・コードレビュー" in resp.content.decode()
+        # Assert (EN default; the SSoT + static copy are English-source since
+        # 2026-09-12 — JA rendering is asserted in test_get_renders_japanese)
+        assert "Analysis consultation & code review" in resp.content.decode()
 
     def test_get_shows_transparency_section(self, client, services_url):
         # Arrange
         # Act
         resp = client.get(services_url)
         # Assert: external usage fees are billed at cost (pricing transparency)
-        assert "外部利用料" in resp.content.decode()
+        assert "external charges" in resp.content.decode()
 
     def test_get_shows_pricing_ladder(self, client, services_url):
         # Arrange
         # Act
         resp = client.get(services_url)
         # Assert
-        assert "料金の目安" in resp.content.decode()
+        assert "Indicative pricing" in resp.content.decode()
 
     def test_get_offers_a_free_first_consult(self, client, services_url):
         # Arrange
         # Act
         resp = client.get(services_url)
         # Assert
-        assert "無料" in resp.content.decode()
+        assert "30 minutes free" in resp.content.decode()
 
     def test_get_leads_with_no_lock_in_positioning(self, client, services_url):
         # Arrange
         # Act
         resp = client.get(services_url)
         # Assert
-        assert "囲い込" in resp.content.decode()
+        assert "lock-in" in resp.content.decode()
+
+    def test_get_renders_japanese_when_selected(self, client, services_url):
+        # The page must render fully Japanese under an explicit selection
+        # (the JA catalogue carries every EN msgid), not just English by
+        # default — the mirror of the landing's rendered-page i18n guard.
+        #
+        # JA is selected the way the app does it: the ``django_language=ja``
+        # cookie (footer switcher). We do NOT use ``translation.override("ja")``
+        # here — the ``client.get()`` middleware chain (LocaleMiddleware) resets
+        # the language to the request's, so a test-process override would be
+        # discarded and the page would render EN.
+        response = client.get(
+            services_url, HTTP_COOKIE="django_language=ja"
+        )
+        content = response.content.decode()
+        for needle in ("研究に集中できる環境", "料金の目安", "問い合わせはこちら", "SciTeX クラウド", "近日提供"):
+            assert needle in content, f"{needle!r} missing from the Japanese /services/"
+
+    def test_get_prices_the_same_catalogue_as_tokushoho(self, client, services_url):
+        """2026-09-02: /services/ and /tokushoho/ read ONE list. Until then this
+        page rendered the 2024-invoice consulting bands and a three-tier table
+        whose middle tier (Lab) business had retired on 2026-08-28 — two public
+        pages, one pricing.json, two disjoint price sets. The operator's words
+        on seeing it: 「値段はめちゃくちゃだった」.
+
+        The price rows are computed in the SAME language the page renders in
+        (EN by default; JA only after explicit selection) — otherwise a
+        JA-formatted price (「月額 1,490円」) is compared against an
+        EN-rendered page (「¥1,490/month」) and the match fails. Both arms are
+        asserted below.
+        """
+        # Arrange
+        from apps.infra.public_app.pricing import published_price_rows
+
+        def assert_catalogue_on_page(content, lang):
+            # price / price_note / included items are language-dependent — the
+            # page renders each in its OWN language — so we compare the
+            # catalogue formatted in that same language. The tier LABEL is
+            # deliberately NOT asserted: it is translated in the template
+            # (「Sub · Academic」 → 「サブスク・学術」) but returned raw from
+            # published_price_rows(), so a cross-language label match is
+            # impossible. The price is the row's identity.
+            with translation.override(lang):
+                rows = published_price_rows()
+            assert rows, "Control: an empty catalogue would satisfy the loop below vacuously."
+            for row in rows:
+                assert row["price"] in content, (
+                    f"price {row['price']!r} (tier {row['label']!r}) not on the {lang} /services/ page"
+                )
+                if row["price_note"]:
+                    assert row["price_note"] in content, (
+                        f"{row['label']}: {row['price_note']!r} not on /services/ ({lang})"
+                    )
+                for item in row["included"]:
+                    assert item in content, (
+                        f"{row['label']}: included item {item!r} not on /services/ ({lang})"
+                    )
+
+        # Act/Assert — EN default (no cookie)
+        en_content = client.get(services_url).content.decode()
+        assert_catalogue_on_page(en_content, "en")
+        assert "All displayed prices include tax" in en_content
+
+        # Act/Assert — JA (cookie-selected)
+        ja_content = client.get(services_url, HTTP_COOKIE="django_language=ja").content.decode()
+        assert_catalogue_on_page(ja_content, "ja")
+        assert "税込" in ja_content
+
+    def test_get_no_longer_prices_retired_offers(self, client, services_url):
+        # Arrange
+        # The old Individual / Lab / Enterprise three-tier table was retired
+        # 2026-08-28. "Individual" (capital-I, the old tier name) is gone; the
+        # 2024-invoice BANDS (11,000 / 33,000 / 110,000) are the real retired-
+        # offer evidence. Deliberately NOT asserting on the words "Lab" or
+        # "Enterprise" — both are live now: "Lab & Organization" is a service
+        # heading and "Enterprise" is the current On-Prem/Enterprise tier name,
+        # so a bare substring check would false-positive on legitimate copy.
+        retired_tier_names = ("Individual",)
+        retired_band_amounts = ("11,000", "33,000", "110,000")  # 2024-invoice bands
+        # Act
+        content = client.get(services_url).content.decode()
+        # Assert
+        for needle in retired_tier_names + retired_band_amounts:
+            assert needle not in content, f"retired {needle!r} is back on /services/"
+        # The grid container is class="svc-plan-cards" and shares the prefix;
+        # count the tier articles, not every class that starts that way.
+        assert content.count('<article class="svc-plan-card') == 3, "exactly three tiers"
+
+    def test_get_shows_the_three_tiers_business_wrote(self, client, services_url):
+        # Arrange (EN source — the SSOT tier names since 2026-09-11; the
+        # quote_only tier shows "By request", each tier links "Inquire here").
+        expected = ("SciTeX Cloud", "SciTeX Self-Hosted", "Professional services", "Inquire here")
+        # Act
+        content = client.get(services_url).content.decode()
+        # Assert
+        for needle in expected:
+            assert needle in content, f"{needle!r} missing from the tier cards"
 
 
 @pytest.mark.django_db
@@ -109,7 +237,7 @@ class TestServicesInquiryValid:
         # Arrange
         # Act
         # Assert
-        assert "受け付けました" in posted_valid.content.decode()
+        assert "We've received your inquiry" in posted_valid.content.decode()
 
     def test_valid_post_persists_one_inquiry(self, posted_valid):
         # Arrange
@@ -136,7 +264,7 @@ class TestServicesInquiryInvalid:
         # Arrange
         # Act
         # Assert
-        assert "ご記入ください" in posted_invalid.content.decode()
+        assert "Please enter your name." in posted_invalid.content.decode()
 
     def test_invalid_post_saves_nothing(self, posted_invalid):
         # Arrange
@@ -170,3 +298,50 @@ if __name__ == "__main__":
     import os
 
     pytest.main([os.path.abspath(__file__)])
+
+
+_SERVICES_CSS = (
+    Path(__file__).resolve().parents[3]
+    / "apps/infra/public_app/static/public_app/css"
+)
+
+
+def _rules_for(selector: str, css: str) -> list[str]:
+    """Every declaration block whose selector list contains ``selector`` exactly,
+    at top level or inside any @media block."""
+    import re
+
+    # Comments first: a `/* … */` directly above a rule would otherwise be
+    # captured as part of its selector list, and the rule this test exists
+    # for (services.css's old `.svc-plan-cards { display: none }`) sat under
+    # exactly such a comment — the first version of this parser missed it.
+    css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    blocks = []
+    for m in re.finditer(r"([^{}]+)\{([^{}]*)\}", css):
+        selectors = [s.strip() for s in m.group(1).split(",")]
+        if selector in selectors:
+            blocks.append(m.group(2))
+    return blocks
+
+
+def test_the_tier_cards_are_not_hidden_by_any_stylesheet_the_page_loads():
+    """Measured on production 2026-09-04: the three tier cards were in the HTML
+    (the substring tests above were green) and rendered 0×0, because
+    services.css still carried the old mobile-only `.svc-plan-cards {
+    display: none }` from before #708 moved the tiers into these cards. A
+    rendered-HTML test cannot see CSS, so this one reads the two stylesheets
+    the page links and refuses any rule that hides the container — at top
+    level OR inside a media query — while a positive control proves the
+    parser sees the container's real rule."""
+    import re
+
+    hides = []
+    seen = 0
+    for name in ("services.css", "services-detail.css"):
+        css = (_SERVICES_CSS / name).read_text(encoding="utf-8")
+        for block in _rules_for(".svc-plan-cards", css):
+            seen += 1
+            if re.search(r"display\s*:\s*none", block) or re.search(r"visibility\s*:\s*hidden", block):
+                hides.append((name, block.strip()))
+    assert seen >= 1, "Control: no rule for .svc-plan-cards was parsed at all, so the assertion below is vacuous."
+    assert not hides, f"the tier-card container is hidden by: {hides}"

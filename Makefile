@@ -212,7 +212,7 @@ ifdef ENV
 else
   # ENV not specified - only allow non-operational commands
   ifneq ($(MAKECMDGOALS),)
-    ifneq ($(filter-out help help-commands help-all status validate-docker stop-all force-stop-all format format-python format-web format-shell lint lint-web lint-shell check-file-sizes check-assets check-host ensure-executable slurm-start slurm-stop slurm-restart slurm-status slurm-fix slurm-resume slurm-reset crossref-status crossref-check crossref-rebuild-check crossref-next-steps crossref-create-title-index crossref-create-author-index info regenerate-gallery sync-tests sync-tests-move sync-ts-tests sync-ts-tests-move setup-vitest test-ts test-ts-watch test-ts-ui test-ts-coverage setup-pytest setup-testing test-unit test-db test-api test-ui test-ui-headed test-python test-all test-status apptainer-build apptainer-build-base apptainer-upgrade apptainer-freeze,$(MAKECMDGOALS)),)
+    ifneq ($(filter-out help help-commands help-all status validate-docker stop-all force-stop-all format format-python format-web format-shell lint lint-web lint-shell check-file-sizes check-assets check-source-dirt check-host ensure-executable slurm-start slurm-stop slurm-restart slurm-status slurm-fix slurm-resume slurm-reset crossref-status crossref-check crossref-rebuild-check crossref-next-steps crossref-create-title-index crossref-create-author-index info regenerate-gallery sync-tests sync-tests-move sync-ts-tests sync-ts-tests-move setup-vitest test-ts test-ts-watch test-ts-ui test-ts-coverage setup-pytest setup-testing test-unit test-db test-api test-ui test-ui-headed test-python test-all test-status apptainer-build apptainer-build-base apptainer-upgrade apptainer-freeze,$(MAKECMDGOALS)),)
       $(error ❌ ENV not specified! Use: make ENV=<dev|staging|prod> <command>)
     endif
   endif
@@ -1335,6 +1335,10 @@ check-file-sizes:
 # ============================================
 check-assets:
 	@./scripts/maintenance/check_untracked_assets.sh
+
+# Local-only: CI has no untracked files and must not claim to inspect them.
+check-source-dirt:
+	@python scripts/maintenance/check_untracked_source.py
 
 # ============================================
 # Host Requirements Checks

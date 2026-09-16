@@ -5,7 +5,6 @@ Context processors for making common variables available in all templates.
 import re
 
 from django.conf import settings
-from django.utils import timezone
 
 from apps.infra.project_app.models import Project
 
@@ -17,178 +16,58 @@ def version_context(request):
     }
 
 
-#: Pool-occupancy cache (requirement 4, card hub-visitor-ux-allapps):
-#: cheap enough for the header on every page — one query per minute.
-VISITOR_POOL_STATUS_CACHE_KEY = "visitor_pool_status"
-VISITOR_POOL_STATUS_CACHE_SECONDS = 60
-
-#: Every key the header badge's templates read off ``visitor_pool_status``.
-#: SSoT for the projection below AND for the test that scans the templates
-#: (tests/apps/project_app/test_visitor_badge_projection.py) — so a template
-#: that starts reading a new key fails a test instead of shipping a blank.
-VISITOR_POOL_STATUS_KEYS = ("total", "allocated", "ready")
-
-
-def _visitor_pool_status_cached():
-    """The keys the header badge renders, cached 60s.
-
-    MUST carry every key the templates read off ``visitor_pool_status``.
-    tests/apps/project_app/test_visitor_badge_projection.py asserts exactly
-    that by scanning the templates, because the failure mode here is SILENT:
-    Django renders a missing dict key as the empty string, so a projection
-    that drops a key produces a badge reading " of 16 visitor slots
-    available" with no error anywhere.
-
-    That is not hypothetical. On 2026-07-30 the badge was correctly changed
-    from ``allocated`` to ``ready`` — allocation needs a slot that is free AND
-    workspace_ready AND not quarantined, which only ``ready`` expresses — and
-    this projection was not updated with it. Measured on production
-    2026-08-28, nearly a month later, the count was still blank.
-
-    ``allocated`` is retained because it is cheap and other consumers may
-    read it; ``ready`` is the one the badge actually renders. Both come from
-    ``measure_pool``, which returns them alongside free/expired/quarantined.
-
-    Returns None (badge hides occupancy) when the pool tables are not
-    migrated yet — logged loudly, never masked as fake numbers.
-    """
-    import logging
-
-    from django.core.cache import cache
-
-    from apps.infra.project_app.services.visitor_pool import VisitorPool
-
-    def _load():
-        status = VisitorPool.get_pool_status()
-        return {key: status[key] for key in VISITOR_POOL_STATUS_KEYS}
-
-    try:
-        return cache.get_or_set(
-            VISITOR_POOL_STATUS_CACHE_KEY, _load, VISITOR_POOL_STATUS_CACHE_SECONDS
-        )
-    except Exception as exc:
-        logging.getLogger(__name__).error(
-            "[VisitorPool] pool-status query failed (occupancy hidden): %s", exc
-        )
-        return None
+# The pool-occupancy projection (VISITOR_POOL_STATUS_KEYS /
+# _visitor_pool_status_cached) was deleted 2026-09-11 with the visitor header
+# badge (card drop-visitor-readonly-freemium-20260911): no template reads
+# visitor_pool_status anymore — test_visitor_badge_projection.py now asserts
+# that and fails if the badge (and its data source) is reintroduced.
 
 
 def visitor_expiration_context(request):
     """
-    Visitor-session context for all templates (card hub-visitor-ux-allapps).
+    Session-role context for all templates (post visitor retirement).
 
-    Role handling is delegated to the canonical session-role model
-    (services.visitor_pool.get_session_role) — no username checks here.
+    Returns only what live templates still consume:
+        dict: session_role — canonical session-role model
+              (services.visitor_pool.get_session_role); read by
+              global_base.html (data-session-role) and the JS role guards
+              (readonly-visitor-guard.ts, visitor-heartbeat.ts). Still
+              meaningful for PRE-retirement visitor-00N / readonly-visitor
+              user rows, who can log in; for new sessions it is
+              'registered' or 'anonymous'.
+              visitor_username — the launcher guest CTA identity slice
+              (Visitor #NNN).
+              visitor_idle_timeout_minutes — the enforced PoolAllocator
+              idle-reaper constant, quoted by the launcher CTA copy so the
+              lifetime claim can't drift from the actual reaper.
 
-    Returns:
-        dict: session_role, visitor_expires_at, visitor_username,
-              is_visitor, is_readonly, visitor_cpus, visitor_memory_gb,
-              visitor_idle_timeout_minutes (idle-reaper threshold — banner
-              copy quotes the enforced constant, never hardcoded prose),
-              readonly_visitor_notice (one-shot downgrade reason code),
-              readonly_visitor_notice_detail (its user-facing copy),
-              readonly_visitor_reason (persistent downgrade reason code),
-              readonly_visitor_reason_detail (its user-facing copy),
-              visitor_pool_status ({total, allocated} — readonly sessions)
+    The former keys (is_visitor / is_readonly / visitor_expires_at /
+    visitor_cpus / visitor_memory_gb / visitor_pool_status /
+    readonly_visitor_notice* / readonly_visitor_reason*) are dropped: their
+    only consumers were the visitor badge / menu / popover markup removed in
+    the same retirement, and no template or live test reads them.
     """
-    from django.contrib.auth.models import User
-
-    from apps.infra.project_app.models import VisitorAllocation
     from apps.infra.project_app.services.visitor_pool import (
-        ROLE_ANONYMOUS,
         ROLE_READONLY_VISITOR,
         ROLE_VISITOR,
-        SESSION_KEY_READONLY_NOTICE,
-        VisitorPool,
-        get_readonly_reason,
         get_session_role,
-        readonly_reason_detail,
     )
     from apps.infra.project_app.services.visitor_pool.pool_manager import (
         PoolAllocator,
     )
-    from config.settings.quotas import SLURM_QUOTAS
 
     role = get_session_role(request)
     context = {
         "session_role": role,
-        "visitor_expires_at": None,
         "visitor_username": None,
-        "is_visitor": role in (ROLE_VISITOR, ROLE_READONLY_VISITOR),
-        "is_readonly": role == ROLE_READONLY_VISITOR,
-        "visitor_cpus": SLURM_QUOTAS.get("interactive_cpus", 2),
-        "visitor_memory_gb": SLURM_QUOTAS.get("interactive_memory_gb", 4),
-        # A visitor session is NOT a fixed lifetime: activity heartbeats
-        # keep extending it; the idle reaper reclaims after this many
-        # minutes of inactivity (see PoolAllocator.extend_session_on_activity).
         "visitor_idle_timeout_minutes": PoolAllocator.IDLE_TIMEOUT_MINUTES,
-        "readonly_visitor_notice": "",
-        "readonly_visitor_notice_detail": "",
-        "readonly_visitor_reason": "",
-        "readonly_visitor_reason_detail": "",
-        "visitor_pool_status": None,
     }
 
-    # Shared read-only visitor (no writable slot at allocation time)
-    if role == ROLE_READONLY_VISITOR:
+    # A pre-retirement visitor / readonly-visitor row logging in still gets
+    # the launcher guest-CTA identity slice.
+    if role in (ROLE_VISITOR, ROLE_READONLY_VISITOR):
         context["visitor_username"] = request.user.username
-        # Fail-loud: one-shot explanation of WHY this session is read-only
-        # (reason code set by VisitorAutoLoginMiddleware on downgrade,
-        # shown once by the banner).
-        notice = request.session.pop(SESSION_KEY_READONLY_NOTICE, "")
-        context["readonly_visitor_notice"] = notice
-        if notice:
-            context["readonly_visitor_notice_detail"] = readonly_reason_detail(notice)
-        # Persistent reason for the header badge popover/dropdown — the
-        # state (and its truthful explanation) outlives the one-shot banner.
-        reason = get_readonly_reason(request.session)
-        context["readonly_visitor_reason"] = reason
-        context["readonly_visitor_reason_detail"] = readonly_reason_detail(reason)
-        context["visitor_pool_status"] = _visitor_pool_status_cached()
-        return context
 
-    # Writable pool visitor — expose allocation expiry when valid
-    if role == ROLE_VISITOR:
-        context["visitor_username"] = request.user.username
-        allocation_token = request.session.get(VisitorPool.SESSION_KEY_ALLOCATION_TOKEN)
-        if allocation_token:
-            try:
-                allocation = VisitorAllocation.objects.get(
-                    allocation_token=allocation_token,
-                    is_active=True,
-                    expires_at__gt=timezone.now(),
-                )
-                context["visitor_expires_at"] = allocation.expires_at
-            except VisitorAllocation.DoesNotExist:
-                pass
-        return context
-
-    # Anonymous with a leftover allocation in the session (pre-login edge)
-    if role == ROLE_ANONYMOUS:
-        allocation_token = request.session.get(VisitorPool.SESSION_KEY_ALLOCATION_TOKEN)
-        if allocation_token:
-            try:
-                allocation = VisitorAllocation.objects.get(
-                    allocation_token=allocation_token,
-                    is_active=True,
-                    expires_at__gt=timezone.now(),
-                )
-                visitor_user_id = request.session.get(
-                    VisitorPool.SESSION_KEY_VISITOR_ID
-                )
-                if visitor_user_id:
-                    try:
-                        context["visitor_username"] = User.objects.get(
-                            id=visitor_user_id
-                        ).username
-                    except User.DoesNotExist:
-                        pass
-                context["visitor_expires_at"] = allocation.expires_at
-                context["is_visitor"] = True
-            except VisitorAllocation.DoesNotExist:
-                pass
-
-    # Registered user or plain anonymous
     return context
 
 

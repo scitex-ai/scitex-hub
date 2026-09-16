@@ -27,7 +27,7 @@ import time
 from datetime import datetime
 from datetime import timezone as dt_timezone
 
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth import get_user_model
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.http import HttpResponse
 from django.test import RequestFactory, SimpleTestCase
@@ -105,9 +105,14 @@ def _make_checks(slow_name=None, visitor_check=None):
 
 
 def _status_request():
-    """A real GET request with session + anonymous user attached."""
+    """A real GET request with session + an (unsaved) staff user attached.
+
+    These are contracts of the FULL payload, which is instance-admin only since
+    the 2026-09-14 site audit. The non-admin redaction is pinned in
+    test_status_access.py.
+    """
     request = RequestFactory().get(URL)
-    request.user = AnonymousUser()
+    request.user = get_user_model()(username="status-staff", is_staff=True)
     SessionMiddleware(lambda req: HttpResponse()).process_request(request)
     return request
 

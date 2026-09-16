@@ -15,6 +15,7 @@ from .profile_views import (
     profile_edit,
     profile_view,
 )
+from .billing_views import billing_settings
 
 # Remote credentials views
 from .remote_credentials_views import remote_credentials
@@ -43,6 +44,8 @@ __all__ = [
     "api_generate_ssh_key",
     # Remote credentials views
     "remote_credentials",
+    # Billing
+    "billing_settings",
     # API keys views
     "api_keys",
     # Settings and integrations views

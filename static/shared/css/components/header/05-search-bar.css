@@ -1,23 +1,27 @@
-/* Search Bar */
+/* Search Bar: a button that opens the command palette (16-search-modal.css) */
 .header-search {
-  width: 100%;
   position: relative;
-}
-
-.header-search input {
+  display: flex;
+  align-items: center;
   width: 100%;
+  height: var(--input-height, 36px);
+  padding: 0 36px 0 32px;
   background: var(--bg-page);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-xs) 36px var(--spacing-xs) 32px;
-  color: var(--text-primary);
+  color: var(--text-secondary);
   font-size: var(--base-font-size);
-  line-height: 20px;
-  transition: all var(--transition-normal) ease;
+  text-align: left;
+  cursor: text;
   box-shadow: var(--shadow-xs);
+  transition: all var(--transition-normal) ease;
 }
 
-.header-search input:focus {
+.header-search:hover {
+  border-color: var(--scitex-color-04);
+}
+
+.header-search:focus-visible {
   outline: none;
   border-color: var(--scitex-color-04);
   box-shadow:
@@ -25,9 +29,25 @@
     0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.header-search input::placeholder {
-  color: var(--text-secondary);
-  opacity: 0.7;
+.header-search-placeholder {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  opacity: 0.8;
+}
+
+/* A mask, not an <img>: an img paints the SVG's currentColor as black, which
+   vanished on the dark header. Painted with the header text token instead. */
+.header-search-icon,
+.header-search-mobile-icon,
+.search-modal-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  background-color: var(--text-secondary);
+  -webkit-mask: url("../../../images/icons_svg/scitex-search-icon.svg") center /
+    contain no-repeat;
+  mask: url("../../../images/icons_svg/scitex-search-icon.svg") center / contain
+    no-repeat;
 }
 
 .header-search-icon {
@@ -35,34 +55,21 @@
   left: 10px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--text-secondary);
   pointer-events: none;
-  font-size: 14px;
   height: 16px;
   width: 16px;
   opacity: 0.6;
-  transition: filter 0.2s ease;
 }
 
-/* Dark mode search - automatically handled by semantic tokens */
-[data-theme="dark"] .header-search input {
+[data-theme="dark"] .header-search {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-[data-theme="dark"] .header-search input:focus {
-  border-color: var(--scitex-color-05);
-  box-shadow:
-    0 0 0 3px rgba(108, 139, 160, 0.2),
-    0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-/* Search icon in dark mode - bluish tint */
-[data-theme="dark"] .header-search-icon {
-  filter: brightness(1.3) sepia(0.2) saturate(1.3) hue-rotate(180deg);
+[data-theme="dark"] .header-search-icon,
+[data-theme="dark"] .header-search-mobile-icon {
   opacity: 0.85;
 }
 
-/* Search Shortcut Badge - GitHub style */
 .search-shortcut-badge {
   position: absolute;
   right: var(--spacing-sm);
@@ -78,20 +85,46 @@
   border-radius: var(--radius-sm);
   pointer-events: none;
   opacity: 0.6;
-  transition: opacity var(--transition-normal) ease;
   line-height: 16px;
   min-width: 20px;
   text-align: center;
 }
 
-/* Hide badge when input is focused */
-.header-search input:focus ~ .search-shortcut-badge {
-  opacity: 0;
-}
-
 [data-theme="dark"] .search-shortcut-badge {
-  background: transparent;
   border-color: rgba(255, 255, 255, 0.2);
   color: rgba(255, 255, 255, 0.5);
 }
 
+/* Phone-only search icon; the desktop field is hidden at this width */
+.header-search-mobile-trigger {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .header-search-mobile-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    margin-left: auto;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* The icon takes the auto margin so the hamburger stays beside it */
+  .header-search-mobile-trigger + .mobile-hamburger {
+    margin-left: 0;
+  }
+
+  .header-search-mobile-icon {
+    width: 20px;
+    height: 20px;
+    opacity: 0.8;
+  }
+}

@@ -1,3 +1,5 @@
+import { CompilationHttpError } from "./compilation-http-error";
+
 /**
  * Compilation Types
  * Shared type definitions for compilation system
@@ -48,7 +50,7 @@ export interface CompilationStatusData {
 export interface CompilationCallbacks {
   onProgress?: (progress: number, status: string) => void;
   onComplete?: (jobId: string, pdfUrl: string) => void;
-  onError?: (error: string) => void;
+  onError?: (error: string | CompilationHttpError) => void;
 }
 
 export type { CompilationJob };

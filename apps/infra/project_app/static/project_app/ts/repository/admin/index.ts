@@ -23,12 +23,7 @@ export {
 } from "./rendering";
 
 // Export UI interaction functions
-export {
-  showDialog,
-  closeDialog,
-  showError,
-  getCSRFToken,
-} from "./ui";
+export { showDialog, closeDialog, showError, getCSRFToken } from "./ui";
 
 // Export cleanup operations
 export { confirmDelete, deleteRepository } from "./cleanup";
@@ -39,6 +34,9 @@ export {
   getRestoreProjectName,
   restoreRepository,
 } from "./backup";
+
+// Export the interim string catalog helper (see i18n.ts)
+export { t, resetCatalog } from "./i18n";
 
 // Export main maintenance functionality
 export { initializeRepositoryMaintenance } from "./maintenance";

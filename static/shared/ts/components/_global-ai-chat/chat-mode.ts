@@ -2,6 +2,8 @@
 
 import { readActiveProjectSlug } from "./context";
 import { VoiceRecorder } from "./recorder";
+import { toggleChatMic } from "./mic-toggle";
+import { detectVoiceInputEnv, toggleVoiceInput } from "../voice-input";
 import { speakText } from "./speech";
 import { appendToolTags } from "./tool-tags";
 import { clearMessages, loadMessages, saveMessage } from "./storage";
@@ -367,6 +369,14 @@ export class AIPanelChatMode {
     const slug = readActiveProjectSlug();
     if (slug) this.context.project_slug = slug;
     this.context.page_hints = this.collectPageHints();
+    // Floating dock chat: answer about the page under the iframe, not /chat/.
+    const qs = new URLSearchParams(window.location.search);
+    const ctxPath = qs.get("ctx_path");
+    if (ctxPath) {
+      this.context.ctx_path = ctxPath;
+      this.context.ctx_title = qs.get("ctx_title") ?? "";
+      this.context.page = ctxPath;
+    }
 
     try {
       const resp = await fetch("/apps/llm/api/chat/stream/", {
@@ -395,9 +405,9 @@ export class AIPanelChatMode {
             errEl.textContent = msg + " ";
             const link = document.createElement("a");
             link.href = data.settings_url;
-            link.textContent = "Go to Settings > AI Providers";
-            link.style.color = "inherit";
-            link.style.textDecoration = "underline";
+            link.className = "stx-shell-ai-error-action";
+            link.textContent = "Set up an AI provider";
+            link.setAttribute("aria-label", "Open Settings, AI Providers");
             errEl.appendChild(link);
           } else {
             errEl.textContent = msg;
@@ -490,21 +500,11 @@ export class AIPanelChatMode {
   /* ── Mic / Recording ───────────────────────────────────────── */
 
   toggleRecording(): void {
-    if (!this.recorder) return;
-    if (this.recorder.isRecording) {
-      this.recorder.stop();
-    } else {
-      void this.recorder.start(
-        () => getCsrfToken(),
-        (text) => {
-          if (!this.inputEl) return;
-          const cur = this.inputEl.value.trim();
-          this.inputEl.value = cur ? `${cur} ${text}` : text;
-          this.inputEl.dispatchEvent(new Event("input"));
-          this.inputEl.focus();
-        },
-        () => this.sttModelSelect?.value ?? "",
-      );
-    }
+    toggleChatMic(
+      this.recorder,
+      this.inputEl,
+      this.micBtn,
+      () => this.sttModelSelect?.value ?? "",
+    );
   }
 }

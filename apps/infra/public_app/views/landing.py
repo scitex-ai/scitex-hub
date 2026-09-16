@@ -21,6 +21,7 @@ import importlib.metadata
 
 from django.db import connection, transaction
 from django.shortcuts import render
+from django.utils.translation import gettext as _
 
 # Pip package names for ecosystem table (scitex-hub uses SCITEX_HUB_VERSION from context processor)
 _ECOSYSTEM_PACKAGES = [
@@ -50,6 +51,34 @@ def _get_ecosystem_versions():
     return versions
 
 
+def _pricing_rows_for_landing() -> list[dict]:
+    """The subscription rows for the landing card.
+
+    The SSoT (published_price_rows) now renders USD as the primary price and
+    the compute credit in USD globally. The landing card additionally hides
+    the standard-guarantee items (overage/cap) which are disclosed on
+    /tokushoho/ but not advertised on the card.
+    """
+    from ..pricing import _limit_set_by_text, _overage_text, published_price_rows
+
+    rows = published_price_rows()
+    _standard_guarantees = {
+        _overage_text("metered"),
+        _limit_set_by_text("user"),
+    }
+    sub_rows = []
+    for r in rows:
+        if r["category"] != "subscription":
+            continue
+        row = {**r, "is_academic": r["id"] == "subscription-student"}
+        row["included"] = [
+            item for item in row.get("included", [])
+            if item not in _standard_guarantees
+        ]
+        sub_rows.append(row)
+    return sub_rows
+
+
 @transaction.non_atomic_requests
 def index(request):
     """
@@ -75,8 +104,23 @@ def index(request):
     # closed" rather than reconnecting, and the transaction's work is lost.
     if not connection.in_atomic_block:
         connection.close()
+    from ..pricing import load_pricing, tier_rows
+
+    # Two-plan landing row (operator 2026-09-12): the Free pane is dropped —
+    # Cloud (Academic / Non-Academic switcher) + On-Prem (AGPL / Custom).
+    sub_rows = _pricing_rows_for_landing()
+    onprem_tier = next(
+        (t for t in tier_rows() if t["id"] == "selfhosted"), None
+    )
     context = {
         "ecosystem_versions": _get_ecosystem_versions(),
+        # Pricing columns on the landing (compass 25.1). Rendered from the
+        # SSOT via the same helpers /pricing/ and /services/ use — never a
+        # hand-written copy.
+        "sub_rows": sub_rows,
+        "onprem_tier": onprem_tier,
+        "tax_note": load_pricing().get("tax_note", ""),
+        "pricing_notes": load_pricing()["notes"],
     }
     return render(request, "public_app/landing.html", context)
 
@@ -105,7 +149,7 @@ def premium_subscription(request):
                 "File organization & project structure",
                 "Simple data visualization",
             ],
-            "cta_text": "Get Started Free",
+            "cta_text": _("Start your 30-day trial"),
             "cta_url": "/signup/",
             "popular": False,
         },
@@ -128,7 +172,7 @@ def premium_subscription(request):
                 "Advanced bibliography management",
                 "Statistical validation tools",
             ],
-            "cta_text": "Start Free Trial",
+            "cta_text": _("Start your 30-day trial"),
             "cta_url": "/signup/?plan=standard",
             "popular": False,
         },
@@ -151,7 +195,7 @@ def premium_subscription(request):
                 "JST/MEXT grant optimization",
                 "Advanced statistical analysis",
             ],
-            "cta_text": "Start Free Trial",
+            "cta_text": _("Start your 30-day trial"),
             "cta_url": "/signup/?plan=professional",
             "popular": True,
         },

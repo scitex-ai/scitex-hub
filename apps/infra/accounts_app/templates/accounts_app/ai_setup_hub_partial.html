@@ -1,9 +1,9 @@
-{% load static %}
+{% load static i18n %}
 
 <div class="ai-setup-hub">
     <div class="ai-setup-header">
-        <h1 class="ai-setup-title">AI Setup</h1>
-        <p class="ai-setup-subtitle">Configure how SciTeX AI agents work for you</p>
+        <h1 class="ai-setup-title">{% trans "AI Setup" %}</h1>
+        <p class="ai-setup-subtitle">{% trans "Configure how SciTeX AI agents work for you" %}</p>
     </div>
     <div class="ai-setup-grid">
         {% for cat in categories %}

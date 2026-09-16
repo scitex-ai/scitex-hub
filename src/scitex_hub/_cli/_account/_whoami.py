@@ -29,7 +29,7 @@ from ._token import _read_cached_token, _resolve_server
 )
 @click.option("--json", "as_json", is_flag=True, help="Emit JSON.")
 def whoami(server, as_json):
-    """Print the username + email the cached token authenticates as.
+    """Print who the cached token authenticates as (username, id, plan, key).
 
     Same identity probe the demo's middleware-verification step used —
     handy for "is my token still valid?" without a separate health
@@ -72,9 +72,13 @@ def whoami(server, as_json):
         click.echo(json.dumps(data, indent=2, default=str))
         return
     username = data.get("username", "?")
-    email = data.get("email", "?")
+    plan = data.get("plan") or "(none)"
+    expires_at = data.get("expires_at") or "never"
     console.print(f"username: [cyan]{username}[/cyan]")
-    console.print(f"email:    [cyan]{email}[/cyan]")
+    console.print(f"id:       [cyan]{data.get('id', '?')}[/cyan]")
+    console.print(f"plan:     [cyan]{plan}[/cyan]")
+    if data.get("key_id") is not None:
+        console.print(f"key:      [cyan]#{data['key_id']} (expires {expires_at})[/cyan]")
     console.print(f"server:   [cyan]{server_url}[/cyan]")
 
 

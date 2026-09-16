@@ -2,7 +2,17 @@
 # -*- coding: utf-8 -*-
 # File: tests/develop/test_celery_worker_pool.py
 
-"""Celery worker pool conformance gate for the prod compose file.
+"""Celery worker pool conformance gate for EVERY compose file.
+
+SCOPE WIDENED 2026-09-06, and the reason is the point of this module. This
+gate was written against the prod compose file alone. Seven weeks later the
+cure had reached exactly ONE of the five compose files that define a celery
+worker, and BOTH live stacks running an uncured file were wedged: dev with
+225,119 messages queued on `celery` and 10,653 on `vis_queue`, staging with
+428,902 and 32,795 — staging reporting "healthy" throughout, because only dev
+had been given the execution-asserting healthcheck. A gate whose population is
+a hardcoded list of the services someone remembered cannot catch the service
+nobody remembered, so the population is now DISCOVERED from disk and floored.
 
 The PREFORK pool wedges on the prod host. Measured signature (2026-07-14,
 2026-07-17 and again 2026-07-30): ``celery inspect reserved`` shows a FULL
@@ -52,7 +62,8 @@ PROD_COMPOSE = (
 # Human-readable name for the two prefork-only options, for messages. The
 # actual detection is _prefork_only_tokens(), which matches every spelling
 # rather than one literal — see its docstring.
-PREFORK_ONLY_OPTIONS = ("-O/--optimization", "--max-tasks-per-child")
+PREFORK_ONLY_OPTIONS = ("-O/--optimization", "--max-tasks-per-child",
+                        "--max-memory-per-child")
 
 # Flags that must survive the switch: the QoS window that keeps a worker
 # from hoarding the queue, and the three kombu-async-hub features that are
@@ -73,18 +84,19 @@ WORKER_QUEUE_MARKERS = {
 }
 
 
-def _service_command(service: str) -> str:
+def _service_command(service: str, compose: Path = None) -> str:
     """Return one compose service's ``command`` as a normalised string.
 
     Keyed by service NAME so the two celery workers can never be confused
     for one another. Whitespace is collapsed because the compose file uses
     a folded (``>``) block scalar, which yields embedded newlines.
     """
-    spec = yaml.safe_load(PROD_COMPOSE.read_text(encoding="utf-8"))
+    compose = PROD_COMPOSE if compose is None else compose
+    spec = yaml.safe_load(compose.read_text(encoding="utf-8"))
     services = spec["services"]
     if service not in services:
         raise AssertionError(
-            f"prod compose has no service {service!r}; "
+            f"{compose.name} has no service {service!r}; "
             f"found: {sorted(services)}"
         )
     command = services[service]["command"]
@@ -111,7 +123,8 @@ def _prefork_only_tokens(command: str) -> list[str]:
     is one of the two long forms.
     """
     prefixes = ("-O", "--optimization", "--max-tasks-per-child",
-                "--maxtasksperchild")
+                "--maxtasksperchild", "--max-memory-per-child",
+                "--maxmemoryperchild")
     return [t for t in command.split() if t.startswith(prefixes)]
 
 
@@ -211,6 +224,8 @@ def test_prod_celery_workers_do_not_share_one_command():
         "--optimization fair",
         "--max-tasks-per-child=50",
         "--maxtasksperchild=50",
+        "--max-memory-per-child=500000",
+        "--maxmemoryperchild=500000",
     ],
 )
 def test_prefork_flag_detector_catches_every_celery_spelling(spelling):
@@ -256,6 +271,177 @@ def test_prefork_flag_detector_ignores_the_flags_we_keep():
     assert not detected, (
         f"the detector flagged {detected!r} in a command that carries only "
         f"pool-agnostic flags; command={command!r}"
+    )
+
+
+
+# ---------------------------------------------------------------------------
+# WHOLE-POPULATION GATE
+#
+# Everything above keys on a hardcoded list of prod service names. That is
+# what let four compose files drift: a gate can only protect the services
+# someone thought to name in it. Below, the population is DISCOVERED from
+# disk, so a compose file added tomorrow is covered the day it lands.
+# ---------------------------------------------------------------------------
+
+DEPLOYMENT_DIR = REPO_ROOT / "deployment"
+
+# Measured 2026-09-06: six celery worker services across five compose files.
+# Floors, not equalities, so adding a worker does not fail the suite -- but a
+# discovery that silently returns NOTHING cannot pass, which is the failure
+# mode that matters. Every per-worker assertion below is parametrized over
+# this population, and a parametrize over an EMPTY list runs zero tests and
+# reports success, which reads exactly like "all workers conform".
+CELERY_WORKER_FLOOR = 6
+CELERY_WORKER_FILE_FLOOR = 5
+
+
+def _command_of(service_spec) -> str | None:
+    """Return a service's ``command`` normalised to one line, or None."""
+    if not isinstance(service_spec, dict):
+        return None
+    command = service_spec.get("command")
+    if command is None:
+        return None
+    if isinstance(command, list):
+        command = " ".join(str(part) for part in command)
+    return " ".join(str(command).split())
+
+
+def _discover_celery_workers() -> list[tuple[str, str, str]]:
+    """Every (compose file, service, command) that runs a celery WORKER.
+
+    A parse failure is raised, never skipped: a compose file this gate cannot
+    read is a file it cannot protect, and silently passing over it is how the
+    drift above happened in the first place.
+    """
+    found: list[tuple[str, str, str]] = []
+    for path in sorted(DEPLOYMENT_DIR.rglob("*.yml")):
+        if "compose" not in path.name:
+            continue
+        try:
+            spec = yaml.safe_load(path.read_text(encoding="utf-8"))
+        except yaml.YAMLError as exc:  # pragma: no cover - defensive
+            raise AssertionError(f"{path} did not parse as YAML: {exc}") from exc
+        if not isinstance(spec, dict):
+            continue
+        for name, service_spec in (spec.get("services") or {}).items():
+            command = _command_of(service_spec)
+            if command and "celery" in command and " worker" in command:
+                found.append(
+                    (path.relative_to(REPO_ROOT).as_posix(), name, command)
+                )
+    return sorted(found)
+
+
+_WORKERS = _discover_celery_workers()
+_WORKER_IDS = [f"{rel}::{svc}" for rel, svc, _ in _WORKERS]
+
+
+def test_discovery_finds_the_whole_celery_worker_population():
+    """Floor the population, and name the files that MUST be in it.
+
+    Two distinct failures are guarded. A discovery returning zero would make
+    every parametrized assertion below vacuous. A discovery returning only
+    SOME files -- the actual 2026-09-06 defect, where only the prod file was
+    ever checked -- would leave the rest drifting while the suite stayed
+    green, so the three environments are named explicitly.
+    """
+    # Arrange
+    must_include = (
+        "deployment/docker/docker_dev/docker-compose.yml",
+        "deployment/docker/docker-compose.staging.yml",
+        "deployment/docker/docker_prod/docker-compose.yml",
+    )
+    # Act
+    files = {rel for rel, _, _ in _WORKERS}
+    missing = [f for f in must_include if f not in files]
+    # Assert
+    assert (
+        len(_WORKERS) >= CELERY_WORKER_FLOOR
+        and len(files) >= CELERY_WORKER_FILE_FLOOR
+        and not missing
+    ), (
+        f"expected >={CELERY_WORKER_FLOOR} celery workers across "
+        f">={CELERY_WORKER_FILE_FLOOR} compose files including {must_include!r}; "
+        f"found {len(_WORKERS)} across {len(files)}, missing={missing!r}, "
+        f"files={sorted(files)}"
+    )
+
+
+@pytest.mark.parametrize("relpath,service,command", _WORKERS, ids=_WORKER_IDS)
+def test_every_celery_worker_asks_for_the_threads_pool(relpath, service, command):
+    """Prefork wedges on this host — no compose file may ship it.
+
+    Stated as a conjunction with ``--queues=``: without that positive term a
+    command that failed to parse into anything would satisfy the real
+    assertion for free.
+    """
+    # Assert
+    assert "--queues=" in command and "--pool=threads" in command, (
+        f"{relpath}::{service} must carry a --queues= selector (proving a real "
+        f"celery worker command was parsed) AND --pool=threads (prefork wedges "
+        f"on this host — see this module's docstring); got: {command!r}"
+    )
+
+
+@pytest.mark.parametrize("relpath,service,command", _WORKERS, ids=_WORKER_IDS)
+def test_every_celery_worker_drops_prefork_only_flags(relpath, service, command):
+    """Dead prefork config must not survive the switch, in any file."""
+    # Act
+    leftover = _prefork_only_tokens(command)
+    # Assert
+    assert (
+        "--queues=" in command
+        and "--pool=threads" in command
+        and not leftover
+    ), (
+        f"{relpath}::{service} must be a threads-pool worker carrying none of "
+        f"{list(PREFORK_ONLY_OPTIONS)}; leftover={leftover!r}; "
+        f"command={command!r}"
+    )
+
+
+@pytest.mark.parametrize("relpath,service,command", _WORKERS, ids=_WORKER_IDS)
+def test_every_celery_worker_keeps_pool_agnostic_flags(relpath, service, command):
+    """The flags the pool switch does not replace must survive everywhere."""
+    # Act
+    missing = [flag for flag in POOL_AGNOSTIC_FLAGS if flag not in command]
+    # Assert
+    assert not missing, (
+        f"{relpath}::{service} lost {missing!r}; --prefetch-multiplier and the "
+        f"three --without-* flags are pool-agnostic and must survive the "
+        f"switch; command={command!r}"
+    )
+
+
+def test_worker_discovery_ignores_beat_and_non_celery_services():
+    """Negative control: the discovery predicate must not match everything.
+
+    ``celery ... beat`` is a scheduler, not a worker, and must never be held
+    to the worker pool rule. A predicate that matched it would also match any
+    future celery subcommand, making the population meaningless.
+    """
+    # Arrange
+    beat = {
+        "command": "celery -A config --broker=redis://redis:6379/1 beat "
+                   "--loglevel=info"
+    }
+    worker = {
+        "command": "celery -A config worker --queues=celery --pool=threads"
+    }
+    # Act
+    beat_command = _command_of(beat)
+    worker_command = _command_of(worker)
+    # Assert
+    assert (
+        beat_command is not None
+        and " worker" not in beat_command
+        and worker_command is not None
+        and " worker" in worker_command
+    ), (
+        f"the worker predicate must separate beat from worker; "
+        f"beat={beat_command!r}; worker={worker_command!r}"
     )
 
 

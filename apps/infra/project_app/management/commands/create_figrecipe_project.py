@@ -60,6 +60,8 @@ class Command(BaseCommand):
                 ),
                 "status": "active",
                 "project_type": "local",
+                # Published showcase of the app framework.
+                "visibility": "public",
             },
         )
 

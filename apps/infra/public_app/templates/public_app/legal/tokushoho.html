@@ -1,6 +1,6 @@
 {% extends "global_base.html" %}
 
-{% load static %}
+{% load static landing_i18n %}
 {% load i18n %}
 
 {% block title %}
@@ -13,12 +13,17 @@
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/tokushoho.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/pricing-rate-card.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="container py-4">
         <header class="minimal-hero">
             <h1 class="minimal-hero-title">{% trans "特定商取引法に基づく表記" %}</h1>
         </header>
+        {# Language switch (operator 2026-09-14). This Japanese page is the legally authoritative one. #}
+        <nav class="tokushoho-lang-switch" aria-label="Language">
+            <a href="{% url 'public_app:tokushoho_en' %}" hreflang="en" lang="en" data-tokushoho-lang="en">English version</a>
+        </nav>
     </div>
     <section class="policy-section">
         <div class="container">
@@ -44,7 +49,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <th>{% trans "電話番号" %}</th>
+                            <th>{% trans "会社の電話番号" %}</th>
                             <td>
                                 {% if company_phone %}
                                     {{ company_phone }}
@@ -57,7 +62,16 @@
                             <th>{% trans "メールアドレス" %}</th>
                             <td>
                                 {% if company_contact_email %}
-                                    <a href="mailto:{{ company_contact_email }}">{{ company_contact_email }}</a>
+                                    {% comment %}
+                                    Cloudflare's Email Address Obfuscation rewrites every address in
+                                    the HTML into a JavaScript-decoded stub ([email protected]), so the
+                                    served page carried NO readable address (business measured it with
+                                    curl, 2026-09-04). A 特商法 contact must be readable without script,
+                                    and this address is the route that survives when a customer's own
+                                    registered address dies. The email_off markers are Cloudflare's own
+                                    opt-out for a segment.
+                                    {% endcomment %}
+                                    <!--email_off--><a href="mailto:{{ company_contact_email }}">{{ company_contact_email }}</a><!--/email_off-->
                                 {% else %}
                                     <span class="tokushoho-pending">{% trans "準備中 — 確定後に掲載します。" %}</span>
                                 {% endif %}
@@ -80,56 +94,155 @@
                                         {% endfor %}
                                     </ul>
                                     <p>
-                                        {% trans "最新の価格は" %}<a href="{% url 'public_app:pricing' %}">{% trans "料金ページ" %}</a>{% trans "をご確認ください。価格はすべて税込(総額)表示です。" %}
+                                        {% trans "最新の価格は" %}<a href="{% url 'public_app:pricing' %}">{% trans "料金ページ" %}</a>{% trans "をご確認ください。価格はすべて税込 (総額) 表示です。" %}
                                     </p>
                                 {% else %}
-                                    <ul>
-                                        {% for row in subscription_rows %}
-                                            <li>SciTeX {{ row.name }}: {{ row.price }}{% trans "(税込)" %}</li>
-                                        {% endfor %}
-                                        <li>{% trans "機関向け：規模に応じて別途お見積り" %}</li>
-                                        <li>{% trans "受託開発・コンサルティング：個別にお見積り" %}</li>
-                                    </ul>
-                                    <p>
-                                        {% trans "オンラインでのクレジットカード決済は、決済代行（Stripe）の審査完了後に開始します。それまでのお申し込み・お見積りは info@scitex.ai までご連絡ください。" %}
-                                    </p>
-                                    <p>
-                                        {% trans "最新の価格は" %}<a href="{% url 'public_app:pricing' %}">{% trans "料金ページ" %}</a>{% trans "をご確認ください。価格はすべて税込(総額)表示です。" %}
-                                    </p>
+                                    <p>{% trans "下表を参照してください。価格はすべて税込 (総額) 表示です。" %}</p>
                                 {% endif %}
                             </td>
                         </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% if billing_plans %}
+    {% else %}
+    <section class="price-table-section">
+        <div class="container">
+            <h2 class="price-table-heading">{% trans "提供サービスと料金" %}</h2>
+            <div class="price-table-wrap">
+                {% comment %}
+                LAYOUT (operator 2026-09-14: the rightmost 備考 column was the
+                narrowest yet held the longest text). 備考 is no longer a column:
+                each item is a short figures row followed by a full-width detail
+                row (colspan) that carries 備考, so long details get the table's
+                whole width. Below 640px every cell stacks with its label.
+                {% endcomment %}
+                <table class="tokushoho-price-table tokushoho-price-table--detail-rows">
+                        <thead>
+                            <tr>
+                                <th>{% trans "内容" %}</th>
+                                <th>{% trans "料金（税込）" %}</th>
+                                <th>{% trans "円換算（参考）" %}</th>
+                                <th>{% trans "ストレージ" %}</th>
+                                <th>{% trans "計算クレジット" %}</th>
+                                <th>{% trans "超過計算" %}</th>
+                            </tr>
+                        </thead>
+                        {% for row in published_price_rows %}
+                        <tbody class="tokushoho-price-item">
+                            <tr class="tokushoho-item-row">
+                                <td class="item-cell" data-label="{% trans "内容" %}">{{ row.label|translate_dynamic }}</td>
+                                <td class="price-cell" data-label="{% trans "料金（税込）" %}">
+                                    <span class="tokushoho-sale-price">{{ row.price }}</span>
+                                </td>
+                                <td class="muted-cell" data-label="{% trans "円換算（参考）" %}">{{ row.price_jpy }}</td>
+                                <td class="muted-cell" data-label="{% trans "ストレージ" %}">{{ row.storage|default:"—" }}</td>
+                                <td class="muted-cell" data-label="{% trans "計算クレジット" %}">{{ row.compute_credit|default:"—" }}</td>
+                                <td class="muted-cell" data-label="{% trans "超過計算" %}">{{ row.overage|default:"—" }}</td>
+                            </tr>
+                            {% if row.remarks or row.description %}
+                            <tr class="tokushoho-detail-row">
+                                <td class="tokushoho-detail-cell" colspan="6">
+                                    {% comment %}
+                                    備考. Rendered as a list (not a comma-joined
+                                    blob). NO FALLBACK TO row.included: a row whose
+                                    attributes are ALL dedicated has an EMPTY
+                                    remarks list by design, and falling back to
+                                    the included list would repeat every dedicated
+                                    column in this cell.
+                                    {% endcomment %}
+                                    <span class="tokushoho-detail-label">{% trans "備考" %}</span>
+                                    {% if row.remarks %}
+                                        <ul class="tokushoho-remarks-list">
+                                            {% for remark in row.remarks %}
+                                            <li>{{ remark }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% elif row.description %}
+                                        <p class="tokushoho-detail-text">{{ row.description|translate_dynamic }}</p>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                        {% endfor %}
+                    </table>
+                    <p class="tokushoho-fx-note">
+                        {% if fx_rate_display %}
+                            {% blocktrans with rate=fx_rate_display date=fx_as_of_display %}
+                            料金はUSD建てで表示しています。「円換算（参考）」列は、為替レート
+                            1ドル = {{ rate }}円（{{ date }}時点）× USD金額 を求めた概算です
+                            （概算値に四捨五入を適用）。
+                            実際の請求はUSDで行われます。
+                            {% endblocktrans %}
+                        {% else %}
+                            {% trans "料金はUSD建てで表示しています。「円換算（参考）」列は概算であり、実際の請求はUSDで行われます。" %}
+                        {% endif %}
+                    </p>
+                    <p>
+                        {% trans "超過分：プランに含まれる量を超えたストレージとインターネット送信（egress）は、下記の料金表に従って従量課金します。計算クレジット・月間上限（利用者設定）・GPU／外部計算資源の課金は近日提供です。ベータ期間中は契約上の SLA はありません。" %}
+                    </p>
+                    <h3 class="price-table-heading">{% trans "従量料金（ストレージ・通信・計算）" %}</h3>
+                    {% include "public_app/pricing_partials/rate_card.html" %}
+                    {% endif %}
+            </div>
+        </div>
+    </section>
+    <section class="policy-section">
+        <div class="container">
+            <div class="policy-container">
+                <div class="policy-content">
+                <table class="tokushoho-table">
                         <tr>
                             <th>{% trans "商品代金以外の必要料金" %}</th>
                             <td>
-                                {% trans "消費税(表示価格はすべて税込です)。本サービスの利用に必要なインターネット接続料金・通信費はお客様のご負担となります。" %}
+                                {% trans "消費税(表示価格はすべて税込です)。本サービスの利用に必要なインターネット接続料金・通信費はお客様のご負担となります。対面での作業に伴う交通費および特別な経費は、別途お見積りのうえお客様のご負担となります。" %}
                             </td>
                         </tr>
                         <tr>
                             <th>{% trans "支払方法" %}</th>
-                            <td>{% trans "クレジットカード決済(Stripe)" %}</td>
+                            <td>
+                                {% trans "クレジットカード決済(Stripe)、または銀行振込(請求書払い)" %}
+                                <br>
+                                <!--email_off-->{% trans "オンラインでのクレジットカード決済は、決済代行（Stripe）の審査完了後に開始します。それまでのお申し込み・お見積りは info@scitex.ai までご連絡ください。" %}<!--/email_off-->
+                            </td>
                         </tr>
                         <tr>
                             <th>{% trans "支払時期" %}</th>
                             <td>
-                                {% trans "都度払い: ご購入手続き完了時にお支払いが確定します。サブスクリプション(定期課金): 初回はお申し込み時、以降は各更新日に課金されます。" %}
+                                {% trans "サブスクリプション(定期課金): お申し込み時にメールアドレスとクレジットカード/デビットカードをご登録いただきます。登録後30日間が無料トライアル期間です。トライアル期間内に継続を選択された場合、初回30日分を登録日から遡って課金し、以降は毎月の更新日に課金されます。継続しなかった場合、登録したメールアドレスとカード情報は当方のデータベースに保持され、7日後に破棄されます。同一のメールアドレスまたはカード情報では、30日間トライアルを一度しか利用できません。" %}
+                                <br>
+                                {% trans "都度払い(セルフホスト導入サポート・カスタム開発・コンサルティング): お見積り・ご契約後、請求書に記載の期日までにお支払いいただきます(クレジットカード決済または銀行振込)。セルフホスト保守サポート(月額)・商用ライセンス(年額): 請求書に記載の期日までにお支払いいただきます。" %}
                             </td>
                         </tr>
                         <tr>
                             <th>{% trans "サービス提供時期" %}</th>
-                            <td>{% trans "決済完了後、直ちにご利用いただけます。" %}</td>
+                            <td>{% trans "サブスクリプション: お申し込み(カード登録)完了後、直ちにご利用いただけます。導入サポート・保守サポート・カスタム開発・コンサルティング・商用ライセンス: ご契約時に取り決めた日程で提供します。" %}</td>
                         </tr>
                         <tr>
                             <th>{% trans "返品・キャンセル" %}</th>
                             <td>
-                                {# 返品・キャンセル特約 — draft by the business/legal owner (grant repo: business/scitex-kk/tokushoho-pricing-notes.md). Final operator/legal review required before live charging. #}
+                                {% comment %}
+                                返品・キャンセル: operator ruling 2026-09-10 (trial model revision).
+                                30-day trial; if continuing, the first 30 days are billed
+                                retroactively from the registration date; if not continuing,
+                                email+card discarded in 7 days; one trial per email/card
+                                identity; no proration after billing. The old "no email link
+                                needed" sentence was removed per operator.
+                                {% endcomment %}
+                                <ol>
+                                    <li>{% trans "お申し込みから30日間が無料トライアル期間です。この期間内に継続を選択された場合、初回30日分を登録日から遡って課金し、以降は毎月の更新日に課金されます。" %}</li>
+                                    <li>{% trans "課金開始後に解約された場合、日割りの返金はありません。解約は次回更新の停止であり、お支払い済みの期間の末日までご利用いただけます。" %}</li>
+                                    <li>{% trans "同一のメールアドレスまたはカード情報では、30日間トライアルを一度しか利用できません。" %}</li>
+                                </ol>
                                 <p>
                                     {% trans "本サービスはデジタルコンテンツおよびオンラインサービスの性質上、提供開始後のお客様都合による返品・返金はお受けいたしません。" %}
                                 </p>
                                 <p>
-                                    {% trans "サブスクリプション(定期課金)はマイページからいつでも解約でき、解約手続き後は次回更新分の課金が停止します。既にお支払いいただいた利用期間分の日割り返金は行いません。" %}
+                                    {% trans "ご登録のメールアドレスが使えなくなった場合、またはカード情報が更新された場合は、上記の電話番号またはメールアドレスまでご連絡いただければ、個別対応します。" %}
                                 </p>
-                                <p>{% trans "無料トライアル期間中に解約された場合、料金は発生しません。" %}</p>
                                 <p>
                                     {% trans "当社の責めに帰すべき事由によりサービスを提供できなかった場合は、法令に従い対応いたします。" %}
                                 </p>
@@ -142,9 +255,6 @@
                             </td>
                         </tr>
                     </table>
-                    <p class="tokushoho-note">
-                        {% trans "「準備中」の項目は、法人設立・オフィス確定等の手続き完了後、速やかに掲載します。" %}
-                    </p>
                 </div>
             </div>
         </div>

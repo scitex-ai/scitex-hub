@@ -26,7 +26,14 @@ from .api import (
 from .landing import index, premium_subscription
 
 # Billing (Stripe scaffold)
-from .billing import billing_checkout, stripe_webhook
+from .billing import (
+    billing_checkout,
+    cancel_subscription,
+    open_billing_portal,
+    start_card_setup,
+    start_subscription,
+    stripe_webhook,
+)
 
 # Legal pages
 from .legal import (
@@ -36,6 +43,7 @@ from .legal import (
     privacy_policy,
     terms_of_use,
     tokushoho,
+    tokushoho_en,
 )
 
 # Information pages
@@ -111,9 +119,14 @@ __all__ = [
     "terms_of_use",
     "cookie_policy",
     "tokushoho",
+    "tokushoho_en",
     # Billing
     "billing_checkout",
+    "start_card_setup",
     "stripe_webhook",
+    "start_subscription",
+    "cancel_subscription",
+    "open_billing_portal",
     # Status
     "server_status",
     "server_status_api",

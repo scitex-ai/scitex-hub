@@ -308,10 +308,21 @@
   opacity: 0.7;
 }
 
-/* Mobile plan cards — shown in place of the wide table on narrow screens
-   (toggled in services-detail.css @media) so there is no horizontal scroll. */
+/* The three tier cards (サブスク / オンプレ / 大規模 — data/pricing.json `tiers`).
+   Shown at EVERY width. This class used to be the mobile-only rendering of
+   the old plan table and was `display: none` here, switched on only under
+   services-detail.css's narrow-screen media query; when the tiers moved into
+   these cards (#708) the desktop rule was left in place, so on production the
+   cards existed in the HTML and rendered nowhere (measured 2026-09-04 by
+   innerText + getBoundingClientRect: 0×0, ancestor .svc-plan-cards
+   display:none). The narrow-screen rule now only collapses the grid to one
+   column. tests/apps/public_app/test_services_page.py pins that no stylesheet
+   the page loads hides this container at any width. */
 .svc-plan-cards {
-  display: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: start;
 }
 
 .svc-plan-card {
@@ -319,7 +330,14 @@
   border: 1px solid var(--svc-border);
   border-radius: var(--svc-radius);
   background: var(--svc-surface);
-  margin-bottom: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.svc-plan-card .svc-btn {
+  margin-top: auto;
+  align-self: flex-start;
 }
 
 .svc-plan-card-featured {

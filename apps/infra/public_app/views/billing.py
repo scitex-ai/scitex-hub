@@ -24,7 +24,10 @@ Surfaces:
 - ``stripe_webhook``  — POST; CSRF-exempt but SIGNATURE-VERIFIED
   (Stripe-Signature v1 scheme, hand-verified with HMAC-SHA256 +
   constant-time compare + timestamp tolerance). Records events to the
-  minimal ``BillingEvent`` model.
+  minimal ``BillingEvent`` model, then lets the provider apply them.
+- ``start_card_setup`` / ``start_subscription`` / ``cancel_subscription`` /
+  ``open_billing_portal`` — user-facing POSTs, all through the provider-neutral
+  ``get_billing_provider()`` (services/billing_provider.py).
 
 Fail-loud contract (no silent fallback): while
 ``SCITEX_HUB_STRIPE_SECRET_KEY`` / ``SCITEX_HUB_STRIPE_WEBHOOK_SECRET``
@@ -33,20 +36,30 @@ explanation instead of pretending to work. Secrets come only from the
 environment and are never logged or echoed in responses.
 """
 
-import hashlib
-import hmac
-import json
-import time
+import logging
+from urllib.parse import urlencode
 
 from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
+from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-# Max allowed age (seconds) of a webhook signature timestamp — mirrors
-# stripe-python's DEFAULT_TOLERANCE. Prevents replay of captured payloads.
-STRIPE_SIGNATURE_TOLERANCE_SECONDS = 300
+from ..services.billing_provider import (
+    BillingNotConfigured,
+    BillingOperationRefused,
+    get_billing_provider,
+)
+from ..services.stripe_provider import (  # noqa: F401  (re-exported for callers)
+    STRIPE_SIGNATURE_TOLERANCE_SECONDS,
+    verify_stripe_signature,
+)
+
+logger = logging.getLogger("scitex")
 
 
 def _service_unavailable(reason: str) -> JsonResponse:
@@ -54,52 +67,9 @@ def _service_unavailable(reason: str) -> JsonResponse:
     return JsonResponse(
         {
             "error": "billing_not_configured",
-            "detail": reason,
+            "detail": "Billing service is not configured.",
         },
         status=503,
-    )
-
-
-def verify_stripe_signature(
-    payload: bytes,
-    signature_header: str,
-    secret: str,
-    tolerance_seconds: int = STRIPE_SIGNATURE_TOLERANCE_SECONDS,
-) -> bool:
-    """Verify a ``Stripe-Signature`` header against the raw payload.
-
-    Implements Stripe's documented scheme: the header carries
-    ``t=<unix-ts>,v1=<hex>`` items; the expected signature is
-    ``HMAC_SHA256(secret, f"{t}.{payload}")``. Comparison is
-    constant-time and the timestamp must be within ``tolerance_seconds``
-    of now (replay protection).
-    """
-    if not signature_header or not secret:
-        return False
-
-    timestamp = None
-    candidate_signatures = []
-    for item in signature_header.split(","):
-        key, _, value = item.strip().partition("=")
-        if key == "t":
-            timestamp = value
-        elif key == "v1":
-            candidate_signatures.append(value)
-
-    if timestamp is None or not candidate_signatures:
-        return False
-    try:
-        timestamp_int = int(timestamp)
-    except ValueError:
-        return False
-    if abs(time.time() - timestamp_int) > tolerance_seconds:
-        return False
-
-    signed_payload = timestamp.encode() + b"." + payload
-    expected = hmac.new(secret.encode(), signed_payload, hashlib.sha256).hexdigest()
-    return any(
-        hmac.compare_digest(expected, candidate)
-        for candidate in candidate_signatures
     )
 
 
@@ -171,37 +141,28 @@ def billing_checkout(request):
 @csrf_exempt
 @require_POST
 def stripe_webhook(request):
-    """Stripe webhook endpoint — signature-verified event recorder.
+    """Billing-provider webhook: signature-verified, recorded, then applied.
 
-    CSRF-exempt (Stripe cannot send a CSRF token) but every request must
-    carry a valid ``Stripe-Signature`` header. Verified events are
-    persisted to ``BillingEvent`` (idempotent on the Stripe event id).
+    CSRF-exempt (the provider cannot send a CSRF token), so the signature is
+    the only authentication. Events are recorded idempotently in
+    ``BillingEvent`` before the provider applies them to cards/subscriptions.
     """
-    if not settings.STRIPE_WEBHOOK_SECRET:
-        return _service_unavailable(
-            "SCITEX_HUB_STRIPE_WEBHOOK_SECRET is not configured. The "
-            "webhook is disabled until the signing secret is set in the "
-            "environment (SECRET/.env.*)."
+    provider = get_billing_provider()
+    try:
+        event = provider.verify_webhook(request.body, request.headers)
+    except BillingNotConfigured as exc:
+        return _service_unavailable(str(exc))
+    except (UnicodeDecodeError, ValueError):
+        return JsonResponse(
+            {"error": "invalid_payload", "detail": "Body is not valid JSON."},
+            status=400,
         )
-
-    payload = request.body
-    signature_header = request.headers.get("Stripe-Signature", "")
-    if not verify_stripe_signature(
-        payload, signature_header, settings.STRIPE_WEBHOOK_SECRET
-    ):
+    if event is None:
         return JsonResponse(
             {
                 "error": "invalid_signature",
-                "detail": "Stripe-Signature verification failed.",
+                "detail": "Webhook signature verification failed.",
             },
-            status=400,
-        )
-
-    try:
-        event = json.loads(payload.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError):
-        return JsonResponse(
-            {"error": "invalid_payload", "detail": "Body is not valid JSON."},
             status=400,
         )
 
@@ -222,7 +183,83 @@ def stripe_webhook(request):
         event_id=event_id,
         defaults={"event_type": event_type, "payload": event},
     )
+    provider.handle_event(event)
     return JsonResponse({"received": True, "created": created})
+
+
+def _billing_settings_url(request, **query):
+    url = reverse("accounts_app:billing")
+    if query:
+        url = f"{url}?{urlencode(query)}"
+    return request.build_absolute_uri(url)
+
+
+@login_required
+@require_POST
+def start_card_setup(request):
+    """Send the user to the provider's hosted card form (setup, no charge).
+
+    The card becomes usable only when the signed completion webhook arrives.
+    """
+    try:
+        hosted_url = get_billing_provider().start_card_setup(
+            request.user,
+            success_url=_billing_settings_url(request, setup="success"),
+            cancel_url=_billing_settings_url(request, setup="cancelled"),
+        )
+    except BillingNotConfigured as exc:
+        return _service_unavailable(str(exc))
+    return redirect(hosted_url)
+
+
+@login_required
+@require_POST
+def start_subscription(request):
+    """Continue the trial into the chosen paid plan (``pricing_id`` from pricing.json)."""
+    try:
+        get_billing_provider().start_subscription(
+            request.user, pricing_id=request.POST.get("pricing_id", "")
+        )
+    except BillingNotConfigured as exc:
+        return _service_unavailable(str(exc))
+    except BillingOperationRefused as exc:
+        messages.error(request, str(exc))
+        return redirect("accounts_app:billing")
+    messages.success(request, _("Your plan is active. Thank you for subscribing."))
+    return redirect("accounts_app:billing")
+
+
+@login_required
+@require_POST
+def cancel_subscription(request):
+    """Stop renewal at the end of the paid period (no proration, per 特商法)."""
+    subscription = get_object_or_404(
+        request.user.plan_subscriptions, pk=request.POST.get("subscription_pk")
+    )
+    try:
+        get_billing_provider().cancel_subscription(subscription)
+    except BillingNotConfigured as exc:
+        return _service_unavailable(str(exc))
+    messages.success(
+        request, _("Your plan will end at the close of the current billing period.")
+    )
+    return redirect("accounts_app:billing")
+
+
+@login_required
+@require_POST
+def open_billing_portal(request):
+    """Open the provider's self-service portal (change card or plan, invoices)."""
+    try:
+        portal_url = get_billing_provider().customer_portal_url(
+            request.user, return_url=_billing_settings_url(request)
+        )
+    except BillingNotConfigured as exc:
+        return _service_unavailable(str(exc))
+    except BillingOperationRefused as exc:
+        messages.error(request, str(exc))
+        return redirect("accounts_app:billing")
+    return redirect(portal_url)
 
 
 # EOF

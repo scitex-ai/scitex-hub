@@ -35,6 +35,9 @@ dd {
 html {
   scroll-behavior: smooth;
   font-size: var(--base-font-size);
+  /* Native radios/checkboxes in the brand primary; dark leaves the token
+     unset, so this falls back to the browser default there. */
+  accent-color: var(--color-primary);
 }
 
 /* Set core body defaults */

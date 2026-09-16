@@ -46,7 +46,7 @@ def visitor_enter(request):
 
     The slot is NOT allocated here. VisitorAutoLoginMiddleware does it, because
     this path is deliberately absent from that middleware's skip lists — the
-    same mechanism that used to make /apps/home/ the entry. By the time this
+    same mechanism that used to make /apps/my-projects/ the entry. By the time this
     view runs, the session is already a visitor, so all that remains is to send
     them to "/", where root_dispatch renders the launcher for any non-anonymous
     role.
@@ -56,9 +56,9 @@ def visitor_enter(request):
         first-time browsers reach the marketing landing anonymously without
         burning a pool slot. Sending an anonymous visitor there just bounces
         them back to the page they clicked from.
-      - /apps/home/ must keep serving the Gitea-style project view: that is the
+      - /apps/my-projects/ must keep serving the Gitea-style project view: that is the
         approved 2026-07-07 design, stated in
-        apps/workspace/repo_app/views/dispatch.py:13-17.
+        apps/workspace/my_projects_app/views/dispatch.py:13-17.
     Entering as a visitor is therefore its own named action, instead of a side
     effect of visiting a repository URL — which is how a visitor came to be
     shown a file browser as their first impression of the product.
@@ -278,7 +278,7 @@ def visitor_fill_slots_api(request):
         )
     except Exception as e:
         logger.error(f"[VisitorPool] Fill slots failed: {e}")
-        return JsonResponse({"error": str(e)}, status=500)
+        return JsonResponse({"error": "Visitor pool operation failed."}, status=500)
 
 
 @require_POST
@@ -303,7 +303,7 @@ def visitor_free_slots_api(request):
         )
     except Exception as e:
         logger.error(f"[VisitorPool] Free slots failed: {e}")
-        return JsonResponse({"error": str(e)}, status=500)
+        return JsonResponse({"error": "Visitor pool operation failed."}, status=500)
 
 
 def visitor_heartbeat_api(request):
@@ -402,7 +402,7 @@ def visitor_pool_initialize_api(request):
 
     except Exception as e:
         logger.error(f"[VisitorPool] Failed to initialize pool: {e}")
-        return JsonResponse({"error": str(e)}, status=500)
+        return JsonResponse({"error": "Visitor pool operation failed."}, status=500)
 
 
 # EOF

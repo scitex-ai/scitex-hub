@@ -1,6 +1,6 @@
 {% extends "global_base.html" %}
 
-{% load static %}
+{% load static i18n %}
 
 {% block title %}
     Features -
@@ -282,7 +282,7 @@
                 scientific discoveries
             </p>
             <div class="d-flex justify-content-center gap-3 flex-wrap">
-                <a href="{% url 'public_app:signup' %}" class="btn btn-lg btn-primary">Get Started Free</a>
+                <a href="{% url 'auth_app:signup' %}" class="btn btn-lg btn-primary">{% trans "Start your 30-day trial" %}</a>
                 <a href="{% url 'public_app:demo' %}" class="btn btn-lg btn-outline-primary">Watch Demo</a>
             </div>
         </div>

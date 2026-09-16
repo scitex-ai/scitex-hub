@@ -26,9 +26,29 @@ from apps.infra.workspace_app.registry import ModuleConfig
 logger = logging.getLogger(__name__)
 
 
+def app_package_dir(project_dir: Path) -> Path:
+    """The directory holding the app's manifest.json and templates/.
+
+    Flat repos keep them at the root; ``init_app`` scaffolds a pip-installable
+    wrapper where they live one level down, in ``<name>/``.
+    """
+    if (project_dir / "manifest.json").is_file() or (
+        project_dir / "templates"
+    ).is_dir():
+        return project_dir
+    for child in sorted(project_dir.iterdir()) if project_dir.is_dir() else []:
+        if (
+            child.is_dir()
+            and not child.is_symlink()
+            and (child / "manifest.json").is_file()
+        ):
+            return child
+    return project_dir
+
+
 def read_manifest(project_dir: Path) -> dict:
     """Read manifest.json from a project directory with graceful defaults."""
-    return resolve_manifest(project_dir)
+    return resolve_manifest(app_package_dir(project_dir))
 
 
 def build_module_config(dev_install) -> ModuleConfig:
@@ -76,7 +96,7 @@ def resolve_dev_template(module_name: str) -> Path | None:
     if not project_dir:
         return None
 
-    return find_partial_template(project_dir / "templates")
+    return find_partial_template(app_package_dir(project_dir) / "templates")
 
 
 def validate_dev_repo(owner: str, repo: str) -> tuple[bool, str]:
@@ -85,7 +105,7 @@ def validate_dev_repo(owner: str, repo: str) -> tuple[bool, str]:
     if not project_dir:
         return False, f"Project directory not found for {owner}/{repo}"
 
-    return validate_project_structure(project_dir)
+    return validate_project_structure(app_package_dir(project_dir))
 
 
 # EOF

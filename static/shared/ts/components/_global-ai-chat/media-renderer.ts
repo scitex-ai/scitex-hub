@@ -19,12 +19,37 @@ export interface MediaRef {
 
 /** Build raw blob URL for serving file content */
 function blobUrl(username: string, slug: string, path: string): string {
-  return `/${username}/${slug}/blob/${path}?mode=raw`;
+  return `${viewUrl(username, slug, path)}?mode=raw`;
 }
 
 /** Build navigable blob URL (file view page) */
 function viewUrl(username: string, slug: string, path: string): string {
-  return `/${username}/${slug}/blob/${path}`;
+  const safePath = path.split("/").map(encodeURIComponent).join("/");
+  return `/${encodeURIComponent(username)}/${encodeURIComponent(slug)}/blob/${safePath}`;
+}
+
+function mediaIcon(iconClass: string): HTMLElement {
+  const icon = document.createElement("i");
+  icon.className = `fas ${iconClass}`;
+  return icon;
+}
+
+function buildFileLink(
+  ref: MediaRef,
+  username: string,
+  slug: string,
+  iconClass: string,
+): HTMLAnchorElement {
+  const link = document.createElement("a");
+  link.className = "stx-shell-ai-media-file";
+  link.href = viewUrl(username, slug, ref.path);
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.append(
+    mediaIcon(iconClass),
+    document.createTextNode(filename(ref.path)),
+  );
+  return link;
 }
 
 /** Extract filename from path */
@@ -201,18 +226,24 @@ function renderMermaid(
           document.documentElement.getAttribute("data-theme") === "dark"
             ? "dark"
             : "default",
-        securityLevel: "loose",
+        securityLevel: "strict",
       });
       const id = `mmd-media-${Date.now()}`;
-      wrapper.innerHTML = `<div class="mermaid" id="${id}">${code}</div>`;
-      await mermaid.run({ nodes: [wrapper.querySelector(".mermaid")!] });
+      const diagram = document.createElement("div");
+      diagram.className = "mermaid";
+      diagram.id = id;
+      diagram.textContent = code;
+      wrapper.replaceChildren(diagram);
+      await mermaid.run({ nodes: [diagram] });
       const caption = document.createElement("span");
       caption.className = "stx-shell-ai-media-caption";
       caption.textContent = filename(ref.path);
       wrapper.appendChild(caption);
     })
     .catch(() => {
-      wrapper.innerHTML = `<a class="stx-shell-ai-media-file" href="${viewUrl(username, slug, ref.path)}" target="_blank"><i class="fas fa-project-diagram"></i>${filename(ref.path)}</a>`;
+      wrapper.replaceChildren(
+        buildFileLink(ref, username, slug, "fa-project-diagram"),
+      );
     });
 
   return wrapper;
@@ -243,14 +274,28 @@ function renderGraphviz(
       const { Graphviz } = await import("@hpcc-js/wasm-graphviz");
       const graphviz = await Graphviz.load();
       const svg = graphviz.dot(code);
-      wrapper.innerHTML = svg;
+      const objectUrl = URL.createObjectURL(
+        new Blob([svg], { type: "image/svg+xml" }),
+      );
+      const image = document.createElement("img");
+      image.src = objectUrl;
+      image.alt = filename(ref.path);
+      image.addEventListener("load", () => URL.revokeObjectURL(objectUrl), {
+        once: true,
+      });
+      image.addEventListener("error", () => URL.revokeObjectURL(objectUrl), {
+        once: true,
+      });
+      wrapper.replaceChildren(image);
       const caption = document.createElement("span");
       caption.className = "stx-shell-ai-media-caption";
       caption.textContent = filename(ref.path);
       wrapper.appendChild(caption);
     })
     .catch(() => {
-      wrapper.innerHTML = `<a class="stx-shell-ai-media-file" href="${viewUrl(username, slug, ref.path)}" target="_blank"><i class="fas fa-project-diagram"></i>${filename(ref.path)}</a>`;
+      wrapper.replaceChildren(
+        buildFileLink(ref, username, slug, "fa-project-diagram"),
+      );
     });
 
   return wrapper;
@@ -265,13 +310,7 @@ function renderFileLink(
   const wrapper = document.createElement("div");
   wrapper.className = "stx-shell-ai-media";
 
-  const link = document.createElement("a");
-  link.className = "stx-shell-ai-media-file";
-  link.href = viewUrl(username, slug, ref.path);
-  link.target = "_blank";
-  link.innerHTML = `<i class="fas ${iconClass}"></i>`;
-  link.appendChild(document.createTextNode(filename(ref.path)));
-  wrapper.appendChild(link);
+  wrapper.appendChild(buildFileLink(ref, username, slug, iconClass));
 
   return wrapper;
 }

@@ -1,8 +1,8 @@
 {% extends 'global_base.html' %}
 
-{% load static vite %}
+{% load static vite i18n %}
 
-{% block title %}AI Providers - Settings - SciTeX Hub{% endblock %}
+{% block title %}{% trans "AI Providers - Settings - SciTeX Hub" %}{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/layouts/settings-layout.css' %}" />
     <link rel="stylesheet" href="{% static 'accounts_app/css/ai_providers.css' %}" />
@@ -17,55 +17,55 @@
             <!-- Main Content -->
             <main class="settings-content">
                 <div class="settings-header">
-                    <h1 class="settings-title">AI Providers</h1>
-                    <p class="settings-subtitle">Connect your LLM API keys to enable AI co-pilot features across SciTeX Hub.</p>
+                    <h1 class="settings-title">{% trans "AI Providers" %}</h1>
+                    <p class="settings-subtitle">{% trans "Connect your LLM API keys to enable AI co-pilot features across SciTeX Hub." %}</p>
                 </div>
                 <!-- Add Provider Form -->
                 <details class="provider-details">
                     <summary class="provider-summary">
-                        <i class="fas fa-plus"></i> Add a new provider
+                        <i class="fas fa-plus"></i> {% trans "Add a new provider" %}
                     </summary>
                     <div class="create-form">
                         <form method="POST">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="create" />
                             <div class="form-group">
-                                <label for="service">Provider *</label>
+                                <label for="service">{% trans "Provider" %} *</label>
                                 <select class="form-control" id="service" name="service" required>
-                                    <option value="">Loading providers...</option>
+                                    <option value="">{% trans "Loading providers..." %}</option>
                                 </select>
-                                <small id="provider-hint">Choose which AI provider to connect.</small>
+                                <small id="provider-hint">{% trans "Choose which AI provider to connect." %}</small>
                             </div>
                             <div class="form-group" id="api-key-group">
-                                <label for="api_key">API Key *</label>
+                                <label for="api_key">{% trans "API Key" %} *</label>
                                 <input type="password"
                                        class="form-control"
                                        id="api_key"
                                        name="api_key"
-                                       placeholder="Paste your API key here"
+                                       placeholder="{% trans 'Paste your API key here' %}"
                                        autocomplete="new-password" />
-                                <small id="api-key-hint">Your key is encrypted at rest. <span id="api-key-link"></span></small>
+                                <small id="api-key-hint">{% trans "Your key is encrypted at rest." %} <span id="api-key-link"></span></small>
                             </div>
                             <div class="form-group">
-                                <label for="default_model">Default Model</label>
+                                <label for="default_model">{% trans "Default Model" %}</label>
                                 <input type="text"
                                        class="form-control"
                                        id="default_model"
                                        name="default_model"
                                        list="model-suggestions"
-                                       placeholder="Select or type a model name"
+                                       placeholder="{% trans 'Select or type a model name' %}"
                                        autocomplete="off" />
                                 <datalist id="model-suggestions"></datalist>
-                                <small>Leave blank for provider default.</small>
+                                <small>{% trans "Leave blank for provider default." %}</small>
                             </div>
-                            <button type="submit" class="btn btn-primary">Add provider</button>
+                            <button type="submit" class="btn btn-primary">{% trans "Add provider" %}</button>
                         </form>
                     </div>
                 </details>
                 <!-- Existing Providers -->
                 <details class="settings-details">
                     <summary class="settings-summary">
-                        <i class="fas fa-list"></i> List registered providers
+                        <i class="fas fa-list"></i> {% trans "List registered providers" %}
                     </summary>
                     {% if providers %}
                         {% for p in providers %}
@@ -79,7 +79,7 @@
                                                 <button type="button"
                                                         class="btn-reveal-key"
                                                         data-provider-id="{{ p.id }}"
-                                                        title="Show/hide API key">
+                                                        title="{% trans 'Show/hide API key' %}">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
                                             </div>
@@ -89,15 +89,15 @@
                                 </div>
                                 {% if p.default_model %}
                                     <div class="provider-meta">
-                                        <strong>Model:</strong> <code>{{ p.default_model }}</code>
+                                        <strong>{% trans "Model:" %}</strong> <code>{{ p.default_model }}</code>
                                     </div>
                                 {% endif %}
                                 <div class="provider-meta">
-                                    <strong>Requests:</strong> {{ p.total_requests }}
+                                    <strong>{% trans "Requests:" %}</strong> {{ p.total_requests }}
                                     &middot;
-                                    <strong>Tokens:</strong> {{ p.total_tokens_used|default:"0" }}
+                                    <strong>{% trans "Tokens:" %}</strong> {{ p.total_tokens_used|default:"0" }}
                                     &middot;
-                                    <strong>Cost:</strong> ${{ p.estimated_cost_usd|floatformat:4 }}
+                                    <strong>{% trans "Cost:" %}</strong> ${{ p.estimated_cost_usd|floatformat:4 }}
                                 </div>
                                 <div class="provider-limits">
                                     <form method="POST" class="limits-form">
@@ -105,33 +105,34 @@
                                         <input type="hidden" name="action" value="update_limits" />
                                         <input type="hidden" name="provider_id" value="{{ p.id }}" />
                                         <label>
-                                            <strong>Daily cost limit (USD):</strong>
+                                            <strong>{% trans "Daily cost limit (USD):" %}</strong>
                                             <input type="number"
                                                    name="daily_cost_limit_usd"
                                                    class="form-control form-control-sm"
                                                    value="{{ p.daily_cost_limit_usd|default_if_none:'' }}"
-                                                   placeholder="No limit"
+                                                   placeholder="{% trans 'No limit' %}"
                                                    step="0.01"
                                                    min="0"
                                                    style="width: 120px;
                                                           display: inline-block" />
                                         </label>
-                                        <button type="submit" class="btn btn-sm btn-outline-secondary">Save</button>
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Save" %}</button>
                                     </form>
                                 </div>
                                 <div class="provider-actions">
                                     <button type="button"
                                             class="btn btn-sm btn-outline-primary test-provider-btn"
                                             data-provider-id="{{ p.id }}">
-                                        <i class="fas fa-plug"></i> Test
+                                        <i class="fas fa-plug"></i> {% trans "Test" %}
                                     </button>
+                                    {% trans "Delete this provider? AI features using it will stop working." as delete_confirm %}
                                     <form method="POST"
-                                          onsubmit="return confirm('Delete this provider? AI features using it will stop working.');">
+                                          onsubmit="return confirm('{{ delete_confirm|escapejs }}');">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="delete" />
                                         <input type="hidden" name="provider_id" value="{{ p.id }}" />
                                         <button type="submit" class="btn btn-sm btn-danger">
-                                            <i class="fas fa-trash"></i> Delete
+                                            <i class="fas fa-trash"></i> {% trans "Delete" %}
                                         </button>
                                     </form>
                                 </div>
@@ -140,8 +141,8 @@
                         {% endfor %}
                     {% else %}
                         <div class="empty-state-card">
-                            <h3>No AI providers connected yet.</h3>
-                            <p>Add a provider above to enable AI co-pilot features in Writer, Scholar, and Console.</p>
+                            <h3>{% trans "No AI providers connected yet." %}</h3>
+                            <p>{% trans "Add a provider above to enable AI co-pilot features in Writer, Scholar, and Console." %}</p>
                         </div>
                     {% endif %}
                 </details>

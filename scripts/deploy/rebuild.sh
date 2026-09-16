@@ -81,6 +81,12 @@ fi
 source "$SCRIPT_DIR/compose_env.sh"
 resolve_compose_env "$ENV" "$PROJECT_ROOT"
 
+# A committed release nonce is the deterministic cache input for dependency
+# resolution. Bump deployment/docker/dependency-resolution.nonce deliberately
+# when an unchanged floor should be resolved against newly published wheels.
+export SCITEX_HUB_DEPENDENCY_RESOLUTION
+SCITEX_HUB_DEPENDENCY_RESOLUTION="$("$SCRIPT_DIR/resolve_dependency_resolution.sh" "$ENV")"
+
 # Check docker directory exists
 if [ ! -d "$DOCKER_DIR" ]; then
     echo -e "${RED}Error: Docker directory not found: $DOCKER_DIR${NC}"
@@ -145,6 +151,7 @@ DJANGO_CONTAINER="scitex-hub-${ENV}-django-1"
 # build). 'docker compose build' touches images only, never the running
 # containers, so serving is unaffected here.
 echo -e "${CYAN}  1. Building Docker images (old stack still serving; CPU-limited to keep SSH alive)...${NC}"
+echo "     Dependency resolution provenance: ${SCITEX_HUB_DEPENDENCY_RESOLUTION}"
 export DOCKER_BUILDKIT=1
 # nice -n 10: lower priority so SSH/system processes win CPU contention
 # shellcheck disable=SC2086  # COMPOSE_CMD intentionally word-splits (e.g. "docker compose")
@@ -381,10 +388,32 @@ fi
 # Deliberately explicit per environment rather than derived from an env var:
 # .env.prod carries no SITE_URL, and a missing variable must not silently
 # downgrade this into "no URL, nothing to check, success".
+#
+# dev is the exception, and it asks COMPOSE rather than an env var. The dev
+# compose publishes django on 127.0.0.1:${SCITEX_HUB_HTTP_PORT_DEV:-8000}
+# (docker_dev/docker-compose.yml), a value the host's .env decides. This line
+# used to be the literal http://127.0.0.1:31295/ — the NAS preview-compose
+# port — and on 2026-09-05 (scitex-compute-03, card
+# hub-rebuild-dev-verify-url-hardcodes-31295-20260905) it polled a port
+# nothing listened on for 8 min and declared a healthy stack that was serving
+# 200 through its tunnel "NOT answering". `compose port` reports what was
+# ACTUALLY published, so it cannot drift from the compose file or the .env;
+# and an empty answer is a real failure (no HTTP port published) that is
+# reported as such below — never a reason to skip the check.
+VERIFY_URL_ERROR=""
 case "$ENV" in
     prod)    VERIFY_URL="https://scitex.ai/" ;;
     staging) VERIFY_URL="http://127.0.0.1:31294/" ;;
-    dev)     VERIFY_URL="http://127.0.0.1:31295/" ;;
+    dev)
+        # shellcheck disable=SC2086  # COMPOSE_CMD intentionally word-splits
+        DEV_PUBLISHED="$($COMPOSE_CMD port django 8000 2>/dev/null | tail -n 1)"
+        if [ -n "$DEV_PUBLISHED" ]; then
+            VERIFY_URL="http://${DEV_PUBLISHED}/"
+        else
+            VERIFY_URL=""
+            VERIFY_URL_ERROR="dev compose publishes no host port for django:8000 (\`$COMPOSE_CMD port django 8000\` answered nothing)"
+        fi
+        ;;
     *)       VERIFY_URL="" ;;
 esac
 
@@ -410,6 +439,10 @@ if [ -n "$VERIFY_URL" ]; then
         echo -e "${YELLOW}      docker logs --tail 50 scitex-hub-${ENV}-django-1${NC}" >&2
         VERIFY_FAILED=1
     fi
+elif [ -n "$VERIFY_URL_ERROR" ]; then
+    # A URL we could not even derive is a failed check, not a skipped one.
+    echo -e "${RED}   ❌ ${VERIFY_URL_ERROR} — site check impossible${NC}" >&2
+    VERIFY_FAILED=1
 else
     echo -e "${YELLOW}   ⚠️ No verify URL for env '${ENV}' — service check SKIPPED${NC}" >&2
 fi
@@ -450,7 +483,7 @@ if docker ps --format '{{.Names}}' | grep -q "^${DJANGO_CONTAINER}$"; then
         echo -e "${GREEN}   Visitor pool has distributable slots${NC}"
     else
         echo -e "${RED}   ❌ Visitor pool has NO distributable slot — every anonymous visitor gets read-only${NC}" >&2
-        echo -e "${YELLOW}      docker exec ${DJANGO_CONTAINER} python manage.py reconcile_visitor_slots --repair-only${NC}" >&2
+        echo -e "${YELLOW}      See visitor_pool_ready JSON/cause above for the matching repair; quarantine and capacity exhaustion require different actions.${NC}" >&2
         echo -e "${YELLOW}      docker logs --tail 100 scitex-hub-${ENV}-celery_worker_vis-1${NC}" >&2
         VERIFY_FAILED=1
     fi

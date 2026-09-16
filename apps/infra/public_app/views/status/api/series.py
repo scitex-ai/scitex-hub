@@ -41,6 +41,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 
 from ....models import ServerMetrics
+from ..access import admin_only_json_response
 
 logger = logging.getLogger("scitex")
 
@@ -201,7 +202,13 @@ CHART_SPECS: dict[str, dict] = {
 
 
 def server_metrics_series_api(request):
-    """Serve every status-page chart's data for one time window as JSON."""
+    """Serve every status-page chart's data for one time window as JSON.
+
+    Host resource metrics: instance admins only (403 JSON otherwise).
+    """
+    denied = admin_only_json_response(request)
+    if denied is not None:
+        return denied
     raw_minutes = request.GET.get("minutes", str(SUPPORTED_RANGES[0]))
     try:
         minutes = int(raw_minutes)

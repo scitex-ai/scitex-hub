@@ -1,134 +1,270 @@
 {
-  "_comment": "SINGLE SOURCE OF TRUTH for every price SciTeX publishes. Operator decision 2026-08-01: 「SSOT にしましょう」 / 「価格はjson あたりにしておくと使いやすいかと」. Before this file, /services/ hard-coded 9 JPY rows in its template and /landing/ hard-coded 12 USD items in its view; the two disagreed by up to 2.7x on the same service. Change a number HERE and it reaches every page and the brochure PDF together. A literal price anywhere else is a bug — tests/scitex_hub/public_app/test_pricing_ssot.py enforces it.",
-  "_amount_is_the_only_truth": "Store the NUMBER, never a formatted string. Rendering derives '無料' from amount 0, the '〜' suffix from from_price, and the '月額' prefix from unit. Storing both 11000 and '11,000円' would be two representations of one fact, which is the duplication this file exists to remove.",
-  "currency": "JPY",
+  "_comment": "SINGLE SOURCE OF TRUTH for every price SciTeX publishes. Operator decision 2026-08-01: 「SSOT にしましょう」 / 「価格はjson あたりにしておくと使いやすいかと」. Change a number HERE and it reaches /pricing/, /services/, /tokushoho/ and the landing together. A literal price anywhere else is a bug — tests/apps/public_app/test_pricing_ssot.py enforces it.",
+  "_ssot_v1_0_usd": "2026-09-14: this file now mirrors the operator's 'SciTeX Services SSOT — Provisional v1.0'. Prices are USD and USD is the only stored currency: every `amount` is a USD figure. The JPY list amounts, the early-adopter discount schedule (pricing_policies) and the retired rows (SciTeX Translation, Clew Verification — not in the SSOT) were removed in the same change. The yen shown on /tokushoho/ is a REFERENCE computed at render time from the live USD/JPY rate, never stored here. Internal hardware names (the SSOT's 'current internal mapping' column) are deliberately NOT copied: customer pages use tier names only (Hot / Warm / Cool / Cold). Features that are not built yet carry `coming_soon: true` and render with a 'Coming soon' / 「近日提供」 label — compute credits, spending caps, GPU and external compute billing.",
+  "_amount_is_the_only_truth": "Store the NUMBER, never a formatted string. Rendering derives 'Free' from amount 0, the 'from' prefix from from_price, and the '/mo', '/year', '/hr', '/project' suffix from unit.",
+  "currency": "USD",
   "tax_included": true,
-  "tax_note": "表示価格はすべて税込(総額)です。",
-  "updated": "2026-08-02",
-  "consulting": [
+  "tax_note": "All displayed prices include tax.",
+  "updated": "2026-09-14",
+  "ssot_version": "Provisional v1.0",
+  "_published_prices_are_the_tokushoho_list": "The price list the 特定商取引法 page publishes. A row is published iff `available_from` (YYYY-MM) is SET and <= the current month; a future month keeps the row in the catalogue and off the page. `withheld` (a stated reason) holds a row back whatever its date says.",
+  "published_prices": [
     {
-      "id": "initial-consult-30min",
-      "label": "初回相談・課題の整理（30分）",
+      "id": "subscription-student",
+      "label": "SciTeX Cloud Academic",
+      "amount": 19,
+      "unit": "month",
+      "basis": "per_user",
+      "available_from": "2026-09",
+      "category": "subscription",
+      "attributes": {
+        "free_trial": {
+          "days": 30,
+          "storage_gb": 10,
+          "compute_credit": 3
+        },
+        "included_storage": {
+          "amount": 32,
+          "tier": "Cool"
+        },
+        "included_compute_credit": {
+          "amount": 10,
+          "coming_soon": true
+        },
+        "included_egress": {
+          "amount": 100
+        },
+        "overage": "metered",
+        "monthly_limit_set_by": "user",
+        "eligibility": "University or research-institution email address (students, graduate students, faculty, researchers)"
+      },
+      "description": "For eligible academic and research users."
+    },
+    {
+      "id": "subscription-general",
+      "label": "SciTeX Cloud Standard",
+      "amount": 39,
+      "unit": "month",
+      "basis": "per_user",
+      "available_from": "2026-09",
+      "category": "subscription",
+      "attributes": {
+        "free_trial": {
+          "days": 30,
+          "storage_gb": 10,
+          "compute_credit": 3
+        },
+        "included_storage": {
+          "amount": 32,
+          "tier": "Cool"
+        },
+        "included_compute_credit": {
+          "amount": 10,
+          "coming_soon": true
+        },
+        "included_egress": {
+          "amount": 100
+        },
+        "overage": "metered",
+        "monthly_limit_set_by": "user"
+      },
+      "description": "For general and commercial users. Hosted at scitex.ai."
+    },
+    {
+      "id": "selfhosted-agpl",
+      "label": "SciTeX Self-Hosted — AGPL v3.0",
       "amount": 0,
       "unit": "once",
-      "from_price": false
+      "available_from": "2026-09",
+      "category": "license",
+      "description": "For anyone. AGPL v3.0 terms apply."
     },
     {
-      "id": "technical-consult-60min",
-      "label": "技術相談・設計相談（60分）",
-      "amount": 11000,
+      "id": "selfhosted-academic",
+      "label": "SciTeX Self-Hosted — Academic License",
+      "amount": 0,
       "unit": "once",
-      "from_price": false,
-      "anchor": "invoice-2024-06 小機能 10,000+税"
+      "available_from": "2026-09",
+      "category": "license",
+      "description": "For universities and public research institutions. Internal non-commercial research and education; private modifications allowed. Support is not included."
     },
     {
-      "id": "small-fix",
-      "label": "小さな設定・修正・調査",
-      "amount": 11000,
-      "unit": "once",
+      "id": "selfhosted-commercial",
+      "label": "SciTeX Self-Hosted — Commercial License",
+      "amount": 2400,
+      "unit": "year",
       "from_price": true,
-      "anchor": "invoice-2024-06 小機能 10,000+税"
+      "available_from": "2026-09",
+      "category": "license",
+      "description": "For companies and proprietary use. Internal proprietary use; OEM or resale requires a separate agreement. Support is not included."
     },
     {
-      "id": "code-review",
-      "label": "コードレビュー・環境診断",
-      "amount": 33000,
-      "unit": "once",
+      "id": "onprem-setup",
+      "label": "SciTeX Self-Hosted Setup Support",
+      "amount": 2000,
+      "unit": "per_case",
       "from_price": true,
-      "anchor": "invoice-2024-06 中規模機能 30,000+税"
+      "available_from": "2026-08",
+      "category": "service",
+      "price_is_floor": true,
+      "description": "One environment; standard install; domain/TLS; basic auth; one storage integration; one compute integration; smoke test; handover notes."
     },
     {
-      "id": "environment-build",
-      "label": "環境構築・データ移行・自動化",
-      "amount": 55000,
-      "unit": "once",
-      "from_price": true,
-      "anchor": "invoice-2024-07 論文制作費 50,000+税"
-    },
-    {
-      "id": "lab-poc",
-      "label": "研究室向け試験導入・PoC",
-      "amount": 55000,
-      "unit": "once",
-      "from_price": true
-    },
-    {
-      "id": "custom-development",
-      "label": "個別開発・本格導入",
-      "amount": 110000,
-      "unit": "once",
-      "from_price": true,
-      "anchor": "invoice-2024-06 メール個別対応 100,000+税"
-    },
-    {
-      "id": "ongoing-support",
-      "label": "継続的な技術支援",
-      "amount": 33000,
+      "id": "onprem-maintenance",
+      "label": "SciTeX Self-Hosted Maintenance Support",
+      "amount": 650,
       "unit": "month",
-      "from_price": true
+      "from_price": true,
+      "available_from": "2026-08",
+      "category": "service",
+      "price_is_floor": true,
+      "description": "Upgrade assistance; dependency and security update assistance; operational triage; compatibility checks; up to 4 support hours per month (unused hours do not roll over). Target first response: 1 business day, best effort unless a separate SLA is signed. Additional work: $100/hr unless separately quoted."
     },
     {
-      "id": "technical-advisor",
-      "label": "技術顧問・組織的な導入支援",
-      "amount": 55000,
-      "unit": "month",
-      "from_price": true
+      "id": "contract-development",
+      "label": "SciTeX Custom Development",
+      "amount": 1300,
+      "unit": "per_project",
+      "from_price": true,
+      "available_from": "2026-08",
+      "category": "service",
+      "description": "Apps, workflows, integrations, automation, agents and research tooling."
+    },
+    {
+      "id": "consulting",
+      "label": "SciTeX Consulting",
+      "amount": 65,
+      "unit": "per_hour",
+      "from_price": true,
+      "available_from": "2026-08",
+      "category": "service",
+      "description": "AI, HPC, research software, SciTeX architecture and workflow design. First 30 minutes free."
     }
   ],
-  "_plans_reference_bands": "The three plan tiers do NOT carry their own numbers. Each names a `price_ref` into `consulting` above, because /services/ previously printed the same band in FOUR places — the desktop comparison table and the mobile card, for each of three plans — all hand-typed. Changing a band would have updated the price table and silently left the plan cards showing the old figure. A reference cannot drift from what it references.",
-  "plans": [
-    {
-      "id": "individual",
-      "name": "Individual",
-      "audience": "個人研究者・大学院生",
-      "price_ref": "small-fix",
-      "subscription": {
-        "amount": 2980,
-        "unit": "month",
-        "from_price": false
-      }
-    },
-    {
-      "id": "lab",
-      "name": "Lab",
-      "audience": "研究室・共同研究チーム",
-      "price_ref": "lab-poc",
-      "featured": true,
-      "subscription": {
-        "amount": 100000,
-        "unit": "month",
-        "from_price": false
-      }
-    },
-    {
-      "id": "enterprise",
-      "name": "Enterprise",
-      "audience": "大学・研究機関・企業 R&D",
-      "price_ref": "custom-development",
-      "suffix": "／要見積もり"
-    }
+  "_inquiry_budget_options": "The /services/ inquiry form's budget choices. Stored VERBATIM on ServiceInquiry and emailed to the operator, so label == value. USD since SSOT v1.0; the bands are anchored on the published service floors (maintenance from $650, setup from $2,000). The first entry is the default and is translated for display.",
+  "inquiry_budget_options": [
+    "Undecided",
+    "Under $650",
+    "$650 – $2,000",
+    "$2,000 – $10,000",
+    "$10,000 or more"
   ],
-  "_notes_are_verbatim": "The first three are the exact lines /services/ published before this file existed, copied character-for-character so migrating the template changes nothing visible. The fourth is NEW, added at the operator's request 2026-08-01:「目安ですので気楽にご相談ください、と書いておくと良いかもですね」— with bands as wide as 55,000〜220,000, a reader with no invitation to ask simply leaves.",
   "notes": [
-    "ソフトウェア、ハードウェア、クラウド、生成 AI API 等の外部利用料は原則実費です。",
-    "お客様自身の既存契約や計算資源を、そのまま利用できる構成を優先します。",
-    "SciTeX Cloud の従量課金は、料金確定後に別ページでご案内します。",
-    "上記はいずれも目安です。ご予算や状況に合わせて調整できますので、気楽にご相談ください。"
+    "These prices are indicative. Contact us to adjust them to your budget and circumstances."
   ],
-  "_provenance": {
-    "note": "The four `anchor` values above are not estimates. They are the operator's own 2024 invoices to 東京大学大学院薬学系研究科薬品作用学教室, read directly. Each listed band equals the invoiced amount plus 10% consumption tax, exactly. Do not 'tidy' these numbers without a new basis — they are what was billed and paid.",
-    "invoice-2024-06": "見積書_納品書_請求書_渡邉裕亮.xlsx — 小機能 10,000 / 中規模機能 30,000 / メール個別対応 100,000",
-    "invoice-2024-07": "見積書_納品書_請求書_渡邉裕亮_論文制作費.xlsx — 論文制作費 50,000 (→ F1000Research 13-714)"
+  "_tiers": "The plan groups /pricing/ and /services/ render. `rows` cite published_prices ids; the page renders each cited row's label and price, so the tier copy never carries a number.",
+  "tiers": [
+    {
+      "id": "cloud",
+      "name": "SciTeX Cloud",
+      "audience": "Hosted at scitex.ai",
+      "rows": [
+        "subscription-student",
+        "subscription-general"
+      ],
+      "description": "Cloud Academic and Cloud Standard have the same product features; Academic pricing is eligibility-based."
+    },
+    {
+      "id": "selfhosted",
+      "name": "SciTeX Self-Hosted",
+      "audience": "Run SciTeX in your own environment",
+      "rows": [
+        "selfhosted-agpl",
+        "selfhosted-academic",
+        "selfhosted-commercial"
+      ],
+      "description": "Keep data in-house. OEM, resale or a SciTeX-based third-party commercial service requires a Commercial License or separate written permission. Support is not included in the license."
+    },
+    {
+      "id": "services",
+      "name": "Professional services",
+      "audience": "Setup, maintenance, development and consulting",
+      "rows": [
+        "onprem-setup",
+        "onprem-maintenance",
+        "contract-development",
+        "consulting"
+      ],
+      "description": "In-person travel and extraordinary expenses are quoted separately."
+    }
+  ],
+  "_rate_card": "The metered rates from SSOT sections 3-5. Tier names only — never the internal hardware a tier maps to. `coming_soon` marks billing that is not live yet.",
+  "rate_card": {
+    "storage_tiers": [
+      {
+        "name": "Hot",
+        "meaning": "Highest-speed job and scratch storage",
+        "included_with_compute": true,
+        "note": "Temporary; not intended as durable storage"
+      },
+      {
+        "name": "Warm",
+        "meaning": "High-speed persistent storage for active datasets",
+        "amount": 0.10,
+        "note": "Persistent"
+      },
+      {
+        "name": "Cool",
+        "meaning": "Default user storage",
+        "amount": 0.03,
+        "note": "32 GB included with paid Cloud plans"
+      },
+      {
+        "name": "Cold",
+        "meaning": "Long-term, infrequently accessed archive",
+        "amount": 0.01,
+        "note": "Restore delay may apply"
+      }
+    ],
+    "network": {
+      "ingress_free": true,
+      "internal_free": true,
+      "included_egress_gb": 100,
+      "egress_over_amount": 0.05
+    },
+    "compute": {
+      "coming_soon": true,
+      "cpu_unit_rate": 0.05,
+      "cpu_sizes": [1, 2, 4, 8, 16],
+      "memory_addon_rate": 0.005,
+      "gpus": [
+        {"name": "RTX 4090 class", "amount": 0.70},
+        {"name": "A100 80 GB class", "amount": 2.00},
+        {"name": "H100 80 GB class", "amount": 3.50},
+        {"name": "H200 141 GB class", "amount": 4.50},
+        {"name": "B200 class", "amount": 7.00}
+      ],
+      "external_fee_percent": 10
+    }
   },
+  "_policies": "SSOT sections 1 (Academic License boundary), 2 (notes), 6 (additional rules), 7 (SLA) and 8 (price maintenance), as customer copy.",
+  "academic_license_boundary": [
+    "Eligible institution: university, public research institute, or equivalent nonprofit academic institution.",
+    "Internal research and education: allowed.",
+    "Institution-specific private modifications: allowed.",
+    "Industry-sponsored research remains eligible when SciTeX is used internally by the academic institution.",
+    "Direct access or use by a commercial partner, resale, OEM, or providing a SciTeX-based third-party commercial service requires a Commercial License or separate written permission.",
+    "Support is not included in the license."
+  ],
+  "beta_policies": [
+    "No contractual uptime SLA for SciTeX Cloud during beta. Internal operational target: 99.0% monthly availability.",
+    "No contractual durability SLA during beta. Hot storage is temporary; move data to persistent storage if you need to keep it.",
+    "Cloud support: best effort, target first response within 2 business days.",
+    "Paid Self-Hosted Maintenance: target first response within 1 business day.",
+    "Unused compute credit does not roll over.",
+    "Public rates are reviewed once per month and stay fixed until the next rate-card update. A running job never changes price.",
+    "During beta, unusually high traffic may be rate-limited or quoted separately if it threatens service quality."
+  ],
   "_subscription_status": {
     "state": "announced",
-    "note": "PRICES ARE PUBLISHED; BILLING IS NOT OPEN. Operator decision 2026-08-28. Three places must agree and this key is the contract between them:\n  (1) plans[].subscription here — Individual 2,980 / Lab 100,000, monthly, tax-included\n  (2) BILLING_PLANS (settings_commerce.py) stays [] — so /pricing/ lists no checkout button and billing_checkout refuses; the payment path is shut at TWO points (operator-only, and it aborts without a Stripe key)\n  (3) /特商法/ states the prices AND that card payment begins after Stripe's corporate review — so the page never simultaneously denies and advertises paid plans\nThe previous state was not_offered, whose contract was the mirror image: 'no paid plans exist, keep all three saying so'. Do not move ONE of the three without the other two; that inconsistency is exactly what this key exists to prevent.",
-    "lab_price_is_a_list_price_on_purpose": "100,000/month replaced 49,800〜 on 2026-08-28. The operator's reasoning: publish high and come down via coupons and individual quotes, because being wrong downward is safer than being wrong upward. Hence a flat figure with no 〜 — a range invites negotiation from the bottom of it."
+    "note": "PRICES ARE PUBLISHED; BILLING IS NOT OPEN. Three places must agree and this key is the contract between them: (1) published_prices above; (2) BILLING_PLANS (settings_commerce.py) stays [] — so /pricing/ lists no checkout button and billing_checkout refuses; (3) /特商法/ states the prices AND that card payment begins after Stripe's corporate review. Do not move ONE of the three without the other two.",
+    "lab_tier_retired_2026_09_03": "SciTeX Lab 月額 100,000円 was published 2026-08-28 and RETIRED 2026-09-03. It must not return.",
+    "ssot_v1_0_2026_09_14": "Plans replaced by SSOT Provisional v1.0 (USD): Cloud Academic $19/mo, Cloud Standard $39/mo, Self-Hosted AGPL / Academic License free, Self-Hosted Commercial License from $2,400/year, plus the four professional services."
   },
   "_pending_operator_decision": {
-    "note": "Two items removed from /landing/ are COMMITMENTS, not indicative bands, and are parked here rather than deleted so they are not lost: a reader could have relied on either. Restore or retire them explicitly.",
+    "note": "Two items removed from /landing/ are COMMITMENTS, not indicative bands, and are parked here rather than deleted so they are not lost: a reader could have relied on either. Restore or retire them explicitly. (SSOT v1.0 does not mention either.)",
     "mext_partnership": "50% off all plans — a standing discount to government-funded institutions",
     "pilot_program": "Free (6 months) — Professional-tier features for up to 10 researchers"
   },
-  "_subscription_is_not_a_consulting_band": "plans[].price_ref points into `consulting` and is a PROJECT band (one-off or retainer engagements, anchored to real 2024 invoices). plans[].subscription is the SaaS monthly price. They are different products that happen to sit on the same card, so they are separate fields rather than one overloaded number. Enterprise carries NO subscription on purpose: it is 要相談 and quoting it here would invent a price."
+  "_withheld_is_a_gate": "A row with a non-empty `withheld` is in the catalogue and NOT published, whatever its available_from says. It is a stated reason, not a flag — an empty string is not a hold. No row is withheld now, and a test pins that."
 }

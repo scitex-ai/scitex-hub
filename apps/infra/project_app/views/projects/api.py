@@ -360,16 +360,8 @@ def api_project_list_jwt(request):
     return Response({"projects": list(projects)})
 
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def api_me(request):
-    """Return authenticated user info (for CLI to resolve username)."""
-    return Response(
-        {
-            "username": request.user.username,
-            "email": request.user.email,
-        }
-    )
+# GET /api/me/ moved to apps.infra.accounts_app.views.me_whoami_views.api_me
+# (whoami contract: opaque id, plan, key metadata; no email).
 
 
 # EOF

@@ -4,6 +4,7 @@
  */
 
 import { FileTreeNode, TeXSection } from "./types";
+import { fetchSectionsConfig } from "../../_writer/_config/sections-config";
 
 export class TexFileDropdown {
   private dropdownId?: string;
@@ -64,8 +65,7 @@ export class TexFileDropdown {
     dropdown.innerHTML = "";
 
     try {
-      const response = await fetch("/apps/writer/api/sections-config/");
-      const data = await response.json();
+      const data = await fetchSectionsConfig();
 
       if (!data.success || !data.hierarchy) {
         console.error("[FileTree] Failed to load sections hierarchy");

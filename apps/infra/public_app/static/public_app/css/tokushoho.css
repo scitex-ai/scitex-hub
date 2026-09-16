@@ -27,7 +27,7 @@
 .tokushoho-table th,
 .tokushoho-table td {
   border: 1px solid var(--border-muted);
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-md);
   vertical-align: top;
   text-align: left;
 }
@@ -35,12 +35,14 @@
 .tokushoho-table th {
   background-color: var(--bg-muted, rgba(0, 0, 0, 0.04));
   white-space: nowrap;
-  width: 12em;
+  width: 11em;
   color: var(--text-primary);
+  font-weight: 600;
 }
 
 .tokushoho-table td {
   color: var(--text-secondary);
+  line-height: 1.65;
 }
 
 .tokushoho-table td p {
@@ -66,6 +68,260 @@
   margin-top: var(--spacing-md);
 }
 
+/* ── Full-width price table: its own section that SPLITS the two outer
+   label/value tables (company info above, payment terms below). The two cards
+   are 800px (.policy-container); this band spans the full .container width, so
+   it reads as a distinct, WIDER block breaking the stack into three. ── */
+.price-table-section {
+  padding: var(--spacing-md) 0;
+}
+
+/* Section heading above the price table (e.g. 提供サービスと料金) */
+.price-table-heading {
+  margin: 0 0 var(--spacing-md);
+  font-size: 1.25em;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.price-table-wrap {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-muted);
+  border-radius: var(--border-radius-lg, 8px);
+  padding: var(--spacing-md);
+  box-shadow: var(--box-shadow-sm);
+  overflow-x: auto; /* keep the 8 columns usable on narrow widths */
+}
+
+.tokushoho-price-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.95em;
+}
+
+.tokushoho-price-table thead th {
+  background: var(--bg-muted, rgba(0, 0, 0, 0.04));
+  border: none;
+  border-bottom: 2px solid var(--border-default);
+  padding: var(--spacing-sm) var(--spacing-md);
+  text-align: left;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--text-primary);
+}
+
+/* 6 figure columns: 内容 / 料金(税込) / 円換算(参考) / ストレージ / 計算クレジット / 超過計算.
+   備考 is NOT a column (operator 2026-09-14: the narrowest column held the
+   longest text) — it is a full-width detail row under each item, below. */
+.tokushoho-price-table thead th:nth-child(1) {
+  width: 24%;
+}
+.tokushoho-price-table thead th:nth-child(2) {
+  width: 16%;
+}
+.tokushoho-price-table thead th:nth-child(3) {
+  width: 14%;
+}
+.tokushoho-price-table thead th:nth-child(4) {
+  width: 18%;
+}
+.tokushoho-price-table thead th:nth-child(5) {
+  width: 16%;
+}
+.tokushoho-price-table thead th:nth-child(6) {
+  width: 12%;
+}
+
+/* Fixed layout honours the column widths above, and the short figure cells
+   may wrap, so the table fits its container instead of scrolling sideways
+   (measured at 1440px: nowrap cells pushed the EN table to 1492px). */
+.tokushoho-price-table--detail-rows {
+  table-layout: fixed;
+}
+.tokushoho-price-table.tokushoho-price-table--detail-rows .muted-cell,
+.tokushoho-price-table.tokushoho-price-table--detail-rows thead th {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* One <tbody> per item: the figures row + its full-width detail row. */
+.tokushoho-price-table .tokushoho-item-row td {
+  border-bottom: none;
+  padding-bottom: var(--spacing-xs);
+}
+.tokushoho-price-table .tokushoho-item-row .item-cell {
+  font-weight: 600;
+}
+.tokushoho-price-table
+  tbody.tokushoho-price-item:not(:last-of-type)
+  tr:last-child
+  td {
+  border-bottom: 1px solid var(--border-muted);
+}
+.tokushoho-price-table .tokushoho-detail-cell {
+  padding-top: 0;
+  color: var(--text-secondary);
+  font-size: 0.92em;
+}
+.tokushoho-detail-label {
+  display: inline-block;
+  margin: 0 0 0.25rem;
+  font-size: 0.8em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+}
+.tokushoho-detail-text {
+  margin: 0;
+}
+.tokushoho-price-table .tokushoho-detail-cell .tokushoho-remarks-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  column-gap: var(--spacing-lg);
+}
+
+/* Visible language switch between /tokushoho/ (正本) and /tokushoho-en/. */
+.tokushoho-lang-switch {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 0.75rem;
+}
+.tokushoho-lang-switch a {
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid var(--border-muted, #d0d4d9);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary, #1a1a1a);
+  text-decoration: none;
+}
+.tokushoho-lang-switch a:hover,
+.tokushoho-lang-switch a:focus-visible {
+  background: var(--bg-muted, #f4f5f7);
+}
+
+/* The 料金 column shows a struck-through USD list price next to a bold green
+   sale price + a discount badge (operator 2026-09-13: strikethrough, green
+   for the discount). USD is the SSoT; the list price is derived from the
+   sale price + the active window's percent. */
+.tokushoho-list-price {
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-right: 0.4rem;
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
+
+.tokushoho-sale-price {
+  color: var(--success-color, #16a34a);
+  font-weight: 700;
+  font-size: 1.05em;
+}
+
+.tokushoho-discount-badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.78em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--success-color, #16a34a);
+  background: #e7f6ec; /* solid light-green, no color-mix */
+  border: 1px solid var(--success-color, #16a34a);
+  border-radius: 999px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+[data-theme="dark"] .tokushoho-discount-badge {
+  color: var(--success-color, #6ba89a);
+  background: rgba(107, 168, 154, 0.15);
+  border-color: var(--success-color, #6ba89a);
+}
+
+/* 備考 as a compact list (was a comma-joined blob that overflowed the narrow
+   column; operator 2026-09-13: "shown in a better format"). */
+.tokushoho-remarks-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tokushoho-remarks-list li {
+  padding-left: 0.9rem;
+  position: relative;
+  margin-bottom: 0.25rem;
+}
+.tokushoho-remarks-list li::before {
+  content: "·";
+  position: absolute;
+  left: 0;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+/* The FX-rate explanation under the table. */
+.tokushoho-fx-note {
+  margin: 0.75rem 0 0.5rem;
+  font-size: 0.85em;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.tokushoho-price-table tbody td {
+  border: none;
+  border-bottom: 1px solid var(--border-muted);
+  padding: var(--spacing-md) var(--spacing-md);
+  vertical-align: top;
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.tokushoho-price-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Price column: the selling price, primary emphasis */
+.tokushoho-price-table .price-cell {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* 定価 / 割引 columns: secondary, muted so the selling price reads first */
+.tokushoho-price-table .muted-cell {
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* The 規模の大きい導入 footer note row — visually distinct from the data rows */
+.tokushoho-price-table .price-note-row td {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  padding: var(--spacing-md);
+  border-top: 2px solid var(--border-muted);
+  background: var(--bg-muted, rgba(0, 0, 0, 0.02));
+}
+
+/* English reference version of the tokushoho disclosure (operator 2026-09-13,
+   Option C): a supplementary translation that links back to the legally
+   binding Japanese page. Understated so the back-link reads as a note, not a
+   competing heading. */
+.tokushoho-lang-note {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.9rem;
+  color: var(--text-muted, #666);
+  background: var(--bg-muted, #f4f5f7);
+  border-left: 3px solid var(--border-muted, #d0d4d9);
+  border-radius: 0 6px 6px 0;
+}
+.tokushoho-lang-note a {
+  color: var(--text-primary, #1a1a1a);
+  font-weight: 600;
+}
+
+/* ── Mobile ───────────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .tokushoho-table th,
   .tokushoho-table td {
@@ -78,5 +334,60 @@
   .tokushoho-table th {
     background: none;
     padding-bottom: 0;
+  }
+
+  .tokushoho-price-table thead {
+    display: none;
+  }
+
+  /* Stack: each item becomes a card of label/value lines + its details. */
+  .tokushoho-price-table,
+  .tokushoho-price-table tbody,
+  .tokushoho-price-table tr,
+  .tokushoho-price-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .tokushoho-price-table tbody.tokushoho-price-item {
+    border-bottom: 2px solid var(--border-muted);
+    padding: var(--spacing-sm) 0;
+  }
+
+  .tokushoho-price-table tbody.tokushoho-price-item:last-of-type {
+    border-bottom: none;
+  }
+
+  .tokushoho-price-table tbody td,
+  .tokushoho-price-table
+    tbody.tokushoho-price-item:not(:last-of-type)
+    tr:last-child
+    td {
+    border: none;
+    padding: var(--spacing-xs) 0;
+    white-space: normal;
+  }
+
+  .tokushoho-price-table .tokushoho-item-row td[data-label]:not(.item-cell) {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+  }
+
+  .tokushoho-price-table
+    .tokushoho-item-row
+    td[data-label]:not(.item-cell)::before {
+    content: attr(data-label);
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .tokushoho-price-table .tokushoho-item-row .item-cell {
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .tokushoho-price-table .tokushoho-detail-cell .tokushoho-remarks-list {
+    display: block;
   }
 }

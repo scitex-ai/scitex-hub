@@ -1,0 +1,72 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% load i18n static %}
+
+{% block title %}{% trans "How to use Chat" %} — {% trans "SciTeX Documentation" %}{% endblock %}
+{% block content %}
+    {% include "docs_app/howto/_howto_styles.html" %}
+    <div class="container py-5" style="max-width: 900px">
+        <h1 class="mb-4">
+            <i class="fas fa-comments me-2"></i>{% trans "How to use Chat" %}
+        </h1>
+        <p class="lead text-muted mb-5">
+            {% trans "Chat lets you ask an AI assistant about your research and your projects." %}
+        </p>
+        <section class="api-section">
+            <h2>{% trans "Steps" %}</h2>
+            <ol class="howto-steps">
+                <li>
+                    {% blocktrans trimmed %}
+                        Open <strong>Chat</strong> from Home or from the dock at the bottom of the page.
+                    {% endblocktrans %}
+                    <img class="howto-shot"
+                         src="{% static 'docs_app/images/howto/chat-01-open.jpg' %}"
+                         alt="{% trans 'An empty chat' %}"
+                         loading="lazy" />
+                </li>
+                <li>
+                    {% blocktrans trimmed %}
+                        Type your request and press Enter. Name the project you mean, for example "Summarize the README of my project sleep-memory-study". If you see <strong>No AI provider configured</strong>, connect a provider first.
+                    {% endblocktrans %}
+                    <img class="howto-shot"
+                         src="{% static 'docs_app/images/howto/chat-02-no-provider.jpg' %}"
+                         alt="{% trans 'The No AI provider configured message' %}"
+                         loading="lazy" />
+                </li>
+                <li>
+                    {% url 'accounts_app:ai_providers' as ai_providers_url %}
+                    {% blocktrans trimmed %}
+                        Go to <a href="{{ ai_providers_url }}">Settings &gt; AI providers</a> and open <strong>Add a new provider</strong>. Choose a provider, paste your API key and click <strong>Add provider</strong>.
+                    {% endblocktrans %}
+                    <img class="howto-shot"
+                         src="{% static 'docs_app/images/howto/chat-03-add-provider.jpg' %}"
+                         alt="{% trans 'The Add a new provider form' %}"
+                         loading="lazy" />
+                </li>
+                <li>
+                    {% blocktrans trimmed %}
+                        Return to Chat and send your request again.
+                    {% endblocktrans %}
+                </li>
+                <li>
+                    {% blocktrans trimmed %}
+                        Click <strong>+</strong> to start a new chat. Each chat has its own tab, and the buttons on the right copy, print, clear or share the conversation.
+                    {% endblocktrans %}
+                </li>
+            </ol>
+        </section>
+        <section class="api-section">
+            <h2>{% trans "Tips" %}</h2>
+            <ul>
+                <li>{% trans "Your API key is encrypted at rest. Leave Default Model blank to use the provider's default." %}</li>
+            </ul>
+        </section>
+        <section class="api-section">
+            <h2>{% trans "Troubleshooting" %}</h2>
+            <ul>
+                <li>{% trans "No AI provider configured: add a provider in Settings > AI providers, then send the message again." %}</li>
+                <li>{% trans "To see how much you have used, open Settings > AI usage." %}</li>
+            </ul>
+        </section>
+    </div>
+{% endblock %}

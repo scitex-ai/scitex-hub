@@ -1,4 +1,4 @@
-{% load static %}
+{% load static i18n %}
 
 {% if user.is_authenticated %}
     <div class="ws-chat-pane" id="ws-chat-pane">
@@ -6,19 +6,19 @@
         <div class="chat-welcome" id="chat-welcome">
             <div class="chat-welcome-hero">
                 <div class="chat-welcome-logo-glow">
-                    <img src="{% static 'shared/images/scitex_logos/scitex-icons/scitex-icon-snake-only.svg' %}"
+                    <img src="{% static 'shared/images/scitex_logos/scitex-icons/scitex-icon-navy-inverted.svg' %}"
                          alt="SciTeX"
                          class="chat-welcome-logo" />
                 </div>
-                <p class="chat-welcome-tagline">Ask anything about Scientific Research</p>
             </div>
             <div class="chat-welcome-input-area">
                 <div class="chat-welcome-input-box">
+                    {% trans "• " context "chat example bullet" as bullet %}
                     <textarea id="chat-welcome-input"
                               class="chat-welcome-input"
-                              rows="1"
-                              placeholder="How can I help you today?"
-                              autocomplete="off"></textarea>
+                              rows="4"
+                              placeholder="{% trans 'Ask about this page or your project' %}&#10;{{ bullet }}{% trans 'How do I use this page?' %}&#10;{{ bullet }}{% trans 'Summarise project A' %}&#10;{{ bullet }}{% trans 'Where was that data?' %}"
+                              autocomplete="off">{{ request.GET.prompt|default:""|truncatechars:500 }}</textarea>
                     <div class="chat-welcome-input-actions">
                         <button class="chat-welcome-attach" title="Attach file">
                             <i class="fas fa-plus"></i>
@@ -37,20 +37,6 @@
                         </button>
                     </div>
                 </div>
-            </div>
-            <div class="chat-welcome-shortcuts">
-                <button class="chat-shortcut-btn" data-prompt="Help me write">
-                    <i class="fas fa-pen"></i> Write
-                </button>
-                <button class="chat-shortcut-btn" data-prompt="Help me analyze">
-                    <i class="fas fa-magnifying-glass-chart"></i> Analyze
-                </button>
-                <button class="chat-shortcut-btn" data-prompt="Help me code">
-                    <i class="fas fa-code"></i> Code
-                </button>
-                <button class="chat-shortcut-btn" data-prompt="Search literature">
-                    <i class="fas fa-book"></i> Literature
-                </button>
             </div>
         </div>
         <!-- Chat messages area (shown during active conversation, hidden by CSS) -->

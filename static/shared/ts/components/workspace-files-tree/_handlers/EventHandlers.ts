@@ -1,23 +1,25 @@
 /**
  * Event Handlers for WorkspaceFilesTree
  *
- * Click behavior (file-manager style):
- *   Single click         → select/highlight only
- *   Click on selected    → rename (after 400ms delay, cancelled by dblclick)
- *   Double click         → open in viewer/editor
+ * Click behavior (Finder-on-touch / Google Drive style):
+ *   Single click / tap   → select AND open in the viewer (folders toggle)
+ *   Ctrl/Cmd/Shift click → select only (multi-select), never opens
+ *   Double click         → no second open (the first click already opened)
  *   Triple click         → run (for .py, .sh, .js)
+ *   Enter (keyboard)     → open (KeyboardHandlers)
+ *
+ * Opening used to need a double-click, which touch screens cannot do
+ * reliably, and a second click on a selected file started a rename, so a
+ * second tap renamed instead of opening (site audit 2026-09-14, D12). Rename
+ * stays on F2, the row's rename button and the context menu.
  */
 
 import type { TreeItem, TreeConfig } from "../types";
 import type { TreeStateManager } from "../_TreeState";
 
 const RUNNABLE_EXTS = [".py", ".sh", ".js"];
-const RENAME_DELAY_MS = 400;
 
 export class EventHandlers {
-  private renameTimer: number | null = null;
-  private lastSelectedPath: string | null = null;
-
   constructor(
     private config: TreeConfig,
     private stateManager: TreeStateManager,
@@ -32,13 +34,6 @@ export class EventHandlers {
     private onCopy?: (path: string) => void,
     private onGitAction?: (action: string, path: string) => void,
   ) {}
-
-  private cancelPendingRename(): void {
-    if (this.renameTimer !== null) {
-      clearTimeout(this.renameTimer);
-      this.renameTimer = null;
-    }
-  }
 
   attachEventListeners(container: HTMLElement): void {
     const treeEl = container.querySelector(".wft-tree");
@@ -69,12 +64,12 @@ export class EventHandlers {
         return;
       }
 
-      // File selection — single click = select only
+      // File — single click/tap selects and opens
       const fileItem = target.closest(".wft-file[data-path]");
       if (fileItem && !fileItem.classList.contains("disabled")) {
         e.preventDefault();
         const path = fileItem.getAttribute("data-path")!;
-        this.handleFileClick(path, fileItem as HTMLElement, container);
+        this.handleFileClick(path, e, container);
         return;
       }
 
@@ -82,7 +77,6 @@ export class EventHandlers {
       const rootItem = target.closest('.wft-root[data-path=""]');
       if (rootItem) {
         e.preventDefault();
-        this.cancelPendingRename();
         this.onSelectFile("", e);
         container.focus();
         return;
@@ -95,7 +89,6 @@ export class EventHandlers {
         if (!clickedOnAction) {
           e.preventDefault();
           const path = folderItem.getAttribute("data-path")!;
-          this.cancelPendingRename();
           this.onSelectFile(path, e);
           if (!e.ctrlKey && !e.metaKey && !e.shiftKey) {
             this.onToggleFolder(path);
@@ -109,30 +102,23 @@ export class EventHandlers {
       const treeArea = target.closest(".wft-tree");
       if (treeArea) {
         e.preventDefault();
-        this.cancelPendingRename();
         this.stateManager.clearSelection();
         this.onSelectFile("", e);
         container.focus();
       }
     });
 
-    // Double-click → open file in viewer/editor
+    // Double-click: the first click already opened the file; only stop the
+    // browser from selecting the row's text.
     treeEl.addEventListener("dblclick", (e) => {
-      this.cancelPendingRename();
       const target = e.target as HTMLElement;
-      const fileItem = target.closest(".wft-file[data-path]");
-      if (fileItem) {
-        e.preventDefault();
-        const path = fileItem.getAttribute("data-path")!;
-        this.onOpenFile(path);
-      }
+      if (target.closest(".wft-file[data-path]")) e.preventDefault();
     });
 
     // Triple-click → run (for executable files)
     treeEl.addEventListener("click", (evt) => {
       const e = evt as MouseEvent;
       if (e.detail === 3) {
-        this.cancelPendingRename();
         const target = e.target as HTMLElement;
         const fileItem = target.closest(".wft-file[data-path]");
         if (fileItem) {
@@ -152,29 +138,21 @@ export class EventHandlers {
     });
   }
 
-  /** Handle single click on a file: select, or rename if already selected */
+  /**
+   * Single click/tap on a file: select it and open it in the viewer.
+   * A modifier click only extends the selection, and the repeat clicks of a
+   * double/triple click do not open it again.
+   */
   private handleFileClick(
     path: string,
-    el: HTMLElement,
+    e: MouseEvent,
     container: HTMLElement,
   ): void {
-    this.cancelPendingRename();
-
-    const wasAlreadySelected = this.lastSelectedPath === path;
-
-    // Always select first
-    this.onSelectFile(path);
-    this.lastSelectedPath = path;
+    this.onSelectFile(path, e);
     container.focus();
-
-    // If clicking an already-selected file, start rename after delay
-    // (cancelled if dblclick fires within RENAME_DELAY_MS)
-    if (wasAlreadySelected) {
-      this.renameTimer = window.setTimeout(() => {
-        this.renameTimer = null;
-        this.onRename(path, el);
-      }, RENAME_DELAY_MS);
-    }
+    if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+    if (e.detail > 1) return;
+    this.onOpenFile(path);
   }
 
   private handleActionButton(actionBtn: HTMLElement, e: MouseEvent): void {

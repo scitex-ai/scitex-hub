@@ -19,7 +19,8 @@ services:
         - scitex-hub-dev-django:latest
       args:
         BUILDKIT_INLINE_CACHE: 1
-        SLURM_VERSION: ${SCITEX_HUB_SLURM_VERSION:-24.05.5}
+        SLURM_VERSION: ${SCITEX_HUB_SLURM_VERSION:-23.11.4}
+        SCITEX_HUB_DEPENDENCY_RESOLUTION: ${SCITEX_HUB_DEPENDENCY_RESOLUTION:-dev}
     image: scitex-hub-dev-django:latest
 
     # Volumes - Live code reload
@@ -35,11 +36,14 @@ services:
       - ../../../../scitex-clew:/scitex-clew:cached
       - ../../../../scitex-tunnel:/scitex-tunnel:cached
       - ../../../../scitex-container:/scitex-container:cached
+      - ${SCITEX_AGENT_CONTAINER_SOURCE_DIR:-../../../../scitex-agent-container}:/scitex-agent-container:cached
       - ../../../../scitex-dataset:/scitex-dataset:cached
       - ../../../../scitex-linter:/scitex-linter:cached
       - ../../../../scitex-scholar:/scitex-scholar:cached
       - ../../../../figrecipe:/figrecipe:cached
       - ../../../../scitex-writer:/scitex-writer:cached
+      - ../../../../scitex-storage:/scitex-storage:cached
+      - ../../../../scitex-cards:/scitex-cards:cached
       - ../../../../crossref-local:/crossref-local:cached
       - ../../../../openalex-local:/openalex-local:cached
       - ../../../../socialia:/socialia:cached
@@ -77,6 +81,10 @@ services:
 
       # Docker socket for user workspace management
       - /var/run/docker.sock:/var/run/docker.sock
+      # SAC listener bearer. Developers without a listener configured get an
+      # empty read-only file and an explicit "listener unavailable" dashboard;
+      # compose itself remains startable.
+      - ${SCITEX_AGENT_CONTAINER_API_TOKEN_FILE_HOST:-/dev/null}:/run/secrets/sac-listen-token:ro
 
       # User workspace data directory (also serves as user home via symlink)
       - ../../../data/users:/app/data/users
@@ -93,8 +101,15 @@ services:
       # Mount host passwd for SLURM UID synchronization (prevents "Security violation" errors)
       - /etc/passwd:/host/etc/passwd:ro
 
-      # Explicitly exclude generated files from host mount (performance)
-      - /app/staticfiles
+      # Explicitly exclude generated files from host mount (performance).
+      # NOT /app/staticfiles: `static_volume:/app/staticfiles` above already
+      # shadows the host bind for that path AND persists it. Listing it here
+      # too created a SECOND mount on the same destination in the same
+      # service, and the last one wins -- so this bare entry silently
+      # overrode static_volume with an ANONYMOUS volume, measured on
+      # scitex-hub-dev-django-1 2026-09-06 as
+      # {"com.docker.volume.anonymous": ""}. static_volume was declared,
+      # mounted and dead, and the Vite build did not survive a recreate.
       - /app/.cache
       # TypeScript compiled JS output - Docker only, never syncs to host
       - /app/.jsbuild
@@ -125,10 +140,17 @@ services:
       - PYTHONDONTWRITEBYTECODE=1
       - WATCHFILES_FORCE_POLLING=true  # For NFS/network filesystems
       - SCITEX_HUB_VITE_USE_BUILD=${SCITEX_HUB_VITE_USE_BUILD:-false}  # Set true to use pre-built JS (no Vite dev server)
+      # Shell-resolved only: never persisted to a checked-in .env. Operators
+      # decrypt ~/.pw into the invoking shell before compose up/config.
+      - SCITEX_HUB_EMAIL_HOST_PASSWORD=${SCITEX_HUB_EMAIL_HOST_PASSWORD:?decrypt ~/.pw/no-reply@scitex.ai.gpg into the shell first}
       # scitex.writer specific
       - SCITEX_WRITER_CACHE_DIR=/app/.cache
       # scitex-ui static dir for Vite alias resolution (avoids python3 discovery)
       - SCITEX_UI_STATIC=/scitex-ui/src/scitex_ui/static/scitex_ui
+      - SCITEX_AGENT_CONTAINER_API_URL=${SCITEX_AGENT_CONTAINER_API_URL:-http://host.docker.internal:7878}
+      - SCITEX_AGENT_CONTAINER_API_TOKEN_FILE=/run/secrets/sac-listen-token
+      - SCITEX_AGENT_CONTAINER_LIFECYCLE_OPERATORS=${SCITEX_AGENT_CONTAINER_LIFECYCLE_OPERATORS:-}
+      - SCITEX_AGENT_CONTAINER_CROSSHOST_OPERATORS=${SCITEX_AGENT_CONTAINER_CROSSHOST_OPERATORS:-}
 
     # Service dependencies
     depends_on:
@@ -254,7 +276,8 @@ services:
       cache_from:
         - scitex-hub-dev-django:latest
       args:
-        SLURM_VERSION: ${SCITEX_HUB_SLURM_VERSION:-24.05.5}
+        SLURM_VERSION: ${SCITEX_HUB_SLURM_VERSION:-23.11.4}
+        SCITEX_HUB_DEPENDENCY_RESOLUTION: ${SCITEX_HUB_DEPENDENCY_RESOLUTION:-dev}
     image: scitex-hub-dev-django:latest
 
     volumes:
@@ -266,11 +289,14 @@ services:
       - ../../../../scitex-clew:/scitex-clew:cached
       - ../../../../scitex-tunnel:/scitex-tunnel:cached
       - ../../../../scitex-container:/scitex-container:cached
+      - ${SCITEX_AGENT_CONTAINER_SOURCE_DIR:-../../../../scitex-agent-container}:/scitex-agent-container:cached
       - ../../../../scitex-dataset:/scitex-dataset:cached
       - ../../../../scitex-linter:/scitex-linter:cached
       - ../../../../scitex-scholar:/scitex-scholar:cached
       - ../../../../figrecipe:/figrecipe:cached
       - ../../../../scitex-writer:/scitex-writer:cached
+      - ../../../../scitex-storage:/scitex-storage:cached
+      - ../../../../scitex-cards:/scitex-cards:cached
       - ../../../../crossref-local:/crossref-local:cached
       - ../../../../openalex-local:/openalex-local:cached
       - ../../../../socialia:/socialia:cached
@@ -289,6 +315,11 @@ services:
     environment:
       - SCITEX_HUB_DJANGO_SETTINGS_MODULE=config.settings.settings_dev
       - PYTHONUNBUFFERED=1
+      # Same shell-resolved credential as `django`: this service sends OTP
+      # mail asynchronously, so without it the worker reports auth_app.E001
+      # and signup verification mail fails while the web form looks healthy.
+      # Never persisted: operators decrypt ~/.pw into the shell first.
+      - SCITEX_HUB_EMAIL_HOST_PASSWORD=${SCITEX_HUB_EMAIL_HOST_PASSWORD:?decrypt ~/.pw/no-reply@scitex.ai.gpg into the shell first}
 
     depends_on:
       postgres:
@@ -300,26 +331,57 @@ services:
     entrypoint: ["/app/deployment/docker/docker_dev/entrypoint.sh"]
 
     # Run Celery worker with all queues
-    # --max-tasks-per-child: auto-restart worker after N tasks (prevents memory leaks)
-    # --max-memory-per-child: auto-restart if worker exceeds 500MB (KB units)
+    # POOL=THREADS, NOT PREFORK. The prefork pool wedges on this host: after
+    # one boot burst the parent stops acknowledging completed tasks, its QoS
+    # window jams full of reservations with worker_pid=None / time_start=None
+    # / acknowledged=false, `inspect active` is empty, the control channel
+    # still answers ping, and nothing is logged. Five fixes failed against it
+    # (tini #379, -O fair + --max-tasks-per-child #381, the celery<5.6 pin
+    # with --without-gossip/mingle/heartbeat #384). The differential
+    # experiment that settled it: same container, same code, same broker,
+    # differing ONLY by --pool=threads, drained 48 tasks in 200s where
+    # prefork never exceeded 6. See docker_prod/docker-compose.yml for the
+    # full history and tests/develop/test_celery_worker_pool.py for the gate.
+    #
+    # The prefork-only flags are dropped deliberately: -O fair is a prefork
+    # child-dispatch strategy and --max-tasks-per-child / --max-memory-per-child
+    # recycle fork children, of which a threads pool has none. Celery ignores
+    # them under --pool=threads, so leaving them in place is dead config that
+    # reads as an active mitigation for the very wedge they failed to fix.
     command: >
       celery -A config --broker=redis://redis:6379/1 worker
       --loglevel=info
       --queues=celery,ai_queue,search_queue,compute_queue,vis_queue
+      --pool=threads
       --concurrency=4
       --prefetch-multiplier=1
-      --max-tasks-per-child=100
-      --max-memory-per-child=500000
+      --without-gossip
+      --without-mingle
+      --without-heartbeat
 
     restart: unless-stopped
 
-    # Override Dockerfile healthcheck (worker doesn't serve HTTP, check redis connectivity)
+    # Healthcheck asserts EXECUTION, not connectivity.
+    #
+    # This worker serves both `celery` and `vis_queue`, so both beacon stamps
+    # are checked: a worker that drains one queue while starving the other is
+    # unhealthy, and the visitor-slot re-clean rides on vis_queue.
+    #
+    # It previously pinged redis, which stays green through a total dispatch
+    # wedge -- measured on dev 2026-09-05, where the worker had executed
+    # nothing for 12.9h while docker reported "healthy" and the visitor pool
+    # sat quarantined. The same wedge was measured on prod 2026-07-14/17 and
+    # is why check_queue_liveness.sh exists; only the non-prod compose files
+    # were left behind on the ping.
+    #
+    # retries 10 x interval 60s: ~10 min of consecutive staleness before
+    # docker marks unhealthy, so a busy-but-draining worker is never flagged.
     healthcheck:
-      test: ["CMD", "python", "-c", "import redis; r = redis.Redis(host='redis', port=6379); r.ping()"]
-      interval: 30s
+      test: ["CMD", "bash", "-c", "/app/deployment/docker/common/scripts/check_queue_liveness.sh celery 600 && /app/deployment/docker/common/scripts/check_queue_liveness.sh vis_queue 600"]
+      interval: 60s
       timeout: 10s
-      retries: 3
-      start_period: 120s
+      retries: 10
+      start_period: 300s
 
     networks:
       - scitex-dev
@@ -334,7 +396,8 @@ services:
       cache_from:
         - scitex-hub-dev-django:latest
       args:
-        SLURM_VERSION: ${SCITEX_HUB_SLURM_VERSION:-24.05.5}
+        SLURM_VERSION: ${SCITEX_HUB_SLURM_VERSION:-23.11.4}
+        SCITEX_HUB_DEPENDENCY_RESOLUTION: ${SCITEX_HUB_DEPENDENCY_RESOLUTION:-dev}
     image: scitex-hub-dev-django:latest
 
     volumes:
@@ -346,11 +409,14 @@ services:
       - ../../../../scitex-clew:/scitex-clew:cached
       - ../../../../scitex-tunnel:/scitex-tunnel:cached
       - ../../../../scitex-container:/scitex-container:cached
+      - ${SCITEX_AGENT_CONTAINER_SOURCE_DIR:-../../../../scitex-agent-container}:/scitex-agent-container:cached
       - ../../../../scitex-dataset:/scitex-dataset:cached
       - ../../../../scitex-linter:/scitex-linter:cached
       - ../../../../scitex-scholar:/scitex-scholar:cached
       - ../../../../figrecipe:/figrecipe:cached
       - ../../../../scitex-writer:/scitex-writer:cached
+      - ../../../../scitex-storage:/scitex-storage:cached
+      - ../../../../scitex-cards:/scitex-cards:cached
       - ../../../../crossref-local:/crossref-local:cached
       - ../../../../openalex-local:/openalex-local:cached
       - ../../../../socialia:/socialia:cached
@@ -369,6 +435,11 @@ services:
     environment:
       - SCITEX_HUB_DJANGO_SETTINGS_MODULE=config.settings.settings_dev
       - PYTHONUNBUFFERED=1
+      # Same shell-resolved credential as `django`: this service sends OTP
+      # mail asynchronously, so without it the worker reports auth_app.E001
+      # and signup verification mail fails while the web form looks healthy.
+      # Never persisted: operators decrypt ~/.pw into the shell first.
+      - SCITEX_HUB_EMAIL_HOST_PASSWORD=${SCITEX_HUB_EMAIL_HOST_PASSWORD:?decrypt ~/.pw/no-reply@scitex.ai.gpg into the shell first}
 
     depends_on:
       postgres:

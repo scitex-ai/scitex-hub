@@ -1,20 +1,14 @@
 {% extends "auth_app/auth_base.html" %}
 
-{% load static %}
+{% load static i18n %}
 {% load socialaccount %}
 
-{% block title %}
-    Sign
-    In - SciTeX
-{% endblock %}
-{% block meta_description %}
-    Sign in to your SciTeX
-    account to access your research tools, documents, and settings.
-{% endblock %}
+{% block title %}{% trans "Sign In" %} - SciTeX{% endblock %}
+{% block meta_description %}{% trans "Sign in to your SciTeX account to access your research tools, documents, and settings." %}{% endblock %}
 {% block auth_content %}
     <div class="container auth-container">
         <div class="auth-form">
-            <h2 class="mb-4">Sign In</h2>
+            <h2 class="mb-4">{% trans "Sign In" %}</h2>
             {% if messages %}
                 {% for message in messages %}
                     <div class="alert-banner alert-banner-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}"
@@ -37,7 +31,7 @@
                 {% csrf_token %}
                 <div class="form-group mb-3">
                     <label for="username" class="form-label">
-                        Username or Email <span class="text-danger">*</span>
+                        {% trans "Username or Email" %} <span class="text-danger">*</span>
                     </label>
                     <input type="text"
                            class="form-control"
@@ -48,7 +42,7 @@
                 </div>
                 <div class="form-group mb-3">
                     <label for="password" class="form-label">
-                        Password <span class="text-danger">*</span>
+                        {% trans "Password" %} <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
                         <input type="password"
@@ -63,21 +57,21 @@
                     </div>
                     <!-- Password Requirements (hint for remembering registered password) -->
                     <div class="password-rules" id="password-requirements" style="margin-top: 0.5rem">
-                        <div class="password-rules-title">Password Requirements:</div>
+                        <div class="password-rules-title">{% trans "Password Requirements:" %}</div>
                         <div class="password-rule invalid" id="rule-length">
-                            <i class="fas fa-times"></i> At least 8 characters
+                            <i class="fas fa-times"></i> {% trans "At least 8 characters" %}
                         </div>
                         <div class="password-rule invalid" id="rule-lowercase">
-                            <i class="fas fa-times"></i> At least one lowercase letter
+                            <i class="fas fa-times"></i> {% trans "At least one lowercase letter" %}
                         </div>
                         <div class="password-rule invalid" id="rule-uppercase">
-                            <i class="fas fa-times"></i> At least one uppercase letter
+                            <i class="fas fa-times"></i> {% trans "At least one uppercase letter" %}
                         </div>
                         <div class="password-rule invalid" id="rule-number">
-                            <i class="fas fa-times"></i> At least one number
+                            <i class="fas fa-times"></i> {% trans "At least one number" %}
                         </div>
                         <div class="password-rule invalid" id="rule-special">
-                            <i class="fas fa-times"></i> At least one special character (!@#$%^&*)
+                            <i class="fas fa-times"></i> {% trans "At least one special character" %} (!@#$%^&amp;*)
                         </div>
                     </div>
                 </div>
@@ -86,13 +80,13 @@
                         <input class="form-check-input"
                                type="checkbox"
                                id="remember-me"
-                               name="remember-me"
+                               name="remember_me"
                                checked />
-                        <label class="form-check-label" for="remember-me">Remember me</label>
+                        <label class="form-check-label" for="remember-me">{% trans "Remember me" %}</label>
                     </div>
-                    <a href="{% url 'auth_app:forgot_password' %}" class="text-link">Forgot password?</a>
+                    <a href="{% url 'auth_app:forgot_password' %}" class="text-link">{% trans "Forgot password?" %}</a>
                 </div>
-                <button type="submit" class="btn btn-primary w-100">Sign In</button>
+                <button type="submit" class="btn btn-primary w-100">{% trans "Sign In" %}</button>
             </form>
             {# Social login is DERIVED, never hardcoded. `get_providers` reads #}
             {# allauth's own `list_apps(request)` -- the same source #}
@@ -108,7 +102,7 @@
             {% if socialaccount_providers %}
                 <!-- Social Login Divider (inside the guard: a divider above nothing is its own defect) -->
                 <div class="social-login-divider">
-                    <span>or continue with</span>
+                    <span>{% trans "or continue with" %}</span>
                 </div>
                 <!-- Social Login Buttons -->
                 <div class="social-login-buttons">
@@ -142,8 +136,8 @@
             {% endif %}
             <div class="text-center mt-3">
                 <p>
-                    Don't have an account?
-                    <a href="{% url 'auth_app:signup' %}" class="text-link">Sign Up</a>
+                    {% trans "Don't have an account?" %}
+                    <a href="{% url 'auth_app:signup' %}" class="text-link">{% trans "Sign Up" %}</a>
                 </p>
             </div>
         </div>

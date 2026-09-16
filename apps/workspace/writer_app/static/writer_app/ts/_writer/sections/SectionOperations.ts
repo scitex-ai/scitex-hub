@@ -14,6 +14,7 @@ import {
 // Direct import to avoid circular dependency through barrel re-export
 import { syncDropdownToSection } from "../../utils/_section-dropdown/index";
 import { getWriterConfig } from "../../_helpers";
+import { takePrefetched } from "../../_writer/_config/prefetch";
 
 let modulePdfPreviewManager: any = null;
 let compileTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -73,9 +74,8 @@ export async function loadSectionContent(
       sectionName,
     );
 
-    const response = await fetch(
-      `/apps/writer/api/project/${config.projectId}/section/${sectionName}/?doc_type=${docType}`,
-    );
+    const url = `/apps/writer/api/project/${config.projectId}/section/${sectionName}/?doc_type=${docType}`;
+    const response = await (takePrefetched(url) ?? fetch(url));
 
     if (!response.ok) {
       const error = await response.text();

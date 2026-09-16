@@ -1,18 +1,15 @@
 /**
- * Launcher context popover (desktop right-click): Open, Pin, Rearrange,
- * Details. Extracted from launcher.ts so that file stays under the 512-line
+ * Launcher context popover (desktop right-click): Open, Edit Display,
+ * Rearrange, and View in App Store.
  * limit once the pager landed (CLAUDE.md file-size rule).
  *
  * The popover flips above the tile when it would overflow the viewport bottom
  * and shifts horizontally to stay on screen.
  */
 
-import { showToast } from "@utils/ui";
-
-import { getCsrf } from "./csrf";
-
 export interface PopoverActions {
   onRearrange: () => void;
+  onEditDisplay: (tile: HTMLElement) => void;
 }
 
 export class LauncherPopover {
@@ -37,7 +34,7 @@ export class LauncherPopover {
     this.close();
 
     const moduleName = tile.dataset.module || "";
-    const pinned = tile.dataset.pinned === "1";
+
     const pop = document.createElement("div");
     pop.className = "launcher-popover";
     pop.setAttribute("role", "menu");
@@ -58,26 +55,33 @@ export class LauncherPopover {
         ),
       );
     }
-    pop.appendChild(
-      this.item(
-        "fas fa-thumbtack",
-        pinned ? "Unpin from sidebar" : "Pin to sidebar",
-        () => this.togglePin(moduleName),
-      ),
-    );
+    // Link tiles open an existing Hub page and have no catalogue row, display
+    // override, or App Store page.
+    const linkOnly = tile.dataset.linkOnly === "1";
+    if (!linkOnly) {
+      pop.appendChild(
+        this.item(
+          "fas fa-pen",
+          "Edit Display…",
+          () => this.actions.onEditDisplay(tile),
+        ),
+      );
+    }
     pop.appendChild(
       this.item("fas fa-up-down-left-right", "Rearrange apps", () =>
         this.actions.onRearrange(),
       ),
     );
-    const sep = document.createElement("div");
-    sep.className = "launcher-pop-sep";
-    pop.appendChild(sep);
-    pop.appendChild(
-      this.item("fas fa-circle-info", "Details", () => {
-        window.location.href = tile.dataset.detailUrl || "/apps/store/";
-      }),
-    );
+    if (!linkOnly) {
+      const sep = document.createElement("div");
+      sep.className = "launcher-pop-sep";
+      pop.appendChild(sep);
+      pop.appendChild(
+        this.item("fas fa-store", "View in App Store", () => {
+          window.location.href = tile.dataset.detailUrl || "/apps/store/";
+        }),
+      );
+    }
 
     document.body.appendChild(pop);
     this.el = pop;
@@ -142,22 +146,4 @@ export class LauncherPopover {
     return btn;
   }
 
-  private async togglePin(moduleName: string): Promise<void> {
-    try {
-      const resp = await fetch(`/apps/store/api/${moduleName}/pin/`, {
-        method: "POST",
-        headers: { "X-CSRFToken": getCsrf() },
-        credentials: "same-origin",
-      });
-      const data = await resp.json();
-      if (!resp.ok || !data.success) {
-        showToast(data.error || "Could not update pin.", "warning");
-        return;
-      }
-      // Sidebar pins are server-rendered — reload to reflect the change.
-      window.location.reload();
-    } catch {
-      showToast("Could not update pin — network error.", "error");
-    }
-  }
 }

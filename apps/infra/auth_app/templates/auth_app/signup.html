@@ -1,16 +1,25 @@
 {% extends "auth_app/auth_base.html" %}
 
-{% load static %}
+{% load i18n static landing_i18n %}
 {% load socialaccount %}
 
-{% block title %}Create an Account - SciTeX{% endblock %}
-{% block meta_description %}
-    Join SciTeX - the open-source platform for scientific research. Create your free account to get started with managing, analyzing, and publishing your research.
-{% endblock %}
+{% block title %}{% trans "Create an Account" %} - SciTeX{% endblock %}
+{% block meta_description %}{% trans "Join SciTeX, the open-source platform for scientific research. Create your account and start a 30-day SciTeX Cloud trial for managing, analyzing, and publishing your research." %}{% endblock %}
 {% block auth_content %}
     <div class="container auth-container">
         <div class="auth-form">
-            <h2 class="mb-4">Sign Up</h2>
+            <h2 class="mb-4">{% trans "Sign Up" %}</h2>
+            {% comment %}
+            Card rule (operator 2026-09-14, 「はい、カード登録必須です」): a
+            credit/debit card is registered at signup, as /tokushoho/ states.
+            There is no free cloud tier in the Services SSOT. Copy only — this
+            template collects no card; billing terms live on the disclosure.
+            {% endcomment %}
+            {% tokushoho_url as tokushoho_href %}
+            <p class="text-muted signup-card-policy">
+                {% trans "Start your 30-day SciTeX Cloud trial — card required, no charge during the trial." %}
+                <a href="{{ tokushoho_href }}" class="text-link">{% trans "Billing terms" %}</a>
+            </p>
             {% if form.errors %}
                 <div class="alert-banner alert-banner-danger"
                      style="margin-bottom: var(--spacing-md)">
@@ -18,7 +27,7 @@
                         <div class="warning-banner-content">
                             <i class="warning-banner-icon fas fa-exclamation-circle"></i>
                             <div class="warning-banner-text">
-                                <div class="warning-banner-title">Form Errors</div>
+                                <div class="warning-banner-title">{% trans "Form Errors" %}</div>
                                 <div class="warning-banner-description">
                                     <ul class="mb-0" style="margin-left: 1rem">
                                         {% for field, errors in form.errors.items %}
@@ -54,9 +63,9 @@
                     <div class="warning-banner-content">
                         <i class="warning-banner-icon fas fa-exclamation-circle"></i>
                         <div class="warning-banner-text">
-                            <div class="warning-banner-title">Error</div>
+                            <div class="warning-banner-title">{% trans "Error" %}</div>
                             <div class="warning-banner-description">
-                                <span id="error-message">Something went wrong. Please try again.</span>
+                                <span id="error-message">{% trans "Something went wrong. Please try again." %}</span>
                             </div>
                         </div>
                     </div>
@@ -69,7 +78,7 @@
                 {% csrf_token %}
                 <div class="form-group mb-3">
                     <label for="{{ form.username.id_for_label }}" class="form-label">
-                        Username <span class="text-danger">*</span>
+                        {% trans "Username" %} <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
                         {{ form.username }}
@@ -78,41 +87,32 @@
                         </span>
                     </div>
                     <div class="form-text">
-                        <small class="text-muted">Your profile URL will be: scitex.ai/<span id="username-preview">username</span></small>
+                        <small class="text-muted">{% trans "Your profile URL will be:" %} scitex.ai/<span id="username-preview">username</span></small>
                     </div>
                     <div id="username-feedback" class="small" style="display: none; margin-top: 0.5rem"></div>
                     {% if form.username.errors %}<div class="text-danger small">{{ form.username.errors.0 }}</div>{% endif %}
                 </div>
                 <div class="form-group mb-3">
                     <label for="{{ form.email.id_for_label }}" class="form-label">
-                        Email <span class="text-danger">*</span>
+                        {% trans "Email" %} <span class="text-danger">*</span>
                     </label>
                     {{ form.email }}
-                    {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors.0 }}</div>{% endif %}
-                    <!-- Japanese Academic Benefits Alert -->
-                    <div class="alert alert-info academic-benefits"
-                         style="display: none;
-                                margin-top: 0.75rem">
-                        <h6 class="alert-heading mb-2">
-                            <i class="fas fa-graduation-cap me-2"></i>日本の学術機関の特典
-                            (Japanese Academic Benefits)
-                        </h6>
-                        <div class="small">
-                            <strong>Japanese academic email detected!</strong> You'll receive:
-                            <ul class="mb-1 mt-1">
-                                <li>Priority support in Japanese (日本語サポート)</li>
-                                <li>Early access to new features</li>
-                                <li>Special academic collaboration features</li>
-                                <li>Enhanced storage limits</li>
-                            </ul>
-                            <em>Recognized domains: .ac.jp (academic), .go.jp (government
-                            research), .riken.jp, .jaxa.jp, and more</em>
-                        </div>
+                    <div class="form-text email-example">
+                        <small class="text-muted">
+                            <i class="fas fa-graduation-cap me-1"></i>
+                            {% trans "Academic email examples:" %} <!--email_off--><code>student@univ-xxx.ac.jp</code> / <code>researcher@xxx.ac.jp</code><!--/email_off--> {% trans "(eligible for SciTeX Cloud Academic pricing)" %}
+                        </small>
                     </div>
+                    {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors.0 }}</div>{% endif %}
+                    {% comment %}
+                    The "Japanese Academic Benefits" alert (priority Japanese
+                    support, early access, enhanced storage) was removed
+                    2026-09-14: none of it is in the Services SSOT.
+                    {% endcomment %}
                 </div>
                 <div class="form-group mb-2">
                     <label for="{{ form.password.id_for_label }}" class="form-label">
-                        Password <span class="text-danger">*</span>
+                        {% trans "Password" %} <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
                         {{ form.password }}
@@ -124,7 +124,7 @@
                 </div>
                 <div class="form-group mb-2">
                     <label for="{{ form.password2.id_for_label }}" class="form-label">
-                        Confirm Password <span class="text-danger">*</span>
+                        {% trans "Confirm Password" %} <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
                         {{ form.password2 }}
@@ -136,37 +136,35 @@
                 </div>
                 <!-- Password Requirements -->
                 <div class="password-rules mb-3">
-                    <div class="password-rules-title">Password Requirements:</div>
+                    <div class="password-rules-title">{% trans "Password Requirements:" %}</div>
                     <div class="password-rule invalid" id="rule-length">
-                        <i class="fas fa-times"></i> At least 8 characters
+                        <i class="fas fa-times"></i> {% trans "At least 8 characters" %}
                     </div>
                     <div class="password-rule invalid" id="rule-lowercase">
-                        <i class="fas fa-times"></i> At least one lowercase letter
+                        <i class="fas fa-times"></i> {% trans "At least one lowercase letter" %}
                     </div>
                     <div class="password-rule invalid" id="rule-uppercase">
-                        <i class="fas fa-times"></i> At least one uppercase letter
+                        <i class="fas fa-times"></i> {% trans "At least one uppercase letter" %}
                     </div>
                     <div class="password-rule invalid" id="rule-number">
-                        <i class="fas fa-times"></i> At least one number
+                        <i class="fas fa-times"></i> {% trans "At least one number" %}
                     </div>
                     <div class="password-rule invalid" id="rule-special">
-                        <i class="fas fa-times"></i> At least one special character (!@#$%^&*)
-                    </div>
-                    <div class="password-rule invalid" id="rule-match">
-                        <i class="fas fa-times"></i> Passwords match
+                        <i class="fas fa-times"></i> {% trans "At least one special character" %} (!@#$%^&amp;*)
                     </div>
                 </div>
                 <div class="form-check mb-3">
                     {{ form.agree_terms }}
                     <label class="form-check-label" for="{{ form.agree_terms.id_for_label }}">
-                        I agree to the
-                        <a href="/terms/" target="_blank" class="text-link">Terms of Use</a>
-                        and
-                        <a href="/privacy/" target="_blank" class="text-link">Privacy Policy</a>
+                        {% trans "Terms of Use" as terms_label %}
+                        {% trans "Privacy Policy" as privacy_label %}
+                        {% blocktrans trimmed with terms='<a href="/terms/" target="_blank" class="text-link">'|add:terms_label|add:'</a>'|safe privacy='<a href="/privacy/" target="_blank" class="text-link">'|add:privacy_label|add:'</a>'|safe %}
+                            I agree to the {{ terms }} and {{ privacy }}
+                        {% endblocktrans %}
                     </label>
                     {% if form.agree_terms.errors %}<div class="text-danger small">{{ form.agree_terms.errors.0 }}</div>{% endif %}
                 </div>
-                <button type="submit" class="btn btn-success w-100">Create Account</button>
+                <button type="submit" class="btn btn-success w-100">{% trans "Create Account" %}</button>
             </form>
             {# Same derivation as signin.html -- see the note there. A provider #}
             {# gets a button exactly when allauth can actually serve its login. #}
@@ -174,7 +172,7 @@
             {% if socialaccount_providers %}
                 <!-- Social Login Divider (inside the guard: a divider above nothing is its own defect) -->
                 <div class="social-login-divider">
-                    <span>or sign up with</span>
+                    <span>{% trans "or sign up with" %}</span>
                 </div>
                 <!-- Social Login Buttons -->
                 <div class="social-login-buttons">
@@ -208,8 +206,8 @@
             {% endif %}
             <div class="text-center mt-3">
                 <p>
-                    Already have an account?
-                    <a href="{% url 'auth_app:signin' %}" class="text-link">Sign In</a>
+                    {% trans "Already have an account?" %}
+                    <a href="{% url 'auth_app:signin' %}" class="text-link">{% trans "Sign In" %}</a>
                 </p>
             </div>
         </div>
@@ -222,11 +220,9 @@
     const passwordInput = document.getElementById("id_password");
     const confirmPassword = document.getElementById("id_password2");
     const usernameInput = document.getElementById("id_username");
-    const emailInput = document.getElementById("id_email");
     const successMessage = document.querySelector(".form-message.success");
     const errorMessage = document.getElementById("js-error-message");
     const errorText = document.getElementById("error-message");
-    const academicBenefits = document.querySelector(".academic-benefits");
     const usernamePreview = document.getElementById("username-preview");
     const usernameStatus = document.getElementById("username-status");
     const usernameStatusIcon = document.getElementById("username-status-icon");
@@ -303,63 +299,6 @@
       }
     });
 
-    // Japanese academic domains (synced with backend)
-    const japaneseAcademicDomains = [
-      // Japanese Academic (.ac.jp) - All academic institutions
-      ".ac.jp",
-      ".u-tokyo.ac.jp",
-      ".kyoto-u.ac.jp",
-      ".osaka-u.ac.jp",
-      ".tohoku.ac.jp",
-      ".nagoya-u.ac.jp",
-      ".kyushu-u.ac.jp",
-      ".hokudai.ac.jp",
-      ".tsukuba.ac.jp",
-      ".hiroshima-u.ac.jp",
-      ".kobe-u.ac.jp",
-      ".waseda.jp",
-      ".keio.ac.jp",
-
-      // Government Research Institutions (.go.jp)
-      ".go.jp", // Broader government research support
-      ".riken.jp",
-      ".aist.go.jp",
-      ".nict.go.jp",
-      ".jaxa.jp",
-      ".jst.go.jp",
-      ".nims.go.jp",
-      ".nies.go.jp",
-    ];
-
-    // Check if email is Japanese academic (synced with backend logic)
-    function isJapaneseAcademicEmail(email) {
-      if (!email || !email.includes("@")) return false;
-      const domain = email.toLowerCase().split("@")[1];
-
-      // Check if domain matches exactly or ends with the academic domain
-      for (const acadDomain of japaneseAcademicDomains) {
-        const cleanDomain = acadDomain.replace(/^\./, "");
-        if (domain === cleanDomain || domain.endsWith(acadDomain)) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    // Check email for Japanese academic domains
-    emailInput.addEventListener("input", function () {
-      const email = this.value;
-      if (isJapaneseAcademicEmail(email)) {
-        academicBenefits.style.display = "block";
-        academicBenefits.classList.add(
-          "animate__animated",
-          "animate__slideInDown",
-        );
-      } else {
-        academicBenefits.style.display = "none";
-      }
-    });
-
     // Password validation rules
     const ruleLength = document.getElementById("rule-length");
     const ruleLowercase = document.getElementById("rule-lowercase");
@@ -388,7 +327,13 @@
       const hasInput = password.length > 0 && confirmPass.length > 0;
       const passwordsMatch = password === confirmPass && password.length > 0;
 
-      updatePasswordRule(ruleMatch, passwordsMatch, hasInput);
+      // The match rule was removed from the UI (operator 2026-09-13: confirming
+      // by retyping the password is obvious); the Confirm Password field +
+      // server-side match validation still enforce it. The element is now
+      // optional, so guard against it being absent.
+      if (ruleMatch) {
+        updatePasswordRule(ruleMatch, passwordsMatch, hasInput);
+      }
     }
 
     // Check password strength

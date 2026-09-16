@@ -1,4 +1,5 @@
+{% load i18n %}
 <!-- Create Breadcrumb Partial -->
 <nav class="breadcrumb">
-    <a href="/{{ user.username }}/projects/">Projects</a> / Create New Project
+    <a href="/{{ user.username }}/projects/">{% trans "My Projects" context "app name" %}</a> / {% trans "Create New Project" %}
 </nav>

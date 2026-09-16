@@ -32,6 +32,12 @@ source /app/deployment/docker/common/lib/database.src
 source /app/deployment/docker/common/lib/django.src
 source /app/deployment/docker/common/lib/scitex.src
 source /app/deployment/docker/common/lib/slurm.src
+source /app/deployment/docker/common/lib/service_role.src
+
+IS_WEB_ROLE=false
+if is_web_role "$@"; then
+    IS_WEB_ROLE=true
+fi
 
 MIGRATION_SENTINEL="/app/logs/.migrations_done"
 
@@ -171,19 +177,16 @@ fi
 # ============================================
 # Initialize Visitor Pool
 # ============================================
-# Only run on first start (fast-path check handles restarts gracefully)
-if [ ! -f "$MIGRATION_SENTINEL" ]; then
+# Creation is idempotent; only web boot may create or quarantine slots.
+if [ "$IS_WEB_ROLE" = true ]; then
     initialize_visitor_pool() {
         echo_info "Initializing visitor pool..."
         python manage.py create_visitor_pool --verbosity 0 2>&1 | grep -v "ERRO\|WARN" || true
         echo_success "Visitor pool ready"
     }
     initialize_visitor_pool
-else
-    echo_info "Hot-reload restart - visitor pool already initialized"
-fi
 
-# Boot fail-safe (runs on EVERY container start, including restarts after
+# Boot fail-safe (runs on EVERY web-container start, including restarts after
 # an unclean shutdown): quarantine every slot as unverified (synchronous,
 # DB-only), then ENQUEUE the per-slot wipe+verify re-clean to Celery via
 # --async so Django serves immediately instead of blocking on the clone
@@ -192,6 +195,9 @@ fi
 echo_info "Reconciling visitor slots (quarantine now, re-clean dispatched async)..."
 python manage.py reconcile_visitor_slots --async 2>&1 | grep -v "ERRO\|WARN" || true
 echo_success "Visitor slots reconciled (re-clean dispatched async; only verified-clean slots distributable)"
+else
+    echo_info "Skipping visitor pool init/reconcile (non-web service)"
+fi
 
 # ============================================
 # Initialize Test User (Development Only)

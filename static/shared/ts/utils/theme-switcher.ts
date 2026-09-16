@@ -3,6 +3,7 @@
  * Handles Light/Dark mode switching with localStorage persistence and database sync
  */
 
+import { EMBED_THEME_MESSAGE } from "../components/_site-dock/chat-float";
 import { getCsrfToken } from "./csrf";
 
 type Theme = "light" | "dark";
@@ -205,22 +206,22 @@ function updateToggleButton(): void {
 
   const theme = getThemePreference();
 
-  // Update aria-label (accessibility)
-  const labels = {
-    light: "☀️ Light",
-    dark: "🌙 Dark",
-  } as const;
-
-  // Note: title attribute removed to avoid duplicate tooltips with data-tooltip
-  toggleBtn.setAttribute("aria-label", `Current theme: ${labels[theme]}`);
-
-  // Update button content
-  const icons = {
-    light: "☀️",
-    dark: "🌙",
-  } as const;
-
-  toggleBtn.innerHTML = icons[theme];
+  // The button's content is the single half-circle icon rendered by
+  // global_header.html (operator TODO: "replace the moon/sun icons with a
+  // single half-circle"). It is deliberately NOT swapped per theme any more —
+  // this function used to overwrite it with a sun/moon emoji on every page
+  // load, which is why the server-rendered half-circle never showed.
+  // Because the icon alone does not say what it does, the label carries both
+  // the action and the current state.
+  const actionLabel =
+    theme === "dark"
+      ? toggleBtn.dataset.labelLight || "Switch to light mode"
+      : toggleBtn.dataset.labelDark || "Switch to dark mode";
+  toggleBtn.setAttribute("aria-label", actionLabel);
+  const visibleLabel = toggleBtn.querySelector<HTMLElement>(
+    "[data-theme-toggle-label]",
+  );
+  if (visibleLabel) visibleLabel.textContent = actionLabel;
 }
 
 /**
@@ -241,7 +242,34 @@ function setupToggleButton(): void {
 /**
  * Initialize theme on page load
  */
+/** The dock chat embed (?embed=1&theme=) follows its parent page, not storage. */
+export function embedPinnedTheme(search: string): Theme | null {
+  const qs = new URLSearchParams(search);
+  if (qs.get("embed") !== "1") return null;
+  const theme = qs.get("theme");
+  return theme === THEME_LIGHT || theme === THEME_DARK ? theme : null;
+}
+
+function followParentTheme(): void {
+  window.addEventListener("message", (e: MessageEvent) => {
+    if (e.origin !== window.location.origin || e.source !== window.parent) {
+      return;
+    }
+    const data = e.data as { type?: string; theme?: string } | null;
+    if (data?.type !== EMBED_THEME_MESSAGE) return;
+    if (data.theme === THEME_LIGHT || data.theme === THEME_DARK) {
+      applyTheme(data.theme);
+    }
+  });
+}
+
 async function initTheme(): Promise<void> {
+  const pinned = embedPinnedTheme(window.location.search);
+  if (pinned) {
+    applyTheme(pinned);
+    followParentTheme();
+    return;
+  }
   // Try to load from database first (for authenticated users)
   const db = await loadThemeFromDatabase();
   const theme = resolveInitialTheme(db, localStorage.getItem(STORAGE_KEY));

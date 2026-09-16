@@ -4,6 +4,7 @@
  */
 
 import { CompilationJob, CompilationCallbacks } from "./types";
+import { CompilationHttpError } from "./compilation-http-error";
 
 export class CompilationState {
   private currentJob: CompilationJob | null = null;
@@ -98,7 +99,7 @@ export class CompilationState {
   /**
    * Notify error callback
    */
-  notifyError(error: string): void {
+  notifyError(error: string | CompilationHttpError): void {
     console.error("[Compilation] Error:", error);
     if (this.callbacks.onError) {
       this.callbacks.onError(error);

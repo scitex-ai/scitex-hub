@@ -1,6 +1,6 @@
 [project]
 name = "scitex-hub"
-version = "0.19.0"
+version = "0.20.0-alpha"
 description = "SciTeX Hub - Deployment and management CLI for SciTeX"
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -43,7 +43,21 @@ dependencies = [
     # with the upstream flat-layout generator, breaking
     # `pip_install_user_app` at install time. (0.2.9 was claimed by an
     # orphan tag for an unrelated earlier release — jumping to 0.2.10.)
-    "scitex-app>=0.2.10",
+    # >=0.11.0 (2026-09-03): `scitex_app.hosts_to_allow` becomes PUBLIC API —
+    # the interface-enumerating ALLOWED_HOSTS fix (scholar #137, copied into
+    # scitex-app by figrecipe #105 for 0.10.1, re-exported publicly in 0.11.0)
+    # so an app bound to 0.0.0.0 answers on its real addresses instead of 400.
+    # Also: appmaker.validate() no longer fails a build on advisory findings
+    # (a behaviour change). Verified by scitex-app against the PUBLISHED wheel
+    # in a clean venv (installed 0.11.0, public name True, alias same object).
+    # >=0.23.0 (2026-09-14): first published wheel carrying
+    # `scitex_app._app_scope._inject_scope_meta` (d8528de), which the hub bridge
+    # scope-meta injection (apps/infra/workspace_app/scope_meta.py, #801) calls.
+    # On 0.22.1 the guarded import falls back to "no marker" silently. Verified
+    # with uv against the published 0.23.0 wheel: import ok, function present.
+    # >=0.25.0 (2026-09-14): `scitex_app.i18n` (gettext settings + translations
+    # CLI, scitex-app #194) for the EN/JA leaf-app catalogs.
+    "scitex-app>=0.25.0",
     "scitex-config>=0.3.6",
     # `scitex-session` is consumed via the umbrella as `scitex.session.INJECTED`
     # (settings_shared.py / settings_auth.py / config/routing.py).
@@ -53,7 +67,9 @@ dependencies = [
     # (upstream gap, ywatanabe1989/scitex-python). Declare it directly
     # so the import works in any install graph.
     "scitex-session>=0.1.6",
-    "scitex-writer>=2.42.0",
+    # >=2.43.0: the root->workspace contract (PR #389). The hub hands leaves the
+    # project root; older writers compose root/00_shared and fail to compile.
+    "scitex-writer>=2.43.1",
     # >=1.9.0 is a MOUNT requirement, not a feature preference. Below it the
     # leaf's client JS builds API urls from the SITE ROOT
     # (static/scholar/js/graph/citation-graph.js: fetch("/api/graph/health")),
@@ -64,7 +80,34 @@ dependencies = [
     # STX_MOUNT and throws when the marker is absent rather than falling back
     # to root, so a wrong mount fails loudly. Measured by scitex-scholar
     # (scholar #113/#118), 2026-08-23.
-    "scitex-scholar>=1.9.0",
+    # >=1.10.0 (2026-09-03): carries scholar #137 — standalone ALLOWED_HOSTS
+    # enumerates interface IPv4s (SIOCGIFADDR, no hostname resolution) when
+    # bound to 0.0.0.0, DEBUG defaults False, no "*". /api/health no longer
+    # returns db_available / db_path (hub has no reader — measured). Verified
+    # by scholar from a throwaway venv against PyPI 1.10.0.
+    "scitex-scholar>=1.10.0",
+    # THE FOUR SIBLINGS HUB IMPORTS BUT NEVER DECLARED — measured 2026-09-03/04
+    # inside the dev image built from `.[all]` (sha256:70be677c04bf): hub's
+    # `all` extra pulls the umbrella BARE (`scitex>=2.29.3`, below), whose base
+    # Requires-Dist carries none of these. scitex-decorators and scitex-sh sit
+    # under NO umbrella extra at all; scitex-container and scitex-template only
+    # under umbrella extras hub never asks for. So the dev image failed its own
+    # sibling-floor preflight (scripts/deploy/preflight_sibling_floors.sh:
+    # scitex.io and scitex.plt.load_style raise "scitex_decorators is required",
+    # scitex.template.clone_template raises "scitex_template is required",
+    # scitex_container.apptainer is ModuleNotFoundError) while production got
+    # them only through Dockerfile.prod's hand-written pins. hub imports them
+    # directly (apps/workspace/console_app/views/terminal/_command_builder.py:
+    # 14-23 imports scitex_container.apptainer unguarded; scitex.io's loader
+    # imports scitex.decorators.preserve_doc), so hub declares them: a dependency
+    # only the deployer knows about is the drift this repo keeps paying for.
+    # Versions are what `uv pip install --dry-run` resolved on a scitex 2.29.3
+    # environment; scitex-template's floor equals its C0 pin (raise both
+    # together, per the pin rule).
+    "scitex-container>=0.4.2",
+    "scitex-decorators>=0.1.12",
+    "scitex-sh>=0.2.0",
+    "scitex-template>=0.7.0",
     # 0.16.1 is the first release where `audit_all_for_package`
     # honours the HYPHENATED rule-id format that tests/develop/
     # test_audit.py uses (`[PA-307 …]` <- skip_rules=("PA-307",)).
@@ -228,6 +271,19 @@ scitex-hub = "scitex_hub"
 [project.entry-points."scitex_dev.skills"]
 scitex-hub = "scitex_hub"
 
+# Federated scheduled jobs (constitution, operator ruling 2026-08-20: every
+# periodic SciTeX job is a scitex-dev JobSpec run by the host supervisor's
+# PeriodicRunner; cron is retired). `scitex_dev.host_placement` is the
+# SEPARATE group that pins a job to hosts — an unplaced job arms on EVERY
+# supervisor host, and hub's dev-preview sync must run only where the
+# develop preview stack lives. Both providers import scitex_dev lazily, so
+# this metadata stays loadable on a scitex-dev that predates the contract.
+[project.entry-points."scitex_dev.jobs"]
+scitex-hub = "scitex_hub._jobs:provide_jobs"
+
+[project.entry-points."scitex_dev.host_placement"]
+scitex-hub = "scitex_hub._jobs:provide_placement"
+
 [project.optional-dependencies]
 # Project rule: ONLY [all] is a user-facing install target. Sub-extras
 # like [django], [gui], [mcp], [test], [docs] used to exist and were
@@ -248,7 +304,7 @@ all = [
     # every requirement of the PUBLIC `dev` extra to be closed under
     # `all` — and because a deployment installing `[all]` genuinely wants
     # the board it mounts.
-    "scitex-cards>=0.32.1",
+    "scitex-cards>=0.53.1",
     # --- Django stack (web framework + DRF + auth + ORM + ASGI) ---
     "Django>=5.2.11",
     "djangorestframework>=3.16",
@@ -306,6 +362,10 @@ all = [
     "nbformat>=5.9",
     "nbconvert>=7.17.0",
     "weasyprint>=60.0",
+    # tools_app.x2pdf imports PdfReader/PdfWriter at conversion time. Keep this
+    # in the shipped runtime graph: image/PDF conversion runs in web and Celery,
+    # not only in development or tests.
+    "pypdf>=5.0",
     "pygments",
     # --- Validation ---
     "pydantic<2.12",
@@ -392,7 +452,17 @@ all = [
     # published 31 versions; a hand-picked subset produces a confident wrong
     # boundary. Enumerate every release from the PyPI index, or do not quote a
     # boundary at all.
-    "scitex-ui>=0.16.0",
+    #
+    # RAISED 0.16.0 -> 0.20.3 on 2026-09-14 for --app-accent-agents (the Agents
+    # launcher app, #803). Boundary is exact rather than sampled: the token was
+    # added by scitex-ui PR #228 and 0.20.3 is the first release after 0.20.2
+    # (release list read 2026-09-14; scitex-ui confirmed 0.20.3 on PyPI 10:05Z).
+    #
+    # RAISED 0.21.0 -> 0.22.0 on 2026-09-15: exact first release whose
+    # `scitex_project_picker` loads canonical js/app/project-selector.js and whose
+    # `.stx-app-header__slot--project-selector` owns left/phone placement. Hub
+    # deliberately adds no consumer placement CSS; the source contract test locks it.
+    "scitex-ui>=0.22.0",
     # --- GUI (dearpygui-based modules) ---
     "dearpygui>=1.11",
     "cairosvg>=2.9.0",
@@ -417,6 +487,9 @@ all = [
     # Without this dep pytest exits 4 with "unrecognized arguments:
     # --timeout=120".
     "pytest-timeout>=2.0",
+    # pytest-matrix passes `-n auto --dist loadgroup`; without xdist pytest
+    # exits 4 on "unrecognized arguments: -n".
+    "pytest-xdist>=3.6",
     # --- Sphinx docs build (run by CI on tag) ---
     "sphinx>=7.0",
     "sphinx-rtd-theme>=2.0",
@@ -448,6 +521,7 @@ dev = [
     # unguarded, so a fresh `pip install -e .[dev]` must include them too
     # to be self-sufficient (no `pytest.importorskip` dance).
     "channels>=4.3",
+    "celery[redis]>=5.4,<5.6",
     "fastmcp>=2.0.0",
     "scitex>=2.29.3",
     # django-celery-beat is in INSTALLED_APPS (settings_shared.py), so
@@ -479,7 +553,7 @@ dev = [
     # Those tests exist to stop the ?store= tenancy channel being deleted;
     # skipped, they protect nothing while reading as protection.
     # Same rationale as the PS-210 block above.
-    "scitex-cards>=0.32.1",
+    "scitex-cards>=0.53.1",
     # Same floor as [all], and it must STAY the same — the two are swept
     # together by tests/config/test_shell_pane_contract_floor.py, which reads
     # every dependency group rather than one, precisely so the copies cannot
@@ -500,8 +574,10 @@ dev = [
     # sweeps EVERY dependency group precisely so these two copies cannot drift
     # apart unnoticed. The measurement and the reasoning live on the [all]
     # entry -- read it there rather than duplicating it here, so there is one
-    # place to correct when the next token moves.
-    "scitex-ui>=0.16.0",
+    # place to correct when the next token moves. RAISED 0.16.0 -> 0.20.3 on
+    # 2026-09-14 in lockstep with [all] (--app-accent-agents). RAISED 0.20.3 ->
+    # 0.22.0 on 2026-09-15 in lockstep with [all] (canonical selector entry/slot).
+    "scitex-ui>=0.22.0",
 ]
 
 [project.scripts]
@@ -516,7 +592,12 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.setuptools.package-data]
-scitex_hub = ["skills/*.md", "skills/references/*.md", "_skills/**/*.md"]
+scitex_hub = [
+    "skills/*.md",
+    "skills/references/*.md",
+    "_skills/**/*.md",
+    "_sphinx_html/**",
+]
 
 [tool.setuptools.package-dir]
 "" = "src"
@@ -594,6 +675,9 @@ markers = [
     "user: User management tests",
     "integration: Integration tests",
     "django_db: Tests requiring database access (pytest-django)",
+    # Registered here too: tests/conftest.py adds it to every item, and jobs
+    # without pytest-xdist installed still run with --strict-markers.
+    "xdist_group(name): pytest-xdist scheduling group (--dist loadgroup)",
     "security: Exploit-regression tests for confirmed security findings",
     # A guard exists to stop ONE named defect coming back. Declaring which defect is
     # not documentation: a guard whose author cannot state the defect in a sentence

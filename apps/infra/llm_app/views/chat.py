@@ -177,7 +177,11 @@ def _build_system_prompt(context: dict, user, sync_to_async=None) -> str:
     skill = get_skill_for_page(page) if page else None
     page_hints = context.get("page_hints", [])
 
-    return build_system_prompt(skill, base_prompt, page_hints or None)
+    from apps.infra.llm_app.page_context import page_context_prompt
+
+    return page_context_prompt(context) + build_system_prompt(
+        skill, base_prompt, page_hints or None
+    )
 
 
 async def _inject_project_root(prompt: str, user, project_slug: str) -> str:

@@ -30,6 +30,7 @@ services:
         - scitex-hub-prod-django:latest
       args:
         BUILDKIT_INLINE_CACHE: 1
+        SCITEX_HUB_DEPENDENCY_RESOLUTION: ${SCITEX_HUB_DEPENDENCY_RESOLUTION:?set by protected rebuild}
     image: scitex-hub-prod-django:latest
     # tini FIRST, for the same reason every other service here does it: an
     # `entrypoint:` override REPLACES the image's ENTRYPOINT wholesale, so it
@@ -65,12 +66,6 @@ services:
       # is needed, so it doesn't re-fetch from the network every time.
       - uv_cache_volume:/app/.cache/uv
       - npm_cache_volume:/app/.cache/npm
-
-      # scitex-code for citation_graph module (until published to PyPI)
-      - /home/ywatanabe/proj/scitex-code/src/scitex/scholar/citation_graph:/usr/local/lib/python3.11/site-packages/scitex/scholar/citation_graph:ro
-
-      # scitex-container for terminal command building (until published to PyPI)
-      - /home/ywatanabe/proj/scitex-container/src/scitex_container:/usr/local/lib/python3.11/site-packages/scitex_container:ro
 
       # User workspace data directory (must match SCITEX_SLURM_USER_DATA_ROOT for terminal passwd files)
       - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
@@ -145,6 +140,7 @@ services:
       # across boots instead of re-fetching from the network every time.
       - UV_CACHE_DIR=/app/.cache/uv
       - NPM_CONFIG_CACHE=/app/.cache/npm
+      - SCITEX_APPS_PYTHON_MODE=image-only
     depends_on:
       pgbouncer:
         condition: service_healthy
@@ -239,9 +235,38 @@ services:
     networks:
       - scitex-network
     healthcheck:
-      test: ["CMD", "pg_isready", "-h", "localhost", "-p", "6432"]
+      # Asserts a client can CONNECT, AUTHENTICATE and QUERY -- not merely that
+      # the port answers.
+      #
+      # `pg_isready` is libpq's PQping, which returns OK whenever the server
+      # RESPONDS, including when it responds with a REJECTION. Measured
+      # 2026-09-06 on the staging pooler (same image), exit codes:
+      #
+      #                        psql -c 'select 1'      pg_isready
+      #   good credentials             0                    0
+      #   wrong password               2                    0
+      #   unreachable port             2                    0
+      #
+      # So -U/-d would NOT have deepened the old check; only completing a
+      # connection does. This pooler reported `healthy` throughout a
+      # 2026-09-06 production outage in which it refused EVERY client
+      # connection for ~6 minutes, and that green is why the outage was
+      # diagnosed from a log grep instead of from an alarm.
+      #
+      # PGOPTIONS carries the SAME startup parameter Django sends
+      # (config/settings/settings_prod.py `options: -c statement_timeout=...`).
+      # That parameter is what the outage tripped on, and pg_isready never
+      # sends `options` at all -- so without this the probe could not
+      # reproduce the one failure it exists to catch. The gate
+      # tests/config/test_pgbouncer_healthcheck_proves_a_client_can_connect.py
+      # keeps this list equal to what the settings actually send.
+      #
+      # Credentials are read from the container environment (env_file above)
+      # rather than interpolated here, so the password stays out of
+      # `docker inspect` output.
+      test: ["CMD-SHELL", "PGPASSWORD=\"$$SCITEX_HUB_POSTGRES_PASSWORD\" PGOPTIONS='-c statement_timeout=30000' PGCONNECT_TIMEOUT=3 psql -h 127.0.0.1 -p 6432 -U \"$$SCITEX_HUB_POSTGRES_USER\" -d \"$$SCITEX_HUB_POSTGRES_DB\" -tAc 'select 1' > /dev/null"]
       interval: 10s
-      timeout: 3s
+      timeout: 5s
       retries: 5
 
   redis:
@@ -274,7 +299,7 @@ services:
     # `entrypoint:` REPLACES the image's ENTRYPOINT wholesale, so every service
     # that overrides it silently drops tini — which left celery running as PID 1
     # with no init and no reaper. See the header note above `celery_worker_vis`.
-    entrypoint: ["/usr/bin/tini", "--", "/entrypoint.sh"]
+    entrypoint: ["/usr/bin/tini", "--", "/image-runtime.sh", "/entrypoint.sh"]
     # NOTE: vis_queue is deliberately NOT here — it has its own worker below.
     # This worker's `celery` queue is a firehose (the since-deleted status-chart
     # renderer alone fanned out 48 subtasks every 60s on a 4-core N100 — removed
@@ -382,8 +407,15 @@ services:
       - /var/log/slurm:/var/log/slurm
       # Mount host passwd for SLURM UID synchronization
       - /etc/passwd:/host/etc/passwd:ro
-      # scitex-code for citation_graph module (until published to PyPI)
-      - /home/ywatanabe/proj/scitex-code/src/scitex/scholar/citation_graph:/usr/local/lib/python3.11/site-packages/scitex/scholar/citation_graph:ro
+      # The local bibliographic databases, SAME sources and targets as the
+      # django service above. warm_public_status_cache runs HERE (celery beat
+      # -> this worker) and computes the public /status/ page's verdicts by
+      # calling crossref_local.info() / openalex_local.info(); without these
+      # mounts both reported "degraded" for a day (2026-09-05) while the
+      # django container read them fine. Guarded by
+      # tests/config/test_prod_compose_worker_sees_what_the_web_container_sees.py.
+      - /home/ywatanabe/proj/crossref-local/data:/data/crossref:ro
+      - ${OPENALEX_LOCAL_DB_DIR:-/home/ywatanabe/proj/openalex-local.bak/data}:/data/openalex:ro
 
     env_file:
       - ../envs/.env.prod
@@ -392,11 +424,16 @@ services:
       - DJANGO_SETTINGS_MODULE=config.settings.settings_prod
       - SCITEX_HUB_DJANGO_SETTINGS_MODULE=config.settings.settings_prod
       - SCITEX_HUB_ENV=prod
+      - CROSSREF_LOCAL_DB=/data/crossref/crossref.db
+      - CROSSREF_LOCAL_MODE=db
+      - OPENALEX_LOCAL_DB=/data/openalex/openalex.db
+      - OPENALEX_LOCAL_MODE=db
       - PYTHONUNBUFFERED=1
       - SCITEX_DIR=/app/.scitex
       - SCITEX_HUB_BUILD_ID=b0a2a30c
       - UV_CACHE_DIR=/app/.cache/uv
       - NPM_CONFIG_CACHE=/app/.cache/npm
+      - SCITEX_APPS_PYTHON_MODE=image-only
 
     depends_on:
       pgbouncer:
@@ -486,7 +523,7 @@ services:
     image: scitex-hub-prod-django:latest
     labels:
       - autoheal=true
-    entrypoint: ["/usr/bin/tini", "--", "/entrypoint.sh"]
+    entrypoint: ["/usr/bin/tini", "--", "/image-runtime.sh", "/entrypoint.sh"]
     command: >
       celery -A config --broker=redis://redis:6379/1 worker
       --loglevel=info
@@ -523,6 +560,7 @@ services:
       - SCITEX_DIR=/app/.scitex
       - UV_CACHE_DIR=/app/.cache/uv
       - NPM_CONFIG_CACHE=/app/.cache/npm
+      - SCITEX_APPS_PYTHON_MODE=image-only
 
     depends_on:
       pgbouncer:
@@ -560,7 +598,7 @@ services:
       - autoheal=true
     # tini — same reason as the workers above (the compose entrypoint override
     # otherwise discards the image's tini and leaves celery as PID 1).
-    entrypoint: ["/usr/bin/tini", "--", "/entrypoint.sh"]
+    entrypoint: ["/usr/bin/tini", "--", "/image-runtime.sh", "/entrypoint.sh"]
     command: celery -A config --broker=redis://redis:6379/1 beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
 
     volumes:
@@ -581,6 +619,7 @@ services:
       - SCITEX_HUB_BUILD_ID=b0a2a30c
       - UV_CACHE_DIR=/app/.cache/uv
       - NPM_CONFIG_CACHE=/app/.cache/npm
+      - SCITEX_APPS_PYTHON_MODE=image-only
 
     depends_on:
       pgbouncer:

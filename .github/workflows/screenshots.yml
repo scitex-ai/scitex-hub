@@ -40,7 +40,19 @@ jobs:
   screenshots:
     name: Capture product screenshots
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Raised 30 -> 45 on 2026-09-06. The capture was being killed at 22-24
+    # min on every develop push (runs 34030453842 / 34031946558 / 34039423420),
+    # with ~6 min of setup ahead of it, so 30 was simply below the work.
+    #
+    # This number is a JUDGEMENT, not a measurement: the capture never ran to
+    # completion, so nobody knows what it actually needs. What makes raising it
+    # legitimate rather than a guess-and-hope is the truncation check added to
+    # the Content report step below -- if 45 is still short, the run now SAYS
+    # SO, in the log and in the artifact, instead of reporting a partial
+    # capture as a clean one. Do not raise this again without reading that
+    # error first: if the capture is growing without bound, the answer is
+    # sharding or cutting pages, not a bigger number.
+    timeout-minutes: 45
 
     services:
       postgres:
@@ -150,6 +162,7 @@ jobs:
           SCITEX_HUB_REDIS_URL: redis://localhost:6379/0
           SCITEX_HUB_ENV: development
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
+          SCITEX_HUB_USER_DATA_ROOT: ${{ runner.temp }}/scitex-users
           # THIS RUNNER HAS NO GITEA. Declaring that is the supported way to
           # run the visitor pool without a git backend
           # (visitor_pool/gitea_integration.py:_gitea_enabled — "an explicit,
@@ -205,6 +218,8 @@ jobs:
           # artifact. None of them may fail quietly.
           set -euo pipefail
 
+          mkdir -p "$SCITEX_HUB_USER_DATA_ROOT"
+
           python manage.py migrate --run-syncdb
 
           # The capture runs as a POOLED VISITOR, never a real account, so
@@ -231,6 +246,21 @@ jobs:
           # nobody, so ask the question directly, before spending 20 minutes
           # of browser time on a capture that could only be wrong.
           python manage.py assert_visitor_pool_ready
+
+          # Mint a deterministic pooled-visitor session for the capture (card
+          # hub-product-screenshot-visitor-regression-20260913). #764 removed
+          # VisitorAutoLoginMiddleware, which used to auto-pool the capture's
+          # anonymous browser into a visitor slot. The capture is ASYNC
+          # (Channels) so it cannot query the DB itself (SynchronousOnlyOperation);
+          # the sync server step mints here — same DB + SCITEX_HUB_REDIS_URL as
+          # the runserver below, so the session lands in the store the server
+          # reads. --output writes the clean 40-char key to a FILE: capturing
+          # this command's STDOUT as the key corrupted it (run 34730332276 —
+          # stdout also carries the settings Redis-fallback warning, so the
+          # 'key' was 150 chars). The capture step reads the file.
+          python manage.py mint_visitor_session \
+            --output "$RUNNER_TEMP/screenshot_visitor_session.txt"
+          test -s "$RUNNER_TEMP/screenshot_visitor_session.txt"
 
           # `from_docker` is manage.py's own escape hatch, not a trick to get
           # around it: the guard at manage.py:19-23 fires on a bare
@@ -269,6 +299,11 @@ jobs:
           fi
 
       - name: Capture screenshots
+        # id: the Content report below reads `steps.capture.outcome` to tell a
+        # COMPLETED capture from a TRUNCATED one. Without it the report cannot
+        # distinguish "photographed every page, found nothing" from "was killed
+        # half way, found nothing in the half it reached".
+        id: capture
         env:
           SCITEX_HUB_DJANGO_SECRET_KEY: ci-screenshots-key  # pragma: allowlist secret
           SCITEX_HUB_DB_NAME_DEV: scitex_test
@@ -279,6 +314,7 @@ jobs:
           SCITEX_HUB_REDIS_URL: redis://localhost:6379/0
           SCITEX_HUB_ENV: development
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"
+          SCITEX_HUB_USER_DATA_ROOT: ${{ runner.temp }}/scitex-users
           # Same declarations as the step above: this runner has no Gitea and
           # no Vite dev server. Both must match the server step — the server
           # is the process that renders the <script> tags, but a mismatch here
@@ -289,6 +325,17 @@ jobs:
           SCITEX_BASE_URL: http://127.0.0.1:8000
           DEBUG: "1"
         run: |
+          # Read the pooled-visitor session key minted by the server step and
+          # export it for the conftest, which injects it as the sessionid
+          # cookie so every page photographs as a writable pooled visitor.
+          # Read from the FILE (not the mint command's stdout — stdout also
+          # carries settings-import prints; see the server-step comment). The
+          # conftest needs the same DB + SCITEX_HUB_REDIS_URL as the server,
+          # both set in this step's env above. (card
+          # hub-product-screenshot-visitor-regression-20260913.)
+          export SCITEX_SCREENSHOT_SESSION="$(cat "$RUNNER_TEMP/screenshot_visitor_session.txt")"
+          test -n "$SCITEX_SCREENSHOT_SESSION"
+
           # --browser chromium is REQUIRED, not decoration. tests/conftest.py's
           # pytest_collection_modifyitems skips everything under tests/e2e/
           # unless --browser was passed explicitly ("E2E/browser test skipped in
@@ -305,11 +352,11 @@ jobs:
           # watched fail is not a gate, and "the assertions got stricter"
           # is not evidence: the assertions they replaced were also green
           # while photographing a blank FigRecipe.
-          python -m pytest \
+          timeout --signal=TERM --kill-after=30s 12m python -m pytest \
             tests/e2e/playwright/test_content_check_fires.py \
             tests/e2e/playwright/test_capture_screenshots.py \
             --browser chromium \
-            -v --tb=short -rs -o "addopts=" --timeout=120
+            -v --tb=short -rs -o "addopts=" --timeout=120 --maxfail=1
 
       - name: Content report
         # ALWAYS, like the artifact upload. On a green run this is the only
@@ -325,6 +372,45 @@ jobs:
             cat "$report"
           else
             echo "(no content report — the capture never measured a page)"
+          fi
+
+          # A TRUNCATED CAPTURE MUST NOT READ AS A MEASUREMENT.
+          #
+          # Measured 2026-09-06 on three consecutive develop pushes (runs
+          # 34030453842 / 34031946558 / 34039423420): `Capture screenshots` was
+          # killed at 22-24 min by the job's timeout-minutes, and THIS step then
+          # ran over the partial output in 0 seconds and exited 0. The run's own
+          # conclusion was `cancelled`, which is indistinguishable from somebody
+          # pressing cancel -- so nothing anywhere said the artifact was partial,
+          # and a card waiting on defects visible only in that artifact waited on
+          # a measurement that had stopped happening.
+          #
+          # Two consumers, so two signals. The artifact is read later by humans
+          # and by cards, long after the log is gone, so the banner goes IN the
+          # file; the log gets an ::error:: for whoever is looking now.
+          # TRUNCATED and FAILED are different, and saying so matters.
+          # GitHub reports `cancelled` when the job budget kills the step
+          # mid-run, and `failure` when the step ran to completion and its
+          # assertions failed. Measured 2026-09-06 on this very PR: the first
+          # draft called BOTH "TRUNCATED ... every absence is UNMEASURED",
+          # and the run that exercised it had actually COMPLETED with 56 real
+          # failures. Calling a finished measurement "unmeasured" is the same
+          # class of lie as calling a partial one clean.
+          outcome='${{ steps.capture.outcome }}'
+          if [ "$outcome" = "cancelled" ]; then
+            banner="!! TRUNCATED: the capture was KILLED mid-run (outcome=cancelled, usually the job timeout). Every absence below is UNMEASURED, not clean. !!"
+          elif [ "$outcome" != "success" ]; then
+            banner="!! INCOMPLETE: the capture ran but FAILED (outcome=$outcome). The pages below WERE measured; read the failures, do not read absences as clean. !!"
+          fi
+          if [ "$outcome" != "success" ]; then
+            if [ -f "$report" ]; then
+              printf '\n%s\n' "$banner" >> "$report"
+            else
+              mkdir -p "$(dirname "$report")"
+              printf '%s\n' "$banner" > "$report"
+            fi
+            echo "::error::$banner"
+            exit 1
           fi
 
       - name: Server log (on failure)

@@ -14,7 +14,7 @@ just to VIEW a marketing page.
 
 The fix EXACT-skips "/" and "/landing/" in the auto-login middleware (never a
 startswith prefix — "/" is a prefix of every URL). A visitor still gets a slot
-the instant they CHOOSE to enter the workspace via the hero CTA (/apps/home/),
+the instant they CHOOSE to enter the workspace via the hero CTA (/apps/my-projects/),
 which is NOT skip-listed.
 
 A session that HAS entered the workspace is ROLE_VISITOR / ROLE_READONLY_VISITOR
@@ -60,7 +60,7 @@ class VisitorAutoLoginExactSkipTest(TestCase):
         # Only the shared readonly account exists (no writable slots). This is
         # exactly what turned a browser hitting a non-skipped path into a
         # logged-in readonly-visitor — the mechanism we assert "/" no longer
-        # triggers, and that /apps/home/ still does.
+        # triggers, and that /apps/my-projects/ still does.
         cls.readonly_visitor = User.objects.create_user(
             username="readonly-visitor",
             password="TestPass123!",  # pragma: allowlist secret
@@ -103,10 +103,10 @@ class VisitorAutoLoginExactSkipTest(TestCase):
 
     def test_workspace_entry_path_still_auto_logs_in(self):
         # Arrange: a browser that DELIBERATELY enters via the hero CTA target
-        # Act — /apps/home/ is deliberately NOT skip-listed, so a visitor who
+        # Act — /apps/my-projects/ is deliberately NOT skip-listed, so a visitor who
         # chooses to enter still gets logged in (readonly fallback here, since
         # the writable pool is empty).
-        request = self._run("/apps/home/")
+        request = self._run("/apps/my-projects/")
         # Assert
         assert request.user.is_authenticated is True
 

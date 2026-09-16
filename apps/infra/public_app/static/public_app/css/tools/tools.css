@@ -340,7 +340,7 @@
  * only tools-specific sizing lives here. Breakpoint matches
  * workspace-shell.css (767px).
  * ============================================================================= */
-@media (max-width: 767px) {
+@media (min-width: 641px) and (max-width: 767px) {
   .tools-nav-panel:not(.collapsed) {
     flex: 0 0 auto;
     max-height: 40vh;
@@ -352,4 +352,116 @@
     flex: 1 1 auto;
     min-height: 0;
   }
+}
+
+/* Header title already reads "TOOLS"; the plain title is only for the collapsed strip. */
+.tools-nav-panel:not(.collapsed) .panel-title {
+  display: none;
+}
+
+/* Desktop keeps the search at the bottom of the list. */
+.tools-nav-header {
+  order: 0;
+}
+.tools-nav-list {
+  order: 1;
+}
+.tools-search-bar {
+  order: 2;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .tools-search-bar .search-shortcut {
+    display: none;
+  }
+  .tools-search-bar .search-input {
+    padding-right: 12px;
+  }
+}
+
+/* =============================================================================
+ * Phone (<=640px): scitex-ui panes show "Tools | <tool>" tabs, one full pane.
+ * ============================================================================= */
+.stx-panes--single.tools-workspace {
+  overflow: hidden;
+}
+
+.stx-panes--single > .panel-resizer {
+  display: none;
+}
+
+.stx-panes--single > .tools-nav-panel,
+.stx-panes--single > .tools-nav-panel.collapsed {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-height: none;
+  height: auto !important;
+  border: none;
+  overflow: hidden !important;
+}
+
+.stx-panes--single > .tools-nav-panel .tools-nav-header {
+  display: none;
+}
+
+.stx-panes--single > .tools-nav-panel .tools-search-bar,
+.stx-panes--single > .tools-nav-panel.collapsed .tools-search-bar {
+  display: block;
+  order: 0;
+  padding: 10px 12px;
+  border-top: none;
+  border-bottom: 1px solid var(--workspace-border-default);
+}
+
+.stx-panes--single .tools-search-bar .search-input {
+  font-size: 16px; /* iOS zooms inputs below 16px */
+  padding: 10px 12px 10px 34px;
+}
+
+.stx-panes--single .tools-search-bar .search-shortcut {
+  display: none;
+}
+
+.stx-panes--single > .tools-nav-panel .tools-nav-list,
+.stx-panes--single > .tools-nav-panel.collapsed .tools-nav-list {
+  display: block;
+  order: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 4px 16px;
+}
+
+.stx-panes--single .tools-nav-domain-header {
+  min-height: 40px;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+.stx-panes--single .tools-nav-item {
+  min-height: 44px;
+  padding: 8px 12px 8px 28px;
+  font-size: 15px;
+  gap: 10px;
+}
+
+.stx-panes--single .tools-nav-item-icon {
+  width: 20px;
+  color: var(--color-primary, var(--workspace-icon-primary));
+}
+
+.stx-panes--single > .tools-content-panel {
+  overflow: hidden !important;
+}
+
+/* No tool yet: the tool tab stays hidden, so the list is the only screen. */
+.tools-workspace:not([data-tool-open])
+  .stx-panes__tab[data-stx-pane-tab="tool"] {
+  display: none;
+}
+
+.tools-workspace .stx-panes__tab-label {
+  max-width: 60vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

@@ -51,6 +51,8 @@ from pathlib import Path
 import pytest
 import yaml
 
+from tests.tracked_source import tracked_source_files
+
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 
 # Discovered rather than enumerated, so a compose file added tomorrow is covered
@@ -104,13 +106,13 @@ def _offences(tokens):
             upper = token.upper()
             for marker in _SECRET_VAR_MARKERS:
                 if marker in upper:
-                    found.append(f"interpolated secret variable in {token!r}")
+                    found.append("interpolated secret variable")
                     break
     return found
 
 
 def _compose_files():
-    return sorted(_REPO_ROOT.glob(_COMPOSE_GLOB))
+    return tracked_source_files(_REPO_ROOT, (_COMPOSE_GLOB,))
 
 
 def _cases():
@@ -118,7 +120,7 @@ def _cases():
     out = []
     for path in _compose_files():
         try:
-            doc = yaml.safe_load(path.read_text())
+            doc = yaml.safe_load(path.text())
         except yaml.YAMLError:
             # A malformed compose file is a different test's problem, but it must
             # not silently drop out of THIS sweep and read as clean.
@@ -193,21 +195,17 @@ def test_detector_accepts_the_fixed_form():
 @pytest.mark.parametrize(
     "path,service,key,tokens",
     _ALL,
-    ids=[f"{p.name}::{s}::{k}" for p, s, k, _ in _ALL],
+    ids=[f"{Path(p.path).name}::{s}::{k}" for p, s, k, _ in _ALL],
 )
 def test_no_secret_on_the_command_line(path, service, key, tokens):
     # Arrange
-    rel = path.relative_to(_REPO_ROOT)
+    rel = path.path
     # Act
     offences = _offences(tokens)
     # Assert
     assert offences == [], (
-        f"{rel} service '{service}' passes a secret via {key}: "
-        f"{'; '.join(offences)}. Anything in argv is world-readable through "
+        f"{rel} service '{service}' passes a secret via {key}. "
+        f"Anything in argv is world-readable through "
         f"/proc and printed by `ps aux`, so rotating the value does not help -- "
-        f"the next `ps` discloses the new one. Move it to the environment:\n"
-        f"    {key}: <the command WITHOUT the secret flag>\n"
-        f"    environment:\n"
-        f"      TUNNEL_TOKEN: ${{YOUR_VAR}}\n"
-        f"Most images accept their credential from an env var for this reason."
+        f"the next process listing discloses the new one. Move it to the environment."
     )
