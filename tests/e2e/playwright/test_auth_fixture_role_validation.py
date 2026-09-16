@@ -58,10 +58,9 @@ class TestAuthenticatedUserRoleFailure:
 
     def test_message_names_unknown_role_honestly(self):
         msg = authenticated_user_role_failure("mystery-role", "ctx")
-        # An unrecognised role gets "we do not know what this is", not a
-        # borrowed diagnosis.
+        # An unrecognised role gets its own diagnosis, not a borrowed one.
         assert "mystery-role" in msg
-        assert "not recognise" in msg
+        assert "unrecognised role" in msg
 
 
 if __name__ == "__main__":
