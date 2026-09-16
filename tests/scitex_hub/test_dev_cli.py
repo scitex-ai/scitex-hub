@@ -4,6 +4,7 @@ import json
 from importlib import import_module
 from pathlib import Path
 
+import pytest
 from click.testing import CliRunner
 
 from scitex_hub._cli.main import main
@@ -482,6 +483,43 @@ def test_editable_distribution_malformed_metadata_fails_closed(tmp_path):
             if name == "direct_url.json":
                 return json.dumps({"url": root.as_uri(), "dir_info": None})
             return None
+
+    assert not dependency_module._module_file_owned(
+        EditableDistribution(), "scitex_storage"
+    )
+
+
+@pytest.mark.parametrize("url", ("file:.", "file:"))
+def test_editable_distribution_rejects_relative_file_url(
+    tmp_path, monkeypatch, url
+):
+    dependency_module = import_module("scitex_hub._cli._dev_dependencies")
+    root = tmp_path / "scitex-storage"
+    package = root / "src" / "scitex_storage"
+    package.mkdir(parents=True)
+    (package / "__init__.py").write_text("", encoding="utf-8")
+    (root / "pyproject.toml").write_text(
+        '[project]\nname = "scitex-storage"\n', encoding="utf-8"
+    )
+    site = tmp_path / "site-packages"
+    site.mkdir()
+    pth = site / "_editable_scitex_storage.pth"
+    pth.write_text(f"{root / 'src'}\n", encoding="utf-8")
+    monkeypatch.chdir(root)
+
+    class EditableDistribution:
+        files = (Path(pth.name),)
+        metadata = {"Name": "scitex-storage"}
+
+        @staticmethod
+        def read_text(name):
+            if name == "direct_url.json":
+                return json.dumps({"url": url, "dir_info": {"editable": True}})
+            return None
+
+        @staticmethod
+        def locate_file(name):
+            return site / str(name)
 
     assert not dependency_module._module_file_owned(
         EditableDistribution(), "scitex_storage"

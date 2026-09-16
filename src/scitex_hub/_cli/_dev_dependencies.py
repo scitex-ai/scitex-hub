@@ -200,7 +200,10 @@ def _editable_module_file_owned(
         parsed = urlparse(direct_url_value)
         if parsed.scheme != "file" or parsed.netloc not in {"", "localhost"}:
             return False
-        root = Path(url2pathname(parsed.path)).resolve(strict=True)
+        decoded_path = Path(url2pathname(parsed.path))
+        if not decoded_path.is_absolute():
+            return False
+        root = decoded_path.resolve(strict=True)
         project_data = tomllib.loads(
             (root / "pyproject.toml").read_text(encoding="utf-8")
         )
