@@ -525,6 +525,9 @@ services:
   # fixes history live in the POOL=THREADS note on celery_worker above.
   # Regression gate for both: tests/develop/test_celery_worker_pool.py
   celery_worker_vis:
+    # Retired with anonymous visitor allocation. Kept temporarily behind an
+    # inactive profile only so operators can drain/inspect legacy queue state.
+    profiles: ["retired-visitor"]
     image: scitex-hub-prod-django:latest
     labels:
       - autoheal=true
