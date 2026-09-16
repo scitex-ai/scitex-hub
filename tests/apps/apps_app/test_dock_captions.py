@@ -145,7 +145,9 @@ def test_phone_dock_icon_matches_the_phone_tile_icon():
     assert sizes[0] == sizes[1]
 
 
-def test_desktop_uses_the_canonical_mobile_dock_icon_size():
+def test_desktop_dock_keeps_the_canonical_dock_icon_size():
+    # The dock now deliberately uses one layout/icon scale at every width;
+    # Home's launcher may scale its own grid up on wide screens.
     # Arrange
     dock = _media_block(_dock_css(), "@media (min-width: 0px)")
     # Act

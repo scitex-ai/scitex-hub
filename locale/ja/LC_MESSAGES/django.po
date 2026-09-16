@@ -5817,6 +5817,14 @@ msgid "SciTeX Inc"
 msgstr "株式会社SciTeX"
 
 #: templates/global_base_partials/global_header.html
+msgid "Switch to dark mode"
+msgstr "ダークモードに切り替える"
+
+#: templates/global_base_partials/global_header.html
+msgid "Switch to light mode"
+msgstr "ライトモードに切り替える"
+
+#: templates/global_base_partials/global_header.html
 msgid "Workspace"
 msgstr "ワークスペース"
 

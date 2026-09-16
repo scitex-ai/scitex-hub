@@ -60,7 +60,7 @@ LANDING_PARTIALS = [
 # Translating any of these would be the bug.
 ALLOWED = {
     # brands and product names
-    "SciTeX", "Scholar", "Writer", "Console", "FigRecipe", "GitHub", "PyPI",
+    "SciTeX", "SciTeX Inc", "Scholar", "Writer", "Console", "FigRecipe", "GitHub", "PyPI",
     "Claude", "Code", "Django", "Python", "matplotlib", "LaTeX", "Docker",
     "Singularity", "SLURM", "YAML", "MCP", "API", "REST", "PDF", "HPC",
     "LLM", "AI", "ML", "DB", "R",
