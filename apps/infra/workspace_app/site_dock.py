@@ -123,6 +123,13 @@ def should_render_dock(request) -> bool:
     """The dock is for signed-in users: every target behind it requires login."""
     if request.GET.get("embed") == "1":
         return False  # the floating dock chat's iframe: no chrome inside it
+    if request.headers.get("Sec-Fetch-Dest", "") in (
+        "iframe",
+        "frame",
+        "embed",
+        "object",
+    ):
+        return False  # defense-in-depth: no full Hub shell may nest in a frame
     user = getattr(request, "user", None)
     return bool(getattr(user, "is_authenticated", False))
 

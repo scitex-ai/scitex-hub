@@ -37,6 +37,18 @@ def test_embed_request_renders_no_dock():
     assert renders is False
 
 
+def test_any_iframe_document_renders_no_nested_dock():
+    # Arrange
+    request = RequestFactory().get(
+        "/accounts/settings/ai-providers/", HTTP_SEC_FETCH_DEST="iframe"
+    )
+    request.user = type("User", (), {"is_authenticated": True})()
+    # Act
+    renders = should_render_dock(request)
+    # Assert
+    assert renders is False
+
+
 def test_embed_flag_drops_site_header_and_footer():
     # Arrange
     guard = "{% if request.GET.embed != '1' %}{% include 'global_base_partials/global_footer.html' %}"

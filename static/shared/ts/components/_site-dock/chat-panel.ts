@@ -4,11 +4,14 @@
  */
 
 import {
+  CHAT_URL,
+  EMBED_NAVIGATION_MESSAGE,
   EMBED_THEME_MESSAGE,
   effectiveTheme,
   embedUrl,
   maximizedRect,
   panelRect,
+  parentNavigationUrl,
   toggleMaximized,
 } from "./chat-float";
 
@@ -78,14 +81,25 @@ export function initChatPanel(dock: HTMLElement): void {
   });
   darkQuery?.addEventListener?.("change", syncTheme);
 
-  const setOpen = (open: boolean) => {
-    if (open && !frame.getAttribute("src")) {
-      frame.src = embedUrl(
-        window.location.pathname,
-        document.title,
-        pageTheme(),
+  const canonicalEmbedUrl = () =>
+    embedUrl(window.location.pathname, document.title, pageTheme());
+  const resetNestedFrame = () => {
+    let nested = false;
+    try {
+      const location = frame.contentWindow?.location;
+      nested = Boolean(
+        location &&
+          (location.pathname !== CHAT_URL ||
+            new URLSearchParams(location.search).get("embed") !== "1"),
       );
+    } catch {
+      nested = true;
     }
+    if (!frame.getAttribute("src") || nested) frame.src = canonicalEmbedUrl();
+  };
+
+  const setOpen = (open: boolean) => {
+    resetNestedFrame();
     panel.hidden = !open;
     toggle.setAttribute("aria-expanded", String(open));
     toggle.classList.toggle("is-active", open);
@@ -106,6 +120,20 @@ export function initChatPanel(dock: HTMLElement): void {
     place();
   };
   setMaximized(maximized);
+
+  window.addEventListener("message", (event) => {
+    if (
+      event.source !== frame.contentWindow ||
+      event.origin !== window.location.origin ||
+      event.data?.type !== EMBED_NAVIGATION_MESSAGE
+    )
+      return;
+    const target = parentNavigationUrl(event.data?.href, window.location.origin);
+    if (!target) return;
+    setMaximized(false);
+    setOpen(false);
+    window.location.assign(target);
+  });
 
   toggle.addEventListener("click", (e) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
