@@ -6,7 +6,16 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
+from scitex_ui.keymap import keymap_defaults
 
+from apps.infra.accounts_app.keymap_preferences import (
+    InvalidKeymapPreference,
+    KeymapConflictError,
+    bind_shortcut,
+    build_shortcut_rows,
+    reset_shortcuts,
+    unbind_shortcut,
+)
 from apps.infra.accounts_app.models import UserProfile
 from apps.infra.accounts_app.views.project_health_i18n import project_health_catalog
 
@@ -89,6 +98,67 @@ def handle_change_password(request):
 def account_settings(request):
     """Redirect to unified profile settings page."""
     return redirect("accounts_app:profile_edit")
+
+
+@login_required
+def keyboard_shortcuts(request):
+    """Search and persist global shortcuts from the published command catalog."""
+    profile = getattr(request.user, "profile", None)
+    if profile is None:
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+        scope = request.POST.get("scope", "global")
+        command_id = request.POST.get("command_id", "")
+        catalog = keymap_defaults()
+        try:
+            if action == "bind":
+                updated = bind_shortcut(
+                    profile.keymap_preferences,
+                    scope,
+                    command_id,
+                    request.POST.get("sequence", ""),
+                    catalog=catalog,
+                )
+            elif action == "unbind":
+                updated = unbind_shortcut(
+                    profile.keymap_preferences,
+                    scope,
+                    command_id,
+                    catalog=catalog,
+                )
+            elif action == "reset":
+                updated = reset_shortcuts(
+                    profile.keymap_preferences,
+                    scope=scope,
+                    command_id=command_id,
+                    catalog=catalog,
+                )
+            elif action == "reset_all":
+                updated = reset_shortcuts(profile.keymap_preferences)
+            else:
+                raise InvalidKeymapPreference(f"Unknown shortcut action: {action!r}")
+        except (InvalidKeymapPreference, KeymapConflictError) as error:
+            messages.error(request, str(error))
+        else:
+            profile.keymap_preferences = updated
+            profile.save(update_fields=["keymap_preferences", "updated_at"])
+            messages.success(request, "Keyboard shortcuts updated.")
+        return redirect("accounts_app:keyboard_shortcuts")
+
+    query = request.GET.get("q", "")
+    return render(
+        request,
+        "accounts_app/keyboard_shortcuts.html",
+        {
+            "user": request.user,
+            "query": query,
+            "shortcut_rows": build_shortcut_rows(
+                keymap_defaults(), profile.keymap_preferences, query=query
+            ),
+        },
+    )
 
 
 @login_required

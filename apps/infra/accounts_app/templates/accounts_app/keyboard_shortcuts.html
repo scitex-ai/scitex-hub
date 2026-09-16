@@ -1,0 +1,108 @@
+{% extends "global_base.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "Keyboard Shortcuts" %} - SciTeX{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/layouts/settings-layout.css' %}" />
+    <style>
+        .shortcut-toolbar { display:flex; gap:.75rem; align-items:center; margin-bottom:1.25rem; }
+        .shortcut-search { flex:1; min-width:12rem; }
+        .shortcut-table { width:100%; border-collapse:collapse; }
+        .shortcut-table th, .shortcut-table td { padding:.75rem; border-bottom:1px solid var(--border-default); text-align:left; vertical-align:middle; }
+        .shortcut-command { font-family:var(--font-mono); color:var(--text-muted); font-size:.8rem; }
+        .shortcut-form { display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
+        .shortcut-sequence { width:12rem; }
+        .shortcut-status { color:var(--text-muted); font-size:.85rem; }
+        .shortcut-unbound { color:var(--status-warning, #b45309); }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-page">
+    <div class="settings-layout">
+        <aside class="settings-nav">
+            {% include 'accounts_app/partials/settings_nav.html' with active='keyboard_shortcuts' %}
+        </aside>
+        <main class="settings-content">
+            <div class="settings-section-header">
+                <h1>{% trans "Keyboard Shortcuts" %}</h1>
+                <p>{% trans "Customize published global commands. Page-mode commands appear as each app publishes its command catalog. Buttons, keyboard actions, and agents use the same command IDs." %}</p>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert-banner alert-banner-{% if message.tags == 'error' %}danger{% else %}success{% endif %} mb-3">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="shortcut-toolbar">
+                <form method="get" class="shortcut-search">
+                    <label class="sr-only" for="shortcut-search">{% trans "Search shortcuts" %}</label>
+                    <input id="shortcut-search" class="form-control" type="search" name="q" value="{{ query }}" placeholder="{% trans 'Search commands, groups, or IDs' %}" />
+                </form>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="reset_all" />
+                    <button class="btn btn-outline-secondary" type="submit">{% trans "Reset all" %}</button>
+                </form>
+            </div>
+
+            <table class="shortcut-table">
+                <thead>
+                    <tr>
+                        <th>{% trans "Command" %}</th>
+                        <th>{% trans "Scope" %}</th>
+                        <th>{% trans "Shortcut" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for shortcut in shortcut_rows %}
+                    <tr>
+                        <td>
+                            <strong>{{ shortcut.label }}</strong>
+                            <div class="shortcut-command">{{ shortcut.command_id }}</div>
+                            <div class="shortcut-status">
+                                {{ shortcut.group }} · {% trans "Default" %}: {{ shortcut.default_sequence|default:"—" }}
+                            </div>
+                        </td>
+                        <td>{{ shortcut.scope }}</td>
+                        <td>
+                            <form method="post" class="shortcut-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="bind" />
+                                <input type="hidden" name="scope" value="{{ shortcut.scope }}" />
+                                <input type="hidden" name="command_id" value="{{ shortcut.command_id }}" />
+                                <input class="form-control shortcut-sequence" type="text" name="sequence" value="{{ shortcut.effective_sequence }}" aria-label="{% blocktrans with label=shortcut.label %}Shortcut for {{ label }}{% endblocktrans %}" />
+                                <button class="btn btn-primary" type="submit">{% trans "Save" %}</button>
+                            </form>
+                            <div class="shortcut-form mt-2">
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="unbind" />
+                                    <input type="hidden" name="scope" value="{{ shortcut.scope }}" />
+                                    <input type="hidden" name="command_id" value="{{ shortcut.command_id }}" />
+                                    <button class="btn btn-outline-secondary" type="submit">{% trans "Unbind" %}</button>
+                                </form>
+                                {% if shortcut.is_overridden or shortcut.is_unbound %}
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="reset" />
+                                    <input type="hidden" name="scope" value="{{ shortcut.scope }}" />
+                                    <input type="hidden" name="command_id" value="{{ shortcut.command_id }}" />
+                                    <button class="btn btn-link" type="submit">{% trans "Reset" %}</button>
+                                </form>
+                                {% endif %}
+                                {% if shortcut.is_unbound %}<span class="shortcut-unbound">{% trans "Unbound" %}</span>{% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3">{% trans "No shortcuts match your search." %}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </main>
+    </div>
+</div>
+{% endblock %}

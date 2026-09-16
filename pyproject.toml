@@ -457,7 +457,10 @@ all = [
     # RAISED 0.20.3 -> 0.21.0 on 2026-09-14: first release with the
     # `scitex_project_picker` template tag + `scitex_ui.project_scope` (#232) and
     # the `scitex_js_catalog` gettext tag (#231), which hub's project picker uses.
-    "scitex-ui>=0.21.0",
+    # RAISED 0.21.0 -> 0.22.0 on 2026-09-16: first stable release with the
+    # Command Registry and global/app-mode keymap API consumed by Settings >
+    # Keyboard Shortcuts. Older wheels cannot import scitex_ui.keymap.
+    "scitex-ui>=0.22.0",
     # --- GUI (dearpygui-based modules) ---
     "dearpygui>=1.11",
     "cairosvg>=2.9.0",
