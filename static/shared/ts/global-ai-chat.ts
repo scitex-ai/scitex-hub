@@ -21,12 +21,46 @@ import {
 import { initKeyboardShortcuts } from "./components/keyboard-shortcuts";
 import { AIPanelConfigMode } from "./components/_global-ai-chat/config-mode";
 import { populateChatLimits } from "./components/_global-ai-chat/chat-config-limits";
+import { EMBED_NAVIGATION_MESSAGE } from "./components/_site-dock/chat-float";
 
 // Shell CSS — canonical source from scitex-ui (see shell-css-imports.ts)
 import "./components/_global-ai-chat/shell-css-imports";
 // Shell layout CSS — sidebar, three-col, viewer, files-tree (see shell-css-imports.ts)
 import "./shell-css-imports";
 const PANEL_OPEN_KEY = "scitex_ai_open";
+
+function initEmbedNavigationBridge(): void {
+  const query = new URLSearchParams(window.location.search);
+  if (query.get("embed") !== "1" || window.parent === window) return;
+  document.addEventListener(
+    "click",
+    (event) => {
+      const mouse = event as MouseEvent;
+      if (
+        mouse.defaultPrevented ||
+        mouse.button !== 0 ||
+        mouse.metaKey ||
+        mouse.ctrlKey ||
+        mouse.shiftKey ||
+        mouse.altKey
+      )
+        return;
+      const target = mouse.target;
+      if (!(target instanceof Element)) return;
+      const anchor = target.closest<HTMLAnchorElement>("a[href]");
+      if (!anchor || anchor.hasAttribute("download")) return;
+      if (anchor.target && anchor.target !== "_self") return;
+      const destination = new URL(anchor.href, window.location.href);
+      if (destination.origin !== window.location.origin) return;
+      mouse.preventDefault();
+      window.parent.postMessage(
+        { type: EMBED_NAVIGATION_MESSAGE, href: destination.href },
+        window.location.origin,
+      );
+    },
+    true,
+  );
+}
 
 interface AiContext {
   page?: string;
@@ -95,6 +129,7 @@ class GlobalAIChat {
     this.modelBadge = document.getElementById("stx-shell-ai-model-badge");
 
     if (!this.panel) return;
+    initEmbedNavigationBridge();
 
     // File drop support — attach to entire chat view for a bigger drop target
     const chatView = document.getElementById("stx-shell-ai-chat-view");

@@ -10,6 +10,7 @@ export interface Rect {
 }
 
 export const CHAT_URL = "/chat/";
+export const EMBED_NAVIGATION_MESSAGE = "stx-embed-navigate";
 export const PHONE_MAX = 640;
 const GAP = 8;
 const MARGIN = 8;
@@ -22,6 +23,22 @@ export type EmbedTheme = "light" | "dark";
 
 /** postMessage type the parent sends when its theme changes (theme-switcher.ts listens). */
 export const EMBED_THEME_MESSAGE = "stx-embed-theme";
+
+/** Validate an iframe navigation request and return a same-origin path. */
+export function parentNavigationUrl(
+  href: unknown,
+  origin: string,
+): string | null {
+  if (typeof href !== "string") return null;
+  try {
+    const target = new URL(href, origin);
+    if (target.origin !== origin) return null;
+    if (target.protocol !== "http:" && target.protocol !== "https:") return null;
+    return `${target.pathname}${target.search}${target.hash}`;
+  } catch {
+    return null;
+  }
+}
 
 /** The page's effective theme: its data-theme, else the OS preference. */
 export function effectiveTheme(
