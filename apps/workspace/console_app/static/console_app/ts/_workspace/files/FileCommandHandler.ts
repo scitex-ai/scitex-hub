@@ -8,7 +8,6 @@ import type { FileOperations } from "./FileOperations";
 import type { FileTreeManager } from "./FileTreeManager";
 import type { FileStateManager } from "./FileStateManager";
 import type { UIComponents } from "../ui/UIComponents";
-import type { VisitorManager } from "../auth/VisitorManager";
 
 export class FileCommandHandler {
   constructor(
@@ -16,7 +15,6 @@ export class FileCommandHandler {
     private fileTreeManager: FileTreeManager,
     private fileStateManager: FileStateManager,
     private uiComponents: UIComponents,
-    private visitorManager: VisitorManager,
   ) {}
 
   /**
@@ -44,11 +42,6 @@ export class FileCommandHandler {
    * Create new file in root directory (with modal - deprecated)
    */
   async createNewFile(): Promise<void> {
-    // Show one-time warning for visitors
-    if (this.visitorManager.isVisitor()) {
-      this.visitorManager.showVisitorWarningOnce();
-    }
-
     const fileName = await this.uiComponents.showFileModal(
       "New File",
       "File name:",
@@ -70,11 +63,6 @@ export class FileCommandHandler {
   async createFileWithName(fileName: string): Promise<void> {
     if (!fileName || !fileName.trim()) return;
 
-    // Show one-time warning for visitors
-    if (this.visitorManager.isVisitor()) {
-      this.visitorManager.showVisitorWarningOnce();
-    }
-
     const success = await this.fileOperations.createFile(fileName.trim(), "");
     if (success) {
       await this.fileTreeManager.loadFileTree();
@@ -86,11 +74,6 @@ export class FileCommandHandler {
    * Create new folder in root directory
    */
   async createNewFolder(): Promise<void> {
-    // Show one-time warning for visitors
-    if (this.visitorManager.isVisitor()) {
-      this.visitorManager.showVisitorWarningOnce();
-    }
-
     const folderName = await this.uiComponents.showFileModal(
       "New Folder",
       "Folder name:",
@@ -143,11 +126,6 @@ export class FileCommandHandler {
    * Create file in a specific folder (exposed for file tree buttons)
    */
   async createFileInFolder(folderPath: string): Promise<void> {
-    // Show one-time warning for visitors
-    if (this.visitorManager.isVisitor()) {
-      this.visitorManager.showVisitorWarningOnce();
-    }
-
     const fileName = await this.uiComponents.showFileModal(
       "New File",
       "File name:",
@@ -168,11 +146,6 @@ export class FileCommandHandler {
    * Create folder in a specific folder (exposed for file tree buttons)
    */
   async createFolderInFolder(parentPath: string): Promise<void> {
-    // Show one-time warning for visitors
-    if (this.visitorManager.isVisitor()) {
-      this.visitorManager.showVisitorWarningOnce();
-    }
-
     const folderName = await this.uiComponents.showFileModal(
       "New Folder",
       "Folder name:",

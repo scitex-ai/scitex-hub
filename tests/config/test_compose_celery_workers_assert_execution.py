@@ -161,7 +161,7 @@ def test_beat_schedule_declares_beaconed_queues():
     # Act
     queues = beaconed_queues()
     # Assert
-    assert len(queues) >= 2
+    assert queues == ["celery"]
 
 
 @pytest.mark.parametrize(

@@ -79,16 +79,6 @@ from .status import (
     server_status_api,
     status_api,
     versions_api,
-    visitor_enter,
-    visitor_expired,
-    visitor_fill_slots_api,
-    visitor_free_slots_api,
-    visitor_heartbeat_api,
-    visitor_pool_full,
-    visitor_pool_initialize_api,
-    visitor_resources_api,
-    visitor_restart_session,
-    visitor_status,
 )
 
 # Utility views
@@ -128,6 +118,8 @@ __all__ = [
     "cancel_subscription",
     "open_billing_portal",
     # Status
+    "public_status_view",
+    "public_status_api",
     "server_status",
     "server_status_api",
     "status_api",
@@ -137,16 +129,6 @@ __all__ = [
     "server_metrics_export_csv",
     "server_metrics_series_api",
     "versions_api",
-    "visitor_status",
-    "visitor_enter",
-    "visitor_restart_session",
-    "visitor_expired",
-    "visitor_pool_full",
-    "visitor_pool_initialize_api",
-    "visitor_fill_slots_api",
-    "visitor_free_slots_api",
-    "visitor_heartbeat_api",
-    "visitor_resources_api",
     # API
     "api_docs",
     "api_docs_section",

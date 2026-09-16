@@ -99,13 +99,13 @@ class ModelAvailabilityDefaultTest(TestCase):
 class SeedCopiesAvailabilityTest(TestCase):
     """ensure_builtin_modules mirrors the manifest state into the catalog."""
 
-    def test_seed_stamps_writer_row_desktop_only(self):
+    def test_seed_stamps_writer_row_available(self):
         # Arrange
         from apps.workspace.apps_app.management.commands.seed_apps import (
             ensure_builtin_modules,
         )
 
-        expected = "desktop_only"
+        expected = "available"
         # Act
         ensure_builtin_modules()
         row = AppsModule.objects.get(module_name="writer")
@@ -155,9 +155,9 @@ class LauncherTileAvailabilityTest(TestCase):
         resp = self.client.get("/")
         return next(t for t in resp.context["tiles"] if t["name"] == name)
 
-    def test_writer_tile_is_desktop_only(self):
+    def test_writer_tile_is_available(self):
         # Arrange
-        expected = "desktop_only"
+        expected = "available"
         # Act
         tile = self._tile("writer")
         # Assert
@@ -212,6 +212,12 @@ class LauncherTemplateAvailabilityTest(TestCase):
             visibility="public",
             availability="coming_soon",
         )
+        AppsModule.objects.create(
+            module_name="desktop-only-test-app",
+            category="other",
+            visibility="public",
+            availability="desktop_only",
+        )
 
     def setUp(self):
         self.client.login(
@@ -261,7 +267,7 @@ class LauncherTemplateAvailabilityTest(TestCase):
         assert expected in resp.content
 
     def test_desktop_only_tile_carries_data_availability(self):
-        # Arrange — writer declares desktop_only in its manifest
+        # Arrange — a public catalog row declares desktop_only
         expected = b'data-availability="desktop_only"'
         # Act
         resp = self.client.get("/")

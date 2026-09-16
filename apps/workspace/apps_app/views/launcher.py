@@ -103,44 +103,6 @@ def _version_label(version: str) -> str:
     return v if v.lower().startswith("v") else f"v{v}"
 
 
-def is_guest_launcher_user(user) -> bool:
-    """True for pool visitors (visitor-*) and the shared readonly-visitor.
-
-    Guest-mode launcher (card hub-visitor-ux-allapps): visitors keep the
-    app grid but get a prominent Sign in / Sign up call-to-action instead
-    of a personalized greeting. Role mapping is delegated to the canonical
-    session-role model (no scattered username checks).
-    """
-    from apps.infra.project_app.services.visitor_pool import (
-        ROLE_READONLY_VISITOR,
-        ROLE_VISITOR,
-        get_user_role,
-    )
-
-    return get_user_role(user) in (ROLE_VISITOR, ROLE_READONLY_VISITOR)
-
-
-def guest_role_for(user) -> str:
-    """Which KIND of guest this is — the two are very different experiences.
-
-    A pool ``visitor`` gets a real writable workspace for the session; the
-    shared ``readonly-visitor`` fallback can only look. Telling both "sign in
-    to unlock editing" misleads the visitor, who can already edit. Returns
-    "visitor" | "readonly_visitor" | "" (not a guest).
-    """
-    from apps.infra.project_app.services.visitor_pool import (
-        ROLE_READONLY_VISITOR,
-        ROLE_VISITOR,
-        get_user_role,
-    )
-
-    role = get_user_role(user)
-    if role == ROLE_VISITOR:
-        return "visitor"
-    if role == ROLE_READONLY_VISITOR:
-        return "readonly_visitor"
-    return ""
-
 
 def _planned_tiles(user, real_app_names: set[str]) -> list[dict]:
     """Coming-soon tiles for planned apps no real app has replaced."""
@@ -389,9 +351,9 @@ def _build_tiles(request) -> list[dict]:
         seen.add(link.name)
 
     # 5. Planned apps: a Coming-soon tile until a real app takes the id.
-    tiles.extend(
-        _planned_tiles(request.user, seen | installed_names | {t["name"] for t in tiles})
-    )
+    # Only a tile that is actually present replaces a planned app. A hidden or
+    # non-launcher registry module must not suppress its Coming Soon placeholder.
+    tiles.extend(_planned_tiles(request.user, {t["name"] for t in tiles}))
 
     # Display overrides affect only presentation. Canonical ids, URLs, and
     # manifest/catalog metadata remain untouched.
@@ -447,12 +409,10 @@ def launcher_context(request) -> dict:
             alias["is_favorite_alias"] = True
             alias["can_uninstall"] = False
             favorite_tiles.append(alias)
-    is_guest = is_guest_launcher_user(request.user)
     return {
         "first_run": (
             checklist_context(request.user)
             if request.user.is_authenticated
-            and not is_guest
             and should_show_checklist(request.user)
             else None
         ),
@@ -466,11 +426,8 @@ def launcher_context(request) -> dict:
         "launcher_groups": LAUNCHER_GROUPS,
         "installed_count": sum(1 for t in tiles if t["is_installed"]),
         "max_pins": MAX_PINNED_MODULES,
-        # Guest mode: visitors see tiles + a prominent Sign in / Sign up CTA.
-        "is_guest_launcher": is_guest,
-        # ...but a writable pool visitor and a read-only fallback are NOT the
-        # same experience, so the copy must differ (operator, 2026-07-12).
-        "guest_role": guest_role_for(request.user),
+        "is_guest_launcher": False,
+        "guest_role": "",
     }
 
 

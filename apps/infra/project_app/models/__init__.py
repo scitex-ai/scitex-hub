@@ -9,11 +9,8 @@ Following Django organization best practices:
 """
 
 # Repository models (Project, ProjectMembership - split from core)
-# Core models (ProjectPermission, VisitorAllocation)
-from .core import (
-    ProjectPermission,
-    VisitorAllocation,
-)
+# Core models
+from .core import ProjectPermission
 
 # Issue models
 from .issues import (
@@ -71,7 +68,6 @@ __all__ = [
     "Project",
     "ProjectMembership",
     "ProjectPermission",
-    "VisitorAllocation",
     # Remote project models
     "RemoteCredential",
     "RemoteProjectConfig",

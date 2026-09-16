@@ -69,18 +69,6 @@ CELERY_TASK_ROUTES = {
     "apps.workspace.writer_app.tasks.*": {"queue": "ai_queue"},
     "apps.workspace.scholar_app.tasks.*": {"queue": "search_queue"},
     "apps.workspace.console_app.tasks.*": {"queue": "compute_queue"},
-    # Visitor-pool slot maintenance (reset_visitor_slot, initialize_visitor_workspace)
-    # MUST run on the dedicated, near-empty vis_queue — NOT the default "celery"
-    # queue. The default queue periodically accumulates a large backlog of expired
-    # beat tasks (check_site_health / warm_public_status_cache, plus the
-    # since-deleted status-chart render fan-out, ~40k deep in the 2026-07-11
-    # incident). A boot-time `reconcile_visitor_slots
-    # --async` re-clean enqueued behind that backlog never runs, so every idle slot
-    # stays QUARANTINED and every visitor is downgraded to the read-only fallback —
-    # the root cause of the pool-wide readonly outage. The worker already consumes
-    # vis_queue (compose `--queues=...,vis_queue`), so routing here makes the async
-    # re-clean process within seconds of boot regardless of default-queue depth.
-    "apps.infra.project_app.tasks.visitor_workspace_tasks.*": {"queue": "vis_queue"},
 }
 
 # Fair scheduling: Rate limits per task
@@ -118,14 +106,6 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 # hub-default-queue-immortal-beat-backlog (2026-07-21); regression gate:
 # tests/apps/public_app/test_beat_schedule_expiry.py.
 CELERY_BEAT_SCHEDULE = {
-    # Clean up expired visitor allocations every 5 minutes
-    "cleanup-expired-visitor-allocations": {
-        "task": "apps.infra.public_app.tasks.cleanup_expired_visitor_allocations",
-        "schedule": 300.0,  # Every 5 minutes (in seconds)
-        "options": {
-            "expire_seconds": 270,  # Expire after 4.5 minutes if not started
-        },
-    },
     # NOTE: there is deliberately no server-status chart-render entry here.
     # It was removed on 2026-07-30 (operator decision) after measuring that it
     # dispatched 48 child tasks EVERY 60 SECONDS (8 metrics x 3 windows x 2
@@ -203,12 +183,6 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 120.0,  # Every 2 minutes
         "args": ["celery"],
         "options": {"queue": "celery"},
-    },
-    "queue-liveness-beacon-vis-queue": {
-        "task": "apps.infra.public_app.tasks.queue_liveness_beacon",
-        "schedule": 120.0,  # Every 2 minutes
-        "args": ["vis_queue"],
-        "options": {"queue": "vis_queue"},
     },
 }
 
