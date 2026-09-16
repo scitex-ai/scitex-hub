@@ -143,24 +143,7 @@
                         onclick="if(confirm('Clear all localStorage? This will reset theme preferences and cached data.')) { localStorage.clear(); location.reload(); }">
                     <i class="fas fa-eraser"></i> Clear Cache
                 </button>
-                <button id="init-visitor-pool-btn"
-                        class="dev-tool-btn"
-                        title="Initialize Visitor Pool (Dev)"
-                        onclick="initVisitorPool()">
-                    <i class="fas fa-users-cog"></i> Init Visitors
-                </button>
-                <button id="fill-visitor-slots-btn"
-                        class="dev-tool-btn"
-                        title="Fill all visitor slots to trigger read-only mode"
-                        onclick="fillVisitorSlots()">
-                    <i class="fas fa-user-lock"></i> Fill Slots
-                </button>
-                <button id="free-visitor-slots-btn"
-                        class="dev-tool-btn"
-                        title="Free all visitor slots"
-                        onclick="freeVisitorSlots()">
-                    <i class="fas fa-user-check"></i> Free Slots
-                </button>
+
                 <button id="cancel-all-jobs-btn"
                         class="dev-tool-btn"
                         title="Cancel all SLURM jobs"

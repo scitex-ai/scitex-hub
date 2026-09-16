@@ -7,9 +7,8 @@ The old path pre-rendered every chart with matplotlib: 8 metrics x 3 time
 ranges x 2 themes = 48 Celery child tasks EVERY 60 SECONDS (~69,120 renders
 a day), each importing matplotlib + numpy + scipy.signal and calling
 ``scitex.plt.utils.configure_mpl`` before a ``savefig(dpi=150)``. It put the
-``celery`` queue ~97,000 messages deep on prod and had already starved
-``cleanup_expired_visitor_allocations``, breaking the visitor pool. This
-endpoint serves the same eight panels as ONE cheap JSON read; the browser
+``celery`` queue ~97,000 messages deep on prod. This endpoint serves the
+remaining panels as ONE cheap JSON read; the browser
 draws them as inline SVG.
 
 Three deliberate design decisions:
@@ -36,7 +35,6 @@ from __future__ import annotations
 import logging
 from datetime import timedelta
 
-from django.conf import settings
 from django.http import JsonResponse
 from django.utils import timezone
 
@@ -166,22 +164,7 @@ CHART_SPECS: dict[str, dict] = {
             },
         ],
     },
-    "visitor_pool": {
-        "label": "Visitor Pool",
-        "y_label": "Slots (n)",
-        "unit": "",
-        "y_max": "visitor_pool_size",  # resolved per request from settings
-        "integer": True,
-        "series": [
-            {
-                "key": "allocated",
-                "label": "Allocated",
-                "field": "visitor_pool_allocated",
-                "color_var": "--chart-visitor-pool",
-                "fill": True,
-            }
-        ],
-    },
+
     "active_users": {
         "label": "Active Users",
         "y_label": "Users (n)",
@@ -376,10 +359,7 @@ def _build_chart(spec: dict, rows: list[dict], buckets: list[tuple[int, int]]) -
 
 
 def _resolve_y_max(y_max):
-    """Resolve a symbolic y_max at request time so settings stay authoritative."""
-    if y_max == "visitor_pool_size":
-        pool_size = getattr(settings, "SCITEX_HUB_VISITOR_POOL_SIZE", 4) or 4
-        return int(pool_size)
+    """Return the chart's configured y-axis ceiling."""
     return y_max
 
 

@@ -30,8 +30,8 @@ def visitor_expiration_context(request):
     Returns only what live templates still consume:
         dict: session_role — canonical session-role model
               (services.visitor_pool.get_session_role); read by
-              global_base.html (data-session-role) and the JS role guards
-              (readonly-visitor-guard.ts, visitor-heartbeat.ts). Still
+              global_base.html (data-session-role) and the readonly role guard.
+              Still
               meaningful for PRE-retirement visitor-00N / readonly-visitor
               user rows, who can log in; for new sessions it is
               'registered' or 'anonymous'.

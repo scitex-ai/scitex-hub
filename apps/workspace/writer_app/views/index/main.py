@@ -153,10 +153,8 @@ def index_view(request):
         )
 
         if is_browser:
-            logger.info(
-                "[Writer] Browser request not authenticated - redirecting to visitor-pool-full"
-            )
-            return redirect("public_app:visitor_pool_full")
+            logger.info("[Writer] Signed-out browser redirected to signup")
+            return redirect("auth_app:signup")
 
         return render(
             request,

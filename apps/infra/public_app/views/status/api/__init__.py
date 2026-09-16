@@ -10,7 +10,7 @@ from __future__ import annotations
 from .aggregate import status_api
 from .health import healthz, server_health_status_api, versions_api
 from .history import server_metrics_export_csv, server_metrics_history_api
-from .realtime import server_status_api, visitor_resources_api
+from .realtime import server_status_api
 from .series import server_metrics_series_api
 
 __all__ = [
@@ -22,7 +22,6 @@ __all__ = [
     "server_metrics_series_api",
     "server_status_api",
     "versions_api",
-    "visitor_resources_api",
 ]
 
 

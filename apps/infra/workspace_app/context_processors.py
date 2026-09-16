@@ -166,10 +166,7 @@ def _is_user_profile_path(path: str) -> bool:
         "api-keys",
         "api-docs",
         "server-status",
-        "visitor-status",
-        "visitor-expired",
-        "visitor-restart",
-        "visitor-pool-full",
+
         "__reload__",
         # --- Public marketing / legal / auth routes -------------------------
         # Measured missing 2026-08-15 on production, signed in as test-user:

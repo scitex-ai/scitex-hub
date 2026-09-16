@@ -22,13 +22,6 @@ class TestHealthAPIs:
         data = resp.json()
         assert isinstance(data, dict)
 
-    def test_visitor_heartbeat_api(self, api_client):
-        """Visitor heartbeat API works."""
-        resp = api_client.get("/api/visitor/heartbeat/")
-        # 400 when called without required session/params
-        assert resp.status_code in [200, 400, 401, 403]
-
-
 class TestUserAPIs:
     """Test user-related APIs."""
 

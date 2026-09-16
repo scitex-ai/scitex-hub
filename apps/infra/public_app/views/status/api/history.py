@@ -59,8 +59,6 @@ def _format_metric(m) -> dict:
         "net_recv_mb": m.net_recv_mb,
         "disk_read_mb": m.disk_read_mb,
         "disk_write_mb": m.disk_write_mb,
-        "visitor_pool_allocated": m.visitor_pool_allocated,
-        "visitor_pool_total": m.visitor_pool_total,
         "active_users_count": m.active_users_count,
         "gpu_percent": m.gpu_percent if hasattr(m, "gpu_percent") else None,
     }

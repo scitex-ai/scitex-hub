@@ -121,6 +121,11 @@ class HostMetricsApisAreAdminOnlyTest(TestCase):
         # Assert
         assert response.status_code == 200
 
+    def test_staff_server_status_api_has_no_visitor_capacity_fields(self):
+        self.client.force_login(_make_user("staff-capacity-user", is_staff=True))
+        body = json.loads(self.client.get(SERVER_STATUS_API).content)
+        assert not any(key.startswith("visitor_pool") for key in body)
+
     def test_superuser_server_status_api_is_200(self):
         # Arrange
         self.client.force_login(_make_user("root-user", is_superuser=True))
