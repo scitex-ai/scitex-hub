@@ -9,7 +9,7 @@ allocated a real provisioned slot (workspace + Gitea repo) for ANY
 unauthenticated request whose User-Agent looked like a browser, with only
 "/" and "/landing/" exempt. A crawler walking GitHub-style repo URLs
 (``/visitor-014/dotfiles/blob/gitconfig``, ``/visitor-003/dotfiles/pulls/``,
-``/apps/home?project=NNNNN``) therefore held the entire pool —
+``/apps/home/?project=NNNNN``) therefore held the entire pool —
 ``total=16 allocated=11 free=5 ready=0 ALLOCATABLE=0`` at 18:34Z — and real
 humans fell through to the shared read-only account.
 
@@ -150,7 +150,7 @@ class RepoBrowsePathClassificationTest(TestCase):
         # Arrange
         query = {"project": "31337"}
         # Act
-        matched = is_hub_project_enumeration("/apps/home", query)
+        matched = is_hub_project_enumeration("/apps/home/", query)
         # Assert
         assert matched is True
 
@@ -159,7 +159,7 @@ class RepoBrowsePathClassificationTest(TestCase):
         # workspace" click, which MUST keep allocating.
         query = {}
         # Act
-        matched = is_hub_project_enumeration("/apps/home", query)
+        matched = is_hub_project_enumeration("/apps/home/", query)
         # Assert
         assert matched is False
 
@@ -167,7 +167,7 @@ class RepoBrowsePathClassificationTest(TestCase):
         # Arrange
         query = {"project": "my-paper"}
         # Act
-        matched = is_hub_project_enumeration("/apps/home", query)
+        matched = is_hub_project_enumeration("/apps/home/", query)
         # Assert
         assert matched is False
 
@@ -291,8 +291,8 @@ class BrowseExemptionTakesNoSlotTest(_AllocatablePoolTestCase):
         assert self.live_allocations() == 0
 
     def test_hub_project_enumeration_allocates_nothing(self):
-        # Arrange: the sequential /apps/home?project=NNNNN walk.
-        path = "/apps/home"
+        # Arrange: the sequential /apps/home/?project=NNNNN walk.
+        path = "/apps/home/"
         # Act
         self.run_middleware(path, {"project": "31337"})
         # Assert
@@ -353,8 +353,8 @@ class AppPagesStillAllocateTest(_AllocatablePoolTestCase):
         assert request.user.username == "visitor-001"
 
     def test_hero_cta_hub_index_still_allocates(self):
-        # Arrange: bare /apps/home, no ?project=, is the hero CTA.
-        path = "/apps/home"
+        # Arrange: bare /apps/home/, no ?project=, is the hero CTA.
+        path = "/apps/home/"
         # Act
         self.run_middleware(path)
         # Assert
@@ -405,12 +405,12 @@ class ExemptPathStillRendersTest(_AllocatablePoolTestCase):
 
     def test_hub_enumeration_redirects_anonymous_to_signin(self):
         # Arrange: the visitor pool is retired (2026-09-10). An anonymous
-        # browser hitting /apps/home (with or without ?project=<id>) must be
+        # browser hitting /apps/home/ (with or without ?project=<id>) must be
         # redirected to the sign-in page — NOT to the retired
         # /visitor-pool-full/ (which is a 410). The read-only browse identity
         # that previously let this render 200 without a slot no longer exists;
         # signup-first is the contract.
-        url = "/apps/home"
+        url = "/apps/home/"
         # Act
         response = self.client.get(url, {"project": "31337"})
         # Assert — 302 to the login page, explicitly not to pool-full

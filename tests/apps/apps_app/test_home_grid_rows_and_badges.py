@@ -187,8 +187,8 @@ class HomePagesTest(TestCase):
         # Assert
         assert cells == [
             ("scholar", False),
-            ("stats", True),
             ("figrecipe", False),
+            ("stats", True),
             ("writer", False),
             ("chat", False),
             ("create-app", False),
@@ -209,7 +209,7 @@ class HomePagesTest(TestCase):
         # Act
         names = [c.get("name") for c in groups[1]["cells"]]
         # Assert
-        assert names[:4] == ["scholar", "stats", "figrecipe", "writer"]
+        assert names[:4] == ["scholar", "figrecipe", "stats", "writer"]
 
     def test_publication_group_holds_public_projects_and_hides_slides(self):
         # Arrange

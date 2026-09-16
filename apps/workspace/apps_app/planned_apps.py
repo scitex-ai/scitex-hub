@@ -43,19 +43,6 @@ class PlannedApp:
 
 PLANNED_APPS: tuple[PlannedApp, ...] = (
     PlannedApp(
-        "files",
-        "Files",
-        "ファイル",
-        "fas fa-folder-open",
-        "foundation",
-        "data",
-        "Browse, upload and share the files in your projects.",
-        "プロジェクトのファイルを閲覧・アップロード・共有します。",
-        purpose="A file browser for everything in the user's projects.",
-        screens="project tree; file preview (text, image, PDF, CSV); upload and share dialog.",
-        data="reads and writes files in the project directory; share links are per file.",
-    ),
-    PlannedApp(
         "stats",
         "Stats",
         "統計",
