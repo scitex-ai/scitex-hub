@@ -6,6 +6,7 @@ from .ai_providers_views import ai_limits_api, ai_providers
 
 # API keys views
 from .api_keys_views import api_keys
+from .billing_views import billing_settings
 
 # MCP settings views
 from .mcp_settings_views import auto_response_prefs_api, mcp_settings, mcp_settings_api
@@ -15,7 +16,6 @@ from .profile_views import (
     profile_edit,
     profile_view,
 )
-from .billing_views import billing_settings
 
 # Remote credentials views
 from .remote_credentials_views import remote_credentials
@@ -24,6 +24,7 @@ from .remote_credentials_views import remote_credentials
 from .settings_views import (
     account_settings,
     git_integrations,
+    keyboard_shortcuts,
     repository_health,
 )
 
@@ -51,6 +52,7 @@ __all__ = [
     # Settings and integrations views
     "account_settings",
     "git_integrations",
+    "keyboard_shortcuts",
     "repository_health",
     # AI providers views
     "ai_providers",

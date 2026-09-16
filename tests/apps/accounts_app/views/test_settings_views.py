@@ -2,9 +2,13 @@
 # -*- coding: utf-8 -*-
 """Tests for apps/accounts_app/views/settings_views.py"""
 
-import pytest
+from types import SimpleNamespace
 
-# from apps.infra.accounts_app.views.settings_views import ...
+import pytest
+from django.urls import reverse
+
+from apps.infra.accounts_app.keymap_preferences import empty_preferences
+from apps.infra.accounts_app.views import settings_views
 
 
 class TestPlaceholder:
@@ -16,6 +20,110 @@ class TestPlaceholder:
         # Act
         # Assert
         pytest.skip("Not implemented yet")
+
+
+def test_keyboard_shortcuts_get_filters_the_shared_command_catalog(monkeypatch):
+    # Arrange
+    profile = SimpleNamespace(keymap_preferences=empty_preferences())
+    request = SimpleNamespace(
+        method="GET",
+        GET={"q": "upload"},
+        POST={},
+        user=SimpleNamespace(is_authenticated=True, profile=profile),
+    )
+    monkeypatch.setattr(
+        settings_views,
+        "render",
+        lambda _request, _template, context: context,
+    )
+    # Act
+    context = settings_views.keyboard_shortcuts.__wrapped__(request)
+    # Assert
+    assert [row["command_id"] for row in context["shortcut_rows"]] == ["file:upload"]
+
+
+def test_keyboard_shortcuts_post_persists_a_binding_override(monkeypatch):
+    # Arrange
+    saved = []
+    profile = SimpleNamespace(
+        keymap_preferences=empty_preferences(),
+        save=lambda **kwargs: saved.append(kwargs),
+    )
+    request = SimpleNamespace(
+        method="POST",
+        GET={},
+        POST={
+            "action": "bind",
+            "scope": "global",
+            "command_id": "ai-panel:toggle",
+            "sequence": "Alt+Shift+A",
+        },
+        user=SimpleNamespace(is_authenticated=True, profile=profile),
+    )
+    monkeypatch.setattr(settings_views.messages, "success", lambda *_args: None)
+    monkeypatch.setattr(settings_views, "redirect", lambda name: name)
+    # Act
+    settings_views.keyboard_shortcuts.__wrapped__(request)
+    # Assert
+    assert (profile.keymap_preferences, saved) == (
+        {
+            "version": 1,
+            "bindings": {"global": {"ai-panel:toggle": "Alt+Shift+A"}},
+            "unbound": {},
+        },
+        [{"update_fields": ["keymap_preferences", "updated_at"]}],
+    )
+
+
+@pytest.mark.parametrize(
+    ("scope", "command_id", "sequence"),
+    [
+        ("global", "unknown:command", "Alt+Z"),
+        ("writer", "ai-panel:toggle", "Alt+Z"),
+        ("global", "ai-panel:toggle", "Ctrl+U"),
+    ],
+)
+def test_keyboard_shortcuts_post_refuses_unknown_scope_mismatch_and_default_conflict(
+    monkeypatch, scope, command_id, sequence
+):
+    # Arrange
+    errors = []
+    saved = []
+    profile = SimpleNamespace(
+        keymap_preferences=empty_preferences(),
+        save=lambda **kwargs: saved.append(kwargs),
+    )
+    request = SimpleNamespace(
+        method="POST",
+        GET={},
+        POST={
+            "action": "bind",
+            "scope": scope,
+            "command_id": command_id,
+            "sequence": sequence,
+        },
+        user=SimpleNamespace(is_authenticated=True, profile=profile),
+    )
+    monkeypatch.setattr(
+        settings_views.messages, "error", lambda _request, message: errors.append(message)
+    )
+    monkeypatch.setattr(settings_views.messages, "success", lambda *_args: None)
+    monkeypatch.setattr(settings_views, "redirect", lambda name: name)
+    # Act
+    settings_views.keyboard_shortcuts.__wrapped__(request)
+    # Assert
+    assert (bool(errors), saved, profile.keymap_preferences) == (
+        True,
+        [],
+        empty_preferences(),
+    )
+
+
+def test_keyboard_shortcuts_has_a_stable_settings_route():
+    # Arrange / Act
+    url = reverse("accounts_app:keyboard_shortcuts")
+    # Assert
+    assert url == "/accounts/settings/keyboard-shortcuts/"
 
 
 if __name__ == "__main__":
