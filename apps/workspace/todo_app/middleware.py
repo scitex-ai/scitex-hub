@@ -25,8 +25,7 @@ This middleware makes the mount multi-tenant while keeping Django thin
    makes our injected value indistinguishable from a hostile ``?store=``
    for anything downstream, which is why rule 1 has to exist at all.
 3. **Phase 1 is read-only** — every non-GET/HEAD/OPTIONS request under
-   ``/todo/`` is rejected: readonly visitors get the structured #308
-   write-rejection payload; everyone else gets an explicit
+   ``/todo/`` is rejected with an explicit
    ``todo-board-readonly-phase1`` 403 (no silent fallback — the board's
    own mutating handlers are POST-only, so this gate covers all of them,
    including the csrf_exempt ``api_dispatch`` catch-all and the
@@ -44,8 +43,8 @@ This middleware makes the mount multi-tenant while keeping Django thin
    ``$SCITEX_HUB_CARDS_STORE`` as the canonical ``$SCITEX_STORE_DSN`` (without
    overwriting an explicit ``$SCITEX_STORE_DSN``).
 
-Runs LAST in the request phase (after Authentication + VisitorAutoLogin)
-so ``request.user`` is final, and no-ops in one prefix check for every
+Runs after Authentication so ``request.user`` is final, and no-ops in one
+prefix check for every
 non-``/todo/`` request.
 """
 
@@ -176,9 +175,8 @@ class TodoBoardTenancyMiddleware:
         # --- Tenancy: server-side store resolution -------------------
         user = getattr(request, "user", None)
         if user is None or not user.is_authenticated:
-            # VisitorAutoLoginMiddleware normally leaves no anonymous
-            # sessions; if one still reaches us, page navigations go to
-            # login, while data fetches get shaped 401 JSON — a redirect
+            # Page navigations go to login, while data fetches get shaped
+            # 401 JSON — a redirect
             # would hand the login page's HTML to the board JS's JSON
             # parser (the board renders a signed-out panel from this
             # payload instead).
@@ -284,12 +282,7 @@ class TodoBoardTenancyMiddleware:
         Two checks the blanket phase-1 rejection used to make unnecessary,
         because nothing mutating ever got this far.
 
-        1. READONLY VISITOR. Shared-pool visitors must not send DMs as
-           themselves into someone else's store. Same structured #308
-           payload the rest of the site uses, so the shared frontend guard
-           renders the Sign up / Log in toast rather than a raw 403.
-
-        2. CSRF — and this one is load-bearing, not ceremony. The upstream
+        CSRF is load-bearing, not ceremony. The upstream
            ``dm_thread_view`` is ``@csrf_exempt``
            (scitex_cards._django.handlers.dm), and the hub authenticates
            with a SESSION COOKIE. Cookie auth plus an exempt POST is a
@@ -307,14 +300,6 @@ class TodoBoardTenancyMiddleware:
            is a check rather than a re-parse. Returns ``None`` when the
            token is good.
         """
-        from apps.infra.project_app.services.visitor_pool import (
-            is_readonly_visitor,
-            readonly_write_rejection,
-        )
-
-        if is_readonly_visitor(request):
-            return readonly_write_rejection("send messages", request=request)
-
         csrf = CsrfViewMiddleware(lambda _req: None)
         reason = csrf.process_view(request, lambda *a, **kw: None, (), {})
         if reason is not None:
@@ -370,15 +355,6 @@ class TodoBoardTenancyMiddleware:
     @staticmethod
     def _write_rejection(request):
         """403 for any mutating request under /todo/ (phase 1)."""
-        from apps.infra.project_app.services.visitor_pool import (
-            is_readonly_visitor,
-            readonly_write_rejection,
-        )
-
-        if is_readonly_visitor(request):
-            # Structured #308 payload → the shared frontend guard turns
-            # it into the Sign up / Log in toast.
-            return readonly_write_rejection("edit the todo board", request=request)
         return JsonResponse(
             {
                 "error": (

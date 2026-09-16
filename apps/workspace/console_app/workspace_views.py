@@ -22,58 +22,36 @@ def code_workspace(request):
     URL: /code/ (replaces index redirect)
     Gets project from header dropdown via get_current_project()
 
-    Signed-out browsers are sent to the signup-first entry point.
+    Requires an authenticated account.
     """
     context = {
-        # is_visitor handled by context processor
         "is_workspace_page": True,
         "module_name": "Code",
         "module_icon": "fa-code",
     }
 
-    # Signed-out browser requests join through signup.
     if not request.user.is_authenticated:
-        # Check if this is a browser request (has typical browser User-Agent)
-        user_agent = request.META.get("HTTP_USER_AGENT", "")
-        is_browser = any(
-            browser in user_agent
-            for browser in ["Mozilla", "Chrome", "Safari", "Firefox", "Edge", "Opera"]
-        )
+        return redirect("auth_app:signup")
 
-        if is_browser:
-            logger.info("[Code] Signed-out browser redirected to signup")
-            return redirect("auth_app:signup")
+    # Get current project from header dropdown
+    current_project = get_current_project(request, user=request.user)
 
-        # Non-browser request (API, bot, etc.) - just return the page
-        return render(request, "console_app/workspace.html", context)
-
-    if request.user.is_authenticated:
-        # Mark as demo if visitor
-        if request.user.username.startswith("visitor-"):
-            context["is_demo"] = True
-            context["visitor_username"] = request.user.username
-
-        # Get current project from header dropdown
-        current_project = get_current_project(request, user=request.user)
+    if current_project:
+        # Check if user can edit this project (owner or write/admin collaborator)
+        if not current_project.can_edit(request.user):
+            logger.info(
+                "[Code] User %s cannot edit project %s, falling back to an owned project",
+                request.user.username,
+                current_project.slug,
+            )
+            current_project = Project.objects.filter(owner=request.user).first()
+            if not current_project:
+                context["needs_project_creation"] = True
 
         if current_project:
-            # Check if user can edit this project (owner or write/admin collaborator)
-            if not current_project.can_edit(request.user):
-                # User can view but not edit - fall back to their own projects
-                logger.info(
-                    f"[Code] User {request.user.username} cannot edit project {current_project.slug}, "
-                    f"falling back to user's own projects"
-                )
-                current_project = Project.objects.filter(owner=request.user).first()
-                if not current_project:
-                    # User has no projects - show creation prompt
-                    context["needs_project_creation"] = True
-
-            if current_project:
-                context["current_project"] = current_project
-                context["project"] = current_project
-        else:
-            # User authenticated but no project selected
-            context["needs_project_creation"] = True
+            context["current_project"] = current_project
+            context["project"] = current_project
+    else:
+        context["needs_project_creation"] = True
 
     return render(request, "console_app/workspace.html", context)

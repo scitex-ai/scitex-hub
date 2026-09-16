@@ -24,15 +24,13 @@ false. Nothing was lying and nothing was useful.
 THE CORRECTION. "Clean" is not "available". A slot is allocatable only when
 nobody holds it:
 
-    allocatable = NOT quarantined AND NOT is_active AND workspace_ready
+    allocatable = NOT quarantined AND workspace_ready
+                  AND NOT (is_active AND expires_at > now)
 
-That is the predicate ``PoolAllocator._try_allocate_slot`` actually serves, so
-it is the only number that answers "can the NEXT visitor get a real slot?".
-Deliberately NOT the looser ``NOT (is_active AND expires_at > now)``: a row
-that is ``is_active`` but stale is not served either — the allocator releases
-it, sets ``workspace_ready=False`` and enqueues an async wipe, then REFUSES it
-to the requester who found it. Counting such rows as available would be wrong
-in the optimistic direction, which is the exact failure mode of ``free``.
+The predicate lives in ``slot_lifecycle.allocatable_slot_q`` and is reused by
+this measurement rather than restated as a second ORM filter. An expired lease
+does not hold a verified-clean slot; an idle-but-unexpired lease remains
+reclaimable until the release pipeline runs.
 
 AND WHY IT IS ZERO. Zero-allocatable has four causes with four DIFFERENT
 repairs, and naming the wrong one is worse than naming none: on a saturated
@@ -78,14 +76,20 @@ def measure_pool(pool_size: int) -> dict:
     pool are slots that can never be handed out; counting them inflated
     ``ready`` with unreachable capacity.
     """
+    from datetime import timedelta
+
+    from django.db.models import Q
     from django.utils import timezone
 
     from apps.infra.project_app.models import VisitorAllocation
 
-    from .slot_lifecycle import stale_allocation_q
-
     now = timezone.now()
-    stale = stale_allocation_q(now)
+    idle_cutoff = now - timedelta(minutes=30)
+    stale = (
+        Q(expires_at__lt=now)
+        | Q(last_activity__lt=idle_cutoff)
+        | Q(last_activity__isnull=True, allocated_at__lt=idle_cutoff)
+    )
 
     rows = VisitorAllocation.objects.filter(visitor_number__lte=pool_size)
     usable = rows.filter(quarantined=False)
@@ -97,13 +101,18 @@ def measure_pool(pool_size: int) -> dict:
     # wedge the pool at free=0 (prod 2026-07-09).
     live = usable.filter(is_active=True).exclude(stale).count()
 
-    # Reclaimable is its OWN bucket rather than folded into allocatable:
-    # ``_try_allocate_slot`` does not serve these. It releases the stale row,
-    # sets ``workspace_ready=False``, enqueues the async wipe, and then REFUSES
-    # the slot to the very request that found it.
-    reclaimable = usable.filter(is_active=True).filter(stale).count()
+    # Reclaimable is its OWN bucket rather than folded into allocatable: an
+    # idle-but-unexpired row still owns its lease until release runs.
+    allocatable_q = Q(quarantined=False, workspace_ready=True) & (
+        Q(is_active=False) | Q(expires_at__lte=now)
+    )
+    reclaimable = (
+        usable.filter(is_active=True).filter(stale).exclude(allocatable_q).count()
+    )
 
-    allocatable = usable.filter(is_active=False, workspace_ready=True).count()
+    # Reuse the allocation service's canonical eligibility predicate. In
+    # particular, an expired lease no longer holds a verified-clean slot.
+    allocatable = rows.filter(allocatable_q).count()
     resetting = usable.filter(is_active=False, workspace_ready=False).count()
 
     quarantined = rows.filter(quarantined=True).count()
