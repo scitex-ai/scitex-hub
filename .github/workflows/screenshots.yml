@@ -214,6 +214,13 @@ jobs:
                   'is_home': True,
               },
           )
+          # Signup provisioning also creates the user's dotfiles project. Make
+          # the research project explicit so Writer does not open dotfiles just
+          # because it has the lower primary key.
+          profile = u.profile
+          profile.last_active_repository = project
+          profile.save(update_fields=['last_active_repository'])
+
           manager = get_project_filesystem_manager(u)
           success, project_root = manager.create_project_directory(
               project, use_template=False
