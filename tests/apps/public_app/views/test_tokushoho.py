@@ -375,7 +375,7 @@ class TestTokushohoPage:
         # Assert
         assert "動作環境" in content
 
-    def test_terms_page_footer_links_to_tokushoho(self, client):
+    def test_terms_page_footer_links_to_english_tokushoho(self, client):
         # Arrange: footer is global — a lightweight legal page carries it
         url = reverse("public_app:terms")
         # Act
