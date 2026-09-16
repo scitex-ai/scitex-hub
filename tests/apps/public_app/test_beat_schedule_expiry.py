@@ -58,7 +58,6 @@ SETTINGS_DEV_PATH = REPO_ROOT / "config" / "settings" / "settings_dev.py"
 NO_EXPIRY_BY_DESIGN = frozenset(
     {
         "queue-liveness-beacon-celery",
-        "queue-liveness-beacon-vis-queue",
     }
 )
 
@@ -133,7 +132,7 @@ class TestUnpackOptionsCarriesExpiry:
 
 
 class TestBeaconsStayImmortal:
-    """The two liveness beacons must declare NO expiry, in any spelling —
+    """The liveness beacon must declare NO expiry, in any spelling —
     expiring them would shrink the healthcheck's 600s budget to 120s."""
 
     @pytest.mark.parametrize("entry_name", sorted(NO_EXPIRY_BY_DESIGN))

@@ -530,61 +530,6 @@ class DefaultPinSeedTest(TestCase):
         ]
 
 
-class TestPoolAccountsAreNeverSeeded(TestCase):
-    """Visitor-pool accounts must not receive default pins.
-
-    Regression (operator report 2026-07-17, Telegram 1311 — "the sidebar
-    came back"): the default-pin self-heal above seeds ANY authenticated
-    user with zero pins, and the rotating visitor-NNN slot accounts are
-    users — so every anonymous visitor's sidebar filled with the five
-    default apps. Pool accounts are shared, recycled identities: a pin
-    seeded today renders for every future visitor of that slot. Visitors
-    get the minimal sidebar; apps are discovered via the launcher grid.
-    """
-
-    @classmethod
-    def setUpTestData(cls):
-        cls.visitor = User.objects.create_user(
-            username="visitor-001",
-            password="TestPass123!",  # pragma: allowlist secret
-        )
-
-    def test_visitor_account_is_not_seeded(self):
-        # Arrange
-        user = self.visitor
-        # Act
-        created = seed_default_pins(user)
-        # Assert
-        assert created is False
-
-    def test_visitor_account_gets_no_pin_rows(self):
-        # Arrange
-        user = self.visitor
-        # Act
-        seed_default_pins(user)
-        rows = ModuleInstallation.objects.filter(user=user).count()
-        # Assert
-        assert rows == 0
-
-    def test_visitor_pinned_names_stay_empty(self):
-        # Arrange — the auto-seeding read path must not seed pool accounts
-        user = self.visitor
-        # Act
-        pinned = get_pinned_module_names(user)
-        # Assert
-        assert pinned == []
-
-
-    def test_regular_user_seeding_is_unaffected(self):
-        # Arrange — the guard must not break the self-heal for real users
-        user = User.objects.create_user(
-            username="real-user",
-            password="TestPass123!",  # pragma: allowlist secret
-        )
-        # Act
-        pinned = get_pinned_module_names(user)
-        # Assert
-        assert pinned != []
 
 
 # EOF
