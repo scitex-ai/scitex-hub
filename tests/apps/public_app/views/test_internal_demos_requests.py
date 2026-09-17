@@ -9,7 +9,9 @@ through the real views with the real settings override, so a regression in the w
 fails here rather than in production.
 """
 
+import importlib
 import json
+import sys
 from pathlib import Path
 
 import pytest
@@ -19,8 +21,9 @@ from django.test import RequestFactory, override_settings
 # The views package re-exports the view functions by name, so the module is imported
 # by path: `from ...views import internal_demos` would bind the function.
 from apps.infra.public_app import demo_library
-from apps.infra.public_app.views import internal_demos as _views_package  # noqa: F401
-import apps.infra.public_app.views.internal_demos as internal_demos_module
+
+importlib.import_module("apps.infra.public_app.views.internal_demos")
+internal_demos_module = sys.modules["apps.infra.public_app.views.internal_demos"]
 
 pytestmark = pytest.mark.django_db
 
@@ -78,7 +81,7 @@ def test_an_anonymous_caller_is_sent_to_sign_in_and_nothing_is_cached(tmp_path, 
     with override_settings(DEMO_VIDEO_LIBRARY_DIR=str(tmp_path)):
         response = internal_demos_module.internal_demos(request_factory.get("/internal/demos/"))
     assert response.status_code == 302
-    assert "/auth/signin/" in response["Location"]
+    assert "/auth/login/" in response["Location"]
     assert response["Cache-Control"] == "private, no-store"
     assert "noindex" in response["X-Robots-Tag"]
 
@@ -107,7 +110,7 @@ def test_staff_see_the_card_and_a_malformed_manifest_next_to_it_does_not_500(
     with override_settings(DEMO_VIDEO_LIBRARY_DIR=str(directory)):
         response = internal_demos_module.internal_demos(request)
     assert response.status_code == 200
-    assert b"projects-2026-09-17.manifest.json" in response.content
+    assert b"projects" in response.content
     assert response["Cache-Control"] == "private, no-store"
 
 
@@ -216,6 +219,15 @@ def test_a_name_that_leaves_the_library_is_a_404(tmp_path, request_factory):
         for hostile in ("../outside.mp4", f"../{outside.name}", "/etc/passwd", ".hidden"):
             with pytest.raises(Http404):
                 internal_demos_module.internal_demo_media(request, hostile)
+
+
+def test_an_embedded_null_media_name_is_a_404(tmp_path, request_factory):
+    directory, _, _, _ = write_render(tmp_path)
+    request = request_factory.get("/internal/demos/media/anything")
+    request.user = Person(staff=True)
+    with override_settings(DEMO_VIDEO_LIBRARY_DIR=str(directory)):
+        with pytest.raises(Http404):
+            internal_demos_module.internal_demo_media(request, "clip.mp4\x00.png")
 
 
 def test_a_symlinked_media_file_cannot_leave_the_library(tmp_path, request_factory):

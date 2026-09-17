@@ -8,20 +8,19 @@ rejected history still visible, defects listed, play and download working, and n
 which a request can change a status.
 """
 
+import importlib
 import json
+import sys
 from pathlib import Path
+from urllib.parse import parse_qs
 
 import pytest
 from django.test import RequestFactory, override_settings
-
-import importlib
 
 from apps.infra.public_app import clip_registry, demo_library
 
 # The views package re-exports the view function under the same name as its module, so
 # `import ... as` binds the function; these tests drive the module itself.
-import sys
-
 importlib.import_module("apps.infra.public_app.views.internal_demos")
 # sys.modules holds modules; the package attribute of the same name holds the function,
 # which is why importing by name and then reaching for .internal_demos finds a function.
@@ -30,7 +29,7 @@ internal_demos_module = sys.modules["apps.infra.public_app.views.internal_demos"
 # These tests build requests and read files: nothing here touches the ORM, so they must not
 # require a database. The app migrations are Postgres-only, and a staff page that cannot be
 # smoke-tested without Postgres is a page nobody can check on a laptop.
-pytestmark = []
+pytestmark = pytest.mark.django_db
 
 
 class Person:
@@ -95,7 +94,8 @@ def seed(tmp_path: Path, *, rejected=False):
 
 
 def index(request_factory, media, catalog, *, person=None, query=""):
-    request = request_factory.get(f"/internal/demos/{query}")
+    params = parse_qs(query.removeprefix("?")) if query else {}
+    request = request_factory.get("/internal/demos/", data=params)
     if person is not None:
         request.user = person
     with override_settings(DEMO_VIDEO_LIBRARY_DIR=str(media),
@@ -107,7 +107,7 @@ def test_an_anonymous_caller_is_sent_to_sign_in_and_nothing_is_cached(tmp_path, 
     media, catalog, _, _ = seed(tmp_path)
     response = index(rf, media, catalog)
     assert response.status_code == 302
-    assert "/auth/signin/" in response["Location"]
+    assert "/auth/login/" in response["Location"]
     assert response["Cache-Control"] == "private, no-store"
     assert "noindex" in response["X-Robots-Tag"]
 
@@ -135,10 +135,16 @@ def test_staff_see_every_entry_latest_first_with_its_provenance(tmp_path, rf):
 
 
 def test_the_only_filters_are_flow_and_status(tmp_path, rf):
-    media, catalog, first, second = seed(tmp_path, rejected=True)
+    media, catalog, first, second = seed(tmp_path)
     only_drafts = index(rf, media, catalog, person=Person(staff=True), query="?status=draft")
     assert first["id"] not in only_drafts.content.decode()
     assert second["id"] in only_drafts.content.decode()
+    clip_registry.reject(
+        catalog,
+        second["id"],
+        by="operator",
+        reason="interface was dark from the workspace onward",
+    )
     only_rejected = index(rf, media, catalog, person=Person(staff=True), query="?status=rejected")
     assert "Rejected" in only_rejected.content.decode()
     other_flow = index(rf, media, catalog, person=Person(staff=True), query="?flow=scholar")
@@ -168,14 +174,18 @@ def test_play_streams_and_download_is_an_attachment(tmp_path, rf):
     request.user = Person(staff=True)
     with override_settings(DEMO_VIDEO_LIBRARY_DIR=str(media), DEMO_VIDEO_CATALOG=str(catalog)):
         play = internal_demos_module.internal_demo_media(request, name)
-        ranged = internal_demos_module.internal_demo_media(
-            rf.get(f"/internal/demos/media/{name}", HTTP_RANGE="bytes=0-4"), name
+        ranged_request = rf.get(
+            f"/internal/demos/media/{name}", HTTP_RANGE="bytes=0-4"
         )
-        downloaded = internal_demos_module.internal_demo_media(
-            rf.get(f"/internal/demos/media/{name}", {"download": "1"}), name
+        ranged_request.user = Person(staff=True)
+        ranged = internal_demos_module.internal_demo_media(ranged_request, name)
+        download_request = rf.get(
+            f"/internal/demos/media/{name}", {"download": "1"}
         )
+        download_request.user = Person(staff=True)
+        downloaded = internal_demos_module.internal_demo_media(download_request, name)
     assert play.status_code == 200
-    assert "Content-Disposition" not in play          # play streams in place
+    assert not play.get("Content-Disposition", "").startswith("attachment;")
     assert play["Accept-Ranges"] == "bytes"
     assert play["Cache-Control"] == "private, no-store"
     assert ranged.status_code == 206

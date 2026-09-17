@@ -124,5 +124,9 @@ in what state, and why was that one rejected". Status is shown, never changed he
   .internal-demos .media-item { margin-right: 1rem; }
   .internal-demos .media-item .role { color: #666; margin-right: .35rem; }
   .internal-demos .rejection { color: #a11; font-size: .9rem; margin-top: .3rem; }
+  @media (max-width: 480px) {
+    .internal-demos .entries { grid-template-columns: 1fr; }
+    .internal-demos .media-item { display: block; margin: .4rem 0; }
+  }
 </style>
 {% endblock %}

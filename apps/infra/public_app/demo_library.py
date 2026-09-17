@@ -519,10 +519,10 @@ def resolve_media(directory: Path, name: str) -> Path | None:
         if not segment or segment.startswith(".") or ".." in segment:
             return None
     directory = Path(directory)
-    candidate = directory.joinpath(*segments).resolve()
     try:
+        candidate = directory.joinpath(*segments).resolve()
         root = directory.resolve()
-    except OSError:
+    except (OSError, ValueError, UnicodeError):
         return None
     if root not in candidate.parents:
         return None

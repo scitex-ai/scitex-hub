@@ -96,7 +96,7 @@ def access_denied(request):
 def media_url(name: str, folder: str = "") -> str:
     """The authorized route for one file, folder-qualified when the render has one."""
     qualified = f"{folder}/{name}" if folder else name
-    return reverse("internal_demo_media", kwargs={"name": qualified})
+    return reverse("public_app:internal_demo_media", kwargs={"name": qualified})
 
 
 def card_for(clip: dict, directory) -> dict:
@@ -178,7 +178,7 @@ def index_view(request):
     # a re-render of the same day's scenario sorts above the take it replaced.
     cards.sort(key=lambda card: (card["date"], card["registered_at"]), reverse=True)
 
-    counts = {status: 0 for status in statuses}
+    counts = dict.fromkeys(statuses, 0)
     for card in cards:
         counts[card["status"]] = counts.get(card["status"], 0) + 1
 

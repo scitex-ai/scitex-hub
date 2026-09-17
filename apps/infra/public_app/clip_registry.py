@@ -218,7 +218,7 @@ def reject(catalog_path: Path, identifier: str, *, by: str, reason: str) -> dict
 
 def summary(catalog: dict) -> dict:
     """Counts by status, plus what is waiting on a person rather than on the pipeline."""
-    counts = {status: 0 for status in STATUSES}
+    counts = dict.fromkeys(STATUSES, 0)
     for clip in catalog["clips"]:
         counts[clip.get("status", "draft")] = counts.get(clip.get("status", "draft"), 0) + 1
     drafts_with_defects = [

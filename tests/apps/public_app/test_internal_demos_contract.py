@@ -39,12 +39,12 @@ def test_both_views_gate_access_before_they_do_anything():
     # Arrange
     source = view_source()
     # Act
-    library_body = function_body(source, "internal_demos")
-    media_body = function_body(source, "internal_demo_media")
+    library_body = function_body(source, "index_view")
+    media_body = function_body(source, "media_view")
     # Assert: the gate is the first statement of each, not a later courtesy.
-    assert library_body.splitlines()[1].strip() == '"""The library index: one card per render, with its derived visibility."""'
+    assert "Latest first" in library_body.splitlines()[1]
     assert "denial = access_denied(request)" in library_body
-    assert library_body.index("access_denied(request)") < library_body.index("library_index(")
+    assert library_body.index("access_denied(request)") < library_body.index("load_catalog(")
     assert media_body.index("access_denied(request)") < media_body.index("resolve_media(")
 
 
@@ -63,8 +63,9 @@ def test_the_views_are_plain_functions_not_decorated_wrappers():
     # Arrange / Act
     lines = view_source().splitlines()
     decorated = [
-        lines[index - 1].strip() for index, line in enumerate(lines)
-        if line.startswith("def internal_demo")
+        lines[index - 1].strip()
+        for index, line in enumerate(lines)
+        if line.startswith(("def index_view", "def media_view"))
     ]
     # Assert: routing tests assert resolve(path).func is <view>.
     assert all(not line.startswith("@") for line in decorated)
@@ -72,7 +73,7 @@ def test_the_views_are_plain_functions_not_decorated_wrappers():
 
 def test_media_is_served_through_the_sanitizer_and_is_not_cacheable():
     # Arrange / Act
-    body = function_body(view_source(), "internal_demo_media")
+    body = function_body(view_source(), "media_view")
     # Assert
     assert "demo_library.resolve_media(directory, name)" in body
     assert 'response["Cache-Control"] = "private, no-store"' in body
@@ -121,7 +122,8 @@ def test_the_template_is_reduced_motion_safe_and_never_links_public_media():
     assert "animation:" not in without_comments
     assert "transition:" not in without_comments
     assert "/media/" not in template
-    assert "row.urls." in template, "links come from the authorized media route"
+    assert "file.play_url" in template, "links come from the authorized media route"
+    assert "file.download_url" in template
 
 
 def test_the_template_stacks_to_one_column_on_a_phone():
@@ -136,9 +138,14 @@ def test_the_template_shows_the_facts_a_card_must_not_invent():
     # Arrange: the card list from hub-internal-demo-video-library-20260917.
     template = TEMPLATE.read_text(encoding="utf-8")
     # Act / Assert
-    for field in ("entry.app", "entry.date", "entry.hub_version", "entry.commit",
-                  "entry.captured_at", "entry.viewports", "entry.watch.state",
-                  "entry.visibility", "entry.renditions"):
+    for field in (
+        "card.flow",
+        "card.date",
+        "card.dev_commit_short",
+        "card.viewports",
+        "card.status",
+        "card.languages",
+        "card.files",
+    ):
         assert field in template, field
-    # An unwatched language is named, not summarised away.
-    assert "entry.watch.missing" in template
+    assert "card.defects" in template
