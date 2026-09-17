@@ -71,7 +71,9 @@ dependencies = [
     # project root; older writers compose root/00_shared and fail to compile.
     # >=2.43.3: package-owned header plus the 390px Files/Editor/PDF layout,
     # explicit tap navigation, safe-area action bar, and fit-width PDF canvas.
-    "scitex-writer>=2.43.3",
+    # >=2.43.4: the published wheel restores 119 packaged helper scripts,
+    # including check_dependancy_commands.sh; 2.43.3 omitted them from its sdist.
+    "scitex-writer>=2.43.4",
     # >=1.9.0 is a MOUNT requirement, not a feature preference. Below it the
     # leaf's client JS builds API urls from the SITE ROOT
     # (static/scholar/js/graph/citation-graph.js: fetch("/api/graph/health")),

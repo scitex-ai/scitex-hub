@@ -13,7 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Added a visible localized App Creator label to the launcher add slot.
-- Adopted Writer 2.43.3 with its leaf-owned title/version header and verified
+- Adopted Writer 2.43.4 with its leaf-owned title/version header, restored
+  packaged helper scripts, and verified
   390px Files, Editor, and PDF workflow.
 
 ### Fixed
