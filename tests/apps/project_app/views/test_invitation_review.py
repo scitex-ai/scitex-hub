@@ -250,4 +250,78 @@ class TestInvitationRoute:
         assert invitation.status == "declined"
 
 
+# ---------------------------------------------------------------------------
+# the owner's side: a copyable link and the three steps (no database)
+# ---------------------------------------------------------------------------
+
+OWNER_PANEL = "project_app/projects/settings_partials/settings_collaborators.html"
+
+
+class _All(list):
+    """Stands in for a related manager: the partial asks for `.all`."""
+
+    @property
+    def all(self):
+        return list(self)
+
+    @property
+    def count(self):
+        return len(self)
+
+
+class _Invitation:
+    def __init__(self, token, username, status="pending", role="collaborator",
+                 permission_level="write", expires_at="2026-09-24 00:00 UTC"):
+        self.token = token
+        self.invited_user = type("U", (), {"username": username})()
+        self.status = status
+        self.role = role
+        self.permission_level = permission_level
+        self.expires_at = expires_at
+
+
+def _owner_panel(invitations):
+    project = type("P", (), {
+        "invitations": _All(invitations),
+        "memberships": _All([]),
+    })()
+    return render_to_string(OWNER_PANEL, {"project": project})
+
+
+def test_the_owner_can_copy_the_invitation_link():
+    html = _owner_panel([_Invitation("abc123", "bob")])
+
+    assert 'data-invite-link="abc123"' in html, "no copyable link for the pending invite"
+    assert 'value="/invitations/abc123/accept/"' in html
+    assert 'data-copy-invite-link="invite-link-abc123"' in html, "no copy control"
+    assert re.search(r'readonly', html), "the link field must be readonly"
+
+
+def test_the_panel_states_the_three_steps_and_the_limits_of_the_link():
+    html = _owner_panel([_Invitation("abc123", "bob")])
+    text = _text(html).lower()
+
+    assert 'data-invite-steps="true"' in html
+    assert "sign in" in text and "create and verify" in text
+    assert "review the project and the role" in text
+    assert "opening the link does not join them" in text
+    assert "only the invited account can accept" in text
+
+
+def test_the_panel_shows_the_role_access_and_expiry_next_to_the_link():
+    html = _owner_panel([_Invitation("abc123", "bob")])
+    text = _text(html)
+
+    assert "Collaborator" in text and "Write" in text
+    assert "2026-09-24 00:00 UTC" in text
+
+
+def test_a_non_pending_invitation_exposes_no_token():
+    """Accepted/declined invites must not keep handing out a redeemable URL."""
+    html = _owner_panel([_Invitation("gone999", "carol", status="accepted")])
+
+    assert "gone999" not in html, "a non-pending invitation still renders its token"
+    assert "data-invite-link=" not in html
+
+
 # EOF
