@@ -39,7 +39,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.http import urlencode
 
-from .. import clip_registry, demo_library
+from .. import clip_registry, demo_library, demo_share
 from .status.access import is_instance_admin
 
 logger = logging.getLogger(__name__)
@@ -91,6 +91,78 @@ def access_denied(request):
     if not is_instance_admin(user):
         return no_store(HttpResponseForbidden(STAFF_ONLY_MESSAGE))
     return None
+
+
+SHARE_STORE_FILENAME = "demos-visibility.json"
+MINTED_SESSION_KEY = "demo_share_minted_once"
+
+
+def share_store_path():
+    """Where the per-entry visibility lives: beside the catalog, or wherever set."""
+    configured = getattr(settings, "DEMO_VIDEO_VISIBILITY_STORE", "") or ""
+    if configured:
+        from pathlib import Path
+
+        return Path(configured)
+    path = catalog_path()
+    return path.with_name(SHARE_STORE_FILENAME) if path else None
+
+
+def entry_anchor(entry_id: str) -> str:
+    return f"#entry-{entry_id}"
+
+
+def visibility_view(request):
+    """Flip one entry between Internal and Anyone-with-link. Staff only, POST only.
+
+    A GET is refused rather than treated as a no-op: a link that changes visibility
+    when something crawls it is worse than no link. The minted token is handed to the
+    page through the session for exactly one render - never as a query parameter, where
+    it would land in browser history and server logs.
+    """
+    if request.method != "POST":
+        return no_store(HttpResponse("POST required", status=405))
+    denial = access_denied(request)
+    if denial is not None:
+        return denial
+
+    store = share_store_path()
+    if store is None:
+        return no_store(HttpResponse("no visibility store configured", status=503))
+
+    entry_id = (request.POST.get("clip_id") or "").strip()
+    visibility = (request.POST.get("visibility") or "").strip()
+    passcode = request.POST.get("passcode") or ""
+
+    status = ""
+    path = catalog_path()
+    if path is not None:
+        try:
+            for clip in clip_registry.load_catalog(path).get("clips", []):
+                if clip.get("id") == entry_id:
+                    status = clip.get("status", "")
+                    break
+        except (clip_registry.ClipError, OSError) as error:
+            logger.warning("catalog unreadable while toggling %s: %s", entry_id, error)
+
+    try:
+        _, token = demo_share.set_visibility(
+            store, clip_id=entry_id, clip_status=status, visibility=visibility,
+            by=getattr(request.user, "username", "") or "staff", passcode=passcode,
+        )
+    except demo_share.ShareError as error:
+        # The refusal is the answer: a Draft cannot be handed outside the team, and the
+        # page says so instead of pretending the toggle worked.
+        response = HttpResponse(str(error), status=400)
+        response["X-Demo-Refusal"] = str(error)[:200]
+        return no_store(response)
+
+    if token:
+        request.session[MINTED_SESSION_KEY] = {"clip_id": entry_id, "token": token}
+
+    from django.urls import reverse
+
+    return no_store(redirect(f"{reverse('internal_demos')}{entry_anchor(entry_id)}"))
 
 
 def media_url(name: str, folder: str = "") -> str:
