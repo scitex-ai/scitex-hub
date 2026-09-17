@@ -53,10 +53,12 @@ from demo_manifest import (
     write_manifest,
 )
 from demo_narration import (
+    NARRATION_BACKENDS,
     NarrationClip,
     NarrationUnavailable,
     build_narration_track,
     synthesize_clip,
+    voice_for,
 )
 from demo_scenario import Rendition, Scenario, Step, load_scenario
 from demo_selectors import (
@@ -78,7 +80,6 @@ POINTER_ACTIONS = {"click", "fill", "type", "hover"}
 FALLBACK_CHARACTERS_PER_SECOND = {"ja": 7.0}
 DEFAULT_CHARACTERS_PER_SECOND = 15.0
 CAPTION_FONT = "Noto Sans JP"
-NARRATION_BACKEND = "gtts"
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -156,6 +157,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--no-alternates", action="store_true",
                         help="skip the scenario's alternate UI-locale renditions")
     parser.add_argument("--no-voice", action="store_true", help="captions only, no TTS")
+    parser.add_argument("--narration-backend", default="gtts", choices=list(NARRATION_BACKENDS),
+                        help="text-to-speech backend (elevenlabs needs a key and --voice)")
+    parser.add_argument("--voice", default="",
+                        help="voice name or id; gTTS defaults to the language code, "
+                             "elevenlabs requires one (for example --voice sarah)")
+    parser.add_argument("--theme", default="", choices=["", "light", "dark"],
+                        help="put the recording in this theme and verify it (default: the "
+                             "site's own default, which is dark)")
     parser.add_argument("--ffmpeg", default="", help="ffmpeg binary (default: PATH, env, wheel)")
     parser.add_argument("--ffprobe", default="", help="ffprobe binary (default: PATH, env)")
     parser.add_argument("--fonts-dir", default="",
@@ -235,13 +244,15 @@ def check_selectors(scenario: Scenario, allow_stale: bool) -> tuple[int, dict]:
 
 
 def prepare_narration(scenario: Scenario, language: str, work_dir: Path, voice: bool,
-                      tools: MediaTools):
+                      tools: MediaTools, backend: str = "gtts",
+                      narration_voice: str = "") -> tuple[dict, dict]:
     """Return {step_index: clip or None} and the seconds each step's narration needs."""
     clips, needed_seconds = {}, {}
     for index, step in enumerate(scenario.steps):
         text = step.narration.get(language, "")
         clip = (
-            synthesize_clip(text, language, work_dir / f"{language}-{index:02d}.mp3", tools)
+            synthesize_clip(text, language, work_dir / f"{language}-{index:02d}.mp3", tools,
+                            backend=backend, voice=narration_voice)
             if voice and text
             else None
         )
@@ -319,6 +330,61 @@ def run_step(page, cursor: MovingCursor, step: Step, language: str, args, userna
         page.mouse.wheel(0, int(value or 400))
 
 
+def theme_init_script(theme: str) -> str:
+    """The script that starts a recording in `theme`, using the product's own key.
+
+    The hub's theme switcher (static/shared/ts/utils/theme-switcher.ts) persists the
+    choice in localStorage under `stx-theme`, with the legacy hub key
+    `scitex-theme-preference` still written for cached bundles. Writing those two
+    keys is what a returning viewer's browser already has; it is not a bypass of the
+    UI, and `apply_theme` additionally clicks the site's own toggle when the page
+    does not come up in the requested theme, then verifies the result.
+
+    The value is embedded with ``json.dumps`` so the generated script stays a valid
+    JS string literal for any value it is handed, not just today's two.
+    """
+    literal = json.dumps(theme)
+    return f"""
+    (() => {{
+      try {{
+        localStorage.setItem('stx-theme', {literal});
+        localStorage.setItem('scitex-theme-preference', {literal});
+        document.documentElement.setAttribute('data-theme', {literal});
+        document.documentElement.setAttribute('data-color-mode', {literal});
+      }} catch (error) {{}}
+    }})();
+    """
+
+
+def apply_theme(page, theme: str, base_url: str, switch_path: str) -> dict:
+    """Put the recording in `theme` and verify it, clicking the site's toggle if not.
+
+    Returns what actually happened, because a video that claims light mode and shows
+    a dark page is worse than one that admits it could not switch: the manifest
+    records the method and the verified page state.
+    """
+    if not theme:
+        return {"theme": "", "source": "site-default", "verified": False}
+    active = page.evaluate("() => document.documentElement.getAttribute('data-theme') || ''")
+    if active == theme:
+        return {"theme": theme, "source": "stored-preference", "verified": True}
+    # Fall back to the control the product offers, if it is reachable on this page.
+    try:
+        toggle = page.locator("#theme-toggle").first
+        if toggle.count() and toggle.is_visible():
+            toggle.click()
+            page.wait_for_timeout(500)
+    except Exception:
+        pass
+    active = page.evaluate("() => document.documentElement.getAttribute('data-theme') || ''")
+    return {
+        "theme": theme,
+        "source": "toggle-click" if active == theme else "stored-preference",
+        "verified": active == theme,
+        "observed": active,
+    }
+
+
 def record(browser, recording: Recording, storage_state, needed_seconds, args, username):
     viewport = recording.viewport
     video_dir = Path(tempfile.mkdtemp(prefix="demo-video-"))
@@ -332,17 +398,26 @@ def record(browser, recording: Recording, storage_state, needed_seconds, args, u
         storage_state=storage_state,
     )
     context.add_init_script(CURSOR_OVERLAY_SCRIPT)
+    # Before the first paint: the site starts in the requested theme, the way a
+    # returning viewer's browser already does.
+    if args.theme:
+        context.add_init_script(theme_init_script(args.theme))
     page = context.new_page()
     cursor = MovingCursor(page, viewport.width, viewport.height)
     # Scenarios that create things (a project name) need a fresh suffix per run.
     run_id = datetime.datetime.now().strftime("%H%M%S")
     recording_started = time.monotonic()
     timings = []
+    theme_state = {"theme": args.theme, "source": "disabled", "verified": False}
     for index, step in enumerate(recording.scenario.steps):
         if step.only not in ("", viewport.name):
             continue
         step_started = time.monotonic()
         run_step(page, cursor, step, recording.language, args, username, run_id)
+        if index == first_visual_step(recording.scenario):
+            # Once a page is on screen, verify the theme instead of trusting it.
+            theme_state = apply_theme(page, args.theme, args.base_url,
+                                      language_switch_path(recording.scenario))
         elapsed = time.monotonic() - step_started
         page.wait_for_timeout((max(needed_seconds[index] - elapsed, 0) + step.hold) * 1000)
         timings.append(
@@ -352,7 +427,15 @@ def record(browser, recording: Recording, storage_state, needed_seconds, args, u
     context.close()
     webm = recording.artifact("webm")
     shutil.move(page.video.path(), webm)
-    return webm, timings
+    return webm, timings, theme_state
+
+
+def first_visual_step(scenario: Scenario) -> int:
+    """The first step that leaves a page on screen, for the theme check."""
+    for index, step in enumerate(scenario.steps):
+        if step.action in ("goto", "click"):
+            return index
+    return 0
 
 
 def captions_for(recording: Recording, timings: list[StepTiming], line_width: int = 0):
@@ -463,7 +546,8 @@ def render(recording: Recording, webm: Path, timings, clips: dict[int, Narration
 
 
 def rendition_entry(recording: Recording, timings: list[StepTiming], files: list[Path],
-                    tools: MediaTools, clips: dict[int, NarrationClip | None]) -> dict:
+                    tools: MediaTools, clips: dict[int, NarrationClip | None],
+                    theme_state: dict | None = None) -> dict:
     """The manifest view of one recording: digests, timing and narration length."""
     recorded = []
     for path in files:
@@ -481,6 +565,9 @@ def rendition_entry(recording: Recording, timings: list[StepTiming], files: list
         "canonical": recording.rendition.canonical,
         "alternate_reason": recording.rendition.reason,
         "viewport": recording.viewport.name,
+        "theme": (theme_state or {}).get("theme", ""),
+        "theme_source": (theme_state or {}).get("source", ""),
+        "theme_verified": (theme_state or {}).get("verified", False),
         "duration_seconds": duration,
         "narration_seconds": round(sum(clip.duration_seconds for clip in clips.values() if clip), 3),
         "cues": sum(1 for timing in timings
@@ -658,6 +745,13 @@ def main() -> int:
     renditions = selected_renditions(args, scenario)
     viewports = selected(args.viewports, scenario.viewports)
     languages = selected(args.languages, scenario.languages)
+    # Fail on an unusable voice before the render, not in the middle of it: a
+    # backend that needs a named voice must not discover that fifteen minutes in.
+    try:
+        voice_for(args.narration_backend, args.voice, languages[0] if languages else "en")
+    except NarrationUnavailable as reason:
+        print(reason, file=sys.stderr)
+        return 6
     if not viewports or not languages or not renditions:
         print(empty_selection_message(
             viewports, languages,
@@ -689,12 +783,17 @@ def main() -> int:
     narration_failures = {}
     for language in languages:
         try:
-            narration[language] = prepare_narration(scenario, language, work_dir, voice, tools)
+            narration[language] = prepare_narration(
+                scenario, language, work_dir, voice, tools,
+                backend=args.narration_backend, narration_voice=args.voice,
+            )
         except NarrationUnavailable as reason:
             print(f"No voice narration for {language}: {reason}. Rendering captions only.")
             narration_failures[language] = str(reason)
-            narration[language] = prepare_narration(scenario, language, work_dir, voice=False,
-                                                    tools=tools)
+            narration[language] = prepare_narration(
+                scenario, language, work_dir, voice=False, tools=tools,
+                backend=args.narration_backend, narration_voice=args.voice,
+            )
     # The manifest records what actually happened, not what was asked for: a
     # silent mp4 with `voice: true` in its metadata is a lie a reviewer cannot see.
     narrated = any(
@@ -717,9 +816,11 @@ def main() -> int:
                 state = switch_ui_language(browser, args.base_url, signed_in, rendition.ui_locale,
                                            switch_path)
                 clips, needed_seconds = narration[rendition.language]
-                webm, timings = record(browser, recording, state, needed_seconds, args, username)
+                webm, timings, theme_state = record(browser, recording, state, needed_seconds,
+                                                    args, username)
                 mp4, files = render(recording, webm, timings, clips, work_dir, tools, fonts_dir)
-                entries.append(rendition_entry(recording, timings, files, tools, clips))
+                entries.append(rendition_entry(recording, timings, files, tools, clips,
+                                               theme_state))
                 if viewport.name == "desktop" and rendition.language == scenario.languages[0]:
                     catalog_png = args.out_dir / f"{scenario.app}-{args.date}-thumbnail.png"
                     if mp4 and not catalog_png.exists():
@@ -737,8 +838,9 @@ def main() -> int:
         repo_root=REPO_ROOT,
         base_url=args.base_url,
         renditions=entries,
-        tools_info=toolchain(tools, narration_backend=NARRATION_BACKEND if narrated else "",
-                             voice=narrated, caption_font=CAPTION_FONT,
+        tools_info=toolchain(tools, narration_backend=args.narration_backend if narrated else "",
+                             narration_voice=args.voice, voice=narrated,
+                             caption_font=CAPTION_FONT,
                              font_available=caption_font_available(CAPTION_FONT, [fonts_dir] if fonts_dir else []),
                              narration_failures=narration_failures),
         contracts={"fingerprint": contract_fingerprint(),
