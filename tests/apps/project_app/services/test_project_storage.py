@@ -31,8 +31,9 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Optional, Protocol, runtime_checkable
 
+from django.conf import settings as django_settings
 from django.contrib.auth.models import User
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TestCase, override_settings
 from django.utils.module_loading import import_string
 
 from apps.infra.project_app.models import Project, ProjectMembership
@@ -330,7 +331,21 @@ class ProjectStorageAccessTest(TestCase):
         )
 
     def setUp(self):
-        self.settings(BASE_DIR=self.base)
+        """Point BASE_DIR at this test's temporary tree — and PROVE it applied.
+
+        ``self.settings(BASE_DIR=...)`` without ``with`` applies nothing (measured: the
+        value is unchanged after the call), which would leave every path resolving under
+        the real repository while the test's own directories sit unused — the assertions
+        would then fail, or worse, pass for the wrong reason. So the override is enabled
+        explicitly, reverted through cleanup, and asserted.
+        """
+        overrides = override_settings(BASE_DIR=self.base)
+        overrides.enable()
+        self.addCleanup(overrides.disable)
+        assert str(django_settings.BASE_DIR) == str(self.base), (
+            "the BASE_DIR override did not apply — every path assertion below would be "
+            "measuring the real repository instead of this test's directories"
+        )
 
     # -- helpers ---------------------------------------------------------
 
@@ -427,6 +442,9 @@ class ProjectStorageAccessTest(TestCase):
     def test_an_unrelated_user_gets_their_own_project_under_a_shared_slug(self):
         """The flip side: their own project of the same slug IS theirs."""
         self._make("st-owner", "alpha")
+        Project.objects.create(
+            slug="alpha", owner=self.unrelated, name="alpha", visibility="private"
+        )
         own = self._make("st-unrelated", "alpha")
 
         path = self._storage().project_path("st-unrelated/alpha", self._request(self.unrelated))
