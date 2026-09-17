@@ -5,11 +5,12 @@ These adapters handle the integration between social login providers
 (Google, ORCID) and SciTeX's user system.
 """
 
-import re
 import logging
-from django.contrib.auth import get_user_model
+import re
+
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+from django.contrib.auth import get_user_model
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -185,11 +186,26 @@ class SciTexSocialAccountAdapter(DefaultSocialAccountAdapter):
         """
         Save user from social login.
         UserProfile is automatically created via signal.
+
+        PR #934 review, blocker 7: a provider-verified social signup is the
+        SAME funnel as an email one and must enter it. Google/ORCID signups used
+        to be created, logged in, redirected to "/" and never recorded as
+        owing a payment method — so the product gate could not see them and
+        they walked past the payment step entirely. ``begin_social_signup``
+        writes exactly the authority row the OTP path writes, so both doors
+        converge on one gate.
         """
         user = super().save_user(request, sociallogin, form)
 
-        # Log successful social signup
         provider = sociallogin.account.provider
+        # allauth calls save_user only while CREATING the local account, so this
+        # is a new signup, not an existing user connecting another identity.
+        # The call is idempotent regardless (get_or_create on the authority).
+        from apps.infra.auth_app.onboarding import begin_social_signup
+
+        begin_social_signup(user, provider)
+
+        # Log successful social signup
         logger.info(
             f"New user signed up via {provider}: {user.username} ({user.email})"
         )
@@ -199,7 +215,14 @@ class SciTexSocialAccountAdapter(DefaultSocialAccountAdapter):
     def get_login_redirect_url(self, request):
         """
         Return the URL to redirect to after successful social login.
-        """
-        from django.conf import settings
 
-        return getattr(settings, "LOGIN_REDIRECT_URL", "/")
+        PR #934 review, blocker 7: this returned ``LOGIN_REDIRECT_URL`` ("/")
+        unconditionally, which is how a social account reached the product
+        without ever seeing the payment step. It now asks the same authority the
+        OTP handler asks, so "where does this account go next?" has ONE answer
+        for both doors — and an account that is not in the funnel still gets the
+        ordinary post-login destination.
+        """
+        from apps.infra.auth_app.onboarding import next_url
+
+        return next_url(request.user)
