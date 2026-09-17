@@ -13,6 +13,11 @@ const VALID_AUTOCOMPLETE_VALUES = [
   "username",
   "current-password",
   "new-password",
+  // A six-digit code sent by email is what this token is FOR: without it the
+  // policy below rewrote the emailed-code input to "off", switching off the
+  // autofill that exists for exactly that field (card
+  // hub-signup-email-stripe-funnel-20260917, "correct autocomplete").
+  "one-time-code",
   "name",
   "given-name",
   "family-name",
