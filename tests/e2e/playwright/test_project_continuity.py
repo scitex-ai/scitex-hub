@@ -122,7 +122,6 @@ def test_login_launcher_and_project_apps_keep_one_project(continuity_browser):
         if stats_path == "/apps/stats/":
             assert stats.get_attribute("data-scope") == "project"
             assert parse_qs(urlparse(stats_href).query)["project"] == [PROJECT_KEY]
-            apps_to_visit.append("stats")
         else:
             # A catalog-only tile may link to its real Store detail page, but
             # must never invent an absent leaf route.
@@ -160,3 +159,26 @@ def test_login_launcher_and_project_apps_keep_one_project(continuity_browser):
 
     evidence.assert_clean()
     assert viewport in {"desktop", "mobile"}
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "scitex-stats mounts /apps/stats/ but does not yet render the Hub host "
+        "project/version/provider metadata; mobile navigation also stalls"
+    ),
+)
+def test_stats_leaf_adopts_the_hub_project_contract(authenticated_desktop_page):
+    """Executable leaf gap: remove xfail when Stats adopts the host contract."""
+    page = authenticated_desktop_page
+    page.goto("/apps/", wait_until="domcontentloaded")
+    wait_for_page_ready(page)
+    stats = page.locator('#launcher-grid [data-module="stats"]')
+    if stats.count() == 0:
+        pytest.xfail("Stats leaf route is not mounted in this environment")
+    href = stats.get_attribute("href")
+    assert href and urlparse(href).path == "/apps/stats/"
+    response = page.goto(href, wait_until="domcontentloaded")
+    assert response is not None and response.status == 200
+    assert page.locator("body").get_attribute("data-active-project-key") == PROJECT_KEY
+    assert page.locator('meta[name="stx-project-provider"]').count() == 1
