@@ -273,6 +273,7 @@ jobs:
             tests/e2e/playwright/test_mobile_scholar.py \
             tests/e2e/playwright/test_mobile_writer.py \
             tests/e2e/playwright/test_mobile_app_store_controls_are_reachable.py \
+            tests/e2e/playwright/test_project_continuity.py \
             --browser chromium \
             -v -rs --tb=short \
             --screenshot=only-on-failure \
