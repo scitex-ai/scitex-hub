@@ -127,13 +127,36 @@ jobs:
           python manage.py migrate --run-syncdb
           python manage.py shell -c "
           from django.contrib.auth.models import User
+          from apps.infra.project_app.models import Project
+          from apps.infra.project_app.services.project_filesystem import get_project_filesystem_manager
+          from apps.infra.project_app.services.writer_workspace_layout import get_manuscript_path
           u, created = User.objects.get_or_create(
               username='test-user',
               defaults={'email': 'test@example.com'}
           )
           u.set_password('Password123!')
           u.save()
-          print(f'Test user ready (created={created})')
+          p, project_created = Project.objects.get_or_create(
+              owner=u,
+              slug='continuity-paper',
+              defaults={
+                  'name': 'Continuity Paper',
+                  'description': 'Cross-app continuity fixture',
+                  'visibility': 'private',
+              },
+          )
+          manager = get_project_filesystem_manager(u)
+          workspace_created, root = manager.create_project_directory(p, use_template=False)
+          assert workspace_created and root is not None
+          (root / 'scitex' / 'scholar').mkdir(parents=True, exist_ok=True)
+          (root / 'data').mkdir(exist_ok=True)
+          get_manuscript_path(root).mkdir(parents=True, exist_ok=True)
+          u.profile.last_active_repository = p
+          u.profile.save(update_fields=['last_active_repository'])
+          print(
+              f'Test identity ready (user_created={created}, '
+              f'project_created={project_created}, workspace={root})'
+          )
           "
           # `from_docker` is manage.py's own escape hatch, not a trick to get
           # around it: the guard at manage.py:19-23 fires on a bare

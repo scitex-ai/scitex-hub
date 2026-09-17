@@ -1,32 +1,24 @@
 #!/usr/bin/env python3
 """Executable login-to-project continuity journey owned by Hub.
 
-The test creates its own registered user, project and on-disk workspace, logs in
-through the real form, and crosses the real launcher/app routes. Stats is pinned
-as the truthful unmounted gap: its coming-soon tile must not invent a URL.
+CI provisions a registered test account, a private project, and real on-disk app
+workspaces before the server starts. The existing authenticated Playwright
+fixtures perform the real login; this test crosses the real launcher/app routes.
+Stats is the truthful unmounted gap: its coming-soon tile must not invent a URL.
 """
 
 from __future__ import annotations
 
-import shutil
 from dataclasses import dataclass
 from urllib.parse import parse_qs, urlparse
 
 import pytest
 
-from apps.infra.project_app.models import Project
-from apps.infra.project_app.services.project_filesystem import (
-    get_project_filesystem_manager,
-)
-from apps.infra.project_app.services.writer_workspace_layout import (
-    get_manuscript_path,
-)
 from tests.e2e.playwright.page_ready import wait_for_page_ready
 
-pytestmark = [pytest.mark.e2e, pytest.mark.django_db(transaction=True)]
+pytestmark = pytest.mark.e2e
 
-USERNAME = "continuity-user"
-PASSWORD = "ContinuityPass123!"  # pragma: allowlist secret
+USERNAME = "test-user"
 PROJECT_SLUG = "continuity-paper"
 PROJECT_KEY = f"{USERNAME}/{PROJECT_SLUG}"
 PROJECT_APPS = ("scholar", "figrecipe", "writer")
@@ -46,49 +38,16 @@ class BrowserEvidence:
         ), f"same-origin network failures: {self.network_failures}"
 
 
-@pytest.fixture
-def continuity_identity(django_user_model):
-    """A registered account with one real project and app workspaces."""
-    user = django_user_model.objects.create_user(
-        username=USERNAME,
-        email="continuity@example.com",
-        password=PASSWORD,
+@pytest.fixture(params=["desktop", "mobile"])
+def continuity_browser(request, pw_base_url):
+    """Existing desktop/390px login fixtures plus console/network evidence."""
+    viewport = request.param
+    fixture_name = (
+        "authenticated_desktop_page"
+        if viewport == "desktop"
+        else "authenticated_mobile_page"
     )
-    project = Project.objects.create(
-        owner=user,
-        name="Continuity Paper",
-        slug=PROJECT_SLUG,
-        description="Cross-app continuity fixture",
-        visibility="private",
-    )
-    manager = get_project_filesystem_manager(user)
-    created, project_root = manager.create_project_directory(
-        project, use_template=False
-    )
-    assert created and project_root is not None
-    (project_root / "scitex" / "scholar").mkdir(parents=True, exist_ok=True)
-    (project_root / "data").mkdir(exist_ok=True)
-    get_manuscript_path(project_root).mkdir(parents=True, exist_ok=True)
-
-    user.profile.last_active_repository = project
-    user.profile.save(update_fields=["last_active_repository"])
-
-    yield user, project
-
-    shutil.rmtree(manager.base_path.parent, ignore_errors=True)
-
-
-@pytest.fixture(params=[("desktop", 1440, 900), ("mobile", 390, 844)])
-def continuity_browser(browser, static_live_server, settings, request):
-    """Desktop and 390px contexts with console/network evidence capture."""
-    name, width, height = request.param
-    settings.VITE_USE_BUILD = True
-    context = browser.new_context(
-        base_url=static_live_server.url,
-        viewport={"width": width, "height": height},
-        ignore_https_errors=True,
-    )
-    page = context.new_page()
+    page = request.getfixturevalue(fixture_name)
     evidence = BrowserEvidence([], [], [])
 
     page.on(
@@ -106,7 +65,7 @@ def continuity_browser(browser, static_live_server, settings, request):
             evidence.network_failures.append(
                 f"{failed.method} {failed.url}: {failed.failure}"
             )
-            if failed.url.startswith(static_live_server.url)
+            if failed.url.startswith(pw_base_url)
             else None
         ),
     )
@@ -116,16 +75,12 @@ def continuity_browser(browser, static_live_server, settings, request):
             evidence.network_failures.append(
                 f"{response.status} {response.request.method} {response.url}"
             )
-            if response.url.startswith(static_live_server.url)
-            and response.status >= 500
+            if response.url.startswith(pw_base_url) and response.status >= 500
             else None
         ),
     )
 
-    yield name, page, evidence
-
-    page.close()
-    context.close()
+    return viewport, page, evidence
 
 
 def _assert_project_metadata(page, app: str, version: str) -> None:
@@ -142,19 +97,9 @@ def _assert_project_metadata(page, app: str, version: str) -> None:
     assert parse_qs(urlparse(page.url).query)["project"] == [PROJECT_KEY]
 
 
-def test_login_launcher_and_project_apps_keep_one_project(
-    continuity_browser, continuity_identity
-):
-    """Login → launcher → three mounted apps → launcher keeps one project."""
+def test_login_launcher_and_project_apps_keep_one_project(continuity_browser):
+    """Login fixture → launcher → mounted apps → launcher keeps one project."""
     viewport, page, evidence = continuity_browser
-
-    login = page.goto("/auth/login/", wait_until="domcontentloaded")
-    assert login is not None and login.status == 200
-    page.fill('#login-form input[name="username"]', USERNAME)
-    page.fill('#login-form input[name="password"]', PASSWORD)
-    page.click('#login-form button[type="submit"]')
-    page.wait_for_url(lambda url: "/auth/login" not in url)
-    wait_for_page_ready(page)
 
     launcher = page.goto("/apps/", wait_until="domcontentloaded")
     assert launcher is not None and launcher.status == 200
