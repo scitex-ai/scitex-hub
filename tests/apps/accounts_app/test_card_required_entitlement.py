@@ -245,6 +245,21 @@ class TestTheWallOnRealRoutes:
     changes what the wall protects.
     """
 
+    def setUp(self):
+        """Every case here is ABOUT the wall, so the wall is ON.
+
+        Caught by reasoning rather than by another CI round: enforcement defaults to OFF
+        (correctly - it removes app routes from every card-less account), so without this
+        these tests would assert a redirect that a disabled wall never makes. They would
+        have failed; worse, they could have passed for the wrong reason if someone later
+        flipped the default.
+        """
+        from django.test import override_settings
+
+        self._enforce = override_settings(SCITEX_HUB_CARD_REQUIRED=True)
+        self._enforce.enable()
+        self.addCleanup(self._enforce.disable)
+
     def _payment_step(self):
         """The LITERAL the gate redirects to - not reverse("accounts_app:payment_step").
 
