@@ -120,12 +120,38 @@ def toolchain(tools=None, narration_backend: str = "", voice: bool = False,
     return info
 
 
+def theme_from_renditions(renditions: list[dict]) -> dict:
+    """The theme state the renditions already carry, if any recorded one.
+
+    A render that never asked for a theme must not read as having failed one: the
+    difference between "not verified" and "not measured" is the difference between a
+    defect and an unknown, so an absent measurement stays None.
+    """
+    seen = {}
+    for rendition in renditions or []:
+        state = rendition if isinstance(rendition, dict) else {}
+        for source in (state, state.get("theme_state") if isinstance(state.get("theme_state"), dict) else {}):
+            if not isinstance(source, dict):
+                continue
+            if source.get("theme"):
+                seen.setdefault("theme", source["theme"])
+            if source.get("theme_source") and "source" not in seen:
+                seen["source"] = source["theme_source"]
+            if isinstance(source.get("theme_verified"), bool):
+                seen["verified"] = seen.get("verified", True) and source["theme_verified"]
+            if isinstance(source.get("theme_map"), dict):
+                seen.setdefault("observations", source["theme_map"])
+    return seen
+
+
 def build_manifest(*, app: str, date: str, titles: dict, scenario_path: Path,
                    repo_root: Path, base_url: str, renditions: list[dict],
                    tools_info: dict, contracts: dict, viewports: list[str],
-                   languages: list[str], steps: int = 0, generated_at: str = "") -> dict:
+                   languages: list[str], steps: int = 0, generated_at: str = "",
+                   theme: dict | None = None) -> dict:
     """Assemble the manifest; ``renditions`` carry the per-artifact digests."""
     scenario_text = Path(scenario_path).read_text(encoding="utf-8")
+    theme = theme or theme_from_renditions(renditions)
     return {
         "schema": MANIFEST_SCHEMA,
         "app": app,
@@ -141,7 +167,22 @@ def build_manifest(*, app: str, date: str, titles: dict, scenario_path: Path,
             "steps": steps,
         },
         "source": git_state(repo_root),
-        "environment": {"base_url": base_url, **tools_info},
+        # The theme a render was recorded in, and whether every surface honoured it.
+        # Measured 2026-09-17: a take asked for light mode came up dark from the project
+        # workspace onward, and because nothing recorded the request or the verification,
+        # weeks later the artifact could not say what it was or why it was rejected.
+        "theme": (theme or {}).get("theme", ""),
+        "theme_verified": ((theme or {}).get("verified")
+                           if (theme or {}).get("theme") else None),
+        "theme_map": (theme or {}).get("observations") or {},
+        "environment": {
+            "base_url": base_url,
+            **tools_info,
+            "theme": (theme or {}).get("theme", ""),
+            "theme_verified": ((theme or {}).get("verified")
+                               if (theme or {}).get("theme") else None),
+            "theme_source": (theme or {}).get("source", ""),
+        },
         "ui_contract": contracts,
         "matrix": {"viewports": viewports, "languages": languages},
         "renditions": renditions,
