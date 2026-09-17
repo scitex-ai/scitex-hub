@@ -135,7 +135,9 @@ def test_login_launcher_and_project_apps_keep_one_project(continuity_browser):
     apps_to_visit.extend(app for app in PROJECT_APPS if app != "scholar")
 
     for app in apps_to_visit:
-        tile = page.locator(f'[data-module="{app}"]:not([data-favorite-alias])')
+        tile = page.locator(
+            f'#launcher-grid [data-module="{app}"]:not([data-favorite-alias])'
+        )
         assert tile.count() == 1
         assert tile.get_attribute("data-scope") == "project"
         version = tile.get_attribute("data-version")
