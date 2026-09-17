@@ -103,7 +103,10 @@ urlpatterns = [
     # Registered here, not in config/urls.py, so it is resolved before the
     # <str:username>/ catch-all below it — /internal/ must not be read as a username.
     path("internal/demos/", views.internal_demos, name="internal_demos"),
-    path("internal/demos/media/<str:name>", views.internal_demo_media,
+    # <path:name> so a render that keeps its own folder can be served from it; the
+    # view still resolves every request through demo_library.resolve_media, which
+    # allows at most one folder level and refuses anything that escapes.
+    path("internal/demos/media/<path:name>", views.internal_demo_media,
          name="internal_demo_media"),
 ]
 

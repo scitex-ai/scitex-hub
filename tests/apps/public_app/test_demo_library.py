@@ -236,19 +236,44 @@ def test_media_names_lists_every_file_once(tmp_path):
     assert all(name.endswith((".mp4", ".vtt", ".txt", ".png", ".webm")) for name in names)
 
 
+def test_two_renders_of_the_same_day_live_side_by_side_in_their_own_folders(tmp_path):
+    # Arrange: same app, same date, different renditions — the case that overwrote a
+    # draft when the library held one flat folder.
+    library_dir = tmp_path / "lib"
+    write_library(library_dir / "dark-ja", manifest_for(), gate_for())
+    write_library(library_dir / "light-en", manifest_for(languages=("en",)))
+    # Act
+    index = library.library_index(library_dir)
+    # Assert
+    assert index["total"] == 2
+    folders = sorted(entry["folder"] for entry in index["entries"])
+    assert folders == ["dark-ja", "light-en"]
+    light = [entry for entry in index["entries"] if entry["folder"] == "light-en"][0]
+    assert light["languages"] == ["en"]
+    assert all("/" in name for name in library.media_names(light))
+
+
 def test_resolve_media_refuses_every_way_out_of_the_directory(tmp_path):
     # Arrange: the one function standing between a request and the filesystem.
     library_dir = tmp_path / "lib"
-    library_dir.mkdir()
+    (library_dir / "render-a").mkdir(parents=True)
     good = library_dir / "projects-2026-09-17.en.mp4"
     good.write_bytes(b"video")
+    nested = library_dir / "render-a" / "projects-2026-09-17.en.mp4"
+    nested.write_bytes(b"video in its own render folder")
     secret = tmp_path / "secret.txt"
     secret.write_text("not for the library", encoding="utf-8")
     (library_dir / "escape.mp4").symlink_to(secret)
-    # Act / Assert: the file inside is served, and every way out is refused.
+    (library_dir / "render-a" / "escape.mp4").symlink_to(secret)
+    # Act / Assert: files inside are served (one folder level is allowed, because
+    # two renders of the same app and day share file names), and every way out is
+    # refused even when each segment looks innocent.
     assert library.resolve_media(library_dir, "projects-2026-09-17.en.mp4") == good
-    for name in ("", "/etc/passwd", "../secret.txt", "sub/other.mp4", "..\\secret.txt",
-                 ".hidden.mp4", "escape.mp4", "missing.mp4"):
+    assert library.resolve_media(library_dir, "render-a/projects-2026-09-17.en.mp4") == nested
+    for name in ("", "/etc/passwd", "../secret.txt", "..\\secret.txt", ".hidden.mp4",
+                 "render-a/.hidden.mp4", "escape.mp4", "render-a/escape.mp4",
+                 "render-a/../../secret.txt", "render-a/../secret.txt", "a/b/c.mp4",
+                 "render-a//x.mp4", "missing.mp4", "render-a/missing.mp4"):
         assert library.resolve_media(library_dir, name) is None, name
 
 

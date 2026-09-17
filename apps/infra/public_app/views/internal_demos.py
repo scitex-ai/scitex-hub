@@ -77,6 +77,7 @@ def access_denied(request):
 
 
 def _media_url(name: str) -> str:
+    """The authorized route for one file, folder-qualified when the render has one."""
     return reverse("public_app:internal_demo_media", kwargs={"name": name})
 
 

@@ -142,12 +142,22 @@ def entry_for(manifest_path: Path, library_dir: Path | None = None) -> dict:
     if not manifest:
         return {}
     directory = Path(library_dir or manifest_path.parent)
+    # An entry may live one level down, one folder per render: two renders of the
+    # same app on the same day write the same file names, so a flat directory can
+    # only hold one of them (measured 2026-09-17: the light copy overwrote the
+    # dark/Japanese draft). The folder is part of the media path, never a way out.
+    try:
+        relative_parent = manifest_path.parent.resolve().relative_to(directory.resolve())
+        folder = "" if str(relative_parent) == "." else str(relative_parent).replace("\\", "/")
+    except (OSError, ValueError):
+        folder = ""
     gate = read_json(sidecar(manifest_path, "watch-gate"))
     promotion = read_json(sidecar(manifest_path, "promotion"))
     gate_state = watch_state(gate)
     renditions = rendition_rows(manifest)
     return {
         "manifest": manifest_path.name,
+        "folder": folder,
         "app": manifest.get("app", ""),
         "date": manifest.get("date", ""),
         "captured_at": manifest.get("generated_at", ""),
@@ -180,14 +190,17 @@ def entry_for(manifest_path: Path, library_dir: Path | None = None) -> dict:
 
 
 def library_index(directory: Path) -> dict:
-    """Every manifest in a directory as a card, newest capture first."""
+    """Every manifest in a directory as a card, newest capture first.
+
+    Manifests are found at the top level and one folder down, so a render can keep
+    its own folder (its own copy of same-named files) and still appear here.
+    """
     directory = Path(directory)
-    entries = [
-        entry_for(path, directory)
-        for path in sorted(directory.glob(f"*{MANIFEST_SUFFIX}"))
-    ]
+    paths = sorted(directory.glob(f"*{MANIFEST_SUFFIX}"))
+    paths += sorted(directory.glob(f"*/*{MANIFEST_SUFFIX}"))
+    entries = [entry_for(path, directory) for path in paths]
     entries = [entry for entry in entries if entry]
-    entries.sort(key=lambda entry: (entry["date"], entry["app"]), reverse=True)
+    entries.sort(key=lambda entry: (entry["date"], entry["app"], entry["captured_at"]), reverse=True)
     counts = dict.fromkeys(VISIBILITIES, 0)
     for entry in entries:
         counts[entry["visibility"]] = counts.get(entry["visibility"], 0) + 1
@@ -200,12 +213,16 @@ def library_index(directory: Path) -> dict:
 
 
 def media_names(entry: dict) -> list[str]:
-    """Every file a card can offer, so the view can authorize them one by one."""
+    """Every file a card can offer, as the path the media route must accept."""
     names = []
+    folder = entry.get("folder", "")
     for row in entry.get("renditions", []):
         for name in row.get("files", {}).values():
-            if name and name not in names:
-                names.append(name)
+            if not name:
+                continue
+            qualified = f"{folder}/{name}" if folder else name
+            if qualified not in names:
+                names.append(qualified)
     return names
 
 
@@ -214,17 +231,25 @@ def resolve_media(directory: Path, name: str) -> Path | None:
 
     The library serves bytes that are not on a public static path, so this is the
     only thing standing between a crafted request and the rest of the filesystem.
-    It is a pure function on purpose: the rules are testable without a request,
-    and the view does not get to invent its own arithmetic. A name is refused when
-    it is empty, has a separator or a parent segment, is absolute, is hidden, or
-    resolves outside the directory once symlinks are followed.
+    It is a pure function on purpose: the rules are testable without a request, and
+    the view does not get to invent its own arithmetic.
+
+    At most one folder level is allowed — enough for one folder per render — and each
+    segment is validated: no empty segments, no separators inside a segment, no
+    parent or hidden names, nothing absolute. The final path must still resolve
+    inside the directory, so a symlink pointing out is refused even when every
+    segment looks innocent.
     """
-    if not name or "/" in name or "\\" in name or name.startswith("."):
+    if not name or name.startswith("/") or name.startswith(".") or "\\" in name:
         return None
-    if ".." in name or Path(name).is_absolute():
+    segments = name.split("/")
+    if len(segments) > 2:
         return None
+    for segment in segments:
+        if not segment or segment.startswith(".") or ".." in segment:
+            return None
     directory = Path(directory)
-    candidate = (directory / name).resolve()
+    candidate = directory.joinpath(*segments).resolve()
     try:
         root = directory.resolve()
     except OSError:
