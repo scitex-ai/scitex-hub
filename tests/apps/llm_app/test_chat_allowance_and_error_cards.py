@@ -204,4 +204,44 @@ def test_the_two_surfaces_are_included_by_the_chat_pane():
     )
 
 
+#: Every composer that can send a SciTeX-funded message. The SSOT requires the
+#: remaining count and reset time BEFORE the send, so each one needs the line:
+#: the chat pane's welcome and conversation inputs, and the shell's own AI panel.
+COMPOSER_TEMPLATES = (
+    "templates/global_base_partials/workspace_chat_pane.html",
+    "templates/global_base_partials/global_ai_panel.html",
+)
+
+
+def test_every_funded_composer_shows_the_allowance_before_the_send():
+    """Learned the hard way on the landing stylesheet: a surface that is not wired
+    into the place a user actually is renders nothing."""
+    repo = Path(__file__).resolve().parents[3]
+
+    missing = []
+    for rel in COMPOSER_TEMPLATES:
+        path = repo / rel
+        assert path.is_file(), f"{rel} moved — update this guard"
+        if 'include "chat/partials/chat_allowance.html"' not in path.read_text():
+            missing.append(rel)
+
+    assert not missing, f"composers without the allowance line: {missing}"
+
+
+def test_the_model_is_on_screen_before_the_first_send():
+    """Two model slots existed and both rendered empty, waiting on JS that may not
+    run; they now carry the model from the same context as the allowance line."""
+    repo = Path(__file__).resolve().parents[3]
+
+    pane = (repo / "templates/global_base_partials/workspace_chat_pane.html").read_text()
+    panel = (repo / "templates/global_base_partials/global_ai_panel.html").read_text()
+
+    assert 'id="chat-welcome-model-name">{{ chat_allowance.model' in pane, (
+        "the chat pane's model slot is still dead markup"
+    )
+    assert 'id="stx-shell-ai-model-badge" class="stx-shell-ai-model-badge">{{ chat_allowance.model' in panel, (
+        "the AI panel's model badge is still dead markup"
+    )
+
+
 # EOF
