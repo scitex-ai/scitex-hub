@@ -26,6 +26,7 @@ from demo_narration import (  # noqa: E402
 )
 from record import (  # noqa: E402
     first_visual_step,
+    language_matches,
     theme_from_background,
     theme_init_script,
 )
@@ -126,3 +127,20 @@ def test_an_unreadable_background_is_not_reported_as_a_mismatch():
     # Arrange: a page that has not painted yet must not fail the theme check.
     # Act / Assert
     assert theme_from_background("rgba(0, 0, 0, 0)") in ("dark", "unknown")
+
+
+@pytest.mark.parametrize(
+    "observed,locale,expected",
+    [
+        ("en", "en", True),
+        ("ja", "ja", True),
+        ("ja-jp", "ja", True),
+        ("EN", "en", True),
+        ("ja", "en", False),
+        ("", "en", False),          # the race that failed a preflight on 2026-09-17
+        ("en", "ja", False),
+    ],
+)
+def test_the_switcher_verdict_treats_an_unread_lang_as_a_mismatch(observed, locale, expected):
+    # Arrange / Act / Assert: an empty attribute is "not switched", never "fine".
+    assert language_matches(observed, locale) is expected

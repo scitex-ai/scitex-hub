@@ -292,17 +292,42 @@ def language_switch_path(scenario: Scenario) -> str:
     return "/apps/"
 
 
+def language_matches(observed: str, locale: str) -> bool:
+    """Whether a document's `lang` attribute is the locale that was asked for."""
+    return bool(observed) and observed.lower().startswith(locale.lower())
+
+
 def switch_ui_language(browser, base_url: str, storage_state, locale: str, path: str) -> dict:
-    """Pick the language in the site's own switcher, as a visitor would."""
+    """Pick the language in the site's own switcher, as a visitor would.
+
+    The check waits for the document to settle before it reads `lang`: measured
+    2026-09-17, an unguarded read raced a slow response and came back empty
+    (`left the page in '', not 'en'`), which failed a preflight while the render
+    that followed succeeded. A flake in the guard is more expensive than in the
+    render, because the guard is what people are told to trust.
+    """
     context = browser.new_context(storage_state=storage_state)
     page = context.new_page()
     page.goto(f"{base_url}{path}", wait_until="domcontentloaded", timeout=90_000)
-    page.click("#lang-select-trigger")
-    with page.expect_navigation(timeout=60_000):
-        page.click(f"form.lang-select-item:has(input[name=language][value={locale}]) button")
-    active = page.evaluate("() => document.documentElement.lang")
-    if not active.startswith(locale):
-        raise RuntimeError(f"language switcher left the page in '{active}', not '{locale}'")
+    for attempt in (1, 2):
+        page.click("#lang-select-trigger")
+        with page.expect_navigation(timeout=60_000):
+            page.click(f"form.lang-select-item:has(input[name=language][value={locale}]) button")
+        try:
+            page.wait_for_function(
+                "() => document.readyState !== 'loading' "
+                "&& (document.documentElement.lang || '').length > 0",
+                timeout=15_000,
+            )
+        except Exception:
+            pass
+        active = page.evaluate("() => document.documentElement.lang || ''")
+        if language_matches(active, locale):
+            break
+        if attempt == 2:
+            context.close()
+            raise RuntimeError(f"language switcher left the page in '{active}', not '{locale}'")
+        page.wait_for_timeout(500)
     state = context.storage_state()
     context.close()
     return state
