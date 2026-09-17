@@ -105,6 +105,26 @@ example re-running one language after a failed recording), `--no-alternates`,
 check without recording, and `--allow-stale` to record anyway when a selector has
 moved (for capturing evidence of the drift, not for publishing).
 
+### Prove a render will work before spending ten minutes on it
+
+`--preflight` answers the questions only a browser can answer — is the site up,
+does the demo account sign in, does the language switcher reach each rendition's
+locale, does every page the scenario opens load — and then stops:
+
+```bash
+DEMO_USERNAME=... DEMO_PASSWORD=... \
+  python scripts/demo_videos/record.py scripts/demo_videos/scenarios/projects.yaml \
+    --preflight --base-url http://127.0.0.1:8000
+```
+
+It never clicks or types, so it does not create a project, write a file or send a
+message: a preflight with side effects would be useless for a signed-in scenario,
+whose first write is exactly what you are trying to de-risk. Exit 0 ready, 4 with
+the reason, 2 when the credentials are missing (a dry run and a preflight do not
+need them). When the account is missing the report says so and states that the
+scenario's pages were not checked at all, rather than reporting pages it only saw
+a redirect for.
+
 ### The media tools
 
 The renderer finds ffmpeg itself instead of trusting `PATH`, because the

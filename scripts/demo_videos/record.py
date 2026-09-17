@@ -24,6 +24,7 @@ stops the render instead of producing a video of the wrong screen.
 
 import argparse
 import datetime
+import json
 import os
 import shutil
 import subprocess
@@ -152,6 +153,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--skip-manifest", action="store_true", help="do not write the manifest")
     parser.add_argument("--dry-run", action="store_true",
                         help="check selectors and print the matrix without recording")
+    parser.add_argument("--preflight", action="store_true",
+                        help="prove a render would work (sign-in, language switch, every page the "
+                             "scenario opens) without changing anything; no clicks, no typing")
     return parser.parse_args()
 
 
@@ -427,20 +431,133 @@ def rendition_entry(recording: Recording, timings: list[StepTiming], files: list
     }
 
 
+def preflight_targets(scenario: Scenario, username: str, run_id: str) -> list[str]:
+    """Every page the scenario opens, with placeholders filled, in order."""
+    targets = []
+    for step in scenario.steps:
+        if step.action != "goto":
+            continue
+        for value in step.value.values():
+            filled = fill_placeholders(value, username, run_id)
+            if filled not in targets:
+                targets.append(filled)
+    return targets
+
+
+def run_preflight(scenario: Scenario, args, username: str, password: str) -> dict:
+    """Prove a render would work, without changing anything on the site.
+
+    The scenario's selectors are checked statically before this runs, so what is
+    left is the part only a browser can answer: is the site up, does the demo
+    account sign in, does the language switcher reach each rendition's locale, and
+    does every page the scenario opens load. It never clicks or types, so it does
+    not create a project, write a file or send a message — a preflight that had
+    side effects would be useless for a signed-in scenario, because its first write
+    is the thing you want to test.
+    """
+    from playwright.sync_api import sync_playwright
+
+    run_id = "PREFLIGHT"
+    targets = preflight_targets(scenario, username, run_id)
+    report = {
+        "scenario": scenario.app,
+        "base_url": args.base_url,
+        "signed_in": None,
+        "reachable": None,
+        "language_switch": [],
+        "pages": [],
+        "pages_checked": "signed in" if scenario.sign_in else "signed out (no account needed)",
+        "credentials": bool(username and password),
+        "ready": False,
+        "blockers": [],
+    }
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch()
+        state = None
+        if scenario.sign_in and not (username and password):
+            report["blockers"].append(
+                "DEMO_USERNAME/DEMO_PASSWORD are not set, and this scenario starts signed in"
+            )
+        elif scenario.sign_in:
+            try:
+                state = sign_in(browser, args.base_url, username, password)
+                report["signed_in"] = True
+            except Exception as error:
+                report["signed_in"] = False
+                report["blockers"].append(f"sign-in failed: {type(error).__name__}: {error}")
+        context = browser.new_context(storage_state=state) if state else browser.new_context()
+        page = context.new_page()
+        if scenario.sign_in and not state:
+            # Without the account the scenario's pages are behind auth: visiting
+            # them would only prove the redirect works, so say what was checked
+            # and stop, instead of reporting pages that were never really seen.
+            report["pages_checked"] = "not at all: no signed-in state"
+            try:
+                response = page.goto(f"{args.base_url}/", wait_until="domcontentloaded",
+                                     timeout=90_000)
+                report["reachable"] = bool(response) and response.status < 400
+                if not report["reachable"]:
+                    report["blockers"].append(
+                        f"{args.base_url} answered HTTP {response.status if response else 0}"
+                    )
+            except Exception as error:
+                report["reachable"] = False
+                report["blockers"].append(f"{args.base_url} did not load: {type(error).__name__}")
+            context.close()
+            browser.close()
+            report["ready"] = False
+            return report
+        switch_path = language_switch_path(scenario)
+        for language, locale in scenario.locales.items():
+            try:
+                state = switch_ui_language(browser, args.base_url, state, locale, switch_path)
+                report["language_switch"].append({"language": language, "locale": locale, "ok": True})
+            except Exception as error:
+                report["language_switch"].append(
+                    {"language": language, "locale": locale, "ok": False,
+                     "error": f"{type(error).__name__}: {error}"}
+                )
+                report["blockers"].append(f"language switcher did not reach '{locale}'")
+        for target in targets:
+            try:
+                response = page.goto(f"{args.base_url}{target}", wait_until="domcontentloaded",
+                                     timeout=90_000)
+                status = response.status if response else 0
+                report["pages"].append({"path": target, "status": status, "ok": status < 400})
+                if status >= 400:
+                    report["blockers"].append(f"{target} answered HTTP {status}")
+            except Exception as error:
+                report["pages"].append({"path": target, "status": 0, "ok": False,
+                                        "error": f"{type(error).__name__}: {error}"})
+                report["blockers"].append(f"{target} did not load: {type(error).__name__}")
+        context.close()
+        browser.close()
+    report["ready"] = not report["blockers"]
+    return report
+
+
 def main() -> int:
     args = parse_args()
     scenario = load_scenario(args.scenario)
     username = os.environ.get("DEMO_USERNAME", "")
     password = os.environ.get("DEMO_PASSWORD", "")
-    # A dry run records nothing, so it must work without the demo credentials:
-    # it is how you check the matrix and the selectors before a signed-in render.
-    if scenario.sign_in and not (username and password) and not args.dry_run:
+    # A dry run and a preflight record nothing, so neither needs the demo
+    # credentials: they are how the matrix and the site are checked before a
+    # signed-in render.
+    if scenario.sign_in and not (username and password) and not (args.dry_run or args.preflight):
         print("Set DEMO_USERNAME and DEMO_PASSWORD for a scenario that signs in.")
         return 2
 
     stale_verdict, selector_report = check_selectors(scenario, args.allow_stale)
     if stale_verdict:
         return stale_verdict
+    if args.preflight:
+        report = run_preflight(scenario, args, username, password)
+        print(json.dumps(report, indent=2, sort_keys=True))
+        for blocker in report["blockers"]:
+            print(f"BLOCKER: {blocker}", file=sys.stderr)
+        print("preflight ready" if report["ready"] else "preflight NOT ready", file=sys.stderr)
+        return 0 if report["ready"] else 4
     fonts_dir = args.fonts_dir or os.environ.get("SCITEX_DEMO_FONTS_DIR", "")
     if not caption_font_available(CAPTION_FONT, [fonts_dir] if fonts_dir else []):
         print(f"'{CAPTION_FONT}' is not installed: burned-in captions fall back to a font that "

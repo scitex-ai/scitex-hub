@@ -22,6 +22,7 @@ from demo_scenario import (  # noqa: E402
     load_scenario,
     parse_scenario,
 )
+from record import language_switch_path, preflight_targets  # noqa: E402
 
 TWO_STEP_VTT = (
     "WEBVTT\n"
@@ -165,3 +166,58 @@ def test_wrap_caption_breaks_japanese_without_spaces():
     # Assert
     assert wrapped.count("\n") >= 1
     assert all(len(line) <= 3 * 30 for line in wrapped.split("\n"))
+
+
+def test_preflight_targets_are_the_goto_pages_with_placeholders_filled():
+    # Arrange: a signed-in scenario opens a project path built from the account.
+    scenario = parse_scenario({
+        "app": "demo",
+        "title": {"en": "A demo"},
+        "languages": ["en"],
+        "steps": [
+            {"action": "goto", "value": "/apps/"},
+            {"action": "click", "selector": "#create-submit-btn"},
+            {"action": "type", "selector": "#name", "value": "x-{run_id}"},
+            {"action": "goto", "value": "/{username}/x-{run_id}/"},
+            {"action": "goto", "value": "/apps/"},
+        ],
+    })
+    # Act
+    targets = preflight_targets(scenario, "demo-user", "PREFLIGHT")
+    # Assert
+    assert targets == ["/apps/", "/demo-user/x-PREFLIGHT/"]
+
+
+def test_preflight_targets_of_the_projects_scenario_cover_every_page():
+    # Arrange: the render's pages, so the preflight cannot silently check fewer.
+    scenario = load_scenario(DEMO_VIDEOS_DIR / "scenarios" / "projects.yaml")
+    # Act
+    targets = preflight_targets(scenario, "demo-user", "PREFLIGHT")
+    # Assert
+    assert targets == [
+        "/apps/",
+        "/new/",
+        "/demo-user/sleep-study-PREFLIGHT/",
+    ]
+
+
+def test_language_switch_happens_on_a_page_the_scenario_visits():
+    # Arrange: the switch used to run on /apps/ for every scenario, which a
+    # signed-out tour cannot reach (it redirects to signup).
+    scenario = load_scenario(DEMO_VIDEOS_DIR / "scenarios" / "smoke-public-demos.yaml")
+    # Act
+    path = language_switch_path(scenario)
+    # Assert
+    assert path == "/demos/"
+
+
+def test_language_switch_falls_back_to_the_home_page_without_a_plain_goto():
+    # Arrange: every goto carries a placeholder, so no page can be visited first.
+    scenario = parse_scenario({
+        "app": "demo",
+        "title": {"en": "A demo"},
+        "languages": ["en"],
+        "steps": [{"action": "goto", "value": "/{username}/project/"}],
+    })
+    # Act / Assert
+    assert language_switch_path(scenario) == "/apps/"
