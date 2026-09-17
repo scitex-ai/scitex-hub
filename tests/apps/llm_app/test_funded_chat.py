@@ -441,7 +441,7 @@ def test_provider_adapter_uses_exact_configured_model_without_fallback(monkeypat
     from decimal import Decimal
     from types import SimpleNamespace
 
-    import litellm
+    litellm = pytest.importorskip("litellm")
 
     from apps.infra.llm_app.funded_chat.provider import litellm_provider_call
 
@@ -483,7 +483,7 @@ def test_provider_adapter_uses_exact_configured_model_without_fallback(monkeypat
 def test_provider_adapter_refuses_a_call_above_the_reserved_cost(monkeypatch):
     import json
 
-    import litellm
+    litellm = pytest.importorskip("litellm")
 
     from apps.infra.llm_app.funded_chat.provider import (
         ProviderBudgetEstimateError,
