@@ -1,0 +1,47 @@
+{% load i18n chat_error_cards %}
+{# A provider failure, as a card the reader can act on.                           #}
+{# Card: hub-chat-free-daily-message-allowance-20260917 · SSOT §6.                 #}
+{#                                                                                #}
+{# The provider's own message is passed to the tag and thrown away there — this    #}
+{# template has no variable that could echo it, so no future copy edit can leak a  #}
+{# key or a raw stack trace. Anything a human needs arrives as the sanitized       #}
+{# support id instead.                                                            #}
+{% chat_error_card category provider_message=provider_message retry_after=retry_after support_id=support_id as card %}
+<div class="chat-error-card"
+     data-error-card="true"
+     data-error-category="{{ card.category }}"
+     data-error-actor="{{ card.actor }}"
+     role="alert">
+    <p class="chat-error-card-title">{{ card.title }}</p>
+    <p class="chat-error-card-detail">{{ card.detail }}</p>
+    {% if card.retry_after %}
+        <p class="chat-error-card-retry">
+            {# blocktrans needs a simple name (or a `with` alias); a dotted lookup #}
+            {# inside the block renders empty, which is how this line first shipped. #}
+            {% blocktrans with wait=card.retry_after %}Try again in {{ wait }}.{% endblocktrans %}
+        </p>
+    {% endif %}
+    <div class="chat-error-card-actions">
+        {% if card.action_url %}
+            <a class="chat-error-card-action chat-error-card-action--primary"
+               href="{{ card.action_url }}"
+               data-error-action-primary="true">{{ card.action_label }}</a>
+        {% else %}
+            <button type="button"
+                    class="chat-error-card-action chat-error-card-action--primary"
+                    data-error-action-primary="true"
+                    data-error-action="{{ card.action_key }}">{{ card.action_label }}</button>
+        {% endif %}
+        {% if card.category == 'quota_reached' %}
+            <a class="chat-error-card-action"
+               href="/ai-setup/"
+               data-error-action-secondary="byok">{% trans "Connect your own provider" %}</a>
+        {% endif %}
+    </div>
+    {% if card.support_id %}
+        <details class="chat-error-card-technical">
+            <summary>{% trans "Technical details" %}</summary>
+            <p>{% blocktrans %}Support id: {{ card.support_id }}{% endblocktrans %}</p>
+        </details>
+    {% endif %}
+</div>

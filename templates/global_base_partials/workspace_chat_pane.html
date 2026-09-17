@@ -12,6 +12,11 @@
                 </div>
             </div>
             <div class="chat-welcome-input-area">
+                {# Free-message allowance, before the user sends (card             #}
+                {# hub-chat-free-daily-message-allowance-20260917). Renders the    #}
+                {# explicit unknown state until the backend supplies              #}
+                {# `chat_allowance`; it never invents a count.                    #}
+                {% include "chat/partials/chat_allowance.html" with allowance=chat_allowance %}
                 <div class="chat-welcome-input-box">
                     {% trans "• " context "chat example bullet" as bullet %}
                     <textarea id="chat-welcome-input"
@@ -45,6 +50,7 @@
         </div>
         <!-- Persistent input area (shown during conversation, hidden by CSS initially) -->
         <div class="chat-input-area hidden" id="chat-input-area">
+            {% include "chat/partials/chat_allowance.html" with allowance=chat_allowance %}
             <div class="chat-input-box">
                 <textarea id="chat-input"
                           class="chat-input"
