@@ -236,6 +236,31 @@ def test_media_names_lists_every_file_once(tmp_path):
     assert all(name.endswith((".mp4", ".vtt", ".txt", ".png", ".webm")) for name in names)
 
 
+def test_resolve_media_refuses_every_way_out_of_the_directory(tmp_path):
+    # Arrange: the one function standing between a request and the filesystem.
+    library_dir = tmp_path / "lib"
+    library_dir.mkdir()
+    good = library_dir / "projects-2026-09-17.en.mp4"
+    good.write_bytes(b"video")
+    secret = tmp_path / "secret.txt"
+    secret.write_text("not for the library", encoding="utf-8")
+    (library_dir / "escape.mp4").symlink_to(secret)
+    # Act / Assert: the file inside is served, and every way out is refused.
+    assert library.resolve_media(library_dir, "projects-2026-09-17.en.mp4") == good
+    for name in ("", "/etc/passwd", "../secret.txt", "sub/other.mp4", "..\\secret.txt",
+                 ".hidden.mp4", "escape.mp4", "missing.mp4"):
+        assert library.resolve_media(library_dir, name) is None, name
+
+
+def test_content_type_is_declared_or_refused_never_guessed(tmp_path):
+    # Arrange / Act / Assert
+    assert library.content_type_for("a.mp4") == "video/mp4"
+    assert library.content_type_for("a.vtt") == "text/vtt"
+    assert library.content_type_for("a.chapters.vtt") == "text/vtt"
+    assert library.content_type_for("a.bin") == "application/octet-stream"
+    assert library.content_type_for("a.HTML") == "application/octet-stream"
+
+
 def test_the_index_counts_by_visibility_and_sorts_newest_first(tmp_path):
     # Arrange: two captures; only the newer one is reviewed.
     older = manifest_for("projects-2026-09-16")

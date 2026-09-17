@@ -207,3 +207,44 @@ def media_names(entry: dict) -> list[str]:
             if name and name not in names:
                 names.append(name)
     return names
+
+
+def resolve_media(directory: Path, name: str) -> Path | None:
+    """The file a media request may read, or None when it may read nothing.
+
+    The library serves bytes that are not on a public static path, so this is the
+    only thing standing between a crafted request and the rest of the filesystem.
+    It is a pure function on purpose: the rules are testable without a request,
+    and the view does not get to invent its own arithmetic. A name is refused when
+    it is empty, has a separator or a parent segment, is absolute, is hidden, or
+    resolves outside the directory once symlinks are followed.
+    """
+    if not name or "/" in name or "\\" in name or name.startswith("."):
+        return None
+    if ".." in name or Path(name).is_absolute():
+        return None
+    directory = Path(directory)
+    candidate = (directory / name).resolve()
+    try:
+        root = directory.resolve()
+    except OSError:
+        return None
+    if root not in candidate.parents:
+        return None
+    return candidate if candidate.is_file() else None
+
+
+#: Media types the library may serve, by suffix; anything else is refused rather
+#: than guessed, so a stray file cannot be handed out with the wrong content type.
+MEDIA_TYPES = {
+    ".mp4": "video/mp4",
+    ".webm": "video/webm",
+    ".vtt": "text/vtt",
+    ".txt": "text/plain; charset=utf-8",
+    ".png": "image/png",
+    ".json": "application/json",
+}
+
+
+def content_type_for(name: str) -> str:
+    return MEDIA_TYPES.get(Path(name).suffix.lower(), "application/octet-stream")

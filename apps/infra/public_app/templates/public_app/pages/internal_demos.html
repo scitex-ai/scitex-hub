@@ -1,0 +1,248 @@
+{% extends "global_base.html" %}
+{% load i18n %}
+
+{% block title %}Internal demo library - SciTeX{% endblock %}
+{% block meta_description %}Staff-only index of the recorded demo videos and what blocks each one from being published.{% endblock %}
+{# Not a public page: keep it out of search results even if a link leaks. #}
+{% block extra_head %}<meta name="robots" content="noindex, nofollow" />{% endblock %}
+{% block extra_css %}
+    <style>
+        /* No animation anywhere on this page, so it is reduced-motion safe by
+           construction rather than by a media query that can be forgotten. */
+        .library {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .library-header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .library-summary {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin: 0.75rem 0 1.5rem;
+        }
+
+        .library-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.7rem;
+            border: 1px solid var(--border-default);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .library-count strong {
+            color: var(--text-primary);
+        }
+
+        .library-card {
+            display: grid;
+            grid-template-columns: minmax(220px, 280px) 1fr;
+            gap: 1rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            background: var(--bg-muted);
+        }
+
+        .library-card img {
+            width: 100%;
+            border-radius: 6px;
+            background: #000;
+        }
+
+        .library-card h2 {
+            margin: 0 0 0.35rem;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .library-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
+            margin: 0.35rem 0;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            word-break: break-word;
+        }
+
+        .library-meta code {
+            font-size: 0.8rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: 1px solid currentColor;
+        }
+
+        .badge-private-draft { color: #d97757; }
+        .badge-reviewed { color: #2f9e44; }
+        .badge-public-ready { color: #1c7ed6; }
+
+        .library-renditions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .library-rendition {
+            border: 1px solid var(--border-default);
+            border-radius: 6px;
+            padding: 0.4rem 0.6rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .library-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.6rem;
+        }
+
+        .library-actions a {
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            border: 1px solid var(--border-default);
+            border-radius: 6px;
+            padding: 0.35rem 0.6rem;
+            text-decoration: none;
+        }
+
+        .library-empty {
+            padding: 2rem;
+            border: 1px dashed var(--border-default);
+            border-radius: 8px;
+            color: var(--text-secondary);
+        }
+
+        /* 390 px: one column, the thumbnail first, nothing overlapping. */
+        @media (max-width: 480px) {
+            .library {
+                margin: 1rem auto;
+            }
+
+            .library-card {
+                grid-template-columns: 1fr;
+                padding: 0.75rem;
+            }
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="library">
+        <div class="library-header">
+            <h1>{% translate "Internal demo library" %}</h1>
+            <p class="library-summary">
+                <span class="library-count">
+                    {% translate "Renders" %} <strong>{{ library.total }}</strong>
+                </span>
+                {% for visibility, count in library.counts.items %}
+                    <span class="library-count">
+                        {{ visibility }} <strong>{{ count }}</strong>
+                    </span>
+                {% endfor %}
+                {% if library.directory %}
+                    <span class="library-count">from <code>{{ library.directory }}</code></span>
+                {% endif %}
+            </p>
+        </div>
+        {% if not library.entries %}
+            <p class="library-empty">
+                {% translate "No renders in this library yet." %}
+                {% translate "Record one with scripts/demo_videos/record.py and it appears here with its watch state." %}
+            </p>
+        {% endif %}
+        {% for entry in library.entries %}
+            <article class="library-card">
+                <div>
+                    {% if entry.renditions.0.urls.thumbnail %}
+                        <img src="{{ entry.renditions.0.urls.thumbnail }}"
+                             alt="{{ entry.titles.en|default:entry.app }} thumbnail"
+                             loading="lazy" />
+                    {% endif %}
+                </div>
+                <div>
+                    <h2>
+                        {{ entry.titles.en|default:entry.app }}
+                        <span class="badge badge-{{ entry.visibility }}">{{ entry.visibility }}</span>
+                    </h2>
+                    <p class="library-meta">
+                        <span>{{ entry.app }} · {{ entry.date }}</span>
+                        <span>Hub
+                            {% if entry.hub_version %}{{ entry.hub_version }}{% else %}
+                                <em>unknown (no promotion file)</em>{% endif %}</span>
+                        {% for leaf, version in entry.leaf_versions.items %}
+                            <span>{{ leaf }} {{ version }}</span>
+                        {% endfor %}
+                        <span>commit <code>{{ entry.commit|slice:":12" }}</code></span>
+                        <span>captured {{ entry.captured_at }}</span>
+                        <span>{{ entry.viewports|join:", " }}</span>
+                    </p>
+                    <p class="library-meta">
+                        <span>watch: {{ entry.watch.state }}
+                            ({{ entry.watch.watched|length }}/{{ entry.watch.required|length }})</span>
+                        {% if entry.watch.missing %}
+                            <span>unwatched: {{ entry.watch.missing|join:", " }}</span>
+                        {% endif %}
+                        {% if entry.watch.failing %}
+                            <span>failed: {% for item in entry.watch.failing %}{{ item.language }}{% endfor %}</span>
+                        {% endif %}
+                        {% if entry.watch.stale %}
+                            <span>rewatched needed: {{ entry.watch.stale|join:", " }}</span>
+                        {% endif %}
+                        {% if not entry.narrated %}<span>no voice track</span>{% endif %}
+                        {% if entry.narration_failures %}
+                            <span>narration unavailable: {{ entry.narration_failures.keys|join:", " }}</span>
+                        {% endif %}
+                    </p>
+                    <div class="library-renditions">
+                        {% for row in entry.renditions %}
+                            <span class="library-rendition">
+                                {{ row.language }}{% if row.ui_locale != row.language %} ({{ row.ui_locale }} UI){% endif %}
+                                · {{ row.viewport }}
+                                · {{ row.duration_seconds|floatformat:1 }}s
+                                · {{ row.cues }} cues
+                                {% if not row.canonical %}· alternate{% endif %}
+                            </span>
+                        {% endfor %}
+                    </div>
+                    <div class="library-actions">
+                        {% for row in entry.renditions %}
+                            {% if row.urls.video %}
+                                <a href="{{ row.urls.video }}">{{ row.language }} video</a>
+                            {% endif %}
+                            {% if row.urls.captions %}
+                                <a href="{{ row.urls.captions }}">{{ row.language }} captions</a>
+                            {% endif %}
+                            {% if row.urls.transcript %}
+                                <a href="{{ row.urls.transcript }}">{{ row.language }} transcript</a>
+                            {% endif %}
+                            {% if row.urls.chapters %}
+                                <a href="{{ row.urls.chapters }}">{{ row.language }} chapters</a>
+                            {% endif %}
+                        {% endfor %}
+                        {% for target in entry.promotion.docs_targets %}
+                            <a href="{{ target }}">docs: {{ target }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+{% endblock %}

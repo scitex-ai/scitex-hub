@@ -99,6 +99,12 @@ urlpatterns = [
     path("api-keys/", views.scitex_api_keys, name="scitex_api_keys"),
     # Release Notes
     path("releases/", views.releases_view, name="releases"),
+    # Staff-only internal demo library (card hub-internal-demo-video-library-20260917).
+    # Registered here, not in config/urls.py, so it is resolved before the
+    # <str:username>/ catch-all below it — /internal/ must not be read as a username.
+    path("internal/demos/", views.internal_demos, name="internal_demos"),
+    path("internal/demos/media/<str:name>", views.internal_demo_media,
+         name="internal_demo_media"),
 ]
 
 # EOF
