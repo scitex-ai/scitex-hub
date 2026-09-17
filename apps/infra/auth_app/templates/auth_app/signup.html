@@ -122,18 +122,6 @@
                     </div>
                     {% if form.password.errors %}<div class="text-danger small">{{ form.password.errors.0 }}</div>{% endif %}
                 </div>
-                <div class="form-group mb-2">
-                    <label for="{{ form.password2.id_for_label }}" class="form-label">
-                        {% trans "Confirm Password" %} <span class="text-danger">*</span>
-                    </label>
-                    <div class="input-group">
-                        {{ form.password2 }}
-                        <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
-                            <i class="fas fa-eye" id="toggleConfirmPasswordIcon"></i>
-                        </button>
-                    </div>
-                    {% if form.password2.errors %}<div class="text-danger small">{{ form.password2.errors.0 }}</div>{% endif %}
-                </div>
                 <!-- Password Requirements -->
                 <div class="password-rules mb-3">
                     <div class="password-rules-title">{% trans "Password Requirements:" %}</div>
@@ -218,7 +206,6 @@
   document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("signup-form");
     const passwordInput = document.getElementById("id_password");
-    const confirmPassword = document.getElementById("id_password2");
     const usernameInput = document.getElementById("id_username");
     const successMessage = document.querySelector(".form-message.success");
     const errorMessage = document.getElementById("js-error-message");
@@ -320,22 +307,6 @@
       }
     }
 
-    // Helper function to check password match
-    function checkPasswordMatch() {
-      const password = passwordInput.value;
-      const confirmPass = confirmPassword.value;
-      const hasInput = password.length > 0 && confirmPass.length > 0;
-      const passwordsMatch = password === confirmPass && password.length > 0;
-
-      // The match rule was removed from the UI (operator 2026-09-13: confirming
-      // by retyping the password is obvious); the Confirm Password field +
-      // server-side match validation still enforce it. The element is now
-      // optional, so guard against it being absent.
-      if (ruleMatch) {
-        updatePasswordRule(ruleMatch, passwordsMatch, hasInput);
-      }
-    }
-
     // Check password strength
     passwordInput.addEventListener("input", function () {
       const password = this.value;
@@ -361,12 +332,6 @@
       );
 
       // Check if passwords match
-      checkPasswordMatch();
-    });
-
-    // Check password match when confirm password changes
-    confirmPassword.addEventListener("input", function () {
-      checkPasswordMatch();
     });
 
     // Form submission validation
@@ -402,14 +367,6 @@
         return;
       }
 
-      // Password match validation
-      if (password !== confirmPassword.value) {
-        e.preventDefault();
-        errorText.textContent = "Passwords do not match.";
-        errorMessage.style.display = "block";
-        return;
-      }
-
       // If validation passes, allow form to submit normally to Django
     });
   });
@@ -420,13 +377,6 @@
     const passwordInput = document.getElementById("id_password");
     const togglePasswordIcon = document.getElementById("togglePasswordIcon");
 
-    const toggleConfirmPassword = document.getElementById(
-      "toggleConfirmPassword",
-    );
-    const confirmPasswordInput = document.getElementById("id_password2");
-    const toggleConfirmPasswordIcon = document.getElementById(
-      "toggleConfirmPasswordIcon",
-    );
 
     // Main password toggle
     if (togglePassword && passwordInput && togglePasswordIcon) {
@@ -448,29 +398,6 @@
       });
     }
 
-    // Confirm password toggle
-    if (
-      toggleConfirmPassword &&
-      confirmPasswordInput &&
-      toggleConfirmPasswordIcon
-    ) {
-      toggleConfirmPassword.addEventListener("click", function () {
-        const type =
-          confirmPasswordInput.getAttribute("type") === "password"
-            ? "text"
-            : "password";
-        confirmPasswordInput.setAttribute("type", type);
-
-        // Toggle the eye icon
-        if (type === "password") {
-          toggleConfirmPasswordIcon.classList.remove("fa-eye-slash");
-          toggleConfirmPasswordIcon.classList.add("fa-eye");
-        } else {
-          toggleConfirmPasswordIcon.classList.remove("fa-eye");
-          toggleConfirmPasswordIcon.classList.add("fa-eye-slash");
-        }
-      });
-    }
   });
     </script>
 {% endblock %}
