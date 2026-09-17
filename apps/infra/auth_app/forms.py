@@ -17,6 +17,7 @@ class SignupForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
+                "autocomplete": "username",
                 "placeholder": _("Choose a username (e.g., john-doe-42)"),
             }
         ),
@@ -24,19 +25,15 @@ class SignupForm(forms.Form):
     )
     email = forms.EmailField(
         widget=forms.EmailInput(
-            attrs={"class": "form-control", "placeholder": "your.email@example.com"}
+            attrs={"class": "form-control", "autocomplete": "email",
+                "placeholder": "your.email@example.com"}
         )
     )
     password = forms.CharField(
         widget=forms.PasswordInput(
-            attrs={"class": "form-control", "placeholder": _("Create a strong password")}
+            attrs={"class": "form-control", "autocomplete": "new-password",
+                "placeholder": _("Create a strong password")}
         )
-    )
-    password2 = forms.CharField(
-        widget=forms.PasswordInput(
-            attrs={"class": "form-control", "placeholder": _("Confirm your password")}
-        ),
-        label=_("Confirm Password"),
     )
     agree_terms = forms.BooleanField(
         required=True,
@@ -121,17 +118,6 @@ class SignupForm(forms.Form):
         and for why the answer must not reveal whether an address is known.
         """
         return self.cleaned_data["email"].strip().lower()
-
-    def clean(self):
-        """Validate passwords match."""
-        cleaned_data = super().clean()
-        password = cleaned_data.get("password")
-        password2 = cleaned_data.get("password2")
-
-        if password and password2 and password != password2:
-            raise forms.ValidationError("Passwords do not match.")
-
-        return cleaned_data
 
 
 class LoginForm(forms.Form):
