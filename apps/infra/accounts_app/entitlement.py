@@ -96,8 +96,29 @@ def is_exempt(user) -> bool:
     return bool(getattr(user, "is_staff", False) or getattr(user, "is_superuser", False))
 
 
-def card_required_decision(path: str, user) -> Tuple[str, Optional[str]]:
-    """``(OPEN, None)`` or ``(GATED, payment_step_path)`` for one request."""
+def enforcement_enabled() -> bool:
+    """Whether this DEPLOYMENT turns the wall on.
+
+    Off by default, on purpose: enabling it immediately removes app routes from every
+    account without a usable card - including a repository's own end-to-end fixtures,
+    which is exactly what happened when this shipped registered globally (the mobile
+    E2E job went red with 14 errors, every one a card-less fixture timeouting on a page
+    the wall had redirected). A card-required beta turns it on deliberately, per
+    environment, by setting SCITEX_HUB_CARD_REQUIRED=1.
+    """
+    from django.conf import settings
+
+    return bool(getattr(settings, "SCITEX_HUB_CARD_REQUIRED", False))
+
+
+def card_required_decision(path: str, user, *, enforced: bool = True) -> Tuple[str, Optional[str]]:
+    """``(OPEN, None)`` or ``(GATED, payment_step_path)`` for one request.
+
+    ``enforced`` is a parameter rather than a settings read so the rule is testable
+    without one; the middleware passes :func:`enforcement_enabled`.
+    """
+    if not enforced:
+        return OPEN, None
     if is_exempt(user):
         return OPEN, None
     if path_is_reachable_without_card(path):

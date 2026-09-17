@@ -336,3 +336,64 @@ class TestTheWallOnRealRoutes:
         response = client.get("/apps/agents/")
 
         assert response.status_code not in (301, 302)
+
+
+# ---------------------------------------------------------------------------
+# enforcement is opt-in per deployment (learned the hard way in CI)
+# ---------------------------------------------------------------------------
+
+
+def test_enforcement_off_leaves_every_route_open():
+    """The default. Registering the wall globally took the mobile E2E job red with 14
+    errors, each a card-less E2E fixture timing out on a page the wall had redirected -
+    the suite is entitled to reach app routes as an anonymous-ish test user."""
+    decision, target = card_required_decision("/apps/agents/", _User(), enforced=False)
+
+    assert decision == OPEN
+    assert target is None
+
+
+def test_enforcement_on_walls_the_same_route():
+    """Same request, same user, one flag apart - so the flag is the only difference."""
+    decision, target = card_required_decision("/apps/agents/", _User(), enforced=True)
+
+    assert decision == GATED
+    assert target == PAYMENT_STEP
+
+
+def test_the_setting_defaults_to_off_and_is_a_bool(settings):
+    """A deployment turns this on deliberately. If the default ever flips to on, every
+    card-less fixture in the repository starts hitting a wall - which is a product
+    decision, not a refactor."""
+    import os
+
+    if os.environ.get("SCITEX_HUB_CARD_REQUIRED"):
+        pytest.skip("this environment sets the flag explicitly")
+
+    assert isinstance(settings.SCITEX_HUB_CARD_REQUIRED, bool)
+    assert settings.SCITEX_HUB_CARD_REQUIRED is False
+
+
+def test_enforcement_helper_reads_the_setting(settings):
+    from apps.infra.accounts_app.entitlement import enforcement_enabled
+
+    settings.SCITEX_HUB_CARD_REQUIRED = False
+    assert enforcement_enabled() is False
+    settings.SCITEX_HUB_CARD_REQUIRED = True
+    assert enforcement_enabled() is True
+
+
+@pytest.mark.django_db
+def test_the_middleware_does_not_wall_when_the_deployment_is_off(client, settings):
+    """End to end through the client: the flag, not the code path, decides."""
+    from django.contrib.auth import get_user_model
+
+    settings.SCITEX_HUB_CARD_REQUIRED = False
+    user = get_user_model().objects.create_user(
+        username="wall-off", email="wall-off@example.com", password="TestPass123!"
+    )
+    client.force_login(user)
+
+    response = client.get("/apps/agents/")
+
+    assert response.status_code not in (301, 302), "enforcement is off; the wall still fired"

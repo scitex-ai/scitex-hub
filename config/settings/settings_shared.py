@@ -105,6 +105,15 @@ SCITEX_STORAGE_VOLUMES_PROVIDER = "apps.workspace.storage_app.volumes.user_volum
 # picker itself — a provider entry carries display metadata, never a path.
 SCITEX_PROJECT_STORAGE = "apps.infra.project_app.services.project_scope.HubProjectStorage"
 
+# Card-required onboarding enforcement. OFF by default: enabling it removes app routes
+# from every account without a usable, webhook-confirmed card, which is the intent for
+# the card-required beta and would break every card-less test fixture in the meantime
+# (measured: the mobile E2E job went red with 14 such errors when it was unconditional).
+# Turn it on per environment with SCITEX_HUB_CARD_REQUIRED=1.
+SCITEX_HUB_CARD_REQUIRED = os.environ.get("SCITEX_HUB_CARD_REQUIRED", "").strip().lower() in (
+    "1", "true", "yes", "on",
+)
+
 # ---------------------------------------
 # Paths
 # ---------------------------------------

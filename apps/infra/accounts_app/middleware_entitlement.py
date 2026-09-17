@@ -19,7 +19,7 @@ import json
 from django.http import JsonResponse
 from django.shortcuts import redirect
 
-from .entitlement import GATED, card_required_decision
+from .entitlement import GATED, card_required_decision, enforcement_enabled
 
 #: API paths get a status code instead of a redirect: bouncing a JSON client to an HTML
 #: payment page turns "you need a card" into "your client parsed HTML". Everything else
@@ -35,7 +35,9 @@ class CardRequiredMiddleware:
 
     def __call__(self, request):
         decision, target = card_required_decision(
-            getattr(request, "path_info", "") or "", getattr(request, "user", None)
+            getattr(request, "path_info", "") or "",
+            getattr(request, "user", None),
+            enforced=enforcement_enabled(),
         )
         if decision == GATED:
             if request.path_info.startswith(API_PREFIXES):
