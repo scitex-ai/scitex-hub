@@ -170,6 +170,18 @@ def parse_step(raw: dict, position: int, languages: list[str]) -> Step:
         raise ScenarioError(f"{where}: '{step.action}' needs a selector")
     if step.action in ACTIONS_NEEDING_VALUE and not step.value:
         raise ScenarioError(f"{where}: '{step.action}' needs a value")
+    if step.action == "goto":
+        # A scenario drives a browser that holds the operator's session, so a target
+        # that leaves the site is not a typo to tolerate: it is someone else's page
+        # inside the recording. Checked here, at load, so no code path can navigate
+        # before the check runs — the first version guarded the step loop and the
+        # language switch navigated first.
+        for language, value in step.value.items():
+            if not value.startswith("/") or value.startswith("//") or "://" in value:
+                raise ScenarioError(
+                    f"{where}: goto {value!r} ({language}) must be a site path like '/apps/', "
+                    f"not another origin"
+                )
     if step.only and step.only not in VIEWPORTS:
         raise ScenarioError(f"{where}: only must be one of {list(VIEWPORTS)}")
     if step.hold < 0:

@@ -106,6 +106,17 @@
         duration: video.duration,
         playbackRate: video.playbackRate,
         paused: video.paused,
+        captionTrackSrc: (function () {
+          var tracks = video.textTracks || [];
+          for (var index = 0; index < tracks.length; index += 1) {
+            if (tracks[index].mode === 'showing') {
+              var element = tracks[index].track || tracks[index];
+              return (element && element.src) || '';
+            }
+          }
+          return '';
+        })(),
+        playingSrc: video.currentSrc || '',
         captionsLanguage: (function () {
           var tracks = video.textTracks || [];
           for (var index = 0; index < tracks.length; index += 1) {
@@ -192,12 +203,26 @@
     }
 
     function updateCaptionTracks(video, target) {
-      // The Japanese rendition carries its own WebVTT file; if the template
-      // already rendered a track for the target language, point it at the new
-      // source instead of duplicating cues.
-      var track = captionTrackFor(video, target.captionCode || target.code);
-      if (track) {
+      // Every rendition carries its own WebVTT file, so the tracks that do not belong
+      // to the target are disabled and removed. Leaving them attached meant a switch
+      // could keep showing the previous language's cues while the new audio played.
+      var wanted = target.captionCode || target.code;
+      var tracks = Array.prototype.slice.call(video.textTracks || []);
+      tracks.forEach(function (track) {
         var element = track.track || track;
+        var language = (element && element.language) || '';
+        if (language === wanted) {
+          return;
+        }
+        track.mode = 'disabled';
+        if (element && element.dataset && element.dataset.demoCaption === '1'
+            && element.parentNode) {
+          element.parentNode.removeChild(element);
+        }
+      });
+      var existing = captionTrackFor(video, wanted);
+      if (existing) {
+        var element = existing.track || existing;
         if (element && element.src !== target.captions && element.setAttribute) {
           element.setAttribute('src', target.captions);
         }
@@ -206,8 +231,9 @@
       var created = document.createElement('track');
       created.kind = 'captions';
       created.label = target.label;
-      created.srclang = target.captionCode || target.code;
+      created.srclang = wanted;
       created.src = target.captions;
+      created.dataset.demoCaption = '1';
       video.appendChild(created);
     }
 
@@ -221,6 +247,14 @@
     }
 
     var initial = video.dataset.activeLanguage || (video.dataset.defaultLanguage || languages[0].code);
+    // Defensive: if the rendered <source> is not the active rendition's file, fix it
+    // rather than reporting one language while playing another.
+    var initialEntry = byCode[initial];
+    if (initialEntry && video.currentSrc && initialEntry.src
+        && video.currentSrc.indexOf(initialEntry.src) === -1) {
+      video.src = initialEntry.src;
+      video.load();
+    }
     video.dataset.activeLanguage = initial;
     video.setAttribute('data-active-language', initial);
     markButtons(initial);

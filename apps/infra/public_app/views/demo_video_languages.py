@@ -123,3 +123,12 @@ def default_captions(entries: list[dict], site_language: str = "en") -> str:
         if entry["code"] == code:
             return entry["captionCode"] if entry["captions"] else ""
     return ""
+
+
+def initial_src(entries: list[dict], site_language: str = "en") -> str:
+    """The video file the player must start on, for the default rendition."""
+    code = default_language(entries, site_language)
+    for entry in entries:
+        if entry["code"] == code:
+            return entry["src"]
+    return entries[0]["src"] if entries else ""

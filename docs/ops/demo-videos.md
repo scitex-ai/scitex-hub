@@ -86,9 +86,22 @@ serves, so a change to that template is a Hub change and a reason to re-render.
    (reviewed **and** a promotion file that names the Docs target, the catalog key and
    the pinned video digests). `scripts/demo_videos/demo_promotion.py` writes that
    promotion record; it never re-encodes anything.
-10. **Publishing.** Copy the watched files to the media volume, add the catalog
-    entry, add the card, and extend `RENDERED_DEMO_GUIDES` — see *Publish on the hub*
-    below. Only `public-ready` assets are published.
+10. **Promote, then publish.** Promotion is a step, not a paragraph: write the
+    promotion record for a reviewed render —
+
+    ```bash
+    /uvwork/venv-agent/bin/python scripts/demo_videos/demo_promotion.py \
+      --manifest <render-dir>/<app>-<date>.manifest.json \
+      --by <who reviewed it> --docs-page <docs path> --embed-key <catalog key>
+    ```
+
+    — which names the files a Docs page may embed, pins their sha256 so nothing is
+    re-encoded or swapped, records the Hub version (and a leaf version when the guide
+    is about a leaf app), and is what makes an asset `public-ready` rather than merely
+    `reviewed`. Then copy the watched files to the media volume, add the catalog entry,
+    add the card, and extend `RENDERED_DEMO_GUIDES` — see *Publish on the hub* below.
+    Only `public-ready` assets are published: the promotion record is the link between
+    "a person watched this" and "this may be embedded".
 
 **Immutability and disclosure.** A render is evidence: once watched, its files are
 not edited in place — a change is a new render, a new manifest and a new watch.

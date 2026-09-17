@@ -34,6 +34,7 @@ import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from urllib.parse import urlparse
 
 from demo_captions import (
     Chapter,
@@ -61,7 +62,7 @@ from demo_narration import (
     synthesize_clip,
     voice_for,
 )
-from demo_scenario import Rendition, Scenario, Step, load_scenario
+from demo_scenario import Rendition, Scenario, ScenarioError, Step, load_scenario
 from demo_selectors import (
     check_contracts,
     check_scenario,
@@ -77,6 +78,33 @@ from demo_tools import (
 from demo_watch_gate import gate_path, init_gate
 
 POINTER_ACTIONS = {"click", "fill", "type", "hover"}
+#: An app or date becomes part of a file name, so it is constrained rather than
+#: escaped: `app: ../../etc` used to write outside the render directory.
+SAFE_APP = re.compile(r"^[a-z0-9][a-z0-9-]{0,40}$")
+SAFE_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def output_name_problems(app: str, date: str) -> list[str]:
+    """Why these names must not be used for files, if any."""
+    problems = []
+    if not SAFE_APP.match(app or ""):
+        problems.append(f"app {app!r} must be lowercase letters, digits and hyphens")
+    if not SAFE_DATE.match(date or ""):
+        problems.append(f"date {date!r} must be YYYY-MM-DD")
+    return problems
+
+
+def safe_site_path(value: str) -> bool:
+    """Whether a goto target stays on this site.
+
+    The recorder drives a browser that holds the operator's session, so a scenario
+    that navigates to another origin is a scenario that hands the recording to a page
+    nobody reviewed — and a redirect can do it after the click as well, which is why
+    the final URL's origin is checked too, not just the value written in the scenario.
+    """
+    if not value or not value.startswith("/") or value.startswith("//"):
+        return False
+    return "://" not in value and "\\" not in value and "\n" not in value
 # Reading speed used to time steps when no voice is available, in characters per second.
 FALLBACK_CHARACTERS_PER_SECOND = {"ja": 7.0}
 DEFAULT_CHARACTERS_PER_SECOND = 15.0
@@ -287,7 +315,7 @@ def language_switch_path(scenario: Scenario) -> str:
         if step.action != "goto":
             continue
         for value in step.value.values():
-            if value and "{" not in value:
+            if value and "{" not in value and safe_site_path(value):
                 return value
     return "/apps/"
 
@@ -313,6 +341,7 @@ def switch_ui_language(browser, base_url: str, storage_state, locale: str, path:
         page.click("#lang-select-trigger")
         with page.expect_navigation(timeout=60_000):
             page.click(f"form.lang-select-item:has(input[name=language][value={locale}]) button")
+        assert_same_origin(page, base_url)
         try:
             page.wait_for_function(
                 "() => document.readyState !== 'loading' "
@@ -359,6 +388,16 @@ def click_with_retry(locator, attempts: int = 2, timeout_ms: int = 30_000) -> No
     raise last_error if last_error is not None else RuntimeError("click failed")
 
 
+def assert_same_origin(page, base_url: str) -> None:
+    """Raise unless the page is still on the recorder's own origin."""
+    left = urlparse(page.url)
+    home = urlparse(base_url)
+    if left.netloc != home.netloc:
+        raise RuntimeError(
+            f"the page left the recording origin: {page.url} is not on {base_url}"
+        )
+
+
 def run_step(page, cursor: MovingCursor, step: Step, language: str, args, username: str,
              run_id: str) -> None:
     selector = fill_placeholders(step.selector.get(language, ""), username, run_id)
@@ -367,7 +406,13 @@ def run_step(page, cursor: MovingCursor, step: Step, language: str, args, userna
     if step.action in POINTER_ACTIONS:
         cursor.glide_to(locator)
     if step.action == "goto":
+        if not safe_site_path(value):
+            raise RuntimeError(
+                f"refusing to navigate to {value!r}: a goto target must be a site path "
+                f"like '/apps/', not another origin"
+            )
         page.goto(f"{args.base_url}{value}", wait_until="domcontentloaded", timeout=90_000)
+        assert_same_origin(page, args.base_url)
     elif step.action == "click":
         click_with_retry(locator)
     elif step.action == "fill":
@@ -981,7 +1026,13 @@ def run_preflight(scenario: Scenario, args, username: str, password: str) -> dic
 
 def main() -> int:
     args = parse_args()
-    scenario = load_scenario(args.scenario)
+    try:
+        scenario = load_scenario(args.scenario)
+    except ScenarioError as error:
+        # A scenario that would leave the site, or write outside the render root, is
+        # refused before a browser starts — nothing to clean up, nothing recorded.
+        print(f"scenario refused: {error}", file=sys.stderr)
+        return 9
     username = os.environ.get("DEMO_USERNAME", "")
     password = os.environ.get("DEMO_PASSWORD", "")
     # A dry run and a preflight record nothing, so neither needs the demo
@@ -1006,6 +1057,11 @@ def main() -> int:
         print(f"'{CAPTION_FONT}' is not installed: burned-in captions fall back to a font that "
               "may not have Japanese glyphs. Install it or set --fonts-dir.", file=sys.stderr)
 
+    naming_problems = output_name_problems(scenario.app, args.date)
+    if naming_problems:
+        for problem in naming_problems:
+            print(f"refusing to write files: {problem}", file=sys.stderr)
+        return 8
     renditions = selected_renditions(args, scenario)
     viewports = selected(args.viewports, scenario.viewports)
     languages = selected(args.languages, scenario.languages)
