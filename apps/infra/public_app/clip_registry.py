@@ -104,8 +104,20 @@ def known_defects(manifest: dict, durations: dict) -> list[str]:
         defects.append("recorded without voice narration")
     theme = environment.get("theme") or manifest.get("theme") or ""
     verified = environment.get("theme_verified", manifest.get("theme_verified"))
-    if theme and verified is False:
-        defects.append(f"theme {theme} was requested and not verified on every surface")
+    if verified is False:
+        # The theme name is not required to report this: a render that was asked for a
+        # theme and did not verify it is defective whether or not it recorded the name.
+        # Reported without it, the rejected take looked defect-free, which is exactly the
+        # entry a reader needs to understand.
+        defects.append(
+            f"theme {theme} was requested and not verified on every surface" if theme
+            else "the requested theme was not verified on every surface"
+        )
+    if manifest.get("theme_verified") is False and isinstance(manifest.get("theme_map"), dict):
+        dark = sorted(name for name, state in manifest["theme_map"].items()
+                      if isinstance(state, dict) and state.get("background_theme") == "dark")
+        if dark:
+            defects.append("dark surfaces remained: " + ", ".join(dark))
     for language, seconds in sorted(durations.items()):
         if not isinstance(seconds, (int, float)):
             defects.append(f"{language}: no recorded duration")
