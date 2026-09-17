@@ -24,7 +24,9 @@ each.
 """
 
 import importlib.metadata as importlib_metadata
+import json
 import unittest
+from pathlib import Path
 
 from django.contrib.auth.models import User
 from django.test import TestCase
@@ -41,6 +43,24 @@ def _installed_version_or_none(dist_name):
 
 
 _WRITER_PIP_VERSION = _installed_version_or_none("scitex-writer")
+_CARDS_PIP_VERSION = _installed_version_or_none("scitex-cards")
+_CARDS_MANIFEST = (
+    Path(__file__).resolve().parents[3]
+    / "apps"
+    / "workspace"
+    / "todo_app"
+    / "manifest.json"
+)
+
+
+def test_cards_wrapper_manifest_names_the_canonical_distribution():
+    # Arrange / Act
+    manifest = json.loads(_CARDS_MANIFEST.read_text(encoding="utf-8"))
+    # Assert — both package declarations must follow the Cards rename.
+    assert (
+        manifest["pip_package"],
+        manifest["dependencies"]["python"],
+    ) == ("scitex-cards", ["scitex-cards"])
 
 
 class GuestLauncherVersionResolutionTest(TestCase):
@@ -105,6 +125,20 @@ class GuestLauncherVersionResolutionTest(TestCase):
         writer_tile = self._tile(resp, "writer")
         # Assert
         assert writer_tile is not None and writer_tile["version"] == expected
+
+    @unittest.skipIf(
+        _CARDS_PIP_VERSION is None,
+        "scitex-cards is not installed in this environment",
+    )
+    def test_guest_launcher_cards_tile_shows_installed_pip_version(self):
+        # Arrange — resolve independently from the distribution named by the manifest.
+        manifest = json.loads(_CARDS_MANIFEST.read_text(encoding="utf-8"))
+        expected = _installed_version_or_none(manifest["pip_package"])
+        # Act
+        resp = self._render_guest_after_authenticated()
+        cards_tile = self._tile(resp, "todo")
+        # Assert — no Cards version is hardcoded in Hub.
+        assert cards_tile is not None and cards_tile["version"] == expected
 
     def test_guest_launcher_hub_internal_home_tile_omits_version_label(self):
         # Arrange — "my_projects" (my_projects_app) ships no pip_package, so it must show
