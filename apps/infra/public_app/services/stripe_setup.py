@@ -79,7 +79,10 @@ def session_is_reusable(row, pricing_id: str, *, now=None) -> bool:
     if (row.pricing_id or "") != (pricing_id or ""):
         return False
     reference = now or timezone.now()
-    return reference - row.created_at < HOSTED_SESSION_TTL
+    # ``updated_at``, not ``created_at``: it is refreshed when the session is
+    # stored, so a retry AFTER a cancel still counts its own fresh session as
+    # recent instead of inheriting the row's original age.
+    return reference - row.updated_at < HOSTED_SESSION_TTL
 
 
 class HostedSetup:
@@ -179,6 +182,8 @@ def start_card_setup(user, *, pricing_id, stripe_client, success_url, cancel_url
     ``pricing_id`` is written onto the Stripe session's metadata AND the
     customer's, so the webhook activates the plan the user was shown.
     """
+    from ..models import BillingSetupSession
+
     with transaction.atomic():
         row = _open_setup_row(user)
         now = timezone.now()
@@ -225,7 +230,7 @@ def start_card_setup(user, *, pricing_id, stripe_client, success_url, cancel_url
         row.session_id = _field(session, "id", "") or ""
         row.session_url = _field(session, "url", "") or ""
         row.pricing_id = pricing_id or ""
-        row.status = "open"
+        row.status = BillingSetupSession.Status.OPEN
         row.save(
             update_fields=[
                 "attempt", "stripe_customer_id", "session_id", "session_url",
