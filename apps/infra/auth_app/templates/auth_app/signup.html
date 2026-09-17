@@ -164,7 +164,7 @@
                     </label>
                     {% if form.agree_terms.errors %}<div class="text-danger small">{{ form.agree_terms.errors.0 }}</div>{% endif %}
                 </div>
-                <button type="submit" class="btn btn-success w-100">{% trans "Create Account" %}</button>
+                <button type="submit" class="btn btn-success w-100 auth-primary-cta">{% trans "Create Account" %}</button>
             </form>
             {# Same derivation as signin.html -- see the note there. A provider #}
             {# gets a button exactly when allauth can actually serve its login. #}
