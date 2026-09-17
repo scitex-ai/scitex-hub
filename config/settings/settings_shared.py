@@ -468,7 +468,10 @@ SCITEX_FUNDED_CHAT_REQUESTS_PER_MINUTE = int(
     _getenv_alias("SCITEX_FUNDED_CHAT_REQUESTS_PER_MINUTE", "3") or "3"
 )
 SCITEX_FUNDED_CHAT_MAX_TOKENS = int(
-    _getenv_alias("SCITEX_FUNDED_CHAT_MAX_TOKENS", "2048") or "2048"
+    _getenv_alias(
+        "SCITEX_FUNDED_CHAT_MAX_TOKENS", "2048"
+    )  # pragma: allowlist secret -- output-token count, not a credential
+    or "2048"
 )
 
 # ---------------------------------------
