@@ -396,10 +396,26 @@ In order, none of which is optional:
 A dev server that reloads mid-recording (someone saving a file in the checkout)
 shows up as a blank page or a connection error; re-run the scenario.
 
-Known limits (2026-09-14): Writer's editor is not reachable at 390x844, so
-`writer.yaml` lists only the desktop viewport. The Writer page itself is not yet
-translated, so its Japanese video still shows the English Writer labels; that is
-what `writer.yaml`'s alternate rendition records on purpose.
+Known limits (2026-09-17):
+
+- **Light mode is partial in the product.** With `--theme light` the Home/apps page
+  renders light, but the project workspace (file tree, README/file viewer, its header
+  and dock) and the create form at `/new/` still paint the dark theme. Measured from
+  two recording frames (see below), and the reason the light-mode public demo shows a
+  dark project screen from its "open a file" chapter. Reported to the Hub owner; not a
+  recording option, because the recorder films what the page serves.
+- **The create form's submit button timed out once.** A signed-in light-mode render
+  stopped at `/new/` step 5 of 7 with `Locator.click: Timeout 30000ms exceeded` on
+  `#create-submit-btn`, after `#name` and `#description` were filled; the failure frame
+  shows the button looking enabled and uncovered. Evidence:
+  `/scratch/beta-video-projects-light-en-brian-20260917/projects-2026-09-17.en.failure.json`
+  plus the partial raw recording and screenshot beside it. A click now retries once
+  (30s then 60s) with full actionability checks, so either it rides out a transient
+  state or the next report names the reason.
+- Writer's editor is not reachable at 390x844, so `writer.yaml` lists only the desktop
+  viewport. The Writer page itself is not yet translated, so its Japanese video still
+  shows the English Writer labels; that is what `writer.yaml`'s alternate rendition
+  records on purpose.
 
 `scenarios/smoke-public-demos.yaml` is a pipeline smoke tour: every step is
 reachable signed out, so the whole pipeline (narration, cues, burned captions,
