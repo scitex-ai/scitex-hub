@@ -18,6 +18,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
+from django.urls import Resolver404, resolve
 from django.utils import timezone
 from django.utils.translation import get_language
 
@@ -92,6 +93,19 @@ def apply_active_project(tiles: list[dict], project) -> None:
     for tile in tiles:
         if tile.get("scope") == "project" and tile.get("is_launchable"):
             tile["launch_url"] = project_launch_url(tile["launch_url"], project)
+
+
+def module_route_is_reachable(module) -> bool:
+    """Whether a registry module resolves to a real app route in this host."""
+    path = urlsplit(module.get_url()).path
+    try:
+        match = resolve(path)
+    except Resolver404:
+        return False
+    # The final /<username>/<slug>/ project route matches any two segments.
+    # A missing /apps/<name>/ mount therefore resolves successfully as the
+    # fictional project "apps/<name>" unless we reject that catch-all here.
+    return match.view_name != "project_app:detail"
 
 
 def _is_dev_only(visibility: str, row) -> bool:
@@ -222,6 +236,18 @@ def _build_tiles(request) -> list[dict]:
         # AppsModule row not in `seen`, which would put the tile straight
         # back on the grid.
         if not mod.show_in_launcher:
+            seen.add(mod.name)
+            continue
+        if not module_route_is_reachable(mod):
+            logger.warning(
+                "[launcher] %s declares %s but no app route is mounted; "
+                "showing any planned placeholder instead",
+                mod.name,
+                mod.get_url(),
+            )
+            # Suppress a catalog row seeded from this same dead registry entry;
+            # planned placeholders are derived from rendered tiles, not `seen`,
+            # so Stats still becomes the honest Coming Soon tile below.
             seen.add(mod.name)
             continue
         row = catalog.get(mod.name)

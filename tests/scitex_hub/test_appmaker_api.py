@@ -14,16 +14,18 @@ class TestRegistryManifestLoading:
     """Phase 1: Registry loads ModuleConfig from manifest.json files."""
 
     def test_loads_all_builtin_modules(self):
-        # get_all_modules() returns one ModuleConfig per builtin manifest path,
-        # so the count is derived from the registry's manifest list rather than
-        # a hardcoded number that drifts whenever an app is added/removed.
+        # External packages may add scitex_modules entry points at import time.
+        # Pin every builtin without pretending the extensible registry is closed.
         from apps.infra.workspace_app.registry import (
             _BUILTIN_MANIFEST_PATHS,
+            _BUILTIN_MODULES,
             get_all_modules,
         )
 
         modules = get_all_modules()
-        assert len(modules) == len(_BUILTIN_MANIFEST_PATHS)
+        assert len(_BUILTIN_MODULES) == len(_BUILTIN_MANIFEST_PATHS) and {
+            module.name for module in _BUILTIN_MODULES
+        } <= {module.name for module in modules}
 
     def test_module_names(self):
         from apps.infra.workspace_app.registry import get_module_names
@@ -129,15 +131,12 @@ class TestAppManagementAPI:
             os.environ.pop("SCITEX_CURRENT_APP", None)
 
     def test_list_all_from_registry(self):
-        from apps.infra.workspace_app.registry import _BUILTIN_MANIFEST_PATHS
+        from apps.infra.workspace_app.registry import _BUILTIN_MODULES
         from scitex_hub.appmaker import list_all
 
         apps = list_all()
-        # One entry per builtin manifest (derived, not a hardcoded count that
-        # drifts as apps are added/removed).
-        assert len(apps) == len(_BUILTIN_MANIFEST_PATHS)
         names = {a["name"] for a in apps}
-        assert {"writer", "scholar"} <= names
+        assert {module.name for module in _BUILTIN_MODULES} <= names
 
     def test_get_info_from_registry(self):
         from scitex_hub.appmaker import get_info

@@ -81,6 +81,20 @@ def test_launcher_project_url_carries_the_active_project():
     assert url == "/apps/scholar/?project=continuity-user%2Fcontinuity-paper"
 
 
+def test_launcher_rejects_a_registry_url_swallowed_by_the_project_catchall():
+    # Arrange
+    launcher = importlib.import_module("apps.workspace.apps_app.views.launcher")
+    stats = SimpleNamespace(name="stats", get_url=lambda: "/apps/stats/")
+    scholar = SimpleNamespace(name="scholar", get_url=lambda: "/apps/scholar/")
+    # Act
+    reachability = (
+        launcher.module_route_is_reachable(stats),
+        launcher.module_route_is_reachable(scholar),
+    )
+    # Assert
+    assert reachability == (False, True)
+
+
 def test_launcher_project_url_preserves_existing_query_and_fragment():
     # Arrange
     launcher = importlib.import_module("apps.workspace.apps_app.views.launcher")
