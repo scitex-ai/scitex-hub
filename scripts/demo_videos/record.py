@@ -818,6 +818,48 @@ def preflight_target_kinds(scenario: Scenario, username: str, run_id: str) -> li
     return targets
 
 
+def theme_map(page, theme: str, targets: list[dict], base_url: str) -> dict:
+    """Which pages actually come up in the requested theme, measured per page.
+
+    One password use should answer "can this flow be recorded in light mode?" — not a
+    whole render. The attribute and the computed background are both recorded because
+    they disagreed in practice: the light/English Sarah render showed a light Home page
+    and a dark workspace, and the Brian render came up dark on every surface while the
+    preference was set. A per-page map says which surfaces ignore the theme, and that
+    is a product finding rather than a recording one.
+    """
+    observations = []
+    for target in targets:
+        entry = {"path": target["path"], "creates": target["creates"]}
+        try:
+            page.goto(f"{base_url}{target['path']}", wait_until="domcontentloaded",
+                      timeout=90_000)
+            page.wait_for_timeout(1200)
+            observed = page.evaluate(
+                """() => ({
+                    attribute: document.documentElement.getAttribute('data-theme') || '',
+                    stored: (() => { try { return localStorage.getItem('stx-theme') || ''; }
+                                     catch (error) { return ''; } })(),
+                    background: getComputedStyle(document.body || document.documentElement)
+                                  .backgroundColor,
+                })"""
+            )
+            observed["background_theme"] = theme_from_background(observed["background"])
+            entry.update(observed)
+            entry["matches"] = observed["background_theme"] in (theme, "unknown")
+        except Exception as error:
+            entry["error"] = f"{type(error).__name__}: {error}"[:200]
+            entry["matches"] = False
+        observations.append(entry)
+    surfaces = {entry["path"]: entry.get("background_theme", "unknown") for entry in observations}
+    return {
+        "requested": theme,
+        "observations": observations,
+        "surfaces": surfaces,
+        "all_match": all(entry.get("matches") for entry in observations) if observations else False,
+    }
+
+
 def run_preflight(scenario: Scenario, args, username: str, password: str) -> dict:
     """Prove a render would work, without changing anything on the site.
 
@@ -864,6 +906,11 @@ def run_preflight(scenario: Scenario, args, username: str, password: str) -> dic
                 report["signed_in"] = False
                 report["blockers"].append(f"sign-in failed: {type(error).__name__}: {error}")
         context = browser.new_context(storage_state=state) if state else browser.new_context()
+        if args.theme:
+            # The map measures the requested theme, so the context has to ask for it —
+            # without this the map only ever reported the site default and looked like a
+            # product finding.
+            context.add_init_script(theme_init_script(args.theme))
         page = context.new_page()
         if scenario.sign_in and not state:
             # Without the account the scenario's pages are behind auth: visiting
@@ -896,6 +943,16 @@ def run_preflight(scenario: Scenario, args, username: str, password: str) -> dic
                      "error": f"{type(error).__name__}: {error}"}
                 )
                 report["blockers"].append(f"language switcher did not reach '{locale}'")
+        if args.theme:
+            # Before a render: which surfaces actually honour the theme. Signed out,
+            # this maps the public pages; signed in, the pages the scenario uses.
+            report["theme_map"] = theme_map(page, args.theme, targets, args.base_url)
+            if not report["theme_map"]["all_match"]:
+                report["blockers"].append(
+                    "these surfaces did not come up in the requested theme: "
+                    + ", ".join(path for path, surface in report["theme_map"]["surfaces"].items()
+                                if surface not in (args.theme, "unknown"))
+                )
         for target in targets:
             try:
                 response = page.goto(f"{args.base_url}{target['path']}",

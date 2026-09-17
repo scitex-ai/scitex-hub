@@ -22,11 +22,16 @@ serves, so a change to that template is a Hub change and a reason to re-render.
    timeline (ids and data attributes, never translated labels), and it is the input
    for every rendition — so any video can be re-rendered from the spec instead of
    re-recorded by hand. `record.py` refuses to start when a selector has moved.
-2. **Record.** Signed-in scenarios need a throwaway demo account. The credentials
-   come from the environment (`DEMO_USERNAME`, `DEMO_PASSWORD`) and never from the
-   repository, a scenario file, a log or a chat message; the account is disposable
-   and is deleted after the render. The recorder never prints or persists a
-   credential value.
+2. **Record.** Signed-in scenarios use the **standing video fixture account** (the
+   operator maintains it, and it owns the fixture project the tours revisit). Its
+   password is **rotated for every recording** and delivered as a one-time secret in
+   the environment (`DEMO_USERNAME`, `DEMO_PASSWORD`); the recorder reads it once and
+   unsets it. Separate throwaway accounts are created only for scenarios that record
+   the **signup/OTP/Stripe** flow itself, because those must start from an account
+   that does not exist yet and are driven by the operator (email codes and card entry
+   are never touched by the pipeline). Credentials never come from the repository, a
+   scenario file, a log or a message, and the recorder never prints, stores or echoes
+   a credential value.
    ```bash
    DEMO_USERNAME=<throwaway-account> DEMO_PASSWORD=<from-an-env-source> \
      /uvwork/venv-agent/bin/python scripts/demo_videos/record.py \
@@ -47,7 +52,11 @@ serves, so a change to that template is a Hub change and a reason to re-render.
    paint (the keys its theme switcher uses) and then *verifies the pixels*: the
    manifest records the page attribute, the computed background colour and whether
    they agree, so a surface that ignores the theme is visible in the metadata rather
-   than discovered by a viewer.
+   than discovered by a viewer. `--preflight --theme light` additionally prints a
+   **theme map** — per page, the attribute, the stored preference and the rendered
+   background — so "can this flow be recorded in light mode?" is answered with one
+   credential use instead of a whole render. Measured on the public pages:
+   `/demos/` and the player page come up `light` (`rgb(250,249,247)`).
 5. **Outputs per rendition.** `<app>-<date>.<lang>.mp4` (1280x720, narrated,
    captions burned in), `.vtt` captions, `.chapters.vtt` chapters, `.txt`
    transcript with a YouTube-style chapter list, `.webm` raw recording,
