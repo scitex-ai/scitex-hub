@@ -38,18 +38,8 @@ class BrowserEvidence:
         ), f"same-origin network failures: {self.network_failures}"
 
 
-@pytest.fixture(params=["desktop", "mobile"])
-def continuity_browser(request, pw_base_url):
-    """Existing desktop/390px login fixtures plus console/network evidence."""
-    viewport = request.param
-    fixture_name = (
-        "authenticated_desktop_page"
-        if viewport == "desktop"
-        else "authenticated_mobile_page"
-    )
-    page = request.getfixturevalue(fixture_name)
-    evidence = BrowserEvidence([], [], [])
-
+def _watch_page(page, evidence: BrowserEvidence, base_url: str) -> None:
+    """Capture console and same-origin network failures from one page."""
     page.on(
         "console",
         lambda message: (
@@ -65,7 +55,7 @@ def continuity_browser(request, pw_base_url):
             evidence.network_failures.append(
                 f"{failed.method} {failed.url}: {failed.failure}"
             )
-            if failed.url.startswith(pw_base_url)
+            if failed.url.startswith(base_url)
             else None
         ),
     )
@@ -75,12 +65,26 @@ def continuity_browser(request, pw_base_url):
             evidence.network_failures.append(
                 f"{response.status} {response.request.method} {response.url}"
             )
-            if response.url.startswith(pw_base_url) and response.status >= 500
+            if response.url.startswith(base_url) and response.status >= 500
             else None
         ),
     )
 
-    return viewport, page, evidence
+
+@pytest.fixture(params=["desktop", "mobile"])
+def continuity_browser(request, pw_base_url):
+    """Existing desktop/390px login fixtures plus console/network evidence."""
+    viewport = request.param
+    fixture_name = (
+        "authenticated_desktop_page"
+        if viewport == "desktop"
+        else "authenticated_mobile_page"
+    )
+    page = request.getfixturevalue(fixture_name)
+    evidence = BrowserEvidence([], [], [])
+    _watch_page(page, evidence, pw_base_url)
+
+    return viewport, page, evidence, pw_base_url
 
 
 def _assert_project_metadata(page, app: str, version: str) -> None:
@@ -99,7 +103,7 @@ def _assert_project_metadata(page, app: str, version: str) -> None:
 
 def test_login_launcher_and_project_apps_keep_one_project(continuity_browser):
     """Login fixture → launcher → mounted apps → launcher keeps one project."""
-    viewport, page, evidence = continuity_browser
+    viewport, page, evidence, base_url = continuity_browser
 
     launcher = page.goto("/apps/", wait_until="domcontentloaded")
     assert launcher is not None and launcher.status == 200
@@ -144,14 +148,19 @@ def test_login_launcher_and_project_apps_keep_one_project(continuity_browser):
         href = tile.get_attribute("href")
         assert href and parse_qs(urlparse(href).query)["project"] == [PROJECT_KEY]
 
-        response = page.goto(href, wait_until="domcontentloaded")
-        assert response is not None and response.status == 200
-        wait_for_page_ready(page)
-        _assert_project_metadata(page, app, version)
+        app_page = page.context.new_page()
+        _watch_page(app_page, evidence, base_url)
+        try:
+            response = app_page.goto(href, wait_until="commit")
+            assert response is not None and response.status == 200
+            wait_for_page_ready(app_page, wait_for_load=False)
+            _assert_project_metadata(app_page, app, version)
+        finally:
+            app_page.close()
 
-        returned = page.goto("/apps/", wait_until="domcontentloaded")
+        returned = page.reload(wait_until="commit")
         assert returned is not None and returned.status == 200
-        wait_for_page_ready(page)
+        wait_for_page_ready(page, wait_for_load=False)
         assert (
             page.locator("#app-launcher").get_attribute("data-active-project-key")
             == PROJECT_KEY
@@ -178,7 +187,8 @@ def test_stats_leaf_adopts_the_hub_project_contract(authenticated_desktop_page):
         pytest.xfail("Stats leaf route is not mounted in this environment")
     href = stats.get_attribute("href")
     assert href and urlparse(href).path == "/apps/stats/"
-    response = page.goto(href, wait_until="domcontentloaded")
-    assert response is not None and response.status == 200
-    assert page.locator("body").get_attribute("data-active-project-key") == PROJECT_KEY
-    assert page.locator('meta[name="stx-project-provider"]').count() == 1
+    response = page.request.get(href, timeout=10_000)
+    assert response.status == 200
+    html = response.text()
+    assert f'data-active-project-key="{PROJECT_KEY}"' in html
+    assert html.count('meta name="stx-project-provider"') == 1
