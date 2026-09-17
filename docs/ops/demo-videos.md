@@ -192,9 +192,20 @@ EOF
 ```
 
 A manifest also carries the fingerprint of the UI contracts it was recorded
-against: `demo_selectors.stale_against_manifest` reports which contract moved, so
-a published video can be marked stale against the release instead of being
-rediscovered by a viewer.
+against. The report answers the publishing question for a whole directory —
+which videos are intact, and which were recorded against a UI contract that has
+since moved:
+
+```bash
+python scripts/demo_videos/demo_manifest.py --dir media/videos/demos --repo-root . --json-out /tmp/report.json
+```
+
+One row per manifest: `artifacts_verified` (every file still matches its recorded
+sha256), `stale` with the `changed_contracts`/`broken_contracts` that moved, and
+the watch-gate status. Exit 1 when a row is stale or unverified. Videos that
+predate the manifest simply do not appear — the published 2026-09-14 guides carry
+no recorded metadata, so the report says so instead of guessing their contract
+set.
 
 ### Playback verification
 
