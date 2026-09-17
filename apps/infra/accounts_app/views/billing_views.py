@@ -5,6 +5,7 @@ never sees PAN/CVC. With no provider keys configured the page says card
 registration opens soon, never an error.
 """
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.utils import timezone
@@ -87,11 +88,13 @@ def payment_step(request):
 
     # Which plan a new signup is put on must be DETERMINED, not whichever catalog
     # row comes first. A selection carried through signup/OTP wins; otherwise the
-    # catalog has to say so; otherwise this step says it does not know rather than
-    # quoting an arbitrary price to a customer.
+    # catalog has to mark one; otherwise the deployment has to expose exactly one
+    # price it can charge. Failing all three this step says it does not know rather
+    # than quoting an arbitrary price to a customer.
     row = select_signup_plan(
         subscription_pricing_rows(),
         explicit_id=request.GET.get("plan") or None,
+        chargeable_ids=set(settings.STRIPE_PRICE_IDS),
     )
     if row is None:
         disclosures = payment_disclosures(
