@@ -76,7 +76,8 @@ def git_state(repo_root: Path) -> dict:
 
 
 def toolchain(tools=None, narration_backend: str = "", voice: bool = False,
-              caption_font: str = "", font_available: bool | None = None,
+              narration_voice: str = "", caption_font: str = "",
+              font_available: bool | None = None,
               narration_failures: dict | None = None) -> dict:
     """The tool versions a render used; the media binaries come from demo_tools."""
     playwright_version = ""
@@ -92,6 +93,9 @@ def toolchain(tools=None, narration_backend: str = "", voice: bool = False,
         "playwright": playwright_version,
         "platform": platform.platform(),
         "narration_backend": narration_backend,
+        # Which voice: gTTS is per-language (the language code), ElevenLabs is a
+        # premade speaker, and a rollout that changes voice changes the video.
+        "narration_voice": narration_voice,
         # Whether a voice track made it into the render, and why not when it did
         # not: a manifest that claims narration over a silent file is worse than
         # one that admits the TTS backend was unreachable.

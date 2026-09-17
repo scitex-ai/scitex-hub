@@ -163,7 +163,7 @@
                    data-default-language="{{ video_default_language }}"
                    data-default-captions="{{ video_default_captions }}"
                    data-languages="{{ video_languages_json }}">
-                <source src="{{ video_url }}" type="video/mp4" />
+                <source src="{{ video_initial_url|default:video_url }}" type="video/mp4" />
                 {% if video_captions_url %}<track kind="captions" src="{{ video_captions_url }}" srclang="en" label="English" />{% endif %}
                 {% if video_ja_captions_url %}<track kind="captions" src="{{ video_ja_captions_url }}" srclang="ja" label="日本語" />{% endif %}
                 Your browser does not support the video tag.

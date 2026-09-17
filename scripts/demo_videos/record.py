@@ -26,6 +26,7 @@ import argparse
 import datetime
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -33,6 +34,7 @@ import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from urllib.parse import urlparse
 
 from demo_captions import (
     Chapter,
@@ -53,12 +55,14 @@ from demo_manifest import (
     write_manifest,
 )
 from demo_narration import (
+    NARRATION_BACKENDS,
     NarrationClip,
     NarrationUnavailable,
     build_narration_track,
     synthesize_clip,
+    voice_for,
 )
-from demo_scenario import Rendition, Scenario, Step, load_scenario
+from demo_scenario import Rendition, Scenario, ScenarioError, Step, load_scenario
 from demo_selectors import (
     check_contracts,
     check_scenario,
@@ -74,11 +78,37 @@ from demo_tools import (
 from demo_watch_gate import gate_path, init_gate
 
 POINTER_ACTIONS = {"click", "fill", "type", "hover"}
+#: An app or date becomes part of a file name, so it is constrained rather than
+#: escaped: `app: ../../etc` used to write outside the render directory.
+SAFE_APP = re.compile(r"^[a-z0-9][a-z0-9-]{0,40}$")
+SAFE_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def output_name_problems(app: str, date: str) -> list[str]:
+    """Why these names must not be used for files, if any."""
+    problems = []
+    if not SAFE_APP.match(app or ""):
+        problems.append(f"app {app!r} must be lowercase letters, digits and hyphens")
+    if not SAFE_DATE.match(date or ""):
+        problems.append(f"date {date!r} must be YYYY-MM-DD")
+    return problems
+
+
+def safe_site_path(value: str) -> bool:
+    """Whether a goto target stays on this site.
+
+    The recorder drives a browser that holds the operator's session, so a scenario
+    that navigates to another origin is a scenario that hands the recording to a page
+    nobody reviewed — and a redirect can do it after the click as well, which is why
+    the final URL's origin is checked too, not just the value written in the scenario.
+    """
+    if not value or not value.startswith("/") or value.startswith("//"):
+        return False
+    return "://" not in value and "\\" not in value and "\n" not in value
 # Reading speed used to time steps when no voice is available, in characters per second.
 FALLBACK_CHARACTERS_PER_SECOND = {"ja": 7.0}
 DEFAULT_CHARACTERS_PER_SECOND = 15.0
 CAPTION_FONT = "Noto Sans JP"
-NARRATION_BACKEND = "gtts"
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -156,6 +186,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--no-alternates", action="store_true",
                         help="skip the scenario's alternate UI-locale renditions")
     parser.add_argument("--no-voice", action="store_true", help="captions only, no TTS")
+    parser.add_argument("--narration-backend", default="gtts", choices=list(NARRATION_BACKENDS),
+                        help="text-to-speech backend (elevenlabs needs a key and --voice)")
+    parser.add_argument("--voice", default="",
+                        help="voice name or id; gTTS defaults to the language code, "
+                             "elevenlabs requires one (for example --voice sarah)")
+    parser.add_argument("--theme", default="", choices=["", "light", "dark"],
+                        help="put the recording in this theme and verify it (default: the "
+                             "site's own default, which is dark)")
     parser.add_argument("--ffmpeg", default="", help="ffmpeg binary (default: PATH, env, wheel)")
     parser.add_argument("--ffprobe", default="", help="ffprobe binary (default: PATH, env)")
     parser.add_argument("--fonts-dir", default="",
@@ -235,13 +273,15 @@ def check_selectors(scenario: Scenario, allow_stale: bool) -> tuple[int, dict]:
 
 
 def prepare_narration(scenario: Scenario, language: str, work_dir: Path, voice: bool,
-                      tools: MediaTools):
+                      tools: MediaTools, backend: str = "gtts",
+                      narration_voice: str = "") -> tuple[dict, dict]:
     """Return {step_index: clip or None} and the seconds each step's narration needs."""
     clips, needed_seconds = {}, {}
     for index, step in enumerate(scenario.steps):
         text = step.narration.get(language, "")
         clip = (
-            synthesize_clip(text, language, work_dir / f"{language}-{index:02d}.mp3", tools)
+            synthesize_clip(text, language, work_dir / f"{language}-{index:02d}.mp3", tools,
+                            backend=backend, voice=narration_voice)
             if voice and text
             else None
         )
@@ -275,25 +315,87 @@ def language_switch_path(scenario: Scenario) -> str:
         if step.action != "goto":
             continue
         for value in step.value.values():
-            if value and "{" not in value:
+            if value and "{" not in value and safe_site_path(value):
                 return value
     return "/apps/"
 
 
+def language_matches(observed: str, locale: str) -> bool:
+    """Whether a document's `lang` attribute is the locale that was asked for."""
+    return bool(observed) and observed.lower().startswith(locale.lower())
+
+
 def switch_ui_language(browser, base_url: str, storage_state, locale: str, path: str) -> dict:
-    """Pick the language in the site's own switcher, as a visitor would."""
+    """Pick the language in the site's own switcher, as a visitor would.
+
+    The check waits for the document to settle before it reads `lang`: measured
+    2026-09-17, an unguarded read raced a slow response and came back empty
+    (`left the page in '', not 'en'`), which failed a preflight while the render
+    that followed succeeded. A flake in the guard is more expensive than in the
+    render, because the guard is what people are told to trust.
+    """
     context = browser.new_context(storage_state=storage_state)
     page = context.new_page()
     page.goto(f"{base_url}{path}", wait_until="domcontentloaded", timeout=90_000)
-    page.click("#lang-select-trigger")
-    with page.expect_navigation(timeout=60_000):
-        page.click(f"form.lang-select-item:has(input[name=language][value={locale}]) button")
-    active = page.evaluate("() => document.documentElement.lang")
-    if not active.startswith(locale):
-        raise RuntimeError(f"language switcher left the page in '{active}', not '{locale}'")
+    for attempt in (1, 2):
+        page.click("#lang-select-trigger")
+        with page.expect_navigation(timeout=60_000):
+            page.click(f"form.lang-select-item:has(input[name=language][value={locale}]) button")
+        assert_same_origin(page, base_url)
+        try:
+            page.wait_for_function(
+                "() => document.readyState !== 'loading' "
+                "&& (document.documentElement.lang || '').length > 0",
+                timeout=15_000,
+            )
+        except Exception:
+            pass
+        active = page.evaluate("() => document.documentElement.lang || ''")
+        if language_matches(active, locale):
+            break
+        if attempt == 2:
+            context.close()
+            raise RuntimeError(f"language switcher left the page in '{active}', not '{locale}'")
+        page.wait_for_timeout(500)
     state = context.storage_state()
     context.close()
     return state
+
+
+def click_with_retry(locator, attempts: int = 2, timeout_ms: int = 30_000) -> None:
+    """Click, giving the page one more chance — without ever bypassing actionability.
+
+    The create form's submit button timed out for 30s right after the name and
+    description were typed (2026-06-17, measured): a transient overlay, a settling
+    animation or a validation swap can make a control un-clickable for a moment, and
+    all of those clear on their own. Nothing is forced here — Playwright still checks
+    visible, stable, enabled and hit-testable on every attempt, and a second failure
+    still raises, so a genuinely blocked control is reported rather than clicked
+    through.
+    """
+    last_error: Exception | None = None
+    for attempt in range(attempts):
+        try:
+            locator.click(timeout=timeout_ms if attempt == 0 else timeout_ms * 2)
+            return
+        except Exception as error:
+            last_error = error
+            try:
+                locator.scroll_into_view_if_needed(timeout=5_000)
+            except Exception:
+                pass
+            time.sleep(1.0)
+    raise last_error if last_error is not None else RuntimeError("click failed")
+
+
+def assert_same_origin(page, base_url: str) -> None:
+    """Raise unless the page is still on the recorder's own origin."""
+    left = urlparse(page.url)
+    home = urlparse(base_url)
+    if left.netloc != home.netloc:
+        raise RuntimeError(
+            f"the page left the recording origin: {page.url} is not on {base_url}"
+        )
 
 
 def run_step(page, cursor: MovingCursor, step: Step, language: str, args, username: str,
@@ -304,9 +406,15 @@ def run_step(page, cursor: MovingCursor, step: Step, language: str, args, userna
     if step.action in POINTER_ACTIONS:
         cursor.glide_to(locator)
     if step.action == "goto":
+        if not safe_site_path(value):
+            raise RuntimeError(
+                f"refusing to navigate to {value!r}: a goto target must be a site path "
+                f"like '/apps/', not another origin"
+            )
         page.goto(f"{args.base_url}{value}", wait_until="domcontentloaded", timeout=90_000)
+        assert_same_origin(page, args.base_url)
     elif step.action == "click":
-        locator.click()
+        click_with_retry(locator)
     elif step.action == "fill":
         locator.fill(value)
     elif step.action == "type":
@@ -315,8 +423,224 @@ def run_step(page, cursor: MovingCursor, step: Step, language: str, args, userna
         (locator or page.keyboard).press(value)
     elif step.action == "hover":
         locator.hover()
+    elif step.action == "assert_selector":
+        # A contract worth asserting on camera is a contract worth failing on: this is
+        # how a scenario says "the app opened for this project" using a hook that
+        # demo_selectors.py checks against the checkout, and it raises the same
+        # selector-with-evidence failure a moved control produces.
+        try:
+            page.wait_for_selector(selector, state="visible", timeout=30_000)
+        except Exception as error:
+            raise RecordingFailed({
+                "language": language, "selector": selector, "action": "assert_selector",
+                "page_url": page.url, "error": f"{type(error).__name__}: {error}"[:300],
+            }) from error
+        observed = page.evaluate(
+            """(selector) => {
+                const node = document.querySelector(selector);
+                if (!node) return null;
+                const attributes = {};
+                for (const attribute of node.attributes) attributes[attribute.name] = attribute.value;
+                return attributes;
+            }""", selector
+        )
+        print(f"  assert_selector ok: {selector} -> {observed}")
     elif step.action == "scroll":
         page.mouse.wheel(0, int(value or 400))
+
+
+def theme_init_script(theme: str) -> str:
+    """The script that starts a recording in `theme`, using the product's own key.
+
+    The hub's theme switcher (static/shared/ts/utils/theme-switcher.ts) persists the
+    choice in localStorage under `stx-theme`, with the legacy hub key
+    `scitex-theme-preference` still written for cached bundles. Writing those two
+    keys is what a returning viewer's browser already has; it is not a bypass of the
+    UI, and `apply_theme` additionally clicks the site's own toggle when the page
+    does not come up in the requested theme, then verifies the result.
+
+    The value is embedded with ``json.dumps`` so the generated script stays a valid
+    JS string literal for any value it is handed, not just today's two.
+    """
+    literal = json.dumps(theme)
+    return f"""
+    (() => {{
+      try {{
+        localStorage.setItem('stx-theme', {literal});
+        localStorage.setItem('scitex-theme-preference', {literal});
+        document.documentElement.setAttribute('data-theme', {literal});
+        document.documentElement.setAttribute('data-color-mode', {literal});
+      }} catch (error) {{}}
+    }})();
+    """
+
+
+def theme_failures(observations: list[dict], requested: str) -> list[dict]:
+    """The steps whose surface did not come up in the requested theme.
+
+    A single check at the first page is not enough: measured 2026-09-17, Home rendered
+    light while the workspace and the create form rendered dark, so a render can look
+    right in its first seconds and be wrong for the rest of the walkthrough. Every step
+    is observed, and any dark surface fails the render.
+    """
+    if not requested:
+        return []
+    return [
+        entry for entry in observations
+        if entry.get("background_theme") not in (requested, "unknown")
+    ]
+
+
+def theme_from_background(rgb: str) -> str:
+    """Which theme a computed CSS colour looks like: light, dark, or unknown.
+
+    The attribute is a proxy — the dark-mode run of the light recording read
+    `data-theme="light"` while the pixels were near-black, because parts of the
+    product do not honour the theme. The computed background is the outcome, so the
+    check reads it, and reports "unknown" rather than guessing when the value is not
+    a parseable colour.
+    """
+    match = re.fullmatch(r"rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:[,/\s]+[\d.]+)?\s*\)",
+                         (rgb or "").strip())
+    if not match:
+        return "unknown"
+    red, green, blue = (float(value) for value in match.groups())
+    # Rec. 601 luma, the cheap perceptual weighting; 0-255 scale.
+    luma = 0.299 * red + 0.587 * green + 0.114 * blue
+    return "light" if luma >= 128 else "dark"
+
+
+def apply_theme(page, theme: str, base_url: str, switch_path: str) -> dict:
+    """Put the recording in `theme` and verify it, clicking the site's toggle if not.
+
+    Returns what actually happened, because a video that claims light mode and shows
+    a dark page is worse than one that admits it could not switch: the manifest
+    records the method, the verified page attribute AND the computed background, so a
+    surface that ignores the theme shows up as `background_theme != theme` instead of
+    being reported as a clean switch.
+    """
+    if not theme:
+        return {"theme": "", "source": "site-default", "verified": False}
+
+    def state() -> dict:
+        observed = page.evaluate(
+            """() => ({
+                attribute: document.documentElement.getAttribute('data-theme') || '',
+                background: getComputedStyle(document.body || document.documentElement)
+                              .backgroundColor,
+            })"""
+        )
+        observed["background_theme"] = theme_from_background(observed["background"])
+        return observed
+
+    current = state()
+    source = "stored-preference"
+    if current["attribute"] != theme:
+        # Fall back to the control the product offers, if it is reachable here.
+        try:
+            toggle = page.locator("#theme-toggle").first
+            if toggle.count() and toggle.is_visible():
+                toggle.click()
+                page.wait_for_timeout(500)
+                source = "toggle-click"
+        except Exception:
+            pass
+        current = state()
+    return {
+        "theme": theme,
+        "source": source,
+        "verified": current["attribute"] == theme,
+        # The honest half: the page says light, but do the pixels?
+        "background": current["background"],
+        "background_theme": current["background_theme"],
+        "background_matches": current["background_theme"] in (theme, "unknown"),
+    }
+
+
+class RecordingFailed(RuntimeError):
+    """A step failed mid-render; the partial evidence is kept and described."""
+
+    def __init__(self, report: dict):
+        super().__init__(report.get("error", "recording failed"))
+        self.report = report
+
+
+FAILURE_ERROR_LIMIT = 4000
+#: What Playwright knows about the target when a click will not land: whether the
+#: element is visible/enabled, and — the one that usually explains it — which element
+#: actually receives a click at the target's centre.
+DOM_PROBE = """(selector) => {
+    const el = document.querySelector(selector);
+    if (!el) return {found: false};
+    const rect = el.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const top = document.elementFromPoint(cx, cy);
+    const describe = (node) => node ? (node.tagName.toLowerCase()
+        + (node.id ? '#' + node.id : '')
+        + (node.className && typeof node.className === 'string'
+            ? '.' + node.className.trim().split(/\\s+/).slice(0, 3).join('.') : '')) : '';
+    return {
+        found: true,
+        visible: !!(el.offsetParent || el.getClientRects().length),
+        enabled: !el.disabled,
+        disabled_attribute: el.hasAttribute('disabled'),
+        aria_disabled: el.getAttribute('aria-disabled'),
+        rect: {x: Math.round(rect.x), y: Math.round(rect.y),
+               width: Math.round(rect.width), height: Math.round(rect.height)},
+        topmost_at_centre: describe(top),
+        covered: !!top && top !== el && !el.contains(top),
+        animation: getComputedStyle(el).animationName,
+        pointer_events: getComputedStyle(el).pointerEvents,
+    };
+}"""
+
+
+def dom_probe(page, selector: str) -> dict:
+    """Why a control would not take a click, in the page's own terms."""
+    if not selector:
+        return {}
+    try:
+        return page.evaluate(DOM_PROBE, selector)
+    except Exception as error:
+        return {"probe_failed": f"{type(error).__name__}: {error}"[:200]}
+
+
+def failure_report(recording: Recording, step_index: int, step, page_url: str,
+                   error: Exception, timings: list[StepTiming], page=None) -> dict:
+    """What failed, where, and which selector: the shape a blocker needs.
+
+    A step is optional: a render can fail before the first one is attempted. `page`
+    is optional too, and adds the two things that make a failure cheap to diagnose:
+    the full Playwright message (its first line alone loses the actionability reason —
+    measured 2026-09-17, a create-button timeout whose cause was only in the detail
+    lines) and the DOM's own account of the target.
+    """
+    selector = step.selector.get(recording.language, "") if step is not None else ""
+    report = {
+        "app": recording.scenario.app,
+        "language": recording.language,
+        "viewport": recording.viewport.name,
+        "ui_locale": recording.rendition.ui_locale,
+        "theme": getattr(step, "theme", ""),
+        "step_index": step_index + 1 if step is not None else 0,
+        "steps_total": len(recording.scenario.steps),
+        "action": getattr(step, "action", ""),
+        "selector": selector,
+        "value": (step.value.get(recording.language, "") if step is not None else ""),
+        "page_url": page_url,
+        "error": f"{type(error).__name__}: {error}".splitlines()[0][:400],
+        "error_detail": str(error)[:FAILURE_ERROR_LIMIT],
+        "steps_completed": len(timings),
+        "timings": [
+            {"step": timing.step_index + 1, "start": round(timing.start_seconds, 3),
+             "end": round(timing.end_seconds, 3)}
+            for timing in timings
+        ],
+    }
+    if page is not None and selector:
+        report["dom"] = dom_probe(page, selector)
+    return report
 
 
 def record(browser, recording: Recording, storage_state, needed_seconds, args, username):
@@ -332,27 +656,95 @@ def record(browser, recording: Recording, storage_state, needed_seconds, args, u
         storage_state=storage_state,
     )
     context.add_init_script(CURSOR_OVERLAY_SCRIPT)
+    # Before the first paint: the site starts in the requested theme, the way a
+    # returning viewer's browser already does.
+    if args.theme:
+        context.add_init_script(theme_init_script(args.theme))
     page = context.new_page()
     cursor = MovingCursor(page, viewport.width, viewport.height)
     # Scenarios that create things (a project name) need a fresh suffix per run.
     run_id = datetime.datetime.now().strftime("%H%M%S")
     recording_started = time.monotonic()
     timings = []
-    for index, step in enumerate(recording.scenario.steps):
-        if step.only not in ("", viewport.name):
-            continue
-        step_started = time.monotonic()
-        run_step(page, cursor, step, recording.language, args, username, run_id)
-        elapsed = time.monotonic() - step_started
-        page.wait_for_timeout((max(needed_seconds[index] - elapsed, 0) + step.hold) * 1000)
-        timings.append(
-            StepTiming(index, step_started - recording_started, time.monotonic() - recording_started)
-        )
+    theme_state = {"theme": args.theme, "source": "disabled", "verified": False}
+    theme_observations: list[dict] = []
+    index: int = -1
+    step = None
+    try:
+        for index, step in enumerate(recording.scenario.steps):
+            if step.only not in ("", viewport.name):
+                continue
+            step_started = time.monotonic()
+            run_step(page, cursor, step, recording.language, args, username, run_id)
+            if index == first_visual_step(recording.scenario):
+                # Once a page is on screen, verify the theme instead of trusting it.
+                theme_state = apply_theme(page, args.theme, args.base_url,
+                                          language_switch_path(recording.scenario))
+            if args.theme:
+                theme_observations.append(
+                    {"step": index + 1, "action": step.action, "page_url": page.url,
+                     **observe_theme(page, args.theme)}
+                )
+            elapsed = time.monotonic() - step_started
+            page.wait_for_timeout((max(needed_seconds[index] - elapsed, 0) + step.hold) * 1000)
+            timings.append(
+                StepTiming(index, step_started - recording_started,
+                           time.monotonic() - recording_started)
+            )
+    except Exception as error:
+        # Keep the partial evidence: the raw recording so far, where the page was, and
+        # which control failed. A failed render must not be reconstructed from a
+        # traceback by hand.
+        report = failure_report(recording, index, step, page.url, error, timings, page=page)
+        # A single frame is cheaper to read than the video, and it is what a reviewer
+        # actually opens first.
+        try:
+            snapshot = recording.artifact("failure.png")
+            page.screenshot(path=str(snapshot))
+            report["screenshot"] = snapshot.name
+        except Exception:
+            report["screenshot"] = ""
+        try:
+            context.close()
+            partial = recording.artifact("webm")
+            shutil.move(page.video.path(), partial)
+            report["partial_video"] = partial.name
+        except Exception:
+            report["partial_video"] = ""
+        failure_path = recording.artifact("failure.json")
+        failure_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n",
+                                encoding="utf-8")
+        report["report_path"] = str(failure_path)
+        raise RecordingFailed(report) from error
+    dark = theme_failures(theme_observations, args.theme)
+    theme_state["observations"] = theme_observations
+    if args.theme and dark:
+        # Fail rather than publish a video of the wrong theme: report every surface, so
+        # the product fix is scoped from the recording instead of rediscovered.
+        raise RecordingFailed({
+            "app": recording.scenario.app, "language": recording.language,
+            "viewport": recording.viewport.name,
+            "error": f"{len(dark)} surface(s) did not come up in the requested theme",
+            "requested_theme": args.theme,
+            "dark_surfaces": dark,
+            "observations": theme_observations,
+            "step_index": dark[0].get("step", 0),
+            "steps_total": len(recording.scenario.steps),
+            "page_url": dark[0].get("page_url", ""),
+        })
     page.wait_for_timeout(1000)
     context.close()
     webm = recording.artifact("webm")
     shutil.move(page.video.path(), webm)
-    return webm, timings
+    return webm, timings, theme_state
+
+
+def first_visual_step(scenario: Scenario) -> int:
+    """The first step that leaves a page on screen, for the theme check."""
+    for index, step in enumerate(scenario.steps):
+        if step.action in ("goto", "click"):
+            return index
+    return 0
 
 
 def captions_for(recording: Recording, timings: list[StepTiming], line_width: int = 0):
@@ -463,7 +855,8 @@ def render(recording: Recording, webm: Path, timings, clips: dict[int, Narration
 
 
 def rendition_entry(recording: Recording, timings: list[StepTiming], files: list[Path],
-                    tools: MediaTools, clips: dict[int, NarrationClip | None]) -> dict:
+                    tools: MediaTools, clips: dict[int, NarrationClip | None],
+                    theme_state: dict | None = None) -> dict:
     """The manifest view of one recording: digests, timing and narration length."""
     recorded = []
     for path in files:
@@ -481,6 +874,12 @@ def rendition_entry(recording: Recording, timings: list[StepTiming], files: list
         "canonical": recording.rendition.canonical,
         "alternate_reason": recording.rendition.reason,
         "viewport": recording.viewport.name,
+        "theme": (theme_state or {}).get("theme", ""),
+        "theme_source": (theme_state or {}).get("source", ""),
+        "theme_verified": (theme_state or {}).get("verified", False),
+        # What the pixels said: a surface that ignores the theme is recorded as such.
+        "theme_background": (theme_state or {}).get("background", ""),
+        "theme_background_theme": (theme_state or {}).get("background_theme", ""),
         "duration_seconds": duration,
         "narration_seconds": round(sum(clip.duration_seconds for clip in clips.values() if clip), 3),
         "cues": sum(1 for timing in timings
@@ -522,6 +921,67 @@ def preflight_target_kinds(scenario: Scenario, username: str, run_id: str) -> li
                 continue
             targets.append({"path": path, "creates": "{" in value})
     return targets
+
+
+def observe_theme(page, theme: str = "") -> dict:
+    """The rendered theme of the page as it stands: attribute, background, verdict."""
+    try:
+        observed = page.evaluate(
+            """() => ({
+                attribute: document.documentElement.getAttribute('data-theme') || '',
+                background: getComputedStyle(document.body || document.documentElement)
+                              .backgroundColor,
+            })"""
+        )
+    except Exception as error:
+        return {"attribute": "", "background": "", "background_theme": "unknown",
+                "observed_error": f"{type(error).__name__}: {error}"[:200]}
+    observed["background_theme"] = theme_from_background(observed["background"])
+    if theme:
+        observed["matches"] = observed["background_theme"] in (theme, "unknown")
+    return observed
+
+
+def theme_map(page, theme: str, targets: list[dict], base_url: str) -> dict:
+    """Which pages actually come up in the requested theme, measured per page.
+
+    One password use should answer "can this flow be recorded in light mode?" — not a
+    whole render. The attribute and the computed background are both recorded because
+    they disagreed in practice: the light/English Sarah render showed a light Home page
+    and a dark workspace, and the Brian render came up dark on every surface while the
+    preference was set. A per-page map says which surfaces ignore the theme, and that
+    is a product finding rather than a recording one.
+    """
+    observations = []
+    for target in targets:
+        entry = {"path": target["path"], "creates": target["creates"]}
+        try:
+            page.goto(f"{base_url}{target['path']}", wait_until="domcontentloaded",
+                      timeout=90_000)
+            page.wait_for_timeout(1200)
+            observed = page.evaluate(
+                """() => ({
+                    attribute: document.documentElement.getAttribute('data-theme') || '',
+                    stored: (() => { try { return localStorage.getItem('stx-theme') || ''; }
+                                     catch (error) { return ''; } })(),
+                    background: getComputedStyle(document.body || document.documentElement)
+                                  .backgroundColor,
+                })"""
+            )
+            observed["background_theme"] = theme_from_background(observed["background"])
+            entry.update(observed)
+            entry["matches"] = observed["background_theme"] in (theme, "unknown")
+        except Exception as error:
+            entry["error"] = f"{type(error).__name__}: {error}"[:200]
+            entry["matches"] = False
+        observations.append(entry)
+    surfaces = {entry["path"]: entry.get("background_theme", "unknown") for entry in observations}
+    return {
+        "requested": theme,
+        "observations": observations,
+        "surfaces": surfaces,
+        "all_match": all(entry.get("matches") for entry in observations) if observations else False,
+    }
 
 
 def run_preflight(scenario: Scenario, args, username: str, password: str) -> dict:
@@ -570,6 +1030,11 @@ def run_preflight(scenario: Scenario, args, username: str, password: str) -> dic
                 report["signed_in"] = False
                 report["blockers"].append(f"sign-in failed: {type(error).__name__}: {error}")
         context = browser.new_context(storage_state=state) if state else browser.new_context()
+        if args.theme:
+            # The map measures the requested theme, so the context has to ask for it —
+            # without this the map only ever reported the site default and looked like a
+            # product finding.
+            context.add_init_script(theme_init_script(args.theme))
         page = context.new_page()
         if scenario.sign_in and not state:
             # Without the account the scenario's pages are behind auth: visiting
@@ -602,6 +1067,21 @@ def run_preflight(scenario: Scenario, args, username: str, password: str) -> dic
                      "error": f"{type(error).__name__}: {error}"}
                 )
                 report["blockers"].append(f"language switcher did not reach '{locale}'")
+        if args.theme:
+            # Before a render: which surfaces actually honour the theme. Signed out,
+            # this maps the public pages; signed in, the pages the scenario uses — plus
+            # the suite a light-mode public demo is judged on: Home, My Projects, the
+            # create form and the project detail. The operator named those four.
+            if state:
+                targets = list(targets) + [{"path": "/apps/my-projects/", "creates": False}]
+                report["theme_map_surfaces"] = [target["path"] for target in targets]
+            report["theme_map"] = theme_map(page, args.theme, targets, args.base_url)
+            if not report["theme_map"]["all_match"]:
+                report["blockers"].append(
+                    "these surfaces did not come up in the requested theme: "
+                    + ", ".join(path for path, surface in report["theme_map"]["surfaces"].items()
+                                if surface not in (args.theme, "unknown"))
+                )
         for target in targets:
             try:
                 response = page.goto(f"{args.base_url}{target['path']}",
@@ -630,7 +1110,13 @@ def run_preflight(scenario: Scenario, args, username: str, password: str) -> dic
 
 def main() -> int:
     args = parse_args()
-    scenario = load_scenario(args.scenario)
+    try:
+        scenario = load_scenario(args.scenario)
+    except ScenarioError as error:
+        # A scenario that would leave the site, or write outside the render root, is
+        # refused before a browser starts — nothing to clean up, nothing recorded.
+        print(f"scenario refused: {error}", file=sys.stderr)
+        return 9
     username = os.environ.get("DEMO_USERNAME", "")
     password = os.environ.get("DEMO_PASSWORD", "")
     # A dry run and a preflight record nothing, so neither needs the demo
@@ -655,9 +1141,21 @@ def main() -> int:
         print(f"'{CAPTION_FONT}' is not installed: burned-in captions fall back to a font that "
               "may not have Japanese glyphs. Install it or set --fonts-dir.", file=sys.stderr)
 
+    naming_problems = output_name_problems(scenario.app, args.date)
+    if naming_problems:
+        for problem in naming_problems:
+            print(f"refusing to write files: {problem}", file=sys.stderr)
+        return 8
     renditions = selected_renditions(args, scenario)
     viewports = selected(args.viewports, scenario.viewports)
     languages = selected(args.languages, scenario.languages)
+    # Fail on an unusable voice before the render, not in the middle of it: a
+    # backend that needs a named voice must not discover that fifteen minutes in.
+    try:
+        voice_for(args.narration_backend, args.voice, languages[0] if languages else "en")
+    except NarrationUnavailable as reason:
+        print(reason, file=sys.stderr)
+        return 6
     if not viewports or not languages or not renditions:
         print(empty_selection_message(
             viewports, languages,
@@ -689,12 +1187,17 @@ def main() -> int:
     narration_failures = {}
     for language in languages:
         try:
-            narration[language] = prepare_narration(scenario, language, work_dir, voice, tools)
+            narration[language] = prepare_narration(
+                scenario, language, work_dir, voice, tools,
+                backend=args.narration_backend, narration_voice=args.voice,
+            )
         except NarrationUnavailable as reason:
             print(f"No voice narration for {language}: {reason}. Rendering captions only.")
             narration_failures[language] = str(reason)
-            narration[language] = prepare_narration(scenario, language, work_dir, voice=False,
-                                                    tools=tools)
+            narration[language] = prepare_narration(
+                scenario, language, work_dir, voice=False, tools=tools,
+                backend=args.narration_backend, narration_voice=args.voice,
+            )
     # The manifest records what actually happened, not what was asked for: a
     # silent mp4 with `voice: true` in its metadata is a lie a reviewer cannot see.
     narrated = any(
@@ -717,9 +1220,22 @@ def main() -> int:
                 state = switch_ui_language(browser, args.base_url, signed_in, rendition.ui_locale,
                                            switch_path)
                 clips, needed_seconds = narration[rendition.language]
-                webm, timings = record(browser, recording, state, needed_seconds, args, username)
+                try:
+                    webm, timings, theme_state = record(browser, recording, state,
+                                                        needed_seconds, args, username)
+                except RecordingFailed as failure:
+                    # The partial evidence is already on disk; say where and stop.
+                    print(json.dumps(failure.report, indent=2, sort_keys=True))
+                    print(f"render failed at step {failure.report['step_index']}"
+                          f"/{failure.report['steps_total']}: {failure.report['error']}",
+                          file=sys.stderr)
+                    print(f"page: {failure.report['page_url']}", file=sys.stderr)
+                    print(f"partial evidence: {failure.report.get('report_path', '')} "
+                          f"{failure.report.get('partial_video', '')}", file=sys.stderr)
+                    return 7
                 mp4, files = render(recording, webm, timings, clips, work_dir, tools, fonts_dir)
-                entries.append(rendition_entry(recording, timings, files, tools, clips))
+                entries.append(rendition_entry(recording, timings, files, tools, clips,
+                                               theme_state))
                 if viewport.name == "desktop" and rendition.language == scenario.languages[0]:
                     catalog_png = args.out_dir / f"{scenario.app}-{args.date}-thumbnail.png"
                     if mp4 and not catalog_png.exists():
@@ -737,8 +1253,9 @@ def main() -> int:
         repo_root=REPO_ROOT,
         base_url=args.base_url,
         renditions=entries,
-        tools_info=toolchain(tools, narration_backend=NARRATION_BACKEND if narrated else "",
-                             voice=narrated, caption_font=CAPTION_FONT,
+        tools_info=toolchain(tools, narration_backend=args.narration_backend if narrated else "",
+                             narration_voice=args.voice, voice=narrated,
+                             caption_font=CAPTION_FONT,
                              font_available=caption_font_available(CAPTION_FONT, [fonts_dir] if fonts_dir else []),
                              narration_failures=narration_failures),
         contracts={"fingerprint": contract_fingerprint(),

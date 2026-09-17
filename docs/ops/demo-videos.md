@@ -6,6 +6,111 @@ the real UI with a visible moving cursor, a text-to-speech engine reads the
 narration, and ffmpeg burns the captions in and mixes the voice. One spec gives an
 English and a Japanese video, captions and transcript; a new video is a new spec.
 
+## Workflow SSOT (public demos)
+
+This is the whole pipeline in order. Everything below this section is the detail of
+one step; this is the order and the policy.
+
+**Policy.** Public-facing demos are **English only**, **light mode**, on the **minimal
+page template**, and carry **captions, chapters and a transcript**. A second language,
+or the dark theme, is recorded only as a private draft — the public catalog stays
+English and light until the operator changes this line. The minimal template is the
+Hub's page shell, not a recording option: the recorder films whatever the demos page
+serves, so a change to that template is a Hub change and a reason to re-render.
+
+1. **Source assets are deterministic.** A scenario YAML drives one semantic action
+   timeline (ids and data attributes, never translated labels), and it is the input
+   for every rendition — so any video can be re-rendered from the spec instead of
+   re-recorded by hand. `record.py` refuses to start when a selector has moved.
+2. **Record.** Signed-in scenarios use the **standing video fixture account** (the
+   operator maintains it, and it owns the fixture project the tours revisit). Its
+   password is **rotated for every recording** and delivered as a one-time secret in
+   the environment (`DEMO_USERNAME`, `DEMO_PASSWORD`); the recorder reads it once and
+   unsets it. Separate throwaway accounts are created only for scenarios that record
+   the **signup/OTP/Stripe** flow itself, because those must start from an account
+   that does not exist yet and are driven by the operator (email codes and card entry
+   are never touched by the pipeline). Credentials never come from the repository, a
+   scenario file, a log or a message, and the recorder never prints, stores or echoes
+   a credential value.
+   ```bash
+   DEMO_USERNAME=<throwaway-account> DEMO_PASSWORD=<from-an-env-source> \
+     /uvwork/venv-agent/bin/python scripts/demo_videos/record.py \
+       scripts/demo_videos/scenarios/projects.yaml \
+       --base-url http://127.0.0.1:8000 --out-dir <render-dir> \
+       --viewports desktop --languages en \
+       --narration-backend elevenlabs --voice sarah --theme light
+   ```
+3. **Narration.** `--narration-backend elevenlabs --voice sarah` is the public
+   default: the premade voice *Sarah* through `scitex_audio`, which reads the key
+   from the environment (`ELEVENLABS_API_KEY`, sourced from the operator's secret
+   store — never written down here). gTTS remains the fallback: it needs no key and
+   takes a language code as its voice, so if ElevenLabs is unavailable the render
+   says so, falls back to captions-only timing, and records
+   `narration_backend`/`narration_failures` in the manifest. A manifest never claims
+   a voice it did not use.
+4. **Theme.** `--theme light` writes the site's own preference keys before the first
+   paint (the keys its theme switcher uses) and then *verifies the pixels*: the
+   manifest records the page attribute, the computed background colour and whether
+   they agree, so a surface that ignores the theme is visible in the metadata rather
+   than discovered by a viewer. `--preflight --theme light` additionally prints a
+   **theme map** — per page, the attribute, the stored preference and the rendered
+   background — so "can this flow be recorded in light mode?" is answered with one
+   credential use instead of a whole render. Measured on the public pages:
+   `/demos/` and the player page come up `light` (`rgb(250,249,247)`).
+5. **Outputs per rendition.** `<app>-<date>.<lang>.mp4` (1280x720, narrated,
+   captions burned in), `.vtt` captions, `.chapters.vtt` chapters, `.txt`
+   transcript with a YouTube-style chapter list, `.webm` raw recording,
+   `.thumbnail.png`, and `<app>-<date>-thumbnail.png` for the catalog.
+6. **Reproducible metadata.** `<app>-<date>.manifest.json` carries the scenario
+   sha256, the branch/commit and whether the tree was dirty, the Hub version, the
+   toolchain (ffmpeg/ffprobe, narration backend and voice, caption font), the UI
+   contract fingerprint, the viewports, the per-language durations and cues, and the
+   sha256 of every artifact. `verify_manifest` re-checks those digests;
+   `demo_manifest.py --dir <render-dir>` reports which renders are intact and which
+   went stale because their scenario or a UI contract moved.
+7. **Human watch gate.** Publishing requires that a **person** watched every
+   language of the rendition being published; `demo_watch_gate.py record` stores who,
+   when and against which artifact digest, and `status` exits non-zero until it is
+   satisfied. Re-rendering invalidates the watch. The pipeline never signs off on
+   its own output.
+8. **Optional finishing (DaVinci Resolve).** A copy-only pass may import the
+   rendered MP4 with its captions into a **new temporary** Resolve project, render a
+   derivative into a **separate** output directory, and compare duration, audio and
+   captions against the source. The source artifacts and any existing Resolve
+   project are never modified by that pass; it is a derivative, not an edit of the
+   published file. Requires the upstream `davinci-resolve-mcp` in compound mode and a
+   reviewed configuration — do not commit a client config or credentials for it.
+9. **Promotion.** `demo_library.py` derives visibility from files, never from a
+   claim: `private-draft` (unwatched, stale, or failed), `reviewed` (every language
+   watched and passing against the current artifact digests), `public-ready`
+   (reviewed **and** a promotion file that names the Docs target, the catalog key and
+   the pinned video digests). `scripts/demo_videos/demo_promotion.py` writes that
+   promotion record; it never re-encodes anything.
+10. **Promote, then publish.** Promotion is a step, not a paragraph: write the
+    promotion record for a reviewed render —
+
+    ```bash
+    /uvwork/venv-agent/bin/python scripts/demo_videos/demo_promotion.py \
+      --manifest <render-dir>/<app>-<date>.manifest.json \
+      --by <who reviewed it> --docs-page <docs path> --embed-key <catalog key>
+    ```
+
+    — which names the files a Docs page may embed, pins their sha256 so nothing is
+    re-encoded or swapped, records the Hub version (and a leaf version when the guide
+    is about a leaf app), and is what makes an asset `public-ready` rather than merely
+    `reviewed`. Then copy the watched files to the media volume, add the catalog entry,
+    add the card, and extend `RENDERED_DEMO_GUIDES` — see *Publish on the hub* below.
+    Only `public-ready` assets are published: the promotion record is the link between
+    "a person watched this" and "this may be embedded".
+
+**Immutability and disclosure.** A render is evidence: once watched, its files are
+not edited in place — a change is a new render, a new manifest and a new watch.
+Internal pages and their media are served behind the existing staff/operator
+authorization, never from a public static path, and their URLs are not reproduced in
+this document or in any published artifact. No credential value, internal host name,
+private path or unreleased URL appears in a scenario, a transcript, a manifest or a
+caption.
+
 ```
 scripts/demo_videos/
   record.py              # replay a scenario, record, narrate, caption, encode
@@ -313,10 +418,26 @@ In order, none of which is optional:
 A dev server that reloads mid-recording (someone saving a file in the checkout)
 shows up as a blank page or a connection error; re-run the scenario.
 
-Known limits (2026-09-14): Writer's editor is not reachable at 390x844, so
-`writer.yaml` lists only the desktop viewport. The Writer page itself is not yet
-translated, so its Japanese video still shows the English Writer labels; that is
-what `writer.yaml`'s alternate rendition records on purpose.
+Known limits (2026-09-17):
+
+- **Light mode is partial in the product.** With `--theme light` the Home/apps page
+  renders light, but the project workspace (file tree, README/file viewer, its header
+  and dock) and the create form at `/new/` still paint the dark theme. Measured from
+  two recording frames (see below), and the reason the light-mode public demo shows a
+  dark project screen from its "open a file" chapter. Reported to the Hub owner; not a
+  recording option, because the recorder films what the page serves.
+- **The create form's submit button timed out once.** A signed-in light-mode render
+  stopped at `/new/` step 5 of 7 with `Locator.click: Timeout 30000ms exceeded` on
+  `#create-submit-btn`, after `#name` and `#description` were filled; the failure frame
+  shows the button looking enabled and uncovered. Evidence:
+  `/scratch/beta-video-projects-light-en-brian-20260917/projects-2026-09-17.en.failure.json`
+  plus the partial raw recording and screenshot beside it. A click now retries once
+  (30s then 60s) with full actionability checks, so either it rides out a transient
+  state or the next report names the reason.
+- Writer's editor is not reachable at 390x844, so `writer.yaml` lists only the desktop
+  viewport. The Writer page itself is not yet translated, so its Japanese video still
+  shows the English Writer labels; that is what `writer.yaml`'s alternate rendition
+  records on purpose.
 
 `scenarios/smoke-public-demos.yaml` is a pipeline smoke tour: every step is
 reachable signed out, so the whole pipeline (narration, cues, burned captions,

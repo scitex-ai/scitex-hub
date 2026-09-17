@@ -26,8 +26,12 @@ from demo_scenario import (  # noqa: E402
     parse_scenario,
 )
 from record import (  # noqa: E402
+    Recording,
+    StepTiming,
     artifact_role,
+    click_with_retry,
     empty_selection_message,
+    failure_report,
     language_switch_path,
     preflight_target_kinds,
     preflight_targets,
@@ -363,3 +367,140 @@ def test_the_smoke_scenario_declares_both_viewports():
     scenario = load_scenario(DEMO_VIDEOS_DIR / "scenarios" / "smoke-public-demos.yaml")
     # Act / Assert
     assert scenario.viewports == ["desktop", "mobile"]
+
+
+def _recording(tmp_path):
+    """A Recording for the failure-report shape, without touching a browser."""
+    scenario = load_scenario(DEMO_VIDEOS_DIR / "scenarios" / "projects.yaml")
+    return Recording(scenario, VIEWPORT, scenario.renditions[0], tmp_path, "2026-09-17")
+
+
+class _Viewport:
+    name = "desktop"
+
+
+VIEWPORT = _Viewport()
+
+
+def test_a_failed_step_reports_where_what_and_which_selector(tmp_path):
+    # Arrange: the shape a blocker needs, so nobody reconstructs it from a traceback.
+    recording = _recording(tmp_path)
+    step = recording.scenario.steps[2]          # the step that types into #name
+    timings = [StepTiming(0, 0.0, 1.5)]
+    # Act
+    report = failure_report(recording, 2, step, "http://127.0.0.1:8000/new/",
+                            TimeoutError("Locator.click: Timeout 30000ms exceeded."), timings)
+    # Assert
+    assert report["app"] == "projects"
+    assert report["step_index"] == 3 and report["steps_total"] == len(recording.scenario.steps)
+    assert report["action"] == "type"
+    assert report["selector"] == "#name"
+    assert report["value"].startswith("sleep-study-")
+    assert report["page_url"] == "http://127.0.0.1:8000/new/"
+    assert report["steps_completed"] == 1
+    assert report["timings"] == [{"step": 1, "start": 0.0, "end": 1.5}]
+    assert report["error"].startswith("TimeoutError")
+
+
+def test_a_failure_before_the_first_step_still_reports(tmp_path):
+    # Arrange: a render can die in the browser setup, before any step is attempted.
+    recording = _recording(tmp_path)
+    # Act
+    report = failure_report(recording, -1, None, "about:blank", RuntimeError("no context"), [])
+    # Assert
+    assert report["step_index"] == 0
+    assert report["action"] == "" and report["selector"] == ""
+    assert report["steps_completed"] == 0
+
+
+class _StubPage:
+    """A page that answers the DOM probe without a browser."""
+
+    def __init__(self, answer):
+        self.answer = answer
+        self.asked = None
+
+    def evaluate(self, script, selector=None):
+        self.asked = selector
+        return self.answer
+
+
+def test_the_failure_report_keeps_the_full_message_not_just_its_first_line(tmp_path):
+    # Arrange: the actionability reason lives in the detail lines, and the first line
+    # alone cost a diagnosis on a create-button timeout.
+    recording = _recording(tmp_path)
+    detail = ("Locator.click: Timeout 30000ms exceeded.\n"
+              "Call log:\n"
+              "  - waiting for locator('#create-submit-btn')\n"
+              "    - element is not stable\n"
+              "      - retrying click action")
+    # Act
+    report = failure_report(recording, 2, recording.scenario.steps[2],
+                            "http://127.0.0.1:8000/new/", TimeoutError(detail), [])
+    # Assert
+    assert report["error"].startswith("TimeoutError")
+    assert "element is not stable" in report["error_detail"]
+    assert "retrying click action" in report["error_detail"]
+
+
+def test_the_failure_report_probes_the_dom_for_the_failing_selector(tmp_path):
+    # Arrange: disabled, covered by an overlay, or animated are different owners.
+    recording = _recording(tmp_path)
+    page = _StubPage({"found": True, "enabled": False, "covered": True,
+                      "topmost_at_centre": "div#dock"})
+    # Act
+    report = failure_report(recording, 2, recording.scenario.steps[2],
+                            "http://127.0.0.1:8000/new/", TimeoutError("nope"), [], page=page)
+    # Assert
+    assert page.asked == "#name"
+    assert report["dom"]["covered"] is True
+    assert report["dom"]["topmost_at_centre"] == "div#dock"
+
+
+def test_a_failure_without_a_selector_skips_the_probe(tmp_path):
+    # Arrange: a goto failure has no target to interrogate.
+    recording = _recording(tmp_path)
+    page = _StubPage({"found": False})
+    # Act
+    report = failure_report(recording, 0, recording.scenario.steps[0],
+                            "http://127.0.0.1:8000/new/", RuntimeError("no navigation"), [],
+                            page=page)
+    # Assert
+    assert "dom" not in report
+    assert page.asked is None
+
+
+class _FlakyLocator:
+    """A control that is not clickable once and then is: the create-button case."""
+
+    def __init__(self, failures: int):
+        self.failures = failures
+        self.clicks = 0
+        self.scrolls = 0
+
+    def click(self, timeout=None):
+        self.clicks += 1
+        if self.clicks <= self.failures:
+            raise TimeoutError("Locator.click: Timeout %sms exceeded." % timeout)
+
+    def scroll_into_view_if_needed(self, timeout=None):
+        self.scrolls += 1
+
+
+def test_a_click_that_fails_once_is_retried_without_forcing_anything():
+    # Arrange: the form's submit button timed out for a full 30s after the typing.
+    locator = _FlakyLocator(failures=1)
+    # Act
+    click_with_retry(locator, attempts=2, timeout_ms=1)
+    # Assert: two real clicks, both subject to Playwright's actionability checks.
+    assert locator.clicks == 2
+    assert locator.scrolls == 1
+
+
+def test_a_control_that_is_really_blocked_still_raises():
+    # Arrange: a genuinely blocked control must be reported, never clicked through.
+    locator = _FlakyLocator(failures=99)
+    # Act / Assert
+    with pytest.raises(TimeoutError):
+        click_with_retry(locator, attempts=2, timeout_ms=1)
+    assert locator.clicks == 2
