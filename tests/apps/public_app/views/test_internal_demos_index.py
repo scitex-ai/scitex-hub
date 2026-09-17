@@ -14,11 +14,23 @@ from pathlib import Path
 import pytest
 from django.test import RequestFactory, override_settings
 
-from apps.infra.public_app import clip_registry, demo_library
-from apps.infra.public_app.views import internal_demos as _views_package  # noqa: F401
-import apps.infra.public_app.views.internal_demos as internal_demos_module
+import importlib
 
-pytestmark = pytest.mark.django_db
+from apps.infra.public_app import clip_registry, demo_library
+
+# The views package re-exports the view function under the same name as its module, so
+# `import ... as` binds the function; these tests drive the module itself.
+import sys
+
+importlib.import_module("apps.infra.public_app.views.internal_demos")
+# sys.modules holds modules; the package attribute of the same name holds the function,
+# which is why importing by name and then reaching for .internal_demos finds a function.
+internal_demos_module = sys.modules["apps.infra.public_app.views.internal_demos"]
+
+# These tests build requests and read files: nothing here touches the ORM, so they must not
+# require a database. The app migrations are Postgres-only, and a staff page that cannot be
+# smoke-tested without Postgres is a page nobody can check on a laptop.
+pytestmark = []
 
 
 class Person:
