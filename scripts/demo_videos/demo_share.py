@@ -23,6 +23,8 @@ import secrets
 from datetime import datetime, timezone
 from pathlib import Path
 
+from django.contrib.auth.hashers import check_password, make_password
+
 SHARE_SCHEMA = "scitex.demo-video.share/1"
 TOKEN_BYTES = 32
 
@@ -80,10 +82,19 @@ def find_entry(store: dict, clip_id: str) -> dict | None:
     return None
 
 
+# Five wrong entries inside a quarter of an hour is enough friction to notice, and few
+# enough that a genuine viewer who misreads a passcode twice is not locked out.
+MAX_FAILED_ATTEMPTS = 5
+ATTEMPT_WINDOW_SECONDS = 15 * 60
+
+
 def _blank(clip_id: str) -> dict:
     return {
         "clip_id": str(clip_id),
         "visibility": INTERNAL,
+        "passcode_hash": "",
+        "grants": [],
+        "failed_attempts": [],
         "token_sha256": "",
         "token_created_at": "",
         "token_created_by": "",
@@ -100,7 +111,8 @@ def visibility_for(store: dict, clip_id: str) -> str:
 
 
 def set_visibility(store_path: Path, *, clip_id: str, clip_status: str, visibility: str,
-                   by: str, when: datetime | None = None) -> tuple[dict, str]:
+                   by: str, when: datetime | None = None,
+                   passcode: str = "") -> tuple[dict, str]:
     """Flip an entry's visibility. Returns the stored entry and the new token, if any.
 
     The token is returned exactly once, to the caller who flipped the entry outward.
@@ -135,11 +147,20 @@ def set_visibility(store_path: Path, *, clip_id: str, clip_status: str, visibili
         entry["token_created_by"] = str(by).strip()
         entry["revoked_at"] = ""
         entry["revoked_by"] = ""
+        # Optional passcode, default none. Only the Django hash is kept: the plaintext is
+        # typed into a masked field by whoever flips the toggle, and is never stored,
+        # logged or rendered - not even in this function's return value.
+        entry["passcode_hash"] = make_password(passcode) if passcode else ""
+        entry["grants"] = []
+        entry["failed_attempts"] = []
     else:
-        # Back to internal: the token dies now, not at some expiry.
+        # Back to internal: the token dies now, not at some expiry, and every grant with
+        # it - a viewer who was let in through the link loses that access here.
         entry["token_sha256"] = ""
         entry["token_created_at"] = ""
         entry["token_created_by"] = ""
+        entry["passcode_hash"] = ""
+        entry["grants"] = []
         entry["revoked_at"] = moment.isoformat(timespec="seconds")
         entry["revoked_by"] = str(by).strip()
 
@@ -150,6 +171,7 @@ def set_visibility(store_path: Path, *, clip_id: str, clip_status: str, visibili
         "from": was,
         "to": visibility,
         "token": "minted" if token else "revoked",
+        "passcode": "set" if (token and passcode) else ("none" if token else "cleared"),
     })
     save_store(store_path, store)
     return entry, token
@@ -172,7 +194,7 @@ def find_by_token(store: dict, token: str) -> dict:
     raise ShareError("unknown link")
 
 
-def view_share(store_path: Path, token: str, clip_lookup) -> dict:
+def view_share(store_path: Path, token: str, clip_lookup, grant: str = "") -> dict:
     """Resolve a token to the entry it may show, or refuse.
 
     ``clip_lookup(clip_id)`` returns the catalog entry or None. A link never outlives the
@@ -182,12 +204,75 @@ def view_share(store_path: Path, token: str, clip_lookup) -> dict:
     entry = find_by_token(store, token)
     if entry.get("visibility") != ANYONE_WITH_LINK or entry.get("revoked_at"):
         raise ShareError("this link is no longer active")
+    if entry.get("passcode_hash") and not has_grant(store, entry.get("clip_id", ""), grant):
+        # No passcode, no content: the link alone is not the whole key when one was set.
+        raise ShareError("this link asks for a passcode")
     clip = clip_lookup(entry.get("clip_id", ""))
     if not clip:
         raise ShareError("the shared entry is gone")
     if clip.get("status") != "approved":
         raise ShareError("the shared entry is no longer approved")
     return {"clip": clip, "entry": entry}
+
+
+def needs_passcode(store: dict, clip_id: str) -> bool:
+    """Whether this entry's link asks for a passcode at all."""
+    entry = find_entry(store, clip_id) or {}
+    return bool(entry.get("passcode_hash"))
+
+
+def failed_recently(entry: dict, when: datetime) -> bool:
+    """Whether this entry has had too many wrong passcodes lately."""
+    attempts = [stamp for stamp in (entry.get("failed_attempts") or []) if isinstance(stamp, str)]
+    recent = 0
+    for stamp in attempts:
+        try:
+            if (when - datetime.fromisoformat(stamp)).total_seconds() <= ATTEMPT_WINDOW_SECONDS:
+                recent += 1
+        except ValueError:
+            continue
+    return recent >= MAX_FAILED_ATTEMPTS
+
+
+def enter_passcode(store_path: Path, clip_id: str, passcode: str, *,
+                   when: datetime | None = None) -> str:
+    """Exchange a correct passcode for a share-specific grant code, shown once.
+
+    Five wrong entries inside the window stop further tries: this is friction against
+    accidental sharing, not a vault, so the limit is about noticing rather than about
+    resisting an attacker.
+    """
+    moment = when or now()
+    store = load_store(store_path)
+    entry = find_entry(store, clip_id)
+    if entry is None:
+        raise ShareError("unknown link")
+    if failed_recently(entry, moment):
+        raise ShareError("too many wrong passcodes: try again later")
+    if not entry.get("passcode_hash"):
+        raise ShareError("this link does not ask for a passcode")
+    if not isinstance(passcode, str) or not check_password(passcode, entry["passcode_hash"]):
+        entry.setdefault("failed_attempts", []).append(moment.isoformat(timespec="seconds"))
+        save_store(store_path, store)
+        raise ShareError("that passcode is not correct")
+    grant = new_token()
+    entry.setdefault("grants", []).append({
+        "grant_sha256": token_hash(grant),
+        "at": moment.isoformat(timespec="seconds"),
+    })
+    entry["failed_attempts"] = []
+    save_store(store_path, store)
+    return grant
+
+
+def has_grant(store: dict, clip_id: str, grant: str) -> bool:
+    """Whether a grant code came from this entry's passcode exchange."""
+    if not grant or not isinstance(grant, str):
+        return False
+    entry = find_entry(store, clip_id) or {}
+    wanted = token_hash(grant)
+    return any(hmac.compare_digest(str(record.get("grant_sha256", "")), wanted)
+               for record in entry.get("grants") or [])
 
 
 def shared_media_name(clip: dict, requested: str, folder: str = "") -> str:

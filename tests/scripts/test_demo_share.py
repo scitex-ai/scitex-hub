@@ -18,8 +18,8 @@ sys.path.insert(0, str(DEMO_VIDEOS_DIR))
 
 import demo_share  # noqa: E402
 from demo_share import (  # noqa: E402
-    ANYONE_WITH_LINK, INTERNAL, ShareError, load_store, set_visibility, shared_media_name,
-    view_share, visibility_for,
+    ANYONE_WITH_LINK, INTERNAL, ShareError, enter_passcode, load_store, set_visibility,
+    shared_media_name, view_share, visibility_for,
 )
 
 NOW = datetime(2026, 9, 17, 12, 0, tzinfo=timezone.utc)
@@ -120,8 +120,11 @@ def test_the_store_holds_a_hash_and_the_audit_and_never_the_token_or_a_path(tmp_
     stored = load_store(store)["entries"][0]
     assert stored["token_sha256"] == demo_share.token_hash(token)
     assert stored["token_created_by"] == "operator"
+    # The passcode hash, the grant hashes and the failed-attempt stamps are hashes and
+    # timestamps: still nothing here is a secret in the clear, and still no path.
     assert set(stored) == {"clip_id", "visibility", "token_sha256", "token_created_at",
-                           "token_created_by", "revoked_at", "revoked_by", "audit"}
+                           "token_created_by", "revoked_at", "revoked_by", "audit",
+                           "passcode_hash", "grants", "failed_attempts"}
     assert ".mp4" not in raw and "/" not in json.dumps(stored.get("clip_id"))
 
 
@@ -187,3 +190,90 @@ def test_nothing_lists_the_links_and_visibility_changes_need_a_name(tmp_path):
     with pytest.raises(ShareError):
         set_visibility(store, clip_id=CLIP_ID, clip_status="approved",
                        visibility="public-everywhere", by="operator", when=NOW)
+
+
+def test_a_link_without_a_passcode_behaves_as_before(tmp_path):
+    # Arrange: the default is no passcode, and it must stay a one-click share.
+    store = tmp_path / "visibility.json"
+    _, token = set_visibility(store, clip_id=CLIP_ID, clip_status="approved",
+                              visibility=ANYONE_WITH_LINK, by="operator", when=NOW)
+    # Act / Assert
+    assert view_share(store, token, lookup(a_clip()))["clip"]["id"] == CLIP_ID
+
+
+def test_a_passcode_is_required_when_one_was_set_and_only_its_hash_is_kept(tmp_path):
+    # Arrange
+    store = tmp_path / "visibility.json"
+    _, token = set_visibility(store, clip_id=CLIP_ID, clip_status="approved",
+                              visibility=ANYONE_WITH_LINK, by="operator", when=NOW,
+                              passcode="open-sesame")
+    # Act / Assert: the link alone is refused, and the plaintext is nowhere in the store.
+    with pytest.raises(ShareError):
+        view_share(store, token, lookup(a_clip()))
+    raw = store.read_text(encoding="utf-8")
+    assert "open-sesame" not in raw
+    entry = load_store(store)["entries"][0]
+    assert entry["passcode_hash"].startswith("pbkdf2_")
+    assert entry["audit"][0]["passcode"] == "set"
+
+
+def test_a_correct_passcode_grants_a_viewer_and_a_wrong_one_is_counted(tmp_path):
+    # Arrange
+    store = tmp_path / "visibility.json"
+    _, token = set_visibility(store, clip_id=CLIP_ID, clip_status="approved",
+                              visibility=ANYONE_WITH_LINK, by="operator", when=NOW,
+                              passcode="open-sesame")
+    # Act: a wrong passcode is refused and recorded; the right one yields a grant.
+    with pytest.raises(ShareError):
+        enter_passcode(store, CLIP_ID, "guess", when=NOW)
+    assert len(load_store(store)["entries"][0]["failed_attempts"]) == 1
+    grant = enter_passcode(store, CLIP_ID, "open-sesame", when=NOW)
+    # Assert: the grant opens the link, and a wrong one does not.
+    assert view_share(store, token, lookup(a_clip()), grant=grant)["clip"]["id"] == CLIP_ID
+    with pytest.raises(ShareError):
+        view_share(store, token, lookup(a_clip()), grant="not-a-grant")
+    assert "open-sesame" not in store.read_text(encoding="utf-8")
+
+
+def test_repeated_wrong_passcodes_are_rate_limited(tmp_path):
+    # Arrange
+    store = tmp_path / "visibility.json"
+    set_visibility(store, clip_id=CLIP_ID, clip_status="approved",
+                   visibility=ANYONE_WITH_LINK, by="operator", when=NOW, passcode="open-sesame")
+    # Act: five wrong tries, then a sixth that is refused before it is even checked.
+    for _ in range(5):
+        with pytest.raises(ShareError):
+            enter_passcode(store, CLIP_ID, "guess", when=NOW)
+    with pytest.raises(ShareError) as refused:
+        enter_passcode(store, CLIP_ID, "open-sesame", when=NOW)
+    # Assert
+    assert "too many wrong passcodes" in str(refused.value)
+    # and the limit is a window, not a permanent lock
+    from datetime import timedelta
+    grant = enter_passcode(store, CLIP_ID, "open-sesame", when=NOW + timedelta(minutes=16))
+    assert grant
+
+
+def test_toggling_back_to_internal_revokes_the_token_and_every_grant(tmp_path):
+    # Arrange
+    store = tmp_path / "visibility.json"
+    _, token = set_visibility(store, clip_id=CLIP_ID, clip_status="approved",
+                              visibility=ANYONE_WITH_LINK, by="operator", when=NOW,
+                              passcode="open-sesame")
+    grant = enter_passcode(store, CLIP_ID, "open-sesame", when=NOW)
+    # Act
+    set_visibility(store, clip_id=CLIP_ID, clip_status="approved", visibility=INTERNAL,
+                   by="operator", when=NOW)
+    # Assert: the link is dead, the grants are gone, and the passcode hash with them.
+    with pytest.raises(ShareError):
+        view_share(store, token, lookup(a_clip()), grant=grant)
+    entry = load_store(store)["entries"][0]
+    assert entry["grants"] == [] and entry["passcode_hash"] == ""
+    # Act again: going outward mints a new token and no passcode unless one is given.
+    _, second = set_visibility(store, clip_id=CLIP_ID, clip_status="approved",
+                               visibility=ANYONE_WITH_LINK, by="operator", when=NOW)
+    # Assert
+    assert second != token
+    assert view_share(store, second, lookup(a_clip()))["clip"]["id"] == CLIP_ID
+    with pytest.raises(ShareError):
+        view_share(store, token, lookup(a_clip()))
