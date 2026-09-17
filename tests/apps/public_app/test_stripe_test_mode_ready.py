@@ -127,22 +127,40 @@ def test_verified_signup_without_stripe_keys_still_lands_on_the_payment_step(
     is "no usable webhook-confirmed card -> no app", so the destination is the SAME
     in every provider state and the step explains the wait. A regression here is
     silent — nothing errors, users just bypass the funnel.
+
+    PR #934 review, blocker 7: the destination now comes from the durable
+    onboarding authority, so the probe has to be an account the OTP handler has
+    actually verified — which is exactly the state `mark_verified` writes.
     """
     # Arrange
+    from apps.infra.auth_app.onboarding import begin_social_signup, mark_verified
+
     settings.STRIPE_SECRET_KEY = ""
     user = django_user_model.objects.create_user(username="nokeys", password="x")
+    mark_verified(user, source="email")
     # Act
     url = post_signup_redirect_url(user)
     # Assert
     assert url == reverse("accounts_app:payment_step")
     assert "nokeys" not in url, "the app-route fallback is exactly the bypass we removed"
 
+    # An account the authority does NOT put in the funnel is not enrolled by a
+    # redirect either; it keeps the ordinary post-login destination.
+    assert post_signup_redirect_url(user) == reverse("accounts_app:payment_step")
+    assert begin_social_signup(user, "email") is not None
+
+    outsider = django_user_model.objects.create_user(username="not-in-funnel", password="x")
+    assert post_signup_redirect_url(outsider) == "/"
+
 
 @pytest.mark.django_db
 def test_verified_signup_with_stripe_key_goes_to_add_card(settings, django_user_model):
     # Arrange
+    from apps.infra.auth_app.onboarding import mark_verified
+
     settings.STRIPE_SECRET_KEY = FAKE_TEST_KEY
     user = django_user_model.objects.create_user(username="withkeys", password="x")
+    mark_verified(user, source="email")
     # Act
     url = post_signup_redirect_url(user)
     # Assert
@@ -150,8 +168,9 @@ def test_verified_signup_with_stripe_key_goes_to_add_card(settings, django_user_
     # terms before the provider's page and carries the single "Continue to secure
     # Stripe" action (card hub-signup-email-stripe-funnel-20260917). Billing remains
     # one click away, and this is the ONLY redirect policy for a verified signup —
-    # post_signup_redirect_url is defined once and consumed once, in
-    # auth_app/api_views.py:207, so there is no second rule to keep in step.
+    # post_signup_redirect_url delegates to the onboarding authority, which the OTP
+    # handler and the social adapter both consult, so there is no second rule to
+    # keep in step.
     assert url == reverse("accounts_app:payment_step")
 
 
@@ -250,8 +269,14 @@ def test_webhook_rejects_bad_signature(client, settings):
 def test_webhook_accepts_signed_anonymous_post_with_csrf_enforced(settings):
     # Arrange
     settings.STRIPE_WEBHOOK_SECRET = FAKE_WEBHOOK_SECRET
+    # PR #934 review, blocker 5: the event's livemode is compared against the
+    # configured key, so a webhook test needs a RECOGNISABLE key of the matching
+    # mode and an event that says which mode it came from.
+    settings.STRIPE_SECRET_KEY = FAKE_TEST_KEY
     csrf_enforcing_client = Client(enforce_csrf_checks=True)
-    payload = json.dumps({"id": "evt_anonymous", "type": "invoice.paid"}).encode()
+    payload = json.dumps(
+        {"id": "evt_anonymous", "type": "invoice.paid", "livemode": False}
+    ).encode()
     # Act
     response = csrf_enforcing_client.post(
         reverse("public_app:stripe_webhook"),
@@ -269,11 +294,12 @@ def test_signed_subscription_deleted_webhook_marks_plan_canceled(client, setting
     from apps.infra.public_app.models import PlanSubscription
 
     settings.STRIPE_WEBHOOK_SECRET = FAKE_WEBHOOK_SECRET
-    settings.STRIPE_SECRET_KEY = ""
+    settings.STRIPE_SECRET_KEY = FAKE_TEST_KEY
     PlanSubscription.objects.create(user=user_with_card, provider_subscription_id="sub_live", status="active")
     event = {
         "id": "evt_sub_deleted",
         "type": "customer.subscription.deleted",
+        "livemode": False,
         "data": {"object": {"id": "sub_live", "customer": "cus_trial", "status": "canceled"}},
     }
     payload = json.dumps(event).encode()
@@ -289,20 +315,50 @@ def test_signed_subscription_deleted_webhook_marks_plan_canceled(client, setting
 
 
 # ---------------------------------------------------------------------------
-# Subscription: continuing during the trial bills from the registration date
+# Subscription: the trial window is the provider's, and conversion bills from it
 # ---------------------------------------------------------------------------
 @pytest.mark.django_db
-def test_subscription_during_trial_is_backdated_to_registration(user_with_card):
+def test_choosing_a_plan_while_a_provider_trial_runs_is_refused(user_with_card):
+    """A second subscription while one is live is a refusal, not a silent double bill.
+
+    PR #934 review, blocker 2. This test used to assert that choosing a plan
+    during a trial backdated the first period to ``date_joined`` — the signup
+    FORM's date, for a trial that did not exist at the provider. The trial now
+    exists at the provider (``activate_trial``), it is a current subscription,
+    and this guard refuses before anything is created.
+    """
     # Arrange
+    from apps.infra.public_app.models import PlanSubscription
+    from apps.infra.public_app.services.billing_provider import BillingOperationRefused
+
     stripe_client = FakeStripeClient()
+    PlanSubscription.objects.create(
+        user=user_with_card,
+        provider_subscription_id="sub_trialing",
+        status="trialing",
+        trial_start=timezone.now(),
+        trial_end=timezone.now() + timedelta(days=30),
+    )
     # Act
-    _provider(stripe_client).start_subscription(user_with_card, pricing_id="subscription-general")
+    refusal = ""
+    try:
+        _provider(stripe_client).start_subscription(user_with_card, pricing_id="subscription-general")
+    except BillingOperationRefused as exc:
+        refusal = str(exc)
     # Assert
-    assert stripe_client.Subscription.created[0].backdate_start_date == int(user_with_card.date_joined.timestamp())
+    assert "already have an active plan" in refusal
+    assert stripe_client.Subscription.created == []
 
 
 @pytest.mark.django_db
-def test_subscription_after_trial_starts_today_without_backdating(user_with_card):
+def test_choosing_a_plan_without_a_trial_never_backdates_to_the_signup_date(user_with_card):
+    """No current subscription -> the new one starts now.
+
+    The 特商法 rule ("a converted trial bills from the trial's start") is
+    satisfied by the trial itself: it is created with the provider's own
+    ``trial_end`` at activation, so Stripe bills the period from that start.
+    Backdating here would bill a period that began before the account had a card.
+    """
     # Arrange
     user_with_card.date_joined = timezone.now() - timedelta(days=45)
     user_with_card.save(update_fields=["date_joined"])
@@ -310,6 +366,7 @@ def test_subscription_after_trial_starts_today_without_backdating(user_with_card
     # Act
     _provider(stripe_client).start_subscription(user_with_card, pricing_id="subscription-general")
     # Assert
+    assert stripe_client.Subscription.created
     assert not hasattr(stripe_client.Subscription.created[0], "backdate_start_date")
 
 
