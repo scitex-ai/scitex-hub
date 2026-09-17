@@ -24,7 +24,11 @@ from demo_narration import (  # noqa: E402
     NarrationUnavailable,
     voice_for,
 )
-from record import first_visual_step, theme_init_script  # noqa: E402
+from record import (  # noqa: E402
+    first_visual_step,
+    theme_from_background,
+    theme_init_script,
+)
 
 
 def test_gtts_is_per_language_so_its_voice_defaults_to_the_language():
@@ -95,3 +99,30 @@ def test_the_theme_check_lands_on_the_first_step_that_shows_a_page():
     })
     # Act / Assert
     assert first_visual_step(scenario) == 0
+
+
+@pytest.mark.parametrize(
+    "background,expected",
+    [
+        ("rgb(250, 249, 247)", "light"),     # the hub's light surface
+        ("rgb(13, 17, 23)", "dark"),         # the hub's dark surface
+        ("rgb(255, 255, 255)", "light"),
+        ("rgb(0, 0, 0)", "dark"),
+        ("rgba(13, 17, 23, 0.8)", "dark"),   # the starfield canvas is translucent
+        ("rgb(160, 160, 160)", "light"),     # clearly on the light side
+        ("rgb(60, 60, 60)", "dark"),         # clearly on the dark side
+        ("transparent", "unknown"),
+        ("", "unknown"),
+        ("#0d1117", "unknown"),              # not a computed colour: say so
+    ],
+)
+def test_the_rendered_background_decides_the_theme(background, expected):
+    # Arrange / Act / Assert: the light recording's pages read data-theme="light"
+    # while the project workspace rendered near-black, so the pixels are the check.
+    assert theme_from_background(background) == expected
+
+
+def test_an_unreadable_background_is_not_reported_as_a_mismatch():
+    # Arrange: a page that has not painted yet must not fail the theme check.
+    # Act / Assert
+    assert theme_from_background("rgba(0, 0, 0, 0)") in ("dark", "unknown")

@@ -26,6 +26,7 @@ import argparse
 import datetime
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -356,32 +357,69 @@ def theme_init_script(theme: str) -> str:
     """
 
 
+def theme_from_background(rgb: str) -> str:
+    """Which theme a computed CSS colour looks like: light, dark, or unknown.
+
+    The attribute is a proxy — the dark-mode run of the light recording read
+    `data-theme="light"` while the pixels were near-black, because parts of the
+    product do not honour the theme. The computed background is the outcome, so the
+    check reads it, and reports "unknown" rather than guessing when the value is not
+    a parseable colour.
+    """
+    match = re.fullmatch(r"rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:[,/\s]+[\d.]+)?\s*\)",
+                         (rgb or "").strip())
+    if not match:
+        return "unknown"
+    red, green, blue = (float(value) for value in match.groups())
+    # Rec. 601 luma, the cheap perceptual weighting; 0-255 scale.
+    luma = 0.299 * red + 0.587 * green + 0.114 * blue
+    return "light" if luma >= 128 else "dark"
+
+
 def apply_theme(page, theme: str, base_url: str, switch_path: str) -> dict:
     """Put the recording in `theme` and verify it, clicking the site's toggle if not.
 
     Returns what actually happened, because a video that claims light mode and shows
     a dark page is worse than one that admits it could not switch: the manifest
-    records the method and the verified page state.
+    records the method, the verified page attribute AND the computed background, so a
+    surface that ignores the theme shows up as `background_theme != theme` instead of
+    being reported as a clean switch.
     """
     if not theme:
         return {"theme": "", "source": "site-default", "verified": False}
-    active = page.evaluate("() => document.documentElement.getAttribute('data-theme') || ''")
-    if active == theme:
-        return {"theme": theme, "source": "stored-preference", "verified": True}
-    # Fall back to the control the product offers, if it is reachable on this page.
-    try:
-        toggle = page.locator("#theme-toggle").first
-        if toggle.count() and toggle.is_visible():
-            toggle.click()
-            page.wait_for_timeout(500)
-    except Exception:
-        pass
-    active = page.evaluate("() => document.documentElement.getAttribute('data-theme') || ''")
+
+    def state() -> dict:
+        observed = page.evaluate(
+            """() => ({
+                attribute: document.documentElement.getAttribute('data-theme') || '',
+                background: getComputedStyle(document.body || document.documentElement)
+                              .backgroundColor,
+            })"""
+        )
+        observed["background_theme"] = theme_from_background(observed["background"])
+        return observed
+
+    current = state()
+    source = "stored-preference"
+    if current["attribute"] != theme:
+        # Fall back to the control the product offers, if it is reachable here.
+        try:
+            toggle = page.locator("#theme-toggle").first
+            if toggle.count() and toggle.is_visible():
+                toggle.click()
+                page.wait_for_timeout(500)
+                source = "toggle-click"
+        except Exception:
+            pass
+        current = state()
     return {
         "theme": theme,
-        "source": "toggle-click" if active == theme else "stored-preference",
-        "verified": active == theme,
-        "observed": active,
+        "source": source,
+        "verified": current["attribute"] == theme,
+        # The honest half: the page says light, but do the pixels?
+        "background": current["background"],
+        "background_theme": current["background_theme"],
+        "background_matches": current["background_theme"] in (theme, "unknown"),
     }
 
 
@@ -568,6 +606,9 @@ def rendition_entry(recording: Recording, timings: list[StepTiming], files: list
         "theme": (theme_state or {}).get("theme", ""),
         "theme_source": (theme_state or {}).get("source", ""),
         "theme_verified": (theme_state or {}).get("verified", False),
+        # What the pixels said: a surface that ignores the theme is recorded as such.
+        "theme_background": (theme_state or {}).get("background", ""),
+        "theme_background_theme": (theme_state or {}).get("background_theme", ""),
         "duration_seconds": duration,
         "narration_seconds": round(sum(clip.duration_seconds for clip in clips.values() if clip), 3),
         "cues": sum(1 for timing in timings
