@@ -29,13 +29,19 @@
             </a>
 
         {% elif state == 'not_open' %}
-            <h1 class="payment-step-title">{% trans "Card registration opens soon" %}</h1>
+            <h1 class="payment-step-title">{% trans "Activation is waiting on payment setup" %}</h1>
             <p class="payment-step-lead">
-                {% trans "Your account is verified and your trial is running. There is nothing to pay and nothing to do here yet — we will ask for a payment method before the trial ends." %}
+                {% trans "Your email is verified, but we cannot take a payment method yet, so your trial has not started. Nothing is due, and there is nothing you can do here to unblock it." %}
             </p>
-            <a class="payment-step-secondary" href="{% url 'accounts_app:billing' %}">
-                {% trans "See trial status in billing" %}
-            </a>
+            <p class="payment-step-fineprint" data-payment-retry="true">
+                {% trans "We keep retrying this automatically and will show this step again the moment payment setup is available." %}
+            </p>
+
+        {% elif state == 'plan_unset' %}
+            <h1 class="payment-step-title">{% trans "Your plan is not set up yet" %}</h1>
+            <p class="payment-step-lead">
+                {% trans "We will not guess which plan you signed up for, so there is no price to show you. Nothing has been charged, and your account stays verified while this is sorted out." %}
+            </p>
 
         {% else %}
             {% if state == 'setup_cancelled' %}
@@ -73,10 +79,13 @@
                 {% trans "Your card number and CVC are entered on the payment provider's secure page. SciTeX never sees or stores them." %}
             </p>
 
-            {# POST to the existing setup endpoint. The button disables itself on    #}
-            {# submit (data-submit-guard) so a double click cannot ask for two       #}
-            {# sessions; the server-side idempotency for the duplicate-customer      #}
-            {# blocker is the backend owner's half.                                  #}
+            {# POST to the existing setup endpoint. The double-submit guard is the #}
+            {# module shared/utils/submit-guard.ts, wired from the shell body     #}
+            {# scripts on `data-submit-guard="true"` — extracted from an inline   #}
+            {# handler that called event.preventDefault() without declaring the   #}
+            {# parameter, so it could silently fail to cancel the second submit. #}
+            {# The server owns idempotency; this only stops the obvious double    #}
+            {# click.                                                            #}
             <form method="post"
                   action="{% url 'public_app:billing_start_setup' %}"
                   class="payment-step-form"
@@ -84,6 +93,7 @@
                 {% csrf_token %}
                 <button type="submit"
                         class="payment-step-continue"
+                        data-busy-label="{% trans 'Opening secure checkout…' %}"
                         data-payment-action="continue">
                     {% trans "Continue to secure Stripe" %}
                 </button>
@@ -93,24 +103,4 @@
             </p>
         {% endif %}
     </div>
-
-    {# hook-bypass: inline-script — a guarded submit must not depend on the bundle #}
-    <script>
-    (function () {
-        document.querySelectorAll('form[data-submit-guard="true"]').forEach(function (form) {
-            form.addEventListener("submit", function () {
-                var button = form.querySelector("[data-payment-action='continue']");
-                if (!button) return;
-                if (button.dataset.submitting === "true") {
-                    // Second submit from the same form: stop it here.
-                    event.preventDefault();
-                    return;
-                }
-                button.dataset.submitting = "true";
-                button.disabled = true;
-                button.textContent = button.dataset.busyLabel || button.textContent;
-            });
-        });
-    })();
-    </script>
 {% endblock %}

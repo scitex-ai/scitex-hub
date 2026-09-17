@@ -116,14 +116,26 @@ def test_signup_page_without_stripe_keys_returns_200(client, settings):
 
 
 @pytest.mark.django_db
-def test_verified_signup_without_stripe_keys_lands_on_profile(settings, django_user_model):
+def test_verified_signup_without_stripe_keys_still_lands_on_the_payment_step(
+    settings, django_user_model
+):
+    """The card-required redirect must not fail open when the provider is unavailable.
+
+    This asserted `url == "/nokeys/"` until the pre-review on PR 934 called it out:
+    with no provider keys, a verified-but-cardless signup was sent straight into the
+    app and the step's old copy told them their trial was already running. The gate
+    is "no usable webhook-confirmed card -> no app", so the destination is the SAME
+    in every provider state and the step explains the wait. A regression here is
+    silent — nothing errors, users just bypass the funnel.
+    """
     # Arrange
     settings.STRIPE_SECRET_KEY = ""
     user = django_user_model.objects.create_user(username="nokeys", password="x")
     # Act
     url = post_signup_redirect_url(user)
     # Assert
-    assert url == "/nokeys/"
+    assert url == reverse("accounts_app:payment_step")
+    assert "nokeys" not in url, "the app-route fallback is exactly the bypass we removed"
 
 
 @pytest.mark.django_db
