@@ -5,8 +5,9 @@ from pathlib import Path
 
 import yaml
 
-ACTIONS = {"goto", "click", "fill", "type", "press", "hover", "scroll", "wait"}
-ACTIONS_NEEDING_SELECTOR = {"click", "fill", "type", "hover"}
+ACTIONS = {"goto", "click", "fill", "type", "press", "hover", "scroll", "wait",
+           "assert_selector"}
+ACTIONS_NEEDING_SELECTOR = {"click", "fill", "type", "hover", "assert_selector"}
 ACTIONS_NEEDING_VALUE = {"goto", "fill", "type", "press"}
 VIEWPORTS = ("desktop", "mobile")
 STEP_KEYS = {"action", "narration", "selector", "value", "hold", "only", "chapter"}

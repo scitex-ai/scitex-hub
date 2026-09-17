@@ -16,7 +16,7 @@ import pytest
 DEMO_VIDEOS_DIR = Path(__file__).resolve().parents[2] / "scripts" / "demo_videos"
 sys.path.insert(0, str(DEMO_VIDEOS_DIR))
 
-from demo_scenario import ScenarioError, parse_scenario  # noqa: E402
+from demo_scenario import ACTIONS, ScenarioError, parse_scenario, parse_step  # noqa: E402
 from record import (  # noqa: E402
     assert_same_origin,
     output_name_problems,
@@ -112,3 +112,24 @@ def test_a_port_difference_is_a_different_origin():
     # Act / Assert
     with pytest.raises(RuntimeError, match="left the recording origin"):
         assert_same_origin(page, "http://127.0.0.1:8000")
+
+
+def test_assert_selector_is_a_real_action_and_requires_its_selector():
+    # Arrange: a scenario that asserts the app shell opened for this project.
+    step = {"action": "assert_selector",
+            "selector": '#app-mount[data-app-slug="figrecipe"]',
+            "narration": {"en": "The figure editor", "ja": "図のエディタ"}}
+    # Act
+    parsed = parse_step(step, 1, ("en", "ja"))
+    # Assert: it is a first-class action, checked like any other, not a bare click.
+    assert parsed.action == "assert_selector"
+    assert parsed.action in ACTIONS
+    with pytest.raises(ScenarioError):
+        parse_step({"action": "assert_selector", "narration": step["narration"]}, 2, ("en", "ja"))
+
+
+def test_an_unknown_action_is_still_refused():
+    # Arrange / Act / Assert: adding one action must not open the door to any action.
+    with pytest.raises(ScenarioError):
+        parse_step({"action": "assert_http_500", "selector": "#x",
+                    "narration": {"en": "x", "ja": "x"}}, 1, ("en", "ja"))

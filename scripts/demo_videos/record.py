@@ -423,6 +423,28 @@ def run_step(page, cursor: MovingCursor, step: Step, language: str, args, userna
         (locator or page.keyboard).press(value)
     elif step.action == "hover":
         locator.hover()
+    elif step.action == "assert_selector":
+        # A contract worth asserting on camera is a contract worth failing on: this is
+        # how a scenario says "the app opened for this project" using a hook that
+        # demo_selectors.py checks against the checkout, and it raises the same
+        # selector-with-evidence failure a moved control produces.
+        try:
+            page.wait_for_selector(selector, state="visible", timeout=30_000)
+        except Exception as error:
+            raise RecordingFailed({
+                "language": language, "selector": selector, "action": "assert_selector",
+                "page_url": page.url, "error": f"{type(error).__name__}: {error}"[:300],
+            }) from error
+        observed = page.evaluate(
+            """(selector) => {
+                const node = document.querySelector(selector);
+                if (!node) return null;
+                const attributes = {};
+                for (const attribute of node.attributes) attributes[attribute.name] = attribute.value;
+                return attributes;
+            }""", selector
+        )
+        print(f"  assert_selector ok: {selector} -> {observed}")
     elif step.action == "scroll":
         page.mouse.wheel(0, int(value or 400))
 
