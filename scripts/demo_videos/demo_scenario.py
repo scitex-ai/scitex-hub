@@ -9,7 +9,7 @@ ACTIONS = {"goto", "click", "fill", "type", "press", "hover", "scroll", "wait"}
 ACTIONS_NEEDING_SELECTOR = {"click", "fill", "type", "hover"}
 ACTIONS_NEEDING_VALUE = {"goto", "fill", "type", "press"}
 VIEWPORTS = ("desktop", "mobile")
-STEP_KEYS = {"action", "narration", "selector", "value", "hold", "only"}
+STEP_KEYS = {"action", "narration", "selector", "value", "hold", "only", "chapter"}
 
 
 class ScenarioError(ValueError):
@@ -47,6 +47,7 @@ class Step:
     value: dict[str, str] = field(default_factory=dict)
     hold: float = 0.8
     only: str = ""
+    chapter: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -161,6 +162,7 @@ def parse_step(raw: dict, position: int, languages: list[str]) -> Step:
         value=parse_localized(raw.get("value"), languages, f"{where} value"),
         hold=float(raw.get("hold", 0.8)),
         only=str(raw.get("only", "")),
+        chapter=parse_localized(raw.get("chapter"), languages, f"{where} chapter"),
     )
     if step.action not in ACTIONS:
         raise ScenarioError(f"{where}: action must be one of {sorted(ACTIONS)}")

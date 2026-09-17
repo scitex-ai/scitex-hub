@@ -71,6 +71,15 @@ carry a `.ui-<locale>` infix (`writer-2026-09-14.ui-en.ja.mp4`) so the canonical
 names never move, and the reason is required because the published card has to say
 which screen the viewer is looking at. `--no-alternates` skips them.
 
+A step may also declare a `chapter`: a short, localized name for that span of the
+walkthrough. Chapters come from the same narration-driven timeline as the
+captions, so a viewer switching to an alternate UI-locale rendition is looking at
+the same map of the steps. They are written to
+`<app>-<date>.<lang>.chapters.vtt` and listed at the top of the transcript as
+`MM:SS Title` lines, which is the form YouTube reads out of a description, so the
+upload step does not retype them. Chapters are optional and per step: a scenario
+without them records exactly as before.
+
 The scenario is recorded once per viewport x rendition. Before each recording the
 script opens the first page the scenario visits and picks the language in the
 site's own language switcher (footer globe menu), so the Japanese video shows the
@@ -154,7 +163,8 @@ Output in `--out-dir`, for each language `<lang>`:
 | --- | --- |
 | `<app>-<date>.<lang>.mp4` | 1280x720, narrated, captions burned in (H.264 + AAC) |
 | `<app>-<date>.<lang>.vtt` | WebVTT captions |
-| `<app>-<date>.<lang>.txt` | plain-text transcript |
+| `<app>-<date>.<lang>.chapters.vtt` | chapter track, one cue per named span |
+| `<app>-<date>.<lang>.txt` | transcript, with the chapter list when the scenario has one |
 | `<app>-<date>.<lang>.webm` | the raw Playwright recording, no audio |
 | `<app>-<date>.<lang>.thumbnail.png` | a frame from the last step |
 | `<app>-<date>-thumbnail.png` | the catalog thumbnail (desktop, first language) |

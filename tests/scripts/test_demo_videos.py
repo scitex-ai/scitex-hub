@@ -11,9 +11,12 @@ DEMO_VIDEOS_DIR = Path(__file__).resolve().parents[2] / "scripts" / "demo_videos
 sys.path.insert(0, str(DEMO_VIDEOS_DIR))
 
 from demo_captions import (  # noqa: E402
+    Chapter,
     TimedCaption,
+    build_chapter_vtt,
     build_transcript,
     build_webvtt,
+    chapter_timestamp,
     wrap_caption,
 )
 from demo_scenario import (  # noqa: E402
@@ -22,7 +25,7 @@ from demo_scenario import (  # noqa: E402
     load_scenario,
     parse_scenario,
 )
-from record import language_switch_path, preflight_targets  # noqa: E402
+from record import artifact_role, language_switch_path, preflight_targets  # noqa: E402
 
 TWO_STEP_VTT = (
     "WEBVTT\n"
@@ -221,3 +224,101 @@ def test_language_switch_falls_back_to_the_home_page_without_a_plain_goto():
     })
     # Act / Assert
     assert language_switch_path(scenario) == "/apps/"
+
+
+def test_chapters_of_the_projects_scenario_narrate_the_whole_walkthrough():
+    # Arrange: the chapter map is what keeps an alternate rendition navigable, so
+    # every step that narrates one is named in both languages.
+    scenario = load_scenario(DEMO_VIDEOS_DIR / "scenarios" / "projects.yaml")
+    # Act / Assert
+    assert [step.chapter for step in scenario.steps if step.narration] == [
+        {"en": "Home", "ja": "ホーム"},
+        {"en": "Create a project", "ja": "プロジェクトを作る"},
+        {"en": "Name", "ja": "名前"},
+        {"en": "Description", "ja": "説明"},
+        {"en": "Create", "ja": "作成"},
+        {"en": "Open a file", "ja": "ファイルを開く"},
+        {"en": "Your project", "ja": "あなたのプロジェクト"},
+    ]
+
+
+def test_a_scenario_may_leave_the_chapters_out():
+    # Arrange: chapters are optional; a scenario without them still records.
+    scenario = parse_scenario(MINIMAL_SCENARIO)
+    # Act / Assert
+    assert all(step.chapter == {} for step in scenario.steps)
+
+
+def test_build_chapter_vtt_names_each_span():
+    # Arrange
+    chapters = [
+        Chapter("Home", 0.0, 4.5),
+        Chapter("Create a project", 4.5, 12.25),
+    ]
+    # Act
+    vtt = build_chapter_vtt(chapters)
+    # Assert
+    assert vtt == (
+        "WEBVTT\n"
+        "\n"
+        "1\n"
+        "00:00:00.000 --> 00:00:04.500\n"
+        "Home\n"
+        "\n"
+        "2\n"
+        "00:00:04.500 --> 00:00:12.250\n"
+        "Create a project\n"
+    )
+
+
+def test_transcript_carries_a_youtube_style_chapter_list():
+    # Arrange: YouTube reads chapters from the description as MM:SS lines.
+    captions = [TimedCaption("First spoken line", 0.0, 4.5),
+                TimedCaption("Second spoken line", 4.5, 12.25)]
+    chapters = [Chapter("Home", 0.0, 4.5), Chapter("Create a project", 65.0, 70.0)]
+    # Act
+    transcript = build_transcript("A demo", captions, chapters)
+    # Assert
+    assert transcript == (
+        "A demo\n"
+        "\n"
+        "Chapters\n"
+        "00:00 Home\n"
+        "01:05 Create a project\n"
+        "\n"
+        "1. First spoken line\n"
+        "2. Second spoken line\n"
+    )
+
+
+def test_transcript_without_chapters_is_unchanged():
+    # Arrange
+    captions = [TimedCaption("Only line", 0.0, 1.0)]
+    # Act / Assert
+    assert build_transcript("A demo", captions) == "A demo\n\n1. Only line\n"
+
+
+@pytest.mark.parametrize(
+    "seconds,expected",
+    [(0, "00:00"), (59.9, "00:59"), (60, "01:00"), (3599, "59:59"), (3600, "1:00:00")],
+)
+def test_chapter_timestamp_matches_the_form_youtube_accepts(seconds, expected):
+    # Arrange / Act / Assert
+    assert chapter_timestamp(seconds) == expected
+
+
+@pytest.mark.parametrize(
+    "name,expected",
+    [
+        ("demo-2026-09-17.en.mp4", "video"),
+        ("demo-2026-09-17.en.webm", "raw"),
+        ("demo-2026-09-17.en.vtt", "captions"),
+        ("demo-2026-09-17.en.chapters.vtt", "chapters"),
+        ("demo-2026-09-17.en.txt", "transcript"),
+        ("demo-2026-09-17.en.thumbnail.png", "thumbnail"),
+    ],
+)
+def test_artifact_role_is_not_fooled_by_the_chapter_file(name, expected):
+    # Arrange / Act / Assert: both caption and chapter tracks end in .vtt, and a
+    # manifest that confuses them reports the wrong artifact for the watch gate.
+    assert artifact_role(Path(name)) == expected

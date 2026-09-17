@@ -34,7 +34,14 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-from demo_captions import TimedCaption, build_transcript, build_webvtt, wrap_caption
+from demo_captions import (
+    Chapter,
+    TimedCaption,
+    build_chapter_vtt,
+    build_transcript,
+    build_webvtt,
+    wrap_caption,
+)
 from demo_cursor import CURSOR_OVERLAY_SCRIPT, MovingCursor
 from demo_manifest import (
     MANIFEST_SCHEMA,
@@ -122,6 +129,11 @@ class Recording:
     @property
     def thumbnail(self) -> Path:
         return self.out_dir / f"{self.stem}.{self.language}.thumbnail.png"
+
+    @property
+    def chapter_vtt(self) -> Path:
+        """The chapter track. Named `.chapters.vtt` so it is not read as captions."""
+        return self.out_dir / f"{self.stem}.{self.language}.chapters.vtt"
 
 
 @dataclass(frozen=True)
@@ -363,16 +375,52 @@ def extract_thumbnail(video: Path, png: Path, at_seconds: float, tools: MediaToo
     )
 
 
+def chapters_for(recording: Recording, timings: list[StepTiming]) -> list[Chapter]:
+    """The named spans of this recording, from the steps that declare a chapter.
+
+    One list per recording, built from the same narration-driven timeline that
+    times the captions, so an alternate UI-locale rendition carries the same
+    chapter map even though it is a separate file.
+    """
+    chapters = []
+    for timing in timings:
+        title = recording.scenario.steps[timing.step_index].chapter.get(recording.language, "")
+        if title:
+            chapters.append(Chapter(title, timing.start_seconds, timing.end_seconds))
+    return chapters
+
+
+def artifact_role(path: Path) -> str:
+    """What a recorded file is, by name: `.chapters.vtt` is not the caption file."""
+    name = path.name
+    if name.endswith(".chapters.vtt"):
+        return "chapters"
+    return {
+        ".mp4": "video",
+        ".webm": "raw",
+        ".vtt": "captions",
+        ".txt": "transcript",
+        ".png": "thumbnail",
+    }.get(path.suffix, path.suffix.lstrip("."))
+
+
 def render(recording: Recording, webm: Path, timings, clips: dict[int, NarrationClip | None],
            work_dir: Path, tools: MediaTools, fonts_dir: str):
-    """Write the captions, transcript, mp4 and thumbnail of one recording."""
+    """Write the captions, transcript, chapters, mp4 and thumbnail of one recording."""
+    captions = captions_for(recording, timings)
+    chapters = chapters_for(recording, timings)
     vtt = recording.artifact("vtt")
-    vtt.write_text(build_webvtt(captions_for(recording, timings)), encoding="utf-8")
+    vtt.write_text(build_webvtt(captions), encoding="utf-8")
     transcript = recording.artifact("txt")
     title = recording.scenario.title[recording.language]
-    transcript.write_text(build_transcript(title, captions_for(recording, timings)), encoding="utf-8")
-    print(f"wrote {webm}, {vtt} and {transcript}")
+    transcript.write_text(build_transcript(title, captions, chapters), encoding="utf-8")
     files = [webm, vtt, transcript]
+    chapter_vtt = recording.chapter_vtt
+    if chapters:
+        chapter_vtt.write_text(build_chapter_vtt(chapters), encoding="utf-8")
+        files.append(chapter_vtt)
+    print(f"wrote {webm}, {vtt}, {transcript}"
+          + (f" and {chapter_vtt}" if chapters else ""))
     if not tools.has_ffmpeg:
         return None, files
     burn_vtt = work_dir / f"{recording.stem}.{recording.language}-burn.vtt"
@@ -399,13 +447,10 @@ def render(recording: Recording, webm: Path, timings, clips: dict[int, Narration
 def rendition_entry(recording: Recording, timings: list[StepTiming], files: list[Path],
                     tools: MediaTools, clips: dict[int, NarrationClip | None]) -> dict:
     """The manifest view of one recording: digests, timing and narration length."""
-    roles = {"mp4": "video", "webm": "raw", "vtt": "captions", "txt": "transcript",
-             "thumbnail.png": "thumbnail"}
     recorded = []
     for path in files:
-        suffix = path.name.rsplit(".", 1)[-1] if path.suffix != ".png" else "thumbnail.png"
         record = dict(file_digest(path))
-        record["role"] = roles.get(suffix, suffix)
+        record["role"] = artifact_role(path)
         recorded.append(record)
     duration = None
     if tools.has_ffprobe or tools.has_ffmpeg:
