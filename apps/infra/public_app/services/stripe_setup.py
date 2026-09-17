@@ -22,12 +22,81 @@ zero-dollar card validation.
 from __future__ import annotations
 
 import logging
+from datetime import timedelta
+
+from django.db import transaction
+from django.utils import timezone
 
 logger = logging.getLogger("scitex")
 
 # Stripe rejects a setup-mode Checkout Session without a currency; USD is the
 # only stored currency in the Services SSOT (data/pricing.json).
 CARD_SETUP_CURRENCY = "usd"
+
+#: How long an open hosted session is reused instead of replaced. Stripe expires
+#: Checkout sessions after 24h; a minute of headroom means we never hand a user
+#: a URL the provider would refuse.
+HOSTED_SESSION_TTL = timedelta(hours=23)
+
+
+def customer_idempotency_key(user) -> str:
+    """The Stripe idempotency key for "this user's customer", and only that.
+
+    PR #934 review, blocker 4. Derived from the USER, not from the request, so
+    two concurrent clicks cannot produce two customers: Stripe collapses them
+    into one object because the key is the same. It carries no secret and no
+    personal data — a user pk is already in the Customer's metadata.
+    """
+    return f"scitex-customer-{user.pk}"
+
+
+def session_idempotency_key(user, pricing_id: str, attempt: int) -> str:
+    """The Stripe idempotency key for ONE hosted setup attempt.
+
+    Keyed by attempt as well as user so that retrying after a cancel creates a
+    genuinely new session, while two requests inside the SAME attempt collapse
+    into one. That is exactly the property blocker 4 was missing.
+    """
+    return f"scitex-setup-{user.pk}-{pricing_id or 'none'}-{int(attempt)}"
+
+
+def session_is_reusable(row, pricing_id: str, *, now=None) -> bool:
+    """Whether the stored session may be handed back instead of creating one.
+
+    Pure, so the rule is testable without a database. It is reused only when ALL
+    four hold: it is still open, it is for the SAME plan (a plan change must not
+    silently keep the old price), the provider gave us a URL, and it is inside
+    :data:`HOSTED_SESSION_TTL`.
+    """
+    from ..models import BillingSetupSession
+
+    if row is None:
+        return False
+    if row.status != BillingSetupSession.Status.OPEN:
+        return False
+    if not row.session_url or not row.session_id:
+        return False
+    if (row.pricing_id or "") != (pricing_id or ""):
+        return False
+    reference = now or timezone.now()
+    return reference - row.created_at < HOSTED_SESSION_TTL
+
+
+class HostedSetup:
+    """The answer to "where does this user enter their card?".
+
+    ``reused`` is carried out of the service rather than logged and forgotten:
+    a test (and an operator reading the response) can tell a fresh session from
+    a repeated click, which is the whole observable difference blocker 4 was about.
+    """
+
+    __slots__ = ("session_id", "url", "reused", "attempt")
+
+    def __init__(self, *, session_id: str, url: str, reused: bool, attempt: int):
+        self.session_id = session_id
+        self.url = url
+        self.reused = reused
+        self.attempt = attempt
 
 
 def build_stripe_client(secret_key: str | None):
@@ -67,31 +136,127 @@ def _existing_customer_id(user):
     return row.stripe_customer_id if row else None
 
 
-def start_card_setup(user, *, stripe_client, success_url, cancel_url):
+def _open_setup_row(user):
+    """This user's setup row, locked for the rest of the transaction.
+
+    ``OneToOne`` means there can only ever be one, which is what makes the
+    second click in a double-submit a reuse rather than a race. The row is
+    created on first use (``attempt=0``); a concurrent create loses to the
+    unique constraint and re-reads the winner's row.
+    """
+    from django.db import IntegrityError
+
+    from ..models import BillingSetupSession
+
+    row = BillingSetupSession.objects.select_for_update().filter(user=user).first()
+    if row is not None:
+        return row
+    try:
+        BillingSetupSession.objects.create(user=user, attempt=0)
+    except IntegrityError:  # another request created it first — that is the point
+        pass
+    return BillingSetupSession.objects.select_for_update().get(user=user)
+
+
+def start_card_setup(user, *, pricing_id, stripe_client, success_url, cancel_url):
     """Ensure the user's Stripe customer and return a hosted setup session.
 
-    Returns an object exposing ``.id`` and ``.url`` (the Checkout session). The
-    view redirects the browser to ``.url``; the card is then captured on
-    Stripe's page, and the signed completion webhook persists it.
-    """
-    customer_id = _existing_customer_id(user)
-    if not customer_id:
-        customer = stripe_client.Customer.create(
-            email=getattr(user, "email", "") or "",
-            metadata={"user_pk": str(user.pk)},
-        )
-        customer_id = customer.id
+    Returns a :class:`HostedSetup`. The card is captured on Stripe's page; the
+    signed completion webhook persists it and activates the trial.
 
-    session = stripe_client.checkout.Session.create(
-        mode="setup",
-        currency=CARD_SETUP_CURRENCY,
-        customer=customer_id,
-        # Maps the completed session back to the user without a User migration.
-        client_reference_id=str(user.pk),
-        success_url=success_url,
-        cancel_url=cancel_url,
-    )
-    return session
+    IDEMPOTENT BY CONSTRUCTION (PR #934 review, blocker 4). Three separate
+    mechanisms, because any one alone leaves a hole:
+
+    1. a persisted row, locked for the duration, so two requests serialise;
+    2. an OPEN session for the same plan inside its TTL is returned AS IS, with
+       no provider call at all — the common double-click reaches Stripe zero
+       times;
+    3. both provider calls carry deterministic idempotency keys derived from the
+       row (customer per user, session per attempt), so even a race that got
+       past (1) and (2) collapses inside Stripe instead of creating a second
+       customer.
+
+    ``pricing_id`` is written onto the Stripe session's metadata AND the
+    customer's, so the webhook activates the plan the user was shown.
+    """
+    with transaction.atomic():
+        row = _open_setup_row(user)
+        now = timezone.now()
+
+        if session_is_reusable(row, pricing_id, now=now):
+            logger.info(
+                "Reusing open Stripe setup session %s for user %s (attempt %s)",
+                row.session_id, user.pk, row.attempt,
+            )
+            return HostedSetup(
+                session_id=row.session_id, url=row.session_url,
+                reused=True, attempt=row.attempt,
+            )
+
+        if row.session_id:
+            # A genuinely new attempt: a session already existed and is being
+            # replaced (cancelled, expired, or for a different plan). A brand-new
+            # row keeps attempt 0 — the first attempt IS attempt zero.
+            row.attempt = (row.attempt or 0) + 1
+
+        customer_id = row.stripe_customer_id or _existing_customer_id(user)
+        if not customer_id:
+            customer = stripe_client.Customer.create(
+                email=getattr(user, "email", "") or "",
+                metadata={"user_pk": str(user.pk), "pricing_id": pricing_id or ""},
+                idempotency_key=customer_idempotency_key(user),
+            )
+            customer_id = customer.id
+        row.stripe_customer_id = customer_id
+
+        session = stripe_client.checkout.Session.create(
+            mode="setup",
+            currency=CARD_SETUP_CURRENCY,
+            customer=customer_id,
+            # Maps the completed session back to the user and the plan without
+            # a User migration or a query parameter the browser could edit.
+            client_reference_id=str(user.pk),
+            metadata={"user_pk": str(user.pk), "pricing_id": pricing_id or ""},
+            success_url=success_url,
+            cancel_url=cancel_url,
+            idempotency_key=session_idempotency_key(user, pricing_id, row.attempt),
+        )
+
+        row.session_id = _field(session, "id", "") or ""
+        row.session_url = _field(session, "url", "") or ""
+        row.pricing_id = pricing_id or ""
+        row.status = "open"
+        row.save(
+            update_fields=[
+                "attempt", "stripe_customer_id", "session_id", "session_url",
+                "pricing_id", "status", "updated_at",
+            ]
+        )
+        return HostedSetup(
+            session_id=row.session_id, url=row.session_url,
+            reused=False, attempt=row.attempt,
+        )
+
+
+def mark_setup_cancelled(user) -> None:
+    """Record that the user came back from the hosted page without finishing.
+
+    The stored session is retired so the next attempt is genuinely new (and gets
+    a fresh idempotency key), while the customer id is KEPT: the account already
+    has a Stripe customer, and minting a second one for a retry is the exact
+    duplication blocker 4 was about.
+    """
+    from ..models import BillingSetupSession
+
+    BillingSetupSession.objects.filter(
+        user=user, status=BillingSetupSession.Status.OPEN
+    ).update(status=BillingSetupSession.Status.CANCELLED, updated_at=timezone.now())
+
+
+def session_pricing_id(stripe_event) -> str:
+    """The allowlisted plan id the completed session was opened for, if any."""
+    session = _field(_field(stripe_event, "data"), "object")
+    return _field(_field(session, "metadata"), "pricing_id", "") or ""
 
 
 def apply_setup_completed(stripe_event, *, stripe_client=None):
@@ -109,7 +274,7 @@ def apply_setup_completed(stripe_event, *, stripe_client=None):
     """
     from django.contrib.auth import get_user_model
 
-    from ..models import PaymentMethod
+    from ..models import BillingSetupSession, PaymentMethod
 
     User = get_user_model()
 
@@ -159,4 +324,16 @@ def apply_setup_completed(stripe_event, *, stripe_client=None):
     PaymentMethod.objects.filter(user=user).exclude(pk=row.pk).update(
         is_default=False
     )
+
+    # The attempt is FINISHED. Recording it here (not on the browser's return)
+    # is what keeps the setup row and the provider in agreement: only a signed
+    # completion retires the attempt.
+    BillingSetupSession.objects.filter(
+        user=user, session_id=_field(session, "id", "") or ""
+    ).update(
+        status=BillingSetupSession.Status.COMPLETED,
+        completed_at=timezone.now(),
+        updated_at=timezone.now(),
+    )
     return row
+
