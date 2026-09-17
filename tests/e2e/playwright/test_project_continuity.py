@@ -110,10 +110,11 @@ def test_login_launcher_and_project_apps_keep_one_project(continuity_browser):
     )
     assert page.locator(".launcher-active-project").is_visible()
 
-    stats = page.locator('[data-module="stats"]')
+    stats = page.locator('[data-planned="stats"]')
+    assert stats.count() == 1
     assert stats.get_attribute("data-availability") == "coming_soon"
     assert stats.get_attribute("href") is None
-    assert stats.get_attribute("aria-disabled") == "true"
+    assert stats.get_attribute("aria-haspopup") == "dialog"
 
     for app in PROJECT_APPS:
         tile = page.locator(f'[data-module="{app}"]:not([data-favorite-alias])')
