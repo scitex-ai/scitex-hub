@@ -59,6 +59,19 @@ def library_directory():
     return getattr(settings, "DEMO_VIDEO_LIBRARY_DIR", None)
 
 
+def no_store(response):
+    """Mark a staff-only response as uncacheable and unindexable.
+
+    The media route already answered with ``private, no-store``; the review's point was
+    that its neighbours did not — the index itself, the redirect to sign-in (which
+    carries the caller's path) and the 403 could all be held by a shared cache or a
+    proxy. One helper, applied to every response this module returns.
+    """
+    response["Cache-Control"] = "private, no-store"
+    response["X-Robots-Tag"] = "noindex, nofollow"
+    return response
+
+
 def access_denied(request):
     """A response to send back instead of the library, or None when allowed.
 
@@ -70,9 +83,9 @@ def access_denied(request):
     if user is None or not getattr(user, "is_authenticated", False):
         login_url = getattr(settings, "LOGIN_URL", "/auth/signin/")
         query = urlencode({"next": request.get_full_path()})
-        return redirect(f"{login_url}?{query}")
+        return no_store(redirect(f"{login_url}?{query}"))
     if not is_instance_admin(user):
-        return HttpResponseForbidden(STAFF_ONLY_MESSAGE)
+        return no_store(HttpResponseForbidden(STAFF_ONLY_MESSAGE))
     return None
 
 
@@ -104,13 +117,15 @@ def internal_demos(request):
     else:
         index = demo_library.library_index(directory)
     index["entries"] = [with_media_urls(entry) for entry in index["entries"]]
-    return render(
-        request,
-        "public_app/pages/internal_demos.html",
-        {
-            "library": index,
-            "staff_only_message": STAFF_ONLY_MESSAGE,
-        },
+    return no_store(
+        render(
+            request,
+            "public_app/pages/internal_demos.html",
+            {
+                "library": index,
+                "staff_only_message": STAFF_ONLY_MESSAGE,
+            },
+        )
     )
 
 

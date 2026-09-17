@@ -25,6 +25,7 @@ pipeline writes it, this reads it.
 
 import json
 from pathlib import Path
+from urllib.parse import urlparse
 
 MANIFEST_SCHEMA = "scitex.demo-video.manifest/1"
 WATCH_GATE_SCHEMA = "scitex.demo-video.watch-gate/1"
@@ -45,10 +46,88 @@ def read_json(path: Path) -> dict:
         return {}
 
 
+def manifest_problems(manifest: object) -> list[str]:
+    """Why this cannot be read as a render manifest; empty when it can.
+
+    A schema string is not enough. The review's malformed-manifest case declared the
+    right schema and the wrong shapes — ``renditions`` as a string, a file record that
+    was not an object — and the index raised while formatting it, which is a 500 on a
+    staff page. Every shape the readers index is checked here, once, and the readers
+    are defensive anyway because a manifest is an input like any other.
+    """
+    problems: list[str] = []
+    if not isinstance(manifest, dict):
+        return ["not a JSON object"]
+    if manifest.get("schema") != MANIFEST_SCHEMA:
+        return [f"schema is {manifest.get('schema')!r}, not {MANIFEST_SCHEMA!r}"]
+
+    for key in ("app", "date", "commit"):
+        if not isinstance(manifest.get(key, ""), str):
+            problems.append(f"{key} is not a string")
+
+    renditions = manifest.get("renditions")
+    if not isinstance(renditions, list) or not renditions:
+        problems.append("renditions is not a non-empty list")
+        return problems
+
+    for index, rendition in enumerate(renditions):
+        if not isinstance(rendition, dict):
+            problems.append(f"rendition {index} is not an object")
+            continue
+        for key in ("language", "viewport"):
+            if not isinstance(rendition.get(key, ""), str):
+                problems.append(f"rendition {index} {key} is not a string")
+        if not isinstance(rendition.get("canonical", True), bool):
+            problems.append(f"rendition {index} canonical is not a boolean")
+        files = rendition.get("files")
+        if not isinstance(files, list):
+            problems.append(f"rendition {index} files is not a list")
+            continue
+        for position, record in enumerate(files):
+            if not isinstance(record, dict):
+                problems.append(f"rendition {index} file {position} is not an object")
+                continue
+            for key in ("role", "name"):
+                if not isinstance(record.get(key, ""), str):
+                    problems.append(
+                        f"rendition {index} file {position} {key} is not a string"
+                    )
+    return problems
+
+
 def read_manifest(path: Path) -> dict:
-    """The manifest at ``path``, or {} unless it declares the schema we read."""
+    """The manifest at ``path``, or {} unless it can actually be read and indexed.
+
+    Shapes are validated too (``manifest_problems``): a manifest that declares our
+    schema but cannot be indexed is reported as unreadable, the same as a missing file.
+    The failure this closes was a manifest that was malformed *and* still reached the
+    index.
+    """
     manifest = read_json(path)
-    return manifest if manifest.get("schema") == MANIFEST_SCHEMA else {}
+    if manifest_problems(manifest):
+        return {}
+    return manifest
+
+
+def safe_docs_target(value: object) -> str:
+    """A documentation link we are willing to render, or "" to drop it.
+
+    Promoted assets link to the guides that explain them, and those links were rendered
+    unexamined: a file carrying ``javascript:...`` became a live target in a staff page.
+    Accept a site-relative path (not protocol-relative, which leaves the site) or an
+    absolute http(s) URL; drop everything else.
+    """
+    if not isinstance(value, str):
+        return ""
+    target = value.strip()
+    if not target or any(character in target for character in "\r\n\t"):
+        return ""
+    if target.startswith("/") and not target.startswith("//"):
+        return target
+    parsed = urlparse(target)
+    if parsed.scheme.lower() in ("http", "https") and parsed.netloc:
+        return target
+    return ""
 
 
 def sidecar(manifest_path: Path, suffix: str) -> Path:
@@ -61,8 +140,15 @@ def sidecar(manifest_path: Path, suffix: str) -> Path:
 def rendition_rows(manifest: dict) -> list[dict]:
     """One row per rendition: language, viewport, timing, and its files by role."""
     rows = []
-    for rendition in manifest.get("renditions", []):
-        files = {record.get("role"): record.get("name") for record in rendition.get("files", [])}
+    for rendition in (manifest.get("renditions") or []):
+        if not isinstance(rendition, dict):
+            continue
+        records = rendition.get("files") or []
+        files = {
+            record.get("role"): record.get("name")
+            for record in records
+            if isinstance(record, dict)
+        }
         rows.append(
             {
                 "language": rendition.get("language", ""),
@@ -85,8 +171,13 @@ def watch_state(gate: dict) -> dict:
     if gate.get("schema") != WATCH_GATE_SCHEMA:
         return {"state": "no-gate", "required": [], "watched": [], "missing": [],
                 "failing": [], "stale": [], "publishable": False}
-    required = list(gate.get("required_languages", []))
-    watches = gate.get("watches") or {}
+    required = [
+        language
+        for language in (gate.get("required_languages") or [])
+        if isinstance(language, str)
+    ]
+    watches = gate.get("watches") if isinstance(gate.get("watches"), dict) else {}
+    artifacts = gate.get("artifacts") if isinstance(gate.get("artifacts"), dict) else {}
     watched = [language for language in required if watches.get(language)]
     failed = [language for language in required
               if (watches.get(language) or {}).get("verdict") not in (None, "pass")]
@@ -94,7 +185,8 @@ def watch_state(gate: dict) -> dict:
     stale = [language for language in required
              if watches.get(language)
              and (watches[language].get("artifact_sha256") or "")
-             != ((gate.get("artifacts") or {}).get(language) or {}).get("sha256", "")]
+             != ((artifacts.get(language) or {}).get("sha256", "")
+                 if isinstance(artifacts.get(language), dict) else "")]
     if failed:
         state = "failed"
     elif stale:
@@ -181,7 +273,14 @@ def entry_for(manifest_path: Path, library_dir: Path | None = None) -> dict:
             "promoted_by": promotion.get("promoted_by", ""),
             "promoted_at": promotion.get("promoted_at", ""),
             "embed_key": promotion.get("embed_key", ""),
-            "docs_targets": promotion.get("docs_targets", []),
+            "docs_targets": [
+                target
+                for target in (
+                    safe_docs_target(value)
+                    for value in (promotion.get("docs_targets") or [])
+                )
+                if target
+            ],
             "descriptions": promotion.get("descriptions", {}),
         },
         "visibility": visibility(gate_state, promotion),
