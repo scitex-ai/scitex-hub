@@ -174,10 +174,14 @@ class HomePagesTest(TestCase):
         # Assert
         assert first_row == ["my_projects", "agents", "todo", "storage"]
 
-    def test_missing_stats_app_is_a_coming_soon_tile_not_an_empty_cell(self):
-        # Walkthrough 2026-09-14: the held Stats gap read as a broken grid.
+    def test_stats_tile_matches_optional_plugin_availability(self):
+        # Stats is an entry-point plugin.  The all/dev CI environment may gain
+        # the live tile as soon as a new scitex-stats release is published,
+        # while a minimal Hub install must retain the planned tile instead of
+        # leaving a broken-looking gap.
         # Arrange
         groups = self._groups()
+        stats_is_planned = registry.get_module("stats") is None
         # Act
         cells = [
             (c.get("name"), bool(c.get("is_planned")))
@@ -188,7 +192,7 @@ class HomePagesTest(TestCase):
         assert cells == [
             ("scholar", False),
             ("figrecipe", False),
-            ("stats", True),
+            ("stats", stats_is_planned),
             ("writer", False),
             ("chat", False),
             ("create-app", False),
