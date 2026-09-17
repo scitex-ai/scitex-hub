@@ -4,6 +4,8 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
+from demo_tools import MediaTools, find_media_tools, media_duration
+
 
 class NarrationUnavailable(RuntimeError):
     pass
@@ -15,7 +17,8 @@ class NarrationClip:
     duration_seconds: float
 
 
-def synthesize_clip(text: str, language: str, out_path: Path) -> NarrationClip:
+def synthesize_clip(text: str, language: str, out_path: Path,
+                    tools: MediaTools | None = None) -> NarrationClip:
     try:
         import scitex_audio
     except ImportError as error:
@@ -26,19 +29,11 @@ def synthesize_clip(text: str, language: str, out_path: Path) -> NarrationClip:
     except Exception as error:
         raise NarrationUnavailable(f"gTTS failed for '{language}': {error}") from error
     out_path.write_bytes(audio)
-    return NarrationClip(out_path, media_duration(out_path))
+    return NarrationClip(out_path, media_duration(out_path, tools or find_media_tools()))
 
 
-def media_duration(path: Path) -> float:
-    result = subprocess.run(
-        ["ffprobe", "-v", "error", "-show_entries", "format=duration",
-         "-of", "default=noprint_wrappers=1:nokey=1", str(path)],
-        check=True, capture_output=True, text=True,
-    )
-    return float(result.stdout.strip())
-
-
-def build_narration_track(placed_clips: list[tuple[Path, float]], total_seconds: float, out_path: Path) -> None:
+def build_narration_track(placed_clips: list[tuple[Path, float]], total_seconds: float,
+                          out_path: Path, ffmpeg: str = "ffmpeg") -> None:
     inputs, filters, labels = [], [], []
     for index, (clip_path, start_seconds) in enumerate(placed_clips):
         inputs += ["-i", str(clip_path)]
@@ -47,7 +42,7 @@ def build_narration_track(placed_clips: list[tuple[Path, float]], total_seconds:
         labels.append(f"[a{index}]")
     mix = f"{''.join(labels)}amix=inputs={len(labels)}:normalize=0,apad[out]"
     subprocess.run(
-        ["ffmpeg", "-y", "-loglevel", "error", *inputs,
+        [ffmpeg, "-y", "-loglevel", "error", *inputs,
          "-filter_complex", ";".join(filters + [mix]), "-map", "[out]",
          "-t", f"{total_seconds:.3f}", "-c:a", "aac", "-b:a", "128k", str(out_path)],
         check=True,
