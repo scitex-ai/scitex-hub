@@ -38,6 +38,14 @@ DOCK_SHORT_LABELS = {"my_projects": "Projects", "store": "Apps"}
 #: Marker attribute on the rendered dock. SiteDockMiddleware checks for it so a
 #: page that already rendered the dock is never given a second one.
 DOCK_MARKER = "data-site-dock"
+_FRAME_DESTINATIONS = frozenset({"iframe", "frame", "embed", "object"})
+
+
+def is_embedded_request(request) -> bool:
+    """Whether this document is explicitly or browser-declared as framed."""
+    return request.GET.get("embed") == "1" or request.headers.get(
+        "Sec-Fetch-Dest", ""
+    ) in _FRAME_DESTINATIONS
 
 
 @dataclass(frozen=True)
@@ -120,9 +128,9 @@ def dock_items(path: str, user=None) -> list[DockItem]:
 
 
 def should_render_dock(request) -> bool:
-    """The dock is for signed-in users: every target behind it requires login."""
-    if request.GET.get("embed") == "1":
-        return False  # the floating dock chat's iframe: no chrome inside it
+    """The dock is for signed-in top-level documents only."""
+    if is_embedded_request(request):
+        return False  # no recursive Hub chrome inside a frame
     user = getattr(request, "user", None)
     return bool(getattr(user, "is_authenticated", False))
 

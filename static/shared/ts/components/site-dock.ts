@@ -31,6 +31,7 @@ import {
   recordVisit,
 } from "./_site-dock/history-stack";
 import { initChatPanel } from "./_site-dock/chat-panel";
+import { enforceDockBoundary } from "./_site-dock/dock-boundary";
 import {
   gripTap,
   isDrag,
@@ -352,7 +353,7 @@ class SiteDock {
 }
 
 function initSiteDock(): void {
-  const dock = document.querySelector<HTMLElement>("[data-site-dock]");
+  const dock = enforceDockBoundary(document, window.self !== window.top);
   if (!dock || dock.dataset.siteDockReady === "1") return;
   dock.dataset.siteDockReady = "1";
   new SiteDock(dock).init();
