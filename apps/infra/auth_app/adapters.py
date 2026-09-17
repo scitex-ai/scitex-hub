@@ -31,13 +31,41 @@ class SciTexAccountAdapter(DefaultAccountAdapter):
             user.save()
         return user
 
-
 class SciTexSocialAccountAdapter(DefaultSocialAccountAdapter):
     """
     Custom social account adapter for SciTeX.
     Handles social login (Google, ORCID) with proper username generation
     and integration with SciTeX's user system.
     """
+
+    def list_apps(self, request, provider=None, client_id=None):
+        """
+        The apps allauth may serve, with SETTINGS AUTHORITATIVE over leftover rows.
+
+        ``DefaultSocialAccountAdapter.list_apps`` blends database ``SocialApp``
+        rows with the apps declared in ``SOCIALACCOUNT_PROVIDERS[provider]["APP"]``
+        (which this deployment now builds from its credential settings). The two
+        sources COLLIDE for any operator who ever ran ``manage.py
+        setup_social_auth``: that command writes a row for the same credentials
+        the settings now declare. ``get_app`` refuses when more than one app is
+        visible for a provider (``MultipleObjectsReturned``), and the login view
+        turns that into an HTTP 500 — so the button the pages just started
+        offering would be the broken one, which is the exact defect
+        ``test_social_login_buttons.py`` exists to prevent.
+
+        So: for a provider the settings declare an app for, the settings win and
+        the database row is an artefact rather than a rival. Providers the
+        settings declare nothing for keep their database rows untouched, so a
+        deployment configured ONLY through the database (the previous path) is
+        unaffected. A settings-built app is an unsaved ``SocialApp``
+        (``pk is None``) — that is the marker used here, and it is the same
+        object the provider is handed.
+        """
+        apps = super().list_apps(request, provider=provider, client_id=client_id)
+        from_settings = {app.provider for app in apps if app.pk is None}
+        if not from_settings:
+            return apps
+        return [app for app in apps if app.pk is None or app.provider not in from_settings]
 
     def populate_user(self, request, sociallogin, data):
         """
