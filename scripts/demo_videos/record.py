@@ -432,7 +432,9 @@ def main() -> int:
     scenario = load_scenario(args.scenario)
     username = os.environ.get("DEMO_USERNAME", "")
     password = os.environ.get("DEMO_PASSWORD", "")
-    if scenario.sign_in and not (username and password):
+    # A dry run records nothing, so it must work without the demo credentials:
+    # it is how you check the matrix and the selectors before a signed-in render.
+    if scenario.sign_in and not (username and password) and not args.dry_run:
         print("Set DEMO_USERNAME and DEMO_PASSWORD for a scenario that signs in.")
         return 2
 

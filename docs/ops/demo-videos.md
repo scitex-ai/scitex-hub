@@ -152,13 +152,21 @@ its contract token in the file that owns it. A control that moved stops the rend
 with exit code 3 rather than producing a video of the wrong screen.
 
 ```bash
-python scripts/demo_videos/demo_selectors.py --repo-root . --json-out /tmp/selectors.json
+python scripts/demo_videos/demo_selectors.py --repo-root . --live-base-url http://127.0.0.1:8000 \
+  --json-out /tmp/selectors.json
 ```
+
+`--live-base-url` adds the live half: the controls that exist on a signed-out page
+(the sign-in form, the footer language switcher) are resolved against a running
+site, with the attached and visible counts both reported — the language menu is in
+the DOM but hidden until its trigger is clicked, so existence and visibility are
+different questions. The signed-in controls are resolved by the render itself,
+because they cannot be reached without the demo account.
 
 Selectors that are not ids or data attributes are reported as fragile (the strict
 flag is `--strict-semantic`), and selectors whose owner is outside this checkout
 are listed as unverifiable and confirmed against the live DOM at record time.
-`tests/scripts/test_demo_video_selector_coverage.py` runs the same check over
+`tests/scripts/test_demo_video_selector_coverage.py` runs the static check over
 every scenario in CI, and pins the fragile and unverifiable sets so adding one is
 a decision rather than a drift.
 

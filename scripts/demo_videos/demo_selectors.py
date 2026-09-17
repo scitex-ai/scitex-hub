@@ -416,6 +416,79 @@ def check_live(page, scenario, timeout_ms: int = 5_000) -> list[dict]:
     return results
 
 
+@dataclass(frozen=True)
+class LiveCheck:
+    """A page that can be visited signed out, and the contracts it must satisfy."""
+
+    path: str
+    contracts: tuple[str, ...]
+    note: str = ""
+
+
+# The controls that exist on a signed-out page. Everything else (create form, file
+# tree, Writer) needs the demo account, so the live check says so instead of
+# reporting a false failure; record.py checks those by resolving them for real
+# during a render.
+LIVE_CHECKS: tuple[LiveCheck, ...] = (
+    LiveCheck(
+        path="/auth/signin/",
+        contracts=("sign-in-username", "sign-in-password", "sign-in-submit"),
+    ),
+    LiveCheck(
+        path="/demos/",
+        contracts=("language-switcher-trigger", "language-switcher-fields"),
+        note="The footer language switcher is how every rendition picks its UI language.",
+    ),
+)
+SIGNED_IN_PATHS = ("/new/", "/{username}/", "/apps/writer/")
+
+
+def contracts_by_name() -> dict[str, SelectorContract]:
+    return {contract.name: contract for contract in SELECTOR_CONTRACTS}
+
+
+def run_live_checks(base_url: str, timeout_ms: int = 5_000, checks=LIVE_CHECKS) -> list[dict]:
+    """Visit each signed-out page and resolve the contracts it must satisfy."""
+    from playwright.sync_api import sync_playwright
+
+    known = contracts_by_name()
+    results = []
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch()
+        context = browser.new_context()
+        page = context.new_page()
+        for check in checks:
+            page.goto(f"{base_url.rstrip('/')}{check.path}", wait_until="domcontentloaded",
+                      timeout=60_000)
+            for name in check.contracts:
+                contract = known.get(name)
+                if contract is None:
+                    results.append({"page": check.path, "contract": name, "selector": "",
+                                    "count": 0, "ok": False, "error": "unknown contract"})
+                    continue
+                try:
+                    # `state="attached"`, not the default "visible": the language
+                    # menu lives in the DOM with display:none until the trigger is
+                    # clicked, and a hidden-but-present control is exactly what the
+                    # recorder clicks after opening it.
+                    page.wait_for_selector(contract.selector, state="attached", timeout=timeout_ms)
+                    locator = page.locator(contract.selector)
+                    count, visible = locator.count(), 0
+                    for index in range(count):
+                        if locator.nth(index).is_visible():
+                            visible += 1
+                    error = ""
+                except Exception as exception:  # Playwright's own timeout class
+                    count, visible, error = 0, 0, type(exception).__name__
+                results.append({"page": check.path, "contract": name,
+                                "selector": contract.selector, "count": count,
+                                "visible": visible,
+                                "ok": count > 0, "error": error, "note": check.note})
+        context.close()
+        browser.close()
+    return results
+
+
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Check demo-video selectors and UI contracts")
     parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[2])
@@ -424,6 +497,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--json-out", type=Path, default=None)
     parser.add_argument("--strict-semantic", action="store_true",
                         help="also fail on text= and class-only selectors")
+    parser.add_argument("--live-base-url", default="",
+                        help="also resolve the signed-out contracts against a running site")
     return parser.parse_args(argv)
 
 
@@ -457,12 +532,17 @@ def main(argv: list[str] | None = None) -> int:
     report["missing_scenario_selectors"] = missing
     report["fragile_scenario_selectors"] = fragile
     report["unverifiable_scenario_selectors"] = unverifiable
+    report["live"] = []
+    if args.live_base_url:
+        report["live"] = run_live_checks(args.live_base_url)
+        broken_live = [entry for entry in report["live"] if not entry["ok"]]
+        report["stale"] = report["stale"] or bool(broken_live)
     if args.json_out:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)
         args.json_out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps({key: report[key] for key in (
         "stale", "broken_contracts", "missing_scenario_selectors", "fragile_scenario_selectors",
-        "unverifiable_scenario_selectors")}, indent=2, sort_keys=True))
+        "unverifiable_scenario_selectors", "live")}, indent=2, sort_keys=True))
     # A missing selector means the video would show the wrong screen; a fragile
     # one means it follows a label that can be re-translated at any time. Only
     # the first is fatal, but both are printed so the report is not silent.

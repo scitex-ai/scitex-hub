@@ -25,6 +25,9 @@ sys.path.insert(0, str(DEMO_VIDEOS_DIR))
 
 from demo_scenario import load_scenario  # noqa: E402
 from demo_selectors import (  # noqa: E402
+    LIVE_CHECKS,
+    SELECTOR_CONTRACTS,
+    SIGNED_IN_PATHS,
     SourceIndex,
     check_contracts,
     check_scenario,
@@ -124,3 +127,29 @@ def test_the_projects_scenario_is_fully_semantic():
     report = check_scenario(REPO_ROOT, scenario, index)
     # Assert
     assert [entry["selector"] for entry in report["selectors"] if not entry["semantic"]] == []
+
+
+def test_live_checks_name_contracts_that_exist():
+    # Arrange: a live check on a contract that was renamed away would report a
+    # failure against a control the static sweep no longer knows either.
+    known = {contract.name for contract in SELECTOR_CONTRACTS}
+    # Act
+    missing = [
+        name for check in LIVE_CHECKS for name in check.contracts if name not in known
+    ]
+    # Assert
+    assert missing == []
+
+
+def test_live_checks_visit_pages_that_need_no_account():
+    # Arrange: the live check runs against a running site with no credentials, so a
+    # path with a placeholder or an auth-gated prefix would fail for the wrong
+    # reason. The signed-in controls are checked by the render itself.
+    # Act
+    broken = [
+        check.path for check in LIVE_CHECKS
+        if not check.path.startswith("/") or "{" in check.path
+        or any(check.path.startswith(prefix) for prefix in SIGNED_IN_PATHS)
+    ]
+    # Assert
+    assert broken == []
