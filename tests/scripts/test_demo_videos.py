@@ -410,3 +410,60 @@ def test_a_failure_before_the_first_step_still_reports(tmp_path):
     assert report["step_index"] == 0
     assert report["action"] == "" and report["selector"] == ""
     assert report["steps_completed"] == 0
+
+
+class _StubPage:
+    """A page that answers the DOM probe without a browser."""
+
+    def __init__(self, answer):
+        self.answer = answer
+        self.asked = None
+
+    def evaluate(self, script, selector=None):
+        self.asked = selector
+        return self.answer
+
+
+def test_the_failure_report_keeps_the_full_message_not_just_its_first_line(tmp_path):
+    # Arrange: the actionability reason lives in the detail lines, and the first line
+    # alone cost a diagnosis on a create-button timeout.
+    recording = _recording(tmp_path)
+    detail = ("Locator.click: Timeout 30000ms exceeded.\n"
+              "Call log:\n"
+              "  - waiting for locator('#create-submit-btn')\n"
+              "    - element is not stable\n"
+              "      - retrying click action")
+    # Act
+    report = failure_report(recording, 2, recording.scenario.steps[2],
+                            "http://127.0.0.1:8000/new/", TimeoutError(detail), [])
+    # Assert
+    assert report["error"].startswith("TimeoutError")
+    assert "element is not stable" in report["error_detail"]
+    assert "retrying click action" in report["error_detail"]
+
+
+def test_the_failure_report_probes_the_dom_for_the_failing_selector(tmp_path):
+    # Arrange: disabled, covered by an overlay, or animated are different owners.
+    recording = _recording(tmp_path)
+    page = _StubPage({"found": True, "enabled": False, "covered": True,
+                      "topmost_at_centre": "div#dock"})
+    # Act
+    report = failure_report(recording, 2, recording.scenario.steps[2],
+                            "http://127.0.0.1:8000/new/", TimeoutError("nope"), [], page=page)
+    # Assert
+    assert page.asked == "#name"
+    assert report["dom"]["covered"] is True
+    assert report["dom"]["topmost_at_centre"] == "div#dock"
+
+
+def test_a_failure_without_a_selector_skips_the_probe(tmp_path):
+    # Arrange: a goto failure has no target to interrogate.
+    recording = _recording(tmp_path)
+    page = _StubPage({"found": False})
+    # Act
+    report = failure_report(recording, 0, recording.scenario.steps[0],
+                            "http://127.0.0.1:8000/new/", RuntimeError("no navigation"), [],
+                            page=page)
+    # Assert
+    assert "dom" not in report
+    assert page.asked is None

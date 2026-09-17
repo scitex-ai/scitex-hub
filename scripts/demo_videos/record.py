@@ -456,18 +456,59 @@ class RecordingFailed(RuntimeError):
         self.report = report
 
 
+FAILURE_ERROR_LIMIT = 4000
+#: What Playwright knows about the target when a click will not land: whether the
+#: element is visible/enabled, and — the one that usually explains it — which element
+#: actually receives a click at the target's centre.
+DOM_PROBE = """(selector) => {
+    const el = document.querySelector(selector);
+    if (!el) return {found: false};
+    const rect = el.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const top = document.elementFromPoint(cx, cy);
+    const describe = (node) => node ? (node.tagName.toLowerCase()
+        + (node.id ? '#' + node.id : '')
+        + (node.className && typeof node.className === 'string'
+            ? '.' + node.className.trim().split(/\\s+/).slice(0, 3).join('.') : '')) : '';
+    return {
+        found: true,
+        visible: !!(el.offsetParent || el.getClientRects().length),
+        enabled: !el.disabled,
+        disabled_attribute: el.hasAttribute('disabled'),
+        aria_disabled: el.getAttribute('aria-disabled'),
+        rect: {x: Math.round(rect.x), y: Math.round(rect.y),
+               width: Math.round(rect.width), height: Math.round(rect.height)},
+        topmost_at_centre: describe(top),
+        covered: !!top && top !== el && !el.contains(top),
+        animation: getComputedStyle(el).animationName,
+        pointer_events: getComputedStyle(el).pointerEvents,
+    };
+}"""
+
+
+def dom_probe(page, selector: str) -> dict:
+    """Why a control would not take a click, in the page's own terms."""
+    if not selector:
+        return {}
+    try:
+        return page.evaluate(DOM_PROBE, selector)
+    except Exception as error:
+        return {"probe_failed": f"{type(error).__name__}: {error}"[:200]}
+
+
 def failure_report(recording: Recording, step_index: int, step, page_url: str,
-                   error: Exception, timings: list[StepTiming]) -> dict:
+                   error: Exception, timings: list[StepTiming], page=None) -> dict:
     """What failed, where, and which selector: the shape a blocker needs.
 
-    A step is optional: a render can fail before the first one is attempted.
-
-    Measured 2026-09-17: a signed-in render died at the "open a file" step and left
-    only a log — no video, no frame, no URL — so the report had to be reconstructed
-    from a traceback. A failed render is still evidence, and it costs nothing to keep:
-    the raw recording up to the failure is the most useful artifact a failure has.
+    A step is optional: a render can fail before the first one is attempted. `page`
+    is optional too, and adds the two things that make a failure cheap to diagnose:
+    the full Playwright message (its first line alone loses the actionability reason —
+    measured 2026-09-17, a create-button timeout whose cause was only in the detail
+    lines) and the DOM's own account of the target.
     """
-    return {
+    selector = step.selector.get(recording.language, "") if step is not None else ""
+    report = {
         "app": recording.scenario.app,
         "language": recording.language,
         "viewport": recording.viewport.name,
@@ -476,10 +517,11 @@ def failure_report(recording: Recording, step_index: int, step, page_url: str,
         "step_index": step_index + 1 if step is not None else 0,
         "steps_total": len(recording.scenario.steps),
         "action": getattr(step, "action", ""),
-        "selector": (step.selector.get(recording.language, "") if step is not None else ""),
+        "selector": selector,
         "value": (step.value.get(recording.language, "") if step is not None else ""),
         "page_url": page_url,
         "error": f"{type(error).__name__}: {error}".splitlines()[0][:400],
+        "error_detail": str(error)[:FAILURE_ERROR_LIMIT],
         "steps_completed": len(timings),
         "timings": [
             {"step": timing.step_index + 1, "start": round(timing.start_seconds, 3),
@@ -487,6 +529,9 @@ def failure_report(recording: Recording, step_index: int, step, page_url: str,
             for timing in timings
         ],
     }
+    if page is not None and selector:
+        report["dom"] = dom_probe(page, selector)
+    return report
 
 
 def record(browser, recording: Recording, storage_state, needed_seconds, args, username):
@@ -535,7 +580,15 @@ def record(browser, recording: Recording, storage_state, needed_seconds, args, u
         # Keep the partial evidence: the raw recording so far, where the page was, and
         # which control failed. A failed render must not be reconstructed from a
         # traceback by hand.
-        report = failure_report(recording, index, step, page.url, error, timings)
+        report = failure_report(recording, index, step, page.url, error, timings, page=page)
+        # A single frame is cheaper to read than the video, and it is what a reviewer
+        # actually opens first.
+        try:
+            snapshot = recording.artifact("failure.png")
+            page.screenshot(path=str(snapshot))
+            report["screenshot"] = snapshot.name
+        except Exception:
+            report["screenshot"] = ""
         try:
             context.close()
             partial = recording.artifact("webm")
