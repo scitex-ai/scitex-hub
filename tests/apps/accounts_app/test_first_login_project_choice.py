@@ -129,23 +129,20 @@ def test_first_login_offers_exactly_three_choices_with_one_primary():
 
 
 def test_the_welcome_screen_states_the_workspace_facts_and_the_three_choices():
-    actions = [
-        {"key": CREATE_PROJECT, "label": "Create project", "is_primary": True},
-        {"key": IMPORT_PROJECT_OR_FILES, "label": "Import project or files", "is_primary": False},
-        {"key": GUIDED_SAMPLE, "label": "Use a guided sample", "is_primary": False},
-    ]
-    html = render_to_string(
-        "onboarding/first_login_welcome.html",
-        {
-            "actions": actions,
-            "linux_username": "researcher-01",
-            "workspace_gb": 32,
-            "active_project": None,
-        },
-    )
+    """Renders the SHIPPED context against the SHIPPED template, so a drift
+    between `first_login_context()` and the surface fails here."""
+    onboarding = _onboarding()
+    context = onboarding.first_login_context()
+    context["linux_username"] = "researcher-01"
+
+    html = render_to_string("onboarding/first_login_welcome.html", context)
 
     for key in EXPECTED_ACTIONS:
         assert f'data-action="{key}"' in html, f"missing explicit choice {key}"
+
+    # The primary choice is the creating path, and it points at the real page.
+    assert 'data-action="create-project"' in html
+    assert "first-login-action--primary" in html
 
     # The workspace facts the user must be told before choosing.
     assert "NAS-02" in html
@@ -163,6 +160,10 @@ def test_the_welcome_screen_states_the_workspace_facts_and_the_three_choices():
 
 @pytest.mark.django_db
 class TestNewVerifiedUserOwnsNothingYet(TestCase):
+    """The card's own wording: no EXAMPLE project for a real new account, and no
+    project — dotfiles included — may become ACTIVE on its own. The dotfiles
+    project itself is a real feature (shell config) and may exist."""
+
     def _verified_user(self, username):
         from django.contrib.auth import get_user_model
 
@@ -176,19 +177,34 @@ class TestNewVerifiedUserOwnsNothingYet(TestCase):
         user.profile.save(update_fields=["email_verified"])
         return user
 
-    def test_creating_a_user_does_not_create_a_project(self):
+    def test_creating_a_user_does_not_create_an_example_project(self):
         from apps.infra.project_app.models import Project
 
-        user = self._verified_user("first-login-owns-nothing")
+        user = self._verified_user("first-login-no-example")
 
-        assert Project.objects.filter(owner=user).count() == 0, (
-            "a project was created for a user who never asked for one"
+        examples = Project.objects.filter(owner=user, slug="default-project")
+        assert examples.count() == 0, (
+            "an example/demo project was created for a user who never asked"
         )
 
     def test_creating_a_user_leaves_no_active_project(self):
         user = self._verified_user("first-login-no-active")
 
         user.profile.refresh_from_db()
+        assert user.profile.last_active_repository is None, (
+            "a project became active without the user choosing it"
+        )
+
+    def test_the_dotfiles_project_never_becomes_the_active_project(self):
+        """It is shell configuration; owning it must not make it the workspace."""
+        from apps.infra.project_app.models import Project
+
+        user = self._verified_user("first-login-dotfiles")
+
+        user.profile.refresh_from_db()
+        assert Project.objects.filter(owner=user, is_home=True).exists(), (
+            "precondition: the dotfiles project is provisioned"
+        )
         assert user.profile.last_active_repository is None
 
     def test_the_root_route_asks_instead_of_landing_them_in_a_project(self):

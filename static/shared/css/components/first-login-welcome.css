@@ -1,0 +1,170 @@
+/* First-login welcome — the workspace asks which project to open.
+ * Card: hub-first-login-project-workspace-onboarding-20260917
+ * SSOT: docs/product/PRIVATE_BETA_LOGIN_TO_WOW.md §3
+ *
+ * Brand: navy primary + muted gold accent from the shared SDK tokens
+ * (--stx-navy-900 / --stx-accent), with the literals kept as fallbacks exactly
+ * as the other shared components do. No new tokens are declared here.
+ */
+
+.first-login {
+  display: flex;
+  justify-content: center;
+  padding: var(--spacing-lg, 24px) var(--spacing-md, 16px);
+}
+
+.first-login-panel {
+  width: min(760px, 100%);
+  padding: var(--spacing-lg, 24px);
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 16px;
+  background: var(--bg-secondary, #161b22);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+}
+
+.first-login-eyebrow {
+  margin: 0 0 var(--spacing-xs, 4px);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--stx-accent, #b8956a);
+}
+
+.first-login-title {
+  margin: 0 0 var(--spacing-sm, 8px);
+  font-size: 1.6rem;
+  line-height: 1.25;
+  color: var(--text-primary, #e6edf3);
+}
+
+.first-login-lead {
+  margin: 0 0 var(--spacing-md, 16px);
+  max-width: 62ch;
+  color: var(--text-secondary, #8b949e);
+}
+
+.first-login-facts {
+  display: grid;
+  gap: var(--spacing-sm, 8px);
+  margin: 0 0 var(--spacing-md, 16px);
+  padding: 0;
+  list-style: none;
+}
+
+.first-login-fact {
+  display: flex;
+  gap: var(--spacing-sm, 8px);
+  align-items: flex-start;
+  padding: var(--spacing-sm, 8px) var(--spacing-md, 16px);
+  border-radius: 10px;
+  background: var(--bg-page, #0d1117);
+  color: var(--text-secondary, #8b949e);
+}
+
+.first-login-fact i {
+  margin-top: 2px;
+  width: 18px;
+  text-align: center;
+  color: var(--stx-navy-900, #1a2a40);
+}
+
+/* Dark surfaces need the light-on-navy icon to stay legible. */
+[data-theme="dark"] .first-login-fact i {
+  color: var(--stx-accent, #b8956a);
+}
+
+.first-login-fact strong {
+  color: var(--text-primary, #e6edf3);
+}
+
+.first-login-code {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--bg-secondary, #161b22);
+  color: var(--text-primary, #e6edf3);
+  font-size: 0.9em;
+}
+
+.first-login-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm, 8px);
+  margin-bottom: var(--spacing-sm, 8px);
+}
+
+/* 44px minimum target — the same floor the launcher dock and the shared
+ * header already hold themselves to. */
+.first-login-action {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 44px;
+  padding: 8px 18px;
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 10px;
+  background: var(--bg-page, #0d1117);
+  color: var(--text-primary, #e6edf3);
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+.first-login-action:hover,
+.first-login-action:focus-visible {
+  border-color: var(--stx-accent, #b8956a);
+}
+
+.first-login-action--primary {
+  border-color: transparent;
+  background: var(--stx-navy-900, #1a2a40);
+  color: #ffffff;
+}
+
+.first-login-action--primary:hover,
+.first-login-action--primary:focus-visible {
+  background: var(--stx-accent, #b8956a);
+  color: var(--stx-navy-900, #1a2a40);
+}
+
+/* An unavailable choice is stated, never a button that does nothing. */
+.first-login-action--unavailable {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.first-login-action-note {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--text-secondary, #8b949e);
+}
+
+.first-login-hint {
+  margin: 0;
+  color: var(--text-secondary, #8b949e);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 480px) {
+  .first-login {
+    padding: var(--spacing-md, 16px) 0;
+  }
+
+  .first-login-panel {
+    padding: var(--spacing-md, 16px);
+    border-radius: 12px;
+  }
+
+  .first-login-title {
+    font-size: 1.3rem;
+  }
+
+  .first-login-actions {
+    flex-direction: column;
+  }
+
+  .first-login-action {
+    width: 100%;
+    text-align: center;
+  }
+}

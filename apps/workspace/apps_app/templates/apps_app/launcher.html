@@ -16,6 +16,8 @@
     <link rel="stylesheet" href="{% static 'apps_app/css/launcher/planned.css' %}?v={{ build_id }}" />
     <link rel="stylesheet" href="{% static 'apps_app/css/launcher/mobile.css' %}?v={{ build_id }}" />
     <link rel="stylesheet" href="{% static 'apps_app/css/launcher/edit-mode.css' %}?v={{ build_id }}" />
+    {# First-login welcome (card hub-first-login-project-workspace-onboarding-20260917) #}
+    <link rel="stylesheet" href="{% static 'shared/css/components/first-login-welcome.css' %}?v={{ build_id }}" />
 {% endblock %}
 {% block content %}
     <div class="launcher" id="app-launcher" data-max-pins="{{ max_pins }}">
@@ -42,6 +44,10 @@
                     <a href="/auth/signup/" class="launcher-guest-btn launcher-guest-btn-signup">Sign up</a>
                 </div>
             </div>
+        {% endif %}
+        {% if first_login %}
+            {# Ask which project to open — never open one for a new account. #}
+            {% include "onboarding/first_login_welcome.html" with actions=first_login.actions workspace_host=first_login.workspace_host workspace_gb=first_login.workspace_gb active_project=first_login.active_project linux_username=first_login.linux_username %}
         {% endif %}
         {% if first_run %}
             {% include "apps_app/partials/first_run_checklist.html" %}

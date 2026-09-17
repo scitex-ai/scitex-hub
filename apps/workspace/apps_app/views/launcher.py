@@ -394,6 +394,38 @@ def _build_tiles(request) -> list[dict]:
     return tiles
 
 
+def _first_login_context(request):
+    """Welcome context for a signed-in user who has not chosen a project.
+
+    Returns ``None`` for anyone else (signed out, or already chose), so the
+    launcher renders exactly as before for every existing user. Guests are
+    excluded by construction: there is no visitor/guest identity here.
+    """
+    user = request.user
+    if not getattr(user, "is_authenticated", False):
+        return None
+    profile = getattr(user, "profile", None)
+    if profile is None:
+        return None
+
+    from apps.infra.accounts_app.onboarding import (
+        first_login_context,
+        needs_project_choice,
+        profile_has_explicit_choice,
+    )
+
+    if not needs_project_choice(
+        has_explicit_choice=profile_has_explicit_choice(profile)
+    ):
+        return None
+
+    context = first_login_context(profile)
+    # The Linux account is provisioned per account (accounts_app.signals), so
+    # the identity shown here is the user's own name, not a placeholder.
+    context["linux_username"] = user.username
+    return context
+
+
 def launcher_context(request) -> dict:
     """Template context for the launcher home page."""
     ensure_builtin_modules()
@@ -416,6 +448,10 @@ def launcher_context(request) -> dict:
             and should_show_checklist(request.user)
             else None
         ),
+        # A signed-in user who has never chosen a project gets the welcome that
+        # asks, instead of being dropped into a project chosen for them
+        # (card hub-first-login-project-workspace-onboarding-20260917).
+        "first_login": _first_login_context(request),
         # Every app the user can open, wherever it sits (grid or dock).
         "tiles": tiles,
         # The grid: 4-column group bands holding only the apps NOT in the dock.
