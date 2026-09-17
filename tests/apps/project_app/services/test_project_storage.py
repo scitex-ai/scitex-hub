@@ -27,6 +27,7 @@ only checked in CI is a contract that disagrees with its implementation there fi
 
 from __future__ import annotations
 
+import tempfile
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Optional, Protocol, runtime_checkable
@@ -231,7 +232,12 @@ def test_the_real_path_helper_resolves_under_the_owners_base(settings, tmp_path,
 
 
 def test_a_request_without_a_user_is_not_an_error(monkeypatch):
-    """Fail closed, never raise: the caller is a request handler."""
+    """A missing or anonymous identity is a refusal, not an exception.
+
+    Scoped to authorization on purpose: this asserts nothing about database or
+    filesystem faults, which the capability deliberately lets propagate (see
+    ``_authorized_project``).
+    """
     storage = HubProjectStorage()
     bare = SimpleNamespace()  # no .user at all
 
@@ -296,11 +302,6 @@ class ProjectStorageAccessTest(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        import tempfile
-
-        cls._tmp = tempfile.TemporaryDirectory()
-        cls.addClassCleanup(cls._tmp.cleanup)
-        cls.base = Path(cls._tmp.name)
 
         cls.owner = User.objects.create_user(username="st-owner", password=PASSWORD)
         cls.reader = User.objects.create_user(username="st-reader", password=PASSWORD)
@@ -331,14 +332,23 @@ class ProjectStorageAccessTest(TestCase):
         )
 
     def setUp(self):
-        """Point BASE_DIR at this test's temporary tree — and PROVE it applied.
+        """A FRESH filesystem per test, pointed at by BASE_DIR — and proven to apply.
 
-        ``self.settings(BASE_DIR=...)`` without ``with`` applies nothing (measured: the
-        value is unchanged after the call), which would leave every path resolving under
-        the real repository while the test's own directories sit unused — the assertions
-        would then fail, or worse, pass for the wrong reason. So the override is enabled
-        explicitly, reverted through cleanup, and asserted.
+        Two independent traps, both measured rather than assumed:
+
+        * a shared tree is order-dependent: creating ``beta`` in the bare-slug case
+          made the missing-workspace case see a directory it asserts is absent, so the
+          suite's verdict depended on test order. Each test now gets its own root.
+        * ``self.settings(BASE_DIR=...)`` WITHOUT ``with`` returns an unentered context
+          manager and applies nothing — the value is unchanged after the call — so every
+          path resolved under the real repository while the test's directories sat
+          unused. Enabled explicitly here, reverted through cleanup, and asserted, so a
+          silently inapplicable override can never again pass as a green matrix.
         """
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.base = Path(tmp.name)
+
         overrides = override_settings(BASE_DIR=self.base)
         overrides.enable()
         self.addCleanup(overrides.disable)
@@ -348,6 +358,19 @@ class ProjectStorageAccessTest(TestCase):
         )
 
     # -- helpers ---------------------------------------------------------
+
+    def test_every_test_starts_from_an_empty_tree(self):
+        """Order-independence guard, straight from the review finding.
+
+        The suite used one shared tree, so the bare-slug case created ``beta`` before
+        the missing-workspace case asserted its absence and the verdict depended on
+        test order. This asserts the mechanism that fixed it (a fresh root per test)
+        rather than trusting the setUp to keep doing it.
+        """
+        assert list(self.base.iterdir()) == [], (
+            "the per-test filesystem is not fresh — a directory created elsewhere can "
+            "decide this test's outcome"
+        )
 
     def _dir(self, username, slug):
         return self.base / "data" / "users" / username / "proj" / slug

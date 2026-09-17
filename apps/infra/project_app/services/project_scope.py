@@ -173,7 +173,18 @@ class HubProjectStorage:
 
     @staticmethod
     def _authorized_project(project_id: Optional[str], request):
-        """The project this request may act on, or ``None``. Never raises."""
+        """The project this request may act on, or ``None``.
+
+        Authorization only: a missing identity, or a missing/blank project id, is a
+        REFUSAL here rather than an exception — those are caller mistakes a request
+        handler must survive, and the answer is the same as "not yours".
+
+        Backend faults are NOT swallowed. A database error while resolving access, or a
+        filesystem error while resolving the root, propagates: Django turns it into a
+        500, which is the honest outcome for an infrastructure failure. Reporting one as
+        "no project" would present a broken host as an unauthorized caller and send
+        whoever is debugging it after the wrong bug.
+        """
         user = getattr(request, "user", None)
         if user is None or not getattr(user, "is_authenticated", False):
             return None
