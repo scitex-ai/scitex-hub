@@ -11,10 +11,12 @@ English and a Japanese video, captions and transcript; a new video is a new spec
 This is the whole pipeline in order. Everything below this section is the detail of
 one step; this is the order and the policy.
 
-**Policy.** Public-facing demos are **English only**, **light mode**, and carry
-**captions, chapters and a transcript**. A second language, or the dark theme, is
-recorded only as a private draft — the public catalog stays English and light until
-the operator changes this line.
+**Policy.** Public-facing demos are **English only**, **light mode**, on the **minimal
+page template**, and carry **captions, chapters and a transcript**. A second language,
+or the dark theme, is recorded only as a private draft — the public catalog stays
+English and light until the operator changes this line. The minimal template is the
+Hub's page shell, not a recording option: the recorder films whatever the demos page
+serves, so a change to that template is a Hub change and a reason to re-render.
 
 1. **Source assets are deterministic.** A scenario YAML drives one semantic action
    timeline (ids and data attributes, never translated labels), and it is the input
