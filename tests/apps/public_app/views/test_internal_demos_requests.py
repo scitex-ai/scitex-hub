@@ -111,15 +111,50 @@ def test_staff_see_the_card_and_a_malformed_manifest_next_to_it_does_not_500(
     assert response["Cache-Control"] == "private, no-store"
 
 
-def test_a_hand_replaced_video_is_not_approved_any_more(tmp_path, request_factory):
+def test_a_hand_replaced_video_still_serves_and_the_mismatch_is_reported(
+    tmp_path, request_factory
+):
+    # MVP: a recorded SHA is optional and informational, so a replaced file does not
+    # take the asset off the air — the catalog says the bytes changed, and that is all.
     directory, name, _, _ = write_render(tmp_path)
     (directory / name).write_bytes(b"somebody replaced this by hand")
     with override_settings(DEMO_VIDEO_LIBRARY_DIR=str(directory)):
         index = demo_library.library_index(directory)
     entry = index["entries"][0]
-    assert entry["bytes_verified"] is False
-    assert entry["visibility"] == "private-draft"
-    assert entry["watch"]["state"] == "changed"
+    assert entry["files_present"] is True
+    assert entry["status"] == "ready"
+    assert entry["sha_optional_mismatch"] == ["en"]
+
+
+def test_a_missing_video_makes_the_entry_incomplete(tmp_path, request_factory):
+    # The one existence rule the MVP does enforce: the files it names must be there.
+    directory, name, _, _ = write_render(tmp_path)
+    (directory / name).unlink()
+    with override_settings(DEMO_VIDEO_LIBRARY_DIR=str(directory)):
+        index = demo_library.library_index(directory)
+    entry = index["entries"][0]
+    assert entry["files_present"] is False
+    assert entry["status"] == "incomplete"
+    assert entry["missing_files"] == ["en"]
+
+
+def test_a_render_with_no_recorded_sha_is_ready_when_the_files_are_there(
+    tmp_path, request_factory
+):
+    # A single optional SHA per file: absent means "not supplied", not "broken".
+    directory, name, _, _ = write_render(tmp_path)
+    manifest_path = directory / "projects-2026-09-17.manifest.json"
+    import json as _json
+    manifest = _json.loads(manifest_path.read_text(encoding="utf-8"))
+    for record in manifest["renditions"][0]["files"]:
+        record.pop("sha256", None)
+    manifest_path.write_text(_json.dumps(manifest), encoding="utf-8")
+    with override_settings(DEMO_VIDEO_LIBRARY_DIR=str(directory)):
+        index = demo_library.library_index(directory)
+    entry = index["entries"][0]
+    assert entry["files_present"] is True
+    assert entry["status"] == "ready"
+    assert entry["sha_optional_mismatch"] == []
 
 
 def test_a_whole_file_request_advertises_ranges(tmp_path, request_factory):

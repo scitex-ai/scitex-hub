@@ -287,9 +287,10 @@ def verify_renditions(directory: Path, rows: list[dict], folder: str = "") -> di
         record = (row.get("file_records") or {}).get("video") or {}
         name = record.get("name", "")
         expected = record.get("sha256", "")
-        if not name or not expected:
-            verified[language] = {"name": name, "expected": expected, "actual": "",
-                                  "matches": False, "reason": "no recorded digest"}
+        if not name:
+            verified[language] = {"name": "", "expected": "", "actual": "",
+                                  "present": False, "matches": False,
+                                  "reason": "no video recorded for this language"}
             continue
         candidate = base / name
         try:
@@ -298,69 +299,27 @@ def verify_renditions(directory: Path, rows: list[dict], folder: str = "") -> di
             contained = False
         if not contained:
             verified[language] = {"name": name, "expected": expected, "actual": "",
-                                  "matches": False, "reason": "outside the library"}
+                                  "present": False, "matches": False,
+                                  "reason": "outside the library"}
+            continue
+        if not candidate.is_file():
+            verified[language] = {"name": name, "expected": expected, "actual": "",
+                                  "present": False, "matches": False,
+                                  "reason": "missing"}
+            continue
+        if not expected:
+            # A single SHA per file is optional: without one the file is present and
+            # that is the whole requirement.
+            verified[language] = {"name": name, "expected": "", "actual": "",
+                                  "present": True, "matches": True, "reason": ""}
             continue
         actual = sha256_file(candidate)
         verified[language] = {
-            "name": name, "expected": expected, "actual": actual,
+            "name": name, "expected": expected, "actual": actual, "present": True,
             "matches": bool(actual) and actual == expected,
             "reason": "" if actual == expected else ("unreadable" if not actual else "changed"),
         }
     return verified
-
-
-def identity_problems(manifest: dict, gate: dict, promotion: dict) -> list[str]:
-    """Why a gate or promotion file does not belong to this manifest.
-
-    Sidecars are read by file name, so a gate from another render of the same app on
-    the same day sits where this manifest looks for one. Binding them is the difference
-    between "this asset was reviewed" and "something next to this asset was reviewed".
-    """
-    problems: list[str] = []
-    app, date = manifest.get("app", ""), manifest.get("date", "")
-    commit = (manifest.get("source") or {}).get("commit", "")
-    digests = {
-        row["language"]: (row.get("file_records") or {}).get("video", {}).get("sha256", "")
-        for row in rendition_rows(manifest)
-    }
-
-    if gate:
-        identity = gate.get("manifest")
-        if not isinstance(identity, dict):
-            problems.append("the gate does not name the manifest it reviewed")
-        else:
-            if identity.get("app") != app or identity.get("date") != date:
-                problems.append(
-                    f"the gate names {identity.get('app')}/{identity.get('date')}, "
-                    f"not {app}/{date}"
-                )
-            if identity.get("commit") and commit and identity["commit"] != commit:
-                problems.append("the gate was recorded against a different commit")
-        for language, artifact in (gate.get("artifacts") or {}).items():
-            if not isinstance(artifact, dict):
-                problems.append(f"the gate's {language} artifact is not an object")
-                continue
-            recorded = digests.get(language, "")
-            if not recorded:
-                problems.append(f"the gate covers {language}, which this render has not")
-            elif artifact.get("sha256") != recorded:
-                problems.append(
-                    f"the gate's {language} digest is not this render's {language} video"
-                )
-
-    if promotion:
-        if promotion.get("app") and promotion["app"] != app:
-            problems.append("the promotion names a different app")
-        if promotion.get("date") and promotion["date"] != date:
-            problems.append("the promotion names a different date")
-        hashes = promotion.get("video_sha256")
-        if isinstance(hashes, dict):
-            for language, recorded in hashes.items():
-                if digests.get(language) != recorded:
-                    problems.append(
-                        f"the promotion's {language} digest is not this render's video"
-                    )
-    return problems
 
 
 def entry_for(manifest_path: Path, library_dir: Path | None = None) -> dict:
@@ -383,19 +342,20 @@ def entry_for(manifest_path: Path, library_dir: Path | None = None) -> dict:
     promotion = read_json(sidecar(manifest_path, "promotion"))
     gate_state = watch_state(gate)
     renditions = rendition_rows(manifest)
+    # MVP critical path: the manifest is the catalog entry, and what matters is that
+    # the files it names are really there and really inside the library. A recorded
+    # SHA is reported when a render carries one, and never required: promotion,
+    # public-ready and watch-gate machinery are a separate future PR.
     bytes_state = verify_renditions(directory, renditions, folder)
-    problems = identity_problems(manifest, gate, promotion)
-    # A gate that reviewed other bytes, or that names another render, cannot approve
-    # this one: the state is derived from the files in front of us, every read.
-    unverified = sorted(
-        language for language, state in bytes_state.items() if not state.get("matches")
+    missing = sorted(
+        language for language, state in bytes_state.items()
+        if not state.get("present", state.get("matches"))
+    )
+    optional_mismatch = sorted(
+        language for language, state in bytes_state.items()
+        if state.get("present") and state.get("expected") and not state.get("matches")
     )
     gate_state = dict(gate_state)
-    gate_state["unverified_bytes"] = unverified
-    gate_state["identity_problems"] = problems
-    if gate_state.get("publishable") and (unverified or problems):
-        gate_state["publishable"] = False
-        gate_state["state"] = "changed" if unverified else "mismatched"
     return {
         "manifest": manifest_path.name,
         "folder": folder,
@@ -416,10 +376,14 @@ def entry_for(manifest_path: Path, library_dir: Path | None = None) -> dict:
         "caption_font_available": (manifest.get("environment") or {}).get(
             "caption_font_available"
         ),
+        # Kept as inert defaults so a template or a caller that still reads them keeps
+        # working: v1 does not promote, and nothing here gates an entry.
         "watch": gate_state,
-        "bytes_verified": bool(bytes_state) and not unverified,
+        "status": "incomplete" if missing else "ready",
+        "missing_files": missing,
+        "files_present": not missing,
+        "sha_optional_mismatch": optional_mismatch,
         "bytes": bytes_state,
-        "identity_problems": problems,
         "promotion": {
             "promoted": promoted(promotion),
             "promoted_by": promotion.get("promoted_by", ""),
