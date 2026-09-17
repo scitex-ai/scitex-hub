@@ -6,6 +6,7 @@ from django.db import transaction
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
 
+from apps.infra.llm_app.funded_chat.errors import provider_error_payload
 from apps.infra.llm_app.services import UserLLMService
 from apps.infra.llm_app.utils import LLM_PROVIDERS, litellm_model_string
 from apps.infra.llm_app.views.sse_utils import build_multimodal_user_msg, with_keepalive
@@ -28,6 +29,26 @@ def _model_display_name(service_id: str, model_id: str) -> str:
     # Strip date suffix (e.g. "-20241022")
     base = re.sub(r"-\d{8}$", "", base)
     return f"{provider_display} · {base}"
+
+
+def _sanitized_provider_payload(exc: BaseException, *, model: str = "") -> dict:
+    """Build the browser contract without retaining provider exception text."""
+
+    return provider_error_payload(
+        exc,
+        remaining=None,
+        reset_at="",
+        model=model,
+    )
+
+
+def _service_model(service: UserLLMService) -> str:
+    if not service.connection or not service.llm_connection:
+        return ""
+    return litellm_model_string(
+        service.connection.service,
+        service.llm_connection.default_model,
+    )
 
 
 @login_required
@@ -343,8 +364,19 @@ async def api_chat_stream(request):
                     )
                 ):
                     yield event
-        except Exception as e:
-            yield f"data: {_json.dumps({'type': 'error', 'error': str(e)})}\n\n"
+        except Exception as exc:
+            model = ""
+            if use_campaign:
+                from apps.infra.llm_app.services.campaign_service import (
+                    get_campaign_config,
+                )
+
+                campaign = get_campaign_config()
+                model = f"anthropic/{campaign['model']}"
+            else:
+                model = _service_model(service)
+            payload = {"type": "error", **_sanitized_provider_payload(exc, model=model)}
+            yield f"data: {_json.dumps(payload)}\n\n"
         yield "data: [DONE]\n\n"
 
     response = StreamingHttpResponse(sse_generator(), content_type="text/event-stream")
@@ -393,6 +425,7 @@ async def api_chat(request):
         from apps.infra.llm_app.services.campaign_service import (
             campaign_complete_streaming,
             check_campaign_rate_limit,
+            get_campaign_config,
             increment_campaign_usage,
             is_campaign_enabled,
         )
@@ -436,11 +469,12 @@ async def api_chat(request):
                     "campaign": True,
                 }
             )
-        except Exception as e:
-            return JsonResponse(
-                {"success": False, "error": f"Campaign chat failed: {e}"},
-                status=500,
+        except Exception as exc:
+            config = get_campaign_config()
+            payload = _sanitized_provider_payload(
+                exc, model=f"anthropic/{config['model']}"
             )
+            return JsonResponse({"success": False, **payload}, status=502)
 
     try:
         result = await service.complete_with_tools(
@@ -457,15 +491,12 @@ async def api_chat(request):
             }
         )
 
-    except RateLimitError as e:
-        return JsonResponse(
-            {"success": False, "error": f"Rate limit exceeded: {e}"},
-            status=429,
-        )
-    except LLMProviderError as e:
-        return JsonResponse({"success": False, "error": str(e)}, status=400)
-    except Exception as e:
-        return JsonResponse(
-            {"success": False, "error": f"AI request failed: {e}"},
-            status=500,
-        )
+    except RateLimitError as exc:
+        payload = _sanitized_provider_payload(exc, model=_service_model(service))
+        return JsonResponse({"success": False, **payload}, status=429)
+    except LLMProviderError as exc:
+        payload = _sanitized_provider_payload(exc, model=_service_model(service))
+        return JsonResponse({"success": False, **payload}, status=502)
+    except Exception as exc:
+        payload = _sanitized_provider_payload(exc, model=_service_model(service))
+        return JsonResponse({"success": False, **payload}, status=502)

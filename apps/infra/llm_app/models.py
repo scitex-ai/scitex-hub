@@ -1,5 +1,7 @@
 import uuid
+from decimal import Decimal
 
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
@@ -227,3 +229,129 @@ class ChatMessage(models.Model):
 
     def __str__(self):
         return f"[{self.role}] {self.text[:60]}"
+
+
+class FundedChatDailyQuota(models.Model):
+    """Locked UTC-day counter for SciTeX-funded user messages."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="funded_chat_daily_quotas",
+    )
+    day = models.DateField()
+    claimed_count = models.PositiveSmallIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "day"], name="uniq_funded_chat_quota_user_day"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(claimed_count__lte=10),
+                name="funded_chat_claimed_lte_ten",
+            ),
+        ]
+
+
+class FundedChatDailySpend(models.Model):
+    """Locked provider/global cap row; provider and subsidy costs stay distinct."""
+
+    GLOBAL_SCOPE = "__global__"
+
+    day = models.DateField()
+    scope = models.CharField(max_length=80)
+    reserved_subsidy_usd = models.DecimalField(
+        max_digits=12, decimal_places=6, default=Decimal("0")
+    )
+    provider_cost_usd = models.DecimalField(
+        max_digits=12, decimal_places=6, default=Decimal("0")
+    )
+    subsidy_cost_usd = models.DecimalField(
+        max_digits=12, decimal_places=6, default=Decimal("0")
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["day", "scope"], name="uniq_funded_chat_spend_day_scope"
+            )
+        ]
+
+
+class FundedChatRateBucket(models.Model):
+    """Database-backed per-user abuse limit shared by every web worker."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="funded_chat_rate_buckets",
+    )
+    window_start = models.DateTimeField()
+    request_count = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "window_start"],
+                name="uniq_funded_chat_rate_user_window",
+            )
+        ]
+
+
+class FundedChatRequest(models.Model):
+    """One idempotent funded provider attempt; never stores raw provider errors."""
+
+    STATUS_RESERVED = "reserved"
+    STATUS_SUCCEEDED = "succeeded"
+    STATUS_FAILED = "failed"
+    STATUS_CHOICES = [
+        (STATUS_RESERVED, "Reserved"),
+        (STATUS_SUCCEEDED, "Succeeded"),
+        (STATUS_FAILED, "Failed"),
+    ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="funded_chat_requests",
+    )
+    day = models.DateField()
+    idempotency_key_hash = models.CharField(max_length=64)
+    request_hash = models.CharField(max_length=64)
+    provider = models.CharField(max_length=64)
+    model = models.CharField(max_length=200)
+    status = models.CharField(
+        max_length=16, choices=STATUS_CHOICES, default=STATUS_RESERVED
+    )
+    reserved_subsidy_usd = models.DecimalField(
+        max_digits=12, decimal_places=6, default=Decimal("0")
+    )
+    provider_prompt_tokens = models.PositiveIntegerField(default=0)
+    provider_completion_tokens = models.PositiveIntegerField(default=0)
+    provider_cost_usd = models.DecimalField(
+        max_digits=12, decimal_places=6, default=Decimal("0")
+    )
+    subsidy_cost_usd = models.DecimalField(
+        max_digits=12, decimal_places=6, default=Decimal("0")
+    )
+    response_text = models.TextField(blank=True, default="")
+    error_category = models.CharField(max_length=32, blank=True, default="")
+    retry_after_seconds = models.PositiveIntegerField(null=True, blank=True)
+    support_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "idempotency_key_hash"],
+                name="uniq_funded_chat_user_idempotency",
+            )
+        ]
+        indexes = [
+            models.Index(fields=["day", "provider", "status"]),
+            models.Index(fields=["user", "day", "status"]),
+        ]
