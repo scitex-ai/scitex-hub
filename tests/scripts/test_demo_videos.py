@@ -29,6 +29,7 @@ from record import (  # noqa: E402
     Recording,
     StepTiming,
     artifact_role,
+    click_with_retry,
     empty_selection_message,
     failure_report,
     language_switch_path,
@@ -467,3 +468,39 @@ def test_a_failure_without_a_selector_skips_the_probe(tmp_path):
     # Assert
     assert "dom" not in report
     assert page.asked is None
+
+
+class _FlakyLocator:
+    """A control that is not clickable once and then is: the create-button case."""
+
+    def __init__(self, failures: int):
+        self.failures = failures
+        self.clicks = 0
+        self.scrolls = 0
+
+    def click(self, timeout=None):
+        self.clicks += 1
+        if self.clicks <= self.failures:
+            raise TimeoutError("Locator.click: Timeout %sms exceeded." % timeout)
+
+    def scroll_into_view_if_needed(self, timeout=None):
+        self.scrolls += 1
+
+
+def test_a_click_that_fails_once_is_retried_without_forcing_anything():
+    # Arrange: the form's submit button timed out for a full 30s after the typing.
+    locator = _FlakyLocator(failures=1)
+    # Act
+    click_with_retry(locator, attempts=2, timeout_ms=1)
+    # Assert: two real clicks, both subject to Playwright's actionability checks.
+    assert locator.clicks == 2
+    assert locator.scrolls == 1
+
+
+def test_a_control_that_is_really_blocked_still_raises():
+    # Arrange: a genuinely blocked control must be reported, never clicked through.
+    locator = _FlakyLocator(failures=99)
+    # Act / Assert
+    with pytest.raises(TimeoutError):
+        click_with_retry(locator, attempts=2, timeout_ms=1)
+    assert locator.clicks == 2

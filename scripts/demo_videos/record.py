@@ -333,6 +333,32 @@ def switch_ui_language(browser, base_url: str, storage_state, locale: str, path:
     return state
 
 
+def click_with_retry(locator, attempts: int = 2, timeout_ms: int = 30_000) -> None:
+    """Click, giving the page one more chance — without ever bypassing actionability.
+
+    The create form's submit button timed out for 30s right after the name and
+    description were typed (2026-06-17, measured): a transient overlay, a settling
+    animation or a validation swap can make a control un-clickable for a moment, and
+    all of those clear on their own. Nothing is forced here — Playwright still checks
+    visible, stable, enabled and hit-testable on every attempt, and a second failure
+    still raises, so a genuinely blocked control is reported rather than clicked
+    through.
+    """
+    last_error: Exception | None = None
+    for attempt in range(attempts):
+        try:
+            locator.click(timeout=timeout_ms if attempt == 0 else timeout_ms * 2)
+            return
+        except Exception as error:
+            last_error = error
+            try:
+                locator.scroll_into_view_if_needed(timeout=5_000)
+            except Exception:
+                pass
+            time.sleep(1.0)
+    raise last_error if last_error is not None else RuntimeError("click failed")
+
+
 def run_step(page, cursor: MovingCursor, step: Step, language: str, args, username: str,
              run_id: str) -> None:
     selector = fill_placeholders(step.selector.get(language, ""), username, run_id)
@@ -343,7 +369,7 @@ def run_step(page, cursor: MovingCursor, step: Step, language: str, args, userna
     if step.action == "goto":
         page.goto(f"{args.base_url}{value}", wait_until="domcontentloaded", timeout=90_000)
     elif step.action == "click":
-        locator.click()
+        click_with_retry(locator)
     elif step.action == "fill":
         locator.fill(value)
     elif step.action == "type":
