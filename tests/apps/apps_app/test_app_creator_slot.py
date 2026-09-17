@@ -80,8 +80,9 @@ class AppCreatorSlotTest(TestCase):
         # Arrange
         html = self._home()
         # Act
-        start = html.index('data-module="create-app"')
-        slot = html[start : html.index(">", start)]
+        module = html.index('data-module="create-app"')
+        start = html.rindex("<a", 0, module)
+        slot = html[start : html.index(">", module)]
         # Assert
         assert (
             'aria-label="App Creator"' in slot
