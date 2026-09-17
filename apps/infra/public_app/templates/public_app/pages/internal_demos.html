@@ -1,248 +1,128 @@
 {% extends "global_base.html" %}
-{% load i18n %}
-
-{% block title %}Internal demo library - SciTeX{% endblock %}
-{% block meta_description %}Staff-only index of the recorded demo videos and what blocks each one from being published.{% endblock %}
-{# Not a public page: keep it out of search results even if a link leaks. #}
-{% block extra_head %}<meta name="robots" content="noindex, nofollow" />{% endblock %}
-{% block extra_css %}
-    <style>
-        /* No animation anywhere on this page, so it is reduced-motion safe by
-           construction rather than by a media query that can be forgotten. */
-        .library {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-
-        .library-header h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .library-summary {
-            display: flex;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-            margin: 0.75rem 0 1.5rem;
-        }
-
-        .library-count {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.35rem 0.7rem;
-            border: 1px solid var(--border-default);
-            border-radius: 6px;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-
-        .library-count strong {
-            color: var(--text-primary);
-        }
-
-        .library-card {
-            display: grid;
-            grid-template-columns: minmax(220px, 280px) 1fr;
-            gap: 1rem;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border: 1px solid var(--border-default);
-            border-radius: 8px;
-            background: var(--bg-muted);
-        }
-
-        .library-card img {
-            width: 100%;
-            border-radius: 6px;
-            background: #000;
-        }
-
-        .library-card h2 {
-            margin: 0 0 0.35rem;
-            font-size: 1.1rem;
-            color: var(--text-primary);
-        }
-
-        .library-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem 1rem;
-            margin: 0.35rem 0;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            word-break: break-word;
-        }
-
-        .library-meta code {
-            font-size: 0.8rem;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 0.15rem 0.5rem;
-            border-radius: 999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            border: 1px solid currentColor;
-        }
-
-        .badge-private-draft { color: #d97757; }
-        .badge-reviewed { color: #2f9e44; }
-        .badge-public-ready { color: #1c7ed6; }
-
-        .library-renditions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
-        .library-rendition {
-            border: 1px solid var(--border-default);
-            border-radius: 6px;
-            padding: 0.4rem 0.6rem;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-
-        .library-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-top: 0.6rem;
-        }
-
-        .library-actions a {
-            font-size: 0.85rem;
-            color: var(--text-primary);
-            border: 1px solid var(--border-default);
-            border-radius: 6px;
-            padding: 0.35rem 0.6rem;
-            text-decoration: none;
-        }
-
-        .library-empty {
-            padding: 2rem;
-            border: 1px dashed var(--border-default);
-            border-radius: 8px;
-            color: var(--text-secondary);
-        }
-
-        /* 390 px: one column, the thumbnail first, nothing overlapping. */
-        @media (max-width: 480px) {
-            .library {
-                margin: 1rem auto;
-            }
-
-            .library-card {
-                grid-template-columns: 1fr;
-                padding: 0.75rem;
-            }
-        }
-    </style>
-{% endblock %}
+{% comment %}
+The internal demo index: a persistent progress list, latest first. Deliberately plain —
+the only controls are two filters, because the page exists to answer "what do we have,
+in what state, and why was that one rejected". Status is shown, never changed here.
+{% endcomment %}
 {% block content %}
-    <div class="library">
-        <div class="library-header">
-            <h1>{% translate "Internal demo library" %}</h1>
-            <p class="library-summary">
-                <span class="library-count">
-                    {% translate "Renders" %} <strong>{{ library.total }}</strong>
-                </span>
-                {% for visibility, count in library.counts.items %}
-                    <span class="library-count">
-                        {{ visibility }} <strong>{{ count }}</strong>
-                    </span>
-                {% endfor %}
-                {% if library.directory %}
-                    <span class="library-count">from <code>{{ library.directory }}</code></span>
-                {% endif %}
-            </p>
+<div class="internal-demos">
+  <header>
+    <h1>Internal demo library</h1>
+    <p class="muted">
+      Every render the pipeline has registered, newest first. Status is owned by the
+      catalog: a render arrives as Draft, and only a person moves it to Approved or
+      Rejected. Rejected takes stay listed as history.
+    </p>
+    <p class="muted">
+      {{ total }} entr{{ total|pluralize:"y,ies" }}
+      — draft {{ counts.draft|default:0 }},
+      approved {{ counts.approved|default:0 }},
+      rejected {{ counts.rejected|default:0 }}
+    </p>
+  </header>
+
+  <form method="get" class="filters">
+    <label for="filter-flow">Flow</label>
+    <select id="filter-flow" name="flow">
+      <option value="">All flows</option>
+      {% for flow in flows %}
+        <option value="{{ flow }}" {% if flow == selected_flow %}selected{% endif %}>{{ flow }}</option>
+      {% endfor %}
+    </select>
+
+    <label for="filter-status">Status</label>
+    <select id="filter-status" name="status">
+      <option value="">All statuses</option>
+      {% for status in statuses %}
+        <option value="{{ status }}" {% if status == selected_status %}selected{% endif %}>{{ status }}</option>
+      {% endfor %}
+    </select>
+
+    <button type="submit">Filter</button>
+    {% if selected_flow or selected_status %}<a href="?">Clear</a>{% endif %}
+  </form>
+
+  {% if not cards %}
+    <p class="muted">
+      Nothing here yet. A render appears as soon as the pipeline registers it as Draft.
+    </p>
+  {% endif %}
+
+  <ol class="entries">
+    {% for card in cards %}
+    <li class="entry" id="entry-{{ card.id }}" data-status="{{ card.status }}" data-flow="{{ card.flow }}">
+      <div class="entry-head">
+        <span class="status status-{{ card.status }}">{{ card.status|capfirst }}</span>
+        <strong class="flow">{{ card.flow }}</strong>
+        <span class="date">{{ card.date }}</span>
+        <span class="languages">
+          {% for language in card.languages %}{{ language|upper }}{% if not forloop.last %}/{% endif %}{% endfor %}
+        </span>
+      </div>
+
+      {% if card.title %}
+        <div class="title">
+          {% for language, text in card.title.items %}{{ text }}{% if not forloop.last %} · {% endif %}{% endfor %}
         </div>
-        {% if not library.entries %}
-            <p class="library-empty">
-                {% translate "No renders in this library yet." %}
-                {% translate "Record one with scripts/demo_videos/record.py and it appears here with its watch state." %}
-            </p>
-        {% endif %}
-        {% for entry in library.entries %}
-            <article class="library-card">
-                <div>
-                    {% if entry.renditions.0.urls.thumbnail %}
-                        <img src="{{ entry.renditions.0.urls.thumbnail }}"
-                             alt="{{ entry.titles.en|default:entry.app }} thumbnail"
-                             loading="lazy" />
-                    {% endif %}
-                </div>
-                <div>
-                    <h2>
-                        {{ entry.titles.en|default:entry.app }}
-                        <span class="badge badge-{{ entry.visibility }}">{{ entry.visibility }}</span>
-                    </h2>
-                    <p class="library-meta">
-                        <span>{{ entry.app }} · {{ entry.date }}</span>
-                        <span>Hub
-                            {% if entry.hub_version %}{{ entry.hub_version }}{% else %}
-                                <em>unknown (no promotion file)</em>{% endif %}</span>
-                        {% for leaf, version in entry.leaf_versions.items %}
-                            <span>{{ leaf }} {{ version }}</span>
-                        {% endfor %}
-                        <span>commit <code>{{ entry.commit|slice:":12" }}</code></span>
-                        <span>captured {{ entry.captured_at }}</span>
-                        <span>{{ entry.viewports|join:", " }}</span>
-                    </p>
-                    <p class="library-meta">
-                        <span>watch: {{ entry.watch.state }}
-                            ({{ entry.watch.watched|length }}/{{ entry.watch.required|length }})</span>
-                        {% if entry.watch.missing %}
-                            <span>unwatched: {{ entry.watch.missing|join:", " }}</span>
-                        {% endif %}
-                        {% if entry.watch.failing %}
-                            <span>failed: {% for item in entry.watch.failing %}{{ item.language }}{% endfor %}</span>
-                        {% endif %}
-                        {% if entry.watch.stale %}
-                            <span>rewatched needed: {{ entry.watch.stale|join:", " }}</span>
-                        {% endif %}
-                        {% if not entry.narrated %}<span>no voice track</span>{% endif %}
-                        {% if entry.narration_failures %}
-                            <span>narration unavailable: {{ entry.narration_failures.keys|join:", " }}</span>
-                        {% endif %}
-                    </p>
-                    <div class="library-renditions">
-                        {% for row in entry.renditions %}
-                            <span class="library-rendition">
-                                {{ row.language }}{% if row.ui_locale != row.language %} ({{ row.ui_locale }} UI){% endif %}
-                                · {{ row.viewport }}
-                                · {{ row.duration_seconds|floatformat:1 }}s
-                                · {{ row.cues }} cues
-                                {% if not row.canonical %}· alternate{% endif %}
-                            </span>
-                        {% endfor %}
-                    </div>
-                    <div class="library-actions">
-                        {% for row in entry.renditions %}
-                            {% if row.urls.video %}
-                                <a href="{{ row.urls.video }}">{{ row.language }} video</a>
-                            {% endif %}
-                            {% if row.urls.captions %}
-                                <a href="{{ row.urls.captions }}">{{ row.language }} captions</a>
-                            {% endif %}
-                            {% if row.urls.transcript %}
-                                <a href="{{ row.urls.transcript }}">{{ row.language }} transcript</a>
-                            {% endif %}
-                            {% if row.urls.chapters %}
-                                <a href="{{ row.urls.chapters }}">{{ row.language }} chapters</a>
-                            {% endif %}
-                        {% endfor %}
-                        {% for target in entry.promotion.docs_targets %}
-                            <a href="{{ target }}">docs: {{ target }}</a>
-                        {% endfor %}
-                    </div>
-                </div>
-            </article>
-        {% endfor %}
-    </div>
+      {% endif %}
+
+      <div class="provenance">
+        commit <code>{{ card.dev_commit_short }}</code>{% if card.dev_branch %} on {{ card.dev_branch }}{% endif %}
+        {% if card.viewports %} · {{ card.viewports|join:", " }}{% endif %}
+      </div>
+
+      {% if card.rejection.reason %}
+        <div class="rejection">Rejected by {{ card.rejection.by }}: {{ card.rejection.reason }}</div>
+      {% endif %}
+      {% if card.watch.by %}
+        <div class="watch">Watched by {{ card.watch.by }}</div>
+      {% endif %}
+
+      {% if card.defects %}
+        <div class="defects">
+          <span class="label">Known defects</span>
+          <ul>
+            {% for defect in card.defects %}<li>{{ defect }}</li>{% endfor %}
+          </ul>
+        </div>
+      {% else %}
+        <div class="defects none"><span class="label">Known defects</span> none recorded</div>
+      {% endif %}
+
+      {% if card.files %}
+        <div class="media">
+          {% for file in card.files %}
+            <span class="media-item">
+              <span class="role">{{ file.language|upper }} {{ file.role }}</span>
+              <a href="{{ file.play_url }}">Play</a>
+              <a href="{{ file.download_url }}">Download</a>
+            </span>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="media missing">media not found on disk — see the defects above</div>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+</div>
+
+<style>
+  .internal-demos { max-width: 60rem; }
+  .internal-demos .muted { color: #666; }
+  .internal-demos .filters { display: flex; gap: .5rem; align-items: center; margin: 1rem 0; flex-wrap: wrap; }
+  .internal-demos .entries { list-style: none; padding: 0; display: grid; gap: .75rem; }
+  .internal-demos .entry { border: 1px solid #ddd; border-radius: 6px; padding: .75rem 1rem; }
+  .internal-demos .entry-head { display: flex; gap: .75rem; align-items: baseline; flex-wrap: wrap; }
+  .internal-demos .status { font-size: .8rem; padding: .1rem .5rem; border-radius: 999px; border: 1px solid currentColor; }
+  .internal-demos .status-draft { color: #8a6d00; }
+  .internal-demos .status-approved { color: #146c2e; }
+  .internal-demos .status-rejected { color: #a11; }
+  .internal-demos .provenance, .internal-demos .defects, .internal-demos .media { margin-top: .4rem; font-size: .9rem; }
+  .internal-demos .defects .label { font-weight: 600; margin-right: .35rem; }
+  .internal-demos .defects ul { margin: .2rem 0 0 1rem; }
+  .internal-demos .media-item { margin-right: 1rem; }
+  .internal-demos .media-item .role { color: #666; margin-right: .35rem; }
+  .internal-demos .rejection { color: #a11; font-size: .9rem; margin-top: .3rem; }
+</style>
 {% endblock %}

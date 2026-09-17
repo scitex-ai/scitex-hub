@@ -1,31 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""The staff-only demo library: an index of what the team has recorded.
+"""The staff demo index: a persistent progress list, because Telegram files vanish.
 
-Why a page and not a folder listing. The rendered guides live on the media volume
-where the public player can also reach them; the ones that are not publishable — a
-Japanese rendition nobody has watched, a render whose scenario has moved, media
-somebody replaced by hand — have no public home, and keeping them only in a chat
-thread is how a team re-renders something it already had.
+Why this page exists. Renders posted to chat disappear in the feed within days, so the
+team cannot tell what exists, what state it is in, or why a take was rejected, and it
+re-records work it already has. This page is the index of record: latest first, every
+entry explicit, nothing inferred and nothing auto-promoted.
 
-Who may see it. ``is_instance_admin`` — the same ``is_staff`` / ``is_superuser``
-test the hub already applies to its other operator-only surfaces (host metrics,
-billing admin, the SAC fleet mount). There is no shared page password: an
-anonymous visitor is sent to sign in, and a signed-in non-staff account is
-refused. Same reasoning as ``views/status/access.py``: the check is a plain
-function called INSIDE each view, not a decorator, because routing tests assert
-``resolve(path).func is <view>`` and a wrapper breaks that identity.
+What an entry shows: the flow (scenario), its date, its status — Draft, Rejected or
+Approved, exactly as the catalog says — which languages exist, the development commit it
+was recorded against, the known product defects, and links to play and download it.
+Rejected takes stay visible as history (the partial-light Brian draft is Rejected, not
+deleted). The only filters are flow and status.
 
-Why the media is not a static URL. ``/media/`` is served by the deployment to
-anyone who knows the path, so internal assets go through ``internal_demo_media``
-instead: authorized, name-sanitized by ``demo_library.resolve_media`` (which
-rejects separators, parent segments, hidden and absolute names, and anything that
-resolves outside the library directory), and answered with
-``Cache-Control: private, no-store`` so no shared cache holds a copy.
+Who may see it. ``is_instance_admin`` — the same ``is_staff`` / ``is_superuser`` test the
+hub applies to its other operator-only surfaces. Anonymous visitors are sent to sign in;
+signed-in non-staff get 403. Outside the application, the deployment puts @scitex.ai
+Access in front of /internal/*; that is not this module's job and it does not depend on it.
 
-The outer edge (Cloudflare Access for ``/internal/*``) is a separate, currently
-unauthorized piece of work — see card hub-internal-demo-video-library-20260917.
-This module is the inner gate and does not depend on it.
+Status is never computed here. It comes from the catalog, which the pipeline writes when
+it registers a render as Draft and only a person changes; this view cannot promote
+anything.
 """
 
 from __future__ import annotations
@@ -44,7 +39,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.http import urlencode
 
-from .. import demo_library
+from .. import clip_registry, demo_library
 from .status.access import is_instance_admin
 
 logger = logging.getLogger(__name__)
@@ -54,37 +49,40 @@ STAFF_ONLY_MESSAGE = (
     "administrators. Ask an operator if you need access."
 )
 
+# The catalog is the list of record. A filesystem sweep is deliberately not used: an
+# entry is something the pipeline registered, with a status a person owns.
+CATALOG_FILENAME = "demos-catalog.json"
+
 
 def library_directory():
-    """Where the internal library reads from (a directory of renders + sidecars).
-
-    There is no fallback to ``MEDIA_ROOT``: that tree is served publicly to anyone
-    who knows a path, and reading unpublished renders from it would quietly make
-    them public. An unset setting means "no library", not "read the public one".
-    """
+    """Where internal media is read from; no fallback to the public media tree."""
     return getattr(settings, "DEMO_VIDEO_LIBRARY_DIR", None)
 
 
-def no_store(response):
-    """Mark a staff-only response as uncacheable and unindexable.
+def catalog_path():
+    """The catalog file, beside the library or wherever the setting points."""
+    configured = getattr(settings, "DEMO_VIDEO_CATALOG", "") or ""
+    if configured:
+        from pathlib import Path
 
-    The media route already answered with ``private, no-store``; the review's point was
-    that its neighbours did not — the index itself, the redirect to sign-in (which
-    carries the caller's path) and the 403 could all be held by a shared cache or a
-    proxy. One helper, applied to every response this module returns.
-    """
+        return Path(configured)
+    directory = library_directory()
+    if not directory:
+        return None
+    from pathlib import Path
+
+    return Path(directory) / CATALOG_FILENAME
+
+
+def no_store(response):
+    """Mark a staff-only response as uncacheable and unindexable."""
     response["Cache-Control"] = "private, no-store"
     response["X-Robots-Tag"] = "noindex, nofollow"
     return response
 
 
 def access_denied(request):
-    """A response to send back instead of the library, or None when allowed.
-
-    Anonymous callers are sent to the existing sign-in flow with ``next`` so they
-    land back here; signed-in non-staff callers get 403, because there is nothing
-    for them to sign into.
-    """
+    """A response to send back instead of the library, or None when allowed."""
     user = getattr(request, "user", None)
     if user is None or not getattr(user, "is_authenticated", False):
         login_url = getattr(settings, "LOGIN_URL", "/auth/signin/")
@@ -95,48 +93,131 @@ def access_denied(request):
     return None
 
 
-def _media_url(name: str) -> str:
+def media_url(name: str, folder: str = "") -> str:
     """The authorized route for one file, folder-qualified when the render has one."""
-    return reverse("public_app:internal_demo_media", kwargs={"name": name})
+    qualified = f"{folder}/{name}" if folder else name
+    return reverse("internal_demo_media", kwargs={"name": qualified})
 
 
-def with_media_urls(entry: dict) -> dict:
-    """Point each rendition's files at the authorized route, not a static path."""
-    for row in entry.get("renditions", []):
-        row["urls"] = {
-            role: _media_url(name) for role, name in (row.get("files") or {}).items() if name
-        }
-    entry["media_urls"] = {name: _media_url(name) for name in demo_library.media_names(entry)}
-    return entry
+def card_for(clip: dict, directory) -> dict:
+    """One row: what the catalog says, plus play and download links for its media.
+
+    Nothing here changes a status. The languages, the defects and the commit are read
+    from the catalog entry exactly as registered; the media links are derived from the
+    manifest, and an entry whose files are gone simply has no links.
+    """
+    manifest_path = clip.get("manifest", "")
+    folder, files = "", []
+    try:
+        from pathlib import Path
+
+        if manifest_path and Path(manifest_path).exists():
+            entry = demo_library.entry_for(Path(manifest_path), directory)
+            folder = entry.get("folder", "")
+            for rendition in entry.get("renditions", []):
+                roles = rendition.get("files", {})
+                for role in ("video", "captions"):
+                    name = roles.get(role) or ""
+                    if name:
+                        files.append({
+                            "language": rendition.get("language", ""),
+                            "role": role,
+                            "name": name,
+                            "play_url": media_url(name, folder),
+                            "download_url": media_url(name, folder) + "?download=1",
+                        })
+    except (OSError, ValueError) as error:      # a broken manifest is not a 500
+        logger.warning("could not read %s: %s", manifest_path, error)
+
+    return {
+        "id": clip.get("id", ""),
+        "flow": clip.get("scenario", ""),
+        "title": clip.get("title") or {},
+        "date": clip.get("date", ""),
+        "status": clip.get("status", "draft"),
+        "registered_at": clip.get("registered_at", ""),
+        "languages": clip.get("languages", []),
+        "viewports": clip.get("viewports", []),
+        "dev_commit": clip.get("dev_commit", ""),
+        "dev_commit_short": (clip.get("dev_commit") or "")[:12],
+        "dev_branch": clip.get("dev_branch", ""),
+        "defects": clip.get("defects") or [],
+        "rejection": clip.get("rejection") or {},
+        "watch": clip.get("watch") or {},
+        "files": files,
+    }
 
 
-def internal_demos(request):
-    """The library index: one card per render, with its derived visibility."""
+def index_view(request):
+    """Latest first, filters for flow and status only, rejected history included."""
     denial = access_denied(request)
     if denial is not None:
         return denial
 
     directory = library_directory()
-    if directory is None:
-        logger.warning("DEMO_VIDEO_LIBRARY_DIR and MEDIA_ROOT are both unset")
-        index = {"directory": "", "entries": [], "counts": {}, "total": 0}
-    else:
-        index = demo_library.library_index(directory)
-    index["entries"] = [with_media_urls(entry) for entry in index["entries"]]
-    return no_store(
-        render(
-            request,
-            "public_app/pages/internal_demos.html",
-            {
-                "library": index,
-                "staff_only_message": STAFF_ONLY_MESSAGE,
-            },
-        )
-    )
+    path = catalog_path()
+    catalog = {"clips": []}
+    if path is not None:
+        try:
+            catalog = clip_registry.load_catalog(path)
+        except (clip_registry.ClipError, OSError) as error:
+            logger.warning("catalog %s unreadable: %s", path, error)
+
+    cards = [card_for(clip, directory) for clip in catalog.get("clips", [])]
+    flows = sorted({card["flow"] for card in cards if card["flow"]})
+    statuses = list(clip_registry.STATUSES)
+
+    selected_flow = (request.GET.get("flow") or "").strip()
+    selected_status = (request.GET.get("status") or "").strip()
+    if selected_flow:
+        cards = [card for card in cards if card["flow"] == selected_flow]
+    if selected_status:
+        cards = [card for card in cards if card["status"] == selected_status]
+
+    # Latest first: a progress index reads from the top. Registered time breaks a tie, so
+    # a re-render of the same day's scenario sorts above the take it replaced.
+    cards.sort(key=lambda card: (card["date"], card["registered_at"]), reverse=True)
+
+    counts = {status: 0 for status in statuses}
+    for card in cards:
+        counts[card["status"]] = counts.get(card["status"], 0) + 1
+
+    return no_store(render(
+        request,
+        "public_app/pages/internal_demos.html",
+        {
+            "cards": cards,
+            "counts": counts,
+            "flows": flows,
+            "statuses": statuses,
+            "selected_flow": selected_flow,
+            "selected_status": selected_status,
+            "total": len(cards),
+            "staff_only_message": STAFF_ONLY_MESSAGE,
+            "catalog_path": str(path) if path else "",
+        },
+    ))
 
 
-def internal_demo_media(request, name):
-    """Serve one library file to staff, and never from a public path."""
+def file_slice(path, start: int, end: int, block: int = 64 * 1024):
+    """Yield exactly the bytes in ``[start, end]``, in bounded blocks."""
+    remaining = end - start + 1
+    with open(path, "rb") as handle:
+        handle.seek(start)
+        while remaining > 0:
+            chunk = handle.read(min(block, remaining))
+            if not chunk:
+                return
+            remaining -= len(chunk)
+            yield chunk
+
+
+def media_view(request, name):
+    """Serve one library file to staff, and never from a public path.
+
+    ``?download=1`` asks for the same bytes as a file rather than as a stream; the entry
+    checks, the containment and the cache rules are identical either way.
+    """
     denial = access_denied(request)
     if denial is not None:
         return denial
@@ -144,18 +225,14 @@ def internal_demo_media(request, name):
     directory = library_directory()
     path = demo_library.resolve_media(directory, name) if directory else None
     if path is None:
-        # A refused name and a missing file are the same answer on purpose: this
-        # route should not confirm which internal names exist to a caller who had
-        # to be authorized to reach it in the first place.
         logger.info("internal demo media refused: %r", name)
         raise Http404("No such internal demo asset")
 
+    download = request.GET.get("download") in ("1", "true", "yes")
     content_type = demo_library.content_type_for(name)
     size = path.stat().st_size
     bounds = demo_library.range_bounds(request.headers.get("Range", ""), size)
     if bounds == "unsatisfiable":
-        # Tell the caller the file's real size: a range it cannot have is not a
-        # missing file, and pretending otherwise makes a player retry forever.
         response = HttpResponse(status=416)
         response["Content-Range"] = f"bytes */{size}"
     elif isinstance(bounds, tuple):
@@ -168,32 +245,19 @@ def internal_demo_media(request, name):
     else:
         response = FileResponse(open(path, "rb"), content_type=content_type)
         response["Content-Length"] = str(size)
-    # Advertised on every answer, including 416: a caller that cannot tell whether the
-    # route supports ranges will keep asking for the whole file.
+    if download:
+        from urllib.parse import quote
+
+        response["Content-Disposition"] = f"attachment; filename*=UTF-8''{quote(path.name)}"
     response["Accept-Ranges"] = "bytes"
-    # Not a public asset: no shared cache may keep a copy, and the browser may not
-    # treat it as immutable the way it treats /media/.
     response["Cache-Control"] = "private, no-store"
     response["X-Robots-Tag"] = "noindex, nofollow"
     return response
 
 
-def file_slice(path, start: int, end: int, block: int = 64 * 1024):
-    """Yield exactly the bytes in ``[start, end]``, in bounded blocks.
-
-    A range is a bounded request: this reads the slice and stops, so a caller cannot
-    turn one range into a read of the whole file, and the read never runs past the end
-    even if the file shrinks underneath it.
-    """
-    remaining = end - start + 1
-    with open(path, "rb") as handle:
-        handle.seek(start)
-        while remaining > 0:
-            chunk = handle.read(min(block, remaining))
-            if not chunk:
-                return
-            remaining -= len(chunk)
-            yield chunk
+# The names the URLconf and the routing tests use.
+internal_demos = index_view
+internal_demo_media = media_view
 
 
 # EOF
