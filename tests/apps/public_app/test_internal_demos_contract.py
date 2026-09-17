@@ -87,7 +87,7 @@ def test_the_routes_are_registered_with_names_the_view_reverses():
     urls = URLS.read_text(encoding="utf-8")
     # Act / Assert
     assert 'path("internal/demos/", views.internal_demos, name="internal_demos")' in urls
-    assert 'path("internal/demos/media/<str:name>", views.internal_demo_media' in urls
+    assert 'path("internal/demos/media/<path:name>", views.internal_demo_media' in urls
     assert "public_app:internal_demo_media" in view_source()
 
 
