@@ -448,6 +448,47 @@ def apply_theme(page, theme: str, base_url: str, switch_path: str) -> dict:
     }
 
 
+class RecordingFailed(RuntimeError):
+    """A step failed mid-render; the partial evidence is kept and described."""
+
+    def __init__(self, report: dict):
+        super().__init__(report.get("error", "recording failed"))
+        self.report = report
+
+
+def failure_report(recording: Recording, step_index: int, step, page_url: str,
+                   error: Exception, timings: list[StepTiming]) -> dict:
+    """What failed, where, and which selector: the shape a blocker needs.
+
+    A step is optional: a render can fail before the first one is attempted.
+
+    Measured 2026-09-17: a signed-in render died at the "open a file" step and left
+    only a log — no video, no frame, no URL — so the report had to be reconstructed
+    from a traceback. A failed render is still evidence, and it costs nothing to keep:
+    the raw recording up to the failure is the most useful artifact a failure has.
+    """
+    return {
+        "app": recording.scenario.app,
+        "language": recording.language,
+        "viewport": recording.viewport.name,
+        "ui_locale": recording.rendition.ui_locale,
+        "theme": getattr(step, "theme", ""),
+        "step_index": step_index + 1 if step is not None else 0,
+        "steps_total": len(recording.scenario.steps),
+        "action": getattr(step, "action", ""),
+        "selector": (step.selector.get(recording.language, "") if step is not None else ""),
+        "value": (step.value.get(recording.language, "") if step is not None else ""),
+        "page_url": page_url,
+        "error": f"{type(error).__name__}: {error}".splitlines()[0][:400],
+        "steps_completed": len(timings),
+        "timings": [
+            {"step": timing.step_index + 1, "start": round(timing.start_seconds, 3),
+             "end": round(timing.end_seconds, 3)}
+            for timing in timings
+        ],
+    }
+
+
 def record(browser, recording: Recording, storage_state, needed_seconds, args, username):
     viewport = recording.viewport
     video_dir = Path(tempfile.mkdtemp(prefix="demo-video-"))
@@ -472,20 +513,41 @@ def record(browser, recording: Recording, storage_state, needed_seconds, args, u
     recording_started = time.monotonic()
     timings = []
     theme_state = {"theme": args.theme, "source": "disabled", "verified": False}
-    for index, step in enumerate(recording.scenario.steps):
-        if step.only not in ("", viewport.name):
-            continue
-        step_started = time.monotonic()
-        run_step(page, cursor, step, recording.language, args, username, run_id)
-        if index == first_visual_step(recording.scenario):
-            # Once a page is on screen, verify the theme instead of trusting it.
-            theme_state = apply_theme(page, args.theme, args.base_url,
-                                      language_switch_path(recording.scenario))
-        elapsed = time.monotonic() - step_started
-        page.wait_for_timeout((max(needed_seconds[index] - elapsed, 0) + step.hold) * 1000)
-        timings.append(
-            StepTiming(index, step_started - recording_started, time.monotonic() - recording_started)
-        )
+    index: int = -1
+    step = None
+    try:
+        for index, step in enumerate(recording.scenario.steps):
+            if step.only not in ("", viewport.name):
+                continue
+            step_started = time.monotonic()
+            run_step(page, cursor, step, recording.language, args, username, run_id)
+            if index == first_visual_step(recording.scenario):
+                # Once a page is on screen, verify the theme instead of trusting it.
+                theme_state = apply_theme(page, args.theme, args.base_url,
+                                          language_switch_path(recording.scenario))
+            elapsed = time.monotonic() - step_started
+            page.wait_for_timeout((max(needed_seconds[index] - elapsed, 0) + step.hold) * 1000)
+            timings.append(
+                StepTiming(index, step_started - recording_started,
+                           time.monotonic() - recording_started)
+            )
+    except Exception as error:
+        # Keep the partial evidence: the raw recording so far, where the page was, and
+        # which control failed. A failed render must not be reconstructed from a
+        # traceback by hand.
+        report = failure_report(recording, index, step, page.url, error, timings)
+        try:
+            context.close()
+            partial = recording.artifact("webm")
+            shutil.move(page.video.path(), partial)
+            report["partial_video"] = partial.name
+        except Exception:
+            report["partial_video"] = ""
+        failure_path = recording.artifact("failure.json")
+        failure_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n",
+                                encoding="utf-8")
+        report["report_path"] = str(failure_path)
+        raise RecordingFailed(report) from error
     page.wait_for_timeout(1000)
     context.close()
     webm = recording.artifact("webm")
@@ -882,8 +944,19 @@ def main() -> int:
                 state = switch_ui_language(browser, args.base_url, signed_in, rendition.ui_locale,
                                            switch_path)
                 clips, needed_seconds = narration[rendition.language]
-                webm, timings, theme_state = record(browser, recording, state, needed_seconds,
-                                                    args, username)
+                try:
+                    webm, timings, theme_state = record(browser, recording, state,
+                                                        needed_seconds, args, username)
+                except RecordingFailed as failure:
+                    # The partial evidence is already on disk; say where and stop.
+                    print(json.dumps(failure.report, indent=2, sort_keys=True))
+                    print(f"render failed at step {failure.report['step_index']}"
+                          f"/{failure.report['steps_total']}: {failure.report['error']}",
+                          file=sys.stderr)
+                    print(f"page: {failure.report['page_url']}", file=sys.stderr)
+                    print(f"partial evidence: {failure.report.get('report_path', '')} "
+                          f"{failure.report.get('partial_video', '')}", file=sys.stderr)
+                    return 7
                 mp4, files = render(recording, webm, timings, clips, work_dir, tools, fonts_dir)
                 entries.append(rendition_entry(recording, timings, files, tools, clips,
                                                theme_state))

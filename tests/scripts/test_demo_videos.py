@@ -26,8 +26,11 @@ from demo_scenario import (  # noqa: E402
     parse_scenario,
 )
 from record import (  # noqa: E402
+    Recording,
+    StepTiming,
     artifact_role,
     empty_selection_message,
+    failure_report,
     language_switch_path,
     preflight_target_kinds,
     preflight_targets,
@@ -363,3 +366,47 @@ def test_the_smoke_scenario_declares_both_viewports():
     scenario = load_scenario(DEMO_VIDEOS_DIR / "scenarios" / "smoke-public-demos.yaml")
     # Act / Assert
     assert scenario.viewports == ["desktop", "mobile"]
+
+
+def _recording(tmp_path):
+    """A Recording for the failure-report shape, without touching a browser."""
+    scenario = load_scenario(DEMO_VIDEOS_DIR / "scenarios" / "projects.yaml")
+    return Recording(scenario, VIEWPORT, scenario.renditions[0], tmp_path, "2026-09-17")
+
+
+class _Viewport:
+    name = "desktop"
+
+
+VIEWPORT = _Viewport()
+
+
+def test_a_failed_step_reports_where_what_and_which_selector(tmp_path):
+    # Arrange: the shape a blocker needs, so nobody reconstructs it from a traceback.
+    recording = _recording(tmp_path)
+    step = recording.scenario.steps[2]          # the step that types into #name
+    timings = [StepTiming(0, 0.0, 1.5)]
+    # Act
+    report = failure_report(recording, 2, step, "http://127.0.0.1:8000/new/",
+                            TimeoutError("Locator.click: Timeout 30000ms exceeded."), timings)
+    # Assert
+    assert report["app"] == "projects"
+    assert report["step_index"] == 3 and report["steps_total"] == len(recording.scenario.steps)
+    assert report["action"] == "type"
+    assert report["selector"] == "#name"
+    assert report["value"].startswith("sleep-study-")
+    assert report["page_url"] == "http://127.0.0.1:8000/new/"
+    assert report["steps_completed"] == 1
+    assert report["timings"] == [{"step": 1, "start": 0.0, "end": 1.5}]
+    assert report["error"].startswith("TimeoutError")
+
+
+def test_a_failure_before_the_first_step_still_reports(tmp_path):
+    # Arrange: a render can die in the browser setup, before any step is attempted.
+    recording = _recording(tmp_path)
+    # Act
+    report = failure_report(recording, -1, None, "about:blank", RuntimeError("no context"), [])
+    # Assert
+    assert report["step_index"] == 0
+    assert report["action"] == "" and report["selector"] == ""
+    assert report["steps_completed"] == 0
