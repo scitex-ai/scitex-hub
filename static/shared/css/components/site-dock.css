@@ -53,10 +53,16 @@
   --site-dock-fg-active: #1f2430;
   --site-dock-active-bg: rgba(0, 0, 0, 0.08);
   --site-dock-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  /* Idle dock icons: neutral, so only the CURRENT destination carries colour
+     (operator ruling 2026-09-17). Deliberately grey, not a muted brand hue. */
+  --site-dock-icon-idle-bg: rgba(120, 128, 140, 0.22);
+  --site-dock-icon-idle-fg: #5b6572;
 }
 
 [data-theme="dark"] {
   --site-dock-bg: rgba(28, 31, 40, 0.82);
+  --site-dock-icon-idle-bg: rgba(120, 128, 140, 0.28);
+  --site-dock-icon-idle-fg: #8b949e;
   --site-dock-border: rgba(255, 255, 255, 0.1);
   --site-dock-fg: #aab1c0;
   --site-dock-fg-active: #ffffff;
@@ -72,6 +78,8 @@
     --site-dock-fg-active: #ffffff;
     --site-dock-active-bg: rgba(255, 255, 255, 0.12);
     --site-dock-shadow: 0 10px 34px rgba(0, 0, 0, 0.55);
+    --site-dock-icon-idle-bg: rgba(120, 128, 140, 0.28);
+    --site-dock-icon-idle-fg: #8b949e;
   }
 }
 
@@ -274,6 +282,25 @@ body:has(> .site-dock.site-dock--minimized) {
 .site-dock-app .site-dock-app-icon i {
   font-size: calc(var(--site-dock-icon) * 0.42);
   color: #fff;
+}
+
+/* Inactive destinations are NEUTRAL - no category gradient, no colour.
+   Operator ruling, 2026-09-17: "exactly one global dock item active ... no colored
+   inactive items". The coloured chip is what says WHERE YOU ARE, so four coloured
+   chips say nothing; app-icon.css paints every .launcher-tile-icon by category, and
+   the dock inherits it, so the idle state has to be neutralised here.
+
+   Specificity, deliberately: `.site-dock-app:not(.is-active) .site-dock-app-icon`
+   (0,3,0) outranks `.launcher-tile-icon[data-tile-category=...]` (0,2,0), which is
+   why this needs no !important and no per-category list. The ACTIVE item is excluded
+   by the :not(), so it keeps its category gradient untouched. */
+.site-dock-app:not(.is-active) .site-dock-app-icon {
+  background: var(--site-dock-icon-idle-bg);
+  box-shadow: none;
+}
+
+.site-dock-app:not(.is-active) .site-dock-app-icon i {
+  color: var(--site-dock-icon-idle-fg);
 }
 
 .site-dock-item:hover,
