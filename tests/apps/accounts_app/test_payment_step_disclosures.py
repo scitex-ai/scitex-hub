@@ -26,11 +26,13 @@ import pytest
 from django.template.loader import render_to_string
 
 from apps.infra.accounts_app.payment_step import (
+    ACTIVATED,
     PENDING,
     PLAN_UNSET,
+    PROCESSING,
     SETUP_CANCELLED,
+    SETUP_FAILED,
     SIGNUP_DEFAULT_KEYS,
-    USABLE,
     payment_disclosures,
     select_signup_plan,
     trial_state,
@@ -103,9 +105,25 @@ def test_without_a_trial_window_no_date_is_invented():
 
 
 def test_the_step_state_follows_the_account_facts():
-    assert trial_state(has_usable_card=True) == USABLE
+    """The ORDER of these facts is the continuity fix (PR #934 review, blocker 3).
+
+    A provider-confirmed subscription outranks everything; a saved card WITHOUT
+    one is an activation in flight (the 3-D Secure / async-webhook case), not a
+    finished signup; and each way the previous attempt ended has its own state so
+    the surface can offer the continue action again.
+    """
+    # Reached via the provider and confirmed: the funnel is DONE.
+    assert trial_state(has_usable_card=True, has_confirmed_trial=True) == ACTIVATED
+    # Card stored, provider has not confirmed yet: say so, do not claim success.
+    assert trial_state(has_usable_card=True) == PROCESSING
     assert trial_state(has_usable_card=False) == PENDING
     assert trial_state(has_usable_card=False, returned_from_setup=True) == SETUP_CANCELLED
+    assert trial_state(has_usable_card=False, setup_failed=True) == SETUP_FAILED
+    # A cancelled attempt the user has since retried is no longer cancelled.
+    assert (
+        trial_state(has_usable_card=True, returned_from_setup=True, setup_failed=True)
+        == PROCESSING
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -188,13 +206,37 @@ def test_a_cancelled_setup_says_nothing_was_charged():
     assert "nothing was created" in text
 
 
-def test_a_user_with_a_usable_card_is_not_asked_again():
-    html = _render(state=USABLE)
+def test_a_user_with_a_saved_card_is_not_asked_again_while_the_trial_activates():
+    """A saved card without provider confirmation is IN FLIGHT, not finished.
 
-    assert 'data-payment-state="usable"' in html
+    This test used to accept the ``usable`` state, which said "your payment
+    method is already set up" and offered nothing at all — the state a browser
+    lands in when it returns from the provider before the webhook arrives
+    (3-D Secure, or any async method). It does not push the user back at the card
+    page, and it does not claim anything was activated either.
+    """
+    html = _render(state=PROCESSING)
+
+    assert 'data-payment-state="processing"' in html
     assert 'data-payment-action="continue"' not in html, (
-        "someone with a usable card must not be pushed at the card page again"
+        "someone whose card is already stored must not be pushed at the card page again"
     )
+    assert "confirm" in _text(html).lower()
+
+
+def test_a_provider_confirmed_account_is_moved_on_to_the_first_product():
+    """The funnel's last step is the product (PR #934 review, blocker 3).
+
+    Success used to land on the generic billing page and stop there: no notice,
+    no transition, and the "first project" the funnel exists for was never
+    reached from the funnel itself.
+    """
+    html = _render(state=ACTIVATED)
+
+    assert 'data-payment-state="activated"' in html
+    assert 'data-payment-action="first-product"' in html
+    assert 'data-payment-action="continue"' not in html
+    assert "first project" in _text(html).lower()
     assert "/accounts/settings/billing/" in html
 
 
@@ -245,12 +287,23 @@ def test_the_billing_route_still_resolves_to_billing():
 
 @pytest.mark.django_db
 class TestPaymentStepRoute:
-    def _user(self, username="payment-probe"):
+    def _user(self, username="payment-probe", *, in_funnel=True):
+        """A user, by default one the onboarding authority puts IN the funnel.
+
+        The step is now scoped to funnel accounts only (blocker 1), so a probe
+        with no authority row is testing a different branch — the redirect to
+        billing settings, which has its own test below.
+        """
         from django.contrib.auth import get_user_model
 
-        return get_user_model().objects.create_user(
+        user = get_user_model().objects.create_user(
             username=username, email=f"{username}@example.com", password="TestPass123!"
         )
+        if in_funnel:
+            from apps.infra.auth_app.onboarding import begin_social_signup
+
+            begin_social_signup(user, "email")
+        return user
 
     def test_the_step_requires_a_signed_in_user(self):
         from django.test import Client
@@ -344,14 +397,45 @@ class TestPaymentStepRoute:
         This test used to accept `/<username>/` when card registration was closed —
         exactly the bypass the PR-934 pre-review flagged (verified, no card, straight
         into the app, with copy saying the trial was already running).
+
+        PR #934 review, blocker 7: the destination now comes from the onboarding
+        authority, so the assertion is made about an account that IS in the funnel
+        (which is every account that reaches this function from the OTP handler)
+        and separately about one that is not — an established account must keep the
+        ordinary post-login destination rather than being enrolled by a redirect.
         """
+        from apps.infra.auth_app.onboarding import begin_social_signup, mark_activated
         from apps.infra.public_app.services.billing_provider import post_signup_redirect_url
 
-        user = self._user("payment-redirect")
-        target = post_signup_redirect_url(user)
+        in_funnel = self._user("payment-redirect")
+        target = post_signup_redirect_url(in_funnel)
 
         assert target == "/accounts/settings/payment/"
-        assert user.username not in target
+        assert in_funnel.username not in target
+
+        # An account whose trial the PROVIDER confirmed leaves the funnel.
+        mark_activated(in_funnel, pricing_id="subscription-general")
+        assert post_signup_redirect_url(in_funnel) == "/"
+
+        # An account that never came through signup is not enrolled by asking.
+        established = self._user("payment-established", in_funnel=False)
+        assert post_signup_redirect_url(established) == "/"
+        assert begin_social_signup(established, "email") is not None
+
+    def test_an_established_account_is_not_offered_the_signup_step(self):
+        """"Any existing user can enter the supposed signup payment flow" (blocker 1).
+
+        The step is for accounts the authority puts in the funnel; everyone else
+        manages cards and plans from billing settings.
+        """
+        from django.test import Client
+
+        client = Client()
+        client.force_login(self._user("payment-established-view", in_funnel=False))
+        response = client.get("/accounts/settings/payment/")
+
+        assert response.status_code in (301, 302)
+        assert response["Location"] == "/accounts/settings/billing/"
 
 
 class TestSignupPlanIsDeterminedNeverArbitrary:
@@ -424,16 +508,36 @@ class TestSignupPlanIsDeterminedNeverArbitrary:
     def test_a_chargeable_id_matching_no_catalog_row_refuses(self):
         assert select_signup_plan(self.ROWS, chargeable_ids={"subscription-legacy"}) is None
 
-    def test_a_catalog_marker_wins_over_the_chargeable_set(self):
+    def test_a_catalog_marker_outside_the_chargeable_set_refuses(self):
+        """A marked plan nobody can pay for is a catalog bug, not a selection.
+
+        PR #934 review, blocker 5. This used to assert that a marked row WON even
+        when the deployment had no configured price for it — i.e. the step would
+        quote a price it could not charge, which is the defect the review names.
+        """
         marked = {**self.ROWS[0], "default": True}
         rows = [marked, self.ROWS[1]]
 
-        assert select_signup_plan(rows, chargeable_ids={"subscription-general"}) == marked
+        assert select_signup_plan(rows, chargeable_ids={"subscription-general"}) is None
 
-    def test_an_explicit_selection_wins_over_the_chargeable_set(self):
+    def test_an_explicit_selection_outside_the_chargeable_set_is_refused(self):
+        """``?plan=`` must not be able to name a plan the deployment cannot charge.
+
+        PR #934 review, blocker 5. The reviewed behaviour was the opposite: an
+        arbitrary GET parameter won over the configured price set, so a signup
+        could be placed on a plan with no Stripe Price behind it — and the value
+        was then dropped, so nothing downstream knew which plan had been shown.
+        """
         assert (
             select_signup_plan(
                 self.ROWS, explicit_id="subscription-student", chargeable_ids={"subscription-general"}
+            )
+            is None
+        )
+        # The same id IS accepted once the deployment can actually charge it.
+        assert (
+            select_signup_plan(
+                self.ROWS, explicit_id="subscription-student", chargeable_ids={"subscription-student"}
             )
             == self.ROWS[0]
         )

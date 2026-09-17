@@ -129,16 +129,30 @@ def test_the_otp_handler_no_longer_falls_back_to_the_dead_dashboard_route():
 
 
 def test_the_verified_user_is_sent_where_the_backend_says():
-    """The server already decides this (post_signup_redirect_url): the payment step
-    while card registration is open, the user's workspace otherwise."""
-    from apps.infra.public_app.services.billing_provider import post_signup_redirect_url
+    """The backend decides this in ONE place: the onboarding authority.
 
+    Before PR #934 review this function held the policy itself and the social
+    adapter held a different one (``LOGIN_REDIRECT_URL``, i.e. "/"). Blocker 7 was
+    exactly that divergence, so the assertion is now about the single authority:
+    the OTP path and the social path must both resolve through it, and it must
+    answer with the funnel's own address.
+    """
     import inspect
 
-    source = inspect.getsource(post_signup_redirect_url)
-    assert "payment_step" in source or "billing" in source, (
-        "post_signup_redirect_url no longer routes a verified signup into billing"
+    from django.urls import reverse
+
+    from apps.infra.accounts_app.funnel import payment_step_url
+    from apps.infra.auth_app.onboarding import next_url
+    from apps.infra.public_app.services.billing_provider import post_signup_redirect_url
+
+    assert "next_url" in inspect.getsource(post_signup_redirect_url), (
+        "post_signup_redirect_url stopped delegating to the onboarding authority, "
+        "so it is again a second policy the social adapter does not share"
     )
+    assert "payment_step_url" in inspect.getsource(next_url), (
+        "the authority no longer routes a waiting account into the funnel"
+    )
+    assert payment_step_url() == reverse("accounts_app:payment_step")
 
 
 # EOF
