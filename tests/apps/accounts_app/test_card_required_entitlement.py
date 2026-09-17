@@ -246,9 +246,18 @@ class TestTheWallOnRealRoutes:
     """
 
     def _payment_step(self):
-        from django.urls import reverse
+        """The LITERAL the gate redirects to - not reverse("accounts_app:payment_step").
 
-        return reverse("accounts_app:payment_step")
+        Written after CI caught this: that route ships with PR #934, still unmerged, so
+        reversing it raised NoReverseMatch and took three of these tests down on
+        py3.11/3.12/3.13 while the rest of the suite passed. The literal IS the contract
+        here (it is what the middleware redirects to and what is on the allowlist);
+        when #934 lands, the pure-suite test that reverses the name becomes a hard
+        assertion and this comment is the trail.
+        """
+        from apps.infra.accounts_app.entitlement import PAYMENT_STEP_PATH
+
+        return PAYMENT_STEP_PATH
 
     def _cardless(self, username="wall-cardless"):
         from django.contrib.auth import get_user_model
@@ -283,11 +292,19 @@ class TestTheWallOnRealRoutes:
         assert response.status_code not in (301, 302), "a carded user must not be gated"
 
     def test_the_payment_step_itself_never_redirects_to_itself(self, client):
+        """The LOOP property, not the step's status code.
+
+        Asserting 200 here would tie this gate to #934's route (which is unmerged), and
+        would fail for a reason that has nothing to do with looping. What this gate owns
+        is that it never sends the request back to the page it came from.
+        """
         client.force_login(self._cardless())
 
         response = client.get(self._payment_step())
 
-        assert response.status_code == 200, "the gate must not loop on its own target"
+        assert not (
+            response.status_code in (301, 302) and response.get("Location") == self._payment_step()
+        ), "the gate redirected its own target back to itself"
 
     def test_billing_stays_reachable_without_a_card(self, client):
         client.force_login(self._cardless())
