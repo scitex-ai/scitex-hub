@@ -75,6 +75,7 @@ def test_hub_scope_overlay_keeps_external_stats_in_the_active_project():
     module = _manifest_to_module_config(manifest)
     # Assert
     assert module.scope == "project"
+    assert module.availability == "coming_soon"
 
 
 def test_launcher_project_url_carries_the_active_project():
@@ -115,6 +116,20 @@ def test_launcher_project_url_preserves_existing_query_and_fragment():
     url = launcher.project_launch_url("/apps/writer/?mode=review#editor", project)
     # Assert
     assert url == "/apps/writer/?mode=review&project=alice%2Fpaper#editor"
+
+
+def test_launcher_never_discloses_project_identity_to_an_external_url():
+    # Arrange
+    launcher = importlib.import_module("apps.workspace.apps_app.views.launcher")
+    project = SimpleNamespace(
+        slug="private-paper", owner=SimpleNamespace(username="alice")
+    )
+    urls = ["https://evil.example/collect?source=hub", "//evil.example/collect"]
+    # Act
+    launched = [launcher.project_launch_url(url, project) for url in urls]
+    # Assert
+    assert launched == urls
+    assert all("project=" not in url for url in launched)
 
 
 def test_active_project_is_applied_only_to_launchable_project_scoped_tiles():

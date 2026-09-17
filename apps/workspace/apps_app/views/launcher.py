@@ -77,8 +77,15 @@ APP_CREATOR_SLOT = "create-app"
 
 
 def project_launch_url(url: str, project) -> str:
-    """Add the active Hub project to a project-scoped app launch URL."""
+    """Add the active Hub project only to a same-origin launch URL.
+
+    Registry plugins may advertise an absolute URL.  The active project key is
+    private account context, so it must never be appended to a different
+    origin (including protocol-relative URLs).
+    """
     parts = urlsplit(url)
+    if parts.scheme or parts.netloc:
+        return url
     query = [(key, value) for key, value in parse_qsl(parts.query) if key != "project"]
     query.append(("project", f"{project.owner.username}/{project.slug}"))
     return urlunsplit(

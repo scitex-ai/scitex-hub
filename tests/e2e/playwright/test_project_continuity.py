@@ -21,10 +21,6 @@ pytestmark = pytest.mark.e2e
 USERNAME = "test-user"
 PROJECT_SLUG = "continuity-paper"
 PROJECT_KEY = f"{USERNAME}/{PROJECT_SLUG}"
-KNOWN_LEAF_NETWORK_GAPS = (
-    "/apps/scholar/citation-graph/health/",
-    "/apps/writer/api/project/",
-)
 
 
 @dataclass
@@ -35,12 +31,9 @@ class BrowserEvidence:
 
     def assert_clean(self) -> None:
         assert not self.page_errors, f"browser page errors: {self.page_errors}"
-        unexpected = [
-            failure
-            for failure in self.network_failures
-            if not any(gap in failure for gap in KNOWN_LEAF_NETWORK_GAPS)
-        ]
-        assert not unexpected, f"unexpected same-origin network failures: {unexpected}"
+        assert (
+            not self.network_failures
+        ), f"same-origin network failures: {self.network_failures}"
         assert all(
             error.startswith("Failed to load resource") for error in self.console_errors
         ), f"unexpected browser console errors: {self.console_errors}"
@@ -180,25 +173,21 @@ def test_login_launcher_and_project_apps_keep_one_project(continuity_browser):
     assert viewport in {"desktop", "mobile"}
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "scitex-stats mounts /apps/stats/ but does not yet render the Hub host "
-        "project/version/provider metadata; mobile navigation also stalls"
-    ),
-)
-def test_stats_leaf_adopts_the_hub_project_contract(authenticated_desktop_page):
-    """Executable leaf gap: remove xfail when Stats adopts the host contract."""
+def test_stats_stays_nonlaunchable_until_leaf_adopts_the_hub_project_contract(
+    authenticated_desktop_page,
+):
+    """Do not expose a real Stats tile before its project contract is safe."""
     page = authenticated_desktop_page
     page.goto("/apps/", wait_until="domcontentloaded")
     wait_for_page_ready(page)
-    stats = page.locator('#launcher-grid [data-module="stats"]')
-    if stats.count() == 0:
-        pytest.xfail("Stats leaf route is not mounted in this environment")
-    href = stats.get_attribute("href")
-    assert href and urlparse(href).path == "/apps/stats/"
-    response = page.request.get(href, timeout=10_000)
-    assert response.status == 200
-    html = response.text()
-    assert f'data-active-project-key="{PROJECT_KEY}"' in html
-    assert html.count('meta name="stx-project-provider"') == 1
+    stats = page.locator('[data-module="stats"], [data-planned="stats"]')
+    assert stats.count() == 1
+    assert stats.get_attribute("href") is None
+    assert stats.get_attribute("data-availability") == "coming_soon"
+
+
+def test_browser_evidence_rejects_every_same_origin_server_failure():
+    evidence = BrowserEvidence([], [], ["500 GET /apps/writer/api/project/"])
+
+    with pytest.raises(AssertionError, match="same-origin network failures"):
+        evidence.assert_clean()

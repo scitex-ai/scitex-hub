@@ -339,6 +339,7 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
     """Convert a manifest dict to a ModuleConfig dataclass."""
     name = data["name"]
     overrides = _MANIFEST_OVERRIDES.get(name, {})
+    effective_data = {**data, **overrides}
 
     return ModuleConfig(
         name=name,
@@ -355,8 +356,8 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
         keyboard_shortcut=data.get("keyboard_shortcut", ""),
         order=data.get("order", 50),
         category=data.get("category", ""),
-        availability=_resolve_availability(data),
-        scope=overrides.get("scope", _resolve_scope(data)),
+        availability=_resolve_availability(effective_data),
+        scope=_resolve_scope(effective_data),
         default_enabled=data.get("default_enabled", True),
         show_in_launcher=data.get("show_in_launcher", True),
         visibility=data.get("visibility", "public"),

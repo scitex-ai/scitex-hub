@@ -34,8 +34,10 @@ _CLEW_SVG_TAB = (
 
 MANIFEST_OVERRIDES: dict[str, dict] = {
     "clew": {"icon_svg_tab": _CLEW_SVG_TAB, "icon_svg_nav": _CLEW_SVG_NAV},
-    # scitex-stats currently publishes a legacy scitex_modules entry point but
-    # no v2 manifest scope. Hub owns this host integration metadata until the
-    # leaf publishes `scope: project` itself; no Stats business logic lives here.
-    "stats": {"scope": "project"},
+    # The installed Stats release mounts successfully but does not yet render
+    # the Hub project/version/provider contract and its project-default writes
+    # have not passed authorization/filesystem review.  Keep the tile truthful
+    # and non-launchable until the leaf publishes the complete contract; no
+    # Stats business logic lives in Hub.
+    "stats": {"scope": "project", "availability": "coming_soon"},
 }
