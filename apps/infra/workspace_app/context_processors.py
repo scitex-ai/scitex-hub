@@ -141,6 +141,7 @@ def _is_user_profile_path(path: str) -> bool:
         "files",
         "accounts",
         "public",
+        "internal",
         "invite",
         "dev",
         "docs",
