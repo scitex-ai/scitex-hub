@@ -25,7 +25,10 @@ AUTH_CSS = REPO / "apps/infra/auth_app/static/auth_app/css/auth.css"
 AUTH_BASE = REPO / "apps/infra/auth_app/templates/auth_app/auth_base.html"
 
 CTA_CLASS = "auth-primary-cta"
+SECONDARY_CTA_CLASS = "auth-secondary-cta"
 PLATFORM_TAP_FLOOR = 44
+
+OTP_TEMPLATE = REPO / "apps/infra/auth_app/templates/auth_app/email_verification.html"
 
 
 def test_the_create_account_button_carries_the_cta_class():
@@ -44,19 +47,35 @@ def test_the_create_account_button_carries_the_cta_class():
     )
 
 
+def test_the_otp_steps_two_controls_carry_the_floor_classes():
+    """Measured at 390px before this: Verify Email 211x37, Resend Code 97x35."""
+    html = OTP_TEMPLATE.read_text()
+
+    verify = [ln for ln in html.splitlines() if "verify-btn" in ln and "<button" in ln]
+    resend = [ln for ln in html.splitlines() if "resend-btn" in ln and "<button" in ln]
+    assert verify, "the Verify Email button moved — update this guard"
+    assert resend, "the Resend Code button moved — update this guard"
+
+    assert CTA_CLASS in verify[0], f"Verify Email has no {CTA_CLASS}: {verify[0].strip()!r}"
+    assert SECONDARY_CTA_CLASS in resend[0], (
+        f"Resend Code has no {SECONDARY_CTA_CLASS}: {resend[0].strip()!r}"
+    )
+
+
 def test_the_cta_stylesheet_declares_the_platform_tap_floor():
     css = AUTH_CSS.read_text()
 
-    rule = re.search(rf"\.[\w.-]*{CTA_CLASS}\s*\{{([^}}]*)\}}", css)
-    assert rule, f"no rule for .{CTA_CLASS} in auth.css"
-
-    body = rule.group(1)
-    min_height = re.search(r"min-height\s*:\s*(\d+)px", body)
-    assert min_height, f".{CTA_CLASS} sets no min-height: {body!r}"
-    assert int(min_height.group(1)) >= PLATFORM_TAP_FLOOR, (
-        f".{CTA_CLASS} min-height is {min_height.group(1)}px, below the "
-        f"{PLATFORM_TAP_FLOOR}px platform floor"
-    )
+    for cls in (CTA_CLASS, SECONDARY_CTA_CLASS):
+        # The classes may share one rule; find the rule that mentions this class.
+        rules = re.findall(r"([^{}]*\." + cls + r"[\w.-]*[^{}]*)\{([^}]*)\}", css)
+        assert rules, f"no rule mentions .{cls} in auth.css"
+        bodies = " ".join(body for _sel, body in rules)
+        min_height = re.search(r"min-height\s*:\s*(\d+)px", bodies)
+        assert min_height, f".{cls} sets no min-height: {bodies!r}"
+        assert int(min_height.group(1)) >= PLATFORM_TAP_FLOOR, (
+            f".{cls} min-height is {min_height.group(1)}px, below the "
+            f"{PLATFORM_TAP_FLOOR}px platform floor"
+        )
 
 
 def test_auth_css_is_actually_loaded_by_the_auth_shell():
