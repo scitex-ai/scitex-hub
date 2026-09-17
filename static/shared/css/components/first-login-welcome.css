@@ -7,10 +7,22 @@
  * as the other shared components do. No new tokens are declared here.
  */
 
+.first-login,
+.first-login *,
+.first-login *::before,
+.first-login *::after {
+  /* The panel is width:100% with padding; without border-box it overflows the
+   * 390px viewport by the padding (measured: 21px, caught by the Playwright
+   * evidence run before this shipped). */
+  box-sizing: border-box;
+}
+
 .first-login {
   display: flex;
   justify-content: center;
   padding: var(--spacing-lg, 24px) var(--spacing-md, 16px);
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .first-login-panel {
