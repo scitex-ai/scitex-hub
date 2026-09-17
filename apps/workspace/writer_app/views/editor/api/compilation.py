@@ -134,18 +134,27 @@ def _explain_compile_failure(result: dict) -> dict:
     if result.get("success") or result.get("errors"):
         return result
 
-    stderr = (result.get("stderr") or "").strip()
     exit_code = result.get("exit_code")
+    # BOUNDED, single-line detail — not the raw blob. CodeQL flagged this
+    # response as a possible exception-information exposure: compiler output can
+    # carry a traceback and absolute paths, and this text goes to the caller.
+    # The full `stderr` field is part of the leaf's own CompilationResult and is
+    # returned exactly as before; what is added here is a summary, capped, so the
+    # added text cannot widen what the response reveals.
+    stderr = (result.get("stderr") or "").strip()
+    first_line = stderr.splitlines()[0].strip() if stderr else ""
+    detail = first_line[:200]
 
     # 126 = found but not executable, 127 = command not found.
     if exit_code in (126, 127) or "No such file or directory" in stderr:
         reason = (
             "LaTeX toolchain unavailable in this environment: the compile "
-            f"command could not be executed (exit code {exit_code}). "
-            f"{stderr}".strip()
+            f"command could not be executed (exit code {exit_code})"
         )
-    elif stderr:
-        reason = stderr
+        if detail:
+            reason = f"{reason}. {detail}"
+    elif detail:
+        reason = detail
     else:
         reason = f"compilation failed with exit code {exit_code}"
 
