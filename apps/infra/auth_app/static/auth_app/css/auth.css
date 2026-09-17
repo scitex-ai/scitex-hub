@@ -286,3 +286,18 @@
 /* =========================
    END OF AUTH.CSS
    ========================= */
+
+/* ---------------------------------------------------------------------------
+ * The funnel's primary action (card hub-signup-email-stripe-funnel-20260917).
+ *
+ * Measured on the running Hub before this rule: the "Create Account" submit
+ * button — the button that finishes account creation — was 42px tall at 1440 and
+ * 33px at 390, against the platform's own 44px touch floor (SSOT section 4).
+ * Smallest screen, most important control.
+ * ------------------------------------------------------------------------- */
+.btn.auth-primary-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+}
