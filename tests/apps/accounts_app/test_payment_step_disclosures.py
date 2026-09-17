@@ -27,6 +27,7 @@ from django.template.loader import render_to_string
 
 from apps.infra.accounts_app.payment_step import (
     PENDING,
+    PLAN_UNSET,
     SETUP_CANCELLED,
     SIGNUP_DEFAULT_KEYS,
     USABLE,
@@ -114,6 +115,28 @@ def test_the_step_state_follows_the_account_facts():
 
 def _render(**overrides) -> str:
     return render_to_string(TEMPLATE, _disclosures(**overrides).as_context())
+
+
+def test_the_plan_unset_render_quotes_no_price_and_offers_no_action():
+    """No-DB mirror of the route's plan_unset branch.
+
+    The route tests only run where a database exists (CI), which is exactly how the
+    plan_unset/terms interaction first escaped me: locally they errored on the DB and
+    CI was the first place they could disagree with the view. Rendering the same two
+    states here makes the contract checkable without a database.
+    """
+    html = _render(state=PLAN_UNSET, plan_label="", monthly_usd=0.0, trial_end=None)
+
+    assert 'data-payment-state="plan_unset"' in html
+    assert 'data-payment-disclosure="due-today"' not in html
+    assert 'data-payment-action="continue"' not in html
+
+
+def test_the_determined_plan_render_shows_the_terms_and_the_action():
+    html = _render(state=PENDING)
+
+    assert 'data-payment-disclosure="due-today"' in html
+    assert 'data-payment-action="continue"' in html
 
 
 def test_the_surface_shows_all_six_facts_to_the_reader():
@@ -236,15 +259,22 @@ class TestPaymentStepRoute:
         assert response.status_code in (301, 302)
         assert "/auth/" in response["Location"]
 
-    def test_a_verified_user_without_a_card_sees_the_terms(self, monkeypatch):
+    def test_a_verified_user_without_a_card_sees_the_terms(self, monkeypatch, settings):
         """Forces registration OPEN so the terms path is asserted even in a CI
         environment with no provider keys — otherwise the keyless fallback renders
-        and this test measures the wrong branch (which is exactly how it failed)."""
+        and this test measures the wrong branch (which is exactly how it failed).
+
+        It also has to state WHICH plan, because the terms only exist once the plan is
+        determined: with the catalog unmarked and no price configured, the step rightly
+        renders the plan_unset state instead. Relying on ambient configuration here is
+        what made this test measure a branch nobody ships.
+        """
         from django.test import Client
 
         from apps.infra.accounts_app.views import billing_views
 
         monkeypatch.setattr(billing_views, "card_registration_is_open", lambda: True)
+        settings.STRIPE_PRICE_IDS = {"subscription-general": "price_general"}
 
         client = Client()
         client.force_login(self._user())
@@ -254,6 +284,33 @@ class TestPaymentStepRoute:
         assert b'data-payment-step="true"' in response.content
         assert b'data-payment-disclosure="due-today"' in response.content
         assert b'data-payment-action="continue"' in response.content
+
+    def test_with_no_determined_plan_the_step_quotes_no_price_and_offers_nothing(
+        self, monkeypatch, settings
+    ):
+        """The plan_unset branch, on the real route.
+
+        The catalog lists two subscription rows and marks neither, so with no price
+        configured there is no determined plan. The step must say so rather than quote
+        a row it picked by file order, and it must not offer an action that would take
+        a card for a plan it cannot name.
+        """
+        from django.test import Client
+
+        from apps.infra.accounts_app.views import billing_views
+
+        monkeypatch.setattr(billing_views, "card_registration_is_open", lambda: True)
+        settings.STRIPE_PRICE_IDS = {}
+
+        client = Client()
+        client.force_login(self._user("payment-ambiguous"))
+        response = client.get("/accounts/settings/payment/")
+
+        assert response.status_code == 200
+        assert b'data-payment-step="true"' in response.content
+        assert b'data-payment-state="plan_unset"' in response.content
+        assert b'data-payment-disclosure="due-today"' not in response.content
+        assert b'data-payment-action="continue"' not in response.content
 
     def test_without_provider_keys_the_step_says_so_instead_of_borrowing_billing(
         self, monkeypatch
@@ -349,8 +406,50 @@ class TestSignupPlanIsDeterminedNeverArbitrary:
 
         assert select_signup_plan(rows) is None
 
+    def test_exactly_one_chargeable_plan_is_determined(self):
+        """The plan a deployment can actually charge for is a decision, not file order."""
+        assert select_signup_plan(self.ROWS, chargeable_ids={"subscription-general"}) == self.ROWS[1]
+        assert (
+            select_signup_plan(list(reversed(self.ROWS)), chargeable_ids={"subscription-general"})
+            == self.ROWS[1]
+        )
+
+    def test_two_chargeable_plans_refuse(self):
+        """Either could be right, so neither is quoted."""
+        both = {"subscription-student", "subscription-general"}
+
+        assert select_signup_plan(self.ROWS, chargeable_ids=both) is None
+        assert select_signup_plan(list(reversed(self.ROWS)), chargeable_ids=both) is None
+
+    def test_a_chargeable_id_matching_no_catalog_row_refuses(self):
+        assert select_signup_plan(self.ROWS, chargeable_ids={"subscription-legacy"}) is None
+
+    def test_a_catalog_marker_wins_over_the_chargeable_set(self):
+        marked = {**self.ROWS[0], "default": True}
+        rows = [marked, self.ROWS[1]]
+
+        assert select_signup_plan(rows, chargeable_ids={"subscription-general"}) == marked
+
+    def test_an_explicit_selection_wins_over_the_chargeable_set(self):
+        assert (
+            select_signup_plan(
+                self.ROWS, explicit_id="subscription-student", chargeable_ids={"subscription-general"}
+            )
+            == self.ROWS[0]
+        )
+
+    def test_no_chargeable_information_refuses(self):
+        assert select_signup_plan(self.ROWS, chargeable_ids=set()) is None
+        assert select_signup_plan(self.ROWS, chargeable_ids=None) is None
+
     def test_the_live_catalog_is_never_selected_by_file_order(self):
-        """Pins the real pricing.json: a selection must be marked, never merely first."""
+        """Pins the real pricing.json: a selection must be marked, never merely first.
+
+        Also with the live configured prices: whatever it returns must be a row the
+        deployment can charge for, and never a row it merely listed first.
+        """
+        from django.conf import settings
+
         from apps.infra.public_app.services.billing_provider import subscription_pricing_rows
 
         rows = subscription_pricing_rows()
@@ -361,6 +460,13 @@ class TestSignupPlanIsDeterminedNeverArbitrary:
                 "a plan was selected without an explicit catalog marker — that is file "
                 "order pretending to be a decision"
             )
+
+        live = select_signup_plan(rows, chargeable_ids=set(settings.STRIPE_PRICE_IDS))
+        if live is not None:
+            assert live["id"] in set(settings.STRIPE_PRICE_IDS), (
+                "quoted a plan this deployment has no configured price for"
+            )
+            assert live is not rows[0], "file order decided the plan"
 
 
 class TestStepCopyStatesTheTruth:

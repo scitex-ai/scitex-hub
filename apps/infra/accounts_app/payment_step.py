@@ -52,19 +52,24 @@ STATES = (PENDING, SETUP_CANCELLED, USABLE, NOT_OPEN, PLAN_UNSET)
 SIGNUP_DEFAULT_KEYS = ("signup_default", "default", "recommended")
 
 
-def select_signup_plan(rows, explicit_id: Optional[str] = None):
+def select_signup_plan(rows, explicit_id: Optional[str] = None, chargeable_ids=None):
     """The plan a new signup is placed on — or ``None``, never an arbitrary row.
 
-    ``subscription_pricing_rows()`` returns the catalog in file order, so
-    ``rows[0]`` is arbitrary: today that would put every new signup on whichever of
-    the two subscription rows the JSON lists first, silently. This function only
-    answers when the choice is DETERMINED:
+    ``subscription_pricing_rows()`` returns the catalog in file order, so ``rows[0]``
+    is arbitrary: today that would put every new signup on whichever of the two
+    subscription rows the JSON lists first, silently.
 
-    * an explicit ``explicit_id`` (carried through signup/OTP) when it matches a row;
-    * otherwise a single row explicitly marked as the signup default in the catalog;
-    * otherwise ``None`` — the caller renders a "plan not set up" state instead of
-      inventing a price. Ambiguity (two marked rows) is also ``None``: refusing is
-      recoverable, quoting the wrong plan to a customer is not.
+    Four rules, in order, and only the first three can answer:
+
+    1. an explicit ``explicit_id`` (carried through signup/OTP) that matches a row;
+    2. exactly one row explicitly marked as the signup default in the catalog;
+    3. exactly one row this deployment can actually CHARGE for (``chargeable_ids``,
+       from the configured price ids) — quoting a plan nobody can pay for is its own
+       bug, so "the only plan with a price" is determined rather than arbitrary;
+    4. otherwise ``None``. The caller renders a "plan not set up" state instead of
+       inventing a price, and ambiguity (two marked rows, two chargeable rows, an
+       unknown explicit id) is also ``None``: refusing is recoverable, quoting the
+       wrong plan to a customer is not.
     """
     if not rows:
         return None
@@ -72,12 +77,18 @@ def select_signup_plan(rows, explicit_id: Optional[str] = None):
     if explicit_id:
         return next((row for row in rows if row.get("id") == explicit_id), None)
 
-    marked = [
-        row
-        for row in rows
-        if any(row.get(key) is True for key in SIGNUP_DEFAULT_KEYS)
-    ]
-    return marked[0] if len(marked) == 1 else None
+    marked = [row for row in rows if any(row.get(key) is True for key in SIGNUP_DEFAULT_KEYS)]
+    if len(marked) == 1:
+        return marked[0]
+    if len(marked) > 1:
+        return None
+
+    if chargeable_ids:
+        chargeable = [row for row in rows if row.get("id") in set(chargeable_ids)]
+        if len(chargeable) == 1:
+            return chargeable[0]
+
+    return None
 
 
 @dataclass(frozen=True)
