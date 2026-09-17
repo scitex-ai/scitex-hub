@@ -95,7 +95,7 @@ def pdf_view(request, project_id, pdf_filename=None):
 
         try:
             writer_dir = writer_service.writer_dir
-        except RuntimeError as exc:
+        except RuntimeError:
             # The project's directory is not on disk yet — registered, but not
             # initialized. For THIS route that means the same thing a missing
             # file means: there is no PDF to serve, and the route's own answer
@@ -104,8 +104,12 @@ def pdf_view(request, project_id, pdf_filename=None):
             # fetch saw in the registered-project journey. Same class as the
             # section endpoint, where a workspace that is not on disk yet is
             # answered 200 with empty content instead of an error.
+            # Logged WITHOUT the exception text. `exc` carries the project slug,
+            # which is user-supplied, so interpolating it lets a crafted slug put
+            # newlines into the log and forge entries (CodeQL log-injection). The
+            # project id is an int from the URL and is enough to find the request.
             logger.info(
-                f"[PDFView] workspace not on disk for project {project_id} ({exc})"
+                "[PDFView] workspace not on disk for project %s", project_id
             )
             return JsonResponse(
                 {"success": False, "error": f"PDF not found: {pdf_filename}"},
