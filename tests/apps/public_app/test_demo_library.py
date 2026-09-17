@@ -107,14 +107,73 @@ def promotion_for(embed_key="guide-create-first-project", docs=("/apps/docs/#how
     }
 
 
+PLACEHOLDER = "a" * 64
+
+
+def bind_files(tmp_path: Path, manifest: dict) -> dict:
+    """Write every recorded file and bind a placeholder digest to the real bytes.
+
+    The library verifies the bytes it is about to call reviewed, so a fixture that
+    only names files, or that carries a digest nobody computed, describes a render
+    that cannot be approved — which is the point of the rule.
+    """
+    for rendition in manifest.get("renditions", []):
+        for record in rendition.get("files", []):
+            name = record.get("name", "")
+            if not name:
+                continue
+            target = tmp_path / name
+            target.write_bytes(f"{name}|{manifest['app']}-{manifest['date']}".encode())
+            if record.get("sha256") in ("", PLACEHOLDER):
+                record["sha256"] = library.sha256_file(target)
+            if not record.get("bytes"):
+                record["bytes"] = target.stat().st_size
+    return manifest
+
+
+def video_digests(manifest: dict) -> dict:
+    """The digest this render records for each language's video."""
+    digests = {}
+    for rendition in manifest.get("renditions", []):
+        for record in rendition.get("files", []):
+            if record.get("role") == "video":
+                digests[rendition.get("language", "")] = record.get("sha256", "")
+    return digests
+
+
 def write_library(tmp_path: Path, manifest=None, gate=None, promotion=None) -> Path:
     """A library directory holding a manifest and whichever sidecars are given.
 
     File names come from the manifest's own app and date, so two captures can live
-    in one directory — which is the case the index has to sort and count.
+    in one directory — which is the case the index has to sort and count. The bytes
+    and the sidecar bindings are real, because the library now checks both.
     """
     tmp_path.mkdir(parents=True, exist_ok=True)
     manifest = manifest if manifest is not None else manifest_for()
+    bind_files(tmp_path, manifest)
+    digests = video_digests(manifest)
+
+    if gate is not None:
+        # A gate must name the manifest it reviewed; the legacy fixture predated that.
+        gate.setdefault("manifest", {
+            "app": manifest.get("app", ""),
+            "date": manifest.get("date", ""),
+            "commit": (manifest.get("source") or {}).get("commit", ""),
+        })
+        for language, artifact in (gate.get("artifacts") or {}).items():
+            if isinstance(artifact, dict) and artifact.get("sha256") in ("", PLACEHOLDER):
+                artifact["sha256"] = digests.get(language, "")
+        for language, watch in (gate.get("watches") or {}).items():
+            if isinstance(watch, dict) and watch.get("artifact_sha256") in ("", PLACEHOLDER):
+                watch["artifact_sha256"] = digests.get(language, "")
+
+    if promotion is not None:
+        hashes = promotion.get("video_sha256")
+        if isinstance(hashes, dict):
+            for language, recorded in list(hashes.items()):
+                if recorded in ("", PLACEHOLDER):
+                    hashes[language] = digests.get(language, recorded)
+
     stem = f"{manifest['app']}-{manifest['date']}"
     (tmp_path / f"{stem}.manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
     for suffix, payload in (("watch-gate", gate), ("promotion", promotion)):

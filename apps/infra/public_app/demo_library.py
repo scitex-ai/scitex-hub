@@ -23,6 +23,7 @@ The manifest schema is the interface (``scitex.demo-video.manifest/1``); the
 pipeline writes it, this reads it.
 """
 
+import hashlib
 import json
 from pathlib import Path
 from urllib.parse import urlparse
@@ -149,6 +150,19 @@ def rendition_rows(manifest: dict) -> list[dict]:
             for record in records
             if isinstance(record, dict)
         }
+        # The manifest records a digest and a size per file. The card used to put the
+        # file NAME in a field called video_sha256, so nothing ever compared the bytes
+        # on disk with what was recorded, and an approval survived a replaced video.
+        file_records = {
+            record.get("role", ""): {
+                "name": record.get("name", ""),
+                "sha256": record.get("sha256", ""),
+                "size": record.get("size"),
+                "seconds": record.get("seconds"),
+            }
+            for record in records
+            if isinstance(record, dict)
+        }
         rows.append(
             {
                 "language": rendition.get("language", ""),
@@ -160,7 +174,12 @@ def rendition_rows(manifest: dict) -> list[dict]:
                 "cues": rendition.get("cues"),
                 "narration_seconds": rendition.get("narration_seconds"),
                 "files": {role: files.get(role, "") for role in CARD_ROLES},
-                "video_sha256": (files.get("video") or ""),
+                "file_records": {
+                    role: file_records.get(role, {"name": "", "sha256": "", "size": None,
+                                                  "seconds": None})
+                    for role in CARD_ROLES
+                },
+                "video_sha256": (file_records.get("video") or {}).get("sha256", ""),
             }
         )
     return rows
@@ -227,6 +246,122 @@ def visibility(gate_state: dict, promotion: dict) -> str:
     return "public-ready" if promoted(promotion) else "reviewed"
 
 
+def sha256_file(path: Path) -> str:
+    """The digest of the bytes on disk right now, or "" when they cannot be read."""
+    digest = hashlib.sha256()
+    try:
+        with open(path, "rb") as handle:
+            for block in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(block)
+    except OSError:
+        return ""
+    return digest.hexdigest()
+
+
+def bytes_match(path: Path, expected: str) -> bool:
+    """Whether the file at ``path`` is the file whose digest was recorded.
+
+    An approval is a statement about specific bytes. Re-checking it here is what makes
+    a hand-replaced video lose its approval instead of inheriting one: the review's
+    finding was that nothing compared the record with the file.
+    """
+    expected = (expected or "").strip().lower()
+    if not expected or len(expected) != 64:
+        return False
+    return sha256_file(path) == expected
+
+
+def verify_renditions(directory: Path, rows: list[dict], folder: str = "") -> dict:
+    """Per-language: is the video on disk still the video the manifest recorded?
+
+    A language with no recorded digest is reported as unverified rather than trusted —
+    "we cannot tell" must never read as "fine".
+    """
+    base = Path(directory)
+    if folder:
+        base = base / folder
+    verified: dict[str, dict] = {}
+    for row in rows:
+        language = row.get("language", "")
+        record = (row.get("file_records") or {}).get("video") or {}
+        name = record.get("name", "")
+        expected = record.get("sha256", "")
+        if not name or not expected:
+            verified[language] = {"name": name, "expected": expected, "actual": "",
+                                  "matches": False, "reason": "no recorded digest"}
+            continue
+        candidate = base / name
+        try:
+            contained = candidate.resolve().is_relative_to(base.resolve())
+        except (OSError, ValueError):
+            contained = False
+        if not contained:
+            verified[language] = {"name": name, "expected": expected, "actual": "",
+                                  "matches": False, "reason": "outside the library"}
+            continue
+        actual = sha256_file(candidate)
+        verified[language] = {
+            "name": name, "expected": expected, "actual": actual,
+            "matches": bool(actual) and actual == expected,
+            "reason": "" if actual == expected else ("unreadable" if not actual else "changed"),
+        }
+    return verified
+
+
+def identity_problems(manifest: dict, gate: dict, promotion: dict) -> list[str]:
+    """Why a gate or promotion file does not belong to this manifest.
+
+    Sidecars are read by file name, so a gate from another render of the same app on
+    the same day sits where this manifest looks for one. Binding them is the difference
+    between "this asset was reviewed" and "something next to this asset was reviewed".
+    """
+    problems: list[str] = []
+    app, date = manifest.get("app", ""), manifest.get("date", "")
+    commit = (manifest.get("source") or {}).get("commit", "")
+    digests = {
+        row["language"]: (row.get("file_records") or {}).get("video", {}).get("sha256", "")
+        for row in rendition_rows(manifest)
+    }
+
+    if gate:
+        identity = gate.get("manifest")
+        if not isinstance(identity, dict):
+            problems.append("the gate does not name the manifest it reviewed")
+        else:
+            if identity.get("app") != app or identity.get("date") != date:
+                problems.append(
+                    f"the gate names {identity.get('app')}/{identity.get('date')}, "
+                    f"not {app}/{date}"
+                )
+            if identity.get("commit") and commit and identity["commit"] != commit:
+                problems.append("the gate was recorded against a different commit")
+        for language, artifact in (gate.get("artifacts") or {}).items():
+            if not isinstance(artifact, dict):
+                problems.append(f"the gate's {language} artifact is not an object")
+                continue
+            recorded = digests.get(language, "")
+            if not recorded:
+                problems.append(f"the gate covers {language}, which this render has not")
+            elif artifact.get("sha256") != recorded:
+                problems.append(
+                    f"the gate's {language} digest is not this render's {language} video"
+                )
+
+    if promotion:
+        if promotion.get("app") and promotion["app"] != app:
+            problems.append("the promotion names a different app")
+        if promotion.get("date") and promotion["date"] != date:
+            problems.append("the promotion names a different date")
+        hashes = promotion.get("video_sha256")
+        if isinstance(hashes, dict):
+            for language, recorded in hashes.items():
+                if digests.get(language) != recorded:
+                    problems.append(
+                        f"the promotion's {language} digest is not this render's video"
+                    )
+    return problems
+
+
 def entry_for(manifest_path: Path, library_dir: Path | None = None) -> dict:
     """One card: what the manifest recorded, plus the gate's and promotion's state."""
     manifest_path = Path(manifest_path)
@@ -247,6 +382,19 @@ def entry_for(manifest_path: Path, library_dir: Path | None = None) -> dict:
     promotion = read_json(sidecar(manifest_path, "promotion"))
     gate_state = watch_state(gate)
     renditions = rendition_rows(manifest)
+    bytes_state = verify_renditions(directory, renditions, folder)
+    problems = identity_problems(manifest, gate, promotion)
+    # A gate that reviewed other bytes, or that names another render, cannot approve
+    # this one: the state is derived from the files in front of us, every read.
+    unverified = sorted(
+        language for language, state in bytes_state.items() if not state.get("matches")
+    )
+    gate_state = dict(gate_state)
+    gate_state["unverified_bytes"] = unverified
+    gate_state["identity_problems"] = problems
+    if gate_state.get("publishable") and (unverified or problems):
+        gate_state["publishable"] = False
+        gate_state["state"] = "changed" if unverified else "mismatched"
     return {
         "manifest": manifest_path.name,
         "folder": folder,
@@ -268,6 +416,9 @@ def entry_for(manifest_path: Path, library_dir: Path | None = None) -> dict:
             "caption_font_available"
         ),
         "watch": gate_state,
+        "bytes_verified": bool(bytes_state) and not unverified,
+        "bytes": bytes_state,
+        "identity_problems": problems,
         "promotion": {
             "promoted": promoted(promotion),
             "promoted_by": promotion.get("promoted_by", ""),
@@ -288,6 +439,24 @@ def entry_for(manifest_path: Path, library_dir: Path | None = None) -> dict:
     }
 
 
+def manifest_is_inside(path: Path, root: Path) -> bool:
+    """Whether a discovered manifest is really inside the library root.
+
+    The review found discovery following a symlink: a manifest outside the root was
+    indexed, and the containment failure was passed over instead of reported. A
+    symlinked manifest is skipped here — the index models what the library holds, not
+    what a link points at — and a path that cannot be resolved is skipped too.
+    """
+    path = Path(path)
+    try:
+        if path.is_symlink():
+            return False
+        path.resolve().relative_to(root)
+    except (OSError, ValueError):
+        return False
+    return True
+
+
 def library_index(directory: Path) -> dict:
     """Every manifest in a directory as a card, newest capture first.
 
@@ -295,8 +464,10 @@ def library_index(directory: Path) -> dict:
     its own folder (its own copy of same-named files) and still appear here.
     """
     directory = Path(directory)
-    paths = sorted(directory.glob(f"*{MANIFEST_SUFFIX}"))
-    paths += sorted(directory.glob(f"*/*{MANIFEST_SUFFIX}"))
+    root = directory.resolve()
+    candidates = sorted(directory.glob(f"*{MANIFEST_SUFFIX}"))
+    candidates += sorted(directory.glob(f"*/*{MANIFEST_SUFFIX}"))
+    paths = [path for path in candidates if manifest_is_inside(path, root)]
     entries = [entry_for(path, directory) for path in paths]
     entries = [entry for entry in entries if entry]
     entries.sort(key=lambda entry: (entry["date"], entry["app"], entry["captured_at"]), reverse=True)
