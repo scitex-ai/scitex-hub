@@ -201,6 +201,15 @@
   text-decoration: none;
   font-size: 0.95rem;
   transition: color var(--transition-normal);
+  /* A glyph is not a target. Card fix-footer-social-tap-targets-20260917:
+     measured at 390x844 these six links rendered 12x21..15x21px with 19-21px
+     between neighbours, failing WCAG 2.2 SC 2.5.8 on both the 24x24 minimum and
+     the spacing exception. The box is now the target, not the icon. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
 }
 
 .footer-social a:hover {
@@ -385,6 +394,14 @@
 
   .footer-social {
     justify-content: center;
+  }
+
+  /* Thumbs, not cursors. The platform floor for touch targets in the shell is
+     44px (SSOT §4); at phone widths the social links get it, which also clears
+     the 24px spacing question outright since each box is its own target. */
+  .footer-social a {
+    min-width: 44px;
+    min-height: 44px;
   }
 }
 
