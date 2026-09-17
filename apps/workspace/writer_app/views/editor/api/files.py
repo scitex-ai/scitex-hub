@@ -104,13 +104,13 @@ def pdf_view(request, project_id, pdf_filename=None):
             # fetch saw in the registered-project journey. Same class as the
             # section endpoint, where a workspace that is not on disk yet is
             # answered 200 with empty content instead of an error.
-            # Logged WITHOUT the exception text. `exc` carries the project slug,
-            # which is user-supplied, so interpolating it lets a crafted slug put
-            # newlines into the log and forge entries (CodeQL log-injection). The
-            # project id is an int from the URL and is enough to find the request.
-            logger.info(
-                "[PDFView] workspace not on disk for project %s", project_id
-            )
+            # NO user-provided value in this message. CodeQL flags the line as a
+            # log-injection sink for either form it has taken: the exception text
+            # (which carried the user-supplied slug) and the project id (which
+            # reaches the view from the URL). A constant message is the form the
+            # rule accepts, and nothing diagnostic is lost — the request URL, id
+            # included, is already in the access log for this same request.
+            logger.info("[PDFView] workspace not on disk for this project")
             return JsonResponse(
                 {"success": False, "error": f"PDF not found: {pdf_filename}"},
                 status=404,
