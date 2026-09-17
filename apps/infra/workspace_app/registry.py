@@ -356,7 +356,7 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
         order=data.get("order", 50),
         category=data.get("category", ""),
         availability=_resolve_availability(data),
-        scope=_resolve_scope(data),
+        scope=overrides.get("scope", _resolve_scope(data)),
         default_enabled=data.get("default_enabled", True),
         show_in_launcher=data.get("show_in_launcher", True),
         visibility=data.get("visibility", "public"),
@@ -463,6 +463,9 @@ def register_module(config: ModuleConfig) -> None:
             f"[registry] Module '{config.name}' already registered, skipping."
         )
         return
+    for field_name, value in _MANIFEST_OVERRIDES.get(config.name, {}).items():
+        if hasattr(config, field_name):
+            setattr(config, field_name, value)
     _registry.append(config)
     _registry_by_name[config.name] = config
     logger.info(f"[registry] Registered external module: {config.name}")

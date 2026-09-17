@@ -68,6 +68,15 @@ def test_project_scoped_manifest_metadata_reaches_the_registry():
     assert module.scope == "project"
 
 
+def test_hub_scope_overlay_keeps_external_stats_in_the_active_project():
+    # Arrange: the current Stats entry point predates manifest scope metadata.
+    manifest = {"name": "stats", "label": "Stats", "app_name": "stats_app"}
+    # Act
+    module = _manifest_to_module_config(manifest)
+    # Assert
+    assert module.scope == "project"
+
+
 def test_launcher_project_url_carries_the_active_project():
     # Arrange
     launcher = importlib.import_module("apps.workspace.apps_app.views.launcher")
@@ -84,11 +93,14 @@ def test_launcher_project_url_carries_the_active_project():
 def test_launcher_rejects_a_registry_url_swallowed_by_the_project_catchall():
     # Arrange
     launcher = importlib.import_module("apps.workspace.apps_app.views.launcher")
-    stats = SimpleNamespace(name="stats", get_url=lambda: "/apps/stats/")
+    missing = SimpleNamespace(
+        name="unmounted-continuity-leaf",
+        get_url=lambda: "/apps/unmounted-continuity-leaf/",
+    )
     scholar = SimpleNamespace(name="scholar", get_url=lambda: "/apps/scholar/")
     # Act
     reachability = (
-        launcher.module_route_is_reachable(stats),
+        launcher.module_route_is_reachable(missing),
         launcher.module_route_is_reachable(scholar),
     )
     # Assert

@@ -113,20 +113,28 @@ def test_login_launcher_and_project_apps_keep_one_project(continuity_browser):
     stats = page.locator('[data-module="stats"], [data-planned="stats"]')
     assert stats.count() == 1
     stats_href = stats.get_attribute("href")
+    apps_to_visit = ["scholar"]
     if stats_href is None:
         assert stats.get_attribute("data-availability") == "coming_soon"
         assert stats.get_attribute("aria-haspopup") == "dialog"
     else:
-        # No Stats leaf is mounted yet. A catalog-only tile may link to its real
-        # Store detail page, but must never invent the absent /apps/stats/ route.
-        assert urlparse(stats_href).path == "/apps/store/stats/"
-        stats_response = page.goto(stats_href, wait_until="domcontentloaded")
-        assert stats_response is not None and stats_response.status == 200
-        wait_for_page_ready(page)
-        page.goto("/apps/", wait_until="domcontentloaded")
-        wait_for_page_ready(page)
+        stats_path = urlparse(stats_href).path
+        if stats_path == "/apps/stats/":
+            assert stats.get_attribute("data-scope") == "project"
+            assert parse_qs(urlparse(stats_href).query)["project"] == [PROJECT_KEY]
+            apps_to_visit.append("stats")
+        else:
+            # A catalog-only tile may link to its real Store detail page, but
+            # must never invent an absent leaf route.
+            assert stats_path == "/apps/store/stats/"
+            stats_response = page.goto(stats_href, wait_until="domcontentloaded")
+            assert stats_response is not None and stats_response.status == 200
+            wait_for_page_ready(page)
+            page.goto("/apps/", wait_until="domcontentloaded")
+            wait_for_page_ready(page)
+    apps_to_visit.extend(app for app in PROJECT_APPS if app != "scholar")
 
-    for app in PROJECT_APPS:
+    for app in apps_to_visit:
         tile = page.locator(f'[data-module="{app}"]:not([data-favorite-alias])')
         assert tile.count() == 1
         assert tile.get_attribute("data-scope") == "project"
