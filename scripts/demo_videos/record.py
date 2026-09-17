@@ -453,6 +453,22 @@ def theme_init_script(theme: str) -> str:
     """
 
 
+def theme_failures(observations: list[dict], requested: str) -> list[dict]:
+    """The steps whose surface did not come up in the requested theme.
+
+    A single check at the first page is not enough: measured 2026-09-17, Home rendered
+    light while the workspace and the create form rendered dark, so a render can look
+    right in its first seconds and be wrong for the rest of the walkthrough. Every step
+    is observed, and any dark surface fails the render.
+    """
+    if not requested:
+        return []
+    return [
+        entry for entry in observations
+        if entry.get("background_theme") not in (requested, "unknown")
+    ]
+
+
 def theme_from_background(rgb: str) -> str:
     """Which theme a computed CSS colour looks like: light, dark, or unknown.
 
@@ -629,6 +645,7 @@ def record(browser, recording: Recording, storage_state, needed_seconds, args, u
     recording_started = time.monotonic()
     timings = []
     theme_state = {"theme": args.theme, "source": "disabled", "verified": False}
+    theme_observations: list[dict] = []
     index: int = -1
     step = None
     try:
@@ -641,6 +658,11 @@ def record(browser, recording: Recording, storage_state, needed_seconds, args, u
                 # Once a page is on screen, verify the theme instead of trusting it.
                 theme_state = apply_theme(page, args.theme, args.base_url,
                                           language_switch_path(recording.scenario))
+            if args.theme:
+                theme_observations.append(
+                    {"step": index + 1, "action": step.action, "page_url": page.url,
+                     **observe_theme(page, args.theme)}
+                )
             elapsed = time.monotonic() - step_started
             page.wait_for_timeout((max(needed_seconds[index] - elapsed, 0) + step.hold) * 1000)
             timings.append(
@@ -672,6 +694,22 @@ def record(browser, recording: Recording, storage_state, needed_seconds, args, u
                                 encoding="utf-8")
         report["report_path"] = str(failure_path)
         raise RecordingFailed(report) from error
+    dark = theme_failures(theme_observations, args.theme)
+    theme_state["observations"] = theme_observations
+    if args.theme and dark:
+        # Fail rather than publish a video of the wrong theme: report every surface, so
+        # the product fix is scoped from the recording instead of rediscovered.
+        raise RecordingFailed({
+            "app": recording.scenario.app, "language": recording.language,
+            "viewport": recording.viewport.name,
+            "error": f"{len(dark)} surface(s) did not come up in the requested theme",
+            "requested_theme": args.theme,
+            "dark_surfaces": dark,
+            "observations": theme_observations,
+            "step_index": dark[0].get("step", 0),
+            "steps_total": len(recording.scenario.steps),
+            "page_url": dark[0].get("page_url", ""),
+        })
     page.wait_for_timeout(1000)
     context.close()
     webm = recording.artifact("webm")
@@ -863,6 +901,25 @@ def preflight_target_kinds(scenario: Scenario, username: str, run_id: str) -> li
     return targets
 
 
+def observe_theme(page, theme: str = "") -> dict:
+    """The rendered theme of the page as it stands: attribute, background, verdict."""
+    try:
+        observed = page.evaluate(
+            """() => ({
+                attribute: document.documentElement.getAttribute('data-theme') || '',
+                background: getComputedStyle(document.body || document.documentElement)
+                              .backgroundColor,
+            })"""
+        )
+    except Exception as error:
+        return {"attribute": "", "background": "", "background_theme": "unknown",
+                "observed_error": f"{type(error).__name__}: {error}"[:200]}
+    observed["background_theme"] = theme_from_background(observed["background"])
+    if theme:
+        observed["matches"] = observed["background_theme"] in (theme, "unknown")
+    return observed
+
+
 def theme_map(page, theme: str, targets: list[dict], base_url: str) -> dict:
     """Which pages actually come up in the requested theme, measured per page.
 
@@ -990,7 +1047,12 @@ def run_preflight(scenario: Scenario, args, username: str, password: str) -> dic
                 report["blockers"].append(f"language switcher did not reach '{locale}'")
         if args.theme:
             # Before a render: which surfaces actually honour the theme. Signed out,
-            # this maps the public pages; signed in, the pages the scenario uses.
+            # this maps the public pages; signed in, the pages the scenario uses — plus
+            # the suite a light-mode public demo is judged on: Home, My Projects, the
+            # create form and the project detail. The operator named those four.
+            if state:
+                targets = list(targets) + [{"path": "/apps/my-projects/", "creates": False}]
+                report["theme_map_surfaces"] = [target["path"] for target in targets]
             report["theme_map"] = theme_map(page, args.theme, targets, args.base_url)
             if not report["theme_map"]["all_match"]:
                 report["blockers"].append(
