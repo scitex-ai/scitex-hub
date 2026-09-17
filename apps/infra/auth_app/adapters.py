@@ -31,6 +31,45 @@ class SciTexAccountAdapter(DefaultAccountAdapter):
             user.save()
         return user
 
+    def get_signup_redirect_url(self, request):
+        """
+        Where a COMPLETED SIGNUP goes next — the same step the email path goes to.
+
+        THE GAP THIS CLOSES (measured through allauth's own flow, not read off
+        the source): the email path is OTP-first, and once the code verifies the
+        address the verification endpoint publishes the next step with
+        ``post_signup_redirect_url(user)``. The social path published nothing of
+        the sort — a brand-new Google/ORCID signup fell through to
+        ``ACCOUNT_SIGNUP_REDIRECT_URL`` ("/") and was dropped into the product,
+        past the card/trial step its account is subject to ever since
+        card-required onboarding landed.
+
+        WHY THIS METHOD AND NOT THE SOCIAL ADAPTER'S. allauth 65 calls
+        ``get_signup_redirect_url`` on the ACCOUNT adapter (from ``post_login``,
+        via ``account.utils.get_login_redirect_url``) with ``signup=True``; the
+        ``get_login_redirect_url`` that used to sit on ``SciTexSocialAccountAdapter``
+        was never called by allauth at all, so the social redirect was governed
+        by a default nobody had chosen. Only SIGNUP is redirected here: an
+        existing account signing in takes the ``signup=False`` branch and keeps
+        the ordinary login target.
+
+        WHY IT CALLS THE FUNCTION RATHER THAN THE URL. One source, two callers —
+        the email publisher and this hook. Repeating the route here would let
+        the two drift the moment the funnel target moves (it is moving right now:
+        PR #934 takes it from the billing page to a dedicated payment step), and
+        the drift would be silent. Tests assert equality with that function, not
+        with a literal.
+        """
+        user = getattr(request, "user", None)
+        if user is not None and user.is_authenticated:
+            from apps.infra.public_app.services.billing_provider import (
+                post_signup_redirect_url,
+            )
+
+            return post_signup_redirect_url(user)
+        return super().get_signup_redirect_url(request)
+
+
 class SciTexSocialAccountAdapter(DefaultSocialAccountAdapter):
     """
     Custom social account adapter for SciTeX.
@@ -224,10 +263,21 @@ class SciTexSocialAccountAdapter(DefaultSocialAccountAdapter):
 
         return user
 
-    def get_login_redirect_url(self, request):
-        """
-        Return the URL to redirect to after successful social login.
-        """
-        from django.conf import settings
+    # get_login_redirect_url USED TO LIVE HERE, and nothing called it.
+    #
+    # It returned ``LOGIN_REDIRECT_URL`` and read as the social-redirect policy.
+    # It was not one: ``get_login_redirect_url`` is an ACCOUNT-adapter hook, and
+    # allauth 65 reaches it through ``account.utils.get_login_redirect_url``
+    # (which asks ``allauth.account.adapter.get_adapter()``). The social adapter's
+    # copy on this class had no call site, so the social redirect was decided
+    # entirely by a default nobody had chosen — which is why a brand-new
+    # Google/ORCID signup landed on "/" while the email path published the
+    # payment step.
+    #
+    # The behaviour now lives where allauth actually looks:
+    # ``SciTexAccountAdapter.get_signup_redirect_url`` (a NEW signup converges on
+    # the funnel step) and the untouched account ``get_login_redirect_url``
+    # (existing-account logins keep the ordinary target). Left as a note rather
+    # than silently dropped, because the next person looking for "the social
+    # redirect" will look for this name.
 
-        return getattr(settings, "LOGIN_REDIRECT_URL", "/")
