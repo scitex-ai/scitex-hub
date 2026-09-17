@@ -79,7 +79,7 @@ def fresh_social_signup(db):
     """Drive allauth's real new-account signup flow and return (response, user)."""
     from allauth.socialaccount.models import SocialLogin
 
-    def _run(provider="google"):
+    def _run(provider="google", next_url=None):
         user = User.objects.create_user(
             username=f"{provider}_newcomer",
             email=f"{provider}_newcomer@example.com",
@@ -89,7 +89,7 @@ def fresh_social_signup(db):
             user=user,
             account=SocialAccount(provider=provider, uid=f"{provider}-uid-new"),
         )
-        sociallogin.state = {}
+        sociallogin.state = {"next": next_url} if next_url else {}
         sociallogin._did_authenticate_by_email = None
         request = _request()
         # allauth's own middleware wraps every request in this context; the flow
@@ -204,6 +204,115 @@ class TestExistingAccountLoginIsUnchanged:
         request, _response = _login_via_allauth(sociallogin)
         # Assert
         assert request.user.pk == user.pk
+
+
+@pytest.mark.auth
+@pytest.mark.guards(
+    defect=(
+        "A brand-new social account carrying a local next= (for example "
+        "/bypass-target/) was redirected straight there: allauth reads "
+        "sociallogin.state['next'] and passes it as the explicit redirect, so "
+        "get_signup_redirect_url was never consulted and the funnel step was "
+        "skipped for a new account."
+    )
+)
+class TestANewAccountCannotChooseItsOwnLanding:
+    """``next`` is a hint for a returning user — never a door past onboarding.
+
+    FOUND BY REVIEW, and it is the defect this whole class exists for: allauth
+    reads the target for a brand-new social account from ``sociallogin.state["next"]``
+    (``complete_social_signup`` passes ``sociallogin.get_redirect_url(request)``
+    into ``perform_login``, and ``get_login_redirect_url`` returns that value
+    BEFORE it ever asks ``get_signup_redirect_url``). A local ``next`` therefore
+    wins outright: a real new-account Google probe carrying
+    ``next=/bypass-target/`` landed on ``/bypass-target/``, past the step every
+    new account is subject to. External ``next`` values never reach the state
+    (``state_from_request`` validates with ``is_safe_url``), so the hole is
+    LOCAL paths — which is the dangerous shape, because a local path can be any
+    app route.
+
+    The rule now: a NEW account's landing is chosen by the funnel, full stop,
+    even when a next was carried. An existing account keeps the validated next,
+    which is what ``next`` is for.
+    """
+
+    @pytest.mark.django_db
+    @pytest.mark.parametrize("provider", ["google", "orcid"])
+    def test_a_local_next_does_not_beat_the_funnel_step(self, fresh_social_signup, provider):
+        # Arrange: the exact shape the review probe used
+        response, user = fresh_social_signup(provider, next_url="/bypass-target/")
+        # Act
+        target = response["Location"]
+        # Assert
+        assert target == post_signup_redirect_url(user)
+        assert target != "/bypass-target/"
+
+    @pytest.mark.django_db
+    def test_an_injected_external_next_does_not_beat_it_either(self, fresh_social_signup):
+        # Belt and braces: if a hostile value ever reached the state by another
+        # road, the funnel is still authoritative.
+        # Arrange
+        response, user = fresh_social_signup("google", next_url="https://bypass.example/target/")
+        # Act
+        target = response["Location"]
+        # Assert
+        assert target == post_signup_redirect_url(user)
+
+    def test_the_state_builder_stores_no_external_next(self, settings):
+        # Why the external case cannot arise through the real path — while
+        # ALLOWED_HOSTS is meaningful: the state is built by state_from_request,
+        # which validates with is_safe_url. Pinned here, because THIS
+        # DEVELOPMENT ENVIRONMENT has "*" in ALLOWED_HOSTS (measured), which
+        # makes is_safe_url accept any host at all. That is the reason the
+        # refusal for a new account lives in post_login — a rule that does not
+        # depend on how permissive the host allowlist happens to be.
+        # Arrange
+        from allauth.socialaccount.models import SocialLogin
+
+        settings.ALLOWED_HOSTS = ["testserver"]
+        request = RequestFactory().get("/?next=https://bypass.example/target/")
+        # Act
+        with allauth_context.request_context(request):
+            state = SocialLogin.state_from_request(request)
+        # Assert
+        assert "next" not in state
+
+    def test_the_state_builder_still_stores_a_local_next(self, settings):
+        # The local case IS storable — which is exactly why the redirect, not the
+        # state, has to be the thing that refuses for a new account.
+        # Arrange
+        from allauth.socialaccount.models import SocialLogin
+
+        settings.ALLOWED_HOSTS = ["testserver"]
+        request = RequestFactory().get("/?next=/bypass-target/")
+        # Act
+        with allauth_context.request_context(request):
+            state = SocialLogin.state_from_request(request)
+        # Assert
+        assert state["next"] == "/bypass-target/"
+
+    @pytest.mark.django_db
+    def test_an_existing_login_still_honours_a_validated_local_next(self, existing_social_account):
+        # Preservation, in the same breath as the fix: next is FOR the returning
+        # user, and a new account must not take it away from them.
+        # Arrange
+        sociallogin, user = existing_social_account
+        sociallogin.state = {"next": "/accounts/settings/"}
+        # Act
+        request = _request()
+        with allauth_context.request_context(request):
+            response = login_existing_account(request, sociallogin)
+        # Assert
+        assert response["Location"] == "/accounts/settings/"
+
+    @pytest.mark.django_db
+    def test_an_existing_login_without_a_next_keeps_the_ordinary_target(self, existing_social_account, settings):
+        # Arrange
+        sociallogin, _user = existing_social_account
+        # Act
+        _request_obj, response = _login_via_allauth(sociallogin)
+        # Assert
+        assert response["Location"] == resolve_url(settings.LOGIN_REDIRECT_URL)
 
 
 @pytest.mark.auth

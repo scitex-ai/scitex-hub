@@ -9,7 +9,7 @@ from datetime import timedelta
 
 import scitex as stx
 
-from config.social_apps import with_credential_apps
+from config.social_apps import orcid_base_domain, with_credential_apps
 
 # ---------------------------------------
 # ORCID OAuth (legacy - for profile linking)
@@ -110,7 +110,15 @@ SOCIALACCOUNT_PROVIDERS = with_credential_apps(
             "FETCH_USERINFO": True,
         },
         "orcid": {
-            "BASE_DOMAIN": os.getenv("ORCID_BASE_DOMAIN", "sandbox.orcid.org"),
+            # ALLOWLISTED, not read straight from the environment. allauth
+            # concatenates this value into the authorize URL and into
+            # `https://pub.{value}/oauth/token`, which is where the client
+            # SECRET is POSTed — so `ORCID_BASE_DOMAIN=attacker.invalid` used to
+            # hand the secret to a host we do not own. `orcid_base_domain`
+            # accepts only ORCID's two hosts (tolerating the URL/case forms an
+            # operator might paste) and RAISES here otherwise: this module must
+            # not load with an endpoint it cannot vouch for.
+            "BASE_DOMAIN": orcid_base_domain(os.getenv("ORCID_BASE_DOMAIN")),
             "MEMBER_API": False,
         },
     },

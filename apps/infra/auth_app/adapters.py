@@ -59,6 +59,10 @@ class SciTexAccountAdapter(DefaultAccountAdapter):
         PR #934 takes it from the billing page to a dedicated payment step), and
         the drift would be silent. Tests assert equality with that function, not
         with a literal.
+
+        NOTE: this method is only reached when allauth has NO redirect of its own
+        to use — see ``post_login`` below, which is what makes that true for a new
+        account even when a ``next`` was carried.
         """
         user = getattr(request, "user", None)
         if user is not None and user.is_authenticated:
@@ -68,6 +72,52 @@ class SciTexAccountAdapter(DefaultAccountAdapter):
 
             return post_signup_redirect_url(user)
         return super().get_signup_redirect_url(request)
+
+    def post_login(
+        self,
+        request,
+        user,
+        *,
+        email_verification,
+        signal_kwargs,
+        email,
+        signup,
+        redirect_url,
+    ):
+        """
+        A NEW account's landing is the FUNNEL's decision — not the visitor's.
+
+        FOUND BY REVIEW, and it defeated the hook above completely. allauth
+        resolves the post-login target in ``account.utils.get_login_redirect_url``
+        as: explicit ``url`` first, then the request's validated ``next``, and
+        ONLY THEN ``get_signup_redirect_url``. The social flow hands the first
+        one in — ``complete_social_signup`` passes
+        ``sociallogin.get_redirect_url(request)``, which is ``state["next"]`` —
+        so a brand-new account carrying ``?next=/bypass-target/`` was redirected
+        to ``/bypass-target/`` and never consulted the funnel at all. Measured
+        with a real new-account Google probe: ``/bypass-target/`` won, past the
+        step every new account is subject to.
+
+        External values never reach the state (``state_from_request`` validates
+        with ``is_safe_url``), so the hole was LOCAL paths — which is the
+        dangerous shape, because a local path can be any app route.
+
+        So for ``signup=True`` the caller-supplied target is dropped, and the
+        decision falls through to ``get_signup_redirect_url``. ``next`` remains
+        what it is for: a RETURNING user's destination, untouched here and
+        asserted in the tests (``signup=False``).
+        """
+        if signup:
+            redirect_url = None
+        return super().post_login(
+            request,
+            user,
+            email_verification=email_verification,
+            signal_kwargs=signal_kwargs,
+            email=email,
+            signup=signup,
+            redirect_url=redirect_url,
+        )
 
 
 class SciTexSocialAccountAdapter(DefaultSocialAccountAdapter):
