@@ -41,9 +41,43 @@ PENDING = "pending"                    # verified, no usable card yet
 SETUP_CANCELLED = "setup_cancelled"    # came back from Stripe without finishing
 USABLE = "usable"                      # a confirmed usable card exists
 NOT_OPEN = "not_open"                  # provider not configured yet: no card can be taken
+PLAN_UNSET = "plan_unset"              # catalog has no deterministic signup plan: do not guess
 
 #: States the surface knows how to render.
-STATES = (PENDING, SETUP_CANCELLED, USABLE, NOT_OPEN)
+STATES = (PENDING, SETUP_CANCELLED, USABLE, NOT_OPEN, PLAN_UNSET)
+
+#: Catalog keys that would explicitly mark a plan as the one new signups get.
+#: None of them exists in pricing.json today, which is why the step refuses to
+#: choose a plan rather than showing whichever row happens to be first.
+SIGNUP_DEFAULT_KEYS = ("signup_default", "default", "recommended")
+
+
+def select_signup_plan(rows, explicit_id: Optional[str] = None):
+    """The plan a new signup is placed on — or ``None``, never an arbitrary row.
+
+    ``subscription_pricing_rows()`` returns the catalog in file order, so
+    ``rows[0]`` is arbitrary: today that would put every new signup on whichever of
+    the two subscription rows the JSON lists first, silently. This function only
+    answers when the choice is DETERMINED:
+
+    * an explicit ``explicit_id`` (carried through signup/OTP) when it matches a row;
+    * otherwise a single row explicitly marked as the signup default in the catalog;
+    * otherwise ``None`` — the caller renders a "plan not set up" state instead of
+      inventing a price. Ambiguity (two marked rows) is also ``None``: refusing is
+      recoverable, quoting the wrong plan to a customer is not.
+    """
+    if not rows:
+        return None
+
+    if explicit_id:
+        return next((row for row in rows if row.get("id") == explicit_id), None)
+
+    marked = [
+        row
+        for row in rows
+        if any(row.get(key) is True for key in SIGNUP_DEFAULT_KEYS)
+    ]
+    return marked[0] if len(marked) == 1 else None
 
 
 @dataclass(frozen=True)

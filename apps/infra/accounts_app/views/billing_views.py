@@ -57,7 +57,13 @@ def payment_step(request):
     It decides nothing about entitlement: a usable card is read from the account
     records the backend already owns, and the webhook still owns activation.
     """
-    from ..payment_step import NOT_OPEN, payment_disclosures, trial_state
+    from ..payment_step import (
+        NOT_OPEN,
+        PLAN_UNSET,
+        payment_disclosures,
+        select_signup_plan,
+        trial_state,
+    )
 
     if not card_registration_is_open():
         # No card can be taken yet (provider not configured). Still render THIS
@@ -65,7 +71,7 @@ def payment_step(request):
         # coherent step, and the surface carries its own marker so both a reader and
         # a test can tell which step they are on.
         disclosures = payment_disclosures(
-            plan_label="SciTeX Cloud",
+            plan_label="",
             monthly_usd=0.0,
             trial_end=None,
             state=NOT_OPEN,
@@ -79,9 +85,24 @@ def payment_step(request):
         returned_from_setup=request.GET.get("setup") == "cancelled",
     )
 
-    rows = subscription_pricing_rows()
-    row = rows[0] if rows else {}
-    label = row.get("label") or row.get("name") or "SciTeX Cloud"
+    # Which plan a new signup is put on must be DETERMINED, not whichever catalog
+    # row comes first. A selection carried through signup/OTP wins; otherwise the
+    # catalog has to say so; otherwise this step says it does not know rather than
+    # quoting an arbitrary price to a customer.
+    row = select_signup_plan(
+        subscription_pricing_rows(),
+        explicit_id=request.GET.get("plan") or None,
+    )
+    if row is None:
+        disclosures = payment_disclosures(
+            plan_label="",
+            monthly_usd=0.0,
+            trial_end=None,
+            state=PLAN_UNSET,
+        )
+        return render(request, "accounts_app/payment_step.html", disclosures.as_context())
+
+    label = row.get("label") or row.get("name") or ""
     _, trial_end = trial_window(user)
 
     disclosures = payment_disclosures(

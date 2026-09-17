@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import re
 from datetime import datetime, timedelta, timezone as tz
+from pathlib import Path
 
 import pytest
 from django.template.loader import render_to_string
@@ -27,8 +28,10 @@ from django.template.loader import render_to_string
 from apps.infra.accounts_app.payment_step import (
     PENDING,
     SETUP_CANCELLED,
+    SIGNUP_DEFAULT_KEYS,
     USABLE,
     payment_disclosures,
+    select_signup_plan,
     trial_state,
 )
 
@@ -278,19 +281,129 @@ class TestPaymentStepRoute:
             "a step with no provider must not offer the card action"
         )
 
-    def test_the_post_signup_redirect_points_at_this_step(self):
-        from apps.infra.public_app.services.billing_provider import (
-            card_registration_is_open,
-            post_signup_redirect_url,
-        )
+    def test_the_post_signup_redirect_is_the_same_in_every_provider_state(self):
+        """No fail-open: a keyless environment must not hand the user the app.
+
+        This test used to accept `/<username>/` when card registration was closed —
+        exactly the bypass the PR-934 pre-review flagged (verified, no card, straight
+        into the app, with copy saying the trial was already running).
+        """
+        from apps.infra.public_app.services.billing_provider import post_signup_redirect_url
 
         user = self._user("payment-redirect")
         target = post_signup_redirect_url(user)
 
-        if card_registration_is_open():
-            assert target == "/accounts/settings/payment/"
-        else:
-            assert target == f"/{user.username}/"
+        assert target == "/accounts/settings/payment/"
+        assert user.username not in target
+
+
+class TestSignupPlanIsDeterminedNeverArbitrary:
+    """`rows[0]` is file order, not a decision — and the wrong price is quoted to a customer.
+
+    Pre-review finding (4) on PR 934. The catalog today holds two subscription rows
+    (Academic $19, Standard $39) and no marker, so the step must refuse rather than
+    pick one. When a plan IS selected it must be marked or explicitly chosen, and the
+    answer must not depend on the order the JSON happens to list rows in.
+    """
+
+    ROWS = [
+        {"id": "subscription-student", "label": "SciTeX Cloud Academic", "amount": 19},
+        {"id": "subscription-general", "label": "SciTeX Cloud Standard", "amount": 39},
+    ]
+
+    def test_an_unmarked_catalog_refuses_instead_of_taking_the_first_row(self):
+        assert select_signup_plan(self.ROWS) is None
+
+    def test_the_answer_does_not_depend_on_catalog_order(self):
+        marked = {"id": "subscription-general", "label": "Standard", "default": True}
+        forward = [marked] + [r for r in self.ROWS if r["id"] != marked["id"]]
+
+        assert select_signup_plan(forward) == marked
+        assert select_signup_plan(list(reversed(forward))) == marked
+
+    def test_two_marked_rows_refuse_rather_than_tie_break(self):
+        a = {**self.ROWS[0], "default": True}
+        b = {**self.ROWS[1], "recommended": True}
+
+        assert select_signup_plan([a, b]) is None
+        assert select_signup_plan([b, a]) is None
+
+    def test_an_explicit_selection_wins_and_survives_reordering(self):
+        chosen = select_signup_plan(self.ROWS, "subscription-student")
+        assert chosen is not None
+        assert chosen["amount"] == 19
+
+        reordered = select_signup_plan(list(reversed(self.ROWS)), "subscription-student")
+        assert reordered == chosen
+
+    def test_an_unknown_explicit_id_refuses_rather_than_falling_back(self):
+        """A stale plan id in a signup link must not silently become rows[0]."""
+        assert select_signup_plan(self.ROWS, "subscription-legacy") is None
+
+    def test_an_empty_catalog_refuses(self):
+        assert select_signup_plan([]) is None
+        assert select_signup_plan(None) is None
+
+    def test_falsey_markers_are_not_a_default(self):
+        rows = [{**self.ROWS[0], "default": False}, {**self.ROWS[1], "default": None}]
+
+        assert select_signup_plan(rows) is None
+
+    def test_the_live_catalog_is_never_selected_by_file_order(self):
+        """Pins the real pricing.json: a selection must be marked, never merely first."""
+        from apps.infra.public_app.services.billing_provider import subscription_pricing_rows
+
+        rows = subscription_pricing_rows()
+        selection = select_signup_plan(rows)
+
+        if selection is not None:
+            assert any(selection.get(key) is True for key in SIGNUP_DEFAULT_KEYS), (
+                "a plan was selected without an explicit catalog marker — that is file "
+                "order pretending to be a decision"
+            )
+
+
+class TestStepCopyStatesTheTruth:
+    """The states that are NOT the happy path must not overclaim.
+
+    Pre-review finding (2): with the provider unavailable the step said the trial was
+    running and offered the billing page — a claim nothing enforced plus a bypass.
+    """
+
+    SOURCE = (
+        Path(__file__).resolve().parents[3]
+        / "apps/infra/accounts_app/templates/accounts_app/payment_step.html"
+    )
+
+    def _branch(self, state: str) -> str:
+        src = self.SOURCE.read_text()
+        start = src.index(f"state == '{state}'")
+        rest = src[start:]
+        ends = [i for i in (rest.find("{% elif"), rest.find("{% else"), rest.find("{% endif")) if i != -1]
+        return rest[: min(ends)]
+
+    def test_not_open_never_claims_a_running_trial(self):
+        branch = self._branch("not_open")
+
+        assert "trial is running" not in branch
+        assert "not started" in branch or "has not started" in branch
+
+    def test_not_open_offers_no_app_or_billing_bypass(self):
+        assert "{% url" not in self._branch("not_open"), (
+            "an unavailable provider must not link users into the app or billing"
+        )
+
+    def test_not_open_says_the_retry_is_automatic(self):
+        branch = self._branch("not_open").lower()
+
+        assert "retry" in branch or "automatically" in branch
+        assert "nothing is due" in branch or "nothing to pay" in branch
+
+    def test_the_plan_unset_branch_quotes_no_price_or_dates(self):
+        branch = self._branch("plan_unset")
+
+        for field in ("price_per_month", "due_today", "first_charge_on", "trial_ends_on"):
+            assert field not in branch, f"{field} shown for a plan nobody has chosen"
 
 
 # EOF

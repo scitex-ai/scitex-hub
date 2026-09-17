@@ -114,13 +114,14 @@ def card_registration_is_open() -> bool:
 
 
 def post_signup_redirect_url(user) -> str:
-    """Card-required signup: a verified user adds a card next, once registration is open.
+    """Card-required signup: a verified user goes to the payment step, always.
 
-    Since the funnel card (hub-signup-email-stripe-funnel-20260917) that next step
-    is the dedicated payment step rather than the general billing settings page: it
-    states the terms before the provider's page and carries the single
-    'Continue to secure Stripe' action. Billing settings remains one click away.
+    Card: hub-signup-email-stripe-funnel-20260917. This used to return the user's
+    own workspace when the provider was not configured — which FAILED OPEN: a
+    verified signup walked straight past the card requirement into the product, and
+    the funnel silently had two policies depending on an environment variable. The
+    payment step is the honest destination in every case; what changes with the
+    provider is only what that step can offer (its `not_open` state says activation
+    is waiting), never whether the user is routed there.
     """
-    if card_registration_is_open():
-        return reverse("accounts_app:payment_step")
-    return f"/{user.username}/"
+    return reverse("accounts_app:payment_step")
