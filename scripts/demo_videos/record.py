@@ -496,14 +496,31 @@ def rendition_entry(recording: Recording, timings: list[StepTiming], files: list
 
 def preflight_targets(scenario: Scenario, username: str, run_id: str) -> list[str]:
     """Every page the scenario opens, with placeholders filled, in order."""
-    targets = []
+    return [target["path"] for target in preflight_target_kinds(scenario, username, run_id)]
+
+
+def preflight_target_kinds(scenario: Scenario, username: str, run_id: str) -> list[dict]:
+    """Every page the scenario opens, and whether it is supposed to exist yet.
+
+    A page whose path carries `{run_id}` is created *during* the recording — that
+    is what the placeholder is for — so requiring it to answer 200 before the
+    render is wrong. Measured 2026-09-17 against the real demo account:
+    `/beta-video-20260917-a/sleep-study-PREFLIGHT/` answered 404, preflight exited
+    4, and the render that followed succeeded. A preflight that fails a render that
+    works teaches people to ignore it, so the distinction is part of the check now.
+    """
+    targets: list[dict] = []
     for step in scenario.steps:
         if step.action != "goto":
             continue
         for value in step.value.values():
-            filled = fill_placeholders(value, username, run_id)
-            if filled not in targets:
-                targets.append(filled)
+            # A localized value repeats the same string once per language; the page
+            # is visited once, so the path is what de-duplicates (a created page
+            # used to be added twice for exactly this reason).
+            path = fill_placeholders(value, username, run_id)
+            if any(entry["path"] == path for entry in targets):
+                continue
+            targets.append({"path": path, "creates": "{" in value})
     return targets
 
 
@@ -521,7 +538,11 @@ def run_preflight(scenario: Scenario, args, username: str, password: str) -> dic
     from playwright.sync_api import sync_playwright
 
     run_id = "PREFLIGHT"
-    targets = preflight_targets(scenario, username, run_id)
+    targets = preflight_target_kinds(scenario, username, run_id)
+    if any(target["creates"] for target in targets) and username:
+        # The page a run creates cannot exist yet; the account's own area is the
+        # thing that has to be reachable for the create to land somewhere.
+        targets.append({"path": f"/{username}/", "creates": False})
     report = {
         "scenario": scenario.app,
         "base_url": args.base_url,
@@ -583,16 +604,24 @@ def run_preflight(scenario: Scenario, args, username: str, password: str) -> dic
                 report["blockers"].append(f"language switcher did not reach '{locale}'")
         for target in targets:
             try:
-                response = page.goto(f"{args.base_url}{target}", wait_until="domcontentloaded",
-                                     timeout=90_000)
+                response = page.goto(f"{args.base_url}{target['path']}",
+                                     wait_until="domcontentloaded", timeout=90_000)
                 status = response.status if response else 0
-                report["pages"].append({"path": target, "status": status, "ok": status < 400})
-                if status >= 400:
-                    report["blockers"].append(f"{target} answered HTTP {status}")
+                entry = {"path": target["path"], "status": status, "creates": target["creates"],
+                         "ok": status < 400}
+                if target["creates"]:
+                    # A page this run creates is expected to be absent, and its
+                    # absence is not a blocker: the render is what creates it.
+                    entry["ok"] = True
+                    entry["expected_absent"] = status >= 400
+                report["pages"].append(entry)
+                if not entry["ok"]:
+                    report["blockers"].append(f"{target['path']} answered HTTP {status}")
             except Exception as error:
-                report["pages"].append({"path": target, "status": 0, "ok": False,
+                report["pages"].append({"path": target["path"], "status": 0, "ok": False,
+                                        "creates": target["creates"],
                                         "error": f"{type(error).__name__}: {error}"})
-                report["blockers"].append(f"{target} did not load: {type(error).__name__}")
+                report["blockers"].append(f"{target['path']} did not load: {type(error).__name__}")
         context.close()
         browser.close()
     report["ready"] = not report["blockers"]

@@ -29,6 +29,7 @@ from record import (  # noqa: E402
     artifact_role,
     empty_selection_message,
     language_switch_path,
+    preflight_target_kinds,
     preflight_targets,
 )
 
@@ -206,6 +207,20 @@ def test_preflight_targets_of_the_projects_scenario_cover_every_page():
         "/apps/",
         "/new/",
         "/demo-user/sleep-study-PREFLIGHT/",
+    ]
+
+
+def test_preflight_knows_which_page_its_own_run_creates():
+    # Arrange: `/demo-user/sleep-study-PREFLIGHT/` cannot exist before the render
+    # that creates it; requiring it to answer 200 failed a render that worked.
+    scenario = load_scenario(DEMO_VIDEOS_DIR / "scenarios" / "projects.yaml")
+    # Act
+    kinds = preflight_target_kinds(scenario, "demo-user", "PREFLIGHT")
+    # Assert
+    assert [(entry["path"], entry["creates"]) for entry in kinds] == [
+        ("/apps/", False),
+        ("/new/", False),
+        ("/demo-user/sleep-study-PREFLIGHT/", True),
     ]
 
 
