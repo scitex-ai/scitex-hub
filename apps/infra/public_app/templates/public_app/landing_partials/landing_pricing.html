@@ -25,25 +25,27 @@
 {% endcomment %}
 <section class="landing-section section-pricing" id="pricing">
     <div class="container">
-        <h2 class="section-heading">{% trans "Pricing" %}</h2>
+        <h2 class="section-heading">{% trans "Choose SciTeX Cloud or run SciTeX yourself" %}</h2>
         <div class="pricing-grid pricing-grid-plans">
             {# ---- 1/2 Pro (Academic / Non-Academic switcher, top-right) ---- #}
             {% if sub_rows %}
             <div class="pricing-card pricing-card-sub">
                 <div class="pricing-header">
                     <div class="plan-title-row">
-                        <h3 class="plan-name">{% trans "Cloud" %}</h3>
+                        <h3 class="plan-name">{% trans "SciTeX Cloud" %}</h3>
                         <div class="plan-variant-switch" role="group" aria-label="{% trans "Plan variant" %}">
                             <button type="button" class="variant-btn is-active" data-variant="academic" aria-pressed="true">{% trans "Academic" %}</button>
-                            <button type="button" class="variant-btn" data-variant="general" aria-pressed="false">{% trans "Non-Academic" %}</button>
+                            <button type="button" class="variant-btn" data-variant="general" aria-pressed="false">{% trans "Professional" %}</button>
                         </div>
                     </div>
-                    <p class="plan-sub">{% trans "For individuals" %}</p>
+                    <p class="plan-sub">{% trans "A managed research workspace for individuals" %}</p>
                 </div>
                 <div class="pricing-body">
                     <div class="plan-variants">
                     {% for row in sub_rows %}
-                    <div class="plan-variant plan-variant-{% if row.is_academic %}academic{% else %}general{% endif %}{% if not row.is_academic %} plan-variant-hidden{% endif %}" data-variant="{% if row.is_academic %}academic{% else %}general{% endif %}">
+                    <div class="plan-variant plan-variant-{% if row.is_academic %}academic{% else %}general{% endif %}{% if not row.is_academic %} plan-variant-hidden{% endif %}"
+                         data-variant="{% if row.is_academic %}academic{% else %}general{% endif %}"
+                         data-plan="{% if row.is_academic %}cloud-academic{% else %}cloud-professional{% endif %}">
                         <p class="pricing-price plan-fee">{{ row.price }}</p>
                         <div class="pricing-features">
                             <ul>
@@ -68,18 +70,20 @@
             <div class="pricing-card pricing-card-onprem">
                 <div class="pricing-header">
                     <div class="plan-title-row">
-                        <h3 class="plan-name">{{ onprem_tier.name|translate_dynamic }}</h3>
+                        <h3 class="plan-name">{% trans "Self-hosted SciTeX" %}</h3>
                         <div class="plan-variant-switch" role="group" aria-label="{% trans "License type" %}">
-                            <button type="button" class="variant-btn is-active" data-variant="agpl" aria-pressed="true">{% trans "AGPL" %}</button>
-                            <button type="button" class="variant-btn" data-variant="custom" aria-pressed="false">{% trans "Licenses" %}</button>
+                            <button type="button" class="variant-btn is-active" data-variant="agpl" aria-pressed="true">{% trans "Community" %}</button>
+                            <button type="button" class="variant-btn" data-variant="custom" aria-pressed="false">{% trans "Commercial" %}</button>
                         </div>
                     </div>
-                    <p class="plan-sub">{{ onprem_tier.audience|translate_dynamic }}</p>
+                    <p class="plan-sub">{% trans "Keep data and compute inside your own environment" %}</p>
                 </div>
                 <div class="pricing-body">
                     <div class="plan-variants">
                         {# AGPL variant #}
-                        <div class="plan-variant plan-variant-agpl" data-variant="agpl">
+                        <div class="plan-variant plan-variant-agpl"
+                             data-variant="agpl"
+                             data-plan="self-hosted-community">
                             <p class="pricing-price plan-fee">{% trans "Free" %}<span class="period">{% trans "AGPL v3.0 · Self-host" %}</span></p>
                             <div class="pricing-features">
                                 <ul>
@@ -90,7 +94,9 @@
                             </div>
                         </div>
                         {# Custom License variant #}
-                        <div class="plan-variant plan-variant-custom plan-variant-hidden" data-variant="custom">
+                        <div class="plan-variant plan-variant-custom plan-variant-hidden"
+                             data-variant="custom"
+                             data-plan="self-hosted-commercial">
                             {% comment %} SSOT v1.0: Academic License (free) and
                                Commercial License (from a yearly floor) — both
                                rows come from the self-hosted tier, never typed here. {% endcomment %}
@@ -104,7 +110,8 @@
                         </div>
                     </div>
                     <div class="pricing-action">
-                        <a href="{% url 'public_app:contact' %}" class="btn btn-block">{% trans "Contact us" %}</a>
+                        <a href="/open-source/" class="btn btn-outline-primary btn-block">{% trans "View self-host guide" %}</a>
+                        <a href="{% url 'public_app:contact' %}" class="btn btn-block">{% trans "Contact sales" %}</a>
                         <p class="pricing-card-note"><a href="{% url 'public_app:services' %}">{% trans "Services & add-ons" %}</a></p>
                     </div>
                 </div>

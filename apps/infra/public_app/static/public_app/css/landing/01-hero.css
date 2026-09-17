@@ -256,7 +256,7 @@
 }
 
 .hero-landing .hero-logo {
-  max-width: 480px;
+  max-width: 300px;
   height: auto;
   opacity: 0.95;
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
@@ -293,4 +293,20 @@
 
 [data-theme="dark"] .hero-landing .hero-tagline-secondary {
   color: #ffffff;
+}
+
+.hero-landing .hero-content > .hero-title {
+  font-size: clamp(2.25rem, 4vw, 3.75rem);
+  max-width: 760px;
+}
+
+.hero-landing [data-demo-proof="secondary"] {
+  opacity: 0.94;
+}
+
+.hero-landing [data-technical-proof="mcp"] small {
+  display: inline-block;
+  font-size: 0.78rem;
+  margin-top: 0.35rem;
+  opacity: 0.72;
 }

@@ -6887,3 +6887,111 @@ msgstr "ファイルが %(mb)d MB を超えています。"
 #: apps/workspace/tools_app/views/x2pdf_api.py
 msgid "Conversion not found."
 msgstr "変換結果が見つかりません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "From research question to publication — one connected workspace."
+msgstr "研究課題から出版まで、ひとつにつながったワークスペースで。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "Create a project once. Find papers, analyze data, make figures, and compile your manuscript without moving work between disconnected tools."
+msgstr "プロジェクトを一度作れば、論文検索、データ解析、図の作成、原稿のコンパイルまで、分断されたツール間を行き来せずに進められます。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "Your literature, data, figures, code, and manuscript stay connected to the same project."
+msgstr "文献、データ、図、コード、原稿は、同じプロジェクトにつながり続けます。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "REAL WORKFLOW"
+msgstr "実際のワークフロー"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "See one project become a publication-ready manuscript"
+msgstr "ひとつのプロジェクトが出版可能な原稿になるまでをご覧ください"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "Paper search → data analysis → publication figure → manuscript PDF"
+msgstr "論文検索 → データ解析 → 出版用の図 → 原稿 PDF"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "Completed in 40 minutes with SciTeX MCP · shown at 8× speed"
+msgstr "SciTeX MCP で40分で完了 · 8倍速で再生"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "One project. One connected research workflow."
+msgstr "ひとつのプロジェクト。つながった研究ワークフロー。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Move from discovery to a compiled manuscript without rebuilding context in every tool."
+msgstr "ツールごとに文脈を作り直すことなく、探索から原稿のコンパイルまで進められます。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Connected research workflow"
+msgstr "つながった研究ワークフロー"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Find and save the papers that matter"
+msgstr "必要な論文を見つけて保存"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Search trusted literature sources and keep papers with the project that needs them."
+msgstr "信頼できる文献情報源を検索し、必要なプロジェクトに論文を保存します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Analyze your project data"
+msgstr "プロジェクトのデータを解析"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Run statistical workflows and save results and provenance back to the same project."
+msgstr "統計ワークフローを実行し、結果と来歴を同じプロジェクトに保存します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Turn project data into editable figures while preserving the recipe behind them."
+msgstr "作成手順を残したまま、プロジェクトのデータを編集可能な図にします。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Write and compile your manuscript"
+msgstr "原稿を執筆してコンパイル"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Use the same papers, results, and figures to produce a project-owned manuscript PDF."
+msgstr "同じ論文、解析結果、図を使い、プロジェクトに保存される原稿 PDF を作成します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Need to keep research inside your institution?"
+msgstr "研究データを機関内に保つ必要がありますか？"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Self-host SciTeX under AGPL v3.0, or contact us for institutional deployment and support."
+msgstr "AGPL v3.0 で SciTeX を自己ホストできます。機関導入とサポートについてはお問い合わせください。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Explore self-hosting"
+msgstr "自己ホストを見る"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Choose SciTeX Cloud or run SciTeX yourself"
+msgstr "SciTeX Cloud を使うか、自分で運用するかを選べます"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Professional"
+msgstr "プロフェッショナル"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "A managed research workspace for individuals"
+msgstr "個人向けの運用管理された研究ワークスペース"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Self-hosted SciTeX"
+msgstr "自己ホスト版 SciTeX"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Keep data and compute inside your own environment"
+msgstr "データと計算資源を自分の環境内に保持"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "View self-host guide"
+msgstr "自己ホストのガイドを見る"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Contact sales"
+msgstr "営業に問い合わせる"

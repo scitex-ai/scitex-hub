@@ -295,6 +295,72 @@
   margin-right: auto;
 }
 
+/* These are explanatory workflow steps, not carousel controls. */
+.section-ecosystem-demos .module-nav-card {
+  cursor: default;
+  opacity: 1;
+  transform: none;
+  text-align: left;
+  align-items: flex-start;
+  min-height: 250px;
+  border-top: 4px solid var(--color-accent-emphasis);
+}
+
+.section-ecosystem-demos .module-nav-card:hover {
+  opacity: 1;
+  transform: translateY(-4px);
+  border-color: var(--color-accent-emphasis);
+}
+
+.section-ecosystem-demos .module-nav-card > i {
+  color: var(--color-accent-emphasis);
+  font-size: 1.75rem;
+  margin-bottom: 1rem;
+}
+
+.section-ecosystem-demos .workflow-product {
+  color: var(--color-accent-emphasis);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+}
+
+.section-ecosystem-demos .module-nav-card h3 {
+  font-size: 1.2rem;
+  line-height: 1.25;
+}
+
+.landing-deployment-option {
+  align-items: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  display: flex;
+  gap: 1.5rem;
+  justify-content: space-between;
+  margin: 0 auto;
+  max-width: 1400px;
+  padding: 1.25rem 1.5rem;
+}
+
+.landing-deployment-option p {
+  color: var(--text-secondary);
+  margin: 0.35rem 0 0;
+}
+
+@media (max-width: 767px) {
+  .landing-deployment-option {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .section-ecosystem-demos .module-nav-card {
+    min-height: 220px;
+  }
+}
+
 /* Inline style classes for local demo */
 .local-demo-grid {
   grid-template-columns: 1fr;

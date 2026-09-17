@@ -29,90 +29,46 @@
    —「あとで私が丁寧に見て直しますね」— so nothing new is put in front of him.
 {% endcomment %}
 <link rel="stylesheet"
-      href="{% static 'public_app/css/landing-demos-inline.css' %}">
+      href="{% static 'public_app/css/landing-demos-inline.css' %}?v=20260917a">
 <section class="landing-section section-ecosystem-demos bg-pattern bg-pattern-dots-scattered bg-pattern-subtle"
          id="modules">
     <div class="container">
-    <div class="ecosystem-modules-nav">
-        <!-- Scholar -->
-        <div class="module-nav-card bg-pattern bg-pattern-dots-radial bg-pattern-subtle">
-            <svg width="56"
-                 height="56"
-                 viewBox="0 0 64 64"
-                 fill="none"
-                 xmlns="http://www.w3.org/2000/svg"
-                 aria-label="Scholar">
-                <circle cx="26" cy="26" r="20" stroke="currentColor" stroke-width="4" fill="none" />
-                <line x1="40" y1="40" x2="56" y2="56" stroke="currentColor" stroke-width="6" stroke-linecap="round" />
-                <circle cx="26" cy="26" r="14" fill="currentColor" fill-opacity="0.3" />
-            </svg>
-            <h3>Scholar</h3>
-            <p>{% trans "Literature discovery & enrichment" %}</p>
+        <div class="landing-demos-section-heading">
+            <h2>{% trans "One project. One connected research workflow." %}</h2>
+            <p>{% trans "Move from discovery to a compiled manuscript without rebuilding context in every tool." %}</p>
         </div>
-        <!-- Writer -->
-        <div class="module-nav-card bg-pattern bg-pattern-dots-radial bg-pattern-subtle">
-            <svg width="56"
-                 height="56"
-                 viewBox="0 0 64 64"
-                 fill="none"
-                 xmlns="http://www.w3.org/2000/svg"
-                 aria-label="Writer">
-                <rect x="8" y="12" width="36" height="44" rx="3" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="3" />
-                <path d="M14 20H32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
-                <path d="M14 26H38" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
-                <path d="M14 32H36" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
-                <path d="M14 38H30" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
-                <path d="M34 24L50 8" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
-                <path d="M38 20L40 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
-                <path d="M34 24L32 26" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
-                <circle cx="31" cy="27" r="2" fill="currentColor" />
-            </svg>
-            <h3>Writer</h3>
-            <p>{% trans "LaTeX manuscript writing" %}</p>
+        <div class="ecosystem-modules-nav" aria-label="{% trans 'Connected research workflow' %}">
+            <article class="module-nav-card" data-research-task="literature">
+                <i class="fas fa-search" aria-hidden="true"></i>
+                <span class="workflow-product">Scholar</span>
+                <h3>{% trans "Find and save the papers that matter" %}</h3>
+                <p>{% trans "Search trusted literature sources and keep papers with the project that needs them." %}</p>
+            </article>
+            <article class="module-nav-card" data-research-task="analysis">
+                <i class="fas fa-chart-bar" aria-hidden="true"></i>
+                <span class="workflow-product">Stats</span>
+                <h3>{% trans "Analyze your project data" %}</h3>
+                <p>{% trans "Run statistical workflows and save results and provenance back to the same project." %}</p>
+            </article>
+            <article class="module-nav-card" data-research-task="figures">
+                <i class="fas fa-chart-line" aria-hidden="true"></i>
+                <span class="workflow-product">FigRecipe</span>
+                <h3>{% trans "Create publication-ready figures" %}</h3>
+                <p>{% trans "Turn project data into editable figures while preserving the recipe behind them." %}</p>
+            </article>
+            <article class="module-nav-card" data-research-task="manuscript">
+                <i class="fas fa-pen" aria-hidden="true"></i>
+                <span class="workflow-product">Writer</span>
+                <h3>{% trans "Write and compile your manuscript" %}</h3>
+                <p>{% trans "Use the same papers, results, and figures to produce a project-owned manuscript PDF." %}</p>
+            </article>
         </div>
-        <!-- FigRecipe -->
-        <div class="module-nav-card bg-pattern bg-pattern-dots-radial bg-pattern-subtle">
-            <svg width="56"
-                 height="56"
-                 viewBox="0 0 64 64"
-                 fill="none"
-                 xmlns="http://www.w3.org/2000/svg"
-                 aria-label="FigRecipe">
-                <rect x="8" y="8" width="48" height="48" rx="4" stroke="currentColor" stroke-width="3" fill="none" />
-                <path d="M12 44L20 36L28 40L38 26L52 32" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-                <circle cx="20" cy="36" r="3" fill="currentColor" />
-                <circle cx="28" cy="40" r="3" fill="currentColor" />
-                <circle cx="38" cy="26" r="3" fill="currentColor" />
-                <circle cx="52" cy="32" r="3" fill="currentColor" />
-                <path d="M8 52H56" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-                <rect x="12" y="12" width="40" height="36" fill="currentColor" fill-opacity="0.3" />
-            </svg>
-            <h3>FigRecipe</h3>
-            <p>{% trans "Scientific figure editor" %}</p>
-        </div>
-        <!-- Local -->
-        <div class="module-nav-card bg-pattern bg-pattern-dots-radial bg-pattern-subtle">
-            <svg width="56"
-                 height="56"
-                 viewBox="0 0 64 64"
-                 fill="none"
-                 xmlns="http://www.w3.org/2000/svg"
-                 aria-label="Local">
-                <path d="M32 12C33.3132 12 34.6136 12.0978 35.8892 12.2857C36.3306 12.3527 36.7256 12.6327 36.9512 13.0401L39.6578 18.0829C40.5183 18.4325 41.3567 18.8246 42.1707 19.2661L47.5461 17.6733C47.9804 17.543 48.4393 17.6423 48.7839 17.9432C50.627 19.5598 52.1965 21.4708 53.4323 23.6001C53.6927 23.9791 53.7465 24.4558 53.5762 24.8825L51.358 30.8053C51.5119 31.8535 51.6 32.9252 51.6 34C51.6 35.0748 51.5119 36.1465 51.358 37.1947L53.5762 43.1175C53.7465 43.5442 53.6927 44.0209 53.4323 44.3999C52.1965 46.5292 50.627 48.4402 48.7839 50.0568C48.4393 50.3577 47.9804 50.457 47.5461 50.3267L42.1707 48.7339C41.3567 49.1754 40.5183 49.5675 39.6578 49.9171L36.9512 54.9599C36.7256 55.3673 36.3306 55.6473 35.8892 55.7143C34.6136 55.9022 33.3132 56 32 56C30.6868 56 29.3864 55.9022 28.1108 55.7143C27.6694 55.6473 27.2744 55.3673 27.0488 54.9599L24.3422 49.9171C23.4817 49.5675 22.6433 49.1754 21.8293 48.7339L16.4539 50.3267C16.0196 50.457 15.5607 50.3577 15.2161 50.0568C13.373 48.4402 11.8035 46.5292 10.5677 44.3999C10.3073 44.0209 10.2535 43.5442 10.4238 43.1175L12.642 37.1947C12.4881 36.1465 12.4 35.0748 12.4 34C12.4 32.9252 12.4881 31.8535 12.642 30.8053L10.4238 24.8825C10.2535 24.4558 10.3073 23.9791 10.5677 23.6001C11.8035 21.4708 13.373 19.5598 15.2161 17.9432C15.5607 17.6423 16.0196 17.543 16.4539 17.6733L21.8293 19.2661C22.6433 18.8246 23.4817 18.4325 24.3422 18.0829L27.0488 13.0401C27.2744 12.6327 27.6694 12.3527 28.1108 12.2857C29.3864 12.0978 30.6868 12 32 12Z" stroke="currentColor" stroke-width="3" />
-                <circle cx="32" cy="34" r="10" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="2.5" />
-                <circle cx="32" cy="34" r="3" fill="currentColor" />
-                <circle cx="24" cy="26" r="2.5" fill="currentColor" />
-                <circle cx="40" cy="26" r="2.5" fill="currentColor" />
-                <circle cx="24" cy="42" r="2.5" fill="currentColor" />
-                <circle cx="40" cy="42" r="2.5" fill="currentColor" />
-                <path d="M32 31L24 26" stroke="currentColor" stroke-width="2" />
-                <path d="M32 31L40 26" stroke="currentColor" stroke-width="2" />
-                <path d="M32 37L24 42" stroke="currentColor" stroke-width="2" />
-                <path d="M32 37L40 42" stroke="currentColor" stroke-width="2" />
-            </svg>
-            <h3>{% trans "On-Premise" %}</h3>
-            <p>{% trans "Run on your own machine — your data, your compute" %}</p>
-        </div>
-    </div>
+        <aside class="landing-deployment-option" data-deployment-option="self-hosted">
+            <div>
+                <strong>{% trans "Need to keep research inside your institution?" %}</strong>
+                <p>{% trans "Self-host SciTeX under AGPL v3.0, or contact us for institutional deployment and support." %}</p>
+            </div>
+            <a href="/open-source/" class="btn btn-outline-primary">{% trans "Explore self-hosting" %}</a>
+        </aside>
     </div>
 </section>

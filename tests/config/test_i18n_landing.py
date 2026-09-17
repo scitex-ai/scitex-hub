@@ -576,7 +576,7 @@ def test_landing_pricing_renders_fully_japanese_when_selected():
     assert '<html lang="ja"' in html
     assert "クラウド" in html and "セルフホスト" in html
     assert "$19/mo" in html and "$39/mo" in html
-    assert "学術" in html and "非学術" in html
+    assert "学術" in html and "プロフェッショナル" in html
     assert "30日間の無料トライアル" in html
     assert "Cool ストレージ 32 GB 込み" in html
     assert "計算クレジット $10 / 請求サイクル（近日提供）" in html
