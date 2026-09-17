@@ -324,7 +324,44 @@ A dedicated video agent owns scenarios, recording, narration, captioning,
 artifact QA, catalog updates, and stale-video reports. It does not own product
 behavior.
 
-## 9. Ownership matrix
+## 9. Collaboration invitations and referral growth
+
+Use the same simple interaction pattern—a copyable URL and three clear steps—
+for two strictly separate products.
+
+### Invite a collaborator
+
+- An authorized project owner creates an opaque, expiring invitation bound
+  server-side to one project, one least-privilege role, and a redemption limit.
+- A recipient signs in or creates and verifies their own SciTeX account, reviews
+  the project and role, then explicitly accepts. Opening the link or completing
+  signup does not silently join the project.
+- The link never reveals project files or acts as a continuing credential.
+- Every collaborator has an individual stable identity; no guest, shared, link,
+  or laboratory execution identity is created.
+- Revocation prevents future redemption. Existing membership, role changes, and
+  ownership transfer remain separate audited operations.
+
+### Refer a new SciTeX user
+
+- A referral URL attributes acquisition and may award promotional usage credit;
+  it never grants project membership or reveals the referrer's private data.
+- State the reward, qualifying event, campaign dates, limits, refund/chargeback
+  behavior, and terms before signup.
+- A reward becomes eligible only after the new user verifies their account and
+  completes the published qualifying event. Paid campaigns wait through the
+  refund/chargeback window.
+- Prevent duplicate rewards, self-referrals, scripted/disposable-account bursts,
+  and obvious billing-identity reuse without rejecting legitimate colleagues
+  merely because they share a university or company network.
+- Record attribution, pending approval, issuance, denial, and reversal in an
+  auditable reward ledger with per-user and campaign caps.
+
+Collaboration invitations and referrals use different routes, token formats,
+tables, redemption services, permissions, and copy. Neither token can be used
+as login, API, password-reset, or project-content authorization.
+
+## 10. Ownership matrix
 
 | Owner | Responsibility |
 | --- | --- |
@@ -340,7 +377,7 @@ behavior.
 | Hub video agent | Bilingual scenario recordings, narration/subtitles, QA, publishing metadata |
 | Hub product lead | Scope, cross-repo dependencies, artifact tracking, independent review, integration, release, live readback, and operator communication |
 
-## 10. Delivery gates
+## 11. Delivery gates
 
 No task is complete at assignment or visual mockup. Required lifecycle:
 
