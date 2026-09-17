@@ -1,16 +1,9 @@
 /**
  * Launcher pager — iPhone-home-style horizontal pages, at EVERY width.
  *
- * WHY THIS EXISTS (operator, real iPhone, 2026-07-13): the grid scrolled
- * VERTICALLY under the fixed bottom dock, so the last row of icons sat behind
- * it — measured at 56px of overlap on an iPhone 13 (dock top y=586, last tile
- * bottom y=642). Bottom padding alone is a losing game: it has to be re-tuned
- * for every dock height, safe-area inset and dynamic-toolbar state, and it
- * still leaves icons hidden the moment one more app is installed.
- *
- * Paging removes the failure mode STRUCTURALLY: pages are sized to the space
- * actually free ABOVE the dock, so a tile can never land under it — for ANY
- * number of apps. Overflow goes sideways.
+ * Paging keeps arbitrary app counts in predictable horizontal pages. The site
+ * dock is a true fixed overlay: pages use the full viewport and render beneath
+ * it rather than treating its current position as a layout boundary.
  *
  * 2026-09-14 (Home + dock redesign): the dock is now on every page at every
  * width, and the operator wants phone and desktop to be the same UI, so the
@@ -26,7 +19,7 @@ const EDGE_ZONE_PX = 44;
 const EDGE_DWELL_MS = 500;
 
 export interface PageLayoutInput {
-  /** Pixels available for tile rows (grid top to dock top, minus the dots). */
+  /** Pixels available for tile rows (grid top to viewport bottom, minus dots). */
   available: number;
   tileHeight: number;
   rowGap: number;
@@ -171,7 +164,7 @@ export class LauncherPager {
     this.syncFromHash(true);
 
     // MEASURE LATE, NOT EARLY. How much room a page gets is the gap between the
-    // TOP OF THE GRID and the dock — and the grid's top depends on everything
+    // TOP OF THE GRID and the viewport floor — and the top depends on everything
     // stacked above it (banner, section head, web fonts). At DOMContentLoaded
     // none of that has settled, so re-measure once layout has happened, and
     // keep watching. apply() only rebuilds when the capacity really changed.
@@ -269,7 +262,7 @@ export class LauncherPager {
   }
 
   /**
-   * Chunk the tiles into pages that fit the space above the dock.
+   * Chunk the tiles into pages that fit the viewport.
    *
    * `force` re-chunks even when the capacity is unchanged — rebalance() needs
    * that after a drop moved a tile between pages.
@@ -370,27 +363,15 @@ export class LauncherPager {
   }
 
   /**
-   * Pixels for tile rows ABOVE the dock, and pin the grid to that height.
-   *
-   * The dock is position:fixed on <body>, so its rect is the only honest
-   * measure of where the usable area ends. Presence comes from the RECT, never
-   * offsetParent (null BY SPEC for position:fixed, which once made the pager
-   * read the dock as absent in every real browser). A dock the user dragged
-   * off the bottom (.site-dock--floating) no longer bounds the page, and a
-   * display:none dock measures 0x0: both fall back to the viewport bottom.
+   * Pixels for tile rows to the viewport floor, and pin the grid to that height.
+   * The fixed dock intentionally does not participate in this measurement.
    */
   private availableHeight(): number {
-    const dock = document.querySelector<HTMLElement>(".site-dock");
-    const dockRect =
-      dock && !dock.classList.contains("site-dock--floating")
-        ? dock.getBoundingClientRect()
-        : null;
     const available = pageHeightFor({
       gridTop: this.grid.getBoundingClientRect().top,
       scrollY: window.scrollY || 0,
       viewportHeight: window.innerHeight,
       viewportWidth: window.innerWidth,
-      dockTop: dockRect && dockRect.height > 0 ? dockRect.top : null,
       dotsRoom: this.dots.offsetHeight || 26,
       viewport: this.viewport,
     });

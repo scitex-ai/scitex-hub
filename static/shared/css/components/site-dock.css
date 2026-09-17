@@ -38,16 +38,17 @@
   --site-dock-height: calc(
     var(--site-dock-app-height) + 2 * var(--site-dock-pad)
   );
-  /* The band the dock occupies at the bottom of the viewport, plus breathing
-     room and the iOS home-bar inset. Pages reserve exactly this much (below). */
+  /* The pill itself remains above the iOS home-bar inset. The dock is a true
+     overlay: its measured height is never added to page layout. */
   --site-dock-pill-height: 44px;
-  /* site-dock.ts publishes the dock's measured height as
-     --site-dock-live-height (minimized: the pill's), so the reservation follows. */
-  --site-dock-clearance: calc(
+  /* site-dock.ts publishes the measured height for scroll alignment only.
+     scroll-padding/scroll-margin do not create permanent blank layout space. */
+  --site-dock-scroll-clearance: calc(
     var(--site-dock-live-height, var(--site-dock-height)) +
       var(--site-dock-gap) + 8px + env(safe-area-inset-bottom, 0px)
   );
-  --site-dock-bg: rgba(255, 255, 255, 0.82);
+  --site-dock-bg-idle: rgba(255, 255, 255, 0.62);
+  --site-dock-bg-opaque: #ffffff;
   --site-dock-border: rgba(0, 0, 0, 0.1);
   --site-dock-fg: #4a5160;
   --site-dock-fg-active: #1f2430;
@@ -60,7 +61,8 @@
 }
 
 [data-theme="dark"] {
-  --site-dock-bg: rgba(28, 31, 40, 0.82);
+  --site-dock-bg-idle: rgba(28, 31, 40, 0.62);
+  --site-dock-bg-opaque: #1c1f28;
   --site-dock-icon-idle-bg: rgba(120, 128, 140, 0.28);
   --site-dock-icon-idle-fg: #8b949e;
   --site-dock-border: rgba(255, 255, 255, 0.1);
@@ -72,7 +74,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --site-dock-bg: rgba(28, 31, 40, 0.82);
+    --site-dock-bg-idle: rgba(28, 31, 40, 0.62);
+    --site-dock-bg-opaque: #1c1f28;
     --site-dock-border: rgba(255, 255, 255, 0.1);
     --site-dock-fg: #aab1c0;
     --site-dock-fg-active: #ffffff;
@@ -83,16 +86,21 @@
   }
 }
 
-/* Never hidden behind page content, never covering it: while the dock sits
-   at the bottom, the page reserves its band. A floating (dragged) dock is the
-   user's own choice of where it may cover, so the reservation goes away. On
-   app-shell pages the body is border-box and viewport-pinned, so this shrinks
-   the shell instead of pushing it off-screen. */
-body:has(> .site-dock:not(.site-dock--floating)),
-/* A pill is easily nudged into floating by a tap; it still must not cover the
-   last footer links (operator iPhone 2026-09-15). */
-body:has(> .site-dock.site-dock--minimized) {
-  padding-bottom: var(--site-dock-clearance) !important;
+/* A bottom-docked launcher overlays the page instead of taking a layout row.
+   Scroll alignment gives keyboard-focused and terminal controls breathing room
+   when the browser scrolls them into view, without changing scrollHeight. A
+   floating or minimized dock needs no bottom-edge alignment aid. */
+html:has(> body > .site-dock:not(.site-dock--floating):not(.site-dock--minimized)),
+body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
+  :where(#main-content, main, [role="main"], .panel-body) {
+  scroll-padding-bottom: var(--site-dock-scroll-clearance);
+}
+
+body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
+  :where(a[href], button, input, select, textarea, [tabindex]):focus-visible,
+body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
+  :where(a[href], button, input, select, textarea, [tabindex]):last-child {
+  scroll-margin-bottom: var(--site-dock-scroll-clearance);
 }
 
 .site-dock {
@@ -113,15 +121,26 @@ body:has(> .site-dock.site-dock--minimized) {
   max-width: calc(100vw - 16px);
   padding: var(--site-dock-pad);
   border-radius: 22px;
-  background: var(--site-dock-bg);
+  background: var(--site-dock-bg-idle);
   border: 1px solid var(--site-dock-border);
   box-shadow: var(--site-dock-shadow);
   backdrop-filter: blur(18px) saturate(1.4);
   -webkit-backdrop-filter: blur(18px) saturate(1.4);
   font-size: 16px;
   line-height: 1;
+  pointer-events: auto;
   -webkit-user-select: none;
   user-select: none;
+  transition:
+    background 0.15s ease,
+    translate 0.15s ease;
+}
+
+/* When keyboard focus reaches a control under the bottom overlay, move the
+   dock itself just far enough upward. This is transient and never changes page
+   height or scrollHeight. site-dock.ts supplies the measured shift. */
+.site-dock--avoiding-focus {
+  translate: 0 var(--site-dock-focus-shift);
 }
 
 .site-dock--floating {
@@ -131,7 +150,13 @@ body:has(> .site-dock.site-dock--minimized) {
 
 .site-dock--dragging {
   cursor: grabbing;
-  opacity: 0.94;
+}
+
+.site-dock:hover,
+.site-dock:focus-within,
+.site-dock:active,
+.site-dock--dragging {
+  background: var(--site-dock-bg-opaque);
 }
 
 .site-dock-item {
@@ -417,10 +442,6 @@ body:has(> .site-dock.site-dock--minimized) {
 @media print {
   .site-dock {
     display: none;
-  }
-
-  body:has(> .site-dock) {
-    padding-bottom: 0 !important;
   }
 }
 
