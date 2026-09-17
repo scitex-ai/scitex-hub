@@ -117,6 +117,42 @@ def _run_under_preview_lock(
         lock.release()
 
 
+def _explain_compile_failure(result: dict) -> dict:
+    """Give a failed compilation a machine-readable reason.
+
+    The preview pipeline can fail without ever reaching LaTeX — most plainly when
+    the environment has no `latexmk`, where it returns `success: false`,
+    `exit_code: 127` and an EMPTY `errors` list with the real reason only in
+    free-text `stderr`. `CompilationResult.errors` is declared as `string[]` and
+    a failed response is expected to say why, so a caller that reads `errors`
+    otherwise gets a bare failure it cannot act on (and cannot tell "this machine
+    has no toolchain" from "your LaTeX is broken").
+
+    Only a failure that is silent gets a reason; a result that already explains
+    itself — or succeeded — is returned untouched.
+    """
+    if result.get("success") or result.get("errors"):
+        return result
+
+    stderr = (result.get("stderr") or "").strip()
+    exit_code = result.get("exit_code")
+
+    # 126 = found but not executable, 127 = command not found.
+    if exit_code in (126, 127) or "No such file or directory" in stderr:
+        reason = (
+            "LaTeX toolchain unavailable in this environment: the compile "
+            f"command could not be executed (exit code {exit_code}). "
+            f"{stderr}".strip()
+        )
+    elif stderr:
+        reason = stderr
+    else:
+        reason = f"compilation failed with exit code {exit_code}"
+
+    result["errors"] = [reason]
+    return result
+
+
 @api_login_optional
 @require_http_methods(["POST"])
 def compile_api(request, project_id):
@@ -206,7 +242,10 @@ def compile_api(request, project_id):
                 "[CompileAPI] Note: Alternate theme will be compiled in background for instant switching"
             )
 
-        return JsonResponse(result)
+        # A failure must say why: `CompilationResult.errors` is the machine-
+        # readable half of this response, and an environment with no toolchain
+        # otherwise reports a bare `success: false`.
+        return JsonResponse(_explain_compile_failure(result))
 
     except Project.DoesNotExist:
         return JsonResponse(
