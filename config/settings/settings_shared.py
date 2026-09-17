@@ -98,6 +98,13 @@ SCITEX_APP_MODE = branding.MODE_HUB
 # Storage leaf asks the hub which directories belong to the requester.
 SCITEX_STORAGE_VOLUMES_PROVIDER = "apps.workspace.storage_app.volumes.user_volumes"
 
+# Project-scope apps (scitex-stats project-default mode, scitex-ui picker) ask the
+# hub where an AUTHORIZED project's files live and whether this request may write.
+# Request-aware: the class resolves the project through the same access-scoped lookup
+# the picker lists from, and answers per request, not per process. It is NOT the
+# picker itself — a provider entry carries display metadata, never a path.
+SCITEX_PROJECT_STORAGE = "apps.infra.project_app.services.project_scope.HubProjectStorage"
+
 # ---------------------------------------
 # Paths
 # ---------------------------------------
