@@ -168,6 +168,50 @@ def test_a_rate_limited_card_states_when_to_retry():
 
 
 # ---------------------------------------------------------------------------
+# the reset time must be readable and explicitly UTC (SSOT section 6)
+# ---------------------------------------------------------------------------
+
+
+def test_a_raw_iso_timestamp_is_never_shown_to_a_reader():
+    from apps.infra.llm_app.chat_allowance import allowance_context
+
+    ctx = allowance_context({"remaining": 5, "total": 10,
+                             "reset_at": "2026-09-18T00:00:00Z"})
+
+    assert ctx["reset_label"] == "18 September 2026, 00:00 UTC", ctx["reset_label"]
+    assert "T00:00:00" not in ctx["reset_label"]
+
+
+def test_an_offset_timestamp_is_normalised_to_utc():
+    """Read verbatim, +09:00 states the wrong instant to a reader in another zone."""
+    from apps.infra.llm_app.chat_allowance import allowance_context
+
+    ctx = allowance_context({"remaining": 5, "total": 10,
+                             "reset_at": "2026-09-18T09:00:00+09:00"})
+
+    assert ctx["reset_label"] == "18 September 2026, 00:00 UTC", ctx["reset_label"]
+
+
+def test_an_explicit_label_wins_over_derivation():
+    from apps.infra.llm_app.chat_allowance import allowance_context
+
+    ctx = allowance_context({"remaining": 5, "total": 10,
+                             "reset_at": "2026-09-18T00:00:00Z",
+                             "reset_label": "tomorrow morning"})
+
+    assert ctx["reset_label"] == "tomorrow morning"
+
+
+def test_an_unparseable_reset_time_shows_nothing_rather_than_raw_text():
+    from apps.infra.llm_app.chat_allowance import allowance_context
+
+    ctx = allowance_context({"remaining": 5, "total": 10, "reset_at": "soon"})
+
+    assert ctx["reset_label"] == ""
+    assert ctx["reset_at"] == "soon", "the raw value is kept for debugging, not shown"
+
+
+# ---------------------------------------------------------------------------
 # the stylesheets these surfaces depend on must actually be LOADED
 # ---------------------------------------------------------------------------
 

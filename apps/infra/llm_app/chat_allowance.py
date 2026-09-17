@@ -34,6 +34,29 @@ BYOK_URL = "/ai-setup/"
 PAID_URL = "/pricing/"
 
 
+def _utc_label(reset_at: Optional[str]) -> str:
+    """Turn an ISO reset timestamp into an explicit UTC label.
+
+    The SSOT asks for an "explicit UTC reset time initially". A raw
+    ``2026-09-18T00:00:00Z`` shown to a reader is technically the reset time and
+    practically unreadable — and a timestamp with an offset (``+09:00``) read
+    verbatim is actively misleading about WHEN. Both are normalised here, and
+    anything unparseable yields no label rather than a raw string in the UI.
+    """
+    if not reset_at:
+        return ""
+    from datetime import datetime, timezone
+
+    text = str(reset_at).strip()
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return ""
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc).strftime("%-d %B %Y, %H:%M UTC")
+
+
 def allowance_context(payload: Optional[Mapping[str, Any]]) -> dict:
     """Normalise a backend allowance payload into template context.
 
@@ -56,13 +79,16 @@ def allowance_context(payload: Optional[Mapping[str, Any]]) -> dict:
         else:
             state = EXHAUSTED if int(remaining) <= 0 else AVAILABLE
 
+    reset_at = payload.get("reset_at") or ""
     return {
         "state": state,
         "model": payload.get("model") or "",
         "remaining": None if remaining is None else int(remaining),
         "total": payload.get("total"),
-        "reset_at": payload.get("reset_at") or "",
-        "reset_label": payload.get("reset_label") or "",
+        "reset_at": reset_at,
+        # An explicit label wins; otherwise derive a readable UTC one, because the
+        # partial must never print a raw timestamp at a reader.
+        "reset_label": payload.get("reset_label") or _utc_label(reset_at),
     }
 
 
