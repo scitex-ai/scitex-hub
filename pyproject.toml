@@ -1,6 +1,6 @@
 [project]
 name = "scitex-hub"
-version = "0.20.0a1"
+version = "0.20.0a2"
 description = "SciTeX Hub - Deployment and management CLI for SciTeX"
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -69,7 +69,9 @@ dependencies = [
     "scitex-session>=0.1.6",
     # >=2.43.0: the root->workspace contract (PR #389). The hub hands leaves the
     # project root; older writers compose root/00_shared and fail to compile.
-    "scitex-writer>=2.43.1",
+    # >=2.43.3: package-owned header plus the 390px Files/Editor/PDF layout,
+    # explicit tap navigation, safe-area action bar, and fit-width PDF canvas.
+    "scitex-writer>=2.43.3",
     # >=1.9.0 is a MOUNT requirement, not a feature preference. Below it the
     # leaf's client JS builds API urls from the SITE ROOT
     # (static/scholar/js/graph/citation-graph.js: fetch("/api/graph/health")),

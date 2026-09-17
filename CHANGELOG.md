@@ -9,6 +9,19 @@ verbatim. See [ADR-0001](docs/adr/0001-rename-scitex-cloud-to-scitex-hub.md).
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.20.0a2] - 2026-09-17
+
+### Added
+- Added a visible localized App Creator label to the launcher add slot.
+- Adopted Writer 2.43.3 with its leaf-owned title/version header and verified
+  390px Files, Editor, and PDF workflow.
+
+### Fixed
+- Restored the installed scitex-cards version on the launcher by replacing the
+  retired `scitex-todo` distribution name with the canonical package identity.
+- Kept Writer phone navigation explicit and gesture-safe, with 44px controls,
+  safe-area actions, no horizontal overflow, and fit-width PDF rendering.
+
 ## [0.20.0a1] - 2026-09-17
 
 First follow-up alpha for the signed-in-only SciTeX application platform.

@@ -648,7 +648,9 @@ RUN uv pip install --system --no-cache \
     # from scitex-ai/develop and refresh vendored scripts, so a fresh workspace
     # no longer fails "missing tools xlsx2csv/csv2latex". Verified on dev:
     # ensure_workspace + manuscript compile produced a 5-page PDF.
-    "scitex-writer==2.43.1" \
+    # 2.43.3 (2026-09-17): package-owned header and verified 390px single-pane
+    # Files/Editor/PDF UI with explicit tabs, safe-area actions, and fit-width PDF.
+    "scitex-writer==2.43.3" \
     # 0.7.1 (2026-09-03): clone_scitex_minimal returns CloneOutcome.failed(reason=...)
     # instead of a bare False, so a failed visitor reset records WHY it failed
     # (prod 2026-08-31: "the template reported NO reason"). Verified against the
