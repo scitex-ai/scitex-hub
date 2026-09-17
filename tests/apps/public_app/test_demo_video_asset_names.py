@@ -66,3 +66,37 @@ def test_catalog_media_paths_name_published_files():
 
     # Assert
     assert missing == []
+
+
+def test_published_renditions_reference_named_media_files():
+    """A rendition the player switches to must name a file the volume holds.
+
+    The language switch points the player at the other language's video and
+    captions. A typo in either path is a broken button, not a broken page, so it
+    has to be caught here: every rendition a narrated guide advertises must name
+    a file from the published inventory, and every alternate UI-locale rendition
+    must carry a note saying what the viewer is looking at.
+    """
+    # Arrange
+    from apps.infra.public_app.views.demo_video_languages import languages_for
+
+    known = PUBLISHED_MEDIA_VIDEOS | RENDERED_DEMO_GUIDES
+
+    # Act
+    problems = []
+    for key, entry in VIDEO_CATALOG.items():
+        if not entry.get("narrated"):
+            continue
+        renditions = languages_for(entry)
+        if len(renditions) < 2:
+            problems.append(f"{key}: a narrated guide ships both languages")
+        for rendition in renditions:
+            for field in ("src", "captions"):
+                name = Path(rendition[field]).name
+                if name and name not in known:
+                    problems.append(f"{key}: {field} names unpublished file {name}")
+            if not rendition["canonical"] and not rendition["note"]:
+                problems.append(f"{key}: alternate rendition {rendition['code']} needs a note")
+
+    # Assert
+    assert problems == []
