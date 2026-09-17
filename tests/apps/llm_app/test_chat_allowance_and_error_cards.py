@@ -288,4 +288,31 @@ def test_the_model_is_on_screen_before_the_first_send():
     )
 
 
+def test_no_multiline_django_comments_in_the_partials_this_slice_touched():
+    """A multi-line ``{# ... #}`` renders VERBATIM to users.
+
+    The repo-wide hygiene test (tests/apps/public_app/views/test_landing_body_class.py)
+    catches this, but it is a TestCase: it needs a database, so it never ran while I was
+    iterating here and three of the four prose comments I added were written as
+    multi-line ``{# #}``. CI caught it on all three Python legs (1 failed, 5491 passed,
+    identical on 3.11/3.12/3.13) with the offenders named. This is the same guard,
+    scoped to the two files and runnable with no database.
+    """
+    repo = Path(__file__).resolve().parents[3]
+    touched = [
+        repo / "templates/global_base_partials/workspace_chat_pane.html",
+        repo / "templates/global_base_partials/global_ai_panel.html",
+    ]
+
+    offenders = []
+    for path in touched:
+        for lineno, line in enumerate(path.read_text().splitlines(), 1):
+            if "{#" in line and "#}" not in line.split("{#", 1)[1]:
+                offenders.append(f"{path.name}:{lineno}")
+
+    assert offenders == [], (
+        "use {% comment %}...{% endcomment %} instead of a multi-line {# #}: " + str(offenders)
+    )
+
+
 # EOF

@@ -35,10 +35,12 @@
                             <i class="fas fa-pen"></i>
                         </button>
                         <span class="chat-welcome-model" id="chat-welcome-model">
-                            {# Filled from the same allowance context as the line
-                               above, so the model is on screen before the first
-                               send rather than waiting on JS (card
-                               hub-chat-free-daily-message-allowance-20260917). #}
+                            {% comment %}
+                            Filled from the same allowance context as the line
+                            above, so the model is on screen before the first
+                            send rather than waiting on JS (card
+                            hub-chat-free-daily-message-allowance-20260917).
+                            {% endcomment %}
                             <span id="chat-welcome-model-name">{{ chat_allowance.model|default:'' }}</span>
                         </span>
                         <button class="chat-welcome-btn" id="chat-welcome-mic" title="Voice input">
