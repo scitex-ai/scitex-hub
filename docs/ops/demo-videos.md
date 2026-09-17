@@ -114,6 +114,12 @@ example re-running one language after a failed recording), `--no-alternates`,
 check without recording, and `--allow-stale` to record anyway when a selector has
 moved (for capturing evidence of the drift, not for publishing).
 
+A subset that selects nothing is refused (exit 5) and says what the scenario
+offers: `--viewports mobile` against a desktop-only scenario used to record
+nothing and exit 0, leaving a manifest with an empty matrix — an empty render that
+reports success is worse than a refusal, because it looks like the 390 px path was
+exercised.
+
 ### Prove a render will work before spending ten minutes on it
 
 `--preflight` answers the questions only a browser can answer — is the site up,

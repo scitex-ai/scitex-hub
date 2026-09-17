@@ -176,6 +176,24 @@ def selected(requested: str, available: list[str]) -> list[str]:
     return [name for name in available if not wanted or name in wanted]
 
 
+def empty_selection_message(viewports: list[str], languages: list[str],
+                            renditions: list[str], scenario: Scenario) -> str:
+    """Why nothing would be recorded, and what the scenario offers instead.
+
+    A `--viewports mobile` against a scenario that lists only desktop used to
+    record nothing and still exit 0, with a manifest whose matrix was empty —
+    measured 2026-09-17. An empty render that reports success is worse than a
+    refusal: it looks like the mobile path was exercised.
+    """
+    return (
+        f"nothing to record: viewports={viewports or 'none'}, "
+        f"languages={languages or 'none'}, renditions={renditions or 'none'}; "
+        f"the scenario offers viewports={list(scenario.viewports)}, "
+        f"languages={list(scenario.languages)}, "
+        f"renditions={[f'{item.language}:{item.ui_locale}' for item in scenario.renditions]}"
+    )
+
+
 def selected_renditions(args, scenario: Scenario) -> list[Rendition]:
     """The renditions to record, in scenario order, minus the disabled ones."""
     wanted = {item for item in args.renditions.split(",") if item}
@@ -610,6 +628,13 @@ def main() -> int:
 
     renditions = selected_renditions(args, scenario)
     viewports = selected(args.viewports, scenario.viewports)
+    languages = selected(args.languages, scenario.languages)
+    if not viewports or not languages or not renditions:
+        print(empty_selection_message(
+            viewports, languages,
+            [f"{item.language}:{item.ui_locale}" for item in renditions], scenario,
+        ), file=sys.stderr)
+        return 5
     if args.dry_run:
         for rendition in renditions:
             print(f"would record {rendition.language} narration over '{rendition.ui_locale}' UI"
@@ -629,7 +654,6 @@ def main() -> int:
               "(pydub) needs ffprobe on PATH, so narration may fall back to captions only.")
     args.out_dir.mkdir(parents=True, exist_ok=True)
     work_dir = Path(tempfile.mkdtemp(prefix="demo-narration-"))
-    languages = selected(args.languages, scenario.languages)
     voice = tools.has_ffmpeg and not args.no_voice
 
     narration = {}

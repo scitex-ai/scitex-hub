@@ -25,7 +25,12 @@ from demo_scenario import (  # noqa: E402
     load_scenario,
     parse_scenario,
 )
-from record import artifact_role, language_switch_path, preflight_targets  # noqa: E402
+from record import (  # noqa: E402
+    artifact_role,
+    empty_selection_message,
+    language_switch_path,
+    preflight_targets,
+)
 
 TWO_STEP_VTT = (
     "WEBVTT\n"
@@ -322,3 +327,24 @@ def test_artifact_role_is_not_fooled_by_the_chapter_file(name, expected):
     # Arrange / Act / Assert: both caption and chapter tracks end in .vtt, and a
     # manifest that confuses them reports the wrong artifact for the watch gate.
     assert artifact_role(Path(name)) == expected
+
+
+def test_an_empty_selection_is_refused_with_what_the_scenario_offers():
+    # Arrange: `--viewports mobile` against a desktop-only scenario recorded
+    # nothing and exited 0, leaving a manifest with an empty matrix.
+    scenario = load_scenario(DEMO_VIDEOS_DIR / "scenarios" / "writer.yaml")
+    # Act
+    message = empty_selection_message([], ["en", "ja"], ["en:en", "ja:ja"], scenario)
+    # Assert
+    assert "nothing to record" in message
+    assert "viewports=none" in message
+    assert "desktop" in message
+    assert "mobile" not in message.split("the scenario offers")[1]
+
+
+def test_the_smoke_scenario_declares_both_viewports():
+    # Arrange: the only scenario that can be rendered without an account is also
+    # the one that has to exercise the 390 px path.
+    scenario = load_scenario(DEMO_VIDEOS_DIR / "scenarios" / "smoke-public-demos.yaml")
+    # Act / Assert
+    assert scenario.viewports == ["desktop", "mobile"]

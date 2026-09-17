@@ -17,7 +17,7 @@ title:
 languages:
   en: {locale: en}
   ja: {locale: en}
-viewports: [desktop]
+viewports: [desktop, mobile]
 sign_in: false
 steps:
   - action: goto
