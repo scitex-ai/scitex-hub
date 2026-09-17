@@ -57,10 +57,20 @@ def payment_step(request):
     It decides nothing about entitlement: a usable card is read from the account
     records the backend already owns, and the webhook still owns activation.
     """
-    from ..payment_step import payment_disclosures, trial_state
+    from ..payment_step import NOT_OPEN, payment_disclosures, trial_state
 
     if not card_registration_is_open():
-        return render(request, "accounts_app/billing_settings.html", {"state": "soon"})
+        # No card can be taken yet (provider not configured). Still render THIS
+        # step rather than borrowing the generic billing page: the funnel stays one
+        # coherent step, and the surface carries its own marker so both a reader and
+        # a test can tell which step they are on.
+        disclosures = payment_disclosures(
+            plan_label="SciTeX Cloud",
+            monthly_usd=0.0,
+            trial_end=None,
+            state=NOT_OPEN,
+        )
+        return render(request, "accounts_app/payment_step.html", disclosures.as_context())
 
     user = request.user
     has_usable_card = user.payment_methods.filter(is_usable=True).exists()

@@ -180,6 +180,39 @@ def test_the_three_steps_are_shown_with_payment_current():
 
 
 # ---------------------------------------------------------------------------
+# the route itself (no database)
+# ---------------------------------------------------------------------------
+
+
+def test_the_payment_route_resolves_to_the_payment_view():
+    """The step must keep winning its own URL.
+
+    "/accounts/settings/payment/" is ambiguous: it ALSO matches project_app's
+    "<str:username>/settings/<str:section>/" include with username="accounts", which
+    renders a project settings page. Today the accounts include is listed first in
+    config/urls.py and accounts_app's own route is declared before its siblings, so
+    the step wins — but nothing else pins that, and a reorder would silently turn the
+    payment step into somebody's project settings. This asserts it directly.
+    """
+    from django.urls import resolve
+
+    match = resolve("/accounts/settings/payment/")
+
+    assert match.view_name == "accounts_app:payment_step", (
+        f"/accounts/settings/payment/ resolves to {match.view_name!r} instead of the "
+        "payment step — check URL include order"
+    )
+    assert match.func.__name__ == "payment_step"
+
+
+def test_the_billing_route_still_resolves_to_billing():
+    """The sibling route must not be swallowed by the new one."""
+    from django.urls import resolve
+
+    assert resolve("/accounts/settings/billing/").view_name == "accounts_app:billing"
+
+
+# ---------------------------------------------------------------------------
 # the route (database gate, runs in CI)
 # ---------------------------------------------------------------------------
 
@@ -200,8 +233,15 @@ class TestPaymentStepRoute:
         assert response.status_code in (301, 302)
         assert "/auth/" in response["Location"]
 
-    def test_a_verified_user_without_a_card_sees_the_terms(self):
+    def test_a_verified_user_without_a_card_sees_the_terms(self, monkeypatch):
+        """Forces registration OPEN so the terms path is asserted even in a CI
+        environment with no provider keys — otherwise the keyless fallback renders
+        and this test measures the wrong branch (which is exactly how it failed)."""
         from django.test import Client
+
+        from apps.infra.accounts_app.views import billing_views
+
+        monkeypatch.setattr(billing_views, "card_registration_is_open", lambda: True)
 
         client = Client()
         client.force_login(self._user())
@@ -210,6 +250,33 @@ class TestPaymentStepRoute:
         assert response.status_code == 200
         assert b'data-payment-step="true"' in response.content
         assert b'data-payment-disclosure="due-today"' in response.content
+        assert b'data-payment-action="continue"' in response.content
+
+    def test_without_provider_keys_the_step_says_so_instead_of_borrowing_billing(
+        self, monkeypatch
+    ):
+        """The funnel stays one step in every state.
+
+        This view used to render the generic billing page when the provider was
+        unconfigured, so the route answered 200 with no step marker at all — the
+        state a keyless CI environment is in.
+        """
+        from django.test import Client
+
+        from apps.infra.accounts_app.views import billing_views
+
+        monkeypatch.setattr(billing_views, "card_registration_is_open", lambda: False)
+
+        client = Client()
+        client.force_login(self._user("payment-not-open"))
+        response = client.get("/accounts/settings/payment/")
+
+        assert response.status_code == 200
+        assert b'data-payment-step="true"' in response.content
+        assert b'data-payment-state="not_open"' in response.content
+        assert b'data-payment-action="continue"' not in response.content, (
+            "a step with no provider must not offer the card action"
+        )
 
     def test_the_post_signup_redirect_points_at_this_step(self):
         from apps.infra.public_app.services.billing_provider import (

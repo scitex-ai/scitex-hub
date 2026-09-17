@@ -28,6 +28,15 @@
                 {% trans "Open billing settings" %}
             </a>
 
+        {% elif state == 'not_open' %}
+            <h1 class="payment-step-title">{% trans "Card registration opens soon" %}</h1>
+            <p class="payment-step-lead">
+                {% trans "Your account is verified and your trial is running. There is nothing to pay and nothing to do here yet — we will ask for a payment method before the trial ends." %}
+            </p>
+            <a class="payment-step-secondary" href="{% url 'accounts_app:billing' %}">
+                {% trans "See trial status in billing" %}
+            </a>
+
         {% else %}
             {% if state == 'setup_cancelled' %}
                 <p class="payment-step-notice" data-payment-notice="setup_cancelled">

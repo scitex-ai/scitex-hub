@@ -134,7 +134,13 @@ def test_verified_signup_with_stripe_key_goes_to_add_card(settings, django_user_
     # Act
     url = post_signup_redirect_url(user)
     # Assert
-    assert url == reverse("accounts_app:billing") + "?welcome=1"
+    # The dedicated payment step, not the billing settings page: it states the trial
+    # terms before the provider's page and carries the single "Continue to secure
+    # Stripe" action (card hub-signup-email-stripe-funnel-20260917). Billing remains
+    # one click away, and this is the ONLY redirect policy for a verified signup —
+    # post_signup_redirect_url is defined once and consumed once, in
+    # auth_app/api_views.py:207, so there is no second rule to keep in step.
+    assert url == reverse("accounts_app:payment_step")
 
 
 @pytest.mark.django_db
