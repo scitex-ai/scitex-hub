@@ -33,7 +33,13 @@ from __future__ import annotations
 import logging
 
 from django.conf import settings
-from django.http import FileResponse, Http404, HttpResponseForbidden
+from django.http import (
+    FileResponse,
+    Http404,
+    HttpResponse,
+    HttpResponseForbidden,
+    StreamingHttpResponse,
+)
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.http import urlencode
@@ -144,12 +150,50 @@ def internal_demo_media(request, name):
         logger.info("internal demo media refused: %r", name)
         raise Http404("No such internal demo asset")
 
-    response = FileResponse(open(path, "rb"), content_type=demo_library.content_type_for(name))
+    content_type = demo_library.content_type_for(name)
+    size = path.stat().st_size
+    bounds = demo_library.range_bounds(request.headers.get("Range", ""), size)
+    if bounds == "unsatisfiable":
+        # Tell the caller the file's real size: a range it cannot have is not a
+        # missing file, and pretending otherwise makes a player retry forever.
+        response = HttpResponse(status=416)
+        response["Content-Range"] = f"bytes */{size}"
+    elif isinstance(bounds, tuple):
+        start, end = bounds
+        response = StreamingHttpResponse(
+            file_slice(path, start, end), status=206, content_type=content_type
+        )
+        response["Content-Range"] = f"bytes {start}-{end}/{size}"
+        response["Content-Length"] = str(end - start + 1)
+    else:
+        response = FileResponse(open(path, "rb"), content_type=content_type)
+        response["Content-Length"] = str(size)
+    # Advertised on every answer, including 416: a caller that cannot tell whether the
+    # route supports ranges will keep asking for the whole file.
+    response["Accept-Ranges"] = "bytes"
     # Not a public asset: no shared cache may keep a copy, and the browser may not
     # treat it as immutable the way it treats /media/.
     response["Cache-Control"] = "private, no-store"
     response["X-Robots-Tag"] = "noindex, nofollow"
     return response
+
+
+def file_slice(path, start: int, end: int, block: int = 64 * 1024):
+    """Yield exactly the bytes in ``[start, end]``, in bounded blocks.
+
+    A range is a bounded request: this reads the slice and stops, so a caller cannot
+    turn one range into a read of the whole file, and the read never runs past the end
+    even if the file shrinks underneath it.
+    """
+    remaining = end - start + 1
+    with open(path, "rb") as handle:
+        handle.seek(start)
+        while remaining > 0:
+            chunk = handle.read(min(block, remaining))
+            if not chunk:
+                return
+            remaining -= len(chunk)
+            yield chunk
 
 
 # EOF

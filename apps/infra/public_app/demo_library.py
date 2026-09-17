@@ -25,6 +25,7 @@ pipeline writes it, this reads it.
 
 import hashlib
 import json
+import re
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -437,6 +438,41 @@ def entry_for(manifest_path: Path, library_dir: Path | None = None) -> dict:
         "visibility": visibility(gate_state, promotion),
         "media_dir": str(directory),
     }
+
+
+RANGE_PATTERN = re.compile(r"^bytes=(\d*)-(\d*)$")
+
+
+def range_bounds(value: object, size: int):
+    """What a single Range request asks for.
+
+    Returns ``(start, end)`` inclusive, ``"unsatisfiable"``, or None when there is no
+    range to honour. The route advertised no range support at all, so a player seeking
+    into a video, or a download manager resuming one, was sent the whole file again.
+    Only one range is honoured: a ``multipart/byteranges`` answer is more surface than a
+    staff-only asset route needs, and a multi-range request is reported as
+    unsatisfiable rather than guessed at.
+    """
+    if not value or not isinstance(value, str):
+        return None
+    match = RANGE_PATTERN.match(value.strip())
+    if not match or size <= 0:
+        return "unsatisfiable"
+    first, last = match.group(1), match.group(2)
+    if not first and not last:
+        return "unsatisfiable"
+    if not first:                      # bytes=-N: the final N bytes
+        length = int(last)
+        if length <= 0:
+            return "unsatisfiable"
+        return (max(0, size - length), size - 1)
+    start = int(first)
+    if start >= size:
+        return "unsatisfiable"
+    end = size - 1 if not last else min(int(last), size - 1)
+    if end < start:
+        return "unsatisfiable"
+    return (start, end)
 
 
 def manifest_is_inside(path: Path, root: Path) -> bool:
