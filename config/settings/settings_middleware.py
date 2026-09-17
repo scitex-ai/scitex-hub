@@ -44,6 +44,10 @@ MIDDLEWARE = [
     # (hub pages render it themselves; the data-site-dock marker prevents a
     # second copy). Operator 2026-09-14: the dock on EVERY page.
     "apps.infra.workspace_app.middleware_site_dock.SiteDockMiddleware",
+    # Card-required onboarding: a verified user without a usable, webhook-confirmed
+    # card reaches billing, auth, legal/support and the Stripe callbacks, and
+    # nothing else. Decision: accounts_app/entitlement.py (pure, tested).
+    "apps.infra.accounts_app.middleware_entitlement.CardRequiredMiddleware",
     # Injects the Alt+I element inspector into HTML responses when
     # SCITEX_UI_ELEMENT_INSPECTOR is on (see settings_shared.py).
     # Async-capable as of scitex-ui 0.6.1 — do not downgrade below that pin.
