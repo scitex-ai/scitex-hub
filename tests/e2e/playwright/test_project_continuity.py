@@ -110,11 +110,21 @@ def test_login_launcher_and_project_apps_keep_one_project(continuity_browser):
     )
     assert page.locator(".launcher-active-project").is_visible()
 
-    stats = page.locator('[data-planned="stats"]')
+    stats = page.locator('[data-module="stats"], [data-planned="stats"]')
     assert stats.count() == 1
-    assert stats.get_attribute("data-availability") == "coming_soon"
-    assert stats.get_attribute("href") is None
-    assert stats.get_attribute("aria-haspopup") == "dialog"
+    stats_href = stats.get_attribute("href")
+    if stats_href is None:
+        assert stats.get_attribute("data-availability") == "coming_soon"
+        assert stats.get_attribute("aria-haspopup") == "dialog"
+    else:
+        # No Stats leaf is mounted yet. A catalog-only tile may link to its real
+        # Store detail page, but must never invent the absent /apps/stats/ route.
+        assert urlparse(stats_href).path == "/apps/store/stats/"
+        stats_response = page.goto(stats_href, wait_until="domcontentloaded")
+        assert stats_response is not None and stats_response.status == 200
+        wait_for_page_ready(page)
+        page.goto("/apps/", wait_until="domcontentloaded")
+        wait_for_page_ready(page)
 
     for app in PROJECT_APPS:
         tile = page.locator(f'[data-module="{app}"]:not([data-favorite-alias])')
