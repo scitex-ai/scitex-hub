@@ -78,6 +78,16 @@ class ContractStatus:
 # that invalidates a recording (moved, relabelled, replaced by another control).
 SELECTOR_CONTRACTS: tuple[SelectorContract, ...] = (
     SelectorContract(
+        name="figrecipe-app-mount",
+        selector='#app-mount[data-app-slug="figrecipe"][data-embedded="true"]',
+        owner="apps/workspace/figrecipe_app/templates/figrecipe_app/figrecipe_partial.html",
+        token='data-app-slug="figrecipe"',
+        version="1",
+        note="The hub's FigRecipe surface is the app-editor shell; the inner plot and "
+             "data controls arrive over the vite bridge and are not in this checkout, "
+             "so this mount is the only hook a scenario can assert for that app.",
+    ),
+    SelectorContract(
         name="language-switcher-trigger",
         selector="#lang-select-trigger",
         owner="templates/global_base_partials/language_switcher.html",

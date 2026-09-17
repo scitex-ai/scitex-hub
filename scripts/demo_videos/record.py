@@ -34,6 +34,7 @@ import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from urllib.parse import urlparse
 
 from demo_captions import (
     Chapter,
@@ -61,7 +62,7 @@ from demo_narration import (
     synthesize_clip,
     voice_for,
 )
-from demo_scenario import Rendition, Scenario, Step, load_scenario
+from demo_scenario import Rendition, Scenario, ScenarioError, Step, load_scenario
 from demo_selectors import (
     check_contracts,
     check_scenario,
@@ -77,6 +78,33 @@ from demo_tools import (
 from demo_watch_gate import gate_path, init_gate
 
 POINTER_ACTIONS = {"click", "fill", "type", "hover"}
+#: An app or date becomes part of a file name, so it is constrained rather than
+#: escaped: `app: ../../etc` used to write outside the render directory.
+SAFE_APP = re.compile(r"^[a-z0-9][a-z0-9-]{0,40}$")
+SAFE_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def output_name_problems(app: str, date: str) -> list[str]:
+    """Why these names must not be used for files, if any."""
+    problems = []
+    if not SAFE_APP.match(app or ""):
+        problems.append(f"app {app!r} must be lowercase letters, digits and hyphens")
+    if not SAFE_DATE.match(date or ""):
+        problems.append(f"date {date!r} must be YYYY-MM-DD")
+    return problems
+
+
+def safe_site_path(value: str) -> bool:
+    """Whether a goto target stays on this site.
+
+    The recorder drives a browser that holds the operator's session, so a scenario
+    that navigates to another origin is a scenario that hands the recording to a page
+    nobody reviewed — and a redirect can do it after the click as well, which is why
+    the final URL's origin is checked too, not just the value written in the scenario.
+    """
+    if not value or not value.startswith("/") or value.startswith("//"):
+        return False
+    return "://" not in value and "\\" not in value and "\n" not in value
 # Reading speed used to time steps when no voice is available, in characters per second.
 FALLBACK_CHARACTERS_PER_SECOND = {"ja": 7.0}
 DEFAULT_CHARACTERS_PER_SECOND = 15.0
@@ -287,7 +315,7 @@ def language_switch_path(scenario: Scenario) -> str:
         if step.action != "goto":
             continue
         for value in step.value.values():
-            if value and "{" not in value:
+            if value and "{" not in value and safe_site_path(value):
                 return value
     return "/apps/"
 
@@ -313,6 +341,7 @@ def switch_ui_language(browser, base_url: str, storage_state, locale: str, path:
         page.click("#lang-select-trigger")
         with page.expect_navigation(timeout=60_000):
             page.click(f"form.lang-select-item:has(input[name=language][value={locale}]) button")
+        assert_same_origin(page, base_url)
         try:
             page.wait_for_function(
                 "() => document.readyState !== 'loading' "
@@ -359,6 +388,16 @@ def click_with_retry(locator, attempts: int = 2, timeout_ms: int = 30_000) -> No
     raise last_error if last_error is not None else RuntimeError("click failed")
 
 
+def assert_same_origin(page, base_url: str) -> None:
+    """Raise unless the page is still on the recorder's own origin."""
+    left = urlparse(page.url)
+    home = urlparse(base_url)
+    if left.netloc != home.netloc:
+        raise RuntimeError(
+            f"the page left the recording origin: {page.url} is not on {base_url}"
+        )
+
+
 def run_step(page, cursor: MovingCursor, step: Step, language: str, args, username: str,
              run_id: str) -> None:
     selector = fill_placeholders(step.selector.get(language, ""), username, run_id)
@@ -367,7 +406,13 @@ def run_step(page, cursor: MovingCursor, step: Step, language: str, args, userna
     if step.action in POINTER_ACTIONS:
         cursor.glide_to(locator)
     if step.action == "goto":
+        if not safe_site_path(value):
+            raise RuntimeError(
+                f"refusing to navigate to {value!r}: a goto target must be a site path "
+                f"like '/apps/', not another origin"
+            )
         page.goto(f"{args.base_url}{value}", wait_until="domcontentloaded", timeout=90_000)
+        assert_same_origin(page, args.base_url)
     elif step.action == "click":
         click_with_retry(locator)
     elif step.action == "fill":
@@ -378,6 +423,28 @@ def run_step(page, cursor: MovingCursor, step: Step, language: str, args, userna
         (locator or page.keyboard).press(value)
     elif step.action == "hover":
         locator.hover()
+    elif step.action == "assert_selector":
+        # A contract worth asserting on camera is a contract worth failing on: this is
+        # how a scenario says "the app opened for this project" using a hook that
+        # demo_selectors.py checks against the checkout, and it raises the same
+        # selector-with-evidence failure a moved control produces.
+        try:
+            page.wait_for_selector(selector, state="visible", timeout=30_000)
+        except Exception as error:
+            raise RecordingFailed({
+                "language": language, "selector": selector, "action": "assert_selector",
+                "page_url": page.url, "error": f"{type(error).__name__}: {error}"[:300],
+            }) from error
+        observed = page.evaluate(
+            """(selector) => {
+                const node = document.querySelector(selector);
+                if (!node) return null;
+                const attributes = {};
+                for (const attribute of node.attributes) attributes[attribute.name] = attribute.value;
+                return attributes;
+            }""", selector
+        )
+        print(f"  assert_selector ok: {selector} -> {observed}")
     elif step.action == "scroll":
         page.mouse.wheel(0, int(value or 400))
 
@@ -406,6 +473,22 @@ def theme_init_script(theme: str) -> str:
       }} catch (error) {{}}
     }})();
     """
+
+
+def theme_failures(observations: list[dict], requested: str) -> list[dict]:
+    """The steps whose surface did not come up in the requested theme.
+
+    A single check at the first page is not enough: measured 2026-09-17, Home rendered
+    light while the workspace and the create form rendered dark, so a render can look
+    right in its first seconds and be wrong for the rest of the walkthrough. Every step
+    is observed, and any dark surface fails the render.
+    """
+    if not requested:
+        return []
+    return [
+        entry for entry in observations
+        if entry.get("background_theme") not in (requested, "unknown")
+    ]
 
 
 def theme_from_background(rgb: str) -> str:
@@ -584,6 +667,7 @@ def record(browser, recording: Recording, storage_state, needed_seconds, args, u
     recording_started = time.monotonic()
     timings = []
     theme_state = {"theme": args.theme, "source": "disabled", "verified": False}
+    theme_observations: list[dict] = []
     index: int = -1
     step = None
     try:
@@ -596,6 +680,11 @@ def record(browser, recording: Recording, storage_state, needed_seconds, args, u
                 # Once a page is on screen, verify the theme instead of trusting it.
                 theme_state = apply_theme(page, args.theme, args.base_url,
                                           language_switch_path(recording.scenario))
+            if args.theme:
+                theme_observations.append(
+                    {"step": index + 1, "action": step.action, "page_url": page.url,
+                     **observe_theme(page, args.theme)}
+                )
             elapsed = time.monotonic() - step_started
             page.wait_for_timeout((max(needed_seconds[index] - elapsed, 0) + step.hold) * 1000)
             timings.append(
@@ -627,6 +716,22 @@ def record(browser, recording: Recording, storage_state, needed_seconds, args, u
                                 encoding="utf-8")
         report["report_path"] = str(failure_path)
         raise RecordingFailed(report) from error
+    dark = theme_failures(theme_observations, args.theme)
+    theme_state["observations"] = theme_observations
+    if args.theme and dark:
+        # Fail rather than publish a video of the wrong theme: report every surface, so
+        # the product fix is scoped from the recording instead of rediscovered.
+        raise RecordingFailed({
+            "app": recording.scenario.app, "language": recording.language,
+            "viewport": recording.viewport.name,
+            "error": f"{len(dark)} surface(s) did not come up in the requested theme",
+            "requested_theme": args.theme,
+            "dark_surfaces": dark,
+            "observations": theme_observations,
+            "step_index": dark[0].get("step", 0),
+            "steps_total": len(recording.scenario.steps),
+            "page_url": dark[0].get("page_url", ""),
+        })
     page.wait_for_timeout(1000)
     context.close()
     webm = recording.artifact("webm")
@@ -818,6 +923,25 @@ def preflight_target_kinds(scenario: Scenario, username: str, run_id: str) -> li
     return targets
 
 
+def observe_theme(page, theme: str = "") -> dict:
+    """The rendered theme of the page as it stands: attribute, background, verdict."""
+    try:
+        observed = page.evaluate(
+            """() => ({
+                attribute: document.documentElement.getAttribute('data-theme') || '',
+                background: getComputedStyle(document.body || document.documentElement)
+                              .backgroundColor,
+            })"""
+        )
+    except Exception as error:
+        return {"attribute": "", "background": "", "background_theme": "unknown",
+                "observed_error": f"{type(error).__name__}: {error}"[:200]}
+    observed["background_theme"] = theme_from_background(observed["background"])
+    if theme:
+        observed["matches"] = observed["background_theme"] in (theme, "unknown")
+    return observed
+
+
 def theme_map(page, theme: str, targets: list[dict], base_url: str) -> dict:
     """Which pages actually come up in the requested theme, measured per page.
 
@@ -945,7 +1069,12 @@ def run_preflight(scenario: Scenario, args, username: str, password: str) -> dic
                 report["blockers"].append(f"language switcher did not reach '{locale}'")
         if args.theme:
             # Before a render: which surfaces actually honour the theme. Signed out,
-            # this maps the public pages; signed in, the pages the scenario uses.
+            # this maps the public pages; signed in, the pages the scenario uses — plus
+            # the suite a light-mode public demo is judged on: Home, My Projects, the
+            # create form and the project detail. The operator named those four.
+            if state:
+                targets = list(targets) + [{"path": "/apps/my-projects/", "creates": False}]
+                report["theme_map_surfaces"] = [target["path"] for target in targets]
             report["theme_map"] = theme_map(page, args.theme, targets, args.base_url)
             if not report["theme_map"]["all_match"]:
                 report["blockers"].append(
@@ -981,7 +1110,13 @@ def run_preflight(scenario: Scenario, args, username: str, password: str) -> dic
 
 def main() -> int:
     args = parse_args()
-    scenario = load_scenario(args.scenario)
+    try:
+        scenario = load_scenario(args.scenario)
+    except ScenarioError as error:
+        # A scenario that would leave the site, or write outside the render root, is
+        # refused before a browser starts — nothing to clean up, nothing recorded.
+        print(f"scenario refused: {error}", file=sys.stderr)
+        return 9
     username = os.environ.get("DEMO_USERNAME", "")
     password = os.environ.get("DEMO_PASSWORD", "")
     # A dry run and a preflight record nothing, so neither needs the demo
@@ -1006,6 +1141,11 @@ def main() -> int:
         print(f"'{CAPTION_FONT}' is not installed: burned-in captions fall back to a font that "
               "may not have Japanese glyphs. Install it or set --fonts-dir.", file=sys.stderr)
 
+    naming_problems = output_name_problems(scenario.app, args.date)
+    if naming_problems:
+        for problem in naming_problems:
+            print(f"refusing to write files: {problem}", file=sys.stderr)
+        return 8
     renditions = selected_renditions(args, scenario)
     viewports = selected(args.viewports, scenario.viewports)
     languages = selected(args.languages, scenario.languages)

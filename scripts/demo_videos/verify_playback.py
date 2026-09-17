@@ -286,6 +286,18 @@ def run_switch(page, switch_to: str, args) -> dict:
         "() => { const v = document.getElementById('demo-video'); return isFinite(v.duration) && v.duration > 0; }",
         timeout=30_000,
     )
+    # Before anything moves: does the language the player reports match the file it is
+    # actually playing, and do the captions belong to that file?
+    initial = page.evaluate(
+        """() => {
+            const state = window.demoVideoPlayer.state();
+            const entry = window.demoVideoPlayer.languages
+                .filter(candidate => candidate.code === state.language)[0] || {};
+            return {language: state.language, playingSrc: state.playingSrc,
+                    expectedSrc: entry.src || '', expectedCaptions: entry.captions || '',
+                    captionTrackSrc: state.captionTrackSrc};
+        }"""
+    )
     page.evaluate(
         """([seconds, rate]) => {
             const video = document.getElementById('demo-video');
@@ -343,7 +355,15 @@ def run_switch(page, switch_to: str, args) -> dict:
         return {"before": clicked, "after": {}, "advanced": {}, "announced": False}
     page.wait_for_timeout(int(args.play_seconds * 1000))
     advanced = page.evaluate("() => window.demoVideoPlayer.state()")
-    return {"before": clicked, "after": switched, "advanced": advanced, "announced": True}
+    return {"before": clicked, "after": switched, "advanced": advanced, "announced": True,
+            "initial": initial}
+
+
+def name_matches(haystack: str, needle: str) -> bool:
+    """Whether a URL names the file we expect (query strings and paths tolerated)."""
+    if not needle:
+        return True
+    return Path(needle).name in (haystack or "")
 
 
 def checks_from(measured: dict, target: dict, args, seconds_played: float) -> dict:
@@ -352,6 +372,10 @@ def checks_from(measured: dict, target: dict, args, seconds_played: float) -> di
     if not measured.get("announced") or not after:
         return {
             "position_preserved": False,
+            "initial_source_matches_language": False,
+            "initial_captions_match_file": False,
+            "captions_track_matches_file": False,
+            "playing_file_matches_after_switch": False,
             "position_drift_seconds": None,
             "playback_rate_preserved": False,
             "pause_state_preserved": False,
@@ -380,6 +404,22 @@ def checks_from(measured: dict, target: dict, args, seconds_played: float) -> di
         "language_switched": after["language"] == target.get("code"),
         "playback_advanced": (advanced.get("currentTime", 0) - after["at"]) >= seconds_played * 0.5,
         "advanced_seconds": round(advanced.get("currentTime", 0) - after["at"], 3),
+        # The two mismatches a language switch can hide: a language reported as active
+        # over another language's file, and captions from the track we just left.
+        "initial_source_matches_language": name_matches(
+            (measured.get("initial") or {}).get("playingSrc", ""),
+            (measured.get("initial") or {}).get("expectedSrc", ""),
+        ),
+        "initial_captions_match_file": name_matches(
+            (measured.get("initial") or {}).get("captionTrackSrc", ""),
+            (measured.get("initial") or {}).get("expectedCaptions", ""),
+        ),
+        "captions_track_matches_file": name_matches(
+            after.get("captionTrackSrc", ""), target.get("captions", "")
+        ),
+        "playing_file_matches_after_switch": name_matches(
+            after.get("playingSrc", ""), target.get("src", "")
+        ),
     }
 
 
@@ -388,7 +428,9 @@ def verdict(checks: dict) -> bool:
         checks[key]
         for key in ("position_preserved", "source_switched", "playback_rate_preserved",
                     "pause_state_preserved", "captions_switched", "language_switched",
-                    "playback_advanced")
+                    "playback_advanced", "initial_source_matches_language",
+                    "initial_captions_match_file", "captions_track_matches_file",
+                    "playing_file_matches_after_switch")
     )
 
 

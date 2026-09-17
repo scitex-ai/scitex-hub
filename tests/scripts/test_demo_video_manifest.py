@@ -355,3 +355,40 @@ def test_manifest_report_notices_a_scenario_that_is_gone(tmp_path):
     # Assert
     assert rows[0]["scenario_state"] == "missing"
     assert rows[0]["stale"] is True
+
+
+def test_the_manifest_records_the_theme_each_rendition_was_recorded_in(tmp_path):
+    # Arrange: a render asked for light mode and one surface did not honour it.
+    scenario = tmp_path / "s.yaml"
+    scenario.write_text("app: projects\n", encoding="utf-8")
+    rendition = {
+        "language": "en", "theme": "light", "theme_source": "cli", "theme_verified": False,
+        "theme_map": {"http://x/new/": {"background_theme": "dark"}},
+    }
+    # Act
+    manifest = build_manifest(
+        app="projects", date="2026-09-17", titles={"en": "x"}, scenario_path=scenario,
+        repo_root=tmp_path, base_url="http://x", renditions=[rendition], tools_info={},
+        contracts={}, viewports=["desktop"], languages=["en"],
+    )
+    # Assert: the request, the verdict and the per-surface map all survive to the artifact.
+    assert manifest["theme"] == "light"
+    assert manifest["theme_verified"] is False
+    assert manifest["theme_map"]["http://x/new/"]["background_theme"] == "dark"
+    assert manifest["environment"]["theme_verified"] is False
+
+
+def test_a_render_that_measured_no_theme_is_unknown_rather_than_failed(tmp_path):
+    # Arrange: a render that never asked for a theme.
+    scenario = tmp_path / "s.yaml"
+    scenario.write_text("app: projects\n", encoding="utf-8")
+    # Act
+    manifest = build_manifest(
+        app="projects", date="2026-09-17", titles={"en": "x"}, scenario_path=scenario,
+        repo_root=tmp_path, base_url="http://x",
+        renditions=[{"language": "en", "viewport": "desktop"}], tools_info={},
+        contracts={}, viewports=["desktop"], languages=["en"],
+    )
+    # Assert: "not measured" must never read as "failed", or every render becomes a defect.
+    assert manifest["theme_verified"] is None
+    assert manifest["theme"] == ""

@@ -27,6 +27,7 @@ from demo_narration import (  # noqa: E402
 from record import (  # noqa: E402
     first_visual_step,
     language_matches,
+    theme_failures,
     theme_from_background,
     theme_init_script,
 )
@@ -144,3 +145,34 @@ def test_an_unreadable_background_is_not_reported_as_a_mismatch():
 def test_the_switcher_verdict_treats_an_unread_lang_as_a_mismatch(observed, locale, expected):
     # Arrange / Act / Assert: an empty attribute is "not switched", never "fine".
     assert language_matches(observed, locale) is expected
+
+
+def test_a_dark_surface_fails_the_render_even_when_the_first_page_is_light():
+    # Arrange: measured — Home light, workspace and /new/ dark, in one walkthrough.
+    observations = [
+        {"step": 1, "page_url": "http://x/apps/", "background_theme": "light"},
+        {"step": 2, "page_url": "http://x/new/", "background_theme": "dark"},
+        {"step": 7, "page_url": "http://x/u/p/", "background_theme": "dark"},
+    ]
+    # Act
+    failures = theme_failures(observations, "light")
+    # Assert
+    assert [entry["step"] for entry in failures] == [2, 7]
+
+
+def test_all_light_surfaces_pass_and_an_unreadable_one_is_not_counted_dark():
+    # Arrange
+    observations = [
+        {"step": 1, "page_url": "http://x/apps/", "background_theme": "light"},
+        {"step": 2, "page_url": "http://x/new/", "background_theme": "unknown"},
+    ]
+    # Act / Assert: an unreadable colour is "could not tell", not a false accusation.
+    assert theme_failures(observations, "light") == []
+
+
+def test_a_dark_request_is_checked_in_the_other_direction():
+    # Arrange: the same rule protects a dark recording from a light surface.
+    observations = [{"step": 1, "page_url": "http://x/apps/", "background_theme": "light"}]
+    # Act / Assert
+    assert [entry["step"] for entry in theme_failures(observations, "dark")] == [1]
+    assert theme_failures(observations, "") == []
