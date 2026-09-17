@@ -223,19 +223,32 @@ def write_contract_owners(root: Path) -> None:
         path.write_text("\n".join(tokens), encoding="utf-8")
 
 
-def test_manifest_report_marks_a_published_render_intact_and_current(tmp_path):
-    # Arrange: a render made from this checkout's contract set, files present.
+def write_scenario_into(root: Path, body: str = SCENARIO_TEXT) -> None:
+    """The scenario file where the report looks for it."""
+    path = root / "scripts" / "demo_videos" / "scenarios" / "demo.yaml"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(body, encoding="utf-8")
+
+
+def current_contracts(manifest: dict) -> dict:
+    """The contract block of a manifest recorded from this checkout's contracts."""
     from demo_selectors import SELECTOR_CONTRACTS, contract_fingerprint
 
-    out_dir = tmp_path / "out"
-    out_dir.mkdir()
-    repo = tmp_path / "repo"
-    write_contract_owners(repo)
-    manifest = build(out_dir, tmp_path)
     manifest["ui_contract"]["fingerprint"] = contract_fingerprint()
     manifest["ui_contract"]["contracts"] = {
         contract.name: contract.version for contract in SELECTOR_CONTRACTS
     }
+    return manifest
+
+
+def test_manifest_report_marks_a_published_render_intact_and_current(tmp_path):
+    # Arrange: a render made from this checkout's contract set and scenario, files present.
+    out_dir = tmp_path / "out"
+    out_dir.mkdir()
+    repo = tmp_path / "repo"
+    write_contract_owners(repo)
+    write_scenario_into(repo)
+    manifest = current_contracts(build(out_dir, tmp_path))
     write_manifest(manifest_path(out_dir, "demo", "2026-09-17"), manifest)
     # Act
     rows = manifest_report(out_dir, repo)
@@ -245,6 +258,7 @@ def test_manifest_report_marks_a_published_render_intact_and_current(tmp_path):
     assert rows[0]["artifacts_verified"] is True
     assert rows[0]["stale"] is False
     assert rows[0]["changed_contracts"] == []
+    assert rows[0]["scenario_state"] == "current"
     assert rows[0]["watch_gate"] == "pending"
 
 
@@ -293,3 +307,51 @@ def test_manifest_report_on_a_directory_of_older_videos_is_empty_not_a_guess(tmp
     rows = manifest_report(out_dir, tmp_path)
     # Assert
     assert rows == []
+
+
+def test_manifest_report_marks_a_render_stale_when_its_scenario_changed(tmp_path):
+    # Arrange: the render's scenario now differs from the one that was recorded.
+    out_dir = tmp_path / "out"
+    out_dir.mkdir()
+    repo = tmp_path / "repo"
+    write_contract_owners(repo)
+    write_scenario_into(repo, SCENARIO_TEXT + "# a later edit\n")
+    manifest = current_contracts(build(out_dir, tmp_path))
+    write_manifest(manifest_path(out_dir, "demo", "2026-09-17"), manifest)
+    # Act
+    rows = manifest_report(out_dir, repo)
+    # Assert
+    assert rows[0]["scenario_state"] == "changed"
+    assert rows[0]["artifacts_verified"] is True   # the files are untouched
+    assert rows[0]["stale"] is True                # but the video no longer matches its script
+
+
+def test_manifest_report_accepts_an_unchanged_scenario(tmp_path):
+    # Arrange
+    out_dir = tmp_path / "out"
+    out_dir.mkdir()
+    repo = tmp_path / "repo"
+    write_contract_owners(repo)
+    write_scenario_into(repo)
+    manifest = current_contracts(build(out_dir, tmp_path))
+    write_manifest(manifest_path(out_dir, "demo", "2026-09-17"), manifest)
+    # Act
+    rows = manifest_report(out_dir, repo)
+    # Assert
+    assert rows[0]["scenario_state"] == "current"
+    assert rows[0]["stale"] is False
+
+
+def test_manifest_report_notices_a_scenario_that_is_gone(tmp_path):
+    # Arrange: the scenario file was deleted, so the video can never be re-rendered.
+    out_dir = tmp_path / "out"
+    out_dir.mkdir()
+    repo = tmp_path / "repo"
+    write_contract_owners(repo)
+    manifest = current_contracts(build(out_dir, tmp_path))
+    write_manifest(manifest_path(out_dir, "demo", "2026-09-17"), manifest)
+    # Act
+    rows = manifest_report(out_dir, repo)
+    # Assert
+    assert rows[0]["scenario_state"] == "missing"
+    assert rows[0]["stale"] is True

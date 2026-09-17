@@ -237,11 +237,14 @@ python scripts/demo_videos/demo_manifest.py --dir media/videos/demos --repo-root
 ```
 
 One row per manifest: `artifacts_verified` (every file still matches its recorded
-sha256), `stale` with the `changed_contracts`/`broken_contracts` that moved, and
-the watch-gate status. Exit 1 when a row is stale or unverified. Videos that
-predate the manifest simply do not appear — the published 2026-09-14 guides carry
-no recorded metadata, so the report says so instead of guessing their contract
-set.
+sha256), `stale` with the `changed_contracts`/`broken_contracts` that moved,
+`scenario_state` (`current`, `changed`, or `missing`) against the scenario file on
+disk, and the watch-gate status. Exit 1 when a row is stale or unverified. A video
+whose narration or steps have been edited since it was recorded is stale in the
+way that matters most to a viewer, which is why the scenario digest is compared
+and not just the UI contracts. Videos that predate the manifest simply do not
+appear — the published 2026-09-14 guides carry no recorded metadata, so the report
+says so instead of guessing their contract set.
 
 ### Playback verification
 

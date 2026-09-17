@@ -241,6 +241,30 @@ def find_manifest(out_dir: Path, app: str, date: str = "") -> Path | None:
     return matches[-1] if matches else None
 
 
+def scenario_state(manifest: dict, repo_root: Path) -> dict:
+    """Whether the scenario file on disk is still the one this render was made from.
+
+    The report checked the artifacts and the UI contracts but not the input: after
+    the smoke scenario gained a mobile viewport, its desktop render — recorded from
+    the earlier scenario — still reported as current, because nothing compared the
+    recorded scenario digest with the file. A video whose narration or steps have
+    been edited since is stale in the way that matters most to a viewer.
+    """
+    name = (manifest.get("scenario") or {}).get("path", "")
+    recorded = (manifest.get("scenario") or {}).get("sha256", "")
+    path = Path(repo_root) / "scripts" / "demo_videos" / "scenarios" / name
+    if not name or not path.is_file():
+        return {"scenario": name, "state": "missing", "recorded_sha256": recorded,
+                "current_sha256": ""}
+    current = text_digest(path.read_text(encoding="utf-8"))
+    return {
+        "scenario": name,
+        "state": "current" if current == recorded else "changed",
+        "recorded_sha256": recorded,
+        "current_sha256": current,
+    }
+
+
 def manifest_report(out_dir: Path, repo_root: Path) -> list[dict]:
     """Every manifest in a directory, with its integrity and staleness verdict.
 
@@ -259,6 +283,7 @@ def manifest_report(out_dir: Path, repo_root: Path) -> list[dict]:
         manifest = load_manifest(path)
         integrity = verify_manifest(manifest, Path(out_dir))
         staleness = stale_against_manifest(manifest, repo_root)
+        scenario = scenario_state(manifest, repo_root)
         rows.append(
             {
                 "manifest": path.name,
@@ -270,9 +295,11 @@ def manifest_report(out_dir: Path, repo_root: Path) -> list[dict]:
                 ),
                 "artifacts_verified": integrity["verified"],
                 "artifact_mismatches": integrity["mismatches"],
-                "stale": staleness["stale"],
+                "stale": staleness["stale"] or scenario["state"] != "current",
                 "changed_contracts": [entry["name"] for entry in staleness["changed_contracts"]],
                 "broken_contracts": [entry["name"] for entry in staleness["broken_contracts"]],
+                "scenario": scenario["scenario"],
+                "scenario_state": scenario["state"],
                 "watch_gate": (manifest.get("watch_gate") or {}).get("status", ""),
             }
         )
