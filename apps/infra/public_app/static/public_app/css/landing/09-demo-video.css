@@ -67,3 +67,59 @@
   padding-top: var(--spacing-sm);
   border-top: 1px solid var(--border-color);
 }
+
+/* ---------------------------------------------------------------------------
+ * Hero demo card copy contract (card hub-landing-customer-story-20260917).
+ *
+ * These two rules live HERE and not in landing-hero-demo.css: that file is
+ * referenced by nothing and is not in the landing page's stylesheet list
+ * (verified against the rendered page — a rule added there never reaches a
+ * browser). landing-hero-fix.css, which does style .demo-description and
+ * .speed-label, is at 507/512 lines, so this is the loaded file with room.
+ * ------------------------------------------------------------------------- */
+
+/* The recorded workflow time is NOT the video length, and must not read as a
+ * claim about the playback the visitor is about to watch. Smaller and quieter
+ * than the demo title, sitting opposite the "Playback speed" control. */
+.demo-workflow-time {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--text-secondary, #57606a);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+[data-theme="dark"] .demo-workflow-time {
+  color: var(--text-secondary, #8b949e);
+}
+
+/* MCP/API detail is one click away, below the demo actions — not the pitch. */
+.demo-technical {
+  margin: 0.5rem 0 0;
+  text-align: left;
+}
+
+.demo-technical-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 24px;
+  color: var(--text-secondary, #57606a);
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.demo-technical-link:hover,
+.demo-technical-link:focus-visible {
+  color: var(--text-primary, #1c1c1c);
+  text-decoration: underline;
+}
+
+[data-theme="dark"] .demo-technical-link {
+  color: var(--text-secondary, #8b949e);
+}
+
+[data-theme="dark"] .demo-technical-link:hover,
+[data-theme="dark"] .demo-technical-link:focus-visible {
+  color: var(--text-primary, #c9d1d9);
+}

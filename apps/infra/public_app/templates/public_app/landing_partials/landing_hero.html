@@ -21,6 +21,15 @@
                          alt="SciTeX - For Researchers"
                          class="hero-logo" />
                 </div>
+                <!-- Customer outcome first: one workspace, the four tasks a
+                     researcher actually does. Tasks before product names
+                     (SSOT §1); the apps are named further down the page. -->
+                <h1 class="hero-title">
+                    {% trans "One workspace from literature to manuscript" %}
+                </h1>
+                <p class="hero-subtitle">
+                    {% blocktrans %}Find and organise your literature, analyse your data, create publication-ready figures and write the manuscript — all connected by one project, so nothing is re-uploaded or re-selected.{% endblocktrans %}
+                </p>
                 <!-- Value proposition and CTA -->
                 <p class="hero-tagline">{{ SITE_TAGLINE }}</p>
                 <div class="hero-cta">
@@ -88,13 +97,20 @@
                     <div class="demo-info-left">
                         <span class="demo-workflow-text">
                             <span class="demo-badge">{% trans "DEMO" %}</span>
-                            {% trans "Automated Research with SciTeX MCP Server in 40 min" %}
+                            {% trans "Watch one research workflow, end to end, on a single project" %}
                             <br />
-                            {% trans "Literature Search → Analysis → Graphing → Manuscript → Revision" %}
+                            {% trans "Literature → analysis → figures → manuscript → revision" %}
+                        </span>
+                        {# Two different numbers used to share one line: how long the
+                           research took, and how fast the video plays. They are
+                           labelled separately now (SSOT §1). #}
+                        <span class="demo-workflow-time"
+                              data-demo-workflow-time="{% trans 'Recorded workflow: 40 minutes of real work, start to finished manuscript' %}">
+                            {% trans "Recorded workflow: 40 minutes of real work, start to finished manuscript." %}
                         </span>
                     </div>
                     <div class="demo-info-right">
-                        <span class="speed-label">{% trans "Speed:" %}</span>
+                        <span class="speed-label">{% trans "Playback speed:" %}</span>
                         <select class="speed-select" id="hero-speed-select">
                             <option value="1">1x</option>
                             <option value="2">2x</option>
@@ -107,6 +123,15 @@
                 <a href="{% url 'public_app:demos' %}" class="watch-more-demos">
                     <i class="fas fa-play-circle"></i> {% trans "Watch More Demos" %}
                 </a>
+                {# Technical detail, one click away — not the pitch (SSOT §1). #}
+                <p class="demo-technical">
+                    <a href="{% url 'docs_app:api' %}"
+                       class="demo-technical-link"
+                       data-demo-technical="true">
+                        <i class="fas fa-plug" aria-hidden="true"></i>
+                        {% trans "MCP Server & API details" %}
+                    </a>
+                </p>
             </div>
         </div>
     </div>
