@@ -23,7 +23,7 @@ from django.utils import timezone
 from django.utils.translation import get_language
 
 from apps.infra.project_app.services.project_utils import get_current_project
-from apps.infra.workspace_app.registry import _BUILTIN_MODULES, get_all_modules
+from apps.infra.workspace_app.registry import get_all_modules
 
 from ..models import AppsModule, ModuleInstallation, PlannedAppInterest
 from ..planned_apps import visible_planned_apps
@@ -214,7 +214,6 @@ def _build_tiles(request) -> list[dict]:
     # deployment every authenticated team member sees internal apps (the
     # channel flag), anonymous users never do; staff see them everywhere.
     can_internal = can_view_internal_app(request.user)
-    builtin_names = {module.name for module in _BUILTIN_MODULES}
     for mod in get_all_modules():
         # Release-channel gate: internal/WIP apps are hidden when the user is
         # not entitled (compass §8 L281-292, §21 L642-643).
@@ -239,7 +238,7 @@ def _build_tiles(request) -> list[dict]:
         if not mod.show_in_launcher:
             seen.add(mod.name)
             continue
-        if mod.name not in builtin_names and not module_route_is_reachable(mod):
+        if mod.name == "stats" and not module_route_is_reachable(mod):
             logger.warning(
                 "[launcher] %s declares %s but no app route is mounted; "
                 "showing any planned placeholder instead",
