@@ -282,3 +282,29 @@ if __name__ == "__main__":
     import sys
 
     sys.exit(main())
+
+
+ENTRY_ANCHOR = "entry-"
+ENTRY_PATH = "/internal/demos/"
+
+
+def entry_url(entry_id: str, base_url: str = "") -> str:
+    """The page anchor for one entry: what a notification should carry.
+
+    Renders posted to chat vanish from the feed, and a file sent that way is gone with
+    them. An update should point at the index entry instead, so the status, the defects
+    and the history stay one click away and stay current.
+    """
+    if not entry_id or not str(entry_id).strip():
+        raise ClipError("an entry link needs an entry id")
+    anchor = f"{ENTRY_ANCHOR}{str(entry_id).strip()}"
+    path = f"{ENTRY_PATH}#{anchor}"
+    return f"{base_url.rstrip('/')}{path}" if base_url else path
+
+
+def notification_line(entry_id: str, *, status: str = "", base_url: str = "") -> str:
+    """One line for a chat update: the entry, its status, and the link to the index."""
+    if not entry_id:
+        raise ClipError("a notification needs an entry id")
+    where = f" ({status})" if status else ""
+    return f"demo {entry_id}{where} -> {entry_url(entry_id, base_url)}"

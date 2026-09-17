@@ -482,3 +482,18 @@ Uploading needs the operator's YouTube account, so it is a manual step:
    `<app>-<date>.ja.vtt` as Japanese.
 5. Upload the 390x844 version as a Short if wanted.
 6. Once public, add the YouTube URL to the demos card as another link.
+
+
+## Links, not attachments
+
+A render posted into chat disappears from the feed within days, and a file sent that way
+goes with it: the team then cannot tell what exists, what state it is in, or why a take was
+rejected, and re-records work it already has. So an update about a render links to its
+entry in the staff index instead of attaching the media:
+
+    demo projects-2026-09-17-9658829c (rejected) -> /internal/demos/#entry-projects-2026-09-17-9658829c
+
+`clip_registry.entry_url` builds that link and `clip_registry.notification_line` writes
+the line; neither sends a file. The index is the list of record, so the status, the known
+defects and the rejection history stay one click away and stay current even after the
+message has scrolled out of sight.
