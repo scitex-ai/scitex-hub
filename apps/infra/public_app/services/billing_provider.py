@@ -114,7 +114,13 @@ def card_registration_is_open() -> bool:
 
 
 def post_signup_redirect_url(user) -> str:
-    """Card-required signup: a verified user adds a card next, once registration is open."""
+    """Card-required signup: a verified user adds a card next, once registration is open.
+
+    Since the funnel card (hub-signup-email-stripe-funnel-20260917) that next step
+    is the dedicated payment step rather than the general billing settings page: it
+    states the terms before the provider's page and carries the single
+    'Continue to secure Stripe' action. Billing settings remains one click away.
+    """
     if card_registration_is_open():
-        return reverse("accounts_app:billing") + "?welcome=1"
+        return reverse("accounts_app:payment_step")
     return f"/{user.username}/"

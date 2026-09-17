@@ -1,0 +1,107 @@
+{% extends "auth_app/auth_base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Add your payment method" %} - SciTeX{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/payment-step.css' %}?v={{ build_id }}" />
+{% endblock %}
+
+{% block auth_content %}
+    {# The payment step, after the email is verified and before anything is     #}
+    {# charged. Card entry happens on the provider's hosted page: SciTeX never   #}
+    {# renders a PAN/CVC field, and the webhook — not this page — owns           #}
+    {# entitlement (card hub-signup-email-stripe-funnel-20260917).               #}
+    <div class="payment-step" data-payment-step="true" data-payment-state="{{ state }}">
+        <ol class="payment-steps" aria-label="{% trans 'Signup progress' %}">
+            <li class="payment-steps-item is-done">{% trans "Account" %}</li>
+            <li class="payment-steps-item is-done">{% trans "Email verified" %}</li>
+            <li class="payment-steps-item is-current" aria-current="step">{% trans "Payment method" %}</li>
+        </ol>
+
+        {% if state == 'usable' %}
+            <h1 class="payment-step-title">{% trans "Your payment method is already set up" %}</h1>
+            <p class="payment-step-lead">
+                {% trans "There is nothing to add. Your trial and billing details live in Settings." %}
+            </p>
+            <a class="payment-step-secondary" href="{% url 'accounts_app:billing' %}">
+                {% trans "Open billing settings" %}
+            </a>
+
+        {% else %}
+            {% if state == 'setup_cancelled' %}
+                <p class="payment-step-notice" data-payment-notice="setup_cancelled">
+                    {% trans "You left the secure card page before finishing. You have not been charged, and your account is not in trouble — nothing was created." %}
+                </p>
+            {% endif %}
+
+            <h1 class="payment-step-title">{% trans "Start your 30-day SciTeX Cloud trial" %}</h1>
+            <p class="payment-step-lead">
+                {% blocktrans with plan=plan_label %}{{ plan }} — {{ price_per_month }} per month, and $0.00 due today.{% endblocktrans %}
+            </p>
+
+            <dl class="payment-step-terms">
+                <dt>{% trans "Plan" %}</dt>
+                <dd data-payment-disclosure="plan">{{ plan_label }}</dd>
+                <dt>{% trans "Price" %}</dt>
+                <dd data-payment-disclosure="price">{{ price_per_month }}{% trans " / month (USD)" %}</dd>
+                <dt>{% trans "Due today" %}</dt>
+                <dd data-payment-disclosure="due-today">{{ due_today }}</dd>
+                <dt>{% trans "Trial ends" %}</dt>
+                <dd data-payment-disclosure="trial-end">{{ trial_ends_on }}</dd>
+                <dt>{% trans "First charge" %}</dt>
+                <dd data-payment-disclosure="first-charge">{{ first_charge_on }}</dd>
+                <dt>{% trans "Renewal" %}</dt>
+                <dd data-payment-disclosure="renewal">{{ renewal }}</dd>
+                <dt>{% trans "Cancellation" %}</dt>
+                <dd data-payment-disclosure="cancellation">{{ cancellation }}</dd>
+                <dt>{% trans "Tax" %}</dt>
+                <dd data-payment-disclosure="tax">{{ tax }}</dd>
+            </dl>
+
+            <p class="payment-step-card-note">
+                <i class="fas fa-lock" aria-hidden="true"></i>
+                {% trans "Your card number and CVC are entered on the payment provider's secure page. SciTeX never sees or stores them." %}
+            </p>
+
+            {# POST to the existing setup endpoint. The button disables itself on    #}
+            {# submit (data-submit-guard) so a double click cannot ask for two       #}
+            {# sessions; the server-side idempotency for the duplicate-customer      #}
+            {# blocker is the backend owner's half.                                  #}
+            <form method="post"
+                  action="{% url 'public_app:billing_start_setup' %}"
+                  class="payment-step-form"
+                  data-submit-guard="true">
+                {% csrf_token %}
+                <button type="submit"
+                        class="payment-step-continue"
+                        data-payment-action="continue">
+                    {% trans "Continue to secure Stripe" %}
+                </button>
+            </form>
+            <p class="payment-step-fineprint">
+                {% blocktrans %}You can cancel any time before the trial ends and you will not be charged.{% endblocktrans %}
+            </p>
+        {% endif %}
+    </div>
+
+    {# hook-bypass: inline-script — a guarded submit must not depend on the bundle #}
+    <script>
+    (function () {
+        document.querySelectorAll('form[data-submit-guard="true"]').forEach(function (form) {
+            form.addEventListener("submit", function () {
+                var button = form.querySelector("[data-payment-action='continue']");
+                if (!button) return;
+                if (button.dataset.submitting === "true") {
+                    // Second submit from the same form: stop it here.
+                    event.preventDefault();
+                    return;
+                }
+                button.dataset.submitting = "true";
+                button.disabled = true;
+                button.textContent = button.dataset.busyLabel || button.textContent;
+            });
+        });
+    })();
+    </script>
+{% endblock %}

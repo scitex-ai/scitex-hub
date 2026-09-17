@@ -45,4 +45,42 @@ def billing_settings(request):
     return render(request, "accounts_app/billing_settings.html", context)
 
 
-__all__ = ["billing_settings"]
+@login_required
+def payment_step(request):
+    """State the terms, then hand the card entry to the provider.
+
+    Card: hub-signup-email-stripe-funnel-20260917. This is the dedicated step a
+    verified user meets before Stripe — plan, price, what is due today, when the
+    trial ends, when the first charge lands, renewal, cancellation and tax — with
+    one explicit action that starts the provider's setup flow.
+
+    It decides nothing about entitlement: a usable card is read from the account
+    records the backend already owns, and the webhook still owns activation.
+    """
+    from ..payment_step import payment_disclosures, trial_state
+
+    if not card_registration_is_open():
+        return render(request, "accounts_app/billing_settings.html", {"state": "soon"})
+
+    user = request.user
+    has_usable_card = user.payment_methods.filter(is_usable=True).exists()
+    state = trial_state(
+        has_usable_card=has_usable_card,
+        returned_from_setup=request.GET.get("setup") == "cancelled",
+    )
+
+    rows = subscription_pricing_rows()
+    row = rows[0] if rows else {}
+    label = row.get("label") or row.get("name") or "SciTeX Cloud"
+    _, trial_end = trial_window(user)
+
+    disclosures = payment_disclosures(
+        plan_label=label,
+        monthly_usd=float(row.get("amount") or 0),
+        trial_end=trial_end,
+        state=state,
+    )
+    return render(request, "accounts_app/payment_step.html", disclosures.as_context())
+
+
+__all__ = ["billing_settings", "payment_step"]
