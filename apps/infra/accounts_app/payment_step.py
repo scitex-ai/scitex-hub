@@ -40,6 +40,10 @@ DISCLOSURE_FIELDS = (
 PENDING = "pending"                    # verified, no usable card yet
 SETUP_CANCELLED = "setup_cancelled"    # came back from Stripe without finishing
 USABLE = "usable"                      # a confirmed usable card exists
+NOT_OPEN = "not_open"                  # provider not configured yet: no card can be taken
+
+#: States the surface knows how to render.
+STATES = (PENDING, SETUP_CANCELLED, USABLE, NOT_OPEN)
 
 
 @dataclass(frozen=True)
@@ -86,7 +90,7 @@ def payment_disclosures(
     means — two labels, one date, and the surface says so rather than leaving the
     reader to infer it.
     """
-    state = state if state in (PENDING, SETUP_CANCELLED, USABLE) else PENDING
+    state = state if state in STATES else PENDING
     reference = now or datetime.now(trial_end.tzinfo if trial_end else None)
 
     if trial_end is None:
