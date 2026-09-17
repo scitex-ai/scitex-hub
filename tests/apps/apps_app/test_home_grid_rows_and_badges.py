@@ -174,10 +174,17 @@ class HomePagesTest(TestCase):
         # Assert
         assert first_row == ["my_projects", "agents", "todo", "storage"]
 
-    def test_missing_stats_app_is_a_coming_soon_tile_not_an_empty_cell(self):
-        # Walkthrough 2026-09-14: the held Stats gap read as a broken grid.
+    def test_stats_slot_is_real_only_when_its_leaf_route_is_mounted(self):
+        # A legacy scitex_modules entry point can exist without a Django mount.
+        # The launcher must advertise the real leaf only when its URL resolves
+        # before the project catch-all; otherwise the Coming Soon tile is honest.
         # Arrange
+        from apps.infra.workspace_app.registry import get_module
+        from apps.workspace.apps_app.views.launcher import module_route_is_reachable
+
         groups = self._groups()
+        stats = get_module("stats")
+        stats_is_real = bool(stats and module_route_is_reachable(stats))
         # Act
         cells = [
             (c.get("name"), bool(c.get("is_planned")))
@@ -188,7 +195,7 @@ class HomePagesTest(TestCase):
         assert cells == [
             ("scholar", False),
             ("figrecipe", False),
-            ("stats", True),
+            ("stats", not stats_is_real),
             ("writer", False),
             ("chat", False),
             ("create-app", False),
