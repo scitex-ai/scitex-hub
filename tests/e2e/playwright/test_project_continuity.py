@@ -121,7 +121,7 @@ def test_login_launcher_and_project_apps_keep_one_project(continuity_browser):
     apps_to_visit = ["scholar"]
     if stats_href is None:
         assert stats.get_attribute("data-availability") == "coming_soon"
-        assert stats.get_attribute("aria-haspopup") == "dialog"
+        assert stats.get_attribute("aria-disabled") == "true"
     else:
         stats_path = urlparse(stats_href).path
         if stats_path == "/apps/stats/":
