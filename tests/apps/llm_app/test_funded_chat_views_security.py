@@ -129,3 +129,29 @@ def test_chat_rejects_large_body_before_provider_resolution():
 
     assert response.status_code == 413
     service.assert_not_called()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("route", ["llm_app:api_chat", "llm_app:api_chat_stream"])
+@pytest.mark.parametrize("malformed_key", ["", "   ", "x" * 201])
+def test_chat_rejects_a_supplied_malformed_idempotency_key_before_resolution(
+    route, malformed_key
+):
+    user = User.objects.create_user(f"bad-key-{route}-{len(malformed_key)}")
+    client = Client()
+    client.force_login(user)
+
+    with patch("apps.infra.llm_app.views.chat.UserLLMService") as service:
+        response = client.post(
+            reverse(route),
+            data=json.dumps({"prompt": "hello"}),
+            content_type="application/json",
+            HTTP_IDEMPOTENCY_KEY=malformed_key,
+        )
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "success": False,
+        "error": "Invalid Idempotency-Key",
+    }
+    service.assert_not_called()

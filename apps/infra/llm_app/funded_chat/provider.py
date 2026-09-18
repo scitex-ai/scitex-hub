@@ -99,10 +99,13 @@ def _actual_money(value) -> Decimal:
 def litellm_provider_call(
     config: FundedChatConfig,
     request_body: bytes,
-    dispatch_key: str = "",
+    _dispatch_key: str = "",
 ) -> ProviderResult:
     """Call the allowlisted model once with bounded work and no fallbacks.
 
+    ``_dispatch_key`` is the service's internal durable identity only. The
+    configured providers do not document request idempotency for chat
+    completions, so it is deliberately never forwarded to LiteLLM or the wire.
     Validation and token counting happen before dispatch. Once ``completion`` is
     invoked, failures are intentionally not rewritten as pre-dispatch failures;
     the service will preserve the reservation for reconciliation.
@@ -141,7 +144,6 @@ def litellm_provider_call(
         max_tokens=config.max_tokens,
         num_retries=0,
         timeout=config.timeout_seconds,
-        idempotency_key=dispatch_key,
     )
     try:
         cost = _actual_money(litellm.completion_cost(completion_response=response))

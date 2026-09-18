@@ -181,6 +181,27 @@ class FundedChatService:
         )
 
     @staticmethod
+    def _spend_scopes(provider: str) -> tuple[str, str]:
+        """Return distinct ledger scopes or fail before touching accounting."""
+
+        scopes = (FundedChatDailySpend.GLOBAL_SCOPE, provider)
+        if not provider or len(set(scopes)) != len(scopes):
+            raise FundedChatDenied("provider_outage")
+        return scopes
+
+    @staticmethod
+    def _locked_spend_rows(request: FundedChatRequest) -> tuple:
+        rows = tuple(
+            FundedChatDailySpend.objects.select_for_update().get(
+                day=request.day, scope=scope
+            )
+            for scope in FundedChatService._spend_scopes(request.provider)
+        )
+        if any(spend.requires_operator_repair for spend in rows):
+            raise FundedChatDenied("provider_outage", support_id=request.support_id.hex)
+        return rows
+
+    @staticmethod
     def _locked_get_or_create(model, **lookup):
         try:
             return model.objects.select_for_update().get(**lookup)
@@ -198,6 +219,7 @@ class FundedChatService:
 
         if not self.config.enabled:
             raise FundedChatDenied("provider_outage")
+        spend_scopes = self._spend_scopes(self.config.provider)
         if not self._is_verified_real_user(user):
             raise FundedChatDenied("quota_reached")
         if not isinstance(idempotency_key, str) or not (
@@ -279,11 +301,17 @@ class FundedChatService:
             global_spend = self._locked_get_or_create(
                 FundedChatDailySpend,
                 day=day,
-                scope=FundedChatDailySpend.GLOBAL_SCOPE,
+                scope=spend_scopes[0],
             )
             provider_spend = self._locked_get_or_create(
-                FundedChatDailySpend, day=day, scope=self.config.provider
+                FundedChatDailySpend, day=day, scope=spend_scopes[1]
             )
+            if (
+                global_spend.requires_operator_repair
+                or provider_spend.requires_operator_repair
+            ):
+                request.delete()
+                raise FundedChatDenied("provider_outage")
             global_total = (
                 global_spend.subsidy_cost_usd + global_spend.reserved_subsidy_usd
             )
@@ -324,10 +352,7 @@ class FundedChatService:
         )
         quota.claimed_count = max(quota.claimed_count - 1, 0)
         quota.save(update_fields=["claimed_count", "updated_at"])
-        for scope in (FundedChatDailySpend.GLOBAL_SCOPE, request.provider):
-            spend = FundedChatDailySpend.objects.select_for_update().get(
-                day=request.day, scope=scope
-            )
+        for spend in FundedChatService._locked_spend_rows(request):
             spend.reserved_subsidy_usd = max(
                 spend.reserved_subsidy_usd - request.reserved_subsidy_usd,
                 Decimal("0"),
@@ -336,10 +361,7 @@ class FundedChatService:
 
     @staticmethod
     def _commit_cost(request: FundedChatRequest, cost: Decimal) -> None:
-        for scope in (FundedChatDailySpend.GLOBAL_SCOPE, request.provider):
-            spend = FundedChatDailySpend.objects.select_for_update().get(
-                day=request.day, scope=scope
-            )
+        for spend in FundedChatService._locked_spend_rows(request):
             spend.reserved_subsidy_usd = max(
                 spend.reserved_subsidy_usd - request.reserved_subsidy_usd,
                 Decimal("0"),
@@ -552,7 +574,12 @@ class FundedChatService:
         request_body: bytes,
         provider_call: Callable[[FundedChatConfig, bytes, str], ProviderResult],
     ) -> ProviderResult:
-        """Execute at most one provider call for an idempotency key."""
+        """Execute at most one provider call for an internal durable key.
+
+        Provider-side idempotency is not assumed. Any replay after the durable
+        request has left the pre-dispatch phase returns retained state and never
+        calls ``provider_call`` again.
+        """
 
         reservation = self.reserve(
             user, idempotency_key=idempotency_key, request_body=request_body

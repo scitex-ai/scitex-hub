@@ -22,8 +22,12 @@ MAX_CHAT_HTTP_BODY_BYTES = 131_072
 
 
 def _request_idempotency_key(request) -> str:
-    value = request.headers.get("Idempotency-Key", "").strip()
-    return value if 1 <= len(value) <= 200 else uuid.uuid4().hex
+    value = request.headers.get("Idempotency-Key")
+    if value is None:
+        return uuid.uuid4().hex
+    if value != value.strip() or not 1 <= len(value) <= 200:
+        raise ValueError("invalid Idempotency-Key")
+    return value
 
 
 def _execute_funded_chat(user, messages: list[dict], idempotency_key: str):
@@ -298,6 +302,12 @@ async def api_chat_stream(request):
             {"success": False, "error": "Request too large"}, status=413
         )
     try:
+        idempotency_key = _request_idempotency_key(request)
+    except ValueError:
+        return JsonResponse(
+            {"success": False, "error": "Invalid Idempotency-Key"}, status=400
+        )
+    try:
         data = _json.loads(request.body)
     except _json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
@@ -343,7 +353,6 @@ async def api_chat_stream(request):
                 status=400,
             )
         funded_model = funded_config.litellm_model
-    idempotency_key = _request_idempotency_key(request)
 
     # Resolve project root for media detection in tool results
     project_slug = context.get("project_slug", "")
@@ -422,6 +431,12 @@ async def api_chat(request):
             {"success": False, "error": "Request too large"}, status=413
         )
     try:
+        idempotency_key = _request_idempotency_key(request)
+    except ValueError:
+        return JsonResponse(
+            {"success": False, "error": "Invalid Idempotency-Key"}, status=400
+        )
+    try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
@@ -468,7 +483,7 @@ async def api_chat(request):
 
             t0 = time.monotonic()
             result = await sync_to_async(_execute_funded_chat, thread_sensitive=True)(
-                request.user, messages, _request_idempotency_key(request)
+                request.user, messages, idempotency_key
             )
             elapsed = int((time.monotonic() - t0) * 1000)
             return JsonResponse(

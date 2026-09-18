@@ -9,7 +9,7 @@ from apps.infra.integrations_app.models import IntegrationConnection
 
 
 def funded_dispatch_key() -> str:
-    """Generate an opaque provider idempotency identity for migrated/admin rows."""
+    """Generate an opaque internal dispatch identity for migrated/admin rows."""
 
     return uuid.uuid4().hex
 
@@ -277,6 +277,8 @@ class FundedChatDailySpend(models.Model):
     subsidy_cost_usd = models.DecimalField(
         max_digits=12, decimal_places=6, default=Decimal("0")
     )
+    requires_operator_repair = models.BooleanField(default=False)
+    operator_repair_metadata = models.JSONField(default=dict, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -330,6 +332,7 @@ class FundedChatRequest(models.Model):
     STATUS_RECONCILIATION_REQUIRED = "reconcile_required"
     STATUS_RECONCILED = "reconciled"
     STATUS_ACCOUNTING_ANOMALY = "accounting_anomaly"
+    STATUS_OPERATOR_REPAIR_REQUIRED = "operator_repair_required"
     STATUS_CHOICES = [
         (STATUS_RESERVED, "Reserved"),
         (STATUS_DISPATCHING, "Dispatching"),
@@ -339,6 +342,7 @@ class FundedChatRequest(models.Model):
         (STATUS_RECONCILIATION_REQUIRED, "Reconciliation required"),
         (STATUS_RECONCILED, "Reconciled conservatively"),
         (STATUS_ACCOUNTING_ANOMALY, "Accounting anomaly"),
+        (STATUS_OPERATOR_REPAIR_REQUIRED, "Operator repair required"),
     ]
 
     PHASE_PRE_DISPATCH = "pre_dispatch"
@@ -375,6 +379,7 @@ class FundedChatRequest(models.Model):
     dispatched_at = models.DateTimeField(null=True, blank=True)
     provider_responded_at = models.DateTimeField(null=True, blank=True)
     reconciliation_required_at = models.DateTimeField(null=True, blank=True)
+    operator_repair_metadata = models.JSONField(default=dict, blank=True)
     reserved_subsidy_usd = models.DecimalField(
         max_digits=12, decimal_places=6, default=Decimal("0")
     )

@@ -660,7 +660,9 @@ def test_provider_adapter_bounds_input_before_token_count_or_dispatch(monkeypatc
     assert dispatch_calls == []
 
 
-def test_provider_adapter_passes_bounded_timeout_and_dispatch_identity(monkeypatch):
+def test_provider_adapter_passes_bounded_timeout_without_fake_provider_idempotency(
+    monkeypatch,
+):
     import json
     from types import SimpleNamespace
 
@@ -696,8 +698,71 @@ def test_provider_adapter_passes_bounded_timeout_and_dispatch_identity(monkeypat
         )
 
     assert calls[0]["timeout"] == 17
-    assert calls[0]["idempotency_key"] == "dispatch-id"
+    assert "idempotency_key" not in calls[0]
     assert result.provider_cost_usd == Decimal("0.000001")
+
+
+def test_provider_adapter_transport_never_leaks_internal_dispatch_identity(monkeypatch):
+    import json
+
+    httpx = pytest.importorskip("httpx")
+    litellm = pytest.importorskip("litellm")
+
+    from apps.infra.llm_app.funded_chat.provider import litellm_provider_call
+
+    sent_requests = []
+
+    def fake_send(client, request, **kwargs):
+        sent_requests.append(request)
+        return httpx.Response(
+            200,
+            json={
+                "id": "chatcmpl-test",
+                "object": "chat.completion",
+                "created": 1,
+                "model": "deepseek-chat",
+                "choices": [
+                    {
+                        "index": 0,
+                        "finish_reason": "stop",
+                        "message": {"role": "assistant", "content": "ok"},
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": 1,
+                    "completion_tokens": 1,
+                    "total_tokens": 2,
+                },
+            },
+            request=request,
+        )
+
+    monkeypatch.setattr(httpx.Client, "send", fake_send)
+    monkeypatch.setattr(litellm, "token_counter", lambda **kw: 1)
+    monkeypatch.setattr(litellm, "cost_per_token", lambda **kw: (0.001, 0.001))
+    monkeypatch.setattr(litellm, "completion_cost", lambda **kw: 0.001)
+    with override_settings(
+        SCITEX_FUNDED_CHAT_ENABLED=True,
+        SCITEX_FUNDED_CHAT_PROVIDER="deepseek",
+        SCITEX_FUNDED_CHAT_MODEL="deepseek-chat",
+        SCITEX_FUNDED_CHAT_API_KEY="not-read-by-test",
+        SCITEX_FUNDED_CHAT_GLOBAL_DAILY_CAP_USD="5",
+        SCITEX_FUNDED_CHAT_PROVIDER_DAILY_CAP_USD="3",
+        SCITEX_FUNDED_CHAT_MAX_REQUEST_COST_USD="0.05",
+    ):
+        result = litellm_provider_call(
+            load_funded_chat_config(),
+            json.dumps({"messages": [{"role": "user", "content": "hi"}]}).encode(),
+            "internal-dispatch-key-must-not-leak",
+        )
+
+    assert result.text == "ok"
+    assert len(sent_requests) == 1
+    outbound = sent_requests[0]
+    body = json.loads(outbound.content)
+    assert "idempotency_key" not in body
+    assert "internal-dispatch-key-must-not-leak" not in outbound.content.decode()
+    assert all(key.lower() != "idempotency-key" for key in outbound.headers)
 
 
 @pytest.mark.parametrize("actual", [float("nan"), float("inf"), -0.01, 1000000])
@@ -824,7 +889,7 @@ def test_chat_endpoints_bound_request_body_before_json_decode():
         assert source.index("len(request.body)") < source.index("loads(request.body)")
 
 
-def test_browser_chat_supplies_a_provider_idempotency_identity():
+def test_browser_chat_supplies_an_internal_durable_request_identity():
     from pathlib import Path
 
     source = Path(

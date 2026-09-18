@@ -303,6 +303,31 @@ def test_same_idempotency_key_concurrency_never_double_dispatches():
 
 
 @pytest.mark.django_db(transaction=True)
+@override_settings(**FUNDED_SETTINGS)
+def test_durable_provider_result_replay_after_restart_finalizes_without_redispatch():
+    user = _user("provider-result-replay")
+    before_restart = _service()
+    reservation = before_restart.reserve(
+        user, idempotency_key="provider-result", request_body=b"same-body"
+    )
+    before_restart._mark_dispatching(reservation.request.pk)
+    before_restart._persist_provider_result(reservation.request.pk, _result())
+    provider_calls = []
+
+    result = _service().execute(
+        user,
+        idempotency_key="provider-result",
+        request_body=b"same-body",
+        provider_call=lambda *args: provider_calls.append(args) or _result(),
+    )
+
+    assert result == _result()
+    assert provider_calls == []
+    request = FundedChatRequest.objects.get(pk=reservation.request.pk)
+    assert request.status == FundedChatRequest.STATUS_SUCCEEDED
+
+
+@pytest.mark.django_db(transaction=True)
 @override_settings(
     **{
         **FUNDED_SETTINGS,
@@ -358,3 +383,122 @@ def test_utc_day_boundary_uses_utc_not_server_locale():
         .order_by("day")
         .values_list("day", "claimed_count")
     ) == [(NOW.date(), 1), ((NOW + timedelta(days=1)).date(), 1)]
+
+
+@pytest.mark.django_db(transaction=True)
+@override_settings(**FUNDED_SETTINGS)
+@pytest.mark.parametrize(
+    "status,phase",
+    [
+        (FundedChatRequest.STATUS_DISPATCHING, FundedChatRequest.PHASE_DISPATCHED),
+        (
+            FundedChatRequest.STATUS_RECONCILIATION_REQUIRED,
+            FundedChatRequest.PHASE_DISPATCHED,
+        ),
+        (FundedChatRequest.STATUS_RECONCILED, FundedChatRequest.PHASE_RECONCILED),
+        (
+            FundedChatRequest.STATUS_ACCOUNTING_ANOMALY,
+            FundedChatRequest.PHASE_RESPONSE_RECEIVED,
+        ),
+    ],
+)
+def test_post_dispatch_same_key_replay_after_restart_and_expired_lease_never_redispatches(
+    status, phase
+):
+    user = _user(f"replay-{status}")
+    before_restart = _service()
+    reservation = before_restart.reserve(
+        user, idempotency_key="durable-key", request_body=b"same-body"
+    )
+    before_restart._mark_dispatching(reservation.request.pk)
+    FundedChatRequest.objects.filter(pk=reservation.request.pk).update(
+        status=status,
+        phase=phase,
+        lease_expires_at=NOW - timedelta(days=1),
+    )
+    provider_calls = []
+
+    after_restart = _service(NOW + timedelta(days=1))
+    with pytest.raises(FundedChatDenied):
+        after_restart.execute(
+            user,
+            idempotency_key="durable-key",
+            request_body=b"same-body",
+            provider_call=lambda *args: provider_calls.append(args) or _result(),
+        )
+
+    assert provider_calls == []
+    request = FundedChatRequest.objects.get(pk=reservation.request.pk)
+    assert (request.status, request.phase) == (status, phase)
+
+
+@pytest.mark.django_db(transaction=True)
+@override_settings(**FUNDED_SETTINGS)
+def test_reconciler_fails_closed_before_touching_a_colliding_spend_scope():
+    user = _user("collision-guard")
+    service = _service()
+    reservation = service.reserve(
+        user, idempotency_key="collision", request_body=b"body"
+    )
+    service._mark_dispatching(reservation.request.pk)
+    FundedChatRequest.objects.filter(pk=reservation.request.pk).update(
+        provider=FundedChatDailySpend.GLOBAL_SCOPE,
+        lease_expires_at=NOW - timedelta(seconds=1),
+    )
+    global_spend = FundedChatDailySpend.objects.get(
+        day=NOW.date(), scope=FundedChatDailySpend.GLOBAL_SCOPE
+    )
+    before = (
+        global_spend.reserved_subsidy_usd,
+        global_spend.provider_cost_usd,
+        global_spend.subsidy_cost_usd,
+    )
+
+    with pytest.raises(FundedChatDenied):
+        service.reconcile_stale_requests()
+
+    global_spend.refresh_from_db()
+    assert (
+        global_spend.reserved_subsidy_usd,
+        global_spend.provider_cost_usd,
+        global_spend.subsidy_cost_usd,
+    ) == before
+    request = FundedChatRequest.objects.get(pk=reservation.request.pk)
+    assert request.status == FundedChatRequest.STATUS_DISPATCHING
+
+
+@pytest.mark.django_db(transaction=True)
+@override_settings(**FUNDED_SETTINGS)
+def test_reconciler_never_mutates_a_ledger_quarantined_for_operator_repair():
+    user = _user("repair-ledger-guard")
+    service = _service()
+    reservation = service.reserve(
+        user, idempotency_key="repair-ledger", request_body=b"body"
+    )
+    service._mark_dispatching(reservation.request.pk)
+    FundedChatRequest.objects.filter(pk=reservation.request.pk).update(
+        lease_expires_at=NOW - timedelta(seconds=1)
+    )
+    global_spend = FundedChatDailySpend.objects.get(
+        day=NOW.date(), scope=FundedChatDailySpend.GLOBAL_SCOPE
+    )
+    global_spend.requires_operator_repair = True
+    global_spend.operator_repair_metadata = {"accounting_state": "unknown"}
+    global_spend.save(
+        update_fields=["requires_operator_repair", "operator_repair_metadata"]
+    )
+    before = (
+        global_spend.reserved_subsidy_usd,
+        global_spend.provider_cost_usd,
+        global_spend.subsidy_cost_usd,
+    )
+
+    with pytest.raises(FundedChatDenied):
+        service.reconcile_stale_requests()
+
+    global_spend.refresh_from_db()
+    assert (
+        global_spend.reserved_subsidy_usd,
+        global_spend.provider_cost_usd,
+        global_spend.subsidy_cost_usd,
+    ) == before
