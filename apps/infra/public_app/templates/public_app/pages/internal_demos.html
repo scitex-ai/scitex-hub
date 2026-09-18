@@ -98,7 +98,7 @@ in what state, and why was that one rejected". Status is shown, never changed he
                 {% if file.captions_url %}<track kind="captions" src="{{ file.captions_url }}" srclang="{{ file.language }}" label="{{ file.language|upper }}" default>{% endif %}
                 Your browser does not support embedded video. <a href="{{ file.play_url }}">Play the video</a>.
               </video>
-              <figcaption>
+              <figcaption class="media-actions">
                 <span class="role">{{ file.language|upper }} video</span>
                 <a href="{{ file.play_url }}">Play</a>
                 <a href="{{ file.download_url }}">Download video</a>
@@ -133,6 +133,7 @@ in what state, and why was that one rejected". Status is shown, never changed he
   .internal-demos .media-item { margin: 0; min-width: 0; }
   .internal-demos .media-item video { width: 100%; aspect-ratio: 16 / 9; display: block; background: #0f172a; border: 1px solid #ccd2d9; border-radius: 6px; }
   .internal-demos .media-item figcaption { display: flex; align-items: center; gap: .65rem; flex-wrap: wrap; margin-top: .35rem; }
+  .internal-demos .media-actions a { min-height: 44px; padding: .55rem .7rem; display: inline-flex; align-items: center; border: 1px solid #c7ced6; border-radius: 5px; text-decoration: none; }
   .internal-demos .media-item .role { color: #666; margin-right: auto; }
   .internal-demos .rejection { color: #a11; font-size: .9rem; margin-top: .3rem; }
   @media (max-width: 480px) {

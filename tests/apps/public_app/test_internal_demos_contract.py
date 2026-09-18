@@ -141,6 +141,9 @@ def test_each_video_is_an_inline_thumbnail_player_not_just_a_link():
     assert '<source src="{{ file.play_url }}" type="video/mp4">' in template
     assert 'kind="captions"' in template
     assert "autoplay" not in template
+    assert ".media-actions" in template
+    assert "min-height: 44px" in template
+    assert "flex-wrap: wrap" in template
 
 
 def test_the_template_shows_the_facts_a_card_must_not_invent():
