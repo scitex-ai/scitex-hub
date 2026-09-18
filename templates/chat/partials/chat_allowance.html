@@ -1,0 +1,58 @@
+{% load i18n %}
+{# Chat allowance line — shown BEFORE the user sends anything.                    #}
+{# Card: hub-chat-free-daily-message-allowance-20260917 · SSOT §6.                #}
+{#                                                                                #}
+{# Three honestly different states, one of which is "we do not know": with no     #}
+{# backend allowance payload this renders NO count and NO model rather than an     #}
+{# invented "10 of 10 left", because a made-up number is one the user plans their  #}
+{# day around. Contract: data-allowance-state, data-model, data-remaining,         #}
+{# data-reset-at, data-preserve-draft.                                            #}
+<div class="chat-allowance"
+     id="chat-allowance"
+     data-chat-allowance="true"
+     data-allowance-state="{{ allowance.state|default:'unknown' }}"
+     {% if allowance.model %}data-model="{{ allowance.model }}"{% endif %}
+     {% if allowance.remaining is not None %}data-remaining="{{ allowance.remaining }}"{% endif %}
+     {% if allowance.reset_at %}data-reset-at="{{ allowance.reset_at }}"{% endif %}
+     {% if allowance.state == 'exhausted' %}data-preserve-draft="true"{% endif %}
+     aria-live="polite">
+
+    {% if allowance.state == 'available' %}
+        <span class="chat-allowance-model"
+              title="{% trans 'Messages on this allowance are funded by SciTeX' %}">
+            {% if allowance.model %}{{ allowance.model }}{% else %}{% trans "SciTeX-funded model" %}{% endif %}
+        </span>
+        <span class="chat-allowance-count">
+            {% blocktrans with n=allowance.remaining total=allowance.total %}{{ n }} of {{ total }} free messages left today{% endblocktrans %}
+        </span>
+        {% if allowance.reset_label or allowance.reset_at %}
+            <span class="chat-allowance-reset">
+                {% blocktrans with when=allowance.reset_label|default:allowance.reset_at %}Resets {{ when }}{% endblocktrans %}
+            </span>
+        {% endif %}
+
+    {% elif allowance.state == 'exhausted' %}
+        <span class="chat-allowance-count chat-allowance-count--done">
+            {% trans "You have used today's free messages. Your draft is kept." %}
+        </span>
+        {% if allowance.reset_label or allowance.reset_at %}
+            <span class="chat-allowance-reset">
+                {% blocktrans with when=allowance.reset_label|default:allowance.reset_at %}More free messages after {{ when }}{% endblocktrans %}
+            </span>
+        {% endif %}
+        <span class="chat-allowance-actions">
+            <a href="/ai-setup/"
+               class="chat-allowance-action"
+               data-chat-allowance-action="byok">{% trans "Connect your own provider" %}</a>
+            <a href="/pricing/"
+               class="chat-allowance-action"
+               data-chat-allowance-action="paid">{% trans "Add a paid allowance" %}</a>
+        </span>
+
+    {% else %}
+        {# No payload yet: say so, do not guess. #}
+        <span class="chat-allowance-count chat-allowance-count--unknown">
+            {% trans "Checking your free-message allowance…" %}
+        </span>
+    {% endif %}
+</div>
