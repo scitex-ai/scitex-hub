@@ -5,12 +5,14 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
 from apps.infra.integrations_app.models import IntegrationConnection
+from apps.infra.llm_app.funded_chat.errors import provider_error_payload
 from apps.infra.llm_app.models import LLMConnection
 from apps.infra.llm_app.services import UserLLMService
 from apps.infra.llm_app.utils import (
     ALL_LLM_SERVICE_IDS,
     LLM_PROVIDERS,
     get_all_providers_cached,
+    litellm_model_string,
 )
 
 
@@ -207,11 +209,20 @@ def api_test_provider(request, provider_id):
                 }
             )
 
-        except Exception as e:
-            return JsonResponse(
-                {"success": False, "error": f"Connection test failed: {str(e)}"},
-                status=500,
+        except Exception as exc:
+            model = ""
+            if service.llm_connection:
+                model = litellm_model_string(
+                    connection.service,
+                    service.llm_connection.default_model,
+                )
+            payload = provider_error_payload(
+                exc,
+                remaining=None,
+                reset_at="",
+                model=model,
             )
+            return JsonResponse({"success": False, **payload}, status=502)
 
     except IntegrationConnection.DoesNotExist:
         return JsonResponse(

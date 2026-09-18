@@ -44,3 +44,29 @@ def check_skill_routes_resolve(app_configs, **kwargs):
                 )
             )
     return errors
+
+
+@register()
+def check_funded_chat_configuration(app_configs, **kwargs):
+    """Refuse to boot an enabled funded path without its fail-closed controls."""
+
+    from .funded_chat.config import (
+        FundedChatConfigurationError,
+        load_funded_chat_config,
+    )
+
+    try:
+        load_funded_chat_config()
+    except FundedChatConfigurationError:
+        return [
+            Error(
+                "SciTeX-funded Chat is enabled with an incomplete safe configuration.",
+                hint=(
+                    "Set an explicit provider/model, positive global/provider/request "
+                    "spend caps, abuse limit, token limit, and provider credential; "
+                    "or turn the kill switch off."
+                ),
+                id="llm_app.E002",
+            )
+        ]
+    return []
