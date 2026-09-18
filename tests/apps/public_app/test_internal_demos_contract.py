@@ -134,6 +134,15 @@ def test_the_template_stacks_to_one_column_on_a_phone():
     assert "grid-template-columns: 1fr" in template
 
 
+def test_each_video_is_an_inline_thumbnail_player_not_just_a_link():
+    template = TEMPLATE.read_text(encoding="utf-8")
+    assert '<video controls playsinline preload="metadata"' in template
+    assert 'poster="{{ file.poster_url }}"' in template
+    assert '<source src="{{ file.play_url }}" type="video/mp4">' in template
+    assert 'kind="captions"' in template
+    assert "autoplay" not in template
+
+
 def test_the_template_shows_the_facts_a_card_must_not_invent():
     # Arrange: the card list from hub-internal-demo-video-library-20260917.
     template = TEMPLATE.read_text(encoding="utf-8")
