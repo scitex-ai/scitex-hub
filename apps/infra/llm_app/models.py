@@ -8,6 +8,12 @@ from django.utils import timezone
 from apps.infra.integrations_app.models import IntegrationConnection
 
 
+def funded_dispatch_key() -> str:
+    """Generate an opaque provider idempotency identity for migrated/admin rows."""
+
+    return uuid.uuid4().hex
+
+
 class LLMConnection(models.Model):
     """Extended configuration for LLM service connections"""
 
@@ -277,7 +283,19 @@ class FundedChatDailySpend(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=["day", "scope"], name="uniq_funded_chat_spend_day_scope"
-            )
+            ),
+            models.CheckConstraint(
+                condition=models.Q(reserved_subsidy_usd__gte=0),
+                name="funded_spend_reserved_nonnegative",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(provider_cost_usd__gte=0),
+                name="funded_spend_provider_nonnegative",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(subsidy_cost_usd__gte=0),
+                name="funded_spend_subsidy_nonnegative",
+            ),
         ]
 
 
@@ -305,12 +323,33 @@ class FundedChatRequest(models.Model):
     """One idempotent funded provider attempt; never stores raw provider errors."""
 
     STATUS_RESERVED = "reserved"
+    STATUS_DISPATCHING = "dispatching"
+    STATUS_PROVIDER_SUCCEEDED = "provider_succeeded"
     STATUS_SUCCEEDED = "succeeded"
     STATUS_FAILED = "failed"
+    STATUS_RECONCILIATION_REQUIRED = "reconcile_required"
+    STATUS_RECONCILED = "reconciled"
+    STATUS_ACCOUNTING_ANOMALY = "accounting_anomaly"
     STATUS_CHOICES = [
         (STATUS_RESERVED, "Reserved"),
+        (STATUS_DISPATCHING, "Dispatching"),
+        (STATUS_PROVIDER_SUCCEEDED, "Provider succeeded"),
         (STATUS_SUCCEEDED, "Succeeded"),
         (STATUS_FAILED, "Failed"),
+        (STATUS_RECONCILIATION_REQUIRED, "Reconciliation required"),
+        (STATUS_RECONCILED, "Reconciled conservatively"),
+        (STATUS_ACCOUNTING_ANOMALY, "Accounting anomaly"),
+    ]
+
+    PHASE_PRE_DISPATCH = "pre_dispatch"
+    PHASE_DISPATCHED = "dispatched"
+    PHASE_RESPONSE_RECEIVED = "response_received"
+    PHASE_RECONCILED = "reconciled"
+    PHASE_CHOICES = [
+        (PHASE_PRE_DISPATCH, "Pre-dispatch"),
+        (PHASE_DISPATCHED, "Provider dispatched"),
+        (PHASE_RESPONSE_RECEIVED, "Provider response received"),
+        (PHASE_RECONCILED, "Reconciled"),
     ]
 
     user = models.ForeignKey(
@@ -324,8 +363,18 @@ class FundedChatRequest(models.Model):
     provider = models.CharField(max_length=64)
     model = models.CharField(max_length=200)
     status = models.CharField(
-        max_length=16, choices=STATUS_CHOICES, default=STATUS_RESERVED
+        max_length=24, choices=STATUS_CHOICES, default=STATUS_RESERVED
     )
+    phase = models.CharField(
+        max_length=24, choices=PHASE_CHOICES, default=PHASE_PRE_DISPATCH
+    )
+    dispatch_key = models.CharField(
+        max_length=64, unique=True, default=funded_dispatch_key, editable=False
+    )
+    lease_expires_at = models.DateTimeField(default=timezone.now)
+    dispatched_at = models.DateTimeField(null=True, blank=True)
+    provider_responded_at = models.DateTimeField(null=True, blank=True)
+    reconciliation_required_at = models.DateTimeField(null=True, blank=True)
     reserved_subsidy_usd = models.DecimalField(
         max_digits=12, decimal_places=6, default=Decimal("0")
     )
@@ -349,7 +398,19 @@ class FundedChatRequest(models.Model):
             models.UniqueConstraint(
                 fields=["user", "idempotency_key_hash"],
                 name="uniq_funded_chat_user_idempotency",
-            )
+            ),
+            models.CheckConstraint(
+                condition=models.Q(reserved_subsidy_usd__gte=0),
+                name="funded_request_reserved_nonnegative",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(provider_cost_usd__gte=0),
+                name="funded_request_provider_nonnegative",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(subsidy_cost_usd__gte=0),
+                name="funded_request_subsidy_nonnegative",
+            ),
         ]
         indexes = [
             models.Index(fields=["day", "provider", "status"]),

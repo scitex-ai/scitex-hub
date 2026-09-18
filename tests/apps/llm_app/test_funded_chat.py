@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from decimal import Decimal
+
 import pytest
 from django.test import override_settings
 
@@ -141,6 +143,74 @@ def test_enabled_funded_chat_uses_only_the_explicit_provider_and_model():
 def test_enabled_funded_chat_fails_closed_when_controls_are_not_explicit():
     with pytest.raises(FundedChatConfigurationError):
         load_funded_chat_config()
+
+
+@pytest.mark.parametrize(
+    "setting,value",
+    [
+        ("SCITEX_FUNDED_CHAT_GLOBAL_DAILY_CAP_USD", "NaN"),
+        ("SCITEX_FUNDED_CHAT_PROVIDER_DAILY_CAP_USD", "Infinity"),
+        ("SCITEX_FUNDED_CHAT_MAX_REQUEST_COST_USD", "1e999"),
+        ("SCITEX_FUNDED_CHAT_MAX_REQUEST_COST_USD", "1000000"),
+    ],
+)
+def test_enabled_config_rejects_nonfinite_or_unrepresentable_money(setting, value):
+    safe = {
+        "SCITEX_FUNDED_CHAT_ENABLED": True,
+        "SCITEX_FUNDED_CHAT_PROVIDER": "deepseek",
+        "SCITEX_FUNDED_CHAT_MODEL": "deepseek-chat",
+        "SCITEX_FUNDED_CHAT_API_KEY": "not-read-by-test",
+        "SCITEX_FUNDED_CHAT_GLOBAL_DAILY_CAP_USD": "5",
+        "SCITEX_FUNDED_CHAT_PROVIDER_DAILY_CAP_USD": "3",
+        "SCITEX_FUNDED_CHAT_MAX_REQUEST_COST_USD": "0.05",
+    }
+    safe[setting] = value
+    with override_settings(**safe), pytest.raises(FundedChatConfigurationError):
+        load_funded_chat_config()
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"SCITEX_FUNDED_CHAT_PROVIDER": "__global__"},
+        {"SCITEX_FUNDED_CHAT_PROVIDER": "deepseek/__global__"},
+        {"SCITEX_FUNDED_CHAT_MODEL": "other/model"},
+        {"SCITEX_FUNDED_CHAT_PROVIDER_DAILY_CAP_USD": "6"},
+        {"SCITEX_FUNDED_CHAT_MAX_REQUEST_COST_USD": "4"},
+    ],
+)
+def test_enabled_config_rejects_namespace_collisions_and_invalid_ordering(overrides):
+    safe = {
+        "SCITEX_FUNDED_CHAT_ENABLED": True,
+        "SCITEX_FUNDED_CHAT_PROVIDER": "deepseek",
+        "SCITEX_FUNDED_CHAT_MODEL": "deepseek-chat",
+        "SCITEX_FUNDED_CHAT_API_KEY": "not-read-by-test",
+        "SCITEX_FUNDED_CHAT_GLOBAL_DAILY_CAP_USD": "5",
+        "SCITEX_FUNDED_CHAT_PROVIDER_DAILY_CAP_USD": "3",
+        "SCITEX_FUNDED_CHAT_MAX_REQUEST_COST_USD": "0.05",
+    }
+    safe.update(overrides)
+    with override_settings(**safe), pytest.raises(FundedChatConfigurationError):
+        load_funded_chat_config()
+
+
+@override_settings(
+    SCITEX_FUNDED_CHAT_ENABLED=True,
+    SCITEX_FUNDED_CHAT_PROVIDER="deepseek",
+    SCITEX_FUNDED_CHAT_MODEL="deepseek-chat",
+    SCITEX_FUNDED_CHAT_API_KEY="not-read-by-test",
+    SCITEX_FUNDED_CHAT_GLOBAL_DAILY_CAP_USD="5.0000001",
+    SCITEX_FUNDED_CHAT_PROVIDER_DAILY_CAP_USD="3.0000001",
+    SCITEX_FUNDED_CHAT_MAX_REQUEST_COST_USD="0.0000001",
+)
+def test_money_is_conservatively_quantized_to_database_precision():
+    from decimal import Decimal
+
+    config = load_funded_chat_config()
+
+    assert config.global_daily_cap_usd == Decimal("5.000000")
+    assert config.provider_daily_cap_usd == Decimal("3.000000")
+    assert config.max_request_cost_usd == Decimal("0.000001")
 
 
 @pytest.mark.django_db(transaction=True)
@@ -288,7 +358,7 @@ def test_execute_records_provider_and_subsidy_cost_separately_and_replays_once()
     )
     calls = []
 
-    def provider_call(config, request_body):
+    def provider_call(config, request_body, dispatch_key):
         calls.append((config.litellm_model, request_body))
         return ProviderResult(
             text="answer",
@@ -358,8 +428,13 @@ def test_provider_failure_releases_quota_and_persists_only_sanitized_classificat
         now=lambda: datetime(2026, 9, 17, 12, 0, tzinfo=timezone.utc),
     )
 
-    def provider_call(config, request_body):
-        raise ProviderFailure(status_code=429, retry_after=29)
+    from apps.infra.llm_app.funded_chat.provider import ProviderPreDispatchError
+
+    def provider_call(config, request_body, dispatch_key):
+        error = ProviderPreDispatchError("known before send")
+        error.status_code = 429
+        error.retry_after = 29
+        raise error
 
     with pytest.raises(FundedChatDenied) as denied:
         service.execute(
@@ -514,6 +589,127 @@ def test_provider_adapter_refuses_a_call_above_the_reserved_cost(monkeypatch):
     assert calls == []
 
 
+def test_provider_adapter_bounds_input_before_token_count_or_dispatch(monkeypatch):
+    import json
+
+    litellm = pytest.importorskip("litellm")
+
+    from apps.infra.llm_app.funded_chat.provider import (
+        ProviderPreDispatchError,
+        litellm_provider_call,
+    )
+
+    token_calls = []
+    dispatch_calls = []
+    monkeypatch.setattr(litellm, "token_counter", lambda **kw: token_calls.append(kw))
+    monkeypatch.setattr(litellm, "completion", lambda **kw: dispatch_calls.append(kw))
+    with override_settings(
+        SCITEX_FUNDED_CHAT_ENABLED=True,
+        SCITEX_FUNDED_CHAT_PROVIDER="deepseek",
+        SCITEX_FUNDED_CHAT_MODEL="deepseek-chat",
+        SCITEX_FUNDED_CHAT_API_KEY="not-read-by-test",
+        SCITEX_FUNDED_CHAT_GLOBAL_DAILY_CAP_USD="5",
+        SCITEX_FUNDED_CHAT_PROVIDER_DAILY_CAP_USD="3",
+        SCITEX_FUNDED_CHAT_MAX_REQUEST_COST_USD="0.05",
+        SCITEX_FUNDED_CHAT_MAX_REQUEST_BYTES=80,
+        SCITEX_FUNDED_CHAT_MAX_MESSAGES=2,
+        SCITEX_FUNDED_CHAT_MAX_MESSAGE_CHARS=8,
+    ):
+        config = load_funded_chat_config()
+        bad_bodies = [
+            b"x" * 81,
+            json.dumps({"messages": [{"role": "user", "content": "x"}] * 3}).encode(),
+            json.dumps(
+                {"messages": [{"role": "user", "content": "ninechars"}]}
+            ).encode(),
+        ]
+        for body in bad_bodies:
+            with pytest.raises(ProviderPreDispatchError):
+                litellm_provider_call(config, body, "dispatch-id")
+
+    assert token_calls == []
+    assert dispatch_calls == []
+
+
+def test_provider_adapter_passes_bounded_timeout_and_dispatch_identity(monkeypatch):
+    import json
+    from types import SimpleNamespace
+
+    litellm = pytest.importorskip("litellm")
+
+    from apps.infra.llm_app.funded_chat.provider import litellm_provider_call
+
+    calls = []
+    response = SimpleNamespace(
+        choices=[SimpleNamespace(message=SimpleNamespace(content="ok"))],
+        usage=SimpleNamespace(prompt_tokens=1, completion_tokens=1),
+    )
+    monkeypatch.setattr(litellm, "token_counter", lambda **kw: 1)
+    monkeypatch.setattr(litellm, "cost_per_token", lambda **kw: (0.001, 0.001))
+    monkeypatch.setattr(litellm, "completion_cost", lambda **kw: 0.0000001)
+    monkeypatch.setattr(
+        litellm, "completion", lambda **kw: calls.append(kw) or response
+    )
+    with override_settings(
+        SCITEX_FUNDED_CHAT_ENABLED=True,
+        SCITEX_FUNDED_CHAT_PROVIDER="deepseek",
+        SCITEX_FUNDED_CHAT_MODEL="deepseek-chat",
+        SCITEX_FUNDED_CHAT_API_KEY="not-read-by-test",
+        SCITEX_FUNDED_CHAT_GLOBAL_DAILY_CAP_USD="5",
+        SCITEX_FUNDED_CHAT_PROVIDER_DAILY_CAP_USD="3",
+        SCITEX_FUNDED_CHAT_MAX_REQUEST_COST_USD="0.05",
+        SCITEX_FUNDED_CHAT_TIMEOUT_SECONDS=17,
+    ):
+        result = litellm_provider_call(
+            load_funded_chat_config(),
+            json.dumps({"messages": [{"role": "user", "content": "hi"}]}).encode(),
+            "dispatch-id",
+        )
+
+    assert calls[0]["timeout"] == 17
+    assert calls[0]["idempotency_key"] == "dispatch-id"
+    assert result.provider_cost_usd == Decimal("0.000001")
+
+
+@pytest.mark.parametrize("actual", [float("nan"), float("inf"), -0.01, 1000000])
+def test_provider_adapter_rejects_invalid_actual_cost_after_dispatch(
+    monkeypatch, actual
+):
+    import json
+    from types import SimpleNamespace
+
+    litellm = pytest.importorskip("litellm")
+
+    from apps.infra.llm_app.funded_chat.provider import (
+        ProviderAccountingError,
+        litellm_provider_call,
+    )
+
+    response = SimpleNamespace(
+        choices=[SimpleNamespace(message=SimpleNamespace(content="ok"))],
+        usage=SimpleNamespace(prompt_tokens=1, completion_tokens=1),
+    )
+    monkeypatch.setattr(litellm, "token_counter", lambda **kw: 1)
+    monkeypatch.setattr(litellm, "cost_per_token", lambda **kw: (0.001, 0.001))
+    monkeypatch.setattr(litellm, "completion", lambda **kw: response)
+    monkeypatch.setattr(litellm, "completion_cost", lambda **kw: actual)
+    with override_settings(
+        SCITEX_FUNDED_CHAT_ENABLED=True,
+        SCITEX_FUNDED_CHAT_PROVIDER="deepseek",
+        SCITEX_FUNDED_CHAT_MODEL="deepseek-chat",
+        SCITEX_FUNDED_CHAT_API_KEY="not-read-by-test",
+        SCITEX_FUNDED_CHAT_GLOBAL_DAILY_CAP_USD="5",
+        SCITEX_FUNDED_CHAT_PROVIDER_DAILY_CAP_USD="3",
+        SCITEX_FUNDED_CHAT_MAX_REQUEST_COST_USD="0.05",
+    ):
+        with pytest.raises(ProviderAccountingError):
+            litellm_provider_call(
+                load_funded_chat_config(),
+                json.dumps({"messages": [{"role": "user", "content": "hi"}]}).encode(),
+                "dispatch-id",
+            )
+
+
 @override_settings(
     SCITEX_FUNDED_CHAT_ENABLED=True,
     SCITEX_FUNDED_CHAT_PROVIDER="",
@@ -559,3 +755,62 @@ def test_chat_endpoints_never_serialize_provider_exception_text():
     assert "Connection test failed" not in source
     assert "Campaign chat failed: {e}" not in source
     assert "AI request failed: {e}" not in source
+
+
+def test_no_byok_chat_routes_have_no_legacy_campaign_bypass():
+    import inspect
+
+    from apps.infra.llm_app.views import chat
+
+    endpoints = inspect.getsource(chat.api_chat) + inspect.getsource(
+        chat.api_chat_stream
+    )
+    funded = inspect.getsource(chat._execute_funded_chat)
+
+    assert "campaign_service" not in endpoints
+    assert "check_campaign_rate_limit" not in endpoints
+    assert "campaign_complete_streaming" not in endpoints
+    assert "FundedChatService" in funded
+    assert ".execute(" in funded
+    assert "litellm_provider_call" in funded
+
+    from apps.workspace.apps_app.services.appmaker_agent import (
+        HubUserChatBackend,
+        resolve_chat_backend,
+    )
+
+    assert "campaign_service" not in inspect.getsource(resolve_chat_backend)
+    backend_source = inspect.getsource(HubUserChatBackend)
+    assert "logger.exception" not in backend_source
+    assert '"error": str(exc)' not in backend_source
+
+
+def test_chat_endpoints_bound_request_body_before_json_decode():
+    import inspect
+
+    from apps.infra.llm_app.views.chat import api_chat, api_chat_stream
+
+    for endpoint in (api_chat, api_chat_stream):
+        source = inspect.getsource(endpoint)
+        assert source.index("len(request.body)") < source.index("loads(request.body)")
+
+
+def test_browser_chat_supplies_a_provider_idempotency_identity():
+    from pathlib import Path
+
+    source = Path(
+        "static/shared/ts/components/_global-ai-chat/chat-mode.ts"
+    ).read_text()
+
+    assert '"Idempotency-Key"' in source
+    assert "crypto.randomUUID()" in source
+
+
+def test_reconciliation_has_an_operator_runnable_job_path():
+    import inspect
+
+    from apps.infra.llm_app.management.commands.reconcile_funded_chat import Command
+
+    source = inspect.getsource(Command.handle)
+    assert "reconcile_stale_requests" in source
+    assert "--limit" in inspect.getsource(Command.add_arguments)

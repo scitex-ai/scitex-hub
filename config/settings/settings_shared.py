@@ -103,7 +103,9 @@ SCITEX_STORAGE_VOLUMES_PROVIDER = "apps.workspace.storage_app.volumes.user_volum
 # Request-aware: the class resolves the project through the same access-scoped lookup
 # the picker lists from, and answers per request, not per process. It is NOT the
 # picker itself — a provider entry carries display metadata, never a path.
-SCITEX_PROJECT_STORAGE = "apps.infra.project_app.services.project_scope.HubProjectStorage"
+SCITEX_PROJECT_STORAGE = (
+    "apps.infra.project_app.services.project_scope.HubProjectStorage"
+)
 
 # ---------------------------------------
 # Paths
@@ -227,7 +229,9 @@ elif _scitex_hub_env in ("prod",):
 SCITEX_UI_ELEMENT_INSPECTOR = _scitex_hub_env in ("development", "staging")
 
 # Host service for leaf apps' project pickers (scitex_ui.project_scope).
-SCITEX_PROJECT_PROVIDER = "apps.infra.project_app.services.project_scope.HubProjectProvider"
+SCITEX_PROJECT_PROVIDER = (
+    "apps.infra.project_app.services.project_scope.HubProjectProvider"
+)
 SCITEX_PROJECT_PROVIDER_URL = "api_project_scope"
 
 # ── Internal-app release channel ────────────────────────────────────────
@@ -467,11 +471,29 @@ SCITEX_FUNDED_CHAT_MAX_REQUEST_COST_USD = _getenv_alias(
 SCITEX_FUNDED_CHAT_REQUESTS_PER_MINUTE = int(
     _getenv_alias("SCITEX_FUNDED_CHAT_REQUESTS_PER_MINUTE", "3") or "3"
 )
+SCITEX_FUNDED_CHAT_DAILY_LIMIT = int(
+    _getenv_alias("SCITEX_FUNDED_CHAT_DAILY_LIMIT", "10") or "10"
+)
 SCITEX_FUNDED_CHAT_MAX_TOKENS = int(
     _getenv_alias(
         "SCITEX_FUNDED_CHAT_MAX_TOKENS", "2048"
     )  # pragma: allowlist secret -- output-token count, not a credential
     or "2048"
+)
+SCITEX_FUNDED_CHAT_TIMEOUT_SECONDS = int(
+    _getenv_alias("SCITEX_FUNDED_CHAT_TIMEOUT_SECONDS", "30") or "30"
+)
+SCITEX_FUNDED_CHAT_RESERVATION_LEASE_SECONDS = int(
+    _getenv_alias("SCITEX_FUNDED_CHAT_RESERVATION_LEASE_SECONDS", "120") or "120"
+)
+SCITEX_FUNDED_CHAT_MAX_REQUEST_BYTES = int(
+    _getenv_alias("SCITEX_FUNDED_CHAT_MAX_REQUEST_BYTES", "65536") or "65536"
+)
+SCITEX_FUNDED_CHAT_MAX_MESSAGES = int(
+    _getenv_alias("SCITEX_FUNDED_CHAT_MAX_MESSAGES", "64") or "64"
+)
+SCITEX_FUNDED_CHAT_MAX_MESSAGE_CHARS = int(
+    _getenv_alias("SCITEX_FUNDED_CHAT_MAX_MESSAGE_CHARS", "32768") or "32768"
 )
 
 # ---------------------------------------
