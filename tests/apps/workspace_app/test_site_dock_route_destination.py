@@ -123,7 +123,7 @@ def test_a_dock_without_the_apps_button_degrades_to_no_highlight():
 
 
 # ---------------------------------------------------------------------------
-# the CSS contract: inactive destinations are not coloured
+# the CSS contract: destination colours remain visible at rest
 # ---------------------------------------------------------------------------
 
 DOCK_CSS = (
@@ -132,40 +132,19 @@ DOCK_CSS = (
 )
 
 
-def test_inactive_dock_icons_are_neutralised_and_the_active_one_is_not():
-    """The category gradients live in app-icon.css and apply to EVERY
-    .launcher-tile-icon, dock included. The idle state must therefore neutralise the
-    dock icon explicitly, and must exclude the active item so it keeps its colour.
-    """
+def test_inactive_dock_icons_keep_the_shared_category_colours():
+    """The dock must not override the canonical app-icon category palette."""
     css = DOCK_CSS.read_text()
 
-    idle = re.search(r"\.site-dock-app:not\(\.is-active\)\s+\.site-dock-app-icon\s*\{([^}]*)\}", css)
-    assert idle, "no rule neutralising inactive dock icons"
-    body = idle.group(1)
-    assert "background" in body, "inactive dock icon keeps its category gradient"
-    assert "!important" not in body, "specificity should do this, not !important"
-
-    assert ".site-dock-app:not(.is-active) .site-dock-app-icon i" in css, (
-        "inactive glyph colour not set - a white glyph on a neutral chip is invisible"
-    )
+    assert ".site-dock-app:not(.is-active) .site-dock-app-icon" not in css
+    assert "--site-dock-icon-idle-bg" not in css
+    assert "--site-dock-icon-idle-fg" not in css
 
 
-def test_the_idle_tokens_exist_for_every_theme_block():
-    """A missing token in a dark block would paint the LIGHT idle chip in dark mode."""
+def test_dock_does_not_define_a_second_category_palette():
+    """Category colours belong to app-icon.css, not a dock-local duplicate."""
     css = DOCK_CSS.read_text()
-    dark_blocks = css.count('[data-theme="dark"]') + css.count("prefers-color-scheme: dark")
-    assert css.count("--site-dock-icon-idle-bg:") >= dark_blocks + 1, (
-        f"{dark_blocks} dark block(s): every theme scope needs the idle tokens"
-    )
-    assert css.count("--site-dock-icon-idle-fg:") >= dark_blocks + 1
-
-
-def test_the_dock_never_reintroduces_a_category_colour_rule():
-    """If a future edit adds a category gradient for dock icons, the neutral rule is
-    the one that must win - assert the neutraliser still exists alongside it."""
-    css = DOCK_CSS.read_text()
-    if 'site-dock-app-icon[data-tile-category' in css:
-        assert ".site-dock-app:not(.is-active) .site-dock-app-icon" in css
+    assert 'site-dock-app-icon[data-tile-category' not in css
 
 
 if __name__ == "__main__":
