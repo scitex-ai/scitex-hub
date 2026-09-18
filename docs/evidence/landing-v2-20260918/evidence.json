@@ -1,0 +1,55 @@
+{
+  "schema": "scitex-hub-landing-evidence-v1",
+  "captured_from_head": "dc39f4ef97fc65e8077bc8a8e93cb70b6dcd321e",
+  "url": "http://127.0.0.1:8799/landing/",
+  "render": "Django settings_dev with SCITEX_HUB_VITE_USE_BUILD=true and the production Vite manifest",
+  "results": [
+    {
+      "language": "en",
+      "viewport": [
+        1440,
+        900
+      ],
+      "screenshot": "desktop-en-1440x900.png",
+      "screenshot_sha256": "e8eac341b8e80b5f53aa3b8637ed1832183e28d0a0909ebeb37a98742e71de8b",
+      "recording": "desktop-en-1440x900.webm",
+      "recording_sha256": "45d6c7370e5918171639a34077c2cfa96b64270778cf661167613ea274246080",
+      "console_errors": [],
+      "page_errors": [],
+      "request_failures": [],
+      "bad_responses": [],
+      "images_verified": 7,
+      "carousel_verified": "1 / 4 -> 2 / 4",
+      "screenshot_pixels": [
+        1440,
+        900
+      ]
+    },
+    {
+      "language": "ja",
+      "viewport": [
+        390,
+        844
+      ],
+      "screenshot": "mobile-ja-390x844.png",
+      "screenshot_sha256": "027d15757beedd8b0951fa2d9a346534d369ebfee9d40125538ef10d79318942",
+      "recording": "mobile-ja-390x844.webm",
+      "recording_sha256": "0e3fdb78c6d6251b7e93348a480407c556b82c4543a8afb2d7b46cfcd5e9553b",
+      "console_errors": [],
+      "page_errors": [],
+      "request_failures": [],
+      "bad_responses": [],
+      "images_verified": 7,
+      "carousel_verified": "1 / 4 -> 2 / 4",
+      "screenshot_pixels": [
+        1170,
+        2532
+      ]
+    }
+  ],
+  "notes": [
+    "Recordings are direct Playwright context captures; no post-production editing was applied.",
+    "CJK font-family visual CI remains owned by the separate foundation card; this evidence verifies Japanese strings and layout.",
+    "Public /demos/ publication and post-merge development Visual CI remain follow-up work."
+  ]
+}
