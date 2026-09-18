@@ -267,6 +267,16 @@ def test_the_two_surfaces_are_included_by_the_chat_pane():
     )
 
 
+def test_reusable_allowance_partial_has_no_fixed_dom_id():
+    # Arrange
+    repo = Path(__file__).resolve().parents[3]
+    source = (repo / "templates/chat/partials/chat_allowance.html").read_text()
+    # Act
+    fixed_id = 'id="chat-allowance"' in source
+    # Assert
+    assert fixed_id is False
+
+
 #: Every composer that can send a SciTeX-funded message. The SSOT requires the
 #: remaining count and reset time BEFORE the send, so each one needs the line:
 #: the chat pane's welcome and conversation inputs, and the shell's own AI panel.
