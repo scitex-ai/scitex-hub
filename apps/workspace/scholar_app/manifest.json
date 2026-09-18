@@ -4,6 +4,7 @@
   "name": "scholar",
   "label": "Scholar",
   "app_name": "scholar_app",
+  "scope": "project",
   "icon": "fas fa-graduation-cap",
   "description": "Literature management: search papers (CrossRef/OpenAlex/Semantic Scholar), manage bibliography, explore citation graphs, download PDFs.",
   "pip_package": "scitex-scholar",

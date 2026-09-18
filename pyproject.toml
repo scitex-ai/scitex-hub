@@ -87,7 +87,8 @@ dependencies = [
     # bound to 0.0.0.0, DEBUG defaults False, no "*". /api/health no longer
     # returns db_available / db_path (hub has no reader — measured). Verified
     # by scholar from a throwaway venv against PyPI 1.10.0.
-    "scitex-scholar>=1.10.0",
+    # 1.12.0 supplies the optional graph capability report consumed by Hub.
+    "scitex-scholar>=1.12.0",
     # THE FOUR SIBLINGS HUB IMPORTS BUT NEVER DECLARED — measured 2026-09-03/04
     # inside the dev image built from `.[all]` (sha256:70be677c04bf): hub's
     # `all` extra pulls the umbrella BARE (`scitex>=2.29.3`, below), whose base
