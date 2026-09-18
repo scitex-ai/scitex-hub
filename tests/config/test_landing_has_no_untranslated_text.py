@@ -46,6 +46,7 @@ from django.utils import translation
 # purpose: measured 0 references, dead code.
 LANDING_PARTIALS = [
     "public_app/landing_partials/landing_hero.html",
+    "public_app/landing_partials/landing_modules.html",
     "public_app/landing_partials/landing_commitment.html",
     "public_app/landing_partials/landing_demos.html",
     "public_app/landing_partials/features/scholar_features.html",
@@ -60,17 +61,67 @@ LANDING_PARTIALS = [
 # Translating any of these would be the bug.
 ALLOWED = {
     # brands and product names
-    "SciTeX", "SciTeX Inc", "Scholar", "Writer", "Console", "FigRecipe", "GitHub", "PyPI",
-    "Claude", "Code", "Django", "Python", "matplotlib", "LaTeX", "Docker",
-    "Singularity", "SLURM", "YAML", "MCP", "API", "REST", "PDF", "HPC",
-    "LLM", "AI", "ML", "DB", "R",
+    "SciTeX",
+    "SciTeX Inc",
+    "SciTeX Cloud",
+    "SciTeX Hub",
+    "SciTeX Clew",
+    "Scholar",
+    "Writer",
+    "Console",
+    "FigRecipe",
+    "Hub",
+    "Cloud",
+    "Clew",
+    "GitHub",
+    "PyPI",
+    "Pexels",
+    "Claude",
+    "Code",
+    "Django",
+    "Python",
+    "matplotlib",
+    "LaTeX",
+    "Docker",
+    "Singularity",
+    "SLURM",
+    "YAML",
+    "MCP",
+    "API",
+    "REST",
+    "PDF",
+    "HPC",
+    "LLM",
+    "AI",
+    "ML",
+    "DB",
+    "R",
+    "SSH",
+    "DAG",
+    "scitex-clew",
+    "Edward Jenner",
+    "Edward",
+    "Jenner",
+    "Tima Miroshnichenko",
+    "Tima",
+    "Miroshnichenko",
     # commands, identifiers, literals
-    "pip install scitex", "scitex mcp install", "@scitex.session",
-    "scitex.session", "[all]", "all", "import", "video",
-    "AGPL", "v3.0", "167M+", "40+",
+    "pip install scitex",
+    "scitex mcp install",
+    "@scitex.session",
+    "scitex.session",
+    "[all]",
+    "all",
+    "import",
+    "video",
+    "AGPL",
+    "v3.0",
+    "167M+",
+    "40+",
     # A shell-comment inside a code sample. Translating the comment would make
     # the sample no longer copy-pasteable as shown.
-    "Add to Claude Code PyPI GitHub", "Add",
+    "Add to Claude Code PyPI GitHub",
+    "Add",
     # "Web API" survives inside the Japanese 「Web API ドキュメント」 — it names
     # the product surface and romanising it would lose the meaning.
     "Web API",
@@ -131,7 +182,9 @@ def _visible_text(html):
 def _untranslated_words(text):
     """Latin word-runs that are not on the allowlist."""
     leftovers = []
-    for chunk in re.findall(r"[A-Za-z][A-Za-z0-9'’.@/+\-]*(?:\s+[A-Za-z][A-Za-z0-9'’.@/+\-]*)*", text):
+    for chunk in re.findall(
+        r"[A-Za-z][A-Za-z0-9'’.@/+\-]*(?:\s+[A-Za-z][A-Za-z0-9'’.@/+\-]*)*", text
+    ):
         chunk = chunk.strip(" .,—→")
         if not chunk or len(chunk) < 3:
             continue
@@ -180,7 +233,10 @@ def chrome_context():
 
 
 @pytest.mark.parametrize("template", CHROME_PARTIALS)
-def test_chrome_has_no_untranslated_text_under_japanese(template, chrome_context):
+def test_chrome_has_no_untranslated_text_under_japanese(
+    template, chrome_context, compiled_catalogs
+):
+    del compiled_catalogs
     # Arrange
     expected = []
     # Act
@@ -195,12 +251,15 @@ def test_chrome_has_no_untranslated_text_under_japanese(template, chrome_context
 
 
 @pytest.mark.parametrize("template", LANDING_PARTIALS)
-def test_partial_has_no_untranslated_text_under_japanese(template):
+def test_partial_has_no_untranslated_text_under_japanese(template, compiled_catalogs):
+    del compiled_catalogs
     # Arrange
     expected = []
     # Act
     with translation.override("ja"):
-        leftovers = _untranslated_words(_visible_text(render_to_string(template, CONTEXT)))
+        leftovers = _untranslated_words(
+            _visible_text(render_to_string(template, CONTEXT))
+        )
     # Assert
     assert leftovers == expected, (
         f"{template} still shows English under ja: {leftovers}. "

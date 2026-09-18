@@ -6996,3 +6996,484 @@ msgstr "%(wait)s後に再試行してください。"
 #, python-format
 msgid "Support id: %(support_id)s"
 msgstr "サポートID: %(support_id)s"
+
+# Landing reference V2 — hub-landing-reference-integration-20260918
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX — A platform for science"
+msgstr "SciTeX — 科学のためのプラットフォーム"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Connect literature, files, analysis, figures, writing, and compute in one SciTeX project context."
+msgstr "文献、ファイル、解析、図、執筆、計算環境を、ひとつの SciTeX プロジェクト文脈でつなぎます。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Open research infrastructure"
+msgstr "オープンな研究基盤"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "A platform for science."
+msgstr "科学のためのプラットフォーム。"
+
+msgid "A platform"
+msgstr "科学のための"
+
+msgid "for science."
+msgstr "プラットフォーム。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Literature, files, analysis, figures, writing, and agents in one connected project."
+msgstr "文献、ファイル、解析、図、執筆、エージェントを、ひとつのプロジェクトにつなぎます。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Review from your phone. Work in the browser. Run where compute lives."
+msgstr "スマートフォンで確認し、ブラウザで作業し、計算資源のある場所で実行できます。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "One project across devices and compute"
+msgstr "端末と計算環境をまたぐ、ひとつのプロジェクト"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Phone"
+msgstr "スマートフォン"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Laptop"
+msgstr "ノートパソコン"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "HPC + SSH"
+msgstr "HPC + SSH"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Custom Apps"
+msgstr "カスタムアプリ"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Two laboratory researchers review a microscopic image on a laptop while one holds a clipboard."
+msgstr "二人の研究者が、片方がクリップボードを持ちながら、ノートパソコン上の顕微鏡画像を確認しています。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Research is human work."
+msgstr "研究の中心にいるのは人です。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Illustrative stock photography:"
+msgstr "イメージ用ストック写真："
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Pexels license"
+msgstr "Pexels ライセンス"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "The people shown are not SciTeX customers, employees, or endorsers; no endorsement is implied."
+msgstr "写真の人物は SciTeX の顧客、従業員、推薦者ではなく、製品への支持を示すものではありません。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "One project, every place"
+msgstr "どこでも、ひとつのプロジェクト"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "The same context, from phone to compute node."
+msgstr "スマートフォンから計算ノードまで、同じプロジェクト文脈で。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Move between a quick mobile review, focused browser work, and HPC over SSH without rebuilding the project around each device."
+msgstr "端末ごとにプロジェクトを組み直すことなく、モバイルでの確認、ブラウザでの作業、SSH 経由の HPC を行き来できます。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Review a result, save a paper, or capture the next step."
+msgstr "結果の確認、論文の保存、次の作業の記録ができます。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Use the browser for daily analysis, figures, and writing."
+msgstr "日々の解析、作図、執筆をブラウザで進めます。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Run near the scheduler and data while the project stays connected."
+msgstr "プロジェクトとの接続を保ったまま、スケジューラやデータの近くで実行します。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Extend the same project and command contract for your lab."
+msgstr "同じプロジェクトとコマンドの契約を、研究室向けに拡張できます。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Built in, connected by design"
+msgstr "標準搭載、設計から連携"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX Hub — one project context"
+msgstr "SciTeX Hub — ひとつのプロジェクト文脈"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Each built-in app specializes. Hub keeps project, files, identity, and commands connected. Custom Apps sit outside the built-ins and extend the same contract."
+msgstr "各標準アプリは専門機能を担い、Hub がプロジェクト、ファイル、利用者、コマンドをつなぎます。カスタムアプリは標準アプリの外側から同じ契約を拡張します。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX Hub provides one project context connecting Scholar, Storage, Stats, FigRecipe, Writer, Agents and Chat, Cards, and Custom Apps."
+msgstr "SciTeX Hub は、Scholar、ストレージ、統計、FigRecipe、Writer、エージェントとチャット、カード、カスタムアプリを、ひとつのプロジェクト文脈でつなぎます。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Literature and library"
+msgstr "文献検索とライブラリ"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Storage"
+msgstr "ストレージ"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Files and data"
+msgstr "ファイルとデータ"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Stats"
+msgstr "統計"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Analysis and reports"
+msgstr "解析とレポート"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Agents + Chat"
+msgstr "エージェント + チャット"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Commands and conversations"
+msgstr "コマンドと対話"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "one project context"
+msgstr "ひとつのプロジェクト文脈"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Cards"
+msgstr "カード"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Tasks and evidence"
+msgstr "タスクと根拠"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Figures and source"
+msgstr "図とソース"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Manuscript and PDF"
+msgstr "原稿と PDF"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Extend the same contract"
+msgstr "同じ契約を拡張"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Actual product screens"
+msgstr "実際の製品画面"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Actual SciTeX Cloud screens"
+msgstr "実際の SciTeX Cloud 画面"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Previous product screen"
+msgstr "前の製品画面"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Next product screen"
+msgstr "次の製品画面"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "1 of 4: Hub"
+msgstr "4枚中1枚目：Hub"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX Hub app launcher showing built-in research applications."
+msgstr "標準の研究アプリを表示する SciTeX Hub のアプリランチャー。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "App launcher from the tracked in-repository product guide."
+msgstr "リポジトリで管理されている製品ガイドのアプリランチャー。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "2 of 4: Scholar"
+msgstr "4枚中2枚目：Scholar"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX Scholar search workspace with source, sorter, and filter panels."
+msgstr "情報源、並べ替え、フィルターのパネルを備えた SciTeX Scholar の検索画面。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Search workspace from the tracked in-repository product guide."
+msgstr "リポジトリで管理されている製品ガイドの検索画面。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "3 of 4: FigRecipe"
+msgstr "4枚中3枚目：FigRecipe"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX FigRecipe interface with line, fill, and stack figure templates."
+msgstr "折れ線、塗りつぶし、積み上げ図のテンプレートを表示する SciTeX FigRecipe の画面。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Template picker from the tracked in-repository product guide."
+msgstr "リポジトリで管理されている製品ガイドのテンプレート選択画面。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "4 of 4: Writer"
+msgstr "4枚中4枚目：Writer"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX Writer workspace with LaTeX source and compiled document preview."
+msgstr "LaTeX ソースとコンパイル済み文書のプレビューを表示する SciTeX Writer の画面。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Source and preview workspace from the tracked in-repository product guide."
+msgstr "リポジトリで管理されている製品ガイドのソースとプレビュー画面。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Choose a product screen"
+msgstr "製品画面を選択"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Unedited interface captures from tracked product-guide screenshots; resize and compression only."
+msgstr "管理対象の製品ガイド画像を使用した未編集の画面です。サイズ変更と圧縮のみを行っています。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Verifiable provenance"
+msgstr "検証可能な来歴"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Follow a claim back to its source."
+msgstr "主張から、その根拠までたどれます。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX Clew records relationships between research artifacts in a directed acyclic graph. The public example connects a manuscript claim to output, processing, and raw data."
+msgstr "SciTeX Clew は研究成果物の関係を有向非巡回グラフに記録します。公開例では、原稿の主張を出力、処理、元データへつないでいます。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Claim to raw data provenance chain"
+msgstr "主張から元データまでの来歴"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Claim"
+msgstr "主張"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Output"
+msgstr "出力"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Processing"
+msgstr "処理"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Raw data"
+msgstr "元データ"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "View the public Clew repository"
+msgstr "公開 Clew リポジトリを見る"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX Clew directed acyclic graph connecting manuscript claims, derived outputs, processing steps, and raw data."
+msgstr "原稿の主張、派生出力、処理手順、元データをつなぐ SciTeX Clew の有向非巡回グラフ。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Actual DAG from the public scitex-clew repository."
+msgstr "公開 scitex-clew リポジトリの実際の DAG。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "A laboratory researcher works at a desktop computer beside scientific equipment."
+msgstr "研究機器のそばでデスクトップパソコンを操作する研究者。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "No customer or product endorsement is implied."
+msgstr "顧客であることや製品への支持を示すものではありません。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Open by design"
+msgstr "オープンであることを前提に設計"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Your research. Your infrastructure."
+msgstr "あなたの研究を、あなたの基盤で。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Use SciTeX Cloud or self-host. Keep human judgment at the center and choose the environment, compute, and integrations that fit the work."
+msgstr "SciTeX Cloud または自己ホストを利用できます。人の判断を中心に置き、研究に合う環境、計算資源、連携先を選べます。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Cloud for a managed browser workspace"
+msgstr "管理されたブラウザ作業環境としてのクラウド"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Self-hosting for your own environment"
+msgstr "ご自身の環境での自己ホスト"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Custom Apps for field-specific workflows"
+msgstr "分野固有のワークフロー向けカスタムアプリ"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Available deployment options and integrations depend on the selected setup."
+msgstr "利用できる導入方法と連携機能は、選択した構成によって異なります。"
+
+#: apps/infra/public_app/templates/public_app/landing.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Compare current plans"
+msgstr "現在のプランを比較"
