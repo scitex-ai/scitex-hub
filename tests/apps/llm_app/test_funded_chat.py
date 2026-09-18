@@ -148,6 +148,34 @@ def test_enabled_funded_chat_fails_closed_when_controls_are_not_explicit():
 @pytest.mark.parametrize(
     "setting,value",
     [
+        ("SCITEX_FUNDED_CHAT_ENABLED", "false"),
+        ("SCITEX_FUNDED_CHAT_MAX_TOKENS", 1_000_000),
+        ("SCITEX_FUNDED_CHAT_TIMEOUT_SECONDS", 3_600),
+        ("SCITEX_FUNDED_CHAT_MAX_REQUEST_BYTES", 100_000_000),
+        ("SCITEX_FUNDED_CHAT_MAX_MESSAGES", 100_000),
+        ("SCITEX_FUNDED_CHAT_RESERVATION_LEASE_SECONDS", 10),
+    ],
+)
+def test_enabled_config_rejects_unbounded_or_ambiguous_controls(setting, value):
+    safe = {
+        "SCITEX_FUNDED_CHAT_ENABLED": True,
+        "SCITEX_FUNDED_CHAT_PROVIDER": "deepseek",
+        "SCITEX_FUNDED_CHAT_MODEL": "deepseek-chat",
+        "SCITEX_FUNDED_CHAT_API_KEY": "not-read-by-test",
+        "SCITEX_FUNDED_CHAT_GLOBAL_DAILY_CAP_USD": "5",
+        "SCITEX_FUNDED_CHAT_PROVIDER_DAILY_CAP_USD": "3",
+        "SCITEX_FUNDED_CHAT_MAX_REQUEST_COST_USD": "0.05",
+        "SCITEX_FUNDED_CHAT_TIMEOUT_SECONDS": 30,
+        "SCITEX_FUNDED_CHAT_RESERVATION_LEASE_SECONDS": 120,
+    }
+    safe[setting] = value
+    with override_settings(**safe), pytest.raises(FundedChatConfigurationError):
+        load_funded_chat_config()
+
+
+@pytest.mark.parametrize(
+    "setting,value",
+    [
         ("SCITEX_FUNDED_CHAT_GLOBAL_DAILY_CAP_USD", "NaN"),
         ("SCITEX_FUNDED_CHAT_PROVIDER_DAILY_CAP_USD", "Infinity"),
         ("SCITEX_FUNDED_CHAT_MAX_REQUEST_COST_USD", "1e999"),

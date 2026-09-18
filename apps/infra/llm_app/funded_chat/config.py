@@ -80,13 +80,15 @@ def _decimal_setting(name: str, *, rounding=ROUND_DOWN) -> Decimal:
     return quantize_money(raw, name=name, rounding=rounding)
 
 
-def _positive_int_setting(name: str, default: int) -> int:
+def _positive_int_setting(name: str, default: int, *, maximum: int) -> int:
     try:
         value = int(getattr(settings, name, default))
     except (TypeError, ValueError, OverflowError) as exc:
         raise FundedChatConfigurationError(f"{name} must be an integer") from exc
-    if value <= 0:
-        raise FundedChatConfigurationError(f"{name} must be positive")
+    if value <= 0 or value > maximum:
+        raise FundedChatConfigurationError(
+            f"{name} must be positive and no greater than {maximum}"
+        )
     return value
 
 
@@ -118,7 +120,12 @@ def _validate_provider_model(provider: str, model: str) -> None:
 def load_funded_chat_config() -> FundedChatConfig:
     """Load and validate the operator's one-entry provider/model allowlist."""
 
-    enabled = bool(getattr(settings, "SCITEX_FUNDED_CHAT_ENABLED", False))
+    enabled_setting = getattr(settings, "SCITEX_FUNDED_CHAT_ENABLED", False)
+    if not isinstance(enabled_setting, bool):
+        raise FundedChatConfigurationError(
+            "SCITEX_FUNDED_CHAT_ENABLED must be an explicit boolean"
+        )
+    enabled = enabled_setting
     provider = str(getattr(settings, "SCITEX_FUNDED_CHAT_PROVIDER", "")).strip()
     model = str(getattr(settings, "SCITEX_FUNDED_CHAT_MODEL", "")).strip()
     api_key = str(getattr(settings, "SCITEX_FUNDED_CHAT_API_KEY", "")).strip()
@@ -127,31 +134,47 @@ def load_funded_chat_config() -> FundedChatConfig:
     request_cap = _decimal_setting(
         "SCITEX_FUNDED_CHAT_MAX_REQUEST_COST_USD", rounding=ROUND_UP
     )
+    daily_limit = _positive_int_setting(
+        "SCITEX_FUNDED_CHAT_DAILY_LIMIT", 10, maximum=10
+    )
+    requests_per_minute = _positive_int_setting(
+        "SCITEX_FUNDED_CHAT_REQUESTS_PER_MINUTE", 3, maximum=1_000
+    )
+    max_tokens = _positive_int_setting(
+        "SCITEX_FUNDED_CHAT_MAX_TOKENS", 2048, maximum=32_768
+    )
+    timeout_seconds = _positive_int_setting(
+        "SCITEX_FUNDED_CHAT_TIMEOUT_SECONDS", 30, maximum=120
+    )
+    reservation_lease_seconds = _positive_int_setting(
+        "SCITEX_FUNDED_CHAT_RESERVATION_LEASE_SECONDS", 120, maximum=86_400
+    )
+    max_request_bytes = _positive_int_setting(
+        "SCITEX_FUNDED_CHAT_MAX_REQUEST_BYTES", 65_536, maximum=1_048_576
+    )
+    max_messages = _positive_int_setting(
+        "SCITEX_FUNDED_CHAT_MAX_MESSAGES", 64, maximum=256
+    )
+    max_message_chars = _positive_int_setting(
+        "SCITEX_FUNDED_CHAT_MAX_MESSAGE_CHARS", 32_768, maximum=1_048_576
+    )
 
     config = FundedChatConfig(
         enabled=enabled,
         provider=provider,
         model=model,
         api_key=api_key,
-        daily_limit=_positive_int_setting("SCITEX_FUNDED_CHAT_DAILY_LIMIT", 10),
-        requests_per_minute=_positive_int_setting(
-            "SCITEX_FUNDED_CHAT_REQUESTS_PER_MINUTE", 3
-        ),
+        daily_limit=daily_limit,
+        requests_per_minute=requests_per_minute,
         global_daily_cap_usd=global_cap,
         provider_daily_cap_usd=provider_cap,
         max_request_cost_usd=request_cap,
-        max_tokens=_positive_int_setting("SCITEX_FUNDED_CHAT_MAX_TOKENS", 2048),
-        timeout_seconds=_positive_int_setting("SCITEX_FUNDED_CHAT_TIMEOUT_SECONDS", 30),
-        reservation_lease_seconds=_positive_int_setting(
-            "SCITEX_FUNDED_CHAT_RESERVATION_LEASE_SECONDS", 120
-        ),
-        max_request_bytes=_positive_int_setting(
-            "SCITEX_FUNDED_CHAT_MAX_REQUEST_BYTES", 65_536
-        ),
-        max_messages=_positive_int_setting("SCITEX_FUNDED_CHAT_MAX_MESSAGES", 64),
-        max_message_chars=_positive_int_setting(
-            "SCITEX_FUNDED_CHAT_MAX_MESSAGE_CHARS", 32_768
-        ),
+        max_tokens=max_tokens,
+        timeout_seconds=timeout_seconds,
+        reservation_lease_seconds=reservation_lease_seconds,
+        max_request_bytes=max_request_bytes,
+        max_messages=max_messages,
+        max_message_chars=max_message_chars,
         allowed_providers=(provider,) if provider else (),
         allowed_models=(model,) if model else (),
     )
@@ -171,8 +194,12 @@ def load_funded_chat_config() -> FundedChatConfig:
         raise FundedChatConfigurationError(
             "funded request cap must not exceed provider or global cap"
         )
-    if config.daily_limit > 10:
+    if reservation_lease_seconds <= timeout_seconds:
         raise FundedChatConfigurationError(
-            "funded daily limit exceeds the durable database constraint"
+            "funded reservation lease must exceed the provider timeout"
+        )
+    if max_message_chars > max_request_bytes:
+        raise FundedChatConfigurationError(
+            "funded message character bound must not exceed the body byte bound"
         )
     return config
