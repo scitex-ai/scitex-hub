@@ -1,0 +1,84 @@
+{% extends "auth_app/auth_base.html" %}
+
+{% load i18n %}
+
+{% block title %}{% trans "Complete Your Account" %} - SciTeX{% endblock %}
+{% block meta_description %}{% trans "Complete your SciTeX account after signing in with a trusted identity provider." %}{% endblock %}
+
+{% block auth_extra_css %}
+<style>
+    .social-signup-provider {
+        color: var(--text-secondary);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .social-signup-form input[type="email"],
+    .social-signup-form input[type="text"] {
+        box-sizing: border-box;
+        width: 100%;
+        min-height: 44px;
+        padding: var(--spacing-sm) var(--spacing-md);
+        color: var(--text-primary);
+        background: var(--bg-primary);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-md);
+    }
+
+    .social-signup-form input:focus {
+        border-color: var(--color-primary);
+        outline: 2px solid color-mix(in srgb, var(--color-primary) 24%, transparent);
+        outline-offset: 1px;
+    }
+</style>
+{% endblock %}
+
+{% block auth_content %}
+<div class="container auth-container">
+    <div class="auth-form">
+        <h2 class="mb-3">{% trans "Complete Your Account" %}</h2>
+        <p class="social-signup-provider">
+            {% blocktrans with provider_name=account.get_provider.name %}
+                You signed in with {{ provider_name }}. Confirm these details to finish creating your SciTeX account.
+            {% endblocktrans %}
+        </p>
+
+        {% if form.non_field_errors %}
+        <div class="alert-banner alert-banner-danger mb-3" role="alert">
+            <div class="warning-banner-container">
+                <div class="warning-banner-content">
+                    <i class="warning-banner-icon fas fa-exclamation-circle"></i>
+                    <div class="warning-banner-text">
+                        <div class="warning-banner-title">{% trans "Form Errors" %}</div>
+                        <div class="warning-banner-description">{{ form.non_field_errors }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <form class="social-signup-form"
+              method="post"
+              action="{% url 'socialaccount_signup' %}"
+              autocomplete="on">
+            {% csrf_token %}
+            {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+            {% for field in form.visible_fields %}
+            <div class="form-group mb-3">
+                <label class="form-label" for="{{ field.id_for_label }}">
+                    {{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}
+                </label>
+                {{ field }}
+                {% if field.help_text %}<div class="form-text text-muted">{{ field.help_text }}</div>{% endif %}
+                {% if field.errors %}<div class="text-danger small">{{ field.errors.0 }}</div>{% endif %}
+            </div>
+            {% endfor %}
+            {{ redirect_field }}
+            <button class="btn btn-success w-100" type="submit">{% trans "Finish Sign Up" %}</button>
+        </form>
+
+        <div class="text-center mt-3">
+            <a class="text-link" href="{% url 'auth_app:signin' %}">{% trans "Use a different sign-in method" %}</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
