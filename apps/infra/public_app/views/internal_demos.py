@@ -116,16 +116,23 @@ def card_for(clip: dict, directory) -> dict:
             folder = entry.get("folder", "")
             for rendition in entry.get("renditions", []):
                 roles = rendition.get("files", {})
-                for role in ("video", "captions"):
-                    name = roles.get(role) or ""
-                    if name:
-                        files.append({
-                            "language": rendition.get("language", ""),
-                            "role": role,
-                            "name": name,
-                            "play_url": media_url(name, folder),
-                            "download_url": media_url(name, folder) + "?download=1",
-                        })
+                video = roles.get("video") or ""
+                if not video:
+                    continue
+                captions = roles.get("captions") or ""
+                thumbnail = roles.get("thumbnail") or ""
+                files.append({
+                    "language": rendition.get("language", ""),
+                    "role": "video",
+                    "name": video,
+                    "play_url": media_url(video, folder),
+                    "download_url": media_url(video, folder) + "?download=1",
+                    "captions_url": media_url(captions, folder) if captions else "",
+                    "captions_download_url": (
+                        media_url(captions, folder) + "?download=1" if captions else ""
+                    ),
+                    "poster_url": media_url(thumbnail, folder) if thumbnail else "",
+                })
     except (OSError, ValueError) as error:      # a broken manifest is not a 500
         logger.warning("could not read %s: %s", manifest_path, error)
 

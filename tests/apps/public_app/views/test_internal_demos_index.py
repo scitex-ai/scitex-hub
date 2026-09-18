@@ -54,7 +54,12 @@ def make_render(directory: Path, *, app="projects", date="2026-09-17", language=
     stem = f"{app}-{date}"
     video = f"{stem}.{language}.mp4"
     captions = f"{stem}.{language}.vtt"
-    for name, payload in ((video, b"video bytes"), (captions, b"WEBVTT\n")):
+    thumbnail = f"{stem}.{language}.jpg"
+    for name, payload in (
+        (video, b"video bytes"),
+        (captions, b"WEBVTT\n"),
+        (thumbnail, b"jpeg bytes"),
+    ):
         (directory / name).write_bytes(payload)
     manifest = {
         "schema": demo_library.MANIFEST_SCHEMA,
@@ -72,6 +77,8 @@ def make_render(directory: Path, *, app="projects", date="2026-09-17", language=
                  "sha256": demo_library.sha256_file(directory / video)},
                 {"role": "captions", "name": captions,
                  "sha256": demo_library.sha256_file(directory / captions)},
+                {"role": "thumbnail", "name": thumbnail,
+                 "sha256": demo_library.sha256_file(directory / thumbnail)},
             ],
         }],
     }
@@ -132,6 +139,11 @@ def test_staff_see_every_entry_latest_first_with_its_provenance(tmp_path, rf):
     assert "Approved" in body and "Draft" in body
     assert "projects" in body                    # the flow
     assert "Play" in body and "Download" in body
+    assert '<video controls playsinline preload="metadata"' in body
+    assert 'poster="/internal/demos/media/projects-2026-09-17.en.jpg"' in body
+    assert '<source src="/internal/demos/media/projects-2026-09-17.en.mp4" type="video/mp4">' in body
+    assert '<track kind="captions" src="/internal/demos/media/projects-2026-09-17.en.vtt"' in body
+    assert "autoplay" not in body
 
 
 def test_the_only_filters_are_flow_and_status(tmp_path, rf):
