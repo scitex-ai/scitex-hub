@@ -148,8 +148,3 @@ class DesignResizerView(DesignSectionView):
 class DesignWorkspaceLayoutView(DesignSectionView):
     def get(self, request):
         return super().get(request, "stx-shell-layout")
-
-
-class DesignVisitorSystemView(DesignSectionView):
-    def get(self, request):
-        return super().get(request, "visitor-system")

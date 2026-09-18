@@ -6,7 +6,7 @@ Playwright E2E Test Configuration
 Provides:
 - iPhone 14 mobile fixture (390x844, has_touch=True)
 - Desktop fixture (1920x1080)
-- Visitor session with storage_state save/reuse
+- Authenticated session with storage_state save/reuse
 - Screenshot directory setup
 """
 
@@ -142,7 +142,7 @@ def desktop_page(desktop_context):
 
 
 # =============================================================================
-# Visitor session with storage_state reuse
+# Authenticated session with storage_state reuse
 # =============================================================================
 
 
@@ -258,24 +258,19 @@ def _form_login(page) -> None:
 
 
 @pytest.fixture(scope="session")
-def visitor_storage_state(browser_type, pw_base_url):
-    """
-    Authenticate as the EXPLICIT test user and save storage_state for reuse.
+def authenticated_storage_state(browser_type, pw_base_url):
+    """Authenticate the synthetic test user and save reusable browser state.
 
-    Historically misnamed "visitor": this logs in as ``$SCITEX_E2E_TEST_USER``,
-    a REGISTERED account -- not a pooled visitor. The saved state is reused only
-    if it still yields session role ``"user"`` at a warm-up route; otherwise a
-    fresh login is performed. Requiring the EXACT role (not merely "not
-    anonymous") is what stops a stale/anonymous state from silently running the
-    whole suite logged out, since a logged-out page still returns 200.
+    Existing state is reused only when the rendered shell still proves
+    ``data-session-role='user'``; otherwise the fixture logs in again.
     """
     state_file = STORAGE_STATE_DIR / (
         f"test_user_state.v{_STORAGE_STATE_VERSION}.json"
     )
     from tests.e2e.playwright.page_ready import wait_for_page_ready
     from tests.e2e.playwright.session_role_check import (
+        AUTHENTICATED_WARMUP_ROUTE,
         READ_SESSION_ROLE_JS,
-        VISITOR_WARMUP_ROUTE,
         is_authenticated_user_role,
     )
 
@@ -287,7 +282,7 @@ def visitor_storage_state(browser_type, pw_base_url):
             ignore_https_errors=True,
         )
         page = context.new_page()
-        page.goto(VISITOR_WARMUP_ROUTE)
+        page.goto(AUTHENTICATED_WARMUP_ROUTE)
         wait_for_page_ready(page)
         role = page.evaluate(READ_SESSION_ROLE_JS)
         page.close()
@@ -322,7 +317,7 @@ def visitor_storage_state(browser_type, pw_base_url):
             f"logged in as {TEST_USER!r} but the page reports session role "
             f"{role!r} at {page.url!r}. REFUSING to save a non-user storage "
             "state: every test using it would run against the wrong session "
-            "(a logged-out / readonly / pooled page still returns 200)."
+            "(a logged-out page still returns 200)."
         )
 
     # Save storage state
@@ -336,10 +331,10 @@ def visitor_storage_state(browser_type, pw_base_url):
 
 
 @pytest.fixture
-def visitor_mobile_context(browser, pw_base_url):
+def authenticated_mobile_context(browser, pw_base_url):
     """
     iPhone 14 context. It does NOT load the desktop storage_state: the mobile
-    profile authenticates DIRECTLY (see visitor_mobile_page). A session created
+    profile authenticates DIRECTLY (see authenticated_mobile_page). A session created
     in a different browser profile (desktop UA, non-mobile) does not reliably
     carry into a mobile (is_mobile/has_touch/390x844) profile, and relying on
     that transfer was the defect -- the desktop->mobile handoff lost the
@@ -360,45 +355,12 @@ def visitor_mobile_context(browser, pw_base_url):
 
 
 @pytest.fixture
-def visitor_mobile_page(visitor_mobile_context):
-    """A mobile page with visitor session -- and PROOF that it has one.
+def authenticated_mobile_page(authenticated_mobile_context):
+    """Log in inside the mobile profile and prove the registered-user role.
 
-    WHY THIS WARMS UP AND ASSERTS INSTEAD OF JUST HANDING OVER A PAGE.
-
-    visitor_storage_state already proves a session exists in the LOGIN context.
-    It then writes that state to a file and hands the FILE here, where a
-    DIFFERENT context is built (iPhone 14 viewport, mobile UA, has_touch).
-    Nothing proved the session survives that handoff -- and measured
-    2026-09-06, job 101474196873 on develop 7ebd24388, IT DOES NOT:
-
-        the login-time assertion did NOT fire (so the session was real there)
-        and the screenshots from the same run show
-            /apps/workspace/  -> the logged-out landing page
-            /apps/store/      -> "Login to install" on every card
-
-    The suite reported "1 failed, 8 passed". Those 8 assert
-    `resp.status == 200`, and a logged-out page returns 200 -- so they passed
-    while measuring nothing, exactly as they did before #745. A precondition
-    proven in one context is not proven in another, and the only place worth
-    proving it is WHERE THE ASSERTIONS RUN.
-
-    This mirrors pooled_visitor_page, which has warmed up and asserted its role
-    since it was written. That helper was sitting one fixture away the whole
-    time; this is its adoption, not a new idea.
-
-    ROLE EXPECTED HERE IS "user", NOT "visitor". This chain authenticates as a
-    REGISTERED ACCOUNT (the explicit test user), so assert_pooled_visitor would
-    be the wrong assertion -- it demands a pooled slot this fixture never asks
-    for.
-
-    The mobile context is made EXPLICITLY authenticated: if the stored session
-    did not carry into this context (mobile UA / is_mobile / has_touch / 390x844
-    profile), the fixture logs the test user in IN-CONTEXT and re-proves
-    role == "user" before yielding. Only if it still is not a user does it
-    raise. This is the migration off the Visitor-session handoff, consistent
-    with the removal of Visitor/read-only sessions: the authenticated test user
-    is the source of truth, and a logged-out page (which still returns 200) can
-    never be vouched for.
+    A desktop storage state does not reliably transfer to an iPhone-profile
+    context. This fixture authenticates directly, then validates the exact
+    route the mobile workspace tests use before yielding the page.
     """
     from tests.e2e.playwright.page_ready import wait_for_page_ready
     from tests.e2e.playwright.session_role_check import (
@@ -407,7 +369,7 @@ def visitor_mobile_page(visitor_mobile_context):
         is_authenticated_user_role,
     )
 
-    page = visitor_mobile_context.new_page()
+    page = authenticated_mobile_context.new_page()
 
     def _snap(label):
         """Authoritative cookie/role evidence for the mobile session.
@@ -432,7 +394,7 @@ def visitor_mobile_page(visitor_mobile_context):
         return role
 
     # The mobile profile does NOT load the desktop storage_state (see
-    # visitor_mobile_context); it authenticates DIRECTLY. Login lands at "/"
+    # authenticated_mobile_context); it authenticates DIRECTLY. Login lands at "/"
     # (the form carries no next field); the session cookie is then in THIS
     # context's jar. We navigate to /chat/ -- the exact route the workspace
     # tests use -- and PROVE role=user there before yielding. If the session
@@ -466,13 +428,13 @@ def visitor_mobile_page(visitor_mobile_context):
 
 
 @pytest.fixture
-def visitor_desktop_context(browser, pw_base_url, visitor_storage_state):
+def authenticated_desktop_context(browser, pw_base_url, authenticated_storage_state):
     """
-    Desktop context with visitor session pre-loaded.
+    Desktop context with authenticated session pre-loaded.
     """
     context = browser.new_context(
         base_url=pw_base_url,
-        storage_state=visitor_storage_state,
+        storage_state=authenticated_storage_state,
         viewport=DESKTOP["viewport"],
         user_agent=DESKTOP["user_agent"],
         device_scale_factor=DESKTOP["device_scale_factor"],
@@ -486,113 +448,36 @@ def visitor_desktop_context(browser, pw_base_url, visitor_storage_state):
 
 
 @pytest.fixture
-def visitor_desktop_page(visitor_desktop_context):
-    """A desktop page with visitor session."""
-    page = visitor_desktop_context.new_page()
+def authenticated_desktop_page(authenticated_desktop_context):
+    """A desktop page with authenticated session."""
+    page = authenticated_desktop_context.new_page()
     yield page
     page.close()
 
 
 # =============================================================================
-# REAL pooled-visitor session (no login at all)
+# Synthetic registered screenshot account
 # =============================================================================
-#
-# The ``visitor_*`` fixtures above are misnamed: they FORM-LOG-IN as
-# ``$SCITEX_E2E_TEST_USER`` (default ``test-user``), i.e. a registered
-# account. They are named "visitor" only for back-compat with the mobile
-# suites that consume them. As of the auth-fixture migration they VALIDATE the
-# result (require session role "user") on both save-time and the in-context
-# handoff, rather than saving whatever state the login produced.
-#
-# A real pooled visitor is obtained by NOT logging in: SciTeX assigns one
-# through ``VisitorAutoLoginMiddleware`` on the first workspace request from
-# a browser user-agent. That middleware deliberately does NOT allocate on
-# ``/``, ``/landing/``, ``/apps/tools/`` or ``/auth/*`` — a first-time
-# reader must reach the marketing pages anonymously — so the session must
-# be established on a workspace route FIRST. Everything after that renders
-# as the visitor, including those four paths.
 
 
 @pytest.fixture(scope="session")
-def pooled_visitor_context(browser, pw_base_url):
-    """ONE desktop context, no stored state, holding ONE pooled slot.
+def screenshot_test_context(browser, pw_base_url, authenticated_storage_state):
+    """Desktop context authenticated as the empty synthetic E2E account.
 
-    Session-scoped ON PURPOSE. A function-scoped context would start a new
-    anonymous session per test and burn a separate pool slot for each; with
-    a pool of 4 and 22 capture tests the pool would exhaust mid-run and the
-    remainder would be served the readonly-visitor fallback — a real
-    failure caused entirely by the test's own shape. One context = one
-    slot = one continuous visitor session, which is also what the
-    screenshots should depict.
-
-    The visitor session is bound EXPLICITLY, not by auto-login. The
-    visitor-retirement merge (#764) removed VisitorAutoLoginMiddleware, which
-    used to pool an anonymous browser into a writable visitor slot. Instead the
-    WORKFLOW's sync server step mints a logged-in session for a pooled visitor
-    (`manage.py mint_visitor_session --output <file>` — sync, has the DB + the
-    pool + the same SCITEX_HUB_REDIS_URL as the server) and the capture step
-    passes its key as SCITEX_SCREENSHOT_SESSION. THIS fixture reads that key
-    (no DB query here — the capture process is async/Channels, so a DB call
-    would raise SynchronousOnlyOperation) and injects it as the sessionid
-    cookie, so every page renders as data-session-role='visitor'.
-
-    Why a FILE, not stdout (run 34730332276 root cause): a management
-    command's stdout also carries settings-import-time prints (the
-    Redis-fallback warning), so capturing stdout as the key produced a 150-char
-    value the server could not resolve. `--output` writes the clean 40-char key
-    straight to a file.
-
-    REQUIRED_ROLE stays 'visitor' — the warm-up assertion is unchanged (card
-    hub-product-screenshot-visitor-regression-20260913).
+    Screenshot artifacts must never contain an operator or customer account.
+    The workflow creates/resets ``SCITEX_E2E_TEST_USER`` and this fixture uses
+    the already-validated registered-user storage state.
     """
-    import hashlib
-    import os
-
-    from django.conf import settings
-
-    visitor_key = os.getenv("SCITEX_SCREENSHOT_SESSION", "").strip()
-    _key_sha = (
-        hashlib.sha256(visitor_key.encode()).hexdigest()[:12]
-        if visitor_key
-        else "-"
-    )
-    # Validate the key shape WITHOUT guessing an exact length (Django cache
-    # backend keys are 32 chars, db backend keys are 40 — both are valid; the
-    # previous corruption produced 150). Accept non-empty alphanumeric/hex
-    # strings of 16–64 chars: wide enough for any backend, narrow enough to
-    # reject a stdout-polluted 150-char value.
-    if (
-        not visitor_key
-        or len(visitor_key) < 16
-        or len(visitor_key) > 64
-        or not visitor_key.isalnum()
-    ):
-        raise RuntimeError(
-            f"SCITEX_SCREENSHOT_SESSION is missing or malformed "
-            f"(len={len(visitor_key)}, sha256[:12]={_key_sha}, "
-            f"alnum={visitor_key.isalnum() if visitor_key else 'n/a'}). "
-            "The capture cannot bind to a pooled visitor and would photograph "
-            "as anonymous. The workflow's server step must run "
-            "`manage.py mint_visitor_session --output <file>` and the capture "
-            "step must export its contents as SCITEX_SCREENSHOT_SESSION."
-        )
-
     context = browser.new_context(
         base_url=pw_base_url,
+        storage_state=authenticated_storage_state,
         service_workers="block",
         viewport=DESKTOP["viewport"],
-        # A browser UA is load-bearing, not cosmetic:
-        # VisitorAutoLoginMiddleware skips non-browser user agents (curl,
-        # bots, health checks) and would leave the session anonymous.
         user_agent=DESKTOP["user_agent"],
         device_scale_factor=DESKTOP["device_scale_factor"],
         is_mobile=DESKTOP["is_mobile"],
         has_touch=DESKTOP["has_touch"],
         ignore_https_errors=True,
-    )
-    cookie_name = getattr(settings, "SESSION_COOKIE_NAME", "sessionid")
-    context.add_cookies(
-        [{"name": cookie_name, "value": visitor_key, "url": pw_base_url}]
     )
     context.set_default_timeout(TIMEOUT)
     yield context
@@ -600,60 +485,24 @@ def pooled_visitor_context(browser, pw_base_url):
 
 
 @pytest.fixture(scope="session")
-def pooled_visitor_page(pooled_visitor_context):
-    """A page whose session IS a writable pooled visitor slot.
-
-    Fails the whole capture at setup — before a single PNG is written — if
-    the warm-up did not yield ``body[data-session-role] == "visitor"``. The
-    alternative (start shooting and check later) writes an artifact full of
-    the wrong product first, and the artifact is the deliverable.
-    """
+def screenshot_test_page(screenshot_test_context):
+    """Shared screenshot page proven to use the registered E2E account."""
     from tests.e2e.playwright.page_ready import wait_for_page_ready
     from tests.e2e.playwright.session_role_check import (
+        AUTHENTICATED_WARMUP_ROUTE,
         READ_SESSION_ROLE_JS,
-        VISITOR_WARMUP_ROUTE,
-        assert_pooled_visitor,
+        ROLE_USER,
+        authenticated_user_role_failure,
     )
 
-    page = pooled_visitor_context.new_page()
-    page.goto(VISITOR_WARMUP_ROUTE)
+    page = screenshot_test_context.new_page()
+    page.goto(AUTHENTICATED_WARMUP_ROUTE)
     wait_for_page_ready(page)
     role = page.evaluate(READ_SESSION_ROLE_JS)
-    if role != "visitor":
-        # Non-secret boundary evidence (card hub-product-screenshot-visitor-
-        # regression-20260913). The session is now minted IN-PROCESS (no env
-        # var / file), so the boundaries to name are: did the browser carry
-        # the injected sessionid cookie at the warm-up URL, and what role did
-        # the server resolve it to? Cookie value is sha'd, never printed.
-        import hashlib
-
-        try:
-            cookies = page.context.cookies(pw_base_url)
-        except Exception:
-            cookies = []
-        sess = next(
-            (c for c in cookies if c.get("name") == "sessionid"),
-            None,
+    if role != ROLE_USER:
+        raise AssertionError(
+            authenticated_user_role_failure(role, "the screenshot E2E context")
         )
-        cookie_sha = (
-            hashlib.sha256(sess["value"].encode()).hexdigest()[:12]
-            if sess and sess.get("value")
-            else "absent"
-        )
-        print(
-            "\n[pooled_visitor] WARM-UP ROLE MISMATCH — boundary evidence:\n"
-            f"  base URL              : {pw_base_url}\n"
-            f"  warm-up route         : {VISITOR_WARMUP_ROUTE}\n"
-            f"  sessionid cookie present in browser: {'yes' if sess else 'NO'} "
-            f"(len={len(sess['value']) if sess and sess.get('value') else 0}, "
-            f"sha256[:12]={cookie_sha})\n"
-            f"  rendered data-session-role: {role!r} (expected 'visitor')\n"
-            "  meaning: cookie absent => Playwright did not send it (url/"
-            "domain/path scope); cookie present but role anonymous => the "
-            "running server's session engine cannot resolve the key (mint and "
-            "server used different stores)."
-        )
-    assert_pooled_visitor(role, f"visitor warm-up ({VISITOR_WARMUP_ROUTE})")
     yield page
     page.close()
 

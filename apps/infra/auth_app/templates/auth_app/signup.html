@@ -122,35 +122,31 @@
                     </div>
                     {% if form.password.errors %}<div class="text-danger small">{{ form.password.errors.0 }}</div>{% endif %}
                 </div>
-                <div class="form-group mb-2">
-                    <label for="{{ form.password2.id_for_label }}" class="form-label">
-                        {% trans "Confirm Password" %} <span class="text-danger">*</span>
-                    </label>
-                    <div class="input-group">
-                        {{ form.password2 }}
-                        <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
-                            <i class="fas fa-eye" id="toggleConfirmPasswordIcon"></i>
-                        </button>
-                    </div>
-                    {% if form.password2.errors %}<div class="text-danger small">{{ form.password2.errors.0 }}</div>{% endif %}
-                </div>
-                <!-- Password Requirements -->
+                <!-- Password Requirements.
+                     NEUTRAL UNTIL THERE IS SOMETHING TO JUDGE. These five lines
+                     used to render as "invalid" with a cross icon — five red
+                     crosses on a form nobody had filled in yet, telling a
+                     first-time visitor they had already done something wrong.
+                     They now start neutral (no verdict class, no check/cross
+                     icon) and the script below applies valid/invalid only once
+                     the field has input, returning to neutral when it is
+                     cleared. The rules themselves are unchanged. -->
                 <div class="password-rules mb-3">
                     <div class="password-rules-title">{% trans "Password Requirements:" %}</div>
-                    <div class="password-rule invalid" id="rule-length">
-                        <i class="fas fa-times"></i> {% trans "At least 8 characters" %}
+                    <div class="password-rule neutral" id="rule-length">
+                        <i class="fas fa-circle"></i> {% trans "At least 8 characters" %}
                     </div>
-                    <div class="password-rule invalid" id="rule-lowercase">
-                        <i class="fas fa-times"></i> {% trans "At least one lowercase letter" %}
+                    <div class="password-rule neutral" id="rule-lowercase">
+                        <i class="fas fa-circle"></i> {% trans "At least one lowercase letter" %}
                     </div>
-                    <div class="password-rule invalid" id="rule-uppercase">
-                        <i class="fas fa-times"></i> {% trans "At least one uppercase letter" %}
+                    <div class="password-rule neutral" id="rule-uppercase">
+                        <i class="fas fa-circle"></i> {% trans "At least one uppercase letter" %}
                     </div>
-                    <div class="password-rule invalid" id="rule-number">
-                        <i class="fas fa-times"></i> {% trans "At least one number" %}
+                    <div class="password-rule neutral" id="rule-number">
+                        <i class="fas fa-circle"></i> {% trans "At least one number" %}
                     </div>
-                    <div class="password-rule invalid" id="rule-special">
-                        <i class="fas fa-times"></i> {% trans "At least one special character" %} (!@#$%^&amp;*)
+                    <div class="password-rule neutral" id="rule-special">
+                        <i class="fas fa-circle"></i> {% trans "At least one special character" %} (!@#$%^&amp;*)
                     </div>
                 </div>
                 <div class="form-check mb-3">
@@ -218,7 +214,6 @@
   document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("signup-form");
     const passwordInput = document.getElementById("id_password");
-    const confirmPassword = document.getElementById("id_password2");
     const usernameInput = document.getElementById("id_username");
     const successMessage = document.querySelector(".form-message.success");
     const errorMessage = document.getElementById("js-error-message");
@@ -299,7 +294,13 @@
       }
     });
 
-    // Password validation rules
+    // Password validation rules.
+    //
+    // THREE STATES, NOT TWO. `neutral` is what an untouched rule shows: no
+    // verdict, no colour, and a dot rather than a check or a cross. The verdict
+    // states are applied ONLY when the field has input, so the page never
+    // judges an empty field — and clearing the field returns every rule to
+    // neutral instead of leaving the last verdict frozen on screen.
     const ruleLength = document.getElementById("rule-length");
     const ruleLowercase = document.getElementById("rule-lowercase");
     const ruleUppercase = document.getElementById("rule-uppercase");
@@ -309,30 +310,19 @@
 
     // Helper function to update rule state
     function updatePasswordRule(element, isValid, hasInput) {
-      element.classList.remove("valid", "invalid");
-      if (isValid) {
+      element.classList.remove("valid", "invalid", "neutral");
+      if (!element.querySelector("i")) {
+        return;
+      }
+      if (!hasInput) {
+        element.classList.add("neutral");
+        element.querySelector("i").className = "fas fa-circle";
+      } else if (isValid) {
         element.classList.add("valid");
         element.querySelector("i").className = "fas fa-check";
       } else {
-        // Invalid state: red X (default)
         element.classList.add("invalid");
         element.querySelector("i").className = "fas fa-times";
-      }
-    }
-
-    // Helper function to check password match
-    function checkPasswordMatch() {
-      const password = passwordInput.value;
-      const confirmPass = confirmPassword.value;
-      const hasInput = password.length > 0 && confirmPass.length > 0;
-      const passwordsMatch = password === confirmPass && password.length > 0;
-
-      // The match rule was removed from the UI (operator 2026-09-13: confirming
-      // by retyping the password is obvious); the Confirm Password field +
-      // server-side match validation still enforce it. The element is now
-      // optional, so guard against it being absent.
-      if (ruleMatch) {
-        updatePasswordRule(ruleMatch, passwordsMatch, hasInput);
       }
     }
 
@@ -361,12 +351,6 @@
       );
 
       // Check if passwords match
-      checkPasswordMatch();
-    });
-
-    // Check password match when confirm password changes
-    confirmPassword.addEventListener("input", function () {
-      checkPasswordMatch();
     });
 
     // Form submission validation
@@ -402,14 +386,6 @@
         return;
       }
 
-      // Password match validation
-      if (password !== confirmPassword.value) {
-        e.preventDefault();
-        errorText.textContent = "Passwords do not match.";
-        errorMessage.style.display = "block";
-        return;
-      }
-
       // If validation passes, allow form to submit normally to Django
     });
   });
@@ -420,13 +396,6 @@
     const passwordInput = document.getElementById("id_password");
     const togglePasswordIcon = document.getElementById("togglePasswordIcon");
 
-    const toggleConfirmPassword = document.getElementById(
-      "toggleConfirmPassword",
-    );
-    const confirmPasswordInput = document.getElementById("id_password2");
-    const toggleConfirmPasswordIcon = document.getElementById(
-      "toggleConfirmPasswordIcon",
-    );
 
     // Main password toggle
     if (togglePassword && passwordInput && togglePasswordIcon) {
@@ -448,29 +417,6 @@
       });
     }
 
-    // Confirm password toggle
-    if (
-      toggleConfirmPassword &&
-      confirmPasswordInput &&
-      toggleConfirmPasswordIcon
-    ) {
-      toggleConfirmPassword.addEventListener("click", function () {
-        const type =
-          confirmPasswordInput.getAttribute("type") === "password"
-            ? "text"
-            : "password";
-        confirmPasswordInput.setAttribute("type", type);
-
-        // Toggle the eye icon
-        if (type === "password") {
-          toggleConfirmPasswordIcon.classList.remove("fa-eye-slash");
-          toggleConfirmPasswordIcon.classList.add("fa-eye");
-        } else {
-          toggleConfirmPasswordIcon.classList.remove("fa-eye");
-          toggleConfirmPasswordIcon.classList.add("fa-eye-slash");
-        }
-      });
-    }
   });
     </script>
 {% endblock %}

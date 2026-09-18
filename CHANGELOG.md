@@ -9,6 +9,52 @@ verbatim. See [ADR-0001](docs/adr/0001-rename-scitex-cloud-to-scitex-hub.md).
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.20.0a2] - 2026-09-17
+
+Second follow-up alpha for the signed-in-only SciTeX application platform.
+
+### Added
+- Added the staff-only internal demo catalog for persistent development videos.
+- Added shared launcher overlay, app tour/help, and host-version UI contracts.
+
+### Changed
+- Updated the production leaf train to scitex-ui 0.23.0, FigRecipe 0.34.8,
+  and SciTeX Writer 2.43.6.
+- Made mobile panes gesture-safe by default and PDF fit-width content-aware.
+
+### Fixed
+- Removed active-DOM HTML parsing from AI-chat media rendering and isolated
+  generated Mermaid/Graphviz SVG in inert image contexts.
+- Reserved internal routes from username classification and restored environment
+  settings coverage after the demo integration.
+- Made FigRecipe report unfaithful recorder fallback, unknown style keys, and
+  removed artists; made Writer PDF provenance name the code that compiled it.
+
+## [0.20.0a1] - 2026-09-17
+
+First follow-up alpha for the signed-in-only SciTeX application platform.
+
+### Added
+- Routed development Scholar searches to the NAS-03 local Crossref and OpenAlex
+  corpora so local data remains the normal fast path.
+
+### Changed
+- Replaced screenshot visitor fixtures with provisioned registered-user projects
+  and Writer workspaces.
+- Preserved project links while canonicalizing installed application identities.
+
+### Fixed
+- Prevented the floating Chat panel from recursively embedding a second Hub shell
+  when opening AI-provider settings; navigation is now same-origin, top-level,
+  recoverable, and rejects untrusted frames.
+- Reconciled deterministic test and UI baseline drift exposed by the
+  signed-in-only migration.
+
+### Removed
+- Removed the visitor pool, guest/shared execution identities, anonymous storage
+  migration, visitor workers, boot lifecycle, public surfaces, and remaining
+  visitor-only tests.
+
 ## [0.20.0-alpha] - 2026-09-15
 
 Alpha release train for the unified SciTeX application platform.

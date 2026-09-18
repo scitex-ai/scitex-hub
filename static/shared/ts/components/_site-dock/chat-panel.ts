@@ -11,9 +11,14 @@ import {
   panelRect,
   toggleMaximized,
 } from "./chat-float";
+import { trustedParentNavigationPath } from "./embed-navigation";
 
 const OPEN_KEY = "stx-site-dock-chat-open";
 const MAX_KEY = "stx-site-dock-chat-max";
+
+export interface ChatPanelOptions {
+  navigate?: (path: string) => void;
+}
 
 function readFlag(key: string): boolean {
   try {
@@ -32,7 +37,12 @@ function writeFlag(key: string, on: boolean): void {
   }
 }
 
-export function initChatPanel(dock: HTMLElement): void {
+export function initChatPanel(
+  dock: HTMLElement,
+  options: ChatPanelOptions = {},
+): void {
+  const navigate =
+    options.navigate ?? ((path: string) => window.location.assign(path));
   const toggle = dock.querySelector<HTMLElement>("[data-dock-chat-toggle]");
   const panel = document.querySelector<HTMLElement>("[data-dock-chat-panel]");
   const frame = panel?.querySelector<HTMLIFrameElement>(
@@ -78,6 +88,7 @@ export function initChatPanel(dock: HTMLElement): void {
   });
   darkQuery?.addEventListener?.("change", syncTheme);
 
+  const resetFrame = () => frame.removeAttribute("src");
   const setOpen = (open: boolean) => {
     if (open && !frame.getAttribute("src")) {
       frame.src = embedUrl(
@@ -107,6 +118,28 @@ export function initChatPanel(dock: HTMLElement): void {
   };
   setMaximized(maximized);
 
+  let navigationPending = false;
+  window.addEventListener("message", (event) => {
+    if (navigationPending) return;
+    const target = trustedParentNavigationPath(
+      event,
+      frame.contentWindow,
+      window.location.origin,
+    );
+    if (!target) return;
+    navigationPending = true;
+    setMaximized(false);
+    setOpen(false);
+    resetFrame();
+    navigate(target);
+  });
+  // A top-level Back or a Settings Cancel may restore this page from bfcache.
+  // Release the click guard and discard any stale nested iframe document.
+  window.addEventListener("pageshow", () => {
+    navigationPending = false;
+    if (panel.hidden) resetFrame();
+  });
+
   toggle.addEventListener("click", (e) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
     e.preventDefault();
@@ -123,6 +156,7 @@ export function initChatPanel(dock: HTMLElement): void {
     ?.addEventListener("click", () => {
       setMaximized(false);
       setOpen(false);
+      resetFrame();
     });
   panel.addEventListener("keydown", (e) => {
     if (e.key === "Escape") setOpen(false);

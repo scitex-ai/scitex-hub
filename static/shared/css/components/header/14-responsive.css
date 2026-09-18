@@ -116,10 +116,6 @@
   text-transform: uppercase;
 }
 
-/* Mobile visitor badge: hidden on desktop, shown on mobile */
-.header-visitor-badge-mobile {
-  display: none;
-}
 
 @media (max-width: 768px) {
   /* Allow header collapse on mobile — compact 44px header, collapses to 6px */
@@ -154,45 +150,6 @@
     display: none;
   }
 
-  /* Hide mobile visitor badge when hamburger menu is open (avoid showing 2 instances) */
-  .global-header:has(.mobile-header-menu.open) .header-visitor-badge-mobile {
-    display: none !important;
-  }
-
-  /* Show visitor badge in compact header bar on mobile (not hidden with header-right) */
-  .header-visitor-badge-mobile {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--status-warning, #e3b341);
-    background-color: rgba(227, 179, 65, 0.1);
-    border: 1px solid rgba(227, 179, 65, 0.3);
-    white-space: nowrap;
-    margin-left: auto;
-    margin-right: 4px;
-  }
-
-  .header-visitor-badge-mobile-icon {
-    margin-right: 4px;
-    font-size: 10px;
-  }
-
-  .header-visitor-badge-mobile-countdown {
-    margin-left: 4px;
-    font-family: "JetBrains Mono", monospace;
-    font-size: 0.9em;
-  }
-
-  /* Read-only badge in mobile hamburger menu */
-  .mobile-menu-item--readonly-badge {
-    cursor: default;
-    color: var(--status-warning, #e3b341);
-    font-size: 0.85rem;
-    font-weight: 500;
-  }
 
   .header-left {
     gap: 8px;
@@ -428,37 +385,21 @@
     display: flex;
   }
 
-  /* Reserve the fixed dock's band at the END of the menu's scroll.
+  /* Align the menu's terminal controls above an expanded bottom dock without
+     shrinking the sheet or adding a permanent blank band. Moving or minimizing
+     the dock removes this scroll-only clearance automatically. */
+  body:has(.site-dock:not(.site-dock--floating):not(.site-dock--minimized))
+    .mobile-header-menu {
+    scroll-padding-bottom: var(--site-dock-scroll-clearance);
+  }
 
-     The menu is position:fixed with bottom:0, so it spans to the viewport
-     edge, and the launcher dock floats over its last ~78px at the same
-     z-index (1100) while sitting later in the DOM — so the dock paints on
-     top and swallows taps there.
-
-     Measured on production at 390px with this PR's Legal section simulated:
-     scrolled fully to the bottom, a[href="/contact/"] landed at y 784..828
-     and elementFromPoint at its centre returned .launcher-dock. The menu can
-     only scroll 21px, nowhere near enough to lift a 44px row clear of a 64px
-     dock, so the last entry was permanently untappable.
-
-     That is the same defect this PR removes from the footer, one layer up:
-     the legal route would exist, render, and not be reachable.
-
-     2026-09-14: the dock is now the SITE dock on every page
-     (shared/css/components/site-dock.css), so this is scoped to
-     :has(.site-dock) and reads that file's --site-dock-clearance band. The
-     literal fallback covers the variable being absent. */
-  body:has(.site-dock) .mobile-header-menu {
-    /* --site-dock-clearance already carries the dock height, its gap and
-       env(safe-area-inset-bottom); +16px keeps the last row off the dock's
-       shadow. */
-    padding-bottom: calc(
-      var(
-          --site-dock-clearance,
-          calc(90px + env(safe-area-inset-bottom, 0px))
-        ) +
-        16px
-    );
+  body:has(.site-dock:not(.site-dock--floating):not(.site-dock--minimized))
+    .mobile-header-menu
+    .mobile-menu-item:focus-visible,
+  body:has(.site-dock:not(.site-dock--floating):not(.site-dock--minimized))
+    .mobile-header-menu
+    > .mobile-menu-item:last-child {
+    scroll-margin-bottom: var(--site-dock-scroll-clearance);
   }
 
   .mobile-header-menu .mobile-menu-item {

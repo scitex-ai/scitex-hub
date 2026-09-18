@@ -1,118 +1,258 @@
-{% load static %}
-{% load i18n %}
-{% comment %}
-   THE MODULE NAMES, SEPARATED FROM THE DEMO VIDEOS.
+{% load static i18n %}
 
-   Extracted from landing_demos.html on 2026-08-28, when that whole include
-   was commented out on the operator's instruction. He asked for three things
-   to go — the "SciTeX Ecosystem" heading, the six module demo videos, and
-   "Demonstration on local environment" — and all three lived in that one
-   file. The module NAMES lived there too, and went with them.
-
-   That was not what he asked for, and it undid an earlier instruction of his.
-   On 2026-08-16, after taking screenshots for a grant application, he said
-   「今は道具がバラバラで来訪者がいても何が何だかわからないと思うので」 and
-   「人様に見せられるレベルではない」 — the landing page was hero-and-nothing,
-   and a visitor could not tell what SciTeX is. Commenting the include out put
-   the page straight back into that state; the guard test
-   test_landing_says_what_scitex_does.py caught it in CI.
-
-   So this partial is STRICTLY SUBTRACTIVE: the same six cards, byte-identical
-   copy, with only the carousel apparatus removed —
-
-     the onclick="demosCarousel.goTo(n)" handlers  (no carousel to drive)
-     data-module / active                          (carousel state)
-     the <h2>SciTeX Ecosystem</h2> heading         (he asked for it removed)
-     the vite entrypoint                           (carousel JS only)
-
-   No wording is invented here. He said he would revise the copy himself
-   —「あとで私が丁寧に見て直しますね」— so nothing new is put in front of him.
-{% endcomment %}
-<link rel="stylesheet"
-      href="{% static 'public_app/css/landing-demos-inline.css' %}">
-<section class="landing-section section-ecosystem-demos bg-pattern bg-pattern-dots-scattered bg-pattern-subtle"
-         id="modules">
-    <div class="container">
-    <div class="ecosystem-modules-nav">
-        <!-- Scholar -->
-        <div class="module-nav-card bg-pattern bg-pattern-dots-radial bg-pattern-subtle">
-            <svg width="56"
-                 height="56"
-                 viewBox="0 0 64 64"
-                 fill="none"
-                 xmlns="http://www.w3.org/2000/svg"
-                 aria-label="Scholar">
-                <circle cx="26" cy="26" r="20" stroke="currentColor" stroke-width="4" fill="none" />
-                <line x1="40" y1="40" x2="56" y2="56" stroke="currentColor" stroke-width="6" stroke-linecap="round" />
-                <circle cx="26" cy="26" r="14" fill="currentColor" fill-opacity="0.3" />
-            </svg>
-            <h3>Scholar</h3>
-            <p>{% trans "Literature discovery & enrichment" %}</p>
+<section class="landing-v2-section landing-v2-context" id="context" aria-labelledby="landing-v2-context-title">
+    <div class="container landing-v2-shell">
+        <div class="landing-v2-intro">
+            <div>
+                <p class="landing-v2-eyebrow">{% trans "One project, every place" %}</p>
+                <h2 id="landing-v2-context-title">{% trans "The same context, from phone to compute node." %}</h2>
+            </div>
+            <p>{% trans "Move between a quick mobile review, focused browser work, and HPC over SSH without rebuilding the project around each device." %}</p>
         </div>
-        <!-- Writer -->
-        <div class="module-nav-card bg-pattern bg-pattern-dots-radial bg-pattern-subtle">
-            <svg width="56"
-                 height="56"
-                 viewBox="0 0 64 64"
-                 fill="none"
-                 xmlns="http://www.w3.org/2000/svg"
-                 aria-label="Writer">
-                <rect x="8" y="12" width="36" height="44" rx="3" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="3" />
-                <path d="M14 20H32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
-                <path d="M14 26H38" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
-                <path d="M14 32H36" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
-                <path d="M14 38H30" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
-                <path d="M34 24L50 8" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
-                <path d="M38 20L40 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
-                <path d="M34 24L32 26" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
-                <circle cx="31" cy="27" r="2" fill="currentColor" />
-            </svg>
-            <h3>Writer</h3>
-            <p>{% trans "LaTeX manuscript writing" %}</p>
+        <ol class="landing-v2-context-grid">
+            <li>
+                <span class="landing-v2-context-number" aria-hidden="true">01</span>
+                <h3>{% trans "Phone" %}</h3>
+                <p>{% trans "Review a result, save a paper, or capture the next step." %}</p>
+            </li>
+            <li>
+                <span class="landing-v2-context-number" aria-hidden="true">02</span>
+                <h3>{% trans "Laptop" %}</h3>
+                <p>{% trans "Use the browser for daily analysis, figures, and writing." %}</p>
+            </li>
+            <li>
+                <span class="landing-v2-context-number" aria-hidden="true">03</span>
+                <h3>{% trans "HPC + SSH" %}</h3>
+                <p>{% trans "Run near the scheduler and data while the project stays connected." %}</p>
+            </li>
+            <li class="landing-v2-context-custom">
+                <span class="landing-v2-context-number" aria-hidden="true">04</span>
+                <h3>{% trans "Custom Apps" %}</h3>
+                <p>{% trans "Extend the same project and command contract for your lab." %}</p>
+            </li>
+        </ol>
+    </div>
+</section>
+
+<section class="landing-v2-section landing-v2-apps" id="apps" aria-labelledby="landing-v2-apps-title">
+    <div class="container landing-v2-shell">
+        <div class="landing-v2-intro">
+            <div>
+                <p class="landing-v2-eyebrow">{% trans "Built in, connected by design" %}</p>
+                <h2 id="landing-v2-apps-title">{% trans "SciTeX Hub — one project context" %}</h2>
+            </div>
+            <p>{% trans "Each built-in app specializes. Hub keeps project, files, identity, and commands connected. Custom Apps sit outside the built-ins and extend the same contract." %}</p>
         </div>
-        <!-- FigRecipe -->
-        <div class="module-nav-card bg-pattern bg-pattern-dots-radial bg-pattern-subtle">
-            <svg width="56"
-                 height="56"
-                 viewBox="0 0 64 64"
-                 fill="none"
-                 xmlns="http://www.w3.org/2000/svg"
-                 aria-label="FigRecipe">
-                <rect x="8" y="8" width="48" height="48" rx="4" stroke="currentColor" stroke-width="3" fill="none" />
-                <path d="M12 44L20 36L28 40L38 26L52 32" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-                <circle cx="20" cy="36" r="3" fill="currentColor" />
-                <circle cx="28" cy="40" r="3" fill="currentColor" />
-                <circle cx="38" cy="26" r="3" fill="currentColor" />
-                <circle cx="52" cy="32" r="3" fill="currentColor" />
-                <path d="M8 52H56" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-                <rect x="12" y="12" width="40" height="36" fill="currentColor" fill-opacity="0.3" />
-            </svg>
-            <h3>FigRecipe</h3>
-            <p>{% trans "Scientific figure editor" %}</p>
+        <div class="landing-v2-app-map"
+             role="img"
+             aria-label="{% trans 'SciTeX Hub provides one project context connecting Scholar, Storage, Stats, FigRecipe, Writer, Agents and Chat, Cards, and Custom Apps.' %}">
+            <span class="landing-v2-map-lines" aria-hidden="true"></span>
+            <article class="landing-v2-app-node">
+                <h3>Scholar</h3>
+                <p>{% trans "Literature and library" %}</p>
+            </article>
+            <article class="landing-v2-app-node">
+                <h3>{% trans "Storage" %}</h3>
+                <p>{% trans "Files and data" %}</p>
+            </article>
+            <article class="landing-v2-app-node">
+                <h3>{% trans "Stats" %}</h3>
+                <p>{% trans "Analysis and reports" %}</p>
+            </article>
+            <article class="landing-v2-app-node">
+                <h3>{% trans "Agents + Chat" %}</h3>
+                <p>{% trans "Commands and conversations" %}</p>
+            </article>
+            <article class="landing-v2-app-node landing-v2-app-hub">
+                <h3>SciTeX Hub</h3>
+                <p>{% trans "one project context" %}</p>
+            </article>
+            <article class="landing-v2-app-node">
+                <h3>{% trans "Cards" %}</h3>
+                <p>{% trans "Tasks and evidence" %}</p>
+            </article>
+            <article class="landing-v2-app-node">
+                <h3>FigRecipe</h3>
+                <p>{% trans "Figures and source" %}</p>
+            </article>
+            <article class="landing-v2-app-node">
+                <h3>Writer</h3>
+                <p>{% trans "Manuscript and PDF" %}</p>
+            </article>
+            <article class="landing-v2-app-node landing-v2-app-custom">
+                <h3>{% trans "Custom Apps" %}</h3>
+                <p>{% trans "Extend the same contract" %}</p>
+            </article>
         </div>
-        <!-- Local -->
-        <div class="module-nav-card bg-pattern bg-pattern-dots-radial bg-pattern-subtle">
-            <svg width="56"
-                 height="56"
-                 viewBox="0 0 64 64"
-                 fill="none"
-                 xmlns="http://www.w3.org/2000/svg"
-                 aria-label="Local">
-                <path d="M32 12C33.3132 12 34.6136 12.0978 35.8892 12.2857C36.3306 12.3527 36.7256 12.6327 36.9512 13.0401L39.6578 18.0829C40.5183 18.4325 41.3567 18.8246 42.1707 19.2661L47.5461 17.6733C47.9804 17.543 48.4393 17.6423 48.7839 17.9432C50.627 19.5598 52.1965 21.4708 53.4323 23.6001C53.6927 23.9791 53.7465 24.4558 53.5762 24.8825L51.358 30.8053C51.5119 31.8535 51.6 32.9252 51.6 34C51.6 35.0748 51.5119 36.1465 51.358 37.1947L53.5762 43.1175C53.7465 43.5442 53.6927 44.0209 53.4323 44.3999C52.1965 46.5292 50.627 48.4402 48.7839 50.0568C48.4393 50.3577 47.9804 50.457 47.5461 50.3267L42.1707 48.7339C41.3567 49.1754 40.5183 49.5675 39.6578 49.9171L36.9512 54.9599C36.7256 55.3673 36.3306 55.6473 35.8892 55.7143C34.6136 55.9022 33.3132 56 32 56C30.6868 56 29.3864 55.9022 28.1108 55.7143C27.6694 55.6473 27.2744 55.3673 27.0488 54.9599L24.3422 49.9171C23.4817 49.5675 22.6433 49.1754 21.8293 48.7339L16.4539 50.3267C16.0196 50.457 15.5607 50.3577 15.2161 50.0568C13.373 48.4402 11.8035 46.5292 10.5677 44.3999C10.3073 44.0209 10.2535 43.5442 10.4238 43.1175L12.642 37.1947C12.4881 36.1465 12.4 35.0748 12.4 34C12.4 32.9252 12.4881 31.8535 12.642 30.8053L10.4238 24.8825C10.2535 24.4558 10.3073 23.9791 10.5677 23.6001C11.8035 21.4708 13.373 19.5598 15.2161 17.9432C15.5607 17.6423 16.0196 17.543 16.4539 17.6733L21.8293 19.2661C22.6433 18.8246 23.4817 18.4325 24.3422 18.0829L27.0488 13.0401C27.2744 12.6327 27.6694 12.3527 28.1108 12.2857C29.3864 12.0978 30.6868 12 32 12Z" stroke="currentColor" stroke-width="3" />
-                <circle cx="32" cy="34" r="10" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="2.5" />
-                <circle cx="32" cy="34" r="3" fill="currentColor" />
-                <circle cx="24" cy="26" r="2.5" fill="currentColor" />
-                <circle cx="40" cy="26" r="2.5" fill="currentColor" />
-                <circle cx="24" cy="42" r="2.5" fill="currentColor" />
-                <circle cx="40" cy="42" r="2.5" fill="currentColor" />
-                <path d="M32 31L24 26" stroke="currentColor" stroke-width="2" />
-                <path d="M32 31L40 26" stroke="currentColor" stroke-width="2" />
-                <path d="M32 37L24 42" stroke="currentColor" stroke-width="2" />
-                <path d="M32 37L40 42" stroke="currentColor" stroke-width="2" />
-            </svg>
-            <h3>{% trans "On-Premise" %}</h3>
-            <p>{% trans "Run on your own machine — your data, your compute" %}</p>
+
+        <div class="landing-v2-carousel"
+             role="region"
+             aria-roledescription="carousel"
+             aria-labelledby="landing-v2-carousel-title"
+             data-landing-carousel
+             tabindex="0">
+            <div class="landing-v2-carousel-head">
+                <div>
+                    <p class="landing-v2-eyebrow">{% trans "Actual product screens" %}</p>
+                    <h3 id="landing-v2-carousel-title">{% trans "Actual SciTeX Cloud screens" %}</h3>
+                </div>
+                <div class="landing-v2-carousel-controls">
+                    <button type="button"
+                            data-carousel-prev
+                            aria-label="{% trans 'Previous product screen' %}">←</button>
+                    <span data-carousel-status aria-live="polite">1 / 4</span>
+                    <button type="button"
+                            data-carousel-next
+                            aria-label="{% trans 'Next product screen' %}">→</button>
+                </div>
+            </div>
+            <div class="landing-v2-carousel-track" data-carousel-track>
+                <figure data-carousel-slide
+                        role="group"
+                        aria-roledescription="slide"
+                        aria-label="{% trans '1 of 4: Hub' %}">
+                    <picture>
+                        <source type="image/webp"
+                                srcset="{% static 'public_app/images/landing-v2/hub-768.webp' %} 768w, {% static 'public_app/images/landing-v2/hub-1200.webp' %} 1200w"
+                                sizes="(max-width: 820px) 100vw, 1100px" />
+                        <img src="{% static 'public_app/images/landing-v2/hub-1200.jpg' %}"
+                             width="1200"
+                             height="750"
+                             loading="lazy"
+                             alt="{% trans 'SciTeX Hub app launcher showing built-in research applications.' %}" />
+                    </picture>
+                    <figcaption><strong>SciTeX Hub</strong> — {% trans "App launcher from the tracked in-repository product guide." %}</figcaption>
+                </figure>
+                <figure data-carousel-slide
+                        role="group"
+                        aria-roledescription="slide"
+                        aria-label="{% trans '2 of 4: Scholar' %}"
+                        hidden>
+                    <picture>
+                        <source type="image/webp"
+                                srcset="{% static 'public_app/images/landing-v2/scholar-768.webp' %} 768w, {% static 'public_app/images/landing-v2/scholar-1200.webp' %} 1200w"
+                                sizes="(max-width: 820px) 100vw, 1100px" />
+                        <img src="{% static 'public_app/images/landing-v2/scholar-1200.jpg' %}"
+                             width="1200"
+                             height="750"
+                             loading="lazy"
+                             alt="{% trans 'SciTeX Scholar search workspace with source, sorter, and filter panels.' %}" />
+                    </picture>
+                    <figcaption><strong>Scholar</strong> — {% trans "Search workspace from the tracked in-repository product guide." %}</figcaption>
+                </figure>
+                <figure data-carousel-slide
+                        role="group"
+                        aria-roledescription="slide"
+                        aria-label="{% trans '3 of 4: FigRecipe' %}"
+                        hidden>
+                    <picture>
+                        <source type="image/webp"
+                                srcset="{% static 'public_app/images/landing-v2/figrecipe-768.webp' %} 768w, {% static 'public_app/images/landing-v2/figrecipe-1200.webp' %} 1200w"
+                                sizes="(max-width: 820px) 100vw, 1100px" />
+                        <img src="{% static 'public_app/images/landing-v2/figrecipe-1200.jpg' %}"
+                             width="1200"
+                             height="750"
+                             loading="lazy"
+                             alt="{% trans 'SciTeX FigRecipe interface with line, fill, and stack figure templates.' %}" />
+                    </picture>
+                    <figcaption><strong>FigRecipe</strong> — {% trans "Template picker from the tracked in-repository product guide." %}</figcaption>
+                </figure>
+                <figure data-carousel-slide
+                        role="group"
+                        aria-roledescription="slide"
+                        aria-label="{% trans '4 of 4: Writer' %}"
+                        hidden>
+                    <picture>
+                        <source type="image/webp"
+                                srcset="{% static 'public_app/images/landing-v2/writer-768.webp' %} 768w, {% static 'public_app/images/landing-v2/writer-1200.webp' %} 1200w"
+                                sizes="(max-width: 820px) 100vw, 1100px" />
+                        <img src="{% static 'public_app/images/landing-v2/writer-1200.jpg' %}"
+                             width="1200"
+                             height="750"
+                             loading="lazy"
+                             alt="{% trans 'SciTeX Writer workspace with LaTeX source and compiled document preview.' %}" />
+                    </picture>
+                    <figcaption><strong>Writer</strong> — {% trans "Source and preview workspace from the tracked in-repository product guide." %}</figcaption>
+                </figure>
+            </div>
+            <div class="landing-v2-carousel-dots" role="tablist" aria-label="{% trans 'Choose a product screen' %}">
+                <button type="button" role="tab" data-carousel-dot="0" aria-selected="true">Hub</button>
+                <button type="button" role="tab" data-carousel-dot="1" aria-selected="false" tabindex="-1">Scholar</button>
+                <button type="button" role="tab" data-carousel-dot="2" aria-selected="false" tabindex="-1">FigRecipe</button>
+                <button type="button" role="tab" data-carousel-dot="3" aria-selected="false" tabindex="-1">Writer</button>
+            </div>
+            <p class="landing-v2-provenance-note">
+                {% trans "Unedited interface captures from tracked product-guide screenshots; resize and compression only." %}
+            </p>
         </div>
     </div>
+</section>
+
+<section class="landing-v2-section landing-v2-clew" id="clew" aria-labelledby="landing-v2-clew-title">
+    <div class="container landing-v2-shell landing-v2-clew-grid">
+        <div class="landing-v2-clew-copy">
+            <p class="landing-v2-eyebrow">{% trans "Verifiable provenance" %}</p>
+            <h2 id="landing-v2-clew-title">{% trans "Follow a claim back to its source." %}</h2>
+            <p>{% trans "SciTeX Clew records relationships between research artifacts in a directed acyclic graph. The public example connects a manuscript claim to output, processing, and raw data." %}</p>
+            <ol class="landing-v2-chain" aria-label="{% trans 'Claim to raw data provenance chain' %}">
+                <li>{% trans "Claim" %}</li>
+                <li>{% trans "Output" %}</li>
+                <li>{% trans "Processing" %}</li>
+                <li>{% trans "Raw data" %}</li>
+            </ol>
+            <a class="landing-v2-button landing-v2-button-primary"
+               href="https://github.com/scitex-ai/scitex-clew"
+               target="_blank"
+               rel="noopener noreferrer">{% trans "View the public Clew repository" %}<span aria-hidden="true">↗</span></a>
+        </div>
+        <figure class="landing-v2-clew-figure">
+            <picture>
+                <source type="image/webp"
+                        srcset="{% static 'public_app/images/landing-v2/clew-dag-640.webp' %} 640w"
+                        sizes="(max-width: 820px) 100vw, 44vw" />
+                <img src="{% static 'public_app/images/landing-v2/clew-dag.png' %}"
+                     width="661"
+                     height="1192"
+                     loading="lazy"
+                     alt="{% trans 'SciTeX Clew directed acyclic graph connecting manuscript claims, derived outputs, processing steps, and raw data.' %}" />
+            </picture>
+            <figcaption>{% trans "Actual DAG from the public scitex-clew repository." %}</figcaption>
+        </figure>
+    </div>
+</section>
+
+<section class="landing-v2-section landing-v2-open" id="open" aria-labelledby="landing-v2-open-title">
+    <div class="container landing-v2-shell landing-v2-open-grid">
+        <figure class="landing-v2-photo landing-v2-open-photo">
+            <picture>
+                <source type="image/webp"
+                        srcset="{% static 'public_app/images/landing-v2/research-computer-640.webp' %} 640w, {% static 'public_app/images/landing-v2/research-computer-1280.webp' %} 1280w"
+                        sizes="(max-width: 820px) 100vw, 46vw" />
+                <img src="{% static 'public_app/images/landing-v2/research-computer-1280.jpg' %}"
+                     width="1280"
+                     height="853"
+                     loading="lazy"
+                     alt="{% trans 'A laboratory researcher works at a desktop computer beside scientific equipment.' %}" />
+            </picture>
+            <figcaption>
+                {% trans "Illustrative stock photography:" %}
+                <a href="https://www.pexels.com/photo/medical-professional-using-computer-9574502/"
+                   target="_blank"
+                   rel="noopener noreferrer">Tima Miroshnichenko / Pexels</a>.
+                {% trans "No customer or product endorsement is implied." %}
+            </figcaption>
+        </figure>
+        <div class="landing-v2-open-copy">
+            <p class="landing-v2-eyebrow">{% trans "Open by design" %}</p>
+            <h2 id="landing-v2-open-title">{% trans "Your research. Your infrastructure." %}</h2>
+            <p>{% trans "Use SciTeX Cloud or self-host. Keep human judgment at the center and choose the environment, compute, and integrations that fit the work." %}</p>
+            <ul>
+                <li>{% trans "Cloud for a managed browser workspace" %}</li>
+                <li>{% trans "Self-hosting for your own environment" %}</li>
+                <li>{% trans "Custom Apps for field-specific workflows" %}</li>
+            </ul>
+            <p class="landing-v2-small">{% trans "Available deployment options and integrations depend on the selected setup." %}</p>
+            <a class="landing-v2-button landing-v2-button-primary" href="#pricing">{% trans "Compare current plans" %}</a>
+        </div>
     </div>
 </section>

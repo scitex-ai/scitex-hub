@@ -9,6 +9,8 @@ from datetime import timedelta
 
 import scitex as stx
 
+from config.social_apps import orcid_base_domain, with_credential_apps
+
 # ---------------------------------------
 # ORCID OAuth (legacy - for profile linking)
 # ---------------------------------------
@@ -20,6 +22,16 @@ ORCID_CLIENT_SECRET = os.getenv("SCITEX_HUB_ORCID_CLIENT_SECRET") or os.getenv(
 )
 ORCID_REDIRECT_URI = os.getenv(
     "ORCID_REDIRECT_URI", "http://localhost:8000/integrations/orcid/callback/"
+)
+
+# Google credentials, read here because they are half of the provider
+# configuration below (they used to be declared further down, after the
+# configuration that now consumes them).
+GOOGLE_CLIENT_ID = os.getenv("SCITEX_HUB_GOOGLE_CLIENT_ID") or os.getenv(
+    "SCITEX_GOOGLE_CLIENT_ID", ""
+)
+GOOGLE_CLIENT_SECRET = os.getenv("SCITEX_HUB_GOOGLE_CLIENT_SECRET") or os.getenv(
+    "SCITEX_GOOGLE_CLIENT_SECRET", ""
 )
 
 # ---------------------------------------
@@ -76,24 +88,44 @@ SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
 SOCIALACCOUNT_LOGIN_ON_GET = True
 SOCIALACCOUNT_QUERY_EMAIL = True
 
-SOCIALACCOUNT_PROVIDERS = {
-    "google": {
-        "SCOPE": ["profile", "email"],
-        "AUTH_PARAMS": {"access_type": "online"},
-        "OAUTH_PKCE_ENABLED": True,
-        "FETCH_USERINFO": True,
+# Provider configuration, plus the app that makes each provider clickable.
+#
+# THE APP COMES FROM THE CREDENTIALS, HERE, AND NOT ONLY FROM THE DATABASE.
+# allauth reads an app from `SocialApp` rows OR from SOCIALACCOUNT_PROVIDERS
+# [provider]["APP"]. This deployment's credentials arrive in the environment
+# and previously reached allauth only via `manage.py setup_social_auth`, so a
+# deployment holding complete credentials still rendered no button (and could
+# not log in socially) until someone ran that command. `with_credential_apps`
+# attaches the app for every provider whose pair is COMPLETE; an incomplete or
+# placeholder pair attaches nothing, because a half-built app turns into an
+# HTTP 500 at the token exchange rather than at render time.
+# See config/social_apps.py for the rule and tests/apps/auth_app/
+# test_social_provider_credentials.py for what it guarantees.
+SOCIALACCOUNT_PROVIDERS = with_credential_apps(
+    {
+        "google": {
+            "SCOPE": ["profile", "email"],
+            "AUTH_PARAMS": {"access_type": "online"},
+            "OAUTH_PKCE_ENABLED": True,
+            "FETCH_USERINFO": True,
+        },
+        "orcid": {
+            # ALLOWLISTED, not read straight from the environment. allauth
+            # concatenates this value into the authorize URL and into
+            # `https://pub.{value}/oauth/token`, which is where the client
+            # SECRET is POSTed — so `ORCID_BASE_DOMAIN=attacker.invalid` used to
+            # hand the secret to a host we do not own. `orcid_base_domain`
+            # accepts only ORCID's two hosts (tolerating the URL/case forms an
+            # operator might paste) and RAISES here otherwise: this module must
+            # not load with an endpoint it cannot vouch for.
+            "BASE_DOMAIN": orcid_base_domain(os.getenv("ORCID_BASE_DOMAIN")),
+            "MEMBER_API": False,
+        },
     },
-    "orcid": {
-        "BASE_DOMAIN": os.getenv("ORCID_BASE_DOMAIN", "sandbox.orcid.org"),
-        "MEMBER_API": False,
+    {
+        "google": (GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET),
+        "orcid": (ORCID_CLIENT_ID, ORCID_CLIENT_SECRET),
     },
-}
-
-GOOGLE_CLIENT_ID = os.getenv("SCITEX_HUB_GOOGLE_CLIENT_ID") or os.getenv(
-    "SCITEX_GOOGLE_CLIENT_ID", ""
-)
-GOOGLE_CLIENT_SECRET = os.getenv("SCITEX_HUB_GOOGLE_CLIENT_SECRET") or os.getenv(
-    "SCITEX_GOOGLE_CLIENT_SECRET", ""
 )
 
 ACCOUNT_ADAPTER = "apps.infra.auth_app.adapters.SciTexAccountAdapter"

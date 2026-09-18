@@ -27,8 +27,8 @@
 Charts are drawn in the browser as inline SVG from a single JSON read
 ({% templatetag openblock %} url 'public_app:server_metrics_series' {% templatetag closeblock %}).
 They used to be matplotlib PNGs that a Celery beat task regenerated 48 times a
-minute (8 metrics x 3 windows x 2 themes); that fan-out backlogged the queue
-and broke the visitor pool. Operator decision, 2026-07-30.
+minute (8 metrics x 3 windows x 2 themes); that fan-out backlogged the queue.
+Operator decision, 2026-07-30.
 {% endcomment %}
 {% block extra_js %}{% endblock %}
 {% block content %}
@@ -201,23 +201,6 @@ and broke the visitor pool. Operator decision, 2026-07-30.
                             Total: ↑{{ status_data.system.net_sent_mb }} MB sent, ↓{{ status_data.system.net_recv_mb }} MB received
                         </div>
                     {% endif %}
-                </div>
-                <!-- Visitor Pool Chart -->
-                <div class="metric-card">
-                    <div class="metric-label">
-                        <span class="has-tooltip"
-                              data-tooltip="Shows how many visitor slots are currently allocated. When full, new visitor users must wait for a slot to free up (sessions expire after 60 minutes).">
-                            <i class="fas fa-users metric-icon-visitor-pool"></i> Visitor Pool
-                        </span>
-                        <span id="visitorPoolCurrentValue"
-                              class="metric-current-value metric-current-value-visitor-pool">--</span>
-                    </div>
-                    <div id="visitorPoolChart"
-                         class="metric-chart svg-chart"
-                         data-metric="visitor_pool">
-                        <div class="chart-placeholder">Loading visitor pool usage…</div>
-                    </div>
-                    <div class="metric-info">Visitor visitor sessions (1h lifetime each)</div>
                 </div>
                 <!-- Active Users Chart -->
                 <div class="metric-card">
@@ -667,102 +650,6 @@ and broke the visitor pool. Operator decision, 2026-07-30.
                     <i class="fas fa-info-circle"></i>
                     <strong>HPC Terminal:</strong> User terminals run inside Apptainer containers via SLURM for security and resource management.
                 </p>
-            </div>
-        </div>
-        <!-- Visitor Pool Slots -->
-        <div class="status-section">
-            <h2 class="section-title has-tooltip"
-                data-tooltip="Visitor users get temporary visitor slots (visitor-001, visitor-002, etc.) with 60-minute sessions. Pool size configured via SCITEX_HUB_VISITOR_POOL_SIZE in .env file.">
-                <i class="fas fa-users"></i> Visitor Pool
-                {% if status_data.visitor_pool.pool_status %}
-                    <span class="visitor-pool-status-count">
-                        {{ status_data.visitor_pool.pool_status.allocated }}/{{ status_data.visitor_pool.pool_status.total }} slots allocated
-                    </span>
-                {% endif %}
-            </h2>
-            {% if status_data.visitor_pool.allocations %}
-                <div class="slots-grid">
-                    {% for allocation in status_data.visitor_pool.allocations %}
-                        <div class="slot-card {{ allocation.status }} {% if allocation.is_current_user %}current-user{% endif %}">
-                            <div class="slot-header">
-                                <div class="slot-number">
-                                    <i class="fas fa-cube allocation-project-icon"></i>
-                                    Slot #{{ allocation.slot_number }}
-                                </div>
-                                <span class="slot-status-badge {{ allocation.status }}">{{ allocation.status|upper }}</span>
-                            </div>
-                            {% if allocation.status == "allocated" %}
-                                <div class="slot-info">
-                                    <i class="fas fa-user allocation-visitor-icon"></i>
-                                    {{ allocation.visitor_username }}
-                                    {% if allocation.is_current_user %}<strong class="allocation-current-user">(You)</strong>{% endif %}
-                                </div>
-                                <div class="slot-time-remaining" data-expires="{{ allocation.expires_at|date:'c' }}">
-                                    <i class="fas fa-clock"></i>
-                                    <span>Expires in {{ allocation.minutes_remaining }} min</span>
-                                </div>
-                            {% else %}
-                                <div class="slot-info">
-                                    <i class="fas fa-check-circle allocation-active-icon"></i>
-                                    Available
-                                </div>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="info-box info-box-with-margin">
-                    <p>
-                        <i class="fas fa-exclamation-triangle"></i>
-                        Could not load visitor pool status.
-                    </p>
-                </div>
-            {% endif %}
-            <!-- How It Works -->
-            <div class="visitor-pool-section">
-                <h3 class="visitor-pool-title">
-                    <i class="fas fa-info-circle"></i> How Visitor Mode Works
-                </h3>
-                <div class="visitor-pool-grid">
-                    <!-- Slot Allocation -->
-                    <div class="info-card">
-                        <h4 class="visitor-pool-card-title">
-                            <i class="fas fa-user-tag visitor-pool-icon"></i>
-                            Slot Allocation
-                        </h4>
-                        <p class="visitor-pool-card-text">
-                            Navigate to any workspace to get assigned a visitor slot (e.g., <code>visitor-001</code>). First-come, first-served.
-                        </p>
-                    </div>
-                    <!-- Data Separation -->
-                    <div class="info-card">
-                        <h4 class="visitor-pool-card-title">
-                            <i class="fas fa-shield-alt visitor-pool-icon"></i>
-                            Data Privacy
-                        </h4>
-                        <p class="visitor-pool-card-text">
-                            Your data is completely isolated. Each visitor has a private workspace. No one else can see your work.
-                        </p>
-                    </div>
-                    <!-- Session Duration -->
-                    <div class="info-card">
-                        <h4 class="visitor-pool-card-title">
-                            <i class="fas fa-clock visitor-pool-icon"></i>
-                            60-Minute Sessions
-                        </h4>
-                        <p class="visitor-pool-card-text">Slots expire after 1 hour. Sign up to migrate your data and get unlimited access.</p>
-                    </div>
-                    <!-- Sign Up -->
-                    <div class="info-card">
-                        <h4 class="visitor-pool-card-title">
-                            <i class="fas fa-user-plus visitor-pool-icon"></i>
-                            Keep Your Work
-                        </h4>
-                        <p class="visitor-pool-card-text">
-                            <a href="{% url 'auth_app:signup' %}" class="visitor-pool-link">Sign up</a> anytime to save your work permanently. All data auto-migrates.
-                        </p>
-                    </div>
-                </div>
             </div>
         </div>
         <!-- Architecture moved to /setup/ (Self-Hosting Guide) -->

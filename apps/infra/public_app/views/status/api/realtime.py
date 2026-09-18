@@ -50,18 +50,6 @@ def server_status_api(request):
             round(disk_io.write_bytes / (1024**2), 2) if disk_io else 0
         )
 
-        # Visitor pool status
-        try:
-            from apps.infra.project_app.services.visitor_pool import VisitorPool
-
-            pool_status = VisitorPool.get_pool_status()
-            data["visitor_pool_allocated"] = pool_status["allocated"]
-            data["visitor_pool_total"] = pool_status["total"]
-        except Exception as e:
-            logger.debug(f"Could not get visitor pool status: {e}")
-            data["visitor_pool_allocated"] = None
-            data["visitor_pool_total"] = None
-
         # Active users count and total users
         try:
             from django.contrib.auth import get_user_model
@@ -88,20 +76,4 @@ def server_status_api(request):
         return JsonResponse(data)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
-
-
-def visitor_resources_api(request):
-    """API endpoint for visitor resource allocation (for product tour)."""
-    from config.settings.quotas import SLURM_QUOTAS
-
-    return JsonResponse(
-        {
-            "cpus": SLURM_QUOTAS.get("interactive_cpus", 2),
-            "memory_gb": SLURM_QUOTAS.get("interactive_memory_gb", 4),
-            "time_limit": SLURM_QUOTAS.get("interactive_time_limit", "04:00:00"),
-            "session_duration": "1 hour",
-        }
-    )
-
-
 # EOF

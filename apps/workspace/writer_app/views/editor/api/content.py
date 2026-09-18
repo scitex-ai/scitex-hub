@@ -16,6 +16,15 @@ from ..auth_utils import api_login_optional, get_user_for_request
 logger = logging.getLogger(__name__)
 
 
+def _workspace_is_not_ready(error: RuntimeError) -> bool:
+    """Whether Writer explicitly reports an absent or incomplete workspace."""
+    message = str(error)
+    return message.startswith("Project directory not found for project ") or (
+        "Failed to initialize Writer: Project structure invalid: missing " in message
+        and message.endswith(" directory")
+    )
+
+
 @api_login_optional
 @require_http_methods(["GET", "POST"])
 def section_view(request, project_id, section_name):
@@ -52,23 +61,89 @@ def section_view(request, project_id, section_name):
                     f"category={category}, name={name}, doc_type={doc_type}"
                 )
 
-                content = writer_service.read_section(name, doc_type)
-
-                if content is None:
-                    raise ValueError(f"read_section returned None for {name}")
-
-                logger.info(f"[SectionView GET] Read {len(content)} chars for {name}")
-
                 doc_dir_map = {
                     "manuscript": "01_manuscript/contents",
                     "supplementary": "02_supplementary/contents",
                     "revision": "03_revision/contents",
                     "shared": "shared",
                 }
-                section_dir = writer_service.writer_dir / doc_dir_map.get(
-                    doc_type, "01_manuscript/contents"
-                )
-                file_path = section_dir / f"{name}.tex"
+                try:
+                    section_dir = writer_service.writer_dir / doc_dir_map.get(
+                        doc_type, "01_manuscript/contents"
+                    )
+                    file_path = section_dir / f"{name}.tex"
+                    # Captured BEFORE the read: scitex-writer materialises a
+                    # section file from its packaged template while reading it, so
+                    # checking `exists()` afterwards answers "was it written by
+                    # this request", not "had the author written it".
+                    was_missing = not file_path.exists()
+                    # The READ is inside this guard on purpose, and this is the
+                    # part that took a second attempt to get right. Two ordinary
+                    # states of an unready workspace both raise RuntimeError:
+                    #   - the project directory is not on disk at all (scaffolded
+                    #     lazily by initialize-workspace);
+                    #   - the writer workspace EXISTS but is half-created, e.g.
+                    #     missing 01_manuscript — the leaf then ATTACHES to it and
+                    #     fails its own structure check instead of scaffolding
+                    #     (scitex_writer/writer.py, _attach_or_create_project).
+                    # Guarding only the path lookup covered the first and let the
+                    # second escape one line later as a 500.
+                    content = writer_service.read_section(name, doc_type)
+                except RuntimeError as exc:
+                    if not _workspace_is_not_ready(exc):
+                        raise
+                    # Writer creates its workspace lazily (initialize-workspace
+                    # does), so the page's own first section fetch can arrive
+                    # before it is ready — the ordinary state of a project that
+                    # was just registered, and exactly the registered-project
+                    # journey. It used to fall through to the handler below and
+                    # answer as a same-origin 500 (the hub allowlists no 5xx).
+                    # The client renders `success: true` with empty content as an
+                    # empty editor, so "not written yet" and "workspace not ready
+                    # yet" look the same to it on purpose.
+                    logger.info(
+                        f"[SectionView GET] workspace not ready for project "
+                        f"{project_id} ({exc}); serving empty content"
+                    )
+                    return JsonResponse(
+                        {
+                            "success": True,
+                            "content": "",
+                            "section_name": name,
+                            "section_id": section_name,
+                            "doc_type": doc_type,
+                            "file_path": None,
+                            "missing": True,
+                            "workspace_ready": False,
+                        }
+                    )
+
+
+                if content is None:
+                    # A section that has not been written yet is the ORDINARY
+                    # state of a project that was just registered: the project
+                    # row exists (owner + slug), the workspace exists, the .tex
+                    # does not. This branch used to `raise ValueError`, which the
+                    # handler below turned into a 500 — so opening Writer in the
+                    # registered-project journey answered the page's own
+                    # section-load with a same-origin 5xx, and the editor came up
+                    # blank with a console error instead of simply blank.
+                    #
+                    # `None` for a file that DOES exist is not ordinary: that is
+                    # a read that failed, and it still raises (500) below.
+                    if file_path.exists():
+                        raise ValueError(
+                            f"read_section returned None for existing {file_path}"
+                        )
+                    content = ""
+                    logger.info(
+                        f"[SectionView GET] {name} has not been written yet; "
+                        f"serving empty content ({file_path})"
+                    )
+                else:
+                    logger.info(
+                        f"[SectionView GET] Read {len(content)} chars for {name}"
+                    )
 
                 return JsonResponse(
                     {
@@ -78,6 +153,10 @@ def section_view(request, project_id, section_name):
                         "section_id": section_name,
                         "doc_type": doc_type,
                         "file_path": str(file_path) if file_path.exists() else None,
+                        # Additive: lets a caller tell "empty because unwritten"
+                        # from "empty because the author emptied it".
+                        "missing": was_missing,
+                        "workspace_ready": True,
                     }
                 )
 
@@ -116,7 +195,22 @@ def section_view(request, project_id, section_name):
                     f"length: {len(content)}"
                 )
 
-                success = writer_service.write_section(name, content, doc_type)
+                try:
+                    success = writer_service.write_section(name, content, doc_type)
+                except RuntimeError as exc:
+                    # Same state on the write side: there is nowhere to write
+                    # yet. A refusal the caller can act on, not a 5xx — the
+                    # workspace is created by initialize-workspace, and the
+                    # client can retry once it is.
+                    logger.info(f"[SectionView POST] workspace not on disk: {exc}")
+                    return JsonResponse(
+                        {
+                            "success": False,
+                            "error": "workspace not initialized for this project",
+                            "workspace_ready": False,
+                        },
+                        status=409,
+                    )
 
                 if success:
                     return JsonResponse(

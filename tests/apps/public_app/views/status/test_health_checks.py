@@ -178,7 +178,7 @@ class TestARejectedTokenIsReportedUnhealthy:
         # Act
         value = report
         # Assert
-        assert "Visitor-slot resets will fail" in value["details"]
+        assert "Repository operations will fail" in value["details"]
 
 
 class TestTheHealthyCaseStillPasses:

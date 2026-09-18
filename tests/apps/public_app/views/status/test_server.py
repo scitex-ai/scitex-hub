@@ -41,9 +41,6 @@ def _noop_check(status_data):
     """Fast fake: leaves its private status dict untouched."""
 
 
-def _noop_visitor_check(request, status_data):
-    """Fast fake for the (request, status_data)-taking visitor check."""
-
 
 def _database_marker_check(status_data):
     """Fast fake that writes a recognisable database result."""
@@ -65,8 +62,6 @@ def _make_checks(slow_name=None):
     for name in server._CHECK_PLACEMENTS:
         if name == slow_name:
             checks[name] = _slow_check
-        elif name == "check_visitor_pool_status":
-            checks[name] = _noop_visitor_check
         elif name == "check_database":
             checks[name] = _database_marker_check
         else:

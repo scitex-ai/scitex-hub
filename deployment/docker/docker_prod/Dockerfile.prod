@@ -613,7 +613,8 @@ RUN uv pip install --system --no-cache ".[all]"
 #   18 png + 56 csv + 1 npz), stackplot_ys.csv among them, and no member name
 #   containing a glob star, in the artifact this line installs.
 RUN uv pip install --system --no-cache \
-    "figrecipe==0.34.6" \
+    # 0.34.8 (2026-09-17): recorder/style correctness train, validated together.
+    "figrecipe==0.34.8" \
     "scitex-io==0.2.3" \
     "scitex-stats==0.2.6" \
     "scitex-plt==0.24.0" \
@@ -648,7 +649,9 @@ RUN uv pip install --system --no-cache \
     # from scitex-ai/develop and refresh vendored scripts, so a fresh workspace
     # no longer fails "missing tools xlsx2csv/csv2latex". Verified on dev:
     # ensure_workspace + manuscript compile produced a 5-page PDF.
-    "scitex-writer==2.43.1" \
+    # 2.43.6 (2026-09-17): PDF provenance names the code that ran and both
+    # stamp writers share one template.
+    "scitex-writer==2.43.6" \
     # 0.7.1 (2026-09-03): clone_scitex_minimal returns CloneOutcome.failed(reason=...)
     # instead of a bare False, so a failed visitor reset records WHY it failed
     # (prod 2026-08-31: "the template reported NO reason"). Verified against the
@@ -658,7 +661,8 @@ RUN uv pip install --system --no-cache \
     "scitex-linter==0.3.1" \
     # 0.21.0 (2026-09-14): project picker tag + gettext catalog tag; matches the
     # pyproject floor, so C0 and C1 agree again.
-    "scitex-ui==0.21.0" \
+    # 0.23.0 (2026-09-17): launcher/tour/version-shell and mobile interaction train.
+    "scitex-ui==0.23.0" \
     "openalex-local==0.6.0" \
     "crossref-local==0.6.4"
 

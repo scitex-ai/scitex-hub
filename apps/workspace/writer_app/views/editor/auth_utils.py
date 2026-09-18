@@ -1,30 +1,51 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Authentication utilities for Writer API views.
-
-Handles both authenticated users and visitor visitors with demo projects.
-"""
+"""Authenticated project authorization utilities for Writer API views."""
 
 from functools import wraps
-from django.http import JsonResponse
-from apps.infra.project_app.models import Project
-import logging
 
-logger = logging.getLogger(__name__)
+from django.http import JsonResponse
+
+from apps.infra.project_app.models import Project
+
+# Methods that cannot modify a project. Anything else needs write authority,
+# which is what makes a read-only collaborator read-only.
+_SAFE_METHODS = ("GET", "HEAD", "OPTIONS")
+
+
+def _authentication_required():
+    return JsonResponse(
+        {
+            "success": False,
+            "error": "Authentication required. Sign up or log in.",
+            "signup_url": "/auth/signup/",
+            "login_url": "/auth/login/",
+        },
+        status=401,
+    )
 
 
 def api_login_optional(view_func):
-    """Decorator that allows both authenticated and visitor users to access API endpoints.
+    """Require authentication and project access, read-wise and write-wise.
 
-    For authenticated users: validates project ownership
-    For visitor users: validates visitor project session
+    The historical name is retained for import compatibility; login is no
+    longer optional. Access is two gates, not one:
 
-    Returns JSON error (not HTML redirect) if authentication/authorization fails.
+    - read  (GET/HEAD/OPTIONS): owner or collaborator;
+    - write (anything else): owner, or a membership with write/admin
+      permission — a read-only collaborator passes the read gate and must not
+      pass this one.
+
+    Both gates answer the same way a missing project does not: 401 for an
+    anonymous caller, 404 for a project id that does not exist, and 403 for a
+    caller who is authenticated but not allowed.
     """
 
     @wraps(view_func)
     def wrapper(request, project_id, *args, **kwargs):
-        # Try to get the project
+        if not request.user.is_authenticated:
+            return _authentication_required()
+
         try:
             project = Project.objects.get(id=project_id)
         except Project.DoesNotExist:
@@ -33,154 +54,60 @@ def api_login_optional(view_func):
                 status=404,
             )
 
-        # Check authentication/authorization
-        if request.user.is_authenticated:
-            # Check if this is a visitor user
-            is_visitor = request.user.username.startswith("visitor-")
-
-            if is_visitor:
-                # Visitor users can only access their assigned project
-                from apps.infra.project_app.services.visitor_pool import VisitorPool
-
-                visitor_project_id = request.session.get(
-                    VisitorPool.SESSION_KEY_PROJECT_ID
-                )
-                if visitor_project_id and int(visitor_project_id) == int(project_id):
-                    # Visitor accessing their assigned project - allow
-                    pass
-                elif project.owner == request.user:
-                    # Visitor owns this project - allow
-                    pass
-                else:
-                    return JsonResponse(
-                        {
-                            "success": False,
-                            "error": "Visitors can only access their assigned project",
-                        },
-                        status=403,
-                    )
-            else:
-                # Regular authenticated user - verify ownership or access
-                if project.owner != request.user:
-                    # Check if user has access through team/collaboration
-                    if not project.collaborators.filter(
-                        id=request.user.id
-                    ).exists():
-                        return JsonResponse(
-                            {
-                                "success": False,
-                                "error": "You don't have access to this project",
-                            },
-                            status=403,
-                        )
-        else:
-            # Visitor user - verify visitor pool session
-            visitor_project_id = request.session.get("visitor_project_id")
-            visitor_user_id = request.session.get("visitor_user_id")
-
-            # Debug logging
-            logger.info(
-                f"[Auth] Visitor session check: visitor_project_id={visitor_project_id} (type={type(visitor_project_id).__name__}), project_id={project_id} (type={type(project_id).__name__})"
+        if not user_can_access_project(request, project):
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "You don't have access to this project",
+                },
+                status=403,
             )
 
-            # Type-safe comparison (handle int/str mismatches)
-            if not visitor_project_id or int(visitor_project_id) != int(project_id):
-                logger.warning(
-                    f"[Auth] Visitor session validation failed: visitor_project_id={visitor_project_id}, project_id={project_id}"
-                )
-                return JsonResponse(
-                    {
-                        "success": False,
-                        "error": "Invalid visitor session. Please refresh the page.",
-                    },
-                    status=403,
-                )
+        if request.method not in _SAFE_METHODS and not user_can_write_project(
+            request, project
+        ):
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "You don't have write access to this project",
+                },
+                status=403,
+            )
 
-            if not visitor_user_id:
-                return JsonResponse(
-                    {
-                        "success": False,
-                        "error": "Visitor user not found in session. Please refresh the page.",
-                    },
-                    status=403,
-                )
-
-            # Verify the visitor user owns the project (type-safe comparison)
-            if int(project.owner_id) != int(visitor_user_id):
-                return JsonResponse(
-                    {
-                        "success": False,
-                        "error": "Project does not belong to visitor user.",
-                    },
-                    status=403,
-                )
-
-        # Call the original view with the validated project
         return view_func(request, project_id, *args, **kwargs)
 
     return wrapper
 
 
 def user_can_access_project(request, project):
-    """Whether the request's caller may access ``project`` (owner / team / visitor).
+    """Return whether an authenticated owner or collaborator may read a project."""
+    user = getattr(request, "user", None)
+    if user is None or not user.is_authenticated:
+        return False
+    if project.owner_id == user.id:
+        return True
+    return project.collaborators.filter(id=user.id).exists()
 
-    Mirrors the authorization logic of :func:`api_login_optional` (owner, team
-    member, or a visitor whose session is bound to this project), but usable
-    from views that resolve ``project_id`` from a query param instead of the URL
-    path -- where the decorator cannot be applied because its wrapper requires
-    ``project_id`` as a positional URL argument. Returns a plain bool so the
-    caller can emit its own JSON error (fail closed, never mask).
+
+def user_can_write_project(request, project):
+    """Return whether the caller may MODIFY a project.
+
+    Read access is not write access. ``user_can_access_project`` above is
+    read-shaped — any collaborator passes it — so a membership with
+    ``permission_level == "read"`` used to be able to POST. The answer to "what
+    does a write require" is the Hub's own model policy, so this delegates to
+    ``Project.can_edit`` (owner, or a membership whose permission_level is
+    write/admin) instead of restating it here.
     """
-    if request.user.is_authenticated:
-        if request.user.username.startswith("visitor-"):
-            from apps.infra.project_app.services.visitor_pool import VisitorPool
-
-            visitor_project_id = request.session.get(VisitorPool.SESSION_KEY_PROJECT_ID)
-            if visitor_project_id and int(visitor_project_id) == int(project.id):
-                return True
-            return project.owner_id == request.user.id
-        # Regular authenticated user: owner or collaborator.
-        if project.owner_id == request.user.id:
-            return True
-        # `collaborators` is the real M2M (Project.collaborators, through
-        # ProjectMembership). `team_members` NEVER existed on the model, so
-        # this line used to raise AttributeError for every authenticated
-        # non-owner — see the module note in the commit for why that was
-        # worse than a typo.
-        return project.collaborators.filter(id=request.user.id).exists()
-
-    # Anonymous visitor: session must be bound to THIS project and its owner.
-    visitor_project_id = request.session.get("visitor_project_id")
-    visitor_user_id = request.session.get("visitor_user_id")
-    if not visitor_project_id or int(visitor_project_id) != int(project.id):
+    user = getattr(request, "user", None)
+    if user is None or not user.is_authenticated:
         return False
-    if not visitor_user_id:
-        return False
-    return int(project.owner_id) == int(visitor_user_id)
+    return project.can_edit(user)
 
 
 def get_user_for_request(request, project_id):
-    """Get the effective user for a request (authenticated user or visitor user).
-
-    Returns:
-        tuple: (user, is_visitor)
-    """
+    """Return the authenticated caller; anonymous sessions never imply identity."""
+    del project_id  # retained in the signature for existing call sites
     if request.user.is_authenticated:
         return request.user, False
-    else:
-        # Get visitor user from session
-        from django.contrib.auth.models import User
-
-        visitor_user_id = request.session.get("visitor_user_id")
-        if not visitor_user_id:
-            logger.warning(
-                f"[Auth] No visitor_user_id in session for project {project_id}"
-            )
-            return None, False
-
-        try:
-            user = User.objects.get(id=visitor_user_id)
-            return user, True
-        except User.DoesNotExist:
-            logger.error(f"[Auth] Visitor user {visitor_user_id} not found")
-            return None, False
+    return None, False

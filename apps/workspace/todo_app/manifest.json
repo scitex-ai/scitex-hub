@@ -7,7 +7,7 @@
   "visibility": "public",
   "icon": "fas fa-list-check",
   "description": "Task and collaboration management.",
-  "pip_package": "scitex-todo",
+  "pip_package": "scitex-cards",
   "license": "AGPL-3.0",
   "keyboard_shortcut": "",
   "order": 13,
@@ -24,7 +24,7 @@
   "privileges": [],
   "builtin": true,
   "dependencies": {
-    "python": ["scitex-todo"],
+    "python": ["scitex-cards"],
     "system": [],
     "node": [],
     "r": [],
