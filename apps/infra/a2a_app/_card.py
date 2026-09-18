@@ -123,19 +123,51 @@ def project(name: str, v3: dict, agent_dir: Path, base_url: str) -> dict[str, An
     }
 
 
-def list_agents() -> list[str]:
+def _registry_state(*, available: bool, status: str, reason: str = "") -> dict[str, Any]:
+    """Return the public, path-free registry readiness contract."""
+    return {
+        "available": available,
+        "ready": available,
+        "status": status,
+        "reason": reason,
+    }
+
+
+def registry_snapshot() -> tuple[list[str], dict[str, Any]]:
+    """Read the fleet registry once and report availability explicitly.
+
+    The discovery document is itself useful when the runtime registry is not
+    mounted or has the wrong permissions.  An unavailable registry must
+    therefore produce a fail-closed empty member set, not a branded HTTP 500.
+    Never expose the configured filesystem path or the underlying exception.
+    """
     d = _agents_dir()
     if not d.is_dir():
-        return []
-    out: list[str] = []
-    for child in sorted(d.iterdir()):
-        if not child.is_dir():
-            continue
-        if child.name.startswith(".") or child.name.startswith("_"):
-            continue
-        if (child / f"{child.name}.yaml").exists():
-            out.append(child.name)
-    return out
+        return [], _registry_state(
+            available=False,
+            status="not_configured",
+            reason="agent registry is not configured",
+        )
+    try:
+        out: list[str] = []
+        for child in sorted(d.iterdir()):
+            if not child.is_dir():
+                continue
+            if child.name.startswith(".") or child.name.startswith("_"):
+                continue
+            if (child / f"{child.name}.yaml").exists():
+                out.append(child.name)
+    except OSError:
+        return [], _registry_state(
+            available=False,
+            status="unreadable",
+            reason="agent registry is not readable",
+        )
+    return out, _registry_state(available=True, status="ready")
+
+
+def list_agents() -> list[str]:
+    return registry_snapshot()[0]
 
 
 def load_card(name: str, base_url: str = DEFAULT_BASE_URL) -> dict[str, Any] | None:
@@ -161,13 +193,16 @@ def load_card(name: str, base_url: str = DEFAULT_BASE_URL) -> dict[str, Any] | N
 
 def fleet_index(base_url: str = DEFAULT_BASE_URL) -> dict[str, Any]:
     base = base_url.rstrip("/")
+    members, registry = registry_snapshot()
     return {
-        "agents": [{"name": n, "url": f"{base}/v1/agents/{n}"} for n in list_agents()]
+        "agents": [{"name": n, "url": f"{base}/v1/agents/{n}"} for n in members],
+        "registry": registry,
     }
 
 
 def fleet_card(base_url: str = DEFAULT_BASE_URL) -> dict[str, Any]:
     base = base_url.rstrip("/")
+    members, registry = registry_snapshot()
     return {
         "name": "orochi",
         "description": "Orochi Multi-Agent Fleet — self-hosted Claude Code agents.",
@@ -192,7 +227,8 @@ def fleet_card(base_url: str = DEFAULT_BASE_URL) -> dict[str, Any]:
         ],
         "x-orochi": {
             "agents_index_url": f"{base}/v1/agents/",
-            "members": list_agents(),
+            "members": members,
+            "registry": registry,
             "identity_provider": "https://git.scitex.ai",
             "runtime_hub": "https://scitex-orochi.com",
         },
@@ -201,6 +237,7 @@ def fleet_card(base_url: str = DEFAULT_BASE_URL) -> dict[str, Any]:
 
 __all__ = [
     "list_agents",
+    "registry_snapshot",
     "load_card",
     "fleet_index",
     "fleet_card",
