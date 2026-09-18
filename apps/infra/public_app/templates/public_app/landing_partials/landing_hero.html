@@ -1,113 +1,62 @@
-{% load static %}
-{% load i18n %}
+{% load static i18n %}
 
-<!-- Hero Section -->
-<section class="hero-landing" id="home">
-    <div class="container">
-        <div class="hero-wrapper">
-            <div class="hero-content">
-                <!-- Text title option (kept for future use)
-                <h1 class="hero-title">SciTeX — Where Research Happens</h1>
-                <p class="hero-bullet-point">From data to publication, all in one.</p>
-                -->
-                <!-- Icon only option (kept for future use)
-                <div class="hero-logo-container">
-                    <img src="{% static 'shared/images/scitex_logos/scitex-icon/scitex-icon-navy-inverted.png' %}" alt="SciTeX" class="hero-icon" />
-                </div>
-                -->
-                <!-- Full logo - CSS inverts to black in light mode -->
-                <div class="hero-logo-container">
-                    <img src="{% static 'shared/images/scitex_logos/logo-files/png/scitex-logo-transparent.png' %}"
-                         alt="SciTeX - For Researchers"
-                         class="hero-logo" />
-                </div>
-                <!-- Value proposition and CTA -->
-                <p class="hero-tagline">{{ SITE_TAGLINE }}</p>
-                <div class="hero-cta">
-                    <div class="hero-cta-container">
-                        {% comment %}
-                           Primary: signed-in users go INTO the product (/apps/ — the
-                           launcher home); anonymous users go to sign-up. Before this
-                           the CTA was a single static /auth/signup/ link, so a
-                           logged-in visitor clicking "Try SciTeX" was bounced to the
-                           signup page (operator report 2026-09-11: "I am already
-                           signed in"). The anonymous target is unchanged: the visitor
-                           funnel is RETIRED, so /auth/signup/ (email verify + card →
-                           30-day free trial) is the pre-account entry.
-
-                           /apps/ is the app home (root_dispatch launcher, URL-trio
-                           decision 2026-09-11) — NOT /apps/my-projects/, which renders the
-                           Gitea-style repository browser (dotfiles + "No commit
-                           message") and was the old, wrong destination. "/" cannot
-                           be the anonymous target either (EXACT-skipped by middleware,
-                           so an anon click would bounce back here).
-
-                           MUST stay {% comment %}, not {# #}: Django's {# #} is
-                           SINGLE-LINE only, so a multi-line one is not lexed as a
-                           comment and renders VERBATIM to every visitor — which is
-                           exactly what shipped to prod here.
-                        {% endcomment %}
-                        <a href="/apps/" class="hero-cta-button">{% trans "Try SciTeX™ Cloud with 30-day Free Trial" %} <span class="hero-cta-arrow">&rarr;</span></a>
-                    </div>
-                </div>
-                <div class="warning-banner"
-                     style="padding:0.8rem 1rem;
-                            margin-top:1.5rem;
-                            display:inline-block">
-                    <div class="warning-banner-content"
-                         style="font-size:0.85rem;
-                                gap:0.5rem;
-                                flex-direction:column">
-                        <div>
-                            {% blocktrans with version=SCITEX_HUB_VERSION %}Alpha Release ({{ version }}) — Data persistence and API stability are not guaranteed. For production use, install the local Python toolkit. Any contribution welcome:{% endblocktrans %}
-                            <a href="mailto:{{ CONTACT_EMAIL }}" class="warning-banner-link"><u>{{ CONTACT_EMAIL }}</u></a>
-                        </div>
-                    </div>
-                </div>
+<section class="landing-v2-hero" id="home" aria-labelledby="landing-v2-title">
+    <div class="container landing-v2-shell landing-v2-hero-grid">
+        <div class="landing-v2-hero-copy">
+            <p class="landing-v2-eyebrow">{% trans "Open research infrastructure" %}</p>
+            <h1 id="landing-v2-title">
+                <span>{% trans "A platform" %}</span>
+                <span>{% trans "for science." %}</span>
+            </h1>
+            <p class="landing-v2-lead">
+                {% trans "Literature, files, analysis, figures, writing, and agents in one connected project." %}
+            </p>
+            <p class="landing-v2-context-line">
+                {% trans "Review from your phone. Work in the browser. Run where compute lives." %}
+            </p>
+            <div class="landing-v2-actions">
+                <a href="{% url 'auth_app:signup' %}" class="hero-cta-button">{% trans "Try SciTeX™ Cloud with 30-day Free Trial" %}<span aria-hidden="true">→</span></a>
+                <a href="#pricing" class="landing-v2-button landing-v2-button-quiet">{% trans "See pricing" %}</a>
             </div>
-            <!-- Hero Demo Video Preview -->
-            <div class="hero-image">
-                <div class="demo-display" id="hero-demo-container" title="Play Demo Movie">
-                    <img src="/media/videos/scitex-automated-research-demo-thumbnail.png"
-                         alt="{% trans 'SciTeX Automated Research Demo' %}"
-                         class="demo-thumbnail"
-                         id="hero-demo-thumbnail"
-                         title="Play Demo Movie" />
-                    <div class="demo-play-overlay" id="hero-play-overlay">
-                        <i class="fas fa-play"></i>
-                    </div>
-                    <video id="hero-demo-video"
-                           class="demo-video"
-                           poster="/media/videos/scitex-automated-research-demo-thumbnail.png"
-                           preload="auto"
-                           style="display: none">
-                        <source src="/media/videos/scitex-automated-research-demo.mp4" type="video/mp4" />
-                    </video>
-                </div>
-                <div class="demo-description">
-                    <div class="demo-info-left">
-                        <span class="demo-workflow-text">
-                            <span class="demo-badge">{% trans "DEMO" %}</span>
-                            {% trans "Automated Research with SciTeX MCP Server in 40 min" %}
-                            <br />
-                            {% trans "Literature Search → Analysis → Graphing → Manuscript → Revision" %}
-                        </span>
-                    </div>
-                    <div class="demo-info-right">
-                        <span class="speed-label">{% trans "Speed:" %}</span>
-                        <select class="speed-select" id="hero-speed-select">
-                            <option value="1">1x</option>
-                            <option value="2">2x</option>
-                            <option value="4">4x</option>
-                            <option value="8" selected>8x</option>
-                            <option value="16">16x</option>
-                        </select>
-                    </div>
-                </div>
-                <a href="{% url 'public_app:demos' %}" class="watch-more-demos">
-                    <i class="fas fa-play-circle"></i> {% trans "Watch More Demos" %}
-                </a>
-            </div>
+            <p class="landing-v2-signin">
+                {% trans "Already have an account?" %}
+                <a href="{% url 'auth_app:signin' %}">{% trans "Sign in" %}</a>
+            </p>
+            <p class="landing-v2-alpha">
+                {% blocktrans with version=SCITEX_HUB_VERSION %}Alpha Release ({{ version }}) — Data persistence and API stability are not guaranteed. For production use, install the local Python toolkit. Any contribution welcome:{% endblocktrans %}
+                <a href="mailto:{{ CONTACT_EMAIL }}">{{ CONTACT_EMAIL }}</a>
+            </p>
+            <ul class="landing-v2-hero-rail" aria-label="{% trans 'One project across devices and compute' %}">
+                <li>{% trans "Phone" %}</li>
+                <li>{% trans "Laptop" %}</li>
+                <li>{% trans "HPC + SSH" %}</li>
+                <li>{% trans "Custom Apps" %}</li>
+            </ul>
         </div>
+        <figure class="landing-v2-photo landing-v2-hero-photo">
+            <picture>
+                <source type="image/webp"
+                        srcset="{% static 'public_app/images/landing-v2/research-collaboration-640.webp' %} 640w, {% static 'public_app/images/landing-v2/research-collaboration-1280.webp' %} 1280w"
+                        sizes="(max-width: 820px) 100vw, 48vw" />
+                <img src="{% static 'public_app/images/landing-v2/research-collaboration-1280.jpg' %}"
+                     width="1280"
+                     height="800"
+                     fetchpriority="high"
+                     alt="{% trans 'Two laboratory researchers review a microscopic image on a laptop while one holds a clipboard.' %}" />
+            </picture>
+            <figcaption>
+                <span>{% trans "Research is human work." %}</span>
+                <small>
+                    {% trans "Illustrative stock photography:" %}
+                    <a href="https://www.pexels.com/photo/two-scientists-working-inside-the-laboratory-4031694/"
+                       target="_blank"
+                       rel="noopener noreferrer">Edward Jenner / Pexels</a>
+                    · <a href="https://www.pexels.com/license/"
+   target="_blank"
+   rel="noopener noreferrer">{% trans "Pexels license" %}</a>.
+                    {% trans "The people shown are not SciTeX customers, employees, or endorsers; no endorsement is implied." %}
+                </small>
+            </figcaption>
+        </figure>
     </div>
 </section>
