@@ -8,7 +8,6 @@
 {# day around. Contract: data-allowance-state, data-model, data-remaining,         #}
 {# data-reset-at, data-preserve-draft.                                            #}
 <div class="chat-allowance"
-     id="chat-allowance"
      data-chat-allowance="true"
      data-allowance-state="{{ allowance.state|default:'unknown' }}"
      {% if allowance.model %}data-model="{{ allowance.model }}"{% endif %}
