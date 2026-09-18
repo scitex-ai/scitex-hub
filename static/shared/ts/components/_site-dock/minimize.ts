@@ -3,8 +3,8 @@
  * the two-row phone dock took too much of apps like FigRecipe).
  *
  * The state is per device (localStorage). The dock's real height is published
- * as --site-dock-live-height on <html>, which the page's bottom reservation
- * (site-dock.css) reads, so a minimized dock gives the space back.
+ * as --site-dock-live-height on <html> for scroll alignment only; neither the
+ * expanded dock nor the pill reserves page layout space.
  */
 
 export const MINIMIZED_KEY = "stx-site-dock-minimized";

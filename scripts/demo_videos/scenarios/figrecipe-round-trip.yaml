@@ -1,0 +1,63 @@
+# Stats/FigRecipe round-trip: make a figure from project data, then find it back in
+# the project. Placeholders: {username} (the demo account), {run_id} (HHMMSS).
+#
+# Assumes the project already exists: this walkthrough is recorded after the
+# create-your-first-project tutorial in the same signed-in session, so it uses the
+# project that tutorial just made (`sleep-study-{run_id}`) rather than creating a
+# second one. Record both scenarios in one run id.
+#
+# Selector honesty. The hub's own FigRecipe surface is the app-editor shell, and the
+# only stable hook it exposes is the mount:
+#   #app-mount[data-app-slug="figrecipe"][data-embedded="true"]  (+ data-project-owner,
+#   data-project-slug once a project is open) — templates/shared/app_editor.html:20-23,
+#   apps/workspace/figrecipe_app/templates/figrecipe_app/figrecipe_partial.html:27-31.
+# The inner plot/data controls are NOT in this repository: the editor template is a
+# two-line stub and the UI arrives over the vite bridge
+# (vite_script 'figrecipe_app/figrecipe-bridge-init'). Nothing here invents selectors
+# for them, because a selector nobody can check is a selector that silently rots. What
+# this scenario asserts is the shell contract — that the app opened for this project —
+# and the project's own file tree, which is statically checked.
+app: figrecipe-round-trip
+title:
+  en: Make a figure with FigRecipe
+  ja: FigRecipe で図を作る
+languages:
+  en: {locale: en}
+  ja: {locale: ja}
+viewports: [desktop]
+sign_in: true
+steps:
+  - action: goto
+    value: /apps/figrecipe/
+    chapter:
+      en: Open FigRecipe
+      ja: FigRecipe を開く
+    narration:
+      en: FigRecipe turns a data file into a publication-ready figure. Open it from your apps.
+      ja: FigRecipe はデータファイルを論文用の図に変換します。アプリから開きます。
+  - action: assert_selector
+    selector: '#app-mount[data-app-slug="figrecipe"][data-embedded="true"]'
+    chapter:
+      en: The figure editor
+      ja: 図のエディタ
+    narration:
+      en: This is the figure editor. It opens inside your project, so the data it reads lives there too.
+      ja: これが図のエディタです。プロジェクトの中で開くので、読み込むデータもそこにあります。
+    hold: 2
+  - action: goto
+    value: /{username}/sleep-study-{run_id}/
+    chapter:
+      en: Back in your project
+      ja: プロジェクトに戻る
+    narration:
+      en: Back in the project. The figure you made is saved here, next to the data it came from.
+      ja: プロジェクトに戻りました。作った図は、元のデータの隣に保存されています。
+  - action: click
+    selector: '[data-path="README.md"]'
+    chapter:
+      en: Your files
+      ja: ファイル
+    narration:
+      en: Every file in this tree is a file in the project — a figure is one of them.
+      ja: このツリーのファイルは、すべてプロジェクトのファイルです。図もその一つです。
+    hold: 1.5

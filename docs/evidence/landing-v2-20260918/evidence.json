@@ -1,0 +1,77 @@
+{
+  "schema": "scitex-hub-landing-evidence-v1",
+  "captured_from_head": "fe1ef1ac089a0be8d5d8f6654201e69b44bc4f02",
+  "url": "http://landing.localhost:8799/landing/",
+  "render": "Django settings_dev with isolated SQLite, exact-source Vite development server, and host-provided Noto Sans JP",
+  "results": [
+    {
+      "language": "en",
+      "viewport": [
+        1440,
+        900
+      ],
+      "screenshot": "desktop-en-1440x900.png",
+      "screenshot_sha256": "1ed3c26a1001c5ac7d23d7da5dae9862be10cfcaeea51aa8d22273b61031c4aa",
+      "recording": "desktop-en-1440x900.webm",
+      "recording_sha256": "15d076dd28e1b9079ce6d3c527ebb3a302cc50315d7773aec5d5c3dc8b60bf0e",
+      "console_errors": [],
+      "page_errors": [],
+      "request_failures": [],
+      "bad_responses": [],
+      "images_verified": 7,
+      "carousel_verified": "1 / 4 -> 2 / 4",
+      "screenshot_pixels": [
+        1440,
+        900
+      ],
+      "layout": {
+        "viewport": 1440,
+        "scrollWidth": 1430,
+        "heading": {
+          "left": 145.796875,
+          "right": 626.5625,
+          "width": 480.765625,
+          "scrollWidth": 481,
+          "font": "95.04px"
+        }
+      }
+    },
+    {
+      "language": "ja",
+      "viewport": [
+        390,
+        844
+      ],
+      "screenshot": "mobile-ja-390x844.png",
+      "screenshot_sha256": "d694d45470c7d3ca9d159b97b00bee12b728b218584fcba24055b9b3250127be",
+      "recording": "mobile-ja-390x844.webm",
+      "recording_sha256": "13f176531f20794b3020b2887503b92429b19d597af4ec85a280076c98720015",
+      "console_errors": [],
+      "page_errors": [],
+      "request_failures": [],
+      "bad_responses": [],
+      "images_verified": 7,
+      "carousel_verified": "1 / 4 -> 2 / 4",
+      "screenshot_pixels": [
+        1170,
+        2532
+      ],
+      "layout": {
+        "viewport": 390,
+        "scrollWidth": 390,
+        "heading": {
+          "left": 33.5,
+          "right": 356.5,
+          "width": 323,
+          "scrollWidth": 323,
+          "font": "31.2px"
+        }
+      }
+    }
+  ],
+  "notes": [
+    "Recordings are direct Playwright context captures; no post-production editing was applied.",
+    "Noto Sans JP was supplied by the compute host for this capture; durable CI/SAC/production availability remains owned by the separate CJK foundation card.",
+    "Public /demos/ publication and post-merge development Visual CI remain follow-up work."
+  ]
+}
