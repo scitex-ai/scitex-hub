@@ -81,7 +81,7 @@ CARD_SPECS: Dict[str, Dict[str, Any]] = {
     },
     "timeout": {
         "title": _("The provider took too long to answer"),
-        "detail": _("Your message was kept. Retrying is safe — it will not be counted twice."),
+        "detail": _("Your message was kept. Retrying checks the same request without sending it twice."),
         "actor": ACTOR_PROVIDER,
         "action_label": _("Retry"),
         "action_url": "",
@@ -89,7 +89,7 @@ CARD_SPECS: Dict[str, Dict[str, Any]] = {
     },
     "provider_outage": {
         "title": _("The AI provider is having an outage"),
-        "detail": _("Again on us to watch: we will keep retrying. Your message is kept, and it will not be counted twice."),
+        "detail": _("We are tracking it. Your message was kept. Retrying checks the same request without sending it twice."),
         "actor": ACTOR_PROVIDER,
         "action_label": _("Retry"),
         "action_url": "",

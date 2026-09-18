@@ -152,6 +152,25 @@ def test_no_category_ever_renders_the_raw_provider_message():
         assert "Incorrect API key provided" not in html
 
 
+def test_ambiguous_provider_failures_never_claim_automatic_redispatch():
+    # Arrange
+    categories = ("timeout", "provider_outage")
+    # Act
+    details = {
+        category: re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", _card_html(category)))
+        for category in categories
+    }
+    # Assert
+    assert {
+        category: (
+            "keep retrying" not in detail.lower()
+            and "same request" in detail.lower()
+            and "without sending it twice" in detail.lower()
+        )
+        for category, detail in details.items()
+    } == {"timeout": True, "provider_outage": True}
+
+
 def test_an_unrecognised_category_falls_back_to_a_generic_card():
     html = _card_html("some_new_provider_failure", provider_message=RAW_PROVIDER_TEXT)
 

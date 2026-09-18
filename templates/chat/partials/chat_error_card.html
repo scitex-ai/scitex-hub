@@ -41,7 +41,7 @@
     {% if card.support_id %}
         <details class="chat-error-card-technical">
             <summary>{% trans "Technical details" %}</summary>
-            <p>{% blocktrans %}Support id: {{ card.support_id }}{% endblocktrans %}</p>
+            <p>{% blocktrans with support_id=card.support_id %}Support id: {{ support_id }}{% endblocktrans %}</p>
         </details>
     {% endif %}
 </div>
