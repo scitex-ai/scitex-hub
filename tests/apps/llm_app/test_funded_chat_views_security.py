@@ -33,7 +33,7 @@ def test_chat_routes_require_authentication(route):
     )
 
     assert response.status_code == 302
-    assert "/accounts/login/" in response.url
+    assert "/auth/login/" in response.url
 
 
 @pytest.mark.django_db

@@ -167,9 +167,9 @@ def load_funded_chat_config() -> FundedChatConfig:
         raise FundedChatConfigurationError(
             "enabled funded chat requires positive global, provider, and request caps"
         )
-    if not (request_cap <= provider_cap <= global_cap):
+    if request_cap > provider_cap or request_cap > global_cap:
         raise FundedChatConfigurationError(
-            "funded caps must satisfy request <= provider <= global"
+            "funded request cap must not exceed provider or global cap"
         )
     if config.daily_limit > 10:
         raise FundedChatConfigurationError(

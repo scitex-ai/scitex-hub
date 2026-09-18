@@ -175,7 +175,8 @@ def test_enabled_config_rejects_nonfinite_or_unrepresentable_money(setting, valu
         {"SCITEX_FUNDED_CHAT_PROVIDER": "__global__"},
         {"SCITEX_FUNDED_CHAT_PROVIDER": "deepseek/__global__"},
         {"SCITEX_FUNDED_CHAT_MODEL": "other/model"},
-        {"SCITEX_FUNDED_CHAT_PROVIDER_DAILY_CAP_USD": "6"},
+        {"SCITEX_FUNDED_CHAT_GLOBAL_DAILY_CAP_USD": "0.04"},
+        {"SCITEX_FUNDED_CHAT_PROVIDER_DAILY_CAP_USD": "0.04"},
         {"SCITEX_FUNDED_CHAT_MAX_REQUEST_COST_USD": "4"},
     ],
 )
