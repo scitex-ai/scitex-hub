@@ -25,6 +25,7 @@ ordinary path (a structurally complete workspace) is pinned unchanged.
 """
 
 import json
+from unittest.mock import patch
 
 from django.contrib.auth.models import User
 from django.test import Client, TestCase
@@ -36,9 +37,35 @@ from apps.infra.project_app.services.project_filesystem import (
 from apps.infra.project_app.services.writer_workspace_layout import (
     get_writer_workspace_path,
 )
+from apps.workspace.writer_app.views.editor.api.content import _workspace_is_not_ready
 
 PASSWORD = "TestPass123!"  # pragma: allowlist secret
 REQUIRED_DIRS = ("01_manuscript", "02_supplementary", "03_revision")
+
+
+def test_only_explicit_workspace_readiness_errors_are_downgraded():
+    # Arrange
+    errors = {
+        "missing-root": RuntimeError(
+            "Project directory not found for project 1 (slug: demo). "
+            "Please ensure the project directory exists."
+        ),
+        "incomplete": RuntimeError(
+            "Failed to initialize Writer: Project structure invalid: "
+            "missing 01_manuscript directory"
+        ),
+        "corruption": RuntimeError("unexpected writer corruption"),
+        "permission": RuntimeError("permission denied"),
+    }
+    # Act
+    result = {name: _workspace_is_not_ready(error) for name, error in errors.items()}
+    # Assert
+    assert result == {
+        "missing-root": True,
+        "incomplete": True,
+        "corruption": False,
+        "permission": False,
+    }
 
 
 class SectionReadWhenWorkspaceIsHalfCreatedTest(TestCase):
@@ -102,6 +129,18 @@ class SectionReadWhenWorkspaceIsHalfCreatedTest(TestCase):
         assert payload["success"] is True, payload
         assert payload["workspace_ready"] is True, payload
         assert isinstance(payload["content"], str), payload
+
+    def test_an_unrelated_runtime_error_remains_a_server_error(self):
+        # Arrange
+        client = self._client()
+        # Act
+        with patch(
+            "apps.workspace.writer_app.services.WriterService.read_section",
+            side_effect=RuntimeError("unexpected writer corruption"),
+        ):
+            response = client.get(self._url(self.complete.pk))
+        # Assert
+        assert response.status_code == 500, response.content
 
 
 # EOF

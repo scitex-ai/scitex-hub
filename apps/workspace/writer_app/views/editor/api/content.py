@@ -16,6 +16,15 @@ from ..auth_utils import api_login_optional, get_user_for_request
 logger = logging.getLogger(__name__)
 
 
+def _workspace_is_not_ready(error: RuntimeError) -> bool:
+    """Whether Writer explicitly reports an absent or incomplete workspace."""
+    message = str(error)
+    return message.startswith("Project directory not found for project ") or (
+        "Failed to initialize Writer: Project structure invalid: missing " in message
+        and message.endswith(" directory")
+    )
+
+
 @api_login_optional
 @require_http_methods(["GET", "POST"])
 def section_view(request, project_id, section_name):
@@ -81,6 +90,8 @@ def section_view(request, project_id, section_name):
                     # second escape one line later as a 500.
                     content = writer_service.read_section(name, doc_type)
                 except RuntimeError as exc:
+                    if not _workspace_is_not_ready(exc):
+                        raise
                     # Writer creates its workspace lazily (initialize-workspace
                     # does), so the page's own first section fetch can arrive
                     # before it is ready — the ordinary state of a project that
