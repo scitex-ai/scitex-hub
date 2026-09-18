@@ -78,8 +78,14 @@ def test_dock_is_translucent_at_idle_and_opaque_during_interaction():
     assert "background: var(--site-dock-bg-idle)" in dock_rule
     assert "backdrop-filter: blur(" in dock_rule
     assert "pointer-events: auto" in dock_rule
+    assert "--site-dock-bg-idle: rgba(255, 255, 255, 0.72)" in css
+    assert "--site-dock-bg-idle: rgba(28, 31, 40, 0.72)" in css
+    assert ".site-dock:focus-within" not in css, (
+        "a tapped mobile control keeps focus and made the dock permanently opaque"
+    )
+    assert ".site-dock:has(:focus-visible)" in css
     assert re.search(
-        r"\.site-dock:hover[^}]*\.site-dock:focus-within[^}]*"
+        r"\.site-dock:has\(:focus-visible\)[^}]*"
         r"\.site-dock:active[^}]*\.site-dock--dragging\s*\{[^}]*"
         r"background:\s*var\(--site-dock-bg-opaque\)",
         css,
