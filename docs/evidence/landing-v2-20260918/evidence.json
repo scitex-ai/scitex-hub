@@ -1,6 +1,6 @@
 {
   "schema": "scitex-hub-landing-evidence-v1",
-  "captured_from_head": "dc39f4ef97fc65e8077bc8a8e93cb70b6dcd321e",
+  "captured_from_head": "ea6e705c4ae0020f91f9e65bcfae8111f592fdb3",
   "url": "http://127.0.0.1:8799/landing/",
   "render": "Django settings_dev with SCITEX_HUB_VITE_USE_BUILD=true and the production Vite manifest",
   "results": [
@@ -11,9 +11,9 @@
         900
       ],
       "screenshot": "desktop-en-1440x900.png",
-      "screenshot_sha256": "e8eac341b8e80b5f53aa3b8637ed1832183e28d0a0909ebeb37a98742e71de8b",
+      "screenshot_sha256": "87345c3cfdf942122914b2c0c8754d7b81602d0e35ee7f9b67893bc8f6187f39",
       "recording": "desktop-en-1440x900.webm",
-      "recording_sha256": "45d6c7370e5918171639a34077c2cfa96b64270778cf661167613ea274246080",
+      "recording_sha256": "6add1fb8dcb9999b11d7e416f62cd92a1b9dc9fb539235a36077924ffe657717",
       "console_errors": [],
       "page_errors": [],
       "request_failures": [],
@@ -32,9 +32,9 @@
         844
       ],
       "screenshot": "mobile-ja-390x844.png",
-      "screenshot_sha256": "027d15757beedd8b0951fa2d9a346534d369ebfee9d40125538ef10d79318942",
+      "screenshot_sha256": "ee4258d6c96b17c2c6cd2ce8c435331e87a5280577408da930acf99bb74f82de",
       "recording": "mobile-ja-390x844.webm",
-      "recording_sha256": "0e3fdb78c6d6251b7e93348a480407c556b82c4543a8afb2d7b46cfcd5e9553b",
+      "recording_sha256": "7eb9db5d29aaef0e51096c9e1e494e4a055a1b1551521ec50f0ee1340dcecb8c",
       "console_errors": [],
       "page_errors": [],
       "request_failures": [],
