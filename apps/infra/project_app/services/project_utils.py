@@ -25,8 +25,8 @@ def get_requested_project(request, user=None):
     """The project this request names explicitly, or None.
 
     ``?project=<slug>`` (or ``<owner>/<slug>``) wins, then a same-site Referer
-    under ``/<username>/<slug>/``. Only the user's own projects match, the same
-    rule ``get_current_project`` applies.
+    under ``/<username>/<slug>/``. Owned and explicitly shared projects match;
+    unrelated public/private projects do not.
     """
     user = user or request.user
     if not getattr(user, "is_authenticated", False):
@@ -34,23 +34,28 @@ def get_requested_project(request, user=None):
 
     requested = (request.GET.get("project") or "").strip().strip("/")
     if requested:
-        owner, _, slug = requested.rpartition("/")
-        if not owner or owner == user.username:
-            project = _owned_project(user, slug)
-            if project:
-                return project
+        from .project_scope import find_accessible_project
+
+        project = find_accessible_project(user, requested)
+        if project:
+            return project
 
     referer = urlparse(request.META.get("HTTP_REFERER", ""))
     if referer.netloc and referer.netloc != request.get_host():
         return None
     parts = [p for p in referer.path.split("/") if p]
-    if len(parts) >= 2 and parts[0] == user.username:
-        return _owned_project(user, parts[1])
+    if len(parts) >= 2:
+        from .project_scope import find_accessible_project
+
+        return find_accessible_project(user, f"{parts[0]}/{parts[1]}")
     return None
 
 
 def remember_current_project(request, project):
     """Persist a project choice to BOTH stores so every reader agrees."""
+    from .project_scope import project_key
+
+    request.session["current_project_key"] = project_key(project)
     request.session["current_project_slug"] = project.slug
     profile = getattr(request.user, "profile", None)
     if profile is not None and profile.last_active_repository_id != project.id:
@@ -98,19 +103,27 @@ def get_current_project(request, user=None):
         else (user.username and not user.username.startswith("guest-"))
     )
 
-    # HIGHEST PRIORITY: header selector (only if user owns the project)
+    # HIGHEST PRIORITY: the header selector's last visited accessible project.
     if is_authenticated:
-        if hasattr(user, "profile") and user.profile.last_active_repository:
-            lar = user.profile.last_active_repository
-            if lar.owner_id == user.id:
-                logger.info(
-                    f"Using last_active_repository for user {user.username}: {lar.name}"
-                )
-                return lar
-            else:
-                logger.info(
-                    f"Skipping last_active_repository (owned by {lar.owner}): {lar.name}"
-                )
+        from .project_scope import last_visited_project
+
+        lar = last_visited_project(user)
+        if lar is not None:
+            logger.info(
+                f"Using last_active_repository for user {user.username}: {lar.name}"
+            )
+            return lar
+
+    # New session format includes the owner, so shared projects with the same
+    # slug as an owned project remain unambiguous.
+    current_project_key = request.session.get("current_project_key")
+    if current_project_key:
+        from .project_scope import find_accessible_project
+
+        current_project = find_accessible_project(user, current_project_key)
+        if current_project is not None:
+            return current_project
+        request.session.pop("current_project_key", None)
 
     # Fallback: try session-based project selection by slug
     current_project_slug = request.session.get("current_project_slug")
@@ -138,7 +151,7 @@ def get_current_project(request, user=None):
                 f"Using first user project for {user.username}: {current_project.name}"
             )
             # Store in session for future requests
-            request.session["current_project_slug"] = current_project.slug
+            remember_current_project(request, current_project)
             return current_project
     except Exception as e:
         logger.error(f"Error retrieving project for user {user.username}: {e}")
@@ -155,7 +168,7 @@ def set_current_project(request, project):
         project: Project to set as current
     """
     if project:
-        request.session["current_project_slug"] = project.slug
+        remember_current_project(request, project)
         logger.info(f"Set current project in session: {project.slug}")
 
 

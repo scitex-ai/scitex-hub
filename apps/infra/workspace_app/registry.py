@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 # badged + blocked on a phone. The manifest is the SSoT for built-ins;
 # the AppsModule catalog row carries it for store-published apps.
 AVAILABILITY_STATES = ("available", "coming_soon", "desktop_only")
+SCOPE_STATES = ("user", "project")
 
 
 @dataclass
@@ -92,6 +93,10 @@ class ModuleConfig:
     availability: str = ""
     availability_reason: str = ""
     builtin: bool = True
+
+    # Persistence scope declared by the app manifest. Project-scoped apps get
+    # the active Hub project in their launch URL; user-scoped apps do not.
+    scope: str = "user"
 
     # Launcher-grid visibility. Some registered modules are workspace
     # panes / nav items, not standalone launcher apps — e.g. Clew (opens
@@ -321,10 +326,22 @@ def _resolve_availability(data: dict) -> str:
     return availability
 
 
+def _resolve_scope(data: dict) -> str:
+    """Validate and return an app manifest's persistence scope."""
+    scope = data.get("scope", "user")
+    if scope not in SCOPE_STATES:
+        raise ValueError(
+            f"Unknown scope {scope!r} in manifest for {data.get('name')!r}; "
+            f"expected one of {SCOPE_STATES}"
+        )
+    return scope
+
+
 def _manifest_to_module_config(data: dict) -> ModuleConfig:
     """Convert a manifest dict to a ModuleConfig dataclass."""
     name = data["name"]
     overrides = _MANIFEST_OVERRIDES.get(name, {})
+    effective_data = {**data, **overrides}
 
     return ModuleConfig(
         name=name,
@@ -341,9 +358,8 @@ def _manifest_to_module_config(data: dict) -> ModuleConfig:
         keyboard_shortcut=data.get("keyboard_shortcut", ""),
         order=data.get("order", 50),
         category=data.get("category", ""),
-        availability=_resolve_availability(data),
-        availability_reason=str(data.get("availability_reason", "")),
-        builtin=bool(data.get("builtin", True)),
+        availability=_resolve_availability(effective_data),
+        scope=_resolve_scope(effective_data),
         default_enabled=data.get("default_enabled", True),
         show_in_launcher=data.get("show_in_launcher", True),
         visibility=data.get("visibility", "public"),
@@ -450,6 +466,9 @@ def register_module(config: ModuleConfig) -> None:
             f"[registry] Module '{config.name}' already registered, skipping."
         )
         return
+    for field_name, value in _MANIFEST_OVERRIDES.get(config.name, {}).items():
+        if hasattr(config, field_name):
+            setattr(config, field_name, value)
     _registry.append(config)
     _registry_by_name[config.name] = config
     logger.info(f"[registry] Registered external module: {config.name}")
