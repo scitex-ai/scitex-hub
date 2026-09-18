@@ -188,6 +188,26 @@ def test_styles_keep_brand_contrast_touch_targets_and_reduced_motion():
     assert ":focus-visible" in css
 
 
+def test_mobile_japanese_hero_keeps_words_on_semantic_lines():
+    # Arrange
+    hero = _text(HERO)
+    css = re.sub(r"\s+", " ", _text(CSS))
+    # Act
+    contracts = {
+        "line_one": '<span>{% trans "A platform" %}</span>' in hero,
+        "line_two": '<span>{% trans "for science." %}</span>' in hero,
+        "ja_size": ".landing-v2-hero h1:lang(ja)" in css,
+        "no_word_split": "h1:lang(ja) span { white-space: nowrap;" in css,
+    }
+    # Assert
+    assert contracts == {
+        "line_one": True,
+        "line_two": True,
+        "ja_size": True,
+        "no_word_split": True,
+    }
+
+
 def test_carousel_script_is_manual_keyboard_and_swipe_only():
     source = _text(TS)
     assert all(
@@ -209,8 +229,8 @@ def test_carousel_script_is_manual_keyboard_and_swipe_only():
     [
         (
             "public_app/landing_partials/landing_hero.html",
-            "科学のためのプラットフォーム。",
-            "A platform for science.",
+            "科学のための",
+            "A platform",
         ),
         (
             "public_app/landing_partials/landing_modules.html",

@@ -98,6 +98,10 @@
   line-height: 0.98;
 }
 
+.landing-v2-hero h1 span {
+  display: block;
+}
+
 .landing-v2-lead {
   max-width: 570px;
   margin: 0;
@@ -742,6 +746,15 @@
 
   .landing-v2-hero h1 {
     font-size: clamp(3.1rem, 15vw, 4.8rem);
+  }
+
+  .landing-v2-hero h1:lang(ja) {
+    font-size: clamp(2.35rem, 10vw, 4rem);
+    line-height: 1.08;
+  }
+
+  .landing-v2-hero h1:lang(ja) span {
+    white-space: nowrap;
   }
 
   .landing-v2-actions {

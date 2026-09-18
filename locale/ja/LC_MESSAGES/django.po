@@ -6914,6 +6914,12 @@ msgstr "オープンな研究基盤"
 msgid "A platform for science."
 msgstr "科学のためのプラットフォーム。"
 
+msgid "A platform"
+msgstr "科学のための"
+
+msgid "for science."
+msgstr "プラットフォーム。"
+
 #: apps/infra/public_app/templates/public_app/landing.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
