@@ -197,6 +197,7 @@ def test_mobile_japanese_hero_keeps_words_on_semantic_lines():
         "line_one": '<span>{% trans "A platform" %}</span>' in hero,
         "line_two": '<span>{% trans "for science." %}</span>' in hero,
         "ja_size": ".landing-v2-hero h1:lang(ja)" in css,
+        "narrow_fit": "font-size: clamp(1.65rem, 8vw, 4rem)" in css,
         "no_word_split": "h1:lang(ja) span { white-space: nowrap;" in css,
     }
     # Assert
@@ -204,6 +205,7 @@ def test_mobile_japanese_hero_keeps_words_on_semantic_lines():
         "line_one": True,
         "line_two": True,
         "ja_size": True,
+        "narrow_fit": True,
         "no_word_split": True,
     }
 
@@ -245,8 +247,9 @@ def test_carousel_script_is_manual_keyboard_and_swipe_only():
     ],
 )
 def test_v2_copy_switches_cleanly_between_english_and_japanese(
-    template, ja_needle, en_needle
+    template, ja_needle, en_needle, compiled_catalogs
 ):
+    del compiled_catalogs
     with translation.override("ja"):
         ja_html = render_to_string(template, {})
     with translation.override("en"):

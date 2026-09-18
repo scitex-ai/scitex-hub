@@ -233,7 +233,10 @@ def chrome_context():
 
 
 @pytest.mark.parametrize("template", CHROME_PARTIALS)
-def test_chrome_has_no_untranslated_text_under_japanese(template, chrome_context):
+def test_chrome_has_no_untranslated_text_under_japanese(
+    template, chrome_context, compiled_catalogs
+):
+    del compiled_catalogs
     # Arrange
     expected = []
     # Act
@@ -248,7 +251,8 @@ def test_chrome_has_no_untranslated_text_under_japanese(template, chrome_context
 
 
 @pytest.mark.parametrize("template", LANDING_PARTIALS)
-def test_partial_has_no_untranslated_text_under_japanese(template):
+def test_partial_has_no_untranslated_text_under_japanese(template, compiled_catalogs):
+    del compiled_catalogs
     # Arrange
     expected = []
     # Act
