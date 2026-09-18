@@ -6888,6 +6888,114 @@ msgstr "ファイルが %(mb)d MB を超えています。"
 msgid "Conversion not found."
 msgstr "変換結果が見つかりません。"
 
+msgid "Something went wrong talking to the AI provider"
+msgstr "AIプロバイダーとの通信中に問題が発生しました"
+
+msgid ""
+"Your message was kept. The technical details are recorded with the support id below, so you do "
+"not have to copy an error."
+msgstr "メッセージは保存されています。技術情報は下のサポートIDとともに記録されるため、エラーをコピーする必要はありません。"
+
+msgid "Tell us"
+msgstr "お知らせください"
+
+msgid "SciTeX could not reach the AI provider"
+msgstr "SciTeXがAIプロバイダーに接続できませんでした"
+
+msgid ""
+"This one is on us: our provider account needs attention. Nothing is wrong with your account or "
+"your project."
+msgstr "これはSciTeX側の問題です。プロバイダーアカウントの確認が必要です。あなたのアカウントやプロジェクトに問題はありません。"
+
+msgid "You have used today's free messages"
+msgstr "本日分の無料メッセージを使い切りました"
+
+msgid ""
+"Your draft is saved. You can connect your own AI provider, or add a paid allowance to keep going "
+"now."
+msgstr "下書きは保存されています。ご自身のAIプロバイダーを接続するか、有料枠を追加すると今すぐ続けられます。"
+
+msgid "See paid allowance"
+msgstr "有料枠を見る"
+
+msgid "The AI provider rejected our credentials"
+msgstr "AIプロバイダーがSciTeXの認証情報を拒否しました"
+
+msgid "This is a SciTeX-side configuration problem, not something you can fix from here."
+msgstr "これはSciTeX側の設定問題であり、ここからは修正できません。"
+
+msgid "The provider is rate-limiting requests"
+msgstr "AIプロバイダーがリクエストを制限しています"
+
+msgid "Your message was kept. Waiting a moment before retrying usually clears it."
+msgstr "メッセージは保存されています。少し待ってから再試行すると、通常は解消します。"
+
+msgid "Retry"
+msgstr "再試行"
+
+msgid "That model is not available right now"
+msgstr "そのモデルは現在利用できません"
+
+msgid "Pick a different model — your message is still here."
+msgstr "別のモデルを選んでください。メッセージは保持されています。"
+
+msgid "Choose another model"
+msgstr "別のモデルを選ぶ"
+
+msgid "The provider took too long to answer"
+msgstr "AIプロバイダーの応答に時間がかかりすぎました"
+
+msgid "Your message was kept. Retrying checks the same request without sending it twice."
+msgstr "メッセージは保存されています。再試行では同じリクエストを確認し、二重送信しません。"
+
+msgid "The AI provider is having an outage"
+msgstr "AIプロバイダーで障害が発生しています"
+
+msgid ""
+"We are tracking it. Your message was kept. Retrying checks the same request without sending it "
+"twice."
+msgstr "SciTeXで状況を追跡しています。メッセージは保存されています。再試行では同じリクエストを確認し、二重送信しません。"
+
+msgid "Messages on this allowance are funded by SciTeX"
+msgstr "この枠のメッセージ料金はSciTeXが負担します"
+
+msgid "SciTeX-funded model"
+msgstr "SciTeX負担モデル"
+
+msgid "You have used today's free messages. Your draft is kept."
+msgstr "本日分の無料メッセージを使い切りました。下書きは保持されています。"
+
+msgid "Connect your own provider"
+msgstr "ご自身のプロバイダーを接続"
+
+msgid "Add a paid allowance"
+msgstr "有料枠を追加"
+
+msgid "Checking your free-message allowance…"
+msgstr "無料メッセージ枠を確認しています…"
+
+#, python-format
+msgid "%(n)s of %(total)s free messages left today"
+msgstr "本日の無料メッセージは残り%(n)s件（全%(total)s件）"
+
+#, python-format
+msgid "Resets %(when)s"
+msgstr "%(when)sにリセット"
+
+#, python-format
+msgid "More free messages after %(when)s"
+msgstr "%(when)s以降に無料メッセージを再び利用できます"
+
+msgid "Technical details"
+msgstr "技術情報"
+
+#, python-format
+msgid "Try again in %(wait)s."
+msgstr "%(wait)s後に再試行してください。"
+
+#, python-format
+msgid "Support id: %(support_id)s"
+msgstr "サポートID: %(support_id)s"
 
 # Landing reference V2 — hub-landing-reference-integration-20260918
 #: apps/infra/public_app/templates/public_app/landing.html
