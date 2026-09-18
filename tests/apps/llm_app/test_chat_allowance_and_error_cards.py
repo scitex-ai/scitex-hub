@@ -1,0 +1,337 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Chat allowance and provider-error cards: what the user is SHOWN.
+
+Card: hub-chat-free-daily-message-allowance-20260917 (operator decision 7971-7972).
+SSOT: docs/product/PRIVATE_BETA_LOGIN_TO_WOW.md §6 — every email-verified real
+user gets 10 SciTeX-funded messages/day; "Show selected model, remaining
+messages, and reset time before sending"; "At the limit, preserve the draft and
+offer BYOK/provider setup or paid usage"; "Never render raw LiteLLM/provider
+exceptions", each state saying who must act and offering one primary action.
+
+Boundary: the atomic quota, the spend caps, the kill switch and the classifier
+that decides WHICH category a provider failure is are backend (scitex-hub). This
+surface consumes `{category, remaining, reset_at, model}` and renders it — so
+these tests pin rendering, redaction and the honest unknown state, and never the
+accounting.
+
+No database needed.
+"""
+
+from __future__ import annotations
+
+import re
+from pathlib import Path
+
+from django.template.loader import render_to_string
+
+ALLOWANCE = "chat/partials/chat_allowance.html"
+ERROR_CARD = "chat/partials/chat_error_card.html"
+
+# A provider failure as it actually arrives from the library, credentials and all.
+RAW_PROVIDER_TEXT = (
+    "litellm.AuthenticationError: Incorrect API key provided: sk-live-DEADBEEF1234. "
+    "You can find your API key at https://dashboard.example.com/keys"
+)
+
+
+# ---------------------------------------------------------------------------
+# the allowance line, before the user sends anything
+# ---------------------------------------------------------------------------
+
+
+def test_an_available_allowance_shows_model_remaining_and_utc_reset():
+    html = render_to_string(
+        ALLOWANCE,
+        {"allowance": {"state": "available", "model": "deepseek-chat",
+                       "remaining": 10, "total": 10,
+                       "reset_at": "2026-09-18T00:00:00Z", "reset_label": "2026-09-18 00:00 UTC"}},
+    )
+
+    assert 'data-chat-allowance="true"' in html
+    assert 'data-allowance-state="available"' in html
+    assert 'data-model="deepseek-chat"' in html
+    assert 'data-remaining="10"' in html
+    assert 'data-reset-at="2026-09-18T00:00:00Z"' in html
+
+    text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html))
+    assert "deepseek-chat" in text, "the selected model is not shown before sending"
+    assert "10" in text
+    assert "UTC" in text, "the reset time is not stated in UTC"
+
+
+def test_an_exhausted_allowance_preserves_the_draft_and_offers_a_way_forward():
+    html = render_to_string(
+        ALLOWANCE,
+        {"allowance": {"state": "exhausted", "model": "deepseek-chat",
+                       "remaining": 0, "total": 10,
+                       "reset_at": "2026-09-18T00:00:00Z", "reset_label": "2026-09-18 00:00 UTC"}},
+    )
+
+    assert 'data-allowance-state="exhausted"' in html
+    # The surface must not clear or discard what the user typed.
+    assert 'data-preserve-draft="true"' in html
+    # Two ways forward, both explicit.
+    assert 'data-chat-allowance-action="byok"' in html
+    assert 'data-chat-allowance-action="paid"' in html
+
+
+def test_an_unknown_allowance_invents_no_numbers():
+    """With no backend payload the surface says so — it does not guess 10 of 10."""
+    html = render_to_string(ALLOWANCE, {})
+
+    assert 'data-allowance-state="unknown"' in html
+    assert 'data-remaining="' not in html.replace('data-remaining=""', ""), (
+        "an unknown allowance must not carry a remaining count"
+    )
+    text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html))
+    assert not re.search(r"\b10\b", text), (
+        f"the unknown state invented an allowance: {text!r}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# provider failures become actionable cards, never raw text
+# ---------------------------------------------------------------------------
+
+# category -> (who must act, primary action marker)
+EXPECTED_CATEGORIES = {
+    "insufficient_balance": "scitex",
+    "quota_reached": "user",
+    "provider_auth": "scitex",
+    "rate_limit": "provider",
+    "model_unavailable": "user",
+    "timeout": "provider",
+    "provider_outage": "provider",
+}
+
+
+def _card_html(category: str, **extra) -> str:
+    context = {"category": category}
+    context.update(extra)
+    return render_to_string(ERROR_CARD, context)
+
+
+def _has_actionable_primary(html: str) -> bool:
+    """The primary control is a link OR a named action button.
+
+    Forcing a link would be wrong for "Retry" and "Choose another model", which
+    act in place rather than navigate.
+    """
+    if re.search(r'data-error-action-primary="true"[^>]*data-error-action="[^"]+"', html):
+        return True
+    return bool(re.search(r'href="[^"#]+"[^>]*data-error-action-primary="true"', html)) or bool(
+        re.search(r'data-error-action-primary="true"[^>]*href="[^"#]+"', html)
+    )
+
+
+def test_every_known_category_renders_who_acts_and_one_primary_action():
+    for category, actor in EXPECTED_CATEGORIES.items():
+        html = _card_html(category)
+
+        assert f'data-error-category="{category}"' in html, category
+        assert f'data-error-actor="{actor}"' in html, (
+            f"{category} does not say who has to act"
+        )
+        primary = re.findall(r'data-error-action-primary="true"', html)
+        assert len(primary) == 1, (
+            f"{category} must offer exactly one primary action, found {len(primary)}"
+        )
+        assert _has_actionable_primary(html), f"{category} has no actionable control"
+
+
+def test_no_category_ever_renders_the_raw_provider_message():
+    for category in list(EXPECTED_CATEGORIES) + ["something_new_from_the_provider"]:
+        html = _card_html(category, provider_message=RAW_PROVIDER_TEXT)
+
+        assert "litellm" not in html.lower(), f"{category} leaked the library name"
+        assert "sk-live-DEADBEEF1234" not in html, f"{category} leaked a credential"
+        assert "dashboard.example.com" not in html, (
+            f"{category} leaked the provider's raw message"
+        )
+        assert "Incorrect API key provided" not in html
+
+
+def test_ambiguous_provider_failures_never_claim_automatic_redispatch():
+    # Arrange
+    categories = ("timeout", "provider_outage")
+    # Act
+    details = {
+        category: re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", _card_html(category)))
+        for category in categories
+    }
+    # Assert
+    assert {
+        category: (
+            "keep retrying" not in detail.lower()
+            and "same request" in detail.lower()
+            and "without sending it twice" in detail.lower()
+        )
+        for category, detail in details.items()
+    } == {"timeout": True, "provider_outage": True}
+
+
+def test_an_unrecognised_category_falls_back_to_a_generic_card():
+    html = _card_html("some_new_provider_failure", provider_message=RAW_PROVIDER_TEXT)
+
+    assert 'data-error-category="unknown"' in html
+    assert 'data-error-actor=' in html
+    assert _has_actionable_primary(html)
+
+
+def test_a_rate_limited_card_states_when_to_retry():
+    html = _card_html("rate_limit", retry_after="60 seconds")
+
+    text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html))
+    assert "60 seconds" in text, "a rate limit must say when retrying is possible"
+
+
+# ---------------------------------------------------------------------------
+# the reset time must be readable and explicitly UTC (SSOT section 6)
+# ---------------------------------------------------------------------------
+
+
+def test_a_raw_iso_timestamp_is_never_shown_to_a_reader():
+    from apps.infra.llm_app.chat_allowance import allowance_context
+
+    ctx = allowance_context({"remaining": 5, "total": 10,
+                             "reset_at": "2026-09-18T00:00:00Z"})
+
+    assert ctx["reset_label"] == "18 September 2026, 00:00 UTC", ctx["reset_label"]
+    assert "T00:00:00" not in ctx["reset_label"]
+
+
+def test_an_offset_timestamp_is_normalised_to_utc():
+    """Read verbatim, +09:00 states the wrong instant to a reader in another zone."""
+    from apps.infra.llm_app.chat_allowance import allowance_context
+
+    ctx = allowance_context({"remaining": 5, "total": 10,
+                             "reset_at": "2026-09-18T09:00:00+09:00"})
+
+    assert ctx["reset_label"] == "18 September 2026, 00:00 UTC", ctx["reset_label"]
+
+
+def test_an_explicit_label_wins_over_derivation():
+    from apps.infra.llm_app.chat_allowance import allowance_context
+
+    ctx = allowance_context({"remaining": 5, "total": 10,
+                             "reset_at": "2026-09-18T00:00:00Z",
+                             "reset_label": "tomorrow morning"})
+
+    assert ctx["reset_label"] == "tomorrow morning"
+
+
+def test_an_unparseable_reset_time_shows_nothing_rather_than_raw_text():
+    from apps.infra.llm_app.chat_allowance import allowance_context
+
+    ctx = allowance_context({"remaining": 5, "total": 10, "reset_at": "soon"})
+
+    assert ctx["reset_label"] == ""
+    assert ctx["reset_at"] == "soon", "the raw value is kept for debugging, not shown"
+
+
+# ---------------------------------------------------------------------------
+# the stylesheets these surfaces depend on must actually be LOADED
+# ---------------------------------------------------------------------------
+
+SHELL_STYLES_ENTRY = "static/shared/ts/head-styles-shell.ts"
+ALLOWANCE_CSS = "static/shared/css/components/chat-allowance.css"
+
+
+def test_the_allowance_stylesheet_is_imported_by_the_shell_styles_entry():
+    """A rule in a stylesheet nobody loads is a rule no browser ever sees.
+
+    Same trap as the landing hero, where new rules went into a file no page
+    referenced. The shell bundles its styles through head-styles-shell.ts, so the
+    import has to be there.
+    """
+    repo = Path(__file__).resolve().parents[3]
+    entry = repo / SHELL_STYLES_ENTRY
+    assert entry.is_file(), f"{SHELL_STYLES_ENTRY} moved — update this guard"
+
+    assert ALLOWANCE_CSS in entry.read_text(), (
+        f"{ALLOWANCE_CSS} is not imported by {SHELL_STYLES_ENTRY}; its rules "
+        "would never reach a browser"
+    )
+    assert (repo / ALLOWANCE_CSS).is_file()
+
+
+def test_the_two_surfaces_are_included_by_the_chat_pane():
+    """Rendered only if the pane includes them — otherwise they are dead markup."""
+    repo = Path(__file__).resolve().parents[3]
+    pane = repo / "templates/global_base_partials/workspace_chat_pane.html"
+    pane_html = pane.read_text()
+
+    assert 'include "chat/partials/chat_allowance.html"' in pane_html, (
+        "the allowance line is not rendered by the chat pane"
+    )
+
+
+#: Every composer that can send a SciTeX-funded message. The SSOT requires the
+#: remaining count and reset time BEFORE the send, so each one needs the line:
+#: the chat pane's welcome and conversation inputs, and the shell's own AI panel.
+COMPOSER_TEMPLATES = (
+    "templates/global_base_partials/workspace_chat_pane.html",
+    "templates/global_base_partials/global_ai_panel.html",
+)
+
+
+def test_every_funded_composer_shows_the_allowance_before_the_send():
+    """Learned the hard way on the landing stylesheet: a surface that is not wired
+    into the place a user actually is renders nothing."""
+    repo = Path(__file__).resolve().parents[3]
+
+    missing = []
+    for rel in COMPOSER_TEMPLATES:
+        path = repo / rel
+        assert path.is_file(), f"{rel} moved — update this guard"
+        if 'include "chat/partials/chat_allowance.html"' not in path.read_text():
+            missing.append(rel)
+
+    assert not missing, f"composers without the allowance line: {missing}"
+
+
+def test_the_model_is_on_screen_before_the_first_send():
+    """Two model slots existed and both rendered empty, waiting on JS that may not
+    run; they now carry the model from the same context as the allowance line."""
+    repo = Path(__file__).resolve().parents[3]
+
+    pane = (repo / "templates/global_base_partials/workspace_chat_pane.html").read_text()
+    panel = (repo / "templates/global_base_partials/global_ai_panel.html").read_text()
+
+    assert 'id="chat-welcome-model-name">{{ chat_allowance.model' in pane, (
+        "the chat pane's model slot is still dead markup"
+    )
+    assert 'id="stx-shell-ai-model-badge" class="stx-shell-ai-model-badge">{{ chat_allowance.model' in panel, (
+        "the AI panel's model badge is still dead markup"
+    )
+
+
+def test_no_multiline_django_comments_in_the_partials_this_slice_touched():
+    """A multi-line ``{# ... #}`` renders VERBATIM to users.
+
+    The repo-wide hygiene test (tests/apps/public_app/views/test_landing_body_class.py)
+    catches this, but it is a TestCase: it needs a database, so it never ran while I was
+    iterating here and three of the four prose comments I added were written as
+    multi-line ``{# #}``. CI caught it on all three Python legs (1 failed, 5491 passed,
+    identical on 3.11/3.12/3.13) with the offenders named. This is the same guard,
+    scoped to the two files and runnable with no database.
+    """
+    repo = Path(__file__).resolve().parents[3]
+    touched = [
+        repo / "templates/global_base_partials/workspace_chat_pane.html",
+        repo / "templates/global_base_partials/global_ai_panel.html",
+    ]
+
+    offenders = []
+    for path in touched:
+        for lineno, line in enumerate(path.read_text().splitlines(), 1):
+            if "{#" in line and "#}" not in line.split("{#", 1)[1]:
+                offenders.append(f"{path.name}:{lineno}")
+
+    assert offenders == [], (
+        "use {% comment %}...{% endcomment %} instead of a multi-line {# #}: " + str(offenders)
+    )
+
+
+# EOF

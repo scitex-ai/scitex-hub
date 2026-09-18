@@ -20,6 +20,10 @@ import "/static/shared/css/components/project-tree-ui.css";
 import "/static/workspace_app/css/workspace-tabbar.css";
 import "/static/workspace_app/css/workspace-chat-pane.css";
 import "/static/workspace_app/css/workspace-chat-pane-mobile.css";
+/* Free-message allowance + provider-error cards (card
+ * hub-chat-free-daily-message-allowance-20260917). Its own file because
+ * workspace-chat-pane.css is already at 467/512 lines. */
+import "/static/shared/css/components/chat-allowance.css";
 import "/static/shared/css/components/workspace-chat-embed.css";
 import "/static/workspace_app/css/workspace-console-pane.css";
 import "/static/shared/css/components/ai-setup-hub.css";
