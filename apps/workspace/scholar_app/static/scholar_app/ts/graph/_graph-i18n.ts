@@ -1,6 +1,14 @@
 /** JA/EN strings for the citation graph, keyed off <html lang>. */
 
 const STRINGS = {
+  healthConfigured: { en: "Citation graph configured — not checked", ja: "引用グラフは設定済み・未確認です" },
+  healthUnconfigured: { en: "Citation graph is not configured", ja: "引用グラフは未設定です" },
+  healthHealthy: { en: "Citation graph is available", ja: "引用グラフを利用できます" },
+  healthDegraded: { en: "Citation graph has limited data", ja: "引用グラフのデータは限定的です" },
+  healthUnavailable: { en: "Citation graph is unavailable", ja: "引用グラフを利用できません" },
+  healthUnknown: { en: "Citation graph status could not be checked", ja: "引用グラフの状態を確認できませんでした" },
+  healthChecking: { en: "Checking citation graph…", ja: "引用グラフを確認中…" },
+  healthRetry: { en: "Check status", ja: "状態を確認" },
   seedPaper: { en: "Seed paper", ja: "起点の論文" },
   citedPaper: { en: "Cited paper", ja: "引用された論文" },
   citations: { en: "citations", ja: "被引用" },

@@ -27,6 +27,17 @@ TEST_WEBHOOK_SECRET = (
     "whsec_test_secret_for_signature_checks"  # pragma: allowlist secret
 )
 
+#: A RECOGNISABLE test-mode key. Since PR #934 review blocker 5 the webhook
+#: compares each event's ``livemode`` against the configured key's mode, so a
+#: webhook test must configure a key whose mode it can state — and the events it
+#: sends must say which mode they came from.
+TEST_STRIPE_KEY = "sk_test_for_signature_checks"
+
+
+def _ping_payload(event_id, event_type="ping"):
+    """A minimal signed-event body, in TEST mode (``livemode=False``)."""
+    return json.dumps({"id": event_id, "type": event_type, "livemode": False}).encode()
+
 TEST_PLANS = [
     {
         "name": "Pro (Test)",
@@ -224,12 +235,21 @@ class TestBillingCheckout:
 
 @pytest.mark.django_db
 class TestStripeWebhook:
-    """Webhook — CSRF-exempt but signature-verified; records events."""
+    """Webhook — CSRF-exempt but signature-verified; records events.
+
+    The events and key are TEST mode (blocker 5): livemode must agree with
+    the configured key, or the event is recorded and refused.
+    """
+
+    @pytest.fixture(autouse=True)
+    def _test_mode_key(self, settings):
+        settings.STRIPE_SECRET_KEY = TEST_STRIPE_KEY
+        return settings
 
     def test_webhook_without_secret_returns_503(self, client, settings):
         # Arrange
         settings.STRIPE_WEBHOOK_SECRET = ""
-        payload = json.dumps({"id": "evt_1", "type": "ping"}).encode()
+        payload = _ping_payload("evt_1", "ping")
         # Act
         response = _post_webhook(client, payload, "t=1,v1=deadbeef")
         # Assert
@@ -238,7 +258,7 @@ class TestStripeWebhook:
     def test_webhook_without_secret_explains_missing_env_key(self, client, settings):
         # Arrange
         settings.STRIPE_WEBHOOK_SECRET = ""
-        payload = json.dumps({"id": "evt_1", "type": "ping"}).encode()
+        payload = _ping_payload("evt_1", "ping")
         # Act
         response = _post_webhook(client, payload, "t=1,v1=deadbeef")
         # Assert
@@ -247,7 +267,7 @@ class TestStripeWebhook:
     def test_webhook_without_signature_header_returns_400(self, client, settings):
         # Arrange
         settings.STRIPE_WEBHOOK_SECRET = TEST_WEBHOOK_SECRET
-        payload = json.dumps({"id": "evt_2", "type": "ping"}).encode()
+        payload = _ping_payload("evt_2", "ping")
         # Act
         response = _post_webhook(client, payload, signature=None)
         # Assert
@@ -256,7 +276,7 @@ class TestStripeWebhook:
     def test_webhook_with_wrong_secret_signature_returns_400(self, client, settings):
         # Arrange
         settings.STRIPE_WEBHOOK_SECRET = TEST_WEBHOOK_SECRET
-        payload = json.dumps({"id": "evt_3", "type": "ping"}).encode()
+        payload = _ping_payload("evt_3", "ping")
         signature = _stripe_signature(payload, "whsec_wrong_secret")
         # Act
         response = _post_webhook(client, payload, signature)
@@ -266,9 +286,9 @@ class TestStripeWebhook:
     def test_webhook_with_tampered_payload_returns_400(self, client, settings):
         # Arrange: signature is valid for the ORIGINAL payload only
         settings.STRIPE_WEBHOOK_SECRET = TEST_WEBHOOK_SECRET
-        original = json.dumps({"id": "evt_4", "type": "ping"}).encode()
+        original = _ping_payload("evt_4", "ping")
         signature = _stripe_signature(original, TEST_WEBHOOK_SECRET)
-        tampered = json.dumps({"id": "evt_4", "type": "hacked"}).encode()
+        tampered = _ping_payload("evt_4", "hacked")
         # Act
         response = _post_webhook(client, tampered, signature)
         # Assert
@@ -277,7 +297,7 @@ class TestStripeWebhook:
     def test_webhook_with_stale_timestamp_returns_400(self, client, settings):
         # Arrange: valid HMAC but timestamp outside the replay tolerance
         settings.STRIPE_WEBHOOK_SECRET = TEST_WEBHOOK_SECRET
-        payload = json.dumps({"id": "evt_5", "type": "ping"}).encode()
+        payload = _ping_payload("evt_5", "ping")
         stale = int(time.time()) - 3600
         signature = _stripe_signature(payload, TEST_WEBHOOK_SECRET, timestamp=stale)
         # Act
@@ -288,7 +308,7 @@ class TestStripeWebhook:
     def test_webhook_with_valid_signature_returns_200(self, client, settings):
         # Arrange
         settings.STRIPE_WEBHOOK_SECRET = TEST_WEBHOOK_SECRET
-        payload = json.dumps({"id": "evt_ok_1", "type": "ping"}).encode()
+        payload = _ping_payload("evt_ok_1", "ping")
         signature = _stripe_signature(payload, TEST_WEBHOOK_SECRET)
         # Act
         response = _post_webhook(client, payload, signature)
@@ -302,9 +322,7 @@ class TestStripeWebhook:
         from apps.infra.public_app.models import BillingEvent
 
         settings.STRIPE_WEBHOOK_SECRET = TEST_WEBHOOK_SECRET
-        payload = json.dumps(
-            {"id": "evt_ok_2", "type": "checkout.session.completed"}
-        ).encode()
+        payload = _ping_payload("evt_ok_2", "checkout.session.completed")
         signature = _stripe_signature(payload, TEST_WEBHOOK_SECRET)
         # Act
         _post_webhook(client, payload, signature)
@@ -316,9 +334,7 @@ class TestStripeWebhook:
         from apps.infra.public_app.models import BillingEvent
 
         settings.STRIPE_WEBHOOK_SECRET = TEST_WEBHOOK_SECRET
-        payload = json.dumps(
-            {"id": "evt_ok_3", "type": "checkout.session.completed"}
-        ).encode()
+        payload = _ping_payload("evt_ok_3", "checkout.session.completed")
         signature = _stripe_signature(payload, TEST_WEBHOOK_SECRET)
         # Act
         _post_webhook(client, payload, signature)
@@ -331,7 +347,7 @@ class TestStripeWebhook:
     def test_webhook_duplicate_event_reports_created_false(self, client, settings):
         # Arrange: deliver the same event twice (Stripe retries)
         settings.STRIPE_WEBHOOK_SECRET = TEST_WEBHOOK_SECRET
-        payload = json.dumps({"id": "evt_dup_1", "type": "ping"}).encode()
+        payload = _ping_payload("evt_dup_1", "ping")
         signature = _stripe_signature(payload, TEST_WEBHOOK_SECRET)
         _post_webhook(client, payload, signature)
         # Act
@@ -344,7 +360,7 @@ class TestStripeWebhook:
         from apps.infra.public_app.models import BillingEvent
 
         settings.STRIPE_WEBHOOK_SECRET = TEST_WEBHOOK_SECRET
-        payload = json.dumps({"id": "evt_dup_2", "type": "ping"}).encode()
+        payload = _ping_payload("evt_dup_2", "ping")
         signature = _stripe_signature(payload, TEST_WEBHOOK_SECRET)
         _post_webhook(client, payload, signature)
         # Act

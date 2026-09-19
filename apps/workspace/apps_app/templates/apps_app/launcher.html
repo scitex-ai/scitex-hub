@@ -20,7 +20,21 @@
     <link rel="stylesheet" href="{% static 'shared/css/components/first-login-welcome.css' %}?v={{ build_id }}" />
 {% endblock %}
 {% block content %}
-    <div class="launcher" id="app-launcher" data-max-pins="{{ max_pins }}">
+    <div class="launcher"
+         id="app-launcher"
+         data-max-pins="{{ max_pins }}"
+         {% if current_project %}
+             data-active-project-id="{{ current_project.id }}"
+             data-active-project-key="{{ current_project.owner.username }}/{{ current_project.slug }}"
+         {% endif %}>
+        {% if current_project %}
+            <a class="launcher-active-project"
+               href="/{{ current_project.owner.username }}/{{ current_project.slug }}/"
+               aria-label="{% trans 'Open active project' %}: {{ current_project.owner.username }}/{{ current_project.slug }}">
+                <span>{% trans "Active project" %}</span>
+                <strong>{{ current_project.owner.username }}/{{ current_project.slug }}</strong>
+            </a>
+        {% endif %}
         {% if is_guest_launcher %}
             {# data-readonly-inline-banner marks this as the page's single, #}
             {# in-flow read-only/guest notice. readonly-visitor-guard.ts   #}

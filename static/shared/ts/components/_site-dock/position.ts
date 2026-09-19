@@ -7,8 +7,8 @@
  * and can never be restored off-screen.
  *
  * "Docked" (no stored position) is the default bottom-centre dock. Dropping the
- * dock back near the bottom edge returns it to that state, so the page reserves
- * the dock's band again (site-dock.css).
+ * dock back near the bottom edge returns it to that state without changing page
+ * geometry; both docked and floating modes are overlays.
  */
 
 export interface DockPosition {

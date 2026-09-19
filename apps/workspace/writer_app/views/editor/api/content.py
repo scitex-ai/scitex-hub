@@ -16,6 +16,15 @@ from ..auth_utils import api_login_optional, get_user_for_request
 logger = logging.getLogger(__name__)
 
 
+def _workspace_is_not_ready(error: RuntimeError) -> bool:
+    """Whether Writer explicitly reports an absent or incomplete workspace."""
+    message = str(error)
+    return message.startswith("Project directory not found for project ") or (
+        "Failed to initialize Writer: Project structure invalid: missing " in message
+        and message.endswith(" directory")
+    )
+
+
 @api_login_optional
 @require_http_methods(["GET", "POST"])
 def section_view(request, project_id, section_name):
@@ -62,19 +71,38 @@ def section_view(request, project_id, section_name):
                     section_dir = writer_service.writer_dir / doc_dir_map.get(
                         doc_type, "01_manuscript/contents"
                     )
+                    file_path = section_dir / f"{name}.tex"
+                    # Captured BEFORE the read: scitex-writer materialises a
+                    # section file from its packaged template while reading it, so
+                    # checking `exists()` afterwards answers "was it written by
+                    # this request", not "had the author written it".
+                    was_missing = not file_path.exists()
+                    # The READ is inside this guard on purpose, and this is the
+                    # part that took a second attempt to get right. Two ordinary
+                    # states of an unready workspace both raise RuntimeError:
+                    #   - the project directory is not on disk at all (scaffolded
+                    #     lazily by initialize-workspace);
+                    #   - the writer workspace EXISTS but is half-created, e.g.
+                    #     missing 01_manuscript — the leaf then ATTACHES to it and
+                    #     fails its own structure check instead of scaffolding
+                    #     (scitex_writer/writer.py, _attach_or_create_project).
+                    # Guarding only the path lookup covered the first and let the
+                    # second escape one line later as a 500.
+                    content = writer_service.read_section(name, doc_type)
                 except RuntimeError as exc:
-                    # The project's directory is not on disk yet. Writer creates
-                    # it lazily (initialize-workspace does), so the page's own
-                    # first section fetch can arrive before it exists — the
-                    # ordinary state of a project that was just registered, and
-                    # exactly the registered-project journey. It used to fall
-                    # through to the handler below and answer as a same-origin
-                    # 500 (the hub allowlists no 5xx). The client renders
-                    # `success: true` with empty content as an empty editor, so
-                    # "not written yet" and "workspace not created yet" look the
-                    # same to it on purpose.
+                    if not _workspace_is_not_ready(exc):
+                        raise
+                    # Writer creates its workspace lazily (initialize-workspace
+                    # does), so the page's own first section fetch can arrive
+                    # before it is ready — the ordinary state of a project that
+                    # was just registered, and exactly the registered-project
+                    # journey. It used to fall through to the handler below and
+                    # answer as a same-origin 500 (the hub allowlists no 5xx).
+                    # The client renders `success: true` with empty content as an
+                    # empty editor, so "not written yet" and "workspace not ready
+                    # yet" look the same to it on purpose.
                     logger.info(
-                        f"[SectionView GET] workspace not on disk for project "
+                        f"[SectionView GET] workspace not ready for project "
                         f"{project_id} ({exc}); serving empty content"
                     )
                     return JsonResponse(
@@ -89,14 +117,7 @@ def section_view(request, project_id, section_name):
                             "workspace_ready": False,
                         }
                     )
-                file_path = section_dir / f"{name}.tex"
-                # Captured BEFORE the read: scitex-writer materialises a section
-                # file from its packaged template while reading it, so checking
-                # `exists()` afterwards answers "was it written by this request",
-                # not "had the author written it".
-                was_missing = not file_path.exists()
 
-                content = writer_service.read_section(name, doc_type)
 
                 if content is None:
                     # A section that has not been written yet is the ORDINARY

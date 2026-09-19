@@ -123,6 +123,9 @@ __all__ = [
     "JOB_NAME",
     "PREVIEW_CLONE",
     "PREVIEW_HOST",
+    "SOURCE_DIRT_CADENCE",
+    "SOURCE_DIRT_CHECKOUTS",
+    "SOURCE_DIRT_TIMEOUT_SEC",
     "provide_jobs",
     "provide_placement",
     "scitex_hub_console_script",
@@ -137,7 +140,7 @@ JOB_NAME = "scitex-hub-dev-preview-sync"
 PREVIEW_HOST = "scitex-compute-03"
 
 #: The bind-mounted clone the preview stack serves from (branch ``develop``).
-PREVIEW_CLONE = "/home/ywatanabe/proj/scitex-cloud"
+PREVIEW_CLONE = "/home/ywatanabe/proj/scitex-hub"
 
 #: ``OnUnitActiveSec`` — a merge is visible on the preview within ~2 min.
 CADENCE = "2min"
@@ -154,6 +157,15 @@ CADENCE = "2min"
 #: ``timeout_sec``); GNU timeout signals the whole process group, so the
 #: in-flight ``make`` dies with the tick rather than being orphaned.
 HARD_TIMEOUT_SEC = 5_400
+
+# Long-lived Hub trees.  Each tuple is (stable identity suffix, supervisor
+# host, absolute checkout).  Do not add ephemeral CI/worktree paths here.
+SOURCE_DIRT_CHECKOUTS = (
+    ("compute-03", "scitex-compute-03", "/home/ywatanabe/proj/scitex-hub"),
+    ("nas-03", "scitex-nas-03", "/home/ywatanabe/proj/scitex-hub"),
+)
+SOURCE_DIRT_CADENCE = "15min"
+SOURCE_DIRT_TIMEOUT_SEC = 300
 
 
 def scitex_hub_console_script() -> str:
@@ -186,7 +198,7 @@ def provide_jobs() -> list[JobSpec]:
         f"/usr/bin/timeout {HARD_TIMEOUT_SEC} {scitex_hub_console_script()} "
         f"dev-preview sync --clone {PREVIEW_CLONE}"
     )
-    return [
+    jobs = [
         JobSpec(
             name=JOB_NAME,
             kind="timer",
@@ -205,6 +217,29 @@ def provide_jobs() -> list[JobSpec]:
             restart_policy="no",
         )
     ]
+    python = sys.executable
+    for label, _host, checkout in SOURCE_DIRT_CHECKOUTS:
+        jobs.append(
+            JobSpec(
+                name=f"scitex-hub-source-dirt-{label}",
+                kind="timer",
+                schedule="",
+                command=(
+                    f"/usr/bin/timeout {SOURCE_DIRT_TIMEOUT_SEC} {python} -m "
+                    "scitex_hub._jobs.source_dirt_tripwire "
+                    f"--checkout {checkout}"
+                ),
+                description=(
+                    "Detect vanished/staged/untracked source in the long-lived "
+                    f"Hub checkout at {checkout}; emit only structured metadata."
+                ),
+                on_boot_sec="5min",
+                on_unit_active_sec=SOURCE_DIRT_CADENCE,
+                timeout_sec=SOURCE_DIRT_TIMEOUT_SEC,
+                restart_policy="no",
+            )
+        )
+    return jobs
 
 
 def provide_placement() -> list[PlacementRecord]:
@@ -218,7 +253,12 @@ def provide_placement() -> list[PlacementRecord]:
     """
     from scitex_dev.jobs._placement import PlacementRecord
 
-    return [PlacementRecord(job=JOB_NAME, hosts=(PREVIEW_HOST,))]
+    records = [PlacementRecord(job=JOB_NAME, hosts=(PREVIEW_HOST,))]
+    records.extend(
+        PlacementRecord(job=f"scitex-hub-source-dirt-{label}", hosts=(host,))
+        for label, host, _checkout in SOURCE_DIRT_CHECKOUTS
+    )
+    return records
 
 
 # EOF

@@ -40,6 +40,9 @@ function switchTab(tabName: string): void {
       (content as HTMLElement).dataset.tab === tabName,
     );
   });
+  document
+    .querySelector('.scholar-tab.active[data-tab="graph"]')
+    ?.dispatchEvent(new Event("scholar:tab-activated"));
   window.dispatchEvent(new Event("resize"));
 }
 
