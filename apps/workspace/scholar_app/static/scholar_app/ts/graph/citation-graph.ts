@@ -30,6 +30,9 @@ class CitationGraphManager {
   private loadingSpinner: SpinnerHandle | null = null;
   private sourceInfo: SourceInfo | null = null;
   private graphLibrary: GraphLibraryManager | null = null;
+  private healthGeneration = 0;
+  private healthProbeStarted = false;
+  private healthProbeInFlight = false;
 
   constructor() {
     const config = window.CITATION_GRAPH_CONFIG;
@@ -47,7 +50,7 @@ class CitationGraphManager {
       );
     }
     this.bindControls();
-    this.checkServiceHealth();
+    this.initServiceHealth();
     if (this.config.urls.listSavedGraphs) {
       this.graphLibrary = new GraphLibraryManager(this.config, {
         onLoadGraph: (data, pos) => this.loadFromSaved(data, pos),
@@ -88,17 +91,69 @@ class CitationGraphManager {
     }
   }
 
-  private async checkServiceHealth(): Promise<void> {
+  private initServiceHealth(): void {
     const statusEl = $("serviceStatus");
-    if (!statusEl || !this.config.urls.health) return;
+    if (!statusEl || !this.config.urls.health || statusEl.dataset.healthBound) return;
+    statusEl.dataset.healthBound = "true";
+    const graphTab = document.querySelector('.scholar-tab[data-tab="graph"]');
+    const activate = () => {
+      if (!this.healthProbeStarted && statusEl.isConnected) {
+        this.healthProbeStarted = true;
+        void this.checkServiceHealth(true, statusEl);
+      }
+    };
+    graphTab?.addEventListener("scholar:tab-activated", activate);
+    if (!graphTab || graphTab.classList.contains("active")) activate();
+    else void this.checkServiceHealth(false, statusEl);
+  }
+
+  private renderServiceHealth(state: string, statusEl: HTMLElement): void {
+    const labels = {
+      configured: "healthConfigured",
+      unconfigured: "healthUnconfigured",
+      healthy: "healthHealthy",
+      degraded: "healthDegraded",
+      unavailable: "healthUnavailable",
+      checking: "healthChecking",
+    } as const;
+    const label = labels[state as keyof typeof labels] || "healthUnknown";
+    const indicator = document.createElement("div");
+    indicator.className = `status-indicator ${state === "healthy" ? "status-healthy" : "status-warning"}`;
+    indicator.setAttribute("role", "status");
+    indicator.textContent = gt(label);
+    statusEl.dataset.healthState = state;
+    const retry = document.createElement("button");
+    retry.type = "button";
+    retry.className = "btn btn-sm";
+    retry.style.minHeight = "44px";
+    retry.textContent = gt("healthRetry");
+    retry.disabled = state === "checking";
+    retry.addEventListener("click", () => void this.checkServiceHealth(true, statusEl));
+    statusEl.replaceChildren(indicator, retry);
+  }
+
+  private async checkServiceHealth(probe: boolean, statusEl: HTMLElement): Promise<void> {
+    if (probe && this.healthProbeInFlight) return;
+    const generation = ++this.healthGeneration;
+    const url = new URL(this.config.urls.health, window.location.href);
+    if (probe) {
+      url.searchParams.set("probe", "1");
+      this.healthProbeInFlight = true;
+      this.renderServiceHealth("checking", statusEl);
+    }
     try {
-      const data = await (await fetch(this.config.urls.health)).json();
-      statusEl.innerHTML =
-        data.status === "healthy"
-          ? `<div class="status-indicator status-healthy"><i class="fas fa-check-circle"></i><span>Service available</span></div>`
-          : `<div class="status-indicator status-warning"><i class="fas fa-exclamation-triangle"></i><span>Local index unavailable — using online Crossref</span></div>`;
+      const response = await this.fetchWithTimeout(url.toString(), 5000);
+      if (!response.ok) throw new Error("Capability report unavailable");
+      const data = await response.json();
+      if (generation !== this.healthGeneration || !statusEl.isConnected) return;
+      const state = data.status === "healthy" && data.probed !== true ? "configured" : data.status;
+      this.renderServiceHealth(state, statusEl);
     } catch {
-      statusEl.innerHTML = `<div class="status-indicator status-warning"><i class="fas fa-exclamation-triangle"></i><span>Using online Crossref</span></div>`;
+      if (generation === this.healthGeneration && statusEl.isConnected) {
+        this.renderServiceHealth("unknown", statusEl);
+      }
+    } finally {
+      if (probe) this.healthProbeInFlight = false;
     }
   }
 

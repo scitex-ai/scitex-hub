@@ -32,6 +32,94 @@ class SciTexAccountAdapter(DefaultAccountAdapter):
             user.save()
         return user
 
+    def get_signup_redirect_url(self, request):
+        """
+        Where a COMPLETED SIGNUP goes next — the same step the email path goes to.
+
+        THE GAP THIS CLOSES (measured through allauth's own flow, not read off
+        the source): the email path is OTP-first, and once the code verifies the
+        address the verification endpoint publishes the next step with
+        ``post_signup_redirect_url(user)``. The social path published nothing of
+        the sort — a brand-new Google/ORCID signup fell through to
+        ``ACCOUNT_SIGNUP_REDIRECT_URL`` ("/") and was dropped into the product,
+        past the card/trial step its account is subject to ever since
+        card-required onboarding landed.
+
+        WHY THIS METHOD AND NOT THE SOCIAL ADAPTER'S. allauth 65 calls
+        ``get_signup_redirect_url`` on the ACCOUNT adapter (from ``post_login``,
+        via ``account.utils.get_login_redirect_url``) with ``signup=True``; the
+        ``get_login_redirect_url`` that used to sit on ``SciTexSocialAccountAdapter``
+        was never called by allauth at all, so the social redirect was governed
+        by a default nobody had chosen. Only SIGNUP is redirected here: an
+        existing account signing in takes the ``signup=False`` branch and keeps
+        the ordinary login target.
+
+        WHY IT CALLS THE FUNCTION RATHER THAN THE URL. One source, two callers —
+        the email publisher and this hook. Repeating the route here would let
+        the two drift the moment the funnel target moves (it is moving right now:
+        PR #934 takes it from the billing page to a dedicated payment step), and
+        the drift would be silent. Tests assert equality with that function, not
+        with a literal.
+
+        NOTE: this method is only reached when allauth has NO redirect of its own
+        to use — see ``post_login`` below, which is what makes that true for a new
+        account even when a ``next`` was carried.
+        """
+        user = getattr(request, "user", None)
+        if user is not None and user.is_authenticated:
+            from apps.infra.public_app.services.billing_provider import (
+                post_signup_redirect_url,
+            )
+
+            return post_signup_redirect_url(user)
+        return super().get_signup_redirect_url(request)
+
+    def post_login(
+        self,
+        request,
+        user,
+        *,
+        email_verification,
+        signal_kwargs,
+        email,
+        signup,
+        redirect_url,
+    ):
+        """
+        A NEW account's landing is the FUNNEL's decision — not the visitor's.
+
+        FOUND BY REVIEW, and it defeated the hook above completely. allauth
+        resolves the post-login target in ``account.utils.get_login_redirect_url``
+        as: explicit ``url`` first, then the request's validated ``next``, and
+        ONLY THEN ``get_signup_redirect_url``. The social flow hands the first
+        one in — ``complete_social_signup`` passes
+        ``sociallogin.get_redirect_url(request)``, which is ``state["next"]`` —
+        so a brand-new account carrying ``?next=/bypass-target/`` was redirected
+        to ``/bypass-target/`` and never consulted the funnel at all. Measured
+        with a real new-account Google probe: ``/bypass-target/`` won, past the
+        step every new account is subject to.
+
+        External values never reach the state (``state_from_request`` validates
+        with ``is_safe_url``), so the hole was LOCAL paths — which is the
+        dangerous shape, because a local path can be any app route.
+
+        So for ``signup=True`` the caller-supplied target is dropped, and the
+        decision falls through to ``get_signup_redirect_url``. ``next`` remains
+        what it is for: a RETURNING user's destination, untouched here and
+        asserted in the tests (``signup=False``).
+        """
+        if signup:
+            redirect_url = None
+        return super().post_login(
+            request,
+            user,
+            email_verification=email_verification,
+            signal_kwargs=signal_kwargs,
+            email=email,
+            signup=signup,
+            redirect_url=redirect_url,
+        )
+
 
 class SciTexSocialAccountAdapter(DefaultSocialAccountAdapter):
     """
@@ -39,6 +127,35 @@ class SciTexSocialAccountAdapter(DefaultSocialAccountAdapter):
     Handles social login (Google, ORCID) with proper username generation
     and integration with SciTeX's user system.
     """
+
+    def list_apps(self, request, provider=None, client_id=None):
+        """
+        The apps allauth may serve, with SETTINGS AUTHORITATIVE over leftover rows.
+
+        ``DefaultSocialAccountAdapter.list_apps`` blends database ``SocialApp``
+        rows with the apps declared in ``SOCIALACCOUNT_PROVIDERS[provider]["APP"]``
+        (which this deployment now builds from its credential settings). The two
+        sources COLLIDE for any operator who ever ran ``manage.py
+        setup_social_auth``: that command writes a row for the same credentials
+        the settings now declare. ``get_app`` refuses when more than one app is
+        visible for a provider (``MultipleObjectsReturned``), and the login view
+        turns that into an HTTP 500 — so the button the pages just started
+        offering would be the broken one, which is the exact defect
+        ``test_social_login_buttons.py`` exists to prevent.
+
+        So: for a provider the settings declare an app for, the settings win and
+        the database row is an artefact rather than a rival. Providers the
+        settings declare nothing for keep their database rows untouched, so a
+        deployment configured ONLY through the database (the previous path) is
+        unaffected. A settings-built app is an unsaved ``SocialApp``
+        (``pk is None``) — that is the marker used here, and it is the same
+        object the provider is handed.
+        """
+        apps = super().list_apps(request, provider=provider, client_id=client_id)
+        from_settings = {app.provider for app in apps if app.pk is None}
+        if not from_settings:
+            return apps
+        return [app for app in apps if app.pk is None or app.provider not in from_settings]
 
     def populate_user(self, request, sociallogin, data):
         """
@@ -212,6 +329,33 @@ class SciTexSocialAccountAdapter(DefaultSocialAccountAdapter):
 
         return user
 
+    # NOTE — conflict resolved at the current-base merge of develop (#941) into
+    # this branch. Two things are both true and are kept together here:
+    #
+    # (1) develop's finding: ``get_login_redirect_url`` is an ACCOUNT-adapter
+    #     hook. allauth 65 reaches it through ``account.utils.get_login_redirect_url``
+    #     (which asks ``allauth.account.adapter.get_adapter()``), and
+    #     ``DefaultSocialAccountAdapter`` derives from
+    #     ``allauth.core.internal.adapter.BaseAdapter`` — NOT from the account
+    #     adapter — so a copy on this class has no call site inside allauth. The
+    #     behaviour therefore lives where allauth actually looks:
+    #     ``SciTexAccountAdapter.get_signup_redirect_url`` (a NEW signup
+    #     converges on the funnel step) and the account ``get_login_redirect_url``
+    #     (existing-account logins keep the ordinary target). develop removed
+    #     this method and left that note; the note is kept rather than dropped,
+    #     because the next person looking for "the social redirect" will look
+    #     for this name.
+    #
+    # (2) this branch's reviewed surface: the method below is called DIRECTLY
+    #     (not through allauth) by the reviewed funnel tests in
+    #     tests/apps/accounts_app/test_funnel_product_gate_e2e.py, and it
+    #     delegates to the same authority as the develop hooks —
+    #     ``onboarding.next_url``, which
+    #     ``public_app.services.billing_provider.post_signup_redirect_url`` also
+    #     wraps. Keeping it therefore adds no second policy: both doors still
+    #     answer from one authority.
+    #
+    # No behaviour is taken from either side that the other side did not have.
     def get_login_redirect_url(self, request):
         """
         Return the URL to redirect to after successful social login.
@@ -222,6 +366,10 @@ class SciTexSocialAccountAdapter(DefaultSocialAccountAdapter):
         OTP handler asks, so "where does this account go next?" has ONE answer
         for both doors — and an account that is not in the funnel still gets the
         ordinary post-login destination.
+
+        See the note above: allauth itself no longer reaches this name (develop
+        #941 moved the hook to the account adapter); this method is retained as
+        the reviewed surface its tests call directly.
         """
         from apps.infra.auth_app.onboarding import next_url
 

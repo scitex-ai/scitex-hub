@@ -1,4 +1,10 @@
 # Create your first project. Placeholders: {username} (DEMO_USERNAME), {run_id} (HHMMSS).
+# Selectors are ids and data attributes only (never translated labels), because
+# the same action script records both the English and the Japanese UI:
+# scripts/demo_videos/demo_selectors.py checks them against the checkout before
+# anything is recorded. `chapter` names a span of the walkthrough; the recorder
+# writes it to <stem>.<lang>.chapters.vtt and to the transcript's chapter list, so
+# an alternate UI-locale rendition carries the same map of the steps.
 app: projects
 title:
   en: Create your first project
@@ -11,17 +17,26 @@ sign_in: true
 steps:
   - action: goto
     value: /apps/
+    chapter:
+      en: Home
+      ja: ホーム
     narration:
       en: This is Home, where your apps live. Let's create a project.
       ja: ここはホームです。アプリがここに並んでいます。プロジェクトを作ってみましょう。
   - action: goto
     value: /new/
+    chapter:
+      en: Create a project
+      ja: プロジェクトを作る
     narration:
       en: Open Create new project. SciTeX Minimal is already selected.
       ja: 「新しいプロジェクトを作成」を開きます。SciTeX Minimal が選ばれています。
   - action: type
     selector: "#name"
     value: sleep-study-{run_id}
+    chapter:
+      en: Name
+      ja: 名前
     narration:
       en: Type a name in lowercase letters, with hyphens between words.
       ja: 名前を小文字で入力します。単語の間はハイフンでつなぎます。
@@ -30,25 +45,37 @@ steps:
     value:
       en: Does sleep improve memory?
       ja: 睡眠は記憶を良くするか？
+    chapter:
+      en: Description
+      ja: 説明
     narration:
       en: A short description is optional.
       ja: 説明は入れなくてもかまいません。
   - action: click
     selector: "#create-submit-btn"
+    chapter:
+      en: Create
+      ja: 作成
     narration:
       en: Click Create project. It takes a few seconds.
       ja: 「プロジェクトを作成」をクリックします。数秒で完成します。
     hold: 5
   - action: click
-    selector: "text=README.md"
+    selector: '[data-path="README.md"]'
+    chapter:
+      en: Open a file
+      ja: ファイルを開く
     narration:
       en: The new project starts with a README and a license. Click a file to open it.
       ja: 新しいプロジェクトには README と LICENSE があります。ファイルをクリックすると開きます。
     hold: 1.5
     only: desktop
   - action: goto
-    value: /{username}/sleep-study-{run_id}/?view=repository
+    value: /{username}/sleep-study-{run_id}/
+    chapter:
+      en: Your project
+      ja: あなたのプロジェクト
     narration:
-      en: The repository view lists every file with its latest commit.
-      ja: リポジトリ表示では、すべてのファイルが最新のコミットとともに表示されます。
+      en: Your project holds every file, and it is still here when you come back.
+      ja: プロジェクトにはすべてのファイルが入っています。次に来たときも、そのまま残っています。
     hold: 2

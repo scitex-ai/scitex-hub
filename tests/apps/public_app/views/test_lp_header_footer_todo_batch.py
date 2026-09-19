@@ -19,7 +19,7 @@ import re
 from html.parser import HTMLParser
 from pathlib import Path
 
-from django.test import TestCase
+from django.test import SimpleTestCase
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 THEME_SWITCHER_TS = REPO_ROOT / "static/shared/ts/utils/theme-switcher.ts"
@@ -81,7 +81,7 @@ def _has_class(name):
     return lambda attrs: name in (attrs.get("class") or "").split()
 
 
-class LandingHeaderFooterTodoBatchTest(TestCase):
+class LandingHeaderFooterTodoBatchTest(SimpleTestCase):
     """Render the anonymous landing once per test and slice its regions."""
 
     def _page(self):
@@ -89,6 +89,9 @@ class LandingHeaderFooterTodoBatchTest(TestCase):
 
     def _hero(self):
         return _first(self._page(), "section", lambda a: a.get("id") == "home")
+
+    def _hero_actions(self):
+        return _first(self._hero(), "div", _has_class("landing-v2-actions"))
 
     def _header(self):
         return _first(self._page(), "header", _has_class("global-header"))
@@ -101,25 +104,26 @@ class LandingHeaderFooterTodoBatchTest(TestCase):
     def test_hero_section_is_found_with_its_primary_cta(self):
         # Arrange — positive control for the two hero negatives below
         # Act
-        hero = self._hero()
+        actions = self._hero_actions()
         # Assert
-        assert 'class="hero-cta-button"' in hero
+        assert 'class="hero-cta-button"' in actions
 
     def test_hero_has_no_docs_button(self):
         # Arrange
-        hero = self._hero()
-        # Act — any anchor in the hero pointing at a docs route
-        docs_anchors = re.findall(r'<a\b[^>]*href="[^"]*docs[^"]*"', hero, re.I)
+        actions = self._hero_actions()
+        # Act — any CTA pointing at a docs route
+        docs_anchors = re.findall(r'<a\b[^>]*href="[^"]*docs[^"]*"', actions, re.I)
         # Assert
         assert docs_anchors == []
 
     def test_hero_has_no_license_button(self):
         # Arrange
-        hero = self._hero()
-        # Act — any anchor whose target or label mentions the license
+        actions = self._hero_actions()
+        # Act — any CTA whose target or label mentions the license. The hero's
+        # stock-photo attribution may still link to the actual license.
         license_anchors = [
             a
-            for a in re.findall(r"<a\b.*?</a>", hero, re.I | re.S)
+            for a in re.findall(r"<a\b.*?</a>", actions, re.I | re.S)
             if "license" in a.lower()
         ]
         # Assert

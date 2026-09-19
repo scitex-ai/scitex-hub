@@ -201,6 +201,15 @@
   text-decoration: none;
   font-size: 0.95rem;
   transition: color var(--transition-normal);
+  /* A glyph is not a target. Card fix-footer-social-tap-targets-20260917:
+     measured at 390x844 these six links rendered 12x21..15x21px with 19-21px
+     between neighbours, failing WCAG 2.2 SC 2.5.8 on both the 24x24 minimum and
+     the spacing exception. The box is now the target, not the icon. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
 }
 
 .footer-social a:hover {
@@ -386,6 +395,14 @@
   .footer-social {
     justify-content: center;
   }
+
+  /* Thumbs, not cursors. The platform floor for touch targets in the shell is
+     44px (SSOT §4); at phone widths the social links get it, which also clears
+     the 24px spacing question outright since each box is its own target. */
+  .footer-social a {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }
 
 /* Hide footer on mobile in workspace pages (collapsed by default).
@@ -444,9 +461,9 @@
    phone too. The operator asked for it — swipe down on Home and the footer
    scrolls into view above the dock. The two measured failures above no longer
    hold. The app home body scrolls (global-base.css "App Home Override"), so the
-   footer sits BELOW a full-height shell instead of squeezing the grid. And the
-   site dock reserves its own band as body padding-bottom (site-dock.css), so
-   the last footer link scrolls clear of the dock rather than under it.
+   footer sits BELOW a full-height shell instead of squeezing the grid. The site
+   dock remains a fixed overlay; focus scroll margins in site-dock.css align the
+   last footer control without adding a permanent blank band.
    Guarded by tests/templates/test_legal_routes_reachable_on_mobile.py. */
 @media (max-width: 768px) {
   body.workspace-page:not(.landing-page):not(.app-home) .site-footer {

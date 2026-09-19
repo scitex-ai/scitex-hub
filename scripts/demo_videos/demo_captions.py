@@ -11,6 +11,20 @@ class TimedCaption:
     end_seconds: float
 
 
+@dataclass(frozen=True)
+class Chapter:
+    """A named span of the walkthrough, for the player's chapter track.
+
+    Chapters are what makes an alternate UI-locale rendition usable: the same
+    narration drives the same chapters, so a viewer who switches rendition keeps
+    the same map of the walkthrough instead of hunting for the step they were on.
+    """
+
+    title: str
+    start_seconds: float
+    end_seconds: float
+
+
 def format_timestamp(seconds: float) -> str:
     total_ms = round(seconds * 1000)
     hours, rest = divmod(total_ms, 3_600_000)
@@ -31,10 +45,44 @@ def build_webvtt(captions: list[TimedCaption]) -> str:
     return "\n\n".join(blocks) + "\n"
 
 
-def build_transcript(title: str, captions: list[TimedCaption]) -> str:
+def build_transcript(title: str, captions: list[TimedCaption],
+                     chapters: list[Chapter] | None = None) -> str:
+    """The plain-text transcript, with a YouTube-style chapter list when there is one.
+
+    YouTube reads chapters out of the description as `MM:SS Title` lines, which is
+    how the upload step in docs/ops/demo-videos.md gets them without retyping.
+    """
     spoken = [caption.text for caption in captions if caption.text]
-    lines = [title, ""] + [f"{index}. {text}" for index, text in enumerate(spoken, 1)]
+    lines = [title, ""]
+    if chapters:
+        lines.append("Chapters")
+        lines += [f"{chapter_timestamp(chapter.start_seconds)} {chapter.title}"
+                  for chapter in chapters]
+        lines.append("")
+    lines += [f"{index}. {text}" for index, text in enumerate(spoken, 1)]
     return "\n".join(lines) + "\n"
+
+
+def chapter_timestamp(seconds: float) -> str:
+    """`MM:SS` (or `H:MM:SS` past an hour), the form YouTube accepts in a description."""
+    total_seconds = int(seconds)
+    hours, rest = divmod(total_seconds, 3600)
+    minutes, secs = divmod(rest, 60)
+    if hours:
+        return f"{hours}:{minutes:02d}:{secs:02d}"
+    return f"{minutes:02d}:{secs:02d}"
+
+
+def build_chapter_vtt(chapters: list[Chapter]) -> str:
+    """A chapter track: one cue per named span, its text being the chapter title."""
+    blocks = ["WEBVTT"]
+    for index, chapter in enumerate(chapters, start=1):
+        timing = (
+            f"{format_timestamp(chapter.start_seconds)} --> "
+            f"{format_timestamp(chapter.end_seconds)}"
+        )
+        blocks.append(f"{index}\n{timing}\n{chapter.title}")
+    return "\n\n".join(blocks) + "\n"
 
 
 def display_width(character: str) -> int:

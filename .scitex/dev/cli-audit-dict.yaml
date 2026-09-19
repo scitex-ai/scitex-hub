@@ -6,7 +6,16 @@
 # Merged with `~/.scitex/dev/cli-audit-dict.yaml` (user-level) at audit
 # time. Project entries take precedence on collision.
 
-nouns: []
+nouns:
+  # why: SLURM is the product/domain noun for the scheduler and accounting
+  # control surface under `scitex-hub dev`; `validate` is the canonical verb.
+  - slurm
+  # why: `scitex-hub dev setup plan` treats the complete infrastructure setup
+  # as the object being planned; it is not the retired top-level setup verb.
+  - setup
+  # why: SSH is the domain noun whose implementation is delegated to
+  # scitex-ssh; leaves such as `validate` remain canonical verbs.
+  - ssh
 
 transitive_verbs: []
 
