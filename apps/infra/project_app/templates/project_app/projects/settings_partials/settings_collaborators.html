@@ -7,10 +7,10 @@
     </div>
     <!-- Pending Invitations -->
     {% if project.invitations.all %}
-        {# The three steps the recipient actually goes through. Card
+        {% comment %}The three steps the recipient actually goes through. Card
            hub-project-collaboration-invite-links-20260917 / SSOT §9: the same
            simple pattern as referrals — a copyable URL and three clear steps —
-           and explicitly NOT a silent join. #}
+           and explicitly NOT a silent join.{% endcomment %}
         <div class="invite-steps" data-invite-steps="true">
             <h6 style="color: var(--color-fg-muted);
                        font-size: 12px;
@@ -61,9 +61,9 @@
                                 style="padding: 4px 12px;
                                        font-size: 12px">Cancel</button>
                     </div>
-                    {# The owner can hand the link over directly (Slack, email of their
+                    {% comment %}The owner can hand the link over directly (Slack, email of their
                        own) instead of relying on our mail. It is the same opaque
-                       token; it grants nothing on its own. #}
+                       token; it grants nothing on its own.{% endcomment %}
                     <div class="invite-link-row" data-invite-link="{{ invitation.token }}">
                         <label class="invite-link-label"
                                for="invite-link-{{ invitation.token }}">{% trans "Invitation link" %}</label>
