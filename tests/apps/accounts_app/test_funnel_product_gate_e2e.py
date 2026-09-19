@@ -846,3 +846,175 @@ class TestSocialSignupConverges:
 
         assert response.status_code in (301, 302)
         assert response["Location"].startswith(payment_step_url())
+
+
+# ---------------------------------------------------------------------------
+# 6. PUBLIC / LEGAL ACCESSIBILITY — the independent-review FAIL on f06cabea
+# ---------------------------------------------------------------------------
+@pytest.mark.django_db
+class TestThePublicAndLegalPagesAreNotHeldBehindTheGate:
+    """The reviewed blocker, after f06cabea: the gate held the public pages.
+
+    The review of `f06cabea8657fa6c22bdf7184aa199c78bf894fc` found that the
+    successor to the text-based gate classified `about`, `cookies`, `docs`,
+    `security`, `services` and `tokushoho-en` as PRODUCT. A verified-but-unpaid
+    account asking for the disclosure it is being asked to accept — or for the
+    English companion of the Japanese `tokushoho` page that was reachable — was
+    bounced to the payment step. That is the same class of defect as the
+    original blocker, with the sign reversed: a person mid-signup must be able
+    to READ the pages that describe what they are buying and the terms of it.
+
+    Both halves are asserted per row, and the second is what keeps a fix from
+    being satisfied by widening the gate:
+
+    1. the route Django actually serves the path from is the public route (not
+       a `/<username>/` collision that merely shares its name), and
+    2. the gate lets that path through, for an anonymous visitor AND for a
+       verified-but-unpaid account with the provider open.
+
+    Controls, named by the review: the `/legal/` COLLISION stays closed (
+    `legal` is a username, no route is mounted there, and a text classifier
+    exempted the whole subtree), and `/terms/` stays open.
+    """
+
+    #: ``(request path, the route the served URLconf resolves it to)``. The
+    #: route text is the assertion that this row is a real public surface and
+    #: not a username collision wearing its name — the two are different
+    #: questions and only the resolver can tell them apart.
+    PUBLIC = (
+        ("/about/", "about/"),
+        ("/cookies/", "cookies/"),
+        ("/docs/web-api/", "docs/web-api/"),
+        ("/privacy/", "privacy/"),
+        ("/security/", "security/"),
+        ("/services/", "services/"),
+        ("/terms/", "terms/"),
+        ("/tokushoho/", "tokushoho/"),
+        ("/tokushoho-en/", "tokushoho-en/"),
+        ("/contact/", "contact/"),
+    )
+
+    @pytest.mark.parametrize("path,route", PUBLIC)
+    def test_the_served_route_is_the_public_one_and_the_gate_opens_it(
+        self, path, route
+    ):
+        resolved = resolve(path)
+
+        assert resolved.route == route, (
+            f"{path} is served by {resolved.route!r}, not by {route!r}: this row "
+            "may not be satisfied by a username collision"
+        )
+        assert _segment(resolved.route) in EXEMPT_MOUNTS, (
+            f"{path} resolves to {route!r} — a public/legal route — but its first "
+            f"segment {_segment(resolved.route)!r} is classified product"
+        )
+        assert request_is_gated(path) is False, (
+            f"{path} is a public/legal surface and is held at the payment step"
+        )
+
+    @pytest.mark.parametrize("path,route", PUBLIC)
+    def test_an_anonymous_visitor_is_served_the_page(self, path, route):
+        response = Client().get(path)
+
+        assert response.status_code == 200, (
+            f"{path} answered {response.status_code} to an anonymous visitor"
+        )
+
+    @pytest.mark.parametrize("path,route", PUBLIC)
+    def test_a_verified_unpaid_account_is_served_the_page(
+        self, path, route, provider_open
+    ):
+        client = _login(_create_user("public-surface-account"))
+
+        response = client.get(path)
+
+        assert response.status_code == 200, (
+            f"{path} answered {response.status_code} to an account that still owes "
+            "a payment method; a public/legal page must not be behind the funnel "
+            f"(Location={response.get('Location', '')!r})"
+        )
+        assert not response.get("Location", "").startswith(payment_step_url())
+
+    def test_the_ja_and_en_disclosures_are_equally_reachable(self, provider_open):
+        """Disclosure parity, JA and EN, on the surface that is legally binding.
+
+        ``tokushoho/`` is the JA page the Japanese consumer is legally entitled
+        to read before paying and ``tokushoho-en/`` its supplementary English
+        companion. The review found the EN half gated while the JA half was
+        open: a classification that made a legal disclosure reachable in one
+        language and not the other is the defect, so both are pinned here, with
+        the rendered language of each asserted so neither can satisfy this by
+        serving the other's page.
+        """
+        client = _login(_create_user("disclosure-parity"))
+
+        ja = client.get("/tokushoho/")
+        en = client.get("/tokushoho-en/")
+
+        assert ja.status_code == en.status_code == 200, (
+            f"JA {ja.status_code} / EN {en.status_code} — the disclosures must be "
+            "equally reachable to an account that has not paid yet"
+        )
+        assert request_is_gated("/tokushoho/") is False
+        assert request_is_gated("/tokushoho-en/") is False
+        assert "特定商取引法" in ja.content.decode("utf-8", "replace"), (
+            "the JA page is the legally binding one and must render in Japanese"
+        )
+        assert "Specified Commercial Transactions Act" in en.content.decode(
+            "utf-8", "replace"
+        ), "the EN page must render the English disclosure, not the JA one"
+
+    def test_the_legal_collision_control_stays_closed(self, provider_open):
+        """The other half of the review's control pair: `/legal/` is NOT legal.
+
+        No route is mounted at ``legal/``; the path is served by the
+        ``/<username>/`` product surface. Reading the request text exempted it
+        and everything below it, which is the original blocker — so it is
+        asserted to be closed by BOTH routes: the gate's answer, and what a
+        verified-but-unpaid client receives.
+        """
+        resolved = resolve("/legal/")
+
+        assert _segment(resolved.route) == "<str:username>", (
+            f"/legal/ now resolves to {resolved.route!r}; if a real legal route "
+            "was mounted there, move this control rather than deleting it"
+        )
+        assert request_is_gated("/legal/") is True
+
+        response = _login(_create_user("legal-collision-control")).get("/legal/")
+
+        assert response.status_code in (301, 302)
+        assert response["Location"].startswith(payment_step_url())
+
+    def test_the_terms_control_stays_open(self, provider_open):
+        """The review's other named control, pinned so the fix cannot be
+        satisfied by closing the exempt set instead of correcting it."""
+        assert request_is_gated("/terms/") is False
+
+        response = _login(_create_user("terms-control")).get("/terms/")
+
+        assert response.status_code == 200
+
+    #: The same six names, requested at a path Django does NOT serve from the
+    #: public route: `about`, `docs`, … are legal usernames, and the
+    #: `/<username>/` surface owns everything below them. This is the pair that
+    #: makes the correction a ROUTE classification rather than a text one — the
+    #: segment is public only for the request the resolver sends to the public
+    #: route.
+    COLLIDING_BELOW = tuple(
+        f"/{name}/anything/"
+        for name in ("about", "cookies", "docs", "security", "services", "tokushoho-en")
+    )
+
+    @pytest.mark.parametrize("path", COLLIDING_BELOW)
+    def test_the_public_classification_does_not_open_the_username_below_it(self, path):
+        resolved = resolve(path)
+
+        assert _segment(resolved.route) == "<str:username>", (
+            f"{path} now resolves to {resolved.route!r}; the collision this row "
+            "depends on has moved"
+        )
+        assert request_is_gated(path) is True, (
+            f"{path} is served by the /<username>/ product surface and must stay "
+            f"closed even though its first segment was just classified public"
+        )

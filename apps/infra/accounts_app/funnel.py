@@ -88,9 +88,21 @@ ASSET_PREFIXES = ("/static/", "/media/")
 #: * ``admin`` — staff only, and staff are exempt before this is consulted;
 #: * ``healthz``, ``i18n``, ``static``, ``media`` and the PWA/robot files —
 #:   infrastructure and assets that gate nothing product-shaped;
-#: * ``pricing``, ``landing``, ``terms``, ``privacy``, ``tokushoho``,
-#:   ``contact`` — the marketing/legal pages: a person being asked to accept
-#:   terms before paying must be able to read them.
+#: * ``pricing``, ``landing``, ``terms``, ``privacy``, ``contact`` — the
+#:   marketing/legal pages: a person being asked to accept terms before paying
+#:   must be able to read them;
+#: * ``about``, ``cookies``, ``docs``, ``security``, ``services`` — the
+#:   public reference/trust pages, and ``tokushoho-en`` — the English companion
+#:   of the JA disclosure below. All six are PUBLIC ROUTES, not product, and
+#:   the first cut of this fix wrongly classified them closed (see the review
+#:   note under :data:`GATED_MOUNTS`); they were added here by the corrective
+#:   change.
+#:
+#: ``tokushoho`` and ``tokushoho-en`` are a PAIR and are classified together on
+#: purpose: the JA page is the legally binding disclosure for Japanese
+#: consumers and the EN page is its supplementary translation. Holding one and
+#: not the other — which is exactly what the first cut of this fix did — made a
+#: legal disclosure reachable in one language and not the other.
 #:
 #: ``legal`` USED TO BE HERE AND IS DELIBERATELY NOT. No route in the served
 #: URLconf is mounted at ``legal/`` — the legal pages are ``terms/``,
@@ -119,6 +131,15 @@ EXEMPT_MOUNTS = frozenset(
         "sw.js",
         "favicon.ico",
         "robots.txt",
+        # --- public/reference/trust pages and the EN disclosure companion:
+        # --- corrected after the independent review of f06cabea found these
+        # --- public routes classified product.
+        "about",
+        "cookies",
+        "docs",
+        "security",
+        "services",
+        "tokushoho-en",
     }
 )
 
@@ -134,6 +155,21 @@ EXEMPT_MOUNTS = frozenset(
 #: only destination is a product mount, so they carry the same classification
 #: they already had under the first-segment rule, as does every other entry
 #: added here when this list was completed against the real resolver tree.
+#:
+#: CORRECTED AFTER REVIEW. The first cut of this fix (f06cabea) also listed
+#: ``about``, ``cookies``, ``docs``, ``security``, ``services`` and
+#: ``tokushoho-en`` here and justified it as "the outcome they already had".
+#: That was the wrong standard: preserving an outcome is not the same as
+#: classifying correctly, and the independent review found the original
+#: public/legal accessibility blocker still present — a verified-but-unpaid
+#: account was bounced to the payment step when it asked for the about page,
+#: the cookie policy, the API docs, the trust page, the services page, or the
+#: ENGLISH half of the disclosure whose JAPANESE half was reachable. They are
+#: public routes, they belong in :data:`EXEMPT_MOUNTS`, and they were moved
+#: there. What stays here is the classification the resolver supports:
+#: ``/docs/web-api/`` is public, and the legacy ``/docs/`` redirect to the
+#: ``/apps/docs/`` product mount rides along with it (a 301 is not product, and
+#: its destination is gated on the next request).
 GATED_MOUNTS = frozenset(
     {
         "",  # the workspace root (root_dispatch)
@@ -159,16 +195,13 @@ GATED_MOUNTS = frozenset(
         # --- completed against the real resolver tree ---
         ".well-known",
         "__reload__",
-        "about",
         "api-docs",
         "api-keys",
         "clew",
         "cloud",
         "contributors",
-        "cookies",
         "demo",
         "demos",
-        "docs",
         "donate",
         "enter",
         "example",
@@ -181,12 +214,9 @@ GATED_MOUNTS = frozenset(
         "recruit",
         "releases",
         "scholar",
-        "security",
         "server-status",
-        "services",
         "setup",
         "status",
-        "tokushoho-en",
         "tools",
         "v1",
         "workspace",
