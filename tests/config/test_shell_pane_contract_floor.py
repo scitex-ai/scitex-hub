@@ -118,7 +118,14 @@ LAST_WITHOUT_AGENTS_ACCENT = Version("0.20.2")
 #: RAISED 0.20.3 -> 0.21.0 on 2026-09-14: the project picker template tag and
 #: ``scitex_ui.project_scope`` (scitex-ui #232) first ship in 0.21.0.
 PROJECT_PICKER_FLOOR = Version("0.21.0")
-DECLARED_FLOOR = PROJECT_PICKER_FLOOR
+#: RAISED 0.21.0 -> 0.22.0 on 2026-09-16 by a FOURTH contract: the Command
+#: Registry and the global/app-mode keymap API consumed by Settings > Keyboard
+#: Shortcuts first ship in 0.22.0 -- older wheels cannot import
+#: ``scitex_ui.keymap`` at all. This is now the highest contract, so the
+#: DECLARED floor moves with it; leaving DECLARED_FLOOR at 0.21.0 while a group
+#: required 0.22.0 is exactly the over-raising this file's last test forbids.
+KEYMAP_FLOOR = Version("0.22.0")
+DECLARED_FLOOR = KEYMAP_FLOOR
 
 #: A pane name scitex-ui does not know. Any value outside PANE_NAMES works;
 #: this one is obviously synthetic so a reader does not mistake it for a real
