@@ -818,6 +818,12 @@ secret_key.txt
 /media/
 uploads/
 
+# The staff-only demo library (apps/infra/public_app/views/internal_demos.py,
+# card hub-internal-demo-video-library-20260917). Runtime artifacts like /media/:
+# rendered videos, manifests, watch gates and promotion files that nobody should
+# commit. Deliberately outside /media/, because that tree is served publicly.
+/internal_demos/
+
 # Django static files in production
 staticfiles/
 _staticfiles/

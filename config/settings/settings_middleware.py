@@ -28,6 +28,12 @@ MIDDLEWARE = [
     # touching any view. See apps/infra/accounts_app/middleware.py.
     "apps.infra.accounts_app.middleware.JWTBearerToSessionMiddleware",
     "apps.infra.project_app.middleware.OnSiteAuthMiddleware",
+    # The signup funnel's product gate (PR #934 review, blocker 1). Must sit
+    # AFTER every authentication source so request.user is final: a
+    # verified-but-unpaid account may reach its own settings, the payment step
+    # and sign-out, and nothing else. See
+    # apps/infra/accounts_app/middleware.OnboardingGateMiddleware.
+    "apps.infra.accounts_app.middleware.OnboardingGateMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",

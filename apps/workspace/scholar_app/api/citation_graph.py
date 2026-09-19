@@ -374,27 +374,12 @@ def paper_summary(request):
 @permission_classes([AllowAny])
 @throttle_classes([HealthCheckThrottle])
 def health(request):
+    """Delegate the optional capability report to its owning Scholar package.
+
+    Initial page load reports configuration without constructing a backend.
+    ``?probe=1`` retains Scholar's explicit, sanitized live-probe contract.
+    Hub keeps its existing method, permission, and rate-limit boundary.
     """
-    Health check for citation graph service.
+    from scitex_scholar._django.views import graph_health
 
-    Rate limited to 10 requests/minute to prevent flood attacks.
-
-    GET /api/scholar/citation-graph/health/
-
-    Returns:
-        JSON with service health status
-
-    Example:
-        curl "https://scitex.ai/api/scholar/citation-graph/health/"
-    """
-    try:
-        service = get_citation_graph_service()
-        health_status = service.health_check()
-        return Response(health_status, status=status.HTTP_200_OK)
-
-    except Exception as e:
-        logger.error(f"Health check failed: {e}", exc_info=True)
-        return Response(
-            {"status": "unhealthy", "error": str(e)},
-            status=status.HTTP_503_SERVICE_UNAVAILABLE,
-        )
+    return graph_health(request)
