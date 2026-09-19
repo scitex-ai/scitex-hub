@@ -324,7 +324,7 @@ class UserProfile(models.Model):
         cross-user pointer cannot leak another account's project.
         """
         try:
-            from .onboarding import profile_has_explicit_choice, resolve_active_project
+            from ..onboarding import profile_has_explicit_choice, resolve_active_project
 
             if not profile_has_explicit_choice(self):
                 return None

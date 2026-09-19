@@ -167,14 +167,19 @@ class TestNewVerifiedUserOwnsNothingYet(TestCase):
     def _verified_user(self, username):
         from django.contrib.auth import get_user_model
 
+        from apps.infra.auth_app.onboarding import mark_verified
+
         User = get_user_model()
         user = User.objects.create_user(
             username=username,
             email=f"{username}@example.com",
             password="TestPass123!",  # pragma: allowlist secret
         )
-        user.profile.email_verified = True
-        user.profile.save(update_fields=["email_verified"])
+        # Verification is NOT a profile field: the authority is OnboardingState,
+        # written by onboarding.mark_verified (email proven, payment still owed).
+        # The old `user.profile.email_verified = True` never existed on the model
+        # and failed with "E ... fields do not exist in this model ... email_verified".
+        mark_verified(user)
         return user
 
     def test_creating_a_user_does_not_create_an_example_project(self):
