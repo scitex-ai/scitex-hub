@@ -150,8 +150,15 @@ def get_current_project(request, user=None):
             logger.info(
                 f"Using first user project for {user.username}: {current_project.name}"
             )
-            # Store in session for future requests
-            remember_current_project(request, current_project)
+            # NOT a choice, so it is NOT remembered. This branch used to call
+            # remember_current_project(), which writes BOTH the session keys and
+            # profile.last_active_repository — so merely rendering a page made a
+            # user who had never chosen anything look like a user who had, and
+            # the first-login welcome could never show (the launcher built its
+            # context by calling this, the pointer got written, and
+            # profile_has_explicit_choice() then read True). An implicit default
+            # may be DISPLAYED; only a real choice may be PERSISTED. Card
+            # hub-first-login-project-workspace-onboarding-20260917.
             return current_project
     except Exception as e:
         logger.error(f"Error retrieving project for user {user.username}: {e}")
