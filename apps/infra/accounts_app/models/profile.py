@@ -322,26 +322,34 @@ class UserProfile(models.Model):
         return Project.objects.filter(owner=self.user).order_by("-updated_at")
 
     def get_active_project(self):
-        """Get active project, auto-defaulting to first owned project.
+        """The project the user chose, or ``None`` — never a guess.
 
-        If last_active_repository is unset, picks the first project and
-        persists the choice so subsequent requests are fast.
-        Only returns projects owned by the user.
+        Only an explicit choice counts. This used to pick and PERSIST the first
+        owned project when none was set, which put a newly verified user inside
+        a project they never chose (and, for an account owning nothing else, the
+        shell-config one). The workspace now asks instead: when this returns
+        ``None`` for a signed-in user, the first-login welcome is what they see
+        (card hub-first-login-project-workspace-onboarding-20260917).
+
+        A stored reference the user does not own is cleared, so a stale
+        cross-user pointer cannot leak another account's project.
         """
         try:
-            if self.last_active_repository_id:
-                lar = self.last_active_repository
-                # Only return if user owns this project
-                if lar.owner_id == self.user_id:
-                    return lar
-                # Clear stale cross-user reference
-                self.last_active_repository = None
-                self.save(update_fields=["last_active_repository"])
-            first = self.get_user_projects().first()
-            if first:
-                self.last_active_repository = first
-                self.save(update_fields=["last_active_repository"])
-            return first
+            from ..onboarding import profile_has_explicit_choice, resolve_active_project
+
+            if not profile_has_explicit_choice(self):
+                return None
+
+            project = resolve_active_project(
+                self.get_user_projects(), self.last_active_repository_id
+            )
+            if project is not None:
+                return project
+
+            # Stale or unowned reference: drop it rather than substitute another.
+            self.last_active_repository = None
+            self.save(update_fields=["last_active_repository"])
+            return None
         except Exception:
             # DB connection may be in a failed transaction state (e.g. after
             # PgBouncer returns a dirty connection on startup).  Return None
