@@ -50,6 +50,7 @@ from django.shortcuts import resolve_url
 from django.test import RequestFactory
 from django.urls import reverse
 
+from apps.infra.accounts_app.funnel import payment_step_url
 from apps.infra.auth_app.forms import SignupForm
 from apps.infra.public_app.services.billing_provider import post_signup_redirect_url
 
@@ -190,11 +191,19 @@ class TestExistingAccountLoginIsUnchanged:
     @pytest.mark.django_db
     def test_an_existing_account_is_not_pushed_at_the_funnel_step(self, existing_social_account):
         # Arrange
-        sociallogin, user = existing_social_account
+        sociallogin, _user = existing_social_account
         # Act
         _request_obj, response = _login_via_allauth(sociallogin)
         # Assert
-        assert response["Location"] != post_signup_redirect_url(user)
+        # This used to compare against ``post_signup_redirect_url(user)`` — a
+        # proxy that is the ORDINARY target ("/") for an account the authority
+        # has no row for, which is exactly this fixture. Once the redirect
+        # became authority-based the comparison degenerated to "/" != "/" and
+        # stopped measuring anything. The funnel step is what this test is
+        # about, so assert that directly: the landing is not the payment step a
+        # waiting account would be sent to. (Integrated-branch correction,
+        # review of the current-base candidate.)
+        assert response["Location"] != payment_step_url()
 
     @pytest.mark.django_db
     def test_the_returning_user_is_really_signed_in(self, existing_social_account):
@@ -353,7 +362,17 @@ class TestTheEmailPathIsStillOtpFirst:
         # Act
         response = client.post(SIGNUP_URL, payload)
         # Assert
-        assert post_signup_redirect_url(User(username="otp_first_probe")) not in response["Location"]
+        # This used to read
+        # ``assert post_signup_redirect_url(User(username="otp_first_probe")) not in
+        # response["Location"]`` — an UNSAVED User instance handed to a function
+        # that now asks the onboarding authority, which raises ValueError for an
+        # instance Django cannot filter on. The premise is gone either way: a
+        # user the authority has no row for answers with the ORDINARY target
+        # ("/"), and "/" is a substring of every verification URL, so that
+        # assertion could not have expressed its own intent. The payment step is
+        # what this test is about, so assert that directly.
+        # (Integrated-branch correction, review of the current-base candidate.)
+        assert payment_step_url() not in response["Location"]
 
     @pytest.mark.django_db
     def test_the_signup_does_not_start_a_session(self, client):

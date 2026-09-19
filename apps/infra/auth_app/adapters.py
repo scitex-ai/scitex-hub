@@ -5,11 +5,12 @@ These adapters handle the integration between social login providers
 (Google, ORCID) and SciTeX's user system.
 """
 
-import re
 import logging
-from django.contrib.auth import get_user_model
+import re
+
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+from django.contrib.auth import get_user_model
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -302,32 +303,74 @@ class SciTexSocialAccountAdapter(DefaultSocialAccountAdapter):
         """
         Save user from social login.
         UserProfile is automatically created via signal.
+
+        PR #934 review, blocker 7: a provider-verified social signup is the
+        SAME funnel as an email one and must enter it. Google/ORCID signups used
+        to be created, logged in, redirected to "/" and never recorded as
+        owing a payment method — so the product gate could not see them and
+        they walked past the payment step entirely. ``begin_social_signup``
+        writes exactly the authority row the OTP path writes, so both doors
+        converge on one gate.
         """
         user = super().save_user(request, sociallogin, form)
 
-        # Log successful social signup
         provider = sociallogin.account.provider
+        # allauth calls save_user only while CREATING the local account, so this
+        # is a new signup, not an existing user connecting another identity.
+        # The call is idempotent regardless (get_or_create on the authority).
+        from apps.infra.auth_app.onboarding import begin_social_signup
+
+        begin_social_signup(user, provider)
+
+        # Log successful social signup
         logger.info(
             f"New user signed up via {provider}: {user.username} ({user.email})"
         )
 
         return user
 
-    # get_login_redirect_url USED TO LIVE HERE, and nothing called it.
+    # NOTE — conflict resolved at the current-base merge of develop (#941) into
+    # this branch. Two things are both true and are kept together here:
     #
-    # It returned ``LOGIN_REDIRECT_URL`` and read as the social-redirect policy.
-    # It was not one: ``get_login_redirect_url`` is an ACCOUNT-adapter hook, and
-    # allauth 65 reaches it through ``account.utils.get_login_redirect_url``
-    # (which asks ``allauth.account.adapter.get_adapter()``). The social adapter's
-    # copy on this class had no call site, so the social redirect was decided
-    # entirely by a default nobody had chosen — which is why a brand-new
-    # Google/ORCID signup landed on "/" while the email path published the
-    # payment step.
+    # (1) develop's finding: ``get_login_redirect_url`` is an ACCOUNT-adapter
+    #     hook. allauth 65 reaches it through ``account.utils.get_login_redirect_url``
+    #     (which asks ``allauth.account.adapter.get_adapter()``), and
+    #     ``DefaultSocialAccountAdapter`` derives from
+    #     ``allauth.core.internal.adapter.BaseAdapter`` — NOT from the account
+    #     adapter — so a copy on this class has no call site inside allauth. The
+    #     behaviour therefore lives where allauth actually looks:
+    #     ``SciTexAccountAdapter.get_signup_redirect_url`` (a NEW signup
+    #     converges on the funnel step) and the account ``get_login_redirect_url``
+    #     (existing-account logins keep the ordinary target). develop removed
+    #     this method and left that note; the note is kept rather than dropped,
+    #     because the next person looking for "the social redirect" will look
+    #     for this name.
     #
-    # The behaviour now lives where allauth actually looks:
-    # ``SciTexAccountAdapter.get_signup_redirect_url`` (a NEW signup converges on
-    # the funnel step) and the untouched account ``get_login_redirect_url``
-    # (existing-account logins keep the ordinary target). Left as a note rather
-    # than silently dropped, because the next person looking for "the social
-    # redirect" will look for this name.
+    # (2) this branch's reviewed surface: the method below is called DIRECTLY
+    #     (not through allauth) by the reviewed funnel tests in
+    #     tests/apps/accounts_app/test_funnel_product_gate_e2e.py, and it
+    #     delegates to the same authority as the develop hooks —
+    #     ``onboarding.next_url``, which
+    #     ``public_app.services.billing_provider.post_signup_redirect_url`` also
+    #     wraps. Keeping it therefore adds no second policy: both doors still
+    #     answer from one authority.
+    #
+    # No behaviour is taken from either side that the other side did not have.
+    def get_login_redirect_url(self, request):
+        """
+        Return the URL to redirect to after successful social login.
 
+        PR #934 review, blocker 7: this returned ``LOGIN_REDIRECT_URL`` ("/")
+        unconditionally, which is how a social account reached the product
+        without ever seeing the payment step. It now asks the same authority the
+        OTP handler asks, so "where does this account go next?" has ONE answer
+        for both doors — and an account that is not in the funnel still gets the
+        ordinary post-login destination.
+
+        See the note above: allauth itself no longer reaches this name (develop
+        #941 moved the hook to the account adapter); this method is retained as
+        the reviewed surface its tests call directly.
+        """
+        from apps.infra.auth_app.onboarding import next_url
+
+        return next_url(request.user)
