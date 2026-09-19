@@ -14,8 +14,6 @@ from typing import Any
 
 _VERSION = 1
 _IDENTIFIER_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:-]*$")
-_PLUS_SPACING_RE = re.compile(r"\s*\+\s*")
-_WHITESPACE_RE = re.compile(r"\s+")
 
 
 class KeymapConflictError(ValueError):
@@ -39,8 +37,13 @@ def _identifier(value: str, label: str) -> str:
 
 
 def _sequence(value: str) -> str:
-    candidate = _WHITESPACE_RE.sub(" ", str(value).strip())
-    candidate = _PLUS_SPACING_RE.sub("+", candidate)
+    # NOT a regex: ``\s*\+\s*`` backtracks polynomially on a long run of spaces
+    # that contains no ``+`` (CodeQL py/polynomial-redos, alert 14563), and this
+    # input is whatever the client posts. str.split/join is linear and gives the
+    # same result for every case the regex handled, including the degenerate
+    # " + " -> "+" collapse.
+    candidate = " ".join(str(value).split())
+    candidate = "+".join(part.strip() for part in candidate.split("+"))
     if not candidate or len(candidate) > 128:
         raise InvalidKeymapPreference("Shortcut sequence must contain 1-128 characters")
     return candidate
