@@ -206,6 +206,18 @@ GATED_MOUNTS = frozenset(
         "enter",
         "example",
         "figrecipe",
+        # --- added at the current-base merge of develop (#948's internal demo
+        # --- library: ``public_app:internal_demos`` and ``internal_demo_media``).
+        # --- The audit failed on this segment once develop was merged, because a
+        # --- route nobody classified is exactly what it is there to catch. It was
+        # --- ALREADY gated (an undeclared segment is closed, fail-closed), so
+        # --- declaring it here records the decision rather than changing it.
+        # --- This is not a public surface, so it is not in the residual
+        # --- public-page family listed in this same set: the view denies a
+        # --- logged-out visitor outright (302 -> /auth/login/?next=...), denies
+        # --- a signed-in non-staff account (403), and serves the library only to
+        # --- instance admins.
+        "internal",
         "keyboard-shortcuts",
         "llm",
         "notebook",
