@@ -4,7 +4,7 @@
 
 WHY NOT ``networkidle``. It is the obvious answer and it is wrong for this
 product. ``networkidle`` waits for 500 ms with no in-flight requests, and a
-SciTeX page held by a POOLED VISITOR never has that: the visitor session
+SciTeX page held by a SYNTHETIC REGISTERED USER never has that: the authenticated session
 runs a heartbeat/countdown poller (the same one that promotes the 2-minute
 probation lease to a full session — ``PoolAllocator.extend_session_on_activity``),
 so requests keep arriving forever. Measured in CI on 2026-08-16, run

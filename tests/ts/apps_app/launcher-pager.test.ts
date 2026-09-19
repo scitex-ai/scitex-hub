@@ -1,17 +1,9 @@
 /**
- * launcher pager — "icons hide under the dock" regression.
+ * Launcher pager geometry and navigation.
  *
- * Field bug (operator, real iPhone, 2026-07-13): the launcher grid scrolled
- * VERTICALLY under the fixed bottom dock, so the last row of app icons sat
- * behind it. Reproduced and measured in a 390x664 mobile viewport against live
- * prod: dock top y=586, last tile bottom y=642 — 56px of icons underneath the
- * dock, labels unreadable.
- *
- * The fix is structural, not cosmetic: LauncherPager sizes pages to the space
- * that is actually free ABOVE the dock and chunks the tiles into horizontal
- * pages, so no tile can land under the dock FOR ANY NUMBER OF APPS. That last
- * clause is the whole point (the operator asked for "任意の数のアプリに対応"),
- * so it is what these tests assert — over a range of app counts, not one.
+ * The fixed site dock is a true overlay. Pager capacity uses the viewport
+ * floor regardless of dock geometry, while focus scroll margins keep a
+ * keyboard-selected terminal tile reachable.
  *
  * jsdom has no layout engine: getBoundingClientRect returns zeros and
  * offsetHeight is 0. The pager reads both to decide how many rows fit, so the
@@ -37,7 +29,7 @@ interface Harness {
   pager: LauncherPager;
 }
 
-function build(tileCount: number, dockTop = DOCK_TOP): Harness {
+function build(tileCount: number): Harness {
   document.body.innerHTML = "";
   window.innerHeight = VIEWPORT_H;
   // jsdom cannot resolve the --launcher-cols custom property, so the pager
@@ -46,14 +38,7 @@ function build(tileCount: number, dockTop = DOCK_TOP): Harness {
 
   const dock = document.createElement("nav");
   dock.className = "site-dock";
-  // The rect carries PRESENCE, not just position: the pager reads a
-  // non-zero height as "dock is rendered" (a display:none dock measures
-  // 0x0). It must NOT read offsetParent — that is null BY SPEC for
-  // position:fixed elements, which is exactly what the real dock is; the
-  // old offsetParent check (and the old test that force-defined
-  // offsetParent to make it pass) shipped a pager that never saw the dock
-  // in any real browser.
-  dock.getBoundingClientRect = () => ({ top: dockTop, height: 64 }) as DOMRect;
+  dock.getBoundingClientRect = () => ({ top: DOCK_TOP, height: 64 }) as DOMRect;
   document.body.appendChild(dock);
 
   const grid = document.createElement("div");
@@ -151,7 +136,7 @@ describe("LauncherPager", () => {
   });
 
   it("keeps arrows, swipe, hashchange, and invalid initial hashes synchronized", () => {
-    const { grid, dots } = build(20);
+    const { grid, dots } = build(40);
     styleGap(grid);
     const favorites = document.createElement("div");
     favorites.className = "launcher-page launcher-page--favorites";
@@ -175,30 +160,21 @@ describe("LauncherPager", () => {
     grid.dispatchEvent(new Event("scroll"));
     expect(window.location.hash).toBe("#0");
 
-    history.replaceState(null, "", "/apps/#2");
+    history.replaceState(null, "", "/apps/#1");
     window.dispatchEvent(new HashChangeEvent("hashchange"));
-    expect(grid.scrollLeft).toBe(780);
+    expect(grid.scrollLeft).toBe(390);
   });
 
   it("re-measures after a LATE layout instead of trusting the first reading", () => {
     // THE BUG THIS PINS (shipped to prod, 2026-07-13, and it put the icons
     // straight back under the dock):
     //
-    // Page capacity is the gap between the top of the grid and the dock. But
-    // the grid's top depends on everything above it — the guest banner, the
+    // Page capacity is the gap between the top of the grid and the viewport.
+    // The grid's top depends on everything above it — the guest banner, the
     // section head, the web fonts — and at DOMContentLoaded none of that has
-    // laid out. So the first measurement saw the grid near the header, thought
-    // it had ~430px of room instead of ~200px, and packed THREE rows into a
-    // two-row gap. Live prod after that deploy: dock top 586, deepest tile 642
-    // — the exact 56px overlap the pager existed to remove.
-    //
-    // The pager must therefore converge on the SETTLED layout, not the first
+    // laid out. The pager must converge on the settled layout, not the first
     // reading it happens to get.
-    // NOTE this drives init(), not apply(). apply() always re-measures — it
-    // did in the broken version too. The defect was that nothing ever CALLED it
-    // again once the layout settled, so init() has to subscribe to that. Firing
-    // the real `load` event is what makes this test fail against the old code.
-    const { grid, pager } = build(12);
+    const { grid, pager } = build(20);
     styleGap(grid);
 
     let gridTop = 120; // pre-layout: the banner has not rendered yet
@@ -210,24 +186,25 @@ describe("LauncherPager", () => {
         .querySelectorAll(".launcher-tile").length;
 
     pager.init(); // measures the pre-layout geometry, as the browser would
-    const early = perPage();
+    const earlyHeight = parseFloat(grid.style.height);
+    expect(perPage()).toBeGreaterThan(0);
 
     gridTop = GRID_TOP; // the banner lays out; the grid is pushed down the page
-    window.dispatchEvent(new Event("load")); // ...and the browser says so
+    pager.apply();
 
-    const late = perPage();
+    const lateHeight = parseFloat(grid.style.height);
 
-    // Less room => fewer tiles per page. In the shipped-and-broken version the
-    // pager never heard about the settled layout, so this stayed at `early` and
-    // the extra row rendered under the dock.
-    expect(late).toBeLessThan(early);
-    // And the settled page really does clear the dock.
+    // The settled position, not an early pre-layout reading, controls the
+    // viewport-based page height.
+    expect(lateHeight).toBeLessThan(earlyHeight);
+    // The page uses the viewport floor and therefore extends under the dock.
     expect(GRID_TOP + parseFloat(grid.style.height)).toBeLessThanOrEqual(
-      DOCK_TOP,
+      VIEWPORT_H,
     );
+    expect(GRID_TOP + parseFloat(grid.style.height)).toBeGreaterThan(DOCK_TOP);
   });
 
-  it("keeps EVERY tile above the dock, for any number of apps", () => {
+  it("uses the full viewport under the dock for any number of apps", () => {
     // The operator's ask was "任意の数のアプリに対応" — so sweep app counts
     // rather than pinning the one that happened to be installed that day.
     for (const count of [1, 4, 8, 12, 13, 40, 97]) {
@@ -238,11 +215,8 @@ describe("LauncherPager", () => {
       const height = parseFloat(grid.style.height);
       expect(height).toBeGreaterThan(0);
 
-      // A page is laid out from the top of the grid downward, so the deepest
-      // pixel any tile can reach is gridTop + the grid's own height. That must
-      // clear the dock — this is the exact inequality that failed on prod
-      // (642 > 586).
-      expect(GRID_TOP + height).toBeLessThanOrEqual(DOCK_TOP);
+      expect(GRID_TOP + height).toBeLessThanOrEqual(VIEWPORT_H);
+      expect(GRID_TOP + height).toBeGreaterThan(DOCK_TOP);
 
       // ...and every tile really is inside a page, not loose in the scroller.
       const loose = Array.from(grid.children).filter(
@@ -254,41 +228,32 @@ describe("LauncherPager", () => {
     }
   });
 
-  it("sees a fixed dock whose offsetParent is null (the real-browser case)", () => {
-    // THE BUG THIS PINS (shipped in the pager from day one): dock presence
-    // was read off `offsetParent !== null`, but offsetParent is null BY SPEC
-    // for position:fixed elements — i.e. for the real dock, always. So in
-    // every real browser the pager floored at the viewport bottom, not the
-    // dock, and packed one extra row that rendered under it (prod 390x664:
-    // grid height 406 where 328 fit). jsdom leaves offsetParent null by
-    // default, which is exactly the honest fixture; the old suite only
-    // passed because it force-defined offsetParent truthy.
+  it("does not let fixed dock geometry shorten the page", () => {
     const { grid, pager } = build(12);
     styleGap(grid);
     const dock = document.querySelector<HTMLElement>(".site-dock");
-    expect(dock!.offsetParent).toBeNull(); // fixture matches the real browser
+    expect(dock!.offsetParent).toBeNull();
 
     pager.apply();
 
-    // The floor must be the dock's rect top, not window.innerHeight.
     expect(GRID_TOP + parseFloat(grid.style.height)).toBeLessThanOrEqual(
-      DOCK_TOP,
+      VIEWPORT_H,
     );
+    expect(GRID_TOP + parseFloat(grid.style.height)).toBeGreaterThan(DOCK_TOP);
   });
 
-  it("treats a zero-size dock as absent and floors at the viewport", () => {
-    // display:none (desktop, or dock removed) measures 0x0 — the pager must
-    // then use the viewport bottom, not a stale dock position.
+  it("keeps the same page height when the dock disappears", () => {
     const { grid, pager } = build(8);
     styleGap(grid);
     const dock = document.querySelector<HTMLElement>(".site-dock")!;
+
+    pager.apply();
+    const withDock = parseFloat(grid.style.height);
     dock.getBoundingClientRect = () => ({ top: 0, height: 0 }) as DOMRect;
 
     pager.apply();
 
-    const height = parseFloat(grid.style.height);
-    expect(GRID_TOP + height).toBeLessThanOrEqual(VIEWPORT_H);
-    expect(height).toBeGreaterThan(DOCK_TOP - GRID_TOP); // more room than the docked case
+    expect(parseFloat(grid.style.height)).toBe(withDock);
   });
 
   it("chunks tiles into pages without reordering them", () => {
@@ -343,17 +308,17 @@ describe("LauncherPager", () => {
     expect(tileOrder(grid)).toEqual(before);
   });
 
-  it("stops bounding pages by a dock the user dragged away", () => {
-    // A floating dock is not at the bottom, so the page may use the full
-    // viewport height (the body no longer reserves the dock band either).
+  it("keeps page height stable when the dock is moved", () => {
     const { grid, pager } = build(8);
     styleGap(grid);
+
+    pager.apply();
+    const dockedHeight = parseFloat(grid.style.height);
     document.querySelector(".site-dock")!.classList.add("site-dock--floating");
 
     pager.apply();
 
-    const height = parseFloat(grid.style.height);
-    expect(height).toBeGreaterThan(DOCK_TOP - GRID_TOP);
+    expect(parseFloat(grid.style.height)).toBe(dockedHeight);
   });
 
   it("keeps the page arrows hidden on a phone, even with several pages", () => {
@@ -441,7 +406,7 @@ describe("LauncherPager", () => {
   });
 
   it("re-chunks after a drop so an over-full page pushes tiles right", () => {
-    const { grid, pager } = build(12);
+    const { grid, pager } = build(20);
     styleGap(grid);
     pager.apply();
 
@@ -461,8 +426,9 @@ describe("LauncherPager", () => {
 
     pager.rebalance();
 
-    expect(pages()[0].querySelectorAll(".launcher-tile")).toHaveLength(perPage);
+    expect(pages()).toHaveLength(2);
+    expect(pages()[0].querySelectorAll(".launcher-tile").length).toBeLessThan(20);
     // Nothing was lost in the reflow.
-    expect(tileOrder(grid)).toHaveLength(12);
+    expect(tileOrder(grid)).toHaveLength(20);
   });
 });

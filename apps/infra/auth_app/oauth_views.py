@@ -9,13 +9,7 @@ from oauth2_provider.decorators import protected_resource
 
 
 def _get_user_type(user):
-    """Derive user type from username/email patterns."""
-    if user.username.startswith("visitor-"):
-        return "visitor"
-    if user.email.endswith("@visitor.scitex.local"):
-        return "visitor"
-    if not user.email or user.email.endswith("@readonly.scitex.local"):
-        return "readonly"
+    """Return the authenticated account type exposed to OAuth clients."""
     return "member"
 
 

@@ -1,6 +1,6 @@
 [project]
 name = "scitex-hub"
-version = "0.20.0-alpha"
+version = "0.20.0a2"
 description = "SciTeX Hub - Deployment and management CLI for SciTeX"
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -69,7 +69,9 @@ dependencies = [
     "scitex-session>=0.1.6",
     # >=2.43.0: the root->workspace contract (PR #389). The hub hands leaves the
     # project root; older writers compose root/00_shared and fail to compile.
-    "scitex-writer>=2.43.1",
+    # >=2.43.6: PDF provenance follows the running source tree and the
+    # compile/re-vendor paths share one version-stamp template.
+    "scitex-writer>=2.43.6",
     # >=1.9.0 is a MOUNT requirement, not a feature preference. Below it the
     # leaf's client JS builds API urls from the SITE ROOT
     # (static/scholar/js/graph/citation-graph.js: fetch("/api/graph/health")),
@@ -85,7 +87,8 @@ dependencies = [
     # bound to 0.0.0.0, DEBUG defaults False, no "*". /api/health no longer
     # returns db_available / db_path (hub has no reader — measured). Verified
     # by scholar from a throwaway venv against PyPI 1.10.0.
-    "scitex-scholar>=1.10.0",
+    # 1.12.0 supplies the optional graph capability report consumed by Hub.
+    "scitex-scholar>=1.12.0",
     # THE FOUR SIBLINGS HUB IMPORTS BUT NEVER DECLARED — measured 2026-09-03/04
     # inside the dev image built from `.[all]` (sha256:70be677c04bf): hub's
     # `all` extra pulls the umbrella BARE (`scitex>=2.29.3`, below), whose base
@@ -465,6 +468,7 @@ all = [
     "dearpygui>=1.11",
     "cairosvg>=2.9.0",
     "Pillow>=12.1.1",
+    "pypdf>=4.0",
     # --- MCP server surface ---
     "fastmcp>=2.0.0",
     "pyyaml>=6.0",
@@ -512,7 +516,8 @@ dev = [
     # renders a blank — or unusable — gallery. Checked before pinning: the
     # PUBLISHED 0.34.6 wheel was downloaded and inspected, and carries 56 .csv
     # + 1 .npz under figrecipe/_django/gallery_templates/.
-    "figrecipe>=0.34.6",
+    # >=0.34.8 adds recorder/style correctness warnings validated with this alpha.
+    "figrecipe>=0.34.8",
     "joblib",
     "flask",
     # PS-210: `[all]` ships these and the test suite imports them

@@ -1,6 +1,6 @@
 /**
  * @component Leaf Host Chrome
- * @description Site header, themed page ground and dock clearance for leaf apps
+ * @description Site header and themed page ground for leaf apps
  *   rendered in scitex-ui's standalone shell (injected by SiteContentFrameMiddleware).
  * @category Layouts
  * @file /static/shared/css/layouts/leaf-host-chrome.css
@@ -57,9 +57,10 @@ body.workspace-page {
   white-space: nowrap;
 }
 
-/* The page scrolls past the fixed dock instead of ending under it. */
+/* The fixed dock is an overlay; only the physical device inset belongs to the
+   page's layout. */
 body:has(> .stx-leaf-site-header) {
-  padding-bottom: var(--site-dock-clearance, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 @media (min-width: 1024px) {
@@ -69,7 +70,7 @@ body:has(> .stx-leaf-site-header) {
   }
 
   body:has(> .stx-leaf-site-header) > .workspace-three-col {
-    height: calc(100vh - 65px - var(--site-dock-clearance, 0px));
-    max-height: calc(100vh - 65px - var(--site-dock-clearance, 0px));
+    height: calc(100vh - 65px);
+    max-height: calc(100vh - 65px);
   }
 }

@@ -12,7 +12,7 @@ from tests.e2e.playwright.page_ready import wait_for_page_ready
 # WHY THESE TESTS DO NOT WAIT FOR `networkidle`
 #
 # `networkidle` means "500 ms with zero requests in flight". A SciTeX page
-# held by a pooled visitor session runs a heartbeat/countdown poller for as
+# held by a synthetic registered user session runs a heartbeat/countdown poller for as
 # long as the page is open (PoolAllocator.extend_session_on_activity), so
 # that condition never arrives and the wait always times out. The page is
 # fine; the question is unanswerable.

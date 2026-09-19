@@ -17,19 +17,93 @@ export interface MediaRef {
   ext: string;
 }
 
+/** Encode one untrusted route segment using the stricter RFC 3986 set. */
+function encodeSegment(segment: string): string {
+  return encodeURIComponent(segment).replace(
+    /[!'()*]/g,
+    (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`,
+  );
+}
+
+/** Encode an untrusted file path while preserving its path separators. */
+function encodePath(path: string): string {
+  return path.split("/").map(encodeSegment).join("/");
+}
+
 /** Build raw blob URL for serving file content */
 function blobUrl(username: string, slug: string, path: string): string {
-  return `/${username}/${slug}/blob/${path}?mode=raw`;
+  return `/${encodeSegment(username)}/${encodeSegment(slug)}/blob/${encodePath(path)}?mode=raw`;
 }
 
 /** Build navigable blob URL (file view page) */
 function viewUrl(username: string, slug: string, path: string): string {
-  return `/${username}/${slug}/blob/${path}`;
+  return `/${encodeSegment(username)}/${encodeSegment(slug)}/blob/${encodePath(path)}`;
 }
 
 /** Extract filename from path */
 function filename(path: string): string {
   return path.split("/").pop() || path;
+}
+
+/** Read diagram text from the JSON response shape without trusting its type. */
+function jsonContent(value: unknown): string {
+  if (typeof value !== "object" || value === null || !("content" in value)) {
+    return "";
+  }
+  const content = (value as { content: unknown }).content;
+  return typeof content === "string" ? content : "";
+}
+
+/** Build the allowlisted file-link structure without parsing HTML text. */
+function createFileLink(
+  ref: MediaRef,
+  username: string,
+  slug: string,
+  iconClass: string,
+): HTMLAnchorElement {
+  const link = document.createElement("a");
+  link.className = "stx-shell-ai-media-file";
+  link.href = viewUrl(username, slug, ref.path);
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+
+  const icon = document.createElement("i");
+  icon.classList.add("fas", iconClass);
+  icon.setAttribute("aria-hidden", "true");
+  link.append(icon, document.createTextNode(filename(ref.path)));
+  return link;
+}
+
+/** Append a filename caption using text-only DOM APIs. */
+function appendCaption(wrapper: HTMLElement, path: string): void {
+  const caption = document.createElement("span");
+  caption.className = "stx-shell-ai-media-caption";
+  caption.textContent = filename(path);
+  wrapper.appendChild(caption);
+}
+
+/**
+ * Render generated SVG in the browser's inert image context.
+ *
+ * Mermaid and Graphviz output can be derived from attacker-controlled repository
+ * text. SVG loaded as an image cannot execute scripts or event handlers, unlike
+ * the same text inserted into the active document through an HTML parsing sink.
+ */
+function appendSvgImage(wrapper: HTMLElement, svg: string, path: string): void {
+  const objectUrl = URL.createObjectURL(
+    new Blob([svg], { type: "image/svg+xml;charset=utf-8" }),
+  );
+  const image = document.createElement("img");
+  image.src = objectUrl;
+  image.alt = filename(path);
+  image.className = "stx-shell-ai-media-diagram-image";
+
+  const revokeObjectUrl = () => URL.revokeObjectURL(objectUrl);
+  image.addEventListener("load", revokeObjectUrl, { once: true });
+  image.addEventListener("error", revokeObjectUrl, { once: true });
+
+  wrapper.replaceChildren(image);
+  appendCaption(wrapper, path);
 }
 
 /** Render a media reference into a DOM element */
@@ -73,14 +147,14 @@ function renderImage(
   img.alt = filename(ref.path);
   img.loading = "lazy";
   img.addEventListener("click", () =>
-    window.open(viewUrl(username, slug, ref.path), "_blank"),
+    window.open(
+      viewUrl(username, slug, ref.path),
+      "_blank",
+      "noopener,noreferrer",
+    ),
   );
   wrapper.appendChild(img);
-
-  const caption = document.createElement("span");
-  caption.className = "stx-shell-ai-media-caption";
-  caption.textContent = filename(ref.path);
-  wrapper.appendChild(caption);
+  appendCaption(wrapper, ref.path);
 
   return wrapper;
 }
@@ -112,12 +186,7 @@ function renderCsv(ref: MediaRef, username: string, slug: string): HTMLElement {
       });
       wrapper.textContent = "";
       wrapper.appendChild(table);
-
-      // Add caption with filename
-      const caption = document.createElement("span");
-      caption.className = "stx-shell-ai-media-caption";
-      caption.textContent = filename(ref.path);
-      wrapper.appendChild(caption);
+      appendCaption(wrapper, ref.path);
     })
     .catch(() => {
       wrapper.textContent = `Could not load: ${filename(ref.path)}`;
@@ -139,11 +208,7 @@ function renderAudio(
   audio.preload = "metadata";
   audio.src = blobUrl(username, slug, ref.path);
   wrapper.appendChild(audio);
-
-  const caption = document.createElement("span");
-  caption.className = "stx-shell-ai-media-caption";
-  caption.textContent = filename(ref.path);
-  wrapper.appendChild(caption);
+  appendCaption(wrapper, ref.path);
 
   return wrapper;
 }
@@ -163,11 +228,7 @@ function renderVideo(
   video.style.borderRadius = "4px";
   video.src = blobUrl(username, slug, ref.path);
   wrapper.appendChild(video);
-
-  const caption = document.createElement("span");
-  caption.className = "stx-shell-ai-media-caption";
-  caption.textContent = filename(ref.path);
-  wrapper.appendChild(caption);
+  appendCaption(wrapper, ref.path);
 
   return wrapper;
 }
@@ -185,7 +246,7 @@ function renderMermaid(
     .then((r) => {
       const ct = r.headers.get("content-type") || "";
       return ct.includes("application/json")
-        ? r.json().then((j: any) => j.content ?? "")
+        ? r.json().then(jsonContent)
         : r.text();
     })
     .then(async (code: string) => {
@@ -201,18 +262,16 @@ function renderMermaid(
           document.documentElement.getAttribute("data-theme") === "dark"
             ? "dark"
             : "default",
-        securityLevel: "loose",
+        securityLevel: "strict",
       });
       const id = `mmd-media-${Date.now()}`;
-      wrapper.innerHTML = `<div class="mermaid" id="${id}">${code}</div>`;
-      await mermaid.run({ nodes: [wrapper.querySelector(".mermaid")!] });
-      const caption = document.createElement("span");
-      caption.className = "stx-shell-ai-media-caption";
-      caption.textContent = filename(ref.path);
-      wrapper.appendChild(caption);
+      const { svg } = await mermaid.render(id, code);
+      appendSvgImage(wrapper, svg, ref.path);
     })
     .catch(() => {
-      wrapper.innerHTML = `<a class="stx-shell-ai-media-file" href="${viewUrl(username, slug, ref.path)}" target="_blank"><i class="fas fa-project-diagram"></i>${filename(ref.path)}</a>`;
+      wrapper.replaceChildren(
+        createFileLink(ref, username, slug, "fa-project-diagram"),
+      );
     });
 
   return wrapper;
@@ -231,7 +290,7 @@ function renderGraphviz(
     .then((r) => {
       const ct = r.headers.get("content-type") || "";
       return ct.includes("application/json")
-        ? r.json().then((j: any) => j.content ?? "")
+        ? r.json().then(jsonContent)
         : r.text();
     })
     .then(async (code: string) => {
@@ -243,14 +302,12 @@ function renderGraphviz(
       const { Graphviz } = await import("@hpcc-js/wasm-graphviz");
       const graphviz = await Graphviz.load();
       const svg = graphviz.dot(code);
-      wrapper.innerHTML = svg;
-      const caption = document.createElement("span");
-      caption.className = "stx-shell-ai-media-caption";
-      caption.textContent = filename(ref.path);
-      wrapper.appendChild(caption);
+      appendSvgImage(wrapper, svg, ref.path);
     })
     .catch(() => {
-      wrapper.innerHTML = `<a class="stx-shell-ai-media-file" href="${viewUrl(username, slug, ref.path)}" target="_blank"><i class="fas fa-project-diagram"></i>${filename(ref.path)}</a>`;
+      wrapper.replaceChildren(
+        createFileLink(ref, username, slug, "fa-project-diagram"),
+      );
     });
 
   return wrapper;
@@ -264,14 +321,6 @@ function renderFileLink(
 ): HTMLElement {
   const wrapper = document.createElement("div");
   wrapper.className = "stx-shell-ai-media";
-
-  const link = document.createElement("a");
-  link.className = "stx-shell-ai-media-file";
-  link.href = viewUrl(username, slug, ref.path);
-  link.target = "_blank";
-  link.innerHTML = `<i class="fas ${iconClass}"></i>`;
-  link.appendChild(document.createTextNode(filename(ref.path)));
-  wrapper.appendChild(link);
-
+  wrapper.appendChild(createFileLink(ref, username, slug, iconClass));
   return wrapper;
 }

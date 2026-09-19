@@ -49,7 +49,6 @@ EXPECTED_TILE_ORDER = [
     "Agents",
     "Cards",
     "Storage",
-    "Files",
     # WORK (Stats keeps its slot until its app lands)
     "Scholar",
     "FigRecipe",
@@ -132,13 +131,13 @@ class GridLauncherTest(TestCase):
         # Assert
         assert labels.get("my_projects") == "My Projects"
 
-    def test_mobile_menu_offers_my_projects(self):
+    def test_mobile_dock_offers_my_projects(self):
         # Arrange
         self.client.force_login(self.staff)
         # Act
         response = self.client.get("/apps/my-projects/")
         # Assert
-        assert b"<span>My Projects</span>" in response.content
+        assert b'data-dock-item="my_projects"' in response.content
 
 
 @pytest.fixture(name="compiled_catalogs")

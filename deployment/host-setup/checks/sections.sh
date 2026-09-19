@@ -38,7 +38,6 @@ status_sections() {
         "02-docker"     "${d}/check-docker.sh" \
         "03-migrations" "${d}/check-migrations.sh" \
         "03b-db-modules" "${d}/check-db-modules.sh" \
-        "04-visitors"   "${d}/check-visitor-pool.sh" \
         "05-slurm"      "${d}/check-slurm.sh" \
         "06-host"       "${d}/check-users.sh" \
         "07-terminal"   "${d}/check-terminal-ready.sh" \

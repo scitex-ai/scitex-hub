@@ -39,7 +39,6 @@ from .sections import (
     DesignThemeView,
     DesignToggleButtonCheckboxView,
     DesignTypographyView,
-    DesignVisitorSystemView,
     DesignWorkspaceColorsView,
     DesignWorkspaceIconsView,
     DesignWorkspaceLayoutView,
@@ -84,7 +83,6 @@ __all__ = [
     "DesignHeroView",
     "DesignResizerView",
     "DesignWorkspaceLayoutView",
-    "DesignVisitorSystemView",
     # combined.py
     "DesignAllView",
     # tests.py

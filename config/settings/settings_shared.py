@@ -98,6 +98,15 @@ SCITEX_APP_MODE = branding.MODE_HUB
 # Storage leaf asks the hub which directories belong to the requester.
 SCITEX_STORAGE_VOLUMES_PROVIDER = "apps.workspace.storage_app.volumes.user_volumes"
 
+# Project-scope apps (scitex-stats project-default mode, scitex-ui picker) ask the
+# hub where an AUTHORIZED project's files live and whether this request may write.
+# Request-aware: the class resolves the project through the same access-scoped lookup
+# the picker lists from, and answers per request, not per process. It is NOT the
+# picker itself — a provider entry carries display metadata, never a path.
+SCITEX_PROJECT_STORAGE = (
+    "apps.infra.project_app.services.project_scope.HubProjectStorage"
+)
+
 # ---------------------------------------
 # Paths
 # ---------------------------------------
@@ -134,9 +143,6 @@ LOGOUT_REDIRECT_URL = "/"
 # Metadata
 # ---------------------------------------
 SCITEX_HUB_VERSION = _get_version()
-SCITEX_HUB_VISITOR_POOL_SIZE = int(
-    _getenv_alias("SCITEX_HUB_VISITOR_POOL_SIZE", "4") or "4"
-)
 UMAMI_WEBSITE_ID = _getenv_alias("SCITEX_HUB_UMAMI_WEBSITE_ID", "")
 UMAMI_SCRIPT_URL = _getenv_alias(
     "SCITEX_HUB_UMAMI_SCRIPT_URL", "https://cloud.umami.is/script.js"
@@ -145,26 +151,15 @@ UMAMI_SCRIPT_URL = _getenv_alias(
 # ---------------------------------------
 # Unix identity the WEB process serves as
 # ---------------------------------------
-# A visitor-slot reset runs in the visitor Celery worker, which is ROOT on
-# production, while the process that must afterwards WRITE into the recycled
-# tree is the web process (daphne, uid 1000 / user `scitex`). The reset has to
-# hand the tree back to that identity as its last act -- see
-# apps/infra/project_app/services/visitor_pool/home_state.enforce_app_ownership.
-#
 # Declared HERE, once, because this identity is a property of the DEPLOYMENT,
-# not of the service that happens to run the chown. It began life as a
-# `getattr(settings, "APP_UNIX_OWNER", "scitex")` hidden inside home_state.py:
-# a user name that exists on production and nowhere else, reached through a
-# default nothing declared and nothing could override. CI's py3.11 leg made the
-# cost visible -- `chown: invalid user: 'scitex:scitex'` on a GitHub runner that
-# has no such account, so every slot reset failed there.
+# not of whichever service happens to use it. CI runners may not have the
+# production account, so every caller must treat an unresolvable value as an
+# explicit deployment error.
 #
 # Accepted forms: a user NAME (`scitex`), a numeric uid (`1000`), or an explicit
 # `<user>:<group>` pair of either (`scitex:scitex`, `1000:1000`). A name is
-# resolved through pwd/grp at reset time and an unresolvable value fails LOUDLY,
-# quarantining the slot. There is deliberately NO fallback to "whoever happens
-# to be running": on production that is root, which is exactly the bug this
-# whole mechanism exists to prevent.
+# resolved through pwd/grp and an unresolvable value fails loudly. There is no
+# fallback to "whoever happens to be running" because that may be root.
 APP_UNIX_OWNER = _getenv_alias("SCITEX_HUB_APP_UNIX_OWNER", "scitex") or "scitex"
 
 # ---------------------------------------
@@ -234,7 +229,9 @@ elif _scitex_hub_env in ("prod",):
 SCITEX_UI_ELEMENT_INSPECTOR = _scitex_hub_env in ("development", "staging")
 
 # Host service for leaf apps' project pickers (scitex_ui.project_scope).
-SCITEX_PROJECT_PROVIDER = "apps.infra.project_app.services.project_scope.HubProjectProvider"
+SCITEX_PROJECT_PROVIDER = (
+    "apps.infra.project_app.services.project_scope.HubProjectProvider"
+)
 SCITEX_PROJECT_PROVIDER_URL = "api_project_scope"
 
 # ── Internal-app release channel ────────────────────────────────────────
@@ -264,7 +261,6 @@ ONSITE_AUTH_SECRET = os.environ.get("SCITEX_HUB_ONSITE_SECRET", "")
 # module; imported under the same name so env modules can extend it.
 from .settings_middleware import MIDDLEWARE  # noqa: E402, F401
 
-
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
@@ -288,7 +284,6 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "apps.infra.project_app.context_processors.version_context",
                 "apps.infra.project_app.context_processors.project_context",
-                "apps.infra.project_app.context_processors.visitor_expiration_context",
                 "config.context_processors.cache_buster",
                 "config.context_processors.debug_mode",
                 "config.context_processors.scitex_version",
@@ -454,6 +449,53 @@ SCITEX_HUB_CAMPAIGN_MODEL = _getenv_alias(
 )
 SCITEX_HUB_CAMPAIGN_DAILY_LIMIT = _getenv_alias("SCITEX_HUB_CAMPAIGN_DAILY_LIMIT", "10")
 
+# SciTeX-funded Chat. Enabled is the operator kill switch: when false, the
+# funded path cannot reserve quota or contact a provider. Provider/model/caps
+# intentionally have no useful defaults; enabling an incomplete configuration
+# fails closed in funded_chat.config rather than silently selecting a model.
+SCITEX_FUNDED_CHAT_ENABLED = (
+    _getenv_alias("SCITEX_FUNDED_CHAT_ENABLED", "false") or "false"
+).lower() in ("1", "true", "yes", "on")
+SCITEX_FUNDED_CHAT_PROVIDER = _getenv_alias("SCITEX_FUNDED_CHAT_PROVIDER", "")
+SCITEX_FUNDED_CHAT_MODEL = _getenv_alias("SCITEX_FUNDED_CHAT_MODEL", "")
+SCITEX_FUNDED_CHAT_API_KEY = _getenv_alias("SCITEX_FUNDED_CHAT_API_KEY", "")
+SCITEX_FUNDED_CHAT_GLOBAL_DAILY_CAP_USD = _getenv_alias(
+    "SCITEX_FUNDED_CHAT_GLOBAL_DAILY_CAP_USD", "0"
+)
+SCITEX_FUNDED_CHAT_PROVIDER_DAILY_CAP_USD = _getenv_alias(
+    "SCITEX_FUNDED_CHAT_PROVIDER_DAILY_CAP_USD", "0"
+)
+SCITEX_FUNDED_CHAT_MAX_REQUEST_COST_USD = _getenv_alias(
+    "SCITEX_FUNDED_CHAT_MAX_REQUEST_COST_USD", "0"
+)
+SCITEX_FUNDED_CHAT_REQUESTS_PER_MINUTE = int(
+    _getenv_alias("SCITEX_FUNDED_CHAT_REQUESTS_PER_MINUTE", "3") or "3"
+)
+SCITEX_FUNDED_CHAT_DAILY_LIMIT = int(
+    _getenv_alias("SCITEX_FUNDED_CHAT_DAILY_LIMIT", "10") or "10"
+)
+SCITEX_FUNDED_CHAT_MAX_TOKENS = int(
+    _getenv_alias(
+        "SCITEX_FUNDED_CHAT_MAX_TOKENS", "2048"
+    )  # pragma: allowlist secret -- output-token count, not a credential
+    or "2048"
+)
+SCITEX_FUNDED_CHAT_TIMEOUT_SECONDS = int(
+    _getenv_alias("SCITEX_FUNDED_CHAT_TIMEOUT_SECONDS", "30") or "30"
+)
+SCITEX_FUNDED_CHAT_RESERVATION_LEASE_SECONDS = int(
+    _getenv_alias("SCITEX_FUNDED_CHAT_RESERVATION_LEASE_SECONDS", "120") or "120"
+)
+SCITEX_FUNDED_CHAT_MAX_REQUEST_BYTES = int(
+    _getenv_alias("SCITEX_FUNDED_CHAT_MAX_REQUEST_BYTES", "65536") or "65536"
+)
+SCITEX_FUNDED_CHAT_MAX_MESSAGES = int(
+    _getenv_alias("SCITEX_FUNDED_CHAT_MAX_MESSAGES", "64") or "64"
+)
+SCITEX_FUNDED_CHAT_MAX_MESSAGE_CHARS = int(
+    _getenv_alias("SCITEX_FUNDED_CHAT_MAX_MESSAGE_CHARS", "32768") or "32768"
+)
+
 # ---------------------------------------
 # Sub-module imports (celery, logging, auth, integrations)
 # ---------------------------------------
@@ -464,7 +506,7 @@ from .settings_integrations import *  # noqa: E402, F401, F403
 from .settings_logging import *  # noqa: E402, F401, F403
 
 # SIMPLE_JWT requires SECRET_KEY defined above
-SIMPLE_JWT = get_simple_jwt_settings(SECRET_KEY)  # noqa: F821
+SIMPLE_JWT = get_simple_jwt_settings(SECRET_KEY)  # noqa: F405
 
 
 @stx.session

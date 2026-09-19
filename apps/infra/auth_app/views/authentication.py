@@ -248,30 +248,6 @@ def signup(request):
                 logger.warning(f"Gitea sync failed for {username}: {e}")
                 # Don't fail signup if Gitea sync fails
 
-            # Migrate visitor session data if exists
-            if request.session.session_key:
-                from apps.infra.project_app.services.anonymous_storage import (
-                    migrate_to_user_storage,
-                )
-
-                migrated = migrate_to_user_storage(request.session.session_key, user)
-                if migrated:
-                    logger.info(
-                        f"Migrated visitor session data for new user {username}"
-                    )
-
-            # Claim visitor project if user was using visitor pool
-            # This transfers visitor-XXX's default-project to the new user's default-project
-            from apps.infra.project_app.services.visitor_pool import VisitorPool
-
-            claimed_project = VisitorPool.claim_project_on_signup(request.session, user)
-            if claimed_project:
-                logger.info(
-                    f"Claimed visitor project for new user {username}: {claimed_project.id}"
-                )
-            else:
-                logger.info(f"No visitor project to claim for new user {username}")
-
             # Create email verification record
 
             verification = EmailVerification.objects.create(
@@ -352,27 +328,6 @@ def login_view(request):
             user = authenticate(request, username=username, password=password)
 
             if user is not None:
-                # Migrate visitor session data before login if exists
-                if request.session.session_key:
-                    from apps.infra.project_app.services.anonymous_storage import (
-                        migrate_to_user_storage,
-                    )
-
-                    migrated = migrate_to_user_storage(
-                        request.session.session_key, user
-                    )
-                    if migrated:
-                        import logging
-
-                        logger = logging.getLogger(__name__)
-                        logger.info(
-                            f"Migrated visitor session data for user {user.username}"
-                        )
-                        messages.info(
-                            request,
-                            "Your previous session data has been saved to your account!",
-                        )
-
                 login(request, user)
 
                 # Handle remember me

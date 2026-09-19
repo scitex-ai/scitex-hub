@@ -118,25 +118,10 @@ class Command(BaseCommand):
             except:
                 pass
 
-            # Get visitor pool status
-            visitor_pool_allocated = None
-            visitor_pool_total = None
-            try:
-                from apps.infra.project_app.services.visitor_pool import VisitorPool
-
-                pool_status = VisitorPool.get_pool_status()
-                visitor_pool_allocated = pool_status["allocated"]
-                visitor_pool_total = pool_status["total"]
-            except Exception as e:
-                logger.debug(f"Could not get visitor pool status: {e}")
-
             # Count active logged-in users (with valid sessions in last 15 minutes)
             active_users_count = None
             try:
                 from django.contrib.sessions.models import Session
-                from django.contrib.auth import get_user_model
-
-                User = get_user_model()
 
                 # Get all active sessions (not expired)
                 active_sessions = Session.objects.filter(
@@ -179,8 +164,6 @@ class Command(BaseCommand):
                 gitea_ssh_status=gitea_ssh_status,
                 database_status=database_status,
                 redis_status=redis_status,
-                visitor_pool_allocated=visitor_pool_allocated,
-                visitor_pool_total=visitor_pool_total,
                 active_users_count=active_users_count,
             )
 

@@ -375,13 +375,13 @@ class TestTokushohoPage:
         # Assert
         assert "動作環境" in content
 
-    def test_terms_page_footer_links_to_tokushoho(self, client):
+    def test_terms_page_footer_links_to_english_tokushoho(self, client):
         # Arrange: footer is global — a lightweight legal page carries it
         url = reverse("public_app:terms")
         # Act
         content = client.get(url).content.decode("utf-8")
         # Assert
-        assert reverse("public_app:tokushoho") in content
+        assert reverse("public_app:tokushoho_en") in content
 
 
 class TestCommerceSettingsDefaults:

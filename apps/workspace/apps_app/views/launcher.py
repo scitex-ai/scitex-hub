@@ -14,13 +14,15 @@ from __future__ import annotations
 
 import logging
 from datetime import timedelta
-from urllib.parse import urlencode
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
+from django.urls import Resolver404, resolve
 from django.utils import timezone
 from django.utils.translation import get_language
 
+from apps.infra.project_app.services.project_utils import get_current_project
 from apps.infra.workspace_app.registry import get_all_modules
 
 from ..models import AppsModule, ModuleInstallation, PlannedAppInterest
@@ -74,6 +76,45 @@ _RETIRED_MODULE_IDS = frozenset({"home", "discovery", "slides"})
 APP_CREATOR_SLOT = "create-app"
 
 
+def project_launch_url(url: str, project) -> str:
+    """Add the active Hub project only to a same-origin launch URL.
+
+    Registry plugins may advertise an absolute URL.  The active project key is
+    private account context, so it must never be appended to a different
+    origin (including protocol-relative URLs).
+    """
+    parts = urlsplit(url)
+    if parts.scheme or parts.netloc:
+        return url
+    query = [(key, value) for key, value in parse_qsl(parts.query) if key != "project"]
+    query.append(("project", f"{project.owner.username}/{project.slug}"))
+    return urlunsplit(
+        (parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment)
+    )
+
+
+def apply_active_project(tiles: list[dict], project) -> None:
+    """Scope launchable project apps to one explicit Hub project."""
+    if project is None:
+        return
+    for tile in tiles:
+        if tile.get("scope") == "project" and tile.get("is_launchable"):
+            tile["launch_url"] = project_launch_url(tile["launch_url"], project)
+
+
+def module_route_is_reachable(module) -> bool:
+    """Whether a registry module resolves to a real app route in this host."""
+    path = urlsplit(module.get_url()).path
+    try:
+        match = resolve(path)
+    except Resolver404:
+        return False
+    # The final /<username>/<slug>/ project route matches any two segments.
+    # A missing /apps/<name>/ mount therefore resolves successfully as the
+    # fictional project "apps/<name>" unless we reject that catch-all here.
+    return match.view_name != "project_app:detail"
+
+
 def _is_dev_only(visibility: str, row) -> bool:
     """Whether a tile is still a work in progress, from EXISTING metadata only.
 
@@ -103,45 +144,6 @@ def _version_label(version: str) -> str:
     return v if v.lower().startswith("v") else f"v{v}"
 
 
-def is_guest_launcher_user(user) -> bool:
-    """True for pool visitors (visitor-*) and the shared readonly-visitor.
-
-    Guest-mode launcher (card hub-visitor-ux-allapps): visitors keep the
-    app grid but get a prominent Sign in / Sign up call-to-action instead
-    of a personalized greeting. Role mapping is delegated to the canonical
-    session-role model (no scattered username checks).
-    """
-    from apps.infra.project_app.services.visitor_pool import (
-        ROLE_READONLY_VISITOR,
-        ROLE_VISITOR,
-        get_user_role,
-    )
-
-    return get_user_role(user) in (ROLE_VISITOR, ROLE_READONLY_VISITOR)
-
-
-def guest_role_for(user) -> str:
-    """Which KIND of guest this is — the two are very different experiences.
-
-    A pool ``visitor`` gets a real writable workspace for the session; the
-    shared ``readonly-visitor`` fallback can only look. Telling both "sign in
-    to unlock editing" misleads the visitor, who can already edit. Returns
-    "visitor" | "readonly_visitor" | "" (not a guest).
-    """
-    from apps.infra.project_app.services.visitor_pool import (
-        ROLE_READONLY_VISITOR,
-        ROLE_VISITOR,
-        get_user_role,
-    )
-
-    role = get_user_role(user)
-    if role == ROLE_VISITOR:
-        return "visitor"
-    if role == ROLE_READONLY_VISITOR:
-        return "readonly_visitor"
-    return ""
-
-
 def _planned_tiles(user, real_app_names: set[str]) -> list[dict]:
     """Coming-soon tiles for planned apps no real app has replaced."""
     language = get_language() or "en"
@@ -167,6 +169,7 @@ def _planned_tiles(user, real_app_names: set[str]) -> list[dict]:
             "is_pinned": False,
             "is_new": False,
             "availability": "coming_soon",
+            "scope": "project",
             "is_launchable": False,
             "is_installed": False,
             "notified": (app.id, "notify") in interests,
@@ -242,6 +245,18 @@ def _build_tiles(request) -> list[dict]:
         if not mod.show_in_launcher:
             seen.add(mod.name)
             continue
+        if mod.name == "stats" and not module_route_is_reachable(mod):
+            logger.warning(
+                "[launcher] %s declares %s but no app route is mounted; "
+                "showing any planned placeholder instead",
+                mod.name,
+                mod.get_url(),
+            )
+            # Suppress a catalog row seeded from this same dead registry entry;
+            # planned placeholders are derived from rendered tiles, not `seen`,
+            # so Stats still becomes the honest Coming Soon tile below.
+            seen.add(mod.name)
+            continue
         row = catalog.get(mod.name)
         # Availability: manifest declaration wins (ships with the app);
         # the catalog row carries it for store-published registrations
@@ -258,6 +273,7 @@ def _build_tiles(request) -> list[dict]:
                 "is_dev_only": _is_dev_only(mod.visibility, row),
                 "launch_url": mod.get_url(),
                 "availability": availability,
+                "scope": mod.scope,
                 # Coming-soon tiles must never navigate (operator: a tap
                 # effect is fine, navigation is not). The template drops
                 # the href from this single flag.
@@ -310,6 +326,7 @@ def _build_tiles(request) -> list[dict]:
                 "category": row.category,
                 # No registry entry here, so the catalog row IS the SSoT.
                 "availability": row.availability,
+                "scope": "user",
                 "is_launchable": row.availability != "coming_soon",
                 "description": row.short_description,
                 # Community store apps are not in the registry (no manifest
@@ -344,6 +361,7 @@ def _build_tiles(request) -> list[dict]:
                     # Dev installs are the developer's own work-in-progress;
                     # gating their launch would block the dev loop itself.
                     "availability": "available",
+                    "scope": "user",
                     "is_launchable": True,
                     "description": dev.description,
                     # Dev-installed apps carry no manifest version — mark "dev".
@@ -376,6 +394,7 @@ def _build_tiles(request) -> list[dict]:
                 "launch_url": link.url,
                 "category": link.category,
                 "availability": "available",
+                "scope": "user",
                 "is_launchable": True,
                 "description": link.description,
                 "version": "",
@@ -389,9 +408,9 @@ def _build_tiles(request) -> list[dict]:
         seen.add(link.name)
 
     # 5. Planned apps: a Coming-soon tile until a real app takes the id.
-    tiles.extend(
-        _planned_tiles(request.user, seen | installed_names | {t["name"] for t in tiles})
-    )
+    # Only a tile that is actually present replaces a planned app. A hidden or
+    # non-launcher registry module must not suppress its Coming Soon placeholder.
+    tiles.extend(_planned_tiles(request.user, {t["name"] for t in tiles}))
 
     # Display overrides affect only presentation. Canonical ids, URLs, and
     # manifest/catalog metadata remain untouched.
@@ -436,6 +455,12 @@ def launcher_context(request) -> dict:
     """Template context for the launcher home page."""
     ensure_builtin_modules()
     tiles = _build_tiles(request)
+    current_project = (
+        get_current_project(request, user=request.user)
+        if request.user.is_authenticated
+        else None
+    )
+    apply_active_project(tiles, current_project)
     dock_apps = set(get_dock_apps(request.user)) - {APP_CREATOR_SLOT}
     grid_tiles = [tile for tile in tiles if tile["name"] not in dock_apps]
     favorite_order = get_favorites(request.user)
@@ -447,13 +472,10 @@ def launcher_context(request) -> dict:
             alias["is_favorite_alias"] = True
             alias["can_uninstall"] = False
             favorite_tiles.append(alias)
-    is_guest = is_guest_launcher_user(request.user)
     return {
         "first_run": (
             checklist_context(request.user)
-            if request.user.is_authenticated
-            and not is_guest
-            and should_show_checklist(request.user)
+            if request.user.is_authenticated and should_show_checklist(request.user)
             else None
         ),
         # Every app the user can open, wherever it sits (grid or dock).
@@ -466,11 +488,9 @@ def launcher_context(request) -> dict:
         "launcher_groups": LAUNCHER_GROUPS,
         "installed_count": sum(1 for t in tiles if t["is_installed"]),
         "max_pins": MAX_PINNED_MODULES,
-        # Guest mode: visitors see tiles + a prominent Sign in / Sign up CTA.
-        "is_guest_launcher": is_guest,
-        # ...but a writable pool visitor and a read-only fallback are NOT the
-        # same experience, so the copy must differ (operator, 2026-07-12).
-        "guest_role": guest_role_for(request.user),
+        "is_guest_launcher": False,
+        "guest_role": "",
+        "current_project": current_project,
     }
 
 

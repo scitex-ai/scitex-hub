@@ -19,7 +19,6 @@ import { UIComponents } from "./ui/UIComponents";
 import { ModalManager } from "./ui/ModalManager";
 import { ShortcutsManager } from "./ui/ShortcutsManager";
 import { ToolbarManager } from "./ui/ToolbarManager";
-import { VisitorManager } from "./auth/VisitorManager";
 import { JobsPanelManager } from "./jobs/JobsPanelManager";
 import type { EditorConfig, OpenFile } from "./core/types";
 
@@ -47,7 +46,6 @@ export class WorkspaceOrchestrator {
   private toolbarManager: ToolbarManager;
 
   // Specialized Managers
-  private visitorManager: VisitorManager;
   private scratchManager: ScratchManager;
   private runManager: RunManager;
   private jobsPanelManager: JobsPanelManager;
@@ -60,7 +58,6 @@ export class WorkspaceOrchestrator {
     this.ptyManager = new PTYManager(config);
     this.fileOperations = new FileOperations(config);
     this.modalManager = new ModalManager();
-    this.visitorManager = new VisitorManager(config);
 
     // Initialize git managers
     this.gitStatusManager = new GitStatusManager(config);
@@ -127,7 +124,6 @@ export class WorkspaceOrchestrator {
       this.fileTreeManager,
       this.fileStateManager,
       this.uiComponents,
-      this.visitorManager,
     );
 
     // Toolbar manager handles all button clicks and keyboard shortcuts

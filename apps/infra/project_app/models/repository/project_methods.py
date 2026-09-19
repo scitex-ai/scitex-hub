@@ -272,9 +272,6 @@ class ProjectMethodsMixin:
         if not user or not user.is_authenticated:
             return False
 
-        # Read-only visitor can never edit
-        if user.username == "readonly-visitor":
-            return False
 
         # Owner can always edit
         if user == self.owner:

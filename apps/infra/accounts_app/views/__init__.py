@@ -16,6 +16,7 @@ from .profile_views import (
     profile_edit,
     profile_view,
 )
+from .billing_views import billing_settings, payment_step
 
 # Remote credentials views
 from .remote_credentials_views import remote_credentials
@@ -47,6 +48,7 @@ __all__ = [
     "remote_credentials",
     # Billing
     "billing_settings",
+    "payment_step",
     # API keys views
     "api_keys",
     # Settings and integrations views

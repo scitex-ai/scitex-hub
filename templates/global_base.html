@@ -89,9 +89,11 @@
         was what broke the footer fix. Keep explanations out of tag interiors.
     {% endcomment %}
     <body data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}"
-          data-session-role="{{ session_role|default:'anonymous' }}"
+          data-session-role="{% if user.is_authenticated %}user{% else %}anonymous{% endif %}"
           data-user-type="{% if user.is_authenticated %}registered{% else %}anonymous{% endif %}"
           {% if user.is_authenticated %}data-current-username="{{ user.username }}"{% endif %}
+          {% if current_project %}data-active-project-id="{{ current_project.id }}" data-active-project-key="{{ current_project.owner.username }}/{{ current_project.slug }}"{% endif %}
+          {% if active_module.version %}data-active-app-version="{{ active_module.version }}"{% endif %}
           data-track-module="{% if active_module %}{{ active_module.get_track_module }}{% elif '/server-status' in request.path %}server_status{% elif '/explore/' in request.path %}explore{% elif '/workspace/' in request.path %}files{% endif %}"
           {% if request.initial_pane %}data-initial-pane="{{ request.initial_pane }}"{% endif %}
           {% if request.chat_session_token %}data-chat-session-token="{{ request.chat_session_token }}"{% endif %}

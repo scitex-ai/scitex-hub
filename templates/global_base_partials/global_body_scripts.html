@@ -10,6 +10,7 @@
 {% vite_script 'shared/utils/bootstrap-loader' %}
 <!-- Global Autocomplete Disabler -->
 {% vite_script 'shared/utils/autocomplete-disabler' %}
+{% vite_script 'shared/utils/submit-guard' %}
 <!-- Pull-to-refresh, installed PWA (standalone) only -->
 {% vite_script 'shared/utils/pull-to-refresh' %}
 <!-- Vite HMR client (dev only) -->
@@ -39,7 +40,7 @@
 {% vite_script 'shared/components/header' %}
 <!-- Header command palette (/, Ctrl/Cmd+K) -->
 {% vite_script 'shared/components/search' %}
-<!-- Dev Tools (visitor pool management, DEBUG only) -->
+<!-- Dev Tools (DEBUG only) -->
 {% if DEBUG %}
     {% vite_script 'shared/components/dev-tools' %}
 {% endif %}
@@ -49,10 +50,6 @@
 {% vite_script 'shared/components/project-selector' %}
 <!-- Analytics (module usage tracking) -->
 {% vite_script 'shared/utils/analytics' %}
-<!-- Visitor Session Heartbeat -->
-{% vite_script 'shared/utils/visitor-heartbeat' %}
-<!-- Read-only visitor write guard (actionable Sign up / Log in / retry toast) -->
-{% vite_script 'shared/utils/readonly-visitor-guard' %}
 <!-- Product Tour (step-by-step guided walkthrough) -->
 {% vite_script 'shared/components/product-tour' %}
 <!-- Workspace file tree auto-init (three-col shared worktree pane) -->

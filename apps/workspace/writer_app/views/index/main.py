@@ -16,7 +16,6 @@ __DIR__ = os.path.dirname(__FILE__)
 import json
 import logging
 
-from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 
@@ -62,7 +61,6 @@ def build_writer_context(request, current_project=None):
         document_type = "manuscript"
 
     context = {
-        # is_visitor handled by context processor
         "writer_initialized": False,
         "document_type": document_type,
     }
@@ -70,9 +68,6 @@ def build_writer_context(request, current_project=None):
     if not request.user.is_authenticated:
         return context
 
-    if request.user.username.startswith("visitor-"):
-        context["is_demo"] = True
-        context["visitor_username"] = request.user.username
 
     user_projects = Project.objects.filter(owner=request.user).order_by("name")
     context["user_projects"] = user_projects
@@ -146,23 +141,7 @@ def build_writer_context(request, current_project=None):
 def index_view(request):
     """SciTeX Writer main page - Simple editor with PDF viewer."""
     if not request.user.is_authenticated:
-        user_agent = request.META.get("HTTP_USER_AGENT", "")
-        is_browser = any(
-            browser in user_agent
-            for browser in ["Mozilla", "Chrome", "Safari", "Firefox", "Edge", "Opera"]
-        )
-
-        if is_browser:
-            logger.info(
-                "[Writer] Browser request not authenticated - redirecting to visitor-pool-full"
-            )
-            return redirect("public_app:visitor_pool_full")
-
-        return render(
-            request,
-            "writer_app/index.html",
-            {"is_visitor": True, "writer_initialized": False},
-        )
+        return redirect("auth_app:signup")
 
     context = build_writer_context(request)
     return render(request, "writer_app/index.html", context)
@@ -171,7 +150,7 @@ def index_view(request):
 def initialize_workspace(request):
     """Initialize Writer workspace for a project.
 
-    Supports both authenticated users and visitor visitors.
+    Requires an authenticated project owner.
 
     POST body:
         {
@@ -190,30 +169,16 @@ def initialize_workspace(request):
                 {"success": False, "error": "project_id required"}, status=400
             )
 
-        # Get effective user (authenticated or visitor)
-        if request.user.is_authenticated:
-            user = request.user
-        else:
-            # Get visitor user from session
-            visitor_user_id = request.session.get("visitor_user_id")
-            if not visitor_user_id:
-                return JsonResponse(
-                    {
-                        "success": False,
-                        "error": "Invalid session. Please refresh the page.",
-                    },
-                    status=403,
-                )
-            try:
-                user = User.objects.get(id=visitor_user_id)
-            except User.DoesNotExist:
-                return JsonResponse(
-                    {
-                        "success": False,
-                        "error": "Visitor user not found. Please refresh the page.",
-                    },
-                    status=403,
-                )
+        if not request.user.is_authenticated:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "Authentication required. Sign up or log in.",
+                    "signup_url": "/auth/signup/",
+                },
+                status=401,
+            )
+        user = request.user
 
         # Verify project access
         project = Project.objects.get(id=project_id, owner=user)

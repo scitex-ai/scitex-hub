@@ -8,7 +8,12 @@ from django.utils import timezone
 # Import here for backwards compatibility
 from apps.infra.auth_app.models import EmailVerification  # noqa
 
-from .billing_models import BillingEvent, PaymentMethod, PlanSubscription  # noqa: F401
+from .billing_models import (  # noqa: F401
+    BillingEvent,
+    BillingSetupSession,
+    PaymentMethod,
+    PlanSubscription,
+)
 
 # EmailVerification model definition moved to apps.infra.auth_app.models
 # Import statement above provides backwards compatibility
@@ -389,14 +394,6 @@ class ServerMetrics(models.Model):
         default=False, help_text="Database connection status"
     )
     redis_status = models.BooleanField(default=False, help_text="Redis cache status")
-
-    # Visitor pool metrics
-    visitor_pool_allocated = models.IntegerField(
-        null=True, blank=True, help_text="Number of allocated visitor slots"
-    )
-    visitor_pool_total = models.IntegerField(
-        null=True, blank=True, help_text="Total visitor pool size"
-    )
 
     # User activity metrics
     active_users_count = models.IntegerField(

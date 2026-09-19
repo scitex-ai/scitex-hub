@@ -5,7 +5,7 @@
 WHY THIS EXISTS. ``.github/workflows/screenshots.yml`` says its second job
 is that "a page that starts erroring is caught by the job that photographs
 it". Until this module existed it did not do that. The capture asserted
-three things — HTTP < 400, ``body[data-session-role] == "visitor"``, and
+three things — HTTP < 400, ``body[data-session-role] == "user"``, and
 ``document.body.innerText`` being non-empty — and every one of them passes
 on a page that rendered nothing a human would call content.
 
@@ -115,13 +115,11 @@ RUNTIME_MEDIA_REASON = (
 #: per page, by the tests — the probe only measures.
 PAGE_ELEMENT_SIGNALS = {
     "/apps/writer/": {
-        # index_partials/main_editor.html ships this reading "Loading...".
-        # It is replaced by ts/utils/_section-dropdown/SectionDropdown.ts
-        # once the file tree resolves; still reading "Loading..." means it
-        # never did.
+        # The Hub reference editor remains the current /apps/writer/ product
+        # route until its package-owned replacement reaches parity. Its
+        # dropdown starts as "Loading..." and is replaced after sections load.
         "file_selector": "#section-selector-text",
-        # Same partial ships this as "0". A manuscript with no words in it
-        # is the empty editor the operator was shown.
+        # The reference template ships this as "0" until content loads.
         "word_count": "#current-word-count",
     },
     "/apps/figrecipe/": {

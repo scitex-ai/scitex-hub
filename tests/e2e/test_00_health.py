@@ -68,16 +68,6 @@ class TestServiceHealth:
         assert "login" in resp.text.lower() or "sign in" in resp.text.lower()
 
 
-class TestDatabaseConnection:
-    """Test database connectivity through API endpoints."""
-
-    def test_visitor_heartbeat(self, api_client):
-        """Visitor heartbeat endpoint works (DB read)."""
-        resp = api_client.get("/api/visitor/heartbeat/")
-        # Should work even without authentication
-        assert resp.status_code in [200, 401, 403]
-
-
 class TestGiteaConnection:
     """Test Gitea service connectivity."""
 
