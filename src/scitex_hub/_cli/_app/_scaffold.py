@@ -66,13 +66,13 @@ def app_init(
     if not (app_name.endswith("_app") or app_name.endswith("-app")):
         sep = "-" if "-" in app_name else "_"
         suffixed = f"{app_name}{sep}app"
-        console.print(
+        console.warning(
             f"[yellow]Warning:[/yellow] App name '{app_name}' does not end with "
             f"'_app' or '-app'. Adding suffix: '{suffixed}'"
         )
         app_name = suffixed
 
-    console.print(f"[cyan]Scaffolding app:[/cyan] {app_name} in {target}")
+    console.info(f"[cyan]Scaffolding app:[/cyan] {app_name} in {target}")
 
     from scitex_hub.appmaker import init_app
 
@@ -87,12 +87,12 @@ def app_init(
     )
 
     for filepath in created:
-        console.print(f"  [green]+[/green] {filepath}")
+        console.success(f"  [green]+[/green] {filepath}")
 
     if not created:
-        console.print("  [yellow]No new files created (all already exist).[/yellow]")
+        console.warning("  [yellow]No new files created (all already exist).[/yellow]")
     else:
-        console.print(f"\n[green]Done![/green] Created {len(created)} files.")
+        console.success(f"\n[green]Done![/green] Created {len(created)} files.")
 
 
 @app.command("install-dev")
@@ -139,11 +139,11 @@ def app_validate(app_dir) -> None:
     errors = validate(app_dir)
 
     if not errors:
-        console.print("[green]All checks passed![/green] App is ready for submission.")
+        console.success("[green]All checks passed![/green] App is ready for submission.")
     else:
-        console.print(f"[red]Found {len(errors)} issue(s):[/red]")
+        console.error(f"[red]Found {len(errors)} issue(s):[/red]")
         for error in errors:
-            console.print(f"  [red]x[/red] {error}")
+            console.error(f"  [red]x[/red] {error}")
         raise SystemExit(1)
 
 
@@ -175,20 +175,20 @@ def app_submit(app_dir, server) -> None:
     server_url = get_server_url(server)
     token = get_jwt_token(server_url)
 
-    console.print(f"[cyan]Submitting app from:[/cyan] {Path(app_dir).resolve()}")
+    console.info(f"[cyan]Submitting app from:[/cyan] {Path(app_dir).resolve()}")
 
     result = publish(app_dir, server_url=server_url, token=token)
 
     if result.get("success"):
-        console.print("[green]Submitted for review![/green]")
+        console.success("[green]Submitted for review![/green]")
         pr_url = result.get("pr_url", "")
         if pr_url:
-            console.print(f"[cyan]Registry PR:[/cyan] {pr_url}")
+            console.info(f"[cyan]Registry PR:[/cyan] {pr_url}")
     else:
         errors = result.get("errors", [result.get("error", "Unknown error")])
-        console.print("[red]Failed:[/red]")
+        console.error("[red]Failed:[/red]")
         for err in errors:
-            console.print(f"  [red]x[/red] {err}")
+            console.error(f"  [red]x[/red] {err}")
         raise SystemExit(1)
 
 
@@ -205,7 +205,7 @@ def app_switch(app_name) -> None:
     from scitex_hub.appmaker import switch_to
 
     switch_to(app_name)
-    console.print(f"[green]Switched to:[/green] {app_name}")
+    console.success(f"[green]Switched to:[/green] {app_name}")
 
 
 # EOF
