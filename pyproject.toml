@@ -35,6 +35,11 @@ dependencies = [
     # `ImportError: No module named 'requests'`.
     # Card: hub-audit-cli-runs-only-when-its-deps-happen-to-be-installed-20260809
     "requests>=2.31",
+    # PS-220 requires shippable source to route human-facing output through
+    # scitex-logging (src/scitex_hub/_logging.py is hub's one factory for it),
+    # and an unguarded runtime import must resolve from
+    # `[project.dependencies]` — not from an extra a minimal install skips.
+    "scitex-logging>=0.1.0",
     # 0.2.10 is the first release where `scitex_app.appmaker.init_app`
     # emits the nested-package layout + `[tool.hatch.build.targets.wheel]
     # packages=["<name>"]` block in the generated pyproject (scitex-app

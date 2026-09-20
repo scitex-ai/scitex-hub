@@ -45,7 +45,7 @@ def whoami(server, as_json):
     cached = _read_cached_token() or {}
     bearer = cached.get("access")
     if not bearer:
-        console.print(
+        console.error(
             "[red]No cached token.[/red] Run `scitex-hub account token create` first."
         )
         sys.exit(2)
@@ -57,14 +57,14 @@ def whoami(server, as_json):
             timeout=10,
         )
     except requests.ConnectionError:
-        console.print(f"[red]Cannot reach {server_url}.[/red]")
+        console.error(f"[red]Cannot reach {server_url}.[/red]")
         sys.exit(1)
 
     if resp.status_code == 401:
-        console.print("[red]Token expired or invalid.[/red]")
+        console.error("[red]Token expired or invalid.[/red]")
         sys.exit(1)
     if resp.status_code != 200:
-        console.print(f"[red]HTTP {resp.status_code}:[/red] {resp.text[:200]}")
+        console.error(f"[red]HTTP {resp.status_code}:[/red] {resp.text[:200]}")
         sys.exit(1)
 
     data = resp.json()
@@ -74,12 +74,12 @@ def whoami(server, as_json):
     username = data.get("username", "?")
     plan = data.get("plan") or "(none)"
     expires_at = data.get("expires_at") or "never"
-    console.print(f"username: [cyan]{username}[/cyan]")
-    console.print(f"id:       [cyan]{data.get('id', '?')}[/cyan]")
-    console.print(f"plan:     [cyan]{plan}[/cyan]")
+    console.info(f"username: [cyan]{username}[/cyan]")
+    console.info(f"id:       [cyan]{data.get('id', '?')}[/cyan]")
+    console.info(f"plan:     [cyan]{plan}[/cyan]")
     if data.get("key_id") is not None:
-        console.print(f"key:      [cyan]#{data['key_id']} (expires {expires_at})[/cyan]")
-    console.print(f"server:   [cyan]{server_url}[/cyan]")
+        console.info(f"key:      [cyan]#{data['key_id']} (expires {expires_at})[/cyan]")
+    console.info(f"server:   [cyan]{server_url}[/cyan]")
 
 
 # EOF
