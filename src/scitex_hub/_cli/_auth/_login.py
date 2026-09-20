@@ -186,16 +186,16 @@ def auth_login(username, password, scopes, name, server):
         data = _post_mint(server_url, username, password, tuple(scopes), name)
     except requests.ConnectionError as exc:
         # AGPL-3.0 "no silent fallback": surface URL + cause.
-        console.print(f"[red]Cannot reach[/red] [cyan]{server_url}[/cyan]: {exc}")
+        console.error(f"[red]Cannot reach[/red] [cyan]{server_url}[/cyan]: {exc}")
         sys.exit(1)
     except requests.Timeout as exc:
-        console.print(f"[red]Timeout talking to[/red] [cyan]{server_url}[/cyan]: {exc}")
+        console.error(f"[red]Timeout talking to[/red] [cyan]{server_url}[/cyan]: {exc}")
         sys.exit(1)
     except requests.HTTPError as exc:
         resp = exc.response
         status = resp.status_code if resp is not None else "???"
         if status == 401:
-            console.print(
+            console.error(
                 "[red]Authentication failed.[/red] Wrong username or password."
             )
             sys.exit(1)
@@ -204,16 +204,16 @@ def auth_login(username, password, scopes, name, server):
                 err = resp.json().get("error", resp.text)
             except ValueError:
                 err = resp.text if resp is not None else ""
-            console.print(f"[red]Bad request[/red] from {server_url}: {err}")
+            console.error(f"[red]Bad request[/red] from {server_url}: {err}")
             sys.exit(2)
         if status == 429:
-            console.print(
+            console.error(
                 f"[red]Rate-limited[/red] by {server_url}. Try again shortly."
             )
             sys.exit(1)
         # 5xx and anything unexpected — loud surface per AGPL-3.0 rule.
         body = resp.text[:200] if resp is not None else ""
-        console.print(
+        console.error(
             f"[red]Unexpected response[/red] HTTP {status} from "
             f"[cyan]{server_url}/api/me/token/[/cyan]: {body}"
         )
@@ -223,15 +223,15 @@ def auth_login(username, password, scopes, name, server):
     cache_path = _persist_token(server_url, token_value)
 
     # Success UX — confirm identity, point at storage, give env-var hint.
-    console.print(f"[green]logged in as[/green] [cyan]{username}[/cyan]")
-    console.print(f"  token cached at [cyan]{cache_path}[/cyan] (mode 0600)")
+    console.success(f"[green]logged in as[/green] [cyan]{username}[/cyan]")
+    console.info(f"  token cached at [cyan]{cache_path}[/cyan] (mode 0600)")
     prefix = data.get("prefix", "")
     if prefix:
-        console.print(
+        console.info(
             f"  prefix: [cyan]{prefix}[/cyan]   "
             f"scopes: [cyan]{','.join(data.get('scopes', []))}[/cyan]"
         )
-    console.print(
+    console.info(
         "  hint: export [cyan]SCITEX_HUB_TOKEN[/cyan]=$(cat "
         f"{cache_path} | python -c 'import json,sys;"
         'print(json.load(sys.stdin)["access"])\')'

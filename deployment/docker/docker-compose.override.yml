@@ -49,8 +49,10 @@ services:
       - ../../../scitex-plt:/scitex-plt:cached
       - ../../../scitex-audio:/scitex-audio:cached
       - ../../../scitex-ui:/scitex-ui:cached
-      # Logs
-      - ../../logs:/app/logs
+      # PS-102: runtime logs live in the sanctioned, gitignored
+      # ./GITIGNORED/logs/ on the host. The container path stays /app/logs, so
+      # the entrypoints and their `tail -f /app/logs/...` hints are unchanged.
+      - ../../GITIGNORED/logs:/app/logs
       # Persistent data
       - static_volume:/app/staticfiles
       - ../../media:/app/media:cached
@@ -187,7 +189,8 @@ services:
       - ../../../scitex-plt:/scitex-plt:cached
       - ../../../scitex-audio:/scitex-audio:cached
       - ../../../scitex-ui:/scitex-ui:cached
-      - ../../logs:/app/logs
+      # PS-102 — see the first logs mount above.
+      - ../../GITIGNORED/logs:/app/logs
     env_file:
       - ./envs/.env.dev
     environment:
@@ -284,7 +287,8 @@ services:
       - ../../../scitex-plt:/scitex-plt:cached
       - ../../../scitex-audio:/scitex-audio:cached
       - ../../../scitex-ui:/scitex-ui:cached
-      - ../../logs:/app/logs
+      # PS-102 — see the first logs mount above.
+      - ../../GITIGNORED/logs:/app/logs
     env_file:
       - ./envs/.env.dev
     environment:

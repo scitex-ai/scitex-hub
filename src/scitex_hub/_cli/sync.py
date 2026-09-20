@@ -23,7 +23,8 @@ import sys
 from pathlib import Path
 
 import click
-from rich.console import Console
+
+from scitex_hub._logging import get_console
 
 from ._click_compat import (
     register_error_redirect,
@@ -40,7 +41,7 @@ from ._flags import (
     yes_flag,
 )
 
-console = Console()
+console = get_console(__name__)
 
 
 def _get_ssh_target(env_name: str = "dev") -> tuple[str, int]:
@@ -106,7 +107,7 @@ def _resolve_repo(repo: str) -> str:
         return repo
     name = _detect_repo()
     if not name:
-        console.print("[red]Cannot detect repo. Provide REPO argument.[/red]")
+        console.error("[red]Cannot detect repo. Provide REPO argument.[/red]")
         sys.exit(1)
     return f"{_detect_owner()}/{name}"
 
@@ -140,9 +141,9 @@ def push(remote, branch, dry_run, yes):
 
     try:
         subprocess.run(cmd, check=True)
-        console.print("[green]Pushed → Gitea[/green]")
+        console.success("[green]Pushed → Gitea[/green]")
     except subprocess.CalledProcessError as e:
-        console.print(f"[red]Push failed (exit {e.returncode})[/red]")
+        console.error(f"[red]Push failed (exit {e.returncode})[/red]")
         sys.exit(e.returncode)
 
 
@@ -172,10 +173,10 @@ def pull(remote, branch, dry_run, yes):
 
     try:
         subprocess.run(cmd, check=True)
-        console.print("[green]Pulled ← Gitea[/green]")
+        console.success("[green]Pulled ← Gitea[/green]")
     except subprocess.CalledProcessError as e:
-        console.print(f"[red]Pull failed (exit {e.returncode})[/red]")
-        console.print("[yellow]Resolve merge conflicts, then retry.[/yellow]")
+        console.error(f"[red]Pull failed (exit {e.returncode})[/red]")
+        console.warning("[yellow]Resolve merge conflicts, then retry.[/yellow]")
         sys.exit(e.returncode)
 
 
@@ -217,7 +218,7 @@ def sync_to(repo, env_name, dry_run, yes):
         scitex-hub workspace push ywatanabe/my-proj --yes
     """
     if _is_on_workspace():
-        console.print(
+        console.error(
             "[red]You're already on the workspace.[/red]\n"
             "[yellow]Did you mean: scitex cloud push[/yellow]"
         )
@@ -242,7 +243,7 @@ def sync_to(repo, env_name, dry_run, yes):
 
     from ._sync_engine import sync_files
 
-    console.print(f"[cyan]Syncing → workspace ({repo})[/cyan]")
+    console.info(f"[cyan]Syncing → workspace ({repo})[/cyan]")
     result = sync_files(Path.cwd(), ssh_cmd, ws_path, "to", dry_run=dry_run)
     _print_sync_result(result, dry_run)
 
@@ -282,7 +283,7 @@ def sync_from(repo, env_name, dry_run, yes):
         scitex-hub workspace pull ywatanabe/my-proj --yes
     """
     if _is_on_workspace():
-        console.print(
+        console.error(
             "[red]You're already on the workspace.[/red]\n"
             "[yellow]Did you mean: scitex cloud pull[/yellow]"
         )
@@ -304,7 +305,7 @@ def sync_from(repo, env_name, dry_run, yes):
 
     from ._sync_engine import sync_files
 
-    console.print(f"[cyan]Syncing ← workspace ({repo})[/cyan]")
+    console.info(f"[cyan]Syncing ← workspace ({repo})[/cyan]")
     result = sync_files(Path.cwd(), ssh_cmd, ws_path, "from", dry_run=dry_run)
     _print_sync_result(result, dry_run)
 
@@ -314,28 +315,28 @@ def _print_sync_result(result, dry_run: bool) -> None:
     prefix = "[dim](dry run)[/dim] " if dry_run else ""
 
     if result.synced:
-        console.print(f"{prefix}[green]Synced {len(result.synced)} file(s)[/green]")
+        console.success(f"{prefix}[green]Synced {len(result.synced)} file(s)[/green]")
         for f in result.synced[:10]:
-            console.print(f"  {f}")
+            console.info(f"  {f}")
         if len(result.synced) > 10:
-            console.print(f"  ... and {len(result.synced) - 10} more")
+            console.info(f"  ... and {len(result.synced) - 10} more")
 
     if result.conflicts:
-        console.print(
+        console.warning(
             f"\n{prefix}[yellow]⚠ {len(result.conflicts)} conflict(s) "
             f"— both sides changed[/yellow]"
         )
         for f in result.conflicts:
-            console.print(f"  [yellow]{f}[/yellow] → .conflict-* copy created")
+            console.warning(f"  [yellow]{f}[/yellow] → .conflict-* copy created")
 
     if result.errors:
-        console.print(f"\n{prefix}[red]{len(result.errors)} error(s)[/red]")
+        console.error(f"\n{prefix}[red]{len(result.errors)} error(s)[/red]")
         for e in result.errors:
-            console.print(f"  [red]{e}[/red]")
+            console.error(f"  [red]{e}[/red]")
         sys.exit(1)
 
     if not result.synced and not result.conflicts:
-        console.print(f"{prefix}[green]Already in sync[/green]")
+        console.success(f"{prefix}[green]Already in sync[/green]")
 
 
 # ── workspace status ─────────────────────────────────────────────
@@ -451,7 +452,7 @@ def sync_status(repo, env_name, json_output, dry_run, yes):
     table.add_column("Status")
     for row in rows:
         table.add_row(row["pair"], row["status"])
-    console.print(table)
+    console.info(table)
 
 
 # ── Registration ─────────────────────────────────────────────────

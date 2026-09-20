@@ -64,8 +64,10 @@ services:
       # to register a Django Project pointing at this path.
       - ../../../../paper-scitex-clew:/paper-scitex-clew:ro,cached
 
-      # Centralized logging - all container logs go here
-      - ../../../logs:/app/logs
+      # PS-102: runtime logs live in the sanctioned, gitignored
+      # ./GITIGNORED/logs/ on the host. The container path stays /app/logs, so
+      # the entrypoints and their `tail -f /app/logs/...` hints are unchanged.
+      - ../../../GITIGNORED/logs:/app/logs
 
       # Persistent data
       - static_volume:/app/staticfiles
@@ -312,7 +314,8 @@ services:
       - ../../../../scitex-dev:/scitex-dev:cached
       - ../../../../scitex-notification:/scitex-notification:cached
       - ../../../../scitex-db:/scitex-db:cached
-      - ../../../logs:/app/logs
+      # PS-102 — see the first logs mount above.
+      - ../../../GITIGNORED/logs:/app/logs
 
     env_file:
       - .env
@@ -437,7 +440,8 @@ services:
       - ../../../../scitex-dev:/scitex-dev:cached
       - ../../../../scitex-notification:/scitex-notification:cached
       - ../../../../scitex-db:/scitex-db:cached
-      - ../../../logs:/app/logs
+      # PS-102 — see the first logs mount above.
+      - ../../../GITIGNORED/logs:/app/logs
 
     env_file:
       - .env

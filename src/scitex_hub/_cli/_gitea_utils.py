@@ -168,7 +168,18 @@ def check_large_files(threshold_mb=100):
 
 def get_tea_config(login_name="scitex-dev"):
     """Read tea config and return the named login entry (url, token, user)."""
-    import yaml
+    # PS-233: PyYAML is in the optional `[all]` extra, so the import is guarded
+    # rather than declared; without it the tea config is unreadable, which is a
+    # hard stop for this command, not a silent fallback.
+    try:
+        import yaml
+    except ImportError:
+        click.echo(
+            "Error: PyYAML is required to read the tea config. "
+            "Install it with: pip install 'scitex-hub[all]'",
+            err=True,
+        )
+        sys.exit(1)
 
     config_path = Path.home() / ".config" / "tea" / "config.yml"
     if not config_path.exists():
