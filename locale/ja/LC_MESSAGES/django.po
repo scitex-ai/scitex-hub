@@ -2112,6 +2112,10 @@ msgstr "規約への同意"
 msgid "These Terms of Use constitute a legally binding agreement made between you, whether personally or on behalf of an entity (\"you\") and SciTeX (\"we,\" \"us,\" or \"our\"), concerning your access to and use of the SciTeX platform and all associated services."
 msgstr "本利用規約は、あなた（個人または団体のために行動する場合を含む、「あなた」といいます）と SciTeX（「当社」「私ども」「我々」といいます）の間で、SciTeX プラットフォームおよび関連するすべてのサービスへのアクセスと利用に関して締結される法的拘束力のある合意を構成します。"
 
+#: apps/infra/public_app/templates/public_app/legal/terms_of_use.html
+msgid "These Terms of Use constitute a legally binding agreement made between you, whether personally or on behalf of an entity (\\\"you\\\") and SciTeX (\\\"we,\\\" \\\"us,\\\" or \\\"our\\\"), concerning your access to and use of the SciTeX platform and all associated services."
+msgstr "本利用規約は、あなたが個人として、または事業体を代表して（以下「お客様」）SciTeX（以下「当社」）との間に締結する、SciTeXプラットフォームおよびこれに付随するすべてのサービスへのアクセスと利用に関する、法的拘束力のある契約を構成します。"
+
 msgid "By accessing or using the SciTeX platform, you agree to be bound by these Terms of Use. If you disagree with any part of the terms, then you may not access the platform."
 msgstr "SciTeX プラットフォームにアクセスし、または利用することにより、あなたは本利用規約に拘束されることに同意したものとみなされます。規約のいかなる部分にも同意できない場合は、プラットフォームへのアクセスをしないでください。"
 
@@ -2123,6 +2127,10 @@ msgstr "知的財産権"
 
 msgid "Unless otherwise indicated, the SciTeX platform is our proprietary property and all source code, databases, functionality, software, website designs, audio, video, text, photographs, and graphics on the platform (collectively, the \"Content\") and the trademarks, service marks, and logos contained therein (the \"Marks\") are owned or controlled by us or licensed to us, and are protected by copyright and trademark laws and various other intellectual property rights."
 msgstr "特段の表示がない限り、SciTeX プラットフォームは当社の固有財産であり、プラットフォーム上のすべてのソースコード、データベース、機能、ソフトウェア、ウェブサイト設計、音声、映像、テキスト、写真、グラフィック（総称して「コンテンツ」）およびそこに含まれる商標、サービスマーク、ロゴ（「マーク」）は、当社が所有または管理しているか、当社にライセンスされており、著作権法・商標法およびその他の各種知的財産権によって保護されています。"
+
+#: apps/infra/public_app/templates/public_app/legal/terms_of_use.html
+msgid "Unless otherwise indicated, the SciTeX platform is our proprietary property and all source code, databases, functionality, software, website designs, audio, video, text, photographs, and graphics on the platform (collectively, the \\\"Content\\\") and the trademarks, service marks, and logos contained therein (the \\\"Marks\\\") are owned or controlled by us or licensed to us, and are protected by copyright and trademark laws and various other intellectual property rights."
+msgstr "別段の定めがある場合を除き、SciTeX プラットフォームは当社の専有財産であり、プラットフォーム上のすべてのソースコード、データベース、機能、ソフトウェア、ウェブサイトデザイン、音声、動画、テキスト、写真およびグラフィック（総称して「コンテンツ」）、ならびにこれらに含まれる商標、サービスマークおよびロゴ（「標章」）は、当社が所有もしくは管理し、または当社にライセンスされており、著作権法、商標法その他各種の知的財産権によって保護されています。"
 
 msgid "SciTeX codebase is fully open and available at no cost as long as customers can utilize it independently. Our code is open-source and can be freely used, modified, and distributed according to the terms of our license. For users who prefer not to manage their own installations, we offer a web interface as a service for a fee."
 msgstr "SciTeX のコードベースは、お客様が独自に利用可能である限り、完全に公開され無償で提供されます。当社のコードはオープンソースであり、ライセンスの条項に従って自由に使用・修正・配布できます。自分の環境の管理を避けたいユーザーには、有償でウェブインターフェースをサービスとして提供しています。"
@@ -2169,6 +2177,10 @@ msgstr "コンテンツの所有"
 msgid "You retain all rights to your research data, documents, code, and other content that you upload, post, or otherwise make available on the platform (\"User Content\"). By uploading User Content, you grant us a non-exclusive, royalty-free, worldwide license to use, copy, modify, and display your User Content in connection with the operation of the SciTeX platform and providing services to you."
 msgstr "あなたがアップロード・投稿・その他プラットフォームで利用可能にさせる研究データ、文書、コード、その他のコンテンツ（「ユーザーコンテンツ」）については、すべての権利をあなたが保持します。ユーザーコンテンツをアップロードすることにより、あなたは SciTeX プラットフォームの運営およびあなたへのサービス提供に関連して、あなたのユーザーコンテンツを使用・複製・修正・表示するため、独占的でない、ロイヤルティフリー、全世界的なライセンスを当社に付与します。"
 
+#: apps/infra/public_app/templates/public_app/legal/terms_of_use.html
+msgid "You retain all rights to your research data, documents, code, and other content that you upload, post, or otherwise make available on the platform (\\\"User Content\\\"). By uploading User Content, you grant us a non-exclusive, royalty-free, worldwide license to use, copy, modify, and display your User Content in connection with the operation of the SciTeX platform and providing services to you."
+msgstr "あなたがプラットフォームにアップロード、投稿その他の方法で提供する研究データ、文書、コードその他のコンテンツ（「ユーザーコンテンツ」）に関するすべての権利は、あなたに帰属します。ユーザーコンテンツをアップロードすることにより、あなたは当社に対し、SciTeX プラットフォームの運営およびあなたへのサービス提供に関連して、当該ユーザーコンテンツを使用、複製、改変および表示するための、非独占的、無償、世界的なライセンスを許諾するものとします。"
+
 msgid "Content Responsibility"
 msgstr "コンテンツへの責任"
 
@@ -2192,6 +2204,42 @@ msgstr "コンテンツの審査"
 
 msgid "We do not review all User Content before it is posted on the platform, and cannot ensure prompt removal of objectionable User Content after it has been posted. Accordingly, we assume no liability for any action or inaction regarding User Content."
 msgstr "ユーザーコンテンツのすべてをプラットフォームへの投稿前に審査するわけではなく、投稿後の差し支えのあるユーザーコンテンツの即時削除を保証することはできません。したがって、ユーザーコンテンツに関するいかなる作為・不作為について当社は何らの責任も負いません。"
+
+#: apps/infra/public_app/templates/public_app/legal/terms_of_use.html
+msgid "Compute Usage and Storage"
+msgstr "計算資源の利用とストレージ"
+
+#: apps/infra/public_app/templates/public_app/legal/terms_of_use.html
+msgid "The platform gives you shared compute and separate storage areas with different visibility. Where you put your data determines who can read it, so please choose deliberately."
+msgstr "本プラットフォームでは、共有の計算資源と、公開範囲の異なるストレージ領域を提供します。データをどこに置くかによって、誰がそれを読めるかが決まります。意図をもって選択してください。"
+
+#: apps/infra/public_app/templates/public_app/legal/terms_of_use.html
+msgid "Shared Temporary Space (/tmp)"
+msgstr "共有の一時領域（/tmp）"
+
+#: apps/infra/public_app/templates/public_app/legal/terms_of_use.html
+msgid "/tmp is shared and readable by other users. It is mode 1777 with the sticky bit: anyone can read and traverse it, and the sticky bit only prevents one user from deleting another user's files. Treat it as transient working space. Do not place confidential or personal data there."
+msgstr "/tmp は共有されており、他の利用者からも読み取り可能です。パーミッションは 1777（スティッキービット付き）で、誰でも読み取りとディレクトリの移動ができ、スティッキービットが防ぐのは、ある利用者が他の利用者のファイルを削除することだけです。一時的な作業領域として扱ってください。機密情報や個人情報を置かないでください。"
+
+#: apps/infra/public_app/templates/public_app/legal/terms_of_use.html
+msgid "Private Working Storage (/scratch/&lt;user&gt;)"
+msgstr "非公開の作業用ストレージ（/scratch/&lt;user&gt;）"
+
+#: apps/infra/public_app/templates/public_app/legal/terms_of_use.html
+msgid "Your own directory under /scratch is private to you (mode 0700). Working data belongs there."
+msgstr "/scratch 配下のあなた自身のディレクトリは、あなただけがアクセスできます（パーミッション 0700）。作業データはそこに置いてください。"
+
+#: apps/infra/public_app/templates/public_app/legal/terms_of_use.html
+msgid "Why the Distinction Exists"
+msgstr "この区別が存在する理由"
+
+#: apps/infra/public_app/templates/public_app/legal/terms_of_use.html
+msgid "The root filesystem is the small volume, while /scratch is the large one. Bulk work should therefore not be performed under your home directory or in /tmp."
+msgstr "ルートファイルシステムは容量の小さいボリュームであり、/scratch が大容量のボリュームです。したがって、大量の処理をホームディレクトリ配下や /tmp で実行しないでください。"
+
+#: apps/infra/public_app/templates/public_app/legal/terms_of_use.html
+msgid "You are responsible for where you place your data. If you expose data by placing it in shared temporary space, that exposure is yours to own. This section exists so the difference is stated rather than silent."
+msgstr "データをどこに置くかは、あなた自身の責任です。共有の一時領域にデータを置いた結果それが開示された場合、その開示はあなたが負うものです。本節は、この違いを暗黙にせず、明示するために設けています。"
 
 msgid "Prohibited Activities"
 msgstr "禁止事項"
