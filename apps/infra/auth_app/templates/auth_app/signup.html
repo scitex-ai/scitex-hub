@@ -142,17 +142,6 @@
                         <i class="fas fa-circle"></i> {% trans "At least one special character" %} (!@#$%^&amp;*)
                     </div>
                 </div>
-                <div class="form-check mb-3">
-                    {{ form.agree_terms }}
-                    <label class="form-check-label" for="{{ form.agree_terms.id_for_label }}">
-                        {% trans "Terms of Use" as terms_label %}
-                        {% trans "Privacy Policy" as privacy_label %}
-                        {% blocktrans trimmed with terms='<a href="/terms/" target="_blank" class="text-link">'|add:terms_label|add:'</a>'|safe privacy='<a href="/privacy/" target="_blank" class="text-link">'|add:privacy_label|add:'</a>'|safe %}
-                            I agree to the {{ terms }} and {{ privacy }}
-                        {% endblocktrans %}
-                    </label>
-                    {% if form.agree_terms.errors %}<div class="text-danger small">{{ form.agree_terms.errors.0 }}</div>{% endif %}
-                </div>
                 {% if stripe_card.open and stripe_card.publishable_key %}
                 {# One-shot card entry: number/expiry/CVC go browser-to-Stripe #}
                 {# only (Elements). The server sees just the SetupIntent id.  #}
@@ -167,6 +156,17 @@
                     <a id="signup-continue-link" class="text-link small" href="#" style="display: none">{% trans "Continue to email verification" %}</a>
                 </div>
                 {% endif %}
+                <div class="form-check mb-3">
+                    {{ form.agree_terms }}
+                    <label class="form-check-label" for="{{ form.agree_terms.id_for_label }}">
+                        {% trans "Terms of Use" as terms_label %}
+                        {% trans "Privacy Policy" as privacy_label %}
+                        {% blocktrans trimmed with terms='<a href="/terms/" target="_blank" class="text-link">'|add:terms_label|add:'</a>'|safe privacy='<a href="/privacy/" target="_blank" class="text-link">'|add:privacy_label|add:'</a>'|safe %}
+                            I agree to the {{ terms }} and {{ privacy }}
+                        {% endblocktrans %}
+                    </label>
+                    {% if form.agree_terms.errors %}<div class="text-danger small">{{ form.agree_terms.errors.0 }}</div>{% endif %}
+                </div>
                 <button type="submit" class="btn btn-primary w-100 auth-primary-cta" id="signup-submit">{% if stripe_card.open and stripe_card.publishable_key %}{% trans "Create Account & Start Trial" %}{% else %}{% trans "Create Account" %}{% endif %}</button>
             </form>
             {# Same derivation as signin.html -- see the note there. A provider #}
