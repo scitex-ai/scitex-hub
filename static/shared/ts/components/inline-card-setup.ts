@@ -44,10 +44,21 @@ ready(() => {
 
     const stripe = Stripe(publishableKey);
     const elements = stripe.elements();
-    const style = {
-        base: { fontSize: "16px", color: "#1a1a1a" },
-        invalid: { color: "#b42318" },
-    };
+    // Dark-mode legibility: the Elements iframe carries its own styles, so
+    // the page theme must be passed in explicitly. Otherwise typed digits
+    // are dark-on-dark and invisible.
+    const darkMode =
+        typeof window.matchMedia === "function" &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const style = darkMode
+        ? {
+              base: { fontSize: "16px", color: "#f2f2f2", "::placeholder": { color: "#8a8a8a" } },
+              invalid: { color: "#ff9d8a" },
+          }
+        : {
+              base: { fontSize: "16px", color: "#1a1a1a" },
+              invalid: { color: "#b42318" },
+          };
     const number = elements.create("cardNumber", { style: style });
     const expiry = elements.create("cardExpiry", { style: style });
     const cvc = elements.create("cardCvc", { style: style });
