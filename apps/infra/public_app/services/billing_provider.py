@@ -74,6 +74,12 @@ class BillingProvider(Protocol):
     def start_subscription(self, user, *, pricing_id: str):
         """Create the paid plan and return the local ``PlanSubscription``."""
 
+    def create_setup_intent(self, user, *, pricing_id: str):
+        """A SetupIntent for the inline Elements form: ``(id, client_secret)``."""
+
+    def confirm_card_setup(self, user, *, setup_intent_id: str):
+        """Verify a confirmed SetupIntent, persist the card, start the trial."""
+
     def cancel_subscription(self, subscription):
         """Stop renewal at period end and return the updated ``PlanSubscription``."""
 
@@ -278,6 +284,23 @@ def card_registration_is_open() -> bool:
         return get_billing_provider().card_registration_open
     except BillingNotConfigured:
         return False
+
+
+def inline_card_form_info() -> dict:
+    """Publishable key + availability for the inline Elements form.
+
+    Returns ``{"open": bool, "publishable_key": str}``. The key is public by
+    design; an empty key means the funnel offers the hosted Checkout button
+    only.
+    """
+    try:
+        provider = get_billing_provider()
+    except BillingNotConfigured:
+        return {"open": False, "publishable_key": ""}
+    return {
+        "open": bool(getattr(provider, "inline_card_form_open", False)),
+        "publishable_key": getattr(provider, "publishable_key", "") or "",
+    }
 
 
 def post_signup_redirect_url(user) -> str:
