@@ -134,8 +134,10 @@ def funnel_plan(user, requested_id: Optional[str] = None, price_ids=None) -> Opt
 
     1. an explicitly requested id must be on the allowlist;
     2. otherwise the plan already recorded on the account's onboarding authority;
-    3. otherwise the allowlist must contain exactly ONE plan;
-    4. otherwise ``None`` — the step says it does not know, and the POST refuses.
+    3. otherwise the academic-aware default (academic email → the student row,
+       anyone else → the non-student row; ambiguity still refuses);
+    4. otherwise a lone allowlisted plan;
+    5. otherwise ``None`` — the step says it does not know, and the POST refuses.
     """
     from apps.infra.public_app.services.billing_provider import (
         resolve_signup_plan,
@@ -155,7 +157,28 @@ def funnel_plan(user, requested_id: Optional[str] = None, price_ids=None) -> Opt
             recorded = resolve_signup_plan(authority.pricing_id, price_ids)
             if recorded is not None:
                 return recorded
-    return allowlist[0] if len(allowlist) == 1 else None
+    # Academic-aware default (operator 2026-09-22): the signup page already
+    # promises "Academic pricing applied" for academic emails, so the funnel
+    # must quote the matching plan rather than strand everyone on
+    # "plan_unset" now that two plans are chargeable. Academic → the student
+    # row; everyone else → the non-student row. Ambiguity (zero or several
+    # matches) still refuses — quoting the wrong plan is not recoverable.
+    email = (getattr(user, "email", "") or "") if user is not None else ""
+    try:
+        from apps.infra.auth_app.models import is_academic_email
+
+        academic = bool(email) and bool(is_academic_email(email))
+    except Exception:
+        academic = False
+    if academic:
+        matches = [row for row in allowlist if "student" in (row.get("id") or "")]
+    else:
+        matches = [row for row in allowlist if "student" not in (row.get("id") or "")]
+    if len(matches) == 1:
+        return matches[0]
+    if len(allowlist) == 1:
+        return allowlist[0]
+    return None
 
 
 @dataclass(frozen=True)
