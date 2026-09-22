@@ -228,6 +228,25 @@ def confirm_card_setup(user, *, setup_intent_id, stripe_client):
     card = apply_setup_completed(pseudo_event, stripe_client=stripe_client)
     if card is None:
         return None
+    # Card VALIDITY (the bank's verdict, not just the form's): refuse a card
+    # whose CVC check explicitly failed. Anything else — pass, unchecked
+    # (CVC not collected), unavailable — is accepted; only a hard ``fail``
+    # proves the card details are wrong.
+    try:
+        pm_id = _field(intent, "payment_method", "") or ""
+        if pm_id:
+            pm = stripe_client.PaymentMethod.retrieve(pm_id)
+            details = _field(pm, "card") or {}
+            checks = _field(details, "checks") or {}
+            if _field(checks, "cvc_check", "") == "fail":
+                logger.warning(
+                    "inline card setup %s refused: CVC check failed", setup_intent_id
+                )
+                return None
+    except Exception:
+        logger.exception(
+            "inline card setup %s: card-check lookup failed open", setup_intent_id
+        )
     BillingSetupSession.objects.filter(user=user, session_id=setup_intent_id).update(
         status=BillingSetupSession.Status.COMPLETED,
         completed_at=timezone.now(),

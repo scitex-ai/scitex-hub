@@ -127,7 +127,18 @@ def mark_verified(user, source: str = "email") -> OnboardingState:
     """
     with transaction.atomic():
         PendingSignup.objects.filter(user=user).delete()
-        return _ensure(user, source=source)
+        row = _ensure(user, source=source)
+    # One-shot signup may already hold a usable card (taken on the signup
+    # page before the address was proven). A verified account with a card on
+    # file owes nothing: advance straight past the payment step instead of
+    # gating an already-paid account.
+    try:
+        if user.payment_methods.filter(is_usable=True).exists():
+            advanced = mark_activated(user, pricing_id=str(row.pricing_id or ""))
+            return advanced if advanced is not None else row
+    except Exception:
+        logger.exception("Verified card-skip check failed open for %s", user.pk)
+    return row
 
 
 def begin_social_signup(user, provider: str) -> OnboardingState:

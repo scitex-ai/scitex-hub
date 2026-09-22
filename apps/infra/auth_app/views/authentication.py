@@ -33,6 +33,36 @@ _SIGNUP_RESPONSE_MESSAGE = (
 )
 
 
+def _wants_json(request) -> bool:
+    """AJAX one-shot submit (account + card on one page) rather than a form POST."""
+    return request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
+
+def _signup_done(request, email, user=None):
+    """The ONE exit of the signup POST: redirect for forms, JSON for one-shot.
+
+    Every outcome — created, resent, resumed, already-active, or error —
+    answers identically (PR #775): the same generic message, the same
+    verify URL. Only a freshly created ``user`` additionally carries a
+    SetupIntent + single-purpose token so the same page can take the card;
+    all other outcomes carry no card payload, and the browser simply
+    continues to verification (the payment step remains the card fallback).
+    """
+    from django.http import JsonResponse
+    from django.urls import reverse
+
+    verify_url = reverse("auth_app:verify_email")
+    target = f"{verify_url}?email={email}"
+    if not _wants_json(request):
+        return redirect(target)
+    payload = {"ok": True, "message": _SIGNUP_RESPONSE_MESSAGE, "verify_url": target}
+    if user is not None:
+        from ..signup_card import mint_signup_setup_intent
+
+        payload["card"] = mint_signup_setup_intent(user)
+    return JsonResponse(payload)
+
+
 def _send_pending_signup_code(request, user, email, logger) -> bool:
     """Issue a fresh verification code for a PENDING signup and mail it.
 
@@ -146,10 +176,7 @@ def signup(request):
                 if consume_resend_budget(email):
                     _send_pending_signup_code(request, existing_user, email, logger)
                 messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                from django.urls import reverse
-
-                verify_url = reverse("auth_app:verify_email")
-                return redirect(f"{verify_url}?email={email}")
+                return _signup_done(request, email)
 
             elif collision is SignupCollision.PENDING_LIVE:
                 # I2/I5: inside the window the account stands; the only useful
@@ -169,10 +196,7 @@ def signup(request):
                 if consume_resend_budget(email):
                     _send_pending_signup_code(request, existing_user, email, logger)
                 messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                from django.urls import reverse
-
-                verify_url = reverse("auth_app:verify_email")
-                return redirect(f"{verify_url}?email={email}")
+                return _signup_done(request, email)
 
             elif collision in (
                 SignupCollision.ACTIVE,
@@ -194,10 +218,7 @@ def signup(request):
                 # enumeration oracle AND what stops it being a takeover.
                 logger.info("Signup attempt matched an existing account; generic reply")
                 messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                from django.urls import reverse
-
-                verify_url = reverse("auth_app:verify_email")
-                return redirect(f"{verify_url}?email={email}")
+                return _signup_done(request, email)
 
             # Create inactive user (cannot log in until email verified)
             #
@@ -217,10 +238,7 @@ def signup(request):
             except IntegrityError:
                 logger.info("Signup insert lost a race; generic reply")
                 messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                from django.urls import reverse
-
-                verify_url = reverse("auth_app:verify_email")
-                return redirect(f"{verify_url}?email={email}")
+                return _signup_done(request, email)
 
             # Create user profile (should be auto-created by signal, but ensure it exists)
             UserProfile.objects.get_or_create(user=user)
@@ -268,11 +286,9 @@ def signup(request):
                     # here would be the enumeration oracle: identical wording
                     # for create/resend/resume/already-active is the point.
                     messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                    # Redirect to email verification page
-                    from django.urls import reverse
-
-                    verify_url = reverse("auth_app:verify_email")
-                    return redirect(f"{verify_url}?email={email}")
+                    # Fresh account: the one-shot page also takes the card, so
+                    # the response carries the SetupIntent + token for it.
+                    return _signup_done(request, email, user=user)
                 else:
                     logger.error(
                         f"Failed to send verification email to {email}: {message}"
@@ -284,24 +300,27 @@ def signup(request):
                     # NOT already registered. That is the same enumeration oracle
                     # the collision paths were unified to close.
                     messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                    from django.urls import reverse
-
-                    verify_url = reverse("auth_app:verify_email")
-                    return redirect(f"{verify_url}?email={email}")
+                    # Account exists even though the mail failed: still hand
+                    # the one-shot page its card payload so the card is not
+                    # lost with the OTP retry.
+                    return _signup_done(request, email, user=user)
             except Exception as e:
                 logger.error(f"Error during signup for {email}: {str(e)}")
                 # Don't delete user - keep the account
                 # GENERIC for the same reason as the branch above.
                 messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                from django.urls import reverse
-
-                verify_url = reverse("auth_app:verify_email")
-                return redirect(f"{verify_url}?email={email}")
+                return _signup_done(request, email)
     else:
         form = SignupForm()
 
+    from apps.infra.public_app.services.billing_provider import inline_card_form_info
+
     context = {
         "form": form,
+        # One-shot card section: shown only when the deployment can take a
+        # card inline (publishable key present). No key: account-only form,
+        # payment step stays the fallback — same rule as the payment step.
+        "stripe_card": inline_card_form_info(),
     }
     return render(request, "auth_app/signup.html", context)
 
