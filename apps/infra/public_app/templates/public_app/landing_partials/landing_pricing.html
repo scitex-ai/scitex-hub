@@ -3,14 +3,15 @@
    Landing-page pricing (compass 25.1: "Publish the Pricing table on the
    TOP/LANDING page so a user can tell what they get before signing in").
 
-   Layout (operator 2026-09-11, "learn from the claude.ai plan page"):
-   a clean plan row (the Free pane was dropped 2026-09-12; card registration
-   at signup is required, operator 2026-09-14 — the Cloud CTA says so) —
-     1. Sub   — ONE card; Academic vs General is a small switcher inside it
-                  (was two sibling cards). Both variants' prices, notes and
-                  included lists come from the same SSOT rows (pricing.json
-                  subscription-student / subscription-general).
-     2. On-Prem — AGPL self-host free + commercial-license contact (SSOT
+   Layout: three plan columns —
+     1. Free   — its own card (no switcher variant). Every signup starts
+                  here; no card, ever. Price + included list from the SSOT
+                  row subscription-free.
+     2. Pro    — ONE card; Academic vs Non-Academic is a small switcher
+                  inside it (was two sibling cards). Both variants' prices,
+                  notes and included lists come from the same SSOT rows
+                  (pricing.json subscription-student / subscription-general).
+     3. On-Prem — AGPL self-host free + commercial-license contact (SSOT
                   tier 'onprem'). Individual service line items (Consulting,
                   Contract Development, SciTeX Translation, Clew Verification)
                   stay on /services/ — they are offerings, not plans.
@@ -27,7 +28,32 @@
     <div class="container">
         <h2 class="section-heading">{% trans "Pricing" %}</h2>
         <div class="pricing-grid pricing-grid-plans">
-            {# ---- 1/2 Pro (Academic / Non-Academic switcher, top-right) ---- #}
+            {# ---- 1/3 Free: every signup starts here, no card, ever -------- #}
+            {% if free_row %}
+            <div class="pricing-card pricing-card-free">
+                <div class="pricing-header">
+                    <div class="plan-title-row">
+                        <h3 class="plan-name">{{ free_row.label|translate_dynamic }}</h3>
+                    </div>
+                    <p class="plan-sub">{% trans "For trying things out" %}</p>
+                </div>
+                <div class="pricing-body">
+                    <p class="pricing-price plan-fee">{{ free_row.price }}</p>
+                    <div class="pricing-features">
+                        <ul>
+                            {% for item in free_row.included %}
+                            <li>{{ item }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="pricing-action">
+                        <a href="{% url 'auth_app:signup' %}" class="btn btn-primary btn-block">{% trans "Create a free account" %}</a>
+                        <p class="pricing-card-note">{% trans "No credit card required." %}</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {# ---- 2/3 Pro (Academic / Non-Academic switcher, top-right) ---- #}
             {% if sub_rows %}
             <div class="pricing-card pricing-card-sub">
                 <div class="pricing-header">
@@ -56,14 +82,14 @@
                     {% endfor %}
                     </div>
                     <div class="pricing-action">
-                        <a href="{% url 'auth_app:signup' %}" class="btn btn-primary btn-block">{% trans "Start your 30-day trial" %}</a>
-                        <p class="pricing-card-note">{% trans "Card required at signup — no charge during the trial." %}</p>
+                        <a href="{% url 'auth_app:signup' %}" class="btn btn-primary btn-block">{% trans "Start free, upgrade anytime" %}</a>
+                        <p class="pricing-card-note">{% trans "30-day trial — card added on Stripe's secure page, no charge during the trial." %}</p>
                     </div>
                 </div>
             </div>
             {% endif %}
 
-            {# ---- 2/2 On-Prem (AGPL / Custom License switcher) ------------ #}
+            {# ---- 3/3 On-Prem (AGPL / Custom License switcher) ------------ #}
             {% if onprem_tier %}
             <div class="pricing-card pricing-card-onprem">
                 <div class="pricing-header">

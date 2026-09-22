@@ -2957,11 +2957,11 @@ msgstr "含まれる量を超えたストレージと送信は従量課金"
 msgid "Monthly spending cap set by the user"
 msgstr "月間の利用上限を利用者が設定"
 
-msgid "SciTeX Cloud Academic"
-msgstr "SciTeX Cloud Academic（学術）"
+msgid "SciTeX Cloud Pro - Academic"
+msgstr "SciTeX Cloud Pro - Academic（学術）"
 
-msgid "SciTeX Cloud Standard"
-msgstr "SciTeX Cloud Standard（一般）"
+msgid "SciTeX Cloud Pro - Non-Academic"
+msgstr "SciTeX Cloud Pro - Non-Academic（一般）"
 
 msgid "SciTeX Self-Hosted — AGPL v3.0"
 msgstr "SciTeX セルフホスト — AGPL v3.0"

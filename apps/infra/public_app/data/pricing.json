@@ -43,7 +43,7 @@
     },
     {
       "id": "subscription-student",
-      "label": "SciTeX Cloud Academic",
+      "label": "SciTeX Cloud Pro - Academic",
       "amount": 19,
       "unit": "month",
       "basis": "per_user",
@@ -54,6 +54,10 @@
           "days": 30,
           "storage_gb": 10,
           "compute_credit": 3
+        },
+        "workspace_limits": {
+          "cpu": 2,
+          "memory_gb": 8
         },
         "included_storage": {
           "amount": 32,
@@ -74,7 +78,7 @@
     },
     {
       "id": "subscription-general",
-      "label": "SciTeX Cloud Standard",
+      "label": "SciTeX Cloud Pro - Non-Academic",
       "amount": 39,
       "unit": "month",
       "basis": "per_user",
@@ -85,6 +89,10 @@
           "days": 30,
           "storage_gb": 10,
           "compute_credit": 3
+        },
+        "workspace_limits": {
+          "cpu": 2,
+          "memory_gb": 8
         },
         "included_storage": {
           "amount": 32,
