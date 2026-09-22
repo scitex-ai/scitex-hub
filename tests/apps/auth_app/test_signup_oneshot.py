@@ -112,9 +112,11 @@ def test_sender_down_banner_names_contact():
         method = "POST"
 
     from django.contrib.messages.storage.cookie import CookieStorage
+    from django.contrib.auth.models import AnonymousUser
+    from django.test import RequestFactory
 
-    req = Req()
-    req.COOKIES = {}
+    req = RequestFactory().post("/auth/signup/")
+    req.user = AnonymousUser()
     req._messages = CookieStorage(req)
     resp = _sender_down(req)
     assert resp.status_code == 200
