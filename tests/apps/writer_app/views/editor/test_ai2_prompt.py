@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Tests for apps/writer_app/views/editor/ai2_prompt.py"""
+# PS-206b: import-smoke-allowed — placeholder scaffold; real coverage belongs to the TQ campaign.
+
 
 import pytest
 

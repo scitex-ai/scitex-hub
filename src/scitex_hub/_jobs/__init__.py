@@ -19,7 +19,7 @@ updated the clone, so on 2026-09-05 it was measured 10 days behind
 This module declares ONE periodic job that closes that gap:
 
 * ``scitex-hub-dev-preview-sync`` (``kind="timer"``, every :data:`CADENCE`)
-  runs ``scitex-hub dev-preview sync --clone <PREVIEW_CLONE>``. The verb
+  runs ``scitex-hub dev-preview sync --yes --clone <PREVIEW_CLONE>``. The verb
   fast-forwards the clone to ``origin/develop``, classifies what changed,
   and does exactly the follow-up the change needs — nothing for ``.py`` /
   ``.html`` / ``.css`` (autoreload), ``make ENV=dev reload`` for compose /
@@ -196,7 +196,7 @@ def provide_jobs() -> list[JobSpec]:
 
     command = (
         f"/usr/bin/timeout {HARD_TIMEOUT_SEC} {scitex_hub_console_script()} "
-        f"dev-preview sync --clone {PREVIEW_CLONE}"
+        f"dev-preview sync --yes --clone {PREVIEW_CLONE}"
     )
     jobs = [
         JobSpec(

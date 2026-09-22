@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Tests for apps/console_app/services/jupyter/templates_viz.py"""
+# PS-206b: import-smoke-allowed — placeholder scaffold; real coverage belongs to the TQ campaign.
+
 
 import pytest
 

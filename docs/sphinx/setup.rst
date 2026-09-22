@@ -150,8 +150,7 @@ Use the CLI and MCP server without Docker:
 .. code-block:: bash
 
    pip install scitex-hub           # CLI only
-   pip install scitex-hub[mcp]      # CLI + MCP server
-   pip install scitex-hub[all]      # Everything
+   pip install scitex-hub[all]      # CLI + MCP server + everything
 
 Verify:
 

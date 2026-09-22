@@ -6,6 +6,8 @@
 
 # ADR 0002 — SciTeX Django App Standard ("apps and config")
 
+**Status:** Accepted — hub is the reference implementation; enforced by `audit-django`.
+
 - **Status**: Accepted
 - **Date**: 2026-05-29
 - **Deciders**: ywatanabe (lead), proj-scitex-hub (agent)

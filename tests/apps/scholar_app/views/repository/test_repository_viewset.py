@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Tests for apps/scholar_app/views/repository/repository_viewset.py"""
+# PS-206b: import-smoke-allowed — placeholder scaffold; real coverage belongs to the TQ campaign.
+
 
 import pytest
 
