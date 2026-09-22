@@ -230,6 +230,19 @@ class PendingSignup(models.Model):
     reconciled_at = models.DateTimeField(null=True, blank=True)
     reconciled_by = models.CharField(max_length=255, blank=True, default="")
 
+    class Plan(models.TextChoices):
+        #: Chose the free tier: no card is ever owed, so verification
+        #: completes the funnel (authority starts at PRODUCT).
+        FREE = "free", "Free tier"
+        #: Chose the paid trial: a provider-confirmed subscription is still
+        #: owed after verification (authority starts at PAYMENT).
+        TRIAL = "trial", "Paid trial"
+
+    #: Which funnel the submitter chose on the signup page. Read once by
+    #: mark_verified, then the marker is deleted. Default TRIAL preserves
+    #: every flow that never offered the choice (legacy, operator-created).
+    plan = models.CharField(max_length=16, choices=Plan.choices, default=Plan.TRIAL)
+
     class Meta:
         verbose_name = "Pending Signup"
         verbose_name_plural = "Pending Signups"

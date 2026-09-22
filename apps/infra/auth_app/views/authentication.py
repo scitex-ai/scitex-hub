@@ -153,6 +153,7 @@ def signup(request):
             email = form.cleaned_data["email"]
             username = form.cleaned_data["username"]
             password = form.cleaned_data["password"]
+            plan = form.cleaned_data.get("plan") or "free"
 
             # LIFECYCLE DECISION (hub auth lifecycle P0). This block replaces a
             # dead end: the form used to reject any existing row before we got
@@ -280,7 +281,7 @@ def signup(request):
             # The verify, resend and cleanup paths all require it. Resend and
             # email-change deliberately never create one — that separation is
             # what stops a suspended account acquiring signup authority.
-            PendingSignup.objects.create(user=user, email=email)
+            PendingSignup.objects.create(user=user, email=email, plan=plan)
 
             # Create Gitea user account (sync with Gitea)
             try:

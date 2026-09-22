@@ -126,8 +126,24 @@ def mark_verified(user, source: str = "email") -> OnboardingState:
     nothing behind, so "has this account finished signing up?" had no answer.
     """
     with transaction.atomic():
+        pending = PendingSignup.objects.filter(user=user).first()
+        chosen_plan = getattr(pending, "plan", "") or "trial"
         PendingSignup.objects.filter(user=user).delete()
         row = _ensure(user, source=source)
+        if chosen_plan == "free":
+            # Free tier owes no card and no provider event will ever come:
+            # verification COMPLETES this funnel. Same shape as the verified
+            # card-skip below (verified + owes nothing -> PRODUCT), but keyed
+            # on the submitter's own choice read from the marker before it
+            # was deleted — never from a browser claim, never inferred.
+            row.step = PRODUCT
+            row.pricing_id = "subscription-free"
+            row.activated_at = timezone.now()
+            row.save(
+                update_fields=["step", "pricing_id", "activated_at", "updated_at"]
+            )
+            logger.info("Onboarding completed free for %s", user.pk)
+            return row
     # One-shot signup may already hold a usable card (taken on the signup
     # page before the address was proven). A verified account with a card on
     # file owes nothing: advance straight past the payment step instead of
