@@ -283,3 +283,37 @@ def test_self_hosted_license_group_contrasts_agpl_vs_commercial() -> None:
     assert by_label["Support"][2] == "Community (AGPL) / Included (Commercial)"
     assert by_label["SLA"][2] == "— (AGPL) / Included (Commercial)"
     assert any(r.get("group") == "Self-hosted license" for r in rows)
+
+
+def test_metered_rates_and_api_rows_come_from_the_ssot() -> None:
+    """CPU/RAM/GPU rates, API keys and API services render from rate_card —
+    the table can never disagree with the pricing page's rate list.
+    """
+    from apps.infra.public_app.pricing import plan_comparison
+
+    rows = plan_comparison()["rows"]
+    by_label = {r["label"]: r["cells"] for r in rows if "label" in r}
+    assert by_label["CPU"][0] == "$0.05 / CPU Unit-hour"
+    assert by_label["CPU"][2] == "—"  # self-hosted runs on your hardware
+    assert by_label["Memory"][0] == "$0.005 / GiB-hour"
+    assert "A100 80 GB class $2.00 / GPU-hour" in by_label["GPU"][0]
+    assert by_label["API keys"] == ["Rate-limited", "Included", "—"]
+    services = by_label["Scholar, Stats, FigRecipe and Writer"]
+    assert "Compute Credits + 20% service fee" in services[0]
+    assert "(Coming soon)" in services[0]
+    assert services[2] == "—"
+    groups = [r["group"] for r in rows if "group" in r]
+    assert "Metered compute rates (Coming soon)" in groups
+    assert "API" in groups
+
+
+@translation.override("ja")
+def test_metered_and_api_rows_render_japanese() -> None:
+    from apps.infra.public_app.pricing import plan_comparison
+
+    rows = plan_comparison()["rows"]
+    cells = [str(c) for r in rows if "cells" in r for c in r["cells"]]
+    text = " ".join(cells)
+    assert "CPUユニット時間" in text
+    assert "レート制限あり" in text
+    assert "コンピュートクレジット" in text

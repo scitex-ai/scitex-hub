@@ -314,7 +314,16 @@
           "amount": 7.0
         }
       ],
-      "external_fee_percent": 10
+      "external_fee_percent": 20
+    },
+    "api": {
+      "coming_soon": true,
+      "keys": {
+        "free": "rate-limited",
+        "pro": "included",
+        "self_hosted": "not-applicable"
+      },
+      "services": ["scholar", "stats", "figrecipe", "writer"]
     }
   },
   "_policies": "SSOT sections 1 (Academic License boundary), 2 (notes), 6 (additional rules), 7 (SLA) and 8 (price maintenance), as customer copy.",

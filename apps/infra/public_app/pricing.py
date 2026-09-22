@@ -29,6 +29,7 @@ from pathlib import Path
 from typing import Any
 
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 
 __all__ = [
     "PRICING_PATH",
@@ -110,6 +111,87 @@ def coming_soon(text: str) -> str:
     return _("%(text)s (Coming soon)") % {"text": text}
 
 
+# Metered compute rates + API services for the comparison table. Rates are
+# provider-wide (identical in every tier column); Self-Hosted runs on your
+# own hardware so metered cells render a dash there. GPU-hour pricing bundles
+# VRAM by model (no standalone VRAM rate exists in the SSOT), and per-service
+# API credit costs are not set yet — the services row states the billing
+# mechanism (Compute Credits + margin, coming soon) instead of inventing
+# numbers. Closed enums throughout: unknown SSOT values raise loudly.
+_API_KEY_DISPLAY = {
+    "rate-limited": _lazy("Rate-limited"),
+    "included": _lazy("Included"),
+    "not-applicable": _lazy("—"),
+}
+
+_API_SERVICE_LABELS = {
+    "scholar": _lazy("Scholar"),
+    "stats": _lazy("Stats"),
+    "figrecipe": _lazy("FigRecipe"),
+    "writer": _lazy("Writer"),
+}
+
+_API_SERVICES_ROW_LABEL = _lazy("Scholar, Stats, FigRecipe and Writer")
+
+
+def _metered_and_api_rows() -> list[dict[str, Any]]:
+    card = load_pricing()["rate_card"]
+    comp = card["compute"]
+    api = card.get("api") or {}
+    margin = card["payg_margin_pct"]
+
+    services = api.get("services") or []
+    unknown_services = set(services) - set(_API_SERVICE_LABELS)
+    if unknown_services:
+        raise ValueError(
+            f"unknown api.services {sorted(unknown_services)} in pricing.json; "
+            "extend _API_SERVICE_LABELS deliberately."
+        )
+    if set(services) != set(_API_SERVICE_LABELS):
+        raise ValueError(
+            f"api.services is {services}; the table row label names "
+            "Scholar, Stats, FigRecipe and Writer exactly. Update "
+            "_API_SERVICES_ROW_LABEL deliberately if the set changes."
+        )
+    keys = api.get("keys") or {}
+    for tier in ("free", "pro", "self_hosted"):
+        if keys.get(tier) not in _API_KEY_DISPLAY:
+            raise ValueError(
+                f"api.keys[{tier!r}] is {keys.get(tier)!r} in pricing.json; "
+                "extend _API_KEY_DISPLAY deliberately."
+            )
+
+    dash = _("—")
+    rate = lambda amount, msgid: msgid % {"price": format_usd(amount)}  # noqa: E731
+    cpu_cell = rate(comp["cpu_unit_rate"], _("%(price)s / CPU Unit-hour"))
+    mem_cell = rate(comp["memory_addon_rate"], _("%(price)s / GiB-hour"))
+    gpu_cell = " · ".join(
+        _("%(name)s %(price)s / GPU-hour")
+        % {"name": _(g["name"]), "price": format_usd(g["amount"])}
+        for g in comp["gpus"]
+    )
+    key_cells = [
+        _API_KEY_DISPLAY[keys["free"]],
+        _API_KEY_DISPLAY[keys["pro"]],
+        _API_KEY_DISPLAY[keys["self_hosted"]],
+    ]
+    metered_line = coming_soon(
+        _("Metered in Compute Credits + %(pct)s%% service fee") % {"pct": margin}
+    )
+    return [
+        {"group": coming_soon(_("Metered compute rates"))},
+        {"label": _("CPU"), "cells": [cpu_cell, cpu_cell, dash]},
+        {"label": _("Memory"), "cells": [mem_cell, mem_cell, dash]},
+        {"label": _("GPU"), "cells": [gpu_cell, gpu_cell, dash]},
+        {"group": _("API")},
+        {"label": _("API keys"), "cells": key_cells},
+        {
+            "label": _API_SERVICES_ROW_LABEL,
+            "cells": [metered_line, metered_line, dash],
+        },
+    ]
+
+
 # How one attribute of a published row reads to a visitor. Every value form is
 # enumerated, so a value this table has not seen fails the test that renders
 # the whole catalogue instead of reaching a legal page untranslated.
@@ -176,25 +258,28 @@ def _self_hosted_text(value: bool) -> str:
 # "(AGPL) / (Commercial)" cell per term from BOTH rows' SSOT dicts, so the
 # incentives can never drift from the catalogue. Values are closed enums:
 # an unknown value is a red ValueError, not a silently wrong cell.
+# NOTE: module-level display dicts use gettext_lazy — plain gettext here would
+# freeze English at import time and every JA page would show English cells
+# (measured live: "Rate-limited" stayed English under ja until this fix).
 _LICENSE_TERM_DISPLAY = {
     "commercial_use": {
-        "with-disclosure": _("Source disclosure required"),
-        "unrestricted": _("No restrictions"),
+        "with-disclosure": _lazy("Source disclosure required"),
+        "unrestricted": _lazy("No restrictions"),
     },
     "support": {
-        "community": _("Community"),
-        "included": _("Included"),
+        "community": _lazy("Community"),
+        "included": _lazy("Included"),
     },
     "sla": {
-        "none": _("—"),
-        "included": _("Included"),
+        "none": _lazy("—"),
+        "included": _lazy("Included"),
     },
 }
 
 _LICENSE_TERM_LABELS = {
-    "commercial_use": _("Commercial use"),
-    "support": _("Support"),
-    "sla": _("SLA"),
+    "commercial_use": _lazy("Commercial use"),
+    "support": _lazy("Support"),
+    "sla": _lazy("SLA"),
 }
 
 
@@ -593,7 +678,7 @@ def plan_comparison(today=None):
             "label": _("Cold"),
             "cells": [tier_cell(free, "Cold"), tier_cell(pro, "Cold"), hosted_line],
         },
-    ] + license_rows
+    ] + license_rows + _metered_and_api_rows()
     return {
         "groups": [_("SciTeX Cloud"), _("SciTeX Self-Hosted")],
         "columns": [
