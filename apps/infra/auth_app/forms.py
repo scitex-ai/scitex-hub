@@ -40,11 +40,12 @@ class SignupForm(forms.Form):
         widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
         label="I agree to the Terms of Service and Privacy Policy",
     )
-    plan = forms.ChoiceField(
+    plan = forms.CharField(
         required=False,
-        choices=(("free", "Free"), ("trial", "Trial")),
-        initial="free",
-        widget=forms.RadioSelect(attrs={"class": "form-check-input"}),
+        widget=forms.RadioSelect(
+            choices=(("free", "Free"), ("trial", "Trial")),
+            attrs={"class": "form-check-input"},
+        ),
     )
 
     def clean_plan(self):

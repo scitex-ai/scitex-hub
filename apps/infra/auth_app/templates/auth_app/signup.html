@@ -142,20 +142,27 @@
                         <i class="fas fa-circle"></i> {% trans "At least one special character" %} (!@#$%^&amp;*)
                     </div>
                 </div>
-                {% if stripe_card.open and stripe_card.publishable_key %}
-                {# One-shot card entry: number/expiry/CVC go browser-to-Stripe #}
-                {# only (Elements). The server sees just the SetupIntent id.  #}
-                <div class="form-group mb-3" id="signup-card-group">
-                    <label class="form-label">
-                        {% trans "Card" %} <span class="text-danger">*</span>
-                        <small class="text-muted fw-normal">{% trans "30-day trial — no charge today" %}</small>
-                    </label>
-                    <div id="signup-card-element" class="form-control" style="min-height: 44px; padding-top: 10px"></div>
-                    <div id="signup-card-errors" class="text-danger small mt-1" role="alert"></div>
-                    <div id="signup-oneshot-status" class="text-muted small mt-1" style="display: none"></div>
-                    <a id="signup-continue-link" class="text-link small" href="#" style="display: none">{% trans "Continue to email verification" %}</a>
+                {# Plan choice: Free needs no card at all; Trial asks for the card
+                   on Stripe's hosted page after email verification — the only
+                   card surface. There is deliberately no card field here. #}
+                <div class="form-group mb-3" id="signup-plan-group">
+                    <span class="form-label">{% trans "Plan" %} <span class="text-danger">*</span></span>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="plan" id="id_plan_free" value="free"{% if form.plan.value != "trial" %} checked{% endif %}>
+                        <label class="form-check-label" for="id_plan_free">
+                            {% trans "Free" %}
+                            <small class="text-muted fw-normal">{% trans "No credit card required — 1 CPU, 2 GB workspace" %}</small>
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="plan" id="id_plan_trial" value="trial"{% if form.plan.value == "trial" %} checked{% endif %}>
+                        <label class="form-check-label" for="id_plan_trial">
+                            {% trans "Trial" %}
+                            <small class="text-muted fw-normal">{% trans "30-day trial — card added on Stripe's secure page after verification" %}</small>
+                        </label>
+                    </div>
+                    {% if form.plan.errors %}<div class="text-danger small">{{ form.plan.errors.0 }}</div>{% endif %}
                 </div>
-                {% endif %}
                 <div class="form-check mb-3">
                     {{ form.agree_terms }}
                     <label class="form-check-label" for="{{ form.agree_terms.id_for_label }}">
@@ -167,7 +174,7 @@
                     </label>
                     {% if form.agree_terms.errors %}<div class="text-danger small">{{ form.agree_terms.errors.0 }}</div>{% endif %}
                 </div>
-                <button type="submit" class="btn btn-primary w-100 auth-primary-cta" id="signup-submit">{% if stripe_card.open and stripe_card.publishable_key %}{% trans "Create Account & Start Trial" %}{% else %}{% trans "Create Account" %}{% endif %}</button>
+                <button type="submit" class="btn btn-primary w-100 auth-primary-cta" id="signup-submit">{% trans "Create Account" %}</button>
             </form>
             {# Same derivation as signin.html -- see the note there. A provider #}
             {# gets a button exactly when allauth can actually serve its login. #}
@@ -463,151 +470,4 @@
 
   });
     </script>
-    {% if stripe_card.open and stripe_card.publishable_key %}
-    <script src="https://js.stripe.com/v3/"></script>
-    <script>
-    /* One-shot signup: account + card in a single submit.
-     * Phase 1: AJAX POST creates the account, sends the OTP, and returns a
-     * SetupIntent client secret + single-purpose token. Phase 2: Stripe.js
-     * confirms the card browser-to-Stripe. Phase 3: the token authorises the
-     * confirm call that persists the card. Any card failure still leaves a
-     * created account — the error shows inline with a link onward to email
-     * verification (the payment step stays the card fallback).
-     * Without Stripe.js (blocked CDN) the form submits normally. Django
-     * template variables are rendered server-side into this script.
-     */
-    (function () {
-      if (typeof Stripe === "undefined") return; // graceful: plain form POST
-      var form = document.getElementById("signup-form");
-      var submitBtn = document.getElementById("signup-submit");
-      var cardErrors = document.getElementById("signup-card-errors")
-        || document.getElementById("error-message"); // sender-error fallback
-      var statusBox = document.getElementById("signup-oneshot-status");
-      var continueLink = document.getElementById("signup-continue-link");
-      if (!form || !submitBtn) return;
-      var stripe = Stripe("{{ stripe_card.publishable_key|escapejs }}");
-      var elements = stripe.elements();
-      // Same dark-mode rule as the payment-step module: the Elements iframe
-      // needs the theme passed in, or typed digits are invisible on dark.
-      var darkMode =
-        typeof window.matchMedia === "function" &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches;
-      var card = elements.create("card", {
-        style: darkMode
-          ? {
-              base: { fontSize: "16px", color: "#f2f2f2", "::placeholder": { color: "#8a8a8a" } },
-              invalid: { color: "#ff9d8a" },
-            }
-          : {
-              base: { fontSize: "16px", color: "#1a1a1a" },
-              invalid: { color: "#b42318" },
-            },
-      });
-      card.mount("#signup-card-element");
-      card.on("change", function (event) {
-        cardErrors.textContent = event.error ? event.error.message : "";
-      });
-      function setBusy(busy, label) {
-        submitBtn.disabled = busy;
-        if (busy) {
-          statusBox.style.display = "block";
-          statusBox.textContent = label;
-        }
-      }
-      function showCardError(message, verifyUrl) {
-        cardErrors.textContent = message;
-        statusBox.style.display = "none";
-        submitBtn.disabled = false;
-        if (verifyUrl) {
-          continueLink.href = verifyUrl;
-          continueLink.style.display = "inline";
-        }
-      }
-      function csrf() {
-        var m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]*)/);
-        return m ? decodeURIComponent(m[1]) : "";
-      }
-      form.addEventListener("submit", function (e) {
-        if (e.defaultPrevented) return; // existing validation failed: stay
-        e.preventDefault();
-        cardErrors.textContent = "";
-        continueLink.style.display = "none";
-        setBusy(true, "Creating your account…");
-        // Safety net: never spin forever. The server fails fast (SMTP
-        // timeout), but if the request itself stalls, say so and re-enable.
-        var aborter = new AbortController();
-        var abortTimer = setTimeout(function () { aborter.abort(); }, 45000);
-        fetch("{% url 'auth_app:signup' %}", {
-          method: "POST",
-          headers: { "X-Requested-With": "XMLHttpRequest", "X-CSRFToken": csrf() },
-          body: new FormData(form),
-          credentials: "same-origin",
-          signal: aborter.signal,
-        }).then(function (resp) {
-          clearTimeout(abortTimer);
-          var ct = resp.headers.get("Content-Type") || "";
-          if (ct.indexOf("application/json") < 0) throw new Error("non-json");
-          return resp.json();
-        }).then(function (data) {
-          if (data && data.ok === false && data.error) {
-            // Sender side is down: say so inline, stay on the page.
-            showCardError(data.error, null);
-            return null;
-          }
-          if (!data || !data.ok || !data.verify_url) throw new Error("non-json");
-          if (!data.card || !data.card.open) {
-            window.location.href = data.verify_url; // account-only path
-            return null;
-          }
-          setBusy(true, "Checking your card…");
-          return stripe.confirmCardSetup(data.card.client_secret, {
-            payment_method: {
-              card: card,
-              billing_details: {
-                email: document.getElementById("id_email").value,
-              },
-            },
-          }).then(function (result) {
-            if (result.error) {
-              showCardError(result.error.message, data.verify_url);
-              return null;
-            }
-            setBusy(true, "Starting your trial…");
-            return fetch("{% url 'public_app:billing_confirm_card' %}", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": csrf(),
-              },
-              body: JSON.stringify({
-                setup_intent_id: data.card.setup_intent_id,
-                signup_token: data.card.signup_token,
-              }),
-              credentials: "same-origin",
-            }).then(function (cresp) { return cresp.json(); }).then(function (cdata) {
-              if (cdata && cdata.ok) {
-                window.location.href = data.verify_url;
-              } else {
-                showCardError(
-                  (cdata && cdata.error) || "Card could not be verified.",
-                  data.verify_url,
-                );
-              }
-            });
-          });
-        }).catch(function (err) {
-          clearTimeout(abortTimer);
-          if (err && err.name === "AbortError") {
-            showCardError(
-              "The request is taking too long. Please reload the page and try again.",
-              null,
-            );
-            return;
-          }
-          form.submit(); // invalid form or no JSON: plain POST renders errors
-        });
-      });
-    })();
-    </script>
-    {% endif %}
 {% endblock %}
