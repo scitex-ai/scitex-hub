@@ -238,3 +238,32 @@ def test_only_the_academic_cloud_row_states_an_eligibility_rule() -> None:
     eligible = [r["id"] for r in rows if any(i.startswith("対象: ") for i in r["included"])]
     # Assert
     assert eligible == ["subscription-student"]
+
+
+@translation.override("ja")
+def test_percent_notes_render_japanese_not_english_fallback() -> None:
+    """Django's {% trans %} looks literals up DOUBLED (value.replace("%","%%")).
+
+    A single-% msgid in django.po therefore misses SILENTLY and the page shows
+    English (measured live 2026-08-23 for "100% open-source", and again for
+    these two notes). The repo convention: template keeps single %, .po msgid
+    carries %%, msgstr single %. This test renders the tag the way the
+    template does, so a reverted msgid fails HERE instead of on the live page.
+    """
+    from django.template import Context, Template
+
+    cases = {
+        "Academic users get Pro at 50% off with a university email address.":
+            "50%オフ",
+        "Pay-as-you-go (PAYG) usage beyond your plan is billed at provider "
+        "cost plus a 20% service fee.":
+            "20%のサービス料",
+    }
+    for literal, ja_needle in cases.items():
+        rendered = Template('{% load i18n %}{% trans "' + literal + '" %}').render(
+            Context()
+        )
+        assert ja_needle in rendered, (
+            f"{{% trans {literal!r} %}} rendered English under ja: {rendered!r}. "
+            "The django.po msgid must carry %% (doubled percent)."
+        )

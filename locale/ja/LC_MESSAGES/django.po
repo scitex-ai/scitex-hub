@@ -7611,9 +7611,9 @@ msgid "%(agpl)s (AGPL) / %(comm)s (Commercial)"
 msgstr "%(agpl)s（AGPL）/ %(comm)s（商用）"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
-msgid "Academic users get Pro at 50% off with a university email address."
+msgid "Academic users get Pro at 50%% off with a university email address."
 msgstr "学術ユーザーは大学メールアドレスでProを50%オフで利用できます。"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
-msgid "Pay-as-you-go (PAYG) usage beyond your plan is billed at provider cost plus a 20% service fee."
+msgid "Pay-as-you-go (PAYG) usage beyond your plan is billed at provider cost plus a 20%% service fee."
 msgstr "プランに含まれる量を超える従量課金（Pay-as-you-go、PAYG）は、プロバイダー原価に20%のサービス料を加えて請求されます。"
