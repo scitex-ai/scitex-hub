@@ -352,6 +352,17 @@ try:
             "LOCATION": REDIS_URL,
             "KEY_PREFIX": "scitex_hub",
             "TIMEOUT": 3600,
+            # BOUNDED WAITS: redis-py blocks FOREVER on a dead socket by
+            # default. The celery worker runs --pool=threads, whose threads
+            # cannot be interrupted once stuck — one stalled redis round-trip
+            # eats a thread permanently, and four stalls wedge the worker
+            # with the process still alive (measured on dev 2026-09-20:
+            # beacon stale 50h, queue empty, zero log output). A 5s timeout
+            # turns a stall into a failed task instead of a lost thread.
+            "OPTIONS": {
+                "socket_connect_timeout": 5,
+                "socket_timeout": 5,
+            },
         }
     }
     SESSION_ENGINE = "django.contrib.sessions.backends.cache"
