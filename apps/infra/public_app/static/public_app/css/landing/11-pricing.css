@@ -382,4 +382,12 @@
   .plan-compare[data-picked] [data-plan-col]:not(.plan-col-hidden) {
     display: table-cell;
   }
+  /* One plan at a time: values stay on one line and the wrapper scrolls
+     sideways instead of stacking one word per line (measured 390px). */
+  .plan-compare-table td {
+    white-space: nowrap;
+  }
+  .plan-compare-table tbody th[scope="row"] {
+    white-space: normal;
+  }
 }
