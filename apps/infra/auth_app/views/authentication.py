@@ -354,7 +354,22 @@ def signup(request):
 
 def login_view(request):
     """User login view with authentication."""
+    from urllib.parse import urlparse
+
+    from django.contrib.auth.hashers import check_password as _check_password
+
     from .account_switching import add_authenticated_account
+
+    def _safe_next(raw):
+        # Open-redirect guard (operator 2026-09-22): the old code redirected
+        # to any ``?next=`` verbatim, so a crafted link could bounce a fresh
+        # login to an attacker page. Only same-origin paths survive.
+        if not raw or "\\" in raw:
+            return "/"
+        parts = urlparse(raw)
+        if parts.scheme or parts.netloc:
+            return "/"
+        return raw if raw.startswith("/") else "/"
 
     if request.method == "POST":
         form = LoginForm(request.POST)
@@ -364,11 +379,9 @@ def login_view(request):
 
             # Check if username is actually an email
             if "@" in username:
-                try:
-                    user_obj = User.objects.get(email=username)
+                user_obj = User.objects.filter(email__iexact=username).first()
+                if user_obj is not None:
                     username = user_obj.username
-                except User.DoesNotExist:
-                    pass
 
             # Authenticate user
             user = authenticate(request, username=username, password=password)
@@ -381,10 +394,7 @@ def login_view(request):
                     request.session.set_expiry(0)
 
                 # Redirect to next page or user's project page
-                next_page = request.GET.get("next")
-                if not next_page:
-                    # Default to hub root (Gitea-style project dashboard)
-                    next_page = "/"
+                next_page = _safe_next(request.GET.get("next") or request.POST.get("next"))
 
                 messages.success(request, f"Welcome back, @{user.username}!")
 
@@ -393,6 +403,38 @@ def login_view(request):
                 add_authenticated_account(request, response)
                 return response
             else:
+                # Pending-signup rescue (operator 2026-09-22): Django's
+                # ``authenticate`` returns None for inactive users, so someone
+                # who just signed up but never verified got told "Invalid
+                # username or password" — a lie with no way forward. A pending
+                # account with the RIGHT password is not a failed login; it is
+                # an unfinished signup. Mail it a fresh code and send it to
+                # the verify page instead of stranding it here.
+                pending = User.objects.filter(username=username).first()
+                if (
+                    pending is not None
+                    and not pending.is_active
+                    and _check_password(password, pending.password)
+                ):
+                    import logging as _logging
+
+                    if _send_pending_signup_code(
+                        request, pending, pending.email, _logging.getLogger(__name__)
+                    ):
+                        messages.info(
+                            request,
+                            "Your account is almost ready — we just sent a fresh "
+                            "verification code. Please enter it below.",
+                        )
+                    else:
+                        messages.error(
+                            request,
+                            "Your account is waiting on email verification, but "
+                            "we couldn't send the code because of a problem on "
+                            "our side. Our maintainers have been notified — "
+                            "please try again shortly, or contact info@scitex.ai.",
+                        )
+                    return redirect("auth_app:verify_email")
                 messages.error(request, "Invalid username or password.")
     else:
         form = LoginForm()
