@@ -6,6 +6,8 @@
 
 # ADR 0002 — SciTeX Django App Standard ("apps and config")
 
+**Status:** Accepted — hub is the reference implementation; enforced by `audit-django`.
+
 - **Status**: Accepted
 - **Amended**: 2026-09-10 (Amendment 1 — the Django settings do not import
   the umbrella; §5 and §6 corrected. Measurement and merge order in the

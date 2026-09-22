@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Tests for apps/public_app/views/status/helpers.py"""
+# PS-206b: import-smoke-allowed — placeholder scaffold; real coverage belongs to the TQ campaign.
+
 
 import pytest
 

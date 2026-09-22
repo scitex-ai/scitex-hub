@@ -93,4 +93,4 @@ When unsure about UX/design decisions, follow Anthropic's patterns:
 - Don't push brand in every UI element — subtlety over saturation
 - Mobile responsiveness: match Anthropic-level polish
 
-This is the Shu-Ha-Ri principle — master by imitation first, then innovate.
+This is the Shu-Ha-Ri principle — learn the form by imitation first, then innovate.

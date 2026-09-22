@@ -1,19 +1,15 @@
 # Coverage reporting configuration for scitex-hub.
 #
-# The project still has substantial Django app surface and CLI code not
-# fully exercised by the unit suite — keep the target on "auto" while
-# the per-module coverage push (subprocess wiring landed 2026-05) drives
-# the absolute number up. Switch to a hard floor once the baseline
-# settles above 80%.
+# Hard 90% project + patch floors so the bar is visible (PS-161).
 coverage:
   status:
     project:
       default:
-        target: auto
+        target: 90%
         threshold: 1%
     patch:
       default:
-        target: auto
+        target: 90%
         threshold: 1%
 
 comment: false

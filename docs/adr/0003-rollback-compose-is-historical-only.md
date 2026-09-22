@@ -1,5 +1,7 @@
 # ADR 0003: docker-compose.rollback.yml is a one-time historical artifact, not a maintained rollback path
 
+**Status:** Accepted — the rollback file stays NAS-local history; do not rebuild a rollback path from it.
+
 - **Status:** Accepted
 - **Date:** 2026-06-07
 - **Supersedes:** —
