@@ -607,3 +607,21 @@ def log_user_login(sender, request, user, **kwargs):
         logger.info(f"Login recorded: {user.username} via {method}")
     except Exception as e:
         logger.error(f"Failed to log login for {user.username}: {e}")
+
+
+def is_academic_email(email) -> bool:
+    """Worldwide academic recognition: JetBrains swot database UNION the JP list.
+
+    ``swot`` covers universities/colleges globally (including .ac.jp) but not
+    JP government research institutes (riken.jp, aist.go.jp, ...), which the
+    local list above keeps. Lazy import: without the ``swot`` package the JP
+    list alone decides.
+    """
+    if is_japanese_academic_email(email):
+        return True
+    try:
+        import swot
+
+        return bool(swot.is_academic(email or ""))
+    except Exception:
+        return False

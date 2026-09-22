@@ -540,17 +540,17 @@ def verify_credentials_api(request):
 def check_email_academic(request):
     """API endpoint: is this email from a recognized academic domain?
 
-    Read-only hint for the signup form (academic pricing eligibility).
-    Decides nothing about the account; the recognized list is the JP
-    academic/government list in :mod:`apps.infra.auth_app.models`.
+    Worldwide recognition via :func:`models.is_academic_email` (swot UNION
+    the JP research list). Read-only hint for the signup form; decides
+    nothing about the account.
     """
     try:
         data = json.loads(request.body)
         email = (data.get("email") or "").strip()
         if not email or "@" not in email:
             return JsonResponse({"academic": False}, status=200)
-        from .models import is_japanese_academic_email
+        from .models import is_academic_email
 
-        return JsonResponse({"academic": bool(is_japanese_academic_email(email))})
+        return JsonResponse({"academic": bool(is_academic_email(email))})
     except json.JSONDecodeError:
         return JsonResponse({"academic": False}, status=200)
