@@ -111,7 +111,28 @@ class StripeBillingProvider:
 
     @property
     def card_registration_open(self) -> bool:
-        return bool(self.secret_key)
+        return bool(self.secret_key) and self._world() != "mismatch"
+
+    @property
+    def is_test(self) -> bool:
+        """The ACTIVE key's world, fingerprinted from the key prefix itself."""
+        return self._world() == "test"
+
+    def _world(self) -> str:
+        secret = (self.secret_key or "").strip()
+        publishable = (self.publishable_key or "").strip()
+        if secret.startswith("sk_test_"):
+            world = "test"
+        elif secret.startswith("sk_live_"):
+            world = "live"
+        else:
+            return ""
+        if publishable:
+            if world == "test" and not publishable.startswith("pk_test_"):
+                return "mismatch"
+            if world == "live" and not publishable.startswith("pk_live_"):
+                return "mismatch"
+        return world
 
     @property
     def inline_card_form_open(self) -> bool:

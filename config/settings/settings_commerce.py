@@ -195,6 +195,17 @@ BILLING_PLANS = _load_billing_plans()
 
 # ---------------------------------------
 # Stripe scaffold (env-only secrets; never logged)
+#
+# Test/live separation (operator 2026-09-22): the SHELL owns it. The secrets
+# file holds ``..._TEST`` and ``..._LIVE`` variants and re-exports the plain
+# names for the environment in use:
+#   export SCITEX_HUB_STRIPE_SECRET_KEY="$SCITEX_HUB_STRIPE_SECRET_KEY_TEST"
+# Settings below read only the plain names — no branching here, readable.
+#
+# The keys are self-identifying (``sk_test_`` vs ``sk_live_``), so Python
+# fingerprints the ACTIVE key instead of trusting config: STRIPE_IS_TEST
+# tells every downstream consumer which Stripe world it is talking to, and a
+# live key under a DEBUG/dev settings module logs a loud warning.
 # ---------------------------------------
 STRIPE_SECRET_KEY = _getenv_alias("SCITEX_HUB_STRIPE_SECRET_KEY", "") or ""
 STRIPE_WEBHOOK_SECRET = _getenv_alias("SCITEX_HUB_STRIPE_WEBHOOK_SECRET", "") or ""
@@ -202,6 +213,46 @@ STRIPE_WEBHOOK_SECRET = _getenv_alias("SCITEX_HUB_STRIPE_WEBHOOK_SECRET", "") or
 #: still go directly to Stripe — this key is public by design. Card entry stays
 #: on the hosted Checkout page when this is unset.
 STRIPE_PUBLISHABLE_KEY = _getenv_alias("SCITEX_HUB_STRIPE_PUBLISHABLE_KEY", "") or ""
+
+
+def _stripe_key_world(secret_key: str, publishable_key: str = "") -> str:
+    """Fingerprint the ACTIVE key: ``test``, ``live``, or ``""`` (none/invalid).
+
+    Stripe keys are self-identifying: ``sk_test_``/``pk_test_`` vs
+    ``sk_live_``/``pk_live_``. A mismatched pair (test secret + live
+    publishable or vice versa) is a misconfiguration — report ``mismatch``
+    so the provider refuses rather than charging the wrong world.
+    """
+    secret = (secret_key or "").strip()
+    publishable = (publishable_key or "").strip()
+    if not secret:
+        return ""
+    if secret.startswith("sk_test_"):
+        world = "test"
+    elif secret.startswith("sk_live_"):
+        world = "live"
+    else:
+        return ""
+    if publishable:
+        if world == "test" and not publishable.startswith("pk_test_"):
+            return "mismatch"
+        if world == "live" and not publishable.startswith("pk_live_"):
+            return "mismatch"
+    return world
+
+
+#: Which Stripe world the ACTIVE key talks to — fingerprinted from the key
+#: itself, never from config. Downstream code (provider, UI badge) reads this.
+STRIPE_WORLD = _stripe_key_world(STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY)
+STRIPE_IS_TEST = STRIPE_WORLD == "test"
+
+if STRIPE_WORLD == "mismatch":  # pragma: no cover - loud misconfiguration guard
+    import logging as _logging
+
+    _logging.getLogger(__name__).error(
+        "Stripe secret/publishable keys belong to different worlds "
+        "(test vs live); card setup is disabled until they match."
+    )
 
 # Which BillingProvider implementation serves card setup and subscriptions.
 BILLING_PROVIDER = os.environ.get("SCITEX_HUB_BILLING_PROVIDER", "stripe") or "stripe"
