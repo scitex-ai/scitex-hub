@@ -21,6 +21,7 @@ from apps.infra.auth_app.oauth_views import userinfo as oauth_userinfo  # noqa: 
 from apps.infra.project_app.views import (
     accept_invitation,
     decline_invitation,
+    guided_sample_create,
     project_create,
 )
 from apps.infra.public_app.views import healthz
@@ -327,6 +328,11 @@ urlpatterns = [
     ),
     # --- GitHub-like operations ---
     path("new/", project_create, name="project_create"),
+    path(
+        "new/guided-sample/",
+        guided_sample_create,
+        name="guided_sample_create",
+    ),
     path(
         "invitations/<str:token>/accept/", accept_invitation, name="accept_invitation"
     ),
