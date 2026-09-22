@@ -15,6 +15,8 @@ try:
 except ImportError:
     docker = None  # Optional dependency for container management
 import logging
+import os
+from pathlib import Path
 from typing import Optional, Tuple
 
 from django.contrib.auth.models import User
@@ -65,9 +67,28 @@ class UserContainerManager:
         return f"scitex-user-{user.username}"
 
     def _get_user_data_path(self, user: User) -> str:
-        """Get path to user's data directory"""
-        # This matches the existing project data structure
-        return f"/app/data/users/{user.username}"
+        """Host-side path to the user's data directory.
+
+        Docker bind sources resolve on the HOST, not in this container, so
+        the in-container ``/app/data/users`` prefix is wrong whenever the
+        checkout lives elsewhere on the host (dev: ``~/proj/scitex-hub``).
+        ``SCITEX_HUB_USER_DATA_HOST_ROOT`` carries the host prefix; without
+        it the old in-container default is kept (host == container layout).
+
+        The directory is created here (owned by the workspace image uid)
+        so Docker never auto-creates it as root with an unwritable home.
+        """
+        host_root = os.environ.get(
+            "SCITEX_HUB_USER_DATA_HOST_ROOT", "/app/data/users"
+        )
+        path = Path(host_root) / str(user.username)
+        if not path.exists():
+            path.mkdir(parents=True, exist_ok=True)
+            try:
+                os.chown(path, 1000, 1000)  # workspace image ``user`` uid
+            except OSError as exc:
+                logger.warning("chown %s failed: %s", path, exc)
+        return str(path)
 
     def get_or_create_container(
         self, user: User

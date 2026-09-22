@@ -146,6 +146,9 @@ services:
       - SCITEX_HUB_EMAIL_HOST_PASSWORD=${SCITEX_HUB_EMAIL_HOST_PASSWORD:?decrypt ~/.pw/no-reply@scitex.ai.gpg into the shell first}
       # scitex.writer specific
       - SCITEX_WRITER_CACHE_DIR=/app/.cache
+      # Workspace containers: bind sources resolve on the DOCKER HOST, so the
+      # manager needs the host-side users dir (dev: this checkout's data dir)
+      - SCITEX_HUB_USER_DATA_HOST_ROOT=/home/ywatanabe/proj/scitex-hub/data/users
       # scitex-ui static dir for Vite alias resolution (avoids python3 discovery)
       - SCITEX_UI_STATIC=/scitex-ui/src/scitex_ui/static/scitex_ui
       - SCITEX_AGENT_CONTAINER_API_URL=${SCITEX_AGENT_CONTAINER_API_URL:-http://host.docker.internal:7878}

@@ -53,7 +53,7 @@ RUN sed -i 's/main/main contrib/g' /etc/apt/sources.list.d/debian.sources 2>/dev
 
 # Create non-root user
 RUN useradd -m -u 1000 -s /bin/bash user && \
-    echo -e "user:user" | chpasswd && \
+    printf 'user:user\n' | chpasswd && \
     mkdir -p /home/user/.ssh && \
     chown -R user:user /home/user
 
