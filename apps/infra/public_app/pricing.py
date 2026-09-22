@@ -172,6 +172,59 @@ def _self_hosted_text(value: bool) -> str:
     )
 
 
+# Self-hosted license contrast (AGPL vs Commercial). The table renders one
+# "(AGPL) / (Commercial)" cell per term from BOTH rows' SSOT dicts, so the
+# incentives can never drift from the catalogue. Values are closed enums:
+# an unknown value is a red ValueError, not a silently wrong cell.
+_LICENSE_TERM_DISPLAY = {
+    "commercial_use": {
+        "with-disclosure": _("Source disclosure required"),
+        "unrestricted": _("No restrictions"),
+    },
+    "support": {
+        "community": _("Community"),
+        "included": _("Included"),
+    },
+    "sla": {
+        "none": _("—"),
+        "included": _("Included"),
+    },
+}
+
+_LICENSE_TERM_LABELS = {
+    "commercial_use": _("Commercial use"),
+    "support": _("Support"),
+    "sla": _("SLA"),
+}
+
+
+def _license_terms_text(value: dict[str, Any]) -> str:
+    unknown_keys = set(value) - set(_LICENSE_TERM_DISPLAY)
+    if unknown_keys:
+        raise ValueError(
+            f"unknown license_terms keys {sorted(unknown_keys)}; extend "
+            "_LICENSE_TERM_DISPLAY deliberately."
+        )
+    for key, allowed in _LICENSE_TERM_DISPLAY.items():
+        if value.get(key) not in allowed:
+            raise ValueError(
+                f"unknown license_terms[{key!r}] value {value.get(key)!r}; "
+                "extend _LICENSE_TERM_DISPLAY deliberately."
+            )
+    # Card line: a single fixed literal so JA has one msgid to translate
+    # (a runtime join would compose an untranslatable string). Only the
+    # exact commercial set renders a card line; anything else is table-only
+    # (no template renders license included-lists today, so the dash is
+    # inert — but the renderer stays total by construction).
+    if value == {
+        "commercial_use": "unrestricted",
+        "support": "included",
+        "sla": "included",
+    }:
+        return _("Commercial use with no restrictions, support and SLA included")
+    return _("—")
+
+
 def _no_card_required_text(value: bool) -> str:
     if value is not True:
         raise ValueError(f"unknown no_card_required value {value!r}")
@@ -208,6 +261,7 @@ _ATTRIBUTE_TEXT = {
     "monthly_limit_set_by": _limit_set_by_text,
     "eligibility": _eligibility_text,
     "self_hosted": _self_hosted_text,
+    "license_terms": _license_terms_text,
 }
 
 
@@ -383,7 +437,8 @@ def plan_comparison(today=None):
     Rows follow the operator's sketched organization: Price, Resources (CPU
     / RAM / GPU / VRAM), Compute Credits, and Storage split by tier (Hot /
     Warm / Cool / Cold) so each plan's included storage lands in its tier
-    row.
+    row, plus a Self-hosted license group contrasting AGPL vs Commercial on
+    Commercial use, Support and SLA.
 
     Every cell renders from its row's own SSOT attributes through the same
     wording registry the cards and the legal page use, so the table can
@@ -455,6 +510,43 @@ def plan_comparison(today=None):
         return _("%(gb)s GB included") % {"gb": storage["amount"]}
 
     hosted_line = _self_hosted_text(True)
+    agpl_terms = agpl["attributes"].get("license_terms") or {}
+    comm_terms = commercial["attributes"].get("license_terms") or {}
+
+    def license_cell(term):
+        """One "(AGPL) / (Commercial)" cell from BOTH rows' SSOT dicts."""
+        if term not in _LICENSE_TERM_DISPLAY:
+            raise ValueError(
+                f"unknown license term {term!r}; extend _LICENSE_TERM_DISPLAY."
+            )
+        display = _LICENSE_TERM_DISPLAY[term]
+        for row_id, terms in (("selfhosted-agpl", agpl_terms),
+                              ("selfhosted-commercial", comm_terms)):
+            if terms.get(term) not in display:
+                raise ValueError(
+                    f"{row_id} license_terms[{term!r}] is "
+                    f"{terms.get(term)!r}; fix pricing.json."
+                )
+        return _("%(a)s (AGPL) / %(c)s (Commercial)") % {
+            "a": display[agpl_terms[term]],
+            "c": display[comm_terms[term]],
+        }
+
+    license_rows = [
+        {"group": _("Self-hosted license")},
+        {
+            "label": _LICENSE_TERM_LABELS["commercial_use"],
+            "cells": [_("—"), _("—"), license_cell("commercial_use")],
+        },
+        {
+            "label": _LICENSE_TERM_LABELS["support"],
+            "cells": [_("—"), _("—"), license_cell("support")],
+        },
+        {
+            "label": _LICENSE_TERM_LABELS["sla"],
+            "cells": [_("—"), _("—"), license_cell("sla")],
+        },
+    ]
     price_cells = [
         free["price"],
         pro["price"],
@@ -501,7 +593,7 @@ def plan_comparison(today=None):
             "label": _("Cold"),
             "cells": [tier_cell(free, "Cold"), tier_cell(pro, "Cold"), hosted_line],
         },
-    ]
+    ] + license_rows
     return {
         "groups": [_("SciTeX Cloud"), _("SciTeX Self-Hosted")],
         "columns": [

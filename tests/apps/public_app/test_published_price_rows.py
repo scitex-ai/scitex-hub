@@ -267,3 +267,19 @@ def test_percent_notes_render_japanese_not_english_fallback() -> None:
             f"{{% trans {literal!r} %}} rendered English under ja: {rendered!r}. "
             "The django.po msgid must carry %% (doubled percent)."
         )
+
+
+def test_self_hosted_license_group_contrasts_agpl_vs_commercial() -> None:
+    """The Non-AGPL incentives (commercial use, support, SLA) render from
+    BOTH self-hosted rows' SSOT license_terms — never typed in the template.
+    """
+    from apps.infra.public_app.pricing import plan_comparison
+
+    rows = plan_comparison()["rows"]
+    by_label = {r["label"]: r["cells"] for r in rows if "label" in r}
+    assert by_label["Commercial use"][2] == (
+        "Source disclosure required (AGPL) / No restrictions (Commercial)"
+    )
+    assert by_label["Support"][2] == "Community (AGPL) / Included (Commercial)"
+    assert by_label["SLA"][2] == "— (AGPL) / Included (Commercial)"
+    assert any(r.get("group") == "Self-hosted license" for r in rows)

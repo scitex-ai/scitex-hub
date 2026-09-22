@@ -124,7 +124,9 @@
                             <div class="pricing-features">
                                 <ul>
                                     {% for row in onprem_tier.rows %}{% if row.id != "selfhosted-agpl" %}<li>{{ row.label|translate_dynamic }}: {{ row.price }}</li>{% endif %}{% endfor %}
+                                    <li>{% trans "Commercial use without restriction" %}</li>
                                     <li>{% trans "Setup and maintenance support" %}</li>
+                                    <li>{% trans "Uptime SLA" %}</li>
                                 </ul>
                             </div>
                         </div>

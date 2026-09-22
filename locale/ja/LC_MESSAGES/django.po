@@ -7617,3 +7617,47 @@ msgstr "学術ユーザーは大学メールアドレスでProを50%オフで利
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
 msgid "Pay-as-you-go (PAYG) usage beyond your plan is billed at provider cost plus a 20%% service fee."
 msgstr "プランに含まれる量を超える従量課金（Pay-as-you-go、PAYG）は、プロバイダー原価に20%のサービス料を加えて請求されます。"
+
+#: apps/infra/public_app/pricing.py
+msgid "Self-hosted license"
+msgstr "セルフホストライセンス"
+
+#: apps/infra/public_app/pricing.py
+msgid "Commercial use"
+msgstr "商用利用"
+
+#: apps/infra/public_app/pricing.py
+msgid "Support"
+msgstr "サポート"
+
+#: apps/infra/public_app/pricing.py
+msgid "SLA"
+msgstr "SLA"
+
+#: apps/infra/public_app/pricing.py
+msgid "Source disclosure required"
+msgstr "ソース開示が必要"
+
+#: apps/infra/public_app/pricing.py
+msgid "No restrictions"
+msgstr "制限なし"
+
+#: apps/infra/public_app/pricing.py
+msgid "Included"
+msgstr "含まれる"
+
+#: apps/infra/public_app/pricing.py
+msgid "%(a)s (AGPL) / %(c)s (Commercial)"
+msgstr "%(a)s（AGPL）/ %(c)s（商用）"
+
+#: apps/infra/public_app/pricing.py
+msgid "Commercial use with no restrictions, support and SLA included"
+msgstr "制限なしの商用利用、サポートとSLA付き"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Commercial use without restriction"
+msgstr "制限なしの商用利用"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Uptime SLA"
+msgstr "稼働率SLA"

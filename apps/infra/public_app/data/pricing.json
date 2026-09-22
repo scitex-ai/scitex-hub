@@ -119,7 +119,12 @@
       "category": "license",
       "description": "For anyone. AGPL v3.0 terms apply.",
       "attributes": {
-        "self_hosted": true
+        "self_hosted": true,
+        "license_terms": {
+          "commercial_use": "with-disclosure",
+          "support": "community",
+          "sla": "none"
+        }
       }
     },
     {
@@ -139,9 +144,14 @@
       "from_price": true,
       "available_from": "2026-09",
       "category": "license",
-      "description": "For companies and proprietary use. Internal proprietary use; OEM or resale requires a separate agreement. Support is not included.",
+      "description": "For companies and proprietary use. Internal proprietary use; OEM or resale requires a separate agreement. Includes support and SLA.",
       "attributes": {
-        "self_hosted": true
+        "self_hosted": true,
+        "license_terms": {
+          "commercial_use": "unrestricted",
+          "support": "included",
+          "sla": "included"
+        }
       }
     },
     {
