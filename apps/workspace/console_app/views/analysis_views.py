@@ -71,8 +71,8 @@ def run_analysis(request):
         analysis_thread.start()
 
         messages.success(request, f'Analysis "{analysis_type}" started successfully!')
-        return redirect("console:job_detail", job_id=code_job.job_id)
+        return redirect("console_app:job_detail", job_id=code_job.job_id)
 
     except Exception as e:
         messages.error(request, f"Error starting analysis: {str(e)}")
-        return redirect("console:analysis")
+        return redirect("console_app:analysis")
