@@ -105,6 +105,10 @@ WORKSPACE_GB = 32
 #: the real destination instead of re-implementing creation.
 _CREATE_PROJECT_URL_NAME = "project_create"
 
+#: POST-only endpoint that provisions the guided sample after the user's
+#: explicit click (SSOT docs/product/PRIVATE_BETA_LOGIN_TO_WOW.md §3).
+_GUIDED_SAMPLE_URL_NAME = "guided_sample_create"
+
 
 def _url_or_empty(name: str) -> str:
     """Reverse ``name``, or "" when the route is not present in this deploy."""
@@ -123,6 +127,7 @@ def first_login_context(profile=None) -> dict:
     what "no project chosen" means.
     """
     create_url = _url_or_empty(_CREATE_PROJECT_URL_NAME)
+    guided_url = _url_or_empty(_GUIDED_SAMPLE_URL_NAME)
     entries = []
     for action in ACTIONS:
         if action.key in (CREATE_PROJECT, IMPORT_PROJECT_OR_FILES):
@@ -139,11 +144,23 @@ def first_login_context(profile=None) -> dict:
                     "available": bool(create_url),
                 }
             )
+        elif action.key == GUIDED_SAMPLE:
+            # POST-only: provisioning runs after the explicit click, never
+            # on page load. The template renders this as a form button.
+            entries.append(
+                {
+                    "key": action.key,
+                    "label": action.label,
+                    "is_primary": action.is_primary,
+                    "is_preselected": action.is_preselected,
+                    "url": guided_url,
+                    "available": bool(guided_url),
+                    "method": "post",
+                }
+            )
         else:
-            # No guided-sample provisioning service exists in the Hub yet (the
-            # visitor demo seeder referenced by migrations 0014/0040 is gone).
-            # Rendered as an explicit, honest unavailable state rather than a
-            # control that silently does nothing.
+            # Unknown future action: explicit unavailable state rather than
+            # a control that silently does nothing.
             entries.append(
                 {
                     "key": action.key,
