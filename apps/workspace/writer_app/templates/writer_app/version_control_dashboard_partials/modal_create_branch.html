@@ -54,7 +54,7 @@
   }
 
   function loadVersionHistory() {
-      window.location.href = `{% url 'writer:version-history' manuscript.id %}`;
+      window.location.href = `{% url 'writer_app:version_control' %}`;
   }
 
   function viewDiff(versionId) {

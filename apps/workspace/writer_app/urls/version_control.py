@@ -5,6 +5,6 @@ urlpatterns = [
     path(
         "",
         version_control_index,
-        name="index",
+        name="version_control",
     ),
 ]

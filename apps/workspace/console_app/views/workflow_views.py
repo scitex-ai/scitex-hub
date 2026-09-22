@@ -85,14 +85,14 @@ def workflow_detail(request, workflow_id):
 
     if not workflow_file.exists():
         messages.error(request, "Workflow not found.")
-        return redirect("console:workflows")
+        return redirect("console_app:workflows")
 
     try:
         with open(workflow_file) as f:
             workflow = json.load(f)
     except Exception as e:
         messages.error(request, f"Error loading workflow: {e}")
-        return redirect("console:workflows")
+        return redirect("console_app:workflows")
 
     context = {"workflow": workflow}
     return render(request, "console_app/workflow_detail.html", context)

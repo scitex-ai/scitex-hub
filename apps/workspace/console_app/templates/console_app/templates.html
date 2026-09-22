@@ -174,10 +174,10 @@
                 <h1 class="display-4 fw-bold mb-3">SCITEX Framework Templates</h1>
                 <p class="lead mb-4">Ready-to-use scientific computing templates for reproducible research</p>
                 <div class="d-flex justify-content-center gap-3">
-                    <a href="{% url "console:editor" %}" class="btn btn-light btn-lg">
+                    <a href="{% url "console_app:editor" %}" class="btn btn-light btn-lg">
                         <i class="fas fa-code me-2"></i>Open Editor
                     </a>
-                    <a href="{% url "console:analysis" %}" class="btn btn-outline-light btn-lg">
+                    <a href="{% url "console_app:analysis" %}" class="btn btn-outline-light btn-lg">
                         <i class="fas fa-chart-bar me-2"></i>Data Analysis
                     </a>
                 </div>
@@ -834,7 +834,7 @@ print("\\nMulti-panel figure saved as multi_panel_figure.png")`,
     if (templateCodes[templateName]) {
       // Redirect to editor with template code
       localStorage.setItem("templateCode", templateCodes[templateName]);
-      window.location.href = '{% url "console:editor" %}';
+      window.location.href = '{% url "console_app:editor" %}';
     } else {
       alert("Template code not available. Please try again.");
     }
