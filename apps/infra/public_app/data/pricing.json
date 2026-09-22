@@ -10,6 +10,38 @@
   "_published_prices_are_the_tokushoho_list": "The price list the 特定商取引法 page publishes. A row is published iff `available_from` (YYYY-MM) is SET and <= the current month; a future month keeps the row in the catalogue and off the page. `withheld` (a stated reason) holds a row back whatever its date says.",
   "published_prices": [
     {
+      "id": "subscription-free",
+      "label": "SciTeX Cloud Free",
+      "amount": 0,
+      "unit": "month",
+      "basis": "per_user",
+      "available_from": "2026-09",
+      "category": "subscription",
+      "attributes": {
+        "no_card_required": true,
+        "workspace_limits": {
+          "cpu": 1,
+          "memory_gb": 2,
+          "gpu": false
+        },
+        "included_storage": {
+          "amount": 2,
+          "tier": "Hot"
+        },
+        "included_compute_credit": {
+          "amount": 1
+        },
+        "included_egress": {
+          "amount": 10
+        },
+        "idle_reclaim": {
+          "pause_after_days": 7,
+          "delete_after_days": 30
+        }
+      },
+      "description": "For trying SciTeX. No credit card required; limited workspace."
+    },
+    {
       "id": "subscription-student",
       "label": "SciTeX Cloud Academic",
       "amount": 19,

@@ -164,7 +164,34 @@ def _eligibility_text(value: str) -> str:
     return _("Eligibility: %(v)s") % {"v": _(value)}
 
 
+def _no_card_required_text(value: bool) -> str:
+    if value is not True:
+        raise ValueError(f"unknown no_card_required value {value!r}")
+    return _("No credit card required")
+
+
+def _workspace_limits_text(value: dict[str, Any]) -> str:
+    gpu = _(", with GPU") if value.get("gpu") else _("")
+    return _("%(cpu)s CPU, %(mem)s GB memory workspace%(gpu)s") % {
+        "cpu": value["cpu"],
+        "mem": value["memory_gb"],
+        "gpu": gpu,
+    }
+
+
+def _idle_reclaim_text(value: dict[str, Any]) -> str:
+    return _(
+        "Idle workspaces pause after %(pause)s days and are removed after %(delete)s"
+    ) % {
+        "pause": value["pause_after_days"],
+        "delete": value["delete_after_days"],
+    }
+
+
 _ATTRIBUTE_TEXT = {
+    "no_card_required": _no_card_required_text,
+    "workspace_limits": _workspace_limits_text,
+    "idle_reclaim": _idle_reclaim_text,
     "free_trial": _trial_text,
     "included_storage": _storage_text,
     "included_compute_credit": _credit_text,
