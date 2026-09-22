@@ -13,6 +13,7 @@ from apps.infra.public_app.services.billing_provider import (
     card_registration_is_open,
     confirmed_trial_window,
     get_billing_provider,
+    inline_card_form_info,
     subscription_pricing_rows,
     trial_window,
 )
@@ -162,6 +163,10 @@ def payment_step(request):
             # The funnel's last step: a provider-confirmed account goes to its
             # first project rather than being left on this page.
             "first_product_url": first_product_url(),
+            # Inline Elements form (card number/CVC on this page, confirmed
+            # browser-to-Stripe). Offered only when the deployment holds both
+            # keys; otherwise the hosted Checkout button stays the only path.
+            "inline_card": inline_card_form_info(),
         }
     )
     return render(request, "accounts_app/payment_step.html", context)
