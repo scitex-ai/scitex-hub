@@ -9,6 +9,9 @@
     <div class="container auth-container">
         <div class="auth-form">
             <h2 class="mb-4">{% trans "Sign Up" %}</h2>
+            <p class="text-muted small mb-4">
+                {% trans "Step 1 of 2 — your account. Step 2 is payment." %}
+            </p>
             {% if form.errors %}
                 <div class="alert-banner alert-banner-danger"
                      style="margin-bottom: var(--spacing-md)">
@@ -151,20 +154,6 @@
                 </div>
                 <button type="submit" class="btn btn-primary w-100 auth-primary-cta">{% trans "Create Account" %}</button>
             </form>
-            {% comment %}
-            Card rule (operator 2026-09-14, 「はい、カード登録必須です」): a
-            credit/debit card is registered at signup, as /tokushoho/ states.
-            There is no free cloud tier in the Services SSOT. The notice lives
-            here as fine print rather than above the form; the card itself is
-            collected on the payment step that follows signup.
-            {% endcomment %}
-            {% tokushoho_url as tokushoho_href %}
-            <p class="text-muted signup-card-policy mt-3">
-                <small>
-                    {% trans "Start your 30-day SciTeX Cloud trial — card required, no charge during the trial." %}
-                    <a href="{{ tokushoho_href }}" class="text-link">{% trans "Billing terms" %}</a>
-                </small>
-            </p>
             {# Same derivation as signin.html -- see the note there. A provider #}
             {# gets a button exactly when allauth can actually serve its login. #}
             {% get_providers as socialaccount_providers %}
