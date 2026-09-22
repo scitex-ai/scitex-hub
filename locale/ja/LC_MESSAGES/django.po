@@ -7615,5 +7615,5 @@ msgid "Academic users get Pro at 50% off with a university email address."
 msgstr "学術ユーザーは大学メールアドレスでProを50%オフで利用できます。"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
-msgid "Pay-as-you-go beyond the included amounts is external resource cost plus a 10% margin."
-msgstr "含まれる量を超える従量課金は、外部リソース原価に10%のマージンを加えた金額です。"
+msgid "Pay-as-you-go (PAYG) usage beyond your plan is billed at provider cost plus a 20% service fee."
+msgstr "プランに含まれる量を超える従量課金（Pay-as-you-go、PAYG）は、プロバイダー原価に20%のサービス料を加えて請求されます。"

@@ -236,8 +236,9 @@
   ],
   "_rate_card": "The metered rates from SSOT sections 3-5. Tier names only — never the internal hardware a tier maps to. `coming_soon` marks billing that is not live yet.",
   "rate_card": {
-    "_pay_as_you_go": "Pay-as-you-go is external compute resource cost plus a 10% margin.",
-    "payg_margin_pct": 10,
+    "_pay_as_you_go": "Pay-as-you-go (PAYG) usage beyond your plan is billed at provider cost plus a 20% service fee.",
+    "payg_margin_pct": 20,
+    "_api_usage": "External API calls (e.g. Scholar search) consume the same Compute Credits at the same rates, plus the same pay-as-you-go margin.",
     "storage_tiers": [
       {
         "name": "Hot",
