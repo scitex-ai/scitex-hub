@@ -9,17 +9,6 @@
     <div class="container auth-container">
         <div class="auth-form">
             <h2 class="mb-4">{% trans "Sign Up" %}</h2>
-            {% comment %}
-            Card rule (operator 2026-09-14, 「はい、カード登録必須です」): a
-            credit/debit card is registered at signup, as /tokushoho/ states.
-            There is no free cloud tier in the Services SSOT. Copy only — this
-            template collects no card; billing terms live on the disclosure.
-            {% endcomment %}
-            {% tokushoho_url as tokushoho_href %}
-            <p class="text-muted signup-card-policy">
-                {% trans "Start your 30-day SciTeX Cloud trial — card required, no charge during the trial." %}
-                <a href="{{ tokushoho_href }}" class="text-link">{% trans "Billing terms" %}</a>
-            </p>
             {% if form.errors %}
                 <div class="alert-banner alert-banner-danger"
                      style="margin-bottom: var(--spacing-md)">
@@ -86,9 +75,6 @@
                             <i class="fas fa-circle" id="username-status-icon"></i>
                         </span>
                     </div>
-                    <div class="form-text">
-                        <small class="text-muted">{% trans "Your profile URL will be:" %} scitex.ai/<span id="username-preview">username</span></small>
-                    </div>
                     <div id="username-feedback" class="small" style="display: none; margin-top: 0.5rem"></div>
                     {% if form.username.errors %}<div class="text-danger small">{{ form.username.errors.0 }}</div>{% endif %}
                 </div>
@@ -97,10 +83,13 @@
                         {% trans "Email" %} <span class="text-danger">*</span>
                     </label>
                     {{ form.email }}
-                    <div class="form-text email-example">
-                        <small class="text-muted">
+                    <div class="form-text">
+                        <small id="academic-hint" class="text-muted" style="display: none">
                             <i class="fas fa-graduation-cap me-1"></i>
-                            {% trans "Academic email examples:" %} <!--email_off--><code>student@univ-xxx.ac.jp</code> / <code>researcher@xxx.ac.jp</code><!--/email_off--> {% trans "(eligible for SciTeX Cloud Academic pricing)" %}
+                            <span id="academic-hint-text">{% trans "Academic email recognized — eligible for SciTeX Cloud Academic pricing." %}</span>
+                        </small>
+                        <small class="text-muted">
+                            <a href="{% url 'public_app:contact' %}" class="text-link">{% trans "Request academic pricing" %}</a>
                         </small>
                     </div>
                     {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors.0 }}</div>{% endif %}
@@ -160,8 +149,22 @@
                     </label>
                     {% if form.agree_terms.errors %}<div class="text-danger small">{{ form.agree_terms.errors.0 }}</div>{% endif %}
                 </div>
-                <button type="submit" class="btn btn-success w-100 auth-primary-cta">{% trans "Create Account" %}</button>
+                <button type="submit" class="btn btn-primary w-100 auth-primary-cta">{% trans "Create Account" %}</button>
             </form>
+            {% comment %}
+            Card rule (operator 2026-09-14, 「はい、カード登録必須です」): a
+            credit/debit card is registered at signup, as /tokushoho/ states.
+            There is no free cloud tier in the Services SSOT. The notice lives
+            here as fine print rather than above the form; the card itself is
+            collected on the payment step that follows signup.
+            {% endcomment %}
+            {% tokushoho_url as tokushoho_href %}
+            <p class="text-muted signup-card-policy mt-3">
+                <small>
+                    {% trans "Start your 30-day SciTeX Cloud trial — card required, no charge during the trial." %}
+                    <a href="{{ tokushoho_href }}" class="text-link">{% trans "Billing terms" %}</a>
+                </small>
+            </p>
             {# Same derivation as signin.html -- see the note there. A provider #}
             {# gets a button exactly when allauth can actually serve its login. #}
             {% get_providers as socialaccount_providers %}
@@ -218,7 +221,6 @@
     const successMessage = document.querySelector(".form-message.success");
     const errorMessage = document.getElementById("js-error-message");
     const errorText = document.getElementById("error-message");
-    const usernamePreview = document.getElementById("username-preview");
     const usernameStatus = document.getElementById("username-status");
     const usernameStatusIcon = document.getElementById("username-status-icon");
     const usernameFeedback = document.getElementById("username-feedback");
@@ -280,11 +282,8 @@
       }
     }, 500); // Wait 500ms after user stops typing before checking
 
-    // Update username preview and check availability as user types
+    // Update username availability as user types
     usernameInput.addEventListener("input", function () {
-      const username = this.value || "username";
-      usernamePreview.textContent = username;
-
       // Only check availability if username has content and is not empty
       if (this.value.trim()) {
         checkUsernameAvailability(this.value.trim());
@@ -352,6 +351,41 @@
 
       // Check if passwords match
     });
+
+    // Academic-email recognition: tell academic users instantly that their
+    // domain qualifies for Academic pricing, instead of showing static
+    // examples. Read-only hint; decides nothing about the account.
+    const emailInput = document.getElementById("id_email");
+    const academicHint = document.getElementById("academic-hint");
+    const checkAcademicEmail = debounce(async function (email) {
+      if (!email || email.indexOf("@") < 0) {
+        if (academicHint) academicHint.style.display = "none";
+        return;
+      }
+      try {
+        const response = await fetch("/auth/api/check-email/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")
+              .value,
+          },
+          body: JSON.stringify({ email: email }),
+        });
+        const data = await response.json();
+        if (academicHint) {
+          academicHint.style.display = data.academic ? "block" : "none";
+        }
+      } catch (error) {
+        // Silently fail - the hint is a convenience, not a gate
+        if (academicHint) academicHint.style.display = "none";
+      }
+    }, 500);
+    if (emailInput) {
+      emailInput.addEventListener("input", function () {
+        checkAcademicEmail(this.value.trim());
+      });
+    }
 
     // Form submission validation
     form.addEventListener("submit", function (e) {
