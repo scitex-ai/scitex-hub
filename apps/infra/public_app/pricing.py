@@ -164,6 +164,14 @@ def _eligibility_text(value: str) -> str:
     return _("Eligibility: %(v)s") % {"v": _(value)}
 
 
+def _self_hosted_text(value: bool) -> str:
+    if value is not True:
+        raise ValueError(f"unknown self_hosted value {value!r}")
+    return _(
+        "Runs on your own hardware — CPU, RAM, GPU and storage are yours"
+    )
+
+
 def _no_card_required_text(value: bool) -> str:
     if value is not True:
         raise ValueError(f"unknown no_card_required value {value!r}")
@@ -199,6 +207,7 @@ _ATTRIBUTE_TEXT = {
     "overage": _overage_text,
     "monthly_limit_set_by": _limit_set_by_text,
     "eligibility": _eligibility_text,
+    "self_hosted": _self_hosted_text,
 }
 
 
@@ -360,6 +369,154 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
             }
         )
     return rows
+
+
+def plan_comparison(today=None):
+    """Plan comparison table for the landing page, one page, SSOT-rendered.
+
+    Three tiers in one table: SciTeX Cloud Free, SciTeX Cloud Pro, SciTeX
+    Self-Hosted. Academic is not a fourth column: it is Pro at 50% off, said
+    once in a footnote under the table. Self-Hosted spans both license rows
+    (AGPL free, Commercial priced): hosted resources are yours, so every
+    resource cell renders the SSOT self-hosted line instead of a dash.
+
+    Rows follow the operator's sketched organization: Price, Resources (CPU
+    / RAM / GPU / VRAM), Compute Credits, and Storage split by tier (Hot /
+    Warm / Cool / Cold) so each plan's included storage lands in its tier
+    row.
+
+    Every cell renders from its row's own SSOT attributes through the same
+    wording registry the cards and the legal page use, so the table can
+    never disagree with them. A missing attribute renders as an em dash: a
+    gap in the table is a gap in the SSOT, shown honestly rather than
+    papered over.
+    """
+    rows = {
+        r["id"]: r
+        for r in published_price_rows(today)
+        if r["id"]
+        in (
+            "subscription-free",
+            "subscription-general",
+            "selfhosted-agpl",
+            "selfhosted-commercial",
+        )
+    }
+    need = (
+        "subscription-free",
+        "subscription-general",
+        "selfhosted-agpl",
+        "selfhosted-commercial",
+    )
+    if any(k not in rows for k in need):
+        raise ValueError(
+            "plan_comparison needs Free, Pro, AGPL and Commercial rows published; "
+            f"found {sorted(rows)}"
+        )
+    free = rows["subscription-free"]
+    pro = rows["subscription-general"]
+    agpl = rows["selfhosted-agpl"]
+    commercial = rows["selfhosted-commercial"]
+
+    def limits(row):
+        return row["attributes"].get("workspace_limits") or {}
+
+    def cpu_cell(row):
+        return str(limits(row)["cpu"]) if "cpu" in limits(row) else _("—")
+
+    def ram_cell(row):
+        return (
+            _("%(gb)s GB") % {"gb": limits(row)["memory_gb"]}
+            if "memory_gb" in limits(row)
+            else _("—")
+        )
+
+    def gpu_cell(row):
+        if "gpu" not in limits(row):
+            return _("—")
+        return _("GPU included") if limits(row)["gpu"] else _("No GPU")
+
+    def vram_cell(row):
+        return (
+            _("%(gb)s GB") % {"gb": limits(row)["vram_gb"]}
+            if "vram_gb" in limits(row)
+            else _("—")
+        )
+
+    def credit_cell(row):
+        if "included_compute_credit" not in row["attributes"]:
+            return _("—")
+        return _credit_text(row["attributes"]["included_compute_credit"])
+
+    def tier_cell(row, tier):
+        storage = row["attributes"].get("included_storage") or {}
+        if storage.get("tier") != tier:
+            return _("—")
+        return _("%(gb)s GB included") % {"gb": storage["amount"]}
+
+    hosted_line = _self_hosted_text(True)
+    price_cells = [
+        free["price"],
+        pro["price"],
+        _("%(agpl)s (AGPL) / %(comm)s (Commercial)")
+        % {"agpl": agpl["price"], "comm": commercial["price"]},
+    ]
+    spec = [
+        {"label": _("Price"), "cells": price_cells},
+        {"group": _("Resources")},
+        {
+            "label": _("CPU"),
+            "cells": [cpu_cell(free), cpu_cell(pro), hosted_line],
+        },
+        {
+            "label": _("RAM"),
+            "cells": [ram_cell(free), ram_cell(pro), hosted_line],
+        },
+        {
+            "label": _("GPU"),
+            "cells": [gpu_cell(free), gpu_cell(pro), hosted_line],
+        },
+        {
+            "label": _("VRAM"),
+            "cells": [vram_cell(free), vram_cell(pro), hosted_line],
+        },
+        {
+            "label": _("Compute credits"),
+            "cells": [credit_cell(free), credit_cell(pro), hosted_line],
+        },
+        {"group": _("Storage")},
+        {
+            "label": _("Hot"),
+            "cells": [tier_cell(free, "Hot"), tier_cell(pro, "Hot"), hosted_line],
+        },
+        {
+            "label": _("Warm"),
+            "cells": [tier_cell(free, "Warm"), tier_cell(pro, "Warm"), hosted_line],
+        },
+        {
+            "label": _("Cool"),
+            "cells": [tier_cell(free, "Cool"), tier_cell(pro, "Cool"), hosted_line],
+        },
+        {
+            "label": _("Cold"),
+            "cells": [tier_cell(free, "Cold"), tier_cell(pro, "Cold"), hosted_line],
+        },
+    ]
+    return {
+        "groups": [_("SciTeX Cloud"), _("SciTeX Self-Hosted")],
+        "columns": [
+            {"group": 0, "label": _("Free")},
+            {"group": 0, "label": _("Pro")},
+            {"group": 1, "label": _("Self-Hosted")},
+        ],
+        "rows": [
+            ({"group": entry["group"]} if "group" in entry else entry)
+            for entry in spec
+        ],
+    }
+
+
+cloud_plan_comparison = plan_comparison
 
 
 _CATEGORY_LABELS = {"subscription": "サブスク", "license": "ライセンス", "service": "サービス"}

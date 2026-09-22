@@ -109,7 +109,7 @@ def index(request):
     # closed" rather than reconnecting, and the transaction's work is lost.
     if not connection.in_atomic_block:
         connection.close()
-    from ..pricing import load_pricing, tier_rows
+    from ..pricing import load_pricing, plan_comparison, tier_rows
 
     # Three-column landing row: Free + Cloud Pro (Academic / Non-Academic
     # switcher) + On-Prem (AGPL / Custom). Every signup starts free; Pro is
@@ -125,6 +125,7 @@ def index(request):
         # hand-written copy.
         "sub_rows": sub_rows,
         "free_row": free_row,
+        "plan_comparison": plan_comparison(),
         "onprem_tier": onprem_tier,
         "tax_note": load_pricing().get("tax_note", ""),
         "pricing_notes": load_pricing()["notes"],

@@ -58,7 +58,7 @@
             <div class="pricing-card pricing-card-sub">
                 <div class="pricing-header">
                     <div class="plan-title-row">
-                        <h3 class="plan-name">{% trans "Cloud" %}</h3>
+                        <h3 class="plan-name">{% trans "SciTeX Cloud Pro" %}</h3>
                         <div class="plan-variant-switch" role="group" aria-label="{% trans "Plan variant" %}">
                             <button type="button" class="variant-btn is-active" data-variant="academic" aria-pressed="true">{% trans "Academic" %}</button>
                             <button type="button" class="variant-btn" data-variant="general" aria-pressed="false">{% trans "Non-Academic" %}</button>
@@ -148,6 +148,56 @@
                 {% trans "All displayed prices include tax." %}
             </p>
         </div>
+        {% comment %} Free-vs-Pro comparison: every cell renders from the same
+           SSOT rows the cards above use (cloud_plan_comparison), so the table
+           can never disagree with them. On wide displays it is one table with
+           all three columns; on small displays a tab switch shows one plan at
+           a time (same data, no duplication). {% endcomment %}
+        {% if plan_comparison %}
+        <div class="plan-compare" data-plan-compare>
+            <h3 class="plan-compare-heading">{% trans "Compare plans" %}</h3>
+            <div class="plan-compare-tabs" role="tablist" aria-label="{% trans "Compare plans" %}">
+                {% for col in plan_comparison.columns %}
+                <button type="button" role="tab" class="plan-tab{% if forloop.first %} is-active{% endif %}" data-plan-tab="{{ forloop.counter0 }}" data-plan-group="{{ col.group }}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">{{ col.label }}</button>
+                {% endfor %}
+            </div>
+            <div class="plan-compare-tablewrap">
+                <table class="plan-compare-table">
+                    <thead>
+                        <tr class="plan-compare-groups">
+                            <th scope="col"><span class="visually-hidden">{% trans "Feature" %}</span></th>
+                            <th scope="col" colspan="2" data-plan-col-group="0">{{ plan_comparison.groups.0 }}</th>
+                            <th scope="col" data-plan-col-group="1">{{ plan_comparison.groups.1 }}</th>
+                        </tr>
+                        <tr>
+                            <th scope="col"><span class="visually-hidden">{% trans "Feature" %}</span></th>
+                            {% for col in plan_comparison.columns %}
+                            <th scope="col" data-plan-col="{{ forloop.counter0 }}">{{ col.label }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in plan_comparison.rows %}
+                        {% if row.group %}
+                        <tr class="plan-compare-grouprow">
+                            <th scope="row" colspan="4">{{ row.group }}</th>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <th scope="row">{{ row.label }}</th>
+                            {% for cell in row.cells %}
+                            <td data-plan-col="{{ forloop.counter0 }}">{{ cell }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <p class="plan-compare-note">{% trans "Academic users get Pro at 50% off with a university email address." %}</p>
+            <p class="plan-compare-note">{% trans "Pay-as-you-go beyond the included amounts is external resource cost plus a 10% margin." %}</p>
+        </div>
+        {% endif %}
     </div>
     {% comment %} Variant switch: pure display toggle (no data change, no
        persistence — the landing must work without the Vite bundle). {% endcomment %}
@@ -166,6 +216,31 @@
                 });
                 card.querySelectorAll('.plan-variant').forEach(function (v) {
                     v.classList.toggle('plan-variant-hidden', v.dataset.variant !== variant);
+                });
+            });
+        });
+        /* Compare-plan tabs: on small displays only one plan column shows;
+           the tabs pick which. Wide displays show all columns and the tabs
+           stay hidden via CSS. Same no-Vite inline pattern as above. */
+        document.querySelectorAll('[data-plan-compare]').forEach(function (box) {
+            var tabs = box.querySelector('.plan-compare-tabs');
+            tabs.addEventListener('click', function (e) {
+                var btn = e.target.closest('[data-plan-tab]');
+                if (!btn) return;
+                var idx = btn.dataset.planTab;
+                var grp = btn.dataset.planGroup;
+                box.setAttribute('data-picked', idx);
+                box.setAttribute('data-picked-group', grp);
+                tabs.querySelectorAll('[data-plan-tab]').forEach(function (b) {
+                    var on = b === btn;
+                    b.classList.toggle('is-active', on);
+                    b.setAttribute('aria-selected', on ? 'true' : 'false');
+                });
+                box.querySelectorAll('[data-plan-col]').forEach(function (c) {
+                    c.classList.toggle('plan-col-hidden', c.dataset.planCol !== idx);
+                });
+                box.querySelectorAll('[data-plan-col-group]').forEach(function (g) {
+                    g.classList.toggle('plan-col-hidden', g.dataset.planColGroup !== grp);
                 });
             });
         });

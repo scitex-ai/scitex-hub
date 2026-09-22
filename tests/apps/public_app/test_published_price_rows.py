@@ -166,7 +166,7 @@ def test_the_subscription_rows_show_flat_usd() -> None:
         for d in days
     ]
     # Assert
-    assert prices == [("$19/mo", "$39/mo")] * len(days)
+    assert prices == [("無料", "$19/mo", "$39/mo")] * len(days)
 
 
 @translation.override("ja")
@@ -178,7 +178,7 @@ def test_the_academic_cloud_label_translates_to_japanese() -> None:
     # Act
     label = translate_dynamic(by_id["subscription-student"]["label"])
     # Assert
-    assert label == "SciTeX Cloud Academic（学術）"
+    assert label == "SciTeX Cloud Pro - Academic（学術）"
 
 
 def test_every_catalogue_attribute_renders_as_one_phrase() -> None:
@@ -210,16 +210,24 @@ def test_the_subscription_rows_state_what_they_include() -> None:
         "含まれる量を超えたストレージと送信は従量課金",
         "月間の利用上限を利用者が設定（近日提供）",
     )
-    # Act
+    # Act: the paid rows carry the full §2 list; the Free row is exempt —
+    # it has no trial, no 32 GB, no metered overage — but must say no card.
     missing = [
         (row["id"], needle)
         for row in published_price_rows(today=date(2026, 9, 2))
-        if row["category"] == "subscription"
+        if row["category"] == "subscription" and row["id"] != "subscription-free"
         for needle in needles
         if needle not in "、".join(row["included"])
     ]
+    free_included = "、".join(
+        item
+        for row in published_price_rows(today=date(2026, 9, 2))
+        if row["id"] == "subscription-free"
+        for item in row["included"]
+    )
     # Assert
     assert missing == []
+    assert "クレジットカードの登録は不要" in free_included
 
 
 @translation.override("ja")
