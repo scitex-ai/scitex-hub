@@ -25,6 +25,22 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 
+def _workspace_uid(user: User) -> int:
+    """Numeric uid the workspace container runs as.
+
+    Follows the per-user Linux UID scheme (100000 + pk); falls back to the
+    image ``user`` uid when the scheme is unavailable so containers still
+    start.
+    """
+    try:
+        from apps.infra.accounts_app.services.unix_user import get_unix_uid
+
+        return get_unix_uid(user)
+    except Exception as exc:  # misconfigured range, import cycle, ...
+        logger.warning("unix uid unavailable for %s: %s", user, exc)
+        return 1000
+
+
 class UserContainerManager:
     """
     Manages user workspace containers
@@ -82,10 +98,11 @@ class UserContainerManager:
             "SCITEX_HUB_USER_DATA_HOST_ROOT", "/app/data/users"
         )
         path = Path(host_root) / str(user.username)
+        uid = _workspace_uid(user)
         if not path.exists():
             path.mkdir(parents=True, exist_ok=True)
             try:
-                os.chown(path, 1000, 1000)  # workspace image ``user`` uid
+                os.chown(path, uid, uid)
             except OSError as exc:
                 logger.warning("chown %s failed: %s", path, exc)
         return str(path)
@@ -139,6 +156,7 @@ class UserContainerManager:
         """
         container_name = self._get_container_name(user)
         user_data_path = self._get_user_data_path(user)
+        uid = _workspace_uid(user)
 
         try:
             container = self.client.containers.run(
@@ -147,6 +165,9 @@ class UserContainerManager:
                 detach=True,
                 stdin_open=True,
                 tty=True,
+                # Run as the per-user Linux uid so the 700-owned data dir
+                # is the container user's own home (see _workspace_uid).
+                user=f"{uid}:{uid}",
                 # Resource limits
                 mem_limit=self.DEFAULT_MEMORY_LIMIT,
                 cpu_quota=self.DEFAULT_CPU_QUOTA,
