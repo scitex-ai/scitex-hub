@@ -87,12 +87,13 @@
                     </label>
                     {{ form.email }}
                     <div class="form-text">
-                        <small id="academic-hint" class="text-muted" style="display: none">
-                            <i class="fas fa-graduation-cap me-1"></i>
-                            <span id="academic-hint-text">{% trans "Academic email recognized — eligible for SciTeX Cloud Academic pricing." %}</span>
+                        <small id="academic-hint" class="text-success" style="display: none">
+                            <i class="fas fa-check me-1"></i>
+                            <span id="academic-hint-text">{% trans "Academic pricing applied!" %}</span>
                         </small>
-                        <small class="text-muted">
-                            <a href="{% url 'public_app:contact' %}" class="text-link">{% trans "Request academic pricing" %}</a>
+                        <small id="nonacademic-hint" class="text-muted" style="display: none">
+                            {% trans "Non-academic pricing applied." %}
+                            <a href="{% url 'public_app:contact' %}" class="text-link">{% trans "Request academic pricing for your email domain" %}</a>
                         </small>
                     </div>
                     {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors.0 }}</div>{% endif %}
@@ -360,9 +361,11 @@
     // examples. Read-only hint; decides nothing about the account.
     const emailInput = document.getElementById("id_email");
     const academicHint = document.getElementById("academic-hint");
+    const nonacademicHint = document.getElementById("nonacademic-hint");
     const checkAcademicEmail = debounce(async function (email) {
       if (!email || email.indexOf("@") < 0) {
         if (academicHint) academicHint.style.display = "none";
+        if (nonacademicHint) nonacademicHint.style.display = "none";
         return;
       }
       try {
@@ -379,9 +382,13 @@
         if (academicHint) {
           academicHint.style.display = data.academic ? "block" : "none";
         }
+        if (nonacademicHint) {
+          nonacademicHint.style.display = data.academic ? "none" : "block";
+        }
       } catch (error) {
         // Silently fail - the hint is a convenience, not a gate
         if (academicHint) academicHint.style.display = "none";
+        if (nonacademicHint) nonacademicHint.style.display = "none";
       }
     }, 500);
     if (emailInput) {
@@ -473,7 +480,8 @@
       if (typeof Stripe === "undefined") return; // graceful: plain form POST
       var form = document.getElementById("signup-form");
       var submitBtn = document.getElementById("signup-submit");
-      var cardErrors = document.getElementById("signup-card-errors");
+      var cardErrors = document.getElementById("signup-card-errors")
+        || document.getElementById("error-message"); // sender-error fallback
       var statusBox = document.getElementById("signup-oneshot-status");
       var continueLink = document.getElementById("signup-continue-link");
       if (!form || !submitBtn) return;
@@ -520,6 +528,11 @@
           if (ct.indexOf("application/json") < 0) throw new Error("non-json");
           return resp.json();
         }).then(function (data) {
+          if (data && data.ok === false && data.error) {
+            // Sender side is down: say so inline, stay on the page.
+            showCardError(data.error, null);
+            return null;
+          }
           if (!data || !data.ok || !data.verify_url) throw new Error("non-json");
           if (!data.card || !data.card.open) {
             window.location.href = data.verify_url; // account-only path

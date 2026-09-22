@@ -86,3 +86,36 @@ def test_confirm_card_anonymous_without_token_refused():
 
 
 # EOF
+
+
+@pytest.mark.django_db
+def test_sender_down_json_names_contact():
+    from apps.infra.auth_app.views.authentication import _sender_down
+
+    class Req:
+        headers = {"X-Requested-With": "XMLHttpRequest"}
+
+    resp = _sender_down(Req())
+    assert resp.status_code == 502
+    data = json.loads(resp.content.decode())
+    assert data["ok"] is False
+    assert "info@scitex.ai" in data["error"]
+    assert "check your inbox" not in data["error"].lower()
+
+
+@pytest.mark.django_db
+def test_sender_down_banner_names_contact():
+    from apps.infra.auth_app.views.authentication import _sender_down
+
+    class Req:
+        headers = {}
+        method = "POST"
+
+    from django.contrib.messages.storage.cookie import CookieStorage
+
+    req = Req()
+    req.COOKIES = {}
+    req._messages = CookieStorage(req)
+    resp = _sender_down(req)
+    assert resp.status_code == 200
+    assert b"info@scitex.ai" in resp.content

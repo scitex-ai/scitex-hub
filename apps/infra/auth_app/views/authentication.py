@@ -38,6 +38,31 @@ def _wants_json(request) -> bool:
     return request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
 
+#: Professional sender-failure wording (operator 2026-09-22): when OUR mail
+#: sender is down, the page must say so — "check your inbox" would be a lie.
+#: Identical on every path that attempted a send, so it reveals nothing
+#: per-address (PR #775): a broken sender is a global state, not an oracle.
+_SENDER_DOWN_MESSAGE = (
+    "We couldn't send the verification email because of a problem on our "
+    "side. Our maintainers have been notified and will fix it as soon as "
+    "possible. Your account has been created — please try again shortly. "
+    "If this persists, contact info@scitex.ai."
+)
+
+
+def _sender_down(request, form=None):
+    """Answer a failed OTP send: error banner (or JSON), never a fake success."""
+    import logging as _logging
+
+    _logging.getLogger(__name__).error("Signup mail sender failed; professional error shown")
+    if _wants_json(request):
+        from django.http import JsonResponse
+
+        return JsonResponse({"ok": False, "error": _SENDER_DOWN_MESSAGE}, status=502)
+    messages.error(request, _SENDER_DOWN_MESSAGE)
+    return render(request, "auth_app/signup.html", {"form": form})
+
+
 def _signup_done(request, email, user=None):
     """The ONE exit of the signup POST: redirect for forms, JSON for one-shot.
 
@@ -173,8 +198,12 @@ def signup(request):
                 # same conditional response as every other outcome. The message is
                 # deliberately conditional ("if that address can be used …"), so it
                 # stays truthful without confirming anything.
+                # Sender-ownership (operator 2026-09-22): when the budget allowed
+                # a send and OUR sender failed it, every outcome says so with
+                # the same professional text — a broken sender is global state.
                 if consume_resend_budget(email):
-                    _send_pending_signup_code(request, existing_user, email, logger)
+                    if not _send_pending_signup_code(request, existing_user, email, logger):
+                        return _sender_down(request, form=form)
                 messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
                 return _signup_done(request, email)
 
@@ -193,8 +222,10 @@ def signup(request):
                 # same conditional response as every other outcome. The message is
                 # deliberately conditional ("if that address can be used …"), so it
                 # stays truthful without confirming anything.
+                # Sender-ownership: same rule as the PENDING_EXPIRED branch above.
                 if consume_resend_budget(email):
-                    _send_pending_signup_code(request, existing_user, email, logger)
+                    if not _send_pending_signup_code(request, existing_user, email, logger):
+                        return _sender_down(request, form=form)
                 messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
                 return _signup_done(request, email)
 
@@ -293,17 +324,13 @@ def signup(request):
                     logger.error(
                         f"Failed to send verification email to {email}: {message}"
                     )
-                    # Don't delete user - let them retry verification
-                    # GENERIC, like every other signup outcome (PR #775 review).
-                    # A distinct "the email failed to send" told a caller that the
-                    # account had JUST been created — i.e. that the address was
-                    # NOT already registered. That is the same enumeration oracle
-                    # the collision paths were unified to close.
-                    messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                    # Account exists even though the mail failed: still hand
-                    # the one-shot page its card payload so the card is not
-                    # lost with the OTP retry.
-                    return _signup_done(request, email, user=user)
+                    # Don't delete user - let them retry verification.
+                    # The sender is OURS: a fake "check your inbox" here would
+                    # be a lie, so the page owns the failure professionally
+                    # (operator 2026-09-22, contact info@scitex.ai). Same text
+                    # on every send-attempting path: a broken sender is global,
+                    # not a per-address oracle (PR #775 stays closed).
+                    return _sender_down(request, form=form)
             except Exception as e:
                 logger.error(f"Error during signup for {email}: {str(e)}")
                 # Don't delete user - keep the account
