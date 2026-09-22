@@ -426,6 +426,11 @@ EMAIL_HOST_USER = _getenv_alias("SCITEX_HUB_EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = _getenv_alias("SCITEX_HUB_EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
+# Fail FAST when the mail sender is down (operator 2026-09-22): without this
+# Django blocks on the SMTP socket with no timeout, and the signup page sits
+# on "Creating your account..." for minutes before the sender-down error can
+# be shown. 10s is enough for a healthy relay; a down one must not hang UX.
+EMAIL_TIMEOUT = int(_getenv_alias("SCITEX_HUB_EMAIL_TIMEOUT", "10") or "10")
 
 # Recipients of the mail_admins logging handler (settings_logging). Defined
 # HERE, once, rather than per environment: it lived only in settings_prod

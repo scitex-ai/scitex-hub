@@ -533,12 +533,18 @@
         cardErrors.textContent = "";
         continueLink.style.display = "none";
         setBusy(true, "Creating your account…");
+        // Safety net: never spin forever. The server fails fast (SMTP
+        // timeout), but if the request itself stalls, say so and re-enable.
+        var aborter = new AbortController();
+        var abortTimer = setTimeout(function () { aborter.abort(); }, 45000);
         fetch("{% url 'auth_app:signup' %}", {
           method: "POST",
           headers: { "X-Requested-With": "XMLHttpRequest", "X-CSRFToken": csrf() },
           body: new FormData(form),
           credentials: "same-origin",
+          signal: aborter.signal,
         }).then(function (resp) {
+          clearTimeout(abortTimer);
           var ct = resp.headers.get("Content-Type") || "";
           if (ct.indexOf("application/json") < 0) throw new Error("non-json");
           return resp.json();
@@ -589,7 +595,15 @@
               }
             });
           });
-        }).catch(function () {
+        }).catch(function (err) {
+          clearTimeout(abortTimer);
+          if (err && err.name === "AbortError") {
+            showCardError(
+              "The request is taking too long. Please reload the page and try again.",
+              null,
+            );
+            return;
+          }
           form.submit(); // invalid form or no JSON: plain POST renders errors
         });
       });
