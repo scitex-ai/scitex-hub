@@ -188,6 +188,26 @@ def api_switch_active_project(request):
     try:
         data = json.loads(request.body)
         project_id = data.get("project_id")
+        scope = data.get("scope")
+
+        if scope is not None:
+            # "All projects" selector option: a view preference kept in the
+            # session only — it must not rewrite last_active_repository.
+            from apps.infra.project_app.services.project_utils import (
+                PROJECT_SCOPE_ALL,
+                PROJECT_SCOPE_SINGLE,
+                set_project_scope,
+            )
+
+            if scope == PROJECT_SCOPE_ALL:
+                set_project_scope(request, PROJECT_SCOPE_ALL)
+                return JsonResponse({"success": True, "scope": PROJECT_SCOPE_ALL})
+            if scope == PROJECT_SCOPE_SINGLE:
+                set_project_scope(request, PROJECT_SCOPE_SINGLE)
+                return JsonResponse({"success": True, "scope": PROJECT_SCOPE_SINGLE})
+            return JsonResponse(
+                {"success": False, "error": "Unknown scope"}, status=400
+            )
 
         if not project_id:
             return JsonResponse({"success": False, "error": "Project ID is required"})
@@ -206,6 +226,13 @@ def api_switch_active_project(request):
         # stale answer while the header showed the new one. Both stores must
         # move together or "which project am I in" has two answers.
         set_current_project(request, project)
+        # Picking a concrete project leaves the "All projects" scope.
+        from apps.infra.project_app.services.project_utils import (
+            PROJECT_SCOPE_SINGLE,
+            set_project_scope,
+        )
+
+        set_project_scope(request, PROJECT_SCOPE_SINGLE)
 
         logger.info(f"User {request.user.username} switched to project {project.name}")
 
