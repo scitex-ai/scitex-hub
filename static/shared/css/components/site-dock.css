@@ -91,6 +91,31 @@ body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
   scroll-padding-bottom: var(--site-dock-scroll-clearance);
 }
 
+/* Layout clearance: a page whose content ends at the viewport bottom (e.g.
+/new/ with its Create button on the last row) would otherwise sit UNDER the
+fixed dock with nothing to scroll. Padding the main column by the dock
+clearance guarantees every control can be scrolled into view above it. */
+body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
+  :where(#main-content, main, [role="main"]) {
+  padding-bottom: var(--site-dock-scroll-clearance);
+}
+
+/* Plain form pages that inherit the workspace shell (e.g. /new/ via the
+my_projects module) must still scroll: workspace-page locks the viewport
+(100dvh + overflow hidden) for pane layouts, which clipped the form's Create
+button under the fixed dock with no way to reach it. This keeps the module
+identity (sidebar tracking, data-track-module) and only restores scrolling. */
+body.workspace-page:has(#main-content .create-page) {
+  height: auto;
+  max-height: none;
+  overflow: visible;
+}
+body.workspace-page:has(#main-content .create-page) #main-content {
+  display: block;
+  overflow: visible;
+  padding-bottom: var(--site-dock-scroll-clearance);
+}
+
 body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
   :where(a[href], button, input, select, textarea, [tabindex]):focus-visible,
 body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
