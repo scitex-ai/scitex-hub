@@ -278,10 +278,10 @@ def test_self_hosted_license_group_contrasts_agpl_vs_commercial() -> None:
     rows = plan_comparison()["rows"]
     by_label = {r["label"]: r["cells"] for r in rows if "label" in r}
     assert by_label["Commercial use"][2] == (
-        "Source disclosure required (AGPL) / No restrictions (Commercial)"
+        "AGPL: Source disclosure required\nCommercial: No restrictions"
     )
-    assert by_label["Support"][2] == "Community (AGPL) / Included (Commercial)"
-    assert by_label["SLA"][2] == "— (AGPL) / Included (Commercial)"
+    assert by_label["Support"][2] == "AGPL: Community\nCommercial: Included"
+    assert by_label["SLA"][2] == "AGPL: —\nCommercial: Included"
     assert any(r.get("group") == "Self-hosted license" for r in rows)
 
 
@@ -293,10 +293,17 @@ def test_metered_rates_and_api_rows_come_from_the_ssot() -> None:
 
     rows = plan_comparison()["rows"]
     by_label = {r["label"]: r["cells"] for r in rows if "label" in r}
-    assert by_label["CPU"][0] == "$0.05 / CPU Unit-hour"
-    assert by_label["CPU"][2] == "—"  # self-hosted runs on your hardware
-    assert by_label["Memory"][0] == "$0.005 / GiB-hour"
-    assert "A100 80 GB class $2.00 / GPU-hour" in by_label["GPU"][0]
+    assert by_label["Metered CPU"][0] == "$0.05 / CPU Unit-hour"
+    assert by_label["Metered CPU"][2] == "—"  # self-hosted runs on your hardware
+    assert by_label["Metered memory"][0] == "$0.005 / GiB-hour"
+    # One row per GPU class (a combined cell became an unreadable tower
+    # on narrow displays); VRAM lives in the class names, not its own row.
+    assert by_label["RTX 4090 class"][0] == "$0.70 / GPU-hour"
+    assert by_label["A100 80 GB class"][0] == "$2.00 / GPU-hour"
+    assert by_label["B200 class"][0] == "$7.00 / GPU-hour"
+    assert "VRAM" not in by_label
+    # The included-GPU row is separate from the metered per-class rows.
+    assert by_label["GPU"][0] == "No GPU"
     assert by_label["API keys"] == ["Rate-limited", "Included", "—"]
     services = by_label["Scholar, Stats, FigRecipe and Writer"]
     assert "Compute Credits + 20% service fee" in services[0]
@@ -305,6 +312,26 @@ def test_metered_rates_and_api_rows_come_from_the_ssot() -> None:
     groups = [r["group"] for r in rows if "group" in r]
     assert "Metered compute rates (Coming soon)" in groups
     assert "API" in groups
+
+
+@translation.override("ja")
+def test_license_and_notes_render_japanese() -> None:
+    """New compare-table strings must not silently fall back to English."""
+    from apps.infra.public_app.pricing import plan_comparison
+
+    comp = plan_comparison()
+    rows = comp["rows"]
+    license_cells = [
+        r["cells"][2] for r in rows if "cells" in r and "AGPL:" in r["cells"][2]
+    ]
+    assert len(license_cells) == 3  # commercial use, support, SLA
+    assert license_cells[0].startswith("AGPL: ")
+    assert "\n商用: " in license_cells[0]
+    by_label = {r["label"]: r["cells"] for r in rows if "label" in r}
+    assert by_label["CPU"][2] == "ご自身のハードウェア"
+    notes = " ".join(comp["notes"])
+    assert "VRAMの単独料金はありません" in notes
+    assert "コンピュートクレジットは、" in notes
 
 
 @translation.override("ja")
@@ -317,3 +344,26 @@ def test_metered_and_api_rows_render_japanese() -> None:
     assert "CPUユニット時間" in text
     assert "レート制限あり" in text
     assert "コンピュートクレジット" in text
+
+
+def test_table_notes_come_from_the_ssot() -> None:
+    """Footnotes answer what the matrix cannot: credit value, tier meanings,
+    VRAM bundling — tier wording from rate_card.storage_tiers, and the
+    self-hosted resource cells stay a short line, not a repeated paragraph.
+    """
+    from apps.infra.public_app.pricing import plan_comparison
+
+    comp = plan_comparison()
+    notes = comp["notes"]
+    assert any("$1" in n and "Compute Credit" in n for n in notes)
+    assert any("no separate VRAM rate" in n for n in notes)
+    assert any(n.startswith("Hot storage:") for n in notes)
+    assert any(n.startswith("Cold storage:") for n in notes)
+    rows = comp["rows"]
+    by_label = {r["label"]: r["cells"] for r in rows if "label" in r}
+    assert by_label["CPU"][2] == "Your own hardware"
+    assert by_label["Cool"][2] == "Your own hardware"
+    assert not any(
+        "Runs on your own hardware" in c
+        for r in rows if "cells" in r for c in r["cells"]
+    )

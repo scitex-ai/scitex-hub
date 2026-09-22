@@ -308,6 +308,7 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.95rem;
+  background: var(--bg-surface);
 }
 .plan-compare-table th,
 .plan-compare-table td {
@@ -320,6 +321,10 @@
   border-top: 0;
   border-bottom: 2px solid var(--border-strong, #9aa4b2);
   white-space: normal;
+  position: sticky;
+  top: 0;
+  background: var(--bg-surface);
+  z-index: 1;
 }
 .plan-compare-table tbody th[scope="row"] {
   font-weight: 600;

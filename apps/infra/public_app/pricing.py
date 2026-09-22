@@ -165,11 +165,20 @@ def _metered_and_api_rows() -> list[dict[str, Any]]:
     rate = lambda amount, msgid: msgid % {"price": format_usd(amount)}  # noqa: E731
     cpu_cell = rate(comp["cpu_unit_rate"], _("%(price)s / CPU Unit-hour"))
     mem_cell = rate(comp["memory_addon_rate"], _("%(price)s / GiB-hour"))
-    gpu_cell = " · ".join(
-        _("%(name)s %(price)s / GPU-hour")
-        % {"name": _(g["name"]), "price": format_usd(g["amount"])}
+    gpu_rows = [
+        {
+            # One row per GPU class: a single "$X / GPU-hour" cell scans and
+            # wraps cleanly on narrow displays, where one combined cell grew
+            # into an unreadable word-by-word tower (measured on 390px).
+            "label": _(g["name"]),
+            "cells": [
+                rate(g["amount"], _("%(price)s / GPU-hour")),
+                rate(g["amount"], _("%(price)s / GPU-hour")),
+                dash,
+            ],
+        }
         for g in comp["gpus"]
-    )
+    ]
     key_cells = [
         _API_KEY_DISPLAY[keys["free"]],
         _API_KEY_DISPLAY[keys["pro"]],
@@ -180,9 +189,9 @@ def _metered_and_api_rows() -> list[dict[str, Any]]:
     )
     return [
         {"group": coming_soon(_("Metered compute rates"))},
-        {"label": _("CPU"), "cells": [cpu_cell, cpu_cell, dash]},
-        {"label": _("Memory"), "cells": [mem_cell, mem_cell, dash]},
-        {"label": _("GPU"), "cells": [gpu_cell, gpu_cell, dash]},
+        {"label": _("Metered CPU"), "cells": [cpu_cell, cpu_cell, dash]},
+        {"label": _("Metered memory"), "cells": [mem_cell, mem_cell, dash]},
+        *gpu_rows,
         {"group": _("API")},
         {"label": _("API keys"), "cells": key_cells},
         {
@@ -510,6 +519,41 @@ def published_price_rows(today: date | None = None) -> list[dict[str, Any]]:
     return rows
 
 
+def table_notes() -> list[str]:
+    """Footnotes under the comparison table, all SSOT-derived.
+
+    Answers the questions a bare matrix cannot: what a Compute Credit buys,
+    what Hot/Warm/Cool/Cold mean, and where VRAM is priced. Tier wording
+    comes from rate_card.storage_tiers so the legend can never drift from
+    the catalogue; each tier is its own sentence so translators own the
+    word order (no runtime-joined fragments).
+    """
+    card = load_pricing()["rate_card"]
+    notes = [
+        _("Each Compute Credit is worth %(one)s of metered usage: "
+          "CPU, memory and GPU hours, plus API calls.")
+        % {"one": format_usd(1)},
+        _("There is no separate VRAM rate: GPU-hour pricing already "
+          "includes memory by model."),
+    ]
+    for tier in card.get("storage_tiers") or []:
+        if not tier.get("name") or not tier.get("meaning"):
+            raise ValueError(
+                f"storage_tiers entry {tier!r} needs name and meaning; "
+                "fix pricing.json."
+            )
+        note = tier.get("note", "")
+        notes.append(
+            _("%(tier)s storage: %(meaning)s.%(note)s")
+            % {
+                "tier": tier["name"],
+                "meaning": tier["meaning"],
+                "note": f" {note}" if note else "",
+            }
+        )
+    return notes
+
+
 def plan_comparison(today=None):
     """Plan comparison table for the landing page, one page, SSOT-rendered.
 
@@ -520,10 +564,11 @@ def plan_comparison(today=None):
     resource cell renders the SSOT self-hosted line instead of a dash.
 
     Rows follow the operator's sketched organization: Price, Resources (CPU
-    / RAM / GPU / VRAM), Compute Credits, and Storage split by tier (Hot /
+    / RAM / GPU), Compute Credits, and Storage split by tier (Hot /
     Warm / Cool / Cold) so each plan's included storage lands in its tier
     row, plus a Self-hosted license group contrasting AGPL vs Commercial on
-    Commercial use, Support and SLA.
+    Commercial use, Support and SLA. GPU VRAM is not a separate row: it is
+    bundled into each metered GPU class, said once in a footnote.
 
     Every cell renders from its row's own SSOT attributes through the same
     wording registry the cards and the legal page use, so the table can
@@ -576,13 +621,6 @@ def plan_comparison(today=None):
             return _("—")
         return _("GPU included") if limits(row)["gpu"] else _("No GPU")
 
-    def vram_cell(row):
-        return (
-            _("%(gb)s GB") % {"gb": limits(row)["vram_gb"]}
-            if "vram_gb" in limits(row)
-            else _("—")
-        )
-
     def credit_cell(row):
         if "included_compute_credit" not in row["attributes"]:
             return _("—")
@@ -594,12 +632,20 @@ def plan_comparison(today=None):
             return _("—")
         return _("%(gb)s GB included") % {"gb": storage["amount"]}
 
-    hosted_line = _self_hosted_text(True)
+    hosted_line = _("Your own hardware")
+    # Table-local short line: the catalogue sentence ("Runs on your own
+    # hardware — ...", kept for cards and the legal page) repeated in every
+    # resource cell grew rows 3-4x tall and walled the right column.
     agpl_terms = agpl["attributes"].get("license_terms") or {}
     comm_terms = commercial["attributes"].get("license_terms") or {}
 
     def license_cell(term):
-        """One "(AGPL) / (Commercial)" cell from BOTH rows' SSOT dicts."""
+        """One two-line "AGPL: … / Commercial: …" cell from BOTH rows' dicts.
+
+        Two labeled lines, not one slash-joined sentence: at table widths the
+        slash form wrapped into an unparsable 3-line mix (measured live).
+        Cells render through the linebreaksbr filter, so "\\n" is the break.
+        """
         if term not in _LICENSE_TERM_DISPLAY:
             raise ValueError(
                 f"unknown license term {term!r}; extend _LICENSE_TERM_DISPLAY."
@@ -612,7 +658,7 @@ def plan_comparison(today=None):
                     f"{row_id} license_terms[{term!r}] is "
                     f"{terms.get(term)!r}; fix pricing.json."
                 )
-        return _("%(a)s (AGPL) / %(c)s (Commercial)") % {
+        return _("AGPL: %(a)s\nCommercial: %(c)s") % {
             "a": display[agpl_terms[term]],
             "c": display[comm_terms[term]],
         }
@@ -654,10 +700,6 @@ def plan_comparison(today=None):
             "cells": [gpu_cell(free), gpu_cell(pro), hosted_line],
         },
         {
-            "label": _("VRAM"),
-            "cells": [vram_cell(free), vram_cell(pro), hosted_line],
-        },
-        {
             "label": _("Compute credits"),
             "cells": [credit_cell(free), credit_cell(pro), hosted_line],
         },
@@ -690,6 +732,7 @@ def plan_comparison(today=None):
             ({"group": entry["group"]} if "group" in entry else entry)
             for entry in spec
         ],
+        "notes": table_notes(),
     }
 
 

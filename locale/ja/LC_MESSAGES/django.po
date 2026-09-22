@@ -7709,3 +7709,43 @@ msgstr "Scholar、Stats、FigRecipe、Writer"
 #: apps/infra/public_app/pricing.py
 msgid "Metered in Compute Credits + %(pct)s%% service fee"
 msgstr "コンピュートクレジットによる従量課金 + %(pct)s%%のサービス料"
+
+#: apps/infra/public_app/pricing.py
+msgid "Your own hardware"
+msgstr "ご自身のハードウェア"
+
+#: apps/infra/public_app/pricing.py
+msgid ""
+"AGPL: %(a)s\n"
+"Commercial: %(c)s"
+msgstr ""
+"AGPL: %(a)s\n"
+"商用: %(c)s"
+
+#: apps/infra/public_app/pricing.py
+msgid "Metered CPU"
+msgstr "CPU（従量課金）"
+
+#: apps/infra/public_app/pricing.py
+msgid "Metered memory"
+msgstr "メモリ（従量課金）"
+
+#: apps/infra/public_app/pricing.py
+msgid ""
+"Each Compute Credit is worth %(one)s of metered usage: CPU, memory and GPU "
+"hours, plus API calls."
+msgstr ""
+"コンピュートクレジットは、%(one)s分の従量課金利用（CPU・メモリ・GPU時間、"
+"API呼び出し）に利用できます。"
+
+#: apps/infra/public_app/pricing.py
+msgid ""
+"There is no separate VRAM rate: GPU-hour pricing already includes memory by "
+"model."
+msgstr ""
+"VRAMの単独料金はありません。GPU時間料金にはモデルごとにメモリが含まれて"
+"います。"
+
+#: apps/infra/public_app/pricing.py
+msgid "%(tier)s storage: %(meaning)s.%(note)s"
+msgstr "%(tier)sストレージ: %(meaning)s。%(note)s"
