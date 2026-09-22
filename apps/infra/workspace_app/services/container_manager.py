@@ -15,12 +15,30 @@ try:
 except ImportError:
     docker = None  # Optional dependency for container management
 import logging
+import os
+from pathlib import Path
 from typing import Optional, Tuple
 
 from django.contrib.auth.models import User
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
+
+
+def _workspace_uid(user: User) -> int:
+    """Numeric uid the workspace container runs as.
+
+    Follows the per-user Linux UID scheme (100000 + pk); falls back to the
+    image ``user`` uid when the scheme is unavailable so containers still
+    start.
+    """
+    try:
+        from apps.infra.accounts_app.services.unix_user import get_unix_uid
+
+        return get_unix_uid(user)
+    except Exception as exc:  # misconfigured range, import cycle, ...
+        logger.warning("unix uid unavailable for %s: %s", user, exc)
+        return 1000
 
 
 class UserContainerManager:
@@ -65,9 +83,29 @@ class UserContainerManager:
         return f"scitex-user-{user.username}"
 
     def _get_user_data_path(self, user: User) -> str:
-        """Get path to user's data directory"""
-        # This matches the existing project data structure
-        return f"/app/data/users/{user.username}"
+        """Host-side path to the user's data directory.
+
+        Docker bind sources resolve on the HOST, not in this container, so
+        the in-container ``/app/data/users`` prefix is wrong whenever the
+        checkout lives elsewhere on the host (dev: ``~/proj/scitex-hub``).
+        ``SCITEX_HUB_USER_DATA_HOST_ROOT`` carries the host prefix; without
+        it the old in-container default is kept (host == container layout).
+
+        The directory is created here (owned by the workspace image uid)
+        so Docker never auto-creates it as root with an unwritable home.
+        """
+        host_root = os.environ.get(
+            "SCITEX_HUB_USER_DATA_HOST_ROOT", "/app/data/users"
+        )
+        path = Path(host_root) / str(user.username)
+        uid = _workspace_uid(user)
+        if not path.exists():
+            path.mkdir(parents=True, exist_ok=True)
+            try:
+                os.chown(path, uid, uid)
+            except OSError as exc:
+                logger.warning("chown %s failed: %s", path, exc)
+        return str(path)
 
     def get_or_create_container(
         self, user: User
@@ -118,6 +156,7 @@ class UserContainerManager:
         """
         container_name = self._get_container_name(user)
         user_data_path = self._get_user_data_path(user)
+        uid = _workspace_uid(user)
 
         try:
             container = self.client.containers.run(
@@ -126,6 +165,9 @@ class UserContainerManager:
                 detach=True,
                 stdin_open=True,
                 tty=True,
+                # Run as the per-user Linux uid so the 700-owned data dir
+                # is the container user's own home (see _workspace_uid).
+                user=f"{uid}:{uid}",
                 # Resource limits
                 mem_limit=self.DEFAULT_MEMORY_LIMIT,
                 cpu_quota=self.DEFAULT_CPU_QUOTA,
