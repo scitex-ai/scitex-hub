@@ -6,6 +6,8 @@
 
 # ADR 0001 — Rename `scitex-cloud` to `scitex-hub`
 
+**Status:** Accepted — rename landed end-to-end (shim + env-alias compat retained per §D).
+
 - **Status**: Accepted
 - **Date**: 2026-05-23
 - **Deciders**: ywatanabe (lead), proj-scitex-hub (agent)

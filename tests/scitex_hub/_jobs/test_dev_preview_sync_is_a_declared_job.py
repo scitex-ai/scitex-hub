@@ -132,7 +132,7 @@ def test_hard_timeout_exceeds_the_ticks_worst_case_budget():
 def test_command_ends_with_the_sync_verb_on_the_preview_clone():
     """The supervisor runs exactly the verb the CLI exposes, against the real clone."""
     # Arrange
-    expected_suffix = "dev-preview sync --clone /home/ywatanabe/proj/scitex-hub"
+    expected_suffix = "dev-preview sync --yes --clone /home/ywatanabe/proj/scitex-hub"
     # Act
     job = provide_jobs()[0]
     # Assert

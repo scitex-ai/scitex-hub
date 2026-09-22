@@ -677,6 +677,7 @@ addopts = [
 ]
 markers = [
     "e2e: End-to-end tests using browser automation",
+    "smoke: Fast subprocess CLI happy-path tests (<60s, tests/smoke/)",
     "slow: Tests that take a long time to run",
     "auth: Authentication and authorization tests",
     "user: User management tests",
@@ -719,7 +720,7 @@ exclude_lines = [
     "if __name__ == .__main__.:",
 ]
 
-[tool.scitex-linter]
+[tool.scitex-dev.linter]
 # Django project: standard library `logging` is used throughout.
 # STX-I007 warns to use @stx.session-injected `logger` instead, which
 # does not apply to Django views/services that have no @stx.session context.

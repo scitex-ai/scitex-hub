@@ -1,5 +1,7 @@
 # ADR-0004: PostgreSQL is the only database engine
 
+**Status:** Accepted — PostgreSQL-only across app, workers and CI; no SQLite fallback remains.
+
 - **Status:** Accepted
 - **Date:** 2026-08-29
 - **Driver:** Standing operator directive to eradicate SQLite from the entire

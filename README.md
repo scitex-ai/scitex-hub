@@ -39,12 +39,12 @@
 
 | # | Problem | Solution |
 |---|---------|----------|
-| 1 | **Fragmented tools.** Literature, writing, analysis, and visualization require separate, often proprietary applications, forcing constant context-switching and making it difficult for AI agents to build sufficient context across the research workflow. | **Unified platform.** Scholar, Writer, FigRecipe, Console, Hub, and Clew in a single Django web application, deployable anywhere with Docker. All apps share the same project filesystem and integrate through the `scitex` Python package. |
-| 2 | **No custom tooling.** Every research group needs domain-specific tools (e.g., clinical trial dashboards, spike-sorting interfaces, compound screening pipelines), yet building and sharing them requires deep computational knowledge and creating components from scratch. | **App Maker and Store.** Researchers create, publish, and install custom research tools on top of shared components — user/group permissions, AI infrastructure, containerized computation, and file operations are handled by the platform. |
-| 3 | **AI tools not research-aware.** Existing tools often lack AI assistant capabilities and domain-specific skills for scientific work, unable to operate across the full research lifecycle (literature review, analysis, writing, verification). | **Built-in AI co-pilot.** Platform-aware context, skills, and tools such as MCP (Model Context Protocol) and CLI span the full research lifecycle, providing an AI assistant that understands the entire project from natural language. |
-| 4 | **Review crisis.** The growing volume and heterogeneity of published papers overwhelms a limited, volunteer-based peer review process that cannot scale. | **Open review via Issues and PRs.** GitHub-style issue tracking and pull requests bring transparent, structured, and scalable peer review to research projects — anyone can inspect, comment, and propose changes. |
-| 5 | **Broken provenance.** Papers, code, and execution environments are rarely tied together, making it difficult for reviewers to verify claims and for other researchers to replicate results — slowing cumulative scientific progress. | **Verifiable provenance.** Clew links papers, code, data, and execution environments into a hash-verified DAG (Directed Acyclic Graph) with visualization that serves as a compressed view of the research workflow and logic — reducing the decision points reviewers must check. |
-| 6 | **Lost knowledge on handoff.** When researchers graduate or leave a project, successors inherit scattered files with little context, making it difficult to understand where to pick up and continue the work. | **Seamless project handoff.** The full project state — code, data, provenance graph, manuscript drafts, and execution environment — lives in one place, so successors can understand and continue work immediately. |
+| 1 | **Fragmented tools.** Literature, writing, analysis, and visualization need separate, often proprietary apps — forcing context-switching and starving AI agents of cross-workflow context. | **Unified platform.** Scholar, Writer, FigRecipe, Console, Hub, and Clew in one Django app, deployable anywhere with Docker — sharing one project filesystem via the `scitex` package. |
+| 2 | **No custom tooling.** Groups need domain tools (trial dashboards, spike-sorting UIs, screening pipelines), yet building and sharing them demands deep computational skill and components from scratch. | **App Maker and Store.** Researchers publish and install custom tools on shared components — permissions, AI infrastructure, containers, and file operations handled by the platform. |
+| 3 | **AI tools not research-aware.** Existing tools lack assistant capabilities and domain skills for science, unable to span the full lifecycle — review, analysis, writing, verification. | **Built-in AI co-pilot.** Platform-aware context, skills, MCP tools, and CLI span the full lifecycle — an assistant that grasps the whole project from natural language. |
+| 4 | **Review crisis.** The growing volume and heterogeneity of published papers overwhelms a limited, volunteer-based peer review process that cannot scale. | **Open review via Issues and PRs.** GitHub-style tracking and pull requests bring transparent, scalable peer review to research — anyone can inspect, comment, and propose changes. |
+| 5 | **Broken provenance.** Papers, code, and environments are rarely tied together, so reviewers cannot verify claims and others cannot replicate results — slowing cumulative progress. | **Verifiable provenance.** Clew links papers, code, data, and environments into a hash-verified DAG — a compressed view of the workflow that cuts what reviewers must check. |
+| 6 | **Lost knowledge on handoff.** When researchers leave, successors inherit scattered files with little context and struggle to pick up where the work stopped. | **Seamless project handoff.** Full project state — code, data, provenance, drafts, environment — lives in one place, so successors continue work immediately. |
 | 7 | **No research community platform.** No GitHub-like infrastructure exists for research-project-centric, fully traceable, parallel-working collaboration. | **GitHub-style project hub.** Repository hosting and ticket-based development with co-authors and the community enable efficient research advancement and collaboration. |
 | 8 | **No control.** Researchers have no ownership over their infrastructure: vendor lock-in, opaque algorithms, unilateral pricing changes, and data policies they cannot influence. | **Self-hosted, open-source, runnable from anywhere.** Deploy on your laptop, lab server, or cloud. AGPL-3.0 licensed — inspect every line, customize freely, no vendor lock-in, no data surrender. |
 
@@ -52,15 +52,51 @@
 
 SciTeX Hub is an AI-native infrastructure so that researchers can focus on science, not on tooling.
 
+## Quick Start
+
+```bash
+git clone https://github.com/scitex-ai/scitex-hub.git
+cd scitex-hub
+make start                    # Start development environment
+
+# Access at: http://localhost:8000
+# Gitea: http://localhost:3000
+# Test user: test-user — the password is printed by `init_test_user` on first run
+# (or set SCITEX_HUB_TEST_USER_PASSWORD to choose it yourself)
+```
+
 ## Demo
 
 <p align="center"><b>Writer</b><br><img src="docs/images/screenshot-writer.png" alt="Writer" width="100%"></p>
 
+<p align="center"><sub><b>Figure 1.</b> Writer — LaTeX manuscript environment with live compilation.</sub></p>
+
 <p align="center"><b>Scholar</b><br><img src="docs/images/screenshot-scholar.png" alt="Scholar" width="100%"></p>
+
+<p align="center"><sub><b>Figure 2.</b> Scholar — literature discovery, BibTeX enrichment, and PDF management.</sub></p>
 
 <p align="center"><b>Apps</b><br><img src="docs/images/screenshot-apps.png" alt="Apps" width="100%"></p>
 
-<p align="center"><sub><b>Figure 1.</b> Core application modules. Writer provides a LaTeX manuscript environment with live compilation. Scholar offers literature discovery, BibTeX enrichment, and PDF management. The Apps panel shows the project-centric hub linking all modules.</sub></p>
+<p align="center"><sub><b>Figure 3.</b> Apps — the project-centric hub linking all modules.</sub></p>
+
+## Installation
+
+```bash
+uv pip install "scitex-hub[all]"
+```
+
+<details>
+<summary><strong>Install variants</strong></summary>
+
+| Target | Command | Gets you |
+|--------|---------|----------|
+| Users (recommended) | `uv pip install "scitex-hub[all]"` | CLI + MCP server + Django stack |
+| CLI only | `pip install scitex-hub` | `scitex-hub` commands without the server stack |
+| Developers | `pip install -e ".[all,dev]"` | Editable install plus lint/test tooling |
+
+`[dev]` is internal-only (formatters, linters, dev test plugins) and is not part of `[all]`.
+
+</details>
 
 ## Architecture
 
@@ -82,6 +118,8 @@ graph TB
     infra --> DK[Docker / Postgres / Gitea]
 ```
 
+<sub><b>Figure 4.</b> Workspace apps over infra apps over Docker / Postgres / Gitea.</sub>
+
 ```
 scitex-hub/
 ├── apps/
@@ -94,26 +132,7 @@ scitex-hub/
 └── tests/
 ```
 
-## Installation
-
-```bash
-pip install scitex-hub              # CLI only
-pip install scitex-hub[mcp]         # CLI + MCP server
-pip install scitex-hub[all]         # Everything
-```
-
-## Quick Start
-
-```bash
-git clone https://github.com/scitex-ai/scitex-hub.git
-cd scitex-hub
-make start                    # Start development environment
-
-# Access at: http://localhost:8000
-# Gitea: http://localhost:3000
-# Test user: test-user — the password is printed by `init_test_user` on first run
-# (or set SCITEX_HUB_TEST_USER_PASSWORD to choose it yourself)
-```
+<sub><b>Figure 5.</b> Repository layout — Django project, pip package, and tests.</sub>
 
 ## Four Interfaces
 
@@ -312,6 +331,8 @@ scitex-hub/
 ├── tests/                   # Test suite
 └── Makefile                 # Thin dispatcher
 ```
+
+<sub><b>Figure 6.</b> Expanded layout — frontend assets, settings, and entry points.</sub>
 
 > **For app developers:** Use `pip install scitex-app[cli]` and the `scitex-app app` CLI.
 > scitex-hub is the platform server — app developers don't need to install it.

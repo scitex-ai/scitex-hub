@@ -5,6 +5,26 @@
 **Supersedes:** none. Follow-up to ADR-0001 (repo-side rename, already complete).
 **Owner:** proj-scitex-hub (drafter). Executor: lead, host-side, with operator present.
 
+## Context
+
+ADR-0001 renamed the project end-to-end at code level, but the live
+prod compose stack still runs under the `scitex-cloud-prod` project
+name while the repo file declares `scitex-hub-prod` — §1 details the
+half-done state this plan closes.
+
+## Decision
+
+Cut the live stack over to `scitex-hub-prod` in a single coordinated
+session (lead + operator) following the runbook below. No execution
+happens against live prod from this PR.
+
+## Consequences
+
+Once executed, one consistently-named stack remains and the NAS-local
+rollback file becomes history. Until then, any `docker compose up`
+from the current tree risks spawning a stray parallel stack — §1
+states the guardrails.
+
 ## 1. Why this ADR exists
 
 ADR-0001 renamed the project end-to-end at the code level (`scitex_cloud` → `scitex_hub`, `scitex-cloud` → `scitex-hub`, `SciTeX Cloud` → `SciTeX Hub`, `SCITEX_CLOUD_*` → `SCITEX_HUB_*`). That work landed in commits `c3c2df407` / `e8e66e173` / `39054f824` / `d38d68947` (May 23, 2026) with a deprecation shim added in `6abb25dcb` (May 24).

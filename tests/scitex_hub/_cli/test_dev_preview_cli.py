@@ -4,7 +4,7 @@
 
 """``scitex-hub dev-preview sync`` — the click surface the supervisor invokes.
 
-The periodic job runs exactly ``scitex-hub dev-preview sync --clone <clone>``
+The periodic job runs exactly ``scitex-hub dev-preview sync --yes --clone <clone>``
 with stdout discarded, so the CLI contract is: JSON on stdout, the outcome's
 exit code, a usage error (2) when ``--clone`` is missing, and a place in the
 root help's ``Service`` category next to ``docker`` / ``mcp``. Each test
@@ -135,7 +135,14 @@ def test_sync_no_cards_refusal_exits_two_and_only_logs_the_card(
     """
     # Arrange
     state_dir = tmp_path / "state"
-    common = ["--no-cards", "--clone", str(clone), "--state-dir", str(state_dir)]
+    common = [
+        "--yes",
+        "--no-cards",
+        "--clone",
+        str(clone),
+        "--state-dir",
+        str(state_dir),
+    ]
     runner.invoke(main, ["dev-preview", "sync", *common])  # baseline tick
     (clone / "README.md").write_text("operator edit in progress\n", encoding="utf-8")
     # Act
@@ -162,6 +169,18 @@ def test_sync_without_clone_is_a_usage_error(runner: CliRunner):
         2,
         True,
     ), result.output
+
+
+def test_sync_without_yes_or_dry_run_refuses_with_exit_two(
+    runner: CliRunner, clone: Path, tmp_path: Path
+):
+    """A mutating run needs explicit confirmation; the refusal names the remedy."""
+    # Arrange
+    argv = ["dev-preview", "sync", "--clone", str(clone), "--state-dir", str(tmp_path)]
+    # Act
+    result = runner.invoke(main, argv)
+    # Assert
+    assert (result.exit_code, "--yes" in result.output) == (2, True), result.output
 
 
 def test_root_help_lists_dev_preview(runner: CliRunner):

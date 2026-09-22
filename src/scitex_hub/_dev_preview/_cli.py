@@ -5,9 +5,12 @@
 """``scitex-hub dev-preview`` — the click surface over :mod:`._sync`.
 
 The periodic job (:mod:`scitex_hub._jobs`) runs exactly
-``scitex-hub dev-preview sync --clone /home/ywatanabe/proj/scitex-cloud``;
+``scitex-hub dev-preview sync --yes --clone /home/ywatanabe/proj/scitex-cloud``;
 an operator runs the same verb by hand (``--dry-run`` first) to see what a
-tick would do. Output is ALWAYS the outcome JSON on stdout — the
+tick would do. A mutating run without ``--yes`` is refused: the verb
+fast-forwards a clone and runs follow-ups (reload / rebuild / migrate),
+so the confirmation flag is the §2 contract for mutating verbs.
+Output is ALWAYS the outcome JSON on stdout — the
 supervisor discards stdout anyway and a human reads ``sync.log``, so there
 is no second, prettier format to drift from the first; ``--json`` is
 accepted for the universal-flag contract. On a non-zero exit one human line
@@ -52,7 +55,10 @@ _DEFAULT_STATE_DIR = Path.home() / ".scitex" / "hub" / "runtime" / "dev-preview-
                 "{prog} dev-preview sync --dry-run --clone ~/proj/scitex-cloud",
                 "Show what the next tick would do",
             ),
-            ("{prog} dev-preview sync --clone ~/proj/scitex-cloud", "Run one tick now"),
+            (
+                "{prog} dev-preview sync --yes --clone ~/proj/scitex-cloud",
+                "Run one tick now",
+            ),
         ),
     ),
 )
@@ -62,7 +68,7 @@ def dev_preview() -> None:
     \b
     Example:
         scitex-hub dev-preview sync --dry-run --clone ~/proj/scitex-cloud
-        scitex-hub dev-preview sync --clone ~/proj/scitex-cloud
+        scitex-hub dev-preview sync --yes --clone ~/proj/scitex-cloud
     """
 
 
@@ -101,6 +107,13 @@ def dev_preview() -> None:
     "--dry-run", is_flag=True, help="Fetch and plan; move nothing, file no cards."
 )
 @click.option(
+    "--yes",
+    "-y",
+    "confirm",
+    is_flag=True,
+    help="Confirm the mutating run: fast-forward the clone and run follow-ups.",
+)
+@click.option(
     "--no-cards",
     is_flag=True,
     envvar="SCITEX_HUB_DEV_PREVIEW_NO_CARDS",
@@ -123,21 +136,29 @@ def sync_cmd(
     container: str,
     state_dir: Path,
     dry_run: bool,
+    confirm: bool,
     no_cards: bool,
     as_json: bool,
 ) -> None:
     """Run one sync tick: fetch, fast-forward, classify, act.
 
-    Exit codes: 0 ok/noop/already-running/dry-run, 1 failed (retried next
-    tick), 2 refused (clone needs a human), 3 held (too many failures at
-    this commit).
+    Exit codes: 0 ok/noop/already-running/dry-run, 1 failed (retried
+    next tick), 2 refused (clone needs a human) or unconfirmed (no
+    --yes), 3 held (too many failures at this commit).
 
     \b
     Example:
         scitex-hub dev-preview sync --dry-run --clone ~/proj/scitex-cloud
-        scitex-hub dev-preview sync --clone ~/proj/scitex-cloud
+        scitex-hub dev-preview sync --yes --clone ~/proj/scitex-cloud
     """
     del as_json  # output is JSON regardless; see module docstring
+    if not dry_run and not confirm:
+        click.echo(
+            "dev-preview sync: refusing a mutating run without --yes "
+            "(pass --dry-run first to plan, or --yes to confirm).",
+            err=True,
+        )
+        sys.exit(2)
     resolved_state_dir = Path(state_dir).expanduser()
 
     # The board adapter is best effort and never raises; its failures are

@@ -2,6 +2,29 @@
 
 **Companion to:** [`0003-prod-stack-cutover-cloud-to-hub.md`](0003-prod-stack-cutover-cloud-to-hub.md). The main ADR holds the cutover runbook (§1-§12) lead executes in the coordinated session; this appendix holds the audit + decision history + idempotent GitHub-side checklist used as reference material.
 
+**Status:** Accepted — reference material for the main ADR; the operator decisions it records execute through the main ADR's runbook.
+
+## Context
+
+ADR-0001 renamed the project at code level, but the live prod stack
+and every remaining `scitex-cloud`-family reference needed one audited
+inventory: which references must intentionally survive (history, shims,
+compat aliases, the separate `scitex-cloud` spoke package) and which
+are cutover work. This appendix is that inventory.
+
+## Decision
+
+Keep every reference the §A audit classifies as intentional (§A.0
+categories 1–4, §A.1–§A.3 operator answers); execute the GitHub rename
+through the §B checklist inside the coordinated session the main ADR
+plans.
+
+## Consequences
+
+The main ADR stays the single executable plan and this appendix stays
+read-only reference — future rename audits diff against §A instead of
+re-deriving the keep-list.
+
 ---
 
 ## §A. Repo-content rename audit — comprehensive findings
