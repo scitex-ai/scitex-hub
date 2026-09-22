@@ -189,17 +189,24 @@ def _metered_and_api_rows() -> list[dict[str, Any]]:
     )
     return [
         {"group": coming_soon(_("Metered compute rates"))},
-        {"label": _("Metered CPU"), "cells": [cpu_cell, cpu_cell, dash]},
-        {"label": _("Metered memory"), "cells": [mem_cell, mem_cell, dash]},
-        *gpu_rows,
+        {
+            "label": _("Metered CPU"),
+            "cells": [cpu_cell, cpu_cell, dash],
+            "nowrap": True,
+        },
+        {
+            "label": _("Metered memory"),
+            "cells": [mem_cell, mem_cell, dash],
+            "nowrap": True,
+        },
+        *({**r, "nowrap": True} for r in gpu_rows),
         {"group": _("API")},
-        {"label": _("API keys"), "cells": key_cells},
+        {"label": _("API keys"), "cells": key_cells, "nowrap": True},
         {
             "label": _API_SERVICES_ROW_LABEL,
             "cells": [metered_line, metered_line, dash],
         },
     ]
-
 
 # How one attribute of a published row reads to a visitor. Every value form is
 # enumerated, so a value this table has not seen fails the test that renders

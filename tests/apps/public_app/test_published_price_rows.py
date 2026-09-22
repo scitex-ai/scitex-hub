@@ -304,6 +304,15 @@ def test_metered_rates_and_api_rows_come_from_the_ssot() -> None:
     assert "VRAM" not in by_label
     # The included-GPU row is separate from the metered per-class rows.
     assert by_label["GPU"][0] == "No GPU"
+    # Only short price rows opt into mobile nowrap; sentence cells wrap.
+    nowrap = {
+        r["label"]: r.get("nowrap", False) for r in rows if "label" in r
+    }
+    assert nowrap["Metered CPU"] is True
+    assert nowrap["RTX 4090 class"] is True
+    assert nowrap["API keys"] is True
+    assert nowrap["Scholar, Stats, FigRecipe and Writer"] is False
+    assert nowrap["Compute credits"] is False
     assert by_label["API keys"] == ["Rate-limited", "Included", "—"]
     services = by_label["Scholar, Stats, FigRecipe and Writer"]
     assert "Compute Credits + 20% service fee" in services[0]

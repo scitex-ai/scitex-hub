@@ -382,9 +382,11 @@
   .plan-compare[data-picked] [data-plan-col]:not(.plan-col-hidden) {
     display: table-cell;
   }
-  /* One plan at a time: values stay on one line and the wrapper scrolls
-     sideways instead of stacking one word per line (measured 390px). */
-  .plan-compare-table td {
+  /* One plan at a time: short price cells stay on one line and the wrapper
+     scrolls sideways instead of stacking one word per line (measured
+     390px). Sentence cells (credits, license terms, API services) keep
+     wrapping. The template marks price rows with row.nowrap. */
+  .plan-compare-table td.cell-nowrap {
     white-space: nowrap;
   }
   .plan-compare-table tbody th[scope="row"] {
