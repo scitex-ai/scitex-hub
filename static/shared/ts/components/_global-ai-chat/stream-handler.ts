@@ -11,6 +11,7 @@ import { renderMedia, MediaRef } from "./media-renderer";
 import {
   renderMarkdown,
   highlightCodeBlocks,
+  renderMathBlocks,
   fixExternalLinks,
 } from "./markdown-render";
 
@@ -36,6 +37,7 @@ function flushTextBuffer(
   wrapper.className = "ai-md-segment";
   wrapper.innerHTML = renderMarkdown(compacted);
   highlightCodeBlocks(wrapper);
+  void renderMathBlocks(wrapper);
   fixExternalLinks(wrapper);
   msgEl.appendChild(wrapper);
   return wrapper;

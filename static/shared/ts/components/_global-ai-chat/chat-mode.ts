@@ -11,6 +11,7 @@ import { renderMedia } from "./media-renderer";
 import {
   renderMarkdown,
   highlightCodeBlocks,
+  renderMathBlocks,
   fixExternalLinks,
 } from "./markdown-render";
 import { processStream } from "./stream-handler";
@@ -178,6 +179,7 @@ export class AIPanelChatMode {
         wrapper.className = "ai-md-segment";
         wrapper.innerHTML = renderMarkdown(msg.text);
         highlightCodeBlocks(wrapper);
+        void renderMathBlocks(wrapper);
         fixExternalLinks(wrapper);
         el.appendChild(wrapper);
       } else {
@@ -254,6 +256,7 @@ export class AIPanelChatMode {
         wrapper.className = "ai-md-segment";
         wrapper.innerHTML = renderMarkdown(msg.text);
         highlightCodeBlocks(wrapper);
+        void renderMathBlocks(wrapper);
         fixExternalLinks(wrapper);
         el.appendChild(wrapper);
       } else {
