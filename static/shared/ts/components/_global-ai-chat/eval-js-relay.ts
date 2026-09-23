@@ -19,6 +19,9 @@ function getWsUrl(): string {
 }
 
 function handleEvalJs(data: { code: string; request_id: string }): void {
+  console.info(
+    "[eval-js] exec rid=" + data.request_id + " code=" + String(data.code).slice(0, 80),
+  );
   let result: unknown;
   try {
     result = new Function(data.code)();

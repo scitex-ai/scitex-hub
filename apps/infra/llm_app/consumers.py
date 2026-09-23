@@ -79,6 +79,13 @@ class EvalJSConsumer(AsyncWebsocketConsumer):
 
     async def eval_js(self, event):
         """Forward eval_js request to browser."""
+        import logging as _logging
+
+        _logging.getLogger("llm_app.evaljs").info(
+            "forward rid=%s code=%.60r",
+            event.get("request_id"),
+            event.get("code"),
+        )
         await self.send(
             text_data=json.dumps(
                 {
