@@ -135,12 +135,13 @@ function protectMath(text: string): string {
   // Tolerance for models that drop the backslashes: single-bracket/paren
   // spans are math ONLY if they contain a LaTeX command (e.g. \frac).
   // Plain "(F = ma)" or "[see Fig. 3]" stay literal text.
+  // (Multiline-aware: models often break display math across lines.)
   out = out.replace(
-    /\[([^\]\n]*\\[a-zA-Z]+[^\]\n]*)\]/g,
+    /\[([\s\S]*?\\[a-zA-Z]+[\s\S]*?)\]/g,
     (_m, a) => enc(a, true),
   );
   out = out.replace(
-    /\(([^)\n]*\\[a-zA-Z]+[^)\n]*)\)/g,
+    /\(([\s\S]*?\\[a-zA-Z]+[\s\S]*?)\)/g,
     (_m, a) => enc(a, false),
   );
   return out.replace(/\u0000CODE(\d+)\u0000/g, (_m, i) => codeSpans[Number(i)]);
