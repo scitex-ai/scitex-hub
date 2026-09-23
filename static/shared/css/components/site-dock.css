@@ -116,7 +116,24 @@ body.workspace-page:has(#main-content .create-page) #main-content {
   padding-bottom: var(--site-dock-scroll-clearance);
 }
 
-/* Chat pane: the welcome input sits at the flex-column bottom, i.e. under
+/* Payment step: the card form + free-exit button sit at the page bottom under
+the fixed dock. Same treatment as /new/: restore scrolling and pad by the
+dock clearance so every action is reachable. */
+body:has(#main-content .payment-step),
+body:has(main .payment-step),
+body:has(.payment-step[data-payment-step="true"]) {
+  height: auto;
+  max-height: none;
+  overflow: visible;
+}
+body:has(.payment-step[data-payment-step="true"]) #main-content,
+body:has(.payment-step[data-payment-step="true"]) main {
+  display: block;
+  overflow: visible;
+  padding-bottom: var(--site-dock-scroll-clearance);
+}
+
+/* Chat pane: the welcome input sits at the flex-column bottom, i.e. under */
 the fixed dock with nothing to scroll. Padding the pane by the dock
 clearance lifts the input above it. */
 body.workspace-page:has(#ws-chat-pane) #ws-chat-pane {
