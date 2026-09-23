@@ -14,7 +14,7 @@ import logging
 from dataclasses import dataclass
 from importlib import resources
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Optional
+from typing import Any, Dict, Iterator, List, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -118,11 +118,12 @@ class HubUserChatBackend:
             yield {"type": "error", "error": "AI provider request failed"}
 
 
-def resolve_chat_backend(user) -> Optional[HubUserChatBackend]:
-    """Return a BYOK backend only.
+def resolve_chat_backend(user) -> Optional[Union[HubUserChatBackend, "FundedChatBackend"]]:
+    """Return a BYOK backend, else the SciTeX-funded fallback.
 
-    Server-funded calls require the durable funded-chat executor and cannot use
-    this streaming adapter, so the legacy campaign-key fallback is forbidden.
+    Server-funded calls go through the durable funded-chat executor (quota +
+    spend ledger), adapted to the streaming interface by yielding the answer
+    in chunks. No BYOK and no funded config → None (agent stays unavailable).
     """
     from apps.infra.llm_app.services import UserLLMService
     from apps.infra.llm_app.utils import litellm_model_string
@@ -140,7 +141,78 @@ def resolve_chat_backend(user) -> Optional[HubUserChatBackend]:
             model or service.llm_connection.default_model,
             service.connection.get_api_key(),
         )
-    return None
+    try:
+        from apps.infra.llm_app.funded_chat.config import load_funded_chat_config
+
+        config = load_funded_chat_config()
+    except Exception:
+        return None
+    if not config.enabled:
+        return None
+    return FundedChatBackend(user)
+
+
+class FundedChatBackend:
+    """Streaming-shaped adapter over the durable funded-chat executor.
+
+    Same ``stream()`` interface as :class:`HubUserChatBackend` so the
+    app-agent chat works out of the box on the free allowance. The answer
+    arrives as one durable result and is yielded in chunks.
+    """
+
+    _CHUNK = 120
+
+    def __init__(self, user):
+        self._user = user
+
+    def stream(
+        self,
+        messages: List[Dict[str, Any]],
+        *,
+        model: Optional[str] = None,
+        max_tokens: int = 2048,
+        temperature: float = 0.7,
+        system: Optional[str] = None,
+    ) -> Iterator[Dict[str, Any]]:
+        import json as _json
+        import uuid as _uuid
+
+        from apps.infra.llm_app.funded_chat.config import load_funded_chat_config
+        from apps.infra.llm_app.funded_chat.provider import litellm_provider_call
+        from apps.infra.llm_app.funded_chat.service import FundedChatService
+        from apps.infra.llm_app.funded_chat.service import (
+            FundedChatDenied as _Denied,
+        )
+
+        safe = [
+            {"role": m.get("role", "user"), "content": str(m.get("content", ""))}
+            for m in messages
+            if isinstance(m, dict)
+        ]
+        if system:
+            safe = [{"role": "system", "content": system}] + safe
+        body = _json.dumps(
+            {"messages": safe}, separators=(",", ":"), ensure_ascii=False
+        ).encode("utf-8")
+        try:
+            result = FundedChatService(config=load_funded_chat_config()).execute(
+                self._user,
+                idempotency_key=_uuid.uuid4().hex,
+                request_body=body,
+                provider_call=litellm_provider_call,
+            )
+            text = result.text or ""
+        except _Denied as exc:
+            logger.info("[appmaker_agent] funded chat denied: %s", exc.category)
+            yield {"type": "error", "error": "AI provider request failed"}
+            return
+        except Exception:
+            logger.error("[appmaker_agent] funded chat failed")
+            yield {"type": "error", "error": "AI provider request failed"}
+            return
+        for i in range(0, len(text), self._CHUNK):
+            yield {"type": "chunk", "text": text[i : i + self._CHUNK]}
+        yield {"type": "done"}
 
 
 # EOF
