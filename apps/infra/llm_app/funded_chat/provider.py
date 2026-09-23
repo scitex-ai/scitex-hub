@@ -146,7 +146,15 @@ def litellm_provider_call(
         timeout=config.timeout_seconds,
     )
     try:
-        cost = _actual_money(litellm.completion_cost(completion_response=response))
+        # Pin the provider explicitly: litellm re-derives it from the model
+        # ID, which misfires on nested IDs (groq/openai/gpt-oss-20b is read
+        # as provider "openai" and misses the cost map).
+        cost = _actual_money(
+            litellm.completion_cost(
+                completion_response=response,
+                custom_llm_provider=config.provider,
+            )
+        )
         usage = getattr(response, "usage", None)
         prompt_used = int(getattr(usage, "prompt_tokens", 0) or 0)
         completion_used = int(getattr(usage, "completion_tokens", 0) or 0)
