@@ -19,7 +19,7 @@
     {% if allowance.state == 'available' %}
         <span class="chat-allowance-model"
               title="{% trans 'Messages on this allowance are funded by SciTeX' %}">
-            {% if allowance.model %}{{ allowance.model }}{% else %}{% trans "SciTeX-funded model" %}{% endif %}
+            {% if allowance.model_label %}{{ allowance.model_label }}{% elif allowance.model %}{{ allowance.model }}{% else %}{% trans "SciTeX-funded model" %}{% endif %}
         </span>
         <span class="chat-allowance-count">
             {% blocktrans with n=allowance.remaining total=allowance.total %}{{ n }} of {{ total }} free messages left today{% endblocktrans %}

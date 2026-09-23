@@ -142,27 +142,9 @@
                         <i class="fas fa-circle"></i> {% trans "At least one special character" %} (!@#$%^&amp;*)
                     </div>
                 </div>
-                {# Plan choice: Free needs no card at all; Trial asks for the card
-                   on Stripe's hosted page after email verification — the only
-                   card surface. There is deliberately no card field here. #}
-                <div class="form-group mb-3" id="signup-plan-group">
-                    <span class="form-label">{% trans "Plan" %} <span class="text-danger">*</span></span>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="plan" id="id_plan_free" value="free"{% if form.plan.value != "trial" %} checked{% endif %}>
-                        <label class="form-check-label" for="id_plan_free">
-                            {% trans "Free" %}
-                            <small class="text-muted fw-normal">{% trans "No credit card required — 1 CPU, 2 GB workspace" %}</small>
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="plan" id="id_plan_trial" value="trial"{% if form.plan.value == "trial" %} checked{% endif %}>
-                        <label class="form-check-label" for="id_plan_trial">
-                            {% trans "Trial" %}
-                            <small class="text-muted fw-normal">{% trans "30-day trial — card added on Stripe's secure page after verification" %}</small>
-                        </label>
-                    </div>
-                    {% if form.plan.errors %}<div class="text-danger small">{{ form.plan.errors.0 }}</div>{% endif %}
-                </div>
+                {# No plan choice and no card field on this page: every signup is
+                   the free tier. Premium is an upgrade the user chooses later,
+                   from inside the product — never a question at the door. #}
                 <div class="form-check mb-3">
                     {{ form.agree_terms }}
                     <label class="form-check-label" for="{{ form.agree_terms.id_for_label }}">

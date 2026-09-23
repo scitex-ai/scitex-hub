@@ -63,7 +63,13 @@ class AllowanceSnapshot:
             "category": self.category,
             "remaining": self.remaining,
             "reset_at": self.reset_at,
+            # Display helpers (additive; the keys above stay the contract):
+            # short model name and a human reset label for the allowance line.
+            "reset_label": (
+                "midnight UTC" if self.reset_at.endswith("T00:00:00Z") else self.reset_at
+            ),
             "model": self.model,
+            "model_label": self.model.split("/")[-1] if self.model else "",
             "total": self.total,
             "state": state,
         }

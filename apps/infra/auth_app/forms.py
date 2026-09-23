@@ -42,10 +42,8 @@ class SignupForm(forms.Form):
     )
     plan = forms.CharField(
         required=False,
-        widget=forms.RadioSelect(
-            choices=(("free", "Free"), ("trial", "Trial")),
-            attrs={"class": "form-check-input"},
-        ),
+        widget=forms.HiddenInput(),
+        initial="free",
     )
 
     def clean_plan(self):

@@ -298,7 +298,9 @@ def test_verified_user_gets_ten_atomic_reservations_and_idempotent_replay():
         "category": "quota_reached",
         "remaining": 0,
         "reset_at": "2026-09-18T00:00:00Z",
+        "reset_label": "midnight UTC",
         "model": "deepseek/deepseek-chat",
+        "model_label": "deepseek-chat",
         "total": 10,
         "state": "exhausted",
     }
