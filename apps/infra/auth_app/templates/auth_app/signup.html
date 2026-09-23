@@ -4,13 +4,13 @@
 {% load socialaccount %}
 
 {% block title %}{% trans "Create an Account" %} - SciTeX{% endblock %}
-{% block meta_description %}{% trans "Join SciTeX, the open-source platform for scientific research. Create your account and start a 30-day SciTeX Cloud trial for managing, analyzing, and publishing your research." %}{% endblock %}
+{% block meta_description %}{% trans "Join SciTeX, the open-source platform for scientific research. Create your free account — no card needed." %}{% endblock %}
 {% block auth_content %}
     <div class="container auth-container">
         <div class="auth-form">
             <h2 class="mb-4">{% trans "Sign Up" %}</h2>
             <p class="text-muted small mb-4">
-                {% trans "Step 1 of 2 — your account. Step 2 is payment." %}
+                {% trans "Free forever, no card needed. Pro is an upgrade you choose later, from inside the product." %}
             </p>
             {% if form.errors %}
                 <div class="alert-banner alert-banner-danger"
@@ -142,9 +142,9 @@
                         <i class="fas fa-circle"></i> {% trans "At least one special character" %} (!@#$%^&amp;*)
                     </div>
                 </div>
-                {# No plan choice and no card field on this page: every signup is
+                {% comment %}No plan choice and no card field on this page: every signup is
                    the free tier. Premium is an upgrade the user chooses later,
-                   from inside the product — never a question at the door. #}
+                   from inside the product — never a question at the door.{% endcomment %}
                 <div class="form-check mb-3">
                     {{ form.agree_terms }}
                     <label class="form-check-label" for="{{ form.agree_terms.id_for_label }}">
@@ -158,8 +158,8 @@
                 </div>
                 <button type="submit" class="btn btn-primary w-100 auth-primary-cta" id="signup-submit">{% trans "Create Account" %}</button>
             </form>
-            {# Same derivation as signin.html -- see the note there. A provider #}
-            {# gets a button exactly when allauth can actually serve its login. #}
+            {% comment %}Same derivation as signin.html -- see the note there. A provider
+               gets a button exactly when allauth can actually serve its login.{% endcomment %}
             {% get_providers as socialaccount_providers %}
             {% if socialaccount_providers %}
                 <!-- Social Login Divider (inside the guard: a divider above nothing is its own defect) -->
