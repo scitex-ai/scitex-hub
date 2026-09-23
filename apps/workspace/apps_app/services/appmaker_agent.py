@@ -204,7 +204,13 @@ class FundedChatBackend:
             text = result.text or ""
         except _Denied as exc:
             logger.info("[appmaker_agent] funded chat denied: %s", exc.category)
-            yield {"type": "error", "error": "AI provider request failed"}
+            if exc.category == "quota_reached":
+                yield {
+                    "type": "error",
+                    "error": "You have used today's free messages. Your draft is kept.",
+                }
+            else:
+                yield {"type": "error", "error": "AI provider request failed"}
             return
         except Exception:
             logger.error("[appmaker_agent] funded chat failed")
