@@ -108,8 +108,14 @@ def _validate_provider_model(provider: str, model: str) -> None:
             "funded model collides with a reserved namespace"
         )
     if "/" in model:
-        prefix, suffix = model.split("/", 1)
-        if prefix != provider or not suffix or "/" in suffix:
+        # Provider-namespaced IDs. Some providers nest a publisher prefix
+        # (e.g. groq/openai/gpt-oss-20b): the provider segment stays pinned,
+        # every path segment must be a bare identifier.
+        segments = model.split("/")
+        if (
+            segments[0] != provider
+            or any(not _IDENTIFIER.fullmatch(s) for s in segments[1:])
+        ):
             raise FundedChatConfigurationError(
                 "funded model is outside the provider allowlist"
             )
