@@ -47,11 +47,9 @@
     var(--site-dock-live-height, var(--site-dock-height)) +
       var(--site-dock-gap) + 8px + env(safe-area-inset-bottom, 0px)
   );
-  /* Idle: the page's own background, translucent — the pill blends with the
-     page instead of floating as white glass, and content shows through.
-     color-mix keeps it in sync with the theme token; the literal matches
-     the light --bg-page for LEAF pages without design tokens. */
-  --site-dock-bg-idle: color-mix(in srgb, var(--bg-page, #faf9f7) 30%, transparent);
+  /* Idle: flat and simple like .launcher-group — one translucent wash of the
+     page color, no gradients, no dots. Border + shadow carry the elevation. */
+  --site-dock-bg-idle: rgba(250, 249, 247, 0.72);
   --site-dock-bg-opaque: var(--bg-page, #faf9f7);
   --site-dock-border: rgba(0, 0, 0, 0.1);
   --site-dock-fg: #4a5160;
@@ -61,7 +59,7 @@
 }
 
 [data-theme="dark"] {
-  --site-dock-bg-idle: color-mix(in srgb, var(--bg-page, #0d1117) 38%, transparent);
+  --site-dock-bg-idle: rgba(13, 17, 23, 0.72);
   --site-dock-bg-opaque: var(--bg-page, #0d1117);
   --site-dock-border: rgba(255, 255, 255, 0.1);
   --site-dock-fg: #aab1c0;
@@ -70,27 +68,9 @@
   --site-dock-shadow: 0 10px 34px rgba(0, 0, 0, 0.55);
 }
 
-/* Dark starfield dots mirror the dark body::before set. */
-[data-theme="dark"] .site-dock {
-  background-image:
-    radial-gradient(circle at 20% 30%, var(--_scitex-05) 2px, transparent 2px),
-    radial-gradient(circle at 60% 70%, var(--_scitex-06) 3px, transparent 3px),
-    radial-gradient(
-      circle at 80% 20%,
-      var(--_scitex-04) 1.5px,
-      transparent 1.5px
-    ),
-    radial-gradient(
-      circle at 40% 80%,
-      var(--_scitex-05) 2.5px,
-      transparent 2.5px
-    ),
-    radial-gradient(circle at 10% 60%, var(--_scitex-06) 2px, transparent 2px);
-}
-
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --site-dock-bg-idle: color-mix(in srgb, var(--bg-page, #0d1117) 38%, transparent);
+    --site-dock-bg-idle: rgba(13, 17, 23, 0.72);
     --site-dock-bg-opaque: var(--bg-page, #0d1117);
     --site-dock-border: rgba(255, 255, 255, 0.1);
     --site-dock-fg: #aab1c0;
@@ -218,34 +198,6 @@ body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
   background: var(--site-dock-bg-idle);
   border: 1px solid var(--site-dock-border);
   box-shadow: var(--site-dock-shadow);
-  /* Same starfield dots as the page (body::before): identical gradients,
-     sizes and positions, so the pill reads as a piece of the page. */
-  background-image:
-    radial-gradient(circle at 20% 30%, var(--_scitex-04) 2px, transparent 2px),
-    radial-gradient(circle at 60% 70%, var(--_scitex-05) 3px, transparent 3px),
-    radial-gradient(
-      circle at 80% 20%,
-      var(--_scitex-03) 1.5px,
-      transparent 1.5px
-    ),
-    radial-gradient(
-      circle at 40% 80%,
-      var(--_scitex-04) 2.5px,
-      transparent 2.5px
-    ),
-    radial-gradient(circle at 10% 60%, var(--_scitex-05) 2px, transparent 2px);
-  background-size:
-    100px 100px,
-    150px 150px,
-    80px 80px,
-    120px 120px,
-    90px 90px;
-  background-position:
-    0 0,
-    40px 60px,
-    130px 270px,
-    70px 100px,
-    150px 30px;
   /* Light blur only: the page behind must stay faintly readable, not melt
      into milk. The opaque (hover/focus/drag) state covers this anyway. */
   backdrop-filter: blur(6px) saturate(1.2);
