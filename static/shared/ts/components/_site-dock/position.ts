@@ -6,9 +6,11 @@
  * phone is still in the top-right corner after a rotation or a window resize,
  * and can never be restored off-screen.
  *
- * "Docked" (no stored position) is the default bottom-centre dock. Dropping the
- * dock back near the bottom edge returns it to that state without changing page
- * geometry; both docked and floating modes are overlays.
+ * "Docked" (no stored position) is the default bottom-centre dock. Dropping
+ * the dock near the bottom edge parks it along the bottom at the dropped
+ * horizontal spot — never re-centred. Only an explicit reset (Escape on the
+ * grabber) clears the stored position and returns to bottom-centre.
+ * Both docked and floating modes are overlays; neither changes page geometry.
  */
 
 export interface DockPosition {
@@ -54,8 +56,14 @@ export function toPixels(
 }
 
 /**
- * The stored position for a dock dropped with its top-left at (left, top), or
- * null when it was dropped close enough to the bottom to dock again.
+ * The stored position for a dock dropped with its top-left at (left, top).
+ *
+ * A drop near the bottom edge parks the dock along the bottom AT THE DROPPED
+ * HORIZONTAL SPOT (y pinned to 1) instead of snapping back to bottom-centre:
+ * a launcher the user parked bottom-left must stay bottom-left. The centred
+ * default is only restored by an explicit reset (Escape on the grabber),
+ * which clears the stored position; null is kept as a return inhabitant for
+ * that path, not produced here.
  */
 export function fromPixels(
   left: number,
@@ -68,8 +76,7 @@ export function fromPixels(
   if (bottomGap <= SNAP_TO_BOTTOM_PX) return null;
   const freeX = Math.max(1, viewport.width - dock.width - 2 * margin);
   const freeY = Math.max(1, viewport.height - dock.height - 2 * margin);
-  return {
-    x: clamp01((left - margin) / freeX),
-    y: clamp01((top - margin) / freeY),
-  };
+  const x = clamp01((left - margin) / freeX);
+  if (bottomGap <= SNAP_TO_BOTTOM_PX) return { x, y: 1 };
+  return { x, y: clamp01((top - margin) / freeY) };
 }
