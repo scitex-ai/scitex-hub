@@ -194,18 +194,12 @@ export async function renderMathBlocks(container: HTMLElement): Promise<void> {
   }
 }
 
-/** Friendly display names for common fenced-code language tags */
-const LANGUAGE_LABELS: Record<string, string> = {
-  js: "JavaScript",
-  ts: "TypeScript",
-  py: "Python",
-  sh: "Bash",
-  yml: "YAML",
-  md: "Markdown",
-  tex: "LaTeX",
-};
-
-/** Highlight code blocks after inserting markdown HTML into DOM */
+/** Highlight code blocks after inserting markdown HTML into DOM.
+ *
+ * NOTE: copy-button + language-label chrome is owned by the global
+ * `shared/code-blocks` entry (code-blocks.ts, loaded on every page) — do
+ * NOT wrap blocks here or every message gets double headers.
+ */
 export function highlightCodeBlocks(container: HTMLElement): void {
   const hljs = (window as any).hljs;
   container.querySelectorAll<HTMLElement>("pre code").forEach((block) => {
@@ -226,70 +220,7 @@ export function highlightCodeBlocks(container: HTMLElement): void {
       return;
     }
     if (hljs) hljs.highlightElement(block);
-    enhanceCodeBlock(block);
   });
-}
-
-/**
- * ChatGPT-style code-block chrome: a header row with the language label
- * (from the fenced `language-*` class) and a Copy button. Idempotent —
- * streaming re-renders call highlightCodeBlocks per segment, so skip
- * blocks already wrapped.
- */
-function enhanceCodeBlock(block: HTMLElement): void {
-  const pre = block.parentElement;
-  if (!pre || pre.tagName !== "PRE") return;
-  if (pre.parentElement?.classList.contains("stx-codeblock")) return;
-  const langClass = Array.from(block.classList).find((c) =>
-    c.startsWith("language-"),
-  );
-  const raw = langClass ? langClass.slice("language-".length) : "";
-  const label = LANGUAGE_LABELS[raw] || raw || "code";
-
-  const wrap = document.createElement("div");
-  wrap.className = "stx-codeblock";
-  const header = document.createElement("div");
-  header.className = "stx-codeblock-header";
-  const lang = document.createElement("span");
-  lang.className = "stx-codeblock-lang";
-  lang.textContent = label;
-  const copy = document.createElement("button");
-  copy.type = "button";
-  copy.className = "stx-codeblock-copy";
-  copy.textContent = "Copy";
-  copy.addEventListener("click", () => {
-    const done = () => {
-      copy.textContent = "Copied";
-      setTimeout(() => (copy.textContent = "Copy"), 1500);
-    };
-    const text = block.textContent || "";
-    if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
-    } else {
-      fallbackCopy(text, done);
-    }
-  });
-  header.appendChild(lang);
-  header.appendChild(copy);
-  pre.replaceWith(wrap);
-  wrap.appendChild(header);
-  wrap.appendChild(pre);
-}
-
-function fallbackCopy(text: string, done: () => void): void {
-  try {
-    const ta = document.createElement("textarea");
-    ta.value = text;
-    ta.style.position = "fixed";
-    ta.style.opacity = "0";
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand("copy");
-    ta.remove();
-    done();
-  } catch {
-    /* clipboard unavailable — leave button as-is */
-  }
 }
 
 /** Render a mermaid code block as an SVG diagram inline */
