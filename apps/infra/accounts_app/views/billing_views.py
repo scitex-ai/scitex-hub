@@ -96,6 +96,16 @@ def payment_step(request):
         # the "any existing user can enter the signup payment flow" defect.
         return redirect("accounts_app:billing")
 
+    if request.method == "POST" and request.POST.get("action") == "continue-free":
+        # The free exit: no card, no trial, no provider round-trip. The user
+        # must be able to be free — this page may never be a dead end that
+        # only a card can open.
+        from apps.infra.auth_app.onboarding import mark_free
+
+        if mark_free(user) is None:
+            return redirect("accounts_app:billing")
+        return redirect(first_product_url())
+
     if not card_registration_is_open():
         # No card can be taken yet (provider not configured). Still render THIS
         # step rather than borrowing the generic billing page: the funnel stays one

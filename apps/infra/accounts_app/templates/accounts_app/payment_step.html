@@ -192,6 +192,19 @@
             <p class="payment-step-fineprint">
                 {% blocktrans %}You can cancel any time before the trial ends and you will not be charged.{% endblocktrans %}
             </p>
+            <form method="post"
+                  action="{{ request.path }}"
+                  class="payment-step-form payment-step-form--free"
+                  data-submit-guard="true">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="continue-free" />
+                <button type="submit"
+                        class="payment-step-secondary-action"
+                        data-busy-label="{% trans 'Starting your free workspace…' %}"
+                        data-payment-action="continue-free">
+                    {% trans "Continue with the Free plan — no card needed" %}
+                </button>
+            </form>
         {% endif %}
     </div>
 {% endblock %}

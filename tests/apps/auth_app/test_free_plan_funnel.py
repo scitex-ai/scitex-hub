@@ -43,3 +43,29 @@ def test_legacy_marker_without_plan_stays_trial():
     PendingSignup(user=user, email=user.email).save()  # default plan=trial
     row = mark_verified(user, source="email")
     assert row.step == OnboardingState.Step.PAYMENT
+
+
+@pytest.mark.django_db
+def test_payment_step_free_exit_unsticks_a_gated_account():
+    """Nobody may be stuck on the payment page: one POST leaves free."""
+    from apps.infra.auth_app.onboarding import mark_free
+
+    user = _signup("stuck-u", "trial")
+    row = mark_verified(user, source="email")
+    assert row.step == OnboardingState.Step.PAYMENT
+    assert payment_required(user) in (True, False)  # deployment-dependent
+    freed = mark_free(user)
+    assert freed.step == OnboardingState.Step.PRODUCT
+    assert freed.pricing_id == "subscription-free"
+    assert freed.activated_at is not None
+    assert payment_required(user) is False
+    # Idempotent: a second call keeps PRODUCT, never rewinds.
+    assert mark_free(user).step == OnboardingState.Step.PRODUCT
+
+
+@pytest.mark.django_db
+def test_free_exit_ignores_non_funnel_accounts():
+    from apps.infra.auth_app.onboarding import mark_free
+
+    user = User.objects.create_user("plain-u", "plain-u@example.com", "x")
+    assert mark_free(user) is None

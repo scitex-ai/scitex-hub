@@ -139,6 +139,34 @@
   color: var(--text-link, #2f81f7);
 }
 
+/* The free exit: a real button, not fine print — the page may never read as
+   card-or-nothing. Outlined, full-width like the primary CTA. */
+.payment-step-form--free {
+  margin-top: 0.75rem;
+}
+
+.payment-step-secondary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 1.2rem;
+  border: 1px solid var(--stx-navy-900, #1a2a40);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--stx-navy-900, #1a2a40);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.payment-step-secondary-action:hover,
+.payment-step-secondary-action:focus-visible {
+  background: var(--stx-navy-900, #1a2a40);
+  color: #ffffff;
+}
+
 @media (max-width: 480px) {
   .payment-step-terms {
     grid-template-columns: 1fr;

@@ -191,6 +191,31 @@ def mark_activated(user, *, pricing_id: str = "") -> Optional[OnboardingState]:
     return row
 
 
+def mark_free(user, *, source: str = "payment-step") -> Optional[OnboardingState]:
+    """The account chose the Free plan: PAYMENT -> PRODUCT with no card.
+
+    The escape hatch for anyone the funnel holds at the payment step — a
+    social signup, a legacy trial-plan marker, or anyone who simply does not
+    want a trial. Same durable shape as the free branch of
+    :func:`mark_verified` (verified + owes nothing -> PRODUCT), but callable
+    after the fact. Idempotent; a non-funnel account returns None and the
+    gate never sees them.
+    """
+    row = state_for(user)
+    if row is None:
+        return None
+    if row.step == PRODUCT:
+        return row
+    if row.step != PAYMENT:
+        return row
+    row.step = PRODUCT
+    row.pricing_id = "subscription-free"
+    row.activated_at = timezone.now()
+    row.save(update_fields=["step", "pricing_id", "activated_at", "updated_at"])
+    logger.info("Onboarding completed free for %s (source=%s)", user.pk, source)
+    return row
+
+
 def deployment_can_take_a_payment() -> bool:
     """Whether ANY account in this deployment can satisfy the funnel's rule.
 
