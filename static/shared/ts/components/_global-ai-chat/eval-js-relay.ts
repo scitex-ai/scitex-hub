@@ -36,6 +36,7 @@ function handleEvalJs(data: { code: string; request_id: string }): void {
         type: "eval_js_result",
         request_id: data.request_id,
         result: result,
+        agent: "relay-v2",
       }),
     );
   } else {
