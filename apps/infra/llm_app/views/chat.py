@@ -77,11 +77,16 @@ def _model_display_name(service_id: str, model_id: str) -> str:
 
     provider = LLM_PROVIDERS.get(service_id, {})
     provider_display = provider.get("display", service_id).split("(")[0].strip()
-    # Strip provider prefix (e.g. "gemini/" from "gemini/gemini-2.0-flash")
+    # Strip provider prefix (e.g. "gemini/" from "gemini/gemini-2.0-flash").
+    # Nested prefixes (e.g. "openai/" inside a groq-routed "openai/gpt-oss-20b")
+    # fall back to the last path segment, so the badge never shows a raw
+    # provider/model path.
     prefix = provider.get("model_prefix", "")
     base = model_id
     if prefix and base.startswith(prefix):
         base = base[len(prefix) :]
+    if "/" in base:
+        base = base.split("/")[-1]
     # Strip date suffix (e.g. "-20241022")
     base = re.sub(r"-\d{8}$", "", base)
     return f"{provider_display} · {base}"
