@@ -64,15 +64,18 @@ class EvalJSConsumer(AsyncWebsocketConsumer):
             request_id = data.get("request_id")
             result = data.get("result")
             if request_id:
+                import logging as _logging
+
+                _logging.getLogger("llm_app.evaljs").info(
+                    "result frame rid=%s keys=%s result=%.80r",
+                    request_id,
+                    sorted(data.keys()),
+                    result,
+                )
                 from django.core.cache import cache
 
                 cache_key = f"eval_js_result_{request_id}"
                 cache.set(cache_key, result, timeout=60)
-                import logging as _logging
-
-                _logging.getLogger("llm_app.evaljs").info(
-                    "cached result rid=%s type=%s", request_id, type(result).__name__
-                )
 
     async def eval_js(self, event):
         """Forward eval_js request to browser."""
