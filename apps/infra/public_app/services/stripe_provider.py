@@ -111,6 +111,11 @@ class StripeBillingProvider:
 
     @property
     def card_registration_open(self) -> bool:
+        # Alpha honesty: live card keys are refused while ALPHA_RELEASE is on,
+        # so the alpha can never take a real payment even if a live key is
+        # deployed by accident. Test keys keep working (test mode only).
+        if self._world() == "live" and getattr(settings, "ALPHA_RELEASE", False):
+            return False
         return bool(self.secret_key) and self._world() != "mismatch"
 
     @property

@@ -266,4 +266,15 @@ STRIPE_PRICE_IDS = {
     if name.startswith(STRIPE_PRICE_ENV_PREFIX) and value
 }
 
+# Alpha release honesty (operator 2026-09-24): while the product is served as
+# an alpha, the site says so on every page, live card keys are refused, and
+# no data retention is promised. Default ON; set SCITEX_HUB_ALPHA_RELEASE=0
+# (or false/no/off) once the product leaves alpha.
+ALPHA_RELEASE = (_getenv_alias("SCITEX_HUB_ALPHA_RELEASE", "1") or "1").strip().lower() not in (
+    "0",
+    "false",
+    "no",
+    "off",
+)
+
 # EOF
