@@ -47,10 +47,12 @@
     var(--site-dock-live-height, var(--site-dock-height)) +
       var(--site-dock-gap) + 8px + env(safe-area-inset-bottom, 0px)
   );
-  /* Idle: deliberately sheer so page content shows through beneath the
-     pill. Controls stay fully opaque — only the surface goes quiet. */
-  --site-dock-bg-idle: rgba(255, 255, 255, 0.38);
-  --site-dock-bg-opaque: #ffffff;
+  /* Idle: the page's own background, translucent — the pill blends with the
+     page instead of floating as white glass, and content shows through.
+     color-mix keeps it in sync with the theme token; the literal matches
+     the light --bg-page for LEAF pages without design tokens. */
+  --site-dock-bg-idle: color-mix(in srgb, var(--bg-page, #faf9f7) 55%, transparent);
+  --site-dock-bg-opaque: var(--bg-page, #faf9f7);
   --site-dock-border: rgba(0, 0, 0, 0.1);
   --site-dock-fg: #4a5160;
   --site-dock-fg-active: #1f2430;
@@ -59,8 +61,8 @@
 }
 
 [data-theme="dark"] {
-  --site-dock-bg-idle: rgba(28, 31, 40, 0.38);
-  --site-dock-bg-opaque: #1c1f28;
+  --site-dock-bg-idle: color-mix(in srgb, var(--bg-page, #0d1117) 55%, transparent);
+  --site-dock-bg-opaque: var(--bg-page, #0d1117);
   --site-dock-border: rgba(255, 255, 255, 0.1);
   --site-dock-fg: #aab1c0;
   --site-dock-fg-active: #ffffff;
@@ -70,8 +72,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --site-dock-bg-idle: rgba(28, 31, 40, 0.38);
-    --site-dock-bg-opaque: #1c1f28;
+    --site-dock-bg-idle: color-mix(in srgb, var(--bg-page, #0d1117) 55%, transparent);
+    --site-dock-bg-opaque: var(--bg-page, #0d1117);
     --site-dock-border: rgba(255, 255, 255, 0.1);
     --site-dock-fg: #aab1c0;
     --site-dock-fg-active: #ffffff;
