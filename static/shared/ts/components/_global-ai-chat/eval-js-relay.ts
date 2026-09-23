@@ -35,6 +35,10 @@ function handleEvalJs(data: { code: string; request_id: string }): void {
         result: result,
       }),
     );
+  } else {
+    console.warn(
+      "[eval-js] Skip result send: socket not open, rid=" + data.request_id,
+    );
   }
 }
 
