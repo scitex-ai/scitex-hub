@@ -176,3 +176,139 @@ def litellm_provider_call(
         completion_tokens=completion_used,
         provider_cost_usd=cost,
     )
+
+
+#: Rounds cap for the funded tool loop. The reservation covers the whole
+#: loop, so this stays small: free-tier cost control first.
+FUNDED_TOOL_LOOP_MAX_ROUNDS = 5
+
+
+def _funded_tool_executor(user):
+    """User-scoped tool executor for the funded loop.
+
+    Only tools that act as *this user* are exposed here. ``ui_action``
+    relays steps to the user's own browser via their relay group, so the
+    user watches the agent work. The unscoped in-process MCP umbrella is
+    deliberately NOT exposed on the free path.
+    """
+
+    from apps.infra.llm_app.relay_groups import relay_group_for
+    from apps.infra.llm_app.services.mcp_client import _UI_ACTION_TOOL  # noqa: F401
+
+    async def _execute(name: str, arguments: dict) -> str:
+        if name != "ui_action":
+            return f"Error: tool {name!r} is not available on the free path."
+        steps = arguments.get("steps", []) if isinstance(arguments, dict) else []
+        if not steps:
+            return "Error: ui_action needs a non-empty steps list."
+        from channels.layers import get_channel_layer
+
+        channel_layer = get_channel_layer()
+        await channel_layer.group_send(
+            relay_group_for(user),
+            {
+                "type": "ui_action",
+                "steps": steps,
+                "delay_ms": arguments.get("delay_ms", 900),
+            },
+        )
+        return f"Sent {len(steps)} UI steps to your browser; they run now."
+
+    return _execute
+
+
+def litellm_tool_loop_call(
+    config: FundedChatConfig,
+    request_body: bytes,
+    _dispatch_key: str = "",
+    *,
+    user,
+    max_rounds: int = 3,
+) -> ProviderResult:
+    """Bounded agentic loop for the funded path: at most ``max_rounds``
+    provider calls under ONE reservation.
+
+    Pre-dispatch, the single-call worst case times ``max_rounds`` must fit
+    ``max_request_cost_usd``; otherwise this raises before anything is
+    dispatched. Actual usage is accumulated per round and settled normally.
+    """
+    import asyncio
+
+    import litellm
+
+    from apps.infra.llm_app.services.mcp_client import (
+        _UI_ACTION_TOOL,
+        run_tool_loop,
+    )
+
+    rounds = max(1, min(int(max_rounds), FUNDED_TOOL_LOOP_MAX_ROUNDS))
+    messages = _validated_messages(config, request_body)
+    try:
+        prompt_tokens = int(
+            litellm.token_counter(model=config.litellm_model, messages=messages)
+        )
+        if prompt_tokens < 0:
+            raise ValueError
+        prompt_cost, completion_cost = litellm.cost_per_token(
+            model=config.litellm_model,
+            prompt_tokens=prompt_tokens,
+            completion_tokens=config.max_tokens,
+        )
+    except ProviderPreDispatchError:
+        raise
+    except Exception as exc:
+        raise ProviderPreDispatchError("unable to compute a bounded estimate") from exc
+
+    worst_case_cost = _pre_dispatch_money(
+        (Decimal(str(prompt_cost)) + Decimal(str(completion_cost))) * rounds,
+        name="provider worst-case estimate",
+    )
+    if worst_case_cost > config.max_request_cost_usd:
+        raise ProviderBudgetEstimateError
+
+    tools = [_UI_ACTION_TOOL]
+    loop_timeout = max(10, min(config.timeout_seconds * rounds, 100))
+
+    async def _run():
+        return await run_tool_loop(
+            litellm_model=config.litellm_model,
+            api_key=config.api_key,
+            messages=messages,
+            tools=tools,
+            max_tokens=config.max_tokens,
+            temperature=0.3,
+            max_rounds=rounds,
+            tool_executor=_funded_tool_executor(user),
+        )
+
+    try:
+        text, _tools_used, loop_usage = asyncio.run(
+            asyncio.wait_for(_run(), timeout=loop_timeout)
+        )
+    except ProviderPreDispatchError:
+        raise
+    except (asyncio.TimeoutError, TimeoutError) as exc:
+        # Dispatched already (or unknown): fail closed to reconciliation.
+        raise ProviderAccountingError("funded tool loop timed out") from exc
+    if not isinstance(text, str):
+        raise ProviderAccountingError("provider response accounting is invalid")
+    try:
+        cost = _actual_money(
+            Decimal(str(loop_usage.get("estimated_cost_usd", 0.0)))
+        )
+        prompt_used = int(loop_usage.get("prompt_tokens", 0))
+        completion_used = int(loop_usage.get("completion_tokens", 0))
+        if prompt_used < 0 or completion_used < 0:
+            raise ValueError
+    except ProviderAccountingError:
+        raise
+    except Exception as exc:
+        raise ProviderAccountingError(
+            "provider response accounting is invalid"
+        ) from exc
+    return ProviderResult(
+        text=text,
+        prompt_tokens=prompt_used,
+        completion_tokens=completion_used,
+        provider_cost_usd=cost,
+    )

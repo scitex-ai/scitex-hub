@@ -156,9 +156,10 @@ async def run_tool_loop(
     tools: list[dict[str, Any]],
     max_tokens: int = 8192,
     temperature: float = 0.3,
+    max_rounds: int = MAX_TOOL_ROUNDS,
+    tool_executor=None,
 ) -> tuple[str, list[str], dict[str, Any]]:
-    """
-    Run the LLM + tool-call loop until a text response is produced.
+    """Run the LLM + tool-call loop until a text response is produced.
 
     Returns:
         (final_text, tools_used, usage): The assistant reply, list of tool names
@@ -184,7 +185,9 @@ async def run_tool_loop(
         except Exception:
             pass
 
-    for _round in range(MAX_TOOL_ROUNDS):
+    _exec = tool_executor or execute_tool_call
+
+    for _round in range(max_rounds):
         response = await litellm.acompletion(
             model=litellm_model,
             messages=messages,
@@ -223,7 +226,7 @@ async def run_tool_loop(
             logger.info("MCP tool call: %s(%s)", tool_name, list(args.keys()))
 
             try:
-                result_text = await execute_tool_call(tool_name, args)
+                result_text = await _exec(tool_name, args)
             except Exception as exc:
                 logger.error("MCP tool %s failed: %s", tool_name, exc)
                 result_text = f"Error executing {tool_name}: {exc}"

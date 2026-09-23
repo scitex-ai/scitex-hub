@@ -37,11 +37,22 @@ def _execute_funded_chat(user, messages: list[dict], idempotency_key: str):
     request_body = json.dumps(
         {"messages": messages}, separators=(",", ":"), ensure_ascii=False
     ).encode("utf-8")
+    if config.tools_enabled:
+        from apps.infra.llm_app.funded_chat.provider import litellm_tool_loop_call
+
+        def _loop_call(cfg, body, key=""):
+            return litellm_tool_loop_call(
+                cfg, body, key, user=user, max_rounds=config.tool_max_rounds
+            )
+
+        provider_call = _loop_call
+    else:
+        provider_call = litellm_provider_call
     return FundedChatService(config=config).execute(
         user,
         idempotency_key=idempotency_key,
         request_body=request_body,
-        provider_call=litellm_provider_call,
+        provider_call=provider_call,
     )
 
 
