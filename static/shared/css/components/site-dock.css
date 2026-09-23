@@ -129,6 +129,12 @@ body.workspace-page:has(#stx-shell-ai-panel) .stx-shell-ai-input-area {
   margin-bottom: var(--site-dock-scroll-clearance);
 }
 
+/* App Creator: the create action sits at the page bottom under the fixed
+dock. Padding the narrow maker column keeps it reachable. */
+body.workspace-page:has(#main-content .appmaker-narrow) .appmaker-narrow {
+  padding-bottom: var(--site-dock-scroll-clearance);
+}
+
 body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
   :where(a[href], button, input, select, textarea, [tabindex]):focus-visible,
 body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
