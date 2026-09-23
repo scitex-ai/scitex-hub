@@ -483,6 +483,29 @@ def _first_login_context(request):
     return context
 
 
+def _chat_allowance_context(request) -> dict:
+    """Free-message allowance payload for the chat pane, or {} if unknown.
+
+    Mirrors api_funded_chat_allowance but never raises: with no backend
+    answer the template contract renders the honest "unknown" state.
+    """
+    try:
+        from apps.infra.llm_app.funded_chat.config import (
+            FundedChatConfigurationError,
+            load_funded_chat_config,
+        )
+        from apps.infra.llm_app.funded_chat.service import FundedChatService
+
+        try:
+            config = load_funded_chat_config()
+        except FundedChatConfigurationError:
+            return {}
+        snapshot = FundedChatService(config=config).snapshot(request.user)
+        return snapshot.as_payload()
+    except Exception:
+        return {}
+
+
 def launcher_context(request) -> dict:
     """Template context for the launcher home page."""
     ensure_builtin_modules()
@@ -527,6 +550,10 @@ def launcher_context(request) -> dict:
         "is_guest_launcher": False,
         "guest_role": "",
         "current_project": current_project,
+        # Free-message allowance for the chat pane (card
+        # hub-chat-free-daily-message-20260917). Served server-side so the
+        # line never sits on "Checking…" when the backend can answer.
+        "chat_allowance": _chat_allowance_context(request),
     }
 
 
