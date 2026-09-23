@@ -323,7 +323,7 @@
             .value,
         },
         body: JSON.stringify({
-          console: code,
+          code: code,
           type: executionType,
           timeout: timeout,
           max_memory: maxMemory,
@@ -353,7 +353,7 @@
       statusCheckInterval = setInterval(function () {
         if (!currentJobId) return;
 
-        fetch(`/code/jobs/${currentJobId}/status/`)
+        fetch(`/apps/console/jobs/${currentJobId}/status/`)
           .then((response) => response.json())
           .then((data) => {
             updateJobStatus(data);
