@@ -362,9 +362,17 @@ def litellm_tool_loop_call(
         raise ProviderAccountingError(
             "provider response accounting is invalid"
         ) from exc
+    tool_trace = tuple(
+        dict(t)
+        for t in (loop_usage.get("tool_trace") or [])
+        if isinstance(t, dict)
+    )[:8]
+    tools_used = tuple(str(t) for t in (_tools_used or []))[:8]
     return ProviderResult(
         text=text,
         prompt_tokens=prompt_used,
         completion_tokens=completion_used,
         provider_cost_usd=cost,
+        tools_used=tools_used,
+        tool_trace=tool_trace,
     )

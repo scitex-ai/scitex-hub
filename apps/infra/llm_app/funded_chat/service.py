@@ -89,6 +89,10 @@ class ProviderResult:
     prompt_tokens: int
     completion_tokens: int
     provider_cost_usd: Decimal
+    # In-memory only: what the agent did (never persisted, never replayed).
+    # Lets the chat surface execution (tool tags) instead of plain chatter.
+    tools_used: tuple = ()
+    tool_trace: tuple = ()
 
 
 class _InvalidProviderResult(Exception):
@@ -482,11 +486,19 @@ class FundedChatService:
             or not isinstance(result.text, str)
         ):
             raise _InvalidProviderResult
+        tools_used = tuple(
+            t for t in (result.tools_used or ()) if isinstance(t, str)
+        )[:8]
+        tool_trace = tuple(
+            dict(t) for t in (result.tool_trace or ()) if isinstance(t, dict)
+        )[:8]
         return ProviderResult(
             text=result.text,
             prompt_tokens=prompt_tokens,
             completion_tokens=completion_tokens,
             provider_cost_usd=cost,
+            tools_used=tools_used,
+            tool_trace=tool_trace,
         )
 
     def _persist_provider_result(
@@ -617,7 +629,19 @@ class FundedChatService:
         finalized = self._finalize_succeeded_request(request.pk)
         if finalized.status == FundedChatRequest.STATUS_ACCOUNTING_ANOMALY:
             raise self._denied_from_request(finalized)
-        return self._stored_result(finalized)
+        stored = self._stored_result(finalized)
+        # Surface the live execution trace (in-memory only; replays return
+        # text without tool tags).
+        if result.tools_used or result.tool_trace:
+            stored = ProviderResult(
+                text=stored.text,
+                prompt_tokens=stored.prompt_tokens,
+                completion_tokens=stored.completion_tokens,
+                provider_cost_usd=stored.provider_cost_usd,
+                tools_used=result.tools_used,
+                tool_trace=result.tool_trace,
+            )
+        return stored
 
     def reconcile_stale_requests(self, *, limit: int = 100) -> int:
         """Finalize durable responses and conservatively settle expired leases."""

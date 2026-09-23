@@ -148,6 +148,16 @@ def build_tool_result_message(tool_call, result_text: str) -> dict[str, Any]:
     }
 
 
+def _preview_value(value, limit: int = 200) -> str:
+    """Short human-readable preview of a tool arg/result for the chat UI."""
+    try:
+        text = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False)
+    except (TypeError, ValueError):
+        text = repr(value)
+    text = " ".join(str(text).split())
+    return text[:limit] + ("…" if len(text) > limit else "")
+
+
 async def run_tool_loop(
     *,
     litellm_model: str,
@@ -169,6 +179,7 @@ async def run_tool_loop(
     import litellm
 
     tools_used: list[str] = []
+    tool_trace: list[dict] = []
     accumulated_prompt_tokens = 0
     accumulated_completion_tokens = 0
     accumulated_cost = 0.0
@@ -208,6 +219,7 @@ async def run_tool_loop(
                 "total_tokens": accumulated_prompt_tokens
                 + accumulated_completion_tokens,
                 "estimated_cost_usd": accumulated_cost,
+                "tool_trace": tool_trace,
             }
             return assistant_msg.content or "", tools_used, usage
 
@@ -230,6 +242,13 @@ async def run_tool_loop(
             except Exception as exc:
                 logger.error("MCP tool %s failed: %s", tool_name, exc)
                 result_text = f"Error executing {tool_name}: {exc}"
+            tool_trace.append(
+                {
+                    "name": tool_name,
+                    "args_preview": _preview_value(args),
+                    "result_preview": _preview_value(result_text),
+                }
+            )
 
             messages.append(build_tool_result_message(tc, result_text))
 
@@ -247,6 +266,7 @@ async def run_tool_loop(
         "completion_tokens": accumulated_completion_tokens,
         "total_tokens": accumulated_prompt_tokens + accumulated_completion_tokens,
         "estimated_cost_usd": accumulated_cost,
+        "tool_trace": tool_trace,
     }
     return response.choices[0].message.content or "", tools_used, usage
 

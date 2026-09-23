@@ -399,6 +399,15 @@ async def api_chat_stream(request):
                 result = await sync_to_async(
                     _execute_funded_chat, thread_sensitive=True
                 )(request.user, messages, idempotency_key)
+                # Surface execution, not chatter: one tool tag per agent
+                # step. Name-only (no args): the steps already ran
+                # server-side, so the browser displays, not re-runs, them.
+                for step in result.tool_trace or ():
+                    if isinstance(step, dict) and step.get("name"):
+                        tag = _json.dumps(
+                            {"type": "tool_start", "name": step["name"], "args": {}}
+                        )
+                        yield "data: " + tag + "\n\n"
                 yield f"data: {_json.dumps({'type': 'chunk', 'text': result.text})}\n\n"
             else:
                 async for event in with_keepalive(
