@@ -123,6 +123,12 @@ body.workspace-page:has(#ws-chat-pane) #ws-chat-pane {
   padding-bottom: var(--site-dock-scroll-clearance);
 }
 
+/* Conversation view: the shell input area is pinned at the panel bottom,
+same dock overlap as the welcome input. */
+body.workspace-page:has(#stx-shell-ai-panel) .stx-shell-ai-input-area {
+  margin-bottom: var(--site-dock-scroll-clearance);
+}
+
 body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
   :where(a[href], button, input, select, textarea, [tabindex]):focus-visible,
 body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
