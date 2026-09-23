@@ -3,6 +3,7 @@
 # File: /home/ywatanabe/proj/scitex-hub/apps/scholar_app/views/search/library_operations.py
 from __future__ import annotations
 
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -16,15 +17,32 @@ from .citation_export_core import generate_bibtex, generate_citation_key
 logger = logging.getLogger(__name__)
 
 
+def get_user_scholar_library(username: str) -> Path:
+    """User-scope Scholar library dir (~/.scitex/scholar/library).
+
+    Root is SCITEX_USER_DATA_ROOT (/app/data/users default), which the
+    user container mounts as /home/user — hence the ~/.scitex view.
+    """
+    root = Path(os.environ.get("SCITEX_USER_DATA_ROOT", "/app/data/users"))
+    return root / username / ".scitex" / "scholar" / "library"
+
+
 @require_http_methods(["POST"])
 @login_required
 def save_paper(request):
-    """Save a search result paper to the user's project bibliography.
+    """Save a search result paper to the user's Scholar library (user scope).
 
-    Accepts paper metadata from search results:
+    Storage model (single source of truth + symlinks):
     1. Converts to BibTeX using existing generate_bibtex()
-    2. Writes .bib file to project's scitex/scholar/bib_files/
-    3. Regenerates merged bibliography with deduplication
+    2. Writes the canonical .bib file to the USER library:
+       /app/data/users/<username>/.scitex/scholar/library/
+       (the user sees this as ~/.scitex/scholar/library).
+       Same DOI saved twice reuses the existing file (no duplicates).
+    3. If project_id is given, links it into the project instead of copying:
+       <project>/scitex/scholar/bib_files/<filename> -> relative symlink
+       to the user-library file. Relative so it resolves under both the
+       /app/data/users/... (hub) and /home/user/... (user container) views.
+    4. Regenerates the project's merged bibliography (follows symlinks).
     """
     from apps.infra.project_app.models import Project
     from apps.infra.project_app.services.bibliography_manager import (
@@ -32,24 +50,21 @@ def save_paper(request):
         regenerate_bibliography,
     )
 
-    project_id = request.POST.get("project_id")
-    if not project_id:
-        return JsonResponse(
-            {"success": False, "error": "No project selected"}, status=400
-        )
+    project_id = request.POST.get("project_id") or None
+    project = None
+    if project_id:
+        try:
+            project = Project.objects.get(id=project_id, owner=request.user)
+        except Project.DoesNotExist:
+            return JsonResponse(
+                {"success": False, "error": "Project not found"}, status=404
+            )
 
-    try:
-        project = Project.objects.get(id=project_id, owner=request.user)
-    except Project.DoesNotExist:
-        return JsonResponse(
-            {"success": False, "error": "Project not found"}, status=404
-        )
-
-    if not project.git_clone_path:
-        return JsonResponse(
-            {"success": False, "error": "Project has no git repository"},
-            status=400,
-        )
+        if not project.git_clone_path:
+            return JsonResponse(
+                {"success": False, "error": "Project has no git repository"},
+                status=400,
+            )
 
     title = request.POST.get("title", "").strip()
     authors = request.POST.get("authors", "").strip()
@@ -91,29 +106,67 @@ def save_paper(request):
                 bibtex_entry.rstrip("}") + f"  abstract = {{{abstract}}},\n}}"
             )
 
-        project_path = Path(project.git_clone_path)
-        ensure_bibliography_structure(project_path)
+        # 1. Canonical copy: user-scope Scholar library (~/.scitex/scholar/library)
+        user_lib = get_user_scholar_library(request.user.username)
+        user_lib.mkdir(parents=True, exist_ok=True)
 
-        bib_dir = project_path / "scitex" / "scholar" / "bib_files"
-        bib_dir.mkdir(parents=True, exist_ok=True)
+        slug = "".join(
+            c.lower() if (c.isalnum() or c in "-_") else "-"
+            for c in citation_key
+        ).strip("-") or "paper"
+        if doi:
+            dedupe_tag = "doi-" + "".join(
+                c.lower() if c.isalnum() else "-"
+                for c in doi.replace("https://doi.org/", "").replace("http://doi.org/", "")
+            ).strip("-")
+        else:
+            dedupe_tag = slug
+        canonical = None
+        for existing in user_lib.glob(f"*-{dedupe_tag}.bib"):
+            canonical = existing
+            break
+        if canonical is None:
+            timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+            canonical = user_lib / f"{timestamp}-{dedupe_tag}.bib"
+            canonical.write_text(bibtex_entry, encoding="utf-8")
+            logger.info(f"Saved paper to user library: {canonical}")
+        else:
+            logger.info(f"Paper already in user library: {canonical}")
 
-        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        filename = f"search_{source}_{citation_key}_{timestamp}.bib"
-        bib_file = bib_dir / filename
-        bib_file.write_text(bibtex_entry, encoding="utf-8")
+        file_rel = None
+        total = None
+        if project is not None:
+            project_path = Path(project.git_clone_path)
+            ensure_bibliography_structure(project_path)
 
-        logger.info(f"Saved paper to: {bib_file}")
+            bib_dir = project_path / "scitex" / "scholar" / "bib_files"
+            bib_dir.mkdir(parents=True, exist_ok=True)
 
-        results = regenerate_bibliography(project_path, project.name)
+            # 2. Project scope: symlink (never a copy) to the canonical file.
+            # Relative so it resolves under both /app/data/users/... (hub)
+            # and /home/user/... (user container) views.
+            timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+            link_name = f"search_{source}_{slug}_{timestamp}.bib"
+            link_path = bib_dir / link_name
+            target_rel = Path(os.path.relpath(canonical, start=bib_dir))
+            if link_path.is_symlink() or link_path.exists():
+                link_path.unlink()
+            link_path.symlink_to(target_rel)
+            logger.info(f"Linked paper into project: {link_path} -> {target_rel}")
+
+            results = regenerate_bibliography(project_path, project.name)
+            file_rel = f"scitex/scholar/bib_files/{link_name}"
+            total = results.get("scholar_count", 0)
 
         return JsonResponse(
             {
                 "success": True,
-                "message": f"Saved to {project.name}",
-                "project": project.name,
+                "message": f"Saved to {'project ' + project.name if project else 'your library'}",
+                "project": project.name if project else None,
                 "citation_key": citation_key,
-                "file_path": f"scitex/scholar/bib_files/{filename}",
-                "total_citations": results.get("scholar_count", 0),
+                "library_path": f"~/.scitex/scholar/library/{canonical.name}",
+                "file_path": file_rel,
+                "total_citations": total,
             }
         )
 
