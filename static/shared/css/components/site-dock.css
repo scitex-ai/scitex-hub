@@ -130,7 +130,18 @@ body.workspace-page:has(#stx-shell-ai-panel) .stx-shell-ai-input-area {
 }
 
 /* App Creator: the create action sits at the page bottom under the fixed
-dock. Padding the narrow maker column keeps it reachable. */
+dock. The workspace shell locks the viewport (100dvh + overflow hidden)
+for pane layouts, so un-lock scrolling exactly like the /new/ form and pad
+the narrow maker column by the dock clearance. */
+body.workspace-page:has(#main-content .appmaker-narrow) {
+  height: auto;
+  max-height: none;
+  overflow: visible;
+}
+body.workspace-page:has(#main-content .appmaker-narrow) #main-content {
+  display: block;
+  overflow: visible;
+}
 body.workspace-page:has(#main-content .appmaker-narrow) .appmaker-narrow {
   padding-bottom: var(--site-dock-scroll-clearance);
 }
