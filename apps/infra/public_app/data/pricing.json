@@ -266,7 +266,8 @@
         "name": "Cool",
         "meaning": "Default user storage",
         "amount": 0.03,
-        "note": "32 GB included with paid Cloud plans"
+        "note": "32 GB included with paid Cloud plans",
+        "reference_speed": "reference measurement over network storage: ~1100 MB/s read, ~677 MB/s write; varies by workload and network"
       },
       {
         "name": "Cold",

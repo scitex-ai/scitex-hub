@@ -550,12 +550,17 @@ def table_notes() -> list[str]:
                 "fix pricing.json."
             )
         note = tier.get("note", "")
+        ref = tier.get("reference_speed", "")
         notes.append(
-            _("%(tier)s storage: %(meaning)s.%(note)s")
+            _("%(tier)s storage: %(meaning)s.%(note)s%(ref)s")
             % {
                 "tier": tier["name"],
                 "meaning": tier["meaning"],
                 "note": f" {note}" if note else "",
+                # Measured speeds are references only: real throughput varies
+                # by workload, network and case. Tiers without a measurement
+                # render no speed claim at all rather than an invented one.
+                "ref": f" ({ref})" if ref else "",
             }
         )
     return notes
