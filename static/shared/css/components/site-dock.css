@@ -226,6 +226,17 @@ body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
   cursor: grabbing;
 }
 
+/* PowerPoint-style: the whole pill body is grabbable, so the whole body
+   shows the grab cursor. Interactive children keep their own cursors. */
+.site-dock {
+  cursor: grab;
+  touch-action: none;
+}
+.site-dock--dragging,
+.site-dock--dragging * {
+  cursor: grabbing !important;
+}
+
 .site-dock:has(:focus-visible),
 .site-dock:active,
 .site-dock--dragging {

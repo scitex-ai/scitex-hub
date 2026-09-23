@@ -239,7 +239,11 @@ class SiteDock {
 
     grabber.addEventListener("dblclick", (e) => e.preventDefault());
 
-    grabber.addEventListener("pointerdown", (down: PointerEvent) => {
+    // PowerPoint-style: the whole pill body is the drag handle, not just the
+    // 44px grip. A press starting on an interactive child (app icon, chat
+    // toggle, input) keeps its own behaviour; anything else starts a move.
+    // Tap-to-minimize stays grip-only: releasing unmoved off-grip does nothing.
+    const beginMove = (down: PointerEvent, tapToMinimize: boolean) => {
       if (down.pointerType === "mouse" && down.button !== 0) return;
       down.preventDefault();
 
@@ -293,12 +297,29 @@ class SiteDock {
         }
         // A cancelled press (e.g. the browser took the gesture) is not a tap.
         if (e.type === "pointercancel") return;
+        if (!tapToMinimize) return;
         this.toggleMinimized(gripTap(isMinimized(this.dock)) === "minimize");
       };
 
       grabber.addEventListener("pointermove", onMove);
       grabber.addEventListener("pointerup", onUp);
       grabber.addEventListener("pointercancel", onUp);
+    };
+
+    grabber.addEventListener("pointerdown", (down: PointerEvent) => {
+      beginMove(down, true);
+    });
+
+    // The pill body joins the grip as a drag surface. Presses that begin on
+    // an interactive child are left alone so icons, links and inputs work.
+    this.dock.addEventListener("pointerdown", (down: PointerEvent) => {
+      if (
+        (down.target as HTMLElement | null)?.closest(
+          "a,button,input,select,textarea,[contenteditable],[data-no-drag]",
+        )
+      )
+        return;
+      beginMove(down, false);
     });
 
     // Keyboard: arrows move the dock, Escape docks it again.
