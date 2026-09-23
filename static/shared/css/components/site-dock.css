@@ -47,9 +47,9 @@
     var(--site-dock-live-height, var(--site-dock-height)) +
       var(--site-dock-gap) + 8px + env(safe-area-inset-bottom, 0px)
   );
-  /* The accepted 0.82 glass, made exactly 10 percentage points more
-     transparent. Keep opacity on the surface only — never fade controls. */
-  --site-dock-bg-idle: rgba(255, 255, 255, 0.72);
+  /* Idle: deliberately sheer so page content shows through beneath the
+     pill. Controls stay fully opaque — only the surface goes quiet. */
+  --site-dock-bg-idle: rgba(255, 255, 255, 0.38);
   --site-dock-bg-opaque: #ffffff;
   --site-dock-border: rgba(0, 0, 0, 0.1);
   --site-dock-fg: #4a5160;
@@ -59,7 +59,7 @@
 }
 
 [data-theme="dark"] {
-  --site-dock-bg-idle: rgba(28, 31, 40, 0.72);
+  --site-dock-bg-idle: rgba(28, 31, 40, 0.38);
   --site-dock-bg-opaque: #1c1f28;
   --site-dock-border: rgba(255, 255, 255, 0.1);
   --site-dock-fg: #aab1c0;
@@ -70,7 +70,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --site-dock-bg-idle: rgba(28, 31, 40, 0.72);
+    --site-dock-bg-idle: rgba(28, 31, 40, 0.38);
     --site-dock-bg-opaque: #1c1f28;
     --site-dock-border: rgba(255, 255, 255, 0.1);
     --site-dock-fg: #aab1c0;
