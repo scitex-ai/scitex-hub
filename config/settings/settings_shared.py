@@ -511,6 +511,12 @@ SCITEX_FUNDED_CHAT_MAX_MESSAGES = int(
 SCITEX_FUNDED_CHAT_MAX_MESSAGE_CHARS = int(
     _getenv_alias("SCITEX_FUNDED_CHAT_MAX_MESSAGE_CHARS", "32768") or "32768"
 )
+SCITEX_FUNDED_CHAT_TOOLS_ENABLED = (
+    _getenv_alias("SCITEX_FUNDED_CHAT_TOOLS_ENABLED", "false") or "false"
+).lower() in ("1", "true", "yes", "on")
+SCITEX_FUNDED_CHAT_TOOL_MAX_ROUNDS = int(
+    _getenv_alias("SCITEX_FUNDED_CHAT_TOOL_MAX_ROUNDS", "3") or "3"
+)
 
 # ---------------------------------------
 # Sub-module imports (celery, logging, auth, integrations)
