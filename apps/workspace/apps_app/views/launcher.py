@@ -515,6 +515,12 @@ def launcher_context(request) -> dict:
         if request.user.is_authenticated
         else None
     )
+    first_login_ctx = _first_login_context(request)
+    if first_login_ctx is not None:
+        # The user has not chosen a project yet: claiming an "active" one
+        # (the auto-created dotfiles project) above the chooser contradicts
+        # the choice being asked. Nothing is active until they choose.
+        current_project = None
     apply_active_project(tiles, current_project)
     dock_apps = set(get_dock_apps(request.user)) - {APP_CREATOR_SLOT}
     grid_tiles = [tile for tile in tiles if tile["name"] not in dock_apps]
@@ -536,7 +542,7 @@ def launcher_context(request) -> dict:
         # A signed-in user who has never chosen a project gets the welcome that
         # asks, instead of being dropped into a project chosen for them
         # (card hub-first-login-project-workspace-onboarding-20260917).
-        "first_login": _first_login_context(request),
+        "first_login": first_login_ctx,
         # Every app the user can open, wherever it sits (grid or dock).
         "tiles": tiles,
         # The grid: 4-column group bands holding only the apps NOT in the dock.
