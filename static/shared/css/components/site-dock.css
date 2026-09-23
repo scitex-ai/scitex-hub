@@ -129,6 +129,13 @@ body.workspace-page:has(#stx-shell-ai-panel) .stx-shell-ai-input-area {
   margin-bottom: var(--site-dock-scroll-clearance);
 }
 
+/* App-maker agent chat: the composer sits at the panel bottom under the
+fixed dock. */
+body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
+  .appmaker-chat-form {
+  margin-bottom: var(--site-dock-scroll-clearance);
+}
+
 /* App Creator: the create action sits at the page bottom under the fixed
 dock. The workspace shell locks the viewport (100dvh + overflow hidden)
 for pane layouts, so un-lock scrolling exactly like the /new/ form and pad
