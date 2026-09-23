@@ -183,8 +183,8 @@ def litellm_provider_call(
 FUNDED_TOOL_LOOP_MAX_ROUNDS = 5
 
 
-def _funded_tool_executor(user):
-    """User-scoped tool executor for the funded loop.
+def _funded_tools(user):
+    """User-scoped tools for the funded loop: (executor, tool_schemas).
 
     Only tools that act as *this user* are exposed here. ``ui_action``
     relays steps to the user's own browser via their relay group, so the
@@ -195,7 +195,66 @@ def _funded_tool_executor(user):
     from apps.infra.llm_app.relay_groups import relay_group_for
     from apps.infra.llm_app.services.mcp_client import _UI_ACTION_TOOL  # noqa: F401
 
+    _BROWSER_EVAL_TOOL = {
+        "type": "function",
+        "function": {
+            "name": "browser_eval",
+            "description": (
+                "Run JavaScript in the user's open browser tab and return "
+                "the completion value as JSON. Use this to READ back UI "
+                "state and verify your ui_action steps actually landed "
+                "(e.g. return document.querySelector('#x').value). "
+                "Pure expression or statements; the last value is returned."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "description": "JavaScript to evaluate and return.",
+                    },
+                    "timeout": {
+                        "type": "integer",
+                        "description": "Seconds to wait for the tab (default 10, max 20).",
+                    },
+                },
+                "required": ["code"],
+            },
+        },
+    }
+
+    async def _browser_eval(code: str, timeout: int) -> str:
+        import asyncio as _asyncio
+        import json as _json
+        import uuid as _uuid
+
+        from asgiref.sync import sync_to_async
+        from channels.layers import get_channel_layer
+        from django.core.cache import cache
+
+        timeout = max(1, min(int(timeout or 10), 20))
+        request_id = str(_uuid.uuid4())[:8]
+        result_key = f"eval_js_result_{request_id}"
+        channel_layer = get_channel_layer()
+        await channel_layer.group_send(
+            relay_group_for(user),
+            {"type": "eval_js", "code": code, "request_id": request_id},
+        )
+        for _ in range(timeout * 10):
+            result = await sync_to_async(cache.get)(result_key)
+            if result is not None:
+                await sync_to_async(cache.delete)(result_key)
+                return _json.dumps({"result": result}, ensure_ascii=False)[:4000]
+            await _asyncio.sleep(0.1)
+        return _json.dumps({"error": "browser did not answer in time"})
+
     async def _execute(name: str, arguments: dict) -> str:
+        if name == "browser_eval":
+            if not isinstance(arguments, dict) or not arguments.get("code"):
+                return "Error: browser_eval needs a code string."
+            return await _browser_eval(
+                str(arguments["code"]), arguments.get("timeout", 10)
+            )
         if name != "ui_action":
             return f"Error: tool {name!r} is not available on the free path."
         steps = arguments.get("steps", []) if isinstance(arguments, dict) else []
@@ -214,7 +273,7 @@ def _funded_tool_executor(user):
         )
         return f"Sent {len(steps)} UI steps to your browser; they run now."
 
-    return _execute
+    return _execute, [_UI_ACTION_TOOL, _BROWSER_EVAL_TOOL]
 
 
 def litellm_tool_loop_call(
@@ -236,10 +295,7 @@ def litellm_tool_loop_call(
 
     import litellm
 
-    from apps.infra.llm_app.services.mcp_client import (
-        _UI_ACTION_TOOL,
-        run_tool_loop,
-    )
+    from apps.infra.llm_app.services.mcp_client import run_tool_loop
 
     rounds = max(1, min(int(max_rounds), FUNDED_TOOL_LOOP_MAX_ROUNDS))
     messages = _validated_messages(config, request_body)
@@ -266,7 +322,7 @@ def litellm_tool_loop_call(
     if worst_case_cost > config.max_request_cost_usd:
         raise ProviderBudgetEstimateError
 
-    tools = [_UI_ACTION_TOOL]
+    _exec, tools = _funded_tools(user)
     loop_timeout = max(10, min(config.timeout_seconds * rounds, 100))
 
     async def _run():
@@ -278,7 +334,7 @@ def litellm_tool_loop_call(
             max_tokens=config.max_tokens,
             temperature=0.3,
             max_rounds=rounds,
-            tool_executor=_funded_tool_executor(user),
+            tool_executor=_exec,
         )
 
     try:
