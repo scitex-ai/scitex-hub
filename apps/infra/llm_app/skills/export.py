@@ -169,7 +169,13 @@ def export_chat_prompt() -> str:
         "as a label with a copy button. "
         "Math is rendered with KaTeX: inline math as \\( ... \\), display "
         "math as \\[ ... \\] on their own lines. "
-        "Never use single-dollar $ ... $ for math (it renders literally).",
+        "Never use single-dollar $ ... $ for math (it renders literally). "
+        "Small models often drop the backslashes — if you catch yourself "
+        "writing ( ... ) or [ ... ] around math, add the backslashes: "
+        "write \\(F = ma\\) not (F = ma). "
+        "Single brackets/parentheses WITHOUT backslashes render as plain "
+        "text, so always include a LaTeX command (\\frac, \\sqrt, ...) "
+        "inside any math span.",
         "",
         "## Execution Environment (Apptainer Container)",
         "Code execution (`project_exec_python`, `project_exec_shell`) runs "
