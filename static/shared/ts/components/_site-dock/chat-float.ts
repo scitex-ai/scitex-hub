@@ -76,15 +76,24 @@ export function maximizedRect(
   };
 }
 
-/** The panel sits just above the dock (below it when the dock is near the top). */
+/** The panel sits just above the dock (below it when the dock is near the top).
+ *
+ * Same width as the launcher, left edges aligned — one cohesive column, not
+ * a skinny window floating over a wide shelf. */
 export function panelRect(
   dock: Rect,
   vp: { width: number; height: number },
 ): Rect {
   const phone = vp.width <= PHONE_MAX;
-  // A minimized dock is a small pill; the panel keeps a usable phone width.
-  const phoneW = dock.width < 240 ? vp.width - 2 * MARGIN : dock.width;
-  const width = phone ? phoneW : Math.min(DESKTOP_W, vp.width - 2 * MARGIN);
+  // A minimized dock is a small pill; the panel keeps a usable width.
+  const MIN_W = 300;
+  const maxW = vp.width - 2 * MARGIN;
+  const minimized = dock.width < 240;
+  const width = minimized
+    ? Math.min(phone ? maxW : DESKTOP_W, maxW)
+    : phone
+      ? Math.min(dock.width, maxW)
+      : Math.min(Math.max(dock.width, MIN_W), maxW);
   const wanted = phone
     ? Math.min(vp.height * PHONE_H_RATIO, PHONE_H_MAX)
     : DESKTOP_H;
@@ -95,9 +104,13 @@ export function panelRect(
   const top = placeAbove
     ? dock.top - GAP - height
     : dock.top + dock.height + GAP;
-  const centred = dock.left + dock.width / 2 - width / 2;
+  // Left edges aligned with the launcher; a minimized dock keeps the panel
+  // centred on the pill instead.
+  const aligned = minimized
+    ? dock.left + dock.width / 2 - width / 2
+    : dock.left;
   const left = Math.min(
-    Math.max(MARGIN, centred),
+    Math.max(MARGIN, aligned),
     Math.max(MARGIN, vp.width - width - MARGIN),
   );
   return { left, top, width, height };
