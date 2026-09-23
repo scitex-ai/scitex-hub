@@ -73,10 +73,11 @@ export function fromPixels(
   margin = 8,
 ): DockPosition | null {
   const bottomGap = viewport.height - (top + dock.height);
-  if (bottomGap <= SNAP_TO_BOTTOM_PX) return null;
   const freeX = Math.max(1, viewport.width - dock.width - 2 * margin);
   const freeY = Math.max(1, viewport.height - dock.height - 2 * margin);
   const x = clamp01((left - margin) / freeX);
+  // Near-bottom drops park (x kept, y pinned) — never return null here; only
+  // an explicit reset clears the stored position.
   if (bottomGap <= SNAP_TO_BOTTOM_PX) return { x, y: 1 };
   return { x, y: clamp01((top - margin) / freeY) };
 }
