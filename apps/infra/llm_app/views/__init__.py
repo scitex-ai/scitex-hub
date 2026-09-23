@@ -60,6 +60,7 @@ __all__ = [
     "api_agent_context",
     "api_get_context",
     "api_eval_js",
+    "api_eval_result",
     "api_ui_action",
     "usage_dashboard",
     "api_upload_files",
