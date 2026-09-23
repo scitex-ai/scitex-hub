@@ -145,6 +145,13 @@
   margin-top: 0.75rem;
 }
 
+/* Bottom clearance lives on the card itself (plain class, page stylesheet):
+   the dock-clearance rules in site-dock.css lose specificity wars against
+   shell layout on some pages, leaving the last action under the fixed dock. */
+.payment-step {
+  padding-bottom: var(--site-dock-scroll-clearance, 170px);
+}
+
 .payment-step-secondary-action {
   display: inline-flex;
   align-items: center;
