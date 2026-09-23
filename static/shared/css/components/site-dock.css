@@ -49,7 +49,7 @@
   );
   /* Idle: flat and simple like .launcher-group — one translucent wash of the
      page color, no gradients, no dots. Border + shadow carry the elevation. */
-  --site-dock-bg-idle: rgba(250, 249, 247, 0.55);
+  --site-dock-bg-idle: rgba(250, 249, 247, 0.45);
   --site-dock-bg-opaque: var(--bg-page, #faf9f7);
   --site-dock-border: rgba(0, 0, 0, 0.1);
   --site-dock-fg: #4a5160;
@@ -59,7 +59,7 @@
 }
 
 [data-theme="dark"] {
-  --site-dock-bg-idle: rgba(13, 17, 23, 0.55);
+  --site-dock-bg-idle: rgba(13, 17, 23, 0.45);
   --site-dock-bg-opaque: var(--bg-page, #0d1117);
   --site-dock-border: rgba(255, 255, 255, 0.1);
   --site-dock-fg: #aab1c0;
@@ -70,7 +70,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --site-dock-bg-idle: rgba(13, 17, 23, 0.55);
+    --site-dock-bg-idle: rgba(13, 17, 23, 0.45);
     --site-dock-bg-opaque: var(--bg-page, #0d1117);
     --site-dock-border: rgba(255, 255, 255, 0.1);
     --site-dock-fg: #aab1c0;
