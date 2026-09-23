@@ -24,7 +24,11 @@ function handleEvalJs(data: { code: string; request_id: string }): void {
   );
   let result: unknown;
   try {
-    result = new Function(data.code)();
+    // NOTE: new Function(code)() always yields undefined for expression
+    // bodies (function bodies discard completion values). Indirect eval
+    // runs in global scope like new Function but RETURNS the completion
+    // value, so `40+2` gives 42 and `title='x'; 40+2` gives 42.
+    result = (0, eval)(data.code);
   } catch (err) {
     result = { error: String(err) };
   }

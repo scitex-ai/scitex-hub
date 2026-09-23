@@ -91,11 +91,6 @@ async def api_eval_js(request):
 
     timeout = min(data.get("timeout", 10), 30)  # Cap at 30s
     request_id = str(uuid.uuid4())[:8]
-    import logging as _logging
-
-    _logging.getLogger("llm_app.evaljs").info(
-        "dispatch rid=%s user=%s code=%.60r", request_id, request.user, code
-    )
     # MUST match EvalJSConsumer.connect exactly — a group_send to a group
     # nobody joined is NOT an error, so any drift here fails silently.
     group_name = relay_group_for(request.user)
