@@ -116,6 +116,13 @@ body.workspace-page:has(#main-content .create-page) #main-content {
   padding-bottom: var(--site-dock-scroll-clearance);
 }
 
+/* Chat pane: the welcome input sits at the flex-column bottom, i.e. under
+the fixed dock with nothing to scroll. Padding the pane by the dock
+clearance lifts the input above it. */
+body.workspace-page:has(#main-content #ws-chat-pane) #ws-chat-pane {
+  padding-bottom: var(--site-dock-scroll-clearance);
+}
+
 body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
   :where(a[href], button, input, select, textarea, [tabindex]):focus-visible,
 body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
