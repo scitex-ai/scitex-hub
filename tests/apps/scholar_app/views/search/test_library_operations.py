@@ -93,3 +93,26 @@ class TestSavePaperUserScope:
         self._post(client)
         lib = get_user_scholar_library("lin")
         assert len(list(lib.glob("*.bib"))) == 1
+
+    def test_resave_to_project_reuses_link(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("SCITEX_USER_DATA_ROOT", str(tmp_path))
+        user = get_user_model().objects.create_user(username="ray", password="x")
+        proj_root = tmp_path / "proj"
+        proj_root.mkdir()
+        project = Project.objects.create(
+            name="demo",
+            slug="demo",
+            description="d",
+            owner=user,
+            git_clone_path=str(proj_root),
+        )
+        client = Client()
+        client.force_login(user)
+        self._post(client, project_id=str(project.id))
+        resp = self._post(client, project_id=str(project.id))
+        assert resp.status_code == 200, resp.content[:300]
+        bib_dir = proj_root / "scitex" / "scholar" / "bib_files"
+        links = [
+            f for f in bib_dir.glob("*.bib") if not f.name.startswith("merged_")
+        ]
+        assert len(links) == 1, "re-save must not create a second link"

@@ -145,17 +145,33 @@ def save_paper(request):
             # 2. Project scope: symlink (never a copy) to the canonical file.
             # Relative so it resolves under both /app/data/users/... (hub)
             # and /home/user/... (user container) views.
-            timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-            link_name = f"search_{source}_{slug}_{timestamp}.bib"
-            link_path = bib_dir / link_name
-            target_rel = Path(os.path.relpath(canonical, start=bib_dir))
-            if link_path.is_symlink() or link_path.exists():
-                link_path.unlink()
-            link_path.symlink_to(target_rel)
-            logger.info(f"Linked paper into project: {link_path} -> {target_rel}")
+            # Re-saving the same paper reuses the existing link (merge
+            # validation rejects duplicate citation keys across files).
+            link_path = None
+            for existing in bib_dir.glob("*.bib"):
+                try:
+                    if (
+                        existing.is_symlink()
+                        and (bib_dir / existing.readlink()).resolve() == canonical.resolve()
+                    ):
+                        link_path = existing
+                        break
+                except OSError:
+                    continue
+            if link_path is None:
+                timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+                link_name = f"search_{source}_{slug}_{timestamp}.bib"
+                link_path = bib_dir / link_name
+                target_rel = Path(os.path.relpath(canonical, start=bib_dir))
+                if link_path.is_symlink() or link_path.exists():
+                    link_path.unlink()
+                link_path.symlink_to(target_rel)
+                logger.info(f"Linked paper into project: {link_path} -> {target_rel}")
+            else:
+                logger.info(f"Paper already linked into project: {link_path}")
 
             results = regenerate_bibliography(project_path, project.name)
-            file_rel = f"scitex/scholar/bib_files/{link_name}"
+            file_rel = f"scitex/scholar/bib_files/{link_path.name}"
             total = results.get("scholar_count", 0)
 
         return JsonResponse(
