@@ -33,6 +33,7 @@ function handleEvalJs(data: { code: string; request_id: string }): void {
     type: "eval_js_result",
     request_id: data.request_id,
     result: result === undefined ? null : result,
+    code_echo: String(data.code).slice(0, 120),
     agent: "relay-v3",
   });
   // Primary: WebSocket upstream.

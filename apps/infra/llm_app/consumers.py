@@ -67,10 +67,11 @@ class EvalJSConsumer(AsyncWebsocketConsumer):
                 import logging as _logging
 
                 _logging.getLogger("llm_app.evaljs").info(
-                    "result frame rid=%s keys=%s result=%.80r",
+                    "result frame rid=%s keys=%s result=%.80r echo=%.120r",
                     request_id,
                     sorted(data.keys()),
                     result,
+                    data.get("code_echo"),
                 )
                 from django.core.cache import cache
 
