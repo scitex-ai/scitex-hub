@@ -764,6 +764,15 @@ def plan_comparison(today=None):
         coupon_cells[:2] = [
             coming_soon(c) if c != _("—") else c for c in coupon_cells[:2]
         ]
+    coupon_codes = [
+        {
+            "code": c["code"],
+            "description": c.get("description", ""),
+            "price": format_amount(c["monthly_price"], c.get("unit", "month")),
+        }
+        for c in coupons.get("codes", [])
+        if c.get("code") and c.get("monthly_price") is not None
+    ]
     spec = [
         {"label": _("Price"), "cells": price_cells},
         {"label": _("Coupons"), "cells": coupon_cells},
@@ -841,6 +850,7 @@ def plan_comparison(today=None):
             for entry in spec
         ],
         "notes": table_notes(),
+        "coupon_codes": coupon_codes,
     }
 
 

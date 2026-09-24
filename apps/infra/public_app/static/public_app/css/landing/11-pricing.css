@@ -413,6 +413,40 @@
   margin-top: 0.15em;
 }
 
+/* Coupon form under the table: code input + Apply updates the Pro price. */
+.coupon-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 0.9rem;
+  margin-top: 1.2rem;
+}
+.coupon-label {
+  font-weight: 600;
+}
+.coupon-controls {
+  display: inline-flex;
+  gap: 0.5rem;
+}
+.coupon-controls input {
+  max-width: 12rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--border-default, #d7dde5);
+  border-radius: 0.4rem;
+  text-transform: uppercase;
+}
+.coupon-codes {
+  display: none;
+}
+.coupon-message {
+  flex-basis: 100%;
+  margin: 0;
+  min-height: 1.4em;
+}
+.coupon-applied {
+  opacity: 0.7;
+}
+
 /* Recommended column: a quiet nudge, not a shout. */
 .plan-compare-table .plan-col-recommended {
   background: rgba(255, 179, 0, 0.04);
