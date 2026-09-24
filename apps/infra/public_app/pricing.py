@@ -124,6 +124,12 @@ _API_KEY_DISPLAY = {
     "not-applicable": _lazy("—"),
 }
 
+_API_PRIORITY_DISPLAY = {
+    "standard": _lazy("Standard queue"),
+    "priority": _lazy("Priority queue"),
+    "not-applicable": _lazy("—"),
+}
+
 _API_SERVICE_LABELS = {
     "scholar": _lazy("Scholar"),
     "stats": _lazy("Stats"),
@@ -160,6 +166,7 @@ def _metered_and_api_rows() -> list[dict[str, Any]]:
                 f"api.keys[{tier!r}] is {keys.get(tier)!r} in pricing.json; "
                 "extend _API_KEY_DISPLAY deliberately."
             )
+    priority_cells = _priority_cells()
 
     dash = _("—")
     rate = lambda amount, msgid: msgid % {"price": format_usd(amount)}  # noqa: E731
@@ -231,6 +238,29 @@ def _metered_and_api_rows() -> list[dict[str, Any]]:
             ],
         },
     ]
+
+def _priority_cells() -> list[Any]:
+    """Queue-priority cells, same for every shared resource.
+
+    Pro requests jump ahead of Free when the system is busy — compute,
+    storage, apps, API alike. Priority only: no per-minute numbers are
+    claimed because none are enforced yet.
+    """
+    api = (load_pricing()["rate_card"].get("api") or {})
+    priority = api.get("priority") or {}
+    for tier in ("free", "pro", "self_hosted"):
+        if priority.get(tier) not in _API_PRIORITY_DISPLAY:
+            raise ValueError(
+                f"api.priority[{tier!r}] is {priority.get(tier)!r} in pricing.json; "
+                "extend _API_PRIORITY_DISPLAY deliberately."
+            )
+    return [
+        _API_PRIORITY_DISPLAY[priority["free"]],
+        _API_PRIORITY_DISPLAY[priority["pro"]],
+        _API_PRIORITY_DISPLAY[priority["self_hosted"]],
+        _API_PRIORITY_DISPLAY[priority["self_hosted"]],
+    ]
+
 
 # How one attribute of a published row reads to a visitor. Every value form is
 # enumerated, so a value this table has not seen fails the test that renders
@@ -635,15 +665,17 @@ def plan_comparison(today=None):
     def limits(row):
         return row["attributes"].get("workspace_limits") or {}
 
-    def cpu_cell(row):
-        return str(limits(row)["cpu"]) if "cpu" in limits(row) else _("—")
+    def cpu_cell(row, optional=False):
+        if "cpu" not in limits(row):
+            return _("—")
+        text = str(limits(row)["cpu"])
+        return _("%(n)s (+ optional)") % {"n": text} if optional else text
 
-    def ram_cell(row):
-        return (
-            _("%(gb)s GB") % {"gb": limits(row)["memory_gb"]}
-            if "memory_gb" in limits(row)
-            else _("—")
-        )
+    def ram_cell(row, optional=False):
+        if "memory_gb" not in limits(row):
+            return _("—")
+        text = _("%(gb)s GB") % {"gb": limits(row)["memory_gb"]}
+        return _("%(n)s (+ optional)") % {"n": text} if optional else text
 
     def gpu_cell(row):
         if "gpu" not in limits(row):
@@ -655,10 +687,10 @@ def plan_comparison(today=None):
             return _("—")
         return _credit_text(row["attributes"]["included_compute_credit"])
 
-    def tier_cell(row, tier):
+    def tier_cell(row, tier, optional=False):
         storage = row["attributes"].get("included_storage") or {}
         if storage.get("tier") != tier:
-            return _("—")
+            return _("Optional") if optional else _("—")
         return _("%(gb)s GB included") % {"gb": storage["amount"]}
 
     def tier_label(tier):
@@ -776,14 +808,19 @@ def plan_comparison(today=None):
     spec = [
         {"label": _("Price"), "cells": price_cells},
         {"label": _("Coupons"), "cells": coupon_cells},
+        {
+            "label": _("Queue priority"),
+            "cells": _priority_cells(),
+            "nowrap": True,
+        },
         {"group": _("Resources")},
         {
             "label": _("CPU"),
-            "cells": [cpu_cell(free), cpu_cell(pro), hosted_line, hosted_line],
+            "cells": [cpu_cell(free), cpu_cell(pro, optional=True), hosted_line, hosted_line],
         },
         {
             "label": _("RAM"),
-            "cells": [ram_cell(free), ram_cell(pro), hosted_line, hosted_line],
+            "cells": [ram_cell(free), ram_cell(pro, optional=True), hosted_line, hosted_line],
         },
         {
             "label": _("GPU"),
@@ -796,11 +833,11 @@ def plan_comparison(today=None):
         {"group": _("Storage")},
         {
             "label": tier_label("Hot"),
-            "cells": [tier_cell(free, "Hot"), tier_cell(pro, "Hot"), hosted_line, hosted_line],
+            "cells": [tier_cell(free, "Hot"), tier_cell(pro, "Hot", optional=True), hosted_line, hosted_line],
         },
         {
             "label": tier_label("Warm"),
-            "cells": [tier_cell(free, "Warm"), tier_cell(pro, "Warm"), hosted_line, hosted_line],
+            "cells": [tier_cell(free, "Warm"), tier_cell(pro, "Warm", optional=True), hosted_line, hosted_line],
         },
         {
             "label": tier_label("Cool"),
@@ -808,7 +845,7 @@ def plan_comparison(today=None):
         },
         {
             "label": tier_label("Cold"),
-            "cells": [tier_cell(free, "Cold"), tier_cell(pro, "Cold"), hosted_line, hosted_line],
+            "cells": [tier_cell(free, "Cold"), tier_cell(pro, "Cold", optional=True), hosted_line, hosted_line],
         },
     ] + license_rows + _metered_and_api_rows()
     from django.urls import reverse
