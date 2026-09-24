@@ -47,7 +47,7 @@ svg{position:absolute;inset:0;width:100%;height:100%;z-index:5}
 .node .bad{fill:var(--red);font-size:16px;font-weight:900;opacity:0}
 .node .warn{fill:var(--orange);font-size:16px;font-weight:900;opacity:0}
 .node.fade{opacity:0}
-.node.keep rect{stroke:#e4cca0;stroke-width:2.2;filter:url(#glow)}
+.node.keep rect{stroke:#e4cca0;stroke-width:2.6;filter:url(#glow)}
 .node.keep .title{fill:#fff7e2}
 .node.keep .tag{fill:#f1d7a8}
 .ball circle{fill:#0e1f2f;stroke:var(--gold)}
@@ -338,6 +338,9 @@ const glows = {
   M: document.getElementById('glowMerge'),
   N: document.getElementById('glowAnalyze3'),
 };
+const case3Dropped = ['sA','sB','n1','n2','n4','n5','n10'];
+const case3Kept = ['sC','n3','n6','nMerge','n7','nAnalyze3','n8','n9'];
+const case3SoftEdges = ['k1','k2','k3','k4','k5','k6','k7','k8','k9','k10','k11'];
 const tripGroups = {
   c1a: [document.getElementById('c1chip1_in'), document.getElementById('c1chip1_py'), document.getElementById('c1chip1_out')],
   c1b: [document.getElementById('c1chip2_in'), document.getElementById('c1chip2_py'), document.getElementById('c1chip2_out')],
@@ -411,6 +414,8 @@ function drawEdge(id, t0, dur, qs){ const el = document.getElementById(id); cons
 function resetVisuals(){
   overlay.style.opacity = 0; metaphor.style.opacity = 1; heroThread.style.opacity = 0; mazePath.style.opacity = 0;
   case1.style.opacity = 0; case2.style.opacity = 0; case3.style.opacity = 0;
+  case3.style.transform = '';
+  case3.style.transformOrigin = '820px 420px';
   clearDb();
   Object.values(glows).forEach(g => g.style.opacity = 0);
   Object.values(tripGroups).flat().forEach(el => { el.style.opacity = 0; });
@@ -420,8 +425,9 @@ function resetVisuals(){
   });
   document.querySelectorAll('.ok,.bad,.warn').forEach(el => el.style.opacity = 0);
   document.querySelectorAll('.edge.gold,.edge.red,.edge.orange').forEach(el => { el.style.opacity = 0; el.style.strokeDashoffset = '120'; });
-  document.querySelectorAll('#case3 .node').forEach(el => { el.classList.remove('fade'); el.classList.remove('keep'); });
-  document.querySelectorAll('#case3 .edge.soft').forEach(el => el.style.opacity = 1);
+  document.querySelectorAll('#case3 .node').forEach(el => { el.classList.remove('fade'); el.classList.remove('keep'); el.style.transform=''; el.style.opacity=''; });
+  document.querySelectorAll('#case3 .edge.soft').forEach(el => { el.style.opacity = 1; el.style.transform=''; });
+  document.querySelectorAll('#case3 .edge.gold').forEach(el => { el.style.transform=''; });
   document.getElementById('minLabel').style.opacity = 0; document.getElementById('minSub').style.opacity = 0;
 }
 function animateTripletRows(groupKey, froms, to, localStart, localNow){
@@ -544,13 +550,29 @@ function frame(now){
 
     if(local > 18.2){
       const fade = ease((local - 18.2)/1.4);
-      const dropped = ['sA','sB','n1','n2','n4','n5','n10'];
-      const kept = ['sC','n3','n6','nMerge','n7','nAnalyze3','n8','n9'];
-      dropped.forEach(id => document.getElementById(id).classList.add('fade'));
-      kept.forEach(id => document.getElementById(id).classList.add('keep'));
-      document.querySelectorAll('#case3 .edge.soft').forEach((el)=>{ el.style.opacity = String(1 - fade); });
+      const focus = ease((local - 19.0)/1.8);
+      case3Dropped.forEach((id, idx) => {
+        const el = document.getElementById(id);
+        el.classList.add('fade');
+        el.style.opacity = String(Math.max(0, 1 - fade));
+        const dx = (idx % 2 === 0 ? -1 : 1) * (10 + idx * 2) * fade;
+        const dy = 150 * fade + idx * 10 * fade;
+        const rot = (idx % 2 === 0 ? -1 : 1) * (7 + idx * 1.5) * fade;
+        el.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
+      });
+      case3SoftEdges.forEach((id, idx) => {
+        const el = document.getElementById(id);
+        el.style.opacity = String(Math.max(0, 1 - fade));
+        const dx = (idx % 2 === 0 ? -1 : 1) * 6 * fade;
+        const dy = 135 * fade + idx * 2 * fade;
+        const rot = (idx % 2 === 0 ? -1 : 1) * 2.2 * fade;
+        el.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
+      });
+      case3Kept.forEach(id => document.getElementById(id).classList.add('keep'));
+      document.querySelectorAll('#case3 .edge.gold').forEach((el)=>{ el.style.transform = `scale(${1 + 0.03 * focus})`; });
+      case3.style.transform = `translate(${-118 * focus}px, ${-26 * focus}px) scale(${1 + 0.16 * focus})`;
       document.getElementById('minLabel').textContent = 'only the paper-relevant verified path remains';
-      document.getElementById('minSub').textContent = 'all nodes and edges not connected by backward verification are removed';
+      document.getElementById('minSub').textContent = 'all nodes and edges not connected by backward verification fall away';
       document.getElementById('minLabel').style.opacity = fade;
       document.getElementById('minSub').style.opacity = fade;
     }
