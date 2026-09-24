@@ -333,6 +333,10 @@
   border-left: 3px solid var(--border-default, #d7dde5);
   padding-left: 0.8rem;
 }
+.plan-compare-table td[rowspan] {
+  vertical-align: middle;
+  text-align: center;
+}
 .plan-compare-table td[data-plan-col="0"] {
   font-weight: 600;
 }

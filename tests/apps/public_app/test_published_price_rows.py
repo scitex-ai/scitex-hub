@@ -45,6 +45,20 @@ def _section_row(rows: list, group_prefixes: str | tuple, label: str) -> list:
     raise AssertionError(f"no {label!r} row under {group_prefixes!r}")
 
 
+def _section_rows(rows: list, group_prefixes: str | tuple) -> list:
+    """All labeled rows inside the section, in order."""
+    if isinstance(group_prefixes, str):
+        group_prefixes = (group_prefixes,)
+    current_group = None
+    out = []
+    for r in rows:
+        if "group" in r:
+            current_group = r["group"]
+        elif str(current_group).startswith(group_prefixes):
+            out.append(r)
+    return out
+
+
 @pytest.fixture(scope="module", autouse=True)
 def compiled_catalogs():
     """Compile locale/**/*.po -> .mo before any JA assertion reads a catalog.
@@ -368,6 +382,14 @@ def test_metered_rates_and_api_rows_come_from_the_ssot() -> None:
         i for i, g in enumerate(groups) if g.startswith("Storage")
     )
     assert storage_idx < license_idx
+    # Self-hosted columns collapse repetition: one spanned cell per run,
+    # never a wall of identical lines (see the STORAGE screenshot).
+    storage_rows = _section_rows(rows, ("Storage",))
+    hosted_spans = [
+        (r.get("rs2"), r.get("rs3")) for r in storage_rows
+    ]
+    assert hosted_spans[0] == (4, 4)
+    assert all(r.get("skip2") and r.get("skip3") for r in storage_rows[1:])
     agents = by_label["Agents"]
     assert "model API × 110%" in agents[0]
     assert agents[2] == "—"
