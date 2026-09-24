@@ -152,12 +152,11 @@
   margin: 0.25rem 0;
 }
 
-/* Three-plan row: Free | Pro (Academic/Non-Academic switcher) | On-Prem.
-   Three equal columns on desktop, stacked on mobile. Equal height comes from
-   .pricing-grid (1fr rows + stretch); each card is a flex column so its CTA
-   anchors to the bottom. */
+/* Two-plan row (operator 2026-09-12: the Free pane is dropped — Pro's
+   30-day free trial covers it): Pro | On-Prem. Two columns on desktop,
+   stacked on mobile. */
 .pricing-grid-plans {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 /* Academic / General variant switcher — top-right of the Subscription card
@@ -271,135 +270,4 @@
    "Pricing" title was half-clipped behind the nav). */
 .section-pricing {
   scroll-margin-top: 5rem;
-}
-
-/* ---- Free-vs-Pro comparison table (one page, SSOT-rendered) ---- */
-.plan-compare {
-  margin-top: 2.5rem;
-}
-.plan-compare-heading {
-  text-align: center;
-  margin-bottom: 1rem;
-}
-.plan-compare-tabs {
-  display: none; /* wide displays show all three columns; tabs are for small */
-  justify-content: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-}
-.plan-tab {
-  border: 1px solid var(--border, #d7dde5);
-  background: transparent;
-  border-radius: 999px;
-  padding: 0.45rem 1rem;
-  cursor: pointer;
-  font: inherit;
-}
-.plan-tab.is-active {
-  background: var(--brand, #1f3a8a);
-  border-color: var(--brand, #1f3a8a);
-  color: #fff;
-}
-.plan-compare-tablewrap {
-  overflow-x: auto;
-}
-.plan-compare-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.95rem;
-  background: var(--bg-surface);
-}
-.plan-compare-table th,
-.plan-compare-table td {
-  border-top: 1px solid var(--border, #d7dde5);
-  padding: 0.6rem 0.75rem;
-  text-align: left;
-  vertical-align: top;
-}
-.plan-compare-table thead th {
-  border-top: 0;
-  border-bottom: 2px solid var(--border-strong, #9aa4b2);
-  white-space: normal;
-  position: sticky;
-  top: 0;
-  background: var(--bg-surface);
-  z-index: 1;
-}
-.plan-compare-table tbody th[scope="row"] {
-  font-weight: 600;
-  white-space: nowrap;
-}
-.plan-compare-table td[data-plan-col="0"] {
-  font-weight: 600;
-}
-.plan-compare-groups th {
-  text-align: center;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
-}
-.plan-compare-grouprow th {
-  background: var(--bg-muted);
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-.plan-compare-note {
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  margin: 0.75rem 0 0;
-}
-.plan-col-hidden {
-  display: none;
-}
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}
-
-@media (max-width: 760px) {
-  .plan-compare-tabs {
-    display: flex; /* small displays: tab switch, one plan at a time */
-  }
-  /* Before any tab is picked the box has no data-picked: show Free only. */
-  .plan-compare:not([data-picked]) [data-plan-col]:not([data-plan-col="0"]) {
-    display: none;
-  }
-  .plan-compare:not([data-picked]) [data-plan-col-group]:not([data-plan-col-group="0"]) {
-    display: none;
-  }
-  /* After a pick the inline script marks hidden columns; show the rest. */
-  .plan-compare[data-picked] .plan-col-hidden {
-    display: none;
-  }
-  .plan-compare[data-picked] [data-plan-col]:not(.plan-col-hidden) {
-    display: table-cell;
-  }
-  /* One plan at a time: short price cells stay on one line and the wrapper
-     scrolls sideways instead of stacking one word per line (measured
-     390px). Sentence cells (credits, license terms, API services) keep
-     wrapping. The template marks price rows with row.nowrap. */
-  .plan-compare-table td.cell-nowrap {
-    white-space: nowrap;
-  }
-  .plan-compare-table tbody th[scope="row"] {
-    white-space: normal;
-  }
-}
-
-/* Tier speeds sit under the tier name at reduced emphasis: the name leads,
-   the number is there when looked for. */
-.plan-compare-table .tier-speed {
-  display: block;
-  font-size: 0.78em;
-  font-weight: 400;
-  opacity: 0.62;
-  margin-top: 0.15em;
 }
