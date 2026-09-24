@@ -379,6 +379,18 @@ def test_table_notes_come_from_the_ssot() -> None:
     rows = comp["rows"]
     by_label = {r["label"]: r["cells"] for r in rows if "label" in r}
     assert by_label["CPU"][2] == "Your own hardware"
+    assert by_label["CPU"][1] == "2 (+ optional)"
+    assert by_label["RAM"][1] == "8 GB (+ optional)"
+    hot_key = next(k for k in by_label if k.startswith("Hot"))
+    hot_cells = by_label[hot_key]
+    assert hot_cells[1] == "Optional" and hot_cells[0] == "—"
+    priority_row = next(r for r in rows if r.get("label") == "Queue priority")
+    assert priority_row["cells"] == [
+        "Standard queue",
+        "Priority queue",
+        "—",
+        "—",
+    ]
     cool_key = next(k for k in by_label if k.startswith("Cool"))
     assert by_label[cool_key][2] == "Your own hardware"
     assert not any(

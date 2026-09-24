@@ -327,6 +327,12 @@
         "pro": "included",
         "self_hosted": "not-applicable"
       },
+      "priority": {
+        "free": "standard",
+        "pro": "priority",
+        "self_hosted": "not-applicable",
+        "_note": "Rate-limit queue priority: Pro requests jump ahead of Free when the system is busy. No fake per-minute numbers — priority only."
+      },
       "services": [
         "scholar",
         "stats",

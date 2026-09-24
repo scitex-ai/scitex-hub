@@ -7534,6 +7534,26 @@ msgstr "クーポンコード利用可"
 msgid "On request"
 msgstr "要相談"
 
+#: apps/infra/public_app/pricing.py
+msgid "Queue priority"
+msgstr "待ち行列の優先度"
+
+#: apps/infra/public_app/pricing.py
+msgid "Standard queue"
+msgstr "通常キュー"
+
+#: apps/infra/public_app/pricing.py
+msgid "Priority queue"
+msgstr "優先キュー"
+
+#: apps/infra/public_app/pricing.py
+msgid "%(n)s (+ optional)"
+msgstr "%(n)s (+ オプション)"
+
+#: apps/infra/public_app/pricing.py
+msgid "Optional"
+msgstr "オプション"
+
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
 msgid "Have a coupon code?"
 msgstr "クーポンコードをお持ちですか?"
