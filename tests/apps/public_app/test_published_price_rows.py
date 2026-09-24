@@ -387,6 +387,13 @@ def test_table_notes_come_from_the_ssot() -> None:
     )
     price_row = next(r for r in rows if r.get("label") == "Price")
     assert "academic (50% off)" in price_row["cells"][1]
+    coupon_row = next(r for r in rows if r.get("label") == "Coupons")
+    assert coupon_row["cells"] == [
+        "—",
+        "Coupon codes accepted (Coming soon)",
+        "—",
+        "On request",
+    ]
     hot_key = next(k for k in by_label if k.startswith("Hot"))
     assert "tier-speed" in hot_key and "tier-sub" in hot_key
     cols = comp["columns"]
