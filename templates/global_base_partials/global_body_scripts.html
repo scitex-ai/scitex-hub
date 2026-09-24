@@ -53,31 +53,31 @@
 <!-- Product Tour (step-by-step guided walkthrough) -->
 {% vite_script 'shared/components/product-tour' %}
 <!-- Workspace file tree auto-init (three-col shared worktree pane) -->
-{% vite_script 'shared/workspace-tree-init' %}
+{% if not minimal_shell %}{% vite_script 'shared/workspace-tree-init' %}{% endif %}
 <!-- Workspace viewer pane auto-init (file viewer/editor) -->
-{% vite_script 'shared/workspace-viewer-init' %}
+{% if not minimal_shell %}{% vite_script 'shared/workspace-viewer-init' %}{% endif %}
 <!-- Global AI Chat floating panel -->
-{% vite_script 'shared/workspace-panel-resizer' %}
+{% if not minimal_shell %}{% vite_script 'shared/workspace-panel-resizer' %}{% endif %}
 <!-- Unified resizer system (horizontal + vertical data-attribute resizers) -->
 {% vite_script 'shared/resizer' %}
 {% vite_script 'shared/global-ai-chat' %}
 <!-- Workspace Sidebar — pane switching, expand/collapse, mobile drawer -->
-{% vite_script 'shared/workspace-sidebar' %}
+{% if not minimal_shell %}{% vite_script 'shared/workspace-sidebar' %}{% endif %}
 <!-- Chat Welcome — bridges welcome input to AI chat backend -->
 {% vite_script 'shared/components/chat-welcome' %}
 <!-- Context-aware zoom: Ctrl+Wheel / Ctrl++/-/0 per pane (self-initializing) -->
 {% vite_script 'shared/components/context-zoom-init' %}
 <!-- App Navigation History (unified back/forward via browser history API) -->
-{% vite_script 'shared/app-navigation-history' %}
+{% if not minimal_shell %}{% vite_script 'shared/app-navigation-history' %}{% endif %}
 <!-- Module Tab Switcher (AJAX tab switching for three-col workspace layout) -->
-{% vite_script 'shared/module-tab-switcher' %}
+{% if not minimal_shell %}{% vite_script 'shared/module-tab-switcher' %}{% endif %}
 <!-- Module Reorder (drag-drop ordering, persists to backend, syncs tab bar + apps) -->
-{% vite_script 'shared/module-reorder' %}
+{% if not minimal_shell %}{% vite_script 'shared/module-reorder' %}{% endif %}
 <!-- Ctrl+P/N input history for all text inputs -->
 {% vite_script 'shared/utils/input-history' %}
 <!-- Module Tab Context Menu (right-click to manage modules) -->
-{% vite_script 'shared/components/module-tab-context-menu' %}
+{% if not minimal_shell %}{% vite_script 'shared/components/module-tab-context-menu' %}{% endif %}
 <!-- Nav Prefetch — preload module pages on hover for instant switching -->
-{% vite_script 'shared/components/nav-prefetch' %}
+{% if not minimal_shell %}{% vite_script 'shared/components/nav-prefetch' %}{% endif %}
 <!-- Dev App Install/Uninstall (Hub Explore + Apps browse) -->
-{% vite_script 'apps_app/dev-install' %}
+{% if not minimal_shell %}{% vite_script 'apps_app/dev-install' %}{% endif %}

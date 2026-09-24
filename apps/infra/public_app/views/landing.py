@@ -123,6 +123,10 @@ def index(request):
         # Unified plans table (Pricing + Compare plans merged): one matrix,
         # per-column CTAs, Pro recommended. SSOT-rendered, never hand-typed.
         "plan_comparison": plan_comparison(),
+        # Minimal shell: the landing has no workspace panes, so the base
+        # template skips workspace-only JS (tree, viewer, sidebar, modules).
+        # Smaller download for anonymous visitors; the app shell is untouched.
+        "minimal_shell": True,
     }
     return render(request, "public_app/landing.html", context)
 
