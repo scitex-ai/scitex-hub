@@ -4,7 +4,7 @@
 
 Operator decisions of 2026-09-14 pinned here, against the RENDERED pages:
 - prices are USD (Cloud Academic $19/mo, Cloud Standard $39/mo, Self-Hosted
-  Enterprise License from $2,400/year, Setup from $2,000, Maintenance from
+  Enterprise License from $2,400/yr, Setup from $2,000, Maintenance from
   $650/mo, Custom Development from $1,300/project, Consulting from $65/hr) and
   32 GB Cool storage is included;
 - no JPY price band, and no retired early-adopter strikethrough;
@@ -27,7 +27,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[3]
 SSOT_USD_PRICES = (
     "$19/mo",
     "$39/mo",
-    "from $2,400/year",
+    "from $2,400/yr",
     "from $2,000",
     "from $650/mo",
     "from $1,300/project",
@@ -101,7 +101,7 @@ def test_pricing_page_shows_no_jpy_price_band_and_prices_the_commercial_license(
     client, language
 ):
     # Arrange
-    commercial_price = "$2,400/year"
+    commercial_price = "$2,400/yr"
     # Act
     visible = _visible(_get(client, "pricing", language))
     # Assert
@@ -116,7 +116,7 @@ def test_tokushoho_drops_the_retired_early_adopter_strikethrough(client, page_na
     # Act
     html = _get(client, page_name)
     # Assert
-    assert ([r for r in retired if r in html], "$2,400/year" in html) == ([], True)
+    assert ([r for r in retired if r in html], "$2,400/yr" in html) == ([], True)
 
 
 @pytest.mark.django_db

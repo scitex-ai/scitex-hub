@@ -53,7 +53,7 @@ _UNIT_SUFFIX = {
     "once": "",
     "per_case": "",
     "month": "/mo",
-    "year": "/year",
+    "year": "/yr",
     "per_hour": "/hr",
     "per_project": "/project",
 }
