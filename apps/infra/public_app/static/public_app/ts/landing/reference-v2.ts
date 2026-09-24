@@ -91,43 +91,4 @@ if (document.readyState === "loading") {
   initLandingCarousels();
 }
 
-function initClipLightbox(root: ParentNode = document): void {
-  const openers = Array.from(
-    root.querySelectorAll<HTMLButtonElement>('.landing-v2-clip-open'),
-  );
-  openers.forEach((opener) => {
-    const figure = opener.closest('figure');
-    const box = figure?.querySelector<HTMLElement>('.landing-v2-clip-lightbox');
-    const frame = box?.querySelector<HTMLVideoElement>('video');
-    const close = box?.querySelector<HTMLButtonElement>('.landing-v2-clip-close');
-    if (!box || !frame || !close) return;
-    const src = opener.dataset.clipVideo ?? '';
-    opener.addEventListener('click', () => {
-      frame.src = src;
-      void frame.play().catch(() => undefined);
-      box.hidden = false;
-      document.body.style.overflow = 'hidden';
-      close.focus();
-    });
-    const hide = (): void => {
-      frame.pause();
-      box.hidden = true;
-      frame.removeAttribute('src');
-      document.body.style.overflow = '';
-      opener.focus();
-    };
-    close.addEventListener('click', hide);
-    box.addEventListener('click', (event: MouseEvent) => {
-      if (event.target === box) hide();
-    });
-    document.addEventListener('keydown', (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !box.hidden) hide();
-    });
-  });
-}
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => initClipLightbox());
-} else {
-  initClipLightbox();
-}
