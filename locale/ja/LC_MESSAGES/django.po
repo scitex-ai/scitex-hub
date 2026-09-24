@@ -7751,8 +7751,8 @@ msgid "Uptime SLA"
 msgstr "稼働率SLA"
 
 #: apps/infra/public_app/pricing.py
-msgid "Metered compute rates"
-msgstr "従量課金コンピュート料金"
+msgid "Compute"
+msgstr "コンピュート"
 
 #: apps/infra/public_app/pricing.py
 msgid "%(price)s / CPU Unit-hour"

@@ -103,3 +103,41 @@
   line-height: 1.5;
   border-radius: calc(var(--border-radius) * 1.25);
 }
+
+/* =========================
+   Bare fields (no .form-control class)
+   ========================= */
+
+/* Any text-like field or textarea without a component class still follows
+   the theme instead of falling back to the browser's white box — this is
+   what keeps one-off fields (coupon codes, chat boxes, admin notes)
+   readable in dark mode. Classed components keep their own styles:
+   this sits at 0-0-1 plus :where(), so anything more specific wins. */
+:where(
+  input[type="text"],
+  input[type="search"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  textarea
+):not([class]) {
+  color: var(--text-primary);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+}
+
+:where(
+  input[type="text"],
+  input[type="search"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  textarea
+):not([class])::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}

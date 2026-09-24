@@ -187,14 +187,14 @@ def _metered_and_api_rows() -> list[dict[str, Any]]:
         _("Follow the metered compute rates")
     )
     return [
-        {"group": coming_soon(_("Metered compute rates"))},
+        {"group": coming_soon(_("Compute"))},
         {
-            "label": _("Metered CPU"),
+            "label": _("CPU"),
             "cells": [cpu_cell, cpu_cell, dash, dash],
             "nowrap": True,
         },
         {
-            "label": _("Metered memory"),
+            "label": _("Memory"),
             "cells": [mem_cell, mem_cell, dash, dash],
             "nowrap": True,
         },
