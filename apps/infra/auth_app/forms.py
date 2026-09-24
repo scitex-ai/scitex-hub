@@ -40,6 +40,18 @@ class SignupForm(forms.Form):
         widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
         label="I agree to the Terms of Service and Privacy Policy",
     )
+    plan = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(),
+        initial="free",
+    )
+
+    def clean_plan(self):
+        # Anything but an explicit "trial" is the free tier: an unknown or
+        # missing value must never silently opt a stranger INTO a card flow.
+        return (
+            "trial" if self.cleaned_data.get("plan") == "trial" else "free"
+        )
 
     def clean_username(self):
         """Validate username follows GitHub-style rules and is unique."""

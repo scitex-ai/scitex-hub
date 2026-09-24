@@ -146,7 +146,15 @@ def litellm_provider_call(
         timeout=config.timeout_seconds,
     )
     try:
-        cost = _actual_money(litellm.completion_cost(completion_response=response))
+        # Pin the provider explicitly: litellm re-derives it from the model
+        # ID, which misfires on nested IDs (groq/openai/gpt-oss-20b is read
+        # as provider "openai" and misses the cost map).
+        cost = _actual_money(
+            litellm.completion_cost(
+                completion_response=response,
+                custom_llm_provider=config.provider,
+            )
+        )
         usage = getattr(response, "usage", None)
         prompt_used = int(getattr(usage, "prompt_tokens", 0) or 0)
         completion_used = int(getattr(usage, "completion_tokens", 0) or 0)
@@ -167,4 +175,204 @@ def litellm_provider_call(
         prompt_tokens=prompt_used,
         completion_tokens=completion_used,
         provider_cost_usd=cost,
+    )
+
+
+#: Rounds cap for the funded tool loop. The reservation covers the whole
+#: loop, so this stays small: free-tier cost control first.
+FUNDED_TOOL_LOOP_MAX_ROUNDS = 5
+
+
+def _funded_tools(user):
+    """User-scoped tools for the funded loop: (executor, tool_schemas).
+
+    Only tools that act as *this user* are exposed here. ``ui_action``
+    relays steps to the user's own browser via their relay group, so the
+    user watches the agent work. The unscoped in-process MCP umbrella is
+    deliberately NOT exposed on the free path.
+    """
+
+    from apps.infra.llm_app.relay_groups import relay_group_for
+    from apps.infra.llm_app.services.mcp_client import _UI_ACTION_TOOL  # noqa: F401
+
+    _BROWSER_EVAL_TOOL = {
+        "type": "function",
+        "function": {
+            "name": "browser_eval",
+            "description": (
+                "Run JavaScript in the user's open browser tab and return "
+                "the completion value as JSON. Use this to READ back UI "
+                "state and verify your ui_action steps actually landed "
+                "(e.g. return document.querySelector('#x').value). "
+                "Pure expression or statements; the last value is returned."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "description": "JavaScript to evaluate and return.",
+                    },
+                    "timeout": {
+                        "type": "integer",
+                        "description": "Seconds to wait for the tab (default 10, max 20).",
+                    },
+                },
+                "required": ["code"],
+            },
+        },
+    }
+
+    async def _browser_eval(code: str, timeout: int) -> str:
+        import asyncio as _asyncio
+        import json as _json
+        import uuid as _uuid
+
+        from asgiref.sync import sync_to_async
+        from channels.layers import get_channel_layer
+        from django.core.cache import cache
+
+        timeout = max(1, min(int(timeout or 10), 20))
+        request_id = str(_uuid.uuid4())[:8]
+        result_key = f"eval_js_result_{request_id}"
+        channel_layer = get_channel_layer()
+        await channel_layer.group_send(
+            relay_group_for(user),
+            {"type": "eval_js", "code": code, "request_id": request_id},
+        )
+        for _ in range(timeout * 10):
+            result = await sync_to_async(cache.get)(result_key)
+            if result is not None:
+                await sync_to_async(cache.delete)(result_key)
+                return _json.dumps({"result": result}, ensure_ascii=False)[:4000]
+            await _asyncio.sleep(0.1)
+        return _json.dumps({"error": "browser did not answer in time"})
+
+    async def _execute(name: str, arguments: dict) -> str:
+        if name == "browser_eval":
+            if not isinstance(arguments, dict) or not arguments.get("code"):
+                return "Error: browser_eval needs a code string."
+            return await _browser_eval(
+                str(arguments["code"]), arguments.get("timeout", 10)
+            )
+        if name != "ui_action":
+            return f"Error: tool {name!r} is not available on the free path."
+        steps = arguments.get("steps", []) if isinstance(arguments, dict) else []
+        if not steps:
+            return "Error: ui_action needs a non-empty steps list."
+        from channels.layers import get_channel_layer
+
+        channel_layer = get_channel_layer()
+        await channel_layer.group_send(
+            relay_group_for(user),
+            {
+                "type": "ui_action",
+                "steps": steps,
+                "delay_ms": arguments.get("delay_ms", 900),
+            },
+        )
+        return f"Sent {len(steps)} UI steps to your browser; they run now."
+
+    return _execute, [_UI_ACTION_TOOL, _BROWSER_EVAL_TOOL]
+
+
+def litellm_tool_loop_call(
+    config: FundedChatConfig,
+    request_body: bytes,
+    _dispatch_key: str = "",
+    *,
+    user,
+    max_rounds: int = 3,
+) -> ProviderResult:
+    """Bounded agentic loop for the funded path: at most ``max_rounds``
+    provider calls under ONE reservation.
+
+    Pre-dispatch, the single-call worst case times ``max_rounds`` must fit
+    ``max_request_cost_usd``; otherwise this raises before anything is
+    dispatched. Actual usage is accumulated per round and settled normally.
+    """
+    import asyncio
+
+    import litellm
+
+    from apps.infra.llm_app.services.mcp_client import run_tool_loop
+
+    rounds = max(1, min(int(max_rounds), FUNDED_TOOL_LOOP_MAX_ROUNDS))
+    messages = _validated_messages(config, request_body)
+    try:
+        prompt_tokens = int(
+            litellm.token_counter(model=config.litellm_model, messages=messages)
+        )
+        if prompt_tokens < 0:
+            raise ValueError
+        prompt_cost, completion_cost = litellm.cost_per_token(
+            model=config.litellm_model,
+            prompt_tokens=prompt_tokens,
+            completion_tokens=config.max_tokens,
+        )
+    except ProviderPreDispatchError:
+        raise
+    except Exception as exc:
+        raise ProviderPreDispatchError("unable to compute a bounded estimate") from exc
+
+    worst_case_cost = _pre_dispatch_money(
+        (Decimal(str(prompt_cost)) + Decimal(str(completion_cost))) * rounds,
+        name="provider worst-case estimate",
+    )
+    if worst_case_cost > config.max_request_cost_usd:
+        raise ProviderBudgetEstimateError
+
+    _exec, tools = _funded_tools(user)
+    loop_timeout = max(10, min(config.timeout_seconds * rounds, 100))
+
+    async def _run():
+        return await run_tool_loop(
+            litellm_model=config.litellm_model,
+            api_key=config.api_key,
+            messages=messages,
+            tools=tools,
+            max_tokens=config.max_tokens,
+            temperature=0.3,
+            max_rounds=rounds,
+            tool_executor=_exec,
+        )
+
+    try:
+        text, _tools_used, loop_usage = asyncio.run(
+            asyncio.wait_for(_run(), timeout=loop_timeout)
+        )
+    except ProviderPreDispatchError:
+        raise
+    except (asyncio.TimeoutError, TimeoutError) as exc:
+        # Dispatched already (or unknown): fail closed to reconciliation.
+        raise ProviderAccountingError("funded tool loop timed out") from exc
+    if not isinstance(text, str):
+        raise ProviderAccountingError("provider response accounting is invalid")
+    try:
+        cost = _actual_money(
+            Decimal(str(loop_usage.get("estimated_cost_usd", 0.0)))
+        )
+        prompt_used = int(loop_usage.get("prompt_tokens", 0))
+        completion_used = int(loop_usage.get("completion_tokens", 0))
+        if prompt_used < 0 or completion_used < 0:
+            raise ValueError
+    except ProviderAccountingError:
+        raise
+    except Exception as exc:
+        raise ProviderAccountingError(
+            "provider response accounting is invalid"
+        ) from exc
+    tool_trace = tuple(
+        dict(t)
+        for t in (loop_usage.get("tool_trace") or [])
+        if isinstance(t, dict)
+    )[:8]
+    tools_used = tuple(str(t) for t in (_tools_used or []))[:8]
+    return ProviderResult(
+        text=text,
+        prompt_tokens=prompt_used,
+        completion_tokens=completion_used,
+        provider_cost_usd=cost,
+        tools_used=tools_used,
+        tool_trace=tool_trace,
     )

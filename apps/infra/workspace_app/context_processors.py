@@ -98,6 +98,17 @@ def workspace_context(request):
         except Exception:
             pass
 
+    try:
+        from apps.infra.project_app.services.project_utils import (
+            is_all_projects_scope,
+        )
+
+        scope_all = bool(
+            request.user.is_authenticated and is_all_projects_scope(request)
+        )
+    except Exception:
+        scope_all = False
+
     return {
         "is_workspace_page": is_ws,
         "workspace_has_panes": has_panes,
@@ -115,6 +126,11 @@ def workspace_context(request):
         "active_module": active_mod,
         "active_module_label": active_label,
         "current_project": current_project,
+        # "All projects" scope flag + project-bound-URL flag for the normalized
+        # project selector: user-scope pages offer "All projects", pages inside
+        # a project (request.project set by @project_access_required) do not.
+        "project_scope_all": scope_all,
+        "is_project_scoped": getattr(request, "project", None) is not None,
     }
 
 

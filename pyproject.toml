@@ -363,6 +363,9 @@ all = [
     # --- Billing (Stripe scaffold; endpoints stay 503 until
     # SCITEX_HUB_STRIPE_* env keys are configured) ---
     "stripe>=10.0",
+    # --- Academic email recognition (JetBrains swot database; the JP
+    # government/research list in auth_app.models supplements it) ---
+    "swot>=1.0.1",
     # --- AI / LLM / domain ---
     "litellm>=1.82.0",
     "impact-factor>=1.1",

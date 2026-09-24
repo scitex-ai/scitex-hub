@@ -239,7 +239,10 @@ class SiteDock {
 
     grabber.addEventListener("dblclick", (e) => e.preventDefault());
 
-    grabber.addEventListener("pointerdown", (down: PointerEvent) => {
+    // The dedicated grabber is the only drag handle. A press on it starts a
+    // move; releasing unmoved toggles minimize. Tap-to-minimize stays
+    // grip-only.
+    const beginMove = (down: PointerEvent, tapToMinimize: boolean) => {
       if (down.pointerType === "mouse" && down.button !== 0) return;
       down.preventDefault();
 
@@ -293,13 +296,21 @@ class SiteDock {
         }
         // A cancelled press (e.g. the browser took the gesture) is not a tap.
         if (e.type === "pointercancel") return;
+        if (!tapToMinimize) return;
         this.toggleMinimized(gripTap(isMinimized(this.dock)) === "minimize");
       };
 
       grabber.addEventListener("pointermove", onMove);
       grabber.addEventListener("pointerup", onUp);
       grabber.addEventListener("pointercancel", onUp);
+    };
+
+    grabber.addEventListener("pointerdown", (down: PointerEvent) => {
+      beginMove(down, true);
     });
+
+    // Drag starts on the dedicated grabber only: the gaps between app icons
+    // in the main area are not a drag surface and show the default cursor.
 
     // Keyboard: arrows move the dock, Escape docks it again.
     grabber.addEventListener("keydown", (e: KeyboardEvent) => {

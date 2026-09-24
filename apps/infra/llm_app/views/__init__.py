@@ -6,7 +6,7 @@ from apps.infra.llm_app.views.chat import (
     api_tts,
     api_tts_relay,
 )
-from apps.infra.llm_app.views.context import api_eval_js, api_get_context, api_ui_action
+from apps.infra.llm_app.views.context import api_eval_js, api_eval_result, api_get_context, api_ui_action
 from apps.infra.llm_app.views.funded import api_funded_chat_allowance
 from apps.infra.llm_app.views.providers import (
     api_add_provider,
@@ -60,6 +60,7 @@ __all__ = [
     "api_agent_context",
     "api_get_context",
     "api_eval_js",
+    "api_eval_result",
     "api_ui_action",
     "usage_dashboard",
     "api_upload_files",

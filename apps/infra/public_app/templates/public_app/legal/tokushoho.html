@@ -80,25 +80,7 @@
                         <tr>
                             <th>{% trans "販売価格・対価" %}</th>
                             <td>
-                                {% if billing_plans %}
-                                    <ul>
-                                        {% for plan in billing_plans %}
-                                            <li>
-                                                {{ plan.name }}: ¥{{ plan.price_tax_included }}{% trans "(税込)" %}
-                                                {% if plan.interval == "month" %}
-                                                    {% trans "/ 月" %}
-                                                {% elif plan.interval == "year" %}
-                                                    {% trans "/ 年" %}
-                                                {% endif %}
-                                            </li>
-                                        {% endfor %}
-                                    </ul>
-                                    <p>
-                                        {% trans "最新の価格は" %}<a href="{% url 'public_app:pricing' %}">{% trans "料金ページ" %}</a>{% trans "をご確認ください。価格はすべて税込 (総額) 表示です。" %}
-                                    </p>
-                                {% else %}
-                                    <p>{% trans "下表を参照してください。価格はすべて税込 (総額) 表示です。" %}</p>
-                                {% endif %}
+                                <p>{% trans "下表を参照してください。価格はすべて税込 (総額) 表示です。" %}</p>
                             </td>
                         </tr>
                     </table>
@@ -106,8 +88,6 @@
             </div>
         </div>
     </section>
-    {% if billing_plans %}
-    {% else %}
     <section class="price-table-section">
         <div class="container">
             <h2 class="price-table-heading">{% trans "提供サービスと料金" %}</h2>
@@ -186,7 +166,6 @@
                     </p>
                     <h3 class="price-table-heading">{% trans "従量料金（ストレージ・通信・計算）" %}</h3>
                     {% include "public_app/pricing_partials/rate_card.html" %}
-                    {% endif %}
             </div>
         </div>
     </section>

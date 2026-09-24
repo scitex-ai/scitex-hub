@@ -293,6 +293,7 @@ TEMPLATES = [
                 "config.context_processors.writer_api_base",
                 "config.context_processors.mounted_app_launcher",
                 "config.context_processors.header_logo",
+                "config.context_processors.alpha_release",
                 "apps.infra.workspace_app.context_processors.workspace_context",
             ],
             "loaders": [
@@ -352,6 +353,17 @@ try:
             "LOCATION": REDIS_URL,
             "KEY_PREFIX": "scitex_hub",
             "TIMEOUT": 3600,
+            # BOUNDED WAITS: redis-py blocks FOREVER on a dead socket by
+            # default. The celery worker runs --pool=threads, whose threads
+            # cannot be interrupted once stuck — one stalled redis round-trip
+            # eats a thread permanently, and four stalls wedge the worker
+            # with the process still alive (measured on dev 2026-09-20:
+            # beacon stale 50h, queue empty, zero log output). A 5s timeout
+            # turns a stall into a failed task instead of a lost thread.
+            "OPTIONS": {
+                "socket_connect_timeout": 5,
+                "socket_timeout": 5,
+            },
         }
     }
     SESSION_ENGINE = "django.contrib.sessions.backends.cache"
@@ -426,6 +438,11 @@ EMAIL_HOST_USER = _getenv_alias("SCITEX_HUB_EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = _getenv_alias("SCITEX_HUB_EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
+# Fail FAST when the mail sender is down (operator 2026-09-22): without this
+# Django blocks on the SMTP socket with no timeout, and the signup page sits
+# on "Creating your account..." for minutes before the sender-down error can
+# be shown. 10s is enough for a healthy relay; a down one must not hang UX.
+EMAIL_TIMEOUT = int(_getenv_alias("SCITEX_HUB_EMAIL_TIMEOUT", "10") or "10")
 
 # Recipients of the mail_admins logging handler (settings_logging). Defined
 # HERE, once, rather than per environment: it lived only in settings_prod
@@ -494,6 +511,12 @@ SCITEX_FUNDED_CHAT_MAX_MESSAGES = int(
 )
 SCITEX_FUNDED_CHAT_MAX_MESSAGE_CHARS = int(
     _getenv_alias("SCITEX_FUNDED_CHAT_MAX_MESSAGE_CHARS", "32768") or "32768"
+)
+SCITEX_FUNDED_CHAT_TOOLS_ENABLED = (
+    _getenv_alias("SCITEX_FUNDED_CHAT_TOOLS_ENABLED", "false") or "false"
+).lower() in ("1", "true", "yes", "on")
+SCITEX_FUNDED_CHAT_TOOL_MAX_ROUNDS = int(
+    _getenv_alias("SCITEX_FUNDED_CHAT_TOOL_MAX_ROUNDS", "3") or "3"
 )
 
 # ---------------------------------------

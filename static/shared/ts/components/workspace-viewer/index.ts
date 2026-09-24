@@ -404,6 +404,13 @@ export class WorkspaceViewer {
         this.setViewMode(this.viewMode === "edit" ? "preview" : "edit");
       });
     }
+    // The collapsed title mirrors the toggle label — forward its clicks so a
+    // tap on the "Raw"/"Rendered" text acts like the toggle itself.
+    const shortTitle = document.getElementById("ws-viewer-title-short");
+    if (shortTitle && this.modeToggle) {
+      shortTitle.style.cursor = "pointer";
+      shortTitle.addEventListener("click", () => this.modeToggle!.click());
+    }
   }
 
   private setViewMode(mode: ViewMode): void {

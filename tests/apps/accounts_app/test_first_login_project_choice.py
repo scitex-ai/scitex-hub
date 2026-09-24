@@ -144,10 +144,13 @@ def test_the_welcome_screen_states_the_workspace_facts_and_the_three_choices():
     assert 'data-action="create-project"' in html
     assert "first-login-action--primary" in html
 
-    # The workspace facts the user must be told before choosing.
-    assert "NAS-02" in html
+    # The plain-language facts the user must be told before choosing.
+    # No infra nouns: no host names, no storage-vs-RAM lectures.
+    assert "NAS-02" not in html
+    assert "not RAM" not in html
     assert "32" in html and "GB" in html
-    assert "storage" in html.lower() and "not RAM" in html
+    assert "yours alone" in html.lower()
+    assert "results land back" in html.lower()
 
     # No active project may be rendered for a user who has not chosen one.
     assert 'data-active-project="' not in html

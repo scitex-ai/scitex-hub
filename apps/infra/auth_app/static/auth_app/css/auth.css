@@ -305,3 +305,30 @@
   justify-content: center;
   min-height: 44px;
 }
+
+/* ---------------------------------------------------------------------------
+ * Brand-navy primary CTA (operator 2026-09-23: the signup "Create Account"
+ * button was Bootstrap green; the brand color is navy). --color-primary is
+ * navy #1a2a40 in light mode and gold in dark mode (scitex-ui palettes), so
+ * dark mode follows automatically — no separate dark rule needed.
+ * White on navy 14.5:1, well above AA.
+ * ------------------------------------------------------------------------- */
+.btn.auth-primary-cta {
+  background-color: var(--color-primary, #1a2a40);
+  border-color: var(--color-primary, #1a2a40);
+  color: #fff;
+}
+.btn.auth-primary-cta:hover,
+.btn.auth-primary-cta:focus {
+  background-color: var(--color-primary-hover, #243752);
+  border-color: var(--color-primary-hover, #243752);
+  color: #fff;
+}
+.btn.auth-primary-cta:active {
+  background-color: var(--color-primary-active, #121e2e);
+  border-color: var(--color-primary-active, #121e2e);
+  color: #fff;
+}
+.btn.auth-primary-cta:disabled {
+  opacity: 0.65;
+}

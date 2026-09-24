@@ -51,7 +51,7 @@ def _get_ecosystem_versions():
     return versions
 
 
-def _pricing_rows_for_landing() -> list[dict]:
+def _pricing_rows_for_landing() -> tuple[list[dict], dict | None]:
     """The subscription rows for the landing card.
 
     The SSoT (published_price_rows) now renders USD as the primary price and
@@ -67,8 +67,14 @@ def _pricing_rows_for_landing() -> list[dict]:
         _limit_set_by_text("user"),
     }
     sub_rows = []
+    free_row = None
     for r in rows:
         if r["category"] != "subscription":
+            continue
+        # The free tier is its own column, not a switcher variant: it must
+        # never render inside the Academic / Non-Academic toggle.
+        if r["id"] == "subscription-free":
+            free_row = {**r}
             continue
         row = {**r, "is_academic": r["id"] == "subscription-student"}
         row["included"] = [
@@ -76,7 +82,7 @@ def _pricing_rows_for_landing() -> list[dict]:
             if item not in _standard_guarantees
         ]
         sub_rows.append(row)
-    return sub_rows
+    return sub_rows, free_row
 
 
 @transaction.non_atomic_requests
@@ -103,11 +109,12 @@ def index(request):
     # closed" rather than reconnecting, and the transaction's work is lost.
     if not connection.in_atomic_block:
         connection.close()
-    from ..pricing import load_pricing, tier_rows
+    from ..pricing import load_pricing, plan_comparison, tier_rows
 
-    # Two-plan landing row (operator 2026-09-12): the Free pane is dropped —
-    # Cloud (Academic / Non-Academic switcher) + On-Prem (AGPL / Custom).
-    sub_rows = _pricing_rows_for_landing()
+    # Three-column landing row: Free + Cloud Pro (Academic / Non-Academic
+    # switcher) + On-Prem (AGPL / Custom). Every signup starts free; Pro is
+    # an upgrade from inside the product.
+    sub_rows, free_row = _pricing_rows_for_landing()
     onprem_tier = next(
         (t for t in tier_rows() if t["id"] == "selfhosted"), None
     )
@@ -117,6 +124,8 @@ def index(request):
         # SSOT via the same helpers /pricing/ and /services/ use — never a
         # hand-written copy.
         "sub_rows": sub_rows,
+        "free_row": free_row,
+        "plan_comparison": plan_comparison(),
         "onprem_tier": onprem_tier,
         "tax_note": load_pricing().get("tax_note", ""),
         "pricing_notes": load_pricing()["notes"],

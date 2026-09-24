@@ -1,10 +1,17 @@
 {% extends "auth_app/auth_base.html" %}
-{% load i18n static %}
+{% load i18n static vite %}
 
 {% block title %}{% trans "Add your payment method" %} - SciTeX{% endblock %}
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/components/payment-step.css' %}?v={{ build_id }}" />
+{% endblock %}
+
+{% block auth_extra_js %}
+    {% if inline_card and inline_card.open %}
+        <script src="https://js.stripe.com/v3/"></script>
+        {% vite_script 'shared/components/inline-card-setup' %}
+    {% endif %}
 {% endblock %}
 
 {% block auth_content %}
@@ -117,8 +124,49 @@
 
             <p class="payment-step-card-note">
                 <i class="fas fa-lock" aria-hidden="true"></i>
-                {% trans "Your card number and CVC are entered on the payment provider's secure page. SciTeX never sees or stores them." %}
+                {% if inline_card and inline_card.open %}
+                    {% trans "Your card number and CVC are entered here but go directly to Stripe — SciTeX never sees or stores them." %}
+                {% else %}
+                    {% trans "Your card number and CVC are entered on the payment provider's secure page. SciTeX never sees or stores them." %}
+                {% endif %}
             </p>
+
+            {% if inline_card and inline_card.open %}
+                {# Inline Elements form: no redirect, the trial starts on this  #}
+                {# page. The hosted Checkout button below stays as the fallback. #}
+                <form id="inline-card-form"
+                      class="payment-step-form"
+                      data-publishable-key="{{ inline_card.publishable_key }}"
+                      data-intent-url="{% url 'public_app:billing_setup_intent' %}"
+                      data-confirm-url="{% url 'public_app:billing_confirm_card' %}"
+                      data-plan="{{ pricing_id }}">
+                    <div class="inline-card-field">
+                        <label for="inline-card-number">{% trans "Card number" %}</label>
+                        <div id="inline-card-number" class="inline-card-element"></div>
+                    </div>
+                    <div class="inline-card-row">
+                        <div class="inline-card-field">
+                            <label for="inline-card-expiry">{% trans "Expiry" %}</label>
+                            <div id="inline-card-expiry" class="inline-card-element"></div>
+                        </div>
+                        <div class="inline-card-field">
+                            <label for="inline-card-cvc">{% trans "CVC" %}</label>
+                            <div id="inline-card-cvc" class="inline-card-element"></div>
+                        </div>
+                    </div>
+                    <p id="inline-card-errors" class="payment-step-notice" hidden></p>
+                    <button type="submit"
+                            id="inline-card-submit"
+                            class="payment-step-continue"
+                            data-busy-label="{% trans 'Saving your card…' %}"
+                            data-payment-action="inline-continue">
+                        {% trans "Start trial with this card" %}
+                    </button>
+                </form>
+                <p class="payment-step-fineprint">
+                    {% trans "Prefer the hosted page instead?" %}
+                </p>
+            {% endif %}
 
             {# POST to the setup endpoint. The plan is bound server-side (checked  #}
             {# against the deployment's allowlist) and carried in the provider     #}
@@ -144,6 +192,19 @@
             <p class="payment-step-fineprint">
                 {% blocktrans %}You can cancel any time before the trial ends and you will not be charged.{% endblocktrans %}
             </p>
+            <form method="post"
+                  action="{{ request.path }}"
+                  class="payment-step-form payment-step-form--free"
+                  data-submit-guard="true">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="continue-free" />
+                <button type="submit"
+                        class="payment-step-secondary-action"
+                        data-busy-label="{% trans 'Starting your free workspace…' %}"
+                        data-payment-action="continue-free">
+                    {% trans "Continue with the Free plan — no card needed" %}
+                </button>
+            </form>
         {% endif %}
     </div>
 {% endblock %}

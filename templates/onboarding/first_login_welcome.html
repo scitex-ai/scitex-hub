@@ -6,42 +6,35 @@
 {# Contract (pinned by tests/apps/accounts_app/test_first_login_project_choice): #}
 {#   * data-first-login-welcome="true" marks the surface                        #}
 {#   * each choice carries data-action="<stable key>"                           #}
-{#   * the workspace facts (identity, NAS-02, 32 GB storage-not-RAM, compute)    #}
-{#     are stated BEFORE the choice                                             #}
+{#   * three plain-language facts are stated BEFORE the choice (no infra nouns: #}
+{#     no host names, no storage-vs-RAM lectures)                               #}
 {#   * no data-active-project is rendered: nothing is preselected                #}
 <section class="first-login" data-first-login-welcome="true" aria-labelledby="first-login-title">
     <div class="first-login-panel">
-        <p class="first-login-eyebrow">{% trans "Welcome to SciTeX" %}</p>
         <h1 class="first-login-title" id="first-login-title">
-            {% trans "Your private research workspace is ready" %}
+            {% trans "Choose a project to open" %}
         </h1>
         <p class="first-login-lead">
-            {% trans "One project connects your literature, data, figures, manuscript and collaborators. You choose which project to open — nothing is created or opened for you." %}
+            {% trans "One project connects your literature, data, figures, manuscript and collaborators." %}
         </p>
 
         <ul class="first-login-facts">
             <li class="first-login-fact">
                 <i class="fas fa-user-shield" aria-hidden="true"></i>
                 <span>
-                    <strong>{% trans "Your own Linux identity" %}</strong>
-                    {% if linux_username %}
-                        <code class="first-login-code">{{ linux_username }}</code>
-                    {% endif %}
-                    {% trans "— the same account on login nodes, compute jobs, Files and every app. No guest or shared identity." %}
+                    {% trans "Yours alone — your files, nothing shared." %}
                 </span>
             </li>
             <li class="first-login-fact">
                 <i class="fas fa-hard-drive" aria-hidden="true"></i>
                 <span>
-                    <strong>{{ workspace_gb }} GB {% trans "private, persistent workspace" %}</strong>
-                    {% blocktrans with host=workspace_host|default:"NAS-02" %}{{ host }} — storage, not RAM. It survives logout, restarts and compute jobs, and it is available from Files, apps and the scheduler.{% endblocktrans %}
+                    {% blocktrans with gb=workspace_gb %}{{ gb }} GB of persistent, cold storage for your files.{% endblocktrans %}
                 </span>
             </li>
             <li class="first-login-fact">
                 <i class="fas fa-microchip" aria-hidden="true"></i>
                 <span>
-                    <strong>{% trans "Compute through the scheduler" %}</strong>
-                    {% trans "Jobs and app runs are scheduler-accounted on the same workspace, so outputs land back in the project you are working in." %}
+                    {% trans "Run analyses and apps; results land back in your project." %}
                 </span>
             </li>
         </ul>
@@ -61,14 +54,14 @@
                           data-available="false"
                           aria-disabled="true">
                         {{ action.label }}
-                        <span class="first-login-action-note">{% trans "not available yet" %}</span>
+                        <span class="first-login-action-note">{% trans "coming soon" %}</span>
                     </span>
                 {% endif %}
             {% endfor %}
         </div>
 
         <p class="first-login-hint">
-            {% trans "Create project is the primary path: name it, choose its location, and you land inside it. Your choice is remembered next time you sign in." %}
+            {% trans "Create project is the primary path: name it and you land inside it. Your choice is remembered next time you sign in." %}
         </p>
     </div>
 </section>

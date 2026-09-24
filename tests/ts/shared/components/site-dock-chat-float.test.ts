@@ -28,6 +28,22 @@ describe("floating dock chat", () => {
     });
   });
 
+  it("matches the launcher width with aligned left edges on desktop", () => {
+    // Launcher 632 wide at left 324 on a 1280 viewport.
+    const dock = { left: 324, top: 640, width: 632, height: 150 };
+    const rect = panelRect(dock, { width: 1280, height: 800 });
+    expect(rect.width).toBe(632);
+    expect(rect.left).toBe(324);
+    expect(rect.top).toBe(640 - 8 - rect.height);
+  });
+
+  it("a parked (left) launcher gets a same-width aligned panel", () => {
+    const dock = { left: 8, top: 640, width: 500, height: 150 };
+    const rect = panelRect(dock, { width: 1280, height: 800 });
+    expect(rect.width).toBe(500);
+    expect(rect.left).toBe(8);
+  });
+
   it("maximize then restore returns to the small size", () => {
     expect(toggleMaximized(toggleMaximized(false))).toBe(false);
   });

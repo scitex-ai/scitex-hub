@@ -13,6 +13,7 @@ from apps.infra.public_app.services.billing_provider import (
     card_registration_is_open,
     confirmed_trial_window,
     get_billing_provider,
+    inline_card_form_info,
     subscription_pricing_rows,
     trial_window,
 )
@@ -95,6 +96,16 @@ def payment_step(request):
         # the "any existing user can enter the signup payment flow" defect.
         return redirect("accounts_app:billing")
 
+    if request.method == "POST" and request.POST.get("action") == "continue-free":
+        # The free exit: no card, no trial, no provider round-trip. The user
+        # must be able to be free — this page may never be a dead end that
+        # only a card can open.
+        from apps.infra.auth_app.onboarding import mark_free
+
+        if mark_free(user) is None:
+            return redirect("accounts_app:billing")
+        return redirect(first_product_url())
+
     if not card_registration_is_open():
         # No card can be taken yet (provider not configured). Still render THIS
         # step rather than borrowing the generic billing page: the funnel stays one
@@ -162,6 +173,10 @@ def payment_step(request):
             # The funnel's last step: a provider-confirmed account goes to its
             # first project rather than being left on this page.
             "first_product_url": first_product_url(),
+            # Inline Elements form (card number/CVC on this page, confirmed
+            # browser-to-Stripe). Offered only when the deployment holds both
+            # keys; otherwise the hosted Checkout button stays the only path.
+            "inline_card": inline_card_form_info(),
         }
     )
     return render(request, "accounts_app/payment_step.html", context)

@@ -6,6 +6,7 @@ import { readActiveProjectSlug } from "./components/_global-ai-chat/context";
 import { AIPanelChatMode } from "./components/_global-ai-chat/chat-mode";
 import { AIPanelConsoleMode } from "./components/_global-ai-chat/console-mode";
 import { initEvalJsRelay } from "./components/_global-ai-chat/eval-js-relay";
+import { initActionRegistry } from "./components/ui-action/registry";
 import { initFileDrop } from "./components/_global-ai-chat/file-drop";
 import { AIPanelJobsMode } from "./components/_global-ai-chat/jobs-mode";
 import { startJobsBadgePoller } from "./components/_global-ai-chat/jobs-badge-poller";
@@ -247,6 +248,10 @@ class GlobalAIChat {
 
     // Start eval-js WebSocket relay for MCP tool bridge
     initEvalJsRelay();
+
+    // Named UI action registry (M-x layer): every agent-reachable UI
+    // mutation is invocable as SciTeX.actions.invoke("name", args).
+    initActionRegistry();
 
     // Restore AI panel mode on back/forward navigation
     window._appNav?.onRestore((state) => {

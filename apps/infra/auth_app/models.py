@@ -230,6 +230,19 @@ class PendingSignup(models.Model):
     reconciled_at = models.DateTimeField(null=True, blank=True)
     reconciled_by = models.CharField(max_length=255, blank=True, default="")
 
+    class Plan(models.TextChoices):
+        #: Chose the free tier: no card is ever owed, so verification
+        #: completes the funnel (authority starts at PRODUCT).
+        FREE = "free", "Free tier"
+        #: Chose the paid trial: a provider-confirmed subscription is still
+        #: owed after verification (authority starts at PAYMENT).
+        TRIAL = "trial", "Paid trial"
+
+    #: Which funnel the submitter chose on the signup page. Read once by
+    #: mark_verified, then the marker is deleted. Default TRIAL preserves
+    #: every flow that never offered the choice (legacy, operator-created).
+    plan = models.CharField(max_length=16, choices=Plan.choices, default=Plan.TRIAL)
+
     class Meta:
         verbose_name = "Pending Signup"
         verbose_name_plural = "Pending Signups"
@@ -607,3 +620,21 @@ def log_user_login(sender, request, user, **kwargs):
         logger.info(f"Login recorded: {user.username} via {method}")
     except Exception as e:
         logger.error(f"Failed to log login for {user.username}: {e}")
+
+
+def is_academic_email(email) -> bool:
+    """Worldwide academic recognition: JetBrains swot database UNION the JP list.
+
+    ``swot`` covers universities/colleges globally (including .ac.jp) but not
+    JP government research institutes (riken.jp, aist.go.jp, ...), which the
+    local list above keeps. Lazy import: without the ``swot`` package the JP
+    list alone decides.
+    """
+    if is_japanese_academic_email(email):
+        return True
+    try:
+        import swot
+
+        return bool(swot.is_academic(email or ""))
+    except Exception:
+        return False

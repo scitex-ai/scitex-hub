@@ -29,6 +29,16 @@
   padding-inline: 14px 0;
   background: var(--chat-brand-navy, #1a2a40);
   color: #ffffff;
+  /* Grabbable: the head drags the panel (buttons keep pointer). */
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.site-dock-chat--dragging,
+.site-dock-chat--dragging * {
+  cursor: grabbing !important;
 }
 
 .site-dock-chat-title {

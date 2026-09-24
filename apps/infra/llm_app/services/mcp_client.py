@@ -148,6 +148,16 @@ def build_tool_result_message(tool_call, result_text: str) -> dict[str, Any]:
     }
 
 
+def _preview_value(value, limit: int = 200) -> str:
+    """Short human-readable preview of a tool arg/result for the chat UI."""
+    try:
+        text = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False)
+    except (TypeError, ValueError):
+        text = repr(value)
+    text = " ".join(str(text).split())
+    return text[:limit] + ("…" if len(text) > limit else "")
+
+
 async def run_tool_loop(
     *,
     litellm_model: str,
@@ -156,9 +166,10 @@ async def run_tool_loop(
     tools: list[dict[str, Any]],
     max_tokens: int = 8192,
     temperature: float = 0.3,
+    max_rounds: int = MAX_TOOL_ROUNDS,
+    tool_executor=None,
 ) -> tuple[str, list[str], dict[str, Any]]:
-    """
-    Run the LLM + tool-call loop until a text response is produced.
+    """Run the LLM + tool-call loop until a text response is produced.
 
     Returns:
         (final_text, tools_used, usage): The assistant reply, list of tool names
@@ -168,6 +179,7 @@ async def run_tool_loop(
     import litellm
 
     tools_used: list[str] = []
+    tool_trace: list[dict] = []
     accumulated_prompt_tokens = 0
     accumulated_completion_tokens = 0
     accumulated_cost = 0.0
@@ -184,7 +196,9 @@ async def run_tool_loop(
         except Exception:
             pass
 
-    for _round in range(MAX_TOOL_ROUNDS):
+    _exec = tool_executor or execute_tool_call
+
+    for _round in range(max_rounds):
         response = await litellm.acompletion(
             model=litellm_model,
             messages=messages,
@@ -205,6 +219,7 @@ async def run_tool_loop(
                 "total_tokens": accumulated_prompt_tokens
                 + accumulated_completion_tokens,
                 "estimated_cost_usd": accumulated_cost,
+                "tool_trace": tool_trace,
             }
             return assistant_msg.content or "", tools_used, usage
 
@@ -223,10 +238,17 @@ async def run_tool_loop(
             logger.info("MCP tool call: %s(%s)", tool_name, list(args.keys()))
 
             try:
-                result_text = await execute_tool_call(tool_name, args)
+                result_text = await _exec(tool_name, args)
             except Exception as exc:
                 logger.error("MCP tool %s failed: %s", tool_name, exc)
                 result_text = f"Error executing {tool_name}: {exc}"
+            tool_trace.append(
+                {
+                    "name": tool_name,
+                    "args_preview": _preview_value(args),
+                    "result_preview": _preview_value(result_text),
+                }
+            )
 
             messages.append(build_tool_result_message(tc, result_text))
 
@@ -244,6 +266,7 @@ async def run_tool_loop(
         "completion_tokens": accumulated_completion_tokens,
         "total_tokens": accumulated_prompt_tokens + accumulated_completion_tokens,
         "estimated_cost_usd": accumulated_cost,
+        "tool_trace": tool_trace,
     }
     return response.choices[0].message.content or "", tools_used, usage
 

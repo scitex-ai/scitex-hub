@@ -14,6 +14,35 @@ from apps.infra.project_app.models import Project
 
 logger = logging.getLogger(__name__)
 
+# Project scope: "single" (one current project) or "all" (the user's whole
+# scope — the "All projects" selector option). Stored in the session only:
+# it is a view preference, not identity, so it must never touch
+# last_active_repository or the current_project_* session keys that
+# get_current_project() reads.
+PROJECT_SCOPE_SINGLE = "single"
+PROJECT_SCOPE_ALL = "all"
+_PROJECT_SCOPES = (PROJECT_SCOPE_SINGLE, PROJECT_SCOPE_ALL)
+
+
+def set_project_scope(request, scope):
+    """Persist the user's project scope choice ("single" or "all")."""
+    if scope not in _PROJECT_SCOPES:
+        raise ValueError(
+            f"unknown project scope {scope!r}; expected one of {_PROJECT_SCOPES}."
+        )
+    request.session["project_scope"] = scope
+
+
+def get_project_scope(request):
+    """The user's project scope; "single" unless they picked "All projects"."""
+    scope = request.session.get("project_scope", PROJECT_SCOPE_SINGLE)
+    return scope if scope in _PROJECT_SCOPES else PROJECT_SCOPE_SINGLE
+
+
+def is_all_projects_scope(request):
+    """True when the user picked the "All projects" selector option."""
+    return get_project_scope(request) == PROJECT_SCOPE_ALL
+
 
 def _owned_project(user, slug):
     if not slug:

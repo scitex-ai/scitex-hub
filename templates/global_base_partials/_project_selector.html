@@ -1,0 +1,114 @@
+{% comment %}
+  Normalized project selector — ONE component for every application.
+
+  Contract (behavior lives in shared/components/project-selector, bound by
+  data-ps-* attributes, never by the styling classes):
+    data-ps-root    the component root (one per instance; several per page OK)
+    data-ps-toggle  opens/closes the menu
+    data-ps-label   shows the current project name or "All projects"
+    data-ps-menu    the dropdown (hidden attribute toggled)
+    data-ps-filter  fuzzy-filters items by data-ps-search
+    data-ps-item    one button per option; data-project-id="__all__" is the
+                    "All projects" scope option (user-scope pages only)
+    data-ps-new     "New project" link (plain anchor, works without JS)
+
+  Params (pass with {% include ... with ... %}):
+    ps_variant  "header" (Writer/Scholar headers) or "sidebar"
+    ps_projects iterable of projects (id/slug/name/owner.username)
+    ps_current  the current project or None
+    ps_scope_all True when the "All projects" scope is active
+    ps_show_all  True on user-scope pages (offers "All projects");
+                 False inside a project (request.project is set)
+{% endcomment %}
+{% load i18n %}
+<div data-ps-root
+     data-ps-variant="{{ ps_variant|default:'header' }}"
+     {% if ps_variant == "sidebar" %}class="sidebar-project-selector" id="sidebar-project-selector"{% else %}class="header-project-selector"{% endif %}>
+    {% if ps_variant == "sidebar" %}
+    <button type="button"
+            class="sidebar-project-btn"
+            data-ps-toggle
+            id="sidebar-project-toggle"
+            title="{% if ps_scope_all %}{% trans "All projects" %}{% elif ps_current %}{{ ps_current.owner.username }}/{{ ps_current.slug }}{% endif %}">
+        <i class="fas fa-rocket sidebar-project-icon"></i>
+        <span class="sidebar-project-name sidebar-project-full sidebar-label" data-ps-label>{% if ps_scope_all %}{% trans "All projects" %}{% elif ps_current %}{{ ps_current.owner.username }}/{{ ps_current.slug }}{% else %}{% trans "Select project" %}{% endif %}</span>
+        <span class="sidebar-project-name sidebar-project-short" data-ps-label-short>{% if ps_scope_all %}{% trans "All" %}{% elif ps_current %}{{ ps_current.slug }}{% else %}—{% endif %}</span>
+        <i class="fas fa-chevron-down sidebar-project-chevron sidebar-label"></i>
+    </button>
+    <div class="sidebar-project-dropdown" data-ps-menu hidden id="sidebar-project-dropdown">
+        <div class="sidebar-project-filter">
+            <i class="fas fa-search sidebar-project-filter-icon"></i>
+            <input type="text"
+                   data-ps-filter
+                   id="sidebar-project-filter-input"
+                   class="sidebar-project-filter-input"
+                   placeholder="{% trans "Find project..." %}"
+                   autocomplete="off" />
+        </div>
+        <div class="sidebar-project-list" id="sidebar-project-list">
+            {% if ps_show_all %}
+            <button type="button"
+                    class="sidebar-project-item"
+                    data-ps-item
+                    data-project-id="__all__"
+                    data-scope="all"
+                    data-project-search="all projects">
+                <span>{% trans "All projects" %}</span>
+                {% if ps_scope_all %}<i class="fas fa-check sidebar-project-check"></i>{% endif %}
+            </button>
+            {% endif %}
+            {% for project in ps_projects %}
+            <button type="button"
+                    class="sidebar-project-item"
+                    data-ps-item
+                    data-project-id="{{ project.id }}"
+                    data-project-name="{{ project.name }}"
+                    data-project-slug="{{ project.slug }}"
+                    data-project-owner="{{ project.owner.username }}"
+                    data-project-search="{{ project.owner.username }}/{{ project.slug }} {{ project.name }}">
+                <span>{{ project.owner.username }}/{{ project.slug }}</span>
+                {% if not ps_scope_all and ps_current and ps_current.id == project.id %}<i class="fas fa-check sidebar-project-check"></i>{% endif %}
+            </button>
+            {% endfor %}
+        </div>
+        <a href="/new/" class="sidebar-project-new" data-ps-new>
+            <i class="fas fa-plus"></i>
+            <span>{% trans "New project" %}</span>
+        </a>
+    </div>
+    {% else %}
+    <button type="button" class="project-selector-btn" data-ps-toggle>
+        <span class="project-selector-text" data-ps-label>{% if ps_scope_all %}{% trans "All projects" %}{% elif ps_current %}{{ ps_current.name }}{% else %}{% trans "Select project" %}{% endif %}</span>
+    </button>
+    <div class="project-selector-dropdown" data-ps-menu hidden>
+        <input type="text"
+               data-ps-filter
+               class="project-selector-filter"
+               placeholder="{% trans "Find project..." %}"
+               autocomplete="off" />
+        {% if ps_show_all %}
+        <button type="button"
+                class="dropdown-project-item"
+                data-ps-item
+                data-project-id="__all__"
+                data-scope="all">
+            <span class="project-item-name">{% trans "All projects" %}</span>
+            <span class="project-item-check" {% if not ps_scope_all %}style="display:none"{% endif %}>✓</span>
+        </button>
+        {% endif %}
+        {% for project in ps_projects %}
+        <button type="button"
+                class="dropdown-project-item"
+                data-ps-item
+                data-project-id="{{ project.id }}"
+                data-project-name="{{ project.name }}"
+                data-project-slug="{{ project.slug }}"
+                data-project-owner="{{ project.owner.username }}">
+            <span class="project-item-name">{{ project.name }}</span>
+            <span class="project-item-check" {% if ps_scope_all or not ps_current or ps_current.id != project.id %}style="display:none"{% endif %}>✓</span>
+        </button>
+        {% endfor %}
+        <a href="/new/" class="dropdown-project-item dropdown-create-new" data-ps-new>{% trans "New project" %}</a>
+    </div>
+    {% endif %}
+</div>

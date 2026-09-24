@@ -45,11 +45,25 @@ SCITEX_HUB_INTERNAL_APPS_RELEASED = (
 # Functions
 # ---------------------------------------
 def test_redis_connection():
-    """Test if Redis is available"""
+    """Test if Redis is available.
+
+    Probes the host/port of SCITEX_HUB_REDIS_URL — NOT a hardcoded
+    127.0.0.1. Inside compose the broker is the `redis` hostname; probing
+    localhost fails there and Django silently degrades to locmem cache +
+    db sessions (measured on dev: redis healthy, CACHES on locmem).
+    """
     try:
+        from urllib.parse import urlparse
+
+        url = os.environ.get(
+            "SCITEX_HUB_REDIS_URL", "redis://127.0.0.1:6379/1"
+        )
+        parts = urlparse(url)
+        host = parts.hostname or "127.0.0.1"
+        port = parts.port or 6379
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(1)
-        result = sock.connect_ex(("127.0.0.1", 6379))
+        result = sock.connect_ex((host, port))
         sock.close()
         return result == 0
     except:

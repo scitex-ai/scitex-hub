@@ -534,3 +534,23 @@ def verify_credentials_api(request):
 
     except json.JSONDecodeError:
         return JsonResponse({"success": False, "error": "Invalid JSON."}, status=400)
+
+
+@require_http_methods(["POST"])
+def check_email_academic(request):
+    """API endpoint: is this email from a recognized academic domain?
+
+    Worldwide recognition via :func:`models.is_academic_email` (swot UNION
+    the JP research list). Read-only hint for the signup form; decides
+    nothing about the account.
+    """
+    try:
+        data = json.loads(request.body)
+        email = (data.get("email") or "").strip()
+        if not email or "@" not in email:
+            return JsonResponse({"academic": False}, status=200)
+        from .models import is_academic_email
+
+        return JsonResponse({"academic": bool(is_academic_email(email))})
+    except json.JSONDecodeError:
+        return JsonResponse({"academic": False}, status=200)

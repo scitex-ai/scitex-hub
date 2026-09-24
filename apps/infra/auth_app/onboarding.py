@@ -126,8 +126,35 @@ def mark_verified(user, source: str = "email") -> OnboardingState:
     nothing behind, so "has this account finished signing up?" had no answer.
     """
     with transaction.atomic():
+        pending = PendingSignup.objects.filter(user=user).first()
+        chosen_plan = getattr(pending, "plan", "") or "trial"
         PendingSignup.objects.filter(user=user).delete()
-        return _ensure(user, source=source)
+        row = _ensure(user, source=source)
+        if chosen_plan == "free":
+            # Free tier owes no card and no provider event will ever come:
+            # verification COMPLETES this funnel. Same shape as the verified
+            # card-skip below (verified + owes nothing -> PRODUCT), but keyed
+            # on the submitter's own choice read from the marker before it
+            # was deleted — never from a browser claim, never inferred.
+            row.step = PRODUCT
+            row.pricing_id = "subscription-free"
+            row.activated_at = timezone.now()
+            row.save(
+                update_fields=["step", "pricing_id", "activated_at", "updated_at"]
+            )
+            logger.info("Onboarding completed free for %s", user.pk)
+            return row
+    # One-shot signup may already hold a usable card (taken on the signup
+    # page before the address was proven). A verified account with a card on
+    # file owes nothing: advance straight past the payment step instead of
+    # gating an already-paid account.
+    try:
+        if user.payment_methods.filter(is_usable=True).exists():
+            advanced = mark_activated(user, pricing_id=str(row.pricing_id or ""))
+            return advanced if advanced is not None else row
+    except Exception:
+        logger.exception("Verified card-skip check failed open for %s", user.pk)
+    return row
 
 
 def begin_social_signup(user, provider: str) -> OnboardingState:
@@ -161,6 +188,31 @@ def mark_activated(user, *, pricing_id: str = "") -> Optional[OnboardingState]:
     row.activated_at = timezone.now()
     row.save(update_fields=["step", "pricing_id", "activated_at", "updated_at"])
     logger.info("Onboarding activated for %s (pricing_id=%r)", user.pk, pricing_id)
+    return row
+
+
+def mark_free(user, *, source: str = "payment-step") -> Optional[OnboardingState]:
+    """The account chose the Free plan: PAYMENT -> PRODUCT with no card.
+
+    The escape hatch for anyone the funnel holds at the payment step — a
+    social signup, a legacy trial-plan marker, or anyone who simply does not
+    want a trial. Same durable shape as the free branch of
+    :func:`mark_verified` (verified + owes nothing -> PRODUCT), but callable
+    after the fact. Idempotent; a non-funnel account returns None and the
+    gate never sees them.
+    """
+    row = state_for(user)
+    if row is None:
+        return None
+    if row.step == PRODUCT:
+        return row
+    if row.step != PAYMENT:
+        return row
+    row.step = PRODUCT
+    row.pricing_id = "subscription-free"
+    row.activated_at = timezone.now()
+    row.save(update_fields=["step", "pricing_id", "activated_at", "updated_at"])
+    logger.info("Onboarding completed free for %s (source=%s)", user.pk, source)
     return row
 
 
