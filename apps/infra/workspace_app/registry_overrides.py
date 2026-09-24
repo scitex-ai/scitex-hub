@@ -34,10 +34,10 @@ _CLEW_SVG_TAB = (
 
 MANIFEST_OVERRIDES: dict[str, dict] = {
     "clew": {"icon_svg_tab": _CLEW_SVG_TAB, "icon_svg_nav": _CLEW_SVG_NAV},
-    # The installed Stats release mounts successfully but does not yet render
-    # the Hub project/version/provider contract and its project-default writes
-    # have not passed authorization/filesystem review.  Keep the tile truthful
-    # and non-launchable until the leaf publishes the complete contract; no
-    # Stats business logic lives in Hub.
-    "stats": {"scope": "project", "availability": "coming_soon"},
+    # Stats rides the hub-side login boundary (apps.workspace.stats_app):
+    # scitex-stats 0.2.27 renders the Hub project/version/provider contract
+    # (own version + current project id, fail-closed on unauthorized
+    # projects) and the host registers HubProjectProvider, so the tile is
+    # launchable. No Stats business logic lives in Hub.
+    "stats": {"scope": "project", "availability": "available"},
 }

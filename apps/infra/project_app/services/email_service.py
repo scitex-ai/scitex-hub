@@ -152,7 +152,7 @@ class EmailService:
     def send_welcome_email(user):
         """Send welcome email after successful verification"""
         try:
-            subject = "Welcome to SciTeX - Your Scientific Research Platform"
+            subject = "Welcome to SciTeX Cloud — your research workspace is ready"
 
             html_message = f"""
             <!DOCTYPE html>
@@ -165,7 +165,7 @@ class EmailService:
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <div style="text-align: left; margin-bottom: 30px;">
                     <img src="{SITE_URL}/static/shared/images/scitex_logos/scitex-logo-cropped.png" alt="SciTeX Logo" style="height: 60px; margin-bottom: 20px;">
-                    <h2 style="margin-top: 20px;">Welcome to Scientific Excellence!</h2>
+                    <h2 style="margin-top: 20px;">Welcome to SciTeX Cloud!</h2>
                 </div>
 
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
@@ -175,17 +175,17 @@ class EmailService:
                     <div style="margin: 20px 0;">
                         <h3 style="color: #4a6baf;">What you can do now:</h3>
                         <ul>
-                            <li><strong>SciTeX-Writer:</strong> Create and manage scientific documents</li>
-                            <li><strong>SciTeX-Scholar:</strong> Search and explore scientific literature</li>
-                            <li><strong>SciTeX-Code:</strong> Manage your research code and analysis</li>
-                            <li><strong>SciTeX-Engine:</strong> AI-powered research assistance</li>
-                            <li><strong>SciTeX-Viz:</strong> Create stunning scientific visualizations</li>
+                            <li><strong>Scholar:</strong> Search scientific literature — abstracts, citations, impact factors, PDFs</li>
+                            <li><strong>Writer:</strong> Draft manuscripts connected to your literature and data</li>
+                            <li><strong>Projects:</strong> Manage research code, data, and figures in one place</li>
+                            <li><strong>Chat &amp; Agents:</strong> AI-powered research assistance inside your project</li>
+                            <li><strong>FigRecipe:</strong> Create publication-ready figures</li>
                         </ul>
                     </div>
 
                     <div style="text-align: center; margin: 30px 0;">
-                        <a href="{SITE_URL}/dashboard/" style="display: inline-block; background: #4a6baf; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
-                            Go to Dashboard
+                        <a href="{SITE_URL}/" style="display: inline-block; background: #4a6baf; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                            Open your workspace
                         </a>
                     </div>
                 </div>
@@ -194,7 +194,7 @@ class EmailService:
                     <div style="text-align: center; margin-bottom: 15px;">
                         <img src="{SITE_URL}/static/shared/images/scitex_logos/scitex-icon/scitex-icon-navy-inverted-48x48.png" alt="SciTeX" style="height: 32px; opacity: 0.6;">
                     </div>
-                    <p>Need help getting started? Check out our <a href="{SITE_URL}/docs/">documentation</a> or <a href="{SITE_URL}/contact/">contact support</a>.</p>
+                    <p>Need help getting started? Check out our <a href="{SITE_URL}/docs/">documentation</a> or contact us at <a href="mailto:info@scitex.ai">info@scitex.ai</a>.</p>
                     <p>Happy researching!</p>
                     <p>The SciTeX Team</p>
                 </div>
@@ -211,15 +211,15 @@ class EmailService:
             Welcome to SciTeX! Your email has been verified and your account is now active.
 
             What you can do now:
-            - SciTeX-Writer: Create and manage scientific documents
-            - SciTeX-Scholar: Search and explore scientific literature
-            - SciTeX-Code: Manage your research code and analysis
-            - SciTeX-Engine: AI-powered research assistance
-            - SciTeX-Viz: Create stunning scientific visualizations
+            - Scholar: Search scientific literature — abstracts, citations, impact factors, PDFs
+            - Writer: Draft manuscripts connected to your literature and data
+            - Projects: Manage research code, data, and figures in one place
+            - Chat & Agents: AI-powered research assistance inside your project
+            - FigRecipe: Create publication-ready figures
 
-            Visit your dashboard: {SITE_URL}/dashboard/
+            Open your workspace: {SITE_URL}/
 
-            Need help getting started? Check out our documentation at {SITE_URL}/docs/
+            Need help getting started? Check out our documentation at {SITE_URL}/docs/ or contact us at info@scitex.ai
 
             Happy researching!
             The SciTeX Team
@@ -228,7 +228,7 @@ class EmailService:
             result = send_mail(
                 subject=subject,
                 message=plain_message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
+                from_email=f"SciTeX Cloud <{settings.DEFAULT_FROM_EMAIL}>",
                 recipient_list=[user.email],
                 html_message=html_message,
                 fail_silently=True,  # Don't fail registration if welcome email fails

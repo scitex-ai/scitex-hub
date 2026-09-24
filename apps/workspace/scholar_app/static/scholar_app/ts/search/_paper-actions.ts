@@ -42,7 +42,8 @@ function getSelectedProjectId(): string | null {
 }
 
 /**
- * Save a search result paper to the user's project bibliography
+ * Save a search result paper to the user's Scholar library (user scope).
+ * With a project selected, the paper is additionally symlinked into it.
  */
 async function saveToProject(
   buttonEl: HTMLElement,
@@ -55,10 +56,8 @@ async function saveToProject(
   }
 
   const projectId = getSelectedProjectId();
-  if (!projectId) {
-    showToast("No project selected. Please select a project first.", "warning");
-    return;
-  }
+  // No project selected: save to the user-scope library only
+  // (~/.scitex/scholar/library). With a project: also symlink into it.
 
   const csrfToken = getCsrfToken();
   if (!csrfToken) {
@@ -72,7 +71,7 @@ async function saveToProject(
 
   try {
     const formData = new URLSearchParams();
-    formData.append("project_id", projectId);
+    formData.append("project_id", projectId ?? "");
     formData.append("title", data.title);
     formData.append("authors", data.authors);
     formData.append("year", data.year);
@@ -99,7 +98,7 @@ async function saveToProject(
         data.title.length > 50
           ? data.title.substring(0, 50) + "..."
           : data.title;
-      showToast(`Saved "${shortTitle}" to ${result.project}`, "success");
+      showToast(`Saved "${shortTitle}" to ${result.project ?? "your library"}`, "success");
 
       buttonEl.innerHTML = '<i class="fas fa-bookmark"></i>';
       buttonEl.classList.add("saved");

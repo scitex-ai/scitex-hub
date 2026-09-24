@@ -8,8 +8,67 @@ from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.views.decorators.http import require_http_methods
 import json
+import logging
+import subprocess
+import sys
+import tempfile
 import threading
+import time
+from pathlib import Path
+from django.utils import timezone
 from ..models import CodeExecutionJob
+
+logger = logging.getLogger(__name__)
+
+
+def execute_code_safely(job: CodeExecutionJob) -> None:
+    """Run a CodeExecutionJob's source in a subprocess, record the result.
+
+    Shared by the editor "Run Code" flow and the analysis flow. User code
+    runs as the web container user with the job's timeout; stdout/stderr,
+    return code, status and timestamps are written back to the job row so
+    the frontend status poll can render them.
+    """
+    job.status = "running"
+    job.started_at = timezone.now()
+    job.save(update_fields=["status", "started_at"])
+    started = time.monotonic()
+    script_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".py", delete=False, dir="/tmp"
+        ) as f:
+            f.write(job.source_code or "")
+            script_path = f.name
+        try:
+            result = subprocess.run(
+                [sys.executable, script_path],
+                capture_output=True,
+                text=True,
+                timeout=job.timeout_seconds or 300,
+            )
+        except subprocess.TimeoutExpired as e:
+            job.status = "timeout"
+            job.output = e.stdout.decode() if isinstance(e.stdout, bytes) else (e.stdout or "")
+            job.error_output = "Code execution timed out."
+        else:
+            job.return_code = result.returncode
+            job.output = result.stdout or ""
+            job.error_output = result.stderr or ""
+            job.status = "completed" if result.returncode == 0 else "failed"
+    except Exception as e:  # never leave a job stuck in "running"
+        logger.exception("Code execution failed for job %s", job.job_id)
+        job.status = "failed"
+        job.error_output = f"Execution error: {e}"
+    finally:
+        if script_path:
+            try:
+                Path(script_path).unlink()
+            except OSError:
+                pass
+        job.execution_time = time.monotonic() - started
+        job.completed_at = timezone.now()
+        job.save()
 
 
 @login_required
@@ -58,12 +117,13 @@ def execute_code(request):
     """Execute code via web interface."""
     try:
         data = json.loads(request.body)
-        code = data.get("code", "").strip()
+        # Frontend sends {"code": ...}; accept legacy {"console": ...} too.
+        code = (data.get("code", "") or data.get("console", "")).strip()
         execution_type = data.get("type", "script")
         timeout = min(int(data.get("timeout", 300)), 600)
         max_memory = min(int(data.get("max_memory", 512)), 2048)
 
-        if not console:
+        if not code:
             return JsonResponse({"error": "Code is required"}, status=400)
 
         # Create execution job
@@ -77,7 +137,7 @@ def execute_code(request):
 
         # Start execution in background
         def run_execution():
-            execute_code_safely(job)  # noqa: F821 - Legacy code, function not available
+            execute_code_safely(job)
 
         execution_thread = threading.Thread(target=run_execution)
         execution_thread.daemon = True

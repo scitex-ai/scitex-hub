@@ -85,7 +85,7 @@ def environment_detail(request, env_id):
 
     if not env_info:
         messages.error(request, "Environment not found.")
-        return redirect("console:environments")
+        return redirect("console_app:environments")
 
     context = {"environment": env_info}
     return render(request, "console_app/environment_detail.html", context)

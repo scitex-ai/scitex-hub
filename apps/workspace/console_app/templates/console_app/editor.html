@@ -23,6 +23,8 @@
     flex: 1;
     display: flex;
     flex-direction: column;
+    min-height: 0;
+    overflow-y: auto; /* keep the 300px output panel reachable on short viewports */
   }
 
   .editor-toolbar {
@@ -35,12 +37,14 @@
   }
 
   .code-editor {
-    flex: 1;
+    flex: 0 0 auto;
     border: none;
   }
 
   .CodeMirror {
-    height: 100%;
+    height: auto;
+    min-height: 180px;
+    max-height: 38vh; /* leave room for the output panel at 720p */
     font-family: "Fira Code", "Monaco", "Menlo", monospace;
   }
 
@@ -172,7 +176,7 @@
                 {% endfor %}
             </div>
             <div class="mt-3">
-                <a href="{% url "console:notebooks" %}"
+                <a href="{% url "console_app:notebooks" %}"
                    class="btn btn-sm btn-outline-primary w-100">
                     <i class="fas fa-plus me-1"></i>Manage Notebooks
                 </a>
@@ -183,11 +187,11 @@
             <!-- Toolbar -->
             <div class="editor-toolbar">
                 <div class="me-3">
-                    <a href="{% url "console:templates" %}"
+                    <a href="{% url "console_app:templates" %}"
                        class="btn btn-sm btn-outline-secondary me-2">
                         <i class="fas fa-file-code me-1"></i>Templates
                     </a>
-                    <a href="{% url "console:analysis" %}"
+                    <a href="{% url "console_app:analysis" %}"
                        class="btn btn-sm btn-outline-secondary">
                         <i class="fas fa-chart-bar me-1"></i>Analysis
                     </a>
@@ -315,7 +319,7 @@
       outputPanel.innerHTML =
         '<div class="text-info">Starting code execution...</div>';
 
-      fetch('{% url "console:execute_code" %}', {
+      fetch('{% url "console_app:execute_code" %}', {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -323,7 +327,7 @@
             .value,
         },
         body: JSON.stringify({
-          console: code,
+          code: code,
           type: executionType,
           timeout: timeout,
           max_memory: maxMemory,
@@ -353,7 +357,7 @@
       statusCheckInterval = setInterval(function () {
         if (!currentJobId) return;
 
-        fetch(`/code/jobs/${currentJobId}/status/`)
+        fetch(`/apps/console/jobs/${currentJobId}/status/`)
           .then((response) => response.json())
           .then((data) => {
             updateJobStatus(data);
