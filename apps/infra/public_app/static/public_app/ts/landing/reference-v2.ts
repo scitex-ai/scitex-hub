@@ -90,3 +90,42 @@ if (document.readyState === "loading") {
 } else {
   initLandingCarousels();
 }
+
+function initClipLightbox(root: ParentNode = document): void {
+  const openers = Array.from(
+    root.querySelectorAll<HTMLButtonElement>('.landing-v2-clip-open'),
+  );
+  openers.forEach((opener) => {
+    const figure = opener.closest('figure');
+    const box = figure?.querySelector<HTMLElement>('.landing-v2-clip-lightbox');
+    const frame = box?.querySelector<HTMLIFrameElement>('iframe');
+    const close = box?.querySelector<HTMLButtonElement>('.landing-v2-clip-close');
+    if (!box || !frame || !close) return;
+    const src = opener.dataset.clipSrc ?? '';
+    opener.addEventListener('click', () => {
+      frame.src = src;
+      box.hidden = false;
+      document.body.style.overflow = 'hidden';
+      close.focus();
+    });
+    const hide = (): void => {
+      box.hidden = true;
+      frame.removeAttribute('src');
+      document.body.style.overflow = '';
+      opener.focus();
+    };
+    close.addEventListener('click', hide);
+    box.addEventListener('click', (event: MouseEvent) => {
+      if (event.target === box) hide();
+    });
+    document.addEventListener('keydown', (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !box.hidden) hide();
+    });
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => initClipLightbox());
+} else {
+  initClipLightbox();
+}
