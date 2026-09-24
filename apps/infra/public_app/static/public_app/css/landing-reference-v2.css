@@ -707,6 +707,18 @@
 
 .landing-v2-open-photo {
   min-height: 560px;
+  /* Photo fills the whole card (same technique as hero-photo). */
+  display: grid;
+}
+.landing-v2-open-photo picture {
+  display: contents;
+}
+.landing-v2-open-photo img {
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+  min-height: 560px;
+  object-fit: cover;
 }
 
 .landing-v2-open-photo figcaption {

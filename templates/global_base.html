@@ -98,6 +98,25 @@
           {% if request.initial_pane %}data-initial-pane="{{ request.initial_pane }}"{% endif %}
           {% if request.chat_session_token %}data-chat-session-token="{{ request.chat_session_token }}"{% endif %}
           class="{% if request.GET.embed == '1' %}stx-embed {% endif %}{% if request.path == '/' or request.path == '/apps/' or request.path == '/landing/' %}workspace-page{% if request.path == '/landing/' or not user.is_authenticated %} landing-page{% else %} no-transition app-home{% endif %}{% elif active_module %}workspace-page {{ active_module.body_class }} no-transition{% elif '/workspace/' in request.path %}workspace-page no-transition{% elif '/explore/' in request.path %}workspace-page explore-page{% endif %}">
+        <style>
+            /* Skip link: keyboard users jump past the header to the content. */
+            .stx-skip-link {
+                position: absolute;
+                left: 0.5rem;
+                top: -4rem;
+                z-index: 2000;
+                padding: 0.5rem 1rem;
+                background: var(--bg-surface);
+                color: var(--text-primary);
+                border: 2px solid var(--text-primary);
+                border-radius: 0.4rem;
+                transition: top 0.15s ease-in-out;
+            }
+            .stx-skip-link:focus {
+                top: 0.5rem;
+            }
+        </style>
+        <a href="#main-content" class="stx-skip-link">{% trans "Skip to content" %}</a>
         <!-- Loading screen — hides FOUC until CSS/JS adds body.app-ready -->
         <!-- hook-bypass: inline-script -->
         <div id="app-loading-screen">
@@ -123,6 +142,18 @@
         </script>
         <!-- Hidden CSRF token for JavaScript API calls -->
         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
+        <!-- Beta strip: honest beta posture on every page (not in embeds).
+             Copy: beta + rough edges expected + test payments only +
+             no retention promise + contribute invitation. -->
+        {% if ALPHA_RELEASE and request.GET.embed != '1' %}
+        <div class="stx-alpha-strip" role="note">
+            <span class="stx-alpha-strip-badge">{% trans "Beta" %}</span>
+            <span>{% trans "SciTeX Cloud is in beta \u2014 expect rough edges while we polish." %}</span>
+            <span>{% trans "Payments run in test mode only (no real charges)." %}</span>
+            <span>{% trans "No data retention guaranteed." %}</span>
+            <span>{% trans "Found a problem or want to contribute?" %} <a href="mailto:info@scitex.ai">info@scitex.ai</a></span>
+        </div>
+        {% endif %}
         <!-- Header: shown on non-workspace pages only (sidebar replaces it on workspace) -->
         {% if request.GET.embed != '1' %}{% include 'global_base_partials/global_header.html' %}{% endif %}
         <!-- Django Messages (success hidden — only show errors/warnings) -->
