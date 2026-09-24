@@ -254,7 +254,8 @@
         "name": "Hot",
         "meaning": "Highest-speed job and scratch storage",
         "included_with_compute": true,
-        "note": "Temporary; not intended as durable storage"
+        "note": "Temporary; not intended as durable storage",
+        "reference_speed": "Hot (write ~1400 MB/s, read cache-inflated; local scratch reference, varies by host and case)"
       },
       {
         "name": "Warm",
@@ -267,7 +268,7 @@
         "meaning": "Default user storage",
         "amount": 0.03,
         "note": "32 GB included with paid Cloud plans",
-        "reference_speed": "reference measurement over network storage: ~1100 MB/s read, ~677 MB/s write; varies by workload and network"
+        "reference_speed": "Cool (write ~426 MB/s, read cache-inflated; network-storage reference, varies by workload, network and case)"
       },
       {
         "name": "Cold",
