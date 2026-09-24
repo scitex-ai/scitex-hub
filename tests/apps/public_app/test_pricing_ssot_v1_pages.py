@@ -4,7 +4,7 @@
 
 Operator decisions of 2026-09-14 pinned here, against the RENDERED pages:
 - prices are USD (Cloud Academic $19/mo, Cloud Standard $39/mo, Self-Hosted
-  Commercial License from $2,400/year, Setup from $2,000, Maintenance from
+  Enterprise License from $2,400/year, Setup from $2,000, Maintenance from
   $650/mo, Custom Development from $1,300/project, Consulting from $65/hr) and
   32 GB Cool storage is included;
 - no JPY price band, and no retired early-adopter strikethrough;

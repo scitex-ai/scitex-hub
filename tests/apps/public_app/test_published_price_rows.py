@@ -278,12 +278,14 @@ def test_self_hosted_license_group_contrasts_agpl_vs_commercial() -> None:
 
     rows = plan_comparison()["rows"]
     by_label = {r["label"]: r["cells"] for r in rows if "label" in r}
-    assert by_label["Commercial use"][2] == (
-        "AGPL: Source disclosure required\nCommercial: No restrictions"
-    )
-    assert by_label["Support"][2] == "AGPL: Community\nCommercial: Included"
-    assert by_label["SLA"][2] == "AGPL: —\nCommercial: Included"
-    assert any(r.get("group") == "Self-hosted license" for r in rows)
+    assert by_label["Commercial use"] == [
+        "—",
+        "—",
+        "Source disclosure required",
+        "No restrictions",
+    ]
+    assert by_label["Support"] == ["—", "—", "Community", "Included"]
+    assert by_label["SLA"] == ["—", "—", "—", "Included"]
 
 
 def test_metered_rates_and_api_rows_come_from_the_ssot() -> None:
@@ -314,7 +316,7 @@ def test_metered_rates_and_api_rows_come_from_the_ssot() -> None:
     assert nowrap["API keys"] is True
     assert nowrap["Scholar, Stats, FigRecipe and Writer"] is False
     assert nowrap["Compute credits"] is False
-    assert by_label["API keys"] == ["Rate-limited", "Included", "—"]
+    assert by_label["API keys"] == ["Rate-limited", "Included", "—", "—"]
     services = by_label["Scholar, Stats, FigRecipe and Writer"]
     assert "no separate per-app fee" in services[0]
     assert "20% service fee" not in services[0]
@@ -332,25 +334,13 @@ def test_license_and_notes_render_japanese() -> None:
 
     comp = plan_comparison()
     rows = comp["rows"]
-    license_cells = [
-        r["cells"][2] for r in rows if "cells" in r and "AGPL:" in r["cells"][2]
-    ]
-    assert len(license_cells) == 3  # commercial use, support, SLA
-    assert license_cells[0].startswith("AGPL: ")
-    assert "\n商用: " in license_cells[0]
     by_label = {r["label"]: r["cells"] for r in rows if "label" in r}
+    comm_use = next(r["cells"] for r in rows if "cells" in r and r["cells"][2:] == ["ソース開示が必要", "制限なし"])
+    assert comm_use[:2] == ["—", "—"]
     assert by_label["CPU"][2] == "ご自身のハードウェア"
     notes = " ".join(comp["notes"])
     assert "VRAMの単独料金はありません" in notes
     assert "コンピュートクレジットは、" in notes
-    cols = comp["columns"]
-    assert [c["label"] for c in cols] == [
-        "SciTeX™ Cloud Free",
-        "SciTeX™ Cloud Pro",
-        "SciTeX™ Self-Hosted",
-    ]
-    assert [c["recommended"] for c in cols] == [False, True, False]
-    assert all(c["cta_label"] and c["cta_url"] for c in cols)
 
 
 @translation.override("ja")
@@ -394,3 +384,13 @@ def test_table_notes_come_from_the_ssot() -> None:
     assert "academic (50% off)" in price_row["cells"][1]
     hot_key = next(k for k in by_label if k.startswith("Hot"))
     assert "tier-speed" in hot_key and "tier-sub" in hot_key
+    cols = comp["columns"]
+    assert [c["label"] for c in cols] == [
+        "SciTeX™ Cloud Free",
+        "SciTeX™ Cloud Pro",
+        "SciTeX™ Self-Hosted (AGPL)",
+        "SciTeX™ Self-Hosted (Enterprise)",
+    ]
+    assert [c["recommended"] for c in cols] == [False, True, False, False]
+    assert all(c["cta_label"] and c["cta_url"] for c in cols)
+    assert cols[2]["cta_external"] is True

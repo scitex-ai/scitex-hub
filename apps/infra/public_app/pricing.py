@@ -175,6 +175,7 @@ def _metered_and_api_rows() -> list[dict[str, Any]]:
                 rate(g["amount"], _("%(price)s / GPU-hour")),
                 rate(g["amount"], _("%(price)s / GPU-hour")),
                 dash,
+                dash,
             ],
         }
         for g in comp["gpus"]
@@ -182,6 +183,7 @@ def _metered_and_api_rows() -> list[dict[str, Any]]:
     key_cells = [
         _API_KEY_DISPLAY[keys["free"]],
         _API_KEY_DISPLAY[keys["pro"]],
+        _API_KEY_DISPLAY[keys["self_hosted"]],
         _API_KEY_DISPLAY[keys["self_hosted"]],
     ]
     metered_line = coming_soon(
@@ -192,12 +194,12 @@ def _metered_and_api_rows() -> list[dict[str, Any]]:
         {"group": coming_soon(_("Metered compute rates"))},
         {
             "label": _("Metered CPU"),
-            "cells": [cpu_cell, cpu_cell, dash],
+            "cells": [cpu_cell, cpu_cell, dash, dash],
             "nowrap": True,
         },
         {
             "label": _("Metered memory"),
-            "cells": [mem_cell, mem_cell, dash],
+            "cells": [mem_cell, mem_cell, dash, dash],
             "nowrap": True,
         },
         *({**r, "nowrap": True} for r in gpu_rows),
@@ -205,7 +207,7 @@ def _metered_and_api_rows() -> list[dict[str, Any]]:
         {"label": _("API keys"), "cells": key_cells, "nowrap": True},
         {
             "label": _API_SERVICES_ROW_LABEL,
-            "cells": [metered_line, metered_line, dash],
+            "cells": [metered_line, metered_line, dash, dash],
         },
     ]
 
@@ -670,43 +672,47 @@ def plan_comparison(today=None):
     agpl_terms = agpl["attributes"].get("license_terms") or {}
     comm_terms = commercial["attributes"].get("license_terms") or {}
 
-    def license_cell(term):
-        """One two-line "AGPL: … / Commercial: …" cell from BOTH rows' dicts.
-
-        Two labeled lines, not one slash-joined sentence: at table widths the
-        slash form wrapped into an unparsable 3-line mix (measured live).
-        Cells render through the linebreaksbr filter, so "\\n" is the break.
-        """
+    def license_value(terms, term):
+        """One side's display value, validated against the closed enum."""
         if term not in _LICENSE_TERM_DISPLAY:
             raise ValueError(
                 f"unknown license term {term!r}; extend _LICENSE_TERM_DISPLAY."
             )
         display = _LICENSE_TERM_DISPLAY[term]
-        for row_id, terms in (("selfhosted-agpl", agpl_terms),
-                              ("selfhosted-commercial", comm_terms)):
-            if terms.get(term) not in display:
-                raise ValueError(
-                    f"{row_id} license_terms[{term!r}] is "
-                    f"{terms.get(term)!r}; fix pricing.json."
-                )
-        return _("AGPL: %(a)s\nCommercial: %(c)s") % {
-            "a": display[agpl_terms[term]],
-            "c": display[comm_terms[term]],
-        }
+        if terms.get(term) not in display:
+            raise ValueError(
+                f"license_terms[{term!r}] is {terms.get(term)!r}; "
+                "fix pricing.json."
+            )
+        return display[terms[term]]
 
     license_rows = [
-        {"group": _("Self-hosted license")},
         {
             "label": _LICENSE_TERM_LABELS["commercial_use"],
-            "cells": [_("—"), _("—"), license_cell("commercial_use")],
+            "cells": [
+                _("—"),
+                _("—"),
+                license_value(agpl_terms, "commercial_use"),
+                license_value(comm_terms, "commercial_use"),
+            ],
         },
         {
             "label": _LICENSE_TERM_LABELS["support"],
-            "cells": [_("—"), _("—"), license_cell("support")],
+            "cells": [
+                _("—"),
+                _("—"),
+                license_value(agpl_terms, "support"),
+                license_value(comm_terms, "support"),
+            ],
         },
         {
             "label": _LICENSE_TERM_LABELS["sla"],
-            "cells": [_("—"), _("—"), license_cell("sla")],
+            "cells": [
+                _("—"),
+                _("—"),
+                license_value(agpl_terms, "sla"),
+                license_value(comm_terms, "sla"),
+            ],
         },
     ]
     price_cells = [
@@ -715,44 +721,44 @@ def plan_comparison(today=None):
         # column, not a footnote.
         _("%(pro)s\n%(acad_price)s academic (50%% off)")
         % {"pro": pro["price"], "acad_price": academic["price"]},
-        _("%(agpl)s (AGPL) / %(comm)s (Commercial)")
-        % {"agpl": agpl["price"], "comm": commercial["price"]},
+        agpl["price"],
+        commercial["price"],
     ]
     spec = [
         {"label": _("Price"), "cells": price_cells},
         {"group": _("Resources")},
         {
             "label": _("CPU"),
-            "cells": [cpu_cell(free), cpu_cell(pro), hosted_line],
+            "cells": [cpu_cell(free), cpu_cell(pro), hosted_line, hosted_line],
         },
         {
             "label": _("RAM"),
-            "cells": [ram_cell(free), ram_cell(pro), hosted_line],
+            "cells": [ram_cell(free), ram_cell(pro), hosted_line, hosted_line],
         },
         {
             "label": _("GPU"),
-            "cells": [gpu_cell(free), gpu_cell(pro), hosted_line],
+            "cells": [gpu_cell(free), gpu_cell(pro), hosted_line, hosted_line],
         },
         {
             "label": _("Compute credits"),
-            "cells": [credit_cell(free), credit_cell(pro), hosted_line],
+            "cells": [credit_cell(free), credit_cell(pro), hosted_line, hosted_line],
         },
         {"group": _("Storage")},
         {
             "label": tier_label("Hot"),
-            "cells": [tier_cell(free, "Hot"), tier_cell(pro, "Hot"), hosted_line],
+            "cells": [tier_cell(free, "Hot"), tier_cell(pro, "Hot"), hosted_line, hosted_line],
         },
         {
             "label": tier_label("Warm"),
-            "cells": [tier_cell(free, "Warm"), tier_cell(pro, "Warm"), hosted_line],
+            "cells": [tier_cell(free, "Warm"), tier_cell(pro, "Warm"), hosted_line, hosted_line],
         },
         {
             "label": tier_label("Cool"),
-            "cells": [tier_cell(free, "Cool"), tier_cell(pro, "Cool"), hosted_line],
+            "cells": [tier_cell(free, "Cool"), tier_cell(pro, "Cool"), hosted_line, hosted_line],
         },
         {
             "label": tier_label("Cold"),
-            "cells": [tier_cell(free, "Cold"), tier_cell(pro, "Cold"), hosted_line],
+            "cells": [tier_cell(free, "Cold"), tier_cell(pro, "Cold"), hosted_line, hosted_line],
         },
     ] + license_rows + _metered_and_api_rows()
     from django.urls import reverse
@@ -774,7 +780,15 @@ def plan_comparison(today=None):
                 "cta_primary": True,
             },
             {
-                "label": _("SciTeX™ Self-Hosted"),
+                "label": _("SciTeX™ Self-Hosted (AGPL)"),
+                "recommended": False,
+                "cta_label": _("Get the source"),
+                "cta_url": "https://github.com/scitex-ai/scitex-hub",
+                "cta_primary": False,
+                "cta_external": True,
+            },
+            {
+                "label": _("SciTeX™ Self-Hosted (Enterprise)"),
                 "recommended": False,
                 "cta_label": _("Contact us"),
                 "cta_url": reverse("public_app:contact"),
