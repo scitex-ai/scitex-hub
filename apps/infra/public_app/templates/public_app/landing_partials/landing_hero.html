@@ -15,7 +15,7 @@
                 {% trans "Review from your phone. Work in the browser. Run where compute lives." %}
             </p>
             <div class="landing-v2-actions">
-                <a href="{% url 'auth_app:signup' %}" class="hero-cta-button">{% trans "Try SciTeX™ Cloud with 30-day Free Trial" %}<span aria-hidden="true">→</span></a>
+                <a href="{% url 'auth_app:signup' %}" class="hero-cta-button">{% trans "Try SciTeX™ Cloud with a 30-day free trial" %}<span aria-hidden="true">→</span></a>
                 <a href="#pricing" class="landing-v2-button landing-v2-button-quiet">{% trans "See pricing" %}</a>
             </div>
             <p class="landing-v2-signin">
@@ -23,7 +23,7 @@
                 <a href="{% url 'auth_app:signin' %}">{% trans "Sign in" %}</a>
             </p>
             <p class="landing-v2-alpha">
-                {% blocktrans with version=SCITEX_HUB_VERSION %}Alpha Release ({{ version }}) — Data persistence and API stability are not guaranteed. For production use, install the local Python toolkit. Any contribution welcome:{% endblocktrans %}
+                {% blocktrans with version=SCITEX_HUB_VERSION %}Alpha Release ({{ version }}) — Data persistence and API stability are not guaranteed. For production use, install the local Python toolkit. Contributions welcome:{% endblocktrans %}
                 <a href="mailto:{{ CONTACT_EMAIL }}">{{ CONTACT_EMAIL }}</a>
             </p>
             <ul class="landing-v2-hero-rail" aria-label="{% trans 'One project across devices and compute' %}">

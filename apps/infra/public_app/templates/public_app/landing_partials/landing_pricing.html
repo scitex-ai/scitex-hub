@@ -1,11 +1,12 @@
 {% load i18n landing_i18n %}
 {% comment %}
    Unified plans table: the Pricing cards and the Compare-plans matrix
-   merged into one. Three columns (SciTeX™ Cloud Free / SciTeX™ Cloud Pro /
-   SciTeX™ Self-Hosted), one CTA per column, Pro recommended. Every cell
-   renders from data/pricing.json through pricing.plan_comparison() — never
-   a hand-written copy. Academic pricing lives in the Pro price cell, not
-   in a footnote.
+   merged into one. Four columns (SciTeX™ Cloud Free / SciTeX™ Cloud Pro /
+   SciTeX™ Self-Hosted AGPL / SciTeX™ Self-Hosted Enterprise), one CTA per
+   column, Pro recommended. Every cell renders from data/pricing.json
+   through pricing.plan_comparison() — never a hand-written copy. Academic
+   pricing lives in the Pro price cell, not in a footnote. Rows flagged
+   with code/coupon_input_col render the in-cell coupon form.
 {% endcomment %}
 <section class="landing-section section-pricing" id="pricing">
     <div class="container">

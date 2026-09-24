@@ -153,8 +153,8 @@ msgstr "支援する"
 #, python-format
 msgid ""
 "Alpha Release (%(version)s) — Data persistence and API stability are not "
-"guaranteed. For production use, install the local Python toolkit. Any "
-"contribution welcome:"
+"guaranteed. For production use, install the local Python toolkit. "
+"Contributions welcome:"
 msgstr ""
 "アルファ版 (%(version)s) — データの保持と API の安定性は保証されません。"
 "本番環境でのご利用にはローカルの Python ツールキットをおすすめします。"
@@ -772,8 +772,8 @@ msgstr "無料"
 msgid "License"
 msgstr "ライセンス"
 
-msgid "Try SciTeX™ Cloud with 30-day Free Trial"
-msgstr "30日間無料トライアルで SciTeX™ クラウドを試す"
+msgid "Try SciTeX™ Cloud with a 30-day free trial"
+msgstr "30日間の無料トライアルで SciTeX™ クラウドを試す"
 
 msgid "¥ Ask"
 msgstr "¥ お問い合わせ"
@@ -7283,8 +7283,8 @@ msgstr "標準の研究アプリを表示する SciTeX Hub のアプリランチ
 #: apps/infra/public_app/templates/public_app/landing.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
-msgid "App launcher from the tracked in-repository product guide."
-msgstr "リポジトリで管理されている製品ガイドのアプリランチャー。"
+msgid "The Hub app launcher."
+msgstr "Hub アプリランチャー。"
 
 #: apps/infra/public_app/templates/public_app/landing.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
@@ -7301,8 +7301,8 @@ msgstr "情報源、並べ替え、フィルターのパネルを備えた SciTe
 #: apps/infra/public_app/templates/public_app/landing.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
-msgid "Search workspace from the tracked in-repository product guide."
-msgstr "リポジトリで管理されている製品ガイドの検索画面。"
+msgid "The Scholar search workspace."
+msgstr "Scholar 検索画面。"
 
 #: apps/infra/public_app/templates/public_app/landing.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
@@ -7319,8 +7319,8 @@ msgstr "折れ線、塗りつぶし、積み上げ図のテンプレートを表
 #: apps/infra/public_app/templates/public_app/landing.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
-msgid "Template picker from the tracked in-repository product guide."
-msgstr "リポジトリで管理されている製品ガイドのテンプレート選択画面。"
+msgid "The FigRecipe template picker."
+msgstr "FigRecipe テンプレート選択画面。"
 
 #: apps/infra/public_app/templates/public_app/landing.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
@@ -7337,8 +7337,8 @@ msgstr "LaTeX ソースとコンパイル済み文書のプレビューを表示
 #: apps/infra/public_app/templates/public_app/landing.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
-msgid "Source and preview workspace from the tracked in-repository product guide."
-msgstr "リポジトリで管理されている製品ガイドのソースとプレビュー画面。"
+msgid "The Writer source-and-preview workspace."
+msgstr "Writer ソース・プレビュー画面。"
 
 #: apps/infra/public_app/templates/public_app/landing.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
@@ -7349,8 +7349,8 @@ msgstr "製品画面を選択"
 #: apps/infra/public_app/templates/public_app/landing.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
-msgid "Unedited interface captures from tracked product-guide screenshots; resize and compression only."
-msgstr "管理対象の製品ガイド画像を使用した未編集の画面です。サイズ変更と圧縮のみを行っています。"
+msgid "Unedited screenshots; resized and compressed only."
+msgstr "未編集の画面。そのまま掲載し、サイズ変更と圧縮のみ。"
 
 #: apps/infra/public_app/templates/public_app/landing.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
