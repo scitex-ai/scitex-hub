@@ -342,9 +342,13 @@
 }
 .plan-compare-grouprow th {
   background: var(--bg-muted);
-  font-size: 0.85rem;
+  font-size: 0.95rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
+  padding-top: 1.1rem;
+  padding-bottom: 0.7rem;
+  border-top: 2px solid var(--border-default, #d7dde5);
 }
 .plan-compare-note {
   text-align: center;

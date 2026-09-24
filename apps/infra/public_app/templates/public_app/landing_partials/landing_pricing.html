@@ -33,7 +33,8 @@
                     <tr>
                         <th scope="row">{{ row.label|safe|linebreaksbr }}</th>
                         {% for cell in row.cells %}
-                        <td>{{ cell|linebreaksbr }}</td>
+                        {# Column 1 is Pro (see plan_comparison column order): the full column carries the highlight. #}
+                        <td{% if forloop.counter0 == 1 %} class="plan-col-recommended"{% endif %}>{{ cell|linebreaksbr }}</td>
                         {% endfor %}
                     </tr>
                     {% endif %}
