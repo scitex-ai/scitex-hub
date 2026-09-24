@@ -135,6 +135,7 @@ data/ssh_keys/
 **/*.wav
 **/*.jpg
 !apps/infra/public_app/static/public_app/clew/*.jpg
+!apps/infra/public_app/static/public_app/images/landing-v2/appcreator-1200.png
 **/*.jpeg
 **/*.h5
 **/*.zip

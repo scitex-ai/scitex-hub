@@ -726,6 +726,13 @@
   /* Photo fills the whole card (same technique as hero-photo). */
   display: grid;
 }
+.landing-v2-open-photo img {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  object-fit: contain;
+  border-radius: 12px;
+}
 .landing-v2-open-photo picture {
   display: contents;
 }
@@ -735,6 +742,17 @@
   height: 100%;
   min-height: 560px;
   object-fit: cover;
+}
+/* SDK section uses a real product screenshot: contain, don't crop. */
+#sdk .landing-v2-open-photo {
+  min-height: 0;
+}
+#sdk .landing-v2-open-photo img {
+  grid-area: 1 / 1;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  object-fit: contain;
 }
 
 .landing-v2-open-photo figcaption {
@@ -1003,4 +1021,30 @@
   .landing-v2-philosophy-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Section hash-link anchors ("#" on each section header). */
+.section-anchor {
+  margin-left: 0.4em;
+  font-size: 0.75em;
+  font-weight: 400;
+  color: #C9A45C;
+  text-decoration: none;
+  opacity: 0.55;
+  transition: opacity 0.15s ease;
+}
+h2:hover .section-anchor,
+.section-anchor:focus-visible {
+  opacity: 1;
+}
+.section-anchor:hover {
+  color: #FFB300;
+  text-decoration: underline;
+}
+
+/* Carousel stat highlight: big gold number. */
+.module-demo-stat .feature-stat {
+  font-size: 1.6em;
+  color: #C9A45C;
+  font-weight: 700;
 }

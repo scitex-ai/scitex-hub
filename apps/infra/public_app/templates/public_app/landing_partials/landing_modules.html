@@ -1,11 +1,11 @@
 {% load static i18n %}
 
-<section class="landing-v2-section landing-v2-apps" id="apps" aria-labelledby="landing-v2-apps-title">
+<section class="landing-v2-section landing-v2-apps" id="screenshots" aria-labelledby="landing-v2-apps-title">
     <div class="container landing-v2-shell">
         <div class="landing-v2-intro">
             <div>
                 <p class="landing-v2-eyebrow">{% trans "Built in, connected by design" %}</p>
-                <h2 id="landing-v2-apps-title">{% trans "SciTeX Cloud — one project context" %}</h2>
+                <h2 id="landing-v2-apps-title">{% trans "SciTeX Cloud — one project context" %} <a class="section-anchor" href="#screenshots" aria-label="Link to this section">#</a></h2>
             </div>
             <p>{% trans "Each built-in app specializes. Hub keeps project, files, identity, and commands connected. Custom Apps sit outside the built-ins and extend the same contract." %}</p>
         </div>
@@ -159,7 +159,7 @@
     <div class="container landing-v2-shell landing-v2-clew-grid">
         <div class="landing-v2-clew-copy">
             <p class="landing-v2-eyebrow">{% trans "Verifiable provenance" %}</p>
-            <h2 id="landing-v2-clew-title">{% trans "Follow a claim back to its source." %}</h2>
+            <h2 id="landing-v2-clew-title">{% trans "Follow a claim back to its source." %} <a class="section-anchor" href="#clew" aria-label="Link to this section">#</a></h2>
             <p>{% trans "SciTeX Clew records relationships between research artifacts in a directed acyclic graph. The public example connects a manuscript claim to output, processing, and raw data, resolving the shortest path between them. A “clew” is Ariadne’s ball of thread from Greek mythology, given to Theseus to navigate the Labyrinth and escape the Minotaur — our thread leads back from claim to source." %}</p>
             <ol class="landing-v2-chain" aria-label="{% trans 'Claim to raw data provenance chain' %}">
                 <li>{% trans "Claim" %}</li>
@@ -187,18 +187,18 @@
     </div>
 </section>
 
-<section class="landing-v2-section landing-v2-context" id="context" aria-labelledby="landing-v2-context-title">
+<section class="landing-v2-section landing-v2-context" id="devices" aria-labelledby="landing-v2-context-title">
     <div class="container landing-v2-shell">
         <div class="landing-v2-intro">
             <div>
                 <p class="landing-v2-eyebrow">{% trans "One project, every place" %}</p>
-                <h2 id="landing-v2-context-title">{% trans "The same context, from phone to compute node." %}</h2>
+                <h2 id="landing-v2-context-title">{% trans "The same context, from phone to compute node." %} <a class="section-anchor" href="#devices" aria-label="Link to this section">#</a></h2>
             </div>
             <p>{% trans "Move between a quick mobile review, focused browser work, and HPC over SSH without rebuilding the project around each device." %}</p>
         </div>
         <ol class="landing-v2-context-grid">
             <li>
-                <span class="landing-v2-context-icon" aria-hidden="true"><i class="fa-solid fa-mobile-screen"></i></span>
+                <span class="landing-v2-context-icon" aria-hidden="true"><i class="fa-solid fa-phone"></i></span>
                 <h3>{% trans "Phone" %}</h3>
                 <p>{% trans "Review results, save papers, or capture the next step — from anywhere, even your bed." %}</p>
             </li>
@@ -226,11 +226,11 @@
     </div>
 </section>
 
-<section class="landing-v2-section landing-v2-open" id="create-app" aria-labelledby="landing-v2-create-app-title">
+<section class="landing-v2-section landing-v2-open" id="sdk" aria-labelledby="landing-v2-create-app-title">
     <div class="container landing-v2-shell landing-v2-open-grid">
         <div class="landing-v2-open-copy">
             <p class="landing-v2-eyebrow">Build on SciTeX</p>
-            <h2 id="landing-v2-create-app-title">Create your own app with the SDK.</h2>
+            <h2 id="landing-v2-create-app-title">Create your own app with the SDK. <a class="section-anchor" href="#sdk" aria-label="Link to this section">#</a></h2>
             <p>A Custom App is a first-class citizen: same project, same command contract, same provenance. Ship your lab workflow with the SciTeX SDK.</p>
             <ul>
                 <li>One command contract across Hub apps and yours</li>
@@ -240,20 +240,16 @@
             <a class="landing-v2-button landing-v2-button-primary" href="#pricing">Start building</a>
         </div>
         <figure class="landing-v2-photo landing-v2-open-photo">
-            <picture>
-                <source type="image/webp"
-                        srcset="/static/public_app/images/landing-v2/scholar-768.webp 768w, /static/public_app/images/landing-v2/scholar-1200.webp 1200w" />
-                <img src="/static/public_app/images/landing-v2/scholar-1200.jpg"
-                     width="1200"
-                     height="750"
-                     loading="lazy"
-                     alt="SciTeX Scholar literature search with abstracts and impact factors." />
-            </picture>
+            <img src="/static/public_app/images/landing-v2/appcreator-1200.png"
+                 width="1296"
+                 height="675"
+                 loading="lazy"
+                 alt="SciTeX App Creator: name your app, describe what it should do, pick a starter template, and create it." />
         </figure>
     </div>
 </section>
 
-<section class="landing-v2-section landing-v2-open" id="open" aria-labelledby="landing-v2-open-title">
+<section class="landing-v2-section landing-v2-open" id="byox" aria-labelledby="landing-v2-open-title">
     <div class="container landing-v2-shell landing-v2-open-grid">
         <figure class="landing-v2-photo landing-v2-open-photo">
             <picture>
@@ -269,7 +265,7 @@
         </figure>
         <div class="landing-v2-open-copy">
             <p class="landing-v2-eyebrow">{% trans "Open by design" %}</p>
-            <h2 id="landing-v2-open-title">{% trans "Bring your own projects, collaborators, data, compute, and API keys." %}</h2>
+            <h2 id="landing-v2-open-title">{% trans "Bring your own projects, collaborators, data, compute, and API keys." %} <a class="section-anchor" href="#byox" aria-label="Link to this section">#</a></h2>
             <p>{% trans "Your research. Your infrastructure. Use SciTeX Cloud or self-host, keep human judgment at the center, and plug in whatever the work needs." %}</p>
             <ul>
                 <li>{% trans "Cloud for a managed browser workspace" %}</li>
@@ -289,7 +285,7 @@
         <div class="landing-v2-intro">
             <div>
                 <p class="landing-v2-eyebrow">{% trans "Philosophy" %}</p>
-                <h2 id="landing-v2-philosophy-title">{% trans "Make research more fun" %}</h2>
+                <h2 id="landing-v2-philosophy-title">{% trans "Make research more fun" %} <a class="section-anchor" href="#philosophy" aria-label="Link to this section">#</a></h2>
             </div>
             <p>{% trans "What SciTeX stands for: our mission, vision, and values." %}</p>
         </div>
