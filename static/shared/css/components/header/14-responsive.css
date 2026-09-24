@@ -26,9 +26,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 44px;
-  width: 44px;
-  height: 44px;
+  flex: 0 0 52px;
+  width: 52px;
+  height: 52px;
   padding: 0;
   margin-left: 0;
   background: none;
@@ -342,7 +342,7 @@
   }
 
   .mobile-hamburger i {
-    font-size: 1.2rem;
+    font-size: 1.6rem;
     position: relative;
     z-index: 1;
   }
