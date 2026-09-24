@@ -120,6 +120,23 @@
             <i class="fas fa-circle-half-stroke" aria-hidden="true"></i>
             <span data-theme-toggle-label>{% trans "Switch to dark mode" %}</span>
         </button>
+        <div class="mobile-menu-item mobile-menu-item--indent mobile-menu-lang" role="group" aria-label="{% trans 'Language' %}">
+            <i class="fas fa-globe" aria-hidden="true"></i>
+            {% get_current_language as CURRENT_LANGUAGE %}
+            <form action="{% url 'set_language' %}" method="post" class="mobile-menu-lang-form">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+                <input type="hidden" name="language" value="en" />
+                <button type="submit" class="mobile-menu-lang-btn{% if CURRENT_LANGUAGE == "en" %} is-on{% endif %}">EN</button>
+            </form>
+            <span class="mobile-menu-lang-sep" aria-hidden="true">/</span>
+            <form action="{% url 'set_language' %}" method="post" class="mobile-menu-lang-form">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+                <input type="hidden" name="language" value="ja" />
+                <button type="submit" class="mobile-menu-lang-btn{% if CURRENT_LANGUAGE == "ja" %} is-on{% endif %}">JA</button>
+            </form>
+        </div>
         <button type="button" class="mobile-menu-item mobile-menu-item--indent" id="product-tour-btn" aria-label="{% trans 'Product tour' %}">
             <i class="fas fa-question-circle" aria-hidden="true"></i>
             <span>{% trans "Product tour" %}</span>
