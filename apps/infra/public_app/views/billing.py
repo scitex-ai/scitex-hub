@@ -314,6 +314,111 @@ def start_card_setup(request):
 
 @login_required
 @require_POST
+def billing_setup_intent(request):
+    """ Mint a SetupIntent for the INLINE card form (JSON).
+
+    The funnel account check and the allowlisted-plan binding are identical
+    to :func:`start_card_setup`; only the handoff differs (client secret for
+    Stripe.js instead of a hosted-page redirect). The card number/CVC travel
+    browser-to-Stripe only.
+    """
+    import json as _json
+
+    from apps.infra.accounts_app.payment_step import funnel_plan
+    from apps.infra.auth_app.onboarding import state_for
+
+    if state_for(request.user) is None:
+        return JsonResponse({"ok": False, "error": "use-billing-settings"}, status=403)
+    try:
+        body = _json.loads(request.body.decode("utf-8") or "{}")
+    except ValueError:
+        body = {}
+    row = funnel_plan(request.user, requested_id=(body.get("plan") or request.POST.get("plan")) or None)
+    if row is None:
+        return JsonResponse({"ok": False, "error": "plan-unset"}, status=422)
+    provider = get_billing_provider()
+    if not getattr(provider, "inline_card_form_open", False):
+        return JsonResponse({"ok": False, "error": "inline-not-open"}, status=503)
+    try:
+        setup_intent_id, client_secret = provider.create_setup_intent(
+            request.user, pricing_id=row["id"]
+        )
+    except BillingNotConfigured as exc:
+        return JsonResponse({"ok": False, "error": str(exc)}, status=503)
+    except BillingOperationRefused as exc:
+        return JsonResponse({"ok": False, "error": str(exc)}, status=422)
+    if not client_secret:
+        return JsonResponse({"ok": False, "error": "intent-failed"}, status=502)
+    return JsonResponse(
+        {
+            "ok": True,
+            "setup_intent_id": setup_intent_id,
+            "client_secret": client_secret,
+            "publishable_key": getattr(provider, "publishable_key", "") or "",
+        }
+    )
+
+
+@require_POST
+def billing_confirm_card(request):
+    """Verify a Stripe.js-confirmed SetupIntent and start the trial (JSON).
+
+    The intent must be ``succeeded`` and bound to this user (checked in
+    :func:`stripe_setup.confirm_card_setup`); the plan comes from the
+    onboarding authority, never the browser. Returns ``next`` — the payment
+    step URL the form should reload to render the new state.
+
+    Authentication is EITHER the funnel login (verified user on the payment
+    step) OR the one-shot signup token (unverified account confirming the
+    card it just registered). Anonymous callers without a valid token are
+    refused before anything is read.
+    """
+    import json as _json
+
+    from apps.infra.accounts_app.funnel import payment_step_url
+    from apps.infra.auth_app.onboarding import state_for
+
+    try:
+        body = _json.loads(request.body.decode("utf-8") or "{}")
+    except ValueError:
+        body = {}
+    setup_intent_id = (body.get("setup_intent_id") or request.POST.get("setup_intent_id") or "")
+    if not setup_intent_id:
+        return JsonResponse({"ok": False, "error": "missing-intent"}, status=422)
+    # One-shot signup: the caller is not logged in (the account is still
+    # unverified), so it authorises with the single-purpose token minted
+    # alongside the SetupIntent. The token binds exactly one user to exactly
+    # this intent; anything else stays on the login-required funnel path.
+    signup_token = body.get("signup_token") or request.POST.get("signup_token") or ""
+    user = None
+    if signup_token:
+        from apps.infra.auth_app.signup_card import resolve_signup_card_token
+
+        token_user, token_intent = resolve_signup_card_token(signup_token)
+        if token_user is None or token_intent != setup_intent_id:
+            return JsonResponse({"ok": False, "error": "bad-signup-token"}, status=403)
+        user = token_user
+    else:
+        if state_for(request.user) is None:
+            return JsonResponse({"ok": False, "error": "use-billing-settings"}, status=403)
+        user = request.user
+    try:
+        card = get_billing_provider().confirm_card_setup(
+            user, setup_intent_id=setup_intent_id
+        )
+    except BillingNotConfigured as exc:
+        return JsonResponse({"ok": False, "error": str(exc)}, status=503)
+    except BillingOperationRefused as exc:
+        return JsonResponse({"ok": False, "error": str(exc)}, status=422)
+    except AttributeError:
+        return JsonResponse({"ok": False, "error": "inline-not-open"}, status=503)
+    if card is None:
+        return JsonResponse({"ok": False, "error": "unattributed-intent"}, status=422)
+    return JsonResponse({"ok": True, "next": payment_step_url(setup="complete")})
+
+
+@login_required
+@require_POST
 def start_subscription(request):
     """Continue the trial into the chosen paid plan (``pricing_id`` from pricing.json)."""
     try:
