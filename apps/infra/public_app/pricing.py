@@ -220,6 +220,52 @@ def _metered_and_api_rows() -> list[dict[str, Any]]:
         },
     ]
 
+def _merge_repeated_cells(spec: list[dict]) -> None:
+    """Collapse vertical runs of identical cells with rowspan, in place.
+
+    The self-hosted columns repeat one line ("Your own hardware", or "—"
+    where nothing applies) down whole sections. Rendering every copy turns
+    the table into a wall of repetition, so a run of 2+ identical cells in
+    one column becomes a single cell with rowspan. Runs never cross a
+    group header. The first row gets ``rs2``/``rs3`` spans; the covered
+    rows get ``skip2``/``skip3`` flags (flat keys keep the template free
+    of dict lookups). ``cells`` stay plain strings (tests read them);
+    the template consults the annotations.
+    """
+    MERGEABLE_COLS = (2, 3)  # the two self-hosted plan columns
+    run_value: dict[int, str | None] = {c: None for c in MERGEABLE_COLS}
+    run_start: dict[int, int] = {}
+    labeled = [e for e in spec if "cells" in e]
+
+    def flush(col: int, end: int) -> None:
+        start = run_start.get(col)
+        if start is None or end - start < 2:
+            return
+        labeled[start][f"rs{col}"] = end - start
+        for i in range(start + 1, end):
+            labeled[i][f"skip{col}"] = True
+
+    idx = 0
+    for entry in spec:
+        if "cells" not in entry:
+            for col in MERGEABLE_COLS:
+                flush(col, idx)
+                run_value[col] = None
+                run_start.pop(col, None)
+            continue
+        for col in MERGEABLE_COLS:
+            value = str(entry["cells"][col])
+            if value and value == run_value[col]:
+                pass
+            else:
+                flush(col, idx)
+                run_value[col] = value or None
+                run_start[col] = idx
+        idx += 1
+    for col in MERGEABLE_COLS:
+        flush(col, idx)
+
+
 def _priority_cells() -> list[Any]:
     """Queue-priority cells, same for every shared resource.
 
@@ -837,6 +883,7 @@ def plan_comparison(today=None):
             "cells": [tier_cell(free, "Cold"), tier_cell(pro, "Cold", optional=True), hosted_line, hosted_line],
         },
     ] + license_rows + _metered_and_api_rows()
+    _merge_repeated_cells(spec)
     from django.urls import reverse
 
     return {
