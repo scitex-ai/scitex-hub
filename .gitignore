@@ -119,6 +119,7 @@ data/ssh_keys/
 **/*.mat
 **/*.mp4
 !apps/public_app/static/public_app/videos/landing/*.mp4
+!apps/infra/public_app/static/public_app/clew/*.mp4
 **/*.npy
 **/*.pdf
 **/*.pkl
@@ -133,6 +134,7 @@ data/ssh_keys/
 **/*.tiff
 **/*.wav
 **/*.jpg
+!apps/infra/public_app/static/public_app/clew/*.jpg
 **/*.jpeg
 **/*.h5
 **/*.zip

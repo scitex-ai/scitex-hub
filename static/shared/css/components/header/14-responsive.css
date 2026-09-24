@@ -26,9 +26,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 44px;
-  width: 44px;
-  height: 44px;
+  flex: 0 0 52px;
+  width: 52px;
+  height: 52px;
   padding: 0;
   margin-left: 0;
   background: none;
@@ -101,6 +101,33 @@
 }
 
 .mobile-header-menu .mobile-menu-item--indent {
+/* Hamburger language row: globe + EN / JA inline POST buttons. */
+.mobile-header-menu .mobile-menu-lang {
+  gap: 8px;
+}
+.mobile-header-menu .mobile-menu-lang-form {
+  display: inline;
+  margin: 0;
+}
+.mobile-header-menu .mobile-menu-lang-btn {
+  appearance: none;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--text-secondary);
+  font: inherit;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.mobile-header-menu .mobile-menu-lang-btn.is-on {
+  border-color: var(--border-default);
+  background: var(--bg-muted);
+  color: var(--text-primary);
+}
+.mobile-header-menu .mobile-menu-lang-sep {
+  color: var(--text-muted);
+}
   padding-left: 40px;
 }
 
@@ -315,7 +342,7 @@
   }
 
   .mobile-hamburger i {
-    font-size: 1.2rem;
+    font-size: 1.6rem;
     position: relative;
     z-index: 1;
   }
