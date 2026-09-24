@@ -367,5 +367,17 @@
     "mext_partnership": "50% off all plans — a standing discount to government-funded institutions",
     "pilot_program": "Free (6 months) — Professional-tier features for up to 10 researchers"
   },
-  "_withheld_is_a_gate": "A row with a non-empty `withheld` is in the catalogue and NOT published, whatever its available_from says. It is a stated reason, not a flag — an empty string is not a hold. No row is withheld now, and a test pins that."
+  "_withheld_is_a_gate": "A row with a non-empty `withheld` is in the catalogue and NOT published, whatever its available_from says. It is a stated reason, not a flag — an empty string is not a hold. No row is withheld now, and a test pins that.",
+  "coupons": {
+    "coming_soon": true,
+    "_note": "Coupon codes are the flexible-offer mechanism (e.g. academic 50% off Pro). Redemption is not wired yet, so the row is coming-soon.",
+    "free": "none",
+    "pro": "accepted",
+    "self_hosted_agpl": "none",
+    "self_hosted_enterprise": "on-request"
+  },
+  "links": {
+    "self_hosted_source": "https://github.com/scitex-ai/scitex-hub",
+    "_note": "Outbound URLs the pricing table may link to. Code reads them; never type them in Python or templates."
+  }
 }

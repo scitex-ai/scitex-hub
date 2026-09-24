@@ -7522,6 +7522,18 @@ msgstr "料金はサービスごとに異なる"
 msgid "Applications"
 msgstr "アプリケーション"
 
+#: apps/infra/public_app/pricing.py
+msgid "Coupons"
+msgstr "クーポン"
+
+#: apps/infra/public_app/pricing.py
+msgid "Coupon codes accepted"
+msgstr "クーポンコード利用可"
+
+#: apps/infra/public_app/pricing.py
+msgid "On request"
+msgstr "要相談"
+
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
 msgid "SciTeX Cloud Pro"
 msgstr "SciTeX Cloud Pro"

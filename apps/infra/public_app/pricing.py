@@ -745,8 +745,28 @@ def plan_comparison(today=None):
         agpl["price"],
         commercial["price"],
     ]
+    coupons = load_pricing().get("coupons") or {}
+    coupon_display = {
+        "none": _("—"),
+        "accepted": _("Coupon codes accepted"),
+        "on-request": _("On request"),
+    }
+    coupon_cells = []
+    for key in ("free", "pro", "self_hosted_agpl", "self_hosted_enterprise"):
+        value = coupons.get(key, "none")
+        if value not in coupon_display:
+            raise ValueError(
+                f"coupons[{key!r}] is {value!r} in pricing.json; "
+                "extend coupon_display deliberately."
+            )
+        coupon_cells.append(coupon_display[value])
+    if coupons.get("coming_soon"):
+        coupon_cells[:2] = [
+            coming_soon(c) if c != _("—") else c for c in coupon_cells[:2]
+        ]
     spec = [
         {"label": _("Price"), "cells": price_cells},
+        {"label": _("Coupons"), "cells": coupon_cells},
         {"group": _("Resources")},
         {
             "label": _("CPU"),
@@ -804,7 +824,7 @@ def plan_comparison(today=None):
                 "label": _("SciTeX™ Self-Hosted (AGPL)"),
                 "recommended": False,
                 "cta_label": _("Get the source"),
-                "cta_url": "https://github.com/scitex-ai/scitex-hub",
+                "cta_url": load_pricing()["links"]["self_hosted_source"],
                 "cta_primary": False,
                 "cta_external": True,
             },
