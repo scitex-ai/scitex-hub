@@ -142,6 +142,18 @@ VIDEO_CATALOG = {
             "Auto-exports data CSV alongside plots."
         ),
     },
+    # Clew concept clip (narrated, EN)
+    "clew-concept-clip": {
+        "title": "Clew -- a thread of evidence (concept clip)",
+        "url": "/static/public_app/clew/short-clip-v2.mp4",
+        "thumbnail": "/static/public_app/clew/short-clip-poster.jpg",
+        "date": "2026-09-25",
+        "description": (
+            "A clew of Ariadne -- a thread of evidence that leads the way "
+            "back out of the labyrinth. Follow the thread: SciTeX Clew keeps "
+            "every claim linked to its source. Narrated in English."
+        ),
+    },
     # Cloud demos
     "scitex-hub-v0.11.5": {
         "title": "SciTeX Hub v0.11.5 Demo",
