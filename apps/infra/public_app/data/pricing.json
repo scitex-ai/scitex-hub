@@ -248,7 +248,7 @@
   "rate_card": {
     "_pay_as_you_go": "Pay-as-you-go (PAYG) usage beyond your plan is billed at provider cost plus a 20% service fee.",
     "payg_margin_pct": 20,
-    "_api_usage": "Scholar, Stats, FigRecipe and Writer consume ordinary compute (CPU / memory / GPU) like everything else: no separate per-app or service fee.",
+    "_api_usage": "Applications — Scholar, Stats, FigRecipe, Writer and the rest — follow the metered compute rates like everything else: no separate per-app fee.",
     "storage_tiers": [
       {
         "name": "Hot",
@@ -324,7 +324,7 @@
       "coming_soon": true,
       "keys": {
         "free": "rate-limited",
-        "pro": "included",
+        "pro": "priority-limited",
         "self_hosted": "not-applicable"
       },
       "priority": {
@@ -333,15 +333,9 @@
         "self_hosted": "not-applicable",
         "_note": "Rate-limit queue priority: Pro requests jump ahead of Free when the system is busy. No fake per-minute numbers — priority only."
       },
-      "services": [
-        "scholar",
-        "stats",
-        "figrecipe",
-        "writer"
-      ],
       "agents_fee_percent": 10,
       "_agents": "Agent runs meter their compute like everything else, plus the model API cost passed through at 100 + agents_fee_percent percent.",
-      "_per_service_api": "Model API rates differ per service; individual service rates are not published yet."
+      "_per_service_api": "Model API usage follows the metered compute rates; no per-service fee schedule is published."
     }
   },
   "_policies": "SSOT sections 1 (Academic License boundary), 2 (notes), 6 (additional rules), 7 (SLA) and 8 (price maintenance), as customer copy.",

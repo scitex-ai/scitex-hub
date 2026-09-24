@@ -314,14 +314,20 @@ def test_metered_rates_and_api_rows_come_from_the_ssot() -> None:
     assert nowrap["Metered CPU"] is True
     assert nowrap["RTX 4090 class"] is True
     assert nowrap["API keys"] is True
-    assert nowrap["Scholar, Stats, FigRecipe and Writer"] is False
+    assert nowrap["Applications"] is False
     assert nowrap["Compute credits"] is False
-    assert by_label["API keys"] == ["Rate-limited", "Included", "—", "—"]
-    services = by_label["Scholar, Stats, FigRecipe and Writer"]
-    assert "no separate per-app fee" in services[0]
-    assert "20% service fee" not in services[0]
-    assert "(Coming soon)" in services[0]
-    assert services[2] == "—"
+    assert by_label["API keys"] == [
+        "Standard rate limits",
+        "Priority rate limits",
+        "—",
+        "—",
+    ]
+    apps = by_label["Applications"]
+    assert "no separate fee" in apps[0]
+    assert "20% service fee" not in apps[0]
+    assert "(Coming soon)" in apps[0]
+    assert "Scholar" not in apps[0] and "Writer" not in apps[0]
+    assert apps[2] == "—"
     groups = [r["group"] for r in rows if "group" in r]
     assert "Metered compute rates (Coming soon)" in groups
     assert "Applications" in groups
@@ -329,7 +335,7 @@ def test_metered_rates_and_api_rows_come_from_the_ssot() -> None:
     assert "model API × 110%" in agents[0]
     assert agents[2] == "—"
     model_api = by_label["Model API"]
-    assert "depends on the service" in model_api[0]
+    assert "metered compute rates" in model_api[0]
 
 
 @translation.override("ja")
@@ -356,8 +362,9 @@ def test_metered_and_api_rows_render_japanese() -> None:
     cells = [str(c) for r in rows if "cells" in r for c in r["cells"]]
     text = " ".join(cells)
     assert "CPUユニット時間" in text
-    assert "レート制限あり" in text
-    assert "通常のコンピュート" in text
+    assert "標準レート制限" in text
+    assert "優先レート制限" in text
+    assert "従量コンピュート料金に準じる" in text
 
 
 def test_table_notes_come_from_the_ssot() -> None:
@@ -399,6 +406,7 @@ def test_table_notes_come_from_the_ssot() -> None:
     )
     price_row = next(r for r in rows if r.get("label") == "Price")
     assert "academic (50% off)" in price_row["cells"][1]
+    assert price_row["code"] == "price"
     coupon_row = next(r for r in rows if r.get("label") == "Coupons")
     assert coupon_row["cells"] == [
         "—",
@@ -406,6 +414,10 @@ def test_table_notes_come_from_the_ssot() -> None:
         "—",
         "On request",
     ]
+    # The input + Apply render inside this column's cell (1=Pro) — the row
+    # carries the marker so the template never matches translated labels.
+    assert coupon_row["code"] == "coupons"
+    assert coupon_row["coupon_input_col"] == 1
     hot_key = next(k for k in by_label if k.startswith("Hot"))
     assert "tier-speed" in hot_key and "tier-sub" in hot_key
     cols = comp["columns"]

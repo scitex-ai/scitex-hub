@@ -7515,8 +7515,8 @@ msgid "Model API"
 msgstr "モデルAPI"
 
 #: apps/infra/public_app/pricing.py
-msgid "Rate depends on the service"
-msgstr "料金はサービスごとに異なる"
+msgid "Follow the metered compute rates"
+msgstr "従量コンピュート料金に準じる"
 
 #: apps/infra/public_app/pricing.py
 msgid "Applications"
@@ -7555,8 +7555,8 @@ msgid "Optional"
 msgstr "オプション"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
-msgid "Have a coupon code?"
-msgstr "クーポンコードをお持ちですか?"
+msgid "Coupon code"
+msgstr "クーポンコード"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
 msgid "Apply"
@@ -7775,8 +7775,12 @@ msgid "API"
 msgstr "API"
 
 #: apps/infra/public_app/pricing.py
-msgid "Rate-limited"
-msgstr "レート制限あり"
+msgid "Standard rate limits"
+msgstr "標準レート制限"
+
+#: apps/infra/public_app/pricing.py
+msgid "Priority rate limits"
+msgstr "優先レート制限"
 
 #: apps/infra/public_app/pricing.py
 msgid "Scholar"
@@ -7795,10 +7799,8 @@ msgid "Scholar, Stats, FigRecipe and Writer"
 msgstr "Scholar、Stats、FigRecipe、Writer"
 
 #: apps/infra/public_app/pricing.py
-msgid ""
-"Metered as ordinary compute (CPU / memory / GPU) — "
-"no separate per-app fee"
-msgstr "通常のコンピュート（CPU / メモリ / GPU）として従量課金 — アプリ別の料金なし"
+msgid "Follow the metered compute rates — no separate fee"
+msgstr "従量コンピュート料金に準じる — 別料金なし"
 
 #: apps/infra/public_app/pricing.py
 msgid "Your own hardware"

@@ -30,11 +30,11 @@
                         <th scope="row" colspan="5">{{ row.group }}</th>
                     </tr>
                     {% else %}
-                    <tr>
+                    <tr{% if row.code == "price" %} data-price-row{% endif %}>
                         <th scope="row">{{ row.label|safe|linebreaksbr }}</th>
                         {% for cell in row.cells %}
                         {# Column 1 is Pro (see plan_comparison column order): the full column carries the highlight. #}
-                        <td{% if forloop.counter0 == 1 %} class="plan-col-recommended"{% endif %}>{{ cell|linebreaksbr }}</td>
+                        <td{% if forloop.counter0 == 1 %} class="plan-col-recommended"{% endif %}>{% if row.code == "coupons" and forloop.counter0 == row.coupon_input_col %}<form class="coupon-cell-form" data-coupon-form data-unknown-message="{% trans 'Unknown coupon code.' %}"><input name="coupon" type="text" autocomplete="off" spellcheck="false" placeholder="{{ plan_comparison.coupon_codes.0.code }}" aria-label="{% trans 'Coupon code' %}" data-coupon-input /><button type="submit" class="btn btn-sm" data-coupon-apply>{% trans "Apply" %}</button><span class="coupon-codes" aria-hidden="true">{% for c in plan_comparison.coupon_codes %}<span data-coupon-code="{{ c.code }}" data-coupon-price="{{ c.price }}" data-coupon-description="{{ c.description }}"></span>{% endfor %}</span></form><p class="coupon-message" role="status" data-coupon-message></p>{% else %}{{ cell|linebreaksbr }}{% endif %}</td>
                         {% endfor %}
                     </tr>
                     {% endif %}
@@ -58,23 +58,13 @@
         </div>
         {% endif %}
         {% if plan_comparison.coupon_codes %}
-        <form class="coupon-form" id="coupon-form" data-coupon-form
-              data-unknown-message="{% trans 'Unknown coupon code.' %}">
-            <label class="coupon-label" for="coupon-input">{% trans "Have a coupon code?" %}</label>
-            <span class="coupon-controls">
-                <input id="coupon-input" name="coupon" type="text" autocomplete="off"
-                       spellcheck="false" placeholder="{{ plan_comparison.coupon_codes.0.code }}" data-coupon-input />
-                <button type="submit" class="btn" data-coupon-apply>{% trans "Apply" %}</button>
-            </span>
-            <span class="coupon-codes" aria-hidden="true">{% for c in plan_comparison.coupon_codes %}<span data-coupon-code="{{ c.code }}" data-coupon-price="{{ c.price }}" data-coupon-description="{{ c.description }}"></span>{% endfor %}</span>
-            <p class="coupon-message" role="status" data-coupon-message></p>
-        </form>
         <script>
         (function () {
-            var form = document.querySelector('[data-coupon-form]');
+            var form = document.querySelector('#pricing [data-coupon-form]');
             if (!form) return;
             var input = form.querySelector('[data-coupon-input]');
-            var message = form.querySelector('[data-coupon-message]');
+            // The result line lives in the same cell, under the form.
+            var message = form.parentElement.querySelector('[data-coupon-message]');
             var offers = {};
             form.querySelectorAll('[data-coupon-code]').forEach(function (el) {
                 offers[el.dataset.couponCode.toUpperCase()] = {
@@ -82,19 +72,12 @@
                     description: el.dataset.couponDescription
                 };
             });
-            function priceCell() {
-                var rows = document.querySelectorAll('#pricing .plan-compare-table tbody tr');
-                for (var i = 0; i < rows.length; i++) {
-                    var head = rows[i].querySelector('th[scope="row"]');
-                    if (head && head.textContent.trim() === 'Price') return rows[i].children[2];
-                }
-                return null;
-            }
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
                 var code = (input.value || '').trim().toUpperCase();
                 var offer = offers[code];
-                var cell = priceCell();
+                var priceRow = document.querySelector('#pricing [data-price-row]');
+                var cell = priceRow ? priceRow.children[2] : null;
                 if (offer && cell) {
                     cell.innerHTML = '';
                     cell.appendChild(document.createTextNode(offer.price + ' '));
@@ -102,8 +85,8 @@
                     note.className = 'coupon-applied';
                     note.textContent = '(' + code + ')';
                     cell.appendChild(note);
-                    message.textContent = offer.description;
-                } else {
+                    if (message) message.textContent = offer.description;
+                } else if (message) {
                     message.textContent = form.dataset.unknownMessage;
                 }
             });
