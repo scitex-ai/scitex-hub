@@ -652,16 +652,15 @@ def plan_comparison(today=None):
     def tier_label(tier):
         """Row label with the measured approximate write speed in the cell.
 
-        Speeds are approximate references from `scitex-storage benchmark`
+        Speeds are approximate references from direct-I/O measurements
         (host names deliberately abstracted — backends change as disks are
-        added). Reads are served largely from client cache, so only writes
-        are quoted.
+        added). Reads are true uncached reads, not page-cache numbers.
         """
         approx = {
-            "Hot": _("~1.4 GB/s write"),
-            "Warm": _("~400 MB/s write"),
-            "Cool": _("~100 MB/s write"),
-            "Cold": _("~80 MB/s write"),
+            "Hot": _("~4 GB/s write / ~4 GB/s read"),
+            "Warm": _("~450 MB/s write / ~700 MB/s read"),
+            "Cool": _("~200 MB/s write / ~550 MB/s read"),
+            "Cold": _("~90 MB/s write / ~110 MB/s read"),
         }
         return _("%(tier)s\n%(speed)s") % {"tier": _(tier), "speed": approx[tier]}
 

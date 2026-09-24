@@ -255,28 +255,28 @@
         "meaning": "Highest-speed job and scratch storage",
         "included_with_compute": true,
         "note": "Temporary; not intended as durable storage",
-        "reference_speed": "Hot (write ~1.4 GB/s; local scratch reference, varies by host and case)"
+        "reference_speed": "Hot (write ~4 GB/s, read ~4 GB/s; local scratch reference, varies by host and case)"
       },
       {
         "name": "Warm",
         "meaning": "High-speed persistent storage for active datasets",
         "amount": 0.1,
         "note": "Persistent",
-        "reference_speed": "Warm (write ~400 MB/s; network-storage reference, varies by workload, network and case)"
+        "reference_speed": "Warm (write ~450 MB/s, read ~700 MB/s; network-storage reference, varies by workload, network and case)"
       },
       {
         "name": "Cool",
         "meaning": "Default user storage",
         "amount": 0.03,
         "note": "32 GB included with paid Cloud plans",
-        "reference_speed": "Cool (write ~100 MB/s; network-storage reference, varies by workload, network and case)"
+        "reference_speed": "Cool (write ~200 MB/s, read ~550 MB/s; network-storage reference, varies by workload, network and case)"
       },
       {
         "name": "Cold",
         "meaning": "Long-term, infrequently accessed archive",
         "amount": 0.01,
         "note": "Restore delay may apply",
-        "reference_speed": "Cold (write ~80 MB/s; network-storage reference, varies by workload, network and case)"
+        "reference_speed": "Cold (write ~90 MB/s, read ~110 MB/s; network-storage reference, varies by workload, network and case)"
       }
     ],
     "network": {
