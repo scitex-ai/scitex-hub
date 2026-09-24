@@ -33,6 +33,61 @@ _SIGNUP_RESPONSE_MESSAGE = (
 )
 
 
+def _wants_json(request) -> bool:
+    """AJAX one-shot submit (account + card on one page) rather than a form POST."""
+    return request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
+
+#: Professional sender-failure wording (operator 2026-09-22): when OUR mail
+#: sender is down, the page must say so — "check your inbox" would be a lie.
+#: Identical on every path that attempted a send, so it reveals nothing
+#: per-address (PR #775): a broken sender is a global state, not an oracle.
+_SENDER_DOWN_MESSAGE = (
+    "We couldn't send the verification email because of a problem on our "
+    "side. Our maintainers have been notified and will fix it as soon as "
+    "possible. Your account has been created — please try again shortly. "
+    "If this persists, contact info@scitex.ai."
+)
+
+
+def _sender_down(request, form=None):
+    """Answer a failed OTP send: error banner (or JSON), never a fake success."""
+    import logging as _logging
+
+    _logging.getLogger(__name__).error("Signup mail sender failed; professional error shown")
+    if _wants_json(request):
+        from django.http import JsonResponse
+
+        return JsonResponse({"ok": False, "error": _SENDER_DOWN_MESSAGE}, status=502)
+    messages.error(request, _SENDER_DOWN_MESSAGE)
+    return render(request, "auth_app/signup.html", {"form": form})
+
+
+def _signup_done(request, email, user=None):
+    """The ONE exit of the signup POST: redirect for forms, JSON for one-shot.
+
+    Every outcome — created, resent, resumed, already-active, or error —
+    answers identically (PR #775): the same generic message, the same
+    verify URL. Only a freshly created ``user`` additionally carries a
+    SetupIntent + single-purpose token so the same page can take the card;
+    all other outcomes carry no card payload, and the browser simply
+    continues to verification (the payment step remains the card fallback).
+    """
+    from django.http import JsonResponse
+    from django.urls import reverse
+
+    verify_url = reverse("auth_app:verify_email")
+    target = f"{verify_url}?email={email}"
+    if not _wants_json(request):
+        return redirect(target)
+    payload = {"ok": True, "message": _SIGNUP_RESPONSE_MESSAGE, "verify_url": target}
+    if user is not None:
+        from ..signup_card import mint_signup_setup_intent
+
+        payload["card"] = mint_signup_setup_intent(user)
+    return JsonResponse(payload)
+
+
 def _send_pending_signup_code(request, user, email, logger) -> bool:
     """Issue a fresh verification code for a PENDING signup and mail it.
 
@@ -98,6 +153,7 @@ def signup(request):
             email = form.cleaned_data["email"]
             username = form.cleaned_data["username"]
             password = form.cleaned_data["password"]
+            plan = form.cleaned_data.get("plan") or "free"
 
             # LIFECYCLE DECISION (hub auth lifecycle P0). This block replaces a
             # dead end: the form used to reject any existing row before we got
@@ -143,13 +199,14 @@ def signup(request):
                 # same conditional response as every other outcome. The message is
                 # deliberately conditional ("if that address can be used …"), so it
                 # stays truthful without confirming anything.
+                # Sender-ownership (operator 2026-09-22): when the budget allowed
+                # a send and OUR sender failed it, every outcome says so with
+                # the same professional text — a broken sender is global state.
                 if consume_resend_budget(email):
-                    _send_pending_signup_code(request, existing_user, email, logger)
+                    if not _send_pending_signup_code(request, existing_user, email, logger):
+                        return _sender_down(request, form=form)
                 messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                from django.urls import reverse
-
-                verify_url = reverse("auth_app:verify_email")
-                return redirect(f"{verify_url}?email={email}")
+                return _signup_done(request, email)
 
             elif collision is SignupCollision.PENDING_LIVE:
                 # I2/I5: inside the window the account stands; the only useful
@@ -166,13 +223,12 @@ def signup(request):
                 # same conditional response as every other outcome. The message is
                 # deliberately conditional ("if that address can be used …"), so it
                 # stays truthful without confirming anything.
+                # Sender-ownership: same rule as the PENDING_EXPIRED branch above.
                 if consume_resend_budget(email):
-                    _send_pending_signup_code(request, existing_user, email, logger)
+                    if not _send_pending_signup_code(request, existing_user, email, logger):
+                        return _sender_down(request, form=form)
                 messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                from django.urls import reverse
-
-                verify_url = reverse("auth_app:verify_email")
-                return redirect(f"{verify_url}?email={email}")
+                return _signup_done(request, email)
 
             elif collision in (
                 SignupCollision.ACTIVE,
@@ -194,10 +250,7 @@ def signup(request):
                 # enumeration oracle AND what stops it being a takeover.
                 logger.info("Signup attempt matched an existing account; generic reply")
                 messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                from django.urls import reverse
-
-                verify_url = reverse("auth_app:verify_email")
-                return redirect(f"{verify_url}?email={email}")
+                return _signup_done(request, email)
 
             # Create inactive user (cannot log in until email verified)
             #
@@ -217,10 +270,7 @@ def signup(request):
             except IntegrityError:
                 logger.info("Signup insert lost a race; generic reply")
                 messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                from django.urls import reverse
-
-                verify_url = reverse("auth_app:verify_email")
-                return redirect(f"{verify_url}?email={email}")
+                return _signup_done(request, email)
 
             # Create user profile (should be auto-created by signal, but ensure it exists)
             UserProfile.objects.get_or_create(user=user)
@@ -231,7 +281,7 @@ def signup(request):
             # The verify, resend and cleanup paths all require it. Resend and
             # email-change deliberately never create one — that separation is
             # what stops a suspended account acquiring signup authority.
-            PendingSignup.objects.create(user=user, email=email)
+            PendingSignup.objects.create(user=user, email=email, plan=plan)
 
             # Create Gitea user account (sync with Gitea)
             try:
@@ -268,47 +318,59 @@ def signup(request):
                     # here would be the enumeration oracle: identical wording
                     # for create/resend/resume/already-active is the point.
                     messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                    # Redirect to email verification page
-                    from django.urls import reverse
-
-                    verify_url = reverse("auth_app:verify_email")
-                    return redirect(f"{verify_url}?email={email}")
+                    # Fresh account: the one-shot page also takes the card, so
+                    # the response carries the SetupIntent + token for it.
+                    return _signup_done(request, email, user=user)
                 else:
                     logger.error(
                         f"Failed to send verification email to {email}: {message}"
                     )
-                    # Don't delete user - let them retry verification
-                    # GENERIC, like every other signup outcome (PR #775 review).
-                    # A distinct "the email failed to send" told a caller that the
-                    # account had JUST been created — i.e. that the address was
-                    # NOT already registered. That is the same enumeration oracle
-                    # the collision paths were unified to close.
-                    messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                    from django.urls import reverse
-
-                    verify_url = reverse("auth_app:verify_email")
-                    return redirect(f"{verify_url}?email={email}")
+                    # Don't delete user - let them retry verification.
+                    # The sender is OURS: a fake "check your inbox" here would
+                    # be a lie, so the page owns the failure professionally
+                    # (operator 2026-09-22, contact info@scitex.ai). Same text
+                    # on every send-attempting path: a broken sender is global,
+                    # not a per-address oracle (PR #775 stays closed).
+                    return _sender_down(request, form=form)
             except Exception as e:
                 logger.error(f"Error during signup for {email}: {str(e)}")
                 # Don't delete user - keep the account
                 # GENERIC for the same reason as the branch above.
                 messages.success(request, _SIGNUP_RESPONSE_MESSAGE)
-                from django.urls import reverse
-
-                verify_url = reverse("auth_app:verify_email")
-                return redirect(f"{verify_url}?email={email}")
+                return _signup_done(request, email)
     else:
         form = SignupForm()
 
+    from apps.infra.public_app.services.billing_provider import inline_card_form_info
+
     context = {
         "form": form,
+        # One-shot card section: shown only when the deployment can take a
+        # card inline (publishable key present). No key: account-only form,
+        # payment step stays the fallback — same rule as the payment step.
+        "stripe_card": inline_card_form_info(),
     }
     return render(request, "auth_app/signup.html", context)
 
 
 def login_view(request):
     """User login view with authentication."""
+    from urllib.parse import urlparse
+
+    from django.contrib.auth.hashers import check_password as _check_password
+
     from .account_switching import add_authenticated_account
+
+    def _safe_next(raw):
+        # Open-redirect guard (operator 2026-09-22): the old code redirected
+        # to any ``?next=`` verbatim, so a crafted link could bounce a fresh
+        # login to an attacker page. Only same-origin paths survive.
+        if not raw or "\\" in raw:
+            return "/"
+        parts = urlparse(raw)
+        if parts.scheme or parts.netloc:
+            return "/"
+        return raw if raw.startswith("/") else "/"
 
     if request.method == "POST":
         form = LoginForm(request.POST)
@@ -318,11 +380,9 @@ def login_view(request):
 
             # Check if username is actually an email
             if "@" in username:
-                try:
-                    user_obj = User.objects.get(email=username)
+                user_obj = User.objects.filter(email__iexact=username).first()
+                if user_obj is not None:
                     username = user_obj.username
-                except User.DoesNotExist:
-                    pass
 
             # Authenticate user
             user = authenticate(request, username=username, password=password)
@@ -335,10 +395,7 @@ def login_view(request):
                     request.session.set_expiry(0)
 
                 # Redirect to next page or user's project page
-                next_page = request.GET.get("next")
-                if not next_page:
-                    # Default to hub root (Gitea-style project dashboard)
-                    next_page = "/"
+                next_page = _safe_next(request.GET.get("next") or request.POST.get("next"))
 
                 messages.success(request, f"Welcome back, @{user.username}!")
 
@@ -347,6 +404,38 @@ def login_view(request):
                 add_authenticated_account(request, response)
                 return response
             else:
+                # Pending-signup rescue (operator 2026-09-22): Django's
+                # ``authenticate`` returns None for inactive users, so someone
+                # who just signed up but never verified got told "Invalid
+                # username or password" — a lie with no way forward. A pending
+                # account with the RIGHT password is not a failed login; it is
+                # an unfinished signup. Mail it a fresh code and send it to
+                # the verify page instead of stranding it here.
+                pending = User.objects.filter(username=username).first()
+                if (
+                    pending is not None
+                    and not pending.is_active
+                    and _check_password(password, pending.password)
+                ):
+                    import logging as _logging
+
+                    if _send_pending_signup_code(
+                        request, pending, pending.email, _logging.getLogger(__name__)
+                    ):
+                        messages.info(
+                            request,
+                            "Your account is almost ready — we just sent a fresh "
+                            "verification code. Please enter it below.",
+                        )
+                    else:
+                        messages.error(
+                            request,
+                            "Your account is waiting on email verification, but "
+                            "we couldn't send the code because of a problem on "
+                            "our side. Our maintainers have been notified — "
+                            "please try again shortly, or contact info@scitex.ai.",
+                        )
+                    return redirect("auth_app:verify_email")
                 messages.error(request, "Invalid username or password.")
     else:
         form = LoginForm()

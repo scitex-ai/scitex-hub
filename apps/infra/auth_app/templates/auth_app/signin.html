@@ -26,8 +26,8 @@
             {% endif %}
             <form id="login-form"
                   method="post"
-                  action="{% url 'auth_app:login' %}"
-                  autocomplete="on">
+                  action="{% url 'auth_app:signin' %}{% if request.GET.next %}?next={{ request.GET.next|urlencode }}{% endif %}"
+                  novalidate>
                 {% csrf_token %}
                 <div class="form-group mb-3">
                     <label for="username" class="form-label">
