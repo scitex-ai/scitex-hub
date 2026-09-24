@@ -72,6 +72,7 @@ def test_landing_uses_the_minimal_shell_without_workspace_js():
     assert response.status_code == 200
     assert response.context["minimal_shell"] is True
     html = response.content.decode()
+    assert "Connect literature, files, analysis" in html
     for dropped in (
         "workspace-tree-init",
         "workspace-viewer-init",
