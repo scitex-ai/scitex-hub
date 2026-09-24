@@ -98,17 +98,19 @@ function initClipLightbox(root: ParentNode = document): void {
   openers.forEach((opener) => {
     const figure = opener.closest('figure');
     const box = figure?.querySelector<HTMLElement>('.landing-v2-clip-lightbox');
-    const frame = box?.querySelector<HTMLIFrameElement>('iframe');
+    const frame = box?.querySelector<HTMLVideoElement>('video');
     const close = box?.querySelector<HTMLButtonElement>('.landing-v2-clip-close');
     if (!box || !frame || !close) return;
-    const src = opener.dataset.clipSrc ?? '';
+    const src = opener.dataset.clipVideo ?? '';
     opener.addEventListener('click', () => {
       frame.src = src;
+      void frame.play().catch(() => undefined);
       box.hidden = false;
       document.body.style.overflow = 'hidden';
       close.focus();
     });
     const hide = (): void => {
+      frame.pause();
       box.hidden = true;
       frame.removeAttribute('src');
       document.body.style.overflow = '';

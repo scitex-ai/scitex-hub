@@ -173,22 +173,23 @@
                rel="noopener noreferrer">{% trans "View the public Clew repository" %}<span aria-hidden="true">↗</span></a>
         </div>
         <figure class="landing-v2-clew-figure landing-v2-clew-clip">
-            <button type="button" class="landing-v2-clip-open" data-clip-src="{% static 'public_app/clew/short-clip.html' %}" aria-label="{% trans 'Play the Clew concept clip' %}">
-                <iframe src="{% static 'public_app/clew/short-clip.html' %}"
-                        title="{% trans 'SciTeX Clew short concept clip: claim back to source.' %}"
-                        loading="lazy"
-                        scrolling="no"
-                        frameborder="0"
-                        tabindex="-1"
-                        aria-hidden="true"></iframe>
+            <button type="button" class="landing-v2-clip-open" data-clip-video="{% static 'public_app/clew/short-clip.mp4' %}" aria-label="{% trans 'Play the Clew concept clip' %}">
+                <video src="{% static 'public_app/clew/short-clip.mp4' %}"
+                       poster="{% static 'public_app/clew/short-clip-poster.jpg' %}"
+                       preload="metadata"
+                       muted
+                       playsinline
+                       tabindex="-1"
+                       aria-hidden="true"></video>
                 <span class="landing-v2-clip-hint" aria-hidden="true">&#9654;</span>
             </button>
             <div class="landing-v2-clip-lightbox" hidden>
                 <div class="landing-v2-clip-lightbox-inner" role="dialog" aria-modal="true" aria-label="{% trans 'Clew concept clip' %}">
                     <button type="button" class="landing-v2-clip-close" aria-label="{% trans 'Close' %}">&#215;</button>
-                    <iframe title="{% trans 'SciTeX Clew short concept clip: claim back to source.' %}"
-                            scrolling="no"
-                            frameborder="0"></iframe>
+                    <video controls
+                           playsinline
+                           preload="metadata"
+                           poster="{% static 'public_app/clew/short-clip-poster.jpg' %}"></video>
                 </div>
             </div>
             <figcaption>{% trans "Short concept clip: follow the thread from claim back to source." %}</figcaption>

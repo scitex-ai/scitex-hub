@@ -691,7 +691,13 @@
   background: none;
   cursor: zoom-in;
 }
-.landing-v2-clip-open iframe {
+.landing-v2-clip-open video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: var(--landing-radius);
+  background: #050b12;
   pointer-events: none;
 }
 .landing-v2-clip-hint {
@@ -725,7 +731,7 @@
   position: relative;
   width: min(1200px, 94vw);
 }
-.landing-v2-clip-lightbox-inner iframe {
+.landing-v2-clip-lightbox-inner video {
   width: 100%;
   aspect-ratio: 16 / 9;
   border: 1px solid rgba(201, 164, 92, 0.4);
