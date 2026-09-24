@@ -196,10 +196,14 @@ def dock_items(path: str, user=None) -> list[DockItem]:
     return [replace(item, active=(item.key == active)) for item in items]
 
 
+_NO_DOCK_PATHS = ("/landing/",)
+
 def should_render_dock(request) -> bool:
     """The dock is for signed-in top-level documents only."""
     if is_embedded_request(request):
         return False  # no recursive Hub chrome inside a frame
+    if request is not None and getattr(request, "path", "").rstrip("/") + "/" in _NO_DOCK_PATHS:
+        return False  # marketing page: no app access before sign-in
     user = getattr(request, "user", None)
     return bool(getattr(user, "is_authenticated", False))
 

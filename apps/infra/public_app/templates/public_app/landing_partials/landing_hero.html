@@ -5,33 +5,39 @@
         <div class="landing-v2-hero-copy">
             <p class="landing-v2-eyebrow">{% trans "Open research infrastructure" %}</p>
             <h1 id="landing-v2-title">
-                <span>{% trans "A platform" %}</span>
-                <span>{% trans "for science." %}</span>
+                <!-- <span>{% trans "A Platform" %}</span>
+                 !-- <span>{% trans "for Science" %}</span> -->
+                <span>{% trans "Where Research Happens" %}</span>
             </h1>
-            <p class="landing-v2-lead">
-                {% trans "Literature, files, analysis, figures, writing, and agents in one connected project." %}
+            <ul class="landing-v2-points">
+                <li><i class="fa-solid fa-check" aria-hidden="true"></i><span>{% trans "Researchers, agents, projects, data, compute, and apps in one place." %}</span></li>
+                <li><i class="fa-solid fa-check" aria-hidden="true"></i><span>{% trans "Data provenance and verification built in by default." %}</span></li>
+                <li><i class="fa-solid fa-check" aria-hidden="true"></i><span>{% trans "Works from mobile, laptop, HPC, and your AI agents." %}</span></li>
+                <li><i class="fa-solid fa-check" aria-hidden="true"></i><span>{% trans "Open source, including this web platform." %}</span></li>
+            </ul>
+                <!-- {% trans "Researchers, agents, projects, data, compute, and applications connected in one place. Available from mobile, laptop, HPC, and your AI agents." %}                 -->
             </p>
-            <p class="landing-v2-context-line">
-                {% trans "Review from your phone. Work in the browser. Run where compute lives." %}
-            </p>
+            <!-- <p class="landing-v2-context-line">
+             !--     {% trans "Review from your phone. Work in the browser. Run where compute lives." %}
+             !-- </p> -->
             <div class="landing-v2-actions">
                 <a href="{% url 'auth_app:signup' %}" class="hero-cta-button">{% trans "Try SciTeX™ Cloud with 30-day Free Trial" %}<span aria-hidden="true">→</span></a>
-                <a href="#pricing" class="landing-v2-button landing-v2-button-quiet">{% trans "See pricing" %}</a>
+                <a href="#pricing" class="landing-v2-button landing-v2-button-quiet">{% trans "See Plans" %}</a>
             </div>
-            <p class="landing-v2-signin">
-                {% trans "Already have an account?" %}
-                <a href="{% url 'auth_app:signin' %}">{% trans "Sign in" %}</a>
-            </p>
-            <p class="landing-v2-alpha">
-                {% blocktrans with version=SCITEX_HUB_VERSION %}Alpha Release ({{ version }}) — Data persistence and API stability are not guaranteed. For production use, install the local Python toolkit. Any contribution welcome:{% endblocktrans %}
-                <a href="mailto:{{ CONTACT_EMAIL }}">{{ CONTACT_EMAIL }}</a>
-            </p>
-            <ul class="landing-v2-hero-rail" aria-label="{% trans 'One project across devices and compute' %}">
-                <li>{% trans "Phone" %}</li>
-                <li>{% trans "Laptop" %}</li>
-                <li>{% trans "HPC + SSH" %}</li>
-                <li>{% trans "Custom Apps" %}</li>
-            </ul>
+            <!-- <p class="landing-v2-signin">
+             !--     {% trans "Already have an account?" %}
+             !--     <a href="{% url 'auth_app:signin' %}">{% trans "Sign in" %}</a>
+             !-- </p> -->
+            <!-- <p class="landing-v2-alpha">
+             !--     {% blocktrans with version=SCITEX_HUB_VERSION %}Alpha Release ({{ version }}) — Data persistence and API stability are not guaranteed. For production use, install the local Python toolkit. Any contribution welcome:{% endblocktrans %}
+             !--     <a href="mailto:{{ CONTACT_EMAIL }}">{{ CONTACT_EMAIL }}</a>
+             !-- </p> -->
+            <!-- <ul class="landing-v2-hero-rail" aria-label="{% trans 'One project across devices and compute' %}">
+             !--     <li>{% trans "Phone" %}</li>
+             !--     <li>{% trans "Laptop" %}</li>
+             !--     <li>{% trans "HPC + SSH" %}</li>
+             !--     <\!-- <li>{% trans "Custom Apps" %}</li> -\->
+             !-- </ul> -->
         </div>
         <figure class="landing-v2-photo landing-v2-hero-photo">
             <picture>
@@ -44,19 +50,19 @@
                      fetchpriority="high"
                      alt="{% trans 'Two laboratory researchers review a microscopic image on a laptop while one holds a clipboard.' %}" />
             </picture>
-            <figcaption>
-                <span>{% trans "Research is human work." %}</span>
-                <small>
-                    {% trans "Illustrative stock photography:" %}
-                    <a href="https://www.pexels.com/photo/two-scientists-working-inside-the-laboratory-4031694/"
-                       target="_blank"
-                       rel="noopener noreferrer">Edward Jenner / Pexels</a>
-                    · <a href="https://www.pexels.com/license/"
-   target="_blank"
-   rel="noopener noreferrer">{% trans "Pexels license" %}</a>.
-                    {% trans "The people shown are not SciTeX customers, employees, or endorsers; no endorsement is implied." %}
-                </small>
-            </figcaption>
+   <!--          <figcaption>
+    !--              <span>{% trans "Research is human work." %}</span>
+    !--              <small>
+    !--                  {% trans "Illustrative stock photography:" %}
+    !--                  <a href="https://www.pexels.com/photo/two-scientists-working-inside-the-laboratory-4031694/"
+    !--                     target="_blank"
+    !--                     rel="noopener noreferrer">Edward Jenner / Pexels</a>
+    !--                  · <a href="https://www.pexels.com/license/"
+    !-- target="_blank"
+    !-- rel="noopener noreferrer">{% trans "Pexels license" %}</a>.
+    !--                  {% trans "The people shown are not SciTeX customers, employees, or endorsers; no endorsement is implied." %}
+    !--              </small>
+    !--          </figcaption> -->
         </figure>
     </div>
 </section>
