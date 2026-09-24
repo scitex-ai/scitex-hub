@@ -301,11 +301,16 @@ button:hover{border-color:var(--gold)}
   <div class="captionbar">
     <div class="caprow">
       <div class="caption" id="caption">Ariadne’s thread<span class="small">A clew is a thread that leads the way back through the labyrinth.</span></div>
-      <div class="badge" id="badge">voice optional</div>
     </div>
+    <div class="progressTrack"><div class="progress" id="progress"></div></div>
   </div>
 
-
+  <div class="controls">
+    <button id="startAudio">Start voice</button>
+    <button id="replay">Replay</button>
+    <button id="pause">Pause</button>
+    <button id="voiceBtn">Voice: on</button>
+  </div>
 </div>
 
 <script>
@@ -314,7 +319,6 @@ let start = performance.now(), paused = false, pauseAt = null;
 const progress = document.getElementById('progress');
 const caption = document.getElementById('caption');
 const overlay = document.getElementById('overlay');
-const badge = document.getElementById('badge');
 const metaphor = document.getElementById('metaphor');
 const heroThread = document.getElementById('heroThread');
 const mazePath = document.getElementById('mazePath');
@@ -577,6 +581,26 @@ function frame(now){
 }
 requestAnimationFrame(frame);
 
+document.getElementById('replay').addEventListener('click', ()=>{
+  start = performance.now(); paused = false; lastVoiceIndex = -1;
+  if('speechSynthesis' in window) speechSynthesis.cancel();
+  document.getElementById('pause').textContent = 'Pause';
+});
+document.getElementById('pause').addEventListener('click', ()=>{
+  if(!paused){
+    paused = true; pauseAt = performance.now();
+    if('speechSynthesis' in window) speechSynthesis.cancel();
+    document.getElementById('pause').textContent = 'Resume';
+  } else {
+    paused = false; start += performance.now() - pauseAt; lastVoiceIndex = -1;
+    document.getElementById('pause').textContent = 'Pause';
+  }
+});
+document.getElementById('voiceBtn').addEventListener('click', (e)=>{
+  voiceEnabled = !voiceEnabled;
+  e.target.textContent = 'Voice: ' + (voiceEnabled ? 'on' : 'off');
+  if(!voiceEnabled && 'speechSynthesis' in window) speechSynthesis.cancel();
+});
 </script>
 </body>
 </html>
