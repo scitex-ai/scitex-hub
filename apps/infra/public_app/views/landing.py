@@ -103,7 +103,7 @@ def index(request):
     # closed" rather than reconnecting, and the transaction's work is lost.
     if not connection.in_atomic_block:
         connection.close()
-    from ..pricing import load_pricing, tier_rows
+    from ..pricing import load_pricing, tier_rows, plan_comparison
 
     # Two-plan landing row (operator 2026-09-12): the Free pane is dropped —
     # Cloud (Academic / Non-Academic switcher) + On-Prem (AGPL / Custom).
@@ -120,6 +120,9 @@ def index(request):
         "onprem_tier": onprem_tier,
         "tax_note": load_pricing().get("tax_note", ""),
         "pricing_notes": load_pricing()["notes"],
+        # Unified plans table (Pricing + Compare plans merged): one matrix,
+        # per-column CTAs, Pro recommended. SSOT-rendered, never hand-typed.
+        "plan_comparison": plan_comparison(),
     }
     return render(request, "public_app/landing.html", context)
 
