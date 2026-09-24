@@ -315,7 +315,8 @@ def test_metered_rates_and_api_rows_come_from_the_ssot() -> None:
     assert nowrap["Compute credits"] is False
     assert by_label["API keys"] == ["Rate-limited", "Included", "—"]
     services = by_label["Scholar, Stats, FigRecipe and Writer"]
-    assert "Compute Credits + 20% service fee" in services[0]
+    assert "no separate per-app fee" in services[0]
+    assert "20% service fee" not in services[0]
     assert "(Coming soon)" in services[0]
     assert services[2] == "—"
     groups = [r["group"] for r in rows if "group" in r]

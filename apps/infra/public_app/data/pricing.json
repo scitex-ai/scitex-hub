@@ -248,7 +248,7 @@
   "rate_card": {
     "_pay_as_you_go": "Pay-as-you-go (PAYG) usage beyond your plan is billed at provider cost plus a 20% service fee.",
     "payg_margin_pct": 20,
-    "_api_usage": "External API calls (e.g. Scholar search) consume the same Compute Credits at the same rates, plus the same pay-as-you-go margin.",
+    "_api_usage": "Scholar, Stats, FigRecipe and Writer consume ordinary compute (CPU / memory / GPU) like everything else: no separate per-app or service fee.",
     "storage_tiers": [
       {
         "name": "Hot",

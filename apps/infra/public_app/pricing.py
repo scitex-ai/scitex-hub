@@ -185,7 +185,8 @@ def _metered_and_api_rows() -> list[dict[str, Any]]:
         _API_KEY_DISPLAY[keys["self_hosted"]],
     ]
     metered_line = coming_soon(
-        _("Metered in Compute Credits + %(pct)s%% service fee") % {"pct": margin}
+        _("Metered as ordinary compute (CPU / memory / GPU) — "
+          "no separate per-app fee")
     )
     return [
         {"group": coming_soon(_("Metered compute rates"))},
