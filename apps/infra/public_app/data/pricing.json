@@ -138,7 +138,7 @@
     },
     {
       "id": "selfhosted-commercial",
-      "label": "SciTeX Self-Hosted — Commercial License",
+      "label": "SciTeX Self-Hosted — Enterprise License",
       "amount": 2400,
       "unit": "year",
       "from_price": true,

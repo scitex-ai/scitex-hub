@@ -2969,8 +2969,8 @@ msgstr "SciTeX セルフホスト — AGPL v3.0"
 msgid "SciTeX Self-Hosted — Academic License"
 msgstr "SciTeX セルフホスト — アカデミックライセンス"
 
-msgid "SciTeX Self-Hosted — Commercial License"
-msgstr "SciTeX セルフホスト — 商用ライセンス"
+msgid "SciTeX Self-Hosted — Enterprise License"
+msgstr "SciTeX セルフホスト — エンタープライズライセンス"
 
 msgid "SciTeX Self-Hosted Setup Support"
 msgstr "SciTeX セルフホスト導入サポート"
@@ -7477,6 +7477,30 @@ msgstr "利用できる導入方法と連携機能は、選択した構成によ
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
 msgid "Compare current plans"
 msgstr "現在のプランを比較"
+
+#: apps/infra/public_app/pricing.py
+msgid "SciTeX™ Cloud Free"
+msgstr "SciTeX™ Cloud Free"
+
+#: apps/infra/public_app/pricing.py
+msgid "SciTeX™ Cloud Pro"
+msgstr "SciTeX™ Cloud Pro"
+
+#: apps/infra/public_app/pricing.py
+msgid "SciTeX™ Self-Hosted (AGPL)"
+msgstr "SciTeX™ セルフホスト (AGPL)"
+
+#: apps/infra/public_app/pricing.py
+msgid "SciTeX™ Self-Hosted (Enterprise)"
+msgstr "SciTeX™ セルフホスト (エンタープライズ)"
+
+#: apps/infra/public_app/pricing.py
+msgid "Start with Pro"
+msgstr "Pro で始める"
+
+#: apps/infra/public_app/pricing.py
+msgid "Get the source"
+msgstr "ソースを取得"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
 msgid "SciTeX Cloud Pro"

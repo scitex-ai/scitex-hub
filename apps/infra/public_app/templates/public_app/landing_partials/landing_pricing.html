@@ -27,7 +27,7 @@
                     {% for row in plan_comparison.rows %}
                     {% if row.group %}
                     <tr class="plan-compare-grouprow">
-                        <th scope="row" colspan="4">{{ row.group }}</th>
+                        <th scope="row" colspan="5">{{ row.group }}</th>
                     </tr>
                     {% else %}
                     <tr>
@@ -42,7 +42,7 @@
                         <th scope="row"><span class="visually-hidden">{% trans "Get started" %}</span></th>
                         {% for col in plan_comparison.columns %}
                         <td{% if col.recommended %} class="plan-col-recommended"{% endif %}>
-                            <a href="{{ col.cta_url }}" class="btn{% if col.cta_primary %} btn-primary{% endif %} btn-block">{{ col.cta_label }}</a>
+                            <a href="{{ col.cta_url }}"{% if col.cta_external %} target="_blank" rel="noopener"{% endif %} class="btn{% if col.cta_primary %} btn-primary{% endif %} btn-block">{{ col.cta_label }}</a>
                         </td>
                         {% endfor %}
                     </tr>

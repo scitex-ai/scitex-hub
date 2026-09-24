@@ -424,9 +424,10 @@
   border-bottom: 2px solid #ffb300;
 }
 .plan-compare-table .plan-badge {
-  display: inline-block;
-  margin-left: 0.5em;
-  padding: 0.1em 0.55em;
+  display: block;
+  width: fit-content;
+  margin-top: 0.35em;
+  padding: 0.15em 0.65em;
   border-radius: 999px;
   background: #ffb300;
   color: #241c00;
@@ -434,5 +435,4 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  vertical-align: middle;
 }
