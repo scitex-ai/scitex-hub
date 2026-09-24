@@ -80,6 +80,10 @@ msgstr "新規登録"
 msgid "Sign in"
 msgstr "ログイン"
 
+#: templates/global_base.html
+msgid "Skip to content"
+msgstr "コンテンツへスキップ"
+
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
 msgid "Create your free account and use SciTeX's free tier at no cost."
 msgstr "無料アカウントを作成して、SciTeX の無料プランをご利用いただけます。"
