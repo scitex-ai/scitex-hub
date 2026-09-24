@@ -73,6 +73,9 @@ def test_landing_uses_the_minimal_shell_without_workspace_js():
     assert response.context["minimal_shell"] is True
     html = response.content.decode()
     assert "Connect literature, files, analysis" in html
+    # Keyboard users get a skip link whose target exists on the page.
+    assert 'href="#main-content"' in html
+    assert 'id="main-content"' in html
     for dropped in (
         "workspace-tree-init",
         "workspace-viewer-init",
