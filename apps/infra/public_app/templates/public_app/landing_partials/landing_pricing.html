@@ -56,6 +56,59 @@
             {% endfor %}
         </div>
         {% endif %}
+        {% if plan_comparison.coupon_codes %}
+        <form class="coupon-form" id="coupon-form" data-coupon-form
+              data-unknown-message="{% trans 'Unknown coupon code.' %}">
+            <label class="coupon-label" for="coupon-input">{% trans "Have a coupon code?" %}</label>
+            <span class="coupon-controls">
+                <input id="coupon-input" name="coupon" type="text" autocomplete="off"
+                       spellcheck="false" placeholder="{{ plan_comparison.coupon_codes.0.code }}" data-coupon-input />
+                <button type="submit" class="btn" data-coupon-apply>{% trans "Apply" %}</button>
+            </span>
+            <span class="coupon-codes" aria-hidden="true">{% for c in plan_comparison.coupon_codes %}<span data-coupon-code="{{ c.code }}" data-coupon-price="{{ c.price }}" data-coupon-description="{{ c.description }}"></span>{% endfor %}</span>
+            <p class="coupon-message" role="status" data-coupon-message></p>
+        </form>
+        <script>
+        (function () {
+            var form = document.querySelector('[data-coupon-form]');
+            if (!form) return;
+            var input = form.querySelector('[data-coupon-input]');
+            var message = form.querySelector('[data-coupon-message]');
+            var offers = {};
+            form.querySelectorAll('[data-coupon-code]').forEach(function (el) {
+                offers[el.dataset.couponCode.toUpperCase()] = {
+                    price: el.dataset.couponPrice,
+                    description: el.dataset.couponDescription
+                };
+            });
+            function priceCell() {
+                var rows = document.querySelectorAll('#pricing .plan-compare-table tbody tr');
+                for (var i = 0; i < rows.length; i++) {
+                    var head = rows[i].querySelector('th[scope="row"]');
+                    if (head && head.textContent.trim() === 'Price') return rows[i].children[2];
+                }
+                return null;
+            }
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var code = (input.value || '').trim().toUpperCase();
+                var offer = offers[code];
+                var cell = priceCell();
+                if (offer && cell) {
+                    cell.innerHTML = '';
+                    cell.appendChild(document.createTextNode(offer.price + ' '));
+                    var note = document.createElement('small');
+                    note.className = 'coupon-applied';
+                    note.textContent = '(' + code + ')';
+                    cell.appendChild(note);
+                    message.textContent = offer.description;
+                } else {
+                    message.textContent = form.dataset.unknownMessage;
+                }
+            });
+        })();
+        </script>
+        {% endif %}
         {% endif %}
         <div class="pricing-notes">
             {% url 'public_app:pricing' as pricing_href %}{% url 'public_app:services' as services_href %}{% tokushoho_url as tokushoho_href %}

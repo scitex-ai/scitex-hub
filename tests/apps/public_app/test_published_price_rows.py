@@ -406,3 +406,10 @@ def test_table_notes_come_from_the_ssot() -> None:
     assert [c["recommended"] for c in cols] == [False, True, False, False]
     assert all(c["cta_label"] and c["cta_url"] for c in cols)
     assert cols[2]["cta_external"] is True
+    assert comp["coupon_codes"] == [
+        {
+            "code": "ACADEMIC50",
+            "description": "Academic — 50% off Pro",
+            "price": "$19/mo",
+        }
+    ]

@@ -7535,6 +7535,18 @@ msgid "On request"
 msgstr "要相談"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Have a coupon code?"
+msgstr "クーポンコードをお持ちですか?"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Apply"
+msgstr "適用"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Unknown coupon code."
+msgstr "不明なクーポンコードです。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
 msgid "SciTeX Cloud Pro"
 msgstr "SciTeX Cloud Pro"
 

@@ -374,7 +374,16 @@
     "free": "none",
     "pro": "accepted",
     "self_hosted_agpl": "none",
-    "self_hosted_enterprise": "on-request"
+    "self_hosted_enterprise": "on-request",
+    "codes": [
+      {
+        "code": "ACADEMIC50",
+        "description": "Academic — 50% off Pro",
+        "monthly_price": 19,
+        "unit": "month"
+      }
+    ],
+    "_codes_note": "Public offer codes the landing table accepts. The table JS reads them from data attributes rendered here — never typed in the template."
   },
   "links": {
     "self_hosted_source": "https://github.com/scitex-ai/scitex-hub",
