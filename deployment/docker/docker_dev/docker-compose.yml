@@ -374,6 +374,14 @@ services:
       --without-heartbeat
 
     restart: unless-stopped
+    # AUTOHEAL: dev never had it (prod does). The threads pool cannot
+    # interrupt a thread stuck in an unbounded socket wait, and no code
+    # change can prove every future call site carries a timeout — so a
+    # wedged worker must be RESTARTED, not just flagged. willfarrell/autoheal
+    # watches this label and restarts the container once docker marks it
+    # unhealthy (10min of stale beacons per the healthcheck below).
+    labels:
+      - "autoheal=true"
 
     # Healthcheck asserts EXECUTION, not connectivity.
     #
@@ -581,6 +589,26 @@ services:
       retries: 3
       start_period: 30s
 
+    networks:
+      - scitex-dev
+
+  # ============================================
+  # Autoheal - restarts containers docker marks unhealthy.
+  # Scoped by label: only services carrying "autoheal=true" (today: the
+  # celery worker, whose threads pool cannot unstick itself). Prod heals
+  # everything (AUTOHEAL_CONTAINER_LABEL: all); dev heals only what opts
+  # in, so experimental services never get restarted underfoot.
+  # ============================================
+  autoheal:
+    image: willfarrell/autoheal:latest
+    environment:
+      AUTOHEAL_CONTAINER_LABEL: autoheal
+      AUTOHEAL_INTERVAL: 60
+      AUTOHEAL_START_PERIOD: 300
+      AUTOHEAL_DEFAULT_STOP_TIMEOUT: 30
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
     networks:
       - scitex-dev
 

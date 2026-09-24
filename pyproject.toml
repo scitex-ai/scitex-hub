@@ -1,6 +1,6 @@
 [project]
 name = "scitex-hub"
-version = "0.20.0a2"
+version = "0.20.0a3"
 description = "SciTeX Hub - Deployment and management CLI for SciTeX"
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -363,6 +363,9 @@ all = [
     # --- Billing (Stripe scaffold; endpoints stay 503 until
     # SCITEX_HUB_STRIPE_* env keys are configured) ---
     "stripe>=10.0",
+    # --- Academic email recognition (JetBrains swot database; the JP
+    # government/research list in auth_app.models supplements it) ---
+    "swot>=1.0.1",
     # --- AI / LLM / domain ---
     "litellm>=1.82.0",
     "impact-factor>=1.1",

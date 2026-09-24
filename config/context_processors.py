@@ -361,6 +361,15 @@ def scitex_env(request):
     }
 
 
+def alpha_release(request):
+    """Alpha honesty flag for every template.
+
+    While the product is served as an alpha, base templates show the alpha
+    strip (active improvement, test payments only, no retention promise).
+    """
+    return {"ALPHA_RELEASE": bool(getattr(settings, "ALPHA_RELEASE", False))}
+
+
 def header_logo(request):
     """Logo link + tooltip.
 

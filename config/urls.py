@@ -93,6 +93,21 @@ def _scitex_agent_container_installed() -> bool:
         return False
 
 
+def _scitex_stats_installed() -> bool:
+    """True when the optional scitex-stats URL contract is importable.
+
+    Probe the wrapper target's upstream (not the Hub wrapper itself, which
+    is always importable): an older scitex-stats checkout may not ship the
+    Django app at all.
+    """
+    from importlib.util import find_spec
+
+    try:
+        return find_spec("scitex_stats._django.urls") is not None
+    except ModuleNotFoundError:
+        return False
+
+
 urlpatterns = [
     # Language selection. Django's set_language view writes the chosen language
     # to the session/cookie and redirects back to `next`. LocaleMiddleware then
@@ -273,6 +288,17 @@ urlpatterns = [
     *(
         [path("apps/agents/", include("apps.workspace.agents_app.urls"))]
         if _scitex_agent_container_installed()
+        else []
+    ),
+    *(
+        # Upstream scitex-stats' Django app, served through the hub-side
+        # wrapper (apps.workspace.stats_app.urls), NOT the raw upstream
+        # urls: the leaf carries no login gate, and the raw plugin mount
+        # answered 200 with no user at all (writer SITE 3 / storage SITE 4
+        # pattern). The explicit mount also makes plugin_urlpatterns skip
+        # the raw upstream mount for the same route.
+        [path("apps/stats/", include("apps.workspace.stats_app.urls"))]
+        if _scitex_stats_installed()
         else []
     ),
     path(
