@@ -59,6 +59,39 @@ def test_landing_uses_the_v2_partial_assets_and_keeps_pricing():
     )
 
 
+def test_landing_uses_the_minimal_shell_without_workspace_js():
+    """Anonymous visitors skip workspace-only JS (tree, viewer, sidebar).
+
+    The landing renders no workspace panes, so the base template drops
+    those bundles when the view sets minimal_shell — the page stays light
+    while the app shell is untouched.
+    """
+    from django.test import Client
+
+    response = Client().get("/landing/")
+    assert response.status_code == 200
+    assert response.context["minimal_shell"] is True
+    html = response.content.decode()
+    for dropped in (
+        "workspace-tree-init",
+        "workspace-viewer-init",
+        "workspace-panel-resizer",
+        "workspace-sidebar",
+        "module-tab-switcher",
+        "module-reorder",
+        "module-tab-context-menu",
+        "nav-prefetch",
+        "dev-install",
+    ):
+        assert dropped not in html, dropped
+    for kept in (
+        "theme-switcher",
+        "global-ai-chat",
+        "reference-v2",
+    ):
+        assert kept in html, kept
+
+
 def test_hero_keeps_real_entry_contracts_and_research_photography():
     source = _text(HERO)
     assert all(
