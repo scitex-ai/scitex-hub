@@ -721,6 +721,7 @@ def plan_comparison(today=None):
         return display[terms[term]]
 
     license_rows = [
+        {"group": _("Self-hosted license")},
         {
             "label": _LICENSE_TERM_LABELS["commercial_use"],
             "cells": [
