@@ -7707,8 +7707,10 @@ msgid "Scholar, Stats, FigRecipe and Writer"
 msgstr "Scholar、Stats、FigRecipe、Writer"
 
 #: apps/infra/public_app/pricing.py
-msgid "Metered in Compute Credits + %(pct)s%% service fee"
-msgstr "コンピュートクレジットによる従量課金 + %(pct)s%%のサービス料"
+msgid ""
+"Metered as ordinary compute (CPU / memory / GPU) — "
+"no separate per-app fee"
+msgstr "通常のコンピュート（CPU / メモリ / GPU）として従量課金 — アプリ別の料金なし"
 
 #: apps/infra/public_app/pricing.py
 msgid "Your own hardware"

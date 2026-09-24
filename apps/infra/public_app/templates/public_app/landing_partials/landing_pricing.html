@@ -186,7 +186,7 @@
                         </tr>
                         {% else %}
                         <tr>
-                            <th scope="row">{{ row.label|linebreaksbr }}</th>
+                            <th scope="row">{{ row.label|linebreaksbr|safe }}</th>
                             {% for cell in row.cells %}
                             <td data-plan-col="{{ forloop.counter0 }}"{% if row.nowrap %} class="cell-nowrap"{% endif %}>{{ cell|linebreaksbr }}</td>
                             {% endfor %}

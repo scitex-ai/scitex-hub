@@ -663,7 +663,12 @@ def plan_comparison(today=None):
             "Cool": _("~550 MB/s read / ~200 MB/s write"),
             "Cold": _("~110 MB/s read / ~90 MB/s write"),
         }
-        return _("%(tier)s\n%(speed)s") % {"tier": _(tier), "speed": approx[tier]}
+        return _("%(tier)s\n%(speed)s") % {
+            "tier": _(tier),
+            # Wrapped so the table can render speeds de-emphasized
+            # (smaller, lighter) next to the tier name.
+            "speed": '<span class="tier-speed">%s</span>' % approx[tier],
+        }
 
     hosted_line = _("Your own hardware")
     # Table-local short line: the catalogue sentence ("Runs on your own

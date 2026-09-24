@@ -353,7 +353,7 @@ def test_metered_and_api_rows_render_japanese() -> None:
     text = " ".join(cells)
     assert "CPUユニット時間" in text
     assert "レート制限あり" in text
-    assert "コンピュートクレジット" in text
+    assert "通常のコンピュート" in text
 
 
 def test_table_notes_come_from_the_ssot() -> None:

@@ -393,3 +393,13 @@
     white-space: normal;
   }
 }
+
+/* Tier speeds sit under the tier name at reduced emphasis: the name leads,
+   the number is there when looked for. */
+.plan-compare-table .tier-speed {
+  display: block;
+  font-size: 0.78em;
+  font-weight: 400;
+  opacity: 0.62;
+  margin-top: 0.15em;
+}
