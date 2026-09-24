@@ -160,7 +160,7 @@
         <div class="landing-v2-clew-copy">
             <p class="landing-v2-eyebrow">{% trans "Verifiable provenance" %}</p>
             <h2 id="landing-v2-clew-title">{% trans "Follow a claim back to its source." %}</h2>
-            <p>{% trans "SciTeX Clew records relationships between research artifacts in a directed acyclic graph. The public example connects a manuscript claim to output, processing, and raw data, resolving the shortest path between them." %}</p>
+            <p>{% trans "SciTeX Clew records relationships between research artifacts in a directed acyclic graph. The public example connects a manuscript claim to output, processing, and raw data, resolving the shortest path between them. A “clew” is Ariadne’s ball of thread from Greek mythology, given to Theseus to navigate the Labyrinth and escape the Minotaur — our thread leads back from claim to source." %}</p>
             <ol class="landing-v2-chain" aria-label="{% trans 'Claim to raw data provenance chain' %}">
                 <li>{% trans "Claim" %}</li>
                 <li>{% trans "Output" %}</li>
@@ -172,18 +172,13 @@
                target="_blank"
                rel="noopener noreferrer">{% trans "View the public Clew repository" %}<span aria-hidden="true">↗</span></a>
         </div>
-        <figure class="landing-v2-clew-figure">
-            <picture>
-                <source type="image/webp"
-                        srcset="{% static 'public_app/images/landing-v2/clew-dag-640.webp' %} 640w"
-                        sizes="(max-width: 820px) 100vw, 44vw" />
-                <img src="{% static 'public_app/images/landing-v2/clew-dag.png' %}"
-                     width="661"
-                     height="1192"
-                     loading="lazy"
-                     alt="{% trans 'SciTeX Clew directed acyclic graph connecting manuscript claims, derived outputs, processing steps, and raw data.' %}" />
-            </picture>
-            <figcaption>{% trans "Actual DAG from the public scitex-clew repository." %}</figcaption>
+        <figure class="landing-v2-clew-figure landing-v2-clew-clip">
+            <iframe src="{% static 'public_app/clew/short-clip.html' %}"
+                    title="{% trans 'SciTeX Clew short concept clip: claim back to source.' %}"
+                    loading="lazy"
+                    scrolling="no"
+                    frameborder="0"></iframe>
+            <figcaption>{% trans "Short concept clip: follow the thread from claim back to source." %}</figcaption>
         </figure>
     </div>
 </section>

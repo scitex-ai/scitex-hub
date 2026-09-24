@@ -682,6 +682,14 @@
   height: auto;
 }
 
+.landing-v2-clew-clip iframe {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: var(--landing-radius);
+  background: #050b12;
+}
 .landing-v2-clew-figure figcaption {
   margin-top: 0.8rem;
   color: var(--landing-muted);
