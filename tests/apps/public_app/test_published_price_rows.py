@@ -360,6 +360,14 @@ def test_metered_rates_and_api_rows_come_from_the_ssot() -> None:
     groups = [r["group"] for r in rows if "group" in r]
     assert "Compute (Coming soon)" in groups
     assert "Applications" in groups
+    # License terms read as Storage rows without their own header — they get
+    # one, so Commercial use / Support / SLA scan as license terms.
+    assert "Self-hosted license" in groups
+    license_idx = groups.index("Self-hosted license")
+    storage_idx = next(
+        i for i, g in enumerate(groups) if g.startswith("Storage")
+    )
+    assert storage_idx < license_idx
     agents = by_label["Agents"]
     assert "model API × 110%" in agents[0]
     assert agents[2] == "—"

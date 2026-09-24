@@ -7543,6 +7543,10 @@ msgid "Queue priority"
 msgstr "待ち行列の優先度"
 
 #: apps/infra/public_app/pricing.py
+msgid "Self-hosted license"
+msgstr "セルフホストライセンス"
+
+#: apps/infra/public_app/pricing.py
 msgid "Standard queue"
 msgstr "通常キュー"
 
