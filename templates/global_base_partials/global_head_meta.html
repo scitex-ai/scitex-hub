@@ -4,7 +4,7 @@
 <meta name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="description"
-      content="{% block meta_description %}{{ META_DESCRIPTION_DEFAULT }}{% endblock %}" />
+      content="{% block meta_description %}{{ META_DESCRIPTION_OVERRIDE|default:META_DESCRIPTION_DEFAULT }}{% endblock %}" />
 <!-- Inline theme application - Prevents flash of unstyled content.
      Base default is DARK (operator mandate, card
      hub-theme-default-must-be-dark): first visits render dark on every
@@ -76,7 +76,7 @@
 <meta property="og:url" content="{% block og_url %}https://scitex.ai/{% endblock %}" />
 <meta property="og:title" content="{% block og_title %}{{ OG_TITLE }}{% endblock %}" />
 <meta property="og:description"
-      content="{% block og_description %}{{ OG_DESCRIPTION }}{% endblock %}" />
+      content="{% block og_description %}{{ OG_DESCRIPTION_OVERRIDE|default:OG_DESCRIPTION }}{% endblock %}" />
 <meta property="og:image"
       content="{% block og_image %}https://scitex.ai/static/shared/images/scitex-og-image.png{% endblock %}" />
 <!-- Twitter -->
@@ -87,7 +87,7 @@
 <meta name="twitter:title"
       content="{% block twitter_title %}{{ OG_TITLE }}{% endblock %}" />
 <meta name="twitter:description"
-      content="{% block twitter_description %}{{ OG_DESCRIPTION }}{% endblock %}" />
+      content="{% block twitter_description %}{{ OG_DESCRIPTION_OVERRIDE|default:OG_DESCRIPTION }}{% endblock %}" />
 <meta name="twitter:image"
       content="{% block twitter_image %}https://scitex.ai/static/shared/images/scitex-og-image.png{% endblock %}" />
 <!-- Umami Analytics (privacy-focused, no cookies) -->

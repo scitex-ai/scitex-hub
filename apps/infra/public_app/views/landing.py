@@ -127,6 +127,16 @@ def index(request):
         # template skips workspace-only JS (tree, viewer, sidebar, modules).
         # Smaller download for anonymous visitors; the app shell is untouched.
         "minimal_shell": True,
+        # Per-page meta: the head partial is {% include %}d, so it cannot see
+        # {% block %} overrides — description travels as context instead.
+        "META_DESCRIPTION_OVERRIDE": (
+            "Connect literature, files, analysis, figures, writing, "
+            "and compute in one SciTeX project context."
+        ),
+        "OG_DESCRIPTION_OVERRIDE": (
+            "Connect literature, files, analysis, figures, writing, "
+            "and compute in one SciTeX project context."
+        ),
     }
     return render(request, "public_app/landing.html", context)
 
