@@ -2957,11 +2957,11 @@ msgstr "含まれる量を超えたストレージと送信は従量課金"
 msgid "Monthly spending cap set by the user"
 msgstr "月間の利用上限を利用者が設定"
 
-msgid "SciTeX Cloud Academic"
-msgstr "SciTeX Cloud Academic（学術）"
+msgid "SciTeX Cloud Pro - Academic"
+msgstr "SciTeX Cloud Pro - Academic（学術）"
 
-msgid "SciTeX Cloud Standard"
-msgstr "SciTeX Cloud Standard（一般）"
+msgid "SciTeX Cloud Pro - Non-Academic"
+msgstr "SciTeX Cloud Pro - Non-Academic（一般）"
 
 msgid "SciTeX Self-Hosted — AGPL v3.0"
 msgstr "SciTeX セルフホスト — AGPL v3.0"
@@ -7477,3 +7477,277 @@ msgstr "利用できる導入方法と連携機能は、選択した構成によ
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
 msgid "Compare current plans"
 msgstr "現在のプランを比較"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "SciTeX Cloud Pro"
+msgstr "SciTeX Cloud Pro"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "For trying things out"
+msgstr "試用に"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Create a free account"
+msgstr "無料アカウントを作成"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "No credit card required."
+msgstr "クレジットカードの登録は不要です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Start free, upgrade anytime"
+msgstr "無料で始めて、いつでもアップグレード"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "30-day trial — card added on Stripe's secure page, no charge during the trial."
+msgstr "30日間のトライアル — カードはStripeの安全なページで登録。トライアル期間中の課金はありません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Compare plans"
+msgstr "プランを比較"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Feature"
+msgstr "機能"
+
+#: apps/infra/public_app/pricing.py
+msgid "Cost"
+msgstr "料金"
+
+#: apps/infra/public_app/pricing.py
+msgid "Credit card"
+msgstr "クレジットカード"
+
+#: apps/infra/public_app/pricing.py
+msgid "Trial"
+msgstr "トライアル"
+
+#: apps/infra/public_app/pricing.py
+msgid "Compute resources"
+msgstr "計算リソース"
+
+#: apps/infra/public_app/pricing.py
+msgid "Storage speed"
+msgstr "ストレージ速度"
+
+#: apps/infra/public_app/pricing.py
+msgid "Compute credit"
+msgstr "計算クレジット"
+
+#: apps/infra/public_app/pricing.py
+msgid "Data transfer"
+msgstr "データ転送"
+
+#: apps/infra/public_app/pricing.py
+msgid "Overage and cap"
+msgstr "超過利用と上限"
+
+#: apps/infra/public_app/pricing.py
+msgid "Data retention"
+msgstr "データ保持"
+
+#: apps/infra/public_app/pricing.py
+msgid "Who can buy"
+msgstr "購入条件"
+
+#: apps/infra/public_app/pricing.py
+msgid "Card added on Stripe's secure page"
+msgstr "Stripeの安全なページでカードを登録"
+
+#: apps/infra/public_app/pricing.py
+msgid "No trial — free from the start"
+msgstr "トライアルなし — 最初から無料"
+
+#: apps/infra/public_app/pricing.py
+msgid "No credit card required"
+msgstr "クレジットカードの登録は不要"
+
+#: apps/infra/public_app/pricing.py (plan comparison table)
+msgid "Non-AGPL"
+msgstr "Non-AGPL"
+
+#: apps/infra/public_app/pricing.py (plan comparison table)
+msgid "CPU"
+msgstr "CPU"
+
+#: apps/infra/public_app/pricing.py (plan comparison table)
+msgid "RAM"
+msgstr "RAM"
+
+#: apps/infra/public_app/pricing.py (plan comparison table)
+msgid "VRAM"
+msgstr "VRAM"
+
+#: apps/infra/public_app/pricing.py (plan comparison table)
+msgid "Compute credits"
+msgstr "計算クレジット"
+
+#: apps/infra/public_app/pricing.py (plan comparison table)
+msgid "GPU included"
+msgstr "GPU あり"
+
+#: apps/infra/public_app/pricing.py (plan comparison table)
+msgid "No GPU"
+msgstr "GPU なし"
+
+#: apps/infra/public_app/pricing.py (plan comparison table)
+msgid "%(gb)s GB"
+msgstr "%(gb)s GB"
+
+#: apps/infra/public_app/pricing.py (plan comparison table)
+msgid "%(gb)s GB included"
+msgstr "%(gb)s GB 込み"
+
+#: apps/infra/public_app/pricing.py (plan comparison table)
+msgid "Self-Hosted"
+msgstr "セルフホスト"
+
+#: apps/infra/public_app/pricing.py (plan comparison table)
+msgid "Runs on your own hardware — CPU, RAM, GPU and storage are yours"
+msgstr "お手持ちのハードウェアで実行 — CPU・RAM・GPU・ストレージはご自身で用意"
+
+#: apps/infra/public_app/pricing.py (plan comparison table)
+msgid "%(agpl)s (AGPL) / %(comm)s (Commercial)"
+msgstr "%(agpl)s（AGPL）/ %(comm)s（商用）"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Academic users get Pro at 50%% off with a university email address."
+msgstr "学術ユーザーは大学メールアドレスでProを50%オフで利用できます。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Pay-as-you-go (PAYG) usage beyond your plan is billed at provider cost plus a 20%% service fee."
+msgstr "プランに含まれる量を超える従量課金（Pay-as-you-go、PAYG）は、プロバイダー原価に20%のサービス料を加えて請求されます。"
+
+#: apps/infra/public_app/pricing.py
+msgid "Self-hosted license"
+msgstr "セルフホストライセンス"
+
+#: apps/infra/public_app/pricing.py
+msgid "Commercial use"
+msgstr "商用利用"
+
+#: apps/infra/public_app/pricing.py
+msgid "Support"
+msgstr "サポート"
+
+#: apps/infra/public_app/pricing.py
+msgid "SLA"
+msgstr "SLA"
+
+#: apps/infra/public_app/pricing.py
+msgid "Source disclosure required"
+msgstr "ソース開示が必要"
+
+#: apps/infra/public_app/pricing.py
+msgid "No restrictions"
+msgstr "制限なし"
+
+#: apps/infra/public_app/pricing.py
+msgid "Included"
+msgstr "含まれる"
+
+#: apps/infra/public_app/pricing.py
+msgid "%(a)s (AGPL) / %(c)s (Commercial)"
+msgstr "%(a)s（AGPL）/ %(c)s（商用）"
+
+#: apps/infra/public_app/pricing.py
+msgid "Commercial use with no restrictions, support and SLA included"
+msgstr "制限なしの商用利用、サポートとSLA付き"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Commercial use without restriction"
+msgstr "制限なしの商用利用"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Uptime SLA"
+msgstr "稼働率SLA"
+
+#: apps/infra/public_app/pricing.py
+msgid "Metered compute rates"
+msgstr "従量課金コンピュート料金"
+
+#: apps/infra/public_app/pricing.py
+msgid "%(price)s / CPU Unit-hour"
+msgstr "%(price)s / CPUユニット時間"
+
+#: apps/infra/public_app/pricing.py
+msgid "%(price)s / GiB-hour"
+msgstr "%(price)s / GiB時間"
+
+#: apps/infra/public_app/pricing.py
+msgid "%(name)s %(price)s / GPU-hour"
+msgstr "%(name)s %(price)s / GPU時間"
+
+#: apps/infra/public_app/pricing.py
+msgid "Memory"
+msgstr "メモリ"
+
+#: apps/infra/public_app/pricing.py
+msgid "API"
+msgstr "API"
+
+#: apps/infra/public_app/pricing.py
+msgid "Rate-limited"
+msgstr "レート制限あり"
+
+#: apps/infra/public_app/pricing.py
+msgid "Scholar"
+msgstr "Scholar"
+
+#: apps/infra/public_app/pricing.py
+msgid "FigRecipe"
+msgstr "FigRecipe"
+
+#: apps/infra/public_app/pricing.py
+msgid "Writer"
+msgstr "Writer"
+
+#: apps/infra/public_app/pricing.py
+msgid "Scholar, Stats, FigRecipe and Writer"
+msgstr "Scholar、Stats、FigRecipe、Writer"
+
+#: apps/infra/public_app/pricing.py
+msgid ""
+"Metered as ordinary compute (CPU / memory / GPU) — "
+"no separate per-app fee"
+msgstr "通常のコンピュート（CPU / メモリ / GPU）として従量課金 — アプリ別の料金なし"
+
+#: apps/infra/public_app/pricing.py
+msgid "Your own hardware"
+msgstr "ご自身のハードウェア"
+
+#: apps/infra/public_app/pricing.py
+msgid ""
+"AGPL: %(a)s\n"
+"Commercial: %(c)s"
+msgstr ""
+"AGPL: %(a)s\n"
+"商用: %(c)s"
+
+#: apps/infra/public_app/pricing.py
+msgid "Metered CPU"
+msgstr "CPU（従量課金）"
+
+#: apps/infra/public_app/pricing.py
+msgid "Metered memory"
+msgstr "メモリ（従量課金）"
+
+#: apps/infra/public_app/pricing.py
+msgid ""
+"Each Compute Credit is worth %(one)s of metered usage: CPU, memory and GPU "
+"hours, plus API calls."
+msgstr ""
+"コンピュートクレジットは、%(one)s分の従量課金利用（CPU・メモリ・GPU時間、"
+"API呼び出し）に利用できます。"
+
+#: apps/infra/public_app/pricing.py
+msgid ""
+"There is no separate VRAM rate: GPU-hour pricing already includes memory by "
+"model."
+msgstr ""
+"VRAMの単独料金はありません。GPU時間料金にはモデルごとにメモリが含まれて"
+"います。"
+
+#: apps/infra/public_app/pricing.py
+msgid "%(tier)s storage: %(meaning)s.%(note)s"
+msgstr "%(tier)sストレージ: %(meaning)s。%(note)s"
