@@ -10,8 +10,40 @@
   "_published_prices_are_the_tokushoho_list": "The price list the 特定商取引法 page publishes. A row is published iff `available_from` (YYYY-MM) is SET and <= the current month; a future month keeps the row in the catalogue and off the page. `withheld` (a stated reason) holds a row back whatever its date says.",
   "published_prices": [
     {
+      "id": "subscription-free",
+      "label": "SciTeX Cloud Free",
+      "amount": 0,
+      "unit": "month",
+      "basis": "per_user",
+      "available_from": "2026-09",
+      "category": "subscription",
+      "attributes": {
+        "no_card_required": true,
+        "workspace_limits": {
+          "cpu": 1,
+          "memory_gb": 2,
+          "gpu": false
+        },
+        "included_storage": {
+          "amount": 2,
+          "tier": "Hot"
+        },
+        "included_compute_credit": {
+          "amount": 1
+        },
+        "included_egress": {
+          "amount": 10
+        },
+        "idle_reclaim": {
+          "pause_after_days": 7,
+          "delete_after_days": 30
+        }
+      },
+      "description": "For trying SciTeX. No credit card required; limited workspace."
+    },
+    {
       "id": "subscription-student",
-      "label": "SciTeX Cloud Academic",
+      "label": "SciTeX Cloud Pro - Academic",
       "amount": 19,
       "unit": "month",
       "basis": "per_user",
@@ -22,6 +54,10 @@
           "days": 30,
           "storage_gb": 10,
           "compute_credit": 3
+        },
+        "workspace_limits": {
+          "cpu": 2,
+          "memory_gb": 8
         },
         "included_storage": {
           "amount": 32,
@@ -42,7 +78,7 @@
     },
     {
       "id": "subscription-general",
-      "label": "SciTeX Cloud Standard",
+      "label": "SciTeX Cloud Pro - Non-Academic",
       "amount": 39,
       "unit": "month",
       "basis": "per_user",
@@ -53,6 +89,10 @@
           "days": 30,
           "storage_gb": 10,
           "compute_credit": 3
+        },
+        "workspace_limits": {
+          "cpu": 2,
+          "memory_gb": 8
         },
         "included_storage": {
           "amount": 32,
@@ -77,7 +117,15 @@
       "unit": "once",
       "available_from": "2026-09",
       "category": "license",
-      "description": "For anyone. AGPL v3.0 terms apply."
+      "description": "For anyone. AGPL v3.0 terms apply.",
+      "attributes": {
+        "self_hosted": true,
+        "license_terms": {
+          "commercial_use": "with-disclosure",
+          "support": "community",
+          "sla": "none"
+        }
+      }
     },
     {
       "id": "selfhosted-academic",
@@ -96,7 +144,15 @@
       "from_price": true,
       "available_from": "2026-09",
       "category": "license",
-      "description": "For companies and proprietary use. Internal proprietary use; OEM or resale requires a separate agreement. Support is not included."
+      "description": "For companies and proprietary use. Internal proprietary use; OEM or resale requires a separate agreement. Includes support and SLA.",
+      "attributes": {
+        "self_hosted": true,
+        "license_terms": {
+          "commercial_use": "unrestricted",
+          "support": "included",
+          "sla": "included"
+        }
+      }
     },
     {
       "id": "onprem-setup",
@@ -190,30 +246,37 @@
   ],
   "_rate_card": "The metered rates from SSOT sections 3-5. Tier names only — never the internal hardware a tier maps to. `coming_soon` marks billing that is not live yet.",
   "rate_card": {
+    "_pay_as_you_go": "Pay-as-you-go (PAYG) usage beyond your plan is billed at provider cost plus a 20% service fee.",
+    "payg_margin_pct": 20,
+    "_api_usage": "Scholar, Stats, FigRecipe and Writer consume ordinary compute (CPU / memory / GPU) like everything else: no separate per-app or service fee.",
     "storage_tiers": [
       {
         "name": "Hot",
         "meaning": "Highest-speed job and scratch storage",
         "included_with_compute": true,
-        "note": "Temporary; not intended as durable storage"
+        "note": "Temporary; not intended as durable storage",
+        "reference_speed": "Hot (read ~4 GB/s, write ~4 GB/s; local scratch reference, varies by host and case)"
       },
       {
         "name": "Warm",
         "meaning": "High-speed persistent storage for active datasets",
-        "amount": 0.10,
-        "note": "Persistent"
+        "amount": 0.1,
+        "note": "Persistent",
+        "reference_speed": "Warm (read ~700 MB/s, write ~450 MB/s; network-storage reference, varies by workload, network and case)"
       },
       {
         "name": "Cool",
         "meaning": "Default user storage",
         "amount": 0.03,
-        "note": "32 GB included with paid Cloud plans"
+        "note": "32 GB included with paid Cloud plans",
+        "reference_speed": "Cool (read ~550 MB/s, write ~200 MB/s; network-storage reference, varies by workload, network and case)"
       },
       {
         "name": "Cold",
         "meaning": "Long-term, infrequently accessed archive",
         "amount": 0.01,
-        "note": "Restore delay may apply"
+        "note": "Restore delay may apply",
+        "reference_speed": "Cold (read ~110 MB/s, write ~90 MB/s; network-storage reference, varies by workload, network and case)"
       }
     ],
     "network": {
@@ -225,16 +288,51 @@
     "compute": {
       "coming_soon": true,
       "cpu_unit_rate": 0.05,
-      "cpu_sizes": [1, 2, 4, 8, 16],
+      "cpu_sizes": [
+        1,
+        2,
+        4,
+        8,
+        16
+      ],
       "memory_addon_rate": 0.005,
       "gpus": [
-        {"name": "RTX 4090 class", "amount": 0.70},
-        {"name": "A100 80 GB class", "amount": 2.00},
-        {"name": "H100 80 GB class", "amount": 3.50},
-        {"name": "H200 141 GB class", "amount": 4.50},
-        {"name": "B200 class", "amount": 7.00}
+        {
+          "name": "RTX 4090 class",
+          "amount": 0.7
+        },
+        {
+          "name": "A100 80 GB class",
+          "amount": 2.0
+        },
+        {
+          "name": "H100 80 GB class",
+          "amount": 3.5
+        },
+        {
+          "name": "H200 141 GB class",
+          "amount": 4.5
+        },
+        {
+          "name": "B200 class",
+          "amount": 7.0
+        }
       ],
-      "external_fee_percent": 10
+      "external_fee_percent": 20
+    },
+    "api": {
+      "coming_soon": true,
+      "keys": {
+        "free": "rate-limited",
+        "pro": "included",
+        "self_hosted": "not-applicable"
+      },
+      "services": [
+        "scholar",
+        "stats",
+        "figrecipe",
+        "writer"
+      ]
     }
   },
   "_policies": "SSOT sections 1 (Academic License boundary), 2 (notes), 6 (additional rules), 7 (SLA) and 8 (price maintenance), as customer copy.",
