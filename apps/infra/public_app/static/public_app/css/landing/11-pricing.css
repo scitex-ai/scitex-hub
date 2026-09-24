@@ -139,6 +139,7 @@
   display: block;
   width: 100%;
   text-align: center;
+  white-space: nowrap;
 }
 
 .pricing-notes {
@@ -271,6 +272,30 @@
    "Pricing" title was half-clipped behind the nav). */
 .section-pricing {
   scroll-margin-top: 5rem;
+  padding: clamp(4.5rem, 8vw, 7rem) 0;
+  background: var(--landing-paper, #f5f4f0);
+  border-top: 1px solid var(--landing-line, #cbd2ce);
+  border-bottom: 1px solid var(--landing-line, #cbd2ce);
+}
+
+/* Pricing title: same scale/ink as sibling section titles. */
+.section-pricing .section-heading {
+  max-width: 780px;
+  margin: 0 0 2rem;
+  font-size: clamp(2.3rem, 4.5vw, 4.3rem);
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+  font-weight: 600;
+  color: var(--landing-ink, #182230);
+}
+/* Dark mode: the section band goes navy, title flips light. */
+[data-theme="dark"] .section-pricing {
+  background: var(--landing-navy, #141d2a);
+  border-top-color: var(--landing-line-dark, #435268);
+  border-bottom-color: var(--landing-line-dark, #435268);
+}
+[data-theme="dark"] .section-pricing .section-heading {
+  color: #f7f8fa;
 }
 
 /* ---- Free-vs-Pro comparison table (one page, SSOT-rendered) ---- */
@@ -326,6 +351,16 @@
   background: var(--bg-surface);
   z-index: 1;
 }
+
+/* Beta header treatment: gold wash under the title row, filled gold on the
+   Pro column, so the header reads as one conspicuous band. */
+.plan-compare-table thead th {
+  background: rgba(255, 179, 0, 0.10);
+  border-bottom: 2px solid rgba(255, 179, 0, 0.55);
+}
+.plan-compare-table thead .plan-col-recommended {
+  background: rgba(255, 179, 0, 0.28);
+}
 .plan-compare-table tbody th[scope="row"] {
   font-weight: 700;
   white-space: nowrap;
@@ -348,7 +383,7 @@
   color: var(--text-muted);
 }
 .plan-compare-grouprow th {
-  background: var(--bg-muted);
+  background: rgba(255, 179, 0, 0.10);
   font-size: 1rem;
   font-weight: 800;
   text-transform: uppercase;
