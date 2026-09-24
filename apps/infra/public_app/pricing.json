@@ -26,7 +26,7 @@
         },
         "included_storage": {
           "amount": 2,
-          "tier": "Cool"
+          "tier": "Hot"
         },
         "included_compute_credit": {
           "amount": 1
@@ -138,7 +138,7 @@
     },
     {
       "id": "selfhosted-commercial",
-      "label": "SciTeX Self-Hosted — Enterprise License",
+      "label": "SciTeX Self-Hosted — Commercial License",
       "amount": 2400,
       "unit": "year",
       "from_price": true,
@@ -248,7 +248,7 @@
   "rate_card": {
     "_pay_as_you_go": "Pay-as-you-go (PAYG) usage beyond your plan is billed at provider cost plus a 20% service fee.",
     "payg_margin_pct": 20,
-    "_api_usage": "Applications — Scholar, Stats, FigRecipe, Writer and the rest — follow the metered compute rates like everything else: no separate per-app fee.",
+    "_api_usage": "Scholar, Stats, FigRecipe and Writer consume ordinary compute (CPU / memory / GPU) like everything else: no separate per-app or service fee.",
     "storage_tiers": [
       {
         "name": "Hot",
@@ -324,18 +324,15 @@
       "coming_soon": true,
       "keys": {
         "free": "rate-limited",
-        "pro": "priority-limited",
+        "pro": "included",
         "self_hosted": "not-applicable"
       },
-      "priority": {
-        "free": "standard",
-        "pro": "priority",
-        "self_hosted": "not-applicable",
-        "_note": "Rate-limit queue priority: Pro requests jump ahead of Free when the system is busy. No fake per-minute numbers — priority only."
-      },
-      "agents_fee_percent": 10,
-      "_agents": "Agent runs meter their compute like everything else, plus the model API cost passed through at 100 + agents_fee_percent percent.",
-      "_per_service_api": "Model API usage follows the metered compute rates; no per-service fee schedule is published."
+      "services": [
+        "scholar",
+        "stats",
+        "figrecipe",
+        "writer"
+      ]
     }
   },
   "_policies": "SSOT sections 1 (Academic License boundary), 2 (notes), 6 (additional rules), 7 (SLA) and 8 (price maintenance), as customer copy.",
@@ -367,26 +364,5 @@
     "mext_partnership": "50% off all plans — a standing discount to government-funded institutions",
     "pilot_program": "Free (6 months) — Professional-tier features for up to 10 researchers"
   },
-  "_withheld_is_a_gate": "A row with a non-empty `withheld` is in the catalogue and NOT published, whatever its available_from says. It is a stated reason, not a flag — an empty string is not a hold. No row is withheld now, and a test pins that.",
-  "coupons": {
-    "coming_soon": true,
-    "_note": "Coupon codes are the flexible-offer mechanism (e.g. academic 50% off Pro). Redemption is not wired yet, so the row is coming-soon.",
-    "free": "none",
-    "pro": "accepted",
-    "self_hosted_agpl": "none",
-    "self_hosted_enterprise": "on-request",
-    "codes": [
-      {
-        "code": "ACADEMIC50",
-        "description": "Academic — 50% off Pro",
-        "monthly_price": 19,
-        "unit": "month"
-      }
-    ],
-    "_codes_note": "Public offer codes the landing table accepts. The table JS reads them from data attributes rendered here — never typed in the template."
-  },
-  "links": {
-    "self_hosted_source": "https://github.com/scitex-ai/scitex-hub",
-    "_note": "Outbound URLs the pricing table may link to. Code reads them; never type them in Python or templates."
-  }
+  "_withheld_is_a_gate": "A row with a non-empty `withheld` is in the catalogue and NOT published, whatever its available_from says. It is a stated reason, not a flag — an empty string is not a hold. No row is withheld now, and a test pins that."
 }

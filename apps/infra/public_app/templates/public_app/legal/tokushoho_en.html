@@ -76,25 +76,7 @@
                         <tr>
                             <th>{% trans "Sale price and consideration" %}</th>
                             <td>
-                                {% if billing_plans %}
-                                    <ul>
-                                        {% for plan in billing_plans %}
-                                            <li>
-                                                {{ plan.name }}: ¥{{ plan.price_tax_included }}{% trans "(tax included)" %}
-                                                {% if plan.interval == "month" %}
-                                                    {% trans "/ month" %}
-                                                {% elif plan.interval == "year" %}
-                                                    {% trans "/ year" %}
-                                                {% endif %}
-                                            </li>
-                                        {% endfor %}
-                                    </ul>
-                                    <p>
-                                        {% trans "Please see the " %}<a href="{% url 'public_app:pricing' %}">{% trans "pricing page" %}</a>{% trans " for the latest prices. All prices are shown tax-inclusive (total)." %}
-                                    </p>
-                                {% else %}
-                                    <p>{% trans "Please refer to the table below. All prices are shown tax-inclusive (total)." %}</p>
-                                {% endif %}
+                                <p>{% trans "Please refer to the table below. All prices are shown tax-inclusive (total)." %}</p>
                             </td>
                         </tr>
                     </table>
@@ -102,8 +84,6 @@
             </div>
         </div>
     </section>
-    {% if billing_plans %}
-    {% else %}
     <section class="price-table-section">
         <div class="container">
             <h2 class="price-table-heading">{% trans "Services and pricing" %}</h2>
@@ -168,7 +148,6 @@
                     </p>
                     <h3 class="price-table-heading">{% trans "Metered rates (storage, network, compute)" %}</h3>
                     {% include "public_app/pricing_partials/rate_card.html" %}
-                    {% endif %}
             </div>
         </div>
     </section>

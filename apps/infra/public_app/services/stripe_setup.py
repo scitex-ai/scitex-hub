@@ -127,6 +127,134 @@ def _field(obj, name, default=None):
     return getattr(obj, name, default)
 
 
+def _ensure_customer_id(user, pricing_id, stripe_client, row):
+    """This user's Stripe customer id, creating it at most once.
+
+    Factored out of :func:`start_card_setup` so the hosted Checkout flow and
+    the inline Elements flow share one customer (same idempotency key, same
+    metadata). ``row`` is the locked :class:`BillingSetupSession`.
+    """
+    customer_id = row.stripe_customer_id or _existing_customer_id(user)
+    if not customer_id:
+        customer = stripe_client.Customer.create(
+            email=getattr(user, "email", "") or "",
+            metadata={"user_pk": str(user.pk), "pricing_id": pricing_id or ""},
+            idempotency_key=customer_idempotency_key(user),
+        )
+        customer_id = customer.id
+    row.stripe_customer_id = customer_id
+    return customer_id
+
+
+def create_card_setup_intent(user, *, pricing_id, stripe_client):
+    """Create a SetupIntent for the INLINE card form (Stripe.js Elements).
+
+    Returns ``(setup_intent_id, client_secret)``. The card number/CVC go
+    directly from the browser to Stripe; the server only ever sees the
+    resulting SetupIntent id, which :func:`confirm_card_setup` verifies
+    (succeeded + customer/plan bound to this user) before persisting
+    anything.
+
+    Idempotency mirrors :func:`start_card_setup`: the locked setup row serialises
+    concurrent calls, and the attempt counter keys the provider call, so a
+    double-click collapses into one intent.
+    """
+    from ..models import BillingSetupSession
+
+    with transaction.atomic():
+        row = _open_setup_row(user)
+        if row.session_id and row.session_id.startswith("seti_"):
+            row.attempt = (row.attempt or 0) + 1
+        customer_id = _ensure_customer_id(user, pricing_id, stripe_client, row)
+
+        intent = stripe_client.SetupIntent.create(
+            customer=customer_id,
+            usage="off_session",
+            metadata={"user_pk": str(user.pk), "pricing_id": pricing_id or ""},
+            idempotency_key=f"scitex-inline-{user.pk}-{pricing_id or 'none'}-{int(row.attempt)}",
+        )
+        row.session_id = _field(intent, "id", "") or ""
+        row.session_url = ""
+        row.pricing_id = pricing_id or ""
+        row.status = BillingSetupSession.Status.OPEN
+        row.save(
+            update_fields=[
+                "attempt", "stripe_customer_id", "session_id", "session_url",
+                "pricing_id", "status", "updated_at",
+            ]
+        )
+        return row.session_id, _field(intent, "client_secret", "") or ""
+
+
+def confirm_card_setup(user, *, setup_intent_id, stripe_client):
+    """Verify an inline SetupIntent and run the standard activation path.
+
+    The intent must be ``succeeded``, belong to this user's customer, and
+    carry this user's pk and an allowlisted plan in its metadata. On success
+    this reuses :func:`apply_setup_completed` and the provider's
+    ``activate_trial_from_setup`` via a synthesized session-shaped payload,
+    so the webhook and inline flows converge on identical persistence and
+    trial activation. Returns the ``PaymentMethod`` row, or ``None`` when the
+    intent cannot be attributed to this user.
+    """
+    from ..models import BillingSetupSession
+
+    intent = stripe_client.SetupIntent.retrieve(setup_intent_id)
+    if _field(intent, "status") != "succeeded":
+        logger.warning("inline card setup %s is not succeeded", setup_intent_id)
+        return None
+    customer_id = _field(intent, "customer", "") or ""
+    metadata = _field(intent, "metadata") or {}
+    if str(_field(metadata, "user_pk", "")) != str(user.pk):
+        logger.warning("inline card setup %s is not for user %s", setup_intent_id, user.pk)
+        return None
+    row = BillingSetupSession.objects.filter(user=user).first()
+    if row is None or customer_id != (row.stripe_customer_id or ""):
+        logger.warning("inline card setup %s customer mismatch for user %s", setup_intent_id, user.pk)
+        return None
+
+    pseudo_event = {
+        "data": {
+            "object": {
+                "mode": "setup",
+                "id": setup_intent_id,
+                "setup_intent": setup_intent_id,
+                "customer": customer_id,
+                "client_reference_id": str(user.pk),
+                "metadata": {"pricing_id": _field(metadata, "pricing_id", "") or ""},
+            }
+        }
+    }
+    card = apply_setup_completed(pseudo_event, stripe_client=stripe_client)
+    if card is None:
+        return None
+    # Card VALIDITY (the bank's verdict, not just the form's): refuse a card
+    # whose CVC check explicitly failed. Anything else — pass, unchecked
+    # (CVC not collected), unavailable — is accepted; only a hard ``fail``
+    # proves the card details are wrong.
+    try:
+        pm_id = _field(intent, "payment_method", "") or ""
+        if pm_id:
+            pm = stripe_client.PaymentMethod.retrieve(pm_id)
+            details = _field(pm, "card") or {}
+            checks = _field(details, "checks") or {}
+            if _field(checks, "cvc_check", "") == "fail":
+                logger.warning(
+                    "inline card setup %s refused: CVC check failed", setup_intent_id
+                )
+                return None
+    except Exception:
+        logger.exception(
+            "inline card setup %s: card-check lookup failed open", setup_intent_id
+        )
+    BillingSetupSession.objects.filter(user=user, session_id=setup_intent_id).update(
+        status=BillingSetupSession.Status.COMPLETED,
+        completed_at=timezone.now(),
+        updated_at=timezone.now(),
+    )
+    return card
+
+
 def _existing_customer_id(user):
     from ..models import PaymentMethod
 
@@ -204,15 +332,7 @@ def start_card_setup(user, *, pricing_id, stripe_client, success_url, cancel_url
             # row keeps attempt 0 — the first attempt IS attempt zero.
             row.attempt = (row.attempt or 0) + 1
 
-        customer_id = row.stripe_customer_id or _existing_customer_id(user)
-        if not customer_id:
-            customer = stripe_client.Customer.create(
-                email=getattr(user, "email", "") or "",
-                metadata={"user_pk": str(user.pk), "pricing_id": pricing_id or ""},
-                idempotency_key=customer_idempotency_key(user),
-            )
-            customer_id = customer.id
-        row.stripe_customer_id = customer_id
+        customer_id = _ensure_customer_id(user, pricing_id, stripe_client, row)
 
         session = stripe_client.checkout.Session.create(
             mode="setup",

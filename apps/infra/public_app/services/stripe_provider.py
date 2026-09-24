@@ -91,11 +91,12 @@ def _current_period_end(stripe_subscription):
 class StripeBillingProvider:
     name = "stripe"
 
-    def __init__(self, *, secret_key="", webhook_secret="", price_ids=None, stripe_client=None):
+    def __init__(self, *, secret_key="", webhook_secret="", price_ids=None, stripe_client=None, publishable_key=""):
         self.secret_key = secret_key or ""
         self.webhook_secret = webhook_secret or ""
         self.price_ids = dict(price_ids or {})
         self._stripe_client = stripe_client
+        self.publishable_key = publishable_key or ""
 
     @classmethod
     def from_settings(cls, **overrides):
@@ -103,13 +104,50 @@ class StripeBillingProvider:
             "secret_key": settings.STRIPE_SECRET_KEY,
             "webhook_secret": settings.STRIPE_WEBHOOK_SECRET,
             "price_ids": getattr(settings, "STRIPE_PRICE_IDS", {}),
+            "publishable_key": getattr(settings, "STRIPE_PUBLISHABLE_KEY", ""),
         }
         values.update(overrides)
         return cls(**values)
 
     @property
     def card_registration_open(self) -> bool:
-        return bool(self.secret_key)
+        # Alpha honesty: live card keys are refused while ALPHA_RELEASE is on,
+        # so the alpha can never take a real payment even if a live key is
+        # deployed by accident. Test keys keep working (test mode only).
+        if self._world() == "live" and getattr(settings, "ALPHA_RELEASE", False):
+            return False
+        return bool(self.secret_key) and self._world() != "mismatch"
+
+    @property
+    def is_test(self) -> bool:
+        """The ACTIVE key's world, fingerprinted from the key prefix itself."""
+        return self._world() == "test"
+
+    def _world(self) -> str:
+        secret = (self.secret_key or "").strip()
+        publishable = (self.publishable_key or "").strip()
+        if secret.startswith("sk_test_"):
+            world = "test"
+        elif secret.startswith("sk_live_"):
+            world = "live"
+        else:
+            return ""
+        if publishable:
+            if world == "test" and not publishable.startswith("pk_test_"):
+                return "mismatch"
+            if world == "live" and not publishable.startswith("pk_live_"):
+                return "mismatch"
+        return world
+
+    @property
+    def inline_card_form_open(self) -> bool:
+        """Whether the inline Elements form can be offered.
+
+        Needs the secret key (SetupIntent creation) AND the publishable key
+        (Stripe.js). Without the publishable key the funnel keeps the hosted
+        Checkout button only.
+        """
+        return bool(self.secret_key and self.publishable_key)
 
     def _client(self):
         if not self.secret_key:
@@ -129,6 +167,42 @@ class StripeBillingProvider:
             cancel_url=cancel_url,
         )
         return setup.url
+
+    def create_setup_intent(self, user, *, pricing_id: str):
+        """A SetupIntent for the inline Elements form.
+
+        Returns ``(setup_intent_id, client_secret)``. The browser confirms it
+        with Stripe.js; :meth:`confirm_card_setup` verifies the result.
+        """
+        return stripe_setup.create_card_setup_intent(
+            user, pricing_id=pricing_id, stripe_client=self._client()
+        )
+
+    def confirm_card_setup(self, user, *, setup_intent_id: str):
+        """Verify an inline SetupIntent, persist the card and start the trial.
+
+        Returns the ``PaymentMethod`` row, or ``None`` when the intent cannot
+        be attributed to this user.
+        """
+        from apps.infra.auth_app.onboarding import state_for
+
+        card = stripe_setup.confirm_card_setup(
+            user, setup_intent_id=setup_intent_id, stripe_client=self._client()
+        )
+        if card is None:
+            return None
+        authority = state_for(user)
+        pricing_id = (authority.pricing_id if authority else "") or ""
+        if pricing_id:
+            self.activate_trial(
+                user,
+                pricing_id=pricing_id,
+                customer_id=card.stripe_customer_id,
+                payment_method_id=card.stripe_payment_method_id,
+                seed=setup_intent_id,
+                stripe_client=self._client(),
+            )
+        return card
 
     def verify_webhook(self, payload, headers):
         if not self.webhook_secret:
