@@ -119,8 +119,8 @@ def coming_soon(text: str) -> str:
 # mechanism (Compute Credits + margin, coming soon) instead of inventing
 # numbers. Closed enums throughout: unknown SSOT values raise loudly.
 _API_KEY_DISPLAY = {
-    "rate-limited": _lazy("Rate-limited"),
-    "included": _lazy("Included"),
+    "rate-limited": _lazy("Standard rate limits"),
+    "priority-limited": _lazy("Priority rate limits"),
     "not-applicable": _lazy("—"),
 }
 
@@ -130,14 +130,9 @@ _API_PRIORITY_DISPLAY = {
     "not-applicable": _lazy("—"),
 }
 
-_API_SERVICE_LABELS = {
-    "scholar": _lazy("Scholar"),
-    "stats": _lazy("Stats"),
-    "figrecipe": _lazy("FigRecipe"),
-    "writer": _lazy("Writer"),
-}
-
-_API_SERVICES_ROW_LABEL = _lazy("Scholar, Stats, FigRecipe and Writer")
+# Individual apps are never named in the pricing table: Scholar, Stats,
+# FigRecipe, Writer and friends are all just Applications, billed at the
+# metered compute rates like everything else.
 
 
 def _metered_and_api_rows() -> list[dict[str, Any]]:
@@ -146,19 +141,6 @@ def _metered_and_api_rows() -> list[dict[str, Any]]:
     api = card.get("api") or {}
     margin = card["payg_margin_pct"]
 
-    services = api.get("services") or []
-    unknown_services = set(services) - set(_API_SERVICE_LABELS)
-    if unknown_services:
-        raise ValueError(
-            f"unknown api.services {sorted(unknown_services)} in pricing.json; "
-            "extend _API_SERVICE_LABELS deliberately."
-        )
-    if set(services) != set(_API_SERVICE_LABELS):
-        raise ValueError(
-            f"api.services is {services}; the table row label names "
-            "Scholar, Stats, FigRecipe and Writer exactly. Update "
-            "_API_SERVICES_ROW_LABEL deliberately if the set changes."
-        )
     keys = api.get("keys") or {}
     for tier in ("free", "pro", "self_hosted"):
         if keys.get(tier) not in _API_KEY_DISPLAY:
@@ -194,8 +176,7 @@ def _metered_and_api_rows() -> list[dict[str, Any]]:
         _API_KEY_DISPLAY[keys["self_hosted"]],
     ]
     metered_line = coming_soon(
-        _("Metered as ordinary compute (CPU / memory / GPU) — "
-          "no separate per-app fee")
+        _("Follow the metered compute rates — no separate fee")
     )
     agents_pct = api.get("agents_fee_percent", 10)
     agents_line = coming_soon(
@@ -203,7 +184,7 @@ def _metered_and_api_rows() -> list[dict[str, Any]]:
         % {"factor": f"{100 + agents_pct}%"}
     )
     per_service_api_line = coming_soon(
-        _("Rate depends on the service")
+        _("Follow the metered compute rates")
     )
     return [
         {"group": coming_soon(_("Metered compute rates"))},
@@ -221,7 +202,7 @@ def _metered_and_api_rows() -> list[dict[str, Any]]:
         {"group": _("Applications")},
         {"label": _("API keys"), "cells": key_cells, "nowrap": True},
         {
-            "label": _API_SERVICES_ROW_LABEL,
+            "label": _("Applications"),
             "cells": [metered_line, metered_line, dash, dash],
         },
         {
@@ -330,7 +311,7 @@ def _self_hosted_text(value: bool) -> str:
 # an unknown value is a red ValueError, not a silently wrong cell.
 # NOTE: module-level display dicts use gettext_lazy — plain gettext here would
 # freeze English at import time and every JA page would show English cells
-# (measured live: "Rate-limited" stayed English under ja until this fix).
+# (measured live: "Standard rate limits" stayed English under ja until this fix).
 _LICENSE_TERM_DISPLAY = {
     "commercial_use": {
         "with-disclosure": _lazy("Source disclosure required"),
@@ -806,8 +787,15 @@ def plan_comparison(today=None):
         if c.get("code") and c.get("monthly_price") is not None
     ]
     spec = [
-        {"label": _("Price"), "cells": price_cells},
-        {"label": _("Coupons"), "cells": coupon_cells},
+        {"label": _("Price"), "cells": price_cells, "code": "price"},
+        {
+            "label": _("Coupons"),
+            "cells": coupon_cells,
+            "code": "coupons",
+            # The coupon input + Apply live directly in this column's cell
+            # (0=Free, 1=Pro, 2=AGPL, 3=Enterprise) — no detached form.
+            "coupon_input_col": 1,
+        },
         {
             "label": _("Queue priority"),
             "cells": _priority_cells(),

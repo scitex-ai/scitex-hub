@@ -417,24 +417,16 @@
   margin-top: 0.15em;
 }
 
-/* Coupon form under the table: code input + Apply updates the Pro price. */
-.coupon-form {
+/* Coupon input lives directly in the Coupons row's Pro cell. */
+.coupon-cell-form {
   display: flex;
-  flex-wrap: wrap;
+  gap: 0.4rem;
   align-items: center;
-  gap: 0.6rem 0.9rem;
-  margin-top: 1.2rem;
 }
-.coupon-label {
-  font-weight: 600;
-}
-.coupon-controls {
-  display: inline-flex;
-  gap: 0.5rem;
-}
-.coupon-controls input {
-  max-width: 12rem;
-  padding: 0.45rem 0.7rem;
+.coupon-cell-form input {
+  width: 7.5rem;
+  min-width: 0;
+  padding: 0.35rem 0.5rem;
   border: 1px solid var(--border-default, #d7dde5);
   border-radius: 0.4rem;
   text-transform: uppercase;
@@ -443,9 +435,9 @@
   display: none;
 }
 .coupon-message {
-  flex-basis: 100%;
-  margin: 0;
+  margin: 0.3rem 0 0;
   min-height: 1.4em;
+  font-size: 0.85em;
 }
 .coupon-applied {
   opacity: 0.7;
