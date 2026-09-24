@@ -324,7 +324,12 @@ def test_metered_rates_and_api_rows_come_from_the_ssot() -> None:
     assert services[2] == "—"
     groups = [r["group"] for r in rows if "group" in r]
     assert "Metered compute rates (Coming soon)" in groups
-    assert "API" in groups
+    assert "Applications" in groups
+    agents = by_label["Agents"]
+    assert "model API × 110%" in agents[0]
+    assert agents[2] == "—"
+    model_api = by_label["Model API"]
+    assert "depends on the service" in model_api[0]
 
 
 @translation.override("ja")

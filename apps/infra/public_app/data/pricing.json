@@ -332,7 +332,10 @@
         "stats",
         "figrecipe",
         "writer"
-      ]
+      ],
+      "agents_fee_percent": 10,
+      "_agents": "Agent runs meter their compute like everything else, plus the model API cost passed through at 100 + agents_fee_percent percent.",
+      "_per_service_api": "Model API rates differ per service; individual service rates are not published yet."
     }
   },
   "_policies": "SSOT sections 1 (Academic License boundary), 2 (notes), 6 (additional rules), 7 (SLA) and 8 (price maintenance), as customer copy.",

@@ -7502,6 +7502,26 @@ msgstr "Pro で始める"
 msgid "Get the source"
 msgstr "ソースを取得"
 
+#: apps/infra/public_app/pricing.py
+msgid "Agents"
+msgstr "エージェント"
+
+#: apps/infra/public_app/pricing.py
+msgid "Metered compute + model API × %(factor)s"
+msgstr "従量課金のコンピュート + モデルAPI × %(factor)s"
+
+#: apps/infra/public_app/pricing.py
+msgid "Model API"
+msgstr "モデルAPI"
+
+#: apps/infra/public_app/pricing.py
+msgid "Rate depends on the service"
+msgstr "料金はサービスごとに異なる"
+
+#: apps/infra/public_app/pricing.py
+msgid "Applications"
+msgstr "アプリケーション"
+
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
 msgid "SciTeX Cloud Pro"
 msgstr "SciTeX Cloud Pro"

@@ -190,6 +190,14 @@ def _metered_and_api_rows() -> list[dict[str, Any]]:
         _("Metered as ordinary compute (CPU / memory / GPU) — "
           "no separate per-app fee")
     )
+    agents_pct = api.get("agents_fee_percent", 10)
+    agents_line = coming_soon(
+        _("Metered compute + model API × %(factor)s")
+        % {"factor": f"{100 + agents_pct}%"}
+    )
+    per_service_api_line = coming_soon(
+        _("Rate depends on the service")
+    )
     return [
         {"group": coming_soon(_("Metered compute rates"))},
         {
@@ -203,11 +211,24 @@ def _metered_and_api_rows() -> list[dict[str, Any]]:
             "nowrap": True,
         },
         *({**r, "nowrap": True} for r in gpu_rows),
-        {"group": _("API")},
+        {"group": _("Applications")},
         {"label": _("API keys"), "cells": key_cells, "nowrap": True},
         {
             "label": _API_SERVICES_ROW_LABEL,
             "cells": [metered_line, metered_line, dash, dash],
+        },
+        {
+            "label": _("Agents"),
+            "cells": [agents_line, agents_line, dash, dash],
+        },
+        {
+            "label": _("Model API"),
+            "cells": [
+                per_service_api_line,
+                per_service_api_line,
+                dash,
+                dash,
+            ],
         },
     ]
 
