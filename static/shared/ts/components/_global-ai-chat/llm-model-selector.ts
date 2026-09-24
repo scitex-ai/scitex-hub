@@ -21,11 +21,60 @@ export function fetchAndPopulateLlmModels(
   fetch(API_URLS.llm.providers)
     .then((r) => r.json())
     .then((data: { providers: Provider[] }) => {
+      const configBadge = document.getElementById(
+        "stx-shell-ai-config-model-badge",
+      );
+      const updateBadges = () => {
+        const val = select.value;
+        const display = val.includes("/") ? val.split("/").pop()! : val;
+        if (badgeEl) {
+          badgeEl.textContent = display;
+          badgeEl.title = val;
+        }
+        if (configBadge) {
+          configBadge.textContent = display;
+          configBadge.title = val;
+        }
+      };
       if (!data.providers || data.providers.length === 0) {
-        const opt = document.createElement("option");
-        opt.textContent = "No providers configured";
-        opt.disabled = true;
-        select.appendChild(opt);
+        // No BYOK providers: fall back to the funded model (if any) so the
+        // badge switcher never opens an empty menu. Selecting it keeps the
+        // default funded path.
+        fetch(API_URLS.llm.model)
+          .then((r) => r.json())
+          .then(
+            (m: {
+              success: boolean;
+              model?: string;
+              display?: string;
+              funded?: boolean;
+            }) => {
+              select.innerHTML = "";
+              const opt = document.createElement("option");
+              if (m.success && m.model) {
+                opt.value = m.model;
+                const short = m.model.includes("/")
+                  ? m.model.split("/").pop()!
+                  : m.model;
+                opt.textContent = m.funded
+                  ? `${short} (SciTeX Free)`
+                  : `${short}`;
+                opt.selected = true;
+              } else {
+                opt.textContent = "No providers configured";
+                opt.disabled = true;
+              }
+              select.appendChild(opt);
+              if (select.value) updateBadges();
+            },
+          )
+          .catch(() => {
+            select.innerHTML = "";
+            const opt = document.createElement("option");
+            opt.textContent = "No providers configured";
+            opt.disabled = true;
+            select.appendChild(opt);
+          });
         return;
       }
 
@@ -42,21 +91,6 @@ export function fetchAndPopulateLlmModels(
         select.appendChild(opt);
       }
 
-      const configBadge = document.getElementById(
-        "stx-shell-ai-config-model-badge",
-      );
-      const updateBadges = () => {
-        const val = select.value;
-        const display = val.includes("/") ? val.split("/").pop()! : val;
-        if (badgeEl) {
-          badgeEl.textContent = display;
-          badgeEl.title = val;
-        }
-        if (configBadge) {
-          configBadge.textContent = display;
-          configBadge.title = val;
-        }
-      };
       if (select.value) updateBadges();
 
       select.addEventListener("change", () => {

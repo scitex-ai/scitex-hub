@@ -19,22 +19,51 @@ function getWsUrl(): string {
 }
 
 function handleEvalJs(data: { code: string; request_id: string }): void {
+  console.error(
+    "[eval-js] exec rid=" + data.request_id + " code=" + String(data.code).slice(0, 80),
+  );
   let result: unknown;
   try {
-    result = new Function(data.code)();
+    // NOTE: new Function(code)() always yields undefined for expression
+    // bodies (function bodies discard completion values). Indirect eval
+    // runs in global scope like new Function but RETURNS the completion
+    // value, so `40+2` gives 42 and `title='x'; 40+2` gives 42.
+    result = (0, eval)(data.code);
   } catch (err) {
     result = { error: String(err) };
   }
 
-  // Send result back to server
+  const payload = JSON.stringify({
+    type: "eval_js_result",
+    request_id: data.request_id,
+    result: result === undefined ? null : result,
+    code_echo: String(data.code).slice(0, 120),
+    agent: "relay-v3",
+  });
+  // Primary: WebSocket upstream.
   if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(
-      JSON.stringify({
-        type: "eval_js_result",
-        request_id: data.request_id,
-        result: result,
-      }),
-    );
+    try {
+      ws.send(payload);
+    } catch (err) {
+      console.error("[eval-js] ws.send failed: " + String(err));
+    }
+  }
+  // Fallback: plain HTTPS POST (same-origin, session auth). The legacy
+  // socket upstream silently drops frames in some environments; the
+  // result must not depend on it.
+  try {
+    const m = document.cookie.match(/csrftoken=([^;]+)/);
+    void fetch("/apps/llm/api/eval-result/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(m ? { "X-CSRFToken": m[1] } : {}),
+      },
+      body: payload,
+      keepalive: true,
+    });
+  } catch (err) {
+    console.error("[eval-js] result POST failed: " + String(err));
   }
 }
 

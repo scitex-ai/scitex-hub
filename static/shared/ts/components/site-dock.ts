@@ -227,10 +227,21 @@ class SiteDock {
 
     // A floating launcher contracts/expands around its current centre rather
     // than treating its old top-left as the new anchor and jumping sideways.
+    // A bottom-parked launcher (y pinned to 1) stays parked: recomputing its
+    // fractions from pixels would unpark it by half the height delta, because
+    // the pill is shorter than the full dock.
+    const parked = parsePosition(readStorage(local, POSITION_KEY))?.y === 1;
     const after = this.box();
     const left = before.left + before.width / 2 - after.width / 2;
     const top = before.top + before.height / 2 - after.height / 2;
     this.settle(left, top);
+    if (parked) {
+      const cur = parsePosition(readStorage(local, POSITION_KEY));
+      if (cur) {
+        writeStorage(local, POSITION_KEY, JSON.stringify({ x: cur.x, y: 1 }));
+        this.restorePosition();
+      }
+    }
   }
 
   private initDrag(): void {
@@ -239,7 +250,10 @@ class SiteDock {
 
     grabber.addEventListener("dblclick", (e) => e.preventDefault());
 
-    grabber.addEventListener("pointerdown", (down: PointerEvent) => {
+    // The dedicated grabber is the only drag handle. A press on it starts a
+    // move; releasing unmoved toggles minimize. Tap-to-minimize stays
+    // grip-only.
+    const beginMove = (down: PointerEvent, tapToMinimize: boolean) => {
       if (down.pointerType === "mouse" && down.button !== 0) return;
       down.preventDefault();
 
@@ -293,13 +307,21 @@ class SiteDock {
         }
         // A cancelled press (e.g. the browser took the gesture) is not a tap.
         if (e.type === "pointercancel") return;
+        if (!tapToMinimize) return;
         this.toggleMinimized(gripTap(isMinimized(this.dock)) === "minimize");
       };
 
       grabber.addEventListener("pointermove", onMove);
       grabber.addEventListener("pointerup", onUp);
       grabber.addEventListener("pointercancel", onUp);
+    };
+
+    grabber.addEventListener("pointerdown", (down: PointerEvent) => {
+      beginMove(down, true);
     });
+
+    // Drag starts on the dedicated grabber only: the gaps between app icons
+    // in the main area are not a drag surface and show the default cursor.
 
     // Keyboard: arrows move the dock, Escape docks it again.
     grabber.addEventListener("keydown", (e: KeyboardEvent) => {

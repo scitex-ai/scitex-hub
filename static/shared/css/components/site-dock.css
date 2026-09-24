@@ -47,10 +47,10 @@
     var(--site-dock-live-height, var(--site-dock-height)) +
       var(--site-dock-gap) + 8px + env(safe-area-inset-bottom, 0px)
   );
-  /* The accepted 0.82 glass, made exactly 10 percentage points more
-     transparent. Keep opacity on the surface only — never fade controls. */
-  --site-dock-bg-idle: rgba(255, 255, 255, 0.72);
-  --site-dock-bg-opaque: #ffffff;
+  /* Idle: flat and simple like .launcher-group — one translucent wash of the
+     page color, no gradients, no dots. Border + shadow carry the elevation. */
+  --site-dock-bg-idle: rgba(250, 249, 247, 0.25);
+  --site-dock-bg-opaque: var(--bg-page, #faf9f7);
   --site-dock-border: rgba(0, 0, 0, 0.1);
   --site-dock-fg: #4a5160;
   --site-dock-fg-active: #1f2430;
@@ -59,8 +59,8 @@
 }
 
 [data-theme="dark"] {
-  --site-dock-bg-idle: rgba(28, 31, 40, 0.72);
-  --site-dock-bg-opaque: #1c1f28;
+  --site-dock-bg-idle: rgba(13, 17, 23, 0.25);
+  --site-dock-bg-opaque: var(--bg-page, #0d1117);
   --site-dock-border: rgba(255, 255, 255, 0.1);
   --site-dock-fg: #aab1c0;
   --site-dock-fg-active: #ffffff;
@@ -70,8 +70,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --site-dock-bg-idle: rgba(28, 31, 40, 0.72);
-    --site-dock-bg-opaque: #1c1f28;
+    --site-dock-bg-idle: rgba(13, 17, 23, 0.25);
+    --site-dock-bg-opaque: var(--bg-page, #0d1117);
     --site-dock-border: rgba(255, 255, 255, 0.1);
     --site-dock-fg: #aab1c0;
     --site-dock-fg-active: #ffffff;
@@ -89,6 +89,85 @@ html:has(> body > .site-dock:not(.site-dock--floating):not(.site-dock--minimized
 body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
   :where(#main-content, main, [role="main"], .panel-body) {
   scroll-padding-bottom: var(--site-dock-scroll-clearance);
+}
+
+/* Layout clearance: a page whose content ends at the viewport bottom (e.g.
+/new/ with its Create button on the last row) would otherwise sit UNDER the
+fixed dock with nothing to scroll. Padding the main column by the dock
+clearance guarantees every control can be scrolled into view above it. */
+body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
+  :where(#main-content, main, [role="main"]) {
+  padding-bottom: var(--site-dock-scroll-clearance);
+}
+
+/* Plain form pages that inherit the workspace shell (e.g. /new/ via the
+my_projects module) must still scroll: workspace-page locks the viewport
+(100dvh + overflow hidden) for pane layouts, which clipped the form's Create
+button under the fixed dock with no way to reach it. This keeps the module
+identity (sidebar tracking, data-track-module) and only restores scrolling. */
+body.workspace-page:has(#main-content .create-page) {
+  height: auto;
+  max-height: none;
+  overflow: visible;
+}
+body.workspace-page:has(#main-content .create-page) #main-content {
+  display: block;
+  overflow: visible;
+  padding-bottom: var(--site-dock-scroll-clearance);
+}
+
+/* Payment step: the card form + free-exit button sit at the page bottom under
+the fixed dock. Same treatment as /new/: restore scrolling and pad by the
+dock clearance so every action is reachable. */
+body:has(#main-content .payment-step),
+body:has(main .payment-step),
+body:has(.payment-step[data-payment-step="true"]) {
+  height: auto;
+  max-height: none;
+  overflow: visible;
+}
+body:has(.payment-step[data-payment-step="true"]) #main-content,
+body:has(.payment-step[data-payment-step="true"]) main {
+  display: block;
+  overflow: visible;
+  padding-bottom: var(--site-dock-scroll-clearance);
+}
+
+/* Chat pane: the welcome input sits at the flex-column bottom, i.e. under */
+the fixed dock with nothing to scroll. Padding the pane by the dock
+clearance lifts the input above it. */
+body.workspace-page:has(#ws-chat-pane) #ws-chat-pane {
+  padding-bottom: var(--site-dock-scroll-clearance);
+}
+
+/* Conversation view: the shell input area is pinned at the panel bottom,
+same dock overlap as the welcome input. */
+body.workspace-page:has(#stx-shell-ai-panel) .stx-shell-ai-input-area {
+  margin-bottom: var(--site-dock-scroll-clearance);
+}
+
+/* App-maker agent chat: the composer sits at the panel bottom under the
+fixed dock. */
+body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
+  .appmaker-chat-form {
+  margin-bottom: var(--site-dock-scroll-clearance);
+}
+
+/* App Creator: the create action sits at the page bottom under the fixed
+dock. The workspace shell locks the viewport (100dvh + overflow hidden)
+for pane layouts, so un-lock scrolling exactly like the /new/ form and pad
+the narrow maker column by the dock clearance. */
+body.workspace-page:has(#main-content .appmaker-narrow) {
+  height: auto;
+  max-height: none;
+  overflow: visible;
+}
+body.workspace-page:has(#main-content .appmaker-narrow) #main-content {
+  display: block;
+  overflow: visible;
+}
+body.workspace-page:has(#main-content .appmaker-narrow) .appmaker-narrow {
+  padding-bottom: var(--site-dock-scroll-clearance);
 }
 
 body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
@@ -119,8 +198,10 @@ body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
   background: var(--site-dock-bg-idle);
   border: 1px solid var(--site-dock-border);
   box-shadow: var(--site-dock-shadow);
-  backdrop-filter: blur(18px) saturate(1.4);
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  /* Light blur only: the page behind must stay faintly readable, not melt
+     into milk. The opaque (hover/focus/drag) state covers this anyway. */
+  backdrop-filter: blur(6px) saturate(1.2);
+  -webkit-backdrop-filter: blur(6px) saturate(1.2);
   font-size: 16px;
   line-height: 1;
   pointer-events: auto;
@@ -145,6 +226,16 @@ body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
 
 .site-dock--dragging {
   cursor: grabbing;
+}
+
+/* Only the dedicated grabber is a drag surface: the pill body keeps the
+   default cursor (the gaps between app icons are not grabbable). */
+.site-dock {
+  cursor: default;
+}
+.site-dock--dragging,
+.site-dock--dragging * {
+  cursor: grabbing !important;
 }
 
 .site-dock:has(:focus-visible),

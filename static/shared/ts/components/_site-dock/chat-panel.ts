@@ -55,9 +55,13 @@ export function initChatPanel(
 
   let maximized = readFlag(MAX_KEY);
   const maxBtn = panel.querySelector<HTMLElement>("[data-dock-chat-maximize]");
+  // A user-dragged panel stays where dropped instead of following the dock;
+  // reopening re-docks it. Resolves "should it move with the launcher":
+  // it follows until you grab it.
+  let userPlaced = false;
 
   const place = () => {
-    if (panel.hidden) return;
+    if (panel.hidden || userPlaced) return;
     const r = dock.getBoundingClientRect();
     const rect = (maximized ? maximizedRect : panelRect)(
       { left: r.left, top: r.top, width: r.width, height: r.height },
@@ -90,6 +94,7 @@ export function initChatPanel(
 
   const resetFrame = () => frame.removeAttribute("src");
   const setOpen = (open: boolean) => {
+    if (open) userPlaced = false; // reopening re-docks the panel
     if (open && !frame.getAttribute("src")) {
       frame.src = embedUrl(
         window.location.pathname,
@@ -160,6 +165,66 @@ export function initChatPanel(
     });
   panel.addEventListener("keydown", (e) => {
     if (e.key === "Escape") setOpen(false);
+  });
+
+  // The head is a drag handle (PowerPoint-style, like the dock body):
+  // dragging decouples the panel from the dock until reopened. Presses on
+  // head buttons keep their own behaviour.
+  const head = panel.querySelector<HTMLElement>(".site-dock-chat-head");
+  head?.addEventListener("pointerdown", (down: PointerEvent) => {
+    if (maximized) return;
+    if (
+      (down.target as HTMLElement | null)?.closest(
+        "button,a,input,select,textarea,[contenteditable]",
+      )
+    )
+      return;
+    if (down.pointerType === "mouse" && down.button !== 0) return;
+    down.preventDefault();
+    const start = panel.getBoundingClientRect();
+    const offsetX = down.clientX - start.left;
+    const offsetY = down.clientY - start.top;
+    let left = start.left;
+    let top = start.top;
+    let moved = false;
+    try {
+      head.setPointerCapture(down.pointerId);
+    } catch {
+      /* capture is best-effort */
+    }
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerId !== down.pointerId) return;
+      if (
+        !moved &&
+        Math.hypot(e.clientX - down.clientX, e.clientY - down.clientY) < 7
+      )
+        return;
+      if (!moved) {
+        moved = true;
+        userPlaced = true;
+        panel.classList.add("site-dock-chat--dragging");
+      }
+      left = Math.min(
+        Math.max(0, e.clientX - offsetX),
+        window.innerWidth - start.width,
+      );
+      top = Math.min(
+        Math.max(0, e.clientY - offsetY),
+        window.innerHeight - start.height,
+      );
+      panel.style.left = `${left}px`;
+      panel.style.top = `${top}px`;
+    };
+    const onUp = (e: PointerEvent) => {
+      if (e.pointerId !== down.pointerId) return;
+      head.removeEventListener("pointermove", onMove);
+      head.removeEventListener("pointerup", onUp);
+      head.removeEventListener("pointercancel", onUp);
+      panel.classList.remove("site-dock-chat--dragging");
+    };
+    head.addEventListener("pointermove", onMove);
+    head.addEventListener("pointerup", onUp);
+    head.addEventListener("pointercancel", onUp);
   });
 
   // Follow the dock: dragging rewrites its inline left/top and class.
