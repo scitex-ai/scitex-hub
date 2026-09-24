@@ -351,9 +351,12 @@ body.workspace-page.app-home .workspace-layout {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  align-content: center;
   justify-content: center;
   gap: 0.5rem 1rem;
-  padding: 0.75rem 1.25rem;
+  padding: 1rem 1.25rem;
+  min-height: 100px;
+  box-sizing: border-box;
   background: #3a2b00;
   color: #ffe9b3;
   font-size: 0.9rem;

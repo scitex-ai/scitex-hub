@@ -371,7 +371,8 @@ def test_table_notes_come_from_the_ssot() -> None:
     rows = comp["rows"]
     by_label = {r["label"]: r["cells"] for r in rows if "label" in r}
     assert by_label["CPU"][2] == "Your own hardware"
-    assert by_label["Cool"][2] == "Your own hardware"
+    cool_key = next(k for k in by_label if k.startswith("Cool"))
+    assert by_label[cool_key][2] == "Your own hardware"
     assert not any(
         "Runs on your own hardware" in c
         for r in rows if "cells" in r for c in r["cells"]

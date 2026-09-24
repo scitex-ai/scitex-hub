@@ -542,6 +542,11 @@ def table_notes() -> list[str]:
         % {"one": format_usd(1)},
         _("There is no separate VRAM rate: GPU-hour pricing already "
           "includes memory by model."),
+        _("Storage speeds are approximate references from live measurements "
+          "and vary with workload pattern (sequential vs random access, file "
+          "sizes), network congestion on shared links, concurrent users and "
+          "jobs, mount options, client-side caching, disk fill level, drive "
+          "media (SSD vs HDD), and time of day."),
     ]
     for tier in card.get("storage_tiers") or []:
         if not tier.get("name") or not tier.get("meaning"):
@@ -644,6 +649,22 @@ def plan_comparison(today=None):
             return _("—")
         return _("%(gb)s GB included") % {"gb": storage["amount"]}
 
+    def tier_label(tier):
+        """Row label with the measured approximate write speed in the cell.
+
+        Speeds are approximate references from `scitex-storage benchmark`
+        (host names deliberately abstracted — backends change as disks are
+        added). Reads are served largely from client cache, so only writes
+        are quoted.
+        """
+        approx = {
+            "Hot": _("~1.4 GB/s write"),
+            "Warm": _("~400 MB/s write"),
+            "Cool": _("~100 MB/s write"),
+            "Cold": _("~80 MB/s write"),
+        }
+        return _("%(tier)s\n%(speed)s") % {"tier": _(tier), "speed": approx[tier]}
+
     hosted_line = _("Your own hardware")
     # Table-local short line: the catalogue sentence ("Runs on your own
     # hardware — ...", kept for cards and the legal page) repeated in every
@@ -717,19 +738,19 @@ def plan_comparison(today=None):
         },
         {"group": _("Storage")},
         {
-            "label": _("Hot"),
+            "label": tier_label("Hot"),
             "cells": [tier_cell(free, "Hot"), tier_cell(pro, "Hot"), hosted_line],
         },
         {
-            "label": _("Warm"),
+            "label": tier_label("Warm"),
             "cells": [tier_cell(free, "Warm"), tier_cell(pro, "Warm"), hosted_line],
         },
         {
-            "label": _("Cool"),
+            "label": tier_label("Cool"),
             "cells": [tier_cell(free, "Cool"), tier_cell(pro, "Cool"), hosted_line],
         },
         {
-            "label": _("Cold"),
+            "label": tier_label("Cold"),
             "cells": [tier_cell(free, "Cold"), tier_cell(pro, "Cold"), hosted_line],
         },
     ] + license_rows + _metered_and_api_rows()
