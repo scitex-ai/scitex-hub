@@ -101,6 +101,33 @@
 }
 
 .mobile-header-menu .mobile-menu-item--indent {
+/* Hamburger language row: globe + EN / JA inline POST buttons. */
+.mobile-header-menu .mobile-menu-lang {
+  gap: 8px;
+}
+.mobile-header-menu .mobile-menu-lang-form {
+  display: inline;
+  margin: 0;
+}
+.mobile-header-menu .mobile-menu-lang-btn {
+  appearance: none;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--text-secondary);
+  font: inherit;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.mobile-header-menu .mobile-menu-lang-btn.is-on {
+  border-color: var(--border-default);
+  background: var(--bg-muted);
+  color: var(--text-primary);
+}
+.mobile-header-menu .mobile-menu-lang-sep {
+  color: var(--text-muted);
+}
   padding-left: 40px;
 }
 
