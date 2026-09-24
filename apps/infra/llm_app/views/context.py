@@ -130,6 +130,32 @@ async def api_eval_js(request):
 
 @login_required
 @require_http_methods(["POST"])
+async def api_eval_result(request):
+    """Result inbox for browser eval_js executions (fetch-POST fallback).
+
+    The legacy WebSocket upstream silently drops frames in some
+    environments; the browser POSTs the same payload here instead.
+    Body: {"request_id": "...", "result": <json>, ...}.
+    """
+    import json as _json
+
+    try:
+        data = _json.loads(request.body)
+    except _json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
+    request_id = str(data.get("request_id") or "")
+    if not request_id:
+        return JsonResponse(
+            {"success": False, "error": "request_id is required"}, status=400
+        )
+    from django.core.cache import cache
+
+    cache.set(f"eval_js_result_{request_id}", data.get("result"), timeout=60)
+    return JsonResponse({"success": True})
+
+
+@login_required
+@require_http_methods(["POST"])
 async def api_ui_action(request):
     """Relay UI action to the user's browser via WebSocket.
 

@@ -298,7 +298,9 @@ def test_verified_user_gets_ten_atomic_reservations_and_idempotent_replay():
         "category": "quota_reached",
         "remaining": 0,
         "reset_at": "2026-09-18T00:00:00Z",
+        "reset_label": "midnight UTC",
         "model": "deepseek/deepseek-chat",
+        "model_label": "deepseek-chat",
         "total": 10,
         "state": "exhausted",
     }
@@ -908,3 +910,106 @@ def test_reconciliation_has_an_operator_runnable_job_path():
     source = inspect.getsource(Command.handle)
     assert "reconcile_stale_requests" in source
     assert "--limit" in inspect.getsource(Command.add_arguments)
+
+
+def test_tool_loop_records_execution_trace_for_chat_surface():
+    """The funded loop must report WHAT the agent did, not just its words."""
+    import asyncio
+    import sys
+    import types
+
+    from apps.infra.llm_app.services import mcp_client
+
+    calls = {"n": 0}
+
+    class _Fn:
+        def __init__(self, name, arguments):
+            self.name = name
+            self.arguments = arguments
+
+    class _Msg:
+        def __init__(self, tool_calls=None, content="DONE"):
+            self.tool_calls = tool_calls
+            self.content = content
+
+        def model_dump(self):
+            return {"role": "assistant", "content": self.content}
+
+    class _Choice:
+        def __init__(self, message):
+            self.message = message
+
+    class _Resp:
+        def __init__(self, message):
+            self.choices = [_Choice(message)]
+            self.usage = None
+
+    async def _fake_acompletion(**kwargs):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            tc = types.SimpleNamespace(
+                id="call-1",
+                function=_Fn("browser_eval", '{"code": "40+2"}'),
+            )
+            return _Resp(_Msg(tool_calls=[tc]))
+        return _Resp(_Msg(content="DONE"))
+
+    async def _fake_exec(name, args):
+        assert name == "browser_eval"
+        return "42"
+
+    fake_litellm = types.SimpleNamespace(
+        acompletion=_fake_acompletion,
+        completion_cost=lambda **k: 0.0,
+        token_counter=lambda **k: 10,
+    )
+    old = sys.modules.get("litellm")
+    sys.modules["litellm"] = fake_litellm
+    try:
+        text, used, usage = asyncio.run(
+            mcp_client.run_tool_loop(
+                litellm_model="test/model",
+                api_key=None,
+                messages=[{"role": "user", "content": "hi"}],
+                tools=[],
+                max_tokens=64,
+                temperature=0.0,
+                max_rounds=3,
+                tool_executor=_fake_exec,
+            )
+        )
+    finally:
+        if old is None:
+            del sys.modules["litellm"]
+        else:
+            sys.modules["litellm"] = old
+    assert text == "DONE"
+    assert used == ["browser_eval"]
+    trace = usage.get("tool_trace")
+    assert isinstance(trace, list) and len(trace) == 1
+    assert trace[0]["name"] == "browser_eval"
+    assert "40+2" in trace[0]["args_preview"]
+    assert "42" in trace[0]["result_preview"]
+
+
+def test_provider_result_carries_trace_without_persisting_it():
+    from apps.infra.llm_app.funded_chat.service import ProviderResult
+
+    empty = ProviderResult(
+        text="hi",
+        prompt_tokens=1,
+        completion_tokens=1,
+        provider_cost_usd=__import__("decimal").Decimal("0"),
+    )
+    assert empty.tools_used == ()
+    assert empty.tool_trace == ()
+    full = ProviderResult(
+        text="hi",
+        prompt_tokens=1,
+        completion_tokens=1,
+        provider_cost_usd=__import__("decimal").Decimal("0"),
+        tools_used=("browser_eval",),
+        tool_trace=({"name": "browser_eval"},),
+    )
+    assert full.tools_used == ("browser_eval",)
+    assert full.tool_trace == ({"name": "browser_eval"},)

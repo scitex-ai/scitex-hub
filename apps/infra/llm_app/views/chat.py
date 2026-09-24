@@ -37,11 +37,22 @@ def _execute_funded_chat(user, messages: list[dict], idempotency_key: str):
     request_body = json.dumps(
         {"messages": messages}, separators=(",", ":"), ensure_ascii=False
     ).encode("utf-8")
+    if config.tools_enabled:
+        from apps.infra.llm_app.funded_chat.provider import litellm_tool_loop_call
+
+        def _loop_call(cfg, body, key=""):
+            return litellm_tool_loop_call(
+                cfg, body, key, user=user, max_rounds=config.tool_max_rounds
+            )
+
+        provider_call = _loop_call
+    else:
+        provider_call = litellm_provider_call
     return FundedChatService(config=config).execute(
         user,
         idempotency_key=idempotency_key,
         request_body=request_body,
-        provider_call=litellm_provider_call,
+        provider_call=provider_call,
     )
 
 
@@ -66,11 +77,16 @@ def _model_display_name(service_id: str, model_id: str) -> str:
 
     provider = LLM_PROVIDERS.get(service_id, {})
     provider_display = provider.get("display", service_id).split("(")[0].strip()
-    # Strip provider prefix (e.g. "gemini/" from "gemini/gemini-2.0-flash")
+    # Strip provider prefix (e.g. "gemini/" from "gemini/gemini-2.0-flash").
+    # Nested prefixes (e.g. "openai/" inside a groq-routed "openai/gpt-oss-20b")
+    # fall back to the last path segment, so the badge never shows a raw
+    # provider/model path.
     prefix = provider.get("model_prefix", "")
     base = model_id
     if prefix and base.startswith(prefix):
         base = base[len(prefix) :]
+    if "/" in base:
+        base = base.split("/")[-1]
     # Strip date suffix (e.g. "-20241022")
     base = re.sub(r"-\d{8}$", "", base)
     return f"{provider_display} · {base}"
@@ -388,6 +404,15 @@ async def api_chat_stream(request):
                 result = await sync_to_async(
                     _execute_funded_chat, thread_sensitive=True
                 )(request.user, messages, idempotency_key)
+                # Surface execution, not chatter: one tool tag per agent
+                # step. Name-only (no args): the steps already ran
+                # server-side, so the browser displays, not re-runs, them.
+                for step in result.tool_trace or ():
+                    if isinstance(step, dict) and step.get("name"):
+                        tag = _json.dumps(
+                            {"type": "tool_start", "name": step["name"], "args": {}}
+                        )
+                        yield "data: " + tag + "\n\n"
                 yield f"data: {_json.dumps({'type': 'chunk', 'text': result.text})}\n\n"
             else:
                 async for event in with_keepalive(

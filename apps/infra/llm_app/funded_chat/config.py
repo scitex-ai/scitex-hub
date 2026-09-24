@@ -33,6 +33,8 @@ class FundedChatConfig:
     max_request_bytes: int = 65_536
     max_messages: int = 64
     max_message_chars: int = 32_768
+    tools_enabled: bool = False
+    tool_max_rounds: int = 3
     allowed_providers: tuple[str, ...] = ()
     allowed_models: tuple[str, ...] = ()
 
@@ -108,8 +110,14 @@ def _validate_provider_model(provider: str, model: str) -> None:
             "funded model collides with a reserved namespace"
         )
     if "/" in model:
-        prefix, suffix = model.split("/", 1)
-        if prefix != provider or not suffix or "/" in suffix:
+        # Provider-namespaced IDs. Some providers nest a publisher prefix
+        # (e.g. groq/openai/gpt-oss-20b): the provider segment stays pinned,
+        # every path segment must be a bare identifier.
+        segments = model.split("/")
+        if (
+            segments[0] != provider
+            or any(not _IDENTIFIER.fullmatch(s) for s in segments[1:])
+        ):
             raise FundedChatConfigurationError(
                 "funded model is outside the provider allowlist"
             )
@@ -158,6 +166,16 @@ def load_funded_chat_config() -> FundedChatConfig:
     max_message_chars = _positive_int_setting(
         "SCITEX_FUNDED_CHAT_MAX_MESSAGE_CHARS", 32_768, maximum=1_048_576
     )
+    tools_enabled_setting = getattr(
+        settings, "SCITEX_FUNDED_CHAT_TOOLS_ENABLED", False
+    )
+    if not isinstance(tools_enabled_setting, bool):
+        raise FundedChatConfigurationError(
+            "SCITEX_FUNDED_CHAT_TOOLS_ENABLED must be an explicit boolean"
+        )
+    tool_max_rounds = _positive_int_setting(
+        "SCITEX_FUNDED_CHAT_TOOL_MAX_ROUNDS", 3, maximum=5
+    )
 
     config = FundedChatConfig(
         enabled=enabled,
@@ -175,6 +193,8 @@ def load_funded_chat_config() -> FundedChatConfig:
         max_request_bytes=max_request_bytes,
         max_messages=max_messages,
         max_message_chars=max_message_chars,
+        tools_enabled=tools_enabled_setting,
+        tool_max_rounds=tool_max_rounds,
         allowed_providers=(provider,) if provider else (),
         allowed_models=(model,) if model else (),
     )

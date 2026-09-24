@@ -58,6 +58,7 @@ urlpatterns = [
     # Cloud context API for MCP tools / AI agents
     path("api/context/", views.api_get_context, name="api_get_context"),
     path("api/eval-js/", views.api_eval_js, name="api_eval_js"),
+    path("api/eval-result/", views.api_eval_result, name="api_eval_result"),
     path("api/ui-action/", views.api_ui_action, name="api_ui_action"),
     # File upload for AI chat drops
     path("api/upload/", views.api_upload_files, name="api_upload_files"),
