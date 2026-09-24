@@ -25,6 +25,26 @@ from apps.infra.public_app.pricing import (
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 
+def _section_row(rows: list, group_prefixes: str | tuple, label: str) -> list:
+    """Cells of `label` inside the section whose group starts with prefix.
+
+    "CPU" labels two rows (Resources quota vs COMPUTE rate); bare
+    by_label lookups silently resolve to whichever comes last. Prefixes
+    is a tuple under translation.override (EN + JA group names).
+    """
+    if isinstance(group_prefixes, str):
+        group_prefixes = (group_prefixes,)
+    current_group = None
+    for r in rows:
+        if "group" in r:
+            current_group = r["group"]
+        elif r.get("label") == label and str(current_group).startswith(
+            group_prefixes
+        ):
+            return r["cells"]
+    raise AssertionError(f"no {label!r} row under {group_prefixes!r}")
+
+
 @pytest.fixture(scope="module", autouse=True)
 def compiled_catalogs():
     """Compile locale/**/*.po -> .mo before any JA assertion reads a catalog.
@@ -296,9 +316,18 @@ def test_metered_rates_and_api_rows_come_from_the_ssot() -> None:
 
     rows = plan_comparison()["rows"]
     by_label = {r["label"]: r["cells"] for r in rows if "label" in r}
-    assert by_label["Metered CPU"][0] == "$0.05 / CPU Unit-hour"
-    assert by_label["Metered CPU"][2] == "—"  # self-hosted runs on your hardware
-    assert by_label["Metered memory"][0] == "$0.005 / GiB-hour"
+    # The COMPUTE section's CPU/Memory rows: the per-hour unit says metered,
+    # so the labels stay bare. Scoped by section — Resources has its own CPU.
+    compute_rows = {}
+    current_group = None
+    for r in rows:
+        if "group" in r:
+            current_group = r["group"]
+        elif current_group == "Compute (Coming soon)":
+            compute_rows[r["label"]] = r
+    assert compute_rows["CPU"]["cells"][0] == "$0.05 / CPU Unit-hour"
+    assert compute_rows["CPU"]["cells"][2] == "—"  # self-hosted: your hardware
+    assert compute_rows["Memory"]["cells"][0] == "$0.005 / GiB-hour"
     # One row per GPU class (a combined cell became an unreadable tower
     # on narrow displays); VRAM lives in the class names, not its own row.
     assert by_label["RTX 4090 class"][0] == "$0.70 / GPU-hour"
@@ -311,7 +340,7 @@ def test_metered_rates_and_api_rows_come_from_the_ssot() -> None:
     nowrap = {
         r["label"]: r.get("nowrap", False) for r in rows if "label" in r
     }
-    assert nowrap["Metered CPU"] is True
+    assert compute_rows["CPU"].get("nowrap", False) is True
     assert nowrap["RTX 4090 class"] is True
     assert nowrap["API keys"] is True
     assert nowrap["Applications"] is False
@@ -329,7 +358,7 @@ def test_metered_rates_and_api_rows_come_from_the_ssot() -> None:
     assert "Scholar" not in apps[0] and "Writer" not in apps[0]
     assert apps[2] == "—"
     groups = [r["group"] for r in rows if "group" in r]
-    assert "Metered compute rates (Coming soon)" in groups
+    assert "Compute (Coming soon)" in groups
     assert "Applications" in groups
     agents = by_label["Agents"]
     assert "model API × 110%" in agents[0]
@@ -348,7 +377,8 @@ def test_license_and_notes_render_japanese() -> None:
     by_label = {r["label"]: r["cells"] for r in rows if "label" in r}
     comm_use = next(r["cells"] for r in rows if "cells" in r and r["cells"][2:] == ["ソース開示が必要", "制限なし"])
     assert comm_use[:2] == ["—", "—"]
-    assert by_label["CPU"][2] == "ご自身のハードウェア"
+    resources_cpu = _section_row(rows, ("Resources", "リソース"), "CPU")
+    assert resources_cpu[2] == "ご自身のハードウェア"
     notes = " ".join(comp["notes"])
     assert "VRAMの単独料金はありません" in notes
     assert "コンピュートクレジットは、" in notes
@@ -385,8 +415,10 @@ def test_table_notes_come_from_the_ssot() -> None:
     assert not any("storage:" in n for n in notes)
     rows = comp["rows"]
     by_label = {r["label"]: r["cells"] for r in rows if "label" in r}
-    assert by_label["CPU"][2] == "Your own hardware"
-    assert by_label["CPU"][1] == "2 (+ optional)"
+    # "CPU" labels two rows (Resources quota vs COMPUTE rate) — scope it.
+    resources_cpu = _section_row(rows, "Resources", "CPU")
+    assert resources_cpu[2] == "Your own hardware"
+    assert resources_cpu[1] == "2 (+ optional)"
     assert by_label["RAM"][1] == "8 GB (+ optional)"
     hot_key = next(k for k in by_label if k.startswith("Hot"))
     hot_cells = by_label[hot_key]

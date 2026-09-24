@@ -327,8 +327,11 @@
   z-index: 1;
 }
 .plan-compare-table tbody th[scope="row"] {
-  font-weight: 600;
+  font-weight: 700;
   white-space: nowrap;
+  background: var(--bg-surface);
+  border-left: 3px solid var(--border-default, #d7dde5);
+  padding-left: 0.8rem;
 }
 .plan-compare-table td[data-plan-col="0"] {
   font-weight: 600;
@@ -342,13 +345,15 @@
 }
 .plan-compare-grouprow th {
   background: var(--bg-muted);
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding-top: 1.1rem;
-  padding-bottom: 0.7rem;
+  letter-spacing: 0.1em;
+  padding-top: 1.2rem;
+  padding-bottom: 0.8rem;
+  padding-left: 0.8rem;
   border-top: 2px solid var(--border-default, #d7dde5);
+  border-left: 3px solid var(--text-primary);
 }
 .plan-compare-note {
   text-align: center;
