@@ -994,7 +994,8 @@
   background: var(--landing-navy-raised);
 }
 [data-theme="dark"] .landing-v2-philosophy-card p,
-[data-theme="dark"] .landing-v2-philosophy-card ol {
+[data-theme="dark"] .landing-v2-philosophy-card ol,
+[data-theme="dark"] .landing-v2-philosophy-card ul {
   color: #d4dde7;
 }
 .landing-v2-philosophy-card h3 {
@@ -1009,7 +1010,8 @@
   font-size: 1.05rem;
   line-height: 1.7;
 }
-.landing-v2-philosophy-card ol {
+.landing-v2-philosophy-card ol,
+.landing-v2-philosophy-card ul {
   margin: 0;
   padding-left: 1.3rem;
   display: grid;
