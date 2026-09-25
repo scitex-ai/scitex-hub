@@ -51,17 +51,21 @@ def save_paper(request):
             status=400,
         )
 
-    title = request.POST.get("title", "").strip()
-    authors = request.POST.get("authors", "").strip()
+    from .text_clean import clean_text as _clean_text
+
+    # POSTed values may carry JATS markup/entities when they bypass the
+    # search-result edge (bulk callers, direct API use); clean at save time.
+    title = _clean_text(request.POST.get("title", ""))
+    authors = _clean_text(request.POST.get("authors", ""))
     if not title:
         return JsonResponse(
             {"success": False, "error": "Paper title is required"}, status=400
         )
 
     year = request.POST.get("year", "")
-    journal = request.POST.get("journal", "")
+    journal = _clean_text(request.POST.get("journal", ""))
     doi = request.POST.get("doi", "")
-    abstract = request.POST.get("abstract", "")
+    abstract = _clean_text(request.POST.get("abstract", ""))
     source = request.POST.get("source", "unknown")
     url = request.POST.get("url", "")
     pmid = request.POST.get("pmid", "")
