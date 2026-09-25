@@ -153,8 +153,12 @@
    ========================= */
 
 .input-group {
-  /* Layout - ensure flexbox behavior */
+  /* Layout - ensure flexbox behavior. nowrap is the actual eye-mark fix:
+     Bootstrap leaves flex-wrap:wrap on .input-group, so the full-width
+     password input pushes the toggle button onto its own line. */
   display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
 }
 
 .input-group .form-control {
@@ -165,7 +169,8 @@
 }
 
 .input-group .btn {
-  /* Layout - remove left border radius for attached appearance */
+  /* Layout - never shrink/wrap away from the input; attached appearance */
+  flex: 0 0 auto;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
