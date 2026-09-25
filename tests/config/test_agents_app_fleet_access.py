@@ -1,4 +1,12 @@
-"""Agents mount authentication and SAC identity-scope contract."""
+"""Only fleet operators may ACT through the Hub's /apps/agents/ mount.
+
+Reads are login-only since 2026-09-26: scitex-agent-container >= 0.28
+scopes every read by identity (resolve_identity + scope_rows, per-identity
+snapshot cache), so an ordinary user only ever sees their own agents. What
+these tests pin is the CONTROL boundary: lifecycle_action stays behind
+_fleet_access_required, and the decorator itself still refuses ordinary
+accounts so it cannot silently weaken.
+"""
 
 from __future__ import annotations
 
@@ -13,9 +21,26 @@ from apps.workspace.agents_app import views
 
 @pytest.mark.parametrize(
     ("view_name", "kwargs"),
-    (("index", {}), ("fleet_api", {}), ("detail", {"name": "worker"})),
+    (
+        ("fleet_api", {}),
+        ("healthz", {}),
+        ("detail", {"name": "worker"}),
+    ),
 )
-def test_anonymous_requests_never_reach_sac(monkeypatch, view_name, kwargs):
+def test_read_views_delegate_for_an_ordinary_user(
+    monkeypatch, no_operators_env, view_name, kwargs
+):
+    # Reads are login-only: the hub passes them to the upstream, which
+    # scopes rows to the user's identity. A missing delegate call would
+    # mean the hub re-gated reads.
+    # Arrange
+    seen = {}
+
+    def fake_delegate(view_name, request, *args, **kwargs):
+        seen["view"] = view_name
+        return HttpResponse("scoped-board")
+
+    monkeypatch.setattr(views, "_delegate", fake_delegate)
     request = RequestFactory().get("/apps/agents/")
     request.user = AnonymousUser()
     monkeypatch.setattr(
@@ -29,7 +54,23 @@ def test_anonymous_requests_never_reach_sac(monkeypatch, view_name, kwargs):
 
     response = getattr(views, view_name)(request, **kwargs)
 
-    assert response.status_code == 302
+    # Assert
+    assert response.status_code == 200
+    assert seen["view"] == view_name
+
+
+def test_lifecycle_action_refuses_an_ordinary_user(no_operators_env):
+    # Control stays operator-gated at the hub boundary (upstream
+    # can_control() gates it a second time).
+    # Arrange
+    request = RequestFactory().post("/apps/agents/worker/action")
+    request.user = _user()
+
+    # Act
+    response = views.lifecycle_action(request, name="worker")
+
+    # Assert
+    assert response.status_code == 403
 
 
 def test_sac_resolves_the_authenticated_hub_identity():
@@ -43,17 +84,25 @@ def test_sac_resolves_the_authenticated_hub_identity():
     assert authorization.resolve_identity(request) == "alice"
 
 
-def test_sac_scope_hides_cross_host_rows_from_an_ordinary_identity(monkeypatch):
-    authorization = pytest.importorskip(
-        "scitex_agent_container._django._authorization"
-    )
-    monkeypatch.delenv("SCITEX_AGENT_CONTAINER_CROSSHOST_OPERATORS", raising=False)
-    rows = [
-        {"name": "own", "host": "local"},
-        {"name": "other-user", "host": "other.example"},
-    ]
+def test_ordinary_user_index_reaches_their_scoped_board(
+    monkeypatch, no_operators_env
+):
+    # The placeholder era is over: the index delegates and the upstream
+    # renders this user's own agents (or the empty state).
+    # Arrange
+    seen = {}
 
-    scoped = authorization.scope_rows(rows, "alice")
+    def fake_delegate(view_name, request, *args, **kwargs):
+        seen["view"] = view_name
+        return HttpResponse("scoped-board")
 
-    assert [row["name"] for row in scoped] == ["own"]
-    assert scoped[0]["scope"] == "own"
+    monkeypatch.setattr(views, "_delegate", fake_delegate)
+    request = RequestFactory().get("/apps/agents/")
+    request.user = _user()
+
+    # Act
+    response = views.index(request)
+
+    # Assert
+    assert response.status_code == 200
+    assert seen["view"] == "index"

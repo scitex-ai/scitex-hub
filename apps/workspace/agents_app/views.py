@@ -13,6 +13,12 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.utils.translation import gettext_lazy as _
 
+# Reads are login-only: scitex-agent-container >= 0.28 scopes EVERY read by
+# identity itself (resolve_identity + scope_rows in each view; the snapshot
+# cache is keyed per identity), so an ordinary signed-in user only ever sees
+# their own agents. Mutations stay operator-gated twice: the hub decorator
+# below AND upstream can_control() on lifecycle/message actions. (#789 gate
+# lifted 2026-09-26 once upstream scoping was verified.)
 OPERATORS_ENV = "SCITEX_AGENT_CONTAINER_LIFECYCLE_OPERATORS"
 
 
@@ -56,6 +62,7 @@ def _delegate(view_name, request, *args, **kwargs):
 
 @login_required
 def index(request):
+    # Upstream scopes rows to this user's identity; no hub-side gate.
     return _delegate("index", request)
 
 
@@ -74,6 +81,8 @@ def detail(request, name):
     return _delegate("detail", request, name=name)
 
 
+# Control plane: stays operator-gated at the hub boundary (upstream
+# can_control() gates it a second time).
 @login_required
 def lifecycle_action(request, name):
     return _delegate("lifecycle_action", request, name=name)
