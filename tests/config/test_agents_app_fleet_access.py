@@ -1,10 +1,11 @@
-"""Only fleet operators may read or act through the Hub's /apps/agents/ mount.
+"""Only fleet operators may ACT through the Hub's /apps/agents/ mount.
 
-SAC's own Django views gate lifecycle_action on its operator list but leave
-index, fleet_api, healthz and detail open, so the Hub adapter is the only
-thing standing between an ordinary signed-in account and the whole agent
-fleet. #789 enforced this; #803 briefly shipped login-only. These tests pin
-the gate so it cannot silently fall back to login-only again.
+Reads are login-only since 2026-09-26: scitex-agent-container >= 0.28
+scopes every read by identity (resolve_identity + scope_rows, per-identity
+snapshot cache), so an ordinary user only ever sees their own agents. What
+these tests pin is the CONTROL boundary: lifecycle_action stays behind
+_fleet_access_required, and the decorator itself still refuses ordinary
+accounts so it cannot silently weaken.
 """
 
 from __future__ import annotations
@@ -118,17 +119,43 @@ def test_unlisted_user_is_refused_even_when_operators_are_configured(operators_e
         ("fleet_api", {}),
         ("healthz", {}),
         ("detail", {"name": "worker"}),
-        ("lifecycle_action", {"name": "worker"}),
     ),
 )
-def test_every_mounted_view_refuses_an_ordinary_user(no_operators_env, view_name, kwargs):
-    # Arrange: the real view, so a missing gate would fall through to SAC
+def test_read_views_delegate_for_an_ordinary_user(
+    monkeypatch, no_operators_env, view_name, kwargs
+):
+    # Reads are login-only: the hub passes them to the upstream, which
+    # scopes rows to the user's identity. A missing delegate call would
+    # mean the hub re-gated reads.
+    # Arrange
+    seen = {}
+
+    def fake_delegate(view_name, request, *args, **kwargs):
+        seen["view"] = view_name
+        return HttpResponse("scoped-board")
+
+    monkeypatch.setattr(views, "_delegate", fake_delegate)
     request = RequestFactory().get("/apps/agents/")
     request.user = _user()
     view = getattr(views, view_name)
 
     # Act
     response = view(request, **kwargs)
+
+    # Assert
+    assert response.status_code == 200
+    assert seen["view"] == view_name
+
+
+def test_lifecycle_action_refuses_an_ordinary_user(no_operators_env):
+    # Control stays operator-gated at the hub boundary (upstream
+    # can_control() gates it a second time).
+    # Arrange
+    request = RequestFactory().post("/apps/agents/worker/action")
+    request.user = _user()
+
+    # Act
+    response = views.lifecycle_action(request, name="worker")
 
     # Assert
     assert response.status_code == 403
@@ -146,19 +173,25 @@ def test_root_urlconf_resolves_agents_to_the_sac_index_when_installed():
     assert match.view_name == "scitex_agent_container:index"
 
 
-@pytest.mark.django_db
-def test_ordinary_user_index_gets_placeholder_page_not_the_fleet(no_operators_env):
-    # Operator 2026-09-14: Agents is shown to everyone and only its content is
-    # per user, so the index renders the own-scope placeholder instead of 403.
+def test_ordinary_user_index_reaches_their_scoped_board(
+    monkeypatch, no_operators_env
+):
+    # The placeholder era is over: the index delegates and the upstream
+    # renders this user's own agents (or the empty state).
     # Arrange
-    from django.contrib.auth.models import User
+    seen = {}
 
+    def fake_delegate(view_name, request, *args, **kwargs):
+        seen["view"] = view_name
+        return HttpResponse("scoped-board")
+
+    monkeypatch.setattr(views, "_delegate", fake_delegate)
     request = RequestFactory().get("/apps/agents/")
-    request.user = User.objects.create_user(username="plainuser", password="x")
-    request.session = {}
+    request.user = _user()
 
     # Act
     response = views.index(request)
 
     # Assert
-    assert b'data-own-scope-app="agents"' in response.content
+    assert response.status_code == 200
+    assert seen["view"] == "index"
