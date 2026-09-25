@@ -159,7 +159,9 @@
 
 .input-group .form-control {
   /* Layout */
-  flex: 1;
+  flex: 1 1 auto;
+  width: 1%;
+  min-width: 0;
 }
 
 .input-group .btn {
