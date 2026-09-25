@@ -493,3 +493,10 @@
     font-size: 11.5px;
   }
 }
+
+/* Density (2026-09-25): the version also ships in the tile's title tooltip,
+   so the always-visible line is redundant noise for newcomers. Hide it;
+   hover/focus still reveals the version via the native tooltip. */
+.launcher-tile .launcher-tile-version {
+  display: none;
+}
