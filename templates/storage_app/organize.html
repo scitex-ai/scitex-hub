@@ -1,0 +1,267 @@
+{% extends "scitex_app/app_shell.html" %}
+{% load i18n scitex_static %}
+{% comment %}
+Storage organize tabs (Usage / Duplicates / Move), hub-owned.
+Machines + Backup tabs are still served by the upstream scitex-storage view;
+this template covers only the three tabs dispatched to storage_app.organize.
+Reuses the upstream .stx-storage-* classes so the three tabs feel like one app.
+{% endcomment %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% app_static 'scitex_storage/index.css' %}">
+    <style>
+    .stx-donut-wrap { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; }
+    .stx-donut { flex: none; }
+    .stx-donut-ring { fill: none; stroke: var(--stx-storage-border); stroke-width: 22; }
+    .stx-donut-seg { fill: none; stroke-width: 22; }
+    .stx-donut-total { font-size: 1.05rem; font-weight: 650; fill: var(--text-primary, currentColor); }
+    .stx-donut-sub { font-size: 0.72rem; fill: var(--stx-storage-muted); }
+    .stx-legend { margin: 0; padding: 0; list-style: none; min-width: 220px; flex: 1; }
+    .stx-legend li { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+    .stx-chip { flex: none; width: 12px; height: 12px; border-radius: 3px; }
+    .stx-legend-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .stx-legend-num { margin-left: auto; color: var(--stx-storage-muted); white-space: nowrap; }
+    .stx-storage-note { color: var(--stx-storage-muted); font-size: 0.88rem; }
+    .stx-storage-warn { border: 1px solid var(--stx-storage-border); border-left: 4px solid #d29922;
+        border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; }
+    .stx-storage-ok { border: 1px solid var(--stx-storage-border); border-left: 4px solid #3fb950;
+        border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; }
+    .stx-tier-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+    .stx-form-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin: 10px 0; }
+    .stx-field { display: flex; flex-direction: column; gap: 4px; }
+    .stx-field label { font-size: 0.82rem; color: var(--stx-storage-muted); }
+    .stx-field input, .stx-field select { min-height: 40px; padding: 6px 10px; border-radius: 8px;
+        border: 1px solid var(--stx-storage-border); background: transparent; color: inherit; }
+    .stx-btn { min-height: 40px; padding: 8px 16px; border-radius: 8px; cursor: pointer;
+        border: 1px solid var(--stx-storage-border); background: var(--stx-storage-accent); color: #fff; }
+    .stx-btn[disabled] { opacity: 0.55; cursor: not-allowed; }
+    .stx-dup-paths { margin: 6px 0 0; padding-left: 18px; font-size: 0.85rem; word-break: break-all; }
+    .stx-vol-pick { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+    .stx-vol-pick a { padding: 4px 10px; border: 1px solid var(--stx-storage-border);
+        border-radius: 999px; text-decoration: none; color: inherit; font-size: 0.85rem; }
+    .stx-vol-pick a.is-active { border-color: var(--stx-storage-accent); font-weight: 600; }
+    code.stx-cli { display: block; margin-top: 6px; padding: 8px 10px; border-radius: 8px;
+        background: rgba(127,127,127,0.12); white-space: pre-wrap; word-break: break-all; }
+    </style>
+{% endblock %}
+{% block scitex_app_content %}
+<div id="stx-storage-app" class="stx-storage" data-app-name="scitex_storage">
+    <header class="stx-storage-head">
+        <h1 class="stx-storage-title"><i class="fas fa-database" aria-hidden="true"></i> {% translate "Storage" %}</h1>
+        <p class="stx-storage-lede">{% translate "Organize your storage: see usage, resolve duplication, move between tiers." %}</p>
+    </header>
+
+    <nav class="stx-storage-tabs" role="tablist" aria-label="{% translate 'Storage sections' %}">
+        {% for t in tabs %}
+            <a role="tab" href="?tab={{ t.key }}" class="stx-storage-tab{% if t.active %} is-active{% endif %}"
+               aria-selected="{% if t.active %}true{% else %}false{% endif %}">
+                {{ t.label }}{% if t.soon %} <span class="stx-storage-soon">{% translate "Soon" %}</span>{% endif %}
+            </a>
+        {% endfor %}
+    </nav>
+
+    {% if tab == "usage" %}
+        <section class="stx-storage-card">
+            <h2 class="stx-storage-machine"><i class="fas fa-chart-pie" aria-hidden="true"></i> {% translate "Where your bytes live" %}</h2>
+            {% if fleet_segments %}
+            <div class="stx-donut-wrap">
+                <svg class="stx-donut" width="180" height="180" viewBox="0 0 160 160" role="img" aria-label="{% translate 'Storage usage donut' %}">
+                    <circle class="stx-donut-ring" cx="80" cy="80" r="70"></circle>
+                    <g transform="rotate(-90 80 80)">
+                    {% for seg in fleet_segments %}
+                        <circle class="stx-donut-seg" cx="80" cy="80" r="70" stroke="{{ seg.color }}"
+                                stroke-dasharray="{{ seg.dash|floatformat:1 }} 439.9"
+                                stroke-dashoffset="{{ seg.offset|floatformat:1 }}">
+                            <title>{{ seg.label }} — {{ seg.value|filesizeformat }} ({% widthratio seg.fraction 1 100 %}%)</title>
+                        </circle>
+                    {% endfor %}
+                    </g>
+                    <text x="80" y="78" text-anchor="middle" class="stx-donut-total">{{ fleet_total|filesizeformat }}</text>
+                    <text x="80" y="94" text-anchor="middle" class="stx-donut-sub">{% translate "across volumes" %}</text>
+                </svg>
+                <ul class="stx-legend">
+                    {% for seg in fleet_segments %}
+                    <li><span class="stx-chip" style="background: {{ seg.color }}"></span>
+                        <span class="stx-legend-name">{{ seg.label }}</span>
+                        <span class="stx-legend-num">{{ seg.value|filesizeformat }} · {% widthratio seg.fraction 1 100 %}%</span></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <p class="stx-storage-note">{% translate "Used + available excludes blocks the filesystem reserves for root, which the per-volume totals include." %}</p>
+            {% else %}
+            <p class="stx-storage-empty">{% translate "No reachable volumes with measurable capacity yet." %}</p>
+            {% endif %}
+        </section>
+
+        {% for v in statuses %}
+        <section class="stx-storage-card">
+            <h2 class="stx-storage-machine"><i class="fas fa-hdd" aria-hidden="true"></i> {{ v.volume.label }}</h2>
+            {% if v.volume.tier %}<p class="stx-storage-conn">{% translate "Tier" %}: {{ v.volume.tier }}</p>{% endif %}
+            {% if v.status == reachable %}
+                <div class="stx-storage-bar" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ v.used_pct|stringformat:'.1f' }}"
+                     aria-label="{% translate 'Disk used' %}">
+                    <span class="stx-storage-bar-fill{% if v.used_pct >= 85 %} is-high{% endif %}" style="width: {{ v.used_pct|stringformat:'.1f' }}%"></span>
+                </div>
+                <p class="stx-storage-cap">
+                    {% blocktranslate with used=v.used|filesizeformat total=v.total|filesizeformat free=v.free|filesizeformat pct=v.used_pct %}{{ used }} of {{ total }} used ({{ pct }}%) · {{ free }} free{% endblocktranslate %}
+                </p>
+            {% else %}
+                <p class="stx-storage-empty">{% translate "This volume is not reachable from here." %}</p>
+            {% endif %}
+        </section>
+        {% empty %}
+        <section class="stx-storage-card"><p class="stx-storage-empty">{% translate "No storage is assigned to your account yet." %}</p></section>
+        {% endfor %}
+
+        <section class="stx-storage-card">
+            <h2 class="stx-storage-machine"><i class="fas fa-folder-tree" aria-hidden="true"></i> {% translate "Per-folder breakdown" %}</h2>
+            <div class="stx-vol-pick">
+                {% for v in statuses %}
+                    {% if v.status == reachable %}
+                    <a href="?tab=usage&amp;volume={{ v.volume.key|urlencode }}"{% if folder_volume and folder_volume.key == v.volume.key %} class="is-active"{% endif %}>{{ v.volume.label }}</a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% if folder_note %}
+                <div class="stx-storage-warn"><p class="stx-storage-note" style="margin: 0">{{ folder_note }}</p></div>
+            {% endif %}
+            {% if folder_segments and folder_volume %}
+            <div class="stx-donut-wrap">
+                <svg class="stx-donut" width="180" height="180" viewBox="0 0 160 160" role="img" aria-label="{% translate 'Per-folder usage donut' %}">
+                    <circle class="stx-donut-ring" cx="80" cy="80" r="70"></circle>
+                    <g transform="rotate(-90 80 80)">
+                    {% for seg in folder_segments %}
+                        <circle class="stx-donut-seg" cx="80" cy="80" r="70" stroke="{{ seg.color }}"
+                                stroke-dasharray="{{ seg.dash|floatformat:1 }} 439.9"
+                                stroke-dashoffset="{{ seg.offset|floatformat:1 }}">
+                            <title>{{ seg.label }} — {{ seg.value|filesizeformat }} ({% widthratio seg.fraction 1 100 %}%)</title>
+                        </circle>
+                    {% endfor %}
+                    </g>
+                    <text x="80" y="78" text-anchor="middle" class="stx-donut-total">{{ folder_total|filesizeformat }}</text>
+                    <text x="80" y="94" text-anchor="middle" class="stx-donut-sub">{{ folder_volume.label }}</text>
+                </svg>
+                <ul class="stx-legend">
+                    {% for seg in folder_segments %}
+                    <li><span class="stx-chip" style="background: {{ seg.color }}"></span>
+                        <span class="stx-legend-name">{{ seg.label }}</span>
+                        <span class="stx-legend-num">{{ seg.value|filesizeformat }} · {% widthratio seg.fraction 1 100 %}%</span></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </section>
+
+    {% elif tab == "duplicates" %}
+        <div class="stx-storage-ok">
+            <strong>{% translate "Read-only report." %}</strong>
+            {% translate "Duplicate detection only ever lists groups — it never deletes, moves, or links anything. Resolving a group (keeping one copy, removing the rest) is a deliberate manual step, never automatic." %}
+        </div>
+        {% if unavailable_reason %}
+            <section class="stx-storage-card">
+                <h2 class="stx-storage-machine"><i class="fas fa-clone" aria-hidden="true"></i> {% translate "Duplicates unavailable" %}</h2>
+                <p>{{ unavailable_reason }}</p>
+                <p class="stx-storage-note">{% translate "On a host with the binary, run:" %}<code class="stx-cli">scitex-storage find-duplicates ~/proj --depth 4</code></p>
+            </section>
+        {% else %}
+            <section class="stx-storage-card">
+                <h2 class="stx-storage-machine"><i class="fas fa-clone" aria-hidden="true"></i>
+                    {% blocktranslate with n=group_total %}{{ n }} duplicate groups{% endblocktranslate %}</h2>
+                {% if reclaimable %}
+                <p>{% blocktranslate with size=reclaimable|filesizeformat %}Keeping one copy per group would reclaim {{ size }}.{% endblocktranslate %}</p>
+                {% endif %}
+                {% if not groups %}
+                <p class="stx-storage-empty">{% translate "No byte-identical duplicates found in the scanned volumes." %}</p>
+                {% endif %}
+                <ul class="stx-storage-list">
+                    {% for g in groups %}
+                    <li class="stx-storage-row" style="display: block">
+                        <span><strong>{{ g.count }} × {{ g.size|filesizeformat }}</strong></span>
+                        <ul class="stx-dup-paths">
+                            {% for p in g.paths %}<li>{{ p }}</li>{% endfor %}
+                            {% if g.extra %}<li>… {% blocktranslate with n=g.extra %}+{{ n }} more{% endblocktranslate %}</li>{% endif %}
+                        </ul>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+
+    {% elif tab == "move" %}
+        <section class="stx-storage-card">
+            <h2 class="stx-storage-machine"><i class="fas fa-layer-group" aria-hidden="true"></i> {% translate "Your tiers" %}</h2>
+            <div class="stx-tier-grid">
+                {% for tier_name, tier_statuses in tiers %}
+                <div>
+                    <h3 style="margin: 0 0 6px; font-size: 0.95rem; text-transform: capitalize">{{ tier_name }}</h3>
+                    <ul class="stx-storage-list">
+                        {% for v in tier_statuses %}
+                        <li class="stx-storage-row" style="display: block">
+                            <span class="stx-storage-name">{{ v.volume.label }}</span>
+                            {% if v.status == reachable %}
+                            <span class="stx-storage-size">{{ v.used|filesizeformat }} / {{ v.total|filesizeformat }}</span>
+                            {% else %}
+                            <span class="stx-storage-size">{% translate "unreachable" %}</span>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% empty %}
+                <p class="stx-storage-empty">{% translate "No storage is assigned to your account yet." %}</p>
+                {% endfor %}
+            </div>
+            {% if destinations %}
+            <p class="stx-storage-note">{% translate "Cold archive tiers:" %} {{ destinations|join:", " }}</p>
+            {% endif %}
+        </section>
+
+        <section class="stx-storage-card">
+            <h2 class="stx-storage-machine"><i class="fas fa-truck-moving" aria-hidden="true"></i> {% translate "Plan a move to cold storage" %}</h2>
+            <p class="stx-storage-note">{% translate "Planning is read-only: it measures the folder and shows where it would go. Nothing moves until an operator confirms." %}</p>
+            <form method="get" action="">
+                <input type="hidden" name="tab" value="move">
+                <div class="stx-form-row">
+                    <div class="stx-field">
+                        <label for="mv-volume">{% translate "From volume" %}</label>
+                        <select id="mv-volume" name="volume">
+                            {% for v in user_volumes %}
+                            <option value="{{ v.key }}"{% if v.key == form_volume %} selected{% endif %}>{{ v.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="stx-field">
+                        <label for="mv-dir">{% translate "Folder (inside the volume)" %}</label>
+                        <input id="mv-dir" name="dir" type="text" value="{{ form_dir }}" placeholder="old-experiment">
+                    </div>
+                    <div class="stx-field">
+                        <label for="mv-dest">{% translate "To tier" %}</label>
+                        <select id="mv-dest" name="destination">
+                            {% for d in destinations %}
+                            <option value="{{ d }}"{% if d == form_dest %} selected{% endif %}>{{ d }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button class="stx-btn" type="submit" name="plan" value="1">{% translate "Plan move" %}</button>
+                </div>
+            </form>
+            {% if plan_error %}
+                <div class="stx-storage-warn"><p class="stx-storage-note" style="margin: 0">{{ plan_error }}</p></div>
+            {% endif %}
+            {% if plan %}
+                <div class="stx-storage-ok">
+                    <strong>{% translate "Move plan (not executed)." %}</strong>
+                    {% blocktranslate with size=plan.size_bytes|filesizeformat count=plan.file_count src=plan.source dest=plan.destination remote=plan.remote_path %}{{ size }} in {{ count }} files: {{ src }} → {{ dest }}:{{ remote }}{% endblocktranslate %}
+                </div>
+            {% endif %}
+            <div class="stx-storage-warn">
+                <strong>{% translate "Applying a move is disabled in the browser." %}</strong>
+                <p class="stx-storage-note" style="margin: 4px 0 0">
+                    {% translate "The archive removes the local copy only after the remote copy verifies, and it always needs an explicit confirm — so it runs from the command line, never from a click:" %}
+                    <code class="stx-cli">scitex-storage archive &lt;folder&gt; --to &lt;tier&gt; --yes</code>
+                </p>
+            </div>
+        </section>
+    {% endif %}
+</div>
+{% endblock %}
+{% block extra_js %}{% endblock %}
