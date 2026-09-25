@@ -424,6 +424,10 @@ EMAIL_USE_TLS = (
 ).lower() == "true"
 EMAIL_HOST_USER = _getenv_alias("SCITEX_HUB_EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = _getenv_alias("SCITEX_HUB_EMAIL_HOST_PASSWORD")
+# Fail fast, never hang the request: without this Django SMTP blocks
+# indefinitely on a stalled mail server (observed: signup POST never
+# returned). The signup view already handles send failure gracefully.
+EMAIL_TIMEOUT = int(_getenv_alias("SCITEX_HUB_EMAIL_TIMEOUT", "10") or "10")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
 
