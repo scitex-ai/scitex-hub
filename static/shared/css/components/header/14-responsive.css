@@ -55,6 +55,7 @@
   flex-direction: column;
   gap: 4px;
   padding: 12px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
   border: 1px solid var(--border-default, #30363d);
   border-radius: 12px;
   background: var(--bg-page, #0d1117);
