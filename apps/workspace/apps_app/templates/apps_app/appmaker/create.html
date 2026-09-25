@@ -38,22 +38,51 @@
             </div>
             <fieldset class="appmaker-field">
                 <legend class="appmaker-label">{% trans "Starter template" %}</legend>
+                <span class="appmaker-help">
+                    {% trans "Every template creates the same kind of private project; only the starting point differs. Open “What happens next” on a card for the steps, the time needed, and where the result appears." %}
+                </span>
                 <div class="appmaker-starters">
                     {% for starter in starters %}
-                        <label class="appmaker-starter">
-                            <input type="radio"
-                                   name="starter"
-                                   value="{{ starter.key }}"
-                                   {% if starter.key == form.starter %}checked{% endif %} />
-                            <i class="{{ starter.icon }} appmaker-starter-icon" aria-hidden="true"></i>
-                            <span>
-                                <span class="appmaker-starter-name">{{ starter.label }}</span>
-                                <span class="appmaker-starter-hint">{{ starter.hint }}</span>
-                            </span>
-                        </label>
+                        <div class="appmaker-starter">
+                            <label class="appmaker-starter-pick">
+                                <input type="radio"
+                                       name="starter"
+                                       value="{{ starter.key }}"
+                                       {% if starter.key == form.starter %}checked{% endif %} />
+                                <i class="{{ starter.icon }} appmaker-starter-icon" aria-hidden="true"></i>
+                                <span>
+                                    <span class="appmaker-starter-name">{{ starter.label }}</span>
+                                    <span class="appmaker-starter-hint">{{ starter.hint }}</span>
+                                    <span class="appmaker-starter-creates">
+                                        <strong>{% trans "Creates:" %}</strong> {{ starter.creates }}
+                                    </span>
+                                    <span class="appmaker-starter-time">
+                                        <strong>{% trans "Time:" %}</strong> {{ starter.time_estimate }}
+                                    </span>
+                                </span>
+                            </label>
+                            <details class="appmaker-starter-more">
+                                <summary>{% trans "What happens next" %}</summary>
+                                <ol>
+                                    <li>
+                                        {% blocktrans with template=starter.label %}Click “Create app” below. The only inputs used are the App name, the description, and the {{ template }} template.{% endblocktrans %}
+                                    </li>
+                                    <li>{% trans "A new private project is created (under a minute) and its app workspace opens." %}</li>
+                                    <li>{% blocktrans with first=starter.builds_first %}The agent builds the first version: {{ first }}{% endblocktrans %}</li>
+                                    <li>{% blocktrans with where=starter.result %}Refine it in the workspace chat, then test it with “Run privately”. You will find everything here: {{ where }}{% endblocktrans %}</li>
+                                </ol>
+                            </details>
+                        </div>
                     {% endfor %}
                 </div>
             </fieldset>
+            <div class="appmaker-confirm">
+                <i class="fas fa-circle-check" aria-hidden="true"></i>
+                <span>
+                    <strong>{% trans "Before you click “Create app”, check:" %}</strong>
+                    {% trans "the App name, the description, and one selected template above are everything the button uses. It creates a new private project and opens its workspace — nothing is shared." %}
+                </span>
+            </div>
             <button type="submit" class="appmaker-btn appmaker-btn-primary appmaker-btn-block">
                 <i class="fas fa-plus" aria-hidden="true"></i> {% trans "Create app" %}
             </button>
