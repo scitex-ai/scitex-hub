@@ -225,8 +225,11 @@ def _merge_repeated_cells(spec: list[dict]) -> None:
 
     The self-hosted columns repeat one line ("Your own hardware", or "—"
     where nothing applies) down whole sections. Rendering every copy turns
-    the table into a wall of repetition, so a run of 2+ identical cells in
-    one column becomes a single cell with rowspan. Runs never cross a
+    the table into a wall of repetition, so a run of 3+ identical cells in
+    one column becomes a single cell with rowspan. Two-row runs stay
+    unmerged: a rowspan cell suppresses the intermediate row border in the
+    collapsed-border model, leaving a visible gap (Coupons, Support/SLA).
+    Runs never cross a
     group header. The first row gets ``rs2``/``rs3`` spans; the covered
     rows get ``skip2``/``skip3`` flags (flat keys keep the template free
     of dict lookups). ``cells`` stay plain strings (tests read them);
@@ -239,7 +242,7 @@ def _merge_repeated_cells(spec: list[dict]) -> None:
 
     def flush(col: int, end: int) -> None:
         start = run_start.get(col)
-        if start is None or end - start < 2:
+        if start is None or end - start < 3:
             return
         labeled[start][f"rs{col}"] = end - start
         for i in range(start + 1, end):
