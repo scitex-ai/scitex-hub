@@ -195,9 +195,14 @@ class TodoBoardTenancyMiddleware:
         # scitex-cards 0.52: the board loads from the $SCITEX_STORE_DSN /
         # host_store target (the fleet's central board) whatever path we hand
         # it. Measured on the dev hub: a shared-pool visitor got all 7471
-        # fleet cards from /apps/cards/tasks. Until upstream honours a
-        # per-tenant store, nobody but staff may reach the mount at all —
-        # pages and data alike. Card:
+        # fleet cards from /apps/cards/tasks. Re-verified 2026-09-26 against
+        # scitex-cards 0.53.1: honouring request.scitex_store is NOT enough —
+        # the board's card path discards it and reads the canonical DB
+        # (_model._read_canonical_db_or_raise(), no argument), so a lifted
+        # gate still serves the whole fleet (8151 cards measured for a
+        # project-less visitor). Until the board itself scopes per tenant,
+        # nobody but staff may reach the mount at all — pages and data
+        # alike. Card:
         # hub-p0-cards-mount-serves-fleet-board-to-any-signed-in-user-20260914
         if not cards_board_access_allowed(user):
             # The app stays visible to everyone (operator 2026-09-14): a page

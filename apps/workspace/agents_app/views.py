@@ -16,10 +16,12 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import render
 from django.utils.translation import gettext_lazy as _
 
-# Login alone is not enough. SAC's own views gate only lifecycle_action on
-# its operator list; index, fleet_api, healthz and detail have no check, so a
-# login-only adapter shows the whole agent fleet to every signed-in Hub user
-# (the same exposure the Cards mount had, fixed in #805). Restored from #789.
+# Reads are login-only: scitex-agent-container >= 0.28 scopes EVERY read by
+# identity itself (resolve_identity + scope_rows in each view; the snapshot
+# cache is keyed per identity), so an ordinary signed-in user only ever sees
+# their own agents. Mutations stay operator-gated twice: the hub decorator
+# below AND upstream can_control() on lifecycle/message actions. (#789 gate
+# lifted 2026-09-26 once upstream scoping was verified.)
 OPERATORS_ENV = "SCITEX_AGENT_CONTAINER_LIFECYCLE_OPERATORS"
 
 
@@ -82,29 +84,27 @@ def _delegate(view_name, request, *args, **kwargs):
 
 @login_required
 def index(request):
-    if not _fleet_access_allowed(request.user):
-        return own_scope_placeholder(request, "agents")
+    # Upstream scopes rows to this user's identity; no hub-side gate.
     return _delegate("index", request)
 
 
 @login_required
-@_fleet_access_required
 def fleet_api(request):
     return _delegate("fleet_api", request)
 
 
 @login_required
-@_fleet_access_required
 def healthz(request):
     return _delegate("healthz", request)
 
 
 @login_required
-@_fleet_access_required
 def detail(request, name):
     return _delegate("detail", request, name=name)
 
 
+# Control plane: stays operator-gated at the hub boundary (upstream
+# can_control() gates it a second time).
 @login_required
 @_fleet_access_required
 def lifecycle_action(request, name):
