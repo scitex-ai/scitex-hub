@@ -373,6 +373,18 @@
   vertical-align: middle;
   text-align: center;
 }
+/* Rowspan repair (2026-09-26): rows that skip cells under a rowspan (see
+   skip2/skip3 in landing_pricing.html) paint no cell border for the skipped
+   columns, so the horizontal rule stops early. A border on the row itself
+   spans every column in the collapsed-border model and keeps the grid whole.
+   Cell top borders are dropped to avoid double lines. */
+.plan-compare-table tbody tr {
+  border-bottom: 1px solid var(--border-default, #d7dde5);
+}
+.plan-compare-table tbody th,
+.plan-compare-table tbody td {
+  border-top: 0;
+}
 .plan-compare-table td[data-plan-col="0"] {
   font-weight: 600;
 }
