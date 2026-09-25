@@ -32,7 +32,7 @@
                href="/{{ current_project.owner.username }}/{{ current_project.slug }}/"
                aria-label="{% trans 'Open active project' %}: {{ current_project.owner.username }}/{{ current_project.slug }}">
                 <span>{% trans "Active project" %}</span>
-                <strong>{{ current_project.owner.username }}/{{ current_project.slug }}</strong>
+                <strong>{{ current_project.name|default:current_project.slug }}</strong>
             </a>
         {% endif %}
         {% if is_guest_launcher %}
