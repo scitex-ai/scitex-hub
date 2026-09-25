@@ -27,12 +27,33 @@ APP_GROUP = "work"
 
 @dataclass(frozen=True)
 class Starter:
+    """One card on the create page.
+
+    brief is the internal build instruction for the agent. creates,
+    builds_first, time_estimate and result are the plain-language
+    card copy: what gets created, what the agent builds first, how long it
+    takes, and where the result appears.
+    """
+
     key: str
     label: str
     hint: str
     icon: str
     brief: str
+    creates: str = ""
+    builds_first: str = ""
+    time_estimate: str = ""
+    result: str = ""
 
+
+_TIME_ESTIMATE = _(
+    "Project scaffold: under a minute. First working version with the "
+    "agent: typically 5–15 minutes."
+)
+_RESULT = _(
+    "Your app workspace at /apps/create/<name>/: the file list, the agent "
+    "chat, and a Run privately button that gives you a private test link."
+)
 
 STARTERS: tuple[Starter, ...] = (
     Starter(
@@ -43,6 +64,18 @@ STARTERS: tuple[Starter, ...] = (
         "Build a data entry form for one experiment. Each submission appends a "
         "row to a CSV file under the project's data/ directory. Validate "
         "required fields and show the latest rows under the form.",
+        creates=_(
+            "A private app project with a data-entry form scaffold: an input "
+            "form, required-field validation, answers saved as CSV rows under "
+            "the project's data/ folder, and the latest rows shown under the "
+            "form."
+        ),
+        builds_first=_(
+            "A form for one experiment. Each submission appends a row to a "
+            "CSV file under data/, with validation and recent rows visible."
+        ),
+        time_estimate=_TIME_ESTIMATE,
+        result=_RESULT,
     ),
     Starter(
         "dashboard",
@@ -51,6 +84,17 @@ STARTERS: tuple[Starter, ...] = (
         "fas fa-chart-line",
         "Build an analysis dashboard. List CSV result files in the project, "
         "let the user pick one, and show summary statistics and a simple plot.",
+        creates=_(
+            "A private app project with an analysis-dashboard scaffold: a "
+            "result-file picker, summary statistics, and a simple plot of the "
+            "selected CSV file."
+        ),
+        builds_first=_(
+            "A dashboard that lists CSV result files in the project and shows "
+            "summary statistics plus a plot for the chosen file."
+        ),
+        time_estimate=_TIME_ESTIMATE,
+        result=_RESULT,
     ),
     Starter(
         "log_viewer",
@@ -60,6 +104,17 @@ STARTERS: tuple[Starter, ...] = (
         "Build a device/log viewer. List log or recording files in the project, "
         "open one, and let the user scroll, search and filter its lines or "
         "samples by time.",
+        creates=_(
+            "A private app project with a log-viewer scaffold: a file list to "
+            "open one log or recording, then scroll, search, and filter its "
+            "lines or samples by time."
+        ),
+        builds_first=_(
+            "A viewer that lists log or recording files, opens one, and lets "
+            "you scroll, search, and filter by time."
+        ),
+        time_estimate=_TIME_ESTIMATE,
+        result=_RESULT,
     ),
     Starter(
         "blank",
@@ -67,6 +122,20 @@ STARTERS: tuple[Starter, ...] = (
         _("Start from the plain template and describe it to the agent."),
         "fas fa-puzzle-piece",
         "Start from the plain template; build what the description asks for.",
+        creates=_(
+            "A private app project with the plain template only — no "
+            "pre-built feature. The agent builds whatever your description "
+            "asks for."
+        ),
+        builds_first=_(
+            "Whatever your description above asks for, starting from the "
+            "plain template."
+        ),
+        time_estimate=_(
+            "Project scaffold: under a minute. First version depends on your "
+            "description; allow extra rounds with the agent."
+        ),
+        result=_RESULT,
     ),
 )
 
