@@ -33,17 +33,7 @@ from .storage import store_search_result
 
 logger = logging.getLogger(__name__)
 
-def _clean_snippet(text: str, limit: int = 200) -> str:
-    """Plain-text snippet: strip JATS/XML tags, unescape entities, collapse space."""
-    import html as _html
-
-    if not text:
-        return "No abstract available...."
-    no_tags = re.sub(r"<[^>]+>", "", text)
-    clean = _html.unescape(no_tags)
-    clean = re.sub(r"\s+", " ", clean).strip()
-    return clean[:limit] + "..." if len(clean) > limit else clean
-
+from .text_clean import clean_snippet as _clean_snippet
 
 # Import scitex.scholar if available
 try:

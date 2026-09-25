@@ -73,6 +73,13 @@ def api_search_crossref_local(request, _search=None, _online_fallback=None):
             if not work.title:
                 continue
             data = work.to_dict()
+            # Crossref ships JATS markup + entities in title/journal/abstract;
+            # clean at Hub's edge so every consumer (cards, storage, export)
+            # sees plain text. See text_clean.py.
+            from .text_clean import clean_text as _clean_text
+            for _k in ("title", "journal", "abstract"):
+                if data.get(_k):
+                    data[_k] = _clean_text(data[_k])
             # Add Django-specific fields for frontend compatibility
             data["source"] = "crossref_local"
             data["externalUrl"] = (
