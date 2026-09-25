@@ -126,6 +126,23 @@ export async function loadSectionContent(
             sectionId,
           );
           modulePdfPreviewManager.compileQuick(data.content, sectionId);
+        } else if (!isCompiledSection) {
+          // Manager may not be initialized yet (init race: first section can
+          // load before ComponentInitializer sets the manager). Retry once;
+          // without this the preview spinner never resolves.
+          setTimeout(() => {
+            if (modulePdfPreviewManager) {
+              console.log(
+                "[SectionOperations] Retried initial preview for:",
+                sectionId,
+              );
+              modulePdfPreviewManager.compileQuick(data.content, sectionId);
+            } else {
+              console.warn(
+                "[SectionOperations] PDF preview manager still unavailable; user can retry via Compile Preview.",
+              );
+            }
+          }, 1500);
         }
       }, 100);
     } else {
