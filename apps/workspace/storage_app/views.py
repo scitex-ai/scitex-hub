@@ -44,6 +44,8 @@ from typing import Callable, Optional
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 
+from . import organize
+
 
 def _rejected(requested_path: str) -> HttpResponseForbidden:
     """403 — the requested path is outside the caller's own jail."""
@@ -107,7 +109,20 @@ _scan_view = JailScopedScanView()
 
 @login_required
 def index(request):
-    """Auth + jail-scoped delegate to the upstream storage scan view."""
+    """Auth + dispatch: organize tabs render hub-side, the rest delegates upstream.
+
+    ``usage`` / ``duplicates`` / ``move`` are implemented in
+    :mod:`.organize` (backed by the scitex-storage Python API, volume-scoped
+    to the requester's own volumes — no free-form paths). ``machines`` and
+    ``backup`` keep delegating to the upstream scan view behind the jail guard.
+    """
+    tab = request.GET.get("tab")
+    if tab == "usage":
+        return organize.usage(request)
+    if tab == "duplicates":
+        return organize.duplicates(request)
+    if tab == "move":
+        return organize.move(request)
     return _scan_view(request)
 
 
