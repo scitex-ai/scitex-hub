@@ -40,19 +40,13 @@
                             <a href="{% url 'public_app:contributors' %}">{% trans "Contributors" %}</a>
                         </li>
                         <li>
-                            <a href="{% url 'public_app:recruit' %}">{% trans "Recruit" %}</a>
-                        </li>
-                        <li>
                             <a href="{% url 'public_app:publications' %}">{% trans "Publications" %}</a>
                         </li>
                         <li>
                             <a href="{% url 'public_app:pricing' %}">{% trans "Premium" %}</a>
                         </li>
                         <li>
-                            <a href="{% url 'public_app:donate' %}">{% trans "Support SciTeX" %}</a>
-                        </li>
-                        <li>
-                            <a href="{% url 'public_app:setup' %}">{% trans "Self-Hosting Guide" %}</a>
+                            <a href="{% url 'public_app:recruit' %}">{% trans "Recruit" %}</a>
                         </li>
                     </ul>
                 </div>
@@ -89,6 +83,9 @@
                         {% endif %}
                         <li>
                             <a href="{% url 'public_app:server_status' %}">{% trans "Server Status" %}</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'public_app:setup' %}">{% trans "Self-Hosting Guide" %}</a>
                         </li>
                     </ul>
                 </div>

@@ -159,7 +159,7 @@
     <div class="container landing-v2-shell landing-v2-clew-grid">
         <div class="landing-v2-clew-copy">
             <p class="landing-v2-eyebrow">{% trans "Verifiable provenance" %}</p>
-            <h2 id="landing-v2-clew-title">{% trans "Follow a claim back to its source." %} <a class="section-anchor" href="#clew" aria-label="Link to this section">#</a></h2>
+            <h2 id="landing-v2-clew-title">{% trans "Trace a claim back to its source." %} <a class="section-anchor" href="#clew" aria-label="Link to this section">#</a></h2>
             <p>{% trans "SciTeX Clew records relationships between research artifacts in a directed acyclic graph. The public example connects a manuscript claim to output, processing, and raw data, resolving the shortest path between them. A “clew” is Ariadne’s ball of thread from Greek mythology, given to Theseus to navigate the Labyrinth and escape the Minotaur — our thread leads back from claim to source." %}</p>
             <ol class="landing-v2-chain" aria-label="{% trans 'Claim to raw data provenance chain' %}">
                 <li>{% trans "Claim" %}</li>
@@ -209,12 +209,12 @@
             </li>
             <li>
                 <span class="landing-v2-context-icon" aria-hidden="true"><i class="fa-solid fa-cloud"></i></span>
-                <h3>{% trans "SciTeX Cloud Server (+ SSH)" %}</h3>
+                <h3>{% trans "SciTeX Cloud Server" %}</h3>
                 <p>{% trans "Collaborate with colleagues on private and public projects in one connected workspace." %}</p>
             </li>
             <li>
                 <span class="landing-v2-context-icon" aria-hidden="true"><i class="fa-solid fa-server"></i></span>
-                <h3>{% trans "HPC + SSH" %}</h3>
+                <h3>{% trans "HPC" %}</h3>
                 <p>{% trans "Heavy compute next to the scheduler and data — without leaving the project." %}</p>
             </li>
             <!-- <li class="landing-v2-context-custom">
@@ -231,11 +231,13 @@
         <div class="landing-v2-open-copy">
             <p class="landing-v2-eyebrow">Build on SciTeX</p>
             <h2 id="landing-v2-create-app-title">Create your own app with the SDK. <a class="section-anchor" href="#sdk" aria-label="Link to this section">#</a></h2>
-            <p>A Custom App is a first-class citizen: same project, same command contract, same provenance. Ship your lab workflow with the SciTeX SDK.</p>
+            <p>Research is novel by definition: predefined products rarely cover the experiment in front of you. Custom Apps let you build the data-collection and experiment tools your work actually needs, on the shared foundation you already have: users, projects, authentication, file storage, background compute, and AI.</p>
+            <p>The SDK provides DataStore (structured records), FileVault (project files), and JobQueue (background jobs) through a Python API, CLI, and MCP tools. Built-in skills let you create apps through interactive conversation with AI agents, and validators check each app before it runs.</p>
+            <p>Apps are just repositories: use, share, and co-develop them like code, and publish one alongside your paper so readers can run the experiment, not just read about it.</p>
             <ul>
-                <li>One command contract across Hub apps and yours</li>
-                <li>Project files, identity, and provenance built in</li>
-                <li>Publish to your lab or the community</li>
+                <li>DataStore, FileVault, JobQueue: records, files, and compute</li>
+                <li>Skills and validators: build with agents, ship with confidence</li>
+                <li>Repos you can share: executable companions to your papers</li>
             </ul>
             <a class="landing-v2-button landing-v2-button-primary" href="#pricing">Start building</a>
         </div>
@@ -266,10 +268,10 @@
         <div class="landing-v2-open-copy">
             <p class="landing-v2-eyebrow">{% trans "Open by design" %}</p>
             <h2 id="landing-v2-open-title">{% trans "Bring your own projects, collaborators, data, compute, and API keys." %} <a class="section-anchor" href="#byox" aria-label="Link to this section">#</a></h2>
-            <p>{% trans "Your research. Your infrastructure. Use SciTeX Cloud or self-host, keep human judgment at the center, and plug in whatever the work needs." %}</p>
+            <p>{% trans "Your research. Your infrastructure. Your assets stay yours: connect the machines, datasets, and keys you already have and use them at full value, with no platform markup and nothing locked in. Use SciTeX Cloud or self-host, keep human judgment at the center, and plug in whatever the work needs." %}</p>
             <ul>
                 <li>{% trans "Cloud for a managed browser workspace" %}</li>
-                <li>{% trans "Self-hosting for your own environment" %}</li>
+                <li>{% trans "Self-hosting for your own environment, such as local AI models" %}</li>
                 <li>{% trans "Custom Apps for field-specific workflows" %}</li>
             </ul>
             <p class="landing-v2-small">{% trans "Available deployment options and integrations depend on the selected setup." %}</p>
@@ -291,10 +293,6 @@
         </div>
         <div class="landing-v2-philosophy-grid">
             <article class="landing-v2-philosophy-card">
-                <h3>{% trans "Mission" %}</h3>
-                <p>{% trans "Make research more fun." %}</p>
-            </article>
-            <article class="landing-v2-philosophy-card">
                 <h3>{% trans "Vision" %}</h3>
                 <ol>
                     <li>{% trans "Connect researchers, data, compute, tools, and projects." %}</li>
@@ -305,7 +303,11 @@
             </article>
             <article class="landing-v2-philosophy-card">
                 <h3>{% trans "Values" %}</h3>
-                <p>{% trans "Curiosity and inquiry / Imagination and creation / Visualization and automation." %}</p>
+                <ul>
+                    <li>{% trans "Curiosity and inquiry" %}</li>
+                    <li>{% trans "Imagination and creation" %}</li>
+                    <li>{% trans "Visualization and automation" %}</li>
+                </ul>
             </article>
         </div>
     </div>
