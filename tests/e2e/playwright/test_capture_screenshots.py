@@ -68,10 +68,10 @@ from tests.e2e.playwright.session_role_check import (
 # Routes whose response does NOT extend templates/global_base.html, and so
 # carry neither `body.app-ready` nor `body[data-session-role]`.
 #
-# Measured 2026-08-16 against a live server: GET /apps/cards/ returns 200 and
-# 195 KB of HTML titled "SciTeX Cards v0.42.0" with ZERO occurrences of the
-# global_base loading-screen markup, while /apps/docs/ has four. It is the
-# embedded Cards board, rendered by its own template.
+# /apps/cards/ stays listed: for non-audience users it answers 403 with the
+# generic restricted placeholder (templates/plugin_apps/restricted.html),
+# which likewise extends no global base. (Previously it was the embedded
+# Cards board rendering its own template.)
 #
 # This is a DECLARATION, not an exemption. The session identity belongs to
 # the browser context, not to one page's markup, so the check does not
@@ -95,7 +95,10 @@ PAGES = [
     ("/apps/figrecipe/", "04-figrecipe", "FigRecipe"),
     ("/apps/tools/", "05-tools", "Tools"),
     ("/apps/store/", "06-app-store", "App Store"),
-    ("/apps/cards/", "07-cards", "Cards"),
+    # No 07-cards: /apps/cards/ is a staff-audience plugin mount and answers
+    # HTTP 403 with the generic restricted placeholder for the synthetic
+    # registered (non-staff) screenshot account — there is no board to
+    # photograph. The placeholder itself stays in ROUTES_WITHOUT_GLOBAL_BASE.
     ("/chat/", "08-chat", "Chat"),
     ("/apps/docs/", "09-docs", "Docs"),
     ("/landing/", "10-landing", "Landing"),
