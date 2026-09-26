@@ -18,6 +18,8 @@ urlpatterns = [
     path("", views.index, name="index"),
     path("api/fleet", views.fleet_api, name="fleet_api"),
     path("healthz", views.healthz, name="healthz"),
+    # Before <str:name>/: "launch" is an action, not an agent name.
+    path("launch/", views.launch, name="launch"),
     path("<str:name>/", views.detail, name="detail"),
     path("<str:name>/action", views.lifecycle_action, name="lifecycle_action"),
 ]

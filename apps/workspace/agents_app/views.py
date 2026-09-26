@@ -12,7 +12,7 @@ import os
 from functools import wraps
 
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponseNotFound
 from django.shortcuts import render
 from django.utils.translation import gettext_lazy as _
 
@@ -111,4 +111,17 @@ def lifecycle_action(request, name):
     return _delegate("lifecycle_action", request, name=name)
 
 
-__all__ = ["detail", "fleet_api", "healthz", "index", "lifecycle_action"]
+# Agent CREATE (upstream scitex-agent-container#1528): start a pre-registered
+# spec by name. Operator-gated here and by upstream can_control(). Returns
+# 404 until the installed upstream release carries views.launch.
+@login_required
+@_fleet_access_required
+def launch(request):
+    from scitex_agent_container._django import views as upstream
+
+    if not hasattr(upstream, "launch"):
+        return HttpResponseNotFound("Agent launch is not in this release yet.")
+    return _delegate("launch", request)
+
+
+__all__ = ["detail", "fleet_api", "healthz", "index", "launch", "lifecycle_action"]
