@@ -190,3 +190,22 @@ def test_browser_evidence_rejects_every_same_origin_server_failure():
 
     with pytest.raises(AssertionError, match="same-origin network failures"):
         evidence.assert_clean()
+
+
+@pytest.mark.django_db
+def test_tmp_diag_dump_launcher_tile_names(client, django_user_model):
+    """TEMPORARY CI diagnostic for duplicate-stats E2E failure. DELETE AFTER."""
+    from django.contrib.auth import get_user_model
+
+    User = get_user_model()
+    u = User.objects.filter(username=USERNAME).first()
+    assert u is not None, "CI test-user missing"
+    client.force_login(u)
+    resp = client.get("/apps/")
+    assert resp.status_code == 200
+    tiles = resp.context["tiles"]
+    print("\nDIAG-TILE-NAMES:", sorted(t["name"] for t in tiles))
+    print(
+        "DIAG-STAT-TILES:",
+        [(t["name"], t.get("availability"), t.get("launch_url")) for t in tiles if "stat" in t["name"].lower()],
+    )
