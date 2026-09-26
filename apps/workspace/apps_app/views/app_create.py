@@ -14,9 +14,9 @@ from django.views.decorators.http import require_http_methods, require_POST
 
 from ..services.app_create import (
     DEFAULT_STARTER,
-    STARTERS,
     AppCreateError,
     create_app_project,
+    create_page_starters,
 )
 from ..services.app_workspace import (
     EditRefused,
@@ -63,7 +63,9 @@ def create_page(request):
     return render(
         request,
         "apps_app/appmaker/create.html",
-        {"starters": STARTERS, "form": form, "error": error},
+        # SDK catalogue + hub overlay (time_estimate/result); the SDK tuple
+        # itself has no hub-only presentation fields.
+        {"starters": create_page_starters(), "form": form, "error": error},
         status=400 if error else 200,
     )
 
