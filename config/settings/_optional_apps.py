@@ -182,12 +182,12 @@ def publish_cards_store_target(environ: dict | None = None) -> str | None:
 
        EXCEPT IN PRODUCTION. Tier 3 is a development convenience: on a laptop
        or the dev preview, "the fleet's shared board" is what a developer
-       wants to see. On scitex.ai it is an exposure: the board's middleware
-       gates on ``is_authenticated`` only (apps/workspace/todo_app/
-       middleware.py), so a production hub that fell through to tier 3 would
-       hand the fleet's live task board — every agent's cards, DMs and
-       operator notes — to any signed-in customer. That is the exact config
-       change the parent card forbade (hub-cards-store-contract-and-multihost-
+       wants to see. On scitex.ai it is an exposure: the fleet's live task
+       board — every agent's cards, DMs and operator notes — is one mount
+       decision away from any signed-in customer (the generic mount-policy
+       guard holds a restricted audience UNTIL per-user scoping is proven
+       live, and that protection must never depend on which store tier won
+       here). That is the exact config change the parent card forbade (hub-cards-store-contract-and-multihost-
        20260730, comment c_1971278e38ee), and #705 introduced it by accident;
        measured 2026-09-03 on scitex-nas-03, only the container's inability to
        resolve ``scitex-primary`` stood between the two. So when
@@ -334,11 +334,11 @@ def optional_upstream_apps() -> list[str]:
     NOTE — one deliberate side effect, kept HERE rather than in the caller
     because separating it from the mount is how it would get lost: mounting the
     cards board also disables its host-side lane discovery. The board's service
-    layer unions per-project lanes (default glob
-    ``~/proj/*/.scitex/todo/tasks.yaml``) into every load; on the hub each
+    layer unions per-project lanes into every load; on the hub each
     request must see ONLY the requesting user's workspace store (injected by
-    ``apps.workspace.todo_app.middleware``), so an empty glob list — the
-    documented opt-out seam in that module — is set alongside the mount.
+    the generic mount-policy guard from the leaf's own manifest policy), so
+    an empty glob list — the documented opt-out seam in that module — is set
+    alongside the mount.
 
     SECOND SIDE EFFECT, SAME REASON: mounting the board also publishes the
     deployment's chosen card store (:func:`publish_cards_store_target`). It
@@ -355,11 +355,17 @@ def optional_upstream_apps() -> list[str]:
         entries.append("scitex_writer._django.apps.WriterEditorConfig")
 
     if _installed("scitex_storage._django"):
+        # INSTALLED_APPS continuity only: URL mounting + tiles come from the
+        # generic plugin mount (scitex.apps entry point). The explicit path
+        # is replaced in place by with_plugin_apps() once the installed
+        # release declares the entry point, and keeps templates resolving on
+        # releases that predate it.
         entries.append("scitex_storage._django.apps.StorageConfig")
 
-    # scitex-agent-container's browser dashboard. The explicit AppConfig
-    # path is the package's mounted-host contract; gating on apps.py keeps an
-    # older SAC install (without the optional GUI) from breaking Hub startup.
+    # scitex-agent-container's browser dashboard. Same continuity contract as
+    # storage above: the explicit AppConfig path keeps an older SAC install
+    # (without the optional GUI) from breaking Hub startup; URL mounting +
+    # tiles come from the generic plugin mount.
     if _installed("scitex_agent_container._django.apps"):
         entries.append(
             "scitex_agent_container._django.apps.AgentContainerDashboardConfig"

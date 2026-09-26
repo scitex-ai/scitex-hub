@@ -38,10 +38,73 @@ def _route_taken(route: str, existing) -> bool:
     return any(str(p.pattern).startswith(route) for p in existing)
 
 
+def _login_required_policy(config) -> bool:
+    """Whether the plugin's own manifest asks for a login boundary.
+
+    Opt-IN per leaf (``mount_policy.login_required``): plugins that handle
+    anonymous traffic themselves (figrecipe, stats) keep byte-identical
+    behaviour; leaves whose views assume an authenticated ``request.user``
+    (agents, cards, storage) get the boundary without a hub-side wrapper.
+    """
+    manifest = getattr(config, "manifest", None) or {}
+    policy = manifest.get("mount_policy", {})
+    return bool(isinstance(policy, dict) and policy.get("login_required", False))
+
+
+def _wrap_login(pattern):
+    """Wrap one plugin route's view with login_required, generically.
+
+    No view symbol is named: the whole mounted tree is wrapped, so a new
+    upstream view is login-gated with zero hub changes.
+    """
+    from django.contrib.auth.decorators import login_required
+    from django.urls import URLPattern, URLResolver
+
+    if isinstance(pattern, URLResolver):
+        return URLResolver(
+            pattern.pattern,
+            [_wrap_login(p) for p in pattern.url_patterns],
+            pattern.default_kwargs,
+            pattern.app_name,
+            pattern.namespace,
+        )
+    if isinstance(pattern, URLPattern):
+        return URLPattern(
+            pattern.pattern,
+            login_required(pattern.callback),
+            pattern.default_args,
+            pattern.name,
+        )
+    return pattern
+
+
 def plugin_urlpatterns(existing) -> list:
-    """One ``include()`` per plugin, skipping routes the hub already serves."""
+    """One mount per plugin, skipping routes the hub already serves.
+
+    A plugin whose manifest declares ``mount_policy.login_required`` is
+    mounted through :class:`PluginMountResolver`, which login-wraps its
+    whole urlconf on first resolve (lazy, so the optional package stays
+    import-safe and startup pays nothing extra).
+    """
     from django.urls import include, path
+    from django.urls.resolvers import RoutePattern, URLResolver
+    from functools import cached_property
+
     from scitex_app.plugins import mount_route
+
+    class PluginMountResolver(URLResolver):
+        def __init__(self, route, urls_module):
+            urlconf_module, app_name, namespace = include(urls_module)
+            super().__init__(
+                RoutePattern(route),
+                urlconf_module,
+                app_name=app_name,
+                namespace=namespace,
+            )
+
+        @cached_property
+        def url_patterns(self):  # noqa: D102 — Django resolver protocol
+            return [_wrap_login(p) for p in super().url_patterns]
 
     patterns = []
     for config in _configs():
@@ -49,8 +112,12 @@ def plugin_urlpatterns(existing) -> list:
         urls_module = f"{config.name}.urls"
         if _route_taken(route, existing) or not _module_exists(urls_module):
             continue
-        patterns.append(path(route, include(urls_module)))
-        logger.info("[plugin_apps] mounted %s at /%s", config.name, route)
+        if _login_required_policy(config):
+            patterns.append(PluginMountResolver(route, urls_module))
+            logger.info("[plugin_apps] mounted %s at /%s (login-gated)", config.name, route)
+        else:
+            patterns.append(path(route, include(urls_module)))
+            logger.info("[plugin_apps] mounted %s at /%s", config.name, route)
     return patterns
 
 
