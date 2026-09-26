@@ -73,28 +73,35 @@ class _AncestorClasses(HTMLParser):
             self.stack.pop()
 
 
-# The plugin tiles the Home layout is specified against. registry.py appends
-# these manifests only when the backing package is importable (no dead tiles on
-# a host without it), and CI installs `.[all,dev]`, which ships scitex-cards but
-# not scitex-storage or scitex-agent-container. These tests pin the LAYOUT, so
-# they register the manifests themselves instead of inheriting the environment.
-_PLUGIN_TILE_MANIFESTS = (
-    "workspace/todo_app/manifest.json",
-    "workspace/storage_app/manifest.json",
-    "workspace/agents_app/manifest.json",
-)
+# The plugin tiles the Home layout is specified against. Tiles come from the
+# LEAF manifests via the scitex.apps entry points (register_plugin_modules);
+# CI installs `.[all,dev]`, which ships scitex-cards but not scitex-storage
+# or scitex-agent-container. These tests pin the LAYOUT, so they register
+# any missing tile themselves instead of inheriting the environment.
+_PLUGIN_TILE_NAMES = ("scitex-cards", "storage", "agents")
 
 
 def _register_plugin_tiles() -> list[str]:
     """Register any plugin tile the environment left out; return what was added."""
+    try:
+        from scitex_app.plugins import loaded_plugin_configs
+    except ImportError:
+        return []
+    from apps.workspace.apps_app.services.plugin_apps import plugin_module_config
+
     added = []
-    for rel_path in _PLUGIN_TILE_MANIFESTS:
-        config = registry._manifest_to_module_config(
-            registry._load_manifest(registry._APPS_ROOT / rel_path)
-        )
-        if registry.get_module(config.name) is None:
-            registry.register_module(config)
-            added.append(config.name)
+    try:
+        configs = loaded_plugin_configs()
+    except Exception:
+        return []
+    for config in configs:
+        try:
+            module = plugin_module_config(config)
+        except Exception:
+            continue
+        if module.name in _PLUGIN_TILE_NAMES and registry.get_module(module.name) is None:
+            registry.register_module(module)
+            added.append(module.name)
     return added
 
 
@@ -155,7 +162,7 @@ class HomePagesTest(TestCase):
         # Act
         names = [c.get("name") for c in groups[0]["cells"] if not c.get("is_planned")]
         # Assert
-        assert names == ["my_projects", "agents", "todo", "storage"]
+        assert names == ["my_projects", "agents", "scitex-cards", "storage"]
 
     def test_files_is_an_internal_service_not_a_launcher_app(self):
         # Arrange
@@ -172,7 +179,7 @@ class HomePagesTest(TestCase):
         # Act
         first_row = [cell.get("name") for cell in groups[0]["cells"][:4]]
         # Assert
-        assert first_row == ["my_projects", "agents", "todo", "storage"]
+        assert first_row == ["my_projects", "agents", "scitex-cards", "storage"]
 
     def test_stats_slot_is_real_only_when_its_leaf_route_is_mounted(self):
         # A legacy scitex_modules entry point can exist without a Django mount.
