@@ -123,19 +123,20 @@
         <div class="mobile-menu-item mobile-menu-item--indent mobile-menu-lang" role="group" aria-label="{% trans 'Language' %}">
             <i class="fas fa-globe" aria-hidden="true"></i>
             {% get_current_language as CURRENT_LANGUAGE %}
+            <span class="mobile-menu-lang-seg">
             <form action="{% url 'set_language' %}" method="post" class="mobile-menu-lang-form">
                 {% csrf_token %}
                 <input type="hidden" name="next" value="{{ request.get_full_path }}" />
                 <input type="hidden" name="language" value="en" />
                 <button type="submit" class="mobile-menu-lang-btn{% if CURRENT_LANGUAGE == "en" %} is-on{% endif %}">EN</button>
             </form>
-            <span class="mobile-menu-lang-sep" aria-hidden="true">/</span>
             <form action="{% url 'set_language' %}" method="post" class="mobile-menu-lang-form">
                 {% csrf_token %}
                 <input type="hidden" name="next" value="{{ request.get_full_path }}" />
                 <input type="hidden" name="language" value="ja" />
                 <button type="submit" class="mobile-menu-lang-btn{% if CURRENT_LANGUAGE == "ja" %} is-on{% endif %}">JA</button>
             </form>
+            </span>
         </div>
         <button type="button" class="mobile-menu-item mobile-menu-item--indent" id="product-tour-btn" aria-label="{% trans 'Product tour' %}">
             <i class="fas fa-question-circle" aria-hidden="true"></i>
