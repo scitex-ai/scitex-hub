@@ -173,17 +173,16 @@ def test_login_launcher_and_project_apps_keep_one_project(continuity_browser):
     assert viewport in {"desktop", "mobile"}
 
 
-def test_stats_stays_nonlaunchable_until_leaf_adopts_the_hub_project_contract(
+def test_stats_tile_is_launchable_now_that_calculate_is_verified(
     authenticated_desktop_page,
 ):
-    """Do not expose a real Stats tile before its project contract is safe."""
+    """Stats Calculate is verified end-to-end: the tile must launch."""
     page = authenticated_desktop_page
     page.goto("/apps/", wait_until="domcontentloaded")
     wait_for_page_ready(page)
     stats = page.locator('[data-module="stats"], [data-planned="stats"]')
     assert stats.count() == 1
-    assert stats.get_attribute("href") is None
-    assert stats.get_attribute("data-availability") == "coming_soon"
+    assert stats.get_attribute("data-availability") == "available"
 
 
 def test_browser_evidence_rejects_every_same_origin_server_failure():
