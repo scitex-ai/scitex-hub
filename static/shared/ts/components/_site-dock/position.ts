@@ -73,3 +73,28 @@ export function fromPixels(
     y: clamp01((top - margin) / freeY),
   };
 }
+
+/**
+ * Pin a computed dock top-left inside the viewport for the dock's CURRENT
+ * box. `toPixels` already clamps the stored fractions, but the box it
+ * measured can be stale — the stylesheets may not have applied yet when the
+ * dock restores at DOMContentLoaded, or the minimized state may have changed
+ * the box since the fractions were stored. Clamping the RESULT against the
+ * live box keeps at least the margin edge of the dock on-screen, so a stale
+ * measurement parks it at an edge instead of off-screen (2026-09-27: dock
+ * and grip pill both missing on launcher page #2).
+ */
+export function clampDockToViewport(
+  left: number,
+  top: number,
+  dock: Box,
+  viewport: Box,
+  margin = 8,
+): { left: number; top: number } {
+  const maxLeft = Math.max(margin, viewport.width - dock.width - margin);
+  const maxTop = Math.max(margin, viewport.height - dock.height - margin);
+  return {
+    left: Math.round(Math.min(Math.max(left, margin), maxLeft)),
+    top: Math.round(Math.min(Math.max(top, margin), maxTop)),
+  };
+}
