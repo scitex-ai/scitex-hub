@@ -18,7 +18,6 @@ These are file-content guards (no DB — DB-backed store tests are CI's).
 AAA; one assertion each.
 """
 
-import json
 from pathlib import Path
 
 # `re` and `_COLORS_CSS` were dropped with the two accent tests below: nothing
@@ -26,9 +25,6 @@ from pathlib import Path
 # would be worse than untidy here — it would name a file hub no longer ships,
 # and the next reader would reasonably assume it still exists.
 _REPO_ROOT = Path(__file__).resolve().parents[3]
-_STORAGE_MANIFEST = (
-    _REPO_ROOT / "apps" / "workspace" / "storage_app" / "manifest.json"
-)
 _STORE_TEMPLATES = [
     _REPO_ROOT
     / "apps"
@@ -81,20 +77,22 @@ _STORE_TEMPLATES = [
 
 def test_seed_category_matches_storage_manifest():
     """seed_apps must not let the storage store row drift from the manifest."""
-    # Arrange
+    # Arrange — the tile comes from the LEAF manifest now; the hub keeps no
+    # wrapper manifest. The guarded regression is the silent "other"
+    # fallback, so the mapping itself is pinned directly. (No leaf
+    # comparison: the leaf manifest declares no category; the store
+    # grouping is hub presentation, owned here.)
     from apps.workspace.apps_app.management.commands.seed_apps import (
         _CATEGORY_MAP,
     )
 
-    manifest = json.loads(_STORAGE_MANIFEST.read_text())
-
     # Act
     seeded_category = _CATEGORY_MAP.get("storage")
 
-    # Assert — "data" per the manifest, never the "other" fallback.
-    assert seeded_category == manifest["category"], (
-        "seed_apps._CATEGORY_MAP['storage'] must match the manifest "
-        f"category '{manifest['category']}', got '{seeded_category}'"
+    # Assert — "data", never the "other" fallback.
+    assert seeded_category == "data", (
+        "seed_apps._CATEGORY_MAP['storage'] must stay 'data' "
+        f"(the store badge reads it verbatim), got '{seeded_category}'"
     )
 
 

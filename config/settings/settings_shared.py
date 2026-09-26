@@ -95,8 +95,22 @@ SCITEX_ENV = branding.normalize_env(os.environ.get("SCITEX_HUB_ENV", "developmen
 # so its tab reads "Writer — SciTeX (standalone)" instead of "Writer — SciTeX".
 SCITEX_APP_MODE = branding.MODE_HUB
 
-# Storage leaf asks the hub which directories belong to the requester.
-SCITEX_STORAGE_VOLUMES_PROVIDER = "apps.workspace.storage_app.volumes.user_volumes"
+# A plugin leaf asks the hub which directories belong to the requester.
+SCITEX_STORAGE_VOLUMES_PROVIDER = "apps.workspace.apps_app.services.plugin_volumes.user_volumes"
+
+# Usernames admitted to restricted-audience plugin mounts (staff and
+# superusers always pass). Deployment DATA, not app logic. Defaults to the
+# fleet-operator allowlist the Agents mount historically admitted, so the
+# operator's account keeps working without Django staff; set
+# SCITEX_HUB_PLUGIN_OPERATORS explicitly to take over.
+SCITEX_HUB_PLUGIN_OPERATORS = [
+    value.strip()
+    for value in os.environ.get(
+        "SCITEX_HUB_PLUGIN_OPERATORS",
+        os.environ.get("SCITEX_AGENT_CONTAINER_LIFECYCLE_OPERATORS", ""),
+    ).split(",")
+    if value.strip()
+]
 
 # Project-scope apps (scitex-stats project-default mode, scitex-ui picker) ask the
 # hub where an AUTHORIZED project's files live and whether this request may write.

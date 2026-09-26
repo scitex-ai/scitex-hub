@@ -32,67 +32,6 @@ from config.pwa import serve_root_static
 from config.urls_helpers import RESERVED_PATHS, dev_module_view  # noqa: F401
 
 
-def _scitex_cards_installed() -> bool:
-    """True when the upstream cards package is importable.
-
-    Mirrors the guarded THIRD_PARTY_APPS import in settings_shared.py so
-    the /apps/cards/ mount and the installed app always agree.
-
-    Checks the CANONICAL name first. ``scitex_todo`` is a deprecated alias
-    of ``scitex_cards`` (renamed 2026-07-16) whose own DeprecationWarning
-    says it "ships for one transition window only". Gating the mount on the
-    alias made the board's existence depend on a package the upstream has
-    already announced it will delete — and the failure is SILENT: when the
-    alias goes, find_spec returns None, the mount is skipped, and
-    /apps/cards/ quietly falls through to the username catch-all. No error,
-    no log, the board simply stops existing.
-
-    The alias is still accepted as a fallback so an environment pinned to
-    the pre-rename dist keeps working; drop that arm once nothing ships it.
-    """
-    from importlib.util import find_spec
-
-    return (
-        find_spec("scitex_cards") is not None
-        or find_spec("scitex_todo") is not None
-    )
-
-
-def _scitex_storage_installed() -> bool:
-    """True when scitex-storage's _django app is importable.
-
-    Mirrors the guarded THIRD_PARTY_APPS import in settings_shared.py so
-    the /apps/storage/ mount and the installed app always agree. Gates on the
-    _django submodule (the include target), so a scitex_storage present
-    without its _django app doesn't mount a broken include.
-    """
-    from importlib.util import find_spec
-
-    # find_spec of a SUBMODULE raises ModuleNotFoundError (rather than
-    # returning None) when the PARENT package scitex_storage is absent
-    # entirely — the state pytest CI hits (no install_apps, no package).
-    # Treat that as not-installed instead of exploding the urlconf import.
-    try:
-        return find_spec("scitex_storage._django") is not None
-    except ModuleNotFoundError:
-        return False
-
-
-def _scitex_agent_container_installed() -> bool:
-    """True when SAC's optional Django dashboard URL contract is importable.
-
-    Probe the include target, not merely the top-level distribution: an older
-    scitex-agent-container checkout can be installed without shipping the
-    dashboard at all.
-    """
-    from importlib.util import find_spec
-
-    try:
-        return find_spec("scitex_agent_container._django.urls") is not None
-    except ModuleNotFoundError:
-        return False
-
-
 urlpatterns = [
     # Language selection. Django's set_language view writes the chosen language
     # to the session/cookie and redirects back to `next`. LocaleMiddleware then
@@ -236,44 +175,19 @@ urlpatterns = [
     # URL a user reads. To a user these are simply apps. It also kept them out
     # of hub's own namespace, where a future top-level route could collide.
     #
-    # Upstream scitex-todo's own contract-compliant Django board app
-    # (phase 1: read-only). Only mounted when the package is importable —
-    # mirror of the settings_shared.py guarded import. Per-request
-    # workspace tenancy + the read-only gate are enforced by
-    # apps.workspace.todo_app.middleware.TodoBoardTenancyMiddleware (whose
-    # path prefix tracks this mount).
-    *(
-        [
-            path("apps/cards/", include("scitex_cards._django.urls")),
-            # Legacy mount: the board lived at /apps/todo/ before the Cards
-            # rebrand (operator live review 2026-07-17). Permanent-redirect
-            # the whole subtree so old links and pinned tiles keep working.
-            re_path(
-                r"^apps/todo/(?P<rest>.*)$",
-                RedirectView.as_view(
-                    url="/apps/cards/%(rest)s", permanent=True, query_string=True
-                ),
-            ),
-        ]
-        if _scitex_cards_installed()
-        else []
-    ),
-    # Upstream scitex-storage's own contract-compliant Django app. Only
-    # mounted when the package is importable — mirror of the
-    # settings_shared.py guarded import. SECURITY: mounted through the
-    # hub-side wrapper (apps.workspace.storage_app.urls), NOT the raw
-    # upstream urls, so ?path= is login-gated and containment-validated to
-    # the requester's own jail (card sec-working-dir-passthrough-family,
-    # SITE 4 — the raw view scanned ANY host directory unauthenticated).
-    *(
-        [path("apps/storage/", include("apps.workspace.storage_app.urls"))]
-        if _scitex_storage_installed()
-        else []
-    ),
-    *(
-        [path("apps/agents/", include("apps.workspace.agents_app.urls"))]
-        if _scitex_agent_container_installed()
-        else []
+    # Agents, Cards and Storage mount EXCLUSIVELY through the generic plugin
+    # mount (plugin_urlpatterns at the bottom of this file: the plugin's own
+    # urlconf + manifest tile, login-wrapped and mount-policy-guarded without
+    # app-specific code). There are no bespoke hub mounts here on purpose —
+    # the thin-hub rule forbids the hub knowing what a plugin provides.
+    # Legacy mount: the board lived at /apps/todo/ before the Cards
+    # rebrand (operator live review 2026-07-17). Permanent-redirect
+    # the whole subtree so old links and pinned tiles keep working.
+    re_path(
+        r"^apps/todo/(?P<rest>.*)$",
+        RedirectView.as_view(
+            url="/apps/cards/%(rest)s", permanent=True, query_string=True
+        ),
     ),
     path(
         "apps/workspace/", include(("apps.infra.workspace_app.urls", "workspace_app"))

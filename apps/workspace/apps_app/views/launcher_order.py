@@ -59,7 +59,7 @@ LAUNCHER_GROUPS: tuple[LauncherGroup, ...] = (
     LauncherGroup(
         "foundation",
         "Foundation",
-        ("my_projects", "agents", "todo", "storage"),
+        ("my_projects", "agents", "scitex-cards", "storage"),
     ),
     LauncherGroup(
         "work",

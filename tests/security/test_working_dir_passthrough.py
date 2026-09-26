@@ -24,15 +24,19 @@ unauthenticated recursive scan over ANY host directory.
 The fix makes the injection an OVERRIDE (the caller's value is discarded,
 the working_dir is derived purely server-side from the user's current
 project) and FAILS CLOSED when no project resolves; adds ``@login_required``
-to the figrecipe routes; removes the raw ``/writer/`` mount; and routes
-``/apps/storage/`` through a login-gated, jail-validated wrapper.
+to the figrecipe routes; removes the raw ``/writer/`` mount; and — since
+the 2026-09-26 pure-plugin conversion — DELETES the ``/apps/storage/``
+wrapper entirely: Storage is a pure plugin mount behind its
+manifest-declared login boundary, the leaf index browses volume-keyed
+directories (no free-form path), and the leaf project-file API contains
+``?path=`` to the project root (SITE 4 tests below drive the real leaf).
 
 STYLE (mirrors tests/security/test_onsite_auth_bypass.py)
 ---------------------------------------------------------
-DB-FREE, NO mock library, NO ``monkeypatch``. Each test DRIVES THE REAL
+DB-FREE, NO ``monkeypatch``. Each test DRIVES THE REAL
 production object and observes state. The production wrappers take their
-collaborators as constructor arguments (``WorkingDirScopedView`` /
-``JailScopedScanView`` — the same dependency-injection shape as
+collaborators as constructor arguments (``WorkingDirScopedView`` — the same
+dependency-injection shape as
 ``OnSiteAuthMiddleware.user_lookup``), so the tests construct the very same
 object with hand-rolled fakes:
 
@@ -50,6 +54,8 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
+from unittest import mock
 
 import pytest
 from django.conf import settings
@@ -61,8 +67,6 @@ from apps.infra.project_app.services.working_dir_resolver import (
     WorkingDirScopedView,
 )
 from apps.workspace.figrecipe_app.urls import figrecipe as figrecipe_urls
-from apps.workspace.storage_app import views as storage_views
-from apps.workspace.storage_app.views import JailScopedScanView
 from apps.workspace.writer_app.urls import writer_django as writer_urls
 
 pytestmark = pytest.mark.security
@@ -75,10 +79,6 @@ ATTACKER_DIR = "/home/victim/secret-project"
 # The server-derived project directory the wrapper MUST use instead.
 ALICE_PROJECT_DIR = str(
     (Path(settings.BASE_DIR) / "data" / "users" / "alice" / "proj" / "p1").resolve()
-)
-# A path INSIDE alice's own jail (data/users/alice/...), for storage.
-ALICE_JAIL_PATH = str(
-    Path(settings.BASE_DIR) / "data" / "users" / "alice" / "proj" / "p1"
 )
 
 
@@ -167,15 +167,6 @@ def _prepare_figrecipe_api_post(body, resolver):
         data=json.dumps(body),
         content_type="application/json",
     )
-    request.user = FakeUser("alice")
-    return recorder, view, request
-
-
-def _prepare_storage(path):
-    """Build (recorder, view, request) for the storage scan wrapper."""
-    recorder = Recorder()
-    view = JailScopedScanView(recorder)
-    request = RF.get("/apps/storage/", {"path": path})
     request.user = FakeUser("alice")
     return recorder, view, request
 
@@ -384,43 +375,205 @@ def test_figrecipe_editor_page_anonymous_is_redirected():
 
 
 # =====================================================================
-# SITE 4 — storage wrapper (was unauthenticated arbitrary-dir scan)
+# SITE 4 — storage (was unauthenticated arbitrary-dir scan)
 # =====================================================================
-def test_storage_out_of_jail_path_status_is_403():
-    # Arrange
-    _recorder, view, request = _prepare_storage("/etc")
+# The hub-side wrapper (``JailScopedScanView`` + ``storage_app`` views) is
+# DELETED: /apps/storage/ is a pure plugin mount behind the
+# manifest-declared login boundary. What the exploit needed — an
+# unauthenticated free-form ``?path=`` scan — no longer exists anywhere on
+# the host path: the leaf index browses volume-keyed directories
+# (``?volume=&dir=``; escapes raise ``OutsideVolume``) and the leaf
+# project-file API takes project-RELATIVE ``?path=`` contained to the
+# project root (absolute reads are denied before any filesystem access).
+#
+# These tests drive the REAL leaf views with stub users. The leaf exposes
+# ``project_files._GET_CURRENT_PROJECT`` as its documented test seam, so no
+# test needs the ORM (this dev container's database role cannot create
+# test databases) and none mocks the leaf itself.
+def _leaf_storage_views():
+    return pytest.importorskip(
+        "scitex_storage._django.views", reason="scitex-storage not installed"
+    )
+
+
+def _leaf_project_scope(tmp_path):
+    """A fake in-scope project rooted at ``tmp_path`` via the leaf seam."""
+    project_files = pytest.importorskip(
+        "scitex_storage._django.project_files",
+        reason="scitex-storage not installed",
+    )
+    project = SimpleNamespace(get_local_path=lambda: tmp_path)
+    return mock.patch.object(
+        project_files,
+        "_GET_CURRENT_PROJECT",
+        lambda request, user=None: project,
+    )
+
+
+def _storage_request(path="/apps/storage/", query=None):
+    request = RF.get(path, query or {})
+    request.user = FakeUser("alice")
+    return request
+
+
+def test_storage_project_api_absolute_path_is_denied(tmp_path):
+    # Arrange — the CONFIRMED exploit was an absolute ?path= (/etc) handed
+    # to a recursive scan. The leaf project API roots every read at the
+    # project dir; an absolute ?path= resolves outside it.
+    views = _leaf_storage_views()
+    request = _storage_request(
+        "/apps/storage/api/list", {"path": "/etc"}
+    )
     # Act
-    response = view(request)
+    with _leaf_project_scope(tmp_path):
+        response = views.project_list(request)
+    # Assert — denied before any filesystem access, never a listing.
+    assert response.status_code == 403
+    assert json.loads(response.content)["error"] == "permission_denied"
+
+
+def test_storage_project_api_traversal_is_denied(tmp_path):
+    # Arrange
+    views = _leaf_storage_views()
+    request = _storage_request(
+        "/apps/storage/api/list", {"path": "../../etc"}
+    )
+    # Act
+    with _leaf_project_scope(tmp_path):
+        response = views.project_list(request)
+    # Assert
+    assert response.status_code == 403
+    assert json.loads(response.content)["error"] == "permission_denied"
+
+
+def test_storage_project_api_relative_read_still_works(tmp_path):
+    # Arrange — containment must not over-block: a relative read inside
+    # the project root still lists. (The anti-regression twin.)
+    views = _leaf_storage_views()
+    (tmp_path / "notes.txt").write_text("hello")
+    request = _storage_request("/apps/storage/api/list", {"path": ""})
+    # Act
+    with _leaf_project_scope(tmp_path):
+        response = views.project_list(request)
+    # Assert
+    assert response.status_code == 200
+    names = [e["name"] for e in json.loads(response.content)["entries"]]
+    assert "notes.txt" in names
+
+
+def test_storage_unknown_volume_is_refused():
+    # Arrange — the leaf answers 403 when find_volume finds nothing (fail
+    # closed), before rendering anything.
+    views = _leaf_storage_views()
+    request = _storage_request("/apps/storage/", {"volume": "no-such-volume"})
+    # Act
+    from apps.workspace.console_app.models import ComputeIdentity
+
+    manager = mock.Mock()
+    manager.filter.return_value.first.return_value = None
+    with mock.patch.object(ComputeIdentity, "objects", manager):
+        response = views.index(request)
     # Assert
     assert response.status_code == 403
 
 
-def test_storage_out_of_jail_path_is_not_scanned():
+def test_storage_escaping_dir_is_refused():
     # Arrange
-    recorder, view, request = _prepare_storage("/etc")
+    views = _leaf_storage_views()
+    request = _storage_request(
+        "/apps/storage/", {"volume": "workspace", "dir": "../../.."}
+    )
     # Act
-    view(request)
-    # Assert — the recursive scan never ran on an out-of-jail path
-    assert recorder.calls == []
+    from apps.workspace.console_app.models import ComputeIdentity
 
-
-def test_storage_in_jail_path_is_scanned():
-    # Arrange — a path in the user's own jail must still work
-    recorder, view, request = _prepare_storage(ALICE_JAIL_PATH)
-    # Act
-    view(request)
+    manager = mock.Mock()
+    manager.filter.return_value.first.return_value = None
+    with mock.patch.object(ComputeIdentity, "objects", manager):
+        response = views.index(request)
     # Assert
-    assert recorder.calls != []
+    assert response.status_code == 403
 
 
 def test_storage_anonymous_is_redirected():
-    # Arrange
-    request = RF.get("/apps/storage/", {"path": "/etc"})
-    request.user = AnonymousUser()
-    # Act
-    response = storage_views.index(request)
-    # Assert — login_required gate on the real URL view
+    # Arrange — the login boundary is the leaf-declared mount_policy,
+    # enforced by the generic mount (no hub wrapper).
+    pytest.importorskip(
+        "scitex_storage._django.urls", reason="scitex-storage not installed"
+    )
+    from django.test import Client
+    from django.urls import Resolver404, resolve
+
+    try:
+        resolve("/apps/storage/")
+    except Resolver404:
+        pytest.skip("storage mount is not in this environment's URLconf")
+    # Act — the mount boundary redirects before any view runs.
+    response = Client().get("/apps/storage/?path=/etc", follow=False)
+    # Assert
     assert response.status_code == 302
+    assert response["Location"].startswith("/auth/login/")
+
+
+def test_storage_in_jail_browsing_still_lists(tmp_path):
+    # Arrange — the anti-regression twin: a directory inside the
+    # requester's own volume still browses. The hub provider is stubbed to
+    # hand out a tmp-backed workspace volume (hub code, fair game); the
+    # leaf index + listing + render are all real.
+    views = _leaf_storage_views()
+    (tmp_path / "report.csv").write_text("a,b\n")
+    request = _storage_request(
+        "/apps/storage/", {"volume": "workspace", "dir": ""}
+    )
+    fake_volumes = [
+        {
+            "key": "workspace",
+            "label": "Workspace files",
+            "path": str(tmp_path),
+            "machine": "test",
+        }
+    ]
+    from apps.infra.project_app.models import Project
+
+    manager = mock.Mock()
+    manager.select_related.return_value.get.side_effect = Project.DoesNotExist
+    # Act
+    with (
+        mock.patch(
+            "apps.workspace.apps_app.services.plugin_volumes.user_volumes",
+            return_value=fake_volumes,
+        ),
+        mock.patch.object(Project, "objects", manager),
+        mock.patch(
+            "apps.workspace.apps_app.views.launcher.get_pinned_module_names",
+            return_value=[],
+            create=True,
+        ),
+        mock.patch(
+            "apps.infra.public_app.templatetags.site_dock.dock_items",
+            return_value=[],
+        ),
+    ):
+        response = views.index(request)
+    # Assert
+    assert response.status_code == 200
+    assert "report.csv" in response.content.decode()
+
+
+def test_storage_wrapper_gone_is_not_shadowed():
+    # Arrange — the old anonymous-redirect test drove storage_views.index
+    # directly; that module no longer exists, so this pins its absence
+    # instead of re-testing the mount boundary twice.
+    import importlib.util
+
+    # Act — find_spec raises ModuleNotFoundError when the parent package is
+    # absent entirely; that IS the assertion (nothing to import).
+    try:
+        spec = importlib.util.find_spec("apps.workspace.storage_app.views")
+    except ModuleNotFoundError:
+        spec = None
+
+    # Assert
+    assert spec is None
 
 
 # =====================================================================

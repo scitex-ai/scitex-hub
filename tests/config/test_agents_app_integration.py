@@ -1,4 +1,24 @@
-"""Permanent Hub integration contract for the optional SAC Agents app."""
+"""Permanent Hub integration contract for the optional SAC Agents app.
+
+Agents is a PURE plugin app: the hub mounts the leaf's own urlconf through
+the generic plugin mount and lists its tile from the leaf's own manifest.
+There is no hub-side wrapper (no ``agents_app`` views/urls/manifest), no
+delegation layer, and no per-app gate — the leaf declares
+``mount_policy.login_required`` and scopes rows to the requester's identity
+itself. This file pins that contract:
+
+- the sibling checkout, dev mounts, listener token, and env templates
+  (unchanged infrastructure — runs everywhere);
+- thin-hub: no wrapper files, no bespoke mount, no per-app gate names;
+- the live mount: /apps/agents/ resolves to the leaf namespace and
+  anonymous requests are turned away at the login boundary (leaf
+  installed; otherwise skipped with a reason).
+
+Reads are login-only: the hub passes them to the upstream, which scopes
+rows to the user's identity. Control stays gated upstream
+(``can_control``); the hub's audience gate is generic and covered in
+``tests/apps/apps_app/test_plugin_mount_guards.py``.
+"""
 
 from __future__ import annotations
 
@@ -9,16 +29,13 @@ from types import SimpleNamespace
 
 import pytest
 import yaml
-from django.contrib.auth.models import AnonymousUser
-from django.http import HttpResponse
-from django.test import RequestFactory
-
-from apps.workspace.agents_app import views
+from django.test import Client
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 OPTIONAL_APPS_PATH = REPO_ROOT / "config/settings/_optional_apps.py"
-REGISTRY_PATH = REPO_ROOT / "apps/infra/workspace_app/registry.py"
-MANIFEST_PATH = REPO_ROOT / "apps/workspace/agents_app/manifest.json"
+CONFIG_URLS_PATH = REPO_ROOT / "config/urls.py"
+HELPERS_PATH = REPO_ROOT / "apps/workspace/apps_app/views/helpers.py"
+AGENTS_WRAPPER_ROOT = REPO_ROOT / "apps/workspace/agents_app"
 APP_REGISTRY_PATH = REPO_ROOT / ".scitex-apps.json"
 INSTALLER_PATH = REPO_ROOT / "deployment/docker/docker_dev/install_ecosystem.sh"
 ENV_EXAMPLES = (
@@ -137,76 +154,49 @@ def test_env_templates_document_listener_without_embedding_its_bearer(
     assert "SCITEX_AGENT_CONTAINER_API_TOKEN=" not in template
 
 
-def test_launcher_manifest_targets_the_mounted_agents_route() -> None:
-    manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+def test_no_hub_side_agents_wrapper_files() -> None:
+    # Thin-hub: the bespoke wrapper is deleted. URL mounting + tiles come
+    # from the generic plugin mount (the leaf's own urlconf + manifest).
+    # Arrange / Act
+    leftovers = sorted(p.name for p in AGENTS_WRAPPER_ROOT.glob("*") if p.is_file()) if AGENTS_WRAPPER_ROOT.exists() else []
 
-    assert manifest["name"] == "agents"
-    assert manifest["url"] == "/apps/agents/"
-    assert manifest["show_in_launcher"] is True
-    assert manifest["availability"] == "available"
-    assert manifest["renders_ui"] is False
-    assert "workspace/agents_app/manifest.json" in REGISTRY_PATH.read_text(
-        encoding="utf-8"
+    # Assert
+    assert leftovers == [], f"hub-side agents wrapper files still present: {leftovers}"
+    assert "agents_app" not in CONFIG_URLS_PATH.read_text(encoding="utf-8")
+    assert "_fleet_access_allowed" not in HELPERS_PATH.read_text(encoding="utf-8")
+
+
+def test_root_urlconf_resolves_agents_to_the_leaf_index_when_installed() -> None:
+    # Arrange — the leaf package must be installed for its mount to exist.
+    pytest.importorskip(
+        "scitex_agent_container._django.urls", reason="scitex-agent-container not installed"
     )
+    from django.urls import resolve
+
+    # Act
+    match = resolve("/apps/agents/")
+
+    # Assert — the generic mount serves the LEAF's own urlconf (its
+    # namespace), never a hub delegate.
+    assert match.view_name == "scitex_agent_container:index"
 
 
-def test_anonymous_request_never_reaches_upstream(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    request = RequestFactory().get("/apps/agents/")
-    request.user = AnonymousUser()
-
-    monkeypatch.setattr(
-        views,
-        "_delegate",
-        lambda *_args, **_kwargs: pytest.fail("anonymous request reached SAC"),
+def test_anonymous_request_never_reaches_the_agents_mount() -> None:
+    # Arrange — the leaf declares mount_policy.login_required, so the
+    # generic mount turns anonymous traffic away at the boundary.
+    pytest.importorskip(
+        "scitex_agent_container._django.urls", reason="scitex-agent-container not installed"
     )
-    # Keep this unit test on the decorator boundary. Django's resolve_url()
-    # otherwise imports the entire Hub URLconf before deciding this literal is
-    # already a URL, pulling unrelated optional Scholar/browser state into a
-    # test that never reaches an Agents view.
-    monkeypatch.setattr(
-        "django.contrib.auth.decorators.resolve_url", lambda _value: "/auth/login/"
-    )
-    monkeypatch.setattr(
-        "django.contrib.auth.views.resolve_url", lambda _value: "/auth/login/"
-    )
+    from django.urls import resolve
 
-    response = views.index(request)
+    try:
+        resolve("/apps/agents/")
+    except Exception:
+        pytest.skip("agents mount is not in this environment's URLconf")
 
-    assert response.status_code == 302
-    assert response.url.startswith("/auth/login/")
+    # Act
+    resp = Client().get("/apps/agents/", follow=False)
 
-
-@pytest.mark.parametrize(
-    ("view", "path", "expected_name", "kwargs"),
-    (
-        (views.index, "/apps/agents/", "index", {}),
-        (views.fleet_api, "/apps/agents/api/fleet", "fleet_api", {}),
-        (views.healthz, "/apps/agents/healthz", "healthz", {}),
-        (views.detail, "/apps/agents/worker/", "detail", {"name": "worker"}),
-        (
-            views.lifecycle_action,
-            "/apps/agents/worker/action",
-            "lifecycle_action",
-            {"name": "worker"},
-        ),
-    ),
-)
-def test_authenticated_routes_delegate_to_the_upstream_contract(
-    monkeypatch: pytest.MonkeyPatch, view, path: str, expected_name: str, kwargs: dict
-) -> None:
-    request = RequestFactory().get(path)
-    request.user = SimpleNamespace(is_authenticated=True, is_staff=True)
-    calls = []
-
-    def fake_delegate(view_name, delegated_request, *args, **delegated_kwargs):
-        calls.append((view_name, delegated_request, args, delegated_kwargs))
-        return HttpResponse("ok")
-
-    monkeypatch.setattr(views, "_delegate", fake_delegate)
-
-    response = view(request, **kwargs)
-
-    assert response.status_code == 200
-    assert calls == [(expected_name, request, (), kwargs)]
+    # Assert
+    assert resp.status_code == 302
+    assert resp.url.startswith("/auth/login/")

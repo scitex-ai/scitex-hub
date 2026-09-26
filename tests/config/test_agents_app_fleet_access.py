@@ -1,197 +1,159 @@
-"""Only fleet operators may ACT through the Hub's /apps/agents/ mount.
+"""Who may ACT on the fleet — now through the generic audience gate.
 
-Reads are login-only since 2026-09-26: scitex-agent-container >= 0.28
-scopes every read by identity (resolve_identity + scope_rows, per-identity
-snapshot cache), so an ordinary user only ever sees their own agents. What
-these tests pin is the CONTROL boundary: lifecycle_action stays behind
-_fleet_access_required, and the decorator itself still refuses ordinary
-accounts so it cannot silently weaken.
+Reads are login-only since 2026-09-26: the leaf scopes every read by
+identity (upstream ``resolve_identity`` + ``scope_rows``), so an ordinary
+signed-in user only ever sees their own agents. Control stays gated
+upstream (``can_control``). What these tests pin is the HUB side of that
+contract, generically — no test names the agents views, which no longer
+exist:
+
+- ``plugin_access_allowed`` with a staff-audience policy refuses ordinary
+  accounts and admits staff, superusers, and listed operators (the CONTROL
+  boundary the old ``_fleet_access_required`` decorator held);
+- an open (login-only) policy admits ordinary signed-in users — the hub
+  must not re-gate reads the leaf scopes itself;
+- the operator allowlist lives in ``SCITEX_HUB_PLUGIN_OPERATORS``, which
+  defaults to the fleet-operator env var so the operator's account keeps
+  working without Django staff.
+
+DB-free: stub users, ``override_settings``, no ORM.
 """
 
 from __future__ import annotations
 
-import os
 from types import SimpleNamespace
 
 import pytest
-from django.http import HttpResponse
-from django.test import RequestFactory
+from django.contrib.auth.models import AnonymousUser
+from django.test import override_settings
 
-from apps.workspace.agents_app import views
+from apps.workspace.apps_app.services.plugin_guards import plugin_access_allowed
 
+#: The control boundary, as a leaf-declared policy: restricted audience.
+FLEET_CONTROL_POLICY = {"audience": "staff", "login_required": True}
 
-def _reached_view(request, *args, **kwargs):
-    return HttpResponse("reached")
-
-
-_GUARDED = views._fleet_access_required(_reached_view)
+#: The read boundary, as a leaf-declared policy: login only.
+FLEET_READ_POLICY = {"login_required": True}
 
 
 def _user(**flags):
-    base = {"is_authenticated": True, "is_staff": False, "is_superuser": False, "username": "alice"}
+    base = {
+        "is_authenticated": True,
+        "is_staff": False,
+        "is_superuser": False,
+        "username": "alice",
+    }
     base.update(flags)
     return SimpleNamespace(**base)
 
 
-def _status_for(user) -> int:
-    request = RequestFactory().get("/apps/agents/")
-    request.user = user
-    return _GUARDED(request).status_code
+@pytest.fixture
+def operators_setting():
+    with override_settings(SCITEX_HUB_PLUGIN_OPERATORS=["bob", "carol"]):
+        yield
 
 
 @pytest.fixture
-def operators_env():
-    previous = os.environ.get(views.OPERATORS_ENV)
-    os.environ[views.OPERATORS_ENV] = " bob , carol "
-    yield
-    if previous is None:
-        os.environ.pop(views.OPERATORS_ENV, None)
-    else:
-        os.environ[views.OPERATORS_ENV] = previous
+def no_operators_setting():
+    with override_settings(SCITEX_HUB_PLUGIN_OPERATORS=[]):
+        yield
 
 
-@pytest.fixture
-def no_operators_env():
-    previous = os.environ.pop(views.OPERATORS_ENV, None)
-    yield
-    if previous is not None:
-        os.environ[views.OPERATORS_ENV] = previous
-
-
-def test_ordinary_signed_in_user_is_refused(no_operators_env):
+def test_ordinary_signed_in_user_is_refused_control(no_operators_setting):
     # Arrange
     user = _user()
 
     # Act
-    status = _status_for(user)
+    allowed = plugin_access_allowed(user, FLEET_CONTROL_POLICY)
 
     # Assert
-    assert status == 403
+    assert allowed is False
 
 
-def test_staff_user_reaches_the_view(no_operators_env):
+def test_staff_user_passes_control(no_operators_setting):
     # Arrange
     user = _user(is_staff=True)
 
     # Act
-    status = _status_for(user)
+    allowed = plugin_access_allowed(user, FLEET_CONTROL_POLICY)
 
     # Assert
-    assert status == 200
+    assert allowed is True
 
 
-def test_superuser_reaches_the_view(no_operators_env):
+def test_superuser_passes_control(no_operators_setting):
     # Arrange
     user = _user(is_superuser=True)
 
     # Act
-    status = _status_for(user)
+    allowed = plugin_access_allowed(user, FLEET_CONTROL_POLICY)
 
     # Assert
-    assert status == 200
+    assert allowed is True
 
 
-def test_configured_operator_reaches_the_view(operators_env):
+def test_configured_operator_passes_control_without_staff(operators_setting):
     # Arrange
     user = _user(username="carol")
 
     # Act
-    status = _status_for(user)
+    allowed = plugin_access_allowed(user, FLEET_CONTROL_POLICY)
 
     # Assert
-    assert status == 200
+    assert allowed is True
 
 
-def test_unlisted_user_is_refused_even_when_operators_are_configured(operators_env):
+def test_unlisted_user_is_refused_control_even_when_operators_set(
+    operators_setting,
+):
     # Arrange
     user = _user(username="mallory")
 
     # Act
-    status = _status_for(user)
+    allowed = plugin_access_allowed(user, FLEET_CONTROL_POLICY)
 
     # Assert
-    assert status == 403
+    assert allowed is False
 
 
-@pytest.mark.parametrize(
-    ("view_name", "kwargs"),
-    (
-        ("fleet_api", {}),
-        ("healthz", {}),
-        ("detail", {"name": "worker"}),
-    ),
-)
-def test_read_views_delegate_for_an_ordinary_user(
-    monkeypatch, no_operators_env, view_name, kwargs
-):
-    # Reads are login-only: the hub passes them to the upstream, which
-    # scopes rows to the user's identity. A missing delegate call would
-    # mean the hub re-gated reads.
+def test_anonymous_is_refused_control(operators_setting):
     # Arrange
-    seen = {}
-
-    def fake_delegate(view_name, request, *args, **kwargs):
-        seen["view"] = view_name
-        return HttpResponse("scoped-board")
-
-    monkeypatch.setattr(views, "_delegate", fake_delegate)
-    request = RequestFactory().get("/apps/agents/")
-    request.user = _user()
-    view = getattr(views, view_name)
+    user = AnonymousUser()
 
     # Act
-    response = view(request, **kwargs)
+    allowed = plugin_access_allowed(user, FLEET_CONTROL_POLICY)
 
     # Assert
-    assert response.status_code == 200
-    assert seen["view"] == view_name
+    assert allowed is False
 
 
-def test_lifecycle_action_refuses_an_ordinary_user(no_operators_env):
-    # Control stays operator-gated at the hub boundary (upstream
-    # can_control() gates it a second time).
+def test_ordinary_signed_in_user_passes_the_read_boundary(no_operators_setting):
+    # Reads are login-only: the hub must not re-gate what the leaf scopes
+    # by identity. A refusal here would mean the hub re-gated reads.
     # Arrange
-    request = RequestFactory().post("/apps/agents/worker/action")
-    request.user = _user()
+    user = _user()
 
     # Act
-    response = views.lifecycle_action(request, name="worker")
+    allowed = plugin_access_allowed(user, FLEET_READ_POLICY)
 
     # Assert
-    assert response.status_code == 403
+    assert allowed is True
 
 
-def test_root_urlconf_resolves_agents_to_the_sac_index_when_installed():
+def test_operator_allowlist_defaults_to_the_fleet_operator_env():
+    # The operator's account opens restricted mounts without Django staff.
+    # The default is deployment DATA (an env var read in settings), so pin
+    # the wiring as file content — importing settings twice to observe an
+    # env default would fork the whole Django setup.
     # Arrange
-    pytest.importorskip("scitex_agent_container._django.urls")
-    from django.urls import resolve
+    from pathlib import Path
 
     # Act
-    match = resolve("/apps/agents/")
+    text = (
+        Path(__file__).resolve().parents[2]
+        / "config/settings/settings_shared.py"
+    ).read_text()
 
     # Assert
-    assert match.view_name == "scitex_agent_container:index"
-
-
-def test_ordinary_user_index_reaches_their_scoped_board(
-    monkeypatch, no_operators_env
-):
-    # The placeholder era is over: the index delegates and the upstream
-    # renders this user's own agents (or the empty state).
-    # Arrange
-    seen = {}
-
-    def fake_delegate(view_name, request, *args, **kwargs):
-        seen["view"] = view_name
-        return HttpResponse("scoped-board")
-
-    monkeypatch.setattr(views, "_delegate", fake_delegate)
-    request = RequestFactory().get("/apps/agents/")
-    request.user = _user()
-
-    # Act
-    response = views.index(request)
-
-    # Assert
-    assert response.status_code == 200
-    assert seen["view"] == "index"
+    assert "SCITEX_HUB_PLUGIN_OPERATORS" in text
+    assert "SCITEX_AGENT_CONTAINER_LIFECYCLE_OPERATORS" in text

@@ -155,7 +155,7 @@ body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
 
 @media (hover: hover) {
   .site-dock:hover {
-    background: var(--site-dock-bg-opaque);
+    background: var(--site-dock-bg-idle);
   }
 }
 

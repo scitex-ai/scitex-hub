@@ -1,349 +1,209 @@
-"""Organize tabs for the Storage app: usage donut, duplicates, move planning.
+"""Storage mount contract — the leaf owns its UI, the hub owns the wiring.
+
+scitex-storage's Django app (``index`` + the Usage/Duplicates/Move tabs in
+``scitex_storage._django.organize``) is served EXCLUSIVELY through the
+generic plugin mount. The hub-side wrapper (``storage_app`` views/urls/
+organize/volumes) is deleted. Nothing here tests leaf internals — this
+file pins the CONTRACT between host and leaf:
+
+- thin-hub: no wrapper files, and the volumes-provider setting points at
+  the generic provider;
+- the mount: /apps/storage/ resolves to the leaf namespace, and the leaf
+  manifest declares the login boundary (leaf installed; otherwise those
+  tests skip with a reason);
+- the wiring, DB-free: the leaf's ``resolve_user_volumes`` served through
+  the hub provider hands the requester exactly their own volumes (and
+  nothing for anonymous);
+- the containment primitives the leaf view refuses with: an unknown
+  volume key resolves to ``None`` (the view answers 403) and a directory
+  escaping its volume raises ``OutsideVolume`` (the view answers 403).
+  There is no free-form path: every directory is resolved inside a volume
+  the requester owns.
 
 DB-free by design (this dev container's database role cannot create test
-databases, so no test here may touch the ORM): users are stub objects and the
-upstream volume resolution is stubbed with fake ``Volume``/``VolumeStatus``
-rows. scitex-storage API calls that need system binaries (fd/fclones) are
-stubbed so the tests are hermetic. The whole module skips when the optional
-``scitex_storage`` package is absent (same gating as the mount itself).
+databases): stub users, ``ComputeIdentity.objects`` stubbed with
+``unittest.mock``, no ORM.
 """
 
-import pytest
-
-scitex_storage = pytest.importorskip("scitex_storage")
+from __future__ import annotations
 
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-from django.contrib.auth.models import AnonymousUser
+import pytest
 from django.test import RequestFactory
 
-from apps.workspace.storage_app import organize
-from apps.workspace.storage_app import views as storage_views
-from apps.workspace.storage_app.organize import donut_segments
+REPO_ROOT = Path(__file__).resolve().parents[3]
+STORAGE_WRAPPER_ROOT = REPO_ROOT / "apps/workspace/storage_app"
 
-
-@pytest.fixture(autouse=True)
-def _stub_chrome_queries():
-    """Neutralize hub-chrome DB queries these DB-free tests never touch.
-
-    * The project context processor resolves ANY two-segment path —
-      including /apps/storage/ — against the Project table.
-    * The sidebar pins resolver queries ModuleInstallation for the user.
-    * The site dock resolver queries AppsModule installations.
-    """
-    from apps.infra.project_app.models import Project
-
-    manager = mock.Mock()
-    manager.select_related.return_value.get.side_effect = Project.DoesNotExist
-    with (
-        mock.patch.object(Project, "objects", manager),
-        mock.patch(
-            "apps.workspace.apps_app.views.launcher.get_pinned_module_names",
-            return_value=[],
-            create=True,
-        ),
-        mock.patch(
-            "apps.infra.public_app.templatetags.site_dock.dock_items",
-            return_value=[],
-        ),
-    ):
-        yield
+RF = RequestFactory()
 
 
 def _user(name="org_test"):
     return SimpleNamespace(username=name, is_authenticated=True)
 
 
-def _request(user, path="/apps/storage/"):
-    request = RequestFactory().get(path)
-    request.user = user
-    return request
-
-
-def _fake_volume(key="workspace", label="Workspace files", path="/tmp"):
-    from scitex_storage._django import volumes as _volumes
-
-    return _volumes.Volume(key=key, label=label, path=Path(path), machine="test")
-
-
-def _fake_status(volume, used=60, total=100, status=None):
-    from scitex_storage._django import volumes as _volumes
-
-    return _volumes.VolumeStatus(
-        volume, status or _volumes.REACHABLE, total, used, total - used
+def _leaf_volumes():
+    return pytest.importorskip(
+        "scitex_storage._django.volumes", reason="scitex-storage not installed"
     )
 
 
-def _patch_volumes(volumes_list, statuses_list):
-    from scitex_storage._django import volumes as _volumes
+def _no_compute_identity():
+    from apps.workspace.console_app.models import ComputeIdentity
 
-    return (
-        mock.patch.object(_volumes, "resolve_user_volumes", return_value=volumes_list),
-        mock.patch.object(_volumes, "measure_all", return_value=statuses_list),
+    manager = mock.Mock()
+    manager.filter.return_value.first.return_value = None
+    return mock.patch.object(ComputeIdentity, "objects", manager)
+
+
+# =====================================================================
+# Thin-hub: the wrapper is gone, the provider setting is generic
+# =====================================================================
+def test_no_hub_side_storage_wrapper_files():
+    # Arrange / Act
+    leftovers = (
+        sorted(p.name for p in STORAGE_WRAPPER_ROOT.glob("*") if p.is_file())
+        if STORAGE_WRAPPER_ROOT.exists()
+        else []
+    )
+
+    # Assert
+    assert leftovers == [], f"hub-side storage wrapper files still present: {leftovers}"
+    assert "storage_app" not in (REPO_ROOT / "config/urls.py").read_text()
+
+
+def test_volumes_provider_setting_points_at_the_generic_provider():
+    # Arrange / Act
+    from django.conf import settings
+
+    # Assert — the leaf asks the hub which directories belong to the
+    # requester through generic hub infrastructure, never a per-app module.
+    assert (
+        settings.SCITEX_STORAGE_VOLUMES_PROVIDER
+        == "apps.workspace.apps_app.services.plugin_volumes.user_volumes"
     )
 
 
-class TestDonutSegments:
-    def test_fractions_sum_to_one(self):
-        # Arrange
-        items = [("a", 50), ("b", 30), ("c", 20)]
-        # Act
-        segments = donut_segments(items)
-        # Assert
-        assert len(segments) == 3
-        assert abs(sum(s.fraction for s in segments) - 1.0) < 1e-9
-        assert segments[0].offset == 0.0
-        assert segments[1].offset == -(50 / 100) * organize.DONUT_C
+# =====================================================================
+# The mount serves the leaf (leaf installed)
+# =====================================================================
+def test_storage_root_url_resolves_to_the_leaf_namespace():
+    # Arrange
+    pytest.importorskip("scitex_storage._django.urls", reason="scitex-storage not installed")
+    from django.urls import resolve
 
-    def test_zero_and_negative_values_dropped(self):
-        # Act
-        segments = donut_segments([("a", 0), ("b", -5), ("c", 10)])
-        # Assert
-        assert [s.label for s in segments] == ["c"]
-        assert segments[0].fraction == 1.0
+    # Act
+    match = resolve("/apps/storage/")
 
-    def test_empty_input_yields_no_segments(self):
-        assert donut_segments([]) == []
-        assert donut_segments([("a", 0)]) == []
+    # Assert
+    assert match.view_name.startswith("scitex_storage:")
 
 
-class TestRunBounded:
-    def test_success_returns_value(self):
-        ok, value = organize._run_bounded(lambda: 42, 5.0)
-        assert (ok, value) == (True, 42)
+def test_leaf_manifest_declares_the_login_boundary():
+    # Arrange — the generic mount login-wraps the whole tree because the
+    # LEAF asks for it in its own manifest (no hub-side wrapper).
+    import importlib.util
+    import json
 
-    def test_exception_is_reported_not_raised(self):
-        boom = RuntimeError("boom")
+    spec = importlib.util.find_spec("scitex_storage._django")
+    if spec is None or not spec.origin:
+        pytest.skip("scitex-storage not installed")
 
-        def _raise():
-            raise boom
+    # Act
+    manifest = json.loads((Path(spec.origin).parent / "manifest.json").read_text())
 
-        ok, err = organize._run_bounded(_raise, 5.0)
-        assert ok is False
-        assert err is boom
-
-    def test_missed_deadline_reports_timeout(self):
-        import time
-
-        ok, err = organize._run_bounded(lambda: time.sleep(5), 0.05)
-        assert ok is False
-        assert isinstance(err, TimeoutError)
+    # Assert
+    assert manifest.get("mount_policy", {}).get("login_required") is True
 
 
-class TestOrganizeDispatch:
-    def test_anonymous_is_redirected_to_login(self):
-        # Act
-        for tab in ("usage", "duplicates", "move"):
-            request = _request(AnonymousUser(), f"/apps/storage/?tab={tab}")
-            response = storage_views.index(request)
-            # Assert
-            assert response.status_code == 302, tab
-            assert "/auth/login/" in response["Location"], tab
+def test_leaf_owns_the_organize_tabs():
+    # Arrange — Usage/Duplicates/Move are real leaf views (storage #96);
+    # the hub deleted its organize.py rather than shadowing them.
+    organize = pytest.importorskip(
+        "scitex_storage._django.organize", reason="scitex-storage not installed"
+    )
 
-    def test_usage_tab_renders_donut(self):
-        # Arrange
-        from scitex_storage._measure._scan import RootScan
+    # Act / Assert
+    assert set(organize.HANDLED_TABS) >= {"usage", "duplicates", "move"}
 
-        volume = _fake_volume()
-        resolve, measure = _patch_volumes([volume], [_fake_status(volume)])
-        request = _request(_user(), "/apps/storage/?tab=usage")
-        # Act
-        with (
-            resolve,
-            measure,
-            mock.patch.object(
-                scitex_storage,
-                "scan",
-                return_value=RootScan(root=Path("/tmp"), children=[]),
-                create=True,
-            ),
-        ):
-            response = storage_views.index(request)
-        # Assert
-        assert response.status_code == 200
-        content = response.content.decode()
-        assert "Where your bytes live" in content
-        assert "?tab=usage" in content
-        assert 'aria-selected="true"' in content
 
-    def test_usage_unknown_volume_fails_closed(self):
-        # Arrange
-        volume = _fake_volume()
-        resolve, measure = _patch_volumes([volume], [_fake_status(volume)])
-        request = _request(_user(), "/apps/storage/?tab=usage&volume=no-such-volume")
-        # Act
-        with resolve, measure:
-            response = storage_views.index(request)
-        # Assert
-        assert response.status_code == 403
+# =====================================================================
+# The wiring: resolve_user_volumes through the hub provider (DB-free)
+# =====================================================================
+def test_requester_gets_exactly_their_own_volumes():
+    # Arrange
+    _volumes = _leaf_volumes()
+    request = RF.get("/apps/storage/")
+    request.user = _user("vol_alice")
 
-    def test_duplicates_tab_is_read_only(self):
-        # Arrange
-        volume = _fake_volume()
-        resolve, measure = _patch_volumes([volume], [_fake_status(volume)])
-        request = _request(_user(), "/apps/storage/?tab=duplicates")
-        # Act
-        with (
-            resolve,
-            measure,
-            mock.patch.object(
-                scitex_storage, "find_duplicates", return_value=[], create=True
-            ),
-        ):
-            response = storage_views.index(request)
-        # Assert
-        assert response.status_code == 200
-        content = response.content.decode()
-        assert "Read-only report" in content
-        # No delete/resolve affordance anywhere on the page (hub chrome has
-        # its own unrelated POST forms, so scope to storage action names).
-        assert 'name="delete"' not in content
-        assert 'name="resolve"' not in content
+    # Act
+    with _no_compute_identity():
+        volumes = _volumes.resolve_user_volumes(request)
 
-    def test_duplicates_unavailable_without_fclones(self):
-        # Arrange
-        from scitex_storage._measure._scan import MissingSystemDependencyError
+    # Assert — the workspace volume is her own data root; nothing else.
+    assert [v.key for v in volumes] == ["workspace"]
+    assert str(volumes[0].path).endswith("/data/users/vol_alice")
 
-        volume = _fake_volume()
-        resolve, measure = _patch_volumes([volume], [_fake_status(volume)])
-        request = _request(_user(), "/apps/storage/?tab=duplicates")
-        # Act
-        with (
-            resolve,
-            measure,
-            mock.patch.object(
-                scitex_storage,
-                "find_duplicates",
-                side_effect=MissingSystemDependencyError("no fclones"),
-                create=True,
-            ),
-        ):
-            response = storage_views.index(request)
-        # Assert
-        assert response.status_code == 200
-        assert "fclones" in response.content.decode()
 
-    def test_duplicates_lists_groups_with_reclaimable(self, tmp_path):
-        # Arrange
-        from scitex_storage._measure import _duplicates
+def test_anonymous_gets_no_volumes_from_the_leaf_resolver():
+    # Arrange
+    from django.contrib.auth.models import AnonymousUser
 
-        a = tmp_path / "a.bin"
-        b = tmp_path / "b.bin"
-        a.write_bytes(b"x" * 100)
-        b.write_bytes(b"x" * 100)
-        volume = _fake_volume(path=str(tmp_path))
-        resolve, measure = _patch_volumes([volume], [_fake_status(volume)])
-        request = _request(_user(), "/apps/storage/?tab=duplicates")
-        # Act
-        with (
-            resolve,
-            measure,
-            mock.patch.object(
-                scitex_storage,
-                "find_duplicates",
-                return_value=[[a, b]],
-                create=True,
-            ),
-            mock.patch.object(_duplicates, "reclaimable_bytes", return_value=100),
-        ):
-            response = storage_views.index(request)
-        # Assert
-        assert response.status_code == 200
-        content = response.content.decode()
-        assert "duplicate groups" in content
-        assert "a.bin" in content and "b.bin" in content
+    _volumes = _leaf_volumes()
+    request = RF.get("/apps/storage/")
+    request.user = AnonymousUser()
 
-    def test_move_tab_shows_tiers_and_disabled_apply(self):
-        # Arrange
-        volume = _fake_volume()
-        resolve, measure = _patch_volumes([volume], [_fake_status(volume)])
-        request = _request(_user(), "/apps/storage/?tab=move")
-        # Act
-        with resolve, measure:
-            response = storage_views.index(request)
-        # Assert
-        assert response.status_code == 200
-        content = response.content.decode()
-        assert "Plan a move" in content
-        assert "Applying a move is disabled in the browser" in content
-        # The plan form is a read-only GET; there is no apply affordance.
-        assert '<form method="get"' in content
-        assert 'name="apply"' not in content
+    # Act
+    volumes = _volumes.resolve_user_volumes(request)
 
-    def test_move_plan_unknown_volume_fails_closed(self):
-        # Arrange
-        volume = _fake_volume()
-        resolve, measure = _patch_volumes([volume], [_fake_status(volume)])
-        request = _request(
-            _user(),
-            "/apps/storage/?tab=move&plan=1&volume=nope&dir=x&destination=scitex-nas-01",
-        )
-        # Act
-        with resolve, measure:
-            response = storage_views.index(request)
-        # Assert
-        assert response.status_code == 403
+    # Assert
+    assert volumes == []
 
-    def test_move_plan_path_escape_fails_closed(self):
-        # Arrange
-        volume = _fake_volume()
-        resolve, measure = _patch_volumes([volume], [_fake_status(volume)])
-        request = _request(
-            _user(),
-            "/apps/storage/?tab=move&plan=1&volume=workspace&dir=../../..&destination=scitex-nas-01",
-        )
-        # Act
-        with resolve, measure:
-            response = storage_views.index(request)
-        # Assert
-        assert response.status_code == 403
 
-    def test_move_plan_renders_without_mutation(self, tmp_path):
-        # Arrange
-        (tmp_path / "sub").mkdir()
-        volume = _fake_volume(path=str(tmp_path))
-        resolve, measure = _patch_volumes([volume], [_fake_status(volume)])
-        request = _request(
-            _user(),
-            "/apps/storage/?tab=move&plan=1&volume=workspace&dir=sub&destination=scitex-nas-01",
-        )
-        fake_plan = SimpleNamespace(
-            source=str(tmp_path / "sub"),
-            destination="scitex-nas-01",
-            remote_path="/remote/sub",
-            size_bytes=1234,
-            file_count=7,
-        )
-        # Act
-        with (
-            resolve,
-            measure,
-            mock.patch.object(
-                scitex_storage, "plan_archive", return_value=fake_plan, create=True
-            ),
-        ):
-            response = storage_views.index(request)
-        # Assert
-        assert response.status_code == 200
-        content = response.content.decode()
-        assert "Move plan (not executed)" in content
-        assert "scitex-nas-01" in content
+# =====================================================================
+# The containment primitives the leaf refuses with (no render, no DB)
+# =====================================================================
+def test_unknown_volume_key_resolves_to_none():
+    # Arrange — the leaf answers 403 when find_volume finds nothing.
+    _volumes = _leaf_volumes()
+    volume = _volumes.Volume(
+        key="workspace", label="Workspace files", path=Path("/tmp"), machine="test"
+    )
 
-    def test_backup_tab_stays_upstream_soon(self):
-        # Arrange
-        from scitex_storage._django import volumes as _volumes
+    # Act
+    found = _volumes.find_volume([volume], "no-such-volume")
 
-        volume = _fake_volume()
-        request = _request(_user(), "/apps/storage/?tab=backup")
-        # Act: backup still delegates to the upstream view (real measure_all
-        # over one fake volume is filesystem-only: statvfs on /tmp).
-        with mock.patch.object(_volumes, "resolve_user_volumes", return_value=[volume]):
-            response = storage_views.index(request)
-        # Assert
-        assert response.status_code == 200
-        assert "Coming soon" in response.content.decode()
+    # Assert
+    assert found is None
+
+
+def test_directory_escape_raises_outside_volume(tmp_path):
+    # Arrange
+    _volumes = _leaf_volumes()
+    volume = _volumes.Volume(
+        key="workspace", label="Workspace files", path=tmp_path, machine="test"
+    )
+
+    # Act / Assert — ../../.. never resolves; the leaf answers 403.
+    with pytest.raises(_volumes.OutsideVolume):
+        _volumes.contained_dir(volume, "../../..")
+
+
+def test_in_volume_directory_resolves(tmp_path):
+    # Arrange
+    _volumes = _leaf_volumes()
+    (tmp_path / "sub").mkdir()
+    volume = _volumes.Volume(
+        key="workspace", label="Workspace files", path=tmp_path, machine="test"
+    )
+
+    # Act
+    resolved = _volumes.contained_dir(volume, "sub")
+
+    # Assert
+    assert resolved == (tmp_path / "sub").resolve()
 
 
 # EOF

@@ -14,8 +14,9 @@ handling (the Cards mount is getting a friendly per-user empty page instead of
 the JSON 403 in a separate change); the launcher no longer hides the tiles.
 
 ``SCITEX_HUB_INTERNAL_APPS_RELEASED=True`` reproduces the dev deployment, where
-the non-staff user is past the release-channel gate (both manifests are still
-``visibility: internal``), so a hidden tile could only come from a mount gate.
+the non-staff user is past the release-channel gate (a hidden tile could only
+come from a mount gate — and plugin tiles from leaf manifests without a
+``visibility`` key default to public, so the gate is off for them).
 """
 
 import pytest
@@ -25,7 +26,9 @@ from django.test import RequestFactory, override_settings
 from apps.infra.workspace_app.registry import get_all_modules
 from apps.workspace.apps_app.views.launcher import launcher_context
 
-PREINSTALLED = {"todo", "agents"}
+# Tile names come from the LEAF manifests (plugin slug): cards is
+# "scitex-cards", not the retired hub wrapper name "todo".
+PREINSTALLED = {"scitex-cards", "agents"}
 
 pytestmark = pytest.mark.skipif(
     not PREINSTALLED <= {mod.name for mod in get_all_modules()},
@@ -72,7 +75,7 @@ def test_a_plain_users_first_row_is_the_infrastructure_row():
     # Act
     first_row = _tile_names(username, is_staff=False)[:4]
     # Assert
-    assert first_row == ["my_projects", "public_projects", "agents", "todo"]
+    assert first_row == ["my_projects", "public_projects", "agents", "scitex-cards"]
 
 
 # EOF

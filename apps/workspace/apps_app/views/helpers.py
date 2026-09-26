@@ -123,39 +123,17 @@ def can_view_internal_app(user) -> bool:
     return bool(getattr(settings, "SCITEX_HUB_INTERNAL_APPS_RELEASED", False))
 
 
-def _cards_mount_gate(user) -> bool:
-    from apps.workspace.todo_app.middleware import cards_board_access_allowed
+def can_open_plugin_tile(user, tile_url: str) -> bool:
+    """Whether the plugin tile at ``tile_url`` would get past its mount.
 
-    return cards_board_access_allowed(user)
-
-
-def _agents_mount_gate(user) -> bool:
-    from apps.workspace.agents_app.views import _fleet_access_allowed
-
-    return _fleet_access_allowed(user)
-
-
-#: Module name -> the predicate its MOUNT enforces. Each entry delegates to the
-#: gate itself (never a copy), so a tile and its route cannot disagree:
-#:   todo   (/apps/cards/)  staff-only, JSON 403 — todo_app/middleware.py
-#:   agents (/apps/agents/) superuser, staff or a listed SAC operator,
-#:                          plain-text 403 — agents_app/views.py
-_MOUNT_GATES = {
-    "todo": _cards_mount_gate,
-    "agents": _agents_mount_gate,
-}
-
-
-def can_open_mounted_app(user, module_name: str) -> bool:
-    """Whether opening ``module_name``'s launcher tile would get past its mount.
-
-    Operator 2026-09-14: Cards and Agents are meant for everyone eventually
-    (scoped to the user's own data); until then a tile the user cannot open is
-    a dead end, so the grid launcher and the header app launcher both drop it.
-    Apps without a mount-level gate are unaffected.
+    The generic tile/mount agreement: a tile a user can see must not open
+    onto a 403. Mounts are matched by URL, never by app name, so no
+    per-app gate table can drift out of sync with the routes. Mounts
+    without a declared audience restriction are unaffected.
     """
-    gate = _MOUNT_GATES.get(module_name)
-    return gate is None or gate(user)
+    from apps.workspace.apps_app.services.plugin_guards import can_open_plugin_mount
+
+    return can_open_plugin_mount(user, tile_url or "")
 
 
 def can_view_module(user, app_module):
@@ -168,12 +146,12 @@ def can_view_module(user, app_module):
     """
     # "internal" is a release-channel property, not a builtin/admin property.
     # The previous `or app_module.is_builtin` short-circuit leaked internal
-    # builtins (Cards/todo_app, Storage) to EVERYONE — including anonymous
-    # users — in the App Store (regression hub-store-tiles-cards-internal-
-    # visibility-regression-20260914). Gate internal FIRST so is_builtin can
-    # never override it; delegate to can_view_internal_app (staff, or an
-    # authenticated user on a deployment that opted in via
-    # SCITEX_HUB_INTERNAL_APPS_RELEASED; anonymous -> False).
+    # builtins to EVERYONE — including anonymous users — in the App Store
+    # (regression hub-store-tiles-cards-internal-visibility-regression-
+    # 20260914). Gate internal FIRST so is_builtin can never override it;
+    # delegate to can_view_internal_app (staff, or an authenticated user on
+    # a deployment that opted in via SCITEX_HUB_INTERNAL_APPS_RELEASED;
+    # anonymous -> False).
     if app_module.visibility == "internal":
         return can_view_internal_app(user)
     if app_module.visibility == "public" or app_module.is_builtin:
