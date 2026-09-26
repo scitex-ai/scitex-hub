@@ -17,10 +17,11 @@ register = template.Library()
 def dock_context(request) -> dict:
     """Context for ``global_base_partials/site_dock.html``."""
     if request is None or not should_render_dock(request):
-        return {"site_dock_items": None}
+        return {"site_dock_items": None, "site_dock_enabled": False}
     return {
         "site_dock_items": dock_items(request.path, request.user),
         "site_dock_capacity": DOCK_CAPACITY,
+        "site_dock_enabled": True,
     }
 
 

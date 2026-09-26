@@ -47,6 +47,7 @@ import {
 } from "./_site-dock/minimize";
 import {
   type DockPosition,
+  clampDockToViewport,
   fromPixels,
   parsePosition,
   toPixels,
@@ -127,6 +128,22 @@ class SiteDock {
       this.restorePosition();
       syncDockHeight(this.dock);
     });
+    // Re-park once the stylesheets and fonts have settled. restorePosition()
+    // measures the dock's live box, and at DOMContentLoaded that box can still
+    // be the unstyled one — the fractions then convert to pixels for the wrong
+    // size and the dock (or the minimized pill) parks off-screen with nothing
+    // to bring it back until a resize (launcher page #2, 2026-09-27). Skipped
+    // mid-drag so a press that started before load is never yanked away.
+    // The module itself can execute after load (slow dev servers), so a load
+    // already past means re-park now instead of waiting for an event that
+    // will never fire.
+    const reparkAfterSettle = (): void => {
+      if (this.dock.classList.contains("site-dock--dragging")) return;
+      this.restorePosition();
+      syncDockHeight(this.dock);
+    };
+    if (document.readyState === "complete") reparkAfterSettle();
+    else window.addEventListener("load", reparkAfterSettle);
     if (typeof ResizeObserver !== "undefined") {
       new ResizeObserver(() => syncDockHeight(this.dock)).observe(this.dock);
     }
@@ -191,9 +208,15 @@ class SiteDock {
 
   private float(pos: DockPosition): void {
     this.dock.classList.add("site-dock--floating");
-    const { left, top } = toPixels(pos, this.box(), this.viewport());
-    this.dock.style.left = `${left}px`;
-    this.dock.style.top = `${top}px`;
+    const box = this.box();
+    const vp = this.viewport();
+    const { left, top } = toPixels(pos, box, vp);
+    // Clamp the RESULT against the live box, not just the fractions: the box
+    // above can be stale (pre-stylesheet, or a minimized pill measured while
+    // expanded), and then even clamped fractions park a corner off-screen.
+    const pinned = clampDockToViewport(left, top, box, vp);
+    this.dock.style.left = `${pinned.left}px`;
+    this.dock.style.top = `${pinned.top}px`;
   }
 
   private dockToBottom(): void {
