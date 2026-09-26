@@ -34,6 +34,7 @@ def get_reserved_paths():
         [
             "admin",
             "api",
+            "create-app",
             "new",
             "static",
             "media",
