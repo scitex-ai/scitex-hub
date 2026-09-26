@@ -192,20 +192,14 @@ def test_browser_evidence_rejects_every_same_origin_server_failure():
         evidence.assert_clean()
 
 
-@pytest.mark.django_db
-def test_tmp_diag_dump_launcher_tile_names(client, django_user_model):
+def test_tmp_diag_dump_stats_elements(authenticated_desktop_page):
     """TEMPORARY CI diagnostic for duplicate-stats E2E failure. DELETE AFTER."""
-    from django.contrib.auth import get_user_model
-
-    User = get_user_model()
-    u = User.objects.filter(username=USERNAME).first()
-    assert u is not None, "CI test-user missing"
-    client.force_login(u)
-    resp = client.get("/apps/")
-    assert resp.status_code == 200
-    tiles = resp.context["tiles"]
-    print("\nDIAG-TILE-NAMES:", sorted(t["name"] for t in tiles))
-    print(
-        "DIAG-STAT-TILES:",
-        [(t["name"], t.get("availability"), t.get("launch_url")) for t in tiles if "stat" in t["name"].lower()],
+    page = authenticated_desktop_page
+    page.goto("/apps/", wait_until="domcontentloaded")
+    wait_for_page_ready(page)
+    dump = page.evaluate(
+        "() => Array.from(document.querySelectorAll('[data-module=\"stats\"], [data-planned=\"stats\"]')).map("
+        "(el) => el.tagName + '|' + (el.getAttribute('data-module') || '') + '|' + (el.getAttribute('data-planned') || '') "
+        "+ '|' + (el.getAttribute('data-availability') || '') + '|' + el.className.split(' ').slice(0, 3).join('.'))"
     )
+    print("\nDIAG-STATS-ELEMENTS:", dump)
