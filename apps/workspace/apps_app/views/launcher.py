@@ -69,7 +69,13 @@ _DEV_DEFAULT_TAB_ORDER = 95
 # Tombstones for retired/renamed built-ins. Existing database rows can remain
 # until the deployment migration runs; they must never reappear as community
 # apps in step 2 below.
-_RETIRED_MODULE_IDS = frozenset({"home", "discovery", "slides"})
+#
+# "todo" (2026-09-27): the pre-rebrand identity of the Cards board. The leaf
+# is mounted and tiled as "scitex-cards"; a stale public "todo" catalog row
+# (label "Cards", icon "fas fa-list-check") rendered a DUPLICATE Work tile
+# next to the plugin one (prod DB). Tombstoned here and deleted by migration
+# 0023; the /apps/todo/ -> /apps/cards/ URL redirect is unaffected.
+_RETIRED_MODULE_IDS = frozenset({"home", "discovery", "slides", "todo"})
 
 # Rendered as an empty "+" slot, not an app (operator, 2026-09-14): always the
 # last cell of Work, never reorderable, never dockable.
