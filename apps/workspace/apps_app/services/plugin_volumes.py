@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Host service for the Storage leaf: which volumes belong to the requester.
+"""Host service for plugin apps: which volumes belong to the requester.
 
-Wired as ``SCITEX_STORAGE_VOLUMES_PROVIDER``. Only the requester's own
-directories are returned; the leaf measures and lists inside them and refuses
-anything that resolves outside.
+Consumed via ``SCITEX_STORAGE_VOLUMES_PROVIDER`` by any leaf that measures
+storage (the Storage plugin today). Only the requester's own directories
+are returned; the leaf measures and lists inside them and refuses anything
+that resolves outside.
+
+Generic hub infrastructure (user -> workspace mapping): it names no plugin
+and serves any leaf the deployment wires to this provider setting.
 """
 
 from __future__ import annotations

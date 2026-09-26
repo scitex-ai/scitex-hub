@@ -227,11 +227,12 @@ def _build_tiles(request) -> list[dict]:
         if not can_internal and mod.visibility == "internal":
             seen.add(mod.name)
             continue
-        # NO mount gate here. Operator ruling 2026-09-14 15:48Z: Cards and
-        # Agents are PRE-INSTALLED apps shown to everyone; only their CONTENT
-        # depends on the user ("removing the whole app is wrong"). An earlier
-        # version hid their tiles with can_open_mounted_app(); the mounts keep
-        # their own per-user handling, the grid does not second-guess them.
+        # NO mount gate here. Operator ruling 2026-09-14 15:48Z: pre-installed
+        # apps are shown to everyone; only their CONTENT depends on the user
+        # ("removing the whole app is wrong"). An earlier version hid gated
+        # tiles with a per-app gate table; the mounts keep their own
+        # per-user handling (generic mount-policy guard), the grid does not
+        # second-guess them.
         # Some registered modules are workspace panes / nav items, not
         # standalone launcher apps (Clew opens within a manuscript; comms
         # is reached from the workspace rather than the grid). They opt out
