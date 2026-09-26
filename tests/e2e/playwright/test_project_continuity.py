@@ -202,4 +202,4 @@ def test_tmp_diag_dump_stats_elements(authenticated_desktop_page):
         "(el) => el.tagName + '|' + (el.getAttribute('data-module') || '') + '|' + (el.getAttribute('data-planned') || '') "
         "+ '|' + (el.getAttribute('data-availability') || '') + '|' + el.className.split(' ').slice(0, 3).join('.'))"
     )
-    print("\nDIAG-STATS-ELEMENTS:", dump)
+    assert dump == ["ONLY-SHOW-ME"], f"DIAG-STATS-ELEMENTS: {dump}"
