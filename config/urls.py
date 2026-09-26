@@ -32,6 +32,25 @@ from config.pwa import serve_root_static
 from config.urls_helpers import RESERVED_PATHS, dev_module_view  # noqa: F401
 
 
+def _sdk_creator_patterns():
+    """URL patterns for the SDK App Creator wizard, login-gated.
+
+    Thin-hub mount, no SDK view symbol named: scitex-sdk 0.2.0 declares no
+    ``scitex.apps`` entry point, so the generic plugin mount
+    (``plugin_urlpatterns``) cannot discover it and the mount is explicit.
+    The whole tree is login-wrapped with the same generic wrapper the plugin
+    mount uses, so a new upstream view is gated with zero hub changes. []
+    when the package is absent, so the hub boots without it.
+    """
+    try:
+        from scitex_sdk.creator import urls as creator_urls
+    except ImportError:
+        return []
+    from apps.workspace.apps_app.services.plugin_apps import _wrap_login
+
+    return [_wrap_login(p) for p in creator_urls.urlpatterns]
+
+
 urlpatterns = [
     # Language selection. Django's set_language view writes the chosen language
     # to the session/cookie and redirects back to `next`. LocaleMiddleware then
@@ -122,6 +141,16 @@ urlpatterns = [
         name="app_workspace_run",
     ),
     path("apps/", include(("apps.workspace.tools_app.urls", "tools_app"))),
+    # --- App Creator wizard (scitex-sdk) ---
+    # The SDK owns the wizard (STARTERS SSOT + `scitex_sdk.creator.urls`);
+    # the hub only mounts it. Root-level /create-app/ per the SDK contract
+    # (`scitex_sdk.creator.urls` docstring). Must stay above the
+    # <username>/ catch-all, which would otherwise swallow it. The hub's own
+    # /apps/create/* project flow above is the fallback workspace backend.
+    path(
+        "create-app/",
+        include((_sdk_creator_patterns(), "scitex_sdk_creator")),
+    ),
     # --- Admin ---
     path("admin/", admin.site.urls),
     # --- AI Setup (AI agent configuration hub) ---

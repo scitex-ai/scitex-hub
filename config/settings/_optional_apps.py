@@ -443,6 +443,13 @@ def optional_upstream_apps() -> list[str]:
             _sdk_ui_label = ""
         if _sdk_ui_label == "scitex_sdk_ui":
             entries.append("scitex_sdk.ui.apps.ScitexUiConfig")
+    # App Creator wizard (scitex-sdk>=0.2.0). The bare module entry resolves
+    # AppCreatorConfig via `default = True`; its label is fully namespaced
+    # (`scitex_sdk_creator`), so it cannot collide. The package declares no
+    # `scitex.apps` entry point, so with_plugin_apps() cannot see it — the
+    # URL mount in config/urls.py is explicit for the same reason.
+    if _installed("scitex_sdk.creator"):
+        entries.append("scitex_sdk.creator")
 
     return entries
 

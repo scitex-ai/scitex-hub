@@ -113,43 +113,70 @@
 .mobile-header-menu .mobile-menu-lang {
   gap: 8px;
 }
-.mobile-header-menu .mobile-menu-lang-form {
-  display: inline;
-  margin: 0;
-}
-.mobile-header-menu .mobile-menu-lang-seg {
-  display: inline-flex;
-  align-items: stretch;
-  gap: 2px;
-  padding: 2px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
-}
+/* Hamburger language toggle: ONE sliding EN|JA pill (single form POSTs the
+   opposite language, so it works with JS disabled; the thumb is pure CSS
+   keyed off data-lang). Single track, one sliding thumb, no extra borders. */
 .mobile-header-menu .mobile-menu-lang-form {
   margin: 0;
   display: flex;
 }
-.mobile-header-menu .mobile-menu-lang-btn {
+.mobile-header-menu .mobile-menu-lang-toggle {
   appearance: none;
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: stretch;
+  padding: 2px;
   border: none;
-  background: none;
-  color: var(--text-secondary);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
   font: inherit;
+  cursor: pointer;
+}
+.mobile-header-menu .mobile-menu-lang-thumb {
+  grid-row: 1;
+  grid-column: 1;
+  border-radius: 999px;
+  background: var(--bg-surface, #fff);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+  transform: translateX(0);
+  transition: transform 0.18s ease;
+}
+.mobile-header-menu .mobile-menu-lang-toggle[data-lang="ja"] .mobile-menu-lang-thumb {
+  transform: translateX(100%);
+}
+.mobile-header-menu .mobile-menu-lang-opt {
+  grid-row: 1;
+  z-index: 1;
+  padding: 4px 14px;
+  border-radius: 999px;
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.06em;
-  padding: 4px 14px;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  text-align: center;
+  color: var(--text-secondary);
 }
-.mobile-header-menu .mobile-menu-lang-btn:hover {
+.mobile-header-menu .mobile-menu-lang-opt[data-opt="en"] {
+  grid-column: 1;
+}
+.mobile-header-menu .mobile-menu-lang-opt[data-opt="ja"] {
+  grid-column: 2;
+}
+.mobile-header-menu .mobile-menu-lang-toggle[data-lang="en"] .mobile-menu-lang-opt[data-opt="en"],
+.mobile-header-menu .mobile-menu-lang-toggle[data-lang="ja"] .mobile-menu-lang-opt[data-opt="ja"] {
   color: var(--text-primary);
 }
-.mobile-header-menu .mobile-menu-lang-btn.is-on {
-  background: var(--bg-surface, #fff);
+.mobile-header-menu .mobile-menu-lang-toggle:hover .mobile-menu-lang-opt {
   color: var(--text-primary);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+}
+.mobile-header-menu .mobile-menu-lang-toggle:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mobile-header-menu .mobile-menu-lang-thumb {
+    transition: none;
+  }
 }
 
 .mobile-header-menu .mobile-menu-item--section {
