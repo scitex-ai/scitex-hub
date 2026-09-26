@@ -564,8 +564,15 @@ def test_storage_wrapper_gone_is_not_shadowed():
     # instead of re-testing the mount boundary twice.
     import importlib.util
 
-    # Act / Assert
-    assert importlib.util.find_spec("apps.workspace.storage_app.views") is None
+    # Act — find_spec raises ModuleNotFoundError when the parent package is
+    # absent entirely; that IS the assertion (nothing to import).
+    try:
+        spec = importlib.util.find_spec("apps.workspace.storage_app.views")
+    except ModuleNotFoundError:
+        spec = None
+
+    # Assert
+    assert spec is None
 
 
 # =====================================================================

@@ -177,6 +177,10 @@ def test_retired_per_app_wrapper_modules_are_gone():
     import importlib.util
 
     # Act / Assert — thin-hub: no wrapper views, urls, or middleware to import.
+    # find_spec of a SUBMODULE raises ModuleNotFoundError (rather than
+    # returning None) when the parent package is absent entirely — absence
+    # is the expected state here, not an error (same probe the old
+    # registry tile-guard used).
     for dotted in (
         "apps.workspace.todo_app.middleware",
         "apps.workspace.agents_app.views",
@@ -186,7 +190,11 @@ def test_retired_per_app_wrapper_modules_are_gone():
         "apps.workspace.storage_app.volumes",
         "apps.workspace.storage_app.organize",
     ):
-        assert importlib.util.find_spec(dotted) is None, (
+        try:
+            spec = importlib.util.find_spec(dotted)
+        except ModuleNotFoundError:
+            spec = None
+        assert spec is None, (
             f"{dotted} still importable — the bespoke wrapper was not deleted"
         )
 
