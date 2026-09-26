@@ -115,7 +115,7 @@ def test_login_launcher_and_project_apps_keep_one_project(continuity_browser):
     )
     assert page.locator(".launcher-active-project").is_visible()
 
-    stats = page.locator('[data-module="stats"], [data-planned="stats"]')
+    stats = page.locator('#launcher-grid [data-module="stats"], #launcher-grid [data-planned="stats"]')
     assert stats.count() == 1
     stats_href = stats.get_attribute("href")
     apps_to_visit = ["scholar"]
@@ -180,7 +180,7 @@ def test_stats_tile_is_launchable_now_that_calculate_is_verified(
     page = authenticated_desktop_page
     page.goto("/apps/", wait_until="domcontentloaded")
     wait_for_page_ready(page)
-    stats = page.locator('[data-module="stats"], [data-planned="stats"]')
+    stats = page.locator('#launcher-grid [data-module="stats"], #launcher-grid [data-planned="stats"]')
     assert stats.count() == 1
     assert stats.get_attribute("data-availability") == "available"
 
@@ -191,15 +191,3 @@ def test_browser_evidence_rejects_every_same_origin_server_failure():
     with pytest.raises(AssertionError, match="same-origin network failures"):
         evidence.assert_clean()
 
-
-def test_tmp_diag_dump_stats_elements(authenticated_desktop_page):
-    """TEMPORARY CI diagnostic for duplicate-stats E2E failure. DELETE AFTER."""
-    page = authenticated_desktop_page
-    page.goto("/apps/", wait_until="domcontentloaded")
-    wait_for_page_ready(page)
-    dump = page.evaluate(
-        "() => Array.from(document.querySelectorAll('[data-module=\"stats\"], [data-planned=\"stats\"]')).map("
-        "(el) => el.tagName + '|' + (el.getAttribute('data-module') || '') + '|' + (el.getAttribute('data-planned') || '') "
-        "+ '|' + (el.getAttribute('data-availability') || '') + '|' + el.className.split(' ').slice(0, 3).join('.'))"
-    )
-    assert dump == ["ONLY-SHOW-ME"], f"DIAG-STATS-ELEMENTS: {dump}"
