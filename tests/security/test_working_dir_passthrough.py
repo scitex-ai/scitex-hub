@@ -429,7 +429,7 @@ def test_storage_project_api_absolute_path_is_denied(tmp_path):
         response = views.project_list(request)
     # Assert — denied before any filesystem access, never a listing.
     assert response.status_code == 403
-    assert response.json()["error"] == "permission_denied"
+    assert json.loads(response.content)["error"] == "permission_denied"
 
 
 def test_storage_project_api_traversal_is_denied(tmp_path):
@@ -443,7 +443,7 @@ def test_storage_project_api_traversal_is_denied(tmp_path):
         response = views.project_list(request)
     # Assert
     assert response.status_code == 403
-    assert response.json()["error"] == "permission_denied"
+    assert json.loads(response.content)["error"] == "permission_denied"
 
 
 def test_storage_project_api_relative_read_still_works(tmp_path):
@@ -457,7 +457,8 @@ def test_storage_project_api_relative_read_still_works(tmp_path):
         response = views.project_list(request)
     # Assert
     assert response.status_code == 200
-    assert "notes.txt" in response.json()["files"]
+    names = [e["name"] for e in json.loads(response.content)["entries"]]
+    assert "notes.txt" in names
 
 
 def test_storage_unknown_volume_is_refused():

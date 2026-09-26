@@ -168,7 +168,9 @@ def test_anonymous_gets_no_volumes_from_the_leaf_resolver():
 def test_unknown_volume_key_resolves_to_none():
     # Arrange — the leaf answers 403 when find_volume finds nothing.
     _volumes = _leaf_volumes()
-    volume = _volumes.Volume(key="workspace", label="Workspace files", path=Path("/tmp"))
+    volume = _volumes.Volume(
+        key="workspace", label="Workspace files", path=Path("/tmp"), machine="test"
+    )
 
     # Act
     found = _volumes.find_volume([volume], "no-such-volume")
