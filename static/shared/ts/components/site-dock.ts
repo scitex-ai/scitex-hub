@@ -215,6 +215,7 @@ class SiteDock {
 
   private toggleMinimized(on: boolean): void {
     const before = this.dock.getBoundingClientRect();
+    const gripBefore = this.grabber?.getBoundingClientRect();
     const wasFloating = this.dock.classList.contains("site-dock--floating");
     setMinimized(this.dock, on);
     if (!wasFloating) {
@@ -225,12 +226,20 @@ class SiteDock {
       return;
     }
 
-    // A floating launcher contracts/expands around its current centre rather
-    // than treating its old top-left as the new anchor and jumping sideways.
-    const after = this.box();
-    const left = before.left + before.width / 2 - after.width / 2;
-    const top = before.top + before.height / 2 - after.height / 2;
-    this.settle(left, top);
+    // Keep the GRABBER pixel-stable, not the box centre: the grip sits
+    // off-centre, so centring the box walks it sideways on every
+    // minimize/restore (operator 2026-09-26).
+    const boxAfter = this.dock.getBoundingClientRect();
+    const gripAfter = this.grabber?.getBoundingClientRect();
+    const anchorX = gripBefore
+      ? gripBefore.left + gripBefore.width / 2
+      : before.left + before.width / 2;
+    const anchorY = gripBefore
+      ? gripBefore.top + gripBefore.height / 2
+      : before.top + before.height / 2;
+    const gripOffsetX = gripAfter ? gripAfter.left - boxAfter.left : boxAfter.width / 2;
+    const gripOffsetY = gripAfter ? gripAfter.top - boxAfter.top : boxAfter.height / 2;
+    this.settle(anchorX - gripOffsetX, anchorY - gripOffsetY);
   }
 
   private initDrag(): void {
