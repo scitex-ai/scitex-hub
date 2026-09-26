@@ -92,6 +92,16 @@ Reuses the upstream .stx-storage-* classes so the three tabs feel like one app.
             {% endif %}
         </section>
 
+        <section class="stx-storage-card">
+            <h2 class="stx-storage-machine"><i class="fas fa-sun" aria-hidden="true"></i> {% translate "Fleet visualizations" %}</h2>
+            <p class="stx-storage-note">{% translate "Fleet-wide capacity views rendered from the periodic fleet snapshot (Codecov-style sunburst, bubbles, table). When no snapshot has been gathered yet the page names the gather command." %}</p>
+            <p>
+                <a href="{% url 'scitex_storage:sunburst' %}">{% translate "Sunburst" %}</a>
+                · <a href="{% url 'scitex_storage:bubbles' %}">{% translate "Bubbles" %}</a>
+                · <a href="{% url 'scitex_storage:fleet' %}">{% translate "Fleet table" %}</a>
+            </p>
+        </section>
+
         {% for v in statuses %}
         <section class="stx-storage-card">
             <h2 class="stx-storage-machine"><i class="fas fa-hdd" aria-hidden="true"></i> {{ v.volume.label }}</h2>
