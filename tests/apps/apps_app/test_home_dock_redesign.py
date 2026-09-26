@@ -11,7 +11,8 @@ What the operator decided, and what each test below pins:
     Projects.
   * Icons only; Home, My Projects, Chat, App Store; Back / Forward at the ends.
   * No header "Apps" dropdown: the logo and the dock are the way Home.
-  * Icons: Cards fa-list-check, Storage fa-database, App Store the grid,
+  * Icons: Cards and Storage tiles use their leaf-declared icons (no hub
+    wrapper manifest remains), App Store the grid,
     My/Public Projects the same folder (Public with a globe badge).
   * New Settings and Chat tiles.
   * Home pages with dots + arrows; the footer scrolls in above the dock.
@@ -343,21 +344,51 @@ class SiteDockOnEveryPageTest(TestCase):
 
 
 class ManifestIconTest(TestCase):
-    def test_cards_icon_is_list_check(self):
-        # Arrange
-        app_dir = "todo_app"
-        # Act
-        icon = _manifest(app_dir)["icon"]
-        # Assert
-        assert icon == "fas fa-list-check"
+    @staticmethod
+    def _leaf_icon(dotted: str) -> str | None:
+        """The icon the installed leaf manifest declares, if installed."""
+        import importlib.util
 
-    def test_storage_icon_is_database(self):
-        # Arrange
-        app_dir = "storage_app"
+        try:
+            spec = importlib.util.find_spec(dotted)
+        except (ImportError, ValueError):
+            return None
+        if spec is None or not spec.origin:
+            return None
+        manifest_path = Path(spec.origin).parent / "manifest.json"
+        if not manifest_path.is_file():
+            return None
+        try:
+            return json.loads(manifest_path.read_text()).get("icon")
+        except (json.JSONDecodeError, OSError):
+            return None
+
+    def _tile_icon(self, dotted: str, tile: str) -> tuple[str, str]:
+        from apps.infra.workspace_app.registry import get_module
+
+        leaf_icon = self._leaf_icon(dotted)
+        if not leaf_icon:
+            self.skipTest(f"{dotted} is not installed in this environment")
+        module = get_module(tile)
+        if module is None:
+            self.skipTest(f"{tile} tile is not registered in this environment")
+        self.assertTrue(module.icon_fa, f"{tile} tile renders with no icon")
+        return module.icon_fa, leaf_icon
+
+    def test_cards_tile_uses_the_leaf_icon(self):
+        # Arrange — no hub wrapper manifest remains; the tile must carry
+        # the icon the leaf declares, verbatim.
         # Act
-        icon = _manifest(app_dir)["icon"]
+        tile_icon, leaf_icon = self._tile_icon("scitex_cards._django", "scitex-cards")
         # Assert
-        assert icon == "fas fa-database"
+        self.assertEqual(tile_icon, leaf_icon)
+
+    def test_storage_tile_uses_the_leaf_icon(self):
+        # Arrange — same contract as Cards.
+        # Act
+        tile_icon, leaf_icon = self._tile_icon("scitex_storage._django", "storage")
+        # Assert
+        self.assertEqual(tile_icon, leaf_icon)
 
     def test_app_store_icon_is_the_grid(self):
         # Arrange
