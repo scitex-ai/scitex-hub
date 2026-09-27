@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf- -*-
+# -*- coding: utf-8 -*-
 """The storage text is published ONCE, in its DEDICATED column, and NOT
 repeated in the 備考 cell.
 

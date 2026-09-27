@@ -61,13 +61,13 @@ def test_my_projects_is_captioned_projects_in_the_dock():
     assert caption == "Projects"
 
 
-def test_app_store_is_captioned_apps_in_the_dock():
+def test_app_store_is_captioned_app_store_in_the_dock():
     # Arrange
     item = DockItem(key="store", label="App Store", icon="", url="/apps/store/")
     # Act
     caption = item.caption
     # Assert
-    assert caption == "Apps"
+    assert caption == "App Store"
 
 
 def test_other_apps_are_captioned_with_their_name():
@@ -81,7 +81,7 @@ def test_other_apps_are_captioned_with_their_name():
 
 @pytest.mark.parametrize(
     ("caption", "expected"),
-    [("Home", "ホーム"), ("Projects", "プロジェクト"), ("Chat", "チャット"), ("Apps", "アプリ")],
+    [("Home", "ホーム"), ("Projects", "プロジェクト"), ("Chat", "チャット"), ("App Store", "アプリストア")],
 )
 def test_dock_caption_is_translated_to_japanese(compiled_catalogs, caption, expected):
     # Arrange

@@ -34,6 +34,9 @@
   --launcher-group-label-room: 16px;
   position: relative;
   display: grid;
+  /* Inset left/right (owner 2026-09-27): the bands spanned 100% width so
+     their edges showed on sibling pager pages (#1, #2). */
+  margin-inline: 16px;
   grid-template-columns: repeat(var(--launcher-cols, 4), minmax(0, 1fr));
   grid-auto-rows: min-content;
   align-content: start;
