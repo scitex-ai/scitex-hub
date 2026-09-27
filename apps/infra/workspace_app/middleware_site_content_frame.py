@@ -3,14 +3,15 @@
 """Give mounted leaf-app pages the same desktop content frame as hub pages.
 
 Hub pages load ``site-content-frame.css`` from ``global_head_styles.html``.
-Leaf apps such as Scholar's /apps/scholar/v2/ render scitex-ui's standalone
-shell as their own HTML document, so no hub template runs; this middleware adds
-the stylesheet link before ``</head>`` of those documents.
+Standalone-shell pages load no hub template at all, so this middleware adds
+the stylesheet links before ``</head>`` of those documents, swaps the tab
+icon to the hub's, and prepends the real hub global header
+(``global_header.html``) to ``<body>`` — the same header hub pages render,
+not a title-only substitute.
 """
 
 from __future__ import annotations
 
-import html
 import logging
 import re
 
@@ -21,8 +22,18 @@ logger = logging.getLogger(__name__)
 FRAME_STYLESHEET = "shared/css/layouts/site-content-frame.css"
 LEAF_CHROME_STYLESHEET = "shared/css/layouts/leaf-host-chrome.css"
 LEAF_DEFAULT_FAVICON = "scitex_ui/img/scitex-favicon.svg"
+# Font Awesome ships from CDN on hub pages (global_head_styles.html); the
+# standalone shell brings none, and the header's hamburger/menu icons need it.
+FONT_AWESOME_HREF = (
+    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+)
+FONT_AWESOME_INTEGRITY = (
+    "sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="  # pragma: allowlist secret
+)
 STANDALONE_SHELL_MARKER ='id="workspace-three-col"'
-LEAF_HEADER_MARKER = "data-leaf-site-header"
+# Marker of the hub header this middleware injects: the hamburger button is
+# unique to global_header.html, so its presence screens a second injection.
+LEAF_HEADER_MARKER = 'id="mobile-hamburger-btn"'
 # Leaves that draw their own top bar (Scholar v2) keep it instead of a second one.
 OWN_HEADER_MARKERS = ('class="app-header"', 'class="global-header"')
 
@@ -42,25 +53,59 @@ def is_standalone_leaf_page(request, response) -> bool:
 
 
 def _leaf_header(request, body: str) -> str:
-    """The hub site header for a leaf page, or "" when the page brings its own."""
+    """The real hub global header for a leaf page, or "" when the page brings its own."""
     if request.GET.get("embed") == "1" or LEAF_HEADER_MARKER in body:
         return ""
     if any(marker in body for marker in OWN_HEADER_MARKERS):
         return ""
     from django.template.loader import render_to_string
 
-    match = re.search(r"<title>(.*?)</title>", body, re.S)
-    title = html.unescape(match.group(1)).strip() if match else ""
-    from config.context_processors import scitex_env
-
     try:
-        return render_to_string(
-            "global_base_partials/leaf_site_header.html",
-            {"leaf_app_title": title, **scitex_env(request)},
+        # Selective context, NOT request=request: a full RequestContext would
+        # run EVERY context processor, including DB-hitting ones
+        # (project_context resolves /<user>/<slug>/ via Project.objects),
+        # which unit tests forbid and leaf loads should never pay for. The
+        # header template only reads the keys built below — user, request,
+        # CSRF, env/version branding and the logo target — all DB-free, the
+        # same values hub pages receive from their own processors. This names
+        # no leaf view: it is hub's own shared header rendered onto a
+        # generic standalone shell.
+        from django.middleware.csrf import get_token
+
+        from config.context_processors import (
+            debug_mode,
+            header_logo,
+            scitex_env,
+            scitex_version,
         )
+
+        context = {
+            "user": getattr(request, "user", None),
+            "request": request,
+            "csrf_token": get_token(request),
+            **debug_mode(request),
+            **scitex_env(request),
+            **scitex_version(request),
+            **header_logo(request),
+        }
+        header = render_to_string("global_base_partials/global_header.html", context)
     except Exception:
         logger.exception("[site-content-frame] leaf header failed for %s", request.path)
         return ""
+    # The standalone shell never loads the hub JS bundles, so the
+    # command-palette search (shared/components/search.ts) has no wiring
+    # here. A live button would be a lie: disable the triggers honestly and
+    # say so in the markup. The hamburger keeps working — its fail-safe
+    # wiring is inline in global_header/hamburger_inline.html and arrives
+    # with the header itself.
+    header = header.replace(
+        "data-search-open", 'data-search-open disabled aria-disabled="true"'
+    )
+    return (
+        "<!-- leaf-hosted hub header: search needs the hub JS bundle, "
+        "so its triggers are disabled; the hamburger menu is inline-wired "
+        "and works -->\n" + header
+    )
 
 
 def _hub_favicon(request, body: str) -> str:
@@ -105,6 +150,13 @@ def inject_frame_stylesheet(request, response) -> None:
         f'<link rel="stylesheet" href="{static(FRAME_STYLESHEET)}" />'
         f'<link rel="stylesheet" href="{static(LEAF_CHROME_STYLESHEET)}" />'
     )
+    if "font-awesome" not in body and "fontawesome" not in body:
+        link += (
+            '<link rel="stylesheet" '
+            f'href="{FONT_AWESOME_HREF}" '
+            f'integrity="{FONT_AWESOME_INTEGRITY}" '
+            'crossorigin="visitor" referrerpolicy="no-referrer" />'
+        )
     body = body[:head_end] + link + body[head_end:]
     body = _hub_favicon(request, body)
     header = _leaf_header(request, body)
