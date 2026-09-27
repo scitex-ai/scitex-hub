@@ -246,6 +246,39 @@ def project_tree_or_blob(request, username, slug, branch=None, path=None):
     )
 
 
+_README_CANDIDATES = ("README.md", "readme.md", "README.rst", "README")
+
+
+def _default_open_file(project) -> str:
+    """The file a fresh project open shows: its README, or "" when none.
+
+    Local working-copy projects only; remote/TRIP listings resolve lazily
+    over SSH and must not pay a round-trip on every project open.
+    """
+    if project is None or getattr(project, "project_type", "") == "remote":
+        return ""
+    try:
+        from apps.infra.project_app.services.filesystem.permissions import (
+            validate_path_in_project,
+        )
+        from apps.infra.project_app.services.project_filesystem import (
+            get_project_filesystem_manager,
+        )
+
+        root = get_project_filesystem_manager(project.owner).get_project_root_path(
+            project
+        )
+        if root is None:
+            return ""
+        for name in _README_CANDIDATES:
+            target = root / name
+            if validate_path_in_project(root, target) and target.is_file():
+                return name
+    except (OSError, ValueError):
+        pass
+    return ""
+
+
 def render_project_tree(request, project, username, **tree_kwargs):
     """The one Project UI for ``project``, for any viewer with read access.
 
@@ -253,7 +286,15 @@ def render_project_tree(request, project, username, **tree_kwargs):
     their projects listed alongside). Anonymous visitors — who only reach
     here for a PUBLIC project — get the same tree and viewer, read-only, on a
     standalone page: the workspace shell itself is a signed-in surface.
+
+    A project opened at its root with no explicit focus/file auto-opens its
+    README in the viewer: the empty "No file selected" void is the worst
+    possible first run, and the README is the project's own front door.
     """
+    if not tree_kwargs.get("focus_path") and not tree_kwargs.get("open_file"):
+        default = _default_open_file(project)
+        if default:
+            tree_kwargs["open_file"] = default
     if request.user.is_authenticated:
         from apps.workspace.my_projects_app.views.index import render_project_tree_ui
 
