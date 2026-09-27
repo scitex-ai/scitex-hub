@@ -19,12 +19,15 @@
 }
 
 /* ---------- Group bands (operator, 2026-09-14) ----------
-   Foundation / Work / System, each its own 4-column grid on a soft tinted
+   Foundation / Work / System, each its own 4-column grid on a frosted-glass
    rounded band, like iOS widget stacks. App icon colours are unchanged; the
-   tint is low-alpha so tile names keep their contrast. Three distinct hues,
-   with a light and a dark variant. */
+   band is translucent (alpha ~0.3) with backdrop blur so the page texture
+   shows through. Three distinct hues, with a light and a dark variant. */
 .launcher-group {
   --launcher-band: transparent;
+  /* Frosted-glass bands (operator: visible translucency, alpha ~0.3):
+     the blur + saturation make the transparency perceptible instead of a
+     flat faint wash, while the dotted page texture stays visible through. */
   /* Headroom for the group's name (below), added to the TOP padding at every
      breakpoint. pager.ts reads the band's padding back, so pages still stop
      above the dock. */
@@ -38,6 +41,9 @@
   padding: calc(12px + var(--launcher-group-label-room)) 8px 12px;
   border-radius: var(--launcher-panel-radius);
   background: var(--launcher-band);
+  backdrop-filter: blur(10px) saturate(1.25);
+  -webkit-backdrop-filter: blur(10px) saturate(1.25);
+  border: 1px solid rgba(255, 255, 255, 0.35);
 }
 
 /* The group's name, top-left, in the band's padding (operator 2026-09-14: the
@@ -69,45 +75,45 @@
   pointer-events: none;
 }
 
-/* Group bands alternate brand washes: navy, gold, slate. */
+/* Group bands alternate brand washes: navy, gold, slate (alpha ~0.3). */
 .launcher-group[data-group="foundation"] {
-  --launcher-band: rgba(26, 42, 64, 0.06); /* navy */
+  --launcher-band: rgba(26, 42, 64, 0.3); /* navy */
 }
 
 .launcher-group[data-group="work"] {
-  --launcher-band: rgba(184, 149, 106, 0.1); /* gold */
+  --launcher-band: rgba(184, 149, 106, 0.32); /* gold */
 }
 
 .launcher-group[data-group="publication"] {
-  --launcher-band: rgba(86, 96, 109, 0.08); /* slate */
+  --launcher-band: rgba(86, 96, 109, 0.3); /* slate */
 }
 
 .launcher-group[data-group="system"] {
-  --launcher-band: rgba(26, 42, 64, 0.06); /* navy */
+  --launcher-band: rgba(26, 42, 64, 0.3); /* navy */
 }
 
 .launcher-group[data-group="tools"] {
-  --launcher-band: rgba(86, 96, 109, 0.08); /* slate */
+  --launcher-band: rgba(86, 96, 109, 0.3); /* slate */
 }
 
 [data-theme="dark"] .launcher-group[data-group="foundation"] {
-  --launcher-band: rgba(152, 172, 198, 0.08);
+  --launcher-band: rgba(152, 172, 198, 0.3);
 }
 
 [data-theme="dark"] .launcher-group[data-group="work"] {
-  --launcher-band: rgba(212, 168, 122, 0.08);
+  --launcher-band: rgba(212, 168, 122, 0.3);
 }
 
 [data-theme="dark"] .launcher-group[data-group="publication"] {
-  --launcher-band: rgba(170, 179, 191, 0.07);
+  --launcher-band: rgba(170, 179, 191, 0.28);
 }
 
 [data-theme="dark"] .launcher-group[data-group="system"] {
-  --launcher-band: rgba(152, 172, 198, 0.08);
+  --launcher-band: rgba(152, 172, 198, 0.3);
 }
 
 [data-theme="dark"] .launcher-group[data-group="tools"] {
-  --launcher-band: rgba(170, 179, 191, 0.07);
+  --launcher-band: rgba(170, 179, 191, 0.28);
 }
 
 .launcher-tile {
