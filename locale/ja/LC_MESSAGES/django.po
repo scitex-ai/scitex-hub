@@ -6556,6 +6556,26 @@ msgstr "ご相談内容をご記入ください。"
 msgid "Reproducibility remains an issue. \"Reproducible\" on paper doesn't mean actually reproduced. Manually verifying code-to-manuscript consistency is tedious and error-prone."
 msgstr "再現性は依然として課題です。論文上の「再現可能」は、実際に再現されたことを意味しません。コードと原稿の整合性を手作業で確認するのは手間がかかり、ミスも起こりがちです。"
 
+#: apps/infra/public_app/templates/public_app/pages/about.html
+msgid "What SciTeX stands for: our mission, vision, and values."
+msgstr "SciTeXが掲げるもの:私たちのミッション・ビジョン・価値観。"
+
+#: apps/infra/public_app/templates/public_app/pages/about.html
+msgid "Mission."
+msgstr "ミッション。"
+
+#: apps/infra/public_app/templates/public_app/pages/about.html
+msgid "Automate research end to end — from data to paper — and verify it, so reviewers judge ideas instead of mechanics."
+msgstr "データから論文まで研究を端から端まで自動化し、検証します。査読者が仕組みではなくアイデアを評価できるように。"
+
+#: apps/infra/public_app/templates/public_app/pages/about.html
+msgid "Vision."
+msgstr "ビジョン。"
+
+#: apps/infra/public_app/templates/public_app/pages/about.html
+msgid "Values."
+msgstr "価値観。"
+
 # ---- Self-Hosting Guide (public_app/pages/setup.html) ----
 
 #: apps/infra/public_app/templates/public_app/pages/setup.html
@@ -8798,6 +8818,10 @@ msgstr "30日間無料トライアルで SciTeX™ クラウドを試す"
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
 msgid "See Plans"
 msgstr "プランを見る"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "View in GitHub"
+msgstr "GitHubで見る"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
 msgid "Where Research Happens"
