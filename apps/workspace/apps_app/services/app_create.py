@@ -5,7 +5,7 @@
 Thin-hub: the starter catalogue (``STARTERS``, ``STARTERS_BY_KEY``,
 ``DEFAULT_STARTER``) and ``app_module_name`` live in
 ``scitex_sdk.creator`` — this module imports them, so the hub copy cannot
-drift from the SDK wizard mounted at /create-app/. What stays here is the
+drift from the SDK wizard mounted at /apps/new/. What stays here is the
 hub-domain glue the SDK does not have: turning a request into a private
 hub Project (``create_app_project``) plus the presentation overlay for the
 fallback create page (``create_page_starters``).
