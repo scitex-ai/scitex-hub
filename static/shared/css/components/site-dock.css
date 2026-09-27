@@ -93,8 +93,11 @@ body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
 
 body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
   :where(a[href], button, input, select, textarea, [tabindex]):focus-visible,
+/* Pager dots are navigation, not content: giving the last dot a dock-sized
+   scroll-margin scrolled the whole window when it was focused (2026-09-27:
+   launcher pushed up out of view on page #2). */
 body:has(> .site-dock:not(.site-dock--floating):not(.site-dock--minimized))
-  :where(a[href], button, input, select, textarea, [tabindex]):last-child {
+  :where(a[href], button, input, select, textarea, [tabindex]):last-child:not(.launcher-dot) {
   scroll-margin-bottom: var(--site-dock-scroll-clearance);
 }
 

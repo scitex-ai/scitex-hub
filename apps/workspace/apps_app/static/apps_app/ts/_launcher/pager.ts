@@ -467,7 +467,14 @@ export class LauncherPager {
   goTo(index: number): void {
     const last = Math.max(0, this.pageCount() - 1);
     const target = Math.min(Math.max(0, index), last);
-    if (window.location.hash !== `#${target}`) window.location.hash = String(target);
+    // replaceState, never a hash assignment: assigning location.hash lets the
+    // browser scroll the window to a (nonexistent) anchor, which both pushes
+    // the launcher up out of view and — on iOS — breaks the fixed dock
+    // (2026-09-27: dock gone on page #2). replaceState updates the URL
+    // without scrolling and without firing hashchange, so sync directly.
+    if (window.location.hash !== `#${target}`) {
+      history.replaceState(null, "", `#${target}`);
+    }
     this.requestedPage = target;
     this.scrollToPage(target, "smooth");
     if (this.currentPage() === target) this.requestedPage = null;
