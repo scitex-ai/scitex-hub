@@ -7283,8 +7283,8 @@ msgstr "次の製品画面"
 #: apps/infra/public_app/templates/public_app/landing.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
-msgid "1 of 4: Hub"
-msgstr "4枚中1枚目：Hub"
+msgid "1 of 5: Hub"
+msgstr "5枚中1枚目：Hub"
 
 #: apps/infra/public_app/templates/public_app/landing.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
@@ -7301,8 +7301,8 @@ msgstr "Hub アプリランチャー。"
 #: apps/infra/public_app/templates/public_app/landing.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
-msgid "2 of 4: Scholar"
-msgstr "4枚中2枚目：Scholar"
+msgid "2 of 5: Scholar"
+msgstr "5枚中2枚目：Scholar"
 
 #: apps/infra/public_app/templates/public_app/landing.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
@@ -7319,8 +7319,8 @@ msgstr "Scholar 検索画面。"
 #: apps/infra/public_app/templates/public_app/landing.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
-msgid "3 of 4: FigRecipe"
-msgstr "4枚中3枚目：FigRecipe"
+msgid "3 of 5: FigRecipe"
+msgstr "5枚中3枚目：FigRecipe"
 
 #: apps/infra/public_app/templates/public_app/landing.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
@@ -7337,8 +7337,8 @@ msgstr "FigRecipe テンプレート選択画面。"
 #: apps/infra/public_app/templates/public_app/landing.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
-msgid "4 of 4: Writer"
-msgstr "4枚中4枚目：Writer"
+msgid "4 of 5: Writer"
+msgstr "5枚中4枚目：Writer"
 
 #: apps/infra/public_app/templates/public_app/landing.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
@@ -7351,6 +7351,14 @@ msgstr "LaTeX ソースとコンパイル済み文書のプレビューを表示
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
 msgid "The Writer source-and-preview workspace."
 msgstr "Writer ソース・プレビュー画面。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "5 of 5: Stats"
+msgstr "5枚中5枚目：Stats"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX Stats analysis with sample two-group data, recommended test, statistics, and chart."
+msgstr "2群のサンプルデータ、推奨検定、統計結果、グラフを表示する SciTeX Stats の解析画面。"
 
 #: apps/infra/public_app/templates/public_app/landing.html
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
@@ -7912,8 +7920,8 @@ msgid "Watch a full research cycle in 40 minutes"
 msgstr "40分で見る研究の一連の流れ"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_opensource.html
-msgid "Follow along in your browser on scitex.ai: the GUI apps plus AI agents carry one project from literature search to manuscript — no local Python setup, no Emacs."
-msgstr "ブラウザでscitex.aiを開いて一緒に進めましょう:GUIアプリとAIエージェントが文献調査から原稿まで一つのプロジェクトを運びます——ローカルのPython環境もEmacsも不要です。"
+msgid "The SciTeX ecosystem spans 78 open-source modules, proven by a 40-minute fully automated research run. On scitex.ai, those same packages run as web apps — for everyone, with no environment setup."
+msgstr "SciTeXエコシステムは78のオープンソースモジュールからなり、40分の完全自動研究で実証済みです。scitex.aiではそれらをWebアプリとして、環境構築なしで誰でも使えます。"
 
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_opensource.html
@@ -8832,12 +8840,16 @@ msgid "Source and preview workspace from the tracked in-repository product guide
 msgstr "追跡中のリポジトリ内製品ガイドによるソース・プレビュー画面。"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Sample two-group analysis with recommended test, results, and chart."
+msgstr "サンプル2群データの推奨検定、結果、グラフ。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
 msgid "SciTeX Cloud app launcher showing built-in research applications."
 msgstr "組み込みの研究アプリを並べたSciTeX Cloudのアプリランチャー。"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
-msgid "Unedited interface captures from tracked product-guide screenshots; resize and compression only."
-msgstr "未編集の画面キャプチャです(追跡中の製品ガイドのスクリーンショットより。リサイズと圧縮のみ)。"
+msgid "Unedited interface captures from tracked product-guide screenshots and the development Stats app; resize and compression only."
+msgstr "未編集の画面キャプチャです(追跡中の製品ガイドと開発版Statsアプリの画面より。リサイズと圧縮のみ)。"
 
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
 msgid "Trace a claim back to its source."
