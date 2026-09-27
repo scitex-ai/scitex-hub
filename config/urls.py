@@ -143,12 +143,12 @@ urlpatterns = [
     path("apps/", include(("apps.workspace.tools_app.urls", "tools_app"))),
     # --- App Creator wizard (scitex-sdk) ---
     # The SDK owns the wizard (STARTERS SSOT + `scitex_sdk.creator.urls`);
-    # the hub only mounts it. Root-level /create-app/ per the SDK contract
-    # (`scitex_sdk.creator.urls` docstring). Must stay above the
-    # <username>/ catch-all, which would otherwise swallow it. The hub's own
-    # /apps/create/* project flow above is the fallback workspace backend.
+    # the hub only mounts it. Canonical home is /apps/new/ (like /new/ for
+    # projects); the old root-level /create-app/ is dropped entirely.
+    # The hub's own /apps/create/* project flow above is the
+    # fallback workspace backend.
     path(
-        "create-app/",
+        "apps/new/",
         include((_sdk_creator_patterns(), "scitex_sdk_creator")),
     ),
     # --- Admin ---
