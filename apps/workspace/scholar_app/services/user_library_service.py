@@ -1,24 +1,29 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-User Library Service
+User Library Service — thin hub wrapper over the scitex-scholar package.
 
-Manages user-level scholar library with filesystem storage and symlinks.
-This service provides a central library for each user where papers are stored once
-and can be linked to multiple projects via symlinks.
+Every hub user is a unix user, so the library is simply that user's
+``~/.scitex/scholar/`` tree (pwd-resolved; ``USER_DATA_ROOT/users/<name>``
+fallback when no unix account exists, e.g. fresh signups in containers).
 
-Architecture:
-    User Library: ~/.scitex/scholar/library/papers/{doi|pmid|arxiv}/
-    Project Links: {project_path}/.scitex/scholar/library/papers/ -> user library
+Layout follows the package's PathManager PATH_STRUCTURE exactly —
+``library/MASTER/<paper_id>/`` for paper storage (pdf + bib + metadata.json,
+which the package's library index reads), ``library/<project>/`` for
+per-project trees. Project roots get ``.scitex/scholar/library`` symlinked
+to the home library via the package's ``link_project_tree``.
 
 Storage Strategy:
     - Papers stored once in user library (deduplicated)
-    - Projects reference papers via symlinks
-    - Django tracks paths via CharField (not FileField)
-    - Delegates to scitex.scholar package for actual operations
+    - Projects see the whole library through one symlink (package verb)
+    - Django tracks paths via CharField (relative to the library root)
+    - No hub-invented directories: `papers/{doi,pmid,arxiv}/`, `collections/`
+      and `metadata/` are legacy and no longer created.
 """
 
+import json
 import logging
+import pwd
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -26,6 +31,21 @@ from django.conf import settings
 from django.contrib.auth.models import User
 
 logger = logging.getLogger(__name__)
+
+try:  # Package PathManager: the offered seam for the canonical layout.
+    from scitex_scholar.config.core._PathManager import PathManager
+except ImportError:  # pragma: no cover - old leaf; manual same-layout fallback
+    PathManager = None
+
+
+def _paper_id(identifier: str, id_type: str) -> str:
+    """Filesystem-safe MASTER/<paper_id> for an identifier."""
+    safe = "".join(
+        c if (c.isalnum() or c in ("-", "_", ".")) else "_" for c in identifier
+    ).strip("._")[:120]
+    if id_type and not safe.lower().startswith(id_type.lower()):
+        safe = f"{id_type}-{safe}" if safe else id_type
+    return safe or "unknown"
 
 
 class UserLibraryService:
@@ -47,51 +67,48 @@ class UserLibraryService:
             user: Django User instance
         """
         self.user = user
-        self.library_path = self._get_user_library_path()
+        self.scholar_dir = self._get_user_scholar_dir()
+        self.library_path = self.scholar_dir / "library"
+        self._pm = PathManager(scholar_dir=self.scholar_dir) if PathManager else None
         self._ensure_structure()
 
-    def _get_user_library_path(self) -> Path:
+    def _get_user_scholar_dir(self) -> Path:
         """
-        Get user's central library path.
+        Get the user's ``~/.scitex/scholar`` dir.
 
-        Returns:
-            Path to user's library root
-
-        Strategy:
-            - Multi-user: {USER_DATA_ROOT}/users/{username}/.scitex/scholar/library/
-            - Single-user: ~/.scitex/scholar/library/
+        Every hub user is a unix user: pwd-resolve the home. Fresh signups
+        without a unix account yet fall back to the managed
+        ``{USER_DATA_ROOT}/users/<name>/.scitex/scholar`` tree, else the
+        package default setting.
         """
+        try:
+            home = Path(pwd.getpwnam(self.user.username).pw_dir)
+            return home / ".scitex" / "scholar"
+        except KeyError:
+            pass
         if settings.USER_DATA_ROOT:
-            # Multi-user deployment (Docker, cloud)
             return (
                 settings.USER_DATA_ROOT
                 / "users"
                 / self.user.username
                 / ".scitex"
                 / "scholar"
-                / "library"
             )
-        else:
-            # Single-user or use scitex package default
-            return settings.SCITEX_SCHOLAR_USER_LIBRARY_ROOT
+        return settings.SCITEX_SCHOLAR_USER_LIBRARY_ROOT.parent
+
+    def _get_user_library_path(self) -> Path:
+        """Legacy accessor: the library root (kept for callers)."""
+        return self._get_user_scholar_dir() / "library"
 
     def _ensure_structure(self):
-        """Create library directory structure if it doesn't exist."""
-        # Create base directories
-        dirs_to_create = [
-            self.library_path,
-            self.library_path / "papers" / "doi",
-            self.library_path / "papers" / "pmid",
-            self.library_path / "papers" / "arxiv",
-            self.library_path / "collections",
-            self.library_path / "metadata",
-        ]
-
-        for directory in dirs_to_create:
-            directory.mkdir(parents=True, exist_ok=True)
-
+        """Create the package-canonical library structure if missing."""
+        if self._pm is not None:
+            self._pm.get_library_master_dir()
+        else:  # old leaf: same layout, created manually
+            (self.library_path / "MASTER").mkdir(parents=True, exist_ok=True)
         logger.info(
-            f"Ensured library structure for user {self.user.username} at {self.library_path}"
+            f"Ensured package-layout library for user {self.user.username} "
+            f"at {self.library_path}"
         )
 
     def add_paper(
@@ -100,35 +117,32 @@ class UserLibraryService:
         id_type: str,
         pdf_path: Optional[Path] = None,
         bibtex_content: Optional[str] = None,
+        metadata: Optional[Dict] = None,
     ) -> Dict[str, Path]:
         """
-        Add paper to user library.
+        Add paper to user library under ``MASTER/<paper_id>/``.
 
         Args:
             identifier: Paper identifier (DOI, PMID, arXiv ID)
             id_type: Type of identifier ('doi', 'pmid', 'arxiv')
             pdf_path: Optional path to PDF file to copy
             bibtex_content: Optional BibTeX content to save
+            metadata: Optional package-schema metadata dict; when absent a
+                minimal one is derived from identifier/id_type so the
+                package library index can read the entry.
 
         Returns:
             Dict with 'pdf' and 'bibtex' paths (relative to library root)
-
-        Note:
-            This is a Django wrapper. Actual paper management should be delegated
-            to scitex.scholar package functions in future iterations.
         """
-        # Normalize identifier for filesystem (replace / with _)
-        safe_identifier = identifier.replace("/", "_").replace(":", "_")
-
-        # Determine storage location
-        paper_dir = self.library_path / "papers" / id_type
+        paper_id = _paper_id(identifier, id_type)
+        paper_dir = self.library_path / "MASTER" / paper_id
         paper_dir.mkdir(parents=True, exist_ok=True)
 
         result = {}
 
         # Copy PDF if provided
-        if pdf_path and pdf_path.exists():
-            dest_pdf = paper_dir / f"{safe_identifier}.pdf"
+        if pdf_path and Path(pdf_path).exists():
+            dest_pdf = paper_dir / f"{paper_id}.pdf"
             if not dest_pdf.exists():
                 import shutil
 
@@ -138,10 +152,40 @@ class UserLibraryService:
 
         # Save BibTeX if provided
         if bibtex_content:
-            dest_bib = paper_dir / f"{safe_identifier}.bib"
+            dest_bib = paper_dir / f"{paper_id}.bib"
             dest_bib.write_text(bibtex_content)
             logger.info(f"Added BibTeX for {identifier} to user library")
             result["bibtex"] = dest_bib.relative_to(self.library_path)
+
+        # metadata.json: the package index's primary source. Merge caller
+        # metadata over the derived skeleton, never the reverse.
+        skeleton = {
+            "metadata": {
+                "id": {"doi": None, "arxiv_id": None, "pmid": None},
+                "basic": {
+                    "title": None,
+                    "year": None,
+                    "authors": [],
+                    "abstract": None,
+                },
+                "publication": {},
+                "access": {},
+                "citation": {},
+            }
+        }
+        key_map = {"doi": "doi", "arxiv": "arxiv_id", "pmid": "pmid"}
+        if id_type in key_map:
+            skeleton["metadata"]["id"][key_map[id_type]] = identifier
+        merged = dict(skeleton["metadata"])
+        for section, values in (metadata or {}).items():
+            if isinstance(values, dict):
+                merged.setdefault(section, {}).update(values)
+            else:
+                merged[section] = values
+        skeleton["metadata"] = merged
+        (paper_dir / "metadata.json").write_text(
+            json.dumps(skeleton, indent=2, ensure_ascii=False)
+        )
 
         return result
 
@@ -159,71 +203,120 @@ class UserLibraryService:
         Returns:
             Absolute path to file, or None if not found
         """
-        safe_identifier = identifier.replace("/", "_").replace(":", "_")
-        paper_path = (
-            self.library_path / "papers" / id_type / f"{safe_identifier}.{file_type}"
-        )
-
+        safe_id = _paper_id(identifier, id_type)
+        paper_path = self.library_path / "MASTER" / safe_id / f"{safe_id}.{file_type}"
         if paper_path.exists():
             return paper_path
+        # Legacy hub layout (pre-package): papers/<id_type>/<safe>.<ext>
+        legacy_safe = identifier.replace("/", "_").replace(":", "_")
+        legacy_path = (
+            self.library_path / "papers" / id_type / f"{legacy_safe}.{file_type}"
+        )
+        if legacy_path.exists():
+            return legacy_path
         return None
+
+    def ensure_project_link(self, project_path: Path) -> Optional[Path]:
+        """
+        Link ``<project>/.scitex/scholar/library`` to this user's home
+        library using the package verb (``link_project_tree``).
+
+        Idempotent. Returns the link path, or None when the package is
+        not importable. On leaves predating ``library_root`` (improved in
+        scitex-scholar#182) the identical symlink is created manually.
+        """
+        project_path = Path(project_path)
+        try:
+            from scitex_scholar.cli._project_tree import link_project_tree
+
+            try:
+                return link_project_tree(
+                    project_path, library_root=self.library_path
+                )
+            except TypeError:  # leaf predates library_root: same link, manual
+                target = self.library_path.resolve()
+                link_parent = project_path / ".scitex" / "scholar"
+                link_parent.mkdir(parents=True, exist_ok=True)
+                link = link_parent / "library"
+                if link.is_symlink() and link.readlink() == target:
+                    return link
+                if link.is_symlink() or link.exists():
+                    raise FileExistsError(
+                        f"{link} occupied; refusing to replace without force"
+                    )
+                link.symlink_to(self.library_path)
+                return link
+        except ImportError:
+            logger.warning("scitex_scholar unavailable; project link skipped")
+            return None
+
+    def prune_project_link(self, project_path: Path) -> bool:
+        """
+        Remove the ``.scitex/scholar/library`` symlink when it points at
+        this user's library. Returns True when removed.
+        """
+        link = Path(project_path) / ".scitex" / "scholar" / "library"
+        if link.is_symlink():
+            try:
+                if link.readlink() == self.library_path.resolve():
+                    link.unlink()
+                    return True
+            except OSError:
+                pass
+        return False
 
     def link_to_project(self, paper_rel_path: str, project_path: Path):
         """
-        Create symlink in project's scholar directory pointing to user library.
+        Create project access to the user library.
+
+        Legacy signature (per-paper) kept for callers: the package links
+        the whole library tree, so this ensures the project link exists.
+        The per-paper symlink farm (``library/papers/``) is retired.
 
         Args:
-            paper_rel_path: Relative path to paper in user library (from library root)
+            paper_rel_path: Ignored except for logging (kept for signature).
             project_path: Absolute path to project directory
-
-        Note:
-            Creates: {project_path}/.scitex/scholar/library/papers/{filename}
-            Points to: {user_library_path}/{paper_rel_path}
         """
-        # Project's scholar library directory
-        project_scholar_dir = (
-            project_path / ".scitex" / "scholar" / "library" / "papers"
-        )
-        project_scholar_dir.mkdir(parents=True, exist_ok=True)
-
-        # Source file in user library
-        source_path = self.library_path / paper_rel_path
-        if not source_path.exists():
-            logger.warning(f"Source file not found: {source_path}")
+        link = self.ensure_project_link(Path(project_path))
+        if link is None:
+            logger.warning(f"Source file not found: {paper_rel_path}")
             return
-
-        # Symlink in project (use just filename)
-        symlink_name = source_path.name
-        symlink_path = project_scholar_dir / symlink_name
-
-        # Create symlink if it doesn't exist
-        if not symlink_path.exists():
-            symlink_path.symlink_to(source_path)
-            logger.info(f"Linked {symlink_name} to project {project_path.name}")
-        else:
-            logger.debug(f"Symlink already exists: {symlink_path}")
+        logger.info(f"Linked {link} for project {Path(project_path).name}")
 
     def unlink_from_project(self, paper_filename: str, project_path: Path):
         """
-        Remove symlink from project's scholar directory.
+        Remove project access to a paper.
+
+        The package links the whole library tree, so per-paper removal is a
+        no-op for the filesystem; the legacy per-paper symlink (if left over
+        from the pre-package layout) is still cleaned up. Callers remove the
+        tree link via :meth:`prune_project_link` once no papers remain.
 
         Args:
-            paper_filename: Filename of paper (e.g., '10.1000_example.pdf')
+            paper_filename: Filename of paper (legacy symlink name)
             project_path: Absolute path to project directory
         """
-        symlink_path = (
-            project_path / ".scitex" / "scholar" / "library" / "papers" / paper_filename
+        legacy_path = (
+            Path(project_path)
+            / ".scitex"
+            / "scholar"
+            / "library"
+            / "papers"
+            / paper_filename
         )
-
-        if symlink_path.is_symlink():
-            symlink_path.unlink()
-            logger.info(f"Unlinked {paper_filename} from project {project_path.name}")
-        elif symlink_path.exists():
-            logger.warning(f"File exists but is not a symlink: {symlink_path}")
+        if legacy_path.is_symlink():
+            legacy_path.unlink()
+            logger.info(
+                f"Unlinked legacy {paper_filename} from project "
+                f"{Path(project_path).name}"
+            )
+        elif legacy_path.exists():
+            logger.warning(f"File exists but is not a symlink: {legacy_path}")
 
     def list_user_papers(self) -> List[Dict]:
         """
-        List all papers in user's library.
+        List all papers in user's library (package ``MASTER/`` store,
+        plus legacy ``papers/`` entries not yet migrated).
 
         Returns:
             List of dicts with paper info: {
@@ -234,6 +327,22 @@ class UserLibraryService:
             }
         """
         papers = []
+        seen = set()
+
+        master = self.library_path / "MASTER"
+        if master.is_dir():
+            for pdf_file in sorted(master.glob("*/*.pdf")):
+                paper_id = pdf_file.parent.name
+                bib_file = pdf_file.with_name(f"{paper_id}.bib")
+                papers.append(
+                    {
+                        "identifier": paper_id,
+                        "id_type": "master",
+                        "pdf_path": pdf_file,
+                        "bib_path": bib_file if bib_file.exists() else None,
+                    }
+                )
+                seen.add(pdf_file.resolve())
 
         for id_type in ["doi", "pmid", "arxiv"]:
             type_dir = self.library_path / "papers" / id_type
@@ -241,6 +350,8 @@ class UserLibraryService:
                 continue
 
             for pdf_file in type_dir.glob("*.pdf"):
+                if pdf_file.resolve() in seen:
+                    continue
                 identifier = pdf_file.stem
                 bib_file = pdf_file.with_suffix(".bib")
 

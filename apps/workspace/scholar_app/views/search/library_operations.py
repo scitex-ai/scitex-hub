@@ -150,6 +150,77 @@ def _save_papers_to_project_path(
     }
 
 
+def _mirror_to_user_library(user, project_path, items) -> int:
+    """Mirror saved papers into the user's package-layout home library.
+
+    Thin-layer glue: project .bibs (written by callers) stay the manuscript
+    source of truth; this additionally registers each paper under
+    ``MASTER/<paper_id>/`` (bib + package-schema metadata.json, no PDF from
+    search results) and ensures the
+    ``<project>/.scitex/scholar/library`` tree link. Best-effort: failures
+    are logged and never fail the save.
+
+    Args:
+        user: Django User
+        project_path: project root (for the tree link)
+        items: iterable of (paper_dict, citation_key, bibtex_entry)
+
+    Returns:
+        Number of papers registered.
+    """
+    try:
+        from apps.workspace.scholar_app.services import UserLibraryService
+    except ImportError:
+        return 0
+    registered = 0
+    try:
+        lib = UserLibraryService(user)
+        for paper, citation_key, bibtex_entry in items:
+            if not isinstance(paper, dict):
+                continue
+            doi = (paper.get("doi") or "").strip()
+            arxiv = (paper.get("arxiv") or paper.get("arxiv_id") or "").strip()
+            pmid = (paper.get("pmid") or "").strip()
+            if doi:
+                identifier, id_type = doi, "doi"
+            elif arxiv:
+                identifier, id_type = arxiv, "arxiv"
+            elif pmid:
+                identifier, id_type = pmid, "pmid"
+            else:
+                identifier, id_type = citation_key, "web"
+            raw_authors = paper.get("authors", "") or ""
+            authors = [a.strip() for a in str(raw_authors).split(",") if a.strip()]
+            try:
+                year = int(str(paper.get("year", "")).strip()[:4])
+            except (ValueError, TypeError):
+                year = None
+            lib.add_paper(
+                identifier,
+                id_type,
+                bibtex_content=bibtex_entry,
+                metadata={
+                    "id": {
+                        "doi": doi or None,
+                        "arxiv_id": arxiv or None,
+                        "pmid": pmid or None,
+                    },
+                    "basic": {
+                        "title": paper.get("title"),
+                        "year": year,
+                        "authors": authors,
+                        "abstract": paper.get("abstract"),
+                    },
+                    "publication": {"journal": paper.get("journal")},
+                },
+            )
+            registered += 1
+        lib.ensure_project_link(Path(project_path))
+    except Exception as e:
+        logger.warning(f"User-library mirror skipped: {e}")
+    return registered
+
+
 @require_http_methods(["POST"])
 @login_required
 def save_paper(request):
@@ -217,6 +288,9 @@ def save_paper(request):
 
         results = regenerate_bibliography(project_path, project.name)
 
+        _mirror_to_user_library(
+            request.user, project_path, [(paper, citation_key, bibtex_entry)]
+        )
         return JsonResponse(
             {
                 "success": True,
@@ -337,11 +411,28 @@ def save_papers_bulk(request):
     message = f"Saved {saved} paper{'s' if saved != 1 else ''} to {project.name}"
     if skipped:
         message += f" ({skipped} skipped)"
+    try:
+        mirror_items = []
+        for paper in papers:
+            if not isinstance(paper, dict):
+                continue
+            try:
+                ck, be = build_bibtex_for_paper(paper)
+            except ValueError:
+                continue
+            mirror_items.append((paper, ck, be))
+        library_registered = _mirror_to_user_library(
+            request.user, Path(project.git_clone_path), mirror_items
+        )
+    except Exception as e:
+        logger.warning(f"User-library mirror skipped: {e}")
+        library_registered = 0
     return JsonResponse(
         {
             "success": True,
             "message": message,
             "project": project.name,
+            "library_registered": library_registered,
             **summary,
         }
     )
