@@ -180,10 +180,34 @@ class UserLibraryService:
         if id_type in key_map:
             skeleton["metadata"]["id"][key_map[id_type]] = identifier
         merged = dict(skeleton["metadata"])
-        for section, values in (metadata or {}).items():
+        # Fold flat search-result keys into their package sections so no
+        # caller can produce an entry whose basic.title is None. Explicit
+        # nested sections win over flat keys.
+        flat = dict(metadata or {})
+        for section, values in flat.items():
             if isinstance(values, dict):
                 merged.setdefault(section, {}).update(values)
-            else:
+        for key in ("title", "year", "authors", "abstract"):
+            if flat.get(key) is not None:
+                merged.setdefault("basic", {}).setdefault(key, flat[key])
+        if flat.get("journal") is not None:
+            merged.setdefault("publication", {}).setdefault(
+                "journal", flat["journal"]
+            )
+        for key in ("doi", "arxiv_id", "pmid"):
+            if flat.get(key) is not None:
+                merged.setdefault("id", {}).setdefault(key, flat[key])
+        for section, values in flat.items():
+            if not isinstance(values, dict) and section not in (
+                "title",
+                "year",
+                "authors",
+                "abstract",
+                "journal",
+                "doi",
+                "arxiv_id",
+                "pmid",
+            ):
                 merged[section] = values
         skeleton["metadata"] = merged
         (paper_dir / "metadata.json").write_text(
