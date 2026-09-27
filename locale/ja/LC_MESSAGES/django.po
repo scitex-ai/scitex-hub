@@ -158,7 +158,7 @@ msgstr "支援する"
 msgid ""
 "Alpha Release (%(version)s) — Data persistence and API stability are not "
 "guaranteed. For production use, install the local Python toolkit. "
-"Contributions welcome:"
+"Any contribution welcome:"
 msgstr ""
 "アルファ版 (%(version)s) — データの保持と API の安定性は保証されません。"
 "本番環境でのご利用にはローカルの Python ツールキットをおすすめします。"
@@ -7940,6 +7940,1118 @@ msgstr "フル版デモ——40分で最初から最後まで。"
 
 
 
+# Hub-chrome i18n fill (owner ask 2026-09-27)
 
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+msgid "Active project"
+msgstr "アクティブなプロジェクト"
 
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+msgid "Open active project"
+msgstr "アクティブなプロジェクトを開く"
 
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+msgid "No favorites yet"
+msgstr "お気に入りはまだありません"
+
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+msgid "Edit an app to add a shortcut here."
+msgstr "アプリの表示を編集してショートカットを追加"
+
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+msgid "Favorites"
+msgstr "お気に入り"
+
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+msgid "All apps"
+msgstr "すべてのアプリ"
+
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+msgid "Display name"
+msgstr "表示名"
+
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+msgid "Font Awesome icon"
+msgstr "Font Awesomeアイコン"
+
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+msgid "Icon color"
+msgstr "アイコンの色"
+
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+msgid "Add to Favorites"
+msgstr "お気に入りに追加"
+
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+msgid "Reset to manifest defaults"
+msgstr "マニフェストの既定値に戻す"
+
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+msgid "Uninstall app"
+msgstr "アプリをアンインストール"
+
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+msgid "Edit app display"
+msgstr "アプリ表示の編集"
+
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+msgid "You're browsing read-only."
+msgstr "読み取り専用で閲覧中"
+
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+msgid "Sign in to edit, run code, and keep your work."
+msgstr "編集・コード実行・作業の保存にはログイン"
+
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+#, python-format
+msgid "Visitor #%(n)s · temporary workspace."
+msgstr "ビジター #%(n)s・一時ワークスペース"
+
+#: apps/workspace/apps_app/templates/apps_app/launcher.html
+#, python-format
+msgid "Reclaimed after ~%(mins)s min idle — sign up to keep your work."
+msgstr "約%(mins)s分操作がないと破棄されます。作業を残すには登録してください。"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_tile.html
+msgid "Installed"
+msgstr "インストール済み"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_tile.html
+msgid "Edit display"
+msgstr "表示を編集"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_tile.html
+#, python-format
+msgid "Uninstall %(label)s"
+msgstr "%(label)s をアンインストール"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/launcher_tile.html
+#, python-format
+msgid "Edit %(label)s display"
+msgstr "%(label)s の表示を編集"
+
+#: templates/global_base_partials/global_header.html
+msgid "User & Profile"
+msgstr "ユーザーとプロフィール"
+
+#: templates/global_base_partials/global_header.html
+msgid "Product tour"
+msgstr "製品ツアー"
+
+#: templates/global_base_partials/global_header.html
+msgid "Help"
+msgstr "ヘルプ"
+
+#: templates/global_base_partials/global_header.html
+msgid "Language: English. Activate to switch to Japanese."
+msgstr "言語:英語。日本語に切り替えるにはこちらを操作。"
+
+#: templates/global_base_partials/global_header.html
+msgid "Language: Japanese. Activate to switch to English."
+msgstr "言語:日本語。英語に切り替えるにはこちらを操作。"
+
+#: templates/global_base_partials/global_header.html
+msgid "Close"
+msgstr "閉じる"
+
+#: templates/global_base_partials/global_header.html
+msgid "All"
+msgstr "すべて"
+
+#: apps/workspace/apps_app/templates/apps_app/browse.html
+msgid "App Store"
+msgstr "アプリストア"
+
+#: apps/workspace/apps_app/templates/apps_app/browse_partial.html
+msgid "Build for SciTeX"
+msgstr "SciTeX向けに開発"
+
+#: apps/workspace/apps_app/templates/apps_app/browse_partial.html
+msgid "<code>scitex-app</code> and <code>scitex-ui</code> form one SDK for local, cloud, and self-hosted apps."
+msgstr "<code>scitex-app</code>と<code>scitex-ui</code>は、ローカル・クラウド・セルフホスト向けの単一SDKです。"
+
+#: apps/workspace/apps_app/templates/apps_app/browse_partial.html
+msgid "SDK documentation"
+msgstr "SDKドキュメント"
+
+#: apps/workspace/apps_app/templates/apps_app/browse_partial.html
+msgid "Publish your apps to the community registry and share with everyone"
+msgstr "アプリをコミュニティレジストリに公開して共有しましょう"
+
+#: apps/workspace/apps_app/templates/apps_app/browse_partial.html
+msgid "App categories"
+msgstr "アプリのカテゴリ"
+
+#: apps/workspace/apps_app/templates/apps_app/browse_partial.html
+msgid "Search apps... (Ctrl+K)"
+msgstr "アプリを検索… (Ctrl+K)"
+
+#: apps/workspace/apps_app/templates/apps_app/browse_partial.html
+msgid "Search apps"
+msgstr "アプリを検索"
+
+#: apps/workspace/apps_app/templates/apps_app/browse_partial.html
+msgid "Clear search"
+msgstr "検索をクリア"
+
+#: apps/workspace/apps_app/templates/apps_app/browse_partial.html
+msgid "Sort apps"
+msgstr "アプリを並べ替え"
+
+#: apps/workspace/apps_app/templates/apps_app/browse_partial.html
+msgid "Popular"
+msgstr "人気順"
+
+#: apps/workspace/apps_app/templates/apps_app/browse_partial.html
+msgctxt "sort option"
+msgid "Rating"
+msgstr "評価順"
+
+#: apps/workspace/apps_app/templates/apps_app/browse_partial.html
+msgid "My Private Apps"
+msgstr "自分のプライベートアプリ"
+
+#: apps/workspace/apps_app/templates/apps_app/browse_partial.html
+msgid "Public Apps"
+msgstr "公開アプリ"
+
+#: apps/workspace/apps_app/templates/apps_app/browse_partial.html
+msgid "No apps found"
+msgstr "アプリが見つかりません"
+
+#: apps/workspace/apps_app/templates/apps_app/browse_partial.html
+msgid "No apps match your search."
+msgstr "検索に一致するアプリがありません。"
+
+#: apps/workspace/apps_app/models.py
+msgid "Writing"
+msgstr "執筆"
+
+#: apps/workspace/apps_app/models.py
+msgid "Visualization"
+msgstr "可視化"
+
+#: apps/workspace/apps_app/models.py
+msgid "Data"
+msgstr "データ"
+
+#: apps/workspace/apps_app/models.py
+msgid "Analysis"
+msgstr "解析"
+
+#: apps/workspace/apps_app/models.py
+msgid "Reference"
+msgstr "文献"
+
+#: apps/workspace/apps_app/models.py
+msgid "Utility"
+msgstr "ユーティリティ"
+
+#: apps/workspace/apps_app/models.py
+msgid "Other"
+msgstr "その他"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+msgid "Built-in"
+msgstr "組み込み"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+msgctxt "store section"
+msgid "About"
+msgstr "概要"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+#, python-format
+msgid "by %(author)s"
+msgstr "著者:%(author)s"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+msgid "stars"
+msgstr "スター"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+#, python-format
+msgid "%(n)s installs"
+msgstr "%(n)s インストール"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+msgid "Install"
+msgstr "インストール"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+#, python-format
+msgid "Install %(name)s"
+msgstr "%(name)s をインストール"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+msgid "Uninstall"
+msgstr "アンインストール"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+#, python-format
+msgid "Uninstall %(name)s"
+msgstr "%(name)s をアンインストール"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+msgid "Star"
+msgstr "スター"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+#, python-format
+msgid "Star %(name)s"
+msgstr "%(name)s にスター"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+msgid "Unstar"
+msgstr "スターを解除"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+#, python-format
+msgid "Unstar %(name)s"
+msgstr "%(name)s のスターを解除"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+msgid "Toggle"
+msgstr "切り替え"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+#, python-format
+msgid "Toggle %(name)s"
+msgstr "%(name)s を切り替え"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+msgid "Login to install"
+msgstr "インストールにはログイン"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+msgid "View in Hub"
+msgstr "Hubで見る"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+msgid "Fork"
+msgstr "フォーク"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+#, python-format
+msgid "Fork %(name)s"
+msgstr "%(name)s をフォーク"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+msgid "Under Review"
+msgstr "レビュー中"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+msgctxt "store action"
+msgid "Publish"
+msgstr "公開する"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+msgid "Browse"
+msgstr "アプリ一覧"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+msgid "Capabilities"
+msgstr "機能"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+msgid "Supported File Types"
+msgstr "対応ファイル形式"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+msgid "AI Integration"
+msgstr "AI連携"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+msgid "Tool prefixes"
+msgstr "ツールプレフィックス"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+msgid "Example tools"
+msgstr "ツール例"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+msgid "URL patterns"
+msgstr "URLパターン"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+msgid "Homepage"
+msgstr "ホームページ"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+msgid "Version History"
+msgstr "バージョン履歴"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+msgid "Stable"
+msgstr "安定版"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+msgid "Reviews"
+msgstr "レビュー"
+
+#: apps/workspace/apps_app/templates/apps_app/detail.html
+#, python-format
+msgid "Requires SciTeX ≥ %(ver)s"
+msgstr "SciTeX %(ver)s 以上が必要"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/module_card.html
+#, python-format
+msgid "View %(name)s"
+msgstr "%(name)s を表示"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/module_card.html
+msgid "built-in"
+msgstr "組み込み"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/module_card.html
+msgid "Built-in app"
+msgstr "組み込みアプリ"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/module_card.html
+msgid "Private app"
+msgstr "プライベートアプリ"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/module_card.html
+msgid "Installs"
+msgstr "インストール数"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/module_card.html
+msgid "Rating"
+msgstr "評価"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/module_card.html
+msgid "App details"
+msgstr "アプリの詳細"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/module_card.html
+msgid "Owner Hub"
+msgstr "オーナーのHub"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/module_card.html
+#, python-format
+msgid "View in %(owner)s's Hub"
+msgstr "%(owner)s のHubで見る"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/module_card.html
+msgid "Disabled"
+msgstr "無効"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/module_card.html
+msgid "Disable"
+msgstr "無効化"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/module_card.html
+msgid "Enable"
+msgstr "有効化"
+
+#: apps/workspace/apps_app/templates/apps_app/my_modules.html
+msgid "My Apps"
+msgstr "マイアプリ"
+
+#: apps/workspace/apps_app/templates/apps_app/my_modules.html
+msgid "Browse Apps"
+msgstr "アプリ一覧"
+
+#: apps/workspace/apps_app/templates/apps_app/my_modules.html
+msgid "Installed apps"
+msgstr "インストール済みアプリ"
+
+#: apps/workspace/apps_app/templates/apps_app/my_modules.html
+#, python-format
+msgid "Installed %(date)s"
+msgstr "%(date)s にインストール"
+
+#: apps/workspace/apps_app/templates/apps_app/my_modules.html
+#, python-format
+msgid "Disable %(name)s"
+msgstr "%(name)s を無効化"
+
+#: apps/workspace/apps_app/templates/apps_app/my_modules.html
+#, python-format
+msgid "Enable %(name)s"
+msgstr "%(name)s を有効化"
+
+#: apps/workspace/apps_app/templates/apps_app/my_modules.html
+msgid "No apps installed yet"
+msgstr "まだアプリがインストールされていません"
+
+#: apps/workspace/apps_app/templates/apps_app/my_modules.html
+msgid "<a href=\"/apps/\">Browse the apps</a> to discover and install apps."
+msgstr "<a href=\"/apps/\">アプリ一覧</a>から見つけてインストールしましょう。"
+
+#: apps/workspace/apps_app/templates/apps_app/review_queue.html
+msgid "Review Queue"
+msgstr "レビューキュー"
+
+#: apps/workspace/apps_app/templates/apps_app/review_queue.html
+msgid "Pending app submissions for apps review"
+msgstr "アプリ審査待ちの投稿"
+
+#: apps/workspace/apps_app/templates/apps_app/review_queue.html
+msgid "Changes Requested"
+msgstr "修正依頼あり"
+
+#: apps/workspace/apps_app/templates/apps_app/review_queue.html
+msgid "Pending"
+msgstr "保留中"
+
+#: apps/workspace/apps_app/templates/apps_app/review_queue.html
+msgid "Registry PR"
+msgstr "レジストリPR"
+
+#: apps/workspace/apps_app/templates/apps_app/review_queue.html
+msgid "Review notes (optional)..."
+msgstr "レビューメモ(任意)…"
+
+#: apps/workspace/apps_app/templates/apps_app/review_queue.html
+msgid "Approve"
+msgstr "承認"
+
+#: apps/workspace/apps_app/templates/apps_app/review_queue.html
+msgid "Changes"
+msgstr "修正を依頼"
+
+#: apps/workspace/apps_app/templates/apps_app/review_queue.html
+msgid "Reject"
+msgstr "却下"
+
+#: apps/workspace/apps_app/templates/apps_app/review_queue.html
+msgid "No pending submissions"
+msgstr "保留中の投稿はありません"
+
+#: apps/workspace/apps_app/templates/apps_app/review_queue.html
+msgid "All app submissions have been reviewed."
+msgstr "すべてのアプリ投稿は審査済みです。"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/review_form.html
+msgid "Write a Review"
+msgstr "レビューを書く"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/review_form.html
+msgid "Edit Your Review"
+msgstr "レビューを編集"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/review_form.html
+msgid "Select rating"
+msgstr "評価を選択"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/review_form.html
+#, python-format
+msgid "%(n)s star(s)"
+msgstr "星%(n)sつ"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/review_form.html
+msgid "Summary of your experience"
+msgstr "体験の概要"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/review_form.html
+msgid "Share details about your experience with this app..."
+msgstr "このアプリの使用感を詳しく共有…"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/review_form.html
+msgid "Update Review"
+msgstr "レビューを更新"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/review_form.html
+msgid "Submit Review"
+msgstr "レビューを投稿"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/review_form.html
+msgid "Title"
+msgstr "タイトル"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/review_form.html
+msgid "Review"
+msgstr "レビュー"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/review_list.html
+msgid "User reviews"
+msgstr "ユーザーレビュー"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/review_list.html
+#, python-format
+msgid "Rating: %(rating)s out of 5"
+msgstr "評価:%(rating)s/5"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/review_list.html
+msgid "Verified Install"
+msgstr "インストール確認済み"
+
+#: apps/workspace/apps_app/templates/apps_app/partials/review_list.html
+msgid "No reviews yet. Be the first to review this app."
+msgstr "まだレビューがありません。このアプリの最初のレビューを投稿しましょう。"
+
+#: apps/infra/auth_app/templates/auth_app/signout.html
+msgid "Logout"
+msgstr "ログアウト"
+
+#: apps/infra/auth_app/templates/auth_app/signout.html
+msgid "You've been logged out"
+msgstr "ログアウトしました"
+
+#: apps/infra/auth_app/templates/auth_app/signout.html
+msgid "Thank you for using SciTeX. You have been successfully logged out of your account."
+msgstr "SciTeXをご利用いただきありがとうございます。アカウントからログアウトしました。"
+
+#: apps/infra/auth_app/templates/auth_app/signout.html
+msgid "Log In Again"
+msgstr "もう一度ログイン"
+
+#: apps/infra/auth_app/templates/auth_app/signout.html
+msgid "Go to Homepage"
+msgstr "トップページへ"
+
+#: apps/infra/auth_app/templates/auth_app/forgot_password.html
+msgid "Forgot Password"
+msgstr "パスワードをお忘れの方"
+
+#: apps/infra/auth_app/templates/auth_app/forgot_password.html
+msgid "Reset your SciTeX account password"
+msgstr "SciTeXアカウントのパスワード再設定"
+
+#: apps/infra/auth_app/templates/auth_app/forgot_password.html
+msgid "Forgot Your Password?"
+msgstr "パスワードをお忘れですか?"
+
+#: apps/infra/auth_app/templates/auth_app/forgot_password.html
+msgid "No worries! Enter your email address and we'll send you reset instructions."
+msgstr "大丈夫です。メールアドレスを入力すると再設定手順をお送りします。"
+
+#: apps/infra/auth_app/templates/auth_app/forgot_password.html
+msgid "Email Address"
+msgstr "メールアドレス"
+
+#: apps/infra/auth_app/templates/auth_app/forgot_password.html
+msgid "Enter your email"
+msgstr "メールアドレスを入力"
+
+#: apps/infra/auth_app/templates/auth_app/forgot_password.html
+msgid "Send Reset Instructions"
+msgstr "再設定手順を送信"
+
+#: apps/infra/auth_app/templates/auth_app/forgot_password.html
+msgid "Remember your password?"
+msgstr "パスワードを思い出した方は"
+
+#: apps/infra/auth_app/templates/auth_app/forgot_password.html
+msgid "Back to Login"
+msgstr "ログインに戻る"
+
+#: apps/infra/auth_app/templates/auth_app/reset_password.html
+msgid "Reset Password"
+msgstr "パスワードの再設定"
+
+#: apps/infra/auth_app/templates/auth_app/reset_password.html
+msgid "Reset Your Password"
+msgstr "パスワードを再設定する"
+
+#: apps/infra/auth_app/templates/auth_app/reset_password.html
+msgid "Enter your new password below"
+msgstr "新しいパスワードを以下に入力"
+
+#: apps/infra/auth_app/templates/auth_app/reset_password.html
+msgid "This link is invalid or has expired"
+msgstr "このリンクは無効か有効期限切れです"
+
+#: apps/infra/auth_app/templates/auth_app/reset_password.html
+msgid "Set New Password"
+msgstr "新しいパスワードを設定"
+
+#: apps/infra/auth_app/templates/auth_app/reset_password.html
+msgid "Success!"
+msgstr "成功!"
+
+#: apps/infra/auth_app/templates/auth_app/reset_password.html
+msgid "Password reset successful! Redirecting to login..."
+msgstr "パスワードを再設定しました。ログイン画面へ移動します…"
+
+#: apps/infra/auth_app/templates/auth_app/reset_password.html
+msgid "New Password"
+msgstr "新しいパスワード"
+
+#: apps/infra/auth_app/templates/auth_app/reset_password.html
+msgid "At least one special character (!@#$%^&*)"
+msgstr "記号を1文字以上(!@#$%^&*)"
+
+#: apps/infra/auth_app/templates/auth_app/reset_password.html
+msgid "Invalid Link"
+msgstr "無効なリンク"
+
+#: apps/infra/auth_app/templates/auth_app/reset_password.html
+msgid "This password reset link is invalid or has expired."
+msgstr "このパスワード再設定リンクは無効か有効期限が切れています。"
+
+#: apps/infra/auth_app/templates/auth_app/reset_password.html
+msgid "Please request a new password reset."
+msgstr "新しい再設定リンクを発行してください。"
+
+#: apps/infra/auth_app/templates/auth_app/reset_password.html
+msgid "Log In"
+msgstr "ログイン"
+
+#: apps/infra/auth_app/templates/auth_app/reset_password.html
+msgid "Need a new reset link?"
+msgstr "新しい再設定リンクが必要ですか?"
+
+#: apps/infra/auth_app/templates/auth_app/reset_password.html
+msgid "Request Password Reset"
+msgstr "パスワード再設定を申し込む"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+msgid "Permanently delete your SciTeX account"
+msgstr "SciTeXアカウントを完全に削除する"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+msgid "Permanently delete your SciTeX account. This action cannot be undone."
+msgstr "SciTeXアカウントを完全に削除します。この操作は取り消せません。"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+msgid "Warning: This action cannot be undone"
+msgstr "警告:この操作は取り消せません"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+msgid "What will be deleted:"
+msgstr "削除される内容:"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+msgid "Your account:"
+msgstr "あなたのアカウント:"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+msgid "All your projects"
+msgstr "すべてのプロジェクト"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+msgid "and associated data"
+msgstr "および関連データ"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+msgid "All your manuscripts"
+msgstr "すべての原稿"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+msgid "and documents"
+msgstr "および文書"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+msgid "Your saved papers"
+msgstr "保存した論文"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+msgid "and library"
+msgstr "およびライブラリ"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+msgid "All collaboration data"
+msgstr "すべての共同作業データ"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+msgid "Your profile"
+msgstr "プロフィール"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+msgid "and settings"
+msgstr "および設定"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+msgid "Important"
+msgstr "重要"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+msgid "This action is permanent and cannot be reversed"
+msgstr "この操作は永久的であり、元に戻すことはできません。"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+msgid "You will be logged out immediately"
+msgstr "直ちにログアウトされます。"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+#, python-format
+msgid "Your username <code>%(username)s</code> may become available for others to use"
+msgstr "ユーザー名 <code>%(username)s</code> は他の人が利用できるようになる場合があります"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+msgid "Export any data you want to keep before deleting"
+msgstr "削除前に残したいデータはエクスポートしてください。"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+msgid "Confirm Account Deletion"
+msgstr "アカウント削除の確認"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+msgid "Enter your password to confirm"
+msgstr "確認のためパスワードを入力"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+msgid "Your current password"
+msgstr "現在のパスワード"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+#, python-format
+msgid "Type <code class=\"text-danger\">delete %(username)s</code> to confirm"
+msgstr "確認のため <code class=\"text-danger\">delete %(username)s</code> と入力"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+msgid "This is case-sensitive and must match exactly."
+msgstr "大文字・小文字を区別し、完全一致で入力してください。"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+msgid "Permanently Delete My Account"
+msgstr "アカウントを完全に削除する"
+
+#: apps/infra/auth_app/templates/auth_app/delete_account.html
+msgid "Cancel and Go Back"
+msgstr "キャンセルして戻る"
+
+#: apps/infra/auth_app/templates/auth_app/email_verification.html
+msgid "Verify Your Email"
+msgstr "メールアドレスの確認"
+
+#: apps/infra/auth_app/templates/auth_app/email_verification.html
+msgid "Enter the 6-digit code sent to"
+msgstr "送信された6桁のコードを入力してください。宛先:"
+
+#: apps/infra/auth_app/templates/auth_app/email_verification.html
+msgid "Code expires in 10 minutes. An unverified signup is kept and can be resumed by requesting another code — it is not deleted on a timer."
+msgstr "コードの有効期限は10分です。未確認の登録は保持され、別のコードを要求すれば再開できます。タイマーで削除されることはありません。"
+
+#: apps/infra/auth_app/templates/auth_app/email_verification.html
+msgid "Verify Email"
+msgstr "メールを確認"
+
+#: apps/infra/auth_app/templates/auth_app/email_verification.html
+msgid "Resend Code"
+msgstr "コードを再送"
+
+#: apps/infra/auth_app/templates/auth_app/auth_base.html
+msgid "SciTeX Authentication"
+msgstr "SciTeX 認証"
+
+#: apps/infra/auth_app/templates/auth_app/auth_base.html
+msgid "SciTeX Authentication - Secure login and registration for scientific research platform"
+msgstr "SciTeX 認証 - 科学研究プラットフォームへの安全なログインと登録"
+
+#: templates/global_base_partials/auth_required_modal.html
+msgid "Sign In Required"
+msgstr "ログインが必要です"
+
+#: templates/global_base_partials/auth_required_modal.html
+msgid "This feature requires authentication. You are currently browsing in read-only mode."
+msgstr "この機能には認証が必要です。現在は読み取り専用で閲覧しています。"
+
+#: templates/global_base_partials/auth_required_modal.html
+msgid "To get full access:"
+msgstr "すべての機能を使うには:"
+
+#: templates/global_base_partials/auth_required_modal.html
+msgid "with your existing account"
+msgstr "お持ちのアカウントで"
+
+#: templates/global_base_partials/auth_required_modal.html
+msgid "to get started"
+msgstr "始めるには"
+
+#: templates/global_base_partials/auth_required_modal.html
+msgid "Continue Reading"
+msgstr "読み続ける"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Dev Tools:"
+msgstr "開発ツール:"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Refresh"
+msgstr "更新"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Refresh page (Ctrl+Shift+R)"
+msgstr "ページを更新 (Ctrl+Shift+R)"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Clear Cache"
+msgstr "キャッシュをクリア"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Clear localStorage cache"
+msgstr "localStorageのキャッシュをクリア"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Cancel Jobs"
+msgstr "ジョブをキャンセル"
+
+#: templates/global_base_partials/global_footer.html
+msgid "Cancel all SLURM jobs"
+msgstr "すべてのSLURMジョブをキャンセル"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "Try SciTeX™ Cloud with 30-day Free Trial"
+msgstr "30日間無料トライアルで SciTeX™ クラウドを試す"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "See Plans"
+msgstr "プランを見る"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "Where Research Happens"
+msgstr "研究が進む場所"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "Researchers, agents, projects, data, compute, and apps in one place."
+msgstr "研究者・エージェント・プロジェクト・データ・計算・アプリを一か所に。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "Data provenance and verification built in by default."
+msgstr "データの来歴管理と検証を標準搭載。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "Works from mobile, laptop, HPC, and your AI agents."
+msgstr "モバイル・ノートPC・HPC・AIエージェントから利用可能。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_hero.html
+msgid "Open source, including this web platform."
+msgstr "このWebプラットフォームを含むオープンソース。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX Cloud — one project context"
+msgstr "SciTeX Cloud——ひとつのプロジェクトコンテキスト"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "App launcher from the tracked in-repository product guide."
+msgstr "追跡中のリポジトリ内製品ガイドによるアプリランチャーの画面。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Search workspace from the tracked in-repository product guide."
+msgstr "追跡中のリポジトリ内製品ガイドによる検索ワークスペースの画面。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Template picker from the tracked in-repository product guide."
+msgstr "追跡中のリポジトリ内製品ガイドによるテンプレート選択画面。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Source and preview workspace from the tracked in-repository product guide."
+msgstr "追跡中のリポジトリ内製品ガイドによるソース・プレビュー画面。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX Cloud app launcher showing built-in research applications."
+msgstr "組み込みの研究アプリを並べたSciTeX Cloudのアプリランチャー。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Unedited interface captures from tracked product-guide screenshots; resize and compression only."
+msgstr "未編集の画面キャプチャです(追跡中の製品ガイドのスクリーンショットより。リサイズと圧縮のみ)。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Trace a claim back to its source."
+msgstr "主張を根拠までたどる。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX Clew records relationships between research artifacts in a directed acyclic graph, connecting a manuscript claim to output, processing, and raw data, and resolving the shortest path between them. A “clew” is Ariadne’s ball of thread from Greek mythology, given to Theseus to navigate the Labyrinth and escape the Minotaur — our thread leads back from claim to source."
+msgstr "SciTeX Clewは研究成果物間の関係を有向非循環グラフとして記録し、論文の主張から成果物・処理・生データへつなぎ、その最短経路を求めます。「clew」とはギリシャ神話でアリアドネがテセウスに渡した糸玉のことで、迷宮を進みミノタウロスから逃れるための道しるべでした——私たちの糸は主張から根拠へとさかのぼります。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Short concept clip: follow the thread from claim back to source."
+msgstr "短いコンセプト動画:主張から根拠まで糸をたどります。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Review results, save papers, or capture the next step — from anywhere, even your bed."
+msgstr "結果の確認、論文の保存、次の手順の記録——どこからでも、ベッドの中からでも。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Daily analysis, figures, and writing in the browser — wherever you work."
+msgstr "日々の解析・図表作成・執筆をブラウザで——働く場所は問いません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX Cloud Server"
+msgstr "SciTeX Cloudサーバー"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Collaborate with colleagues on private and public projects in one connected workspace."
+msgstr "プライベートと公開のプロジェクトで、つながったひとつのワークスペースで同僚と共同作業。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Heavy compute next to the scheduler and data — without leaving the project."
+msgstr "スケジューラとデータのそばで重い計算を——プロジェクトを離れずに。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "HPC"
+msgstr "HPC"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Build on SciTeX"
+msgstr "SciTeXの上で開発する"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Create your own app with the SDK."
+msgstr "SDKで独自アプリを作る。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Research is novel by definition: predefined products rarely cover the experiment in front of you. Custom Apps let you build the data-collection and experiment tools your work actually needs, on the shared foundation you already have: users, projects, authentication, file storage, background compute, and AI."
+msgstr "研究は定義上新しいものです。既製品が目の前の実験に合うことはめったにありません。カスタムアプリを使えば、すでにある共通基盤(ユーザー・プロジェクト・認証・ファイル保存・バックグラウンド計算・AI)の上で、研究に本当に必要なデータ収集・実験ツールを作れます。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "The SDK provides DataStore (structured records), FileVault (project files), and JobQueue (background jobs) through a Python API, CLI, and MCP tools. Built-in skills let you create apps through interactive conversation with AI agents, and validators check each app before it runs."
+msgstr "SDKはDataStore(構造化記録)、FileVault(プロジェクトファイル)、JobQueue(バックグラウンドジョブ)をPython API・CLI・MCPツール経由で提供します。組み込みスキルを使えばAIエージェントとの対話でアプリを作れ、バリデータが実行前に各アプリを検査します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Apps are just repositories: use, share, and co-develop them like code, and publish one alongside your paper so readers can run the experiment, not just read about it."
+msgstr "アプリは単なるリポジトリです。コードと同じように使い、共有し、共同開発しましょう。論文と一緒に公開すれば、読者は読むだけでなく実験を実行できます。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "DataStore, FileVault, JobQueue: records, files, and compute"
+msgstr "DataStore、FileVault、JobQueue:記録・ファイル・計算"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Skills and validators: build with agents, ship with confidence"
+msgstr "スキルとバリデータ:エージェントと開発し、自信を持って公開"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Repos you can share: executable companions to your papers"
+msgstr "共有できるリポジトリ:論文に添えられる実行可能な成果物"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Start building"
+msgstr "開発を始める"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "SciTeX App Creator: name your app, describe what it should do, pick a starter template, and create it."
+msgstr "SciTeX App Creator:アプリに名前を付け、内容を説明し、スターターテンプレートを選んで作成します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Link to this section"
+msgstr "この節へのリンク"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Bring your own projects, collaborators, data, compute, and API keys."
+msgstr "プロジェクト・共同研究者・データ・計算・APIキーはお手持ちのものを。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Your research. Your infrastructure. Your assets stay yours: connect the machines, datasets, and keys you already have and use them at full value, with no platform markup and nothing locked in. Use SciTeX Cloud or self-host, keep human judgment at the center, and plug in whatever the work needs."
+msgstr "あなたの研究、あなたのインフラ。資産はあなたのものです。すでにお持ちのマシン・データセット・キーをつないで最大限に活用しましょう。プラットフォームの上乗せも囲い込みもありません。SciTeX Cloudでもセルフホストでも、人の判断を中心に置き、仕事に必要なものを差し込めます。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Self-hosting for your own environment, such as local AI models"
+msgstr "ローカルAIモデルなど、ご自身の環境向けのセルフホスティング"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Philosophy"
+msgstr "理念"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Make research more fun"
+msgstr "研究をもっと楽しく"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "What SciTeX stands for: our vision and values."
+msgstr "SciTeXが掲げるもの:私たちのビジョンと価値観。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Vision"
+msgstr "ビジョン"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Values"
+msgstr "価値観"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Connect researchers, data, compute, tools, and projects."
+msgstr "研究者・データ・計算・ツール・プロジェクトをつなぐ。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Make data provenance scientifically verifiable."
+msgstr "データの来歴を科学的に検証可能にする。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Offer the SciTeX research platform as open source."
+msgstr "SciTeX研究プラットフォームをオープンソースとして提供する。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Remain a research institution ourselves."
+msgstr "私たち自身も研究機関であり続ける。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Curiosity and inquiry"
+msgstr "好奇心と探究"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Imagination and creation"
+msgstr "想像と創造"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Visualization and automation"
+msgstr "可視化と自動化"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
+msgid "Get started"
+msgstr "始める"
+
+#: apps/infra/public_app/pricing.py
+#, python-format
+msgid "%(pro)s\n%(acad_price)s academic (50%% off)"
+msgstr "%(pro)s\n%(acad_price)s アカデミック (50%% オフ)"
+
+#: apps/infra/public_app/pricing.py
+msgid "~4 GB/s read / ~4 GB/s write"
+msgstr "読み取り 約4 GB/s / 書き込み 約4 GB/s"
+
+#: apps/infra/public_app/pricing.py
+msgid "~700 MB/s read / ~450 MB/s write"
+msgstr "読み取り 約700 MB/s / 書き込み 約450 MB/s"
+
+#: apps/infra/public_app/pricing.py
+msgid "~550 MB/s read / ~200 MB/s write"
+msgstr "読み取り 約550 MB/s / 書き込み 約200 MB/s"
+
+#: apps/infra/public_app/pricing.py
+msgid "~110 MB/s read / ~90 MB/s write"
+msgstr "読み取り 約110 MB/s / 書き込み 約90 MB/s"
+
+#: apps/infra/public_app/pricing.py
+msgid "Hot"
+msgstr "ホット"
+
+#: apps/infra/public_app/pricing.py
+msgid "Warm"
+msgstr "ウォーム"
+
+#: apps/infra/public_app/pricing.py
+msgid "Cool"
+msgstr "クール"
+
+#: apps/infra/public_app/pricing.py
+msgid "Cold"
+msgstr "コールド"
+
+#: apps/infra/public_app/pricing.py
+msgid "Storage speeds are approximate live measurements; actual throughput varies with workload, network, concurrent use, caching, disk fill, drive media, and time of day."
+msgstr "ストレージ速度は実測の概算値です。実際のスループットは作業負荷・ネットワーク・同時利用・キャッシュ・ディスク使用量・メディア・時間帯により変動します。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/code_features.html
+msgid "research modules, batteries included"
+msgstr "研究モジュール40種以上、全部入り"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/hub_features.html
+msgid "one context from phone to HPC"
+msgstr "スマホからHPCまでひとつのコンテキスト"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/scholar_features.html
+msgid "academic works searchable locally"
+msgstr "学術文献をローカルで検索可能"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/viz_features.html
+msgid "figure layout designed for journals"
+msgstr "学術誌向けの図版レイアウト"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/writer_features.html
+msgid "LaTeX compile with live PDF preview"
+msgstr "LaTeXをコンパイルしてPDFをライブプレビュー"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/writer_features.html
+msgid "Real-time"
+msgstr "リアルタイム"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/viz_features.html
+msgid "mm-precise"
+msgstr "ミリ単位の精度"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/features/hub_features.html
+msgid "1 project"
+msgstr "1つのプロジェクト"

@@ -130,22 +130,22 @@
         {# Staff only: dev is used by real testers, and these buttons cancel every SLURM job. #}
         {% if DEBUG and request.user.is_staff %}
             <div class="footer-dev-tools">
-                <span class="dev-tools-label">Dev Tools:</span>
-                <button id="page-refresh-btn" class="dev-tool-btn" title="Refresh page (Ctrl+Shift+R)">
-                    <i class="fas fa-sync-alt"></i> Refresh
+                <span class="dev-tools-label">{% trans "Dev Tools:" %}</span>
+                <button id="page-refresh-btn" class="dev-tool-btn" title="{% trans 'Refresh page (Ctrl+Shift+R)' %}">
+                    <i class="fas fa-sync-alt"></i> {% trans "Refresh" %}
                 </button>
                 <button id="clear-localstorage-btn"
                         class="dev-tool-btn"
-                        title="Clear localStorage cache"
+                        title="{% trans 'Clear localStorage cache' %}"
                         onclick="if(confirm('Clear all localStorage? This will reset theme preferences and cached data.')) { localStorage.clear(); location.reload(); }">
-                    <i class="fas fa-eraser"></i> Clear Cache
+                    <i class="fas fa-eraser"></i> {% trans "Clear Cache" %}
                 </button>
 
                 <button id="cancel-all-jobs-btn"
                         class="dev-tool-btn"
-                        title="Cancel all SLURM jobs"
+                        title="{% trans 'Cancel all SLURM jobs' %}"
                         onclick="cancelAllJobs()">
-                    <i class="fas fa-ban"></i> Cancel Jobs
+                    <i class="fas fa-ban"></i> {% trans "Cancel Jobs" %}
                 </button>
             </div>
         {% endif %}
