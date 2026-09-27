@@ -32,6 +32,20 @@ class TestPackageLayout(TestCase):
         ):
             return UserLibraryService(self.user)
 
+    def test_users_root_not_doubled(self):
+        import tempfile
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as tmp:
+            # Deployment points USER_DATA_ROOT straight at the users tree.
+            svc = self._service(Path(tmp) / "users")
+            self.assertEqual(
+                svc.library_path,
+                Path(tmp) / "users" / self.user.username
+                / ".scitex" / "scholar" / "library",
+            )
+            self.assertNotIn("users/users", str(svc.library_path))
+
     def test_master_created_no_legacy_dirs(self):
         import tempfile
         from pathlib import Path
