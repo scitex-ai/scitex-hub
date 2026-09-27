@@ -98,6 +98,14 @@
                 <div class="results-toolbar">
                     <!-- Actions Group (Left) -->
                     <div class="toolbar-actions">
+                        <!-- Save to Library (checked results → project bibliography) -->
+                        <button type="button"
+                                class="toolbar-btn toolbar-btn--primary"
+                                id="saveSelectedBtn"
+                                title="{% trans 'Save selected papers to library' %}"
+                                disabled>
+                            <i class="fas fa-bookmark"></i> {% trans "Save to Library" %}
+                        </button>
                         <!-- Download (BibTeX/JSON/Text) -->
                         <button type="button"
                                 class="toolbar-btn toolbar-btn--primary"

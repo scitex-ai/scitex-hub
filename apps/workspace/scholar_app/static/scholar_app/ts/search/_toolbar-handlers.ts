@@ -12,6 +12,10 @@ import {
   initSelectionListener,
   initCopyShortcut,
 } from "./_results-toolbar";
+import {
+  getCsrfToken,
+  showToast,
+} from "../common/_scholar-index/utilities";
 
 /**
  * Abstract toggle click handler
@@ -142,6 +146,99 @@ function attachHandler(
 }
 
 /**
+ * Get selected project ID from sessionStorage (set by project-selector.ts)
+ */
+function getSelectedProjectId(): string | null {
+  return sessionStorage.getItem("scholar_selected_project_id");
+}
+
+/**
+ * Bulk-save checked search results to the selected project's library.
+ *
+ * Honest states: no selection, no project, expired session, per-paper
+ * skips reported by the server, and network failures each get their own
+ * toast — the button never claims a save it did not make.
+ */
+async function handleSaveSelected(btn: HTMLButtonElement): Promise<void> {
+  const papers = getSelectedPapers();
+  if (papers.length === 0) {
+    showToast(
+      "No papers selected. Check the boxes on results to select them.",
+      "warning",
+    );
+    return;
+  }
+
+  const projectId = getSelectedProjectId();
+  if (!projectId) {
+    showToast("No project selected. Please select a project first.", "warning");
+    return;
+  }
+
+  const csrfToken = getCsrfToken();
+  if (!csrfToken) {
+    showToast("Session expired. Please refresh the page.", "danger");
+    return;
+  }
+
+  const originalHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+  try {
+    const response = await fetch("/apps/scholar/api/papers/save-bulk/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken,
+      },
+      body: JSON.stringify({
+        project_id: projectId,
+        papers: papers.map((p) => ({
+          title: p.title,
+          authors: p.authors,
+          year: p.year,
+          journal: p.journal,
+          doi: p.doi,
+          pmid: p.pmid || "",
+          abstract: p.abstract,
+          source: p.source,
+          url: p.url,
+        })),
+      }),
+    });
+
+    const result = await response.json();
+
+    if (response.ok && result.success) {
+      const skipped = result.skipped
+        ? ` (${result.skipped.toLocaleString()} skipped)`
+        : "";
+      showToast(
+        `Saved ${result.saved.toLocaleString()} paper${result.saved === 1 ? "" : "s"} to ${result.project}${skipped}`,
+        "success",
+      );
+      // Uncheck saved cards so the toolbar re-disables honestly.
+      document
+        .querySelectorAll(
+          ".result-card .paper-select:checked, .result-card .paper-select-checkbox:checked",
+        )
+        .forEach((cb) => {
+          (cb as HTMLInputElement).checked = false;
+        });
+    } else {
+      showToast(result.error || "Failed to save papers", "danger");
+    }
+  } catch (error) {
+    console.error("[toolbar-handlers] Bulk save error:", error);
+    showToast("Network error. Please try again.", "danger");
+  } finally {
+    btn.innerHTML = originalHtml;
+    updateToolbarState();
+  }
+}
+
+/**
  * Setup toolbar button handlers
  */
 export function setupToolbarHandlers(): void {
@@ -150,24 +247,9 @@ export function setupToolbarHandlers(): void {
     handleAbstractToggle(this);
   });
 
-  // Save Selected button
+  // Save Selected button — bulk-save checked results to the project library
   attachHandler("saveSelectedBtn", function () {
-    const papers = getSelectedPapers();
-    if (papers.length === 0) {
-      alert("No papers selected. Click on papers to select them.");
-      return;
-    }
-    const saved = JSON.parse(
-      localStorage.getItem("scitex_saved_papers") || "[]",
-    );
-    const newPapers = papers.filter(
-      (p) => !saved.some((s: { title: string }) => s.title === p.title),
-    );
-    saved.push(...newPapers);
-    localStorage.setItem("scitex_saved_papers", JSON.stringify(saved));
-    alert(
-      `Saved ${newPapers.length.toLocaleString()} paper(s) to library. (${(papers.length - newPapers.length).toLocaleString()} already saved)`,
-    );
+    void handleSaveSelected(this as HTMLButtonElement);
   });
 
   // Open URLs button

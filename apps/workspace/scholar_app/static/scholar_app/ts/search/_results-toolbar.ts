@@ -97,6 +97,7 @@ export function getSelectedPapers(): PaperData[] {
           snippetEl?.textContent?.trim() ||
           "",
         doi: cardEl.dataset?.doi || "",
+        pmid: cardEl.dataset?.pmid || "",
         source:
           card.querySelector(".source-badge")?.textContent?.trim() ||
           cardEl.dataset?.source ||
@@ -336,6 +337,7 @@ export function updateToolbarState(): void {
 
   // Update selection-dependent buttons
   const selectionButtons = [
+    "saveSelectedBtn",
     "openUrlsBtn",
     "exportSelectedBibtex",
     "downloadSelectedPdfs",
