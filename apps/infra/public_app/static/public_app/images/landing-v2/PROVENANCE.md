@@ -22,7 +22,8 @@ source photographs with Pillow; no generated imagery was added.
 
 ## Actual SciTeX product captures
 
-The carousel renditions come from tracked in-repository guide screenshots. They are
+The carousel renditions come from tracked in-repository guide screenshots, except
+Stats (see below). They are
 real captures of the application; only resize/compression was applied. The captions on
 the page describe only what is visible and do not claim that a static image proves
 feature availability or performance.
@@ -33,6 +34,23 @@ feature availability or performance.
 | Scholar | `apps/workspace/docs_app/static/docs_app/images/howto/scholar-01-open.jpg` | `a5611dfa5714243db49c30cab715c320aa131d31bfadeab8be3efdc0c0f78aa5` |
 | Writer | `apps/workspace/docs_app/static/docs_app/images/howto/writer-03-edit.jpg` | `a6757c06329754379b414ae17b8265d43bcbc6751169e8236cb54dcd2cf32b1e` |
 | FigRecipe | `apps/workspace/docs_app/static/docs_app/images/howto/figrecipe-02-templates.jpg` | `69799755ac077da834eebf989d2de5031941412898eb7c4eff8ac71ada12b2a2` |
+| Stats | Development capture `/tmp/shots/stats-1280.png` on scitex-compute-03 (no tracked guide source exists) | `4b8a0c4a348100999d834ec962b6e23c5eacc8ad3f09d4db9eefd146616a4678` |
+
+### Stats slide source (development capture, not a tracked guide)
+
+No tracked Stats guide screenshot exists under
+`apps/workspace/docs_app/static/docs_app/images/howto/`, so the Stats renditions
+(`stats-768.webp`, `stats-1200.webp`, `stats-1200.jpg`) were resized with Pillow
+from a real capture of the Stats leaf app (`/apps/stats/`, v0.2.28) running in the
+`scitex-hub-dev-django-1` container on scitex-compute-03 on 2026-09-27. The capture
+used an anonymous session: the built-in sample two-group dataset was loaded
+(Group 1 n=8, Group 2 n=8) and Calculate was pressed, so the shot shows the data
+input, the recommended Welch's t-test, the results table (t(14) = -6.35,
+p < .001, d = -3.18), and the box plot. Viewport capture only (1280x800, no
+full-page stitching); the results pane was scrolled so the statistics and chart
+are visible. No personal data, no local paths, no dock overlap, no broken icon
+glyphs. Only resize/compression was applied to the renditions. The source PNG is
+outside the repository; its SHA-256 is recorded in the table above.
 
 Related tracked demo videos remain available at
 `apps/infra/public_app/static/public_app/videos/landing/`: `hub-demo.mp4`,
