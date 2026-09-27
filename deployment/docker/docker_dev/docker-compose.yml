@@ -87,6 +87,13 @@ services:
       # compose itself remains startable.
       - ${SCITEX_AGENT_CONTAINER_API_TOKEN_FILE_HOST:-/dev/null}:/run/secrets/sac-listen-token:ro
 
+      # SAC scratch root. The Agents GUI scaffolds/launches in-process, and
+      # SAC refuses when /scratch is neither a mount nor a directory
+      # (ScratchRootError → 502 on POST /apps/agents/create/). A named
+      # volume gives the container a persistent /scratch without touching
+      # the host layout.
+      - sac_scratch:/scratch
+
       # User workspace data directory (also serves as user home via symlink)
       - ../../../data/users:/app/data/users
 
@@ -612,6 +619,10 @@ volumes:
     driver: local
 
   gitea_data:
+    driver: local
+
+  # SAC scratch root for the in-process Agents GUI (see django volumes).
+  sac_scratch:
     driver: local
 
   # Application data
