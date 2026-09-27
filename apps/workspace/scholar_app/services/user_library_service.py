@@ -7,21 +7,13 @@ Every hub user is a unix user, so the library is simply that user's
 ``~/.scitex/scholar/`` tree (pwd-resolved; ``USER_DATA_ROOT/users/<name>``
 fallback when no unix account exists, e.g. fresh signups in containers).
 
-Layout follows the package's PathManager PATH_STRUCTURE exactly —
-``library/MASTER/<paper_id>/`` for paper storage (pdf + bib + metadata.json,
-which the package's library index reads), ``library/<project>/`` for
-per-project trees. Project roots get ``.scitex/scholar/library`` symlinked
-to the home library via the package's ``link_project_tree``.
-
-Storage Strategy:
-    - Papers stored once in user library (deduplicated)
-    - Projects see the whole library through one symlink (package verb)
-    - Django tracks paths via CharField (relative to the library root)
-    - No hub-invented directories: `papers/{doi,pmid,arxiv}/`, `collections/`
-      and `metadata/` are legacy and no longer created.
+All storage behavior — ``MASTER/<paper_id>/`` writes, metadata schema,
+legacy fallbacks — lives in
+:mod:`scitex_scholar.storage._master_store`. This module only resolves
+*whose* library and *which* project link; it contains no file-format
+knowledge. Requires scitex-scholar>=1.13 (``master_*`` verbs).
 """
 
-import json
 import logging
 import pwd
 from pathlib import Path
@@ -37,26 +29,28 @@ try:  # Package PathManager: the offered seam for the canonical layout.
 except ImportError:  # pragma: no cover - old leaf; manual same-layout fallback
     PathManager = None
 
-
-def _paper_id(identifier: str, id_type: str) -> str:
-    """Filesystem-safe MASTER/<paper_id> for an identifier."""
-    safe = "".join(
-        c if (c.isalnum() or c in ("-", "_", ".")) else "_" for c in identifier
-    ).strip("._")[:120]
-    if id_type and not safe.lower().startswith(id_type.lower()):
-        safe = f"{id_type}-{safe}" if safe else id_type
-    return safe or "unknown"
+from scitex_scholar.storage._master_store import (
+    add_paper as _leaf_add_paper,
+)
+from scitex_scholar.storage._master_store import (
+    get_paper_path as _leaf_get_paper_path,
+)
+from scitex_scholar.storage._master_store import (
+    list_papers as _leaf_list_papers,
+)
+from scitex_scholar.storage._master_store import (
+    paper_id_for as _paper_id,
+)
 
 
 class UserLibraryService:
     """
-    Manages user-level scholar library with symlinks.
+    Thin per-user handle: path resolution here, storage in the leaf.
 
-    This service is a thin wrapper that:
-    1. Determines user-specific library paths
-    2. Delegates actual paper management to scitex.scholar package
-    3. Ensures directory structure exists
-    4. Provides simple interface for Django views/models
+    Public surface (kept stable for views):
+    ``library_path``, ``add_paper``, ``get_paper_path``,
+    ``ensure_project_link``, ``prune_project_link``, ``link_to_project``,
+    ``unlink_from_project``, ``list_user_papers``, ``deduplicate``.
     """
 
     def __init__(self, user: User):
@@ -122,130 +116,23 @@ class UserLibraryService:
         bibtex_content: Optional[str] = None,
         metadata: Optional[Dict] = None,
     ) -> Dict[str, Path]:
-        """
-        Add paper to user library under ``MASTER/<paper_id>/``.
-
-        Args:
-            identifier: Paper identifier (DOI, PMID, arXiv ID)
-            id_type: Type of identifier ('doi', 'pmid', 'arxiv')
-            pdf_path: Optional path to PDF file to copy
-            bibtex_content: Optional BibTeX content to save
-            metadata: Optional package-schema metadata dict; when absent a
-                minimal one is derived from identifier/id_type so the
-                package library index can read the entry.
-
-        Returns:
-            Dict with 'pdf' and 'bibtex' paths (relative to library root)
-        """
-        paper_id = _paper_id(identifier, id_type)
-        paper_dir = self.library_path / "MASTER" / paper_id
-        paper_dir.mkdir(parents=True, exist_ok=True)
-
-        result = {}
-
-        # Copy PDF if provided
-        if pdf_path and Path(pdf_path).exists():
-            dest_pdf = paper_dir / f"{paper_id}.pdf"
-            if not dest_pdf.exists():
-                import shutil
-
-                shutil.copy2(pdf_path, dest_pdf)
-                logger.info(f"Added PDF for {identifier} to user library")
-            result["pdf"] = dest_pdf.relative_to(self.library_path)
-
-        # Save BibTeX if provided
-        if bibtex_content:
-            dest_bib = paper_dir / f"{paper_id}.bib"
-            dest_bib.write_text(bibtex_content)
-            logger.info(f"Added BibTeX for {identifier} to user library")
-            result["bibtex"] = dest_bib.relative_to(self.library_path)
-
-        # metadata.json: the package index's primary source. Merge caller
-        # metadata over the derived skeleton, never the reverse.
-        skeleton = {
-            "metadata": {
-                "id": {"doi": None, "arxiv_id": None, "pmid": None},
-                "basic": {
-                    "title": None,
-                    "year": None,
-                    "authors": [],
-                    "abstract": None,
-                },
-                "publication": {},
-                "access": {},
-                "citation": {},
-            }
-        }
-        key_map = {"doi": "doi", "arxiv": "arxiv_id", "pmid": "pmid"}
-        if id_type in key_map:
-            skeleton["metadata"]["id"][key_map[id_type]] = identifier
-        merged = dict(skeleton["metadata"])
-        # Fold flat search-result keys into their package sections so no
-        # caller can produce an entry whose basic.title is None. Explicit
-        # nested sections win over flat keys.
-        flat = dict(metadata or {})
-        for section, values in flat.items():
-            if isinstance(values, dict):
-                merged.setdefault(section, {}).update(values)
-        # Skeleton placeholders are None (key present) — setdefault would
-        # keep them; fill only gaps.
-        def _fill(section, key, value):
-            if value is None:
-                return
-            target = merged.setdefault(section, {})
-            if target.get(key) is None:
-                target[key] = value
-
-        for key in ("title", "year", "authors", "abstract"):
-            _fill("basic", key, flat.get(key))
-        _fill("publication", "journal", flat.get("journal"))
-        for key in ("doi", "arxiv_id", "pmid"):
-            _fill("id", key, flat.get(key))
-        for section, values in flat.items():
-            if not isinstance(values, dict) and section not in (
-                "title",
-                "year",
-                "authors",
-                "abstract",
-                "journal",
-                "doi",
-                "arxiv_id",
-                "pmid",
-            ):
-                merged[section] = values
-        skeleton["metadata"] = merged
-        (paper_dir / "metadata.json").write_text(
-            json.dumps(skeleton, indent=2, ensure_ascii=False)
+        """Add paper to user library (leaf ``master_add_paper``)."""
+        return _leaf_add_paper(
+            self.library_path,
+            identifier,
+            id_type,
+            pdf_path=pdf_path,
+            bibtex_content=bibtex_content,
+            metadata=metadata,
         )
-
-        return result
 
     def get_paper_path(
         self, identifier: str, id_type: str, file_type: str = "pdf"
     ) -> Optional[Path]:
-        """
-        Get absolute path to paper file in user library.
-
-        Args:
-            identifier: Paper identifier
-            id_type: Type of identifier ('doi', 'pmid', 'arxiv')
-            file_type: File type ('pdf' or 'bib')
-
-        Returns:
-            Absolute path to file, or None if not found
-        """
-        safe_id = _paper_id(identifier, id_type)
-        paper_path = self.library_path / "MASTER" / safe_id / f"{safe_id}.{file_type}"
-        if paper_path.exists():
-            return paper_path
-        # Legacy hub layout (pre-package): papers/<id_type>/<safe>.<ext>
-        legacy_safe = identifier.replace("/", "_").replace(":", "_")
-        legacy_path = (
-            self.library_path / "papers" / id_type / f"{legacy_safe}.{file_type}"
+        """Absolute path to paper file in user library (leaf lookup)."""
+        return _leaf_get_paper_path(
+            self.library_path, identifier, id_type, file_type
         )
-        if legacy_path.exists():
-            return legacy_path
-        return None
 
     def ensure_project_link(self, project_path: Path) -> Optional[Path]:
         """
@@ -353,57 +240,8 @@ class UserLibraryService:
             logger.warning(f"File exists but is not a symlink: {legacy_path}")
 
     def list_user_papers(self) -> List[Dict]:
-        """
-        List all papers in user's library (package ``MASTER/`` store,
-        plus legacy ``papers/`` entries not yet migrated).
-
-        Returns:
-            List of dicts with paper info: {
-                'identifier': str,
-                'id_type': str,
-                'pdf_path': Path,
-                'bib_path': Path
-            }
-        """
-        papers = []
-        seen = set()
-
-        master = self.library_path / "MASTER"
-        if master.is_dir():
-            for pdf_file in sorted(master.glob("*/*.pdf")):
-                paper_id = pdf_file.parent.name
-                bib_file = pdf_file.with_name(f"{paper_id}.bib")
-                papers.append(
-                    {
-                        "identifier": paper_id,
-                        "id_type": "master",
-                        "pdf_path": pdf_file,
-                        "bib_path": bib_file if bib_file.exists() else None,
-                    }
-                )
-                seen.add(pdf_file.resolve())
-
-        for id_type in ["doi", "pmid", "arxiv"]:
-            type_dir = self.library_path / "papers" / id_type
-            if not type_dir.exists():
-                continue
-
-            for pdf_file in type_dir.glob("*.pdf"):
-                if pdf_file.resolve() in seen:
-                    continue
-                identifier = pdf_file.stem
-                bib_file = pdf_file.with_suffix(".bib")
-
-                papers.append(
-                    {
-                        "identifier": identifier,
-                        "id_type": id_type,
-                        "pdf_path": pdf_file,
-                        "bib_path": bib_file if bib_file.exists() else None,
-                    }
-                )
-
-        return papers
+        """List all papers in user's library (leaf ``master_list_papers``)."""
+        return _leaf_list_papers(self.library_path)
 
     def deduplicate(self) -> Dict:
         """
