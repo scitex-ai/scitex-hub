@@ -46,7 +46,8 @@ def is_new_user(user) -> bool:
 def _owned_projects(user):
     from apps.infra.project_app.models import Project
 
-    # Every account already owns a home (dotfiles) project; it is not "your first project".
+    # Accounts created with seeding disabled own no home (dotfiles) project;
+    # it is not "your first project" either way.
     return (
         Project.objects.filter(owner=user, is_home=False)
         .exclude(slug="dotfiles")
