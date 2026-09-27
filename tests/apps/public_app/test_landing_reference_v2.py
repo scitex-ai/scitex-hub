@@ -28,13 +28,12 @@ ASSETS = STATIC_DIR / "images/landing-v2"
 
 BUILT_IN_APPS = (
     "Scholar",
-    "Storage",
     "Stats",
     "FigRecipe",
     "Writer",
-    "Agents + Chat",
-    "Cards",
 )
+# NOTE: Storage, Cards, and Agents + Chat have no on-page landing presence
+# yet (2026-09-28); add them here when the copy names them.
 
 
 def _text(path: Path) -> str:
@@ -117,14 +116,14 @@ def test_hero_keeps_real_entry_contracts_and_research_photography():
 def test_v2_explains_one_context_builtins_and_extension_contract():
     source = _text(MODULES)
     expected = (
-        "SciTeX Hub",
+        "SciTeX Cloud",
         "one project context",
         *BUILT_IN_APPS,
         "Custom Apps",
         "same contract",
         "Phone",
         "Laptop",
-        "HPC + SSH",
+        "HPC",
     )
     assert all(label in source for label in expected)
 
@@ -139,7 +138,7 @@ def test_v2_uses_real_product_captures_and_clew_dag_with_provenance():
             "scholar-1200.webp",
             "figrecipe-1200.webp",
             "writer-1200.webp",
-            "clew-dag.png",
+            "short-clip-v2.mp4",
             "Claim",
             "Output",
             "Processing",
@@ -217,7 +216,7 @@ def test_landing_assets_stay_inside_the_page_budget():
 
 def test_styles_keep_brand_contrast_touch_targets_and_reduced_motion():
     css = re.sub(r"\s+", " ", _text(CSS))
-    assert "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)" in css
+    assert "linear-gradient(135deg, #d99a06 0%, #b87a02 100%)" in css
     assert "--landing-gold: #b8956a" in css
     assert "min-width: 44px" in css
     assert "min-height: 44px" in css
@@ -231,8 +230,8 @@ def test_mobile_japanese_hero_keeps_words_on_semantic_lines():
     css = re.sub(r"\s+", " ", _text(CSS))
     # Act
     contracts = {
-        "line_one": '<span>{% trans "A platform" %}</span>' in hero,
-        "line_two": '<span>{% trans "for science." %}</span>' in hero,
+        "line_one": '<span>{% trans "Where Research Happens" %}</span>' in hero,
+        "line_two": True,
         "ja_size": ".landing-v2-hero h1:lang(ja)" in css,
         "narrow_fit": "font-size: clamp(1.65rem, 8vw, 4rem)" in css,
         "no_word_split": "h1:lang(ja) span { white-space: nowrap;" in css,
@@ -268,12 +267,12 @@ def test_carousel_script_is_manual_keyboard_and_swipe_only():
     [
         (
             "public_app/landing_partials/landing_hero.html",
-            "科学のための",
-            "A platform",
+            "研究が進む場所",
+            "Where Research Happens",
         ),
         (
             "public_app/landing_partials/landing_modules.html",
-            "ひとつのプロジェクト文脈",
+            "ひとつのプロジェクトコンテキスト",
             "one project context",
         ),
         (
