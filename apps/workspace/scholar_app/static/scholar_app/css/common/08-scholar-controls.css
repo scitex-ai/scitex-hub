@@ -108,7 +108,14 @@
 }
 
 @media (max-width: 768px) {
+  /* Stack: tabs row on top, project picker row below. At ~390px the three
+     tabs and the project <select> cannot share one flex row without
+     overlapping, so the header wraps to two rows. Desktop keeps the
+     single-row flex layout. Layout only — selector logic untouched. */
   :root .scholar-main .pane-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
     height: auto;
     min-height: 0;
     padding: 8px 12px;
@@ -116,6 +123,20 @@
 
   :root .scholar-main .pane-header-actions:empty {
     display: none;
+  }
+
+  :root .scholar-main .pane-header-actions {
+    width: 100%;
+  }
+
+  :root .scholar-main .pane-header-actions .scholar-project-picker {
+    width: 100%;
+  }
+
+  :root .scholar-main .pane-header-actions .scholar-project-picker .form-select {
+    flex: 1;
+    min-width: 0;
+    max-width: none;
   }
 
   :root .scholar-main .scholar-tabs {
