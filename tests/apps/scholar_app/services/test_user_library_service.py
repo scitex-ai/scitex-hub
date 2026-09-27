@@ -46,6 +46,27 @@ class TestPackageLayout(TestCase):
             )
             self.assertNotIn("users/users", str(svc.library_path))
 
+    def test_flat_metadata_folds_into_sections(self):
+        import json
+        import tempfile
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as tmp:
+            svc = self._service(Path(tmp))
+            result = svc.add_paper(
+                identifier="10.1000/flat",
+                id_type="doi",
+                bibtex_content="@article{flat, title={Flat}}",
+                metadata={"title": "Flat Paper", "year": 2023},
+            )
+            meta = json.loads(
+                (svc.library_path / result["bibtex"]).parent
+                .joinpath("metadata.json").read_text()
+            )["metadata"]
+            self.assertEqual(meta["basic"]["title"], "Flat Paper")
+            self.assertEqual(meta["basic"]["year"], 2023)
+            self.assertEqual(meta["id"]["doi"], "10.1000/flat")
+
     def test_master_created_no_legacy_dirs(self):
         import tempfile
         from pathlib import Path
