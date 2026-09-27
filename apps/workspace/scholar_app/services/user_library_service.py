@@ -87,9 +87,12 @@ class UserLibraryService:
         except KeyError:
             pass
         if settings.USER_DATA_ROOT:
+            # USER_DATA_ROOT may already point at the users tree itself
+            # (e.g. /app/data/users); never double the "users" segment.
+            root = settings.USER_DATA_ROOT
+            users_root = root if root.name == "users" else root / "users"
             return (
-                settings.USER_DATA_ROOT
-                / "users"
+                users_root
                 / self.user.username
                 / ".scitex"
                 / "scholar"
