@@ -317,6 +317,7 @@
 
 :root .scholar-main .search-container-full-width .search-btn {
   width: 7.5rem;
+  align-self: stretch;
 }
 
 /* Help "?" at the input's top-right; the Ctrl+K hint sits beside it. */
