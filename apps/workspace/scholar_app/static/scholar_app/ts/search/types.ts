@@ -45,6 +45,7 @@ export interface PaperData {
   year: string;
   abstract: string;
   doi: string;
+  pmid?: string;
   source: string;
   citations?: number;
   impactFactor?: number;

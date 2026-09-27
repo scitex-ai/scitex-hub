@@ -6334,6 +6334,18 @@ msgstr "論文を検索"
 msgid "e.g. hippocampus -a Smith -ymin 2020 -ymax 2024"
 msgstr "例: hippocampus -a Smith -ymin 2020 -ymax 2024"
 
+#: apps/workspace/scholar_app/templates/scholar_app/search_partials/search.html
+msgid "Search papers from databases"
+msgstr "データベースから論文を検索"
+
+#: apps/workspace/scholar_app/templates/scholar_app/search_partials/search.html
+msgid "Save selected papers to library"
+msgstr "選択した論文をライブラリに保存"
+
+#: apps/workspace/scholar_app/templates/scholar_app/search_partials/search.html
+msgid "Save to Library"
+msgstr "ライブラリに保存"
+
 #: apps/workspace/scholar_app/templates/scholar_app/library_partials/library_main.html
 msgid "Collection"
 msgstr "コレクション"
