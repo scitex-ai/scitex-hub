@@ -131,6 +131,22 @@ ALLOWED = {
     "English",
     # contact
     "info@scitex.ai",
+    # "Web" survives inside the Japanese 「このWebプラットフォームを含む」 —
+    # it is the standard loanword; katakana-ising it to ウェブ would read as
+    # a different word to a Japanese reader.
+    "Web",
+    # SDK section identifiers: the mythological term kept in romaji inside
+    # the JA Clew paragraph (「clew」とは…), the API component names, and the
+    # store proper names. Translating any of these would break the reference.
+    "clew",
+    "SDK",
+    "CLI",
+    "DataStore",
+    "FileVault",
+    "JobQueue",
+    "SciTeX App Store",
+    "Apple App Store",
+    "Google Play",
 }
 
 # NOTE ON "video" AND "import": these appear INSIDE the Japanese translations —
