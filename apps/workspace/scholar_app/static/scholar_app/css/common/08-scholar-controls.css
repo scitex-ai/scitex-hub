@@ -57,24 +57,29 @@
   display: none;
 }
 
-/* ── Top tabs: segmented control ─────────────────────────────── */
+/* ── Top tabs: underline style (operator 2026-09-27: same sleek bar as the
+   Writer mobile tabs — flat, no pill container; the active tab carries only
+   a bottom border). ─────────────────────────────── */
 :root .scholar-main .scholar-tabs {
-  gap: 2px;
-  padding: 3px;
+  gap: 0;
+  padding: 0;
   min-height: 0;
   flex: 0 1 auto;
-  background: var(--sch-surface-2);
-  border: 1px solid var(--sch-border);
-  border-radius: calc(var(--sch-radius) + 2px);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--sch-border);
+  border-radius: 0;
   scrollbar-width: none;
 }
 
 :root .scholar-main .scholar-tab {
   justify-content: center;
   min-height: calc(var(--sch-control-h) - 4px);
-  padding: 0 14px;
+  padding: 0 14px 8px;
   border: 0;
-  border-radius: var(--sch-radius);
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
   color: var(--sch-muted);
   font-size: 13px;
   font-weight: 500;
@@ -86,13 +91,12 @@
 }
 
 :root .scholar-main .scholar-tab.active {
-  background: var(--sch-surface);
+  background: transparent;
   color: var(--sch-text);
   font-weight: 600;
   border: 0;
-  box-shadow:
-    0 0 0 1px var(--sch-border),
-    0 1px 2px rgba(0, 0, 0, 0.08);
+  border-bottom: 2px solid var(--sch-primary, currentColor);
+  box-shadow: none;
 }
 
 :root .scholar-main .scholar-tab.active i {
