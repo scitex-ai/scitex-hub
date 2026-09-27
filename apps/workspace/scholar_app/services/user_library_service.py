@@ -187,16 +187,20 @@ class UserLibraryService:
         for section, values in flat.items():
             if isinstance(values, dict):
                 merged.setdefault(section, {}).update(values)
+        # Skeleton placeholders are None (key present) — setdefault would
+        # keep them; fill only gaps.
+        def _fill(section, key, value):
+            if value is None:
+                return
+            target = merged.setdefault(section, {})
+            if target.get(key) is None:
+                target[key] = value
+
         for key in ("title", "year", "authors", "abstract"):
-            if flat.get(key) is not None:
-                merged.setdefault("basic", {}).setdefault(key, flat[key])
-        if flat.get("journal") is not None:
-            merged.setdefault("publication", {}).setdefault(
-                "journal", flat["journal"]
-            )
+            _fill("basic", key, flat.get(key))
+        _fill("publication", "journal", flat.get("journal"))
         for key in ("doi", "arxiv_id", "pmid"):
-            if flat.get(key) is not None:
-                merged.setdefault("id", {}).setdefault(key, flat[key])
+            _fill("id", key, flat.get(key))
         for section, values in flat.items():
             if not isinstance(values, dict) and section not in (
                 "title",
