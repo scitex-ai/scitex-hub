@@ -173,6 +173,12 @@ services:
       - OPENALEX_LOCAL_API_URL=${SCITEX_HUB_OPENALEX_API_URL_DEV:-http://scitex-primary:31292}
       - SCITEX_AGENT_CONTAINER_API_TOKEN_FILE=/run/secrets/sac-listen-token
       - SCITEX_AGENT_CONTAINER_LIFECYCLE_OPERATORS=${SCITEX_AGENT_CONTAINER_LIFECYCLE_OPERATORS:-}
+      # In-container SAC (Agents GUI) resolves spec.host from the hostname;
+      # a container ID is meaningless to the host daemon, so the deployment
+      # declares the serving host here (machine fact, set in the local .env,
+      # e.g. scitex-compute-03 for dev). Empty = today's socket-hostname
+      # fallback.
+      - SCITEX_AGENT_CONTAINER_HOSTNAME=${SCITEX_AGENT_CONTAINER_HOSTNAME:-}
       - SCITEX_AGENT_CONTAINER_CROSSHOST_OPERATORS=${SCITEX_AGENT_CONTAINER_CROSSHOST_OPERATORS:-}
 
     # Service dependencies
