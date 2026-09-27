@@ -136,6 +136,15 @@ def payment_step(request):
         authority.pricing_id = row["id"]
         authority.save(update_fields=["pricing_id", "updated_at"])
 
+    # A $0 plan owes no card and no provider round-trip: the webhook only ever
+    # confirms PAID subscriptions, so without this a free newcomer sat on this
+    # step forever. Advancing here is not guessing — the plan is resolved.
+    if float(row.get("amount") or 0) <= 0:
+        from apps.infra.auth_app.onboarding import mark_activated
+
+        mark_activated(user, pricing_id=row["id"])
+        return redirect(first_product_url())
+
     state = trial_state(
         has_usable_card=user.payment_methods.filter(is_usable=True).exists(),
         # The AUTHORITY answers this, not a second query: it is advanced only by
