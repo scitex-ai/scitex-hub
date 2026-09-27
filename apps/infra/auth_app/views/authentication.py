@@ -231,7 +231,21 @@ def signup(request):
             # The verify, resend and cleanup paths all require it. Resend and
             # email-change deliberately never create one — that separation is
             # what stops a suspended account acquiring signup authority.
-            PendingSignup.objects.create(user=user, email=email)
+            # The fleet store requires plan NOT NULL: an allowlisted ?plan=
+            # wins, otherwise the newcomer default subscription-free.
+            requested_plan = (request.POST.get("plan") or request.GET.get("plan") or "").strip()
+            signup_plan = "subscription-free"
+            if requested_plan:
+                try:
+                    from apps.infra.public_app.services.billing_provider import (
+                        resolve_signup_plan,
+                    )
+
+                    if resolve_signup_plan(requested_plan) is not None:
+                        signup_plan = requested_plan
+                except Exception:
+                    pass
+            PendingSignup.objects.create(user=user, email=email, plan=signup_plan)
 
             # Create Gitea user account (sync with Gitea)
             try:
