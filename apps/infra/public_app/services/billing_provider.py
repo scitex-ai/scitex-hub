@@ -151,6 +151,34 @@ def resolve_signup_plan(pricing_id, price_ids=None) -> dict | None:
     )
 
 
+def resolve_free_plan(pricing_id) -> dict | None:
+    """The catalog row for ``pricing_id`` when it costs $0, else ``None``.
+
+    A free plan needs no provider price, so it can never be on the
+    chargeable allowlist — but resolving it against the FULL catalog with an
+    amount gate keeps blocker 5 intact: a paid id cannot pass here (its
+    amount is > 0), and an unknown id cannot pass either (no row). Only a
+    catalog row that costs nothing comes back.
+    """
+    if not pricing_id:
+        return None
+    row = next(
+        (
+            row
+            for row in load_pricing()["published_prices"]
+            if row.get("id") == pricing_id
+        ),
+        None,
+    )
+    if row is None:
+        return None
+    try:
+        amount = float(row.get("amount") or 0)
+    except (TypeError, ValueError):
+        return None
+    return row if amount <= 0 else None
+
+
 #: Which Stripe mode a key belongs to. Only the mode is derived — the key value
 #: itself is never logged, stored, returned or compared anywhere else.
 _TEST_KEY_PREFIXES = ("sk_test_", "rk_test_")

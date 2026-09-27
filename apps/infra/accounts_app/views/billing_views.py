@@ -110,6 +110,22 @@ def payment_step(request):
 
     # Which plan a new signup is put on must be DETERMINED and CHARGEABLE, not
     # whichever catalog row comes first and not whatever ``?plan=`` names.
+    #
+    # Free first: a $0 plan recorded on the authority owes no card and no
+    # provider round-trip (it can never be on the chargeable allowlist, by
+    # design). The webhook only ever confirms paid subscriptions, so without
+    # this a free newcomer sat on this step forever.
+    from apps.infra.public_app.services.billing_provider import resolve_free_plan
+
+    free_row = resolve_free_plan(
+        (request.GET.get("plan") or "").strip() or authority.pricing_id
+    )
+    if free_row is not None:
+        from apps.infra.auth_app.onboarding import mark_activated
+
+        mark_activated(user, pricing_id=free_row["id"])
+        return redirect(first_product_url())
+
     row = funnel_plan(user, requested_id=request.GET.get("plan"))
 
     # The way the last attempt ended, read from the provider's return markers.
@@ -139,6 +155,9 @@ def payment_step(request):
     # A $0 plan owes no card and no provider round-trip: the webhook only ever
     # confirms PAID subscriptions, so without this a free newcomer sat on this
     # step forever. Advancing here is not guessing — the plan is resolved.
+    # (Reached when the recorded plan resolved on the chargeable allowlist at
+    # $0 — e.g. a deployment that configured a $0 Stripe price. The common
+    # free case is handled by the resolve_free_plan branch above.)
     if float(row.get("amount") or 0) <= 0:
         from apps.infra.auth_app.onboarding import mark_activated
 
