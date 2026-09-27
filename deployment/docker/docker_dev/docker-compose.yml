@@ -94,6 +94,14 @@ services:
       # the host layout.
       - sac_scratch:/scratch
 
+      # SAC agents root. In-container SAC resolves its primary agents root
+      # to /home/user/.scitex (its own convention), while the host fleet
+      # lives in ~/.scitex/agent-container. Without this bind, GUI-created
+      # specs land on container-local overlay disk invisible to the fleet
+      # ("Agent not in scope" right after a completed create). Mount the
+      # host fleet in so create/launch/delete operate on the real node.
+      - ${HOME:-/home/ywatanabe}/.scitex/agent-container:/home/user/.scitex/agent-container:cached
+
       # User workspace data directory (also serves as user home via symlink)
       - ../../../data/users:/app/data/users
 
