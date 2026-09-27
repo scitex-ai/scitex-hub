@@ -161,6 +161,13 @@ services:
       - SCITEX_HUB_EMAIL_HOST_PASSWORD=${SCITEX_HUB_EMAIL_HOST_PASSWORD:?decrypt ~/.pw/no-reply@scitex.ai.gpg into the shell first}
       # scitex.writer specific
       - SCITEX_WRITER_CACHE_DIR=/app/.cache
+      # SAC registry: the host fleet is bind-mounted at
+      # /home/user/.scitex/agent-container (see volumes above) but SAC
+      # resolves its registry HOME-relative by default, which inside this
+      # container is an empty overlay dir. Point it at the mounted host
+      # registry so GUI forget/delete verbs see the same pins the host
+      # listener lists (else a listed row 404s as "not found").
+      - SCITEX_AGENT_CONTAINER_REGISTRY_DIR=/home/user/.scitex/agent-container/runtime/registry
       # scitex-ui static dir for Vite alias resolution (avoids python3 discovery)
       - SCITEX_UI_STATIC=/scitex-ui/src/scitex_ui/static/scitex_ui
       - SCITEX_AGENT_CONTAINER_API_URL=${SCITEX_AGENT_CONTAINER_API_URL:-http://host.docker.internal:7878}
