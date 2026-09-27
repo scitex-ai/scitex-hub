@@ -5842,10 +5842,6 @@ msgid "Welcome! Add a card to start your 30-day trial. Nothing is charged during
 msgstr "ようこそ。カードを登録して 30 日間のトライアルを開始してください。トライアル期間中の請求はありません。"
 
 #: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
-msgid "Trial"
-msgstr "トライアル"
-
-#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
 msgid "Your trial has been converted to a paid plan."
 msgstr "トライアルは有料プランに移行しました。"
 
@@ -7614,6 +7610,7 @@ msgstr "料金"
 msgid "Credit card"
 msgstr "クレジットカード"
 
+#: apps/infra/accounts_app/templates/accounts_app/billing_settings.html
 #: apps/infra/public_app/pricing.py
 msgid "Trial"
 msgstr "トライアル"
@@ -7713,10 +7710,6 @@ msgstr "学術ユーザーは大学メールアドレスでProを50%オフで利
 #: apps/infra/public_app/templates/public_app/landing_partials/landing_pricing.html
 msgid "Pay-as-you-go (PAYG) usage beyond your plan is billed at provider cost plus a 20%% service fee."
 msgstr "プランに含まれる量を超える従量課金（Pay-as-you-go、PAYG）は、プロバイダー原価に20%のサービス料を加えて請求されます。"
-
-#: apps/infra/public_app/pricing.py
-msgid "Self-hosted license"
-msgstr "セルフホストライセンス"
 
 #: apps/infra/public_app/pricing.py
 msgid "Commercial use"
@@ -7849,3 +7842,92 @@ msgstr ""
 #: apps/infra/public_app/pricing.py
 msgid "%(tier)s storage: %(meaning)s.%(note)s"
 msgstr "%(tier)sストレージ: %(meaning)s。%(note)s"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_opensource.html
+msgid "Open source"
+msgstr "オープンソース"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_opensource.html
+msgid "The whole stack is open source"
+msgstr "スタック全体がオープンソース"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_opensource.html
+msgid "Everything behind SciTeX Cloud — this platform and the research packages around it — lives in the open under AGPL-3.0. Audit it, fork it, self-host it."
+msgstr "SciTeX Cloudのすべて——このプラットフォームも周辺のリサーチパッケージも——はAGPL-3.0のもとで公開されています。監査も、フォークも、セルフホストも自由です。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_opensource.html
+msgid "Explore scitex-ai on GitHub"
+msgstr "GitHubでscitex-aiを見る"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_opensource.html
+msgid "Why open source matters for research"
+msgstr "研究にとってオープンソースが重要な理由"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_opensource.html
+msgid "This cloud platform: projects, apps, and accounts in one workspace."
+msgstr "このクラウドプラットフォーム:プロジェクトもアプリもアカウントも一つのワークスペースに。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_opensource.html
+msgid "Declarative YAML framework to define, run, and orchestrate AI coding agents."
+msgstr "AIコーディングエージェントを定義・実行・編成するための宣言的YAMLフレームワーク。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_opensource.html
+msgid "Canonical YAML task store with pluggable adapters and mermaid graphs."
+msgstr "差し替え可能なアダプターとmermaidグラフを備えた正準YAMLタスクストア。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_opensource.html
+msgid "Browse your storage across the machines you can reach."
+msgstr "手の届くマシン群を横断してストレージを閲覧。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_opensource.html
+msgid "Scientific paper search, enrichment, download, and management."
+msgstr "科学論文の検索・エンリッチメント・ダウンロード・管理。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_opensource.html
+msgid "LaTeX manuscript compilation for scientific documents, with MCP server."
+msgstr "MCPサーバー付きの科学論文向けLaTeX原稿コンパイル。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_opensource.html
+msgid "DataStore, FileVault, and JobQueue: the app contract for Custom Apps."
+msgstr "DataStore、FileVault、JobQueue:カスタムアプリのためのアプリ契約。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_opensource.html
+msgid "Research demo"
+msgstr "研究デモ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_opensource.html
+msgid "Watch a full research cycle in 40 minutes"
+msgstr "40分で見る研究の一連の流れ"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_opensource.html
+msgid "Follow along in your browser on scitex.ai: the GUI apps plus AI agents carry one project from literature search to manuscript — no local Python setup, no Emacs."
+msgstr "ブラウザでscitex.aiを開いて一緒に進めましょう:GUIアプリとAIエージェントが文献調査から原稿まで一つのプロジェクトを運びます——ローカルのPython環境もEmacsも不要です。"
+
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_opensource.html
+msgid "More demo videos"
+msgstr "その他のデモ動画"
+
+
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_opensource.html
+msgid "Coming soon:"
+msgstr "近日公開:"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_opensource.html
+msgid "SDK custom-app creation (scitex-sdk GUI / App Creator) — shot as a demo video and linked here when ready."
+msgstr "SDKカスタムアプリ作成(scitex-sdk GUI / App Creator)——デモ動画として撮影し、準備ができたらここにリンクします。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_modules.html
+msgid "Published apps live in the SciTeX App Store. Native mobile stores (Apple App Store / Google Play) are planned — not yet available."
+msgstr "公開されたアプリはSciTeX App Storeに並びます。ネイティブのモバイルストア(Apple App Store / Google Play)は計画中——まだ利用できません。"
+
+#: apps/infra/public_app/templates/public_app/landing_partials/landing_opensource.html
+msgid "Full-length demo — 40 minutes, end to end."
+msgstr "フル版デモ——40分で最初から最後まで。"
+
+
+
+
+
+

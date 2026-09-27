@@ -248,7 +248,7 @@ class SiteDockOnEveryPageTest(TestCase):
         # Act
         captions = re.findall(r'<span class="site-dock-app-label"[^>]*>([^<]+)</span>', dock)
         # Assert
-        assert captions == ["Home", "Projects", "Chat", "Apps"]
+        assert captions == ["Home", "Projects", "Chat", "App Store"]
 
     def test_dock_home_button_is_the_house(self):
         # Arrange

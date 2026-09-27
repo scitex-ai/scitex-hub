@@ -23,6 +23,17 @@ from django.db import connection, transaction
 from django.shortcuts import render
 from django.utils.translation import gettext as _
 
+# 40-minute full-research demo (owner ask 2026-09-27, resolved: the real URLs).
+# media/videos/scitex-automated-research-demo.mp4 is 2613s (~44min) and already
+# the VIDEO_CATALOG entry "scitex-automated-research", so the landing embed,
+# the watch page, and the demos index all point at the same file.
+RESEARCH_DEMO_VIDEO_URL = (
+    "https://scitex.ai/media/videos/scitex-automated-research-demo.mp4"
+)
+RESEARCH_DEMO_POSTER_URL = (
+    "https://scitex.ai/media/videos/scitex-automated-research-demo-thumbnail.png"
+)
+
 # Pip package names for ecosystem table (scitex-hub uses SCITEX_HUB_VERSION from context processor)
 _ECOSYSTEM_PACKAGES = [
     "scitex",
@@ -123,6 +134,10 @@ def index(request):
         # Unified plans table (Pricing + Compare plans merged): one matrix,
         # per-column CTAs, Pro recommended. SSOT-rendered, never hand-typed.
         "plan_comparison": plan_comparison(),
+        # 40-minute research demo block (owner ask 2026-09-27): the native
+        # embed, the watch page, and the demos index share one media file.
+        "research_demo_url": RESEARCH_DEMO_VIDEO_URL,
+        "research_demo_poster_url": RESEARCH_DEMO_POSTER_URL,
         # Minimal shell: the landing has no workspace panes, so the base
         # template skips workspace-only JS (tree, viewer, sidebar, modules).
         # Smaller download for anonymous visitors; the app shell is untouched.
