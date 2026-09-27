@@ -281,6 +281,16 @@ def test_carousel_script_is_manual_keyboard_and_swipe_only():
             "実際の SciTeX Cloud 画面",
             "Actual SciTeX Cloud screens",
         ),
+        (
+            "public_app/landing_partials/landing_modules.html",
+            "5枚中5枚目",
+            "5 of 5: Stats",
+        ),
+        (
+            "public_app/landing_partials/landing_modules.html",
+            "サンプル2群データの推奨検定",
+            "Sample two-group analysis",
+        ),
     ],
 )
 def test_v2_copy_switches_cleanly_between_english_and_japanese(
@@ -293,3 +303,39 @@ def test_v2_copy_switches_cleanly_between_english_and_japanese(
         en_html = render_to_string(template, {})
     assert ja_needle in ja_html and en_needle not in ja_html
     assert en_needle in en_html and ja_needle not in en_html
+
+
+def test_carousel_has_five_slides():
+    assert _text(MODULES).count("data-carousel-slide") == 5
+
+
+def test_carousel_has_five_dots_ending_in_stats():
+    assert re.findall(r'data-carousel-dot="(\d)"', _text(MODULES)) == [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+    ]
+
+
+def test_carousel_status_starts_at_one_of_five():
+    assert ">1 / 5<" in _text(MODULES)
+
+
+def test_stats_slide_closes_the_five_slide_arc():
+    assert "5 of 5: Stats" in _text(MODULES)
+
+
+def test_stats_slide_uses_dedicated_renditions():
+    assert all(
+        (ASSETS / name).exists()
+        for name in ("stats-768.webp", "stats-1200.webp", "stats-1200.jpg")
+    )
+
+
+def test_stats_provenance_records_the_dev_capture_hash():
+    assert (
+        "4b8a0c4a348100999d834ec962b6e23c5eacc8ad3f09d4db9eefd146616a4678"
+        in _text(ASSETS / "PROVENANCE.md")
+    )

@@ -66,7 +66,7 @@
                     <button type="button"
                             data-carousel-prev
                             aria-label="{% trans 'Previous product screen' %}">←</button>
-                    <span data-carousel-status aria-live="polite">1 / 4</span>
+                    <span data-carousel-status aria-live="polite">1 / 5</span>
                     <button type="button"
                             data-carousel-next
                             aria-label="{% trans 'Next product screen' %}">→</button>
@@ -76,7 +76,7 @@
                 <figure data-carousel-slide
                         role="group"
                         aria-roledescription="slide"
-                        aria-label="{% trans '1 of 4: Hub' %}">
+                        aria-label="{% trans '1 of 5: Hub' %}">
                     <picture>
                         <source type="image/webp"
                                 srcset="{% static 'public_app/images/landing-v2/hub-768.webp' %} 768w, {% static 'public_app/images/landing-v2/hub-1200.webp' %} 1200w"
@@ -92,7 +92,7 @@
                 <figure data-carousel-slide
                         role="group"
                         aria-roledescription="slide"
-                        aria-label="{% trans '2 of 4: Scholar' %}"
+                        aria-label="{% trans '2 of 5: Scholar' %}"
                         hidden>
                     <picture>
                         <source type="image/webp"
@@ -109,7 +109,7 @@
                 <figure data-carousel-slide
                         role="group"
                         aria-roledescription="slide"
-                        aria-label="{% trans '3 of 4: FigRecipe' %}"
+                        aria-label="{% trans '3 of 5: FigRecipe' %}"
                         hidden>
                     <picture>
                         <source type="image/webp"
@@ -126,7 +126,7 @@
                 <figure data-carousel-slide
                         role="group"
                         aria-roledescription="slide"
-                        aria-label="{% trans '4 of 4: Writer' %}"
+                        aria-label="{% trans '4 of 5: Writer' %}"
                         hidden>
                     <picture>
                         <source type="image/webp"
@@ -140,15 +140,33 @@
                     </picture>
                     <figcaption><strong>Writer</strong> — {% trans "Source and preview workspace from the tracked in-repository product guide." %}</figcaption>
                 </figure>
+                <figure data-carousel-slide
+                        role="group"
+                        aria-roledescription="slide"
+                        aria-label="{% trans '5 of 5: Stats' %}"
+                        hidden>
+                    <picture>
+                        <source type="image/webp"
+                                srcset="{% static 'public_app/images/landing-v2/stats-768.webp' %} 768w, {% static 'public_app/images/landing-v2/stats-1200.webp' %} 1200w"
+                                sizes="(max-width: 820px) 100vw, 1100px" />
+                        <img src="{% static 'public_app/images/landing-v2/stats-1200.jpg' %}"
+                             width="1200"
+                             height="750"
+                             loading="lazy"
+                             alt="{% trans 'SciTeX Stats analysis with sample two-group data, recommended test, statistics, and chart.' %}" />
+                    </picture>
+                    <figcaption><strong>Stats</strong> — {% trans "Sample two-group analysis with recommended test, results, and chart." %}</figcaption>
+                </figure>
             </div>
             <div class="landing-v2-carousel-dots" role="tablist" aria-label="{% trans 'Choose a product screen' %}">
                 <button type="button" role="tab" data-carousel-dot="0" aria-selected="true">Hub</button>
                 <button type="button" role="tab" data-carousel-dot="1" aria-selected="false" tabindex="-1">Scholar</button>
                 <button type="button" role="tab" data-carousel-dot="2" aria-selected="false" tabindex="-1">FigRecipe</button>
                 <button type="button" role="tab" data-carousel-dot="3" aria-selected="false" tabindex="-1">Writer</button>
+                <button type="button" role="tab" data-carousel-dot="4" aria-selected="false" tabindex="-1">Stats</button>
             </div>
             <p class="landing-v2-provenance-note">
-                {% trans "Unedited interface captures from tracked product-guide screenshots; resize and compression only." %}
+                {% trans "Unedited interface captures from tracked product-guide screenshots and the development Stats app; resize and compression only." %}
             </p>
         </div>
     </div>
@@ -284,33 +302,3 @@
 
 </section>
 
-<section class="landing-v2-section landing-v2-philosophy" id="philosophy" aria-labelledby="landing-v2-philosophy-title">
-    <div class="container landing-v2-shell">
-        <div class="landing-v2-intro">
-            <div>
-                <p class="landing-v2-eyebrow">{% trans "Philosophy" %}</p>
-                <h2 id="landing-v2-philosophy-title">{% trans "Make research more fun" %} <a class="section-anchor" href="#philosophy" aria-label="{% trans 'Link to this section' %}">#</a></h2>
-            </div>
-            <p>{% trans "What SciTeX stands for: our vision and values." %}</p>
-        </div>
-        <div class="landing-v2-philosophy-grid">
-            <article class="landing-v2-philosophy-card">
-                <h3>{% trans "Vision" %}</h3>
-                <ol>
-                    <li>{% trans "Connect researchers, data, compute, tools, and projects." %}</li>
-                    <li>{% trans "Make data provenance scientifically verifiable." %}</li>
-                    <li>{% trans "Offer the SciTeX research platform as open source." %}</li>
-                    <li>{% trans "Remain a research institution ourselves." %}</li>
-                </ol>
-            </article>
-            <article class="landing-v2-philosophy-card">
-                <h3>{% trans "Values" %}</h3>
-                <ul>
-                    <li>{% trans "Curiosity and inquiry" %}</li>
-                    <li>{% trans "Imagination and creation" %}</li>
-                    <li>{% trans "Visualization and automation" %}</li>
-                </ul>
-            </article>
-        </div>
-    </div>
-</section>
