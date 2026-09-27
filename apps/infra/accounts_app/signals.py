@@ -52,8 +52,10 @@ def create_user_profile(sender, instance, created, **kwargs):
                 f"Failed to provision Linux account for {instance.username}: {exc}"
             )
 
-        # Create a default project for the new user
-        create_default_project_for_user(instance)
+        # Operator 2026-09-27: dotfiles seeding dropped. The user is an
+        # ordinary unix account (shell prefs come from ~/.bashrc etc.);
+        # the only contract is the proj dir. New users start empty and the
+        # first-run steps point them at /new/.
 
 
 @receiver(post_save, sender=User)
@@ -65,13 +67,9 @@ def save_user_profile(sender, instance, **kwargs):
 
 @receiver(user_logged_in)
 def ensure_home_project_on_login(sender, user, request, **kwargs):
-    """Ensure home project exists every time a user logs in."""
-    ensure_home_project(user)
-
-
-def create_default_project_for_user(user):
-    """Create a default project for newly created users"""
-    ensure_home_project(user)
+    """Kept for backward compatibility; dotfiles seeding was dropped
+    (operator 2026-09-27). Existing dotfiles projects are untouched."""
+    return
 
 
 def ensure_home_project(user):
