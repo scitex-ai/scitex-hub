@@ -1,21 +1,227 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Tests for apps/scholar_app/views/search/library_operations.py"""
+"""Tests for bulk save-to-library (Scholar Search results toolbar)."""
+
+import json
 
 import pytest
+from django.contrib.auth.models import User
+from django.test import RequestFactory
 
-# from apps.workspace.scholar_app.views.search.library_operations import ...
+from apps.workspace.scholar_app.views.search.library_operations import (
+    BULK_SAVE_LIMIT,
+    _save_papers_to_project_path,
+    build_bibtex_for_paper,
+    save_papers_bulk,
+)
 
 
-class TestPlaceholder:
-    """Placeholder test class - replace with actual tests."""
+def _post_request(payload=None, raw_body=None):
+    """Build an authenticated POST request without touching the database."""
+    factory = RequestFactory()
+    if raw_body is not None:
+        request = factory.post(
+            "/apps/scholar/api/papers/save-bulk/",
+            data=raw_body,
+            content_type="application/json",
+        )
+    else:
+        request = factory.post(
+            "/apps/scholar/api/papers/save-bulk/",
+            data=json.dumps(payload or {}),
+            content_type="application/json",
+        )
+    # Unsaved User instance: is_authenticated is True, no DB hit.
+    request.user = User(username="bulk-save-tester")
+    return request
 
-    def test_placeholder_pending_implementation(self):
-        """Placeholder test - implement actual tests."""
+
+def _paper(title="Deep Learning for Maps", **overrides):
+    paper = {
+        "title": title,
+        "authors": "John Smith, Jane Doe",
+        "year": "2020",
+        "journal": "Nature",
+        "doi": "10.1234/test",
+        "abstract": "An abstract.",
+        "source": "crossref",
+        "url": "https://doi.org/10.1234/test",
+        "pmid": "",
+    }
+    paper.update(overrides)
+    return paper
+
+
+class TestBulkSaveEmptyStates:
+    """Honest empty/selection states need no project and no database."""
+
+    def test_missing_project_id_returns_400(self):
         # Arrange
+        request = _post_request({"papers": [_paper()]})
         # Act
+        response = save_papers_bulk(request)
         # Assert
-        pytest.skip("Not implemented yet")
+        assert response.status_code == 400
+
+    def test_missing_project_id_error_names_project(self):
+        # Arrange
+        request = _post_request({"papers": [_paper()]})
+        # Act
+        body = json.loads(save_papers_bulk(request).content)
+        # Assert
+        assert body["error"] == "No project selected"
+
+    def test_malformed_json_without_project_returns_400(self):
+        # Arrange
+        request = _post_request(raw_body="{not-json")
+        # Act
+        response = save_papers_bulk(request)
+        # Assert
+        assert response.status_code == 400
+
+    def test_empty_papers_returns_400(self):
+        # Arrange
+        request = _post_request({"project_id": "1", "papers": []})
+        # Act
+        response = save_papers_bulk(request)
+        # Assert
+        assert response.status_code == 400
+
+    def test_empty_papers_error_names_selection(self):
+        # Arrange
+        request = _post_request({"project_id": "1", "papers": []})
+        # Act
+        body = json.loads(save_papers_bulk(request).content)
+        # Assert
+        assert body["error"] == "No papers selected"
+
+    def test_nonlist_papers_returns_400(self):
+        # Arrange
+        request = _post_request({"project_id": "1", "papers": "oops"})
+        # Act
+        response = save_papers_bulk(request)
+        # Assert
+        assert response.status_code == 400
+
+    def test_over_limit_batch_returns_400(self):
+        # Arrange
+        papers = [_paper(title=f"Paper {i}") for i in range(BULK_SAVE_LIMIT + 1)]
+        request = _post_request({"project_id": "1", "papers": papers})
+        # Act
+        body = json.loads(save_papers_bulk(request).content)
+        # Assert
+        assert "max" in body["error"]
+
+
+class TestBuildBibtexForPaper:
+    """Pure bibtex builder: no DB, no filesystem."""
+
+    def test_key_contains_year(self):
+        # Arrange
+        paper = _paper()
+        # Act
+        citation_key, _ = build_bibtex_for_paper(paper)
+        # Assert
+        assert "2020" in citation_key
+
+    def test_entry_contains_title(self):
+        # Arrange
+        paper = _paper(title="Hippocampus Mapping")
+        # Act
+        _, entry = build_bibtex_for_paper(paper)
+        # Assert
+        assert "Hippocampus Mapping" in entry
+
+    def test_missing_title_raises(self):
+        # Arrange
+        paper = _paper(title="")
+        # Act / Assert
+        with pytest.raises(ValueError, match="Paper title is required"):
+            build_bibtex_for_paper(paper)
+
+    def test_missing_authors_falls_back(self):
+        # Arrange
+        paper = _paper(authors="")
+        # Act
+        _, entry = build_bibtex_for_paper(paper)
+        # Assert
+        assert "Unknown Author" in entry
+
+    def test_abstract_is_embedded(self):
+        # Arrange
+        paper = _paper(abstract="A very specific abstract sentence.")
+        # Act
+        _, entry = build_bibtex_for_paper(paper)
+        # Assert
+        assert "A very specific abstract sentence." in entry
+
+    def test_doi_is_embedded(self):
+        # Arrange
+        paper = _paper(doi="10.9999/unique-doi")
+        # Act
+        _, entry = build_bibtex_for_paper(paper)
+        # Assert
+        assert "10.9999/unique-doi" in entry
+
+
+class TestSavePapersToProjectPath:
+    """Filesystem-only bulk save against tmp_path (real .bib writes)."""
+
+    def test_two_valid_papers_saved_count(self, tmp_path):
+        # Arrange
+        papers = [_paper(title="Paper One"), _paper(title="Paper Two")]
+        # Act
+        summary = _save_papers_to_project_path(tmp_path, "Demo", papers)
+        # Assert
+        assert summary["saved"] == 2
+
+    def test_two_valid_papers_nothing_skipped(self, tmp_path):
+        # Arrange
+        papers = [_paper(title="Paper One"), _paper(title="Paper Two")]
+        # Act
+        summary = _save_papers_to_project_path(tmp_path, "Demo", papers)
+        # Assert
+        assert summary["skipped"] == 0
+
+    def test_two_valid_papers_write_two_bib_files(self, tmp_path):
+        # Arrange
+        papers = [_paper(title="Paper One"), _paper(title="Paper Two")]
+        # Act
+        _save_papers_to_project_path(tmp_path, "Demo", papers)
+        # Assert
+        assert len(list((tmp_path / "scitex" / "scholar" / "bib_files").glob("*.bib"))) == 2
+
+    def test_titless_paper_is_skipped_not_fatal(self, tmp_path):
+        # Arrange
+        papers = [_paper(title="Good Paper"), _paper(title="")]
+        # Act
+        summary = _save_papers_to_project_path(tmp_path, "Demo", papers)
+        # Assert
+        assert summary["saved"] == 1
+
+    def test_titless_paper_skip_count(self, tmp_path):
+        # Arrange
+        papers = [_paper(title="Good Paper"), _paper(title="")]
+        # Act
+        summary = _save_papers_to_project_path(tmp_path, "Demo", papers)
+        # Assert
+        assert summary["skipped"] == 1
+
+    def test_titless_paper_error_is_reported(self, tmp_path):
+        # Arrange
+        papers = [_paper(title="")]
+        # Act
+        summary = _save_papers_to_project_path(tmp_path, "Demo", papers)
+        # Assert
+        assert summary["errors"][0]["error"] == "Paper title is required"
+
+    def test_non_object_entry_is_skipped(self, tmp_path):
+        # Arrange
+        papers = [_paper(title="Good Paper"), "not-a-dict"]
+        # Act
+        summary = _save_papers_to_project_path(tmp_path, "Demo", papers)
+        # Assert
+        assert summary["skipped"] == 1
 
 
 if __name__ == "__main__":
@@ -24,99 +230,3 @@ if __name__ == "__main__":
     import pytest
 
     pytest.main([os.path.abspath(__file__)])
-
-# --------------------------------------------------------------------------------
-# Start of Source Code from: apps/scholar_app/views/search/library_operations.py
-# --------------------------------------------------------------------------------
-# #!/usr/bin/env python3
-# # -*- coding: utf-8 -*-
-# # File: /home/ywatanabe/proj/scitex-hub/apps/scholar_app/views/search/library_operations.py
-# # Auto-generated by refactoring script
-# # ----------------------------------------
-# from __future__ import annotations
-# import os
-#
-# __FILE__ = "./apps/scholar_app/views/search/library_operations.py"
-# __DIR__ = os.path.dirname(__FILE__)
-# # ----------------------------------------
-# from django.shortcuts import render
-# from django.http import JsonResponse
-# from django.views.decorators.http import require_http_methods
-# from django.contrib.auth.decorators import login_required
-# from django.views.decorators.csrf import csrf_exempt
-# from django.core.files.storage import default_storage
-# from django.core.cache import cache
-# from django.db.models import Q, Count, Avg, Max, Min
-# from django.utils import timezone
-# import json
-# import requests
-# import hashlib
-# from scitex import logging
-# import asyncio
-# from datetime import datetime, timedelta
-# from ...models import (
-#     SearchIndex, UserLibrary, Author, Journal,
-#     Collection, Topic, Annotation, AnnotationVote,
-#     CollaborationGroup, GroupMembership,
-#     AnnotationTag, UserPreference,
-# )
-# from apps.infra.project_app.services import get_current_project
-#
-# logger = logging.getLogger(__name__)
-#
-# # Import scitex.scholar if available
-# try:
-#     from scitex.scholar.pipelines.ScholarPipelineSearchParallel import ScholarPipelineSearchParallel
-#     SCITEX_SCHOLAR_AVAILABLE = True
-# except ImportError:
-#     SCITEX_SCHOLAR_AVAILABLE = False
-#
-#
-# # TODO: Implement library operation functionality
-# # These are placeholder stubs created to fix import errors
-# # Original implementation needs to be restored or re-implemented
-#
-# @require_http_methods(["POST"])
-# @login_required
-# def save_paper(request):
-#     """Placeholder for save_paper - TODO: implement"""
-#     return JsonResponse({"error": "Not implemented"}, status=501)
-#
-#
-# @require_http_methods(["POST"])
-# @login_required
-# def save_papers_bulk(request):
-#     """Placeholder for save_papers_bulk - TODO: implement"""
-#     return JsonResponse({"error": "Not implemented"}, status=501)
-#
-#
-# @require_http_methods(["POST"])
-# @login_required
-# def upload_file(request):
-#     """Placeholder for upload_file - TODO: implement"""
-#     return JsonResponse({"error": "Not implemented"}, status=501)
-#
-#
-# @require_http_methods(["GET"])
-# @login_required
-# def get_citation(request):
-#     """Placeholder for get_citation - TODO: implement"""
-#     return JsonResponse({"error": "Not implemented"}, status=501)
-#
-#
-# @require_http_methods(["POST"])
-# @login_required
-# def mock_save_paper(request):
-#     """Placeholder for mock_save_paper - TODO: implement"""
-#     return JsonResponse({"error": "Not implemented"}, status=501)
-#
-#
-# @require_http_methods(["GET"])
-# @login_required
-# def mock_get_citation(request):
-#     """Placeholder for mock_get_citation - TODO: implement"""
-#     return JsonResponse({"error": "Not implemented"}, status=501)
-
-# --------------------------------------------------------------------------------
-# End of Source Code from: apps/scholar_app/views/search/library_operations.py
-# --------------------------------------------------------------------------------
