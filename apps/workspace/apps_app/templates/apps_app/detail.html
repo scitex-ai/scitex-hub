@@ -1,8 +1,8 @@
 {% extends "global_base.html" %}
 
-{% load static %}
+{% load static i18n %}
 
-{% block title %}{% if reg_module %}{{ reg_module.label }}{% else %}{{ app_module.module_name }}{% endif %} - Apps{% endblock %}
+{% block title %}{% if reg_module %}{{ reg_module.label }}{% else %}{{ app_module.module_name }}{% endif %} - {% trans "App Store" %}{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'apps_app/css/apps.css' %}" />
 {% endblock %}
@@ -31,20 +31,20 @@
                         {% endif %}
                     </h1>
                     <div class="ap-detail-badges">
-                        <span class="ap-category-badge ap-category-{{ app_module.category }}">{{ app_module.get_category_display }}</span>
+                        <span class="ap-category-badge ap-category-{{ app_module.category }}">{% trans app_module.get_category_display %}</span>
                         {% if app_module.is_builtin %}
                             <span class="ap-badge ap-badge-builtin">
-                                <i class="fas fa-cube" aria-hidden="true"></i> Built-in
+                                <i class="fas fa-cube" aria-hidden="true"></i> {% trans "Built-in" %}
                             </span>
                         {% endif %}
                         {% if app_module.is_verified %}
                             <span class="ap-badge ap-badge-verified">
-                                <i class="fas fa-shield-alt" aria-hidden="true"></i> Verified
+                                <i class="fas fa-shield-alt" aria-hidden="true"></i> {% trans "Verified" %}
                             </span>
                         {% endif %}
                         {% if app_module.visibility == "private" %}
                             <span class="ap-badge ap-badge-private">
-                                <i class="fas fa-lock" aria-hidden="true"></i> Private
+                                <i class="fas fa-lock" aria-hidden="true"></i> {% trans "Private" %}
                             </span>
                         {% endif %}
                         {% if reg_module and reg_module.keyboard_shortcut %}
@@ -66,17 +66,17 @@
                 {% if app_module.author %}
                     <p class="ap-detail-author">
                         <i class="fas fa-user" aria-hidden="true"></i>
-                        by {{ app_module.author.get_full_name|default:app_module.author.username }}
+                        {% blocktrans with author=app_module.author.get_full_name|default:app_module.author.username %}by {{ author }}{% endblocktrans %}
                     </p>
                 {% endif %}
                 <div class="ap-detail-stats">
                     <span class="ap-stat">
                         <i class="fas fa-star" aria-hidden="true"></i>
-                        <span id="ap-star-count">{{ app_module.star_count }}</span> stars
+                        <span id="ap-star-count">{{ app_module.star_count }}</span> {% trans "stars" %}
                     </span>
                     <span class="ap-stat">
                         <i class="fas fa-download" aria-hidden="true"></i>
-                        {{ app_module.install_count }} installs
+                        {% blocktrans with n=app_module.install_count %}{{ n }} installs{% endblocktrans %}
                     </span>
                     {% if app_module.avg_rating %}
                         <span class="ap-stat">
@@ -100,20 +100,20 @@
                             <button class="ap-btn-action ap-btn-danger"
                                     id="ap-uninstall-btn"
                                     data-module="{{ app_module.module_name }}"
-                                    aria-label="Uninstall {{ app_module.module_name }}">
-                                <i class="fas fa-trash-alt" aria-hidden="true"></i> Uninstall
+                                    aria-label="{% blocktrans with name=app_module.module_name %}Uninstall {{ name }}{% endblocktrans %}">
+                                <i class="fas fa-trash-alt" aria-hidden="true"></i> {% trans "Uninstall" %}
                             </button>
                         {% else %}
                             <span class="ap-badge-installed">
-                                <i class="fas fa-cube" aria-hidden="true"></i> Built-in
+                                <i class="fas fa-cube" aria-hidden="true"></i> {% trans "Built-in" %}
                             </span>
                         {% endif %}
                     {% else %}
                         <button class="ap-btn-action ap-btn-primary"
                                 id="ap-install-btn"
                                 data-module="{{ app_module.module_name }}"
-                                aria-label="Install {{ app_module.module_name }}">
-                            <i class="fas fa-download" aria-hidden="true"></i> Install
+                                aria-label="{% blocktrans with name=app_module.module_name %}Install {{ name }}{% endblocktrans %}">
+                            <i class="fas fa-download" aria-hidden="true"></i> {% trans "Install" %}
                         </button>
                     {% endif %}
                     <!-- Star / Unstar -->
@@ -121,13 +121,13 @@
                             id="ap-star-btn"
                             data-module="{{ app_module.module_name }}"
                             data-starred="{{ is_starred|yesno:'true,false' }}"
-                            aria-label="{% if is_starred %}Unstar{% else %}Star{% endif %} {{ app_module.module_name }}">
+                            aria-label="{% if is_starred %}{% blocktrans with name=app_module.module_name %}Unstar {{ name }}{% endblocktrans %}{% else %}{% blocktrans with name=app_module.module_name %}Star {{ name }}{% endblocktrans %}{% endif %}">
                         <i class="{% if is_starred %}fas{% else %}far{% endif %} fa-star"
                            aria-hidden="true"></i>
                         {% if is_starred %}
-                            Unstar
+                            {% trans "Unstar" %}
                         {% else %}
-                            Star
+                            {% trans "Star" %}
                         {% endif %}
                     </button>
                     <!-- Enable / Disable (only if installed) -->
@@ -135,45 +135,45 @@
                         <button class="ap-btn-action"
                                 id="ap-toggle-btn"
                                 data-module="{{ app_module.module_name }}"
-                                aria-label="Toggle {{ app_module.module_name }}">
-                            <i class="fas fa-toggle-on" aria-hidden="true"></i> Toggle
+                                aria-label="{% blocktrans with name=app_module.module_name %}Toggle {{ name }}{% endblocktrans %}">
+                            <i class="fas fa-toggle-on" aria-hidden="true"></i> {% trans "Toggle" %}
                         </button>
                     {% endif %}
                 {% else %}
                     {# /auth/login/ is the real login route (/accounts/login/ 404s); next returns here so Install is one click away #}
                     <a href="/auth/login/?next=/apps/store/{{ app_module.module_name }}/"
                        class="ap-btn-action ap-btn-primary">
-                        <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Login to install
+                        <i class="fas fa-sign-in-alt" aria-hidden="true"></i> {% trans "Login to install" %}
                     </a>
                 {% endif %}
                 {# Only user-submitted apps have a hub repo page — built-ins have an author but no project, so the link 404s for them #}
                 {% if app_module.author and app_module.project %}
                     <a href="/{{ app_module.author.username }}/{{ app_module.module_name }}/"
                        class="ap-btn-action ap-btn-secondary">
-                        <i class="fas fa-external-link-alt" aria-hidden="true"></i> View in Hub
+                        <i class="fas fa-external-link-alt" aria-hidden="true"></i> {% trans "View in Hub" %}
                     </a>
                 {% endif %}
                 {% if user.is_authenticated and not app_module.is_builtin and app_module.project %}
                     <button class="ap-btn-action ap-btn-secondary"
                             id="ap-fork-btn"
                             data-module="{{ app_module.module_name }}"
-                            aria-label="Fork {{ app_module.module_name }}">
-                        <i class="fas fa-code-branch" aria-hidden="true"></i> Fork
+                            aria-label="{% blocktrans with name=app_module.module_name %}Fork {{ name }}{% endblocktrans %}">
+                        <i class="fas fa-code-branch" aria-hidden="true"></i> {% trans "Fork" %}
                     </button>
                 {% endif %}
                 {% if pending_submission %}
                     <span class="ap-badge ap-badge-wip">
-                        <i class="fas fa-clock" aria-hidden="true"></i> Under Review
+                        <i class="fas fa-clock" aria-hidden="true"></i> {% trans "Under Review" %}
                     </span>
                 {% elif app_module.visibility == "private" and app_module.author == user %}
                     <button class="ap-btn-action ap-btn-primary"
                             id="ap-publish-btn"
                             data-module="{{ app_module.module_name }}">
-                        <i class="fas fa-globe" aria-hidden="true"></i> Publish
+                        <i class="fas fa-globe" aria-hidden="true"></i> {% trans "Publish" context "store action" %}
                     </button>
                 {% endif %}
                 <a href="/apps/" class="ap-btn-action ap-btn-secondary">
-                    <i class="fas fa-arrow-left" aria-hidden="true"></i> Browse
+                    <i class="fas fa-arrow-left" aria-hidden="true"></i> {% trans "Browse" %}
                 </a>
             </div>
         </div>
@@ -181,7 +181,7 @@
         {% if app_module.long_description or skill and skill.description %}
             <section class="ap-detail-section">
                 <h2 class="ap-section-title">
-                    <i class="fas fa-info-circle" aria-hidden="true"></i> About
+                    <i class="fas fa-info-circle" aria-hidden="true"></i> {% trans "About" context "store section" %}
                 </h2>
                 <div class="ap-detail-long-desc">
                     {% if app_module.long_description %}
@@ -205,7 +205,7 @@
         {% if skill and skill.capabilities %}
             <section class="ap-detail-section">
                 <h2 class="ap-section-title">
-                    <i class="fas fa-bolt" aria-hidden="true"></i> Capabilities
+                    <i class="fas fa-bolt" aria-hidden="true"></i> {% trans "Capabilities" %}
                 </h2>
                 <ul class="ap-capabilities-list">
                     {% for cap in skill.capabilities %}
@@ -220,7 +220,7 @@
         {% if reg_module and reg_module.allowed_extensions %}
             <section class="ap-detail-section">
                 <h2 class="ap-section-title">
-                    <i class="fas fa-file-alt" aria-hidden="true"></i> Supported File Types
+                    <i class="fas fa-file-alt" aria-hidden="true"></i> {% trans "Supported File Types" %}
                 </h2>
                 <div class="ap-file-types">
                     {% for ext in reg_module.allowed_extensions %}<code class="ap-file-ext">{{ ext }}</code>{% endfor %}
@@ -231,11 +231,11 @@
         {% if skill and skill.tool_prefixes or skill and skill.mcp_tool_examples %}
             <section class="ap-detail-section">
                 <h2 class="ap-section-title">
-                    <i class="fas fa-robot" aria-hidden="true"></i> AI Integration
+                    <i class="fas fa-robot" aria-hidden="true"></i> {% trans "AI Integration" %}
                 </h2>
                 {% if skill.tool_prefixes %}
                     <div class="ap-info-row">
-                        <span class="ap-info-label">Tool prefixes</span>
+                        <span class="ap-info-label">{% trans "Tool prefixes" %}</span>
                         <span class="ap-info-value">
                             {% for prefix in skill.tool_prefixes %}
                                 <code>{{ prefix }}*</code>
@@ -246,7 +246,7 @@
                 {% endif %}
                 {% if skill.mcp_tool_examples %}
                     <div class="ap-info-row">
-                        <span class="ap-info-label">Example tools</span>
+                        <span class="ap-info-label">{% trans "Example tools" %}</span>
                         <span class="ap-info-value">
                             {% for tool in skill.mcp_tool_examples %}
                                 <code>{{ tool }}</code>
@@ -257,7 +257,7 @@
                 {% endif %}
                 {% if skill.page_patterns %}
                     <div class="ap-info-row">
-                        <span class="ap-info-label">URL patterns</span>
+                        <span class="ap-info-label">{% trans "URL patterns" %}</span>
                         <span class="ap-info-value">
                             {% for pat in skill.page_patterns %}
                                 <code>{{ pat }}</code>
@@ -271,14 +271,14 @@
         <!-- External links -->
         {% if app_module.homepage_url or app_module.repository_url %}
             <section class="ap-detail-section">
-                <h2 class="ap-section-title">Links</h2>
+                <h2 class="ap-section-title">{% trans "Links" %}</h2>
                 <div class="ap-detail-links">
                     {% if app_module.homepage_url %}
                         <a href="{{ app_module.homepage_url }}"
                            class="ap-link"
                            target="_blank"
                            rel="noopener noreferrer">
-                            <i class="fas fa-home" aria-hidden="true"></i> Homepage
+                            <i class="fas fa-home" aria-hidden="true"></i> {% trans "Homepage" %}
                         </a>
                     {% endif %}
                     {% if app_module.repository_url %}
@@ -286,7 +286,7 @@
                            class="ap-link"
                            target="_blank"
                            rel="noopener noreferrer">
-                            <i class="fas fa-code-branch" aria-hidden="true"></i> Repository
+                            <i class="fas fa-code-branch" aria-hidden="true"></i> {% trans "Repository" %}
                         </a>
                     {% endif %}
                 </div>
@@ -295,17 +295,17 @@
         <!-- Version history -->
         {% if versions %}
             <section class="ap-detail-section">
-                <h2 class="ap-section-title">Version History</h2>
+                <h2 class="ap-section-title">{% trans "Version History" %}</h2>
                 <ul class="ap-version-list">
                     {% for v in versions %}
                         <li class="ap-version-item">
                             <div class="ap-version-header">
                                 <span class="ap-version-number">v{{ v.version }}</span>
-                                {% if v.is_stable %}<span class="ap-badge ap-badge-stable">Stable</span>{% endif %}
+                                {% if v.is_stable %}<span class="ap-badge ap-badge-stable">{% trans "Stable" %}</span>{% endif %}
                                 <span class="ap-version-date">{{ v.released_at|date:"Y-m-d" }}</span>
                             </div>
                             {% if v.changelog %}<p class="ap-version-changelog">{{ v.changelog }}</p>{% endif %}
-                            {% if v.min_scitex_version %}<p class="ap-version-req">Requires SciTeX &ge; {{ v.min_scitex_version }}</p>{% endif %}
+                            {% if v.min_scitex_version %}<p class="ap-version-req">{% blocktrans with ver=v.min_scitex_version %}Requires SciTeX ≥ {{ ver }}{% endblocktrans %}</p>{% endif %}
                         </li>
                     {% endfor %}
                 </ul>
@@ -313,7 +313,7 @@
         {% endif %}
         <!-- Reviews -->
         <section class="ap-detail-section" id="ap-reviews">
-            <h2 class="ap-section-title">Reviews</h2>
+            <h2 class="ap-section-title">{% trans "Reviews" %}</h2>
             {% if user.is_authenticated %}
                 {% include "apps_app/partials/review_form.html" %}
             {% endif %}

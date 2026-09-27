@@ -743,8 +743,10 @@ def plan_comparison(today=None):
         return _("%(tier)s\n%(meaning)s\n%(speed)s") % {
             "tier": _(tier),
             # Wrapped so the table renders meaning and speed de-emphasized
-            # (smaller, lighter) under the tier name.
-            "meaning": '<span class="tier-sub">%s</span>' % meaning,
+            # (smaller, lighter) under the tier name. The meaning comes from
+            # pricing.json but is translated here so the JA table does not
+            # fall back to English for the one line with no cell of its own.
+            "meaning": '<span class="tier-sub">%s</span>' % _(meaning),
             "speed": '<span class="tier-speed">%s</span>' % approx[tier],
         }
 

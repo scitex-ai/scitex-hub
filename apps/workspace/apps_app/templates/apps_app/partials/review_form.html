@@ -1,21 +1,22 @@
+{% load i18n %}
 <form class="ap-review-form" id="ap-review-form" novalidate>
     {% csrf_token %}
     <h3 class="ap-review-form-title">
         {% if user_review %}
-            Edit Your Review
+            {% trans "Edit Your Review" %}
         {% else %}
-            Write a Review
+            {% trans "Write a Review" %}
         {% endif %}
     </h3>
     <!-- Star rating -->
     <fieldset class="ap-rating-fieldset">
-        <legend class="ap-review-label">Rating</legend>
-        <div class="ap-star-rating" role="group" aria-label="Select rating">
+        <legend class="ap-review-label">{% trans "Rating" %}</legend>
+        <div class="ap-star-rating" role="group" aria-label="{% trans 'Select rating' %}">
             {% for i in "12345" %}
                 <button type="button"
                         class="ap-star-btn"
                         data-value="{{ i }}"
-                        aria-label="{{ i }} star{% if i != '1' %}s{% endif %}">
+                        aria-label="{% blocktrans with n=i %}{{ n }} star(s){% endblocktrans %}">
                     <i class="far fa-star" aria-hidden="true"></i>
                 </button>
             {% endfor %}
@@ -28,31 +29,31 @@
     </fieldset>
     <!-- Title -->
     <div class="ap-review-field">
-        <label class="ap-review-label" for="ap-review-title">Title</label>
+        <label class="ap-review-label" for="ap-review-title">{% trans "Title" %}</label>
         <input type="text"
                id="ap-review-title"
                name="title"
                class="ap-review-input"
                maxlength="100"
-               placeholder="Summary of your experience"
+               placeholder="{% trans 'Summary of your experience' %}"
                value="{% if user_review %}{{ user_review.title }}{% endif %}" />
     </div>
     <!-- Body -->
     <div class="ap-review-field">
-        <label class="ap-review-label" for="ap-review-body">Review</label>
+        <label class="ap-review-label" for="ap-review-body">{% trans "Review" %}</label>
         <textarea id="ap-review-body"
                   name="body"
                   class="ap-review-textarea"
                   rows="4"
-                  placeholder="Share details about your experience with this app...">{% if user_review %}{{ user_review.body }}{% endif %}</textarea>
+                  placeholder="{% trans 'Share details about your experience with this app...' %}">{% if user_review %}{{ user_review.body }}{% endif %}</textarea>
     </div>
     <div class="ap-review-form-footer">
         <button type="submit" class="ap-btn-action ap-btn-primary" id="ap-review-submit">
             <i class="fas fa-paper-plane" aria-hidden="true"></i>
             {% if user_review %}
-                Update Review
+                {% trans "Update Review" %}
             {% else %}
-                Submit Review
+                {% trans "Submit Review" %}
             {% endif %}
         </button>
         <span class="ap-review-status" id="ap-review-status" aria-live="polite"></span>
