@@ -271,7 +271,15 @@ class UserLibraryService:
                 link = link_parent / "library"
                 if link.is_symlink() and link.readlink() == target:
                     return link
-                if link.is_symlink() or link.exists():
+                if link.is_symlink():
+                    raise FileExistsError(
+                        f"{link} is a symlink elsewhere; refusing to "
+                        "replace without force"
+                    )
+                if link.is_dir() and not any(link.iterdir()):
+                    # Scaffold placeholder with no content: safe to adopt.
+                    link.rmdir()
+                elif link.exists():
                     raise FileExistsError(
                         f"{link} occupied; refusing to replace without force"
                     )

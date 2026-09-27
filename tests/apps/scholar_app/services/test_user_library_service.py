@@ -128,3 +128,27 @@ class TestPackageLayout(TestCase):
             self.assertEqual(svc.ensure_project_link(proj), link)
             self.assertTrue(svc.prune_project_link(proj))
             self.assertFalse(link.exists() or link.is_symlink())
+
+    def test_empty_placeholder_dir_adopted(self):
+        import tempfile
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as tmp:
+            svc = self._service(Path(tmp))
+            placeholder = Path(tmp) / "proj" / ".scitex" / "scholar" / "library"
+            placeholder.mkdir(parents=True)
+            link = svc.ensure_project_link(Path(tmp) / "proj")
+            self.assertTrue(link.is_symlink())
+            self.assertEqual(link.readlink(), svc.library_path.resolve())
+
+    def test_nonempty_dir_refused(self):
+        import tempfile
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as tmp:
+            svc = self._service(Path(tmp))
+            occupied = Path(tmp) / "proj" / ".scitex" / "scholar" / "library"
+            occupied.mkdir(parents=True)
+            (occupied / "keep.txt").write_text("data")
+            with self.assertRaises(FileExistsError):
+                svc.ensure_project_link(Path(tmp) / "proj")
