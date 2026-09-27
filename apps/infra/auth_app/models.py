@@ -233,7 +233,7 @@ class PendingSignup(models.Model):
     #: (``subscription-free`` when the signup named none). Exists as
     #: ``hub_dev.auth_app_pendingsignup.plan`` NOT NULL on the fleet store;
     #: the model must declare it or every signup dies with IntegrityError.
-    plan = models.CharField(max_length=16, default="subscription-free")
+    plan = models.CharField(max_length=32, default="subscription-free")
 
     class Meta:
         verbose_name = "Pending Signup"
