@@ -126,8 +126,18 @@ def mark_verified(user, source: str = "email") -> OnboardingState:
     nothing behind, so "has this account finished signing up?" had no answer.
     """
     with transaction.atomic():
+        # The funnel OWNS the plan choice from signup: it was recorded on the
+        # marker (allowlisted ?plan=, else the newcomer default), so carrying
+        # it onto the authority is not guessing — DELETING it (the old code)
+        # is what produced the "will not guess" dead-end for every newcomer.
+        marker = PendingSignup.objects.filter(user=user).first()
+        signup_plan = (marker.plan if marker is not None else "") or ""
         PendingSignup.objects.filter(user=user).delete()
-        return _ensure(user, source=source)
+        row = _ensure(user, source=source)
+        if signup_plan and not row.pricing_id:
+            row.pricing_id = signup_plan
+            row.save(update_fields=["pricing_id", "updated_at"])
+        return row
 
 
 def begin_social_signup(user, provider: str) -> OnboardingState:
@@ -138,8 +148,16 @@ def begin_social_signup(user, provider: str) -> OnboardingState:
     past the payment step. Social signups do not go through OTP (the provider
     already proved the address), so this is the equivalent of
     :func:`mark_verified`, not of :func:`begin_signup`.
+
+    A social signup names no plan, so without a default it would land on the
+    "will not guess" dead-end. The newcomer default applies: free, PRODUCT-ready
+    via the payment step's $0 path, upgradeable later.
     """
-    return _ensure(user, source=provider or "social")
+    row = _ensure(user, source=provider or "social")
+    if not row.pricing_id:
+        row.pricing_id = "subscription-free"
+        row.save(update_fields=["pricing_id", "updated_at"])
+    return row
 
 
 def mark_activated(user, *, pricing_id: str = "") -> Optional[OnboardingState]:
