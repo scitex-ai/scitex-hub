@@ -21,6 +21,7 @@ from __future__ import annotations
 import logging
 
 from django.contrib import messages
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 
 from ...models import Project
@@ -48,6 +49,11 @@ def project_file_view(request, username, slug, file_path):
     user = get_object_or_404(User, username=username)
     project = get_object_or_404(Project, slug=slug, owner=user)
 
+    from ...services.filesystem.permissions import canonical_repository_relative_path
+
+    if canonical_repository_relative_path(file_path) is None:
+        raise Http404
+
     # Check access
     if not check_project_read_access(request, project):
         messages.error(request, "You don't have permission to access this file.")
@@ -71,6 +77,8 @@ def project_file_view(request, username, slug, file_path):
     # Get file context
     result = get_file_context(request, username, slug, file_path)
     if result is None:
+        if mode in ("raw", "download"):
+            raise Http404
         messages.error(request, "File not found or invalid path.")
         return redirect("project_app:detail", username=username, slug=slug)
 

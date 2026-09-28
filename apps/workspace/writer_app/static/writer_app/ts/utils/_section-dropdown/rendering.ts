@@ -1,143 +1,164 @@
-/**
- * Dropdown Rendering
- * Generates HTML for section dropdown items
- */
+/** DOM-only rendering for the writer section dropdown. */
 
-/**
- * Generate file path for a section
- *
- * @param section - Section object
- * @param docType - Document type
- * @returns File path URL
- */
+function encodePath(path: string): string {
+  return path.split("/").map(encodeURIComponent).join("/");
+}
+
 function generateFilePath(section: any, docType: string): string {
-  const username =
-    (window as any).WRITER_CONFIG?.projectOwner || "ywatanabe";
-  const projectSlug =
-    (window as any).WRITER_CONFIG?.projectSlug || "default-project";
-
-  // Use the path from backend if available, otherwise construct default path
+  const username = String(
+    (window as any).WRITER_CONFIG?.projectOwner || "ywatanabe",
+  );
+  const projectSlug = String(
+    (window as any).WRITER_CONFIG?.projectSlug || "default-project",
+  );
+  let sectionPath: string;
   if (section.path) {
-    // Backend provides the correct path like "01_manuscript/contents/abstract.tex"
-    return `/${username}/${projectSlug}/blob/scitex/writer/${section.path}`;
+    sectionPath = String(section.path);
   } else {
-    // Fallback for sections without explicit path
-    const sectionPath = section.id.replace(`${docType}/`, "");
+    const name = String(section.id).replace(`${docType}/`, "");
     const docDirMap: Record<string, string> = {
       manuscript: "01_manuscript",
       supplementary: "02_supplementary",
       revision: "03_revision",
     };
-    const docDir = docDirMap[docType] || `01_${docType}`;
-    return `/${username}/${projectSlug}/blob/scitex/writer/${docDir}/contents/${sectionPath}.tex`;
+    sectionPath = `${docDirMap[docType] || `01_${docType}`}/contents/${name}.tex`;
   }
+  return `/${encodeURIComponent(username)}/${encodeURIComponent(projectSlug)}/blob/scitex/writer/${encodePath(sectionPath)}`;
 }
 
-/**
- * Generate HTML for a single section item
- *
- * @param section - Section object
- * @param index - Section index
- * @param docType - Document type
- * @returns HTML string for the section item
- */
+function icon(className: string): HTMLElement {
+  const element = document.createElement("i");
+  element.className = className;
+  return element;
+}
+
+function actionButton(
+  action: string,
+  title: string,
+  iconClass: string,
+): HTMLButtonElement {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "btn btn-xs btn-outline-secondary";
+  button.dataset.action = action;
+  button.title = title;
+  button.appendChild(icon(iconClass));
+  button.addEventListener("click", (event) => event.stopPropagation());
+  return button;
+}
+
 function renderSectionItem(
   section: any,
   index: number,
   docType: string,
-): string {
+): HTMLElement {
   const isExcluded = section.excluded === true;
   const isOptional = section.optional === true;
   const isViewOnly = section.view_only === true;
   const isCompiledPdf = section.name === "compiled_pdf";
-  const sectionLabel = section.label;
+  const label = String(section.label ?? "");
 
-  // Don't show toggle for view-only sections (like compiled_pdf)
-  const showToggle = !isViewOnly && (isOptional || isExcluded);
+  const item = document.createElement("div");
+  item.className = `section-item${isExcluded ? " excluded" : ""} section-item-with-actions`;
+  item.dataset.sectionId = String(section.id ?? "");
+  item.dataset.index = String(index);
+  item.dataset.optional = String(isOptional);
+  item.draggable = !isCompiledPdf;
+  item.title = `${isCompiledPdf ? "View" : "Switch to"} ${label}`;
 
-  const filePath = generateFilePath(section, docType);
+  const drag = document.createElement("span");
+  drag.className = "section-drag-handle";
+  drag.title = "Drag to reorder";
+  drag.textContent = "⋮⋮";
+  if (isCompiledPdf) drag.style.visibility = "hidden";
+  item.appendChild(drag);
 
-  return `
-        <div class="section-item ${isExcluded ? "excluded" : ""} section-item-with-actions"
-             data-section-id="${section.id}"
-             data-index="${index}"
-             data-optional="${isOptional}"
-             draggable="${!isCompiledPdf}"
-             title="${isCompiledPdf ? "View " + sectionLabel : "Switch to " + sectionLabel}">
-            <span class="section-drag-handle" style="${isCompiledPdf ? "visibility: hidden;" : ""}" title="Drag to reorder">⋮⋮</span>
-            ${!isCompiledPdf ? `<span class="section-page-number" style="color: var(--color-fg-muted); font-size: 0.75rem; min-width: 20px;">${index + 1}</span>` : ""}
-            <span class="section-item-name">${sectionLabel}</span>
-            ${
-              showToggle
-                ? `
-                <label class="ios-toggle" data-action="toggle-visibility" title="${isExcluded ? "Include in compilation" : "Exclude from compilation"}">
-                    <input type="checkbox" ${!isExcluded ? "checked" : ""}>
-                    <span class="ios-toggle-slider"></span>
-                </label>
-            `
-                : ""
-            }
-            <div class="section-item-actions">
-                ${
-                  isCompiledPdf
-                    ? `
-                    <button class="btn btn-xs btn-outline-secondary" data-action="compile-full" title="Compile ${sectionLabel} PDF" onclick="event.stopPropagation();">
-                        <i class="fas fa-file-pdf"></i>
-                    </button>
-                `
-                    : ""
-                }
-                <a href="${filePath}" class="btn btn-xs btn-outline-secondary" title="Go to ${sectionLabel} file" onclick="event.stopPropagation();" target="_blank">
-                    <i class="fas fa-folder-open"></i>
-                </a>
-                <button class="btn btn-xs btn-outline-secondary" data-action="download-section" title="Download ${sectionLabel} PDF" onclick="event.stopPropagation();">
-                    <i class="fas fa-download"></i>
-                </button>
-            </div>
-        </div>
-    `;
+  if (!isCompiledPdf) {
+    const page = document.createElement("span");
+    page.className = "section-page-number";
+    page.style.cssText =
+      "color: var(--color-fg-muted); font-size: 0.75rem; min-width: 20px;";
+    page.textContent = String(index + 1);
+    item.appendChild(page);
+  }
+
+  const name = document.createElement("span");
+  name.className = "section-item-name";
+  name.textContent = label;
+  item.appendChild(name);
+
+  if (!isViewOnly && (isOptional || isExcluded)) {
+    const toggle = document.createElement("label");
+    toggle.className = "ios-toggle";
+    toggle.dataset.action = "toggle-visibility";
+    toggle.title = isExcluded
+      ? "Include in compilation"
+      : "Exclude from compilation";
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.checked = !isExcluded;
+    const slider = document.createElement("span");
+    slider.className = "ios-toggle-slider";
+    toggle.append(input, slider);
+    item.appendChild(toggle);
+  }
+
+  const actions = document.createElement("div");
+  actions.className = "section-item-actions";
+  if (isCompiledPdf) {
+    actions.appendChild(
+      actionButton("compile-full", `Compile ${label} PDF`, "fas fa-file-pdf"),
+    );
+  }
+  const link = document.createElement("a");
+  link.className = "btn btn-xs btn-outline-secondary";
+  link.href = generateFilePath(section, docType);
+  link.title = `Go to ${label} file`;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.appendChild(icon("fas fa-folder-open"));
+  link.addEventListener("click", (event) => event.stopPropagation());
+  actions.appendChild(link);
+  actions.appendChild(
+    actionButton(
+      "download-section",
+      `Download ${label} PDF`,
+      "fas fa-download",
+    ),
+  );
+  item.appendChild(actions);
+  return item;
 }
 
-/**
- * Render the complete section dropdown HTML
- *
- * @param sections - Array of section objects
- * @param docType - Document type
- * @returns Complete dropdown HTML
- */
 export function renderSectionDropdown(
   sections: any[],
   docType: string,
-): string {
-  // Separate regular sections from footer items (compiled PDFs, New Section)
-  let regularSectionsHtml = "";
-  let footerSectionsHtml = "";
+): DocumentFragment {
+  const fragment = document.createDocumentFragment();
+  const regular = document.createElement("div");
+  regular.className = "section-items-scrollable";
+  const footer = document.createElement("div");
+  footer.className = "section-items-footer";
+  const firstDivider = document.createElement("div");
+  firstDivider.className = "section-divider";
+  footer.appendChild(firstDivider);
 
-  sections.forEach((section: any, index: number) => {
-    const isCompiledPdf = section.name === "compiled_pdf";
-    const itemHtml = renderSectionItem(section, index, docType);
-
-    // Separate compiled sections to footer
-    if (isCompiledPdf) {
-      footerSectionsHtml += itemHtml;
-    } else {
-      regularSectionsHtml += itemHtml;
-    }
+  sections.forEach((section, index) => {
+    const item = renderSectionItem(section, index, docType);
+    (section.name === "compiled_pdf" ? footer : regular).appendChild(item);
   });
 
-  // Build final HTML with scrollable sections + fixed footer
-  return `
-        <div class="section-items-scrollable">
-            ${regularSectionsHtml}
-        </div>
-        <div class="section-items-footer">
-            <div class="section-divider"></div>
-            ${footerSectionsHtml}
-            <div class="section-divider"></div>
-            <div class="section-action-item" data-action="new-section">
-                <i class="fas fa-plus"></i>
-                <span>Add New Section</span>
-            </div>
-        </div>
-    `;
+  const secondDivider = document.createElement("div");
+  secondDivider.className = "section-divider";
+  footer.appendChild(secondDivider);
+  const add = document.createElement("div");
+  add.className = "section-action-item";
+  add.dataset.action = "new-section";
+  add.append(icon("fas fa-plus"));
+  const text = document.createElement("span");
+  text.textContent = "Add New Section";
+  add.appendChild(text);
+  footer.appendChild(add);
+  fragment.append(regular, footer);
+  return fragment;
 }

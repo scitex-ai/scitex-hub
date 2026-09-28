@@ -13,7 +13,6 @@ import apps.infra.project_app.routing
 import apps.workspace.comms_app.routing
 import apps.workspace.console_app.routing
 import apps.workspace.writer_app.routing
-import scitex as stx
 
 application = ProtocolTypeRouter(
     {
@@ -36,13 +35,3 @@ application = ProtocolTypeRouter(
         ),
     }
 )
-
-
-@stx.module
-def main():
-    """WebSocket routing configuration — not executed directly."""
-    return 0
-
-
-if __name__ == "__main__":
-    main()

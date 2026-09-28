@@ -7,6 +7,7 @@ import { describe, expect, it } from "vitest";
 import {
   embedUrl,
   maximizedRect,
+  parentNavigationUrl,
   panelRect,
   toggleMaximized,
 } from "@/components/_site-dock/chat-float";
@@ -16,6 +17,22 @@ describe("floating dock chat", () => {
     expect(embedUrl("/apps/writer/", "Writer")).toBe(
       "/chat/?embed=1&ctx_path=%2Fapps%2Fwriter%2F&ctx_title=Writer",
     );
+  });
+
+  it("promotes a same-origin embed link to a top-level navigation", () => {
+    expect(
+      parentNavigationUrl(
+        "/accounts/settings/ai-providers/?next=%2Fchat%2F",
+        "https://scitex.ai",
+      ),
+    ).toBe("/accounts/settings/ai-providers/?next=%2Fchat%2F");
+  });
+
+  it("refuses external and non-http embed navigation", () => {
+    expect([
+      parentNavigationUrl("https://example.com/steal", "https://scitex.ai"),
+      parentNavigationUrl("javascript:alert(1)", "https://scitex.ai"),
+    ]).toEqual([null, null]);
   });
 
   it("sits just above the dock at the dock's width on a phone", () => {

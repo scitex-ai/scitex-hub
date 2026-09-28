@@ -35,8 +35,8 @@ def _api(view):
     def wrapped(request, *args, **kwargs):
         try:
             return view(request, fs.user_root(request.user), *args, **kwargs)
-        except fs.WorkspacePathError as exc:
-            return JsonResponse({"error": str(exc)}, status=400)
+        except fs.WorkspacePathError:
+            return JsonResponse({"error": "Invalid workspace path."}, status=400)
         except FileNotFoundError:
             return JsonResponse({"error": "not found"}, status=404)
         except FileExistsError:

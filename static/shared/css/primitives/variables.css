@@ -33,6 +33,7 @@
  */
 
 @import url("../../../scitex_ui/css/primitives/colors.css");
+@import url("./project-app-accents.css");
 @import url("../../../scitex_ui/css/primitives/typography-vars.css");
 @import url("../../../scitex_ui/css/primitives/spacing.css");
 @import url("../utilities/effects.css");

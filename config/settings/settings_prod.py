@@ -44,6 +44,27 @@ except Exception as e:
 # ---------------------------------------
 # Security
 # ---------------------------------------
+_PRODUCTION_CREDENTIAL_PLACEHOLDERS = frozenset(
+    {
+        "CHANGE_ME",
+        "CHANGEME",
+        "CHANGE_THIS_IN_PROD",
+        "CHANGE-THIS-DATABASE-PASSWORD-FOR-PROD",
+        "your-gitea-token-here",
+        "replace-me",
+    }
+)  # pragma: allowlist secret
+
+
+def _require_production_credential(name):
+    """Require a chosen value without ever including that value in errors."""
+    value = _require_env_alias(name)
+    placeholders = {item.casefold() for item in _PRODUCTION_CREDENTIAL_PLACEHOLDERS}
+    if value.strip().casefold() in placeholders:
+        raise ImproperlyConfigured(f"{name} contains a shipped placeholder")
+    return value
+
+
 # Allow DEBUG override via environment variable for troubleshooting
 # WARNING: Set DEBUG=False in production after debugging!
 DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
@@ -58,7 +79,7 @@ SCITEX_WRITER_TEMPLATE_TAG = os.getenv("SCITEX_WRITER_TEMPLATE_TAG", None)
 # Fail-loud if SECRET_KEY is unset under BOTH canonical and legacy aliases.
 # Honors SCITEX_CLOUD_DJANGO_SECRET_KEY (ADR-0001 legacy) with a
 # DeprecationWarning when used.
-SECRET_KEY = _require_env_alias("SCITEX_HUB_DJANGO_SECRET_KEY")
+SECRET_KEY = _require_production_credential("SCITEX_HUB_DJANGO_SECRET_KEY")
 
 ALLOWED_HOSTS = _getenv_alias("SCITEX_HUB_ALLOWED_HOSTS", "127.0.0.1,localhost").split(
     ","
@@ -112,16 +133,13 @@ CSRF_COOKIE_HTTPONLY = True
 #: one place so a stale .env carrying either is rejected identically wherever it
 #: is read; a placeholder honoured on one path and refused on another is how a
 #: deployment ends up believing it is configured.
-_DB_PASSWORD_PLACEHOLDERS = frozenset(
-    {
-        "CHANGE-THIS-DATABASE-PASSWORD-FOR-PROD",
-        "CHANGE_THIS_IN_PROD",
-    }
-)  # pragma: allowlist secret
+_DB_PASSWORD_PLACEHOLDERS = _PRODUCTION_CREDENTIAL_PLACEHOLDERS
 
 DB_PASSWORD = _getenv_alias("SCITEX_HUB_DB_PASSWORD")
 
-if DB_PASSWORD and DB_PASSWORD not in _DB_PASSWORD_PLACEHOLDERS:
+if DB_PASSWORD and DB_PASSWORD.strip().casefold() not in {
+    item.casefold() for item in _DB_PASSWORD_PLACEHOLDERS
+}:
     # Remote PostgreSQL via PgBouncer (for production deployment)
     DATABASES = {
         "default": {
@@ -168,7 +186,9 @@ else:
     # password. Startup is the only place this can be reported honestly, so
     # it is reported here.
     POSTGRES_PASSWORD = _getenv_alias("SCITEX_HUB_POSTGRES_PASSWORD")
-    if not POSTGRES_PASSWORD or POSTGRES_PASSWORD in _DB_PASSWORD_PLACEHOLDERS:
+    if not POSTGRES_PASSWORD or POSTGRES_PASSWORD.strip().casefold() in {
+        item.casefold() for item in _DB_PASSWORD_PLACEHOLDERS
+    }:
         raise ImproperlyConfigured(
             "The production database password is not configured, so there is "
             "no database to connect to.\n"
@@ -220,7 +240,7 @@ GITEA_URL = _getenv_alias("SCITEX_HUB_GITEA_URL", "https://git.scitex.ai")
 GITEA_API_URL = _getenv_alias(
     "SCITEX_HUB_GITEA_API_URL", "https://git.scitex.ai/api/v1"
 )
-GITEA_TOKEN = _getenv_alias("SCITEX_HUB_GITEA_TOKEN", "")
+GITEA_TOKEN = _require_production_credential("SCITEX_HUB_GITEA_TOKEN")
 GITEA_INTEGRATION_ENABLED = True  # Core feature, always enabled
 
 # Gitea Clone URLs (for user-facing clone button)

@@ -51,12 +51,31 @@ class TripFileBackend:
         """
         import posixpath
 
-        from .filesystem.permissions import validate_remote_path_in_root
+        from .filesystem.permissions import (
+            canonical_repository_relative_path,
+            validate_remote_path_in_root,
+        )
 
-        full = posixpath.normpath(posixpath.join(self.remote_path, rel_path))
-        if not validate_remote_path_in_root(self.remote_path, full):
+        if not rel_path:
+            return posixpath.normpath(str(self.remote_path))
+        relative = canonical_repository_relative_path(rel_path)
+        if relative is None:
+            raise ValueError("Repository path is not available")
+
+        full = posixpath.normpath(
+            posixpath.join(str(self.remote_path), relative.as_posix())
+        )
+        if not validate_remote_path_in_root(str(self.remote_path), full):
             raise ValueError(f"Path traversal detected: {rel_path}")
         return full
+
+    def _safe_realpath(self, sftp, full: str) -> str | None:
+        """Resolve remote symlinks and keep the result inside the project root."""
+        from .filesystem.permissions import validate_remote_path_in_root
+
+        root = sftp.normalize(str(self.remote_path))
+        target = sftp.normalize(full)
+        return target if validate_remote_path_in_root(root, target) else None
 
     def list_dir(self, rel_path: str = "") -> list[dict]:
         """List directory contents.
@@ -69,6 +88,10 @@ class TripFileBackend:
             items = []
             for attr in sftp.listdir_attr(full):
                 name = attr.filename
+                from .filesystem.permissions import VCS_METADATA_COMPONENTS
+
+                if name.casefold() in VCS_METADATA_COMPONENTS:
+                    continue
                 if name.startswith(".") and name not in [
                     ".git",
                     ".gitignore",
@@ -101,7 +124,10 @@ class TripFileBackend:
         full = self._full_path(rel_path)
         client, sftp = self._connect()
         try:
-            with sftp.open(full, "r") as f:
+            safe = self._safe_realpath(sftp, full)
+            if safe is None:
+                raise FileNotFoundError(rel_path)
+            with sftp.open(safe, "r") as f:
                 return f.read().decode("utf-8")
         finally:
             sftp.close()
@@ -112,7 +138,10 @@ class TripFileBackend:
         full = self._full_path(rel_path)
         client, sftp = self._connect()
         try:
-            with sftp.open(full, "rb") as f:
+            safe = self._safe_realpath(sftp, full)
+            if safe is None:
+                raise FileNotFoundError(rel_path)
+            with sftp.open(safe, "rb") as f:
                 return f.read()
         finally:
             sftp.close()
@@ -138,7 +167,7 @@ class TripFileBackend:
             try:
                 attr = sftp.stat(full)
             except FileNotFoundError:
-                raise FileNotFoundError(f"Not found: {rel_path}")
+                raise FileNotFoundError(f"Not found: {rel_path}") from None
 
             if stat_module.S_ISDIR(attr.st_mode):
                 self._rmtree(sftp, full)
@@ -153,7 +182,10 @@ class TripFileBackend:
         full = self._full_path(rel_path)
         client, sftp = self._connect()
         try:
-            sftp.stat(full)
+            safe = self._safe_realpath(sftp, full)
+            if safe is None:
+                return False
+            sftp.stat(safe)
             return True
         except FileNotFoundError:
             return False
@@ -166,7 +198,10 @@ class TripFileBackend:
         full = self._full_path(rel_path)
         client, sftp = self._connect()
         try:
-            attr = sftp.stat(full)
+            safe = self._safe_realpath(sftp, full)
+            if safe is None:
+                return False
+            attr = sftp.stat(safe)
             return stat_module.S_ISREG(attr.st_mode)
         except FileNotFoundError:
             return False
@@ -194,6 +229,10 @@ class TripFileBackend:
         try:
             for attr in sftp.listdir_attr(full_path):
                 name = attr.filename
+                from .filesystem.permissions import VCS_METADATA_COMPONENTS
+
+                if name.casefold() in VCS_METADATA_COMPONENTS:
+                    continue
                 if name.startswith(".") and name not in [
                     ".git",
                     ".gitignore",

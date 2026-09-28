@@ -1,22 +1,2 @@
-{% comment %} Shared header partial for Writer app {% endcomment %}
-<header class="writer-header">
-    <div class="header-left">
-        <h1 class="writer-title">
-            <a href="{% url 'writer_app:index' %}">SciTeX Writer</a>
-        </h1>
-    </div>
-    <div class="header-center">
-        {% if project %}
-            <div class="project-selector">
-                <span class="project-name">{{ project.name }}</span>
-            </div>
-        {% endif %}
-    </div>
-    <div class="header-right">
-        {% if user.is_authenticated %}
-            <span class="user-info">{{ user.username }}</span>
-        {% else %}
-            <a href="{% url 'login' %}" class="btn-login">Login</a>
-        {% endif %}
-    </div>
-</header>
+{% comment %}Compatibility include; the canonical Writer header has one owner.{% endcomment %}
+{% include "writer_app/shared/_app_header.html" %}

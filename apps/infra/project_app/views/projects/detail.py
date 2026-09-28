@@ -9,8 +9,12 @@ Display project details with GitHub-style file browser and README.
 from __future__ import annotations
 
 import logging
+from urllib.parse import quote
 
+from django.http import Http404
 from django.shortcuts import redirect, render
+from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 
 from ...decorators import project_access_required
 from ...models import ProjectFork, ProjectStar, ProjectWatch
@@ -225,10 +229,30 @@ def project_tree_or_blob(request, username, slug, branch=None, path=None):
     """
     project = request.project
     folder = (path or "").strip("/")
+    if folder:
+        from ...services.filesystem.permissions import (
+            canonical_repository_relative_path,
+        )
+
+        if canonical_repository_relative_path(folder) is None:
+            raise Http404
     if wants_repository_view(request):
         if folder:
-            return redirect(f"/{username}/{slug}/{folder}/")
-        return redirect(f"/{username}/{slug}/?view={REPOSITORY_VIEW}")
+            detail_url = reverse(
+                "project_app:detail", kwargs={"username": username, "slug": slug}
+            )
+            redirect_url = f"{detail_url}{quote(folder, safe='/')}/"
+            if url_has_allowed_host_and_scheme(
+                redirect_url,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            ):
+                return redirect(redirect_url)
+            return redirect("project_app:detail", username=username, slug=slug)
+        detail_url = reverse(
+            "project_app:detail", kwargs={"username": username, "slug": slug}
+        )
+        return redirect(f"{detail_url}?view={REPOSITORY_VIEW}")
     # GitHub also serves files under /tree/: /tree/main/AGENTS.md opens the
     # file in the viewer instead of trying to expand a folder of that name.
     focus_path, open_file = resolve_tree_path(project, folder)

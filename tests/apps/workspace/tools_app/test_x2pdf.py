@@ -83,7 +83,7 @@ def test_office_file_without_libreoffice_raises_explaining_error(tmp_path):
     src = tmp_path / "input.pptx"
     src.write_bytes(b"PK\x03\x04")
     # Act
-    call = lambda: convert.convert_file(src, tmp_path, "slides.pptx")  # noqa: E731
+    call = lambda: convert.convert_file(src, tmp_path, "slides.pptx", job_root=tmp_path)  # noqa: E731
     # Assert
     with pytest.raises(convert.ConversionError, match="LibreOffice"):
         call()
@@ -96,7 +96,7 @@ def test_png_with_alpha_converts_to_a_one_page_pdf(tmp_path):
     src = tmp_path / "input.png"
     Image.new("RGBA", (400, 300), (255, 0, 0, 128)).save(src)
     # Act
-    result = convert.convert_file(src, tmp_path, "fig.png")
+    result = convert.convert_file(src, tmp_path, "fig.png", job_root=tmp_path)
     # Assert
     assert (result.kind, result.pages, result.pdf_path.read_bytes()[:4]) == ("image", 1, b"%PDF")
 
@@ -106,7 +106,7 @@ def test_input_over_size_limit_is_refused(tmp_path):
     src = tmp_path / "input.txt"
     src.write_bytes(b"x" * 11)
     # Act
-    call = lambda: convert.convert_file(src, tmp_path, "a.txt", max_bytes=10)  # noqa: E731
+    call = lambda: convert.convert_file(src, tmp_path, "a.txt", max_bytes=10, job_root=tmp_path)  # noqa: E731
     # Assert
     with pytest.raises(convert.ConversionError, match="larger"):
         call()

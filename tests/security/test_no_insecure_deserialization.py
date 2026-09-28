@@ -34,6 +34,8 @@ from pathlib import Path
 
 import pytest
 
+from tests.tracked_source import tracked_source_files
+
 pytestmark = pytest.mark.security
 
 # pickle / marshal / jsonpickle / dill / shelve family + pandas/numpy pickle paths.
@@ -51,7 +53,8 @@ _YAML_UNSAFE = re.compile(
 # Bare `yaml.load(` — unsafe unless the call explicitly pins a SafeLoader.
 _YAML_LOAD = re.compile(r"yaml\.load\(")
 
-_APPS_ROOT = Path(__file__).resolve().parents[2] / "apps"
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+_APPS_ROOT = _REPO_ROOT / "apps"
 
 
 def _code_lines(source: str) -> dict[int, str]:
@@ -75,7 +78,7 @@ def _code_lines(source: str) -> dict[int, str]:
             if srow == erow and tok.string:
                 per_line.setdefault(srow, []).append(tok.string)
     except (tokenize.TokenError, IndentationError, SyntaxError):
-        return {i: ln for i, ln in enumerate(source.splitlines(), start=1)}
+        return dict(enumerate(source.splitlines(), start=1))
     return {ln: "".join(toks) for ln, toks in per_line.items()}
 
 
@@ -103,13 +106,13 @@ def find_unsafe_deserialization(source: str) -> list[tuple[int, str]]:
 def test_no_insecure_deserialization_under_apps():
     """The real gate: no live pickle/unsafe-yaml deserialization under apps/."""
     # Arrange
-    py_files = sorted(_APPS_ROOT.rglob("*.py"))
+    py_files = tracked_source_files(_REPO_ROOT, ("apps/**/*.py",))
     # Act
     offenders = [
-        f"{py.relative_to(_APPS_ROOT.parent)}:{lineno}: {code.strip()}"
+        f"{py.path}:{lineno}: insecure deserialization"
         for py in py_files
         for lineno, code in find_unsafe_deserialization(
-            py.read_text(encoding="utf-8")
+            py.text()
         )
     ]
     # Assert

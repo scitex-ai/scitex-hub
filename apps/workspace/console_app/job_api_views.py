@@ -20,6 +20,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
+from apps.security import safe_log_field
+
 from .services import SlurmManager
 from .services.job_ownership import job_belongs_to_user
 
@@ -121,7 +123,7 @@ def api_submit_job(request):
             exc_info=True,
         )
         return JsonResponse(
-            {"success": False, "message": f"Server error: {str(e)}"}, status=500
+            {"success": False, "message": "Unable to submit job."}, status=500
         )
 
 
@@ -131,7 +133,7 @@ def api_job_status(request, job_id):
     """
     Get status of a SLURM job.
 
-    GET /code/api/jobs/{job_id}/status/
+    GET /code/api/jobs/{safe_log_field(job_id)}/status/
 
     Returns:
         {
@@ -148,18 +150,14 @@ def api_job_status(request, job_id):
         # SECURITY (IDOR): only the owner may read a job's state. 404 (not
         # 403) so a job owned by someone else is indistinguishable from a
         # nonexistent one -- no existence disclosure.
-        if not job_belongs_to_user(
-            get_slurm_manager(), job_id, request.user.username
-        ):
-            return JsonResponse(
-                {"success": False, "message": "Not found"}, status=404
-            )
+        if not job_belongs_to_user(get_slurm_manager(), job_id, request.user.username):
+            return JsonResponse({"success": False, "message": "Not found"}, status=404)
         status = get_slurm_manager().get_job_status(job_id)
         return JsonResponse(status)
-    except Exception as e:
-        logger.error(f"Error getting job {job_id} status: {str(e)}", exc_info=True)
+    except Exception:
+        logger.exception("Error getting job %s status", safe_log_field(job_id))
         return JsonResponse(
-            {"success": False, "message": f"Error: {str(e)}"}, status=500
+            {"success": False, "message": "Unable to process job request."}, status=500
         )
 
 
@@ -169,7 +167,7 @@ def api_cancel_job(request, job_id):
     """
     Cancel a running SLURM job.
 
-    POST /code/api/jobs/{job_id}/cancel/
+    POST /code/api/jobs/{safe_log_field(job_id)}/cancel/
 
     Returns:
         {
@@ -182,20 +180,18 @@ def api_cancel_job(request, job_id):
         # SECURITY (IDOR): without this check any authenticated user could
         # cancel ANY user's job by numeric id. 404 (not 403) so a job owned
         # by someone else is indistinguishable from a nonexistent one.
-        if not job_belongs_to_user(
-            get_slurm_manager(), job_id, request.user.username
-        ):
-            return JsonResponse(
-                {"success": False, "message": "Not found"}, status=404
-            )
+        if not job_belongs_to_user(get_slurm_manager(), job_id, request.user.username):
+            return JsonResponse({"success": False, "message": "Not found"}, status=404)
         result = get_slurm_manager().cancel_job(job_id)
         if result["success"]:
-            logger.info(f"Job {job_id} cancelled by user {request.user.username}")
+            logger.info(
+                f"Job {safe_log_field(job_id)} cancelled by user {request.user.username}"
+            )
         return JsonResponse(result)
-    except Exception as e:
-        logger.error(f"Error cancelling job {job_id}: {str(e)}", exc_info=True)
+    except Exception:
+        logger.exception("Error cancelling job %s", safe_log_field(job_id))
         return JsonResponse(
-            {"success": False, "message": f"Error: {str(e)}"}, status=500
+            {"success": False, "message": "Unable to process job request."}, status=500
         )
 
 
@@ -205,7 +201,7 @@ def api_job_output(request, job_id):
     """
     Get output logs for a job.
 
-    GET /code/api/jobs/{job_id}/output/?tail=100
+    GET /code/api/jobs/{safe_log_field(job_id)}/output/?tail=100
 
     Returns:
         {
@@ -221,12 +217,8 @@ def api_job_output(request, job_id):
         # it is not an active cross-tenant leak, but the ownership gate is
         # applied here too for consistency. 404 (not 403): no existence
         # disclosure.
-        if not job_belongs_to_user(
-            get_slurm_manager(), job_id, request.user.username
-        ):
-            return JsonResponse(
-                {"success": False, "message": "Not found"}, status=404
-            )
+        if not job_belongs_to_user(get_slurm_manager(), job_id, request.user.username):
+            return JsonResponse({"success": False, "message": "Not found"}, status=404)
         tail_lines = int(request.GET.get("tail", 100))
         user_workspace = get_user_workspace(request.user)
 
@@ -235,9 +227,11 @@ def api_job_output(request, job_id):
         )
 
         return JsonResponse(output)
-    except Exception as e:
-        logger.error(f"Error getting job {job_id} output: {str(e)}", exc_info=True)
-        return JsonResponse({"found": False, "message": f"Error: {str(e)}"}, status=500)
+    except Exception:
+        logger.exception("Error getting job %s output", safe_log_field(job_id))
+        return JsonResponse(
+            {"found": False, "message": "Unable to retrieve job output."}, status=500
+        )
 
 
 @login_required
@@ -262,7 +256,7 @@ def api_queue_status(request):
     except Exception as e:
         logger.error(f"Error getting queue status: {str(e)}", exc_info=True)
         return JsonResponse(
-            {"success": False, "message": f"Error: {str(e)}"}, status=500
+            {"success": False, "message": "Unable to process job request."}, status=500
         )
 
 
@@ -355,7 +349,7 @@ def api_user_jobs(request):
                 "pending": 0,
                 "total": 0,
                 "slurm_available": False,
-                "message": f"Error: {str(e)}",
+                "message": "Unable to retrieve jobs.",
             },
             status=500,
         )

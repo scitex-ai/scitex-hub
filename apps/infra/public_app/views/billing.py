@@ -67,7 +67,7 @@ def _service_unavailable(reason: str) -> JsonResponse:
     return JsonResponse(
         {
             "error": "billing_not_configured",
-            "detail": reason,
+            "detail": "Billing service is not configured.",
         },
         status=503,
     )

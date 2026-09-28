@@ -1,0 +1,10 @@
+{% load scitex_project_picker %}
+<header class="writer-header stx-app-header">
+    <div class="writer-logo stx-app-header__identity">
+        <h1 class="writer-title"><a href="{% url 'writer_app:index' %}">SciTeX Writer</a></h1>
+    </div>
+    <div class="stx-app-header__slot--project-selector">
+        {% scitex_project_picker scope="project" current=current_project %}
+    </div>
+    <div class="stx-app-header__actions"></div>
+</header>

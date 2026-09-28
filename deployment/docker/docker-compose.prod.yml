@@ -40,6 +40,7 @@ services:
       dockerfile: deployment/docker/Dockerfile.prod
       args:
         BUILDKIT_INLINE_CACHE: 1
+        SCITEX_HUB_DEPENDENCY_RESOLUTION: ${SCITEX_HUB_DEPENDENCY_RESOLUTION:?set by protected rebuild}
     image: scitex-hub-prod-django:latest
     entrypoint: ["/usr/bin/tini", "--", "/root-init.sh", "/entrypoint.sh"]
     deploy:

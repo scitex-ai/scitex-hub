@@ -11,7 +11,7 @@
 {% endblock %}
 {% block writer_content %}
     {% include "writer_app/index_partials/demo_banner.html" %}
-    {% include "writer/_project_picker.html" %}
+    {% include "writer_app/shared/_app_header.html" %}
     <!-- Show message if visitor pool has errors -->
     {% if pool_error %}
         <div id="pool-error-message" class="container py-5">

@@ -108,7 +108,10 @@ def api_library_papers(request):
             )
         except Exception as e:
             logger.error(f"Error fetching library papers: {e}")
-            return JsonResponse({"success": False, "error": str(e)}, status=500)
+            return JsonResponse(
+                {"success": False, "error": "Unable to process library request."},
+                status=500,
+            )
 
     elif request.method == "POST":
         # Add paper to library
@@ -139,7 +142,10 @@ def api_library_papers(request):
             )
         except Exception as e:
             logger.error(f"Error adding paper to library: {e}")
-            return JsonResponse({"success": False, "error": str(e)}, status=400)
+            return JsonResponse(
+                {"success": False, "error": "Unable to process library request."},
+                status=400,
+            )
 
 
 @login_required
@@ -154,7 +160,10 @@ def api_library_collections(request):
         return JsonResponse({"success": True, "collections": list(collections)})
     except Exception as e:
         logger.error(f"Error fetching collections: {e}")
-        return JsonResponse({"success": False, "error": str(e)}, status=400)
+        return JsonResponse(
+            {"success": False, "error": "Unable to process library request."},
+            status=400,
+        )
 
 
 @login_required
@@ -184,7 +193,10 @@ def api_create_collection(request):
         )
     except Exception as e:
         logger.error(f"Error creating collection: {e}")
-        return JsonResponse({"success": False, "error": str(e)}, status=400)
+        return JsonResponse(
+            {"success": False, "error": "Unable to process library request."},
+            status=400,
+        )
 
 
 @login_required
@@ -218,7 +230,10 @@ def api_update_library_paper(request, paper_id):
         )
     except Exception as e:
         logger.error(f"Error updating library paper: {e}")
-        return JsonResponse({"success": False, "error": str(e)}, status=400)
+        return JsonResponse(
+            {"success": False, "error": "Unable to process library request."},
+            status=400,
+        )
 
 
 @login_required
@@ -242,7 +257,10 @@ def api_remove_library_paper(request, paper_id):
         )
     except Exception as e:
         logger.error(f"Error removing library paper: {e}")
-        return JsonResponse({"success": False, "error": str(e)}, status=400)
+        return JsonResponse(
+            {"success": False, "error": "Unable to process library request."},
+            status=400,
+        )
 
 
 @login_required

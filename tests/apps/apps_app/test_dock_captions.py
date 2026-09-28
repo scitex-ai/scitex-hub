@@ -156,6 +156,15 @@ def test_desktop_dock_keeps_the_canonical_dock_icon_size():
     assert size == "60"
 
 
+def test_desktop_uses_the_canonical_mobile_dock_icon_size():
+    # Arrange
+    dock = _media_block(_dock_css(), "@media (min-width: 0px)")
+    # Act
+    size = re.search(r"--site-dock-icon:\s*(\d+)px", dock).group(1)
+    # Assert
+    assert size == "60"
+
+
 def test_phone_dock_gives_the_apps_their_own_row():
     # Arrange
     phone = _media_block(_dock_css(), "@media (min-width: 0px)")

@@ -90,7 +90,13 @@ def plugin_urlpatterns(existing) -> list:
     from django.urls.resolvers import RoutePattern, URLResolver
     from functools import cached_property
 
-    from scitex_app.plugins import mount_route
+    try:
+        from scitex_app.plugins import mount_route  # type: ignore[import-not-found]
+    except ImportError:
+        # scitex-app is an optional integration surface. Released wheels that
+        # predate the plugin API must still boot the Hub; no discovered plugin
+        # means there is nothing to mount.
+        return []
 
     class PluginMountResolver(URLResolver):
         def __init__(self, route, urls_module):

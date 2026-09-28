@@ -157,3 +157,30 @@ def test_operator_allowlist_defaults_to_the_fleet_operator_env():
     # Assert
     assert "SCITEX_HUB_PLUGIN_OPERATORS" in text
     assert "SCITEX_AGENT_CONTAINER_LIFECYCLE_OPERATORS" in text
+
+
+def test_sac_resolves_the_authenticated_hub_identity():
+    authorization = pytest.importorskip(
+        "scitex_agent_container._django._authorization"
+    )
+    request = SimpleNamespace(
+        user=SimpleNamespace(is_authenticated=True, username="alice")
+    )
+
+    assert authorization.resolve_identity(request) == "alice"
+
+
+def test_sac_scope_hides_cross_host_rows_from_an_ordinary_identity(monkeypatch):
+    authorization = pytest.importorskip(
+        "scitex_agent_container._django._authorization"
+    )
+    monkeypatch.delenv("SCITEX_AGENT_CONTAINER_CROSSHOST_OPERATORS", raising=False)
+    rows = [
+        {"name": "own", "host": "local"},
+        {"name": "other-user", "host": "other.example"},
+    ]
+
+    scoped = authorization.scope_rows(rows, "alice")
+
+    assert [row["name"] for row in scoped] == ["own"]
+    assert scoped[0]["scope"] == "own"

@@ -39,7 +39,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 
 from ..access import is_instance_admin
-from ..server import CHECK_DEADLINE_SECONDS, _CHECK_PLACEMENTS, _collect_status_data
+from ..server import _CHECK_PLACEMENTS, CHECK_DEADLINE_SECONDS, _collect_status_data
 
 logger = logging.getLogger("scitex")
 
@@ -88,9 +88,7 @@ def status_api(request, checks=None, deadline_seconds=None):
     and the API are the same measurement of the same machine.
     """
     if checks is None:
-        checks = {
-            name: getattr(_server_module(), name) for name in _CHECK_PLACEMENTS
-        }
+        checks = {name: getattr(_server_module(), name) for name in _CHECK_PLACEMENTS}
     if deadline_seconds is None:
         deadline_seconds = CHECK_DEADLINE_SECONDS
 
@@ -129,7 +127,7 @@ def status_api(request, checks=None, deadline_seconds=None):
             {
                 "schema": SCHEMA,
                 "error": "status payload is not JSON-serializable",
-                "detail": str(exc),
+                "detail": "Status data is temporarily unavailable.",
                 "hint": (
                     "A status check returned a value JsonResponse cannot encode "
                     "(datetime and Decimal are handled by DjangoJSONEncoder; "

@@ -56,6 +56,8 @@ from pathlib import Path
 
 import pytest
 
+from tests.tracked_source import tracked_source_files
+
 # tests/develop/<this file> -> repo root is 3 levels up.
 #
 # Lives in tests/develop/ with the repo's other whole-tree gates
@@ -129,13 +131,13 @@ def _is_prompt_call(node: ast.AST) -> str | None:
 def _collect_prompt_sites() -> list[tuple[str, str, int, str]]:
     """Every prompt call site as (relpath, function, lineno, called)."""
     found: list[tuple[str, str, int, str]] = []
-    for path in sorted(SRC_ROOT.rglob("*.py")):
-        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    for source_file in tracked_source_files(REPO_ROOT, ("src/scitex_hub/**/*.py",)):
+        tree = ast.parse(source_file.text(), filename=source_file.path)
         parents: dict[ast.AST, ast.AST] = {}
         for parent in ast.walk(tree):
             for child in ast.iter_child_nodes(parent):
                 parents[child] = parent
-        rel = path.relative_to(REPO_ROOT).as_posix()
+        rel = source_file.path
         for node in ast.walk(tree):
             called = _is_prompt_call(node)
             if called is None:
@@ -150,10 +152,8 @@ def test_src_tree_is_scannable():
     A path typo would make every assertion below vacuously true, which is
     the failure mode this whole file exists to prevent.
     """
-    # Arrange
-    src_root = SRC_ROOT
     # Act
-    module_count = len(list(src_root.rglob("*.py")))
+    module_count = len(tracked_source_files(REPO_ROOT, ("src/scitex_hub/**/*.py",)))
     # Assert
     assert module_count > 0, (
         f"no Python modules found under {SRC_ROOT} — the scan is looking at "

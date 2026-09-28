@@ -185,13 +185,4 @@ def get_simple_jwt_settings(secret_key: str) -> dict:
     }
 
 
-@stx.session
-def main(CONFIG=stx.session.INJECTED):
-    """Settings module — not meant to be executed directly."""
-    return 0
-
-
-if __name__ == "__main__":
-    main()
-
 # EOF

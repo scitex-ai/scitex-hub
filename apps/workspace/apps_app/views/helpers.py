@@ -70,13 +70,23 @@ def ensure_builtin_modules():
         # visibility-regression-20260914). Take the fast path ONLY when no
         # builtin's stored visibility has drifted from its manifest; otherwise
         # fall through to the idempotent update_or_create sync below.
-        registry_vis = {m.name: (m.visibility or "public") for m in all_modules}
-        stored_vis = list(
+        registry_state = {
+            m.name: (
+                m.visibility or "public",
+                m.availability or "available",
+                m.builtin,
+            )
+            for m in all_modules
+        }
+        stored_state = list(
             AppsModule.objects.filter(is_builtin=True).values_list(
-                "module_name", "visibility"
+                "module_name", "visibility", "availability", "is_builtin"
             )
         )
-        if all(registry_vis.get(n) == v for n, v in stored_vis):
+        if all(
+            registry_state.get(name) == tuple(values)
+            for name, *values in stored_state
+        ):
             _builtins_ensured = True
             return
 

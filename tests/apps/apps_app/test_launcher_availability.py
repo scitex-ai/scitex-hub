@@ -15,6 +15,8 @@ Expected strings are independent literals, never read back off the row
 the tile was built from.
 """
 
+import re
+
 import pytest
 from django.contrib.auth.models import User
 from django.test import TestCase
@@ -163,9 +165,7 @@ class LauncherTileAvailabilityTest(TestCase):
         # Assert
         assert tile["availability"] == expected
 
-    def test_desktop_only_tile_stays_launchable(self):
-        # Arrange — desktop-only gates the PHONE, not the desktop; the
-        # tile keeps its href and CSS/TS handle the mobile side.
+    def test_available_writer_tile_stays_launchable(self):
         expected = True
         # Act
         tile = self._tile("writer")
@@ -274,14 +274,31 @@ class LauncherTemplateAvailabilityTest(TestCase):
         # Assert
         assert expected in resp.content
 
-    def test_desktop_only_badge_rendered(self):
-        # Arrange — the badge is always in the DOM; CSS shows it under the
-        # mobile breakpoint only (media queries are not testable here).
-        expected = b"launcher-badge-desktop-only"
+    def test_writer_tile_carries_available_state(self):
         # Act
         resp = self.client.get("/")
         # Assert
-        assert expected in resp.content
+        match = re.search(
+            rb'<a[^>]*class="launcher-tile"[^>]*data-module="writer"[^>]*>',
+            resp.content,
+            re.DOTALL,
+        )
+        assert match is not None
+        writer = match.group(0)
+        assert b'data-availability="available"' in writer
+
+    def test_writer_has_no_desktop_only_badge(self):
+        # Act
+        resp = self.client.get("/")
+        # Assert
+        match = re.search(
+            rb'<a[^>]*class="launcher-tile"[^>]*data-module="writer"[^>]*>.*?</a>',
+            resp.content,
+            re.DOTALL,
+        )
+        assert match is not None
+        writer = match.group(0)
+        assert b"launcher-badge-desktop-only" not in writer
 
     def test_available_tile_keeps_its_href(self):
         # Arrange — scholar launches everywhere

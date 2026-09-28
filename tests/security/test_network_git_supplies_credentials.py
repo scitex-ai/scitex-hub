@@ -65,6 +65,8 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
+from tests.tracked_source import tracked_source_files
+
 APPS_ROOT = Path(__file__).resolve().parents[2] / "apps"
 
 #: git verbs that open a connection to Gitea and therefore need a credential.
@@ -110,9 +112,9 @@ def _literal_str_list(node: ast.AST) -> list[str] | None:
     return out
 
 
-def _network_git_calls(path: Path) -> list[tuple[int, str, bool]]:
+def _network_git_calls(source: str, filename: str) -> list[tuple[int, str, bool]]:
     """``(lineno, verb, supplies_env)`` per literal network-git subprocess."""
-    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    tree = ast.parse(source, filename=filename)
     found: list[tuple[int, str, bool]] = []
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call) or not _is_subprocess_run(node):
@@ -133,9 +135,11 @@ def _network_git_calls(path: Path) -> list[tuple[int, str, bool]]:
 def _scan_apps() -> list[tuple[str, int, str, bool]]:
     """``(relpath, lineno, verb, supplies_env)`` for all of ``apps/``."""
     calls: list[tuple[str, int, str, bool]] = []
-    for py_file in sorted(APPS_ROOT.rglob("*.py")):
-        relpath = str(py_file.relative_to(APPS_ROOT.parent))
-        for lineno, verb, supplies_env in _network_git_calls(py_file):
+    for source_file in tracked_source_files(APPS_ROOT.parent, ("apps/**/*.py",)):
+        relpath = source_file.path
+        for lineno, verb, supplies_env in _network_git_calls(
+            source_file.text(), relpath
+        ):
             calls.append((relpath, lineno, verb, supplies_env))
     return calls
 

@@ -4,12 +4,14 @@ SciTeX Hub - File Operations
 Basic file operations for reading, writing, and getting file information.
 """
 
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, Tuple
-from datetime import datetime
+
+from apps.infra.platform_app.services.paths import is_within
 
 from .constants import format_size
-from .file_detection import is_text_file, is_binary_file, quick_hash, get_mime_type
+from .file_detection import get_mime_type, is_binary_file, is_text_file, quick_hash
 
 
 def get_file_info(file_path: Path) -> Dict:
@@ -98,7 +100,11 @@ def read_file_content(file_path: Path, max_size: int = 1024 * 1024) -> Tuple[boo
 
 
 def write_file_content(
-    file_path: Path, content: str, create_dirs: bool = True
+    file_path: Path,
+    content: str,
+    create_dirs: bool = True,
+    *,
+    trusted_root: Path,
 ) -> Tuple[bool, str]:
     """
     Write content directly to filesystem.
@@ -107,11 +113,16 @@ def write_file_content(
         file_path: Path to file
         content: Content to write
         create_dirs: Create parent directories if they don't exist
+        trusted_root: Server-selected directory that must contain ``file_path``
 
     Returns:
         Tuple of (success, message)
     """
+    if not is_within(trusted_root, file_path):
+        return False, "Invalid file path"
+
     try:
+        file_path = Path(file_path).resolve()
         # Create parent directories if needed
         if create_dirs and not file_path.parent.exists():
             file_path.parent.mkdir(parents=True, exist_ok=True)

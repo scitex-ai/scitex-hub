@@ -17,18 +17,7 @@ Features:
 {% endblock %}
 {% block content %}
     <div class="writer-app-container">
-        {% block writer_header %}
-            <header class="writer-header">
-                <div class="writer-logo">
-                    <h1>SciTeX Writer</h1>
-                </div>
-                {% if project %}
-                    <div class="project-context">
-                        <span class="project-name">{{ project.name }}</span>
-                    </div>
-                {% endif %}
-            </header>
-        {% endblock %}
+        {% block writer_header %}{% include "writer_app/shared/_app_header.html" %}{% endblock %}
         <div class="writer-main">
             {% block writer_sidebar %}{# Sidebar can be overridden by individual templates #}{% endblock %}
             <main class="writer-content">

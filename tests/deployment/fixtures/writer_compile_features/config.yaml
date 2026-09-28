@@ -1,0 +1,3 @@
+signature_footer: true
+compile_artifacts:
+  level: error

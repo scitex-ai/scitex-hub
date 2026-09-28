@@ -5,7 +5,9 @@
 Extracted from views.py to stay under the file size limit.
 """
 
+import logging
 import re
+from importlib.resources import files
 from pathlib import Path
 
 from django.conf import settings
@@ -15,6 +17,8 @@ from django.shortcuts import render
 from apps.infra.project_app.services.filesystem.permissions import (
     validate_path_in_project,
 )
+
+logger = logging.getLogger(__name__)
 
 # Repo-name → pip-name mapping for packages where they differ.
 _REPO_TO_PIP = {
@@ -45,19 +49,24 @@ def resolve_sphinx_path(module: str) -> "Path | None":
     Uses scitex_dev.docs.get_docs() for dynamic resolution, with a
     local-project fallback for scitex-hub (not a pip package).
     """
-    if module == "scitex-hub":
-        doc_path = Path(settings.BASE_DIR) / "docs" / "sphinx" / "_build" / "html"
-        return doc_path if doc_path.exists() else None
+    if module in {"scitex-hub", "python"}:
+        bundled = Path(str(files("scitex_hub").joinpath("_sphinx_html")))
+        if (bundled / "index.html").is_file():
+            return bundled
+        local_build = Path(settings.BASE_DIR) / "docs" / "sphinx" / "_build" / "html"
+        return local_build if (local_build / "index.html").is_file() else None
 
     pip_name = _REPO_TO_PIP.get(module, module)
     try:
-        from scitex_dev.docs import get_docs
+        from scitex_dev import get_docs
 
         result = get_docs(package=pip_name, format="html")
-        if isinstance(result, Path) and result.exists():
-            return result
+        if isinstance(result, (str, Path)):
+            result_path = Path(result)
+            if (result_path / "index.html").is_file():
+                return result_path
     except (LookupError, ImportError):
-        pass
+        logger.warning("Sphinx documentation discovery failed", exc_info=True)
 
     return None
 
@@ -98,7 +107,7 @@ def serve_sphinx_docs(request, module, page="index.html"):
     """Serve Sphinx-built documentation files wrapped in Django template."""
     doc_base = resolve_sphinx_path(module)
     if doc_base is None:
-        raise Http404(f"Documentation not found for module '{module}'")
+        return _docs_unavailable()
 
     doc_file = doc_base / page
 
@@ -107,11 +116,16 @@ def serve_sphinx_docs(request, module, page="index.html"):
     if not validate_path_in_project(doc_base, doc_file):
         raise Http404("Invalid documentation path")
 
-    if not doc_file.exists():
-        raise Http404(f"Documentation page not found: {module}/{page}")
+    if not doc_file.is_file():
+        raise Http404("Documentation page not found")
 
     if doc_file.suffix == ".html":
-        content = doc_file.read_text(encoding="utf-8")
+        try:
+            content = doc_file.read_text(encoding="utf-8")
+        except (OSError, UnicodeError):
+            return _docs_unavailable()
+        if not re.search(r"<!doctype\s+html|<html\b", content, re.I):
+            return _docs_unavailable()
         context = {
             "module": module,
             "module_name": module.capitalize(),
@@ -122,6 +136,18 @@ def serve_sphinx_docs(request, module, page="index.html"):
 
     ct = _STATIC_CONTENT_TYPES.get(doc_file.suffix, "application/octet-stream")
     return HttpResponse(doc_file.read_bytes(), content_type=ct)
+
+
+def _docs_unavailable():
+    """Return an intentional, non-leaking response for a broken artifact."""
+    response = HttpResponse(
+        "Documentation is temporarily unavailable. Please try again later or "
+        "visit https://scitex-hub.readthedocs.io/.",
+        status=503,
+        content_type="text/plain; charset=utf-8",
+    )
+    response["Retry-After"] = "300"
+    return response
 
 
 def register_sphinx_packages(docs_pages, pages_by_slug):

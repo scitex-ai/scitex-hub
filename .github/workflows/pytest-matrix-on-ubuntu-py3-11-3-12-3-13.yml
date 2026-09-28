@@ -105,6 +105,15 @@ jobs:
           exit 1
 
       - uses: actions/checkout@v4
+      - name: Check out Writer's compile gate
+        uses: actions/checkout@v4
+        with:
+          repository: scitex-ai/scitex-writer
+          ref: develop
+          path: .ci/scitex-writer
+          sparse-checkout: |
+            scripts/python
+          sparse-checkout-cone-mode: true
       # uv, NOT setup-python + bare pip. The runner's toolcache Python is
       # uv-managed, so pip into it dies with PEP 668
       # "externally-managed-environment" (measured, run 30329643093).
@@ -140,6 +149,7 @@ jobs:
         # if SCITEX_HUB_DJANGO_SECRET_KEY is unset. CI doesn't need a real
         # secret, so we set an obviously-fake one for the test process only.
         env:
+          SCITEX_WRITER_SOURCE: ${{ github.workspace }}/.ci/scitex-writer
           SCITEX_HUB_DJANGO_SECRET_KEY: ci-test-secret-do-not-use-in-prod  # pragma: allowlist secret
           # settings_dev.py: require_env("SCITEX_HUB_GITEA_SSH_PORT_DEV")
           SCITEX_HUB_GITEA_SSH_PORT_DEV: "2222"

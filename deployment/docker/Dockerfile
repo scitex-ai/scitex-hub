@@ -215,9 +215,14 @@ RUN if [ -f /etc/ImageMagick-6/policy.xml ]; then \
 COPY pyproject.toml ./
 COPY src/ ./src/
 
-# Install SciTeX Hub Python dependencies with cache mount
+# Install SciTeX Hub Python dependencies with cache mount. The explicit input
+# refreshes only this lightweight resolution layer, never system dependencies.
+ARG SCITEX_HUB_DEPENDENCY_RESOLUTION=dev
 RUN --mount=type=cache,target=/root/.cache/uv \
+    echo "dependency resolution: ${SCITEX_HUB_DEPENDENCY_RESOLUTION}" && \
     uv pip install --system ".[all]"
+ENV SCITEX_HUB_DEPENDENCY_RESOLUTION=${SCITEX_HUB_DEPENDENCY_RESOLUTION}
+LABEL org.scitex-hub.dependency-resolution=${SCITEX_HUB_DEPENDENCY_RESOLUTION}
 
 # Install Playwright browsers (must persist in image for runtime use)
 # Note: We already have chromium and dependencies installed above,

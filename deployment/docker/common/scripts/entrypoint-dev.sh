@@ -32,6 +32,12 @@ source /app/deployment/docker/common/lib/database.src
 source /app/deployment/docker/common/lib/django.src
 source /app/deployment/docker/common/lib/scitex.src
 source /app/deployment/docker/common/lib/slurm.src
+source /app/deployment/docker/common/lib/service_role.src
+
+IS_WEB_ROLE=false
+if is_web_role "$@"; then
+    IS_WEB_ROLE=true
+fi
 
 MIGRATION_SENTINEL="/app/logs/.migrations_done"
 

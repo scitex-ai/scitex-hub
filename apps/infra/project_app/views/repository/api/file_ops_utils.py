@@ -11,8 +11,9 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 
+from apps.infra.platform_app.services.paths import resolve_within
+
 from ....models import Project
-from ....services.filesystem.permissions import validate_path_in_project
 from .permissions import check_project_write_access
 
 logger = logging.getLogger(__name__)
@@ -64,7 +65,7 @@ def validate_path(project_path: Path, file_path: str) -> Path | None:
 
     Returns resolved path or None if invalid.
 
-    Uses component-wise containment (validate_path_in_project), NOT a string
+    Uses the canonical component-wise ``resolve_within`` barrier, NOT a string
     prefix match: `project_path / "../proj-other/secret"` string-prefix-matches
     project_path and would otherwise escape into a sibling tenant's project.
 
@@ -73,16 +74,9 @@ def validate_path(project_path: Path, file_path: str) -> Path | None:
     sinks include Path.unlink, shutil.move and shutil.rmtree. Ownership is
     enforced separately by get_project_context() above.
     """
-    try:
-        full_path = (project_path / file_path).resolve()
-        project_resolved = project_path.resolve()
-        # Component-wise containment: relative_to raises ValueError when
-        # full_path is not under project_resolved. A string startswith would
-        # admit a sibling whose name shares the prefix (proj vs proj-other).
-        full_path.relative_to(project_resolved)
-        return full_path
-    except (ValueError, OSError, RuntimeError):
+    if Path(file_path).is_absolute():
         return None
+    return resolve_within(project_path, file_path)
 
 
 def git_auto_commit(project, project_path, file_path, action):

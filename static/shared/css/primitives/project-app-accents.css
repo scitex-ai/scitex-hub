@@ -1,0 +1,13 @@
+/* Canonical project-app identities introduced by hub's module rename.
+ * Keep both theme declarations explicit: manifests resolve these names
+ * dynamically, so an absent custom property otherwise fails silently. */
+:root,
+[data-theme="light"] {
+  --app-accent-my_projects: var(--stx-accent);
+  --app-accent-public_projects: var(--stx-accent);
+}
+
+[data-theme="dark"] {
+  --app-accent-my_projects: var(--stx-accent);
+  --app-accent-public_projects: var(--stx-accent);
+}

@@ -74,6 +74,25 @@ def server_status_api(request):
             data["total_users_count"] = None
 
         return JsonResponse(data)
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+    except Exception:
+        logger.exception("Realtime status collection failed")
+        return JsonResponse(
+            {"error": "Unable to retrieve realtime status."}, status=500
+        )
+
+
+def visitor_resources_api(request):
+    """API endpoint for visitor resource allocation (for product tour)."""
+    from config.settings.quotas import SLURM_QUOTAS
+
+    return JsonResponse(
+        {
+            "cpus": SLURM_QUOTAS.get("interactive_cpus", 2),
+            "memory_gb": SLURM_QUOTAS.get("interactive_memory_gb", 4),
+            "time_limit": SLURM_QUOTAS.get("interactive_time_limit", "04:00:00"),
+            "session_duration": "1 hour",
+        }
+    )
+
+
 # EOF

@@ -11,7 +11,11 @@ Custom exceptions for Gitea integration
 class GiteaAPIError(Exception):
     """Base exception for Gitea API errors"""
 
-    pass
+    def __init__(self, message: str, *, status_code: int | None = None):
+        super().__init__(message)
+        # Numeric metadata lets health checks classify auth rejection without
+        # parsing or exposing an exception message or response body.
+        self.status_code = status_code
 
 
 class GiteaUserCreationError(GiteaAPIError):

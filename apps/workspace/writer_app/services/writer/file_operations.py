@@ -6,11 +6,33 @@ Thin Django wrapper delegating to scitex.writer.Writer for core logic.
 
 from scitex import logging
 
+from apps.infra.platform_app.services.paths import resolve_within
+
 logger = logging.getLogger(__name__)
 
 
 class FileOperationsMixin:
     """Mixin for file I/O operations. Delegates to Writer."""
+
+    def _validated_section_path(self, section_name: str, doc_type: str):
+        directories = {
+            "manuscript": "01_manuscript/contents",
+            "supplementary": "02_supplementary/contents",
+            "revision": "03_revision/contents",
+            "shared": "shared",
+        }
+        directory = directories.get(doc_type)
+        if directory is None or not isinstance(section_name, str):
+            raise ValueError("Invalid Writer section path")
+        section_dir = resolve_within(self.writer_dir, directory)
+        target = (
+            resolve_within(section_dir, f"{section_name}.tex")
+            if section_dir is not None
+            else None
+        )
+        if target is None:
+            raise ValueError("Invalid Writer section path")
+        return target
 
     def read_section(self, section_name: str, doc_type: str = "manuscript") -> str:
         """Read a section's content.
@@ -30,6 +52,7 @@ class FileOperationsMixin:
                 return ""
             return self._read_compiled_tex(doc_type)
 
+        self._validated_section_path(section_name, doc_type)
         return self.writer.read_section(section_name, doc_type)
 
     def write_section(
@@ -53,6 +76,7 @@ class FileOperationsMixin:
         Returns:
             True if successful
         """
+        self._validated_section_path(section_name, doc_type)
         result = self.writer.write_section(section_name, content, doc_type)
 
         if not result:
@@ -121,11 +145,8 @@ class FileOperationsMixin:
         Returns:
             File content as string
         """
-        full_path = self.writer_dir / file_path
-
-        try:
-            full_path.resolve().relative_to(self.writer_dir.resolve())
-        except ValueError:
+        full_path = resolve_within(self.writer_dir, file_path)
+        if full_path is None:
             raise PermissionError("Access denied: path outside project directory")
 
         if not full_path.exists():

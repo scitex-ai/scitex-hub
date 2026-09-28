@@ -41,6 +41,8 @@ from pathlib import Path
 
 import pytest
 
+from tests.tracked_source import TrackedSourceFile, tracked_source_files
+
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 
 #: Directories holding Django templates. Kept explicit rather than globbing the
@@ -62,12 +64,10 @@ _SAME_ORIGIN_GITHUB_RE = re.compile(r'href="/scitex-ai/')
 _ABSOLUTE_GITHUB_RE = re.compile(r'href="https://github\.com/')
 
 
-def _html_files() -> list[Path]:
-    files: list[Path] = []
-    for root in _TEMPLATE_ROOTS:
-        if root.is_dir():
-            files.extend(root.rglob("*.html"))
-    return files
+def _html_files() -> tuple[TrackedSourceFile, ...]:
+    return tracked_source_files(
+        _REPO_ROOT, ("templates/*.html", "apps/**/*.html")
+    )
 
 
 @pytest.fixture(name="link_scan", scope="module")
@@ -81,13 +81,12 @@ def _link_scan() -> tuple[list[str], int]:
     absolute = 0
     for path in _html_files():
         try:
-            text = path.read_text(encoding="utf-8", errors="replace")
-        except OSError:
+            text = path.text(errors="replace")
+        except UnicodeError:
             continue
         for lineno, line in enumerate(text.splitlines(), 1):
             if _SAME_ORIGIN_GITHUB_RE.search(line):
-                rel = path.relative_to(_REPO_ROOT)
-                offenders.append(f"{rel}:{lineno}")
+                offenders.append(f"{path.path}:{lineno}")
             absolute += len(_ABSOLUTE_GITHUB_RE.findall(line))
     return offenders, absolute
 

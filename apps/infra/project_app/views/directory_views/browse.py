@@ -15,14 +15,17 @@ from __future__ import annotations
 
 import logging
 import subprocess
-from pathlib import Path
 
-from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.http import Http404
+from django.shortcuts import get_object_or_404, redirect, render
 
 from ...models import Project
-from ...services.filesystem.permissions import validate_path_in_project
+from ...services.filesystem.permissions import (
+    VCS_METADATA_COMPONENTS,
+    validate_path_in_project,
+)
 from ..repository.api.permissions import check_project_read_access
 
 logger = logging.getLogger(__name__)
@@ -38,6 +41,10 @@ def project_directory_dynamic(request, username, slug, directory_path):
     - /username/project/paper/manuscript/
     - /username/project/data/raw/images/
     """
+    from ...services.filesystem.permissions import canonical_repository_relative_path
+
+    if canonical_repository_relative_path(directory_path) is None:
+        raise Http404
     user = get_object_or_404(User, username=username)
     project = get_object_or_404(Project, slug=slug, owner=user)
 
@@ -95,6 +102,8 @@ def project_directory_dynamic(request, username, slug, directory_path):
     contents = []
     try:
         for item in full_directory_path.iterdir():
+            if item.name.casefold() in VCS_METADATA_COMPONENTS:
+                continue
             # Show all files and directories including hidden files
             # Skip only special directories like .git
             if item.is_dir() and item.name in [
@@ -287,6 +296,8 @@ def project_directory(request, username, slug, directory, subpath=None):
             return {"author": "", "time_ago": "", "message": "", "hash": ""}
 
         for item in directory_path.iterdir():
+            if item.name.casefold() in VCS_METADATA_COMPONENTS:
+                continue
             # Show all files and directories including dotfiles
             git_info = get_git_info(item)
 

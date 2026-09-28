@@ -14,6 +14,8 @@ from typing import Dict, List, Optional
 
 from django.core.cache import cache
 
+from apps.security import safe_log_field
+
 from .online import OnlineCrossrefGraphSource
 
 logger = logging.getLogger(__name__)
@@ -48,9 +50,15 @@ class CitationGraphService:
             result = build_local()
             if not self._is_empty(result):
                 return result
-        except Exception as e:
-            logger.warning(f"crossref-local graph failed for {label}: {e}")
-        logger.info(f"Citation graph for {label}: using online Crossref")
+        except Exception:
+            logger.warning(
+                "crossref-local graph failed for %s",
+                safe_log_field(label),
+                exc_info=True,
+            )
+        logger.info(
+            f"Citation graph for {safe_log_field(label)}: using online Crossref"
+        )
         return build_online()
 
     def _cache_set(self, key: str, result: Dict) -> None:
@@ -115,14 +123,16 @@ class CitationGraphService:
                 weight_cocitation=weight_cocitation,
                 weight_direct=weight_direct,
             ).to_dict(),
-            lambda: self.online_source.build_from_dois([doi], num_related_per_doi=top_n),
+            lambda: self.online_source.build_from_dois(
+                [doi], num_related_per_doi=top_n
+            ),
             doi,
         )
         result["metadata"]["cached"] = False
         self._cache_set(cache_key, result)
 
         logger.info(
-            f"Built network for {doi}: "
+            f"Built network for {safe_log_field(doi)}: "
             f"{len(result['nodes'])} nodes, {len(result['edges'])} edges"
         )
         return result
@@ -208,7 +218,7 @@ class CitationGraphService:
         self._cache_set(cache_key, result)
 
         logger.info(
-            f"Built query network for '{query}': "
+            f"Built query network for '{safe_log_field(query)}': "
             f"{len(result['nodes'])} nodes, {len(result['edges'])} edges"
         )
         return result
@@ -249,11 +259,11 @@ class CitationGraphService:
             cache.set(cache_key, result, 30)
             return result
 
-        except Exception as e:
-            logger.error(f"Health check failed: {e}")
+        except Exception:
+            logger.exception("Citation graph health check failed")
             result = {
                 "status": "unhealthy",
-                "error": str(e),
+                "error": "Citation graph service unavailable.",
                 "cached": False,
             }
             cache.set(cache_key, result, 10)

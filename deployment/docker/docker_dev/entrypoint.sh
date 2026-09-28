@@ -32,6 +32,12 @@ source /app/deployment/docker/common/lib/database.src
 source /app/deployment/docker/common/lib/django.src
 source /app/deployment/docker/common/lib/scitex.src
 source /app/deployment/docker/common/lib/slurm.src
+source /app/deployment/docker/common/lib/service_role.src
+
+IS_WEB_ROLE=false
+if is_web_role "$@"; then
+    IS_WEB_ROLE=true
+fi
 
 MIGRATION_SENTINEL="/app/logs/.migrations_done"
 
@@ -251,17 +257,8 @@ start_typescript_build_watcher_fallback() {
     fi
 }
 
-# Only start web-related services for the Django container (not celery/flower)
-# Check if the command ($@) is the Django runserver
-IS_DJANGO_CONTAINER=false
-for arg in "$@"; do
-    if [ "$arg" = "runserver" ]; then
-        IS_DJANGO_CONTAINER=true
-        break
-    fi
-done
-
-if [ "$IS_DJANGO_CONTAINER" = true ]; then
+# Only start web-related services for the explicit web command.
+if [ "$IS_WEB_ROLE" = true ]; then
     # Start Vite servers (platform + dev app)
     start_platform_vite
     start_devapp_vite
@@ -458,7 +455,7 @@ start_gitea_auto_sync_if_needed() {
     fi
 }
 # Django-only: terminal broker, SSH gateway, auto-sync (skip for celery/flower)
-if [ "$IS_DJANGO_CONTAINER" = true ]; then
+if [ "$IS_WEB_ROLE" = true ]; then
     start_terminal_broker_if_needed
     start_ssh_gateway_if_needed
     start_gitea_auto_sync_if_needed

@@ -278,9 +278,14 @@ def _build_tiles(request) -> list[dict]:
                 "icon_fa": mod.icon_fa or "fas fa-puzzle-piece",
                 "icon_badge": mod.icon_badge,
                 "is_dev_only": _is_dev_only(mod.visibility, row),
-                "launch_url": mod.get_url(),
+                "launch_url": (
+                    mod.get_url()
+                    if (row and row.is_builtin) or mod.name in installed_names
+                    else f"/apps/store/{mod.name}/"
+                ),
                 "availability": availability,
                 "scope": mod.scope,
+                "availability_reason": mod.availability_reason,
                 # Coming-soon tiles must never navigate (operator: a tap
                 # effect is fine, navigation is not). The template drops
                 # the href from this single flag.
@@ -297,7 +302,9 @@ def _build_tiles(request) -> list[dict]:
                 # manifest omits it — the tile hides the label, never breaks.
                 "version": mod.version,
                 "version_label": _version_label(mod.version),
-                "is_installed": True,  # registry modules are built in
+                "is_installed": bool(
+                    (row and row.is_builtin) or mod.name in installed_names
+                ),
                 "is_pinned": mod.name in pinned_names,
                 "is_new": False,
                 "detail_url": f"/apps/store/{mod.name}/",
@@ -334,6 +341,7 @@ def _build_tiles(request) -> list[dict]:
                 # No registry entry here, so the catalog row IS the SSoT.
                 "availability": row.availability,
                 "scope": "user",
+                "availability_reason": "",
                 "is_launchable": row.availability != "coming_soon",
                 "description": row.short_description,
                 # Community store apps are not in the registry (no manifest
@@ -369,6 +377,7 @@ def _build_tiles(request) -> list[dict]:
                     # gating their launch would block the dev loop itself.
                     "availability": "available",
                     "scope": "user",
+                    "availability_reason": "",
                     "is_launchable": True,
                     "description": dev.description,
                     # Dev-installed apps carry no manifest version — mark "dev".
@@ -402,6 +411,7 @@ def _build_tiles(request) -> list[dict]:
                 "category": link.category,
                 "availability": "available",
                 "scope": "user",
+                "availability_reason": "",
                 "is_launchable": True,
                 "description": link.description,
                 "version": "",
