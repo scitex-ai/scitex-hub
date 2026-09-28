@@ -275,9 +275,12 @@ export function toggleSelectAll(selectAll: boolean): void {
     const checkbox = card.querySelector(
       ".paper-select, .paper-select-checkbox",
     ) as HTMLInputElement | null;
-    if (checkbox) {
-      checkbox.checked = selectAll;
-      updateCardSelectedState(card as HTMLElement, selectAll);
+    if (checkbox && checkbox.checked !== selectAll) {
+      // Native click: fires change, so per-card listeners, toolbar state,
+      // and card visual state all stay in sync. Direct .checked assignment
+      // bypasses those listeners (silent desync: cards look checked while
+      // the toolbar stays disabled).
+      checkbox.click();
     }
   });
   updateToolbarState();
