@@ -285,70 +285,31 @@ function updateHiddenSortInput(): void {
 }
 
 /**
- * Paper selection functionality
+ * Paper selection functionality.
+ *
+ * RETIRED: select-all now lives on #selectAllResultsBtn, owned by
+ * _toolbar-handlers.ts (delegated document click). This legacy sync wrote
+ * .checked/.indeterminate onto that button element (a no-op at best) and
+ * ran at DOM-ready when no cards exist. Kept as a no-op so imports keep
+ * working; do NOT re-add selection logic here.
  */
 function initializeResultSelection(): void {
-  const selectAllBtn = document.getElementById(
-    "selectAllResults",
-  ) as HTMLElement | null;
-  const deselectAllBtn = document.getElementById(
-    "deselectAllResults",
-  ) as HTMLElement | null;
-  const exportSelectedBtn = document.getElementById(
-    "exportSelectedBibtex",
-  ) as HTMLElement | null;
-
-  if (selectAllBtn) {
-    selectAllBtn.addEventListener("click", function () {
-      document.querySelectorAll(".paper-select-checkbox").forEach((cb) => {
-        (cb as HTMLInputElement).checked = true;
-      });
-      updateSelectionCount();
-    });
-  }
-
-  if (deselectAllBtn) {
-    deselectAllBtn.addEventListener("click", function () {
-      document.querySelectorAll(".paper-select-checkbox").forEach((cb) => {
-        (cb as HTMLInputElement).checked = false;
-      });
-      updateSelectionCount();
-    });
-  }
-
-  // Export handler moved to toolbar-handlers.ts (with dropdown)
-
-  // Add event listeners to checkboxes
-  document.querySelectorAll(".paper-select-checkbox").forEach((cb) => {
-    cb.addEventListener("change", updateSelectionCount);
-  });
-
-  updateSelectionCount();
+  return;
 }
+
+/* RETIRED BODY (see above) — legacy block removed; delete this note with leaf-mount. */
 
 /**
- * Update selection count display
+ * Update selection count display.
+ *
+ * RETIRED alongside initializeResultSelection (see above): the live
+ * toolbar state lives in _results-toolbar.ts::updateToolbarState. No-op.
  */
 function updateSelectionCount(): void {
-  const selectedCount = document.querySelectorAll(
-    ".paper-select-checkbox:checked",
-  ).length;
-  const totalCount = document.querySelectorAll(".paper-select-checkbox").length;
-
-  const countDisplay = document.getElementById(
-    "selectedCount",
-  ) as HTMLElement | null;
-  if (countDisplay) {
-    countDisplay.textContent = `${selectedCount} of ${totalCount} selected`;
-  }
-
-  const exportBtn = document.getElementById(
-    "exportSelectedBibtex",
-  ) as HTMLButtonElement | null;
-  if (exportBtn) {
-    exportBtn.disabled = selectedCount === 0;
-  }
+  return;
 }
+
+/* LEGACY BODY REMOVED (see initializeResultSelection note). */
 
 /**
  * Export selected papers as BibTeX

@@ -194,7 +194,11 @@ export function setupCardSelectionHandlers(card: HTMLElement): void {
     ".paper-select, .paper-select-checkbox",
   ) as HTMLInputElement | null;
 
-  // Click on card body toggles selection (not on checkbox or links)
+  // Click on card body toggles selection (not on checkbox or links).
+  // NOTE: the checkbox itself must NOT be re-toggled here: the browser
+  // already toggles it natively and fires change (which syncs state via
+  // the handler below). Re-toggling reverts the native toggle — the card
+  // looks clicked but never checks.
   card.addEventListener("click", (e: MouseEvent) => {
     const target = e.target as HTMLElement;
     // Ignore clicks on checkbox, links, and buttons
@@ -206,15 +210,9 @@ export function setupCardSelectionHandlers(card: HTMLElement): void {
     }
 
     if (checkbox) {
-      // Ctrl+click for multi-select, otherwise toggle
-      if (!e.ctrlKey && !e.metaKey) {
-        // Single click without ctrl - just toggle this card
-        checkbox.checked = !checkbox.checked;
-      } else {
-        // Ctrl+click - toggle without deselecting others
-        checkbox.checked = !checkbox.checked;
-      }
-      updateCardSelectedState(card, checkbox.checked);
+      // Card body click: toggle the checkbox natively so change fires
+      // and every listener (visual state, toolbar) stays in sync.
+      checkbox.click();
     }
   });
 
@@ -275,9 +273,12 @@ export function toggleSelectAll(selectAll: boolean): void {
     const checkbox = card.querySelector(
       ".paper-select, .paper-select-checkbox",
     ) as HTMLInputElement | null;
-    if (checkbox) {
-      checkbox.checked = selectAll;
-      updateCardSelectedState(card as HTMLElement, selectAll);
+    if (checkbox && checkbox.checked !== selectAll) {
+      // Native click: fires change, so per-card listeners, toolbar state,
+      // and card visual state all stay in sync. Direct .checked assignment
+      // bypasses those listeners (silent desync: cards look checked while
+      // the toolbar stays disabled).
+      checkbox.click();
     }
   });
   updateToolbarState();
