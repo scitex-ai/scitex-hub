@@ -352,6 +352,35 @@ export function updateToolbarState(): void {
     "abstractToggleBtn",
   ) as HTMLButtonElement;
   if (abstractBtn) abstractBtn.disabled = !hasResults;
+
+  // Keep the Select-all master checkbox in sync with rendered cards
+  const selectAll = document.getElementById(
+    "selectAllResults",
+  ) as HTMLInputElement | null;
+  if (selectAll) {
+    const total = document.querySelectorAll(
+      ".result-card .paper-select, .result-card .paper-select-checkbox",
+    ).length;
+    selectAll.checked = total > 0 && selectedCount === total;
+    selectAll.indeterminate =
+      selectedCount > 0 && selectedCount < total;
+  }
+}
+
+/**
+ * Check or uncheck every rendered result card.
+ * Acts on currently rendered cards only (progressive "Load More" appends
+ * more cards; re-click to include them) — loud count, no silent scope.
+ */
+export function setAllSelected(checked: boolean): number {
+  const boxes = document.querySelectorAll(
+    ".result-card .paper-select, .result-card .paper-select-checkbox",
+  ) as NodeListOf<HTMLInputElement>;
+  boxes.forEach((box) => {
+    box.checked = checked;
+  });
+  updateToolbarState();
+  return boxes.length;
 }
 
 // Note: Button handlers (abstract toggle, save, open URLs, export) are now
