@@ -7,6 +7,7 @@
  */
 
 import { getCsrfToken, showToast } from "../common/_scholar-index/utilities";
+import { getSelectedProjectId } from "../common/_project-context";
 
 /**
  * Extract paper metadata from the closest .result-card element
@@ -32,13 +33,6 @@ function extractPaperData(el: HTMLElement): Record<string, string> | null {
         .querySelector(".result-snippet, .result-abstract")
         ?.textContent?.trim() || "",
   };
-}
-
-/**
- * Get selected project ID from sessionStorage (set by project-selector.ts)
- */
-function getSelectedProjectId(): string | null {
-  return sessionStorage.getItem("scholar_selected_project_id");
 }
 
 /**
