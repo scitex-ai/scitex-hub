@@ -11,8 +11,8 @@ import {
   updateToolbarState,
   initSelectionListener,
   initCopyShortcut,
-  setAllSelected,
 } from "./_results-toolbar";
+import { toggleSelectAll } from "./_result-card";
 import {
   getCsrfToken,
   showToast,
@@ -281,14 +281,21 @@ export function setupToolbarHandlers(): void {
   // Selection change listener (updates toolbar when checkboxes change)
   initSelectionListener();
 
-  // Select-all master checkbox — checks/unchecks all rendered result cards
+  // Select-all master checkbox — same toggle as Ctrl+A (card visual
+  // state + toolbar), acts on rendered cards; re-click after Load More
   const selectAll = document.getElementById(
     "selectAllResults",
   ) as HTMLInputElement | null;
   if (selectAll && !selectAll.dataset.handlerAttached) {
     selectAll.addEventListener("change", function () {
-      const n = setAllSelected(selectAll.checked);
-      if (n === 0 && selectAll.checked) {
+      toggleSelectAll(selectAll.checked);
+      // toggleSelectAll refreshes toolbar state, which re-syncs this box;
+      // if nothing rendered, force it back off.
+      if (
+        document.querySelectorAll(
+          ".result-card .paper-select, .result-card .paper-select-checkbox",
+        ).length === 0
+      ) {
         selectAll.checked = false;
       }
     });

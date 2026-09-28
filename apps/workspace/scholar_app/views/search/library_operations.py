@@ -21,6 +21,24 @@ logger = logging.getLogger(__name__)
 BULK_SAVE_LIMIT = 200
 
 
+def _resolve_save_project(user, ref):
+    """Resolve a save target: numeric id (owned) or owner/slug (accessible).
+
+    The web selector posts numeric ids; deep links and the normalized
+    project context may carry owner/slug. A ref that resolves to nothing
+    returns None (callers answer 404) instead of raising into a 500.
+    """
+    from apps.infra.project_app.models import Project
+    from apps.infra.project_app.services.project_scope import (
+        find_accessible_project,
+    )
+
+    ref = str(ref).strip()
+    if ref.isdigit():
+        return Project.objects.filter(id=int(ref), owner=user).first()
+    return find_accessible_project(user, ref)
+
+
 def build_bibtex_for_paper(paper: Mapping[str, Any]) -> tuple[str, str]:
     """Build (citation_key, bibtex_entry) for one search-result paper.
 
@@ -243,9 +261,8 @@ def save_paper(request):
             {"success": False, "error": "No project selected"}, status=400
         )
 
-    try:
-        project = Project.objects.get(id=project_id, owner=request.user)
-    except Project.DoesNotExist:
+    project = _resolve_save_project(request.user, project_id)
+    if project is None:
         return JsonResponse(
             {"success": False, "error": "Project not found"}, status=404
         )
@@ -364,9 +381,8 @@ def save_papers_bulk(request):
             status=400,
         )
 
-    try:
-        project = Project.objects.get(id=project_id, owner=request.user)
-    except Project.DoesNotExist:
+    project = _resolve_save_project(request.user, project_id)
+    if project is None:
         return JsonResponse(
             {
                 "success": False,
