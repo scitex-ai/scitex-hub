@@ -282,24 +282,24 @@ export function setupToolbarHandlers(): void {
   initSelectionListener();
 
   // Select-all master checkbox — same toggle as Ctrl+A (card visual
-  // state + toolbar), acts on rendered cards; re-click after Load More
-  const selectAll = document.getElementById(
-    "selectAllResults",
-  ) as HTMLInputElement | null;
-  if (selectAll && !selectAll.dataset.handlerAttached) {
-    selectAll.addEventListener("change", function () {
-      toggleSelectAll(selectAll.checked);
-      // toggleSelectAll refreshes toolbar state, which re-syncs this box;
-      // if nothing rendered, force it back off.
-      if (
-        document.querySelectorAll(
-          ".result-card .paper-select, .result-card .paper-select-checkbox",
-        ).length === 0
-      ) {
-        selectAll.checked = false;
+  // state + toolbar), acts on rendered cards; re-click after Load More.
+  // Delegated on document: the toolbar persists across re-renders and
+  // progressive card appends, so a direct binding would go stale.
+  if (!document.body.dataset.selectAllDelegated) {
+    document.body.dataset.selectAllDelegated = "true";
+    document.addEventListener("change", (event) => {
+      const target = event.target as HTMLInputElement | null;
+      if (target && target.id === "selectAllResults") {
+        toggleSelectAll(target.checked);
+        if (
+          document.querySelectorAll(
+            ".result-card .paper-select, .result-card .paper-select-checkbox",
+          ).length === 0
+        ) {
+          target.checked = false;
+        }
       }
     });
-    selectAll.dataset.handlerAttached = "true";
   }
 
   // Ctrl+C to copy BibTeX shortcut
