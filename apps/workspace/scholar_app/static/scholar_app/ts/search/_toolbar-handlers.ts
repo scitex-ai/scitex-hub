@@ -11,8 +11,8 @@ import {
   updateToolbarState,
   initSelectionListener,
   initCopyShortcut,
-  setAllSelected,
 } from "./_results-toolbar";
+import { toggleSelectAll } from "./_result-card";
 import {
   getCsrfToken,
   showToast,
@@ -281,18 +281,29 @@ export function setupToolbarHandlers(): void {
   // Selection change listener (updates toolbar when checkboxes change)
   initSelectionListener();
 
-  // Select-all master checkbox — checks/unchecks all rendered result cards
-  const selectAll = document.getElementById(
-    "selectAllResults",
-  ) as HTMLInputElement | null;
-  if (selectAll && !selectAll.dataset.handlerAttached) {
-    selectAll.addEventListener("change", function () {
-      const n = setAllSelected(selectAll.checked);
-      if (n === 0 && selectAll.checked) {
-        selectAll.checked = false;
-      }
+  // Select-all button — same toggle as Ctrl+A (card visual state +
+  // toolbar), acts on rendered cards; re-click after Load More.
+  // A <button> (not a checkbox-in-label: label activation behavior is
+  // unreliable across browsers here). Delegated on document: the toolbar
+  // persists across re-renders, so a direct binding would go stale.
+  // Toggles: all-checked → uncheck all, else check all.
+  if (!document.body.dataset.selectAllDelegated) {
+    document.body.dataset.selectAllDelegated = "true";
+    document.addEventListener("click", (event) => {
+      const target = event.target as HTMLElement | null;
+      const btn = target
+        ? (target.closest("#selectAllResultsBtn") as HTMLButtonElement | null)
+        : null;
+      if (!btn) return;
+      const anyUnchecked = Boolean(
+        document.querySelector(
+          ".result-card .paper-select:not(:checked), .result-card .paper-select-checkbox:not(:checked)",
+        ),
+      );
+      toggleSelectAll(anyUnchecked);
+      btn.setAttribute("aria-pressed", String(anyUnchecked));
+      btn.classList.toggle("toolbar-btn--active", anyUnchecked);
     });
-    selectAll.dataset.handlerAttached = "true";
   }
 
   // Ctrl+C to copy BibTeX shortcut

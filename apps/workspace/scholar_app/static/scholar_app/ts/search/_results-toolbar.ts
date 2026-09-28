@@ -367,22 +367,6 @@ export function updateToolbarState(): void {
   }
 }
 
-/**
- * Check or uncheck every rendered result card.
- * Acts on currently rendered cards only (progressive "Load More" appends
- * more cards; re-click to include them) — loud count, no silent scope.
- */
-export function setAllSelected(checked: boolean): number {
-  const boxes = document.querySelectorAll(
-    ".result-card .paper-select, .result-card .paper-select-checkbox",
-  ) as NodeListOf<HTMLInputElement>;
-  boxes.forEach((box) => {
-    box.checked = checked;
-  });
-  updateToolbarState();
-  return boxes.length;
-}
-
 // Note: Button handlers (abstract toggle, save, open URLs, export) are now
 // implemented in toolbar-handlers.ts to avoid duplicate event listeners
 

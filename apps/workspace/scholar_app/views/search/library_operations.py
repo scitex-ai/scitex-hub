@@ -21,6 +21,24 @@ logger = logging.getLogger(__name__)
 BULK_SAVE_LIMIT = 200
 
 
+def _resolve_save_project(user, ref):
+    """Resolve a save target: numeric id (owned) or owner/slug (accessible).
+
+    The web selector posts numeric ids; deep links and the normalized
+    project context may carry owner/slug. A ref that resolves to nothing
+    returns None (callers answer 404) instead of raising into a 500.
+    """
+    from apps.infra.project_app.models import Project
+    from apps.infra.project_app.services.project_scope import (
+        find_accessible_project,
+    )
+
+    ref = str(ref).strip()
+    if ref.isdigit():
+        return Project.objects.filter(id=int(ref), owner=user).first()
+    return find_accessible_project(user, ref)
+
+
 def build_bibtex_for_paper(paper: Mapping[str, Any]) -> tuple[str, str]:
     """Build (citation_key, bibtex_entry) for one search-result paper.
 
@@ -137,9 +155,18 @@ def _save_papers_to_project_path(
         )
 
     total_citations = 0
+    bibliography_warning = ""
     if saved:
         results = regenerate_bibliography(project_path, project_name)
         total_citations = results.get("scholar_count", 0)
+        if not results.get("success", True):
+            # Papers are saved (per-paper .bibs); only the merged convenience
+            # bib failed — loud warning, never a silent 500 of good saves.
+            bibliography_warning = "; ".join(results.get("errors", []))[:500]
+            logger.warning(
+                f"Bibliography merge failed after saving {saved} papers: "
+                f"{bibliography_warning}"
+            )
 
     return {
         "saved": saved,
@@ -147,10 +174,11 @@ def _save_papers_to_project_path(
         "errors": errors,
         "files": files,
         "total_citations": total_citations,
+        "bibliography_warning": bibliography_warning,
     }
 
 
-def _mirror_to_user_library(user, project_path, items) -> int:
+def _mirror_to_user_library(user, project_path, items) -> tuple:
     """Mirror saved papers into the user's package-layout home library.
 
     Thin-layer glue: project .bibs (written by callers) stay the manuscript
@@ -166,12 +194,12 @@ def _mirror_to_user_library(user, project_path, items) -> int:
         items: iterable of (paper_dict, citation_key, bibtex_entry)
 
     Returns:
-        Number of papers registered.
+        (files_registered, db_rows_created).
     """
     try:
         from apps.workspace.scholar_app.services import UserLibraryService
     except ImportError:
-        return 0
+        return 0, 0
     registered = 0
     try:
         lib = UserLibraryService(user)
@@ -218,7 +246,96 @@ def _mirror_to_user_library(user, project_path, items) -> int:
         lib.ensure_project_link(Path(project_path))
     except Exception as e:
         logger.warning(f"User-library mirror skipped: {e}")
-    return registered
+        registered = 0
+    try:
+        db_indexed = _index_saved_papers_in_db(user, project_path, items)
+    except Exception as e:
+        logger.warning(f"User-library DB index skipped: {e}")
+        db_indexed = 0
+    return registered, db_indexed
+
+
+def _index_saved_papers_in_db(user, project_path, items) -> int:
+    """Index file-saved papers into SearchIndex + UserLibrary rows.
+
+    The Library tab reads the DB (``api_library_papers``); the MASTER
+    file tree alone never appears there. Best-effort: per-paper try/except
+    so one bad record never fails the batch. Returns rows created.
+    """
+    from datetime import date
+
+    from apps.workspace.scholar_app.models.core import SearchIndex
+    from apps.workspace.scholar_app.models.library.models import UserLibrary
+
+    try:
+        from apps.infra.project_app.models import Project as _Project
+
+        project = _Project.objects.filter(
+            owner=user, git_clone_path=str(project_path)
+        ).first()
+    except Exception:
+        project = None
+
+    indexed = 0
+    for paper, _citation_key, bibtex_entry in items:
+        if not isinstance(paper, dict):
+            continue
+        title = (paper.get("title") or "").strip()
+        if not title:
+            continue
+        try:
+            doi = (paper.get("doi") or "").strip() or None
+            arxiv = (
+                paper.get("arxiv") or paper.get("arxiv_id") or ""
+            ).strip() or None
+            pmid = (paper.get("pmid") or "").strip() or None
+            year_raw = str(paper.get("year", "")).strip()[:4]
+            pub_date = None
+            if year_raw.isdigit():
+                pub_date = date(int(year_raw), 1, 1)
+            source = (paper.get("source") or "manual").strip().lower()
+            if source not in dict(SearchIndex.SOURCE_CHOICES):
+                source = "manual"
+            lookup = {}
+            if doi:
+                lookup["doi"] = doi
+            elif pmid:
+                lookup["pmid"] = pmid
+            elif arxiv:
+                lookup["arxiv_id"] = arxiv
+            paper_obj = None
+            if lookup:
+                paper_obj = SearchIndex.objects.filter(**lookup).first()
+            if paper_obj is None and doi:
+                # Same paper saved without DOI earlier: match title+year.
+                paper_obj = SearchIndex.objects.filter(
+                    title=title, publication_date=pub_date
+                ).first()
+            if paper_obj is None:
+                paper_obj = SearchIndex.objects.create(
+                    title=title,
+                    abstract=paper.get("abstract") or "",
+                    publication_date=pub_date,
+                    doi=doi,
+                    pmid=pmid,
+                    arxiv_id=arxiv,
+                    source=source,
+                    external_url=paper.get("url") or "",
+                    bibtex_content=bibtex_entry or "",
+                )
+            _entry, created = UserLibrary.objects.get_or_create(
+                user=user,
+                paper=paper_obj,
+                defaults={"project": project},
+            )
+            if created:
+                indexed += 1
+            elif project is not None and _entry.project_id != project.id:
+                _entry.project = project
+                _entry.save(update_fields=["project"])
+        except Exception as e:
+            logger.warning(f"DB index skipped for {title[:60]!r}: {e}")
+    return indexed
 
 
 @require_http_methods(["POST"])
@@ -243,9 +360,8 @@ def save_paper(request):
             {"success": False, "error": "No project selected"}, status=400
         )
 
-    try:
-        project = Project.objects.get(id=project_id, owner=request.user)
-    except Project.DoesNotExist:
+    project = _resolve_save_project(request.user, project_id)
+    if project is None:
         return JsonResponse(
             {"success": False, "error": "Project not found"}, status=404
         )
@@ -287,8 +403,12 @@ def save_paper(request):
         logger.info(f"Saved paper to: {project_path / filename}")
 
         results = regenerate_bibliography(project_path, project.name)
+        bib_warning = ""
+        if not results.get("success", True):
+            bib_warning = "; ".join(results.get("errors", []))[:500]
+            logger.warning(f"Bibliography merge failed: {bib_warning}")
 
-        _mirror_to_user_library(
+        _files_registered, _db_indexed = _mirror_to_user_library(
             request.user, project_path, [(paper, citation_key, bibtex_entry)]
         )
         return JsonResponse(
@@ -299,6 +419,7 @@ def save_paper(request):
                 "citation_key": citation_key,
                 "file_path": f"scitex/scholar/bib_files/{filename}",
                 "total_citations": results.get("scholar_count", 0),
+                "bibliography_warning": bib_warning,
             }
         )
 
@@ -364,9 +485,8 @@ def save_papers_bulk(request):
             status=400,
         )
 
-    try:
-        project = Project.objects.get(id=project_id, owner=request.user)
-    except Project.DoesNotExist:
+    project = _resolve_save_project(request.user, project_id)
+    if project is None:
         return JsonResponse(
             {
                 "success": False,
@@ -421,18 +541,19 @@ def save_papers_bulk(request):
             except ValueError:
                 continue
             mirror_items.append((paper, ck, be))
-        library_registered = _mirror_to_user_library(
+        library_registered, library_indexed = _mirror_to_user_library(
             request.user, Path(project.git_clone_path), mirror_items
         )
     except Exception as e:
         logger.warning(f"User-library mirror skipped: {e}")
-        library_registered = 0
+        library_registered, library_indexed = 0, 0
     return JsonResponse(
         {
             "success": True,
             "message": message,
             "project": project.name,
             "library_registered": library_registered,
+            "library_indexed": library_indexed,
             **summary,
         }
     )
