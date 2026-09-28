@@ -11,11 +11,13 @@ import {
   updateToolbarState,
   initSelectionListener,
   initCopyShortcut,
+  setAllSelected,
 } from "./_results-toolbar";
 import {
   getCsrfToken,
   showToast,
 } from "../common/_scholar-index/utilities";
+import { getSelectedProjectId } from "../common/_project-context";
 
 /**
  * Abstract toggle click handler
@@ -143,13 +145,6 @@ function attachHandler(
     el.addEventListener("click", handler);
     el.dataset.handlerAttached = "true";
   }
-}
-
-/**
- * Get selected project ID from sessionStorage (set by project-selector.ts)
- */
-function getSelectedProjectId(): string | null {
-  return sessionStorage.getItem("scholar_selected_project_id");
 }
 
 /**
@@ -285,6 +280,20 @@ export function setupToolbarHandlers(): void {
 
   // Selection change listener (updates toolbar when checkboxes change)
   initSelectionListener();
+
+  // Select-all master checkbox — checks/unchecks all rendered result cards
+  const selectAll = document.getElementById(
+    "selectAllResults",
+  ) as HTMLInputElement | null;
+  if (selectAll && !selectAll.dataset.handlerAttached) {
+    selectAll.addEventListener("change", function () {
+      const n = setAllSelected(selectAll.checked);
+      if (n === 0 && selectAll.checked) {
+        selectAll.checked = false;
+      }
+    });
+    selectAll.dataset.handlerAttached = "true";
+  }
 
   // Ctrl+C to copy BibTeX shortcut
   initCopyShortcut();
