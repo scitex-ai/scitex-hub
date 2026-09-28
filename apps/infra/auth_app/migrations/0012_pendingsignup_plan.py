@@ -13,6 +13,9 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="pendingsignup",
             name="plan",
-            field=models.CharField(default="subscription-free", max_length=16),
+            # max_length=32, not 16: the default "subscription-free" is 19
+            # chars and Postgres rejects the DDL otherwise (0013 widens to
+            # 32 anyway; fresh-Postgres E2E never gets past this step).
+            field=models.CharField(default="subscription-free", max_length=32),
         ),
     ]
