@@ -221,6 +221,78 @@ def _mirror_to_user_library(user, project_path, items) -> int:
     return registered
 
 
+def _index_saved_papers_in_db(user, project, papers) -> int:
+    """Index file-saved papers as SearchIndex + UserLibrary rows.
+
+    The .bib files (leaf MASTER truth) are written by callers; this keeps
+    the relational index the Library tab reads in sync so saved papers
+    actually appear there. Best-effort per paper, loud on failure:
+    returns the count indexed, logs errors with paper identity.
+    """
+    from datetime import date
+
+    from apps.workspace.scholar_app.models.core import Journal, SearchIndex
+    from apps.workspace.scholar_app.models.library.models import UserLibrary
+
+    indexed = 0
+    for paper in papers:
+        if not isinstance(paper, dict):
+            continue
+        title = (paper.get("title") or "").strip()
+        if not title:
+            continue
+        try:
+            doi = (paper.get("doi") or "").strip() or None
+            year_raw = str(paper.get("year", "") or "").strip()[:4]
+            pub_date = (
+                date(int(year_raw), 1, 1)
+                if year_raw.isdigit()
+                else None
+            )
+            journal_obj = None
+            journal_name = (paper.get("journal") or "").strip()
+            if journal_name:
+                journal_obj, _ = Journal.objects.get_or_create(
+                    name=journal_name[:500]
+                )
+            if doi:
+                index_row, _ = SearchIndex.objects.get_or_create(
+                    doi=doi,
+                    defaults={
+                        "title": title,
+                        "abstract": paper.get("abstract") or "",
+                        "publication_date": pub_date,
+                        "journal": journal_obj,
+                        "external_url": paper.get("url")
+                        or paper.get("externalUrl")
+                        or "",
+                        "source": paper.get("source") or "internal",
+                    },
+                )
+            else:
+                index_row, _ = SearchIndex.objects.get_or_create(
+                    title=title,
+                    journal=journal_obj,
+                    publication_date=pub_date,
+                    defaults={
+                        "abstract": paper.get("abstract") or "",
+                        "external_url": paper.get("url")
+                        or paper.get("externalUrl")
+                        or "",
+                        "source": paper.get("source") or "internal",
+                    },
+                )
+            UserLibrary.objects.get_or_create(
+                user=user, paper=index_row, project=project
+            )
+            indexed += 1
+        except Exception as e:
+            logger.error(
+                "Library index failed for paper %r: %s", title[:80], e
+            )
+    return indexed
+
+
 @require_http_methods(["POST"])
 @login_required
 def save_paper(request):
@@ -291,6 +363,9 @@ def save_paper(request):
         _mirror_to_user_library(
             request.user, project_path, [(paper, citation_key, bibtex_entry)]
         )
+        library_indexed = _index_saved_papers_in_db(
+            request.user, project, [paper]
+        )
         return JsonResponse(
             {
                 "success": True,
@@ -299,6 +374,7 @@ def save_paper(request):
                 "citation_key": citation_key,
                 "file_path": f"scitex/scholar/bib_files/{filename}",
                 "total_citations": results.get("scholar_count", 0),
+                "library_indexed": library_indexed,
             }
         )
 
@@ -424,15 +500,20 @@ def save_papers_bulk(request):
         library_registered = _mirror_to_user_library(
             request.user, Path(project.git_clone_path), mirror_items
         )
+        library_indexed = _index_saved_papers_in_db(
+            request.user, project, papers
+        )
     except Exception as e:
         logger.warning(f"User-library mirror skipped: {e}")
         library_registered = 0
+        library_indexed = 0
     return JsonResponse(
         {
             "success": True,
             "message": message,
             "project": project.name,
             "library_registered": library_registered,
+            "library_indexed": library_indexed,
             **summary,
         }
     )

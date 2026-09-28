@@ -10,6 +10,7 @@ from django.test import RequestFactory
 
 from apps.workspace.scholar_app.views.search.library_operations import (
     BULK_SAVE_LIMIT,
+    _index_saved_papers_in_db,
     _save_papers_to_project_path,
     build_bibtex_for_paper,
     save_papers_bulk,
@@ -222,6 +223,34 @@ class TestSavePapersToProjectPath:
         summary = _save_papers_to_project_path(tmp_path, "Demo", papers)
         # Assert
         assert summary["skipped"] == 1
+
+
+@pytest.mark.django_db
+class TestIndexSavedPapersInDb:
+    """File saves must also index SearchIndex + UserLibrary rows (Library tab)."""
+
+    def test_index_creates_search_and_library_rows(self):
+        from apps.workspace.scholar_app.models.core import SearchIndex
+        from apps.workspace.scholar_app.models.library.models import UserLibrary
+
+        user = User.objects.create_user(username="index-tester")
+        n = _index_saved_papers_in_db(user, None, [_paper()])
+        assert n == 1
+        assert SearchIndex.objects.filter(doi="10.1234/test").count() == 1
+        assert UserLibrary.objects.filter(user=user).count() == 1
+
+    def test_index_is_idempotent_on_rerun(self):
+        from apps.workspace.scholar_app.models.library.models import UserLibrary
+
+        user = User.objects.create_user(username="index-tester-2")
+        papers = [_paper()]
+        assert _index_saved_papers_in_db(user, None, papers) == 1
+        assert _index_saved_papers_in_db(user, None, papers) == 1
+        assert UserLibrary.objects.filter(user=user).count() == 1
+
+    def test_titleless_paper_is_skipped(self):
+        user = User.objects.create_user(username="index-tester-3")
+        assert _index_saved_papers_in_db(user, None, [_paper(title="")]) == 0
 
 
 if __name__ == "__main__":
