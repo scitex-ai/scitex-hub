@@ -155,9 +155,18 @@ def _save_papers_to_project_path(
         )
 
     total_citations = 0
+    bibliography_warning = ""
     if saved:
         results = regenerate_bibliography(project_path, project_name)
         total_citations = results.get("scholar_count", 0)
+        if not results.get("success", True):
+            # Papers are saved (per-paper .bibs); only the merged convenience
+            # bib failed — loud warning, never a silent 500 of good saves.
+            bibliography_warning = "; ".join(results.get("errors", []))[:500]
+            logger.warning(
+                f"Bibliography merge failed after saving {saved} papers: "
+                f"{bibliography_warning}"
+            )
 
     return {
         "saved": saved,
@@ -165,6 +174,7 @@ def _save_papers_to_project_path(
         "errors": errors,
         "files": files,
         "total_citations": total_citations,
+        "bibliography_warning": bibliography_warning,
     }
 
 
@@ -304,6 +314,10 @@ def save_paper(request):
         logger.info(f"Saved paper to: {project_path / filename}")
 
         results = regenerate_bibliography(project_path, project.name)
+        bib_warning = ""
+        if not results.get("success", True):
+            bib_warning = "; ".join(results.get("errors", []))[:500]
+            logger.warning(f"Bibliography merge failed: {bib_warning}")
 
         _mirror_to_user_library(
             request.user, project_path, [(paper, citation_key, bibtex_entry)]
@@ -316,6 +330,7 @@ def save_paper(request):
                 "citation_key": citation_key,
                 "file_path": f"scitex/scholar/bib_files/{filename}",
                 "total_citations": results.get("scholar_count", 0),
+                "bibliography_warning": bib_warning,
             }
         )
 
