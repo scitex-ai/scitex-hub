@@ -281,24 +281,28 @@ export function setupToolbarHandlers(): void {
   // Selection change listener (updates toolbar when checkboxes change)
   initSelectionListener();
 
-  // Select-all master checkbox — same toggle as Ctrl+A (card visual
-  // state + toolbar), acts on rendered cards; re-click after Load More.
-  // Delegated on document: the toolbar persists across re-renders and
-  // progressive card appends, so a direct binding would go stale.
+  // Select-all button — same toggle as Ctrl+A (card visual state +
+  // toolbar), acts on rendered cards; re-click after Load More.
+  // A <button> (not a checkbox-in-label: label activation behavior is
+  // unreliable across browsers here). Delegated on document: the toolbar
+  // persists across re-renders, so a direct binding would go stale.
+  // Toggles: all-checked → uncheck all, else check all.
   if (!document.body.dataset.selectAllDelegated) {
     document.body.dataset.selectAllDelegated = "true";
-    document.addEventListener("change", (event) => {
-      const target = event.target as HTMLInputElement | null;
-      if (target && target.id === "selectAllResults") {
-        toggleSelectAll(target.checked);
-        if (
-          document.querySelectorAll(
-            ".result-card .paper-select, .result-card .paper-select-checkbox",
-          ).length === 0
-        ) {
-          target.checked = false;
-        }
-      }
+    document.addEventListener("click", (event) => {
+      const target = event.target as HTMLElement | null;
+      const btn = target
+        ? (target.closest("#selectAllResultsBtn") as HTMLButtonElement | null)
+        : null;
+      if (!btn) return;
+      const anyUnchecked = Boolean(
+        document.querySelector(
+          ".result-card .paper-select:not(:checked), .result-card .paper-select-checkbox:not(:checked)",
+        ),
+      );
+      toggleSelectAll(anyUnchecked);
+      btn.setAttribute("aria-pressed", String(anyUnchecked));
+      btn.classList.toggle("toolbar-btn--active", anyUnchecked);
     });
   }
 
