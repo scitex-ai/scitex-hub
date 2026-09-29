@@ -130,7 +130,7 @@ def mcp_doctor():
         )
     except ImportError:
         click.echo("  [FAIL] fastmcp not installed")
-        click.echo("         Fix: pip install scitex-hub[mcp]")
+        click.echo("         Fix: pip install scitex-hub[all]")
         sys.exit(1)
 
     # Check requests
@@ -142,7 +142,7 @@ def mcp_doctor():
         )
     except ImportError:
         click.echo("  [FAIL] requests not installed")
-        click.echo("         Fix: pip install scitex-hub[mcp]")
+        click.echo("         Fix: pip install scitex-hub[all]")
         sys.exit(1)
 
     # Check pyyaml (for gitea config)
@@ -341,12 +341,12 @@ def mcp_list_tools(verbose: int, json_output: bool):
         from .._mcp_server import mcp as mcp_server
     except ImportError:
         click.secho("ERROR: Could not import MCP server", fg="red", err=True)
-        click.echo("Install with: pip install scitex-hub[mcp]")
+        click.echo("Install with: pip install scitex-hub[all]")
         raise SystemExit(1)
 
     if not FASTMCP_AVAILABLE or mcp_server is None:
         click.secho("ERROR: fastmcp not installed", fg="red", err=True)
-        click.echo("Install with: pip install scitex-hub[mcp]")
+        click.echo("Install with: pip install scitex-hub[all]")
         raise SystemExit(1)
 
     # Get tools (FastMCP 2.x/3.x compat via shared layer)
@@ -414,7 +414,7 @@ def run_mcp_server(transport: str, host: str, port: int):
         from .._mcp_server import run_server
     except ImportError:
         click.echo(
-            "MCP server requires fastmcp. Install with:\n  pip install scitex-hub[mcp]",
+            "MCP server requires fastmcp. Install with:\n  pip install scitex-hub[all]",
             err=True,
         )
         sys.exit(1)
