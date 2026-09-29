@@ -198,6 +198,10 @@ BILLING_PLANS = _load_billing_plans()
 # ---------------------------------------
 STRIPE_SECRET_KEY = _getenv_alias("SCITEX_HUB_STRIPE_SECRET_KEY", "") or ""
 STRIPE_WEBHOOK_SECRET = _getenv_alias("SCITEX_HUB_STRIPE_WEBHOOK_SECRET", "") or ""
+#: Publishable key for the inline card form (Stripe.js Elements). Card PAN/CVC
+#: still go directly to Stripe — this key is public by design. Card entry stays
+#: on the hosted Checkout page when this is unset.
+STRIPE_PUBLISHABLE_KEY = _getenv_alias("SCITEX_HUB_STRIPE_PUBLISHABLE_KEY", "") or ""
 
 # Which BillingProvider implementation serves card setup and subscriptions.
 BILLING_PROVIDER = os.environ.get("SCITEX_HUB_BILLING_PROVIDER", "stripe") or "stripe"

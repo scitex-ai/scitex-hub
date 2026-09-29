@@ -153,3 +153,36 @@
     width: 100%;
   }
 }
+
+/* Inline Elements card form (signup payment step). Stripe injects iframes
+   into .inline-card-element; these rules keep them aligned with the page. */
+.inline-card-field {
+  margin-bottom: 0.9rem;
+  text-align: left;
+}
+.inline-card-field label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+.inline-card-element {
+  border: 1px solid #c9c9c9;
+  border-radius: 6px;
+  padding: 0.65rem 0.75rem;
+  background: #fff;
+}
+.inline-card-element.StripeElement--focus {
+  border-color: #4f7cff;
+  outline: 2px solid rgba(79, 124, 255, 0.25);
+}
+.inline-card-element.StripeElement--invalid {
+  border-color: #b42318;
+}
+.inline-card-row {
+  display: flex;
+  gap: 0.9rem;
+}
+.inline-card-row .inline-card-field {
+  flex: 1;
+}

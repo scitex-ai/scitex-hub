@@ -23,11 +23,14 @@ Code map:
 | `SCITEX_HUB_STRIPE_WEBHOOK_SECRET` | yes | `whsec_...` from `stripe listen` (dev, section 4) or the Dashboard endpoint (public hosts) |
 | `SCITEX_HUB_STRIPE_PRICE_SUBSCRIPTION_STUDENT` | for plan selection | `price_...` printed by the bootstrap command |
 | `SCITEX_HUB_STRIPE_PRICE_SUBSCRIPTION_GENERAL` | for plan selection | `price_...` printed by the bootstrap command |
+| `SCITEX_HUB_STRIPE_PUBLISHABLE_KEY` | for the inline card form | `pk_test_...` (same Dashboard > Developers > API keys page) |
 | `SCITEX_HUB_BILLING_PROVIDER` | no | `stripe` (default) |
 
-No publishable key (`pk_test_...`) is needed: card entry happens on
-Stripe-hosted pages (Checkout and the Customer Portal), reached by server-side
-redirects, so no Stripe.js runs on our pages.
+With the publishable key set, the payment step offers the inline card form
+(Stripe.js Elements, confirmed browser-to-Stripe) above the hosted Checkout
+button. Without it, only the hosted Checkout button is shown: card entry
+happens on Stripe-hosted pages (Checkout and the Customer Portal), reached by
+server-side redirects, so no Stripe.js runs on our pages.
 
 Put the values in `SECRET/.env.dev` (never commit them), then recreate the
 Django container so settings reload.

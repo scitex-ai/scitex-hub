@@ -57,6 +57,8 @@ urlpatterns = [
     # webhook is CSRF-exempt but signature-verified)
     path("billing/checkout/", views.billing_checkout, name="billing_checkout"),
     path("billing/start-setup/", views.start_card_setup, name="billing_start_setup"),
+    path("billing/setup-intent/", views.billing_setup_intent, name="billing_setup_intent"),
+    path("billing/confirm-card/", views.billing_confirm_card, name="billing_confirm_card"),
     path("billing/webhook/stripe/", views.stripe_webhook, name="stripe_webhook"),
     path("billing/subscribe/", views.start_subscription, name="billing_subscribe"),
     path("billing/cancel/", views.cancel_subscription, name="billing_cancel"),

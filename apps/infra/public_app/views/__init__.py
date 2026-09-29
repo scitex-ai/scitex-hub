@@ -28,6 +28,8 @@ from .landing import index, premium_subscription
 # Billing (Stripe scaffold)
 from .billing import (
     billing_checkout,
+    billing_confirm_card,
+    billing_setup_intent,
     cancel_subscription,
     open_billing_portal,
     start_card_setup,
@@ -119,6 +121,8 @@ __all__ = [
     "tokushoho_en",
     # Billing
     "billing_checkout",
+    "billing_confirm_card",
+    "billing_setup_intent",
     "start_card_setup",
     "stripe_webhook",
     "start_subscription",
