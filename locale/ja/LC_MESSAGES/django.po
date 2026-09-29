@@ -2114,7 +2114,7 @@ msgstr "本利用規約は、あなた（個人または団体のために行動
 
 #: apps/infra/public_app/templates/public_app/legal/terms_of_use.html
 msgid "These Terms of Use constitute a legally binding agreement made between you, whether personally or on behalf of an entity (\\\"you\\\") and SciTeX (\\\"we,\\\" \\\"us,\\\" or \\\"our\\\"), concerning your access to and use of the SciTeX platform and all associated services."
-msgstr "本利用規約は、あなたが個人として、または事業体を代表して（以下「お客様」）SciTeX（以下「当社」）との間に締結する、SciTeXプラットフォームおよびこれに付随するすべてのサービスへのアクセスと利用に関する、法的拘束力のある契約を構成します。"
+msgstr "本利用規約は、あなたが個人として、または事業体を代表して（以下「あなた」）SciTeX（以下「当社」）との間に締結する、SciTeXプラットフォームおよびこれに付随するすべてのサービスへのアクセスと利用に関する、法的拘束力のある契約を構成します。"
 
 msgid "By accessing or using the SciTeX platform, you agree to be bound by these Terms of Use. If you disagree with any part of the terms, then you may not access the platform."
 msgstr "SciTeX プラットフォームにアクセスし、または利用することにより、あなたは本利用規約に拘束されることに同意したものとみなされます。規約のいかなる部分にも同意できない場合は、プラットフォームへのアクセスをしないでください。"
@@ -2130,7 +2130,7 @@ msgstr "特段の表示がない限り、SciTeX プラットフォームは当�
 
 #: apps/infra/public_app/templates/public_app/legal/terms_of_use.html
 msgid "Unless otherwise indicated, the SciTeX platform is our proprietary property and all source code, databases, functionality, software, website designs, audio, video, text, photographs, and graphics on the platform (collectively, the \\\"Content\\\") and the trademarks, service marks, and logos contained therein (the \\\"Marks\\\") are owned or controlled by us or licensed to us, and are protected by copyright and trademark laws and various other intellectual property rights."
-msgstr "別段の定めがある場合を除き、SciTeX プラットフォームは当社の専有財産であり、プラットフォーム上のすべてのソースコード、データベース、機能、ソフトウェア、ウェブサイトデザイン、音声、動画、テキスト、写真およびグラフィック（総称して「コンテンツ」）、ならびにこれらに含まれる商標、サービスマークおよびロゴ（「標章」）は、当社が所有もしくは管理し、または当社にライセンスされており、著作権法、商標法その他各種の知的財産権によって保護されています。"
+msgstr "別段の定めがある場合を除き、SciTeX プラットフォームは当社の専有財産であり、プラットフォーム上のすべてのソースコード、データベース、機能、ソフトウェア、ウェブサイトデザイン、音声、動画、テキスト、写真およびグラフィック（総称して「コンテンツ」）、ならびにこれらに含まれる商標、サービスマークおよびロゴ（「マーク」）は、当社が所有もしくは管理し、または当社にライセンスされており、著作権法、商標法その他各種の知的財産権によって保護されています。"
 
 msgid "SciTeX codebase is fully open and available at no cost as long as customers can utilize it independently. Our code is open-source and can be freely used, modified, and distributed according to the terms of our license. For users who prefer not to manage their own installations, we offer a web interface as a service for a fee."
 msgstr "SciTeX のコードベースは、お客様が独自に利用可能である限り、完全に公開され無償で提供されます。当社のコードはオープンソースであり、ライセンスの条項に従って自由に使用・修正・配布できます。自分の環境の管理を避けたいユーザーには、有償でウェブインターフェースをサービスとして提供しています。"
