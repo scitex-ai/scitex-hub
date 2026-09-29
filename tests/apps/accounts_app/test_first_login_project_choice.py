@@ -153,6 +153,33 @@ def test_the_welcome_screen_states_the_workspace_facts_and_the_three_choices():
     assert 'data-active-project="' not in html
 
 
+def test_the_guided_sample_is_an_explicit_post_choice():
+    """The sample exists only after a click: POST form, never a plain link."""
+    onboarding = _onboarding()
+    context = onboarding.first_login_context()
+    context["linux_username"] = "researcher-01"
+
+    by_key = {a["key"]: a for a in context["actions"]}
+    guided = by_key["guided-sample"]
+    assert guided["available"] is True
+    assert guided["method"] == "post"
+    assert guided["url"].endswith("/new/guided-sample/")
+
+    html = render_to_string("onboarding/first_login_welcome.html", context)
+    assert '<form class="first-login-action-form" method="post"' in html
+    assert 'data-action="guided-sample"' in html
+
+
+def test_the_guided_sample_route_rejects_get():
+    """Crawlers and prefetch must never trigger provisioning."""
+    from django.test import Client
+
+    response = Client().get("/new/guided-sample/")
+    # 302 to login for anonymous (login_required) or 405 when signed in —
+    # never a 200 that provisions.
+    assert response.status_code in (302, 405)
+
+
 # ---------------------------------------------------------------------------
 # C. database: a brand-new verified user owns nothing until they choose
 # ---------------------------------------------------------------------------

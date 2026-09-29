@@ -16,6 +16,7 @@ from .api import (
 )
 from .create import project_create
 from .create_template import project_create_from_template
+from .guided_sample import guided_sample_create
 from .delete import project_delete
 from .detail import project_detail, project_tree_or_blob
 from .detail_redirect import project_detail_redirect
@@ -31,6 +32,7 @@ __all__ = [
     "project_detail_redirect",
     "project_create",
     "project_create_from_template",
+    "guided_sample_create",
     "project_edit",
     "project_delete",
     "project_settings",

@@ -48,7 +48,19 @@
 
         <div class="first-login-actions" role="group" aria-label="{% trans 'Choose how to start' %}">
             {% for action in actions %}
-                {% if action.available and action.url %}
+                {% if action.available and action.url and action.method == "post" %}
+                    {# Explicit-choice POST action: nothing is created until #}
+                    {# the user clicks. SSOT .../PRIVATE_BETA_LOGIN_TO_WOW.md §3. #}
+                    <form class="first-login-action-form" method="post" action="{{ action.url }}">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="first-login-action{% if action.is_primary %} first-login-action--primary{% endif %}"
+                                data-action="{{ action.key }}"
+                                data-primary="{% if action.is_primary %}true{% else %}false{% endif %}">
+                            {{ action.label }}
+                        </button>
+                    </form>
+                {% elif action.available and action.url %}
                     <a class="first-login-action{% if action.is_primary %} first-login-action--primary{% endif %}"
                        href="{{ action.url }}"
                        data-action="{{ action.key }}"
